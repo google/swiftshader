@@ -811,6 +811,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/ProfileData/InstrProf.cpp
     ${LLVM_DIR}/lib/Support/APFloat.cpp
     ${LLVM_DIR}/lib/Support/APInt.cpp
+    ${LLVM_DIR}/lib/Support/APSInt.cpp
     ${LLVM_DIR}/lib/Support/ARMAttributeParser.cpp
     ${LLVM_DIR}/lib/Support/ARMBuildAttrs.cpp
     ${LLVM_DIR}/lib/Support/BinaryStreamError.cpp

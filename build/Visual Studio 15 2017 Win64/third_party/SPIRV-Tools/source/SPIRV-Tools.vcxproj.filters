@@ -326,19 +326,19 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\9dfff45db06cc5e650558716138bc064\build-version.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\build-version.inc.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{F9C83099-B062-3CB2-AD40-CA4D4008C58C}</UniqueIdentifier>
+      <UniqueIdentifier>{403A9AA3-1D72-38DC-A6AB-1BFDA2377A05}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{BC4B8AD2-A096-36EC-A16A-CFEE34C3D52C}</UniqueIdentifier>
+      <UniqueIdentifier>{281137F3-F765-344F-81A1-5EAF572A72BC}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{307AEBE6-F217-340D-9701-0167F1D37482}</UniqueIdentifier>
+      <UniqueIdentifier>{31403CE8-892F-3DE6-A3E1-A936F5B54DE7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

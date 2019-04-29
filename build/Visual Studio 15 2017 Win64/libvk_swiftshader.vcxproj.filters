@@ -76,10 +76,10 @@
     <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader.cpp">
       <Filter>src\Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader_dbg.cpp">
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShaderSampling.cpp">
       <Filter>src\Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShaderSampling.cpp">
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader_dbg.cpp">
       <Filter>src\Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Pipeline\VertexProgram.cpp">
@@ -173,6 +173,9 @@
       <Filter>src\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipeline.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipelineCache.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.cpp">
@@ -372,6 +375,9 @@
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorPool.hpp">
       <Filter>src\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorSet.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorSetLayout.hpp">
       <Filter>src\Vulkan</Filter>
     </ClInclude>
@@ -459,22 +465,22 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{1D32CFC4-3897-312A-881D-1722E268FA32}</UniqueIdentifier>
+      <UniqueIdentifier>{DEA3D2D6-9E81-34FB-B37F-BFD0AF986E84}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Device">
-      <UniqueIdentifier>{B6C7A296-A2E3-3AD7-AB21-D8704E068C23}</UniqueIdentifier>
+      <UniqueIdentifier>{14BC453F-FC97-3B73-BAAC-9617C0262299}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Pipeline">
-      <UniqueIdentifier>{DB68B895-F268-3B01-9904-1630288F10F5}</UniqueIdentifier>
+      <UniqueIdentifier>{1902A7BC-34C4-3881-A0EF-6D6B70C0F6E9}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\System">
-      <UniqueIdentifier>{1A9F70A4-66B3-30AE-A388-EA8F71BE5E85}</UniqueIdentifier>
+      <UniqueIdentifier>{78961295-BF27-3F30-9489-2B94D8E55999}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Vulkan">
-      <UniqueIdentifier>{5E41697B-4CDE-339E-90E4-78382FB4F934}</UniqueIdentifier>
+      <UniqueIdentifier>{96F7476B-506B-3E99-8756-D84EF9946B56}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\WSI">
-      <UniqueIdentifier>{46FE1358-AF13-386D-B739-661ABC59C446}</UniqueIdentifier>
+      <UniqueIdentifier>{AEFC2729-E50F-387D-A1EE-F61A80E4424D}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
