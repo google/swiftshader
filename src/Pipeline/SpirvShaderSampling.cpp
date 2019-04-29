@@ -75,12 +75,9 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.textureFilter = convertFilterMode(sampler);
 	samplerState.border = sampler->borderColor;
 
-	samplerState.addressingModeU = convertAddressingMode(sampler->addressModeU, imageView->getType());
-	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV, imageView->getType());
-	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW, imageView->getType());
-
-	if (imageView->getType() == VK_IMAGE_VIEW_TYPE_2D_ARRAY)
-		samplerState.addressingModeW = ADDRESSING_LAYER;
+	samplerState.addressingModeU = convertAddressingMode(0, sampler->addressModeU, imageView->getType());
+	samplerState.addressingModeV = convertAddressingMode(1, sampler->addressModeV, imageView->getType());
+	samplerState.addressingModeW = convertAddressingMode(2, sampler->addressModeW, imageView->getType());
 
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
 	samplerState.sRGB = imageView->getFormat().isSRGBformat();
@@ -100,7 +97,7 @@ void SpirvShader::emitSamplerFunction(
 	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
 	SIMD::Float uvw[3];
 	SIMD::Float q(0);     // TODO(b/129523279)
-	SIMD::Float bias(0);
+	SIMD::Float bias(0);  // Bias added to the implicit level-of-detail, or explicit level-of-detail (depending on samplerMethod).
 	Vector4f dsx;         // TODO(b/129523279)
 	Vector4f dsy;         // TODO(b/129523279)
 	Vector4f offset;      // TODO(b/129523279)
@@ -205,8 +202,36 @@ sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
 	}
 }
 
-sw::AddressingMode SpirvShader::convertAddressingMode(VkSamplerAddressMode addressMode, VkImageViewType imageViewType)
+sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSamplerAddressMode addressMode, VkImageViewType imageViewType)
 {
+	switch(imageViewType)
+	{
+	case VK_IMAGE_VIEW_TYPE_CUBE:
+		break;
+	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		UNSUPPORTED("ImageCubeArray");
+		if(coordinateIndex == 3)
+		{
+			return ADDRESSING_LAYER;
+		}
+		break;
+	case VK_IMAGE_VIEW_TYPE_1D:
+	case VK_IMAGE_VIEW_TYPE_2D:
+//	case VK_IMAGE_VIEW_TYPE_3D:
+		break;
+//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+		break;
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+		if(coordinateIndex == 2)
+		{
+			return ADDRESSING_LAYER;
+		}
+		break;
+	default:
+		UNIMPLEMENTED("imageViewType %d", imageViewType);
+		return ADDRESSING_WRAP;
+	}
+
 	// Vulkan 1.1 spec:
 	// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
 	//  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE is used, and if VK_FILTER_LINEAR is used within a mip level then sampling at the edges
@@ -215,7 +240,9 @@ sw::AddressingMode SpirvShader::convertAddressingMode(VkSamplerAddressMode addre
 	switch(imageViewType)
 	{
 	case VK_IMAGE_VIEW_TYPE_CUBE:
-	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		return ADDRESSING_SEAMLESS;
+//	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		UNSUPPORTED("ImageCubeArray");
 		return ADDRESSING_SEAMLESS;
 	case VK_IMAGE_VIEW_TYPE_1D:
 	case VK_IMAGE_VIEW_TYPE_2D:
