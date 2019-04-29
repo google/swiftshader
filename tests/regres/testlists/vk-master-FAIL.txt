@@ -2036,6 +2036,7 @@ dEQP-VK.renderpass.dedicated_allocation.formats.d32_sfloat_s8_uint.load.draw_dep
 dEQP-VK.renderpass.suballocation.attachment.1.51
 dEQP-VK.renderpass.suballocation.attachment.1.77
 dEQP-VK.renderpass.suballocation.attachment.4.519
+dEQP-VK.renderpass.suballocation.attachment_allocation.input_output.97
 dEQP-VK.renderpass.suballocation.attachment_allocation.roll.42
 dEQP-VK.renderpass.suballocation.attachment_allocation.roll.70
 dEQP-VK.renderpass.suballocation.attachment_allocation.roll.95
