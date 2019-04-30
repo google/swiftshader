@@ -4507,6 +4507,7 @@ namespace sw
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const
 	{
 		uint32_t imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(5));
+		imageOperands &= ~spv::ImageOperandsConstOffsetMask;  // Dealt with later.
 
 		if((imageOperands & spv::ImageOperandsLodMask) == imageOperands)
 		{
@@ -4548,9 +4549,8 @@ namespace sw
 		auto imageView = *Pointer<Pointer<Byte>>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
 
 		uint32_t imageOperands = spv::ImageOperandsMaskNone;
-		bool bias = false;
-		bool lod = false;
-		Object::ID lodId = 0;
+		bool lodOrBias = false;
+		Object::ID lodOrBiasId = 0;
 		bool grad = false;
 		Object::ID gradDxId = 0;
 		Object::ID gradDyId = 0;
@@ -4565,22 +4565,26 @@ namespace sw
 
 			if(imageOperands & spv::ImageOperandsBiasMask)
 			{
-				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsBiasMask); (void)bias;
-				bias = true;
+				lodOrBias = true;
+				lodOrBiasId = insn.word(operand);
+				operand++;
 				imageOperands &= ~spv::ImageOperandsBiasMask;
+
+				ASSERT(instruction.samplerMethod == Implicit);
+				instruction.samplerMethod = Bias;
 			}
 
 			if(imageOperands & spv::ImageOperandsLodMask)
 			{
-				lod = true;
-				lodId = insn.word(operand);
+				lodOrBias = true;
+				lodOrBiasId = insn.word(operand);
 				operand++;
 				imageOperands &= ~spv::ImageOperandsLodMask;
 			}
 
 			if(imageOperands & spv::ImageOperandsGradMask)
 			{
-				ASSERT(!lod);  // SPIR-V 1.3: "It is invalid to set both the Lod and Grad bits."
+				ASSERT(!lodOrBias);  // SPIR-V 1.3: "It is invalid to set both the Lod and Grad bits." Bias is for ImplicitLod, Grad for ExplicitLod.
 				grad = true;
 				gradDxId = insn.word(operand + 0);
 				gradDyId = insn.word(operand + 1);
@@ -4632,9 +4636,9 @@ namespace sw
 			UNIMPLEMENTED("OpImageSample*Dref*");  // TODO(b/129523279)
 		}
 
-		if(lod)
+		if(lodOrBias)
 		{
-			auto lodValue = GenericValue(this, state->routine, lodId);
+			auto lodValue = GenericValue(this, state->routine, lodOrBiasId);
 			in[i] = lodValue.Float(0);
 			i++;
 		}

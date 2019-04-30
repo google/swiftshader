@@ -515,7 +515,7 @@ namespace sw
 
 					// Parameters are passed to the sampling routine in this order:
 					uint32_t coordinates : 3;       // 1-4 (does not contain projection component)
-				//	uint32_t lod : 1;               // Indicated by SamplerMethod::Lod
+				//	uint32_t lodOrBias : 1;         // Indicated by SamplerMethod::Lod|Bias
 					uint32_t gradComponents : 2;    // 0-3 (for each of dx / dy)
 					uint32_t offsetComponents : 2;  // 0-3
 				};

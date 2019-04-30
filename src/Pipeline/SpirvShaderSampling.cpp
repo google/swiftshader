@@ -97,7 +97,7 @@ void SpirvShader::emitSamplerFunction(
 	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
 	SIMD::Float uvw[3];
 	SIMD::Float q(0);     // TODO(b/129523279)
-	SIMD::Float bias(0);  // Bias added to the implicit level-of-detail, or explicit level-of-detail (depending on samplerMethod).
+	SIMD::Float lodOrBias(0);  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
 	Vector4f dsx;
 	Vector4f dsy;
 	Vector4f offset;
@@ -117,10 +117,10 @@ void SpirvShader::emitSamplerFunction(
 		uvw[1] = SIMD::Float(0);
 	}
 
-	// Lod and Grad are explicit-lod image operands, and always come after the coordinates.
-	if(instruction.samplerMethod == Lod)
+	if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias)
 	{
-		bias = in[instruction.coordinates];
+		lodOrBias = in[i];
+		i++;
 	}
 	else if(instruction.samplerMethod == Grad)
 	{
@@ -143,7 +143,7 @@ void SpirvShader::emitSamplerFunction(
 		}
 	}
 
-	Vector4f sample = s.sampleTexture(texture, uvw[0], uvw[1], uvw[2], q, bias, dsx, dsy, offset, samplerFunction);
+	Vector4f sample = s.sampleTexture(texture, uvw[0], uvw[1], uvw[2], q, lodOrBias, dsx, dsy, offset, samplerFunction);
 
 	Pointer<SIMD::Float> rgba = out;
 	rgba[0] = sample.x;
