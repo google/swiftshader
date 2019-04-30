@@ -534,8 +534,6 @@ namespace sw
 				Type::ID typeId = insn.word(1);
 				Object::ID resultId = insn.word(2);
 				auto storageClass = static_cast<spv::StorageClass>(insn.word(3));
-				if (insn.wordCount() > 4)
-					UNIMPLEMENTED("Variable initializers not yet supported");
 
 				auto &object = defs[resultId];
 				object.kind = Object::Kind::Pointer;
@@ -2513,6 +2511,35 @@ namespace sw
 		default:
 			UNIMPLEMENTED("Storage class %d", objectTy.storageClass);
 			break;
+		}
+
+		if (insn.wordCount() > 4)
+		{
+			Object::ID initializerId = insn.word(4);
+			if (getObject(initializerId).kind != Object::Kind::Constant)
+			{
+				UNIMPLEMENTED("Non-constant initializers not yet implemented");
+			}
+			switch (objectTy.storageClass)
+			{
+			case spv::StorageClassOutput:
+			case spv::StorageClassPrivate:
+			case spv::StorageClassFunction:
+			{
+				bool interleavedByLane = IsStorageInterleavedByLane(objectTy.storageClass);
+				auto ptr = routine->getPointer(resultId);
+				GenericValue initialValue(this, routine, initializerId);
+				VisitMemoryObject(resultId, [&](uint32_t i, uint32_t offset)
+				{
+					auto p = ptr + offset;
+					if (interleavedByLane) { p = interleaveByLane(p); }
+					SIMD::Store(p, initialValue.Float(i), state->activeLaneMask());
+				});
+				break;
+			}
+			default:
+				ASSERT_MSG(initializerId == 0, "Vulkan does not permit variables of storage class %d to have initializers", int(objectTy.storageClass));
+			}
 		}
 
 		return EmitResult::Continue;
