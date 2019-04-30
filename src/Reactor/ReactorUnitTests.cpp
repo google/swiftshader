@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "Reactor.hpp"
+#include "Coroutine.hpp"
 
 #include "gtest/gtest.h"
 
@@ -1367,6 +1368,82 @@ TYPED_TEST(GEPTest, PtrOffsets)
 	}
 
 	delete routine;
+}
+
+TEST(ReactorUnitTests, Coroutines_Fibonacci)
+{
+	if (!rr::Caps.CoroutinesSupported)
+	{
+		SUCCEED() << "Coroutines not supported";
+		return;
+	}
+
+	Coroutine<int()> function;
+	{
+		Yield(Int(0));
+		Yield(Int(1));
+		Int current = 1;
+		Int next = 1;
+		While (true) {
+			Yield(next);
+			auto tmp = current + next;
+			current = next;
+			next = tmp;
+		}
+	}
+
+	auto coroutine = function();
+
+	int32_t expected[] =
+	{
+		0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
+		2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418,
+		317811,
+	};
+
+	auto count = sizeof(expected) / sizeof(expected[0]);
+
+	for (size_t i = 0; i < count; i++)
+	{
+		int out = 0;
+		EXPECT_EQ(coroutine->await(out), true);
+		EXPECT_EQ(out, expected[i]);
+	}
+}
+
+TEST(ReactorUnitTests, Coroutines_Parameters)
+{
+	if (!rr::Caps.CoroutinesSupported)
+	{
+		SUCCEED() << "Coroutines not supported";
+		return;
+	}
+
+	Coroutine<uint8_t(uint8_t* data, int count)> function;
+	{
+		Pointer<Byte> data = function.Arg<0>();
+		Int count = function.Arg<1>();
+
+		For(Int i = 0, i < count, i++)
+		{
+			Yield(data[i]);
+		}
+	}
+
+	uint8_t data[] = {10, 20, 30};
+	auto coroutine = function(&data[0], 3);
+
+	uint8_t out = 0;
+	EXPECT_EQ(coroutine->await(out), true);
+	EXPECT_EQ(out, 10); out = 0;
+	EXPECT_EQ(coroutine->await(out), true);
+	EXPECT_EQ(out, 20); out = 0;
+	EXPECT_EQ(coroutine->await(out), true);
+	EXPECT_EQ(out, 30); out = 99;
+	EXPECT_EQ(coroutine->await(out), false);
+	EXPECT_EQ(out, 99);
+	EXPECT_EQ(coroutine->await(out), false);
+	EXPECT_EQ(out, 99);
 }
 
 int main(int argc, char **argv)

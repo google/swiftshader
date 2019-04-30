@@ -136,6 +136,7 @@ namespace rr
 	const Capabilities Caps =
 	{
 		false, // CallSupported
+		false, // CoroutinesSupported
 	};
 
 	enum EmulatedType
@@ -497,8 +498,9 @@ namespace rr
 
 		void seek(uint64_t Off) override { position = Off; }
 
-		const void *getEntry() override
+		const void *getEntry(int index) override
 		{
+			ASSERT(index == 0); // Subzero does not support multiple entry points per routine yet.
 			if(!entry)
 			{
 				position = std::numeric_limits<std::size_t>::max();   // Can't stream more data after this
@@ -3479,4 +3481,9 @@ namespace rr
 	void EmitDebugLocation() {}
 	void EmitDebugVariable(Value* value) {}
 	void FlushDebug() {}
+
+	void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params) { UNIMPLEMENTED("createCoroutine"); }
+	Routine* Nucleus::acquireCoroutine(const char *name, bool runOptimizations) { UNIMPLEMENTED("acquireCoroutine"); return nullptr; }
+	void Nucleus::yield(Value* val) { UNIMPLEMENTED("Yield"); }
+
 }

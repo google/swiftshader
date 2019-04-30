@@ -58,7 +58,8 @@ namespace rr
 {
 	struct Capabilities
 	{
-		bool CallSupported; // Support for rr::Call()
+		bool CallSupported;       // Support for rr::Call()
+		bool CoroutinesSupported; // Support for rr::Coroutine<F>
 	};
 	extern const Capabilities Caps;
 

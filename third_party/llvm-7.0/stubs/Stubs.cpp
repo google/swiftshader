@@ -1,4 +1,4 @@
-// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
+// Copyright 2019 The SwiftShader Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,27 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef rr_Routine_hpp
-#define rr_Routine_hpp
+// This file contains LLVM stub functions - these are functions that are never
+// called and are declared to satisfy the linker.
 
-namespace rr
+#include <assert.h>
+
+#define STUB() assert(!"Stub function. Should not be called");
+
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+
+namespace llvm
 {
-	class Routine
-	{
-	public:
-		Routine();
 
-		virtual ~Routine();
+void PassManagerBuilder::addExtension(ExtensionPointTy Ty, ExtensionFn Fn) { STUB(); }
 
-		virtual const void *getEntry(int index = 0) = 0;
-
-		// Reference counting
-		void bind();
-		void unbind();
-
-	private:
-		volatile int bindCount;
-	};
-}
-
-#endif   // rr_Routine_hpp
+} // namespace llvm

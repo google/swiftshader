@@ -306,6 +306,7 @@
     <ClInclude Include="Reactor.hpp" />
     <ClInclude Include="Routine.hpp" />
     <ClInclude Include="Thread.hpp" />
+    <ClInclude Include="Traits.hpp" />
     <ClInclude Include="x86.hpp" />
   </ItemGroup>
   <ItemGroup>

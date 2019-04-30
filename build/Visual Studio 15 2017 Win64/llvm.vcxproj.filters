@@ -115,6 +115,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\MemorySSA.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\MemorySSAUpdater.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\MustExecute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -928,6 +931,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\ExecutionEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\GDBRegistrationListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\Orc\Core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1600,6 +1606,24 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\TargetMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\CoroCleanup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\CoroEarly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\CoroElide.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\CoroFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\CoroSplit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\Coroutines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\InstCombine\InstCombineAddSub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1639,6 +1663,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\InstCombine\InstructionCombining.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\IPO\BarrierNoopPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\ADCE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1646,6 +1673,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\DeadStoreElimination.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\EarlyCSE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\GVN.cpp">
@@ -1739,6 +1769,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\ValueMapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\stubs\Stubs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\AsmParser\X86AsmInstrumentation.cpp">
