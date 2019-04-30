@@ -17,6 +17,7 @@
 
 #include "Nucleus.hpp"
 #include "Routine.hpp"
+#include "Traits.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -230,6 +231,8 @@ namespace rr
 	class RValue
 	{
 	public:
+		using rvalue_underlying_type = T;
+
 		explicit RValue(Value *rvalue);
 
 #ifdef ENABLE_RR_DEBUG_INFO
@@ -2399,14 +2402,23 @@ namespace rr
 
 	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 
+	// ValueOf returns a rr::Value* for the given C-type, RValue<T>, or LValue<T>.
+	template <typename T>
+	inline Value* ValueOf(const T &v)
+	{
+		return ReactorType<T>(v).loadValue();
+	}
+
 	void Return();
-	void Return(RValue<Int> ret);
 
 	template<class T>
-	void Return(const Pointer<T> &ret);
-
-	template<class T>
-	void Return(RValue<Pointer<T>> ret);
+	void Return(const T &ret)
+	{
+		static_assert(CanBeUsedAsReturn< ReactorType<T> >::value, "Unsupported type for Return()");
+		Nucleus::createRet(ValueOf<T>(ret));
+		// Place any unreachable instructions in an unreferenced block.
+		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
+	}
 
 	// Generic template, leave undefined!
 	template<typename FunctionType>
@@ -2416,6 +2428,9 @@ namespace rr
 	template<typename Return, typename... Arguments>
 	class Function<Return(Arguments...)>
 	{
+		// Static assert that the function signature is valid.
+		static_assert(sizeof(AssertFunctionSignatureIsValid<Return(Arguments...)>) >= 0, "Invalid function signature");
+
 	public:
 		Function();
 
@@ -2968,24 +2983,6 @@ namespace rr
 		return RValue<T>(Nucleus::createSelect(condition.value, trueValue, falseValue));
 	}
 
-	template<class T>
-	void Return(const Pointer<T> &ret)
-	{
-		RR_DEBUG_INFO_UPDATE_LOC();
-		Nucleus::createRet(Nucleus::createLoad(ret.address, Pointer<T>::getType()));
-		// Place any unreachable instructions in an unreferenced block.
-		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-	}
-
-	template<class T>
-	void Return(RValue<Pointer<T>> ret)
-	{
-		RR_DEBUG_INFO_UPDATE_LOC();
-		Nucleus::createRet(ret.value);
-		// Place any unreachable instructions in an unreferenced block.
-		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-	}
-
 	template<typename Return, typename... Arguments>
 	Function<Return(Arguments...)>::Function()
 	{
@@ -3069,26 +3066,6 @@ namespace rr
 		return ReinterpretCast<T>(val);
 	}
 
-	template <typename T>
-	inline Value* valueOf(RValue<T> v) { return v.value; }
-
-	template <typename T>
-	inline Value* valueOf(LValue<T> v) { return valueOf(RValue<T>(v.loadValue())); }
-
-	template<typename T>
-	struct CToReactor;
-
-	template<> struct CToReactor<void>         { using type = Void; };
-	template<> struct CToReactor<int>          { using type = Int; };
-	template<> struct CToReactor<unsigned int> { using type = UInt; };
-	template<> struct CToReactor<float>        { using type = Float; };
-	template<> struct CToReactor<int*>         { using type = Pointer<Int>; };
-	template<> struct CToReactor<float*>       { using type = Pointer<Float>; };
-
-	// Pointers to non-reactor types are treated as uint8_t*.
-	template<typename T>
-	struct CToReactor<T*> { using type = Pointer<Byte>; };
-
 	// Returns a reactor pointer to the fixed-address ptr.
 	RValue<Pointer<Byte>> ConstantPointer(void const * ptr);
 
@@ -3104,24 +3081,24 @@ namespace rr
 	class CallHelper<Return(Arguments...)>
 	{
 	public:
-		using RReturn = typename CToReactor<Return>::type;
+		using RReturn = CToReactor<Return>;
 
-		static inline RReturn Call(Return(fptr)(Arguments...), typename CToReactor<Arguments>::type... args)
+		static inline RReturn Call(Return(fptr)(Arguments...), CToReactor<Arguments>... args)
 		{
 			return RValue<RReturn>(rr::Call(
 				ConstantPointer(reinterpret_cast<void*>(fptr)),
 				RReturn::getType(),
-				{ valueOf(args) ... },
-				{ CToReactor<Arguments>::type::getType() ... }));
+				{ ValueOf(args) ... },
+				{ CToReactor<Arguments>::getType() ... }));
 		}
 
-		static inline RReturn Call(Pointer<Byte> fptr, typename CToReactor<Arguments>::type... args)
+		static inline RReturn Call(Pointer<Byte> fptr, CToReactor<Arguments>... args)
 		{
 			return RValue<RReturn>(rr::Call(
 				fptr,
 				RReturn::getType(),
-				{ valueOf(args) ... },
-				{ CToReactor<Arguments>::type::getType() ... }));
+				{ ValueOf(args) ... },
+				{ CToReactor<Arguments>::getType() ... }));
 		}
 	};
 
@@ -3129,26 +3106,26 @@ namespace rr
 	class CallHelper<void(Arguments...)>
 	{
 	public:
-		static inline void Call(void(fptr)(Arguments...), typename CToReactor<Arguments>::type... args)
+		static inline void Call(void(fptr)(Arguments...), CToReactor<Arguments>... args)
 		{
 			rr::Call(ConstantPointer(reinterpret_cast<void*>(fptr)),
 				Void::getType(),
-				{ valueOf(args) ... },
-				{ CToReactor<Arguments>::type::getType() ... });
+				{ ValueOf(args) ... },
+				{ CToReactor<Arguments>::getType() ... });
 		}
 
-		static inline void Call(Pointer<Byte> fptr, typename CToReactor<Arguments>::type... args)
+		static inline void Call(Pointer<Byte> fptr, CToReactor<Arguments>... args)
 		{
 			rr::Call(fptr,
 				Void::getType(),
-				{ valueOf(args) ... },
-				{ CToReactor<Arguments>::type::getType() ... });
+				{ ValueOf(args) ... },
+				{ CToReactor<Arguments>::getType() ... });
 		}
 	};
 
 	// Calls the function pointer fptr with the given arguments args.
 	template<typename Return, typename ... Arguments>
-	inline typename CToReactor<Return>::type Call(Return(fptr)(Arguments...), typename CToReactor<Arguments>::type... args)
+	inline CToReactor<Return> Call(Return(fptr)(Arguments...), CToReactor<Arguments>... args)
 	{
 		return CallHelper<Return(Arguments...)>::Call(fptr, args...);
 	}

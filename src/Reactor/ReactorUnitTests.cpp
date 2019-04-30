@@ -1374,3 +1374,149 @@ int main(int argc, char **argv)
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
+
+////////////////////////////////
+// Trait compile time checks. //
+////////////////////////////////
+
+// Assert CToReactor resolves to expected types.
+static_assert(std::is_same<CToReactor<void>,     Void>::value, "");
+static_assert(std::is_same<CToReactor<bool>,     Bool>::value, "");
+static_assert(std::is_same<CToReactor<uint8_t>,  Byte>::value, "");
+static_assert(std::is_same<CToReactor<int8_t>,   SByte>::value, "");
+static_assert(std::is_same<CToReactor<int16_t>,  Short>::value, "");
+static_assert(std::is_same<CToReactor<uint16_t>, UShort>::value, "");
+static_assert(std::is_same<CToReactor<int32_t>,  Int>::value, "");
+static_assert(std::is_same<CToReactor<uint64_t>, Long>::value, "");
+static_assert(std::is_same<CToReactor<uint32_t>, UInt>::value, "");
+static_assert(std::is_same<CToReactor<float>,    Float>::value, "");
+
+// Assert CToReactor for known pointer types resolves to expected types.
+static_assert(std::is_same<CToReactor<void*>,     Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactor<bool*>,     Pointer<Bool>>::value, "");
+static_assert(std::is_same<CToReactor<uint8_t*>,  Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactor<int8_t*>,   Pointer<SByte>>::value, "");
+static_assert(std::is_same<CToReactor<int16_t*>,  Pointer<Short>>::value, "");
+static_assert(std::is_same<CToReactor<uint16_t*>, Pointer<UShort>>::value, "");
+static_assert(std::is_same<CToReactor<int32_t*>,  Pointer<Int>>::value, "");
+static_assert(std::is_same<CToReactor<uint64_t*>, Pointer<Long>>::value, "");
+static_assert(std::is_same<CToReactor<uint32_t*>, Pointer<UInt>>::value, "");
+static_assert(std::is_same<CToReactor<float*>,    Pointer<Float>>::value, "");
+static_assert(std::is_same<CToReactor<uint16_t**>, Pointer<Pointer<UShort>>>::value, "");
+static_assert(std::is_same<CToReactor<uint16_t***>, Pointer<Pointer<Pointer<UShort>>>>::value, "");
+
+// Assert CToReactor for unknown pointer types resolves to Pointer<Byte>.
+struct S{};
+static_assert(std::is_same<CToReactor<S*>, Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactor<S**>, Pointer<Pointer<Byte>>>::value, "");
+static_assert(std::is_same<CToReactor<S***>, Pointer<Pointer<Pointer<Byte>>>>::value, "");
+
+// Assert IsRValue<> resolves true for RValue<> types.
+static_assert(IsRValue<RValue<Void>>::value, "");
+static_assert(IsRValue<RValue<Bool>>::value, "");
+static_assert(IsRValue<RValue<Byte>>::value, "");
+static_assert(IsRValue<RValue<SByte>>::value, "");
+static_assert(IsRValue<RValue<Short>>::value, "");
+static_assert(IsRValue<RValue<UShort>>::value, "");
+static_assert(IsRValue<RValue<Int>>::value, "");
+static_assert(IsRValue<RValue<Long>>::value, "");
+static_assert(IsRValue<RValue<UInt>>::value, "");
+static_assert(IsRValue<RValue<Float>>::value, "");
+
+// Assert IsLValue<> resolves true for LValue types.
+static_assert(IsLValue<Bool>::value, "");
+static_assert(IsLValue<Byte>::value, "");
+static_assert(IsLValue<SByte>::value, "");
+static_assert(IsLValue<Short>::value, "");
+static_assert(IsLValue<UShort>::value, "");
+static_assert(IsLValue<Int>::value, "");
+static_assert(IsLValue<Long>::value, "");
+static_assert(IsLValue<UInt>::value, "");
+static_assert(IsLValue<Float>::value, "");
+
+// Assert IsRValue<> resolves false for LValue types.
+static_assert(!IsRValue<Void>::value, "");
+static_assert(!IsRValue<Bool>::value, "");
+static_assert(!IsRValue<Byte>::value, "");
+static_assert(!IsRValue<SByte>::value, "");
+static_assert(!IsRValue<Short>::value, "");
+static_assert(!IsRValue<UShort>::value, "");
+static_assert(!IsRValue<Int>::value, "");
+static_assert(!IsRValue<Long>::value, "");
+static_assert(!IsRValue<UInt>::value, "");
+static_assert(!IsRValue<Float>::value, "");
+
+// Assert IsRValue<> resolves false for C types.
+static_assert(!IsRValue<void>::value, "");
+static_assert(!IsRValue<bool>::value, "");
+static_assert(!IsRValue<uint8_t>::value, "");
+static_assert(!IsRValue<int8_t>::value, "");
+static_assert(!IsRValue<int16_t>::value, "");
+static_assert(!IsRValue<uint16_t>::value, "");
+static_assert(!IsRValue<int32_t>::value, "");
+static_assert(!IsRValue<uint64_t>::value, "");
+static_assert(!IsRValue<uint32_t>::value, "");
+static_assert(!IsRValue<float>::value, "");
+
+// Assert IsLValue<> resolves false for RValue<> types.
+static_assert(!IsLValue<RValue<Void>>::value, "");
+static_assert(!IsLValue<RValue<Bool>>::value, "");
+static_assert(!IsLValue<RValue<Byte>>::value, "");
+static_assert(!IsLValue<RValue<SByte>>::value, "");
+static_assert(!IsLValue<RValue<Short>>::value, "");
+static_assert(!IsLValue<RValue<UShort>>::value, "");
+static_assert(!IsLValue<RValue<Int>>::value, "");
+static_assert(!IsLValue<RValue<Long>>::value, "");
+static_assert(!IsLValue<RValue<UInt>>::value, "");
+static_assert(!IsLValue<RValue<Float>>::value, "");
+
+// Assert IsLValue<> resolves false for Void type.
+static_assert(!IsLValue<Void>::value, "");
+
+// Assert IsLValue<> resolves false for C types.
+static_assert(!IsLValue<void>::value, "");
+static_assert(!IsLValue<bool>::value, "");
+static_assert(!IsLValue<uint8_t>::value, "");
+static_assert(!IsLValue<int8_t>::value, "");
+static_assert(!IsLValue<int16_t>::value, "");
+static_assert(!IsLValue<uint16_t>::value, "");
+static_assert(!IsLValue<int32_t>::value, "");
+static_assert(!IsLValue<uint64_t>::value, "");
+static_assert(!IsLValue<uint32_t>::value, "");
+static_assert(!IsLValue<float>::value, "");
+
+// Assert IsDefined<> resolves true for RValue<> types.
+static_assert(IsDefined<RValue<Void>>::value, "");
+static_assert(IsDefined<RValue<Bool>>::value, "");
+static_assert(IsDefined<RValue<Byte>>::value, "");
+static_assert(IsDefined<RValue<SByte>>::value, "");
+static_assert(IsDefined<RValue<Short>>::value, "");
+static_assert(IsDefined<RValue<UShort>>::value, "");
+static_assert(IsDefined<RValue<Int>>::value, "");
+static_assert(IsDefined<RValue<Long>>::value, "");
+static_assert(IsDefined<RValue<UInt>>::value, "");
+static_assert(IsDefined<RValue<Float>>::value, "");
+
+// Assert IsDefined<> resolves true for LValue types.
+static_assert(IsDefined<Void>::value, "");
+static_assert(IsDefined<Bool>::value, "");
+static_assert(IsDefined<Byte>::value, "");
+static_assert(IsDefined<SByte>::value, "");
+static_assert(IsDefined<Short>::value, "");
+static_assert(IsDefined<UShort>::value, "");
+static_assert(IsDefined<Int>::value, "");
+static_assert(IsDefined<Long>::value, "");
+static_assert(IsDefined<UInt>::value, "");
+static_assert(IsDefined<Float>::value, "");
+
+// Assert IsDefined<> resolves true for C types.
+static_assert(IsDefined<void>::value, "");
+static_assert(IsDefined<bool>::value, "");
+static_assert(IsDefined<uint8_t>::value, "");
+static_assert(IsDefined<int8_t>::value, "");
+static_assert(IsDefined<int16_t>::value, "");
+static_assert(IsDefined<uint16_t>::value, "");
+static_assert(IsDefined<int32_t>::value, "");
+static_assert(IsDefined<uint64_t>::value, "");
+static_assert(IsDefined<uint32_t>::value, "");
+static_assert(IsDefined<float>::value, "");
