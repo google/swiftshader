@@ -174,6 +174,9 @@ std::vector<uint32_t> preprocessSpirv(
 		vk::trace("%s: %d:%d %s", category, int(p.line), int(p.column), m);
 	});
 
+
+	opt.RegisterPass(spvtools::CreateDeadBranchElimPass()); // Required for MergeReturnPass
+	opt.RegisterPass(spvtools::CreateMergeReturnPass());
 	opt.RegisterPass(spvtools::CreateInlineExhaustivePass());
 	opt.RegisterPass(spvtools::CreateEliminateDeadFunctionsPass());
 
