@@ -4500,6 +4500,7 @@ namespace sw
 		Object::ID gradDxId = 0;
 		Object::ID gradDyId = 0;
 		bool constOffset = false;
+		Object::ID offsetId = 0;
 		bool sample = false;
 
 		if(insn.wordCount() > 5)
@@ -4534,8 +4535,9 @@ namespace sw
 
 			if(imageOperands & spv::ImageOperandsConstOffsetMask)
 			{
-				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsConstOffsetMask); (void)constOffset;
 				constOffset = true;
+				offsetId = insn.word(operand);
+				operand++;
 				imageOperands &= ~spv::ImageOperandsConstOffsetMask;
 			}
 
@@ -4575,16 +4577,28 @@ namespace sw
 
 			instruction.gradComponents = dxyType.sizeInComponents;
 
-			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++)
+			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++, i++)
 			{
 				in[i] = dxValue.Float(j);
-				i++;
 			}
 
-			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++)
+			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++, i++)
 			{
 				in[i] = dyValue.Float(j);
-				i++;
+			}
+		}
+
+		if(constOffset)
+		{
+			auto offsetValue = GenericValue(this, state->routine, offsetId);
+			auto &offsetType = getType(offsetValue.type);
+
+			instruction.samplerOption = Offset;
+			instruction.offsetComponents = offsetType.sizeInComponents;
+
+			for(uint32_t j = 0; j < offsetType.sizeInComponents; j++, i++)
+			{
+				in[i] = offsetValue.Float(j);  // Integer values, but transfered as float.
 			}
 		}
 

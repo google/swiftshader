@@ -41,7 +41,8 @@ namespace sw
 	enum SamplerOption
 	{
 		None,
-		Offset   // Offset sample location by provided integer coordinates.
+		Offset,   // Offset sample location by provided integer coordinates.
+		SAMPLER_OPTION_LAST = Offset,
 	};
 
 	// TODO(b/129523279): Eliminate and use SpirvShader::ImageInstruction instead.

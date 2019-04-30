@@ -481,9 +481,9 @@ namespace sw
 			// Unmarshal from raw 32-bit data
 			ImageInstruction(uint32_t parameters) : parameters(parameters) {}
 
-			SamplerMethod getSamplerMethod() const
+			SamplerFunction getSamplerFunction() const
 			{
-				return static_cast<SamplerMethod>(samplerMethod);
+				return { static_cast<SamplerMethod>(samplerMethod), static_cast<SamplerOption>(samplerOption) };
 			}
 
 			union
@@ -491,8 +491,10 @@ namespace sw
 				struct
 				{
 					uint32_t samplerMethod : BITS(SAMPLER_METHOD_LAST);
-					uint32_t coordinates : 3;     // 1-4
-					uint32_t gradComponents : 2;  // 0-3 (for each of dx / dy)
+					uint32_t samplerOption : BITS(SAMPLER_OPTION_LAST);
+					uint32_t coordinates : 3;       // 1-4
+					uint32_t gradComponents : 2;    // 0-3 (for each of dx / dy)
+					uint32_t offsetComponents : 2;  // 0-3
 				};
 
 				uint32_t parameters = 0;

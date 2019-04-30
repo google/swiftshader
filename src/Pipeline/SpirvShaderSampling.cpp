@@ -98,12 +98,13 @@ void SpirvShader::emitSamplerFunction(
 	SIMD::Float uvw[3];
 	SIMD::Float q(0);     // TODO(b/129523279)
 	SIMD::Float bias(0);  // Bias added to the implicit level-of-detail, or explicit level-of-detail (depending on samplerMethod).
-	Vector4f dsx;         // TODO(b/129523279)
-	Vector4f dsy;         // TODO(b/129523279)
-	Vector4f offset;      // TODO(b/129523279)
-	SamplerFunction samplerFunction = { instruction.getSamplerMethod(), None };  // TODO(b/129523279)
+	Vector4f dsx;
+	Vector4f dsy;
+	Vector4f offset;
+	SamplerFunction samplerFunction = instruction.getSamplerFunction();
 
-	for(uint32_t i = 0; i < instruction.coordinates; i++)
+	uint32_t i = 0;
+	for( ; i < instruction.coordinates; i++)
 	{
 		uvw[i] = in[i];
 	}
@@ -123,14 +124,22 @@ void SpirvShader::emitSamplerFunction(
 	}
 	else if(instruction.samplerMethod == Grad)
 	{
-		for(uint32_t i = 0; i < instruction.gradComponents; i++)
+		for(uint32_t j = 0; j < instruction.gradComponents; j++, i++)
 		{
-			dsx[i] = in[instruction.coordinates + i];
+			dsx[j] = in[i];
 		}
 
-		for(uint32_t i = 0; i < instruction.gradComponents; i++)
+		for(uint32_t j = 0; j < instruction.gradComponents; j++, i++)
 		{
-			dsy[i] = in[instruction.coordinates + instruction.gradComponents + i];
+			dsy[j] = in[i];
+		}
+	}
+
+	if(instruction.samplerOption == Offset)
+	{
+		for(uint32_t j = 0; j < instruction.offsetComponents; j++, i++)
+		{
+			offset[j] = in[i];
 		}
 	}
 
