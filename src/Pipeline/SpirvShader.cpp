@@ -4564,8 +4564,9 @@ namespace sw
 		auto coordinate = GenericValue(this, state->routine, coordinateId);
 		auto &coordinateType = getType(coordinate.type);
 
-		auto sampler = *Pointer<Pointer<Byte>>(samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler)); // vk::Sampler*
-		auto imageView = *Pointer<Pointer<Byte>>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
+		Pointer<Byte> sampler = samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler); // vk::Sampler*
+		Pointer<Byte> imageView = *Pointer<Pointer<Byte>>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
+		Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
 
 		uint32_t imageOperands = spv::ImageOperandsMaskNone;
 		bool lodOrBias = false;
@@ -4698,7 +4699,7 @@ namespace sw
 		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageView, sampler);
 
 		Array<SIMD::Float> out(4);
-		Call<ImageSampler>(samplerFunc, imageDescriptor, &in[0], &out[0], state->routine->constants);
+		Call<ImageSampler>(samplerFunc, texture, sampler, &in[0], &out[0], state->routine->constants);
 
 		for (int i = 0; i < 4; i++) { result.move(i, out[i]); }
 

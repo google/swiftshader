@@ -32,9 +32,9 @@ struct alignas(16) SampledImageDescriptor
 	void updateSampler(const vk::Sampler *sampler);
 
 	// TODO(b/129523279): Minimize to the data actually needed.
-	const vk::Sampler *sampler;
-	const vk::ImageView *imageView;
+	vk::Sampler sampler;
 
+	const vk::ImageView *imageView;
 	alignas(16) sw::Texture texture;
 };
 

@@ -50,25 +50,6 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t instruction, co
 	auto it = cache.find(key);
 	if (it != cache.end()) { return it->second; }
 
-	// TODO: Hold a separate mutex lock for the sampler being built.
-	auto function = rr::Function<Void(Pointer<Byte> image, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)>();
-	Pointer<Byte> image = function.Arg<0>();
-	Pointer<SIMD::Float> in = function.Arg<1>();
-	Pointer<SIMD::Float> out = function.Arg<2>();
-	Pointer<Byte> constants = function.Arg<3>();
-
-	emitSamplerFunction({instruction}, imageView, sampler, image, in, out, constants);
-
-	auto fptr = reinterpret_cast<ImageSampler*>((void *)function("sampler")->getEntry());
-	cache.emplace(key, fptr);
-	return fptr;
-}
-
-void SpirvShader::emitSamplerFunction(
-        ImageInstruction instruction,
-        const vk::ImageView *imageView, const vk::Sampler *sampler,
-        Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out, Pointer<Byte> constants)
-{
 	Sampler::State samplerState = {};
 	samplerState.textureType = convertTextureType(imageView->getType());
 	samplerState.textureFormat = imageView->getFormat();
@@ -91,64 +72,83 @@ void SpirvShader::emitSamplerFunction(
 	ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
 	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
 
-	SamplerCore s(constants, samplerState);
+	auto fptr = emitSamplerFunction({instruction}, samplerState);
 
-	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
-	SIMD::Float uvw[3];
-	SIMD::Float q(0);     // TODO(b/129523279)
-	SIMD::Float lodOrBias(0);  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
-	Vector4f dsx;
-	Vector4f dsy;
-	Vector4f offset;
-	SamplerFunction samplerFunction = instruction.getSamplerFunction();
+	cache.emplace(key, fptr);
+	return fptr;
+}
 
-	uint32_t i = 0;
-	for( ; i < instruction.coordinates; i++)
+SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction instruction, const Sampler::State &samplerState)
+{
+	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
+	Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
 	{
-		uvw[i] = in[i];
-	}
+		Pointer<Byte> texture = function.Arg<0>();
+		Pointer<Byte> sampler = function.Arg<1>();
+		Pointer<SIMD::Float> in = function.Arg<2>();
+		Pointer<SIMD::Float> out = function.Arg<3>();
+		Pointer<Byte> constants = function.Arg<4>();
 
-	// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
-	// Implement optimized 1D sampling.
-	if(imageView->getType() == VK_IMAGE_VIEW_TYPE_1D ||
-	   imageView->getType() == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
-	{
-		uvw[1] = SIMD::Float(0);
-	}
+		SamplerCore s(constants, samplerState);
 
-	if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias)
-	{
-		lodOrBias = in[i];
-		i++;
-	}
-	else if(instruction.samplerMethod == Grad)
-	{
-		for(uint32_t j = 0; j < instruction.gradComponents; j++, i++)
+		SIMD::Float uvw[3];
+		SIMD::Float q(0);     // TODO(b/129523279)
+		SIMD::Float lodOrBias(0);  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
+		Vector4f dsx;
+		Vector4f dsy;
+		Vector4f offset;
+		SamplerFunction samplerFunction = instruction.getSamplerFunction();
+
+		uint32_t i = 0;
+		for( ; i < instruction.coordinates; i++)
 		{
-			dsx[j] = in[i];
+			uvw[i] = in[i];
 		}
 
-		for(uint32_t j = 0; j < instruction.gradComponents; j++, i++)
+		// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
+		// Implement optimized 1D sampling.
+		if(samplerState.textureType == TEXTURE_1D ||
+			samplerState.textureType == TEXTURE_1D_ARRAY)
 		{
-			dsy[j] = in[i];
+			uvw[1] = SIMD::Float(0);
 		}
+
+		if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias)
+		{
+			lodOrBias = in[i];
+			i++;
+		}
+		else if(instruction.samplerMethod == Grad)
+		{
+			for(uint32_t j = 0; j < instruction.gradComponents; j++, i++)
+			{
+				dsx[j] = in[i];
+			}
+
+			for(uint32_t j = 0; j < instruction.gradComponents; j++, i++)
+			{
+				dsy[j] = in[i];
+			}
+		}
+
+		if(instruction.samplerOption == Offset)
+		{
+			for(uint32_t j = 0; j < instruction.offsetComponents; j++, i++)
+			{
+				offset[j] = in[i];
+			}
+		}
+
+		Vector4f sample = s.sampleTexture(texture, sampler, uvw[0], uvw[1], uvw[2], q, lodOrBias, dsx, dsy, offset, samplerFunction);
+
+		Pointer<SIMD::Float> rgba = out;
+		rgba[0] = sample.x;
+		rgba[1] = sample.y;
+		rgba[2] = sample.z;
+		rgba[3] = sample.w;
 	}
 
-	if(instruction.samplerOption == Offset)
-	{
-		for(uint32_t j = 0; j < instruction.offsetComponents; j++, i++)
-		{
-			offset[j] = in[i];
-		}
-	}
-
-	Vector4f sample = s.sampleTexture(texture, uvw[0], uvw[1], uvw[2], q, lodOrBias, dsx, dsy, offset, samplerFunction);
-
-	Pointer<SIMD::Float> rgba = out;
-	rgba[0] = sample.x;
-	rgba[1] = sample.y;
-	rgba[2] = sample.z;
-	rgba[3] = sample.w;
+	return (ImageSampler*)function("sampler")->getEntry();
 }
 
 sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)

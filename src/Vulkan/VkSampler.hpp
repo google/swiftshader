@@ -16,6 +16,8 @@
 #define VK_SAMPLER_HPP_
 
 #include "VkDevice.hpp"
+#include "Device/Config.hpp"
+#include "System/Math.hpp"
 
 #include <atomic>
 
@@ -37,8 +39,8 @@ public:
 		maxAnisotropy(pCreateInfo->maxAnisotropy),
 		compareEnable(pCreateInfo->compareEnable),
 		compareOp(pCreateInfo->compareOp),
-		minLod(pCreateInfo->minLod),
-		maxLod(pCreateInfo->maxLod),
+		minLod(ClampLod(pCreateInfo->minLod)),
+		maxLod(ClampLod(pCreateInfo->maxLod)),
 		borderColor(pCreateInfo->borderColor),
 		unnormalizedCoordinates(pCreateInfo->unnormalizedCoordinates)
 	{
@@ -49,6 +51,12 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkSamplerCreateInfo* pCreateInfo)
 	{
 		return 0;
+	}
+
+	// Prevents accessing mipmap levels out of range.
+	static float ClampLod(float lod)
+	{
+		return sw::clamp(lod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
 	}
 
 	const uint32_t             id = nextID++;

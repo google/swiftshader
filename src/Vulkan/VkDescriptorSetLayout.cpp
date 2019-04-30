@@ -258,12 +258,12 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 
 void SampledImageDescriptor::updateSampler(const vk::Sampler *sampler)
 {
-	this->sampler = sampler;
-
 	if (sampler)
 	{
-		texture.minLod = sw::clamp(sampler->minLod, 0.0f, (float) (sw::MAX_TEXTURE_LOD));
-		texture.maxLod = sw::clamp(sampler->maxLod, 0.0f, (float) (sw::MAX_TEXTURE_LOD));
+		memcpy(&this->sampler, sampler, sizeof(*sampler));
+
+		texture.minLod = sampler->minLod;
+		texture.maxLod = sampler->maxLod;
 	}
 }
 

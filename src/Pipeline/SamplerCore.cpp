@@ -16,6 +16,7 @@
 
 #include "PixelRoutine.hpp"
 #include "Constants.hpp"
+#include "Vulkan/VkSampler.hpp"
 #include "Vulkan/VkDebug.hpp"
 
 namespace
@@ -50,7 +51,7 @@ namespace sw
 	{
 	}
 
-	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &lodOrBias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
+	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &lodOrBias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
 	{
 		Vector4f c;
 

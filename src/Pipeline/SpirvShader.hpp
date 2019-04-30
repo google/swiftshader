@@ -258,7 +258,7 @@ namespace sw
 		using InsnStore = std::vector<uint32_t>;
 		InsnStore insns;
 
-		using ImageSampler = void(void* image, void* uvsIn, void* texelOut, void* constants);
+		using ImageSampler = void(void* texture, void *sampler, void* uvsIn, void* texelOut, void* constants);
 		using GetImageSampler = ImageSampler*(const vk::ImageView *imageView, const vk::Sampler *sampler);
 
 		/* Pseudo-iterator over SPIRV instructions, designed to support range-based-for. */
@@ -928,10 +928,7 @@ namespace sw
 		std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
 		static ImageSampler *getImageSampler(uint32_t instruction, const vk::ImageView *imageView, const vk::Sampler *sampler);
-		static void emitSamplerFunction(
-			ImageInstruction instruction,
-			const vk::ImageView *imageView, const vk::Sampler *sampler,
-			Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out, Pointer<Byte> constants);
+		static ImageSampler *emitSamplerFunction(ImageInstruction instruction, const Sampler::State &samplerState);
 
 		// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
 		static sw::TextureType convertTextureType(VkImageViewType imageViewType);
