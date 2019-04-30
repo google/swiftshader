@@ -466,12 +466,25 @@ namespace sw
 			inline operator Object::ID() const { return Object::ID(value()); }
 		};
 
+		// OpImageSample variants
+		enum Variant
+		{
+			None,
+			Dref,
+			Proj,
+			ProjDref,
+			VARIANT_LAST = ProjDref
+		};
+
 		// Compact representation of image instruction parameters that is passed to the
 		// trampoline function for retrieving/generating the corresponding sampling routine.
 		struct ImageInstruction
 		{
-			ImageInstruction(SamplerMethod samplerMethod) : samplerMethod(samplerMethod)
+			ImageInstruction(Variant variant, SamplerMethod samplerMethod)
+				: parameters(0)
 			{
+				this->variant = variant;
+				this->samplerMethod = samplerMethod;
 			}
 
 			// Unmarshal from raw 32-bit data
@@ -482,18 +495,32 @@ namespace sw
 				return { static_cast<SamplerMethod>(samplerMethod), static_cast<SamplerOption>(samplerOption) };
 			}
 
+			bool isDref() const
+			{
+				return (variant == Dref) || (variant == ProjDref);
+			}
+
+			bool isProj() const
+			{
+				return (variant == Proj) || (variant == ProjDref);
+			}
+
 			union
 			{
 				struct
 				{
+					uint32_t variant : BITS(VARIANT_LAST);
 					uint32_t samplerMethod : BITS(SAMPLER_METHOD_LAST);
 					uint32_t samplerOption : BITS(SAMPLER_OPTION_LAST);
-					uint32_t coordinates : 3;       // 1-4
+
+					// Parameters are passed to the sampling routine in this order:
+					uint32_t coordinates : 3;       // 1-4 (does not contain projection component)
+				//	uint32_t lod : 1;               // Indicated by SamplerMethod::Lod
 					uint32_t gradComponents : 2;    // 0-3 (for each of dx / dy)
 					uint32_t offsetComponents : 2;  // 0-3
 				};
 
-				uint32_t parameters = 0;
+				uint32_t parameters;
 			};
 		};
 
@@ -867,8 +894,8 @@ namespace sw
 		EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
-		EmitResult EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const;
-		EmitResult EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageSampleImplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageFetch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;

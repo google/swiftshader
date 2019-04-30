@@ -842,6 +842,12 @@ namespace sw
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
 			case spv::OpImageSampleExplicitLod:
+			case spv::OpImageSampleDrefImplicitLod:
+			case spv::OpImageSampleDrefExplicitLod:
+			case spv::OpImageSampleProjImplicitLod:
+			case spv::OpImageSampleProjExplicitLod:
+			case spv::OpImageSampleProjDrefImplicitLod:
+			case spv::OpImageSampleProjDrefExplicitLod:
 			case spv::OpImageFetch:
 			case spv::OpImageQuerySize:
 			case spv::OpImageRead:
@@ -2386,10 +2392,28 @@ namespace sw
 			return EmitKill(insn, state);
 
 		case spv::OpImageSampleImplicitLod:
-			return EmitImageSampleImplicitLod(insn, state);
+			return EmitImageSampleImplicitLod(None, insn, state);
 
 		case spv::OpImageSampleExplicitLod:
-			return EmitImageSampleExplicitLod(insn, state);
+			return EmitImageSampleExplicitLod(None, insn, state);
+
+		case spv::OpImageSampleDrefImplicitLod:
+			return EmitImageSampleImplicitLod(Dref, insn, state);
+
+		case spv::OpImageSampleDrefExplicitLod:
+			return EmitImageSampleExplicitLod(Dref, insn, state);
+
+		case spv::OpImageSampleProjImplicitLod:
+			return EmitImageSampleImplicitLod(Proj, insn, state);
+
+		case spv::OpImageSampleProjExplicitLod:
+			return EmitImageSampleExplicitLod(Proj, insn, state);
+
+		case spv::OpImageSampleProjDrefImplicitLod:
+			return EmitImageSampleImplicitLod(ProjDref, insn, state);
+
+		case spv::OpImageSampleProjDrefExplicitLod:
+			return EmitImageSampleExplicitLod(ProjDref, insn, state);
 
 		case spv::OpImageFetch:
 			return EmitImageFetch(insn, state);
@@ -4457,22 +4481,22 @@ namespace sw
 		return EmitResult::Continue;
 	}
 
-	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const
+	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(Variant variant, InsnIterator insn, EmitState *state) const
 	{
-		return EmitImageSample({Implicit}, insn, state);
+		return EmitImageSample({variant, Implicit}, insn, state);
 	}
 
-	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const
+	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const
 	{
 		uint32_t imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(5));
 
 		if((imageOperands & spv::ImageOperandsLodMask) == imageOperands)
 		{
-			return EmitImageSample({Lod}, insn, state);
+			return EmitImageSample({variant, Lod}, insn, state);
 		}
 		else if((imageOperands & spv::ImageOperandsGradMask) == imageOperands)
 		{
-			return EmitImageSample({Grad}, insn, state);
+			return EmitImageSample({variant, Grad}, insn, state);
 		}
 		else UNIMPLEMENTED("Image Operands %x", imageOperands);
 		return EmitResult::Continue;
@@ -4569,10 +4593,25 @@ namespace sw
 
 		Array<SIMD::Float> in(16);  // Maximum 16 input parameter components.
 
+		uint32_t coordinates = coordinateType.sizeInComponents - instruction.isProj();
+		instruction.coordinates = coordinates;
+
 		uint32_t i = 0;
-		for( ; i < coordinateType.sizeInComponents; i++)
+		for( ; i < coordinates; i++)
 		{
-			in[i] = coordinate.Float(i);
+			if(instruction.isProj())
+			{
+				in[i] = coordinate.Float(i) / coordinate.Float(coordinates);  // TODO(b/129523279): Optimize using reciprocal.
+			}
+			else
+			{
+				in[i] = coordinate.Float(i);
+			}
+		}
+
+		if(instruction.isDref())
+		{
+			UNIMPLEMENTED("OpImageSample*Dref*");  // TODO(b/129523279)
 		}
 
 		if(lod)
@@ -4614,8 +4653,6 @@ namespace sw
 				in[i] = offsetValue.Float(j);  // Integer values, but transfered as float.
 			}
 		}
-
-		instruction.coordinates = coordinateType.sizeInComponents;
 
 		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageView, sampler);
 
