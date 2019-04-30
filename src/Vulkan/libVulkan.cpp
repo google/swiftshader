@@ -2035,7 +2035,9 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 	VkBaseOutStructure* extensionProperties = reinterpret_cast<VkBaseOutStructure*>(pProperties->pNext);
 	while(extensionProperties)
 	{
-		switch(extensionProperties->sType)
+		// Casting to a long since some structures, such as VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_ANDROID
+		// are not enumerated in the official Vulkan header
+		switch((long)(extensionProperties->sType))
 		{
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES:
 			{
@@ -2078,6 +2080,14 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 			ASSERT(!HasExtensionProperty(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME, deviceExtensionProperties,
 			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
 			break;
+#ifdef __ANDROID__
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_ANDROID:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDevicePresentationPropertiesANDROID*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+			}
+			break;
+#endif
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionProperties->sType");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.

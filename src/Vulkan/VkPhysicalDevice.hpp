@@ -17,6 +17,10 @@
 
 #include "VkObject.hpp"
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#include <vulkan/vk_android_native_buffer.h>
+#endif
+
 namespace vk
 {
 
@@ -49,6 +53,9 @@ public:
 	void getProperties(VkPhysicalDeviceSubgroupProperties* properties) const;
 	void getProperties(const VkExternalMemoryHandleTypeFlagBits* handleType, VkExternalImageFormatProperties* properties) const;
 	void getProperties(VkSamplerYcbcrConversionImageFormatProperties* properties) const;
+#ifdef __ANDROID__
+	void getProperties(VkPhysicalDevicePresentationPropertiesANDROID* properties) const;
+#endif
 	void getProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties) const;
 	void getProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties) const;
 	void getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;

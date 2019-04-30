@@ -328,6 +328,13 @@ void PhysicalDevice::getProperties(VkSamplerYcbcrConversionImageFormatProperties
 	properties->combinedImageSamplerDescriptorCount = 0;
 }
 
+#ifdef __ANDROID__
+void PhysicalDevice::getProperties(VkPhysicalDevicePresentationPropertiesANDROID* properties) const
+{
+	properties->sharedImage = VK_FALSE;
+}
+#endif
+
 void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties) const
 {
 	pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
