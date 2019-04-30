@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b3e050b_ab78254f",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-30T21:27:20Z",
+      "side": 1,
+      "message": "nit: Should probably be UNREACHABLE",
+      "range": {
+        "startLine": 183,
+        "startChar": 2,
+        "endLine": 183,
+        "endChar": 15
+      },
+      "revId": "82f558f5626242772ade50a5a3bda50fb568be9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
