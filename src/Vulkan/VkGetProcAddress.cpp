@@ -22,6 +22,7 @@
 #ifdef __ANDROID__
 #include <cerrno>
 #include <hardware/hwvulkan.h>
+#include <vulkan/vk_android_native_buffer.h>
 #endif
 
 namespace vk
@@ -266,6 +267,11 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkQueuePresentKHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
+#else
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainGrallocUsageANDROID),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainGrallocUsage2ANDROID),
+	MAKE_VULKAN_DEVICE_ENTRY(vkAcquireImageANDROID),
+	MAKE_VULKAN_DEVICE_ENTRY(vkQueueSignalReleaseImageANDROID),
 #endif
 };
 #undef MAKE_VULKAN_DEVICE_ENTRY

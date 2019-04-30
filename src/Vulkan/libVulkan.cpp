@@ -46,6 +46,10 @@
 #include "WSI/XlibSurfaceKHR.hpp"
 #endif
 
+#ifdef __ANDROID__
+#include <vulkan/vk_android_native_buffer.h>
+#endif
+
 #include "WSI/VkSwapchainKHR.hpp"
 
 #include <algorithm>
@@ -122,6 +126,8 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 	{ VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME, VK_KHR_VARIABLE_POINTERS_SPEC_VERSION },
 #ifndef __ANDROID__
 	{ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_SPEC_VERSION },
+#else
+	{ VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME, VK_ANDROID_NATIVE_BUFFER_SPEC_VERSION },
 #endif
 };
 
@@ -2502,5 +2508,40 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupSurfacePresentModesKHR(VkDevice d
 }
 
 #endif    // ! __ANDROID__
+
+#ifdef __ANDROID__
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsage2ANDROID(VkDevice device, VkFormat format, VkImageUsageFlags imageUsage, VkSwapchainImageUsageFlagsANDROID swapchainUsage, uint64_t* grallocConsumerUsage, uint64_t* grallocProducerUsage)
+{
+	TRACE("(VkDevice device = 0x%X, VkFormat format = 0x%X, VkImageUsageFlags imageUsage = 0x%X, VkSwapchainImageUsageFlagsANDROID swapchainUsage = 0x%X, uint64_t* grallocConsumerUsage = 0x%X, uin64_t* grallocProducerUsage = 0x%X)",
+			device, format, imageUsage, swapchainUsage, grallocConsumerUsage, grallocProducerUsage);
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format, VkImageUsageFlags imageUsage, int* grallocUsage)
+{
+	TRACE("(VkDevice device = 0x%X, VkFormat format = 0x%X, VkImageUsageFlags imageUsage = 0x%X, int* grallocUsage = 0x%X)",
+			device, format, imageUsage, grallocUsage);
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkAcquireImageANDROID(VkDevice device, VkImage image, int nativeFenceFd, VkSemaphore semaphore, VkFence fence)
+{
+	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, int nativeFenceFd = 0x%X, VkSemaphore semaphore = 0x%X, VkFence fence = 0x%X)",
+			device, image, nativeFenceFd, semaphore, fence);
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image, int* pNativeFenceFd)
+{
+	TRACE("(VkQueue queue = 0x%X, uint32_t waitSemaphoreCount = 0x%X, const VkSemaphore* pWaitSemaphores = 0x%X, VkImage image = 0x%X, int* pNativeFenceFd = 0x%X)",
+			queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
+
+	return VK_SUCCESS;
+}
+#endif // __ANDROID__
 
 }
