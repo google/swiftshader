@@ -905,6 +905,7 @@ namespace sw
 		EmitResult EmitAtomicOp(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitSampledImageCombineOrSplit(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
 
 		SIMD::Pointer GetTexelAddress(SpirvRoutine const * routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
 
