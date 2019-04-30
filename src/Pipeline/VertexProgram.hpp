@@ -22,7 +22,7 @@ namespace sw
 {
 	struct Stream;
 
-	class VertexProgram : public VertexRoutine, public ShaderCore
+	class VertexProgram : public VertexRoutine
 	{
 	public:
 		VertexProgram(

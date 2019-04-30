@@ -22,7 +22,7 @@ namespace sw
 	class PixelShader;
 	class SamplerCore;
 
-	class PixelRoutine : public sw::QuadRasterizer, public ShaderCore
+	class PixelRoutine : public sw::QuadRasterizer
 	{
 	public:
 		PixelRoutine(const PixelProcessor::State &state,
