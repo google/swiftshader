@@ -50,14 +50,10 @@ namespace sw
 	{
 		Mipmap mipmap[MIPMAP_LEVELS];
 
-		float4 widthHeightLOD;
-		float4 widthLOD;
-		float4 heightLOD;
-		float4 depthLOD;
-
-		float maxAnisotropy;     // FIXME(b/129523279): Part of Vulkan sampler.
-		float minLod;  // FIXME(b/129523279): Part of Vulkan sampler.
-		float maxLod;  // FIXME(b/129523279): Part of Vulkan sampler.
+		float4 widthWidthHeightHeight;
+		float4 width;
+		float4 height;
+		float4 depth;
 	};
 
 	enum SamplerType
@@ -143,91 +139,24 @@ namespace sw
 		SWIZZLE_LAST = SWIZZLE_ONE
 	};
 
-	class Sampler
+	struct Sampler
 	{
-	public:
-		struct State
-		{
-			State();
-
-			TextureType textureType;
-			vk::Format textureFormat;
-			FilterType textureFilter;
-			AddressingMode addressingModeU;
-			AddressingMode addressingModeV;
-			AddressingMode addressingModeW;
-			MipmapType mipmapFilter;
-			VkComponentMapping swizzle;
-			bool highPrecisionFiltering;
-			CompareFunc compare;
-			VkBorderColor border;
-
-			#if PERF_PROFILE
-			bool compressedFormat;
-			#endif
-		};
-
-		Sampler();
-
-		~Sampler();
-
-		State samplerState() const;
-
-		void setTextureLevel(int face, int level, vk::Image *image, TextureType type);
-
-		void setTextureFilter(FilterType textureFilter);
-		void setMipmapFilter(MipmapType mipmapFilter);
-		void setGatherEnable(bool enable);
-		void setAddressingModeU(AddressingMode addressingMode);
-		void setAddressingModeV(AddressingMode addressingMode);
-		void setAddressingModeW(AddressingMode addressingMode);
-		void setMaxAnisotropy(float maxAnisotropy);
-		void setHighPrecisionFiltering(bool highPrecisionFiltering);
-		void setCompareFunc(CompareFunc compare);
-		void setMinLod(float minLod);
-		void setMaxLod(float maxLod);
-
-		static void setFilterQuality(FilterType maximumFilterQuality);
-		static void setMipmapQuality(MipmapType maximumFilterQuality);
-		void setMipmapLOD(float lod);
-
-		bool hasTexture() const;
-		bool hasUnsignedTexture() const;
-		bool hasCubeTexture() const;
-		bool hasVolumeTexture() const;
-
-		const Texture &getTextureData();
-
-	private:
-		MipmapType mipmapFilter() const;
-		TextureType getTextureType() const;
-		FilterType getTextureFilter() const;
-		AddressingMode getAddressingModeU() const;
-		AddressingMode getAddressingModeV() const;
-		AddressingMode getAddressingModeW() const;
-		CompareFunc getCompareFunc() const;
-
-		vk::Format textureFormat;
 		TextureType textureType;
-
+		vk::Format textureFormat;
 		FilterType textureFilter;
 		AddressingMode addressingModeU;
 		AddressingMode addressingModeV;
 		AddressingMode addressingModeW;
-		MipmapType mipmapFilterState;
+		MipmapType mipmapFilter;
 		bool sRGB;
-		bool gather;
-		bool highPrecisionFiltering;
-		int border;
-
 		VkComponentMapping swizzle;
+		bool highPrecisionFiltering;
 		CompareFunc compare;
+		VkBorderColor border;
 
-		Texture texture;
-		float exp2LOD;
-
-		static FilterType maximumTextureFilterQuality;
-		static MipmapType maximumMipmapFilterQuality;
+		#if PERF_PROFILE
+		bool compressedFormat;
+		#endif
 	};
 }
 

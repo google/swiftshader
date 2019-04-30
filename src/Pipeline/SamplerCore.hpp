@@ -58,7 +58,7 @@ namespace sw
 	class SamplerCore
 	{
 	public:
-		SamplerCore(Pointer<Byte> &constants, const Sampler::State &state);
+		SamplerCore(Pointer<Byte> &constants, const Sampler &state);
 
 		Vector4f sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &lodOrBias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
@@ -78,9 +78,9 @@ namespace sw
 		Vector4f sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Vector4f &offset, Float &lod, bool secondLOD, SamplerFunction function);
 		Float log2sqrt(Float lod);
 		Float log2(Float lod);
-		void computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &u, Float4 &v, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function);
-		void computeLodCube(Pointer<Byte> &texture, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, Float4 &M, SamplerFunction function);
-		void computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function);
+		void computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &u, Float4 &v, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function);
+		void computeLodCube(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, Float4 &M, SamplerFunction function);
+		void computeLod3D(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function);
 		void cubeFace(Int face[4], Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z, Float4 &M);
 		Short4 applyOffset(Short4 &uvw, Float4 &offset, const Int4 &whd, AddressingMode mode);
 		void computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, SamplerFunction function);
@@ -110,7 +110,7 @@ namespace sw
 		bool isRGBComponent(int component) const;
 
 		Pointer<Byte> &constants;
-		const Sampler::State &state;
+		const Sampler &state;
 	};
 }
 

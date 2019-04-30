@@ -148,7 +148,6 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClCompile Include="..\Device\Point.cpp" />
     <ClCompile Include="..\Device\QuadRasterizer.cpp" />
     <ClCompile Include="..\Device\Renderer.cpp" />
-    <ClCompile Include="..\Device\Sampler.cpp" />
     <ClCompile Include="..\Device\SetupProcessor.cpp" />
     <ClCompile Include="..\Device\SwiftConfig.cpp" />
     <ClCompile Include="..\Device\Vector.cpp" />

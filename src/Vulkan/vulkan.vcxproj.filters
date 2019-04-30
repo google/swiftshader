@@ -57,9 +57,6 @@
     <ClCompile Include="..\Device\SetupProcessor.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
-    <ClCompile Include="..\Device\Sampler.cpp">
-      <Filter>Source Files\Device</Filter>
-    </ClCompile>
     <ClCompile Include="..\Device\Renderer.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>

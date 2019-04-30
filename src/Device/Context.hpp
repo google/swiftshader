@@ -34,7 +34,7 @@ namespace vk
 
 namespace sw
 {
-	class Sampler;
+	struct Sampler;
 	class PixelShader;
 	class VertexShader;
 	class SpirvShader;

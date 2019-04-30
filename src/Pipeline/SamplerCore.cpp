@@ -47,7 +47,7 @@ namespace
 
 namespace sw
 {
-	SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler::State &state) : constants(constants), state(state)
+	SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler &state) : constants(constants), state(state)
 	{
 	}
 
@@ -79,18 +79,18 @@ namespace sw
 		{
 			if(state.textureType != TEXTURE_CUBE)
 			{
-				computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, lodOrBias.x, dsx, dsy, function);
+				computeLod(texture, sampler, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, lodOrBias.x, dsx, dsy, function);
 			}
 			else
 			{
 				Float4 M;
 				cubeFace(face, uuuu, vvvv, u, v, w, M);
-				computeLodCube(texture, lod, u, v, w, lodOrBias.x, dsx, dsy, M, function);
+				computeLodCube(texture, sampler, lod, u, v, w, lodOrBias.x, dsx, dsy, M, function);
 			}
 		}
 		else
 		{
-			computeLod3D(texture, lod, uuuu, vvvv, wwww, lodOrBias.x, dsx, dsy, function);
+			computeLod3D(texture, sampler, lod, uuuu, vvvv, wwww, lodOrBias.x, dsx, dsy, function);
 		}
 
 		// FIXME: YUV is not supported by the floating point path
@@ -1154,7 +1154,7 @@ namespace sw
 		return lod;
 	}
 
-	void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
+	void SamplerCore::computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
 	{
 		if(function != Lod && function != Fetch)
 		{
@@ -1172,8 +1172,8 @@ namespace sw
 				duvdxy = Float4(dudxy.xz, dvdxy.xz);
 			}
 
-			// Scale by texture dimensions and sampler LOD bias.
-			Float4 dUVdxy = duvdxy * *Pointer<Float4>(texture + OFFSET(Texture,widthHeightLOD));
+			// Scale by texture dimensions.
+			Float4 dUVdxy = duvdxy * *Pointer<Float4>(texture + OFFSET(Texture, widthWidthHeightHeight));
 
 			Float4 dUV2dxy = dUVdxy * dUVdxy;
 			Float4 dUV2 = dUV2dxy.xy + dUV2dxy.zw;
@@ -1194,7 +1194,7 @@ namespace sw
 				vDelta = As<Float4>((As<Int4>(dvdx) & mask) | ((As<Int4>(dvdy) & ~mask)));
 
 				anisotropy = lod * Rcp_pp(det);
-				anisotropy = Min(anisotropy, *Pointer<Float>(texture + OFFSET(Texture,maxAnisotropy)));
+				anisotropy = Min(anisotropy, *Pointer<Float>(sampler + OFFSET(vk::Sampler,maxAnisotropy)));
 
 				lod *= Rcp_pp(anisotropy * anisotropy);
 			}
@@ -1221,11 +1221,11 @@ namespace sw
 		}
 		else assert(false);
 
-		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
-		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
+		lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));
+		lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
 	}
 
-	void SamplerCore::computeLodCube(Pointer<Byte> &texture, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, Float4 &M, SamplerFunction function)
+	void SamplerCore::computeLodCube(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &u, Float4 &v, Float4 &w, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, Float4 &M, SamplerFunction function)
 	{
 		if(function != Lod && function != Fetch)
 		{
@@ -1263,7 +1263,7 @@ namespace sw
 			lod = Max(Float(dudxy.y), Float(dudxy.z));   // FIXME: Max(dudxy.y, dudxy.z);
 
 			// Scale by texture dimension and global LOD.
-			lod *= *Pointer<Float>(texture + OFFSET(Texture,widthLOD));
+			lod *= *Pointer<Float>(texture + OFFSET(Texture,width));
 
 			lod = log2(lod);
 
@@ -1287,11 +1287,11 @@ namespace sw
 		}
 		else assert(false);
 
-		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
-		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
+		lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));
+		lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
 	}
 
-	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
+	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float &lodOrBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
 	{
 		if(function != Lod && function != Fetch)
 		{
@@ -1311,9 +1311,9 @@ namespace sw
 			}
 
 			// Scale by texture dimensions and global LOD.
-			dudxy *= *Pointer<Float4>(texture + OFFSET(Texture,widthLOD));
-			dvdxy *= *Pointer<Float4>(texture + OFFSET(Texture,heightLOD));
-			dsdxy *= *Pointer<Float4>(texture + OFFSET(Texture,depthLOD));
+			dudxy *= *Pointer<Float4>(texture + OFFSET(Texture, width));
+			dvdxy *= *Pointer<Float4>(texture + OFFSET(Texture, height));
+			dsdxy *= *Pointer<Float4>(texture + OFFSET(Texture, depth));
 
 			dudxy *= dudxy;
 			dvdxy *= dvdxy;
@@ -1346,8 +1346,8 @@ namespace sw
 		}
 		else assert(false);
 
-		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
-		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
+		lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));
+		lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
 	}
 
 	void SamplerCore::cubeFace(Int face[4], Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z, Float4 &M)

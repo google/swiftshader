@@ -258,12 +258,9 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 
 void SampledImageDescriptor::updateSampler(const vk::Sampler *sampler)
 {
-	if (sampler)
+	if(sampler)
 	{
-		memcpy(&this->sampler, sampler, sizeof(*sampler));
-
-		texture.minLod = sampler->minLod;
-		texture.maxLod = sampler->maxLod;
+		memcpy(&this->sampler, sampler, sizeof(this->sampler));
 	}
 }
 
@@ -357,29 +354,27 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 				int pitchP = imageView->rowPitchBytes(aspect, level) / format.bytes();
 				int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect) : imageView->slicePitchBytes(aspect, level)) / format.bytes();
 
-				float exp2LOD = 1.0f;
-
 				if(mipmapLevel == 0)
 				{
-					texture->widthHeightLOD[0] = width * exp2LOD;
-					texture->widthHeightLOD[1] = width * exp2LOD;
-					texture->widthHeightLOD[2] = height * exp2LOD;
-					texture->widthHeightLOD[3] = height * exp2LOD;
+					texture->widthWidthHeightHeight[0] = width;
+					texture->widthWidthHeightHeight[1] = width;
+					texture->widthWidthHeightHeight[2] = height;
+					texture->widthWidthHeightHeight[3] = height;
 
-					texture->widthLOD[0] = width * exp2LOD;
-					texture->widthLOD[1] = width * exp2LOD;
-					texture->widthLOD[2] = width * exp2LOD;
-					texture->widthLOD[3] = width * exp2LOD;
+					texture->width[0] = width;
+					texture->width[1] = width;
+					texture->width[2] = width;
+					texture->width[3] = width;
 
-					texture->heightLOD[0] = height * exp2LOD;
-					texture->heightLOD[1] = height * exp2LOD;
-					texture->heightLOD[2] = height * exp2LOD;
-					texture->heightLOD[3] = height * exp2LOD;
+					texture->height[0] = height;
+					texture->height[1] = height;
+					texture->height[2] = height;
+					texture->height[3] = height;
 
-					texture->depthLOD[0] = depth * exp2LOD;
-					texture->depthLOD[1] = depth * exp2LOD;
-					texture->depthLOD[2] = depth * exp2LOD;
-					texture->depthLOD[3] = depth * exp2LOD;
+					texture->depth[0] = depth;
+					texture->depth[1] = depth;
+					texture->depth[2] = depth;
+					texture->depth[3] = depth;
 				}
 
 				if(format.isFloatFormat())

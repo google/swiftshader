@@ -37,9 +37,6 @@
     <ClCompile Include="$(SolutionDir)src\Device\Renderer.cpp">
       <Filter>src\Device</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\Device\Sampler.cpp">
-      <Filter>src\Device</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Device\SetupProcessor.cpp">
       <Filter>src\Device</Filter>
     </ClCompile>

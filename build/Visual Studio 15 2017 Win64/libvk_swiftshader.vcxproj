@@ -212,7 +212,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="$(SolutionDir)src\Device\Renderer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Renderer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\RoutineCache.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Device\Sampler.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Sampler.hpp" />
     <ClCompile Include="$(SolutionDir)src\Device\SetupProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\SetupProcessor.hpp" />

@@ -50,7 +50,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t instruction, co
 	auto it = cache.find(key);
 	if (it != cache.end()) { return it->second; }
 
-	Sampler::State samplerState = {};
+	Sampler samplerState = {};
 	samplerState.textureType = convertTextureType(imageView->getType());
 	samplerState.textureFormat = imageView->getFormat();
 	samplerState.textureFilter = convertFilterMode(sampler);
@@ -78,7 +78,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t instruction, co
 	return fptr;
 }
 
-SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction instruction, const Sampler::State &samplerState)
+SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
 	Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
