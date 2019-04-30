@@ -359,7 +359,7 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     buffers = nullptr;
 }
 
-INSTANTIATE_TEST_CASE_P(ComputeParams, SwiftShaderVulkanBufferToBufferComputeTest, testing::Values(
+INSTANTIATE_TEST_SUITE_P(ComputeParams, SwiftShaderVulkanBufferToBufferComputeTest, testing::Values(
     ComputeParams{512, 1, 1, 1},
     ComputeParams{512, 2, 1, 1},
     ComputeParams{512, 4, 1, 1},

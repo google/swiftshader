@@ -236,6 +236,7 @@ else()
         "-Werror=reorder"
         "-Werror=sign-compare"
         "-Werror=missing-braces"
+        "-Wno-class-memaccess"
     )
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
