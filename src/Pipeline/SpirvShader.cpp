@@ -4504,7 +4504,7 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitImageFetch(InsnIterator insn, EmitState *state) const
 	{
-		return EmitImageSample({Fetch}, insn, state);
+		return EmitImageSample({None, Fetch}, insn, state);
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const
