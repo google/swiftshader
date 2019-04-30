@@ -1247,7 +1247,7 @@ using CToReactorCastTestTypes = ::testing::Types
 		std::pair<float,        Float>
 	>;
 
-TYPED_TEST_CASE(CToReactorCastTest, CToReactorCastTestTypes);
+TYPED_TEST_SUITE(CToReactorCastTest, CToReactorCastTestTypes);
 
 TYPED_TEST(CToReactorCastTest, Casts)
 {
@@ -1319,7 +1319,7 @@ using GEPTestTypes = ::testing::Types
 		std::pair<float[4],    Float4>
 	>;
 
-TYPED_TEST_CASE(GEPTest, GEPTestTypes);
+TYPED_TEST_SUITE(GEPTest, GEPTestTypes);
 
 TYPED_TEST(GEPTest, PtrOffsets)
 {
