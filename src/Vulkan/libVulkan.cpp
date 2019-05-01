@@ -48,6 +48,7 @@
 
 #ifdef __ANDROID__
 #include <vulkan/vk_android_native_buffer.h>
+#include <hardware/gralloc1.h>
 #endif
 
 #include "WSI/VkSwapchainKHR.hpp"
@@ -2525,6 +2526,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsage2ANDROID(VkDevice devic
 {
 	TRACE("(VkDevice device = 0x%X, VkFormat format = 0x%X, VkImageUsageFlags imageUsage = 0x%X, VkSwapchainImageUsageFlagsANDROID swapchainUsage = 0x%X, uint64_t* grallocConsumerUsage = 0x%X, uin64_t* grallocProducerUsage = 0x%X)",
 			device, format, imageUsage, swapchainUsage, grallocConsumerUsage, grallocProducerUsage);
+
+	*grallocConsumerUsage = 0;
+	*grallocProducerUsage = GRALLOC1_PRODUCER_USAGE_CPU_WRITE_OFTEN;
 
 	return VK_SUCCESS;
 }
