@@ -80,7 +80,6 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.addressingModeW = convertAddressingMode(2, sampler->addressModeW, imageView->getType());
 
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
-	samplerState.sRGB = imageView->getFormat().isSRGBformat();
 	samplerState.swizzle = imageView->getComponentMapping();
 	samplerState.highPrecisionFiltering = false;
 	samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)

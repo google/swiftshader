@@ -68,8 +68,6 @@ namespace sw
 		word4 mask565Q[8];
 
 		unsigned short sRGBtoLinear8_16[256];
-		unsigned short sRGBtoLinear6_16[64];
-		unsigned short sRGBtoLinear5_16[32];
 
 		unsigned short linearToSRGB12_16[4096];
 		unsigned short sRGBtoLinear12_16[4096];

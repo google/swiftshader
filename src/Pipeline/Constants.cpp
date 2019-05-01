@@ -267,16 +267,6 @@ namespace sw
 			sRGBtoLinear8_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0xFFFF + 0.5f);
 		}
 
-		for(int i = 0; i < 64; i++)
-		{
-			sRGBtoLinear6_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x3F) * 0xFFFF + 0.5f);
-		}
-
-		for(int i = 0; i < 32; i++)
-		{
-			sRGBtoLinear5_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x1F) * 0xFFFF + 0.5f);
-		}
-
 		for(int i = 0; i < 0x1000; i++)
 		{
 			linearToSRGB12_16[i] = (unsigned short)(clamp(sw::linearToSRGB((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));

@@ -157,7 +157,6 @@ namespace sw
 			AddressingMode addressingModeV;
 			AddressingMode addressingModeW;
 			MipmapType mipmapFilter;
-			bool sRGB;
 			VkComponentMapping swizzle;
 			bool highPrecisionFiltering;
 			CompareFunc compare;
@@ -182,7 +181,6 @@ namespace sw
 		void setAddressingModeU(AddressingMode addressingMode);
 		void setAddressingModeV(AddressingMode addressingMode);
 		void setAddressingModeW(AddressingMode addressingMode);
-		void setReadSRGB(bool sRGB);
 		void setMaxAnisotropy(float maxAnisotropy);
 		void setHighPrecisionFiltering(bool highPrecisionFiltering);
 		void setCompareFunc(CompareFunc compare);

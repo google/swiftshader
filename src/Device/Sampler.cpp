@@ -88,7 +88,6 @@ namespace sw
 			state.addressingModeV = getAddressingModeV();
 			state.addressingModeW = getAddressingModeW();
 			state.mipmapFilter = mipmapFilter();
-			state.sRGB = (sRGB && textureFormat.isSRGBreadable()) || textureFormat.isSRGBformat();
 			state.swizzle = swizzle;
 			state.highPrecisionFiltering = highPrecisionFiltering;
 			state.compare = getCompareFunc();
@@ -276,11 +275,6 @@ namespace sw
 	void Sampler::setAddressingModeW(AddressingMode addressingMode)
 	{
 		addressingModeW = addressingMode;
-	}
-
-	void Sampler::setReadSRGB(bool sRGB)
-	{
-		this->sRGB = sRGB;
 	}
 
 	void Sampler::setMaxAnisotropy(float maxAnisotropy)

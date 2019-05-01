@@ -1684,22 +1684,13 @@ namespace sw
 		}
 		else ASSERT(false);
 
-		if(state.sRGB)
+		if (state.textureFormat.isSRGBformat())
 		{
-			if(state.textureFormat == VK_FORMAT_R5G6B5_UNORM_PACK16)
+			for(int i = 0; i < textureComponentCount(); i++)
 			{
-				sRGBtoLinear16_5_16(c.x);
-				sRGBtoLinear16_6_16(c.y);
-				sRGBtoLinear16_5_16(c.z);
-			}
-			else
-			{
-				for(int i = 0; i < textureComponentCount(); i++)
+				if(isRGBComponent(i))
 				{
-					if(isRGBComponent(i))
-					{
-						sRGBtoLinear16_8_16(c[i]);
-					}
+					sRGBtoLinear16_8_16(c[i]);
 				}
 			}
 		}
@@ -2271,30 +2262,6 @@ namespace sw
 		c = As<UShort4>(c) >> 8;
 
 		Pointer<Byte> LUT = Pointer<Byte>(constants + OFFSET(Constants,sRGBtoLinear8_16));
-
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 0))), 0);
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 1))), 1);
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 2))), 2);
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 3))), 3);
-	}
-
-	void SamplerCore::sRGBtoLinear16_6_16(Short4 &c)
-	{
-		c = As<UShort4>(c) >> 10;
-
-		Pointer<Byte> LUT = Pointer<Byte>(constants + OFFSET(Constants,sRGBtoLinear6_16));
-
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 0))), 0);
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 1))), 1);
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 2))), 2);
-		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 3))), 3);
-	}
-
-	void SamplerCore::sRGBtoLinear16_5_16(Short4 &c)
-	{
-		c = As<UShort4>(c) >> 11;
-
-		Pointer<Byte> LUT = Pointer<Byte>(constants + OFFSET(Constants,sRGBtoLinear5_16));
 
 		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 0))), 0);
 		c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 1))), 1);
