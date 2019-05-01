@@ -67,7 +67,11 @@ namespace sw
 			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(frontFacing);
 		}
 
-		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
+		// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
+		// handled separately, through the cMask.
+		auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
+		routine.killMask = 0;
+
 		spirvShader->emit(&routine, activeLaneMask, descriptorSets);
 		spirvShader->emitEpilog(&routine);
 
