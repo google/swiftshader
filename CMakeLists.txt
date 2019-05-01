@@ -236,8 +236,14 @@ else()
         "-Werror=reorder"
         "-Werror=sign-compare"
         "-Werror=missing-braces"
-        "-Wno-class-memaccess"
     )
+    
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+            "-Wno-class-memaccess"
+        )
+    endif()
+
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
