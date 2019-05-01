@@ -3818,8 +3818,8 @@ namespace sw
 		case GLSLstd450UnpackHalf2x16:
 		{
 			auto val = GenericValue(this, routine, insn.word(5));
-			dst.move(0, HalfToFloatBits(val.UInt(0) & SIMD::UInt(0x0000FFFF)));
-			dst.move(1, HalfToFloatBits((val.UInt(0) & SIMD::UInt(0xFFFF0000)) >> 16));
+			dst.move(0, halfToFloatBits(val.UInt(0) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, halfToFloatBits((val.UInt(0) & SIMD::UInt(0xFFFF0000)) >> 16));
 			break;
 		}
 		case GLSLstd450Fma:
@@ -4323,19 +4323,6 @@ namespace sw
 															SIMD::UInt(c_infty_as_fp16)));
 
 		return storeInUpperBits ? ((joined << 16) | justsign) : joined | (justsign >> 16);
-	}
-
-	SIMD::UInt SpirvShader::HalfToFloatBits(SIMD::UInt halfBits) const
-	{
-		static const uint32_t mask_nosign = 0x7FFF;
-		static const uint32_t magic = (254 - 15) << 23;
-		static const uint32_t was_infnan = 0x7BFF;
-		static const uint32_t exp_infnan = 255 << 23;
-
-		SIMD::UInt expmant = halfBits & SIMD::UInt(mask_nosign);
-		return As<SIMD::UInt>(As<SIMD::Float>(expmant << 13) * As<SIMD::Float>(SIMD::UInt(magic))) |
-						 ((halfBits ^ SIMD::UInt(expmant)) << 16) |
-						 (CmpNLE(As<SIMD::UInt>(expmant), SIMD::UInt(was_infnan)) & SIMD::UInt(exp_infnan));
 	}
 
 	std::pair<SIMD::Float, SIMD::Int> SpirvShader::Frexp(RValue<SIMD::Float> val) const
@@ -4868,10 +4855,10 @@ namespace sw
 			dst.move(3, (packed[1] >> 16) & SIMD::Int(0xffff));
 			break;
 		case VK_FORMAT_R16G16B16A16_SFLOAT:
-			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
-			dst.move(1, HalfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
-			dst.move(2, HalfToFloatBits(As<SIMD::UInt>(packed[1]) & SIMD::UInt(0x0000FFFF)));
-			dst.move(3, HalfToFloatBits((As<SIMD::UInt>(packed[1]) & SIMD::UInt(0xFFFF0000)) >> 16));
+			dst.move(0, halfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, halfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
+			dst.move(2, halfToFloatBits(As<SIMD::UInt>(packed[1]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(3, halfToFloatBits((As<SIMD::UInt>(packed[1]) & SIMD::UInt(0xFFFF0000)) >> 16));
 			break;
 		case VK_FORMAT_R8G8B8A8_SNORM:
 			dst.move(0, Min(Max(SIMD::Float(((packed[0]<<24) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
@@ -4956,7 +4943,7 @@ namespace sw
 			dst.move(3, SIMD::Int(1));
 			break;
 		case VK_FORMAT_R16_SFLOAT:
-			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(0, halfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
 			dst.move(1, SIMD::Float(0));
 			dst.move(2, SIMD::Float(0));
 			dst.move(3, SIMD::Float(1));
@@ -4974,8 +4961,8 @@ namespace sw
 			dst.move(3, SIMD::Int(1));
 			break;
 		case VK_FORMAT_R16G16_SFLOAT:
-			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
-			dst.move(1, HalfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
+			dst.move(0, halfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, halfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
 			dst.move(2, SIMD::Float(0));
 			dst.move(3, SIMD::Float(1));
 			break;

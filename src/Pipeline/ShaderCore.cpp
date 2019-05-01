@@ -559,4 +559,17 @@ namespace sw
 		case 4: transpose4x4(row0, row1, row2, row3); break;
 		}
 	}
+
+	UInt4 halfToFloatBits(UInt4 halfBits)
+	{
+		static const uint32_t mask_nosign = 0x7FFF;
+		static const uint32_t magic = (254 - 15) << 23;
+		static const uint32_t was_infnan = 0x7BFF;
+		static const uint32_t exp_infnan = 255 << 23;
+
+		UInt4 expmant = halfBits & UInt4(mask_nosign);
+		return As<UInt4>(As<Float4>(expmant << 13) * As<Float4>(UInt4(magic))) |
+		((halfBits ^ UInt4(expmant)) << 16) |
+		(CmpNLE(As<UInt4>(expmant), UInt4(was_infnan)) & UInt4(exp_infnan));
+	}
 }

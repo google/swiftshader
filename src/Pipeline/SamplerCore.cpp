@@ -195,11 +195,14 @@ namespace sw
 				if(componentCount < 4) c.w = Float4(1.0f);
 				break;
 			case VK_FORMAT_R32_SFLOAT:
+			case VK_FORMAT_R16_SFLOAT:
 				c.y = Float4(0.0f);
 			case VK_FORMAT_R32G32_SFLOAT:
+			case VK_FORMAT_R16G16_SFLOAT:
 				c.z = Float4(0.0f);
 				c.w = Float4(1.0f);
 			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R16G16B16A16_SFLOAT:
 				break;
 			default:
 				ASSERT(false);
@@ -1830,42 +1833,95 @@ namespace sw
 			int f2 = state.textureType == TEXTURE_CUBE ? 2 : 0;
 			int f3 = state.textureType == TEXTURE_CUBE ? 3 : 0;
 
-			// Read texels
-			switch(textureComponentCount())
+			if (has16bitTextureComponents())
 			{
-			case 4:
-				c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
-				c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
-				c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
-				c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
-				transpose4x4(c.x, c.y, c.z, c.w);
-				break;
-			case 3:
-				c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
-				c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
-				c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
-				c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
-				transpose4x3(c.x, c.y, c.z, c.w);
-				break;
-			case 2:
-				// FIXME: Optimal shuffling?
-				c.x.xy = *Pointer<Float4>(buffer[f0] + index[0] * 8);
-				c.x.zw = *Pointer<Float4>(buffer[f1] + index[1] * 8 - 8);
-				c.z.xy = *Pointer<Float4>(buffer[f2] + index[2] * 8);
-				c.z.zw = *Pointer<Float4>(buffer[f3] + index[3] * 8 - 8);
-				c.y = c.x;
-				c.x = Float4(c.x.xz, c.z.xz);
-				c.y = Float4(c.y.yw, c.z.yw);
-				break;
-			case 1:
-				// FIXME: Optimal shuffling?
-				c.x.x = *Pointer<Float>(buffer[f0] + index[0] * 4);
-				c.x.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
-				c.x.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
-				c.x.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
-				break;
-			default:
-				ASSERT(false);
+				switch (textureComponentCount())
+				{
+				case 4:
+				{
+					UInt4 t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 8));
+					UInt4 t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 8));
+					UInt4 t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 8));
+					UInt4 t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 8));
+
+					c.x = As<Float4>(halfToFloatBits(t0));
+					c.y = As<Float4>(halfToFloatBits(t1));
+					c.z = As<Float4>(halfToFloatBits(t2));
+					c.w = As<Float4>(halfToFloatBits(t3));
+					transpose4x4(c.x, c.y, c.z, c.w);
+					break;
+				}
+				case 2:
+				{
+					UInt4 t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 4));
+					UInt4 t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 4));
+					UInt4 t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 4));
+					UInt4 t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 4));
+
+					// FIXME: shuffles
+					c.x = As<Float4>(halfToFloatBits(t0));
+					c.y = As<Float4>(halfToFloatBits(t1));
+					c.z = As<Float4>(halfToFloatBits(t2));
+					c.w = As<Float4>(halfToFloatBits(t3));
+					transpose4x4(c.x, c.y, c.z, c.w);
+					break;
+				}
+				case 1:
+				{
+					UInt4 t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 2));
+					UInt4 t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 2));
+					UInt4 t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 2));
+					UInt4 t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 2));
+
+					c.x.x = Extract(As<Float4>(halfToFloatBits(t0)), 0);
+					c.x.y = Extract(As<Float4>(halfToFloatBits(t1)), 0);
+					c.x.z = Extract(As<Float4>(halfToFloatBits(t2)), 0);
+					c.x.w = Extract(As<Float4>(halfToFloatBits(t3)), 0);
+					break;
+				}
+				default:
+					UNIMPLEMENTED("fp16 sampling %d components", textureComponentCount());
+				}
+			}
+			else
+			{
+				// Read texels
+				switch (textureComponentCount())
+				{
+				case 4:
+					c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
+					c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
+					c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
+					c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
+					transpose4x4(c.x, c.y, c.z, c.w);
+					break;
+				case 3:
+					c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
+					c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
+					c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
+					c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
+					transpose4x3(c.x, c.y, c.z, c.w);
+					break;
+				case 2:
+					// FIXME: Optimal shuffling?
+					c.x.xy = *Pointer<Float4>(buffer[f0] + index[0] * 8);
+					c.x.zw = *Pointer<Float4>(buffer[f1] + index[1] * 8 - 8);
+					c.z.xy = *Pointer<Float4>(buffer[f2] + index[2] * 8);
+					c.z.zw = *Pointer<Float4>(buffer[f3] + index[3] * 8 - 8);
+					c.y = c.x;
+					c.x = Float4(c.x.xz, c.z.xz);
+					c.y = Float4(c.y.yw, c.z.yw);
+					break;
+				case 1:
+					// FIXME: Optimal shuffling?
+					c.x.x = *Pointer<Float>(buffer[f0] + index[0] * 4);
+					c.x.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
+					c.x.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
+					c.x.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
+					break;
+				default:
+					ASSERT(false);
+				}
 			}
 
 			if(state.compare != COMPARE_BYPASS)

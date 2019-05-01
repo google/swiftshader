@@ -918,7 +918,6 @@ namespace sw
 		SIMD::Float Dot(unsigned numComponents, GenericValue const & x, GenericValue const & y) const;
 
 		SIMD::UInt FloatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits) const;
-		SIMD::UInt HalfToFloatBits(SIMD::UInt halfBits) const;
 
 		// Splits x into a floating-point significand in the range [0.5, 1.0)
 		// and an integral exponent of two, such that:
