@@ -142,39 +142,6 @@ bool Format::isSRGBformat() const
 	}
 }
 
-bool Format::isSRGBreadable() const
-{
-	switch(format)
-	{
-	case VK_FORMAT_B8G8R8A8_UNORM:
-	case VK_FORMAT_B8G8R8A8_SRGB:
-	case VK_FORMAT_R8G8B8A8_UNORM:
-	case VK_FORMAT_R8G8B8A8_SRGB:
-	case VK_FORMAT_R5G6B5_UNORM_PACK16:
-	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-		return true;
-	default:
-		return false;
-	}
-}
-
-bool Format::isSRGBwritable() const
-{
-	switch(format)
-	{
-	case VK_FORMAT_UNDEFINED:
-	case VK_FORMAT_B8G8R8A8_UNORM:
-	case VK_FORMAT_B8G8R8A8_SRGB:
-	case VK_FORMAT_R8G8B8A8_UNORM:
-	case VK_FORMAT_R8G8B8A8_SRGB:
-	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-	case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		return true;
-	default:
-		return false;
-	}
-}
-
 bool Format::isFloatFormat() const
 {
 	switch(format)
