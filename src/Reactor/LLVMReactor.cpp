@@ -3444,10 +3444,7 @@ namespace rr
 
 	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 	{
-		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
-		paramTys.push_back(T(Float4::getType()));
-		paramTys.push_back(T(Float4::getType()));
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::pow, paramTys);
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::pow, { T(Float4::getType()) });
 		return RValue<Float4>(V(::builder->CreateCall2(func, ARGS(V(x.value), V(y.value)))));
 	}
 
@@ -3477,10 +3474,7 @@ namespace rr
 
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
-		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
-		paramTys.push_back(T(UInt4::getType()));
-		paramTys.push_back(T(Bool::getType()));
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::ctlz, paramTys);
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::ctlz, { T(UInt4::getType()) } );
 		return RValue<UInt4>(V(::builder->CreateCall2(func, ARGS(
 			V(v.value),
 			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
@@ -3489,10 +3483,7 @@ namespace rr
 
 	RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	{
-		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
-		paramTys.push_back(T(UInt4::getType()));
-		paramTys.push_back(T(Bool::getType()));
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cttz, paramTys);
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cttz, { T(UInt4::getType()) } );
 		return RValue<UInt4>(V(::builder->CreateCall2(func, ARGS(
 			V(v.value),
 			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
