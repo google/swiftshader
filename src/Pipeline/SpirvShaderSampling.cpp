@@ -156,7 +156,7 @@ sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)
 	{
 	case VK_IMAGE_VIEW_TYPE_1D:         return TEXTURE_1D;
 	case VK_IMAGE_VIEW_TYPE_2D:         return TEXTURE_2D;
-//	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
+	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
 	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
@@ -224,7 +224,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 		break;
 	case VK_IMAGE_VIEW_TYPE_1D:
 	case VK_IMAGE_VIEW_TYPE_2D:
-//	case VK_IMAGE_VIEW_TYPE_3D:
+	case VK_IMAGE_VIEW_TYPE_3D:
 		break;
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
 		break;
@@ -253,7 +253,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 		return ADDRESSING_SEAMLESS;
 	case VK_IMAGE_VIEW_TYPE_1D:
 	case VK_IMAGE_VIEW_TYPE_2D:
-//	case VK_IMAGE_VIEW_TYPE_3D:
+	case VK_IMAGE_VIEW_TYPE_3D:
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 		break;
