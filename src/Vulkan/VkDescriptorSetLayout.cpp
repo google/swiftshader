@@ -262,6 +262,12 @@ void SampledImageDescriptor::updateSampler(const vk::Sampler *sampler)
 	{
 		memcpy(&this->sampler, sampler, sizeof(this->sampler));
 	}
+	else
+	{
+		// Descriptor ID's start at 1, allowing to detect descriptor update
+		// bugs by checking for 0. Also avoid reading random values.
+		memset(&this->sampler, 0, sizeof(this->sampler));
+	}
 }
 
 void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)

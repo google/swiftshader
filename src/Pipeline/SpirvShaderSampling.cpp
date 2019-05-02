@@ -37,8 +37,11 @@
 
 namespace sw {
 
-SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t instruction, const vk::ImageView *imageView, const vk::Sampler *sampler)
+SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, const vk::ImageView *imageView, const vk::Sampler *sampler)
 {
+	ImageInstruction instruction(inst);
+	ASSERT(imageView->id != 0 && (sampler->id != 0 || instruction.samplerMethod == Fetch));
+
 	// TODO(b/129523279): Move somewhere sensible.
 	static std::unordered_map<uint64_t, ImageSampler*> cache;
 	static std::mutex mutex;
@@ -72,7 +75,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t instruction, co
 	ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
 	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
 
-	auto fptr = emitSamplerFunction({instruction}, samplerState);
+	auto fptr = emitSamplerFunction(instruction, samplerState);
 
 	cache.emplace(key, fptr);
 	return fptr;
