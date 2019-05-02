@@ -1706,6 +1706,7 @@ bool Format::has16bitTextureFormat() const
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		return false;
 	default:
 		UNIMPLEMENTED("Format: %d", int(format));
@@ -1759,6 +1760,7 @@ bool Format::has8bitTextureComponents() const
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		return false;
 	default:
 		UNIMPLEMENTED("Format: %d", int(format));
@@ -1800,6 +1802,7 @@ bool Format::has16bitTextureComponents() const
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		return false;
 	case VK_FORMAT_R16G16_UNORM:
 	case VK_FORMAT_R16G16B16A16_UNORM:
@@ -1858,6 +1861,7 @@ bool Format::has32bitIntegerTextureComponents() const
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		return false;
 	case VK_FORMAT_R32_SINT:
 	case VK_FORMAT_R32_UINT:
@@ -1918,6 +1922,7 @@ bool Format::hasYuvFormat() const
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		return false;
 	default:
 		UNIMPLEMENTED("Format: %d", int(format));
@@ -1970,6 +1975,7 @@ bool Format::isRGBComponent(int component) const
 	case VK_FORMAT_R32G32B32A32_UINT:
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		return component < 3;
 	default:
 		UNIMPLEMENTED("Format: %d", int(format));
