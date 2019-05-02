@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3aecb859_c6307bb8",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1701,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-02T03:21:41Z",
+      "side": 1,
+      "message": "Note this can also be achieved by multiplying by 0x5555. Mask off and multiply by 1.0f / 0xC000 at the end is probably even cheaper. Anyway, that\u0027s post-1.0.",
+      "range": {
+        "startLine": 1701,
+        "startChar": 6,
+        "endLine": 1701,
+        "endChar": 54
+      },
+      "revId": "d573e7e7e95baa1fc067da412bd722a62fc63d4a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
