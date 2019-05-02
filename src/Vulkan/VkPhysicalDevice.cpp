@@ -13,10 +13,11 @@
 // limitations under the License.
 
 #include "VkPhysicalDevice.hpp"
-#include "VkConfig.h"
 
+#include "VkConfig.h"
 #include "Pipeline/SpirvShader.hpp" // sw::SIMD::Width
 
+#include <limits>
 #include <cstring>
 
 namespace vk
@@ -204,7 +205,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		4, // mipmapPrecisionBits
 		UINT32_MAX, // maxDrawIndexedIndexValue
 		UINT32_MAX, // maxDrawIndirectCount
-		2, // maxSamplerLodBias
+		std::numeric_limits<float>::infinity(), // maxSamplerLodBias (no clamping takes place)
 		16, // maxSamplerAnisotropy
 		16, // maxViewports
 		{ 4096, 4096 }, // maxViewportDimensions[2]

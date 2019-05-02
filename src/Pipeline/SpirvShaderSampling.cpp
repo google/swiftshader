@@ -68,10 +68,6 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, const vk:
 	samplerState.highPrecisionFiltering = false;
 	samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
 
-//	minLod  // TODO(b/129523279)
-//	maxLod  // TODO(b/129523279)
-//	borderColor  // TODO(b/129523279)
-	ASSERT(sampler->mipLodBias == 0.0f);  // TODO(b/129523279)
 	ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
 	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
 

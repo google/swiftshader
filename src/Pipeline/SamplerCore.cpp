@@ -121,6 +121,7 @@ namespace sw
 
 		if(function != Base)
 		{
+			lod += *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
 			lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));
 			lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
 		}
