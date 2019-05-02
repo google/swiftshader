@@ -963,6 +963,13 @@ namespace rr
 			}
 		}
 
+#ifdef ENABLE_RR_DEBUG_INFO
+		if (debugInfo != nullptr)
+		{
+			debugInfo->Finalize();
+		}
+#endif // ENABLE_RR_DEBUG_INFO
+
 		if(false)
 		{
 			std::error_code error;
@@ -981,13 +988,6 @@ namespace rr
 			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
 			::module->print(file, 0);
 		}
-
-#ifdef ENABLE_RR_DEBUG_INFO
-		if (debugInfo != nullptr)
-		{
-			debugInfo->Finalize();
-		}
-#endif // ENABLE_RR_DEBUG_INFO
 
 		LLVMRoutine *routine = ::reactorJIT->acquireRoutine(::function);
 
