@@ -251,6 +251,7 @@ namespace sw
 			case VK_FORMAT_R8G8B8A8_SRGB:
 			case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 			case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 				if(componentCount < 2) c.y = Float4(0.0f);
 				if(componentCount < 3) c.z = Float4(0.0f);
 				if(componentCount < 4) c.w = Float4(1.0f);
@@ -1937,6 +1938,19 @@ namespace sw
 				c.x = Float4((t0) & UInt4(0x1FF)) * c.w;
 				c.y = Float4((t0 >> 9) & UInt4(0x1FF)) * c.w;
 				c.z = Float4((t0 >> 18) & UInt4(0x1FF)) * c.w;
+				break;
+			}
+			case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+			{
+				Float4 t;		// TODO: add Insert(UInt4, RValue<UInt>)
+				t.x = *Pointer<Float>(buffer[f0] + index[0] * 4);
+				t.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
+				t.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
+				t.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
+				t0 = As<UInt4>(t);
+				c.x = As<Float4>(halfToFloatBits((t0 << 4) & UInt4(0x7FF0)));
+				c.y = As<Float4>(halfToFloatBits((t0 >> 7) & UInt4(0x7FF0)));
+				c.z = As<Float4>(halfToFloatBits((t0 >> 17) & UInt4(0x7FE0)));
 				break;
 			}
 			default:
