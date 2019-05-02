@@ -64,8 +64,6 @@ namespace sw
 			bool centroid;
 			bool frontFaceCCW;
 			VkFormat depthFormat;
-
-			Sampler sampler[TEXTURE_IMAGE_UNITS];
 		};
 
 		struct State : States

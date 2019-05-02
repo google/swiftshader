@@ -92,7 +92,6 @@ namespace sw
 
 		const void *input[MAX_VERTEX_INPUTS];
 		unsigned int stride[MAX_VERTEX_INPUTS];
-		Texture mipmap[TOTAL_IMAGE_UNITS];
 		const void *indices;
 
 		int instanceID;

@@ -148,7 +148,6 @@ namespace sw
 		AddressingMode addressingModeV;
 		AddressingMode addressingModeW;
 		MipmapType mipmapFilter;
-		bool sRGB;
 		VkComponentMapping swizzle;
 		bool highPrecisionFiltering;
 		CompareFunc compare;
