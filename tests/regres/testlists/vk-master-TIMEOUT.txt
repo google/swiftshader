@@ -14,6 +14,5 @@ dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_single_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_single_command
-dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_single_command
 dEQP-VK.glsl.loops.special.do_while_dynamic_iterations.dowhile_trap_vertex
