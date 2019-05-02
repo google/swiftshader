@@ -52,6 +52,7 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Mangler.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetOptions.h"
@@ -975,6 +976,15 @@ namespace rr
 			std::error_code error;
 			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
 			::module->print(file, 0);
+		}
+
+		// FIXME: Disable for release builds once heavy development is over.
+		bool verifyIR = true;
+		if(verifyIR)
+		{
+			llvm::legacy::PassManager pm;
+			pm.add(llvm::createVerifierPass());
+			pm.run(*::module);
 		}
 
 		if(runOptimizations)
