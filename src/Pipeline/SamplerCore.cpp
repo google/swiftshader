@@ -1835,6 +1835,7 @@ namespace sw
 		Vector4f c;
 
 		UInt index[4];
+		UInt4 t0, t1, t2, t3;
 		computeIndices(index, uuuu, vvvv, wwww, mipmap, function);
 
 		if(hasFloatTexture() || has32bitIntegerTextureComponents())
@@ -1844,95 +1845,86 @@ namespace sw
 			int f2 = state.textureType == TEXTURE_CUBE ? 2 : 0;
 			int f3 = state.textureType == TEXTURE_CUBE ? 3 : 0;
 
-			if (has16bitTextureComponents())
+			switch (state.textureFormat)
 			{
-				switch (textureComponentCount())
-				{
-				case 4:
-				{
-					UInt4 t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 8));
-					UInt4 t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 8));
-					UInt4 t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 8));
-					UInt4 t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 8));
+			case VK_FORMAT_R16_SFLOAT:
+				t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 2));
+				t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 2));
+				t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 2));
+				t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 2));
 
-					c.x = As<Float4>(halfToFloatBits(t0));
-					c.y = As<Float4>(halfToFloatBits(t1));
-					c.z = As<Float4>(halfToFloatBits(t2));
-					c.w = As<Float4>(halfToFloatBits(t3));
-					transpose4x4(c.x, c.y, c.z, c.w);
-					break;
-				}
-				case 2:
-				{
-					UInt4 t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 4));
-					UInt4 t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 4));
-					UInt4 t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 4));
-					UInt4 t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 4));
+				c.x.x = Extract(As<Float4>(halfToFloatBits(t0)), 0);
+				c.x.y = Extract(As<Float4>(halfToFloatBits(t1)), 0);
+				c.x.z = Extract(As<Float4>(halfToFloatBits(t2)), 0);
+				c.x.w = Extract(As<Float4>(halfToFloatBits(t3)), 0);
+				break;
+			case VK_FORMAT_R16G16_SFLOAT:
+				t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 4));
+				t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 4));
+				t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 4));
+				t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 4));
 
-					// FIXME: shuffles
-					c.x = As<Float4>(halfToFloatBits(t0));
-					c.y = As<Float4>(halfToFloatBits(t1));
-					c.z = As<Float4>(halfToFloatBits(t2));
-					c.w = As<Float4>(halfToFloatBits(t3));
-					transpose4x4(c.x, c.y, c.z, c.w);
-					break;
-				}
-				case 1:
-				{
-					UInt4 t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 2));
-					UInt4 t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 2));
-					UInt4 t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 2));
-					UInt4 t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 2));
+				// FIXME: shuffles
+				c.x = As<Float4>(halfToFloatBits(t0));
+				c.y = As<Float4>(halfToFloatBits(t1));
+				c.z = As<Float4>(halfToFloatBits(t2));
+				c.w = As<Float4>(halfToFloatBits(t3));
+				transpose4x4(c.x, c.y, c.z, c.w);
+				break;
+			case VK_FORMAT_R16G16B16A16_SFLOAT:
+				t0 = Int4(*Pointer<UShort4>(buffer[f0] + index[0] * 8));
+				t1 = Int4(*Pointer<UShort4>(buffer[f1] + index[1] * 8));
+				t2 = Int4(*Pointer<UShort4>(buffer[f2] + index[2] * 8));
+				t3 = Int4(*Pointer<UShort4>(buffer[f3] + index[3] * 8));
 
-					c.x.x = Extract(As<Float4>(halfToFloatBits(t0)), 0);
-					c.x.y = Extract(As<Float4>(halfToFloatBits(t1)), 0);
-					c.x.z = Extract(As<Float4>(halfToFloatBits(t2)), 0);
-					c.x.w = Extract(As<Float4>(halfToFloatBits(t3)), 0);
-					break;
-				}
-				default:
-					UNIMPLEMENTED("fp16 sampling %d components", textureComponentCount());
-				}
-			}
-			else
-			{
-				// Read texels
-				switch (textureComponentCount())
-				{
-				case 4:
-					c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
-					c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
-					c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
-					c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
-					transpose4x4(c.x, c.y, c.z, c.w);
-					break;
-				case 3:
-					c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
-					c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
-					c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
-					c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
-					transpose4x3(c.x, c.y, c.z, c.w);
-					break;
-				case 2:
-					// FIXME: Optimal shuffling?
-					c.x.xy = *Pointer<Float4>(buffer[f0] + index[0] * 8);
-					c.x.zw = *Pointer<Float4>(buffer[f1] + index[1] * 8 - 8);
-					c.z.xy = *Pointer<Float4>(buffer[f2] + index[2] * 8);
-					c.z.zw = *Pointer<Float4>(buffer[f3] + index[3] * 8 - 8);
-					c.y = c.x;
-					c.x = Float4(c.x.xz, c.z.xz);
-					c.y = Float4(c.y.yw, c.z.yw);
-					break;
-				case 1:
-					// FIXME: Optimal shuffling?
-					c.x.x = *Pointer<Float>(buffer[f0] + index[0] * 4);
-					c.x.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
-					c.x.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
-					c.x.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
-					break;
-				default:
-					ASSERT(false);
-				}
+				c.x = As<Float4>(halfToFloatBits(t0));
+				c.y = As<Float4>(halfToFloatBits(t1));
+				c.z = As<Float4>(halfToFloatBits(t2));
+				c.w = As<Float4>(halfToFloatBits(t3));
+				transpose4x4(c.x, c.y, c.z, c.w);
+				break;
+			case VK_FORMAT_R32_SFLOAT:
+			case VK_FORMAT_R32_SINT:
+			case VK_FORMAT_R32_UINT:
+				// FIXME: Optimal shuffling?
+				c.x.x = *Pointer<Float>(buffer[f0] + index[0] * 4);
+				c.x.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
+				c.x.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
+				c.x.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
+				break;
+			case VK_FORMAT_R32G32_SFLOAT:
+			case VK_FORMAT_R32G32_SINT:
+			case VK_FORMAT_R32G32_UINT:
+				// FIXME: Optimal shuffling?
+				c.x.xy = *Pointer<Float4>(buffer[f0] + index[0] * 8);
+				c.x.zw = *Pointer<Float4>(buffer[f1] + index[1] * 8 - 8);
+				c.z.xy = *Pointer<Float4>(buffer[f2] + index[2] * 8);
+				c.z.zw = *Pointer<Float4>(buffer[f3] + index[3] * 8 - 8);
+				c.y = c.x;
+				c.x = Float4(c.x.xz, c.z.xz);
+				c.y = Float4(c.y.yw, c.z.yw);
+				break;
+			case VK_FORMAT_R32G32B32_SFLOAT:
+			case VK_FORMAT_R32G32B32_SINT:
+			case VK_FORMAT_R32G32B32_UINT:
+				c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
+				c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
+				c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
+				c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
+				transpose4x3(c.x, c.y, c.z, c.w);
+				break;
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R32G32B32A32_SINT:
+			case VK_FORMAT_R32G32B32A32_UINT:
+				c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
+				c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
+				c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
+				c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
+				transpose4x4(c.x, c.y, c.z, c.w);
+				break;
+
+			default:
+				UNIMPLEMENTED("Format %d", VkFormat(state.textureFormat));
 			}
 
 			if(state.compare != COMPARE_BYPASS)
