@@ -4196,15 +4196,15 @@ namespace rr
 	void Return()
 	{
 		Nucleus::createRetVoid();
+		// Place any unreachable instructions in an unreferenced block.
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-		Nucleus::createUnreachable();
 	}
 
 	void Return(RValue<Int> ret)
 	{
 		Nucleus::createRet(ret.value);
+		// Place any unreachable instructions in an unreferenced block.
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-		Nucleus::createUnreachable();
 	}
 
 	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)

@@ -2973,8 +2973,8 @@ namespace rr
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 		Nucleus::createRet(Nucleus::createLoad(ret.address, Pointer<T>::getType()));
+		// Place any unreachable instructions in an unreferenced block.
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-		Nucleus::createUnreachable();
 	}
 
 	template<class T>
@@ -2982,8 +2982,8 @@ namespace rr
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 		Nucleus::createRet(ret.value);
+		// Place any unreachable instructions in an unreferenced block.
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-		Nucleus::createUnreachable();
 	}
 
 	template<typename Return, typename... Arguments>
