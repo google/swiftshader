@@ -1080,6 +1080,8 @@ namespace rr
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 
+		ASSERT_MSG(::function->getReturnType() == T(Void::getType()), "Return type mismatch");
+
 		// Code generated after this point is unreachable, so any variables
 		// being read can safely return an undefined value. We have to avoid
 		// materializing variables after the terminator ret instruction.
@@ -1091,6 +1093,8 @@ namespace rr
 	void Nucleus::createRet(Value *v)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
+
+		ASSERT_MSG(::function->getReturnType() == V(v)->getType(), "Return type mismatch");
 
 		// Code generated after this point is unreachable, so any variables
 		// being read can safely return an undefined value. We have to avoid
