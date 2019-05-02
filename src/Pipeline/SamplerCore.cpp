@@ -257,6 +257,7 @@ namespace sw
 				break;
 			case VK_FORMAT_R32_SFLOAT:
 			case VK_FORMAT_R16_SFLOAT:
+			case VK_FORMAT_D32_SFLOAT:
 				c.y = Float4(0.0f);
 			case VK_FORMAT_R32G32_SFLOAT:
 			case VK_FORMAT_R16G16_SFLOAT:
@@ -1887,6 +1888,7 @@ namespace sw
 			case VK_FORMAT_R32_SFLOAT:
 			case VK_FORMAT_R32_SINT:
 			case VK_FORMAT_R32_UINT:
+			case VK_FORMAT_D32_SFLOAT:
 				// FIXME: Optimal shuffling?
 				c.x.x = *Pointer<Float>(buffer[f0] + index[0] * 4);
 				c.x.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
