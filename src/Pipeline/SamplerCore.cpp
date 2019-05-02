@@ -151,6 +151,12 @@ namespace sw
 						c.z *= Float4(1.0f / 0xF000);
 						c.w *= Float4(1.0f / 0xF000);
 						break;
+					case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+						c.x *= Float4(1.0f / 0xF800);
+						c.y *= Float4(1.0f / 0xF800);
+						c.z *= Float4(1.0f / 0xF800);
+						c.w *= Float4(1.0f / 0x8000);
+						break;
 					default:
 						ASSERT(false);
 					}
@@ -180,6 +186,13 @@ namespace sw
 				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF000);
 				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF000);
 				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xF000);
+			}
+			else if (state.textureFormat == VK_FORMAT_A1R5G5B5_UNORM_PACK16)
+			{
+				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
+				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF800);
+				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
+				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0x8000);
 			}
 			else
 			{
@@ -253,6 +266,7 @@ namespace sw
 			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 				break;
 			default:
 				ASSERT(false);
@@ -1503,6 +1517,12 @@ namespace sw
 				c.z = (c.x) & Short4(0xF000);
 				c.y = (c.x << 4) & Short4(0xF000);
 				c.x = (c.x << 8) & Short4(0xF000);
+				break;
+			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+				c.w = (c.x) & Short4(0x8000);
+				c.z = (c.x << 11) & Short4(0xF800);
+				c.y = (c.x << 6) & Short4(0xF800);
+				c.x = (c.x << 1) & Short4(0xF800);
 				break;
 			default:
 				ASSERT(false);
