@@ -590,7 +590,7 @@ namespace sw
 					}
 					else
 					{
-						return VK_BLEND_OP_ZERO_EXT;
+						return VK_BLEND_OP_REVERSE_SUBTRACT;
 					}
 				}
 			case VK_BLEND_OP_MIN:
