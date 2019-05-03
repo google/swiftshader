@@ -262,6 +262,15 @@ namespace sw
 			maskD01X[i][3] =  -(i >> 1 & 1);
 		}
 
+		for (int i = 0; i < 16; i++)
+		{
+			mask10Q[i][0] = mask10Q[i][1] =
+					(i & 0x1 ? 0x3FF : 0) |
+					(i & 0x2 ? 0xFFC00 : 0) |
+					(i & 0x4 ? 0x3FF00000 : 0) |
+					(i & 0x8 ? 0xC0000000 : 0);
+		}
+
 		for(int i = 0; i < 256; i++)
 		{
 			sRGBtoLinear8_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0xFFFF + 0.5f);

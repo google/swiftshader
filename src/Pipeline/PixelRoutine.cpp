@@ -1982,6 +1982,7 @@ namespace sw
 		case VK_FORMAT_R16_UINT:
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			break;
 		case VK_FORMAT_R32G32_SFLOAT:
 		case VK_FORMAT_R32G32_SINT:
@@ -2399,6 +2400,35 @@ namespace sw
 					mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask][0]));
 				}
 				*Pointer<UInt2>(buffer) = (packedCol & mergedMask) | (value & ~mergedMask);
+			}
+			break;
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+			if ((rgbaWriteMask & 0x0000000F) != 0x0)
+			{
+				Int2 mergedMask, packedCol, value;
+				Int4 packed = ((As<Int4>(oC.w) & Int4(0x3)) << 30) |
+						((As<Int4>(oC.z) & Int4(0x3ff)) << 20) |
+						((As<Int4>(oC.y) & Int4(0x3ff)) << 10) |
+						((As<Int4>(oC.x) & Int4(0x3ff)));
+
+				buffer = cBuffer + 4 * x;
+				value = *Pointer<Int2>(buffer, 16);
+				mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
+				if (rgbaWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
+				}
+				*Pointer<Int2>(buffer) = (As<Int2>(packed) & mergedMask) | (value & ~mergedMask);
+
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+				value = *Pointer<Int2>(buffer, 16);
+				mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
+				if (rgbaWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
+				}
+				*Pointer<Int2>(buffer) = (As<Int2>(Int4(packed.zwww)) & mergedMask) | (value & ~mergedMask);
 			}
 			break;
 		default:

@@ -191,6 +191,7 @@ namespace sw
 			case VK_FORMAT_R8G8B8A8_UINT:
 			case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 			case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
@@ -233,6 +234,7 @@ namespace sw
 			case VK_FORMAT_R16G16B16A16_UNORM:
 			case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 			case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 				oC[index].x = Max(oC[index].x, Float4(0.0f)); oC[index].x = Min(oC[index].x, Float4(1.0f));
 				oC[index].y = Max(oC[index].y, Float4(0.0f)); oC[index].y = Min(oC[index].y, Float4(1.0f));
 				oC[index].z = Max(oC[index].z, Float4(0.0f)); oC[index].z = Min(oC[index].z, Float4(1.0f));
@@ -261,6 +263,7 @@ namespace sw
 			case VK_FORMAT_R8G8B8A8_UINT:
 			case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 			case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 				break;
 			default:
 				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
