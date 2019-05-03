@@ -36,7 +36,7 @@ namespace sw
 
 	void SetupRoutine::generate()
 	{
-		Function<Bool(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
+		Function<Int(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
 		{
 			Pointer<Byte> primitive(function.Arg<0>());
 			Pointer<Byte> tri(function.Arg<1>());
@@ -85,7 +85,7 @@ namespace sw
 
 				If(A == 0.0f)
 				{
-					Return(false);
+					Return(0);
 				}
 
 				Int w0w1w2 = *Pointer<Int>(v0 + OFFSET(Vertex, builtins.position.w)) ^
@@ -98,11 +98,11 @@ namespace sw
 
 				if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
 				{
-					If(frontFacing) Return(false);
+					If(frontFacing) Return(0);
 				}
 				if(state.cullMode & VK_CULL_MODE_BACK_BIT)
 				{
-					If(!frontFacing) Return(false);
+					If(!frontFacing) Return(0);
 				}
 
 				d = IfThenElse(A > 0.0f, d, Int(0));
@@ -183,7 +183,7 @@ namespace sw
 			// code below assumes yMin < yMax.
 			If(yMin >= yMax)
 			{
-				Return(false);
+				Return(0);
 			}
 
 			For(Int q = 0, q < state.multiSample, q++)
@@ -254,7 +254,7 @@ namespace sw
 
 					If(yMin == yMax)
 					{
-						Return(false);
+						Return(0);
 					}
 
 					*Pointer<Short>(leftEdge + (yMin - 1) * sizeof(Primitive::Span)) = *Pointer<Short>(leftEdge + yMin * sizeof(Primitive::Span));
@@ -453,7 +453,7 @@ namespace sw
 							state.perspective, 0);
 			}
 
-			Return(true);
+			Return(1);
 		}
 
 		routine = function("SetupRoutine");

@@ -37,7 +37,7 @@ namespace sw
 
 	void SetupRoutine::generate()
 	{
-		Function<Bool(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
+		Function<Int(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
 		{
 			Pointer<Byte> primitive(function.Arg<0>());
 			Pointer<Byte> tri(function.Arg<1>());
@@ -90,7 +90,7 @@ namespace sw
 
 				If(A == 0.0f)
 				{
-					Return(false);
+					Return(0);
 				}
 
 				Int w0w1w2 = *Pointer<Int>(v0 + pos * 16 + 12) ^
@@ -101,11 +101,11 @@ namespace sw
 
 				if(state.cullMode == CULL_CLOCKWISE)
 				{
-					If(A >= 0.0f) Return(false);
+					If(A >= 0.0f) Return(0);
 				}
 				else if(state.cullMode == CULL_COUNTERCLOCKWISE)
 				{
-					If(A <= 0.0f) Return(false);
+					If(A <= 0.0f) Return(0);
 				}
 
 				d = IfThenElse(A < 0.0f, d, Int(0));
@@ -197,7 +197,7 @@ namespace sw
 			// code below assumes yMin < yMax.
 			If(yMin >= yMax)
 			{
-				Return(false);
+				Return(0);
 			}
 
 			For(Int q = 0, q < state.multiSample, q++)
@@ -268,7 +268,7 @@ namespace sw
 
 					If(yMin == yMax)
 					{
-						Return(false);
+						Return(0);
 					}
 
 					*Pointer<Short>(leftEdge + (yMin - 1) * sizeof(Primitive::Span)) = *Pointer<Short>(leftEdge + yMin * sizeof(Primitive::Span));
@@ -476,7 +476,7 @@ namespace sw
 				setupGradient(primitive, tri, w012, M, v0, v1, v2, OFFSET(Vertex,f), OFFSET(Primitive,f), state.fog.flat, false, state.perspective, false, 0);
 			}
 
-			Return(true);
+			Return(1);
 		}
 
 		routine = function("SetupRoutine");
