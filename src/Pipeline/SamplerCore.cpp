@@ -259,6 +259,7 @@ namespace sw
 			case VK_FORMAT_R32_SFLOAT:
 			case VK_FORMAT_R16_SFLOAT:
 			case VK_FORMAT_D32_SFLOAT:
+			case VK_FORMAT_D16_UNORM:
 				c.y = Float4(0.0f);
 			case VK_FORMAT_R32G32_SFLOAT:
 			case VK_FORMAT_R16G16_SFLOAT:
