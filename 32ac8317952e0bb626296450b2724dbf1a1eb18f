@@ -16,6 +16,24 @@
       "revId": "32ac8317952e0bb626296450b2724dbf1a1eb18f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "193f0ea2_0626e6aa",
+        "filename": "src/Vulkan/VkImage.hpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-05-03T13:56:37Z",
+      "side": 1,
+      "message": "Right, the VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT flag only ALLOWS the ImageView to be created with the types VK_IMAGE_VIEW_TYPE_2D or VK_IMAGE_VIEW_TYPE_2D_ARRAY, but doesn\u0027t force it. Will fix.",
+      "parentUuid": "2522f54d_f8ee0eac",
+      "revId": "32ac8317952e0bb626296450b2724dbf1a1eb18f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
