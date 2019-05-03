@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2522f54d_f8ee0eac",
+        "filename": "src/Vulkan/VkImage.hpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-05-03T00:22:28Z",
+      "side": 1,
+      "message": "This is bogus and the root of a bunch of bad behavior. Being a 3D slice isn\u0027t a property of the image, it\u0027s a property of the view.",
+      "revId": "32ac8317952e0bb626296450b2724dbf1a1eb18f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
