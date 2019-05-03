@@ -101,13 +101,27 @@ namespace sw
 				0, 0, // sWidth, sHeight
 			};
 
-			for(subresLayers.baseArrayLayer = subresourceRange.baseArrayLayer; subresLayers.baseArrayLayer <= lastLayer; subresLayers.baseArrayLayer++)
+			if (renderArea && dest->is3DSlice())
 			{
-				for(uint32_t depth = 0; depth < extent.depth; depth++)
+				// Reinterpret layers as depth slices
+				subresLayers.baseArrayLayer = 0;
+				subresLayers.layerCount = 1;
+				for (uint32_t depth = subresourceRange.baseArrayLayer; depth <= lastLayer; depth++)
 				{
-					data.dest = dest->getTexelPointer({ 0, 0, static_cast<int32_t>(depth) }, subresLayers);
-
+					data.dest = dest->getTexelPointer({0, 0, static_cast<int32_t>(depth)}, subresLayers);
 					blitFunction(&data);
+				}
+			}
+			else
+			{
+				for(subresLayers.baseArrayLayer = subresourceRange.baseArrayLayer; subresLayers.baseArrayLayer <= lastLayer; subresLayers.baseArrayLayer++)
+				{
+					for(uint32_t depth = 0; depth < extent.depth; depth++)
+					{
+						data.dest = dest->getTexelPointer({ 0, 0, static_cast<int32_t>(depth) }, subresLayers);
+
+						blitFunction(&data);
+					}
 				}
 			}
 		}
