@@ -1434,6 +1434,17 @@ static_assert(IsLValue<Long>::value, "");
 static_assert(IsLValue<UInt>::value, "");
 static_assert(IsLValue<Float>::value, "");
 
+// Assert IsReference<> resolves true for Reference types.
+static_assert(IsReference<Reference<Bool>>::value, "");
+static_assert(IsReference<Reference<Byte>>::value, "");
+static_assert(IsReference<Reference<SByte>>::value, "");
+static_assert(IsReference<Reference<Short>>::value, "");
+static_assert(IsReference<Reference<UShort>>::value, "");
+static_assert(IsReference<Reference<Int>>::value, "");
+static_assert(IsReference<Reference<Long>>::value, "");
+static_assert(IsReference<Reference<UInt>>::value, "");
+static_assert(IsReference<Reference<Float>>::value, "");
+
 // Assert IsRValue<> resolves false for LValue types.
 static_assert(!IsRValue<Void>::value, "");
 static_assert(!IsRValue<Bool>::value, "");
@@ -1445,6 +1456,18 @@ static_assert(!IsRValue<Int>::value, "");
 static_assert(!IsRValue<Long>::value, "");
 static_assert(!IsRValue<UInt>::value, "");
 static_assert(!IsRValue<Float>::value, "");
+
+// Assert IsRValue<> resolves false for Reference types.
+static_assert(!IsRValue<Reference<Void>>::value, "");
+static_assert(!IsRValue<Reference<Bool>>::value, "");
+static_assert(!IsRValue<Reference<Byte>>::value, "");
+static_assert(!IsRValue<Reference<SByte>>::value, "");
+static_assert(!IsRValue<Reference<Short>>::value, "");
+static_assert(!IsRValue<Reference<UShort>>::value, "");
+static_assert(!IsRValue<Reference<Int>>::value, "");
+static_assert(!IsRValue<Reference<Long>>::value, "");
+static_assert(!IsRValue<Reference<UInt>>::value, "");
+static_assert(!IsRValue<Reference<Float>>::value, "");
 
 // Assert IsRValue<> resolves false for C types.
 static_assert(!IsRValue<void>::value, "");
@@ -1472,6 +1495,18 @@ static_assert(!IsLValue<RValue<Float>>::value, "");
 
 // Assert IsLValue<> resolves false for Void type.
 static_assert(!IsLValue<Void>::value, "");
+
+// Assert IsLValue<> resolves false for Reference<> types.
+static_assert(!IsLValue<Reference<Void>>::value, "");
+static_assert(!IsLValue<Reference<Bool>>::value, "");
+static_assert(!IsLValue<Reference<Byte>>::value, "");
+static_assert(!IsLValue<Reference<SByte>>::value, "");
+static_assert(!IsLValue<Reference<Short>>::value, "");
+static_assert(!IsLValue<Reference<UShort>>::value, "");
+static_assert(!IsLValue<Reference<Int>>::value, "");
+static_assert(!IsLValue<Reference<Long>>::value, "");
+static_assert(!IsLValue<Reference<UInt>>::value, "");
+static_assert(!IsLValue<Reference<Float>>::value, "");
 
 // Assert IsLValue<> resolves false for C types.
 static_assert(!IsLValue<void>::value, "");
@@ -1508,6 +1543,17 @@ static_assert(IsDefined<Int>::value, "");
 static_assert(IsDefined<Long>::value, "");
 static_assert(IsDefined<UInt>::value, "");
 static_assert(IsDefined<Float>::value, "");
+
+// Assert IsDefined<> resolves true for Reference<> types.
+static_assert(IsDefined<Reference<Bool>>::value, "");
+static_assert(IsDefined<Reference<Byte>>::value, "");
+static_assert(IsDefined<Reference<SByte>>::value, "");
+static_assert(IsDefined<Reference<Short>>::value, "");
+static_assert(IsDefined<Reference<UShort>>::value, "");
+static_assert(IsDefined<Reference<Int>>::value, "");
+static_assert(IsDefined<Reference<Long>>::value, "");
+static_assert(IsDefined<Reference<UInt>>::value, "");
+static_assert(IsDefined<Reference<Float>>::value, "");
 
 // Assert IsDefined<> resolves true for C types.
 static_assert(IsDefined<void>::value, "");

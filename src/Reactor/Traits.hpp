@@ -121,6 +121,10 @@ namespace rr
 	// IsLValue::value is true if T is of, or derives from type LValue<T>.
 	template <typename T> struct IsLValue { static constexpr bool value = std::is_base_of<LValue<T>, T>::value; };
 
+	// IsReference::value is true if T is of type Reference<X>, where X is any type.
+	template <typename T, typename Enable = void> struct IsReference { static constexpr bool value = false; };
+	template <typename T> struct IsReference<T, typename std::enable_if<IsDefined<typename T::reference_underlying_type>::value>::type> { static constexpr bool value = true; };
+
 	// ReactorType<T> returns the LValue Reactor type for T.
 	// T can be a C-type, RValue or LValue.
 	template<typename T, typename ENABLE = void> struct ReactorTypeT;
@@ -128,6 +132,8 @@ namespace rr
 	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsDefined<CToReactor<T>>::value>::type> { using type = CToReactor<T>; };
 	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsRValue<T>::value>::type> { using type = typename T::rvalue_underlying_type; };
 	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsLValue<T>::value>::type> { using type = T; };
+	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsReference<T>::value>::type> { using type = T; };
+
 
 	// Reactor types that can be used as a return type for a function.
 	template <typename T> struct CanBeUsedAsReturn { static constexpr bool value = false; };

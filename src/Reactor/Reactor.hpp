@@ -161,6 +161,8 @@ namespace rr
 	class Reference
 	{
 	public:
+		using reference_underlying_type = T;
+
 		explicit Reference(Value *pointer, int alignment = 1);
 
 		RValue<T> operator=(RValue<T> rhs) const;
@@ -2402,7 +2404,8 @@ namespace rr
 
 	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 
-	// ValueOf returns a rr::Value* for the given C-type, RValue<T>, or LValue<T>.
+	// ValueOf returns a rr::Value* for the given C-type, RValue<T>, LValue<T>
+	// or Reference<T>.
 	template <typename T>
 	inline Value* ValueOf(const T &v)
 	{
