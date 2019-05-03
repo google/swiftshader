@@ -1273,11 +1273,36 @@ namespace rr
 			// Fallthrough to non-emulated case.
 		case Type_LLVM:
 			{
-				ASSERT(V(ptr)->getType()->getContainedType(0) == T(type));
-				auto load = new llvm::LoadInst(V(ptr), "", isVolatile, alignment);
-				load->setAtomic(atomicOrdering(atomic, memoryOrder));
-
-				return V(::builder->Insert(load));
+				auto elTy = T(type);
+				ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
+				if (atomic && !(elTy->isIntegerTy() || elTy->isPointerTy() || elTy->isFloatTy()))
+				{
+					// atomic load operand must have integer, pointer, or floating point type
+					// Fall back to using:
+					//   void __atomic_load(size_t size, void *ptr, void *ret, int ordering)
+					auto sizetTy = ::llvm::IntegerType::get(*::context, sizeof(size_t) * 8);
+					auto intTy = ::llvm::IntegerType::get(*::context, sizeof(int) * 8);
+					auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+					auto i8PtrTy = i8Ty->getPointerTo();
+					auto voidTy = ::llvm::Type::getVoidTy(*::context);
+					auto funcTy = ::llvm::FunctionType::get(voidTy, {sizetTy, i8PtrTy, i8PtrTy, intTy}, false);
+					auto func = ::module->getOrInsertFunction("__atomic_load", funcTy);
+  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
+					auto out = allocateStackVariable(type);
+					::builder->CreateCall(func, {
+						::llvm::ConstantInt::get(sizetTy, size),
+						::builder->CreatePointerCast(V(ptr), i8PtrTy),
+						::builder->CreatePointerCast(V(out), i8PtrTy),
+						::llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
+					 });
+					 return V(::builder->CreateLoad(V(out)));
+				}
+				else
+				{
+					auto load = new llvm::LoadInst(V(ptr), "", isVolatile, alignment);
+					load->setAtomic(atomicOrdering(atomic, memoryOrder));
+					return V(::builder->Insert(load));
+				}
 			}
 		default:
 			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
@@ -1313,9 +1338,35 @@ namespace rr
 			// Fallthrough to non-emulated case.
 		case Type_LLVM:
 			{
-				ASSERT(V(ptr)->getType()->getContainedType(0) == T(type));
-				auto store = ::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
-				store->setAtomic(atomicOrdering(atomic, memoryOrder));
+				auto elTy = T(type);
+				ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
+				if (atomic && !(elTy->isIntegerTy() || elTy->isPointerTy() || elTy->isFloatTy()))
+				{
+					// atomic store operand must have integer, pointer, or floating point type
+					// Fall back to using:
+					//   void __atomic_store(size_t size, void *ptr, void *val, int ordering)
+					auto sizetTy = ::llvm::IntegerType::get(*::context, sizeof(size_t) * 8);
+					auto intTy = ::llvm::IntegerType::get(*::context, sizeof(int) * 8);
+					auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+					auto i8PtrTy = i8Ty->getPointerTo();
+					auto voidTy = ::llvm::Type::getVoidTy(*::context);
+					auto funcTy = ::llvm::FunctionType::get(voidTy, {sizetTy, i8PtrTy, i8PtrTy, intTy}, false);
+					auto func = ::module->getOrInsertFunction("__atomic_store", funcTy);
+  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
+					auto copy = allocateStackVariable(type);
+					::builder->CreateStore(V(value), V(copy));
+					::builder->CreateCall(func, {
+						::llvm::ConstantInt::get(sizetTy, size),
+						::builder->CreatePointerCast(V(ptr), i8PtrTy),
+						::builder->CreatePointerCast(V(copy), i8PtrTy),
+						::llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
+					 });
+				}
+				else
+				{
+					auto store = ::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
+					store->setAtomic(atomicOrdering(atomic, memoryOrder));
+				}
 
 				return value;
 			}
