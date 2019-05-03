@@ -1045,11 +1045,11 @@ namespace sw
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
 		Int4 x0, x1, y0, y1, z0;
-		Float4 fu, fv;
+		Float4 fu, fv, fw;
 		Int4 filter = computeFilterOffset(lod);
 		address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU, function);
 		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
-		address(w, z0, z0, fv, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
+		address(w, z0, z0, fw, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
 
 		Int4 pitchP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, pitchP), 16);
 		y0 *= pitchP;
