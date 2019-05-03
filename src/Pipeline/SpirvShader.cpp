@@ -5015,6 +5015,12 @@ namespace sw
 			dst.move(2, SIMD::Float(0));
 			dst.move(3, SIMD::Float(1));
 			break;
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+			dst.move(0, (packed[0]) & SIMD::Int(0x3FF));
+			dst.move(1, (packed[0] >> 10) & SIMD::Int(0x3FF));
+			dst.move(2, (packed[0] >> 20) & SIMD::Int(0x3FF));
+			dst.move(3, (packed[0] >> 30) & SIMD::Int(0x3));
+			break;
 		default:
 			UNIMPLEMENTED("spv::ImageFormat %d", int(vkFormat));
 			break;
