@@ -93,6 +93,17 @@ namespace sw
 			}
 		}
 
+		it = spirvShader->outputBuiltins.find(spv::BuiltInSampleMask);
+		if (it != spirvShader->outputBuiltins.end())
+		{
+			auto outputSampleMask = As<SIMD::Int>(routine.getVariable(it->second.Id)[it->second.FirstComponent]);
+
+			for (auto i = 0u; i < state.multiSample; i++)
+			{
+				cMask[i] &= SignMask(CmpNEQ(outputSampleMask & SIMD::Int(1<<i), SIMD::Int(0)));
+			}
+		}
+
 		it = spirvShader->outputBuiltins.find(spv::BuiltInFragDepth);
 		if (it != spirvShader->outputBuiltins.end())
 		{
