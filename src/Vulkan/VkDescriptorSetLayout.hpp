@@ -44,6 +44,7 @@ struct alignas(16) StorageImageDescriptor
 	VkExtent3D extent;
 	int rowPitchBytes;
 	int slicePitchBytes;
+	int samplePitchBytes;
 	int arrayLayers;
 	int sizeInBytes;
 };

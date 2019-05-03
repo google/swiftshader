@@ -4756,7 +4756,7 @@ namespace sw
 		return EmitResult::Continue;
 	}
 
-	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const
+	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId) const
 	{
 		bool isArrayed = imageType.definition.word(5) != 0;
 		auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
@@ -4787,6 +4787,13 @@ namespace sw
 					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, slicePitchBytes)));
 		}
 
+		if (sampleId.value())
+		{
+			GenericValue sample{this, routine, sampleId};
+			ptr += sample.Int(0) * SIMD::Int(
+					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, samplePitchBytes)));
+		}
+
 		return ptr;
 	}
 
@@ -4798,8 +4805,21 @@ namespace sw
 		auto &imageType = getType(image.type);
 		Object::ID resultId = insn.word(2);
 
-		// Not handling any image operands yet.
-		ASSERT(insn.wordCount() == 5);
+		Object::ID sampleId = 0;
+
+		if (insn.wordCount() > 5)
+		{
+			int operand = 6;
+			auto imageOperands = insn.word(5);
+			if (imageOperands & spv::ImageOperandsSampleMask)
+			{
+				sampleId = insn.word(operand++);
+				imageOperands &= ~spv::ImageOperandsSampleMask;
+			}
+
+			// Should be no remaining image operands.
+			ASSERT(!imageOperands);
+		}
 
 		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
 		auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
@@ -4821,7 +4841,7 @@ namespace sw
 						: SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(imageType.definition.word(8)));
 		auto texelSize = vk::Format(vkFormat).bytes();
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize);
+		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize, sampleId);
 
 		SIMD::Int packed[4];
 		// Round up texel size: for formats smaller than 32 bits per texel, we will emit a bunch
@@ -5156,7 +5176,7 @@ namespace sw
 		}
 
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize);
+		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize, 0);
 
 		for (auto i = 0u; i < numPackedElements; i++)
 		{
@@ -5188,7 +5208,7 @@ namespace sw
 		auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto ptr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, sizeof(uint32_t));
+		auto ptr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, sizeof(uint32_t), 0);
 
 		state->routine->createPointer(resultId, ptr);
 

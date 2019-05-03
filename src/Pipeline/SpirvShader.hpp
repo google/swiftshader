@@ -909,7 +909,7 @@ namespace sw
 		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
 
-		SIMD::Pointer GetTexelAddress(SpirvRoutine const * routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
+		SIMD::Pointer GetTexelAddress(SpirvRoutine const * routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId) const;
 		spv::Scope GetScope(Object::ID id) const;
 
 		// OpcodeName() returns the name of the opcode op.

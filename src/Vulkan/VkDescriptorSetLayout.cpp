@@ -490,9 +490,10 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			descriptor[i].ptr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT, 0, 0);
 			descriptor[i].extent = imageView->getMipLevelExtent(0);
 			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].slicePitchBytes = imageView->getSubresourceRange().layerCount > 1
-											? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
-											: imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			descriptor[i].samplePitchBytes = imageView->getSubresourceRange().layerCount > 1
+											 ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
+											 : imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			descriptor[i].slicePitchBytes = descriptor[i].samplePitchBytes * imageView->getSampleCount();
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 			descriptor[i].sizeInBytes = imageView->getImageSizeInBytes();
 		}
@@ -508,6 +509,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			descriptor[i].extent = {bufferView->getElementCount(), 1, 1};
 			descriptor[i].rowPitchBytes = 0;
 			descriptor[i].slicePitchBytes = 0;
+			descriptor[i].samplePitchBytes = 0;
 			descriptor[i].arrayLayers = 1;
 			descriptor[i].sizeInBytes = bufferView->getRangeInBytes();
 		}

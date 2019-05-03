@@ -45,11 +45,22 @@ public:
 
 	VkImageViewType getType() const { return viewType; }
 	Format getFormat(Usage usage = RAW) const;
-	int getSampleCount() const { return image->getSampleCountFlagBits(); }
 	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
 	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const;
+
+	int getSampleCount() const
+	{
+		switch (image->getSampleCountFlagBits())
+		{
+		case VK_SAMPLE_COUNT_1_BIT: return 1;
+		case VK_SAMPLE_COUNT_4_BIT: return 4;
+		default:
+			UNIMPLEMENTED("Sample count flags %d", image->getSampleCountFlagBits());
+			return 1;
+		}
+	}
 
 	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer, Usage usage = RAW) const;
 	bool hasDepthAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0; }
