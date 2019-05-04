@@ -1957,36 +1957,6 @@ namespace sw
 			default:
 				UNIMPLEMENTED("Format %d", VkFormat(state.textureFormat));
 			}
-
-			if(state.compare != COMPARE_BYPASS)
-			{
-				Float4 ref = z;
-
-				if(!hasFloatTexture())
-				{
-					ref = Min(Max(ref, Float4(0.0f)), Float4(1.0f));
-				}
-
-				Int4 boolean;
-
-				switch(state.compare)
-				{
-				case COMPARE_LESSEQUAL:    boolean = CmpLE(ref, c.x);  break;
-				case COMPARE_GREATEREQUAL: boolean = CmpNLT(ref, c.x); break;
-				case COMPARE_LESS:         boolean = CmpLT(ref, c.x);  break;
-				case COMPARE_GREATER:      boolean = CmpNLE(ref, c.x); break;
-				case COMPARE_EQUAL:        boolean = CmpEQ(ref, c.x);  break;
-				case COMPARE_NOTEQUAL:     boolean = CmpNEQ(ref, c.x); break;
-				case COMPARE_ALWAYS:       boolean = Int4(-1);         break;
-				case COMPARE_NEVER:        boolean = Int4(0);          break;
-				default:                   ASSERT(false);
-				}
-
-				c.x = As<Float4>(boolean & As<Int4>(Float4(1.0f)));
-				c.y = Float4(0.0f);
-				c.z = Float4(0.0f);
-				c.w = Float4(1.0f);
-			}
 		}
 		else
 		{
@@ -2021,6 +1991,36 @@ namespace sw
 					}
 				}
 			}
+		}
+
+		if(state.compare != COMPARE_BYPASS)
+		{
+			Float4 ref = z;
+
+			if(!hasFloatTexture())
+			{
+				ref = Min(Max(ref, Float4(0.0f)), Float4(1.0f));
+			}
+
+			Int4 boolean;
+
+			switch(state.compare)
+			{
+			case COMPARE_LESSEQUAL:    boolean = CmpLE(ref, c.x);  break;
+			case COMPARE_GREATEREQUAL: boolean = CmpNLT(ref, c.x); break;
+			case COMPARE_LESS:         boolean = CmpLT(ref, c.x);  break;
+			case COMPARE_GREATER:      boolean = CmpNLE(ref, c.x); break;
+			case COMPARE_EQUAL:        boolean = CmpEQ(ref, c.x);  break;
+			case COMPARE_NOTEQUAL:     boolean = CmpNEQ(ref, c.x); break;
+			case COMPARE_ALWAYS:       boolean = Int4(-1);         break;
+			case COMPARE_NEVER:        boolean = Int4(0);          break;
+			default:                   ASSERT(false);
+			}
+
+			c.x = As<Float4>(boolean & As<Int4>(Float4(1.0f)));
+			c.y = Float4(0.0f);
+			c.z = Float4(0.0f);
+			c.w = Float4(1.0f);
 		}
 
 		return c;
