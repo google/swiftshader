@@ -1500,7 +1500,7 @@ int Format::pitchB(int width, int border, bool target) const
 	}
 }
 
-int Format::sliceB(int width, int height, int border, bool target) const
+int Format::sliceBUnpadded(int width, int height, int border, bool target) const
 {
 	height += 2 * border;
 
@@ -1559,6 +1559,11 @@ int Format::sliceB(int width, int height, int border, bool target) const
 	default:
 		return pitchB(width, border, target) * height;   // Pitch computed per row
 	}
+}
+
+int Format::sliceB(int width, int height, int border, bool target) const
+{
+	return sw::align<16>(sliceBUnpadded(width, height, border, target) + 15);
 }
 
 bool Format::getScale(sw::float4 &scale) const

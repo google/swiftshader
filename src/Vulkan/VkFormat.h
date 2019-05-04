@@ -71,6 +71,7 @@ public:
 
 private:
 	VkFormat compatibleFormat() const;
+	int sliceBUnpadded(int width, int height, int border, bool target) const;
 
 	VkFormat format = VK_FORMAT_UNDEFINED;
 };
