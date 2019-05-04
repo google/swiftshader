@@ -130,11 +130,11 @@ namespace sw
 		bool forceFloatFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
 		bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 		bool rectangleTexture = (state.textureType == TEXTURE_RECTANGLE);
-		if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube || rectangleTexture)   // FIXME: Mostly identical to integer sampling
+		if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube || rectangleTexture || state.compareEnable)   // FIXME: Mostly identical to integer sampling
 		{
 			c = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
-			if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture())
+			if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable)
 			{
 				if(has16bitTextureFormat())
 				{
@@ -1993,27 +1993,29 @@ namespace sw
 			}
 		}
 
-		if(state.compare != COMPARE_BYPASS)
+		if(state.compareEnable)
 		{
 			Float4 ref = z;
 
 			if(!hasFloatTexture())
 			{
+				// D16_UNORM: clamp reference, normalize texel value
 				ref = Min(Max(ref, Float4(0.0f)), Float4(1.0f));
+				c.x = c.x * Float4(1.0f / 0xFFFF);
 			}
 
 			Int4 boolean;
 
-			switch(state.compare)
+			switch(state.compareOp)
 			{
-			case COMPARE_LESSEQUAL:    boolean = CmpLE(ref, c.x);  break;
-			case COMPARE_GREATEREQUAL: boolean = CmpNLT(ref, c.x); break;
-			case COMPARE_LESS:         boolean = CmpLT(ref, c.x);  break;
-			case COMPARE_GREATER:      boolean = CmpNLE(ref, c.x); break;
-			case COMPARE_EQUAL:        boolean = CmpEQ(ref, c.x);  break;
-			case COMPARE_NOTEQUAL:     boolean = CmpNEQ(ref, c.x); break;
-			case COMPARE_ALWAYS:       boolean = Int4(-1);         break;
-			case COMPARE_NEVER:        boolean = Int4(0);          break;
+			case VK_COMPARE_OP_LESS_OR_EQUAL:    boolean = CmpLE(ref, c.x);  break;
+			case VK_COMPARE_OP_GREATER_OR_EQUAL: boolean = CmpNLT(ref, c.x); break;
+			case VK_COMPARE_OP_LESS:             boolean = CmpLT(ref, c.x);  break;
+			case VK_COMPARE_OP_GREATER:          boolean = CmpNLE(ref, c.x); break;
+			case VK_COMPARE_OP_EQUAL:            boolean = CmpEQ(ref, c.x);  break;
+			case VK_COMPARE_OP_NOT_EQUAL:        boolean = CmpNEQ(ref, c.x); break;
+			case VK_COMPARE_OP_ALWAYS:           boolean = Int4(-1);         break;
+			case VK_COMPARE_OP_NEVER:            boolean = Int4(0);          break;
 			default:                   ASSERT(false);
 			}
 

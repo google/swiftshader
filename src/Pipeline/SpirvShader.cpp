@@ -4578,10 +4578,11 @@ namespace sw
 		Object::ID offsetId = 0;
 		bool sample = false;
 
-		if(insn.wordCount() > 5)
+		uint32_t operand = instruction.isDref() ? 6 : 5;
+
+		if(insn.wordCount() > operand)
 		{
-			imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(5));
-			uint32_t operand = 6;
+			imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(operand++));
 
 			if(imageOperands & spv::ImageOperandsBiasMask)
 			{
@@ -4653,7 +4654,9 @@ namespace sw
 
 		if(instruction.isDref())
 		{
-			UNIMPLEMENTED("OpImageSample*Dref*");  // TODO(b/129523279)
+			auto drefValue = GenericValue(this, state->routine, insn.word(5));
+			in[i] = drefValue.Float(0);
+			i++;
 		}
 
 		if(lodOrBias)
@@ -4701,7 +4704,7 @@ namespace sw
 		Array<SIMD::Float> out(4);
 		Call<ImageSampler>(samplerFunc, texture, sampler, &in[0], &out[0], state->routine->constants);
 
-		for (int i = 0; i < 4; i++) { result.move(i, out[i]); }
+		for (auto i = 0u; i < resultType.sizeInComponents; i++) { result.move(i, out[i]); }
 
 		return EmitResult::Continue;
 	}

@@ -1945,6 +1945,7 @@ bool Format::has32bitIntegerTextureComponents() const
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+	case VK_FORMAT_D16_UNORM:
 		return false;
 	case VK_FORMAT_R32_SINT:
 	case VK_FORMAT_R32_UINT:

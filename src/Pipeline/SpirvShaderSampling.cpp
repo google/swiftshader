@@ -66,7 +66,8 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, const vk:
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
 	samplerState.swizzle = imageView->getComponentMapping();
 	samplerState.highPrecisionFiltering = false;
-	samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
+	samplerState.compareEnable = (sampler->compareEnable == VK_TRUE);
+	samplerState.compareOp = sampler->compareOp;
 
 	ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
 	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
@@ -102,6 +103,12 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 		for( ; i < instruction.coordinates; i++)
 		{
 			uvw[i] = in[i];
+		}
+
+		if (instruction.isDref())
+		{
+			q = in[i];
+			i++;
 		}
 
 		// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.

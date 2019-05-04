@@ -150,7 +150,8 @@ namespace sw
 		MipmapType mipmapFilter;
 		VkComponentMapping swizzle;
 		bool highPrecisionFiltering;
-		CompareFunc compare;
+		bool compareEnable;
+		VkCompareOp compareOp;
 		VkBorderColor border;
 
 		#if PERF_PROFILE
