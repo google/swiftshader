@@ -1378,7 +1378,7 @@ void CommandBuffer::copyImageToBuffer(VkImage srcImage, VkImageLayout srcImageLa
 	uint32_t regionCount, const VkBufferImageCopy* pRegions)
 {
 	ASSERT(state == RECORDING);
-	ASSERT(srcImageLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	ASSERT(srcImageLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL || srcImageLayout == VK_IMAGE_LAYOUT_GENERAL);
 
 	for(uint32_t i = 0; i < regionCount; i++)
 	{
