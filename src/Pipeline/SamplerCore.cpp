@@ -126,11 +126,13 @@ namespace sw
 			lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
 		}
 
-		// FIXME: YUV is not supported by the floating point path
-		bool forceFloatFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
+		bool force32BitFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
 		bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 		bool rectangleTexture = (state.textureType == TEXTURE_RECTANGLE);
-		if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube || rectangleTexture || state.compareEnable)   // FIXME: Mostly identical to integer sampling
+		bool use32BitFiltering = hasFloatTexture() || hasUnnormalizedIntegerTexture() || force32BitFiltering ||
+		                         seamlessCube || rectangleTexture || state.compareEnable || borderModeActive();
+
+		if(use32BitFiltering)
 		{
 			c = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
@@ -170,7 +172,7 @@ namespace sw
 				}
 			}
 		}
-		else
+		else  // 16-bit filtering.
 		{
 			Vector4s cs = sampleFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
@@ -294,17 +296,6 @@ namespace sw
 		return c;
 	}
 
-	void SamplerCore::border(Short4 &mask, Float4 &coordinates)
-	{
-		Int4 border = As<Int4>(CmpLT(Abs(coordinates - Float4(0.5f)), Float4(0.5f)));
-		mask = As<Short4>(Int2(As<Int4>(PackSigned(border, border))));
-	}
-
-	void SamplerCore::border(Int4 &mask, Float4 &coordinates)
-	{
-		mask = As<Int4>(CmpLT(Abs(coordinates - Float4(0.5f)), Float4(0.5f)));
-	}
-
 	Short4 SamplerCore::offsetSample(Short4 &uvw, Pointer<Byte> &mipmap, int halfOffset, bool wrap, int count, Float &lod)
 	{
 		Short4 offset = *Pointer<Short4>(mipmap + halfOffset);
@@ -382,80 +373,6 @@ namespace sw
 			if(!hasUnsignedTextureComponent(1)) c.y += c.y;
 			if(!hasUnsignedTextureComponent(2)) c.z += c.z;
 			if(!hasUnsignedTextureComponent(3)) c.w += c.w;
-		}
-
-		Short4 borderMask;
-
-		if(state.addressingModeU == ADDRESSING_BORDER)
-		{
-			Short4 u0;
-
-			border(u0, u);
-
-			borderMask = u0;
-		}
-
-		if(state.addressingModeV == ADDRESSING_BORDER)
-		{
-			Short4 v0;
-
-			border(v0, v);
-
-			if(state.addressingModeU == ADDRESSING_BORDER)
-			{
-				borderMask &= v0;
-			}
-			else
-			{
-				borderMask = v0;
-			}
-		}
-
-		if(state.addressingModeW == ADDRESSING_BORDER && state.textureType == TEXTURE_3D)
-		{
-			Short4 s0;
-
-			border(s0, w);
-
-			if(state.addressingModeU == ADDRESSING_BORDER ||
-			   state.addressingModeV == ADDRESSING_BORDER)
-			{
-				borderMask &= s0;
-			}
-			else
-			{
-				borderMask = s0;
-			}
-		}
-
-		if(state.addressingModeU == ADDRESSING_BORDER ||
-		   state.addressingModeV == ADDRESSING_BORDER ||
-		   (state.addressingModeW == ADDRESSING_BORDER && state.textureType == TEXTURE_3D))
-		{
-			Short4 borderRgb;
-			Short4 borderA;
-			switch (state.border)
-			{
-			case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
-				borderRgb = Short4(0);
-				borderA = Short4(0);
-				break;
-			case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
-				borderRgb = Short4(0);
-				borderA = hasUnsignedTextureComponent(0) ? Short4(0xffff) : Short4(0x7fff);
-				break;
-			case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
-				borderRgb = hasUnsignedTextureComponent(0) ? Short4(0xffff) : Short4(0x7fff);
-				borderA = hasUnsignedTextureComponent(0) ? Short4(0xffff) : Short4(0x7fff);
-				break;
-			default:
-				UNIMPLEMENTED("snorm/unorm border %u", state.border);
-			}
-
-			c.x = (borderMask & c.x) | (~borderMask & borderRgb);
-			c.y = (borderMask & c.y) | (~borderMask & borderRgb);
-			c.z = (borderMask & c.z) | (~borderMask & borderRgb);
-			c.w = (borderMask & c.w) | (~borderMask & borderA);
 		}
 
 		return c;
@@ -872,93 +789,6 @@ namespace sw
 			c.y = (cc.y - c.y) * lod4 + c.y;
 			c.z = (cc.z - c.z) * lod4 + c.z;
 			c.w = (cc.w - c.w) * lod4 + c.w;
-		}
-
-		Int4 borderMask;
-
-		if(state.addressingModeU == ADDRESSING_BORDER)
-		{
-			Int4 u0;
-
-			border(u0, u);
-
-			borderMask = u0;
-		}
-
-		if(state.addressingModeV == ADDRESSING_BORDER)
-		{
-			Int4 v0;
-
-			border(v0, v);
-
-			if(state.addressingModeU == ADDRESSING_BORDER)
-			{
-				borderMask &= v0;
-			}
-			else
-			{
-				borderMask = v0;
-			}
-		}
-
-		if(state.addressingModeW == ADDRESSING_BORDER && state.textureType == TEXTURE_3D)
-		{
-			Int4 s0;
-
-			border(s0, w);
-
-			if(state.addressingModeU == ADDRESSING_BORDER ||
-			   state.addressingModeV == ADDRESSING_BORDER)
-			{
-				borderMask &= s0;
-			}
-			else
-			{
-				borderMask = s0;
-			}
-		}
-
-		if(state.addressingModeU == ADDRESSING_BORDER ||
-		   state.addressingModeV == ADDRESSING_BORDER ||
-		   (state.addressingModeW == ADDRESSING_BORDER && state.textureType == TEXTURE_3D))
-		{
-			Int4 borderRgb;
-			Int4 borderA;
-
-			switch (state.border)
-			{
-			case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
-				borderRgb = As<Int4>(Float4(0));
-				borderA = As<Int4>(Float4(0));
-				break;
-			case VK_BORDER_COLOR_INT_TRANSPARENT_BLACK:
-				borderRgb = Int4(0);
-				borderA = Int4(0);
-				break;
-			case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
-				borderRgb = As<Int4>(Float4(0));
-				borderA = As<Int4>(Float4(1));
-				break;
-			case VK_BORDER_COLOR_INT_OPAQUE_BLACK:
-				borderRgb = Int4(0);
-				borderA = Int4(1);
-				break;
-			case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
-				borderRgb = As<Int4>(Float4(1));
-				borderA = As<Int4>(Float4(1));
-				break;
-			case VK_BORDER_COLOR_INT_OPAQUE_WHITE:
-				borderRgb = Int4(1);
-				borderA = Int4(1);
-				break;
-			default:
-				UNIMPLEMENTED("sint/uint/sfloat border: %u", state.border);
-			}
-
-			c.x = As<Float4>((borderMask & As<Int4>(c.x)) | (~borderMask & borderRgb));
-			c.y = As<Float4>((borderMask & As<Int4>(c.y)) | (~borderMask & borderRgb));
-			c.z = As<Float4>((borderMask & As<Int4>(c.z)) | (~borderMask & borderRgb));
-			c.w = As<Float4>((borderMask & As<Int4>(c.w)) | (~borderMask & borderA));
 		}
 
 		return c;
@@ -1479,13 +1309,20 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::computeIndices(UInt index[4], Int4& uuuu, Int4& vvvv, Int4& wwww, const Pointer<Byte> &mipmap, SamplerFunction function)
+	void SamplerCore::computeIndices(UInt index[4], Int4 uuuu, Int4 vvvv, Int4 wwww, Int4 valid, const Pointer<Byte> &mipmap, SamplerFunction function)
 	{
 		UInt4 indices = uuuu + vvvv;
 
 		if(hasThirdCoordinate())
 		{
 			indices += As<UInt4>(wwww);
+		}
+
+		if(borderModeActive())
+		{
+			// Texels out of range are still sampled before being replaced
+			// with the border color, so sample them at linear index 0.
+			indices &= As<UInt4>(valid);
 		}
 
 		for(int i = 0; i < 4; i++)
@@ -1734,9 +1571,9 @@ namespace sw
 		if(hasYuvFormat())
 		{
 			// Generic YPbPr to RGB transformation
-				// R = Y                               +           2 * (1 - Kr) * Pr
-				// G = Y - 2 * Kb * (1 - Kb) / Kg * Pb - 2 * Kr * (1 - Kr) / Kg * Pr
-				// B = Y +           2 * (1 - Kb) * Pb
+			// R = Y                               +           2 * (1 - Kr) * Pr
+			// G = Y - 2 * Kb * (1 - Kb) / Kg * Pb - 2 * Kr * (1 - Kr) / Kg * Pr
+			// B = Y +           2 * (1 - Kb) * Pb
 
 			float Kb = 0.114f;
 			float Kr = 0.299f;
@@ -1838,11 +1675,23 @@ namespace sw
 
 	Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function)
 	{
-		Vector4f c;
+		Int4 valid;
+
+		if(borderModeActive())
+		{
+			// Valid texels have positive coordinates.
+			Int4 negative = Int4(0);
+			if(state.addressingModeU == ADDRESSING_BORDER) negative |= uuuu;
+			if(state.addressingModeV == ADDRESSING_BORDER) negative |= vvvv;
+			if(state.addressingModeW == ADDRESSING_BORDER) negative |= wwww;
+			valid = CmpNLT(negative, Int4(0));
+		}
 
 		UInt index[4];
 		UInt4 t0, t1, t2, t3;
-		computeIndices(index, uuuu, vvvv, wwww, mipmap, function);
+		computeIndices(index, uuuu, vvvv, wwww, valid, mipmap, function);
+
+		Vector4f c;
 
 		if(hasFloatTexture() || has32bitIntegerTextureComponents())
 		{
@@ -2027,7 +1876,57 @@ namespace sw
 			c.w = Float4(1.0f);
 		}
 
+		if(borderModeActive())
+		{
+			c = replaceBorderTexel(c, valid);
+		}
+
 		return c;
+	}
+
+	Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
+	{
+		Int4 borderRGB;
+		Int4 borderA;
+
+		bool scaled = !hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable;
+		bool sign = !hasUnsignedTextureComponent(0);
+		Int4 float_one = scaled ? As<Int4>(Float4(sign ? 0x7FFF : 0xFFFF)) : As<Int4>(Float4(1.0f));
+
+		switch(state.border)
+		{
+		case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
+		case VK_BORDER_COLOR_INT_TRANSPARENT_BLACK:
+			borderRGB = Int4(0);
+			borderA = Int4(0);
+			break;
+		case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
+			borderRGB = Int4(0);
+			borderA = float_one;
+			break;
+		case VK_BORDER_COLOR_INT_OPAQUE_BLACK:
+			borderRGB = Int4(0);
+			borderA = Int4(1);
+			break;
+		case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
+			borderRGB = float_one;
+			borderA = float_one;
+			break;
+		case VK_BORDER_COLOR_INT_OPAQUE_WHITE:
+			borderRGB = Int4(1);
+			borderA = Int4(1);
+			break;
+		default:
+			UNIMPLEMENTED("sint/uint/sfloat border: %u", state.border);
+		}
+
+		Vector4f out;
+		out.x = As<Float4>((valid & As<Int4>(c.x)) | (~valid & borderRGB));
+		out.y = As<Float4>((valid & As<Int4>(c.y)) | (~valid & borderRGB));
+		out.z = As<Float4>((valid & As<Int4>(c.z)) | (~valid & borderRGB));
+		out.w = As<Float4>((valid & As<Int4>(c.w)) | (~valid & borderA));
+
+		return out;
 	}
 
 	void SamplerCore::selectMipmap(Pointer<Byte> &texture, Pointer<Byte> buffer[4], Pointer<Byte> &mipmap, Float &lod, Int face[4], bool secondLOD)
@@ -2055,41 +1954,39 @@ namespace sw
 
 		if(state.textureType != TEXTURE_CUBE)
 		{
-			buffer[0] = *Pointer<Pointer<Byte> >(mipmap + OFFSET(Mipmap,buffer[0]));
+			buffer[0] = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap,buffer[0]));
 
 			if(hasYuvFormat())
 			{
-				buffer[1] = *Pointer<Pointer<Byte> >(mipmap + OFFSET(Mipmap,buffer[1]));
-				buffer[2] = *Pointer<Pointer<Byte> >(mipmap + OFFSET(Mipmap,buffer[2]));
+				buffer[1] = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap,buffer[1]));
+				buffer[2] = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap,buffer[2]));
 			}
 		}
 		else
 		{
 			for(int i = 0; i < 4; i++)
 			{
-				buffer[i] = *Pointer<Pointer<Byte> >(mipmap + OFFSET(Mipmap,buffer) + face[i] * sizeof(void*));
+				buffer[i] = *Pointer<Pointer<Byte>>(mipmap + OFFSET(Mipmap,buffer) + face[i] * sizeof(void*));
 			}
 		}
 	}
 
 	Int4 SamplerCore::computeFilterOffset(Float &lod)
 	{
-		Int4 filter = -1;
-
 		if(state.textureFilter == FILTER_POINT)
 		{
-			filter = 0;
+			return Int4(0);
 		}
 		else if(state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
 		{
-			filter = CmpNLE(Float4(lod), Float4(0.0f));
+			return CmpNLE(Float4(lod), Float4(0.0f));
 		}
 		else if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
-			filter = CmpLE(Float4(lod), Float4(0.0f));
+			return CmpLE(Float4(lod), Float4(0.0f));
 		}
 
-		return filter;
+		return Int4(~0);
 	}
 
 	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte> &mipmap)
@@ -2169,7 +2066,6 @@ namespace sw
 				switch(addressingMode)
 				{
 				case ADDRESSING_CLAMP:
-				case ADDRESSING_BORDER:
 				case ADDRESSING_SEAMLESS:
 					// Linear filtering of cube doesn't require clamping because the coordinates
 					// are already in [0, 1] range and numerical imprecision is tolerated.
@@ -2180,21 +2076,24 @@ namespace sw
 					}
 					break;
 				case ADDRESSING_MIRROR:
-				{
-					Float4 half = As<Float4>(Int4(halfBits));
-					Float4 one = As<Float4>(Int4(oneBits));
-					Float4 two = As<Float4>(Int4(twoBits));
-					coord = one - Abs(two * Frac(coord * half) - one);
-				}
-				break;
+					{
+						Float4 half = As<Float4>(Int4(halfBits));
+						Float4 one = As<Float4>(Int4(oneBits));
+						Float4 two = As<Float4>(Int4(twoBits));
+						coord = one - Abs(two * Frac(coord * half) - one);
+					}
+					break;
 				case ADDRESSING_MIRRORONCE:
-				{
-					Float4 half = As<Float4>(Int4(halfBits));
-					Float4 one = As<Float4>(Int4(oneBits));
-					Float4 two = As<Float4>(Int4(twoBits));
-					coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
-				}
-				break;
+					{
+						Float4 half = As<Float4>(Int4(halfBits));
+						Float4 one = As<Float4>(Int4(oneBits));
+						Float4 two = As<Float4>(Int4(twoBits));
+						coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
+					}
+					break;
+				case ADDRESSING_BORDER:
+					// Don't map to a valid range here.
+					break;
 				default:   // Wrap
 					coord = Frac(coord);
 					break;
@@ -2206,7 +2105,14 @@ namespace sw
 			if(state.textureFilter == FILTER_POINT ||
 			   state.textureFilter == FILTER_GATHER)
 			{
-				xyz0 = Int4(coord);
+				if(addressingMode == ADDRESSING_BORDER)
+				{
+					xyz0 = Int4(Floor(coord));
+				}
+				else  // Can't have negative coordinates, so floor() is redundant when casting to int.
+				{
+					xyz0 = Int4(coord);
+				}
 			}
 			else
 			{
@@ -2237,7 +2143,15 @@ namespace sw
 
 			xyz1 = xyz0 - filter;   // Increment
 
-			if(function.option == Offset)
+			if(addressingMode == ADDRESSING_BORDER)
+			{
+				// Replace the coordinates with -1 if they're out of range.
+				Int4 border0 = CmpLT(xyz0, Int4(0)) | CmpNLT(xyz0, dim);
+				Int4 border1 = CmpLT(xyz1, Int4(0)) | CmpNLT(xyz1, dim);
+				xyz0 |= border0;
+				xyz1 |= border1;
+			}
+			else if(function.option == Offset)
 			{
 				switch(addressingMode)
 				{
@@ -2245,8 +2159,7 @@ namespace sw
 					ASSERT(false);   // Cube sampling doesn't support offset.
 				case ADDRESSING_MIRROR:
 				case ADDRESSING_MIRRORONCE:
-				case ADDRESSING_BORDER:
-					// FIXME: Implement ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE, and ADDRESSING_BORDER.
+					// FIXME: Implement ADDRESSING_MIRROR and ADDRESSING_MIRRORONCE.
 					// Fall through to Clamp.
 				case ADDRESSING_CLAMP:
 					xyz0 = Min(Max(xyz0, Int4(0)), maxXYZ);
@@ -2266,7 +2179,6 @@ namespace sw
 					break;
 				case ADDRESSING_MIRROR:
 				case ADDRESSING_MIRRORONCE:
-				case ADDRESSING_BORDER:
 				case ADDRESSING_CLAMP:
 					xyz0 = Max(xyz0, Int4(0));
 					xyz1 = Min(xyz1, maxXYZ);
@@ -2362,5 +2274,12 @@ namespace sw
 	bool SamplerCore::isRGBComponent(int component) const
 	{
 		return state.textureFormat.isRGBComponent(component);
+	}
+
+	bool SamplerCore::borderModeActive() const
+	{
+		return state.addressingModeU == ADDRESSING_BORDER ||
+		       state.addressingModeV == ADDRESSING_BORDER ||
+		       state.addressingModeW == ADDRESSING_BORDER;
 	}
 }

@@ -238,10 +238,25 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 		}
 		break;
 	case VK_IMAGE_VIEW_TYPE_1D:
+		if(coordinateIndex >= 1)
+		{
+			return ADDRESSING_WRAP;  // Unused, but must avoid BORDER mode.
+		}
+		break;
 	case VK_IMAGE_VIEW_TYPE_2D:
+		if(coordinateIndex == 2)
+		{
+			return ADDRESSING_WRAP;  // Unused, but must avoid BORDER mode.
+		}
+		break;
 	case VK_IMAGE_VIEW_TYPE_3D:
 		break;
 	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D texture with second coordinate 0.
+		if(coordinateIndex == 1)
+		{
+			return ADDRESSING_WRAP;  // Unused, but must avoid BORDER mode.
+		}
+		// Fall through to 2D array case
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 		if(coordinateIndex == 2)
 		{
