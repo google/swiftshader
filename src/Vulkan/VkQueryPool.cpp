@@ -75,7 +75,7 @@ namespace vk
 			std::unique_lock<std::mutex> mutexLock(query.mutex);
 			if(flags & VK_QUERY_RESULT_WAIT_BIT) // Must wait for query to finish
 			{
-				query.condition.wait(mutexLock, [&query] { return query.state != Query::ACTIVE; });
+				query.condition.wait(mutexLock, [&query] { return query.state == Query::FINISHED; });
 			}
 
 			bool writeResult = true;
@@ -157,8 +157,6 @@ namespace vk
 		for(uint32_t i = firstQuery; i < (firstQuery + queryCount); i++)
 		{
 			std::unique_lock<std::mutex> mutexLock(pool[i].mutex);
-
-			ASSERT(pool[i].state != Query::ACTIVE);
 
 			pool[i].state = Query::UNAVAILABLE;
 			pool[i].data = 0;
