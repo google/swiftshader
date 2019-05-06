@@ -1431,7 +1431,7 @@ namespace sw
 
 		if(hasThirdCoordinate())
 		{
-			if(state.textureType != TEXTURE_2D_ARRAY)
+			if(state.textureType == TEXTURE_3D)
 			{
 				if(!texelFetch)
 				{
@@ -2092,11 +2092,7 @@ namespace sw
 
 	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte> &mipmap)
 	{
-		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
-		{
-			return Short4();   // Unused
-		}
-		else if(addressingMode == ADDRESSING_LAYER && state.textureType == TEXTURE_2D_ARRAY)
+		if(addressingMode == ADDRESSING_LAYER)
 		{
 			return Min(Max(Short4(RoundInt(uw)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
 		}
@@ -2134,11 +2130,6 @@ namespace sw
 
 	void SamplerCore::address(Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function)
 	{
-		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
-		{
-			return;   // Unused
-		}
-
 		Int4 dim = Int4(*Pointer<Short4>(mipmap + whd, 16));
 		Int4 maxXYZ = dim - Int4(1);
 
@@ -2146,7 +2137,7 @@ namespace sw
 		{
 			xyz0 = Min(Max(((function.option == Offset) && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw), Int4(0)), maxXYZ);
 		}
-		else if(addressingMode == ADDRESSING_LAYER && state.textureType == TEXTURE_2D_ARRAY)   // Note: Offset does not apply to array layers
+		else if(addressingMode == ADDRESSING_LAYER)   // Note: Offset does not apply to array layers
 		{
 			xyz0 = Min(Max(RoundInt(uvw), Int4(0)), maxXYZ);
 		}
@@ -2336,7 +2327,9 @@ namespace sw
 
 	bool SamplerCore::hasThirdCoordinate() const
 	{
-		return (state.textureType == TEXTURE_3D) || (state.textureType == TEXTURE_2D_ARRAY);
+		return (state.textureType == TEXTURE_3D) ||
+		       (state.textureType == TEXTURE_2D_ARRAY) ||
+		       (state.textureType == TEXTURE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0.
 	}
 
 	bool SamplerCore::has16bitTextureFormat() const

@@ -70,7 +70,7 @@ namespace sw
 		TEXTURE_3D,
 		TEXTURE_RECTANGLE,  // TODO(b/129523279): Eliminate
 		TEXTURE_CUBE,
-		TEXTURE_1D_ARRAY,
+		TEXTURE_1D_ARRAY,   // Treated as 2D texture with second coordinate 0.
 		TEXTURE_2D_ARRAY,
 		TEXTURE_CUBE_ARRAY,
 

@@ -69,7 +69,11 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, const vk:
 	samplerState.compareEnable = (sampler->compareEnable == VK_TRUE);
 	samplerState.compareOp = sampler->compareOp;
 
-	ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
+	if(sampler->anisotropyEnable != VK_FALSE)
+	{
+		UNSUPPORTED("anisotropyEnable");
+	}
+
 	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
 
 	auto fptr = emitSamplerFunction(instruction, samplerState);
@@ -113,10 +117,14 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 
 		// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
 		// Implement optimized 1D sampling.
-		if(samplerState.textureType == TEXTURE_1D ||
-			samplerState.textureType == TEXTURE_1D_ARRAY)
+		if(samplerState.textureType == TEXTURE_1D)
 		{
 			uvw[1] = SIMD::Float(0);
+		}
+		else if(samplerState.textureType == TEXTURE_1D_ARRAY)
+		{
+			uvw[1] = SIMD::Float(0);
+			uvw[2] = in[1];  // Move 1D layer coordinate to 2D layer coordinate index.
 		}
 
 		if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias)
@@ -165,7 +173,7 @@ sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)
 	case VK_IMAGE_VIEW_TYPE_2D:         return TEXTURE_2D;
 	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
 	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
-//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
 //	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: return TEXTURE_CUBE_ARRAY;
 	default:
@@ -233,8 +241,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 	case VK_IMAGE_VIEW_TYPE_2D:
 	case VK_IMAGE_VIEW_TYPE_3D:
 		break;
-//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-		break;
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D texture with second coordinate 0.
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 		if(coordinateIndex == 2)
 		{
@@ -261,7 +268,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 	case VK_IMAGE_VIEW_TYPE_1D:
 	case VK_IMAGE_VIEW_TYPE_2D:
 	case VK_IMAGE_VIEW_TYPE_3D:
-//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 		break;
 	default:
