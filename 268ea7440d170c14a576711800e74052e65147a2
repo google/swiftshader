@@ -93,6 +93,30 @@
       "revId": "268ea7440d170c14a576711800e74052e65147a2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "617781fe_dbd9cf56",
+        "filename": "src/Vulkan/VkImage.hpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-06T13:36:15Z",
+      "side": 1,
+      "message": "Thanks for clarifying!",
+      "parentUuid": "9dd12043_d1f81de3",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 54
+      },
+      "revId": "268ea7440d170c14a576711800e74052e65147a2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
