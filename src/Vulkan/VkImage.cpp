@@ -864,21 +864,41 @@ void Image::decodeETC2(const VkImageSubresourceRange& subresourceRange) const
 	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
 	uint32_t lastMipLevel = getLastMipLevel(subresourceRange);
 
+	int bytes = decompressedImage->format.bytes();
+	bool fakeAlpha = (format == VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK) || (format == VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK);
+	size_t sizeToWrite = 0;
+
 	VkImageSubresourceLayers subresourceLayers = { subresourceRange.aspectMask, subresourceRange.baseMipLevel, subresourceRange.baseArrayLayer, 1 };
 	for(; subresourceLayers.baseArrayLayer <= lastLayer; subresourceLayers.baseArrayLayer++)
 	{
 		for(; subresourceLayers.mipLevel <= lastMipLevel; subresourceLayers.mipLevel++)
 		{
-			uint8_t* source = static_cast<uint8_t*>(getTexelPointer({ 0, 0, 0 }, subresourceLayers));
-			uint8_t* dest = static_cast<uint8_t*>(decompressedImage->getTexelPointer({ 0, 0, 0 }, subresourceLayers));
-
 			VkExtent3D mipLevelExtent = getMipLevelExtent(subresourceLayers.mipLevel);
 
-			int bytes = decompressedImage->format.bytes();
 			int pitchB = decompressedImage->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, subresourceLayers.mipLevel);
 
-			ETC_Decoder::Decode(source, dest, mipLevelExtent.width, mipLevelExtent.height,
-			                    mipLevelExtent.width, mipLevelExtent.height, pitchB, bytes, inputType);
+			if(fakeAlpha)
+			{
+				// To avoid overflow in case of cube textures, which are offset in memory to account for the border,
+				// compute the size from the first pixel to the last pixel, excluding any padding or border before
+				// the first pixel or after the last pixel.
+				sizeToWrite = ((mipLevelExtent.height - 1) * pitchB) + (mipLevelExtent.width * bytes);
+			}
+
+			for(int32_t depth = 0; depth < static_cast<int32_t>(mipLevelExtent.depth); depth++)
+			{
+				uint8_t* source = static_cast<uint8_t*>(getTexelPointer({ 0, 0, depth }, subresourceLayers));
+				uint8_t* dest = static_cast<uint8_t*>(decompressedImage->getTexelPointer({ 0, 0, depth }, subresourceLayers));
+
+				if(fakeAlpha)
+				{
+					ASSERT((dest + sizeToWrite) < decompressedImage->end());
+					memset(dest, 0xFF, sizeToWrite);
+				}
+
+				ETC_Decoder::Decode(source, dest, mipLevelExtent.width, mipLevelExtent.height,
+									mipLevelExtent.width, mipLevelExtent.height, pitchB, bytes, inputType);
+			}
 		}
 	}
 }

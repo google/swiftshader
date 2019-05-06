@@ -247,6 +247,7 @@ namespace sw
 			case VK_FORMAT_R16G16_UNORM:
 			case VK_FORMAT_R16G16B16A16_UNORM:
 			case VK_FORMAT_B8G8R8A8_UNORM:
+			case VK_FORMAT_B8G8R8A8_SRGB:
 			case VK_FORMAT_R8G8B8A8_UNORM:
 			case VK_FORMAT_R8G8B8A8_SRGB:
 			case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
@@ -1548,6 +1549,7 @@ namespace sw
 					switch(state.textureFormat)
 					{
 					case VK_FORMAT_B8G8R8A8_UNORM:
+					case VK_FORMAT_B8G8R8A8_SRGB:
 						c.z = As<Short4>(UnpackLow(c.x, c.y));
 						c.x = As<Short4>(UnpackHigh(c.x, c.y));
 						c.y = c.z;
