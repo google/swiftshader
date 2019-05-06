@@ -47,6 +47,11 @@ struct alignas(16) StorageImageDescriptor
 	int samplePitchBytes;
 	int arrayLayers;
 	int sizeInBytes;
+
+	void *stencilPtr;
+	int stencilRowPitchBytes;
+	int stencilSlicePitchBytes;
+	int stencilSamplePitchBytes;
 };
 
 struct alignas(16) BufferDescriptor

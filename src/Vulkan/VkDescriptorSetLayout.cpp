@@ -496,6 +496,16 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			descriptor[i].slicePitchBytes = descriptor[i].samplePitchBytes * imageView->getSampleCount();
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 			descriptor[i].sizeInBytes = imageView->getImageSizeInBytes();
+
+			if (imageView->getFormat().isStencil())
+			{
+				descriptor[i].stencilPtr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_STENCIL_BIT, 0, 0);
+				descriptor[i].stencilRowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				descriptor[i].stencilSamplePitchBytes = imageView->getSubresourceRange().layerCount > 1
+												 ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT)
+												 : imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				descriptor[i].stencilSlicePitchBytes = descriptor[i].stencilSamplePitchBytes * imageView->getSampleCount();
+			}
 		}
 	}
 	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER)

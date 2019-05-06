@@ -4756,7 +4756,7 @@ namespace sw
 		return EmitResult::Continue;
 	}
 
-	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId) const
+	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const
 	{
 		bool isArrayed = imageType.definition.word(5) != 0;
 		auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
@@ -4770,28 +4770,44 @@ namespace sw
 			v += routine->windowSpacePosition[1];
 		}
 
+		if (useStencilAspect)
+		{
+			// Adjust addressing for quad layout. Pitches are already correct for the stencil aspect.
+			// In the quad-layout block, pixel order is [x0,y0   x1,y0   x0,y1   x1,y1]
+			u = ((v & SIMD::Int(1)) << 1) | ((u << 1) - (u & SIMD::Int(1)));
+			v &= SIMD::Int(~1);
+		}
+
+		auto rowPitch = SIMD::Int(*Pointer<Int>(descriptor + (useStencilAspect
+															  ? OFFSET(vk::StorageImageDescriptor, stencilRowPitchBytes)
+															  : OFFSET(vk::StorageImageDescriptor, rowPitchBytes))));
+		auto slicePitch = SIMD::Int(
+				*Pointer<Int>(descriptor + (useStencilAspect
+											? OFFSET(vk::StorageImageDescriptor, stencilSlicePitchBytes)
+											: OFFSET(vk::StorageImageDescriptor, slicePitchBytes))));
+		auto samplePitch = SIMD::Int(
+				*Pointer<Int>(descriptor + (useStencilAspect
+											? OFFSET(vk::StorageImageDescriptor, stencilSamplePitchBytes)
+											: OFFSET(vk::StorageImageDescriptor, samplePitchBytes))));
+
 		ptr += u * SIMD::Int(texelSize);
 		if (dims > 1)
 		{
-			ptr += v * SIMD::Int(
-					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, rowPitchBytes)));
+			ptr += v * rowPitch;
 		}
 		if (dims > 2)
 		{
-			ptr += coordinate.Int(2) * SIMD::Int(
-					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, slicePitchBytes)));
+			ptr += coordinate.Int(2) * slicePitch;
 		}
 		if (isArrayed)
 		{
-			ptr += coordinate.Int(dims) * SIMD::Int(
-					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, slicePitchBytes)));
+			ptr += coordinate.Int(dims) * slicePitch;
 		}
 
 		if (sampleId.value())
 		{
 			GenericValue sample{this, routine, sampleId};
-			ptr += sample.Int(0) * SIMD::Int(
-					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, samplePitchBytes)));
+			ptr += sample.Int(0) * samplePitch;
 		}
 
 		return ptr;
@@ -4825,23 +4841,37 @@ namespace sw
 		auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
 
 		auto coordinate = GenericValue(this, state->routine, insn.word(4));
-
-		auto pointer = state->routine->getPointer(imageId);
-		Pointer<Byte> binding = pointer.base;
-		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-		auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
-
-		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
 
 		// For subpass data, format in the instruction is spv::ImageFormatUnknown. Get it from
 		// the renderpass data instead. In all other cases, we can use the format in the instruction.
 		auto vkFormat = (dim == spv::DimSubpassData)
 						? inputAttachmentFormats[d.InputAttachmentIndex]
 						: SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(imageType.definition.word(8)));
+
+		// Depth+Stencil image attachments select aspect based on the Sampled Type of the
+		// OpTypeImage. If float, then we want the depth aspect. If int, we want the stencil aspect.
+		auto useStencilAspect = (vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT &&
+				getType(imageType.definition.word(2)).opcode() == spv::OpTypeInt);
+
+		if (useStencilAspect)
+		{
+			vkFormat = VK_FORMAT_S8_UINT;
+		}
+
+		auto pointer = state->routine->getPointer(imageId);
+		Pointer<Byte> binding = pointer.base;
+		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + (useStencilAspect
+				? OFFSET(vk::StorageImageDescriptor, stencilPtr)
+				: OFFSET(vk::StorageImageDescriptor, ptr)));
+
+		auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
+
+		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+
 		auto texelSize = vk::Format(vkFormat).bytes();
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize, sampleId);
+		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize, sampleId, useStencilAspect);
 
 		SIMD::Int packed[4];
 		// Round up texel size: for formats smaller than 32 bits per texel, we will emit a bunch
@@ -4876,7 +4906,7 @@ namespace sw
 			break;
 		case VK_FORMAT_R32_SFLOAT:
 		case VK_FORMAT_D32_SFLOAT:
-		//case VK_FORMAT_D32_SFLOAT_S8_UINT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			dst.move(0, packed[0]);
 			// Fill remaining channels with 0,0,1 (of the correct type)
 			dst.move(1, SIMD::Float(0));
@@ -4960,6 +4990,7 @@ namespace sw
 			dst.move(3, SIMD::Float(1));
 			break;
 		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_S8_UINT:
 			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
 			dst.move(1, SIMD::UInt(0));
 			dst.move(2, SIMD::UInt(0));
@@ -5176,7 +5207,7 @@ namespace sw
 		}
 
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize, 0);
+		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize, 0, false);
 
 		for (auto i = 0u; i < numPackedElements; i++)
 		{
@@ -5208,7 +5239,7 @@ namespace sw
 		auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto ptr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, sizeof(uint32_t), 0);
+		auto ptr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, sizeof(uint32_t), 0, false);
 
 		state->routine->createPointer(resultId, ptr);
 
