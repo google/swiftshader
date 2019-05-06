@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5bbb071c_5429861b",
+        "filename": "src/Vulkan/VkFormat.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-05-06T12:18:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d18ac911_56f4bbe2",
+      "range": {
+        "startLine": 394,
+        "startChar": 19,
+        "endLine": 394,
+        "endChar": 25
+      },
+      "revId": "82f558f5626242772ade50a5a3bda50fb568be9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b3e050b_ab78254f",
         "filename": "src/Vulkan/VkImageView.cpp",
         "patchSetId": 12

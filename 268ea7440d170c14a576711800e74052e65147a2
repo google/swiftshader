@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "621ec2ed_3d0e7c5c",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-05-06T12:18:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d419c959_d060d402",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 1
+      },
+      "revId": "268ea7440d170c14a576711800e74052e65147a2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a2a64e68_52f9a623",
         "filename": "src/Vulkan/VkImage.hpp",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2019-05-03T21:09:06Z",
       "side": 1,
       "message": "note: Ideally we\u0027d avoid this by putting both images within the same device memory block, but I can see why this is convenient for now.",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 54
+      },
+      "revId": "268ea7440d170c14a576711800e74052e65147a2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9dd12043_d1f81de3",
+        "filename": "src/Vulkan/VkImage.hpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-05-06T12:18:52Z",
+      "side": 1,
+      "message": "Both images are in the same device memory block and are bound simultaneously. This is merely a convenient way to access the decompressed image\u0027s data and to compute size properties without having conditions everywhere in the Image class.",
+      "parentUuid": "a2a64e68_52f9a623",
       "range": {
         "startLine": 109,
         "startChar": 1,
