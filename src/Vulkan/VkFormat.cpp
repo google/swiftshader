@@ -122,7 +122,13 @@ bool Format::isDepth() const
 
 bool Format::hasQuadLayout() const
 {
-	return false;
+	switch(format)
+	{
+	case VK_FORMAT_S8_UINT:
+		return true;
+	default:
+		return false;
+	}
 }
 
 bool Format::isSRGBformat() const

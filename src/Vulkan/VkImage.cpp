@@ -190,6 +190,11 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	int srcBytesPerBlock = srcFormat.bytesPerBlock();
 	ASSERT(srcBytesPerBlock == dstFormat.bytesPerBlock());
 
+	if (srcFormat.hasQuadLayout() || dstFormat.hasQuadLayout())
+	{
+		UNIMPLEMENTED("Quad layout copies");
+	}
+
 	const uint8_t* srcMem = static_cast<const uint8_t*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource));
 	uint8_t* dstMem = static_cast<uint8_t*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
 
@@ -286,6 +291,12 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
 
 	Format copyFormat = getFormat(aspect);
+
+	if (copyFormat.hasQuadLayout())
+	{
+		UNIMPLEMENTED("Quad layout copies");
+	}
+
 	VkExtent3D mipLevelExtent = getMipLevelExtent(region.imageSubresource.mipLevel);
 	VkExtent3D imageExtent = imageExtentInBlocks(region.imageExtent, aspect);
 	VkExtent2D bufferExtent = bufferExtentInBlocks({ imageExtent.width, imageExtent.height }, region);
@@ -654,7 +665,7 @@ VkDeviceSize Image::getLayerOffset(VkImageAspectFlagBits aspect, uint32_t mipLev
 	if(is3DSlice())
 	{
 		// When the VkImageSubresourceRange structure is used to select a subset of the slices of a 3D
-		// image’s mip level in order to create a 2D or 2D array image view of a 3D image created with
+		// image's mip level in order to create a 2D or 2D array image view of a 3D image created with
 		// VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT, baseArrayLayer and layerCount specify the first
 		// slice index and the number of slices to include in the created image view.
 		ASSERT(samples == VK_SAMPLE_COUNT_1_BIT);

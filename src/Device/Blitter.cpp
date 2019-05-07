@@ -1591,7 +1591,7 @@ namespace sw
 
 		bool doFilter = (filter != VK_FILTER_NEAREST);
 		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), src->getSampleCountFlagBits(), dst->getSampleCountFlagBits(),
-		            { doFilter, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, doFilter });
+		            { doFilter, doFilter });
 		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
 		                    (region.srcOffsets[0].y < 0) ||
 		                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||

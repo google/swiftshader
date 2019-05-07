@@ -34,10 +34,10 @@ namespace sw
 		struct Options
 		{
 			Options() = default;
-			Options(bool filter, bool useStencil, bool convertSRGB)
-				: writeMask(0xF), clearOperation(false), filter(filter), useStencil(useStencil), convertSRGB(convertSRGB), clampToEdge(false) {}
+			Options(bool filter, bool convertSRGB)
+				: writeMask(0xF), clearOperation(false), filter(filter), convertSRGB(convertSRGB), clampToEdge(false) {}
 			Options(unsigned int writeMask)
-				: writeMask(writeMask), clearOperation(true), filter(false), useStencil(false), convertSRGB(true), clampToEdge(false) {}
+				: writeMask(writeMask), clearOperation(true), filter(false), convertSRGB(true), clampToEdge(false) {}
 
 			union
 			{
@@ -54,7 +54,6 @@ namespace sw
 
 			bool clearOperation : 1;
 			bool filter : 1;
-			bool useStencil : 1;
 			bool convertSRGB : 1;
 			bool clampToEdge : 1;
 		};
