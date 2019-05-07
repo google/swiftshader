@@ -48,7 +48,7 @@
 
 #ifdef __ANDROID__
 #include <vulkan/vk_android_native_buffer.h>
-#include <hardware/gralloc1.h>
+#include "System/GrallocAndroid.hpp"
 #endif
 
 #include "WSI/VkSwapchainKHR.hpp"
@@ -56,6 +56,7 @@
 #include <algorithm>
 #include <cstring>
 #include <string>
+#include <map>
 
 namespace
 {
@@ -904,14 +905,56 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyBufferView(VkDevice device, VkBufferView buf
 	vk::destroy(bufferView, pAllocator);
 }
 
+#ifdef __ANDROID__
+struct BackingMemory {
+	buffer_handle_t nativeHandle;
+	int stride;
+	VkDeviceMemory imageMemory;
+	VkSwapchainImageUsageFlagsANDROID androidUsage;
+};
+
+static std::map<VkImage, BackingMemory> androidSwapchainMap;
+#endif
+
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage)
 {
 	TRACE("(VkDevice device = %p, const VkImageCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkImage* pImage = %p)",
 		    device, pCreateInfo, pAllocator, pImage);
 
-	if(pCreateInfo->pNext)
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+
+#ifdef __ANDROID__
+	BackingMemory backmem;
+	bool swapchainImage = false;
+#endif
+
+	while(extensionCreateInfo)
 	{
-		UNIMPLEMENTED("pCreateInfo->pNext");
+		switch((long)(extensionCreateInfo->sType))
+		{
+#ifdef __ANDROID__
+		case VK_STRUCTURE_TYPE_SWAPCHAIN_IMAGE_CREATE_INFO_ANDROID:
+		{
+			const VkSwapchainImageCreateInfoANDROID* swapImageCreateInfo = reinterpret_cast<const VkSwapchainImageCreateInfoANDROID*>(extensionCreateInfo);
+			backmem.androidUsage = swapImageCreateInfo->usage;
+		}
+		break;
+		case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID:
+		{
+			const VkNativeBufferANDROID* nativeBufferInfo = reinterpret_cast<const VkNativeBufferANDROID*>(extensionCreateInfo);
+			backmem.nativeHandle = nativeBufferInfo->handle;
+			backmem.stride = nativeBufferInfo->stride;
+			swapchainImage = true
+		}
+		break;
+#endif
+		default:
+			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
+			UNIMPLEMENTED("extensionCreateInfo->sType");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
+			break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
 	vk::Image::CreateInfo imageCreateInfo =
@@ -920,7 +963,36 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		device
 	};
 
-	return vk::Image::Create(pAllocator, &imageCreateInfo, pImage);
+	VkResult result = vk::Image::Create(pAllocator, &imageCreateInfo, pImage);
+
+#ifdef __ANDROID__
+	if (swapchainImage)
+	{
+		if (result != VK_SUCCESS)
+		{
+			return result;
+		}
+
+		VkMemoryRequirements memRequirements = vk::Cast(*pImage)->getMemoryRequirements();
+
+		VkMemoryAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = 0;
+
+		result = vkAllocateMemory(device, &allocInfo, nullptr, &backmem.imageMemory);
+		if(result != VK_SUCCESS)
+		{
+			return result;
+		}
+
+		vkBindImageMemory(device, *pImage, backmem.imageMemory, 0);
+
+		androidSwapchainMap[*pImage] = backmem;
+	}
+#endif
+
+	return result;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
@@ -2575,7 +2647,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupSurfacePresentModesKHR(VkDevice d
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsage2ANDROID(VkDevice device, VkFormat format, VkImageUsageFlags imageUsage, VkSwapchainImageUsageFlagsANDROID swapchainUsage, uint64_t* grallocConsumerUsage, uint64_t* grallocProducerUsage)
 {
-	TRACE("(VkDevice device = 0x%X, VkFormat format = 0x%X, VkImageUsageFlags imageUsage = 0x%X, VkSwapchainImageUsageFlagsANDROID swapchainUsage = 0x%X, uint64_t* grallocConsumerUsage = 0x%X, uin64_t* grallocProducerUsage = 0x%X)",
+	TRACE("(VkDevice device = %p, VkFormat format = %d, VkImageUsageFlags imageUsage = %d, VkSwapchainImageUsageFlagsANDROID swapchainUsage = %d, uint64_t* grallocConsumerUsage = %p, uin64_t* grallocProducerUsage = %p)",
 			device, format, imageUsage, swapchainUsage, grallocConsumerUsage, grallocProducerUsage);
 
 	*grallocConsumerUsage = 0;
@@ -2586,7 +2658,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsage2ANDROID(VkDevice devic
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format, VkImageUsageFlags imageUsage, int* grallocUsage)
 {
-	TRACE("(VkDevice device = 0x%X, VkFormat format = 0x%X, VkImageUsageFlags imageUsage = 0x%X, int* grallocUsage = 0x%X)",
+	TRACE("(VkDevice device = %p, VkFormat format = %d, VkImageUsageFlags imageUsage = %d, int* grallocUsage = %p)",
 			device, format, imageUsage, grallocUsage);
 
 	return VK_SUCCESS;
@@ -2594,7 +2666,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsageANDROID(VkDevice device
 
 VKAPI_ATTR VkResult VKAPI_CALL vkAcquireImageANDROID(VkDevice device, VkImage image, int nativeFenceFd, VkSemaphore semaphore, VkFence fence)
 {
-	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, int nativeFenceFd = 0x%X, VkSemaphore semaphore = 0x%X, VkFence fence = 0x%X)",
+	TRACE("(VkDevice device = %p, VkImage image = %p, int nativeFenceFd = %d, VkSemaphore semaphore = %p, VkFence fence = %p)",
 			device, image, nativeFenceFd, semaphore, fence);
 
 	return VK_SUCCESS;
@@ -2602,8 +2674,30 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAcquireImageANDROID(VkDevice device, VkImage im
 
 VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image, int* pNativeFenceFd)
 {
-	TRACE("(VkQueue queue = 0x%X, uint32_t waitSemaphoreCount = 0x%X, const VkSemaphore* pWaitSemaphores = 0x%X, VkImage image = 0x%X, int* pNativeFenceFd = 0x%X)",
+	TRACE("(VkQueue queue = %p, uint32_t waitSemaphoreCount = %d, const VkSemaphore* pWaitSemaphores = %p, VkImage image = %p, int* pNativeFenceFd = %p)",
 			queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
+
+	GrallocModule* grallocMod = GrallocModule::getInstance();
+	void* nativeBuffer;
+
+	auto it = androidSwapchainMap.find(image);
+
+	if (it == androidSwapchainMap.end())
+		ABORT("ANDROID: Swapchain image not found");
+
+	BackingMemory backmem = it->second;
+
+	VkExtent3D extent = vk::Cast(image)->getMipLevelExtent(0);
+	grallocMod->lock(backmem.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer);
+
+	char* buffer = static_cast<char*>(vk::Cast(backmem.imageMemory)->getOffsetPointer(0));
+	int imageRowBytes = vk::Cast(image)->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	int colorBytes = vk::Cast(image)->getFormat().bytes();
+
+	for(int i = 0; i < extent.height; i++)
+	{
+		memcpy((void*)((char*)nativeBuffer + (i * backmem.stride * colorBytes)), buffer + (i * imageRowBytes), imageRowBytes);
+	}
 
 	return VK_SUCCESS;
 }
