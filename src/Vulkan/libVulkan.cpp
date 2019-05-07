@@ -1835,8 +1835,19 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory2(VkDevice device, uint32_t bin
 
 VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos)
 {
-	TRACE("()");
-	UNIMPLEMENTED("vkBindImageMemory2");
+	TRACE("(VkDevice device = %p, uint32_t bindInfoCount = %d, const VkBindImageMemoryInfo* pBindInfos = %p)",
+	      device, bindInfoCount, pBindInfos);
+	
+	for(uint32_t i = 0; i < bindInfoCount; i++)
+	{
+		if(pBindInfos[i].pNext)
+		{
+			UNIMPLEMENTED("pBindInfos[%d].pNext", i);
+		}
+
+		vk::Cast(pBindInfos[i].image)->bind(pBindInfos[i].memory, pBindInfos[i].memoryOffset);
+	}
+
 	return VK_SUCCESS;
 }
 
