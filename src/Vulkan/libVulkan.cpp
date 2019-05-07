@@ -1155,9 +1155,22 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorSetLayout(VkDevice device, cons
 	TRACE("(VkDevice device = %p, const VkDescriptorSetLayoutCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkDescriptorSetLayout* pSetLayout = %p)",
 	      device, pCreateInfo, pAllocator, pSetLayout);
 
-	if(pCreateInfo->pNext)
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+
+	while(extensionCreateInfo)
 	{
-		UNIMPLEMENTED("pCreateInfo->pNext");
+		switch(extensionCreateInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT:
+			ASSERT(!HasExtensionProperty(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+			break;
+		default:
+			UNIMPLEMENTED("extensionCreateInfo->sType");
+			break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
 	return vk::DescriptorSetLayout::Create(pAllocator, pCreateInfo, pSetLayout);
