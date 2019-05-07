@@ -1,8 +1,6 @@
-dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_multi_command
-dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_multi_command
+dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_multi_command
 dEQP-VK.glsl.opaque_type_indexing.sampler.const_expression.compute.samplercube
 dEQP-VK.glsl.opaque_type_indexing.sampler.const_literal.compute.samplercube
 dEQP-VK.glsl.texture_functions.texture.samplercube_fixed_vertex
 dEQP-VK.glsl.texture_functions.texturegrad.samplercube_fixed_vertex
-dEQP-VK.glsl.texture_functions.texturelod.samplercube_fixed_vertex
 dEQP-VK.synchronization.internally_synchronized_objects.pipeline_cache_compute
