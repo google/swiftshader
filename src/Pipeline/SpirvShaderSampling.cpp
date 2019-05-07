@@ -93,8 +93,8 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 		SamplerCore s(constants, samplerState);
 
 		SIMD::Float uvw[3];
-		SIMD::Float q(0);     // TODO(b/129523279)
-		SIMD::Float lodOrBias(0);  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
+		SIMD::Float q;
+		SIMD::Float lodOrBias;  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
 		Vector4f dsx;
 		Vector4f dsy;
 		Vector4f offset;
@@ -225,64 +225,71 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 {
 	switch(imageViewType)
 	{
-	case VK_IMAGE_VIEW_TYPE_CUBE:
-		break;
 	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
 		UNSUPPORTED("SPIR-V ImageCubeArray Capability (imageViewType: %d)", int(imageViewType));
 		if(coordinateIndex == 3)
 		{
 			return ADDRESSING_LAYER;
 		}
-		break;
-	case VK_IMAGE_VIEW_TYPE_1D:
-		if(coordinateIndex >= 1)
+		// Fall through to CUBE case:
+	case VK_IMAGE_VIEW_TYPE_CUBE:
+		if(coordinateIndex >= 2)
 		{
-			return ADDRESSING_WRAP;  // Unused, but must avoid BORDER mode.
+			// Cube faces are addressed as 2D images.
+			return ADDRESSING_UNUSED;
+		}
+		else
+		{
+			// Vulkan 1.1 spec:
+			// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
+			//  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE is used, and if VK_FILTER_LINEAR is used within a mip level then sampling at the edges
+			//  is performed as described earlier in the Cube map edge handling section."
+			// This corresponds with our 'SEAMLESS' addressing mode.
+			return ADDRESSING_SEAMLESS;
 		}
 		break;
-	case VK_IMAGE_VIEW_TYPE_2D:
-		if(coordinateIndex == 2)
+
+	case VK_IMAGE_VIEW_TYPE_1D:  // Treated as 2D texture with second coordinate 0.
+		if(coordinateIndex == 1)
 		{
-			return ADDRESSING_WRAP;  // Unused, but must avoid BORDER mode.
+			return ADDRESSING_WRAP;
+		}
+		else if(coordinateIndex >= 2)
+		{
+			return ADDRESSING_UNUSED;
 		}
 		break;
+
 	case VK_IMAGE_VIEW_TYPE_3D:
+		if(coordinateIndex >= 3)
+		{
+			return ADDRESSING_UNUSED;
+		}
 		break;
+
 	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D texture with second coordinate 0.
 		if(coordinateIndex == 1)
 		{
-			return ADDRESSING_WRAP;  // Unused, but must avoid BORDER mode.
+			return ADDRESSING_WRAP;
 		}
-		// Fall through to 2D array case
+		// Fall through to 2D_ARRAY case:
 	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 		if(coordinateIndex == 2)
 		{
 			return ADDRESSING_LAYER;
 		}
-		break;
-	default:
-		UNIMPLEMENTED("imageViewType %d", imageViewType);
-		return ADDRESSING_WRAP;
-	}
-
-	// Vulkan 1.1 spec:
-	// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
-	//  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE is used, and if VK_FILTER_LINEAR is used within a mip level then sampling at the edges
-	//  is performed as described earlier in the Cube map edge handling section."
-	// This corresponds with our 'seamless' addressing mode.
-	switch(imageViewType)
-	{
-	case VK_IMAGE_VIEW_TYPE_CUBE:
-		return ADDRESSING_SEAMLESS;
-//	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-		UNSUPPORTED("SPIR-V ImageCubeArray Capability (imageViewType: %d)", int(imageViewType));
-		return ADDRESSING_SEAMLESS;
-	case VK_IMAGE_VIEW_TYPE_1D:
+		else if(coordinateIndex >= 3)
+		{
+			return ADDRESSING_UNUSED;
+		}
+		// Fall through to 2D case:
 	case VK_IMAGE_VIEW_TYPE_2D:
-	case VK_IMAGE_VIEW_TYPE_3D:
-	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+		if(coordinateIndex >= 2)
+		{
+			return ADDRESSING_UNUSED;
+		}
 		break;
+
 	default:
 		UNIMPLEMENTED("imageViewType %d", imageViewType);
 		return ADDRESSING_WRAP;

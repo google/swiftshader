@@ -1936,7 +1936,11 @@ namespace sw
 
 	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte> &mipmap)
 	{
-		if(addressingMode == ADDRESSING_LAYER)
+		if(addressingMode == ADDRESSING_UNUSED)
+		{
+			return Short4();
+		}
+		else if(addressingMode == ADDRESSING_LAYER)
 		{
 			return Min(Max(Short4(RoundInt(uw)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
 		}
@@ -1974,6 +1978,11 @@ namespace sw
 
 	void SamplerCore::address(Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function)
 	{
+		if(addressingMode == ADDRESSING_UNUSED)
+		{
+			return;
+		}
+
 		Int4 dim = Int4(*Pointer<Short4>(mipmap + whd, 16));
 		Int4 maxXYZ = dim - Int4(1);
 
