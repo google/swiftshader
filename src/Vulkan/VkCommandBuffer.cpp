@@ -1140,7 +1140,7 @@ void CommandBuffer::executeCommands(uint32_t commandBufferCount, const VkCommand
 
 void CommandBuffer::setDeviceMask(uint32_t deviceMask)
 {
-	UNIMPLEMENTED("setDeviceMask");
+	// SwiftShader only has one device, so we ignore the device mask
 }
 
 void CommandBuffer::dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,

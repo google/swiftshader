@@ -554,6 +554,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 			// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
 			//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
 			break;
+		case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO:
+			// This extension controls on which physical devices the memory gets allocated.
+			// SwiftShader only has a single physical device, so this extension does nothing in this case.
+			break;
 		default:
 			UNIMPLEMENTED("allocationInfo->sType");
 			break;
@@ -1788,9 +1792,22 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, c
 	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderPassBeginInfo* pRenderPassBegin = %p, VkSubpassContents contents = %d)",
 	      commandBuffer, pRenderPassBegin, contents);
 
-	if(pRenderPassBegin->pNext)
+	const VkBaseInStructure* renderPassBeginInfo = reinterpret_cast<const VkBaseInStructure*>(pRenderPassBegin->pNext);
+	while(renderPassBeginInfo)
 	{
-		UNIMPLEMENTED("pRenderPassBegin->pNext");
+		switch(renderPassBeginInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO:
+			// This extension controls which render area is used on which physical device,
+			// in order to distribute rendering between multiple physical devices.
+			// SwiftShader only has a single physical device, so this extension does nothing in this case.
+			break;
+		default:
+			UNIMPLEMENTED("renderPassBeginInfo->sType");
+			break;
+		}
+
+		renderPassBeginInfo = renderPassBeginInfo->pNext;
 	}
 
 	vk::Cast(commandBuffer)->beginRenderPass(pRenderPassBegin->renderPass, pRenderPassBegin->framebuffer,
@@ -1875,8 +1892,9 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, u
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask)
 {
-	TRACE("()");
-	UNIMPLEMENTED("vkCmdSetDeviceMask");
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t deviceMask = %d", commandBuffer, deviceMask);
+
+	vk::Cast(commandBuffer)->setDeviceMask(deviceMask);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDispatchBase(VkCommandBuffer commandBuffer, uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
