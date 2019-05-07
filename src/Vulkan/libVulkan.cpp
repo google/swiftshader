@@ -2096,6 +2096,10 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 			ASSERT(!HasExtensionProperty(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME, deviceExtensionProperties,
 			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT:
+			ASSERT(!HasExtensionProperty(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+			break;
 #ifdef __ANDROID__
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_ANDROID:
 			{
