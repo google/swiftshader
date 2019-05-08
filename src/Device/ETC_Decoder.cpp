@@ -30,7 +30,7 @@ namespace
 	{
 		short min = isSigned ? -1023 : 0;
 		short max = isSigned ? 1023 : 2047;
-		return (value < min) ? min : ((value > max) ? max : value) << 5;
+		return ((value < min) ? min : ((value > max) ? max : value)) << 5;
 	}
 
 	struct bgra8
