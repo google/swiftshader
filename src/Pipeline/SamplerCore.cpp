@@ -1542,6 +1542,19 @@ namespace sw
 			c.w |= (c.w >> 4) & Short4(0x0c0c);
 			c.w |= (c.w >> 2) & Short4(0x3333);
 		}
+		else if(state.textureFormat == VK_FORMAT_A2B10G10R10_UINT_PACK32)
+		{
+			Int4 cc;
+			cc = Insert(cc, Pointer<Int>(buffer[f0])[index[0]], 0);
+			cc = Insert(cc, Pointer<Int>(buffer[f1])[index[1]], 1);
+			cc = Insert(cc, Pointer<Int>(buffer[f2])[index[2]], 2);
+			cc = Insert(cc, Pointer<Int>(buffer[f3])[index[3]], 3);
+
+			c.x = Short4(((cc) & Int4(0x3FF)));
+			c.y = Short4(((cc >> 10) & Int4(0x3FF)));
+			c.z = Short4(((cc >> 20) & Int4(0x3FF)));
+			c.w = Short4(((cc >> 30) & Int4(0x3)));
+		}
 		else ASSERT(false);
 
 		if (state.textureFormat.isSRGBformat())
