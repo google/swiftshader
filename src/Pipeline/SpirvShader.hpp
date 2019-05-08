@@ -262,6 +262,11 @@ namespace sw
 		using ImageSampler = void(void* texture, void *sampler, void* uvsIn, void* texelOut, void* constants);
 		using GetImageSampler = ImageSampler*(const vk::ImageView *imageView, const vk::Sampler *sampler);
 
+		enum class YieldResult
+		{
+			ControlBarrier,
+		};
+
 		/* Pseudo-iterator over SPIRV instructions, designed to support range-based-for. */
 		class InsnIterator
 		{
@@ -543,6 +548,7 @@ namespace sw
 			bool DepthLess : 1;
 			bool DepthUnchanged : 1;
 			bool ContainsKill : 1;
+			bool ContainsControlBarriers : 1;
 			bool NeedsCentroid : 1;
 
 			// Compute workgroup dimensions
@@ -934,6 +940,7 @@ namespace sw
 		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitSampledImageCombineOrSplit(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitControlBarrier(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitMemoryBarrier(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
 
@@ -943,6 +950,9 @@ namespace sw
 
 		// Emits a rr::Fence for the given MemorySemanticsMask.
 		void Fence(spv::MemorySemanticsMask semantics) const;
+
+		// Helper for calling rr::Yield with res cast to an rr::Int.
+		void Yield(YieldResult res) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.

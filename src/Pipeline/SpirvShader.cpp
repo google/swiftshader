@@ -13,8 +13,9 @@
 // limitations under the License.
 
 #include "SpirvShader.hpp"
-
 #include "SamplerCore.hpp"
+
+#include "Reactor/Coroutine.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkBuffer.hpp"
 #include "Vulkan/VkBufferView.hpp"
@@ -882,6 +883,10 @@ namespace sw
 			case spv::OpCopyMemory:
 			case spv::OpMemoryBarrier:
 				// Don't need to do anything during analysis pass
+				break;
+
+			case spv::OpControlBarrier:
+				modes.ContainsControlBarriers = true;
 				break;
 
 			case spv::OpExtension:
@@ -2461,6 +2466,9 @@ namespace sw
 
 		case spv::OpCopyMemory:
 			return EmitCopyMemory(insn, state);
+
+		case spv::OpControlBarrier:
+			return EmitControlBarrier(insn, state);
 
 		case spv::OpMemoryBarrier:
 			return EmitMemoryBarrier(insn, state);
@@ -4889,6 +4897,11 @@ namespace sw
 		return ptr;
 	}
 
+	void SpirvShader::Yield(YieldResult res) const
+	{
+		rr::Yield(RValue<Int>(int(res)));
+	}
+
 	SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState *state) const
 	{
 		auto &resultType = getType(Type::ID(insn.word(1)));
@@ -5465,6 +5478,29 @@ namespace sw
 			if (srcInterleavedByLane) { src = interleaveByLane(src); }
 			SIMD::Store(dst, SIMD::Load<SIMD::Float>(src, state->activeLaneMask()), state->activeLaneMask());
 		});
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitControlBarrier(InsnIterator insn, EmitState *state) const
+	{
+		auto executionScope = spv::Scope(GetConstScalarInt(insn.word(1)));
+		auto semantics = spv::MemorySemanticsMask(GetConstScalarInt(insn.word(3)));
+		// TODO: We probably want to consider the memory scope here. For now,
+		// just always emit the full fence.
+		Fence(semantics);
+
+		switch (executionScope)
+		{
+		case spv::ScopeWorkgroup:
+		case spv::ScopeSubgroup:
+			Yield(YieldResult::ControlBarrier);
+			break;
+		default:
+			// See Vulkan 1.1 spec, Appendix A, Validation Rules within a Module.
+			UNREACHABLE("Scope for execution must be limited to Workgroup or Subgroup");
+			break;
+		}
+
 		return EmitResult::Continue;
 	}
 
