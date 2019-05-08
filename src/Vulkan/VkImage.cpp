@@ -163,9 +163,16 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		UNIMPLEMENTED("dstSubresource");
 	}
 
-	if((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger())
+	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(pRegion.srcSubresource.aspectMask);
+	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(pRegion.dstSubresource.aspectMask);
+
+	Format srcFormat = getFormat(srcAspect);
+	Format dstFormat = dst->getFormat(dstAspect);
+
+	if(((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger()) ||
+		srcFormat.hasQuadLayout() || dstFormat.hasQuadLayout())
 	{
-		// Requires multisampling resolve
+		// Requires multisampling resolve, or quadlayout awareness
 		VkImageBlit region;
 		region.srcSubresource = pRegion.srcSubresource;
 		region.srcOffsets[0] = pRegion.srcOffset;
@@ -182,18 +189,8 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		return device->getBlitter()->blit(this, dst, region, VK_FILTER_NEAREST);
 	}
 
-	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(pRegion.srcSubresource.aspectMask);
-	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(pRegion.dstSubresource.aspectMask);
-
-	Format srcFormat = getFormat(srcAspect);
-	Format dstFormat = dst->getFormat(dstAspect);
 	int srcBytesPerBlock = srcFormat.bytesPerBlock();
 	ASSERT(srcBytesPerBlock == dstFormat.bytesPerBlock());
-
-	if (srcFormat.hasQuadLayout() || dstFormat.hasQuadLayout())
-	{
-		UNIMPLEMENTED("Quad layout copies");
-	}
 
 	const uint8_t* srcMem = static_cast<const uint8_t*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource));
 	uint8_t* dstMem = static_cast<uint8_t*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
