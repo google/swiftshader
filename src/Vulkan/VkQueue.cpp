@@ -75,8 +75,7 @@ namespace vk
 
 Queue::Queue()
 {
-	context.reset(new sw::Context());
-	renderer.reset(new sw::Renderer(context.get(), sw::OpenGL, true));
+	renderer.reset(new sw::Renderer(sw::OpenGL, true));
 
 	queueThread = std::thread(TaskLoop, this);
 }
@@ -93,7 +92,6 @@ void Queue::destroy()
 	garbageCollect();
 
 	renderer.reset(nullptr);
-	context.reset(nullptr);
 }
 
 VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence)

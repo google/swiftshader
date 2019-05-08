@@ -242,29 +242,29 @@ namespace sw
 		return modified;
 	}
 
-	bool Context::depthWriteActive()
+	bool Context::depthWriteActive() const
 	{
 		if(!depthBufferActive()) return false;
 
 		return depthWriteEnable;
 	}
 
-	bool Context::alphaTestActive()
+	bool Context::alphaTestActive() const
 	{
 		return transparencyAntialiasing != TRANSPARENCY_NONE;
 	}
 
-	bool Context::depthBufferActive()
+	bool Context::depthBufferActive() const
 	{
 		return depthBuffer && depthBufferEnable;
 	}
 
-	bool Context::stencilActive()
+	bool Context::stencilActive() const
 	{
 		return stencilBuffer && stencilEnable;
 	}
 
-	bool Context::alphaBlendActive()
+	bool Context::alphaBlendActive() const
 	{
 		if(!alphaBlendEnable)
 		{
@@ -282,7 +282,7 @@ namespace sw
 		return colorBlend || alphaBlend;
 	}
 
-	VkBlendFactor Context::sourceBlendFactor()
+	VkBlendFactor Context::sourceBlendFactor() const
 	{
 		if(!alphaBlendEnable) return VK_BLEND_FACTOR_ONE;
 
@@ -303,7 +303,7 @@ namespace sw
 		return sourceBlendFactorState;
 	}
 
-	VkBlendFactor Context::destBlendFactor()
+	VkBlendFactor Context::destBlendFactor() const
 	{
 		if(!alphaBlendEnable) return VK_BLEND_FACTOR_ONE;
 
@@ -324,7 +324,7 @@ namespace sw
 		return destBlendFactorState;
 	}
 
-	VkBlendOp Context::blendOperation()
+	VkBlendOp Context::blendOperation() const
 	{
 		if(!alphaBlendEnable) return VK_BLEND_OP_SRC_EXT;
 
@@ -436,7 +436,7 @@ namespace sw
 		return blendOperationState;
 	}
 
-	VkBlendFactor Context::sourceBlendFactorAlpha()
+	VkBlendFactor Context::sourceBlendFactorAlpha() const
 	{
 		if(!separateAlphaBlendEnable)
 		{
@@ -462,7 +462,7 @@ namespace sw
 		}
 	}
 
-	VkBlendFactor Context::destBlendFactorAlpha()
+	VkBlendFactor Context::destBlendFactorAlpha() const
 	{
 		if(!separateAlphaBlendEnable)
 		{
@@ -488,7 +488,7 @@ namespace sw
 		}
 	}
 
-	VkBlendOp Context::blendOperationAlpha()
+	VkBlendOp Context::blendOperationAlpha() const
 	{
 		if(!separateAlphaBlendEnable)
 		{
@@ -605,7 +605,7 @@ namespace sw
 		}
 	}
 
-	bool Context::perspectiveActive()
+	bool Context::perspectiveActive() const
 	{
 		if(!colorUsed())
 		{
@@ -625,7 +625,7 @@ namespace sw
 		return true;
 	}
 
-	VkFormat Context::renderTargetInternalFormat(int index)
+	VkFormat Context::renderTargetInternalFormat(int index) const
 	{
 		if(renderTarget[index])
 		{
@@ -637,7 +637,7 @@ namespace sw
 		}
 	}
 
-	bool Context::colorWriteActive()
+	bool Context::colorWriteActive() const
 	{
 		for (int i = 0; i < RENDERTARGETS; i++)
 		{
@@ -650,7 +650,7 @@ namespace sw
 		return false;
 	}
 
-	int Context::colorWriteActive(int index)
+	int Context::colorWriteActive(int index) const
 	{
 		if(!renderTarget[index] || renderTarget[index]->getFormat() == VK_FORMAT_UNDEFINED)
 		{
@@ -666,7 +666,7 @@ namespace sw
 		return colorWriteMask[index];
 	}
 
-	bool Context::colorUsed()
+	bool Context::colorUsed() const
 	{
 		return colorWriteActive() || alphaTestActive() || (pixelShader && pixelShader->getModes().ContainsKill);
 	}

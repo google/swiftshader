@@ -116,21 +116,21 @@ namespace sw
 		bool setColorWriteMask(int index, int colorWriteMask);
 		bool setWriteSRGB(bool sRGB);
 
-		bool depthWriteActive();
-		bool alphaTestActive();
-		bool depthBufferActive();
-		bool stencilActive();
+		bool depthWriteActive() const;
+		bool alphaTestActive() const;
+		bool depthBufferActive() const;
+		bool stencilActive() const;
 
-		bool perspectiveActive();
+		bool perspectiveActive() const;
 
-		bool alphaBlendActive();
-		VkBlendFactor sourceBlendFactor();
-		VkBlendFactor destBlendFactor();
-		VkBlendOp blendOperation();
+		bool alphaBlendActive() const;
+		VkBlendFactor sourceBlendFactor() const;
+		VkBlendFactor destBlendFactor() const;
+		VkBlendOp blendOperation() const;
 
-		VkBlendFactor sourceBlendFactorAlpha();
-		VkBlendFactor destBlendFactorAlpha();
-		VkBlendOp blendOperationAlpha();
+		VkBlendFactor sourceBlendFactorAlpha() const;
+		VkBlendFactor destBlendFactorAlpha() const;
+		VkBlendOp blendOperationAlpha() const;
 
 		VkPrimitiveTopology topology;
 
@@ -146,10 +146,10 @@ namespace sw
 		float depthBias;
 		float slopeDepthBias;
 
-		VkFormat renderTargetInternalFormat(int index);
-		bool colorWriteActive();
-		int colorWriteActive(int index);
-		bool colorUsed();
+		VkFormat renderTargetInternalFormat(int index) const;
+		bool colorWriteActive() const;
+		int colorWriteActive(int index) const;
+		bool colorUsed() const;
 
 		vk::DescriptorSet::Bindings descriptorSets = {};
 		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};

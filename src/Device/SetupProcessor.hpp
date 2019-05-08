@@ -64,19 +64,17 @@ namespace sw
 
 		typedef bool (*RoutinePointer)(Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw);
 
-		SetupProcessor(Context *context);
+		SetupProcessor();
 
 		~SetupProcessor();
 
 	protected:
-		State update() const;
+		State update(const sw::Context* context) const;
 		Routine *routine(const State &state);
 
 		void setRoutineCacheSize(int cacheSize);
 
 	private:
-		Context *const context;
-
 		RoutineCache<State> *routineCache;
 	};
 }

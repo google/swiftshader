@@ -417,7 +417,7 @@ void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int f
 	}
 }
 
-void CommandBuffer::ExecutionState::bindAttachments()
+void CommandBuffer::ExecutionState::bindAttachments(sw::Context& context)
 {
 	// Binds all the attachments for the current subpass
 	// Ideally this would be performed by BeginRenderPass and NextSubpass, but
@@ -429,8 +429,7 @@ void CommandBuffer::ExecutionState::bindAttachments()
 		auto attachmentReference = renderPass->getCurrentSubpass().pColorAttachments[i];
 		if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 		{
-			auto attachment = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
-			renderer->setRenderTarget(i, attachment);
+			context.renderTarget[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
 		}
 	}
 
@@ -440,11 +439,11 @@ void CommandBuffer::ExecutionState::bindAttachments()
 		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
 		if (attachment->hasDepthAspect())
 		{
-			renderer->setDepthBuffer(attachment);
+			context.depthBuffer = attachment;
 		}
 		if (attachment->hasStencilAspect())
 		{
-			renderer->setStencilBuffer(attachment);
+			context.stencilBuffer = attachment;
 		}
 	}
 }
@@ -516,17 +515,17 @@ struct DrawBase : public CommandBuffer::Command
 			context.backStencil.reference = executionState.dynamicState.reference[1];
 		}
 
-		executionState.renderer->setContext(context);
+		executionState.bindAttachments(context);
 
-		executionState.bindAttachments();
+		context.multiSampleMask = context.sampleMask & ((unsigned)0xFFFFFFFF >> (32 - context.sampleCount));
+		context.occlusionEnabled = executionState.renderer->hasQueryOfType(VK_QUERY_TYPE_OCCLUSION);
 
 		const uint32_t primitiveCount = pipeline->computePrimitiveCount(count);
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
-			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(context.topology, executionState.indexType, primitiveCount, vertexOffset,
-			                              executionState.fence);
-			executionState.renderer->advanceInstanceAttributes();
+			context.instanceID = instance;
+			executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset, executionState.fence);
+			executionState.renderer->advanceInstanceAttributes(context.input);
 		}
 	}
 };

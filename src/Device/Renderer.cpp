@@ -199,13 +199,11 @@ namespace sw
 		deallocate(data);
 	}
 
-	Renderer::Renderer(Context *context, Conventions conventions, bool exactColorRounding) : VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), context(context), viewport()
+	Renderer::Renderer(Conventions conventions, bool exactColorRounding)
 	{
 		setGlobalRenderingSettings(conventions, exactColorRounding);
 
-		setRenderTarget(0, nullptr);
 		clipper = new Clipper;
-		blitter = new Blitter;
 
 		#if PERF_HUD
 			resetTimers();
@@ -269,9 +267,6 @@ namespace sw
 		delete clipper;
 		clipper = nullptr;
 
-		delete blitter;
-		blitter = nullptr;
-
 		delete resumeApp;
 		resumeApp = nullptr;
 
@@ -297,7 +292,20 @@ namespace sw
 		sw::deallocate(mem);
 	}
 
-	void Renderer::draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, int baseVertex, vk::Fence* fence, bool update)
+	bool Renderer::hasQueryOfType(VkQueryType type) const
+	{
+		for(auto query : queries)
+		{
+			if(query->type == type)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex, vk::Fence* fence, bool update)
 	{
 		#ifndef NDEBUG
 			if(count < minPrimitives || count > maxPrimitives)
@@ -306,39 +314,26 @@ namespace sw
 			}
 		#endif
 
-		context->topology = topology;
-
 		updateConfiguration();
 
 		int ms = context->sampleCount;
-		context->multiSampleMask = context->sampleMask & ((unsigned)0xFFFFFFFF >> (32 - ms));
 
 		if(!context->multiSampleMask)
 		{
 			return;
 		}
 
-		context->occlusionEnabled = false;
-		for(auto query : queries)
-		{
-			if(query->type == VK_QUERY_TYPE_OCCLUSION)
-			{
-				context->occlusionEnabled = true;
-				break;
-			}
-		}
-
 		sync->lock(sw::PRIVATE);
 
 		if(update)
 		{
-			vertexState = VertexProcessor::update(topology);
-			setupState = SetupProcessor::update();
-			pixelState = PixelProcessor::update();
+			vertexState = VertexProcessor::update(context);
+			setupState = SetupProcessor::update(context);
+			pixelState = PixelProcessor::update(context);
 
-			vertexRoutine = VertexProcessor::routine(vertexState);
+			vertexRoutine = VertexProcessor::routine(vertexState, context->pipelineLayout, context->vertexShader, context->descriptorSets);
 			setupRoutine = SetupProcessor::routine(setupState);
-			pixelRoutine = PixelProcessor::routine(pixelState);
+			pixelRoutine = PixelProcessor::routine(pixelState, context->pipelineLayout, context->pixelShader, context->descriptorSets);
 		}
 
 		int batch = batchSize / ms;
@@ -392,7 +387,7 @@ namespace sw
 			}
 		}
 
-		draw->topology = topology;
+		draw->topology = context->topology;
 		draw->indexType = indexType;
 		draw->batchSize = batch;
 
@@ -1396,46 +1391,6 @@ namespace sw
 		}
 	}
 
-	void Renderer::setMultiSampleMask(unsigned int mask)
-	{
-		context->sampleMask = mask;
-	}
-
-	void Renderer::setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing)
-	{
-		sw::transparencyAntialiasing = transparencyAntialiasing;
-	}
-
-	void Renderer::setLineWidth(float width)
-	{
-		context->lineWidth = width;
-	}
-
-	void Renderer::setDepthBias(float bias)
-	{
-		context->depthBias = bias;
-	}
-
-	void Renderer::setSlopeDepthBias(float slopeBias)
-	{
-		context->slopeDepthBias = slopeBias;
-	}
-
-	void Renderer::setRasterizerDiscard(bool rasterizerDiscard)
-	{
-		context->rasterizerDiscard = rasterizerDiscard;
-	}
-
-	void Renderer::setPixelShader(const SpirvShader *shader)
-	{
-		context->pixelShader = shader;
-	}
-
-	void Renderer::setVertexShader(const SpirvShader *shader)
-	{
-		context->vertexShader = shader;
-	}
-
 	void Renderer::addQuery(vk::Query *query)
 	{
 		queries.push_back(query);
@@ -1446,11 +1401,11 @@ namespace sw
 		queries.remove(query);
 	}
 
-	void Renderer::advanceInstanceAttributes()
+	void Renderer::advanceInstanceAttributes(Stream* inputs)
 	{
 		for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
 		{
-			auto &attrib = context->input[i];
+			auto &attrib = inputs[i];
 			if (attrib.count && attrib.instanceStride)
 			{
 				// Under the casts: attrib.buffer += attrib.instanceStride
@@ -1490,11 +1445,6 @@ namespace sw
 			}
 		}
 	#endif
-
-	void Renderer::setContext(const sw::Context& context)
-	{
-		*(this->context) = context;
-	}
 
 	void Renderer::setViewport(const VkViewport &viewport)
 	{

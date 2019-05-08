@@ -61,7 +61,7 @@ namespace sw
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
-	VertexProcessor::VertexProcessor(Context *context) : context(context)
+	VertexProcessor::VertexProcessor()
 	{
 		routineCache = nullptr;
 		setRoutineCacheSize(1024);
@@ -73,37 +73,19 @@ namespace sw
 		routineCache = nullptr;
 	}
 
-	void VertexProcessor::setInputStream(int index, const Stream &stream)
-	{
-		context->input[index] = stream;
-	}
-
-	void VertexProcessor::resetInputStreams()
-	{
-		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
-		{
-			context->input[i].defaults();
-		}
-	}
-
-	void VertexProcessor::setInstanceID(int instanceID)
-	{
-		context->instanceID = instanceID;
-	}
-
 	void VertexProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
 		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536));
 	}
 
-	const VertexProcessor::State VertexProcessor::update(VkPrimitiveTopology topology)
+	const VertexProcessor::State VertexProcessor::update(const sw::Context* context)
 	{
 		State state;
 
 		state.shaderID = context->vertexShader->getSerialID();
 
-		switch(topology)
+		switch(context->topology)
 		{
 		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
 			state.verticesPerPrimitive = 1;
@@ -118,7 +100,7 @@ namespace sw
 			state.verticesPerPrimitive = 3;
 			break;
 		default:
-			UNIMPLEMENTED("topology %d", int(topology));
+			UNIMPLEMENTED("topology %d", int(context->topology));
 		}
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
@@ -136,13 +118,16 @@ namespace sw
 		return state;
 	}
 
-	Routine *VertexProcessor::routine(const State &state)
+	Routine *VertexProcessor::routine(const State &state,
+	                                  vk::PipelineLayout const *pipelineLayout,
+	                                  SpirvShader const *vertexShader,
+	                                  const vk::DescriptorSet::Bindings &descriptorSets)
 	{
 		Routine *routine = routineCache->query(state);
 
 		if(!routine)   // Create one
 		{
-			VertexRoutine *generator = new VertexProgram(state, context->pipelineLayout, context->vertexShader, context->descriptorSets);
+			VertexRoutine *generator = new VertexProgram(state, pipelineLayout, vertexShader, descriptorSets);
 			generator->generate();
 			routine = (*generator)("VertexRoutine_%0.8X", state.shaderID);
 			delete generator;

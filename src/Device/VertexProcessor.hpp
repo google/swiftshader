@@ -80,24 +80,18 @@ namespace sw
 
 		typedef void (*RoutinePointer)(Vertex *output, unsigned int *batch, VertexTask *vertexTask, DrawData *draw);
 
-		VertexProcessor(Context *context);
+		VertexProcessor();
 
 		virtual ~VertexProcessor();
 
-		void setInputStream(int index, const Stream &stream);
-		void resetInputStreams();
-
-		void setInstanceID(int instanceID);
-
 	protected:
-		const State update(VkPrimitiveTopology topology);
-		Routine *routine(const State &state);
+		const State update(const sw::Context* context);
+		Routine *routine(const State &state, vk::PipelineLayout const *pipelineLayout,
+		                 SpirvShader const *vertexShader, const vk::DescriptorSet::Bindings &descriptorSets);
 
 		void setRoutineCacheSize(int cacheSize);
 
 	private:
-		Context *const context;
-
 		RoutineCache<State> *routineCache;
 	};
 }

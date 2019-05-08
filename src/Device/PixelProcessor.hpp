@@ -120,47 +120,24 @@ namespace sw
 	public:
 		typedef void (*RoutinePointer)(const Primitive *primitive, int count, int thread, DrawData *draw);
 
-		PixelProcessor(Context *context);
+		PixelProcessor();
 
 		virtual ~PixelProcessor();
 
-		void setRenderTarget(int index, vk::ImageView *renderTarget);
-		void setDepthBuffer(vk::ImageView *depthBuffer);
-		void setStencilBuffer(vk::ImageView *stencilBuffer);
-
-		void setDepthBufferEnable(bool depthBufferEnable);
-		void setDepthCompare(VkCompareOp depthCompareMode);
-		void setDepthWriteEnable(bool depthWriteEnable);
-		void setCullMode(CullMode cullMode, bool frontFacingCCW);
-		void setColorWriteMask(int index, int rgbaMask);
-
 		void setBlendConstant(const Color<float> &blendConstant);
-
-		void setAlphaBlendEnable(bool alphaBlendEnable);
-		void setSourceBlendFactor(VkBlendFactor sourceBlendFactor);
-		void setDestBlendFactor(VkBlendFactor destBlendFactor);
-		void setBlendOperation(VkBlendOp blendOperation);
-
-		void setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
-		void setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha);
-		void setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha);
-		void setBlendOperationAlpha(VkBlendOp blendOperationAlpha);
 
 		void setPerspectiveCorrection(bool perspectiveCorrection);
 
-		void setOcclusionEnabled(bool enable);
-
 	protected:
-		const State update() const;
-		Routine *routine(const State &state);
+		const State update(const Context* context) const;
+		Routine *routine(const State &state, vk::PipelineLayout const *pipelineLayout,
+		                 SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);
 		void setRoutineCacheSize(int routineCacheSize);
 
 		// Other semi-constants
 		Factor factor;
 
 	private:
-		Context *const context;
-
 		RoutineCache<State> *routineCache;
 	};
 }

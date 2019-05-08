@@ -57,7 +57,7 @@ namespace sw
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
-	SetupProcessor::SetupProcessor(Context *context) : context(context)
+	SetupProcessor::SetupProcessor()
 	{
 		routineCache = nullptr;
 		setRoutineCacheSize(1024);
@@ -69,7 +69,7 @@ namespace sw
 		routineCache = nullptr;
 	}
 
-	SetupProcessor::State SetupProcessor::update() const
+	SetupProcessor::State SetupProcessor::update(const sw::Context* context) const
 	{
 		State state;
 

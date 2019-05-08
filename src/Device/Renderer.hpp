@@ -193,30 +193,16 @@ namespace sw
 		};
 
 	public:
-		Renderer(Context *context, Conventions conventions, bool exactColorRounding);
+		Renderer(Conventions conventions, bool exactColorRounding);
 
 		virtual ~Renderer();
 
 		void *operator new(size_t size);
 		void operator delete(void * mem);
 
-		void draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, int baseVertex, vk::Fence* fence, bool update = true);
+		bool hasQueryOfType(VkQueryType type) const;
 
-		void setContext(const sw::Context& context);
-
-		void setMultiSampleMask(unsigned int mask);
-		void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
-
-		void setLineWidth(float width);
-
-		void setDepthBias(float bias);
-		void setSlopeDepthBias(float slopeBias);
-
-		void setRasterizerDiscard(bool rasterizerDiscard);
-
-		// Programmable pipelines
-		void setPixelShader(const SpirvShader *shader);
-		void setVertexShader(const SpirvShader *shader);
+		void draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex, vk::Fence* fence, bool update = true);
 
 		// Viewport & Clipper
 		void setViewport(const VkViewport &viewport);
@@ -225,7 +211,7 @@ namespace sw
 		void addQuery(vk::Query *query);
 		void removeQuery(vk::Query *query);
 
-		void advanceInstanceAttributes();
+		void advanceInstanceAttributes(Stream* inputs);
 
 		void synchronize();
 
@@ -262,9 +248,7 @@ namespace sw
 		void initializeThreads();
 		void terminateThreads();
 
-		Context *context;
 		Clipper *clipper;
-		Blitter *blitter;
 		VkViewport viewport;
 		VkRect2D scissor;
 		int clipFlags;

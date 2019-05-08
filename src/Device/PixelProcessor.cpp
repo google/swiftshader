@@ -57,7 +57,7 @@ namespace sw
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
-	PixelProcessor::PixelProcessor(Context *context) : context(context)
+	PixelProcessor::PixelProcessor()
 	{
 		routineCache = nullptr;
 		setRoutineCacheSize(1024);
@@ -67,47 +67,6 @@ namespace sw
 	{
 		delete routineCache;
 		routineCache = nullptr;
-	}
-
-	void PixelProcessor::setRenderTarget(int index, vk::ImageView* renderTarget)
-	{
-		context->renderTarget[index] = renderTarget;
-	}
-
-	void PixelProcessor::setDepthBuffer(vk::ImageView *depthBuffer)
-	{
-		context->depthBuffer = depthBuffer;
-	}
-
-	void PixelProcessor::setStencilBuffer(vk::ImageView *stencilBuffer)
-	{
-		context->stencilBuffer = stencilBuffer;
-	}
-
-	void PixelProcessor::setDepthBufferEnable(bool depthBufferEnable)
-	{
-		context->setDepthBufferEnable(depthBufferEnable);
-	}
-
-	void PixelProcessor::setDepthCompare(VkCompareOp depthCompareMode)
-	{
-		context->depthCompareMode = depthCompareMode;
-	}
-
-	void PixelProcessor::setDepthWriteEnable(bool depthWriteEnable)
-	{
-		context->depthWriteEnable = depthWriteEnable;
-	}
-
-	void PixelProcessor::setCullMode(CullMode cullMode, bool frontFacingCCW)
-	{
-		context->cullMode = cullMode;
-		context->frontFacingCCW = frontFacingCCW;
-	}
-
-	void PixelProcessor::setColorWriteMask(int index, int rgbaMask)
-	{
-		context->setColorWriteMask(index, rgbaMask);
 	}
 
 	void PixelProcessor::setBlendConstant(const Color<float> &blendConstant)
@@ -205,54 +164,9 @@ namespace sw
 		factor.invBlendConstant4F[3][3] = 1 - blendConstant.a;
 	}
 
-	void PixelProcessor::setAlphaBlendEnable(bool alphaBlendEnable)
-	{
-		context->setAlphaBlendEnable(alphaBlendEnable);
-	}
-
-	void PixelProcessor::setSourceBlendFactor(VkBlendFactor sourceBlendFactor)
-	{
-		context->setSourceBlendFactor(sourceBlendFactor);
-	}
-
-	void PixelProcessor::setDestBlendFactor(VkBlendFactor destBlendFactor)
-	{
-		context->setDestBlendFactor(destBlendFactor);
-	}
-
-	void PixelProcessor::setBlendOperation(VkBlendOp blendOperation)
-	{
-		context->setBlendOperation(blendOperation);
-	}
-
-	void PixelProcessor::setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable)
-	{
-		context->setSeparateAlphaBlendEnable(separateAlphaBlendEnable);
-	}
-
-	void PixelProcessor::setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha)
-	{
-		context->setSourceBlendFactorAlpha(sourceBlendFactorAlpha);
-	}
-
-	void PixelProcessor::setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha)
-	{
-		context->setDestBlendFactorAlpha(destBlendFactorAlpha);
-	}
-
-	void PixelProcessor::setBlendOperationAlpha(VkBlendOp blendOperationAlpha)
-	{
-		context->setBlendOperationAlpha(blendOperationAlpha);
-	}
-
 	void PixelProcessor::setPerspectiveCorrection(bool perspectiveEnable)
 	{
 		perspectiveCorrection = perspectiveEnable;
-	}
-
-	void PixelProcessor::setOcclusionEnabled(bool enable)
-	{
-		context->occlusionEnabled = enable;
 	}
 
 	void PixelProcessor::setRoutineCacheSize(int cacheSize)
@@ -261,7 +175,7 @@ namespace sw
 		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536));
 	}
 
-	const PixelProcessor::State PixelProcessor::update() const
+	const PixelProcessor::State PixelProcessor::update(const Context* context) const
 	{
 		State state;
 
@@ -330,13 +244,16 @@ namespace sw
 		return state;
 	}
 
-	Routine *PixelProcessor::routine(const State &state)
+	Routine *PixelProcessor::routine(const State &state,
+		vk::PipelineLayout const *pipelineLayout,
+		SpirvShader const *pixelShader,
+		const vk::DescriptorSet::Bindings &descriptorSets)
 	{
 		Routine *routine = routineCache->query(state);
 
 		if(!routine)
 		{
-			QuadRasterizer *generator = new PixelProgram(state, context->pipelineLayout, context->pixelShader, context->descriptorSets);
+			QuadRasterizer *generator = new PixelProgram(state, pipelineLayout, pixelShader, descriptorSets);
 			generator->generate();
 			routine = (*generator)("PixelRoutine_%0.8X", state.shaderID);
 			delete generator;
