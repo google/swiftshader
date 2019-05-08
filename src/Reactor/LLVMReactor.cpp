@@ -1455,6 +1455,11 @@ namespace rr
 		::builder->CreateCall(func, { V(val), elPtrs, align, i8Mask });
 	}
 
+	void Nucleus::createFence(std::memory_order memoryOrder)
+	{
+		::builder->CreateFence(atomicOrdering(true, memoryOrder));
+	}
+
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();

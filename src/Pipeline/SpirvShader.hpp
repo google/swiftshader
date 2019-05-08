@@ -934,11 +934,15 @@ namespace sw
 		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitSampledImageCombineOrSplit(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitMemoryBarrier(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
 
 		void GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
 		SIMD::Pointer GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
-		spv::Scope GetScope(Object::ID id) const;
+		uint32_t GetConstScalarInt(Object::ID id) const;
+
+		// Emits a rr::Fence for the given MemorySemanticsMask.
+		void Fence(spv::MemorySemanticsMask semantics) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.

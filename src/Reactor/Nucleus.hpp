@@ -124,6 +124,9 @@ namespace rr
 		static Value *createGather(Value *base, Type *elementType, Value *offsets, Value *mask, unsigned int alignment);
 		static void createScatter(Value *base, Value *value, Value *offsets, Value *mask, unsigned int alignment);
 
+		// Barrier instructions
+		static void createFence(std::memory_order memoryOrder);
+
 		// Atomic instructions
 		static Value *createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);

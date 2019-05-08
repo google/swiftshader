@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "Reactor.hpp"
+#include "Debug.hpp"
 
 // Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
 // variables have a stack location obtained throuch alloca().
@@ -4224,6 +4225,16 @@ namespace rr
 	void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
 	{
 		Nucleus::createScatter(base.value, val.value, offsets.value, mask.value, alignment);
+	}
+
+	void Fence(std::memory_order memoryOrder)
+	{
+		ASSERT_MSG(memoryOrder == std::memory_order_acquire ||
+			memoryOrder == std::memory_order_release ||
+			memoryOrder == std::memory_order_acq_rel ||
+			memoryOrder == std::memory_order_seq_cst,
+			"Unsupported memoryOrder: %d", int(memoryOrder));
+		Nucleus::createFence(memoryOrder);
 	}
 
 }

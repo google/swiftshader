@@ -2385,6 +2385,11 @@ namespace rr
 		Store(RValue<T>(value), RValue<Pointer<T>>(pointer), alignment, atomic, memoryOrder);
 	}
 
+	// Fence adds a memory barrier that enforces ordering constraints on memory
+	// operations. memoryOrder can only be one of:
+	// std::memory_order_acquire, std::memory_order_release,
+	// std::memory_order_acq_rel, or std::memory_order_seq_cst.
+	void Fence(std::memory_order memoryOrder);
 
 	template<class T, int S = 1>
 	class Array : public LValue<T>
