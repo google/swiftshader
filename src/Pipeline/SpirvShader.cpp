@@ -868,6 +868,7 @@ namespace sw
 			case spv::OpImageSampleProjDrefExplicitLod:
 			case spv::OpImageFetch:
 			case spv::OpImageQuerySize:
+			case spv::OpImageQuerySizeLod:
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
@@ -2440,6 +2441,9 @@ namespace sw
 
 		case spv::OpImageQuerySize:
 			return EmitImageQuerySize(insn, state);
+
+		case spv::OpImageQuerySizeLod:
+			return EmitImageQuerySizeLod(insn, state);
 
 		case spv::OpImageRead:
 			return EmitImageRead(insn, state);
@@ -4728,49 +4732,93 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitState *state) const
 	{
-		auto &resultType = getType(Type::ID(insn.word(1)));
+		auto &resultTy = getType(Type::ID(insn.word(1)));
+		auto resultId = Object::ID(insn.word(2));
 		auto imageId = Object::ID(insn.word(3));
+		auto lodId = Object::ID(0);
+
+		auto &dst = state->routine->createIntermediate(resultId, resultTy.sizeInComponents);
+		GetImageDimensions(state->routine, resultTy, imageId, lodId, dst);
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultTy = getType(Type::ID(insn.word(1)));
+		auto resultId = Object::ID(insn.word(2));
+		auto imageId = Object::ID(insn.word(3));
+		auto lodId = Object::ID(insn.word(4));
+
+		auto &dst = state->routine->createIntermediate(resultId, resultTy.sizeInComponents);
+		GetImageDimensions(state->routine, resultTy, imageId, lodId, dst);
+
+		return EmitResult::Continue;
+	}
+
+	void SpirvShader::GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const
+	{
 		auto &image = getObject(imageId);
 		auto &imageType = getType(image.type);
-		Object::ID resultId = insn.word(2);
 
 		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
 		bool isArrayed = imageType.definition.word(5) != 0;
 		bool isCubeMap = imageType.definition.word(3) == spv::DimCube;
 
 		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 		auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
 
-		Pointer<Byte> binding = state->routine->getPointer(imageId).base;
+		Pointer<Byte> descriptor = routine->getPointer(imageId).base;
 
-		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+		Pointer<Int> extent;
+		Int arrayLayers;
 
 		switch (bindingLayout.descriptorType)
 		{
 		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 		case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
 		{
-			Pointer<Byte> desc = binding; // StorageImageDescriptor*
-			Pointer<Int> extent = desc + OFFSET(vk::StorageImageDescriptor, extent); // int[3]*
-			auto dimensions = resultType.sizeInComponents - (isArrayed ? 1 : 0);
-			for (uint32_t i = 0; i < dimensions; i++)
-			{
-				dst.move(i, SIMD::Int(extent[i]));
-			}
-			if (isArrayed)
-			{
-				auto arrayLayers = *Pointer<Int>(desc + OFFSET(vk::StorageImageDescriptor, arrayLayers)); // uint32_t
-				auto numElements = isCubeMap ? arrayLayers / 6 : arrayLayers;
-				dst.move(dimensions, SIMD::Int(numElements));
-			}
+			extent = descriptor + OFFSET(vk::StorageImageDescriptor, extent); // int[3]*
+			arrayLayers = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, arrayLayers)); // uint32_t
+			break;
+		}
+		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		{
+			extent = descriptor + OFFSET(vk::SampledImageDescriptor, extent); // int[3]*
+			arrayLayers = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, arrayLayers)); // uint32_t
 			break;
 		}
 		default:
 			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
 		}
 
-		return EmitResult::Continue;
+		auto dimensions = resultTy.sizeInComponents - (isArrayed ? 1 : 0);
+		std::vector<Int> out;
+		if (lodId != 0)
+		{
+			auto lodVal = GenericValue(this, routine, lodId);
+			ASSERT(getType(lodVal.type).sizeInComponents == 1);
+			auto lod = lodVal.Int(0);
+			auto one = SIMD::Int(1);
+			for (uint32_t i = 0; i < dimensions; i++)
+			{
+				dst.move(i, Max(SIMD::Int(extent[i]) >> lod, one));
+			}
+		}
+		else
+		{
+			for (uint32_t i = 0; i < dimensions; i++)
+			{
+				dst.move(i, SIMD::Int(extent[i]));
+			}
+		}
+
+		if (isArrayed)
+		{
+			auto numElements = isCubeMap ? (arrayLayers / 6) : RValue<Int>(arrayLayers);
+			dst.move(dimensions, SIMD::Int(numElements));
+		}
 	}
 
 	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const

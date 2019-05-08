@@ -925,6 +925,7 @@ namespace sw
 		EmitResult EmitImageFetch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageWrite(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageTexelPointer(InsnIterator insn, EmitState *state) const;
@@ -934,7 +935,8 @@ namespace sw
 		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
 
-		SIMD::Pointer GetTexelAddress(SpirvRoutine const * routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
+		void GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
+		SIMD::Pointer GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
 		spv::Scope GetScope(Object::ID id) const;
 
 		// OpcodeName() returns the name of the opcode op.
