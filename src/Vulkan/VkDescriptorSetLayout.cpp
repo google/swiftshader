@@ -299,7 +299,36 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 	}
 	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER)
 	{
-		UNIMPLEMENTED("VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER");
+		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor*>(memToWrite);
+
+		for (uint32_t i = 0; i < entry.descriptorCount; i++)
+		{
+			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
+			auto bufferView = Cast(*update);
+
+			imageSampler[i].type = VK_IMAGE_VIEW_TYPE_1D;
+			imageSampler[i].imageViewId = 1;		// FIXME: BufferViews need IDs in the same space as ImageViews
+			imageSampler[i].swizzle = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			imageSampler[i].format = bufferView->getFormat();
+
+			auto numElements = bufferView->getElementCount();
+			imageSampler[i].extent = { numElements, 1, 1 };
+			imageSampler[i].arrayLayers = 1;
+			imageSampler[i].texture.widthWidthHeightHeight = sw::vector(numElements, numElements, 1, 1);
+			imageSampler[i].texture.width = sw::replicate(numElements);
+			imageSampler[i].texture.height = sw::replicate(1);
+			imageSampler[i].texture.depth = sw::replicate(1);
+
+			sw::Mipmap &mipmap = imageSampler[i].texture.mipmap[0];
+			mipmap.buffer[0] = bufferView->getPointer();
+			mipmap.width[0] = mipmap.width[1] = mipmap.width[2] = mipmap.width[3] = static_cast<short>(numElements);
+			mipmap.height[0] = mipmap.height[1] = mipmap.height[2] = mipmap.height[3] = 1;
+			mipmap.depth[0] = mipmap.depth[1] = mipmap.depth[2] = mipmap.depth[3] = 1;
+			mipmap.pitchP.x = mipmap.pitchP.y = mipmap.pitchP.z = mipmap.pitchP.w = numElements;
+			mipmap.sliceP.x = mipmap.sliceP.y = mipmap.sliceP.z = mipmap.sliceP.w = 0;
+			mipmap.onePitchP[0] = mipmap.onePitchP[2] = 1;
+			mipmap.onePitchP[1] = mipmap.onePitchP[3] = static_cast<short>(numElements);
+		}
 	}
 	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
 	   		 entry.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
