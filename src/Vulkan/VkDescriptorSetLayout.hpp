@@ -34,7 +34,10 @@ struct alignas(16) SampledImageDescriptor
 	// TODO(b/129523279): Minimize to the data actually needed.
 	vk::Sampler sampler;
 
-	const vk::ImageView *imageView;
+	uint32_t imageViewId;
+	VkImageViewType type;
+	VkFormat format;
+	VkComponentMapping swizzle;
 	alignas(16) sw::Texture texture;
 	VkExtent3D extent; // Of base mip-level.
 	int arrayLayers;

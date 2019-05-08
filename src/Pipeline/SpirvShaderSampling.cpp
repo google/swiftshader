@@ -37,34 +37,36 @@
 
 namespace sw {
 
-SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, const vk::ImageView *imageView, const vk::Sampler *sampler)
+SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler)
 {
 	ImageInstruction instruction(inst);
-	ASSERT(imageView->id != 0 && (sampler->id != 0 || instruction.samplerMethod == Fetch));
+	ASSERT(imageDescriptor->imageViewId != 0 && (sampler->id != 0 || instruction.samplerMethod == Fetch));
 
 	// TODO(b/129523279): Move somewhere sensible.
 	static std::unordered_map<uint64_t, ImageSampler*> cache;
 	static std::mutex mutex;
 
 	// FIXME(b/129523279): Take instruction opcode and optional parameters into acount (SamplerMethod / SamplerOption).
-	auto key = (static_cast<uint64_t>(imageView->id) << 32) | static_cast<uint64_t>(sampler->id);
+	auto key = (static_cast<uint64_t>(imageDescriptor->imageViewId) << 32) | static_cast<uint64_t>(sampler->id);
 
 	std::unique_lock<std::mutex> lock(mutex);
 	auto it = cache.find(key);
 	if (it != cache.end()) { return it->second; }
 
+	auto type = imageDescriptor->type;
+
 	Sampler samplerState = {};
-	samplerState.textureType = convertTextureType(imageView->getType());
-	samplerState.textureFormat = imageView->getFormat(vk::ImageView::SAMPLING);
+	samplerState.textureType = convertTextureType(type);
+	samplerState.textureFormat = imageDescriptor->format;
 	samplerState.textureFilter = convertFilterMode(sampler);
 	samplerState.border = sampler->borderColor;
 
-	samplerState.addressingModeU = convertAddressingMode(0, sampler->addressModeU, imageView->getType());
-	samplerState.addressingModeV = convertAddressingMode(1, sampler->addressModeV, imageView->getType());
-	samplerState.addressingModeW = convertAddressingMode(2, sampler->addressModeW, imageView->getType());
+	samplerState.addressingModeU = convertAddressingMode(0, sampler->addressModeU, type);
+	samplerState.addressingModeV = convertAddressingMode(1, sampler->addressModeV, type);
+	samplerState.addressingModeW = convertAddressingMode(2, sampler->addressModeW, type);
 
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
-	samplerState.swizzle = imageView->getComponentMapping();
+	samplerState.swizzle = imageDescriptor->swizzle;
 	samplerState.highPrecisionFiltering = false;
 	samplerState.compareEnable = (sampler->compareEnable == VK_TRUE);
 	samplerState.compareOp = sampler->compareOp;

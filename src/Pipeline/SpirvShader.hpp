@@ -46,6 +46,7 @@ namespace vk
 	class ImageView;
 	class Sampler;
 	class RenderPass;
+	struct SampledImageDescriptor;
 } // namespace vk
 
 namespace sw
@@ -955,7 +956,7 @@ namespace sw
 		// Returns the pair <significand, exponent>
 		std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
-		static ImageSampler *getImageSampler(uint32_t instruction, const vk::ImageView *imageView, const vk::Sampler *sampler);
+		static ImageSampler *getImageSampler(uint32_t instruction, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler);
 		static ImageSampler *emitSamplerFunction(ImageInstruction instruction, const Sampler &samplerState);
 
 		// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.

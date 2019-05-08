@@ -4586,7 +4586,6 @@ namespace sw
 		auto &coordinateType = getType(coordinate.type);
 
 		Pointer<Byte> sampler = samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler); // vk::Sampler*
-		Pointer<Byte> imageView = *Pointer<Pointer<Byte>>(imageDescriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
 		Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
 
 		uint32_t imageOperands = spv::ImageOperandsMaskNone;
@@ -4720,7 +4719,7 @@ namespace sw
 			}
 		}
 
-		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageView, sampler);
+		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageDescriptor, sampler);
 
 		Array<SIMD::Float> out(4);
 		Call<ImageSampler>(samplerFunc, texture, sampler, &in[0], &out[0], state->routine->constants);
