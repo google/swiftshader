@@ -46,7 +46,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	static std::unordered_map<uint64_t, ImageSampler*> cache;
 	static std::mutex mutex;
 
-	// FIXME(b/129523279): Take instruction opcode and optional parameters into acount (SamplerMethod / SamplerOption).
+	// FIXME(b/129523279): Take instruction opcode and optional parameters into account (SamplerMethod / SamplerOption).
 	auto key = (static_cast<uint64_t>(imageDescriptor->imageViewId) << 32) | static_cast<uint64_t>(sampler->id);
 
 	std::unique_lock<std::mutex> lock(mutex);

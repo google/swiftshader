@@ -4854,6 +4854,8 @@ namespace sw
 			break;
 		}
 		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
 		{
 			extent = descriptor + OFFSET(vk::SampledImageDescriptor, extent); // int[3]*
 			arrayLayers = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, arrayLayers)); // uint32_t
