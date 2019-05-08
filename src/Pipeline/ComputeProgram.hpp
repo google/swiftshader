@@ -37,7 +37,13 @@ namespace sw
 	struct Constants;
 
 	// ComputeProgram builds a SPIR-V compute shader.
-	class ComputeProgram : public Function<Void(Pointer<Byte>)>
+	class ComputeProgram : public Function<Void(
+			Pointer<Byte> data,
+			Int workgroupX,
+			Int workgroupY,
+			Int workgroupZ,
+			Int firstSubgroup,
+			Int subgroupCount)>
 	{
 	public:
 		ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
@@ -59,6 +65,8 @@ namespace sw
 	protected:
 		void emit();
 
+		void setWorkgroupBuiltins(Int workgroupID[3]);
+		void setSubgroupBuiltins(Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex);
 		void setInputBuiltin(spv::BuiltIn id, std::function<void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)> cb);
 
 		Pointer<Byte> data; // argument 0
@@ -67,8 +75,11 @@ namespace sw
 		{
 			vk::DescriptorSet::Bindings descriptorSets;
 			vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets;
-			uint4 numWorkgroups;
-			uint4 workgroupID;
+			uint4 numWorkgroups; // [x, y, z, 0]
+			uint4 workgroupSize; // [x, y, z, 0]
+			uint32_t invocationsPerSubgroup; // SPIR-V: "SubgroupSize"
+			uint32_t subgroupsPerWorkgroup; // SPIR-V: "NumSubgroups"
+			uint32_t invocationsPerWorkgroup; // Total number of invocations per workgroup.
 			PushConstantStorage pushConstants;
 			const Constants *constants;
 			uint8_t* workgroupMemory;
