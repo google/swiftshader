@@ -149,16 +149,14 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 
 	if(!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-		 (pRegion.srcSubresource.layerCount != 1))
+		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
 	{
 		UNIMPLEMENTED("srcSubresource");
 	}
 
 	if(!((pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-		 (pRegion.dstSubresource.layerCount != 1))
+		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
 	{
 		UNIMPLEMENTED("dstSubresource");
 	}
