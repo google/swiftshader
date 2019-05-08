@@ -131,6 +131,17 @@ bool Format::hasQuadLayout() const
 	}
 }
 
+VkFormat Format::getNonQuadLayoutFormat() const
+{
+	switch(format)
+	{
+	case VK_FORMAT_S8_UINT:
+		return VK_FORMAT_R8_UINT;
+	default:
+		return format;
+	}
+}
+
 bool Format::isSRGBformat() const
 {
 	switch(format)

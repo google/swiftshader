@@ -285,47 +285,59 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 		UNIMPLEMENTED("imageSubresource");
 	}
 
-	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
+	auto aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
 
 	Format copyFormat = getFormat(aspect);
 
-	if (copyFormat.hasQuadLayout())
-	{
-		UNIMPLEMENTED("Quad layout copies");
-	}
-
-	VkExtent3D mipLevelExtent = getMipLevelExtent(region.imageSubresource.mipLevel);
 	VkExtent3D imageExtent = imageExtentInBlocks(region.imageExtent, aspect);
 	VkExtent2D bufferExtent = bufferExtentInBlocks({ imageExtent.width, imageExtent.height }, region);
-	int imageBytesPerBlock = copyFormat.bytesPerBlock();
+	int bytesPerBlock = copyFormat.bytesPerBlock();
+	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
+	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
+
+	Buffer* buffer = Cast(buf);
+	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
+
+	if (copyFormat.hasQuadLayout())
+	{
+		if (bufferIsSource)
+		{
+			return device->getBlitter()->blitFromBuffer(this, region.imageSubresource, region.imageOffset,
+														region.imageExtent, bufferMemory, bufferRowPitchBytes,
+														bufferSlicePitchBytes);
+		}
+		else
+		{
+			return device->getBlitter()->blitToBuffer(this, region.imageSubresource, region.imageOffset,
+													  region.imageExtent, bufferMemory, bufferRowPitchBytes,
+													  bufferSlicePitchBytes);
+		}
+	}
+
+	uint8_t* imageMemory = static_cast<uint8_t*>(getTexelPointer(region.imageOffset, region.imageSubresource));
+	uint8_t* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
+	uint8_t* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
 	int imageRowPitchBytes = rowPitchBytes(aspect, region.imageSubresource.mipLevel);
 	int imageSlicePitchBytes = slicePitchBytes(aspect, region.imageSubresource.mipLevel);
-	int bufferRowPitchBytes = bufferExtent.width * imageBytesPerBlock;
-	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
 
 	int srcSlicePitchBytes = bufferIsSource ? bufferSlicePitchBytes : imageSlicePitchBytes;
 	int dstSlicePitchBytes = bufferIsSource ? imageSlicePitchBytes : bufferSlicePitchBytes;
 	int srcRowPitchBytes = bufferIsSource ? bufferRowPitchBytes : imageRowPitchBytes;
 	int dstRowPitchBytes = bufferIsSource ? imageRowPitchBytes : bufferRowPitchBytes;
 
+	VkExtent3D mipLevelExtent = getMipLevelExtent(region.imageSubresource.mipLevel);
 	bool isSinglePlane = (imageExtent.depth == 1);
 	bool isSingleLine  = (imageExtent.height == 1) && isSinglePlane;
 	bool isEntireLine  = (imageExtent.width == mipLevelExtent.width) &&
-	                     (imageRowPitchBytes == bufferRowPitchBytes);
+						 (imageRowPitchBytes == bufferRowPitchBytes);
 	bool isEntirePlane = isEntireLine && (imageExtent.height == mipLevelExtent.height) &&
-	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
-
-	Buffer* buffer = Cast(buf);
-	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
-	uint8_t* imageMemory = static_cast<uint8_t*>(getTexelPointer(region.imageOffset, region.imageSubresource));
-	uint8_t* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
-	uint8_t* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
+						 (imageSlicePitchBytes == bufferSlicePitchBytes);
 
 	VkDeviceSize copySize = 0;
 	VkDeviceSize bufferLayerSize = 0;
 	if(isSingleLine)
 	{
-		copySize = imageExtent.width * imageBytesPerBlock;
+		copySize = imageExtent.width * bytesPerBlock;
 		bufferLayerSize = copySize;
 	}
 	else if(isEntireLine && isSinglePlane)
@@ -345,7 +357,7 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 	}
 	else // Copy line by line
 	{
-		copySize = imageExtent.width * imageBytesPerBlock;
+		copySize = imageExtent.width * bytesPerBlock;
 		bufferLayerSize = copySize * imageExtent.depth * imageExtent.height;
 	}
 

@@ -19,6 +19,7 @@
 #include "System/Memory.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImage.hpp"
+#include "Vulkan/VkBuffer.hpp"
 
 #include <utility>
 
@@ -1547,6 +1548,138 @@ namespace sw
 		criticalSection.unlock();
 
 		return blitRoutine;
+	}
+
+	void Blitter::blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch)
+	{
+		auto aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
+		auto format = src->getFormat(aspect);
+		State state(format, format.getNonQuadLayoutFormat(), VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
+					{false, false});
+
+		Routine *blitRoutine = getRoutine(state);
+		if(!blitRoutine)
+		{
+			return;
+		}
+
+		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
+
+		BlitData data =
+		{
+			nullptr, // source
+			dst, // dest
+			src->rowPitchBytes(aspect, subresource.mipLevel),   // sPitchB
+			bufferRowPitch,   // dPitchB
+			src->slicePitchBytes(aspect, subresource.mipLevel), // sSliceB
+			bufferSlicePitch, // dSliceB
+
+			0, 0, 1, 1,
+
+			0, // y0d
+			static_cast<int>(extent.height), // y1d
+			0, // x0d
+			static_cast<int>(extent.width), // x1d
+
+			static_cast<int>(extent.width), // sWidth
+			static_cast<int>(extent.height) // sHeight;
+		};
+
+		VkOffset3D srcOffset = { 0, 0, offset.z };
+
+		VkImageSubresourceLayers srcSubresLayers = subresource;
+		srcSubresLayers.layerCount = 1;
+
+		VkImageSubresourceRange srcSubresRange =
+		{
+			subresource.aspectMask,
+			subresource.mipLevel,
+			1,
+			subresource.baseArrayLayer,
+			subresource.layerCount
+		};
+
+		uint32_t lastLayer = src->getLastLayerIndex(srcSubresRange);
+
+		for(; srcSubresLayers.baseArrayLayer <= lastLayer; srcSubresLayers.baseArrayLayer++)
+		{
+			srcOffset.z = offset.z;
+
+			for(auto i = 0u; i < extent.depth; i++)
+			{
+				data.source = src->getTexelPointer(srcOffset, srcSubresLayers);
+				ASSERT(data.source < src->end());
+				blitFunction(&data);
+				srcOffset.z++;
+				data.dest = (dst += bufferSlicePitch);
+			}
+		}
+	}
+
+	void Blitter::blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *src, int bufferRowPitch, int bufferSlicePitch)
+	{
+		auto aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
+		auto format = dst->getFormat(aspect);
+		State state(format.getNonQuadLayoutFormat(), format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
+					{false, false});
+
+		Routine *blitRoutine = getRoutine(state);
+		if(!blitRoutine)
+		{
+			return;
+		}
+
+		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
+
+		BlitData data =
+		{
+			src, // source
+			nullptr, // dest
+			bufferRowPitch,   // sPitchB
+			dst->rowPitchBytes(aspect, subresource.mipLevel),   // dPitchB
+			bufferSlicePitch, // sSliceB
+			dst->slicePitchBytes(aspect, subresource.mipLevel), // dSliceB
+
+			0, 0, 1, 1,
+
+			offset.y, // y0d
+			static_cast<int>(offset.y + extent.height), // y1d
+			offset.x, // x0d
+			static_cast<int>(offset.x + extent.width), // x1d
+
+			static_cast<int>(extent.width), // sWidth
+			static_cast<int>(extent.height) // sHeight;
+		};
+
+		VkOffset3D dstOffset = { 0, 0, offset.z };
+
+		VkImageSubresourceLayers dstSubresLayers = subresource;
+		dstSubresLayers.layerCount = 1;
+
+		VkImageSubresourceRange dstSubresRange =
+		{
+			subresource.aspectMask,
+			subresource.mipLevel,
+			1,
+			subresource.baseArrayLayer,
+			subresource.layerCount
+		};
+
+		uint32_t lastLayer = dst->getLastLayerIndex(dstSubresRange);
+
+		for(; dstSubresLayers.baseArrayLayer <= lastLayer; dstSubresLayers.baseArrayLayer++)
+		{
+			dstOffset.z = offset.z;
+
+			for(auto i = 0u; i < extent.depth; i++)
+			{
+				data.dest = dst->getTexelPointer(dstOffset, dstSubresLayers);
+				ASSERT(data.dest < dst->end());
+				blitFunction(&data);
+				dstOffset.z++;
+				data.source = (src += bufferSlicePitch);
+			}
+		}
 	}
 
 	void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter)

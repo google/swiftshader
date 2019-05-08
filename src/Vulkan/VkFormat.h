@@ -39,10 +39,9 @@ public:
 	bool isStencil() const;
 	bool isDepth() const;
 	bool hasQuadLayout() const;
+	VkFormat getNonQuadLayoutFormat() const;
 
 	bool isSRGBformat() const;
-	bool isSRGBreadable() const;
-	bool isSRGBwritable() const;
 	bool isFloatFormat() const;
 
 	bool isCompatible(const Format& other) const;

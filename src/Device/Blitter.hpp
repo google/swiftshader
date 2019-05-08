@@ -25,6 +25,7 @@
 namespace vk
 {
 	class Image;
+	class Buffer;
 }
 
 namespace sw
@@ -114,6 +115,8 @@ namespace sw
 		void clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea = nullptr);
 
 		void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
+		void blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch);
+		void blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *src, int bufferRowPitch, int bufferSlicePitch);
 
 		void updateBorders(vk::Image* image, const VkImageSubresourceLayers& subresourceLayers);
 
