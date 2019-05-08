@@ -198,14 +198,11 @@ namespace sw
 	}
 
 	void ComputeProgram::run(
-		Routine *routine, SpirvShader const *shader,
 		vk::DescriptorSet::Bindings const &descriptorSets,
 		vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 		PushConstantStorage const &pushConstants,
 		uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
-		auto runWorkgroup = (void(*)(void*, int, int, int, int, int))(routine->getEntry());
-
 		auto &modes = shader->getModes();
 
 		auto invocationsPerSubgroup = SIMD::Width;
@@ -242,7 +239,7 @@ namespace sw
 			{
 				for (uint32_t groupX = 0; groupX < groupCountX; groupX++)
 				{
-					runWorkgroup(&data, groupX, groupY, groupZ, 0, subgroupsPerWorkgroup);
+					(*this)(&data, groupX, groupY, groupZ, 0, subgroupsPerWorkgroup);
 				}
 			}
 		}

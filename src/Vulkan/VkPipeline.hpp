@@ -19,7 +19,11 @@
 #include "Vulkan/VkDescriptorSet.hpp"
 #include "Device/Renderer.hpp"
 
-namespace sw { class SpirvShader; }
+namespace sw
+{
+	class ComputeProgram;
+	class SpirvShader;
+}
 
 namespace vk
 {
@@ -113,7 +117,7 @@ public:
 
 protected:
 	sw::SpirvShader *shader = nullptr;
-	rr::Routine *routine = nullptr;
+	sw::ComputeProgram *program = nullptr;
 };
 
 static inline Pipeline* Cast(VkPipeline object)

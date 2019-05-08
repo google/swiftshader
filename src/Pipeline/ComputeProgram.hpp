@@ -17,7 +17,7 @@
 
 #include "SpirvShader.hpp"
 
-#include "Reactor/Reactor.hpp"
+#include "Reactor/Coroutine.hpp"
 #include "Device/Context.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
@@ -37,13 +37,13 @@ namespace sw
 	struct Constants;
 
 	// ComputeProgram builds a SPIR-V compute shader.
-	class ComputeProgram : public Function<Void(
-			Pointer<Byte> data,
-			Int workgroupX,
-			Int workgroupY,
-			Int workgroupZ,
-			Int firstSubgroup,
-			Int subgroupCount)>
+	class ComputeProgram : public Coroutine<int(
+			void* data,
+			int32_t workgroupX,
+			int32_t workgroupY,
+			int32_t workgroupZ,
+			int32_t firstSubgroup,
+			int32_t subgroupCount)>
 	{
 	public:
 		ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
@@ -54,9 +54,7 @@ namespace sw
 		void generate();
 
 		// run executes the compute shader routine for all workgroups.
-		// TODO(bclayton): This probably does not belong here. Consider moving.
-		static void run(
-			Routine *routine, SpirvShader const *shader,
+		void run(
 			vk::DescriptorSet::Bindings const &descriptorSetBindings,
 			vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 			PushConstantStorage const &pushConstants,
