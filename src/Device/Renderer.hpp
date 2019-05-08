@@ -36,7 +36,6 @@ namespace vk
 
 namespace sw
 {
-	class Clipper;
 	struct DrawCall;
 	class PixelShader;
 	class VertexShader;
@@ -248,7 +247,6 @@ namespace sw
 		void initializeThreads();
 		void terminateThreads();
 
-		Clipper *clipper;
 		VkViewport viewport;
 		VkRect2D scissor;
 		int clipFlags;
