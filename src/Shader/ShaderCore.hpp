@@ -190,6 +190,7 @@ namespace sw
 
 		Register operator[](int i)
 		{
+			ASSERT(i < size);
 			if(indirectAddressable)
 			{
 				return Register(x[0][i], y[0][i], z[0][i], w[0][i]);

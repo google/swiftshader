@@ -2479,6 +2479,13 @@ namespace glsl
 					int stride = (argumentInfo.typedMemberInfo.matrixStride > 0) ? argumentInfo.typedMemberInfo.matrixStride : argumentInfo.typedMemberInfo.arrayStride;
 					parameter.index = argumentInfo.typedMemberInfo.offset + argumentInfo.clampedIndex * stride;
 				}
+
+				if(parameter.index >= sw::NUM_TEMPORARY_REGISTERS)
+				{
+					mContext.error(arg->getLine(),
+						"Too many temporary registers required to compile shader",
+						pixelShader ? "pixel shader" : "vertex shader");
+				}
 			}
 
 			if(!IsSampler(arg->getBasicType()))
@@ -2493,6 +2500,14 @@ namespace glsl
 		parameter.type = registerType(arg);
 		parameter.index = registerIndex(arg) + index;
 		parameter.mask = writeMask(arg, index);
+
+		if(parameter.index >= sw::NUM_TEMPORARY_REGISTERS)
+		{
+			mContext.error(arg->getLine(),
+				"Too many temporary registers required to compile shader",
+				pixelShader ? "pixel shader" : "vertex shader");
+		}
+
 	}
 
 	void OutputASM::copy(TIntermTyped *dst, TIntermNode *src, int offset)
