@@ -17,6 +17,7 @@
 
 #include "VkObject.hpp"
 #include "VkFormat.h"
+#include "VkImageView.hpp"
 
 namespace vk
 {
@@ -37,6 +38,7 @@ public:
 	uint32_t getRangeInBytes() const { return range; }
 	VkFormat getFormat() const { return format; }
 
+	const uint32_t id = ImageView::nextID++;	// ID space for sampling function cache, shared with imageviews
 private:
 	VkBuffer     buffer;
 	VkFormat     format;

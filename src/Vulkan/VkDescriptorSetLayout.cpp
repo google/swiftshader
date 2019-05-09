@@ -307,7 +307,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			auto bufferView = Cast(*update);
 
 			imageSampler[i].type = VK_IMAGE_VIEW_TYPE_1D;
-			imageSampler[i].imageViewId = 1;		// FIXME: BufferViews need IDs in the same space as ImageViews
+			imageSampler[i].imageViewId = bufferView->id;
 			imageSampler[i].swizzle = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 			imageSampler[i].format = bufferView->getFormat();
 
