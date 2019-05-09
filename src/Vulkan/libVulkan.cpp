@@ -407,7 +407,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	{
 		if(!vk::Cast(physicalDevice)->hasFeatures(*(pCreateInfo->pEnabledFeatures)))
 		{
-			UNIMPLEMENTED("pCreateInfo->pEnabledFeatures");
 			return VK_ERROR_FEATURE_NOT_PRESENT;
 		}
 	}
