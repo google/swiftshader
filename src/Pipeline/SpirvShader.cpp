@@ -823,6 +823,8 @@ namespace sw
 			case spv::OpLogicalNotEqual:
 			case spv::OpUMulExtended:
 			case spv::OpSMulExtended:
+			case spv::OpIAddCarry:
+			case spv::OpISubBorrow:
 			case spv::OpDot:
 			case spv::OpConvertFToU:
 			case spv::OpConvertFToS:
@@ -2376,6 +2378,8 @@ namespace sw
 		case spv::OpLogicalNotEqual:
 		case spv::OpUMulExtended:
 		case spv::OpSMulExtended:
+		case spv::OpIAddCarry:
+		case spv::OpISubBorrow:
 			return EmitBinaryOp(insn, state);
 
 		case spv::OpDot:
@@ -3389,6 +3393,14 @@ namespace sw
 			case spv::OpUMulExtended:
 				dst.move(i, lhs.UInt(i) * rhs.UInt(i));
 				dst.move(i + lhsType.sizeInComponents, MulHigh(lhs.UInt(i), rhs.UInt(i)));
+				break;
+			case spv::OpIAddCarry:
+				dst.move(i, lhs.UInt(i) + rhs.UInt(i));
+				dst.move(i + lhsType.sizeInComponents, CmpLT(dst.UInt(i), lhs.UInt(i)) >> 31);
+				break;
+			case spv::OpISubBorrow:
+				dst.move(i, lhs.UInt(i) - rhs.UInt(i));
+				dst.move(i + lhsType.sizeInComponents, CmpLT(lhs.UInt(i), rhs.UInt(i)) >> 31);
 				break;
 			default:
 				UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
