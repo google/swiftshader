@@ -1,1 +1,2 @@
+dEQP-VK.compute.device_group.device_index
 dEQP-VK.spirv_assembly.instruction.graphics.pointer_parameter.buffer_memory_variable_pointers_frag
