@@ -237,7 +237,6 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
 	      VK_PIPELINE_CREATE_DERIVATIVE_BIT |
 	      VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0) ||
-	   (pCreateInfo->stageCount != 2) ||
 	   (pCreateInfo->pTessellationState != nullptr))
 	{
 		UNIMPLEMENTED("pCreateInfo settings");
@@ -464,10 +463,12 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 		switch (pStage->stage)
 		{
 		case VK_SHADER_STAGE_VERTEX_BIT:
+			ASSERT(vertexShader == nullptr);
 			context.vertexShader = vertexShader = spirvShader;
 			break;
 
 		case VK_SHADER_STAGE_FRAGMENT_BIT:
+			ASSERT(fragmentShader == nullptr);
 			context.pixelShader = fragmentShader = spirvShader;
 			break;
 
