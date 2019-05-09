@@ -240,18 +240,31 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 	VkFormatProperties properties;
 	vk::Cast(physicalDevice)->getFormatProperties(format, &properties);
 
+	VkFormatFeatureFlags features;
 	switch (tiling)
 	{
 	case VK_IMAGE_TILING_LINEAR:
-		if (properties.linearTilingFeatures == 0) return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		features = properties.linearTilingFeatures;
 		break;
 
 	case VK_IMAGE_TILING_OPTIMAL:
-		if (properties.optimalTilingFeatures == 0) return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		features = properties.optimalTilingFeatures;
 		break;
 
 	default:
 		UNIMPLEMENTED("tiling");
+		features = 0;
+	}
+
+	if (features == 0)
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	// Check for usage conflict with features
+	if ((usage & VK_IMAGE_USAGE_SAMPLED_BIT) && !(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
 	vk::Cast(physicalDevice)->getImageFormatProperties(format, type, tiling, usage, flags, pImageFormatProperties);
