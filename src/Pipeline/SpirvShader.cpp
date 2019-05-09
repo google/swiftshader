@@ -899,6 +899,7 @@ namespace sw
 				// Part of core SPIR-V 1.3. Vulkan 1.1 implementations must also accept the pre-1.3
 				// extension per Appendix A, `Vulkan Environment for SPIR-V`.
 				if (!strcmp(ext, "SPV_KHR_storage_buffer_storage_class")) break;
+				if (!strcmp(ext, "SPV_KHR_variable_pointers")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 				break;
 			}
