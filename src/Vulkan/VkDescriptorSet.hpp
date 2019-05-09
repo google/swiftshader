@@ -41,7 +41,7 @@ namespace vk
 
 	inline DescriptorSet* Cast(VkDescriptorSet object)
 	{
-		return reinterpret_cast<DescriptorSet*>(object);
+		return reinterpret_cast<DescriptorSet*>(object.get());
 	}
 
 } // namespace vk

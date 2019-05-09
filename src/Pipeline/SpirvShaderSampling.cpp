@@ -30,11 +30,6 @@
 
 #include <mutex>
 
-#ifdef Bool
-#undef Bool // b/127920555
-#undef None
-#endif
-
 namespace sw {
 
 SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler)

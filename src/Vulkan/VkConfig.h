@@ -17,7 +17,7 @@
 
 #include "Version.h"
 
-#include <vulkan/vulkan_core.h>
+#include <Vulkan/VulkanPlatform.h>
 
 namespace vk
 {

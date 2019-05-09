@@ -90,7 +90,7 @@ private:
 
 static inline RenderPass* Cast(VkRenderPass object)
 {
-	return reinterpret_cast<RenderPass*>(object);
+	return reinterpret_cast<RenderPass*>(object.get());
 }
 
 } // namespace vk

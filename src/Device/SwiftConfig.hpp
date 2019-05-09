@@ -23,6 +23,10 @@
 
 #include <string>
 
+#ifdef Status
+#undef Status // b/127920555
+#endif
+
 namespace sw
 {
 	class SwiftConfig

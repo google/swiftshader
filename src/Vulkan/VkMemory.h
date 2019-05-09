@@ -15,7 +15,7 @@
 #ifndef VK_MEMORY_HPP_
 #define VK_MEMORY_HPP_
 
-#include <vulkan/vulkan_core.h>
+#include <Vulkan/VulkanPlatform.h>
 
 namespace vk
 {
@@ -27,7 +27,7 @@ void deallocate(void* ptr, const VkAllocationCallbacks* pAllocator);
 template <typename T>
 T* allocate(size_t count, const VkAllocationCallbacks* pAllocator)
 {
-	return reinterpret_cast<T*>(allocate(count, alignof(T), pAllocator, T::GetAllocationScope()));
+	return static_cast<T*>(allocate(count, alignof(T), pAllocator, T::GetAllocationScope()));
 }
 
 } // namespace vk

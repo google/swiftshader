@@ -39,7 +39,7 @@ namespace vk
 
 	static inline DescriptorUpdateTemplate* Cast(VkDescriptorUpdateTemplate object)
 	{
-		return reinterpret_cast<DescriptorUpdateTemplate*>(object);
+		return reinterpret_cast<DescriptorUpdateTemplate*>(object.get());
 	}
 
 } // namespace vk

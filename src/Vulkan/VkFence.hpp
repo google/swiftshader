@@ -108,7 +108,7 @@ private:
 
 static inline Fence* Cast(VkFence object)
 {
-	return reinterpret_cast<Fence*>(object);
+	return reinterpret_cast<Fence*>(object.get());
 }
 
 } // namespace vk

@@ -111,7 +111,7 @@ private:
 
 static inline Image* Cast(VkImage object)
 {
-	return reinterpret_cast<Image*>(object);
+	return reinterpret_cast<Image*>(object.get());
 }
 
 } // namespace vk

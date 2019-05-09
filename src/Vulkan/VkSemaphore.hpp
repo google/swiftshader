@@ -54,7 +54,7 @@ private:
 
 static inline Semaphore* Cast(VkSemaphore object)
 {
-	return reinterpret_cast<Semaphore*>(object);
+	return reinterpret_cast<Semaphore*>(object.get());
 }
 
 } // namespace vk

@@ -45,7 +45,7 @@ private:
 
 static inline ShaderModule* Cast(VkShaderModule object)
 {
-	return reinterpret_cast<ShaderModule*>(object);
+	return reinterpret_cast<ShaderModule*>(object.get());
 }
 
 } // namespace vk

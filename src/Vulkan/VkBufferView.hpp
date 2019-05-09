@@ -48,7 +48,7 @@ private:
 
 static inline BufferView* Cast(VkBufferView object)
 {
-	return reinterpret_cast<BufferView*>(object);
+	return reinterpret_cast<BufferView*>(object.get());
 }
 
 } // namespace vk

@@ -82,7 +82,7 @@ private:
 
 static inline Sampler* Cast(VkSampler object)
 {
-	return reinterpret_cast<Sampler*>(object);
+	return reinterpret_cast<Sampler*>(object.get());
 }
 
 } // namespace vk

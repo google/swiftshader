@@ -29,11 +29,6 @@
 #include <spirv/unified1/spirv.hpp>
 #include <spirv/unified1/GLSL.std.450.h>
 
-#ifdef Bool
-#undef Bool // b/127920555
-#undef None
-#endif
-
 namespace
 {
 	constexpr float PI = 3.141592653589793f;

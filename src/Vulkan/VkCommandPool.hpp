@@ -41,7 +41,7 @@ private:
 
 static inline CommandPool* Cast(VkCommandPool object)
 {
-	return reinterpret_cast<CommandPool*>(object);
+	return reinterpret_cast<CommandPool*>(object.get());
 }
 
 } // namespace vk

@@ -52,7 +52,7 @@ private:
 
 static inline Buffer* Cast(VkBuffer object)
 {
-	return reinterpret_cast<Buffer*>(object);
+	return reinterpret_cast<Buffer*>(object.get());
 }
 
 } // namespace vk

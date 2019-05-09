@@ -518,6 +518,9 @@
     <ClInclude Include="VkDestroy.h">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="VulkanPlatform.h">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="Version.h" />
     <ClInclude Include="..\Pipeline\SpirvShader.hpp">
       <Filter>Header Files\Pipeline</Filter>

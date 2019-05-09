@@ -45,22 +45,22 @@ VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubm
 	for(uint32_t i = 0; i < submitCount; i++)
 	{
 		size_t size = pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore);
-		submits[i].pWaitSemaphores = new (mem) VkSemaphore[pSubmits[i].waitSemaphoreCount];
+		submits[i].pWaitSemaphores = reinterpret_cast<const VkSemaphore*>(mem);
 		memcpy(mem, pSubmits[i].pWaitSemaphores, size);
 		mem += size;
 
 		size = pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
-		submits[i].pWaitDstStageMask = new (mem) VkPipelineStageFlags[pSubmits[i].waitSemaphoreCount];
+		submits[i].pWaitDstStageMask = reinterpret_cast<const VkPipelineStageFlags*>(mem);
 		memcpy(mem, pSubmits[i].pWaitDstStageMask, size);
 		mem += size;
 
 		size = pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore);
-		submits[i].pSignalSemaphores = new (mem) VkSemaphore[pSubmits[i].signalSemaphoreCount];
+		submits[i].pSignalSemaphores = reinterpret_cast<const VkSemaphore*>(mem);
 		memcpy(mem, pSubmits[i].pSignalSemaphores, size);
 		mem += size;
 
 		size = pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
-		submits[i].pCommandBuffers = new (mem) VkCommandBuffer[pSubmits[i].commandBufferCount];
+		submits[i].pCommandBuffers = reinterpret_cast<const VkCommandBuffer*>(mem);
 		memcpy(mem, pSubmits[i].pCommandBuffers, size);
 		mem += size;
 	}

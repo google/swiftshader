@@ -224,6 +224,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClInclude Include="VkSampler.hpp" />
     <ClInclude Include="VkSemaphore.hpp" />
     <ClInclude Include="VkShaderModule.hpp" />
+    <ClInclude Include="VulkanPlatform.h" />
     <ClInclude Include="..\Device\Blitter.hpp" />
     <ClInclude Include="..\Device\Clipper.hpp" />
     <ClInclude Include="..\Device\Color.hpp" />

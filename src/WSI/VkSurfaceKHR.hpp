@@ -16,7 +16,7 @@
 #define SWIFTSHADER_VKSURFACEKHR_HPP_
 
 #include "Vulkan/VkObject.hpp"
-#include <vulkan/vulkan.h>
+#include <Vulkan/VulkanPlatform.h>
 #include <vector>
 
 namespace vk
@@ -42,7 +42,7 @@ class SurfaceKHR
 public:
 	operator VkSurfaceKHR()
 	{
-		return reinterpret_cast<VkSurfaceKHR>(this);
+		return reinterpret_cast<VkSurfaceKHR::HandleType>(this);
 	}
 
 	void destroy(const VkAllocationCallbacks* pAllocator)
@@ -85,7 +85,7 @@ private:
 
 static inline SurfaceKHR* Cast(VkSurfaceKHR object)
 {
-	return reinterpret_cast<SurfaceKHR*>(object);
+	return reinterpret_cast<SurfaceKHR*>(object.get());
 }
 
 }

@@ -17,8 +17,6 @@
 #include <unordered_map>
 #include <string>
 
-#include <vulkan/vulkan.h>
-
 #ifdef __ANDROID__
 #include <cerrno>
 #include <hardware/hwvulkan.h>

@@ -45,18 +45,18 @@ namespace vk
 			bool operator<(const Node& node) const { return this->set < node.set; }
 			bool operator==(VkDescriptorSet set) const { return this->set == set; }
 
-			VkDescriptorSet set;
-			size_t size;
+			VkDescriptorSet set = VK_NULL_HANDLE;
+			size_t size = 0;
 		};
 		std::set<Node> nodes;
 
-		VkDescriptorSet pool = nullptr;
+		VkDescriptorSet pool = VK_NULL_HANDLE;
 		size_t poolSize = 0;
 	};
 
 	static inline DescriptorPool* Cast(VkDescriptorPool object)
 	{
-		return reinterpret_cast<DescriptorPool*>(object);
+		return reinterpret_cast<DescriptorPool*>(object.get());
 	}
 
 } // namespace vk

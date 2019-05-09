@@ -15,7 +15,7 @@
 #ifndef VK_UTILS_HPP_
 #define VK_UTILS_HPP_
 
-#include <vulkan/vulkan_core.h>
+#include <Vulkan/VulkanPlatform.h>
 
 namespace vk
 {
