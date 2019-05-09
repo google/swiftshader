@@ -111,9 +111,8 @@ namespace sw
 
 	void SwiftConfig::getConfiguration(Configuration &configuration)
 	{
-		criticalSection.lock();
+		std::unique_lock<std::mutex> lock(criticalSection);
 		configuration = config;
-		criticalSection.unlock();
 	}
 
 	void SwiftConfig::serverRoutine(void *parameters)
@@ -186,7 +185,7 @@ namespace sw
 			{
 				if(match(&request, " ") || match(&request, "/ "))
 				{
-					criticalSection.lock();
+					std::unique_lock<std::mutex> lock(criticalSection);
 
 					const char *postData = strstr(request, "\r\n\r\n");
 					postData = postData ? postData + 4 : 0;
@@ -214,7 +213,7 @@ namespace sw
 						destroyServer();
 					}
 
-					criticalSection.unlock();
+					lock.unlock();
 
 					return send(clientSocket, OK, page());
 				}

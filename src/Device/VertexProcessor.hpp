@@ -18,6 +18,7 @@
 #include "Matrix.hpp"
 #include "Context.hpp"
 #include "RoutineCache.hpp"
+#include "Vertex.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
 namespace sw

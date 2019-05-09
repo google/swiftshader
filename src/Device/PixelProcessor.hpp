@@ -15,6 +15,7 @@
 #ifndef sw_PixelProcessor_hpp
 #define sw_PixelProcessor_hpp
 
+#include "Color.hpp"
 #include "Context.hpp"
 #include "RoutineCache.hpp"
 
@@ -24,6 +25,7 @@ namespace sw
 	class Rasterizer;
 	struct Texture;
 	struct DrawData;
+	struct Primitive;
 
 	class PixelProcessor
 	{

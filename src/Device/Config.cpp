@@ -14,7 +14,6 @@
 
 #include "Config.hpp"
 
-#include "System/Thread.hpp"
 #include "System/Timer.hpp"
 
 namespace sw

@@ -17,13 +17,9 @@
 
 #include "Vulkan/VkConfig.h"
 #include "Vulkan/VkDescriptorSet.hpp"
-#include "Sampler.hpp"
+#include "Config.hpp"
 #include "Stream.hpp"
-#include "Point.hpp"
-#include "Vertex.hpp"
 #include "System/Types.hpp"
-
-#include <Vulkan/VkConfig.h>
 
 namespace vk
 {
@@ -34,14 +30,7 @@ namespace vk
 
 namespace sw
 {
-	struct Sampler;
-	class PixelShader;
-	class VertexShader;
 	class SpirvShader;
-	struct Triangle;
-	struct Primitive;
-	struct Vertex;
-	class Resource;
 
 	enum In   // Default input stream semantic
 	{

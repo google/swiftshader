@@ -18,6 +18,7 @@
 #include "VkConfig.h"
 #include "VkObject.hpp"
 #include "VkDescriptorSet.hpp"
+#include "Device/Color.hpp"
 #include "Device/Context.hpp"
 #include <memory>
 #include <vector>

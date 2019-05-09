@@ -133,8 +133,9 @@ namespace sw
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
-		Routine *getRoutine(const State &state);
+		Routine *getBlitRoutine(const State &state);
 		Routine *generate(const State &state);
+		Routine *getCornerUpdateRoutine(const State &state);
 		Routine *generateCornerUpdate(const State& state);
 		void computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state);
 
@@ -142,9 +143,10 @@ namespace sw
 	                      const VkImageSubresourceLayers& dstSubresourceLayers, Edge dstEdge,
 	                      const VkImageSubresourceLayers& srcSubresourceLayers, Edge srcEdge);
 
-		RoutineCache<State> *blitCache;
-		RoutineCache<State> *cornerUpdateCache;
-		std::mutex criticalSection;
+		std::mutex blitMutex;
+		RoutineCache<State> blitCache; // guarded by blitMutex
+		std::mutex cornerUpdateMutex;
+		RoutineCache<State> cornerUpdateCache; // guarded by cornerUpdateMutex
 	};
 }
 

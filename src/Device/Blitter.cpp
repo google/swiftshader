@@ -25,16 +25,16 @@
 
 namespace sw
 {
-	Blitter::Blitter()
+	Blitter::Blitter() :
+		blitMutex(),
+		blitCache(1024),
+		cornerUpdateMutex(),
+		cornerUpdateCache(64) // We only need one of these per format
 	{
-		blitCache = new RoutineCache<State>(1024);
-		cornerUpdateCache = new RoutineCache<State>(64); // We only need one of these per format
 	}
 
 	Blitter::~Blitter()
 	{
-		delete blitCache;
-		delete cornerUpdateCache;
 	}
 
 	void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
@@ -52,7 +52,7 @@ namespace sw
 		}
 
 		State state(format, dstFormat, 1, dest->getSampleCountFlagBits(), { 0xF });
-		Routine *blitRoutine = getRoutine(state);
+		Routine *blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1531,10 +1531,10 @@ namespace sw
 		return function("BlitRoutine");
 	}
 
-	Routine *Blitter::getRoutine(const State &state)
+	Routine *Blitter::getBlitRoutine(const State &state)
 	{
-		criticalSection.lock();
-		Routine *blitRoutine = blitCache->query(state);
+		std::unique_lock<std::mutex> lock(blitMutex);
+		Routine *blitRoutine = blitCache.query(state);
 
 		if(!blitRoutine)
 		{
@@ -1542,17 +1542,35 @@ namespace sw
 
 			if(!blitRoutine)
 			{
-				criticalSection.unlock();
 				UNIMPLEMENTED("blitRoutine");
 				return nullptr;
 			}
 
-			blitCache->add(state, blitRoutine);
+			blitCache.add(state, blitRoutine);
 		}
 
-		criticalSection.unlock();
-
 		return blitRoutine;
+	}
+
+	Routine *Blitter::getCornerUpdateRoutine(const State &state)
+	{
+		std::unique_lock<std::mutex> lock(cornerUpdateMutex);
+		Routine *cornerUpdateRoutine = cornerUpdateCache.query(state);
+
+		if(!cornerUpdateRoutine)
+		{
+			cornerUpdateRoutine = generateCornerUpdate(state);
+
+			if(!cornerUpdateRoutine)
+			{
+				UNIMPLEMENTED("cornerUpdateRoutine");
+				return nullptr;
+			}
+
+			cornerUpdateCache.add(state, cornerUpdateRoutine);
+		}
+
+		return cornerUpdateRoutine;
 	}
 
 	void Blitter::blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch)
@@ -1562,7 +1580,7 @@ namespace sw
 		State state(format, format.getNonQuadLayoutFormat(), VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
 					{false, false});
 
-		Routine *blitRoutine = getRoutine(state);
+		Routine *blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1628,7 +1646,7 @@ namespace sw
 		State state(format.getNonQuadLayoutFormat(), format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
 					{false, false});
 
-		Routine *blitRoutine = getRoutine(state);
+		Routine *blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1735,7 +1753,7 @@ namespace sw
 		                    (static_cast<uint32_t>(region.srcOffsets[1].y) > srcExtent.height) ||
 		                    (doFilter && ((x0 < 0.5f) || (y0 < 0.5f)));
 
-		Routine *blitRoutine = getRoutine(state);
+		Routine *blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1933,24 +1951,11 @@ namespace sw
 			UNIMPLEMENTED("Multi-sampled cube: %d samples", static_cast<int>(samples));
 		}
 
-		criticalSection.lock();
-		Routine *cornerUpdateRoutine = cornerUpdateCache->query(state);
-
+		Routine *cornerUpdateRoutine = getCornerUpdateRoutine(state);
 		if(!cornerUpdateRoutine)
 		{
-			cornerUpdateRoutine = generateCornerUpdate(state);
-
-			if(!cornerUpdateRoutine)
-			{
-				criticalSection.unlock();
-				UNIMPLEMENTED("cornerUpdateRoutine");
-				return;
-			}
-
-			cornerUpdateCache->add(state, cornerUpdateRoutine);
+			return;
 		}
-
-		criticalSection.unlock();
 
 		void(*cornerUpdateFunction)(const CubeBorderData *data) = (void(*)(const CubeBorderData*))cornerUpdateRoutine->getEntry();
 
