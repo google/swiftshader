@@ -939,6 +939,7 @@ namespace sw
 		EmitResult EmitAtomicOp(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitSampledImageCombineOrSplit(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitCopyObject(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitControlBarrier(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitMemoryBarrier(InsnIterator insn, EmitState *state) const;

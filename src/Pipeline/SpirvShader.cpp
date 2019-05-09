@@ -875,6 +875,7 @@ namespace sw
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
+			case spv::OpCopyObject:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
 				break;
@@ -2467,6 +2468,9 @@ namespace sw
 		case spv::OpSampledImage:
 		case spv::OpImage:
 			return EmitSampledImageCombineOrSplit(insn, state);
+
+		case spv::OpCopyObject:
+			return EmitCopyObject(insn, state);
 
 		case spv::OpCopyMemory:
 			return EmitCopyMemory(insn, state);
@@ -5458,6 +5462,18 @@ namespace sw
 		}
 
 		dst.move(0, x);
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitCopyObject(InsnIterator insn, EmitState *state) const
+	{
+		auto ty = getType(insn.word(1));
+		auto &dst = state->routine->createIntermediate(insn.word(2), ty.sizeInComponents);
+		auto src = GenericValue(this, state->routine, insn.word(3));
+		for (uint32_t i = 0; i < ty.sizeInComponents; i++)
+		{
+			dst.move(i, src.Int(i));
+		}
 		return EmitResult::Continue;
 	}
 
