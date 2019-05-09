@@ -459,7 +459,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 
 		// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 		// TODO: also pass in any pipeline state which will affect shader compilation
-		auto spirvShader = new sw::SpirvShader{code, Cast(pCreateInfo->renderPass), pCreateInfo->subpass};
+		auto spirvShader = new sw::SpirvShader{pStage, code, Cast(pCreateInfo->renderPass), pCreateInfo->subpass};
 
 		switch (pStage->stage)
 		{
@@ -552,7 +552,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 	ASSERT(shader == nullptr);
 
 	// FIXME(b/119409619): use allocator.
-	shader = new sw::SpirvShader(code, nullptr, 0);
+	shader = new sw::SpirvShader(&pCreateInfo->stage, code, nullptr, 0);
 	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
 	program = new sw::ComputeProgram(shader, layout, descriptorSets);
 	program->generate();

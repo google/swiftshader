@@ -295,6 +295,11 @@ namespace sw
 				return &iter[n];
 			}
 
+			const char* string(uint32_t n) const
+			{
+				return reinterpret_cast<const char*>(wordPointer(n));
+			}
+
 			bool operator==(InsnIterator const &other) const
 			{
 				return iter == other.iter;
@@ -538,7 +543,10 @@ namespace sw
 			return serialID;
 		}
 
-		SpirvShader(InsnStore const &insns, vk::RenderPass *renderPass, uint32_t subpassIndex);
+		SpirvShader(VkPipelineShaderStageCreateInfo const *createInfo,
+					InsnStore const &insns,
+					vk::RenderPass *renderPass,
+					uint32_t subpassIndex);
 
 		struct Modes
 		{
@@ -727,7 +735,7 @@ namespace sw
 		HandleMap<Type> types;
 		HandleMap<Object> defs;
 		HandleMap<Block> blocks;
-		Block::ID mainBlockId; // Block of the entry point function.
+		Block::ID entryPointBlockId; // Block of the entry point function.
 
 		// Walks all reachable the blocks starting from id adding them to
 		// reachable.
@@ -980,6 +988,7 @@ namespace sw
 		static sw::FilterType convertFilterMode(const vk::Sampler *sampler);
 		static sw::MipmapType convertMipmapMode(const vk::Sampler *sampler);
 		static sw::AddressingMode convertAddressingMode(int coordinateIndex, VkSamplerAddressMode addressMode, VkImageViewType imageViewType);
+		static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);
 	};
 
 	class SpirvRoutine
