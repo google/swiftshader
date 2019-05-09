@@ -301,12 +301,12 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	}
 
 	const VkPipelineInputAssemblyStateCreateInfo* assemblyState = pCreateInfo->pInputAssemblyState;
-	if((assemblyState->flags != 0) ||
-	   (assemblyState->primitiveRestartEnable != 0))
+	if(assemblyState->flags != 0)
 	{
 		UNIMPLEMENTED("pCreateInfo->pInputAssemblyState settings");
 	}
 
+	primitiveRestartEnable = assemblyState->primitiveRestartEnable;
 	context.topology = assemblyState->topology;
 
 	const VkPipelineViewportStateCreateInfo* viewportState = pCreateInfo->pViewportState;

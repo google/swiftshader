@@ -80,12 +80,14 @@ public:
 	const VkViewport& getViewport() const;
 	const sw::Color<float>& getBlendConstants() const;
 	bool hasDynamicState(VkDynamicState dynamicState) const;
+	bool hasPrimitiveRestartEnable() const { return primitiveRestartEnable; }
 
 private:
 	sw::SpirvShader *vertexShader = nullptr;
 	sw::SpirvShader *fragmentShader = nullptr;
 
 	uint32_t dynamicStateFlags = 0;
+	bool primitiveRestartEnable = false;
 	sw::Context context;
 	VkRect2D scissor;
 	VkViewport viewport;

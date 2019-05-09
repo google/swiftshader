@@ -455,6 +455,51 @@ struct DrawBase : public CommandBuffer::Command
 		return executionState.indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4;
 	}
 
+	template<typename T>
+	void processPrimitiveRestart(T* indexBuffer,
+	                             uint32_t count,
+		                         GraphicsPipeline* pipeline,
+	                             std::vector<std::pair<uint32_t, void*>>& indexBuffers)
+	{
+		static const T RestartIndex = static_cast<T>(-1);
+		T* indexBufferStart = indexBuffer;
+		uint32_t vertexCount = 0;
+		for(uint32_t i = 0; i < count; i++)
+		{
+			if(indexBuffer[i] == RestartIndex)
+			{
+				// Record previous segment
+				if(vertexCount > 0)
+				{
+					uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
+					if(primitiveCount > 0)
+					{
+						indexBuffers.push_back({ primitiveCount, indexBufferStart });
+					}
+				}
+				vertexCount = 0;
+			}
+			else
+			{
+				if(vertexCount == 0)
+				{
+					indexBufferStart = indexBuffer + i;
+				}
+				vertexCount++;
+			}
+		}
+
+		// Record last segment
+		if(vertexCount > 0)
+		{
+			uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
+			if(primitiveCount > 0)
+			{
+				indexBuffers.push_back({ primitiveCount, indexBufferStart });
+			}
+		}
+	}
+
 	void draw(CommandBuffer::ExecutionState& executionState, bool indexed,
 			uint32_t count, uint32_t instanceCount, uint32_t first, int32_t vertexOffset, uint32_t firstInstance)
 	{
@@ -469,12 +514,6 @@ struct DrawBase : public CommandBuffer::Command
 		context.descriptorSets = pipelineState.descriptorSets;
 		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
 		context.pushConstants = executionState.pushConstants;
-
-		if(indexed)
-		{
-			context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
-					executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
-		}
 
 		// Apply either pipeline state or dynamic state
 		executionState.renderer->setScissor(pipeline->hasDynamicState(VK_DYNAMIC_STATE_SCISSOR) ?
@@ -520,11 +559,46 @@ struct DrawBase : public CommandBuffer::Command
 		context.multiSampleMask = context.sampleMask & ((unsigned)0xFFFFFFFF >> (32 - context.sampleCount));
 		context.occlusionEnabled = executionState.renderer->hasQueryOfType(VK_QUERY_TYPE_OCCLUSION);
 
-		const uint32_t primitiveCount = pipeline->computePrimitiveCount(count);
+		std::vector<std::pair<uint32_t, void*>> indexBuffers;
+		if(indexed)
+		{
+			void* indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
+				executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
+			if(pipeline->hasPrimitiveRestartEnable())
+			{
+				switch(executionState.indexType)
+				{
+				case VK_INDEX_TYPE_UINT16:
+					processPrimitiveRestart(static_cast<uint16_t*>(indexBuffer), count, pipeline, indexBuffers);
+					break;
+				case VK_INDEX_TYPE_UINT32:
+					processPrimitiveRestart(static_cast<uint32_t*>(indexBuffer), count, pipeline, indexBuffers);
+					break;
+				default:
+					UNIMPLEMENTED("executionState.indexType %d", int(executionState.indexType));
+				}
+			}
+			else
+			{
+				indexBuffers.push_back({ pipeline->computePrimitiveCount(count), indexBuffer });
+			}
+		}
+		else
+		{
+			indexBuffers.push_back({ pipeline->computePrimitiveCount(count), nullptr });
+		}
+
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			context.instanceID = instance;
-			executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset, executionState.fence);
+
+			for(auto indexBuffer : indexBuffers)
+			{
+				const uint32_t primitiveCount = indexBuffer.first;
+				context.indexBuffer = indexBuffer.second;
+				executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset, executionState.fence);
+			}
+
 			executionState.renderer->advanceInstanceAttributes(context.input);
 		}
 	}
