@@ -876,6 +876,7 @@ namespace sw
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
 			case spv::OpCopyObject:
+			case spv::OpArrayLength:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
 				break;
@@ -2483,6 +2484,9 @@ namespace sw
 
 		case spv::OpGroupNonUniformElect:
 			return EmitGroupNonUniform(insn, state);
+
+		case spv::OpArrayLength:
+			return EmitArrayLength(insn, state);
 
 		default:
 			UNREACHABLE("%s", OpcodeName(opcode).c_str());
@@ -5576,6 +5580,39 @@ namespace sw
 		default:
 			UNIMPLEMENTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()).c_str());
 		}
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitState *state) const
+	{
+		auto resultTyId = Type::ID(insn.word(1));
+		auto resultId = Object::ID(insn.word(2));
+		auto structPtrId = Object::ID(insn.word(3));
+		auto arrayFieldIdx = insn.word(4);
+
+		auto &resultType = getType(resultTyId);
+		ASSERT(resultType.sizeInComponents == 1);
+		ASSERT(resultType.definition.opcode() == spv::OpTypeInt);
+
+		auto &structPtrTy = getType(getObject(structPtrId).type);
+		auto &structTy = getType(structPtrTy.element);
+		auto &arrayTy = getType(structTy.definition.word(2 + arrayFieldIdx));
+		ASSERT(arrayTy.definition.opcode() == spv::OpTypeRuntimeArray);
+		auto &arrayElTy = getType(arrayTy.element);
+
+		auto &result = state->routine->createIntermediate(resultId, 1);
+		auto structBase = GetPointerToData(structPtrId, 0, state->routine);
+
+		Decorations d = {};
+		ApplyDecorationsForIdMember(&d, structPtrTy.element, arrayFieldIdx);
+		ASSERT(d.HasOffset);
+
+		auto arrayBase = structBase + d.Offset;
+		auto arraySizeInBytes = SIMD::Int(arrayBase.limit) - arrayBase.offsets();
+		auto arrayLength = arraySizeInBytes / SIMD::Int(arrayElTy.sizeInComponents * sizeof(float));
+
+		result.move(0, SIMD::Int(arrayLength));
+
 		return EmitResult::Continue;
 	}
 

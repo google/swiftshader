@@ -944,6 +944,7 @@ namespace sw
 		EmitResult EmitControlBarrier(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitMemoryBarrier(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitArrayLength(InsnIterator insn, EmitState *state) const;
 
 		void GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
 		SIMD::Pointer GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
