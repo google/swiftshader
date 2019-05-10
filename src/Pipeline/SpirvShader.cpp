@@ -2637,7 +2637,7 @@ namespace sw
 			case spv::StorageClassFunction:
 			{
 				bool interleavedByLane = IsStorageInterleavedByLane(objectTy.storageClass);
-				auto ptr = routine->getPointer(resultId);
+				auto ptr = GetPointerToData(resultId, 0, routine);
 				GenericValue initialValue(this, routine, initializerId);
 				VisitMemoryObject(resultId, [&](uint32_t i, uint32_t offset)
 				{
@@ -5562,8 +5562,8 @@ namespace sw
 
 		bool dstInterleavedByLane = IsStorageInterleavedByLane(dstPtrTy.storageClass);
 		bool srcInterleavedByLane = IsStorageInterleavedByLane(srcPtrTy.storageClass);
-		auto dstPtr = state->routine->getPointer(dstPtrId);
-		auto srcPtr = state->routine->getPointer(srcPtrId);
+		auto dstPtr = GetPointerToData(dstPtrId, 0, state->routine);
+		auto srcPtr = GetPointerToData(srcPtrId, 0, state->routine);
 
 		std::unordered_map<uint32_t, uint32_t> srcOffsets;
 
