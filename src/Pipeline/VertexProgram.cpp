@@ -59,6 +59,14 @@ namespace sw
 			ASSERT(it->second.SizeInComponents == 1);
 			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(SIMD::Int(0, 1, 2, 3));
 		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInDeviceIndex);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 1);
+			// Only a single physical device is supported.
+			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		}
 	}
 
 	VertexProgram::~VertexProgram()

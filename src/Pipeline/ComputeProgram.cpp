@@ -97,6 +97,13 @@ namespace sw
 			ASSERT(builtin.SizeInComponents == 1);
 			value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(0, 1, 2, 3));
 		});
+
+		setInputBuiltin(spv::BuiltInDeviceIndex, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
+		{
+			ASSERT(builtin.SizeInComponents == 1);
+			// Only a single physical device is supported.
+			value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		});
 	}
 
 	void ComputeProgram::setSubgroupBuiltins(Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex)
