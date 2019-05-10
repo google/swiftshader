@@ -1,3 +1,4 @@
+dEQP-VK.binding_model.shader_access.secondary_cmd_buf.with_template.combined_image_sampler_immutable.vertex_fragment.multiple_descriptor_sets.multiple_contiguous_descriptors.1d
 dEQP-VK.draw.basic_draw.draw.line_strip.1
 dEQP-VK.draw.basic_draw.draw.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw.triangle_strip.1
@@ -14,5 +15,6 @@ dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_single_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_single_command
+dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_single_command
 dEQP-VK.glsl.loops.special.do_while_dynamic_iterations.dowhile_trap_vertex

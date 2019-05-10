@@ -1,6 +1,3 @@
-dEQP-VK.spirv_assembly.instruction.compute.multiple_shaders.shader1
-dEQP-VK.spirv_assembly.instruction.compute.multiple_shaders.shader2
-dEQP-VK.spirv_assembly.instruction.graphics.module.same_module
 dEQP-VK.texture.filtering.unnormal.formats.a1r5g5b5_unorm.linear
 dEQP-VK.texture.filtering.unnormal.formats.a1r5g5b5_unorm.nearest
 dEQP-VK.texture.filtering.unnormal.formats.a8b8g8r8_srgb.linear
@@ -29,15 +26,3 @@ dEQP-VK.texture.filtering.unnormal.sizes.3x7.linear
 dEQP-VK.texture.filtering.unnormal.sizes.3x7.nearest
 dEQP-VK.texture.filtering.unnormal.sizes.4x8.linear
 dEQP-VK.texture.filtering.unnormal.sizes.4x8.nearest
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_npot_aaaa
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_npot_bbbb
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_npot_gggg
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_npot_oooo
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_npot_rrrr
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_npot_zzzz
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_pot_aaaa
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_pot_bbbb
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_pot_gggg
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_pot_oooo
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_pot_rrrr
-dEQP-VK.texture.swizzle.component_mapping.a2b10g10r10_uscaled_pack32_2d_pot_zzzz
