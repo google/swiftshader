@@ -41,8 +41,8 @@ namespace vk
 		struct Node
 		{
 			Node(VkDescriptorSet set, size_t size) : set(set), size(size) {}
-			bool operator<(const Node& node) const { return this->set < node.set; }
-			bool operator==(VkDescriptorSet set) const { return this->set == set; }
+			bool operator<(const Node& node) const { return set < node.set; }
+			bool operator==(VkDescriptorSet other) const { return set == other; }
 
 			VkDescriptorSet set = VK_NULL_HANDLE;
 			size_t size = 0;

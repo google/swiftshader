@@ -1343,16 +1343,16 @@ namespace sw
 				c.x = (c.x & Short4(0xF800u));
 				break;
 			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-				c.w = (c.x << 12) & Short4(0xF000);
-				c.z = (c.x) & Short4(0xF000);
-				c.y = (c.x << 4) & Short4(0xF000);
-				c.x = (c.x << 8) & Short4(0xF000);
+				c.w = (c.x << 12) & Short4(0xF000u);
+				c.z = (c.x) & Short4(0xF000u);
+				c.y = (c.x << 4) & Short4(0xF000u);
+				c.x = (c.x << 8) & Short4(0xF000u);
 				break;
 			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-				c.w = (c.x) & Short4(0x8000);
-				c.z = (c.x << 11) & Short4(0xF800);
-				c.y = (c.x << 6) & Short4(0xF800);
-				c.x = (c.x << 1) & Short4(0xF800);
+				c.w = (c.x) & Short4(0x8000u);
+				c.z = (c.x << 11) & Short4(0xF800u);
+				c.y = (c.x << 6) & Short4(0xF800u);
+				c.x = (c.x << 1) & Short4(0xF800u);
 				break;
 			default:
 				ASSERT(false);
@@ -1408,10 +1408,10 @@ namespace sw
 						if (state.textureFormat == VK_FORMAT_R8G8B8A8_SNORM)
 						{
 							// TODO: avoid populating the low bits at all.
-							c.x &= Short4(0xFF00);
-							c.y &= Short4(0xFF00);
-							c.z &= Short4(0xFF00);
-							c.w &= Short4(0xFF00);
+							c.x &= Short4(0xFF00u);
+							c.y &= Short4(0xFF00u);
+							c.z &= Short4(0xFF00u);
+							c.w &= Short4(0xFF00u);
 						}
 
 						break;
@@ -1483,7 +1483,7 @@ namespace sw
 					case VK_FORMAT_R8_SNORM:
 						// TODO: avoid populating the low bits at all.
 						c.x = Unpack(As<Byte4>(c0));
-						c.x &= Short4(0xff00);
+						c.x &= Short4(0xFF00u);
 						break;
 					default:
 						c.x = Unpack(As<Byte4>(c0));
@@ -1660,9 +1660,14 @@ namespace sw
 			{
 				// Scaling and bias for studio-swing range: Y = [16 .. 235], U/V = [16 .. 240]
 				// Scale down by 0x0101 to normalize the 8.8 samples, and up by 0x7FFF for signed 15-bit output.
-				Float4 y = (Float4(Y)  - Float4(state.studioSwing ? 16 * 0x0101 : 0)) * Float4(float(0x7FFF) / (state.studioSwing ? 219 * 0x0101 : 255 * 0x0101));
-				Float4 u = (Float4(Cb) - Float4(128 * 0x0101))                        * Float4(float(0x7FFF) / (state.studioSwing ? 224 * 0x0101 : 255 * 0x0101));
-				Float4 v = (Float4(Cr) - Float4(128 * 0x0101))                        * Float4(float(0x7FFF) / (state.studioSwing ? 224 * 0x0101 : 255 * 0x0101));
+				float yOffset  = static_cast<float>(state.studioSwing ? 16 * 0x0101 : 0);
+				float uvOffset = static_cast<float>(128 * 0x0101);
+				float yFactor  = static_cast<float>(0x7FFF) / static_cast<float>(state.studioSwing ? 219 * 0x0101 : 255 * 0x0101);
+				float uvFactor = static_cast<float>(0x7FFF) / static_cast<float>(state.studioSwing ? 224 * 0x0101 : 255 * 0x0101);
+
+				Float4 y = (Float4(Y)  - Float4(yOffset))  * Float4(yFactor);
+				Float4 u = (Float4(Cb) - Float4(uvOffset)) * Float4(uvFactor);
+				Float4 v = (Float4(Cr) - Float4(uvOffset)) * Float4(uvFactor);
 
 				if(state.ycbcrModel == VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_IDENTITY)
 				{
@@ -1936,7 +1941,7 @@ namespace sw
 
 		bool scaled = !hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable;
 		bool sign = !hasUnsignedTextureComponent(0);
-		Int4 float_one = scaled ? As<Int4>(Float4(sign ? 0x7FFF : 0xFFFF)) : As<Int4>(Float4(1.0f));
+		Int4 float_one = scaled ? As<Int4>(Float4(static_cast<float>(sign ? 0x7FFF : 0xFFFF))) : As<Int4>(Float4(1.0f));
 
 		switch(state.border)
 		{

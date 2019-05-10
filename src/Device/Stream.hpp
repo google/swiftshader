@@ -52,7 +52,7 @@ namespace sw
 			this->instanceStride = 0;
 		}
 
-		Stream &define(StreamType type, unsigned int count, bool normalized = false)
+		Stream &define(StreamType type, unsigned char count, bool normalized = false)
 		{
 			this->type = type;
 			this->count = count;
@@ -61,7 +61,7 @@ namespace sw
 			return *this;
 		}
 
-		Stream &define(const void *buffer, StreamType type, unsigned int count, bool normalized = false)
+		Stream &define(const void *buffer, StreamType type, unsigned char count, bool normalized = false)
 		{
 			this->buffer = buffer;
 			this->type = type;

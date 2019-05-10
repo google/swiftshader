@@ -92,7 +92,7 @@ sw::StreamType getStreamType(VkFormat format)
 	return sw::STREAMTYPE_BYTE;
 }
 
-uint32_t getNumberOfChannels(VkFormat format)
+unsigned char getNumberOfChannels(VkFormat format)
 {
 	switch(format)
 	{

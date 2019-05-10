@@ -16,21 +16,21 @@
 
 namespace
 {
-	inline int clampByte(int value)
+	inline unsigned char clampByte(int value)
 	{
-		return (value < 0) ? 0 : ((value > 255) ? 255 : value);
+		return static_cast<unsigned char>((value < 0) ? 0 : ((value > 255) ? 255 : value));
 	}
 
-	inline int clampSByte(int value)
+	inline signed char clampSByte(int value)
 	{
-		return (value < -128) ? -128 : ((value > 127) ? 127 : value);
+		return static_cast<signed char>((value < -128) ? -128 : ((value > 127) ? 127 : value));
 	}
 
-	inline short clampEAC(short value, bool isSigned)
+	inline short clampEAC(int value, bool isSigned)
 	{
 		short min = isSigned ? -1023 : 0;
 		short max = isSigned ? 1023 : 2047;
-		return ((value < min) ? min : ((value > max) ? max : value)) << 5;
+		return static_cast<short>(((value < min) ? min : ((value > max) ? max : value)) << 5);
 	}
 
 	struct bgra8
@@ -46,20 +46,20 @@ namespace
 
 		inline void set(int red, int green, int blue)
 		{
-			r = static_cast<unsigned char>(clampByte(red));
-			g = static_cast<unsigned char>(clampByte(green));
-			b = static_cast<unsigned char>(clampByte(blue));
+			r = clampByte(red);
+			g = clampByte(green);
+			b = clampByte(blue);
 		}
 
 		inline void set(int red, int green, int blue, int alpha)
 		{
-			r = static_cast<unsigned char>(clampByte(red));
-			g = static_cast<unsigned char>(clampByte(green));
-			b = static_cast<unsigned char>(clampByte(blue));
-			a = static_cast<unsigned char>(clampByte(alpha));
+			r = clampByte(red);
+			g = clampByte(green);
+			b = clampByte(blue);
+			a = clampByte(alpha);
 		}
 
-		const bgra8& addA(int alpha)
+		const bgra8& addA(unsigned char alpha)
 		{
 			a = alpha;
 			return *this;

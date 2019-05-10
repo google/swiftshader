@@ -592,7 +592,7 @@ namespace sw
 				case spv::StorageClassWorkgroup:
 				{
 					auto &elTy = getType(getType(typeId).element);
-					auto sizeInBytes = elTy.sizeInComponents * sizeof(float);
+					auto sizeInBytes = elTy.sizeInComponents * static_cast<uint32_t>(sizeof(float));
 					workgroupMemory.allocate(resultId, sizeInBytes);
 					object.kind = Object::Kind::Pointer;
 					break;
@@ -1379,7 +1379,7 @@ namespace sw
 			break;
 		case spv::OpTypeVector:
 		{
-			auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : sizeof(float);
+			auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : static_cast<int32_t>(sizeof(float));
 			for (auto i = 0u; i < type.definition.word(3); i++)
 			{
 				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + elemStride * i, f);
@@ -1388,7 +1388,7 @@ namespace sw
 		}
 		case spv::OpTypeMatrix:
 		{
-			auto columnStride = (d.HasRowMajor && d.RowMajor) ? sizeof(float) : d.MatrixStride;
+			auto columnStride = (d.HasRowMajor && d.RowMajor) ? static_cast<int32_t>(sizeof(float)) : d.MatrixStride;
 			d.InsideMatrix = true;
 			for (auto i = 0u; i < type.definition.word(3); i++)
 			{
@@ -1594,7 +1594,7 @@ namespace sw
 				// TODO: b/127950082: Check bounds.
 				ASSERT(d.HasMatrixStride);
 				d.InsideMatrix = true;
-				auto columnStride = (d.HasRowMajor && d.RowMajor) ? sizeof(float) : d.MatrixStride;
+				auto columnStride = (d.HasRowMajor && d.RowMajor) ? static_cast<int32_t>(sizeof(float)) : d.MatrixStride;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 				{
@@ -1609,7 +1609,7 @@ namespace sw
 			}
 			case spv::OpTypeVector:
 			{
-				auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : sizeof(float);
+				auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : static_cast<int32_t>(sizeof(float));
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 				{
@@ -1679,12 +1679,12 @@ namespace sw
 					ASSERT(d.DescriptorSet >= 0);
 					ASSERT(d.Binding >= 0);
 					auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-					auto stride = setLayout->getBindingStride(d.Binding);
+					auto stride = static_cast<uint32_t>(setLayout->getBindingStride(d.Binding));
 					ptr.base += stride * GetConstScalarInt(indexIds[i]);
 				}
 				else
 				{
-					auto stride = getType(type.element).sizeInComponents * sizeof(float);
+					auto stride = getType(type.element).sizeInComponents * static_cast<uint32_t>(sizeof(float));
 					auto & obj = getObject(indexIds[i]);
 					if (obj.kind == Object::Kind::Constant)
 					{
@@ -2619,7 +2619,7 @@ namespace sw
 			ASSERT(objectTy.opcode() == spv::OpTypePointer);
 			auto base = &routine->getVariable(resultId)[0];
 			auto elementTy = getType(objectTy.element);
-			auto size = elementTy.sizeInComponents * sizeof(float) * SIMD::Width;
+			auto size = elementTy.sizeInComponents * static_cast<uint32_t>(sizeof(float)) * SIMD::Width;
 			routine->createPointer(resultId, SIMD::Pointer(base, size));
 			break;
 		}
@@ -2646,7 +2646,7 @@ namespace sw
 			ASSERT(objectTy.opcode() == spv::OpTypePointer);
 			auto base = &routine->getVariable(resultId)[0];
 			auto elementTy = getType(objectTy.element);
-			auto size = elementTy.sizeInComponents * sizeof(float) * SIMD::Width;
+			auto size = elementTy.sizeInComponents * static_cast<uint32_t>(sizeof(float)) * SIMD::Width;
 			routine->createPointer(resultId, SIMD::Pointer(base, size));
 			break;
 		}
@@ -2660,7 +2660,7 @@ namespace sw
 			auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 			if (setLayout->hasBinding(d.Binding))
 			{
-				size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+				uint32_t bindingOffset = static_cast<uint32_t>(setLayout->getBindingOffset(d.Binding, arrayIndex));
 				Pointer<Byte> set = routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
 				Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);    // vk::SampledImageDescriptor*
 				auto size = 0; // Not required as this pointer is not directly used by SIMD::Read or SIMD::Write.

@@ -231,7 +231,7 @@ namespace sw
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
 								ASSERT(d < dest->end());
-								sw::clear((uint16_t*)d, packed, area.extent.width);
+								sw::clear((uint16_t*)d, static_cast<uint16_t>(packed), area.extent.width);
 								d += rowPitchBytes;
 							}
 							break;
@@ -1447,7 +1447,7 @@ namespace sw
 									preScaled = true;
 								}
 								Float4 accum = color;
-								for(int i = 1; i < state.srcSamples; i++)
+								for(int sample = 1; sample < state.srcSamples; sample++)
 								{
 									s += *Pointer<Int>(blit + OFFSET(BlitData, sSliceB));
 									if(!read(color, s, state))

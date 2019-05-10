@@ -67,10 +67,10 @@ namespace sw
 	void PixelProcessor::setBlendConstant(const Color<float> &blendConstant)
 	{
 		// FIXME: Compact into generic function   // FIXME: Clamp
-		short blendConstantR = iround(65535 * blendConstant.r);
-		short blendConstantG = iround(65535 * blendConstant.g);
-		short blendConstantB = iround(65535 * blendConstant.b);
-		short blendConstantA = iround(65535 * blendConstant.a);
+		short blendConstantR = static_cast<short>(iround(65535 * blendConstant.r));
+		short blendConstantG = static_cast<short>(iround(65535 * blendConstant.g));
+		short blendConstantB = static_cast<short>(iround(65535 * blendConstant.b));
+		short blendConstantA = static_cast<short>(iround(65535 * blendConstant.a));
 
 		factor.blendConstant4W[0][0] = blendConstantR;
 		factor.blendConstant4W[0][1] = blendConstantR;
@@ -93,10 +93,10 @@ namespace sw
 		factor.blendConstant4W[3][3] = blendConstantA;
 
 		// FIXME: Compact into generic function   // FIXME: Clamp
-		short invBlendConstantR = iround(65535 * (1 - blendConstant.r));
-		short invBlendConstantG = iround(65535 * (1 - blendConstant.g));
-		short invBlendConstantB = iround(65535 * (1 - blendConstant.b));
-		short invBlendConstantA = iround(65535 * (1 - blendConstant.a));
+		short invBlendConstantR = static_cast<short>(iround(65535 * (1 - blendConstant.r)));
+		short invBlendConstantG = static_cast<short>(iround(65535 * (1 - blendConstant.g)));
+		short invBlendConstantB = static_cast<short>(iround(65535 * (1 - blendConstant.b)));
+		short invBlendConstantA = static_cast<short>(iround(65535 * (1 - blendConstant.a)));
 
 		factor.invBlendConstant4W[0][0] = invBlendConstantR;
 		factor.invBlendConstant4W[0][1] = invBlendConstantR;

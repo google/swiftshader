@@ -92,19 +92,19 @@ namespace sw
 	template<>
 	inline Color<byte>::Color(const Color<short> &c)
 	{
-		r = clamp(c.r >> 4, 0, 255);
-		g = clamp(c.g >> 4, 0, 255);
-		b = clamp(c.b >> 4, 0, 255);
-		a = clamp(c.a >> 4, 0, 255);
+		r = static_cast<byte>(clamp(c.r >> 4, 0, 255));
+		g = static_cast<byte>(clamp(c.g >> 4, 0, 255));
+		b = static_cast<byte>(clamp(c.b >> 4, 0, 255));
+		a = static_cast<byte>(clamp(c.a >> 4, 0, 255));
 	}
 
 	template<>
 	inline Color<byte>::Color(const Color<float> &c)
 	{
-		r = ifloor(clamp(c.r * 256.0f, 0.0f, 255.0f));
-		g = ifloor(clamp(c.g * 256.0f, 0.0f, 255.0f));
-		b = ifloor(clamp(c.b * 256.0f, 0.0f, 255.0f));
-		a = ifloor(clamp(c.a * 256.0f, 0.0f, 255.0f));
+		r = static_cast<byte>(ifloor(clamp(c.r * 256.0f, 0.0f, 255.0f)));
+		g = static_cast<byte>(ifloor(clamp(c.g * 256.0f, 0.0f, 255.0f)));
+		b = static_cast<byte>(ifloor(clamp(c.b * 256.0f, 0.0f, 255.0f)));
+		a = static_cast<byte>(ifloor(clamp(c.a * 256.0f, 0.0f, 255.0f)));
 	}
 
 	template<>
@@ -137,10 +137,10 @@ namespace sw
 	template<>
 	inline Color<short>::Color(const Color<float> &c)
 	{
-		r = iround(clamp(c.r * 4095.0f, -4096.0f, 4095.0f));
-		g = iround(clamp(c.g * 4095.0f, -4096.0f, 4095.0f));
-		b = iround(clamp(c.b * 4095.0f, -4096.0f, 4095.0f));
-		a = iround(clamp(c.a * 4095.0f, -4096.0f, 4095.0f));
+		r = static_cast<short>(iround(clamp(c.r * 4095.0f, -4096.0f, 4095.0f)));
+		g = static_cast<short>(iround(clamp(c.g * 4095.0f, -4096.0f, 4095.0f)));
+		b = static_cast<short>(iround(clamp(c.b * 4095.0f, -4096.0f, 4095.0f)));
+		a = static_cast<short>(iround(clamp(c.a * 4095.0f, -4096.0f, 4095.0f)));
 	}
 
 	template<>

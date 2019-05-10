@@ -289,7 +289,7 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties* properties) con
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties* properties) const
 {
-	properties->maxMemoryAllocationSize = 1 << 31;
+	properties->maxMemoryAllocationSize = 1u << 31;
 	properties->maxPerSetDescriptors = 1024;
 }
 
@@ -718,7 +718,7 @@ void PhysicalDevice::getImageFormatProperties(Format format, VkImageType type, V
 		break;
 	}
 
-	pImageFormatProperties->maxResourceSize = 1 << 31; // Minimum value for maxResourceSize
+	pImageFormatProperties->maxResourceSize = 1u << 31; // Minimum value for maxResourceSize
 
 	// "Images created with tiling equal to VK_IMAGE_TILING_LINEAR have further restrictions on their limits and capabilities
 	//  compared to images created with tiling equal to VK_IMAGE_TILING_OPTIMAL."

@@ -135,7 +135,7 @@ namespace sw
 		return ii * ff;
 	}
 
-	Float4 logarithm2(RValue<Float4> x, bool absolute, bool pp)
+	Float4 logarithm2(RValue<Float4> x, bool pp)
 	{
 		Float4 x0;
 		Float4 x1;
@@ -166,15 +166,15 @@ namespace sw
 		return exponential2(Float4(1.44269504f) * x, pp);   // 1/ln(2)
 	}
 
-	Float4 logarithm(RValue<Float4> x, bool absolute, bool pp)
+	Float4 logarithm(RValue<Float4> x, bool pp)
 	{
 		// FIXME: Propagate the constant
-		return Float4(6.93147181e-1f) * logarithm2(x, absolute, pp);   // ln(2)
+		return Float4(6.93147181e-1f) * logarithm2(x, pp);   // ln(2)
 	}
 
 	Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp)
 	{
-		Float4 log = logarithm2(x, true, pp);
+		Float4 log = logarithm2(x, pp);
 		log *= y;
 		return exponential2(log, pp);
 	}
