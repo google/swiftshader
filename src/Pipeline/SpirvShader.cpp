@@ -902,6 +902,7 @@ namespace sw
 			case spv::OpImageQuerySize:
 			case spv::OpImageQuerySizeLod:
 			case spv::OpImageQueryLevels:
+			case spv::OpImageQuerySamples:
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
@@ -2494,6 +2495,9 @@ namespace sw
 
 		case spv::OpImageQueryLevels:
 			return EmitImageQueryLevels(insn, state);
+
+		case spv::OpImageQuerySamples:
+			return EmitImageQuerySamples(insn, state);
 
 		case spv::OpImageRead:
 			return EmitImageRead(insn, state);
@@ -4918,16 +4922,51 @@ namespace sw
 		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
 		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-		{
 			mipLevels = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, mipLevels)); // uint32_t
 			break;
-		}
 		default:
 			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
 		}
 
 		auto &dst = state->routine->createIntermediate(resultId, 1);
 		dst.move(0, SIMD::Int(mipLevels));
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultTy = getType(Type::ID(insn.word(1)));
+		ASSERT(resultTy.sizeInComponents == 1);
+		auto resultId = Object::ID(insn.word(2));
+		auto imageId = Object::ID(insn.word(3));
+		auto imageTy = getType(getObject(imageId).type);
+		ASSERT(imageTy.definition.opcode() == spv::OpTypeImage);
+		ASSERT(imageTy.definition.word(3) == spv::Dim2D);
+		ASSERT(imageTy.definition.word(6 /* MS */) == 1);
+
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
+
+		Pointer<Byte> descriptor = state->routine->getPointer(imageId).base;
+		Int sampleCount = 0;
+		switch (bindingLayout.descriptorType)
+		{
+		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+			sampleCount = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount)); // uint32_t
+			break;
+		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+			sampleCount = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, sampleCount)); // uint32_t
+			break;
+		default:
+			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
+		}
+
+		auto &dst = state->routine->createIntermediate(resultId, 1);
+		dst.move(0, SIMD::Int(sampleCount));
 
 		return EmitResult::Continue;
 	}

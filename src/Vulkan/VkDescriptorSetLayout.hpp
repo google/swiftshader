@@ -42,6 +42,7 @@ struct alignas(16) SampledImageDescriptor
 	VkExtent3D extent; // Of base mip-level.
 	int arrayLayers;
 	int mipLevels;
+	int sampleCount;
 };
 
 struct alignas(16) StorageImageDescriptor
@@ -52,6 +53,7 @@ struct alignas(16) StorageImageDescriptor
 	int slicePitchBytes;
 	int samplePitchBytes;
 	int arrayLayers;
+	int sampleCount;
 	int sizeInBytes;
 
 	void *stencilPtr;
