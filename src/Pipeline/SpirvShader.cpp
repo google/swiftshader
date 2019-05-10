@@ -4628,7 +4628,8 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const
 	{
-		uint32_t imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(5));
+		auto isDref = (variant == Dref) || (variant == ProjDref);
+		uint32_t imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(isDref ? 6 : 5));
 		imageOperands &= ~spv::ImageOperandsConstOffsetMask;  // Dealt with later.
 
 		if((imageOperands & spv::ImageOperandsLodMask) == imageOperands)
