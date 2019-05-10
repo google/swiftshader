@@ -3210,7 +3210,7 @@ namespace sw
 			{
 				auto abs = Abs(src.Float(i));
 				auto sign = src.Int(i) & SIMD::Int(0x80000000);
-				auto isZero = CmpLT(abs, SIMD::Float(0.000061035));
+				auto isZero = CmpLT(abs, SIMD::Float(0.000061035f));
 				auto isInf  = CmpGT(abs, SIMD::Float(65504.0f));
 				auto isNaN  = IsNan(abs);
 				auto isInfOrNan = isInf | isNaN;

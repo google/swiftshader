@@ -545,7 +545,7 @@ public:
       // still be used by the Target Lowering (e.g., base pointer), so the
       // register alias table still needs to be defined.
       (*RegisterAliases)[Entry.Val].resize(RegisterSet::Reg_NUM);
-      for (int J = 0; J < Entry.NumAliases; ++J) {
+      for (Ice::SizeT J = 0; J < Entry.NumAliases; ++J) {
         SizeT Alias = Entry.Aliases[J];
         assert(!(*RegisterAliases)[Entry.Val][Alias] && "Duplicate alias");
         (*RegisterAliases)[Entry.Val].set(Alias);
