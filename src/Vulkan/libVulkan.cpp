@@ -2677,6 +2677,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue, u
 	TRACE("(VkQueue queue = %p, uint32_t waitSemaphoreCount = %d, const VkSemaphore* pWaitSemaphores = %p, VkImage image = %p, int* pNativeFenceFd = %p)",
 			queue, waitSemaphoreCount, pWaitSemaphores, image.get(), pNativeFenceFd);
 
+	// This is a hack to deal with screen tearing for now.
+	// Need to correctly implement threading using VkSemaphore
+	// to get rid of it. b/132458423
+	vkQueueWaitIdle(queue);
+
 	GrallocModule* grallocMod = GrallocModule::getInstance();
 	void* nativeBuffer;
 

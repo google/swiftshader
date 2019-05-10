@@ -209,6 +209,11 @@ void Queue::garbageCollect()
 #ifndef __ANDROID__
 void Queue::present(const VkPresentInfoKHR* presentInfo)
 {
+	// This is a hack to deal with screen tearing for now.
+	// Need to correctly implement threading using VkSemaphore
+	// to get rid of it. b/132458423
+	waitIdle();
+
 	for(uint32_t i = 0; i < presentInfo->waitSemaphoreCount; i++)
 	{
 		vk::Cast(presentInfo->pWaitSemaphores[i])->wait();
