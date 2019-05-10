@@ -941,6 +941,7 @@ namespace sw
 		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageQueryLevels(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageWrite(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageTexelPointer(InsnIterator insn, EmitState *state) const;

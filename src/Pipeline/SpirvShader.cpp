@@ -901,6 +901,7 @@ namespace sw
 			case spv::OpImageFetch:
 			case spv::OpImageQuerySize:
 			case spv::OpImageQuerySizeLod:
+			case spv::OpImageQueryLevels:
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
@@ -2489,6 +2490,9 @@ namespace sw
 
 		case spv::OpImageQuerySizeLod:
 			return EmitImageQuerySizeLod(insn, state);
+
+		case spv::OpImageQueryLevels:
+			return EmitImageQueryLevels(insn, state);
 
 		case spv::OpImageRead:
 			return EmitImageRead(insn, state);
@@ -4893,6 +4897,38 @@ namespace sw
 			auto numElements = isCubeMap ? (arrayLayers / 6) : RValue<Int>(arrayLayers);
 			dst.move(dimensions, SIMD::Int(numElements));
 		}
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultTy = getType(Type::ID(insn.word(1)));
+		ASSERT(resultTy.sizeInComponents == 1);
+		auto resultId = Object::ID(insn.word(2));
+		auto imageId = Object::ID(insn.word(3));
+
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
+
+		Pointer<Byte> descriptor = state->routine->getPointer(imageId).base;
+		Int mipLevels = 0;
+		switch (bindingLayout.descriptorType)
+		{
+		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+		{
+			mipLevels = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, mipLevels)); // uint32_t
+			break;
+		}
+		default:
+			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
+		}
+
+		auto &dst = state->routine->createIntermediate(resultId, 1);
+		dst.move(0, SIMD::Int(mipLevels));
+
+		return EmitResult::Continue;
 	}
 
 	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const

@@ -41,6 +41,7 @@ struct alignas(16) SampledImageDescriptor
 	alignas(16) sw::Texture texture;
 	VkExtent3D extent; // Of base mip-level.
 	int arrayLayers;
+	int mipLevels;
 };
 
 struct alignas(16) StorageImageDescriptor
