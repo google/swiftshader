@@ -2689,16 +2689,6 @@ namespace rr
 		return T(Type_v2i32);
 	}
 
-	RValue<UInt> Extract(RValue<UInt2> val, int i)
-	{
-		return RValue<UInt>(Nucleus::createExtractElement(val.value, UInt::getType(), i));
-	}
-
-	RValue<UInt2> Insert(RValue<UInt2> val, RValue<UInt> element, int i)
-	{
-		return RValue<UInt2>(Nucleus::createInsertElement(val.value, element.value, i));
-	}
-
 	RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs)
 	{
 		if(emulateIntrinsics)

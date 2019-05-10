@@ -3176,6 +3176,16 @@ namespace rr
 		return RValue<UInt2>(Nucleus::createNot(val.value));
 	}
 
+	RValue<UInt> Extract(RValue<UInt2> val, int i)
+	{
+		return RValue<UInt>(Nucleus::createExtractElement(val.value, UInt::getType(), i));
+	}
+
+	RValue<UInt2> Insert(RValue<UInt2> val, RValue<UInt> element, int i)
+	{
+		return RValue<UInt2>(Nucleus::createInsertElement(val.value, element.value, i));
+	}
+
 	Int4::Int4() : XYZW(this)
 	{
 	}

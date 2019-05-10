@@ -1399,6 +1399,8 @@ namespace rr
 //	RValue<Bool> operator==(RValue<UInt2> lhs, RValue<UInt2> rhs);
 
 //	RValue<UInt2> RoundInt(RValue<Float4> cast);
+	RValue<UInt> Extract(RValue<UInt2> val, int i);
+	RValue<UInt2> Insert(RValue<UInt2> val, RValue<UInt> element, int i);
 
 	template<class T>
 	struct Scalar;
