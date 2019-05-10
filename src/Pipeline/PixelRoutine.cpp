@@ -1672,10 +1672,14 @@ namespace sw
 		switch(blendFactorActive)
 		{
 		case VK_BLEND_FACTOR_ZERO:
-			// Optimized
+			blendFactor.x = Float4(0);
+			blendFactor.y = Float4(0);
+			blendFactor.z = Float4(0);
 			break;
 		case VK_BLEND_FACTOR_ONE:
-			// Optimized
+			blendFactor.x = Float4(1);
+			blendFactor.y = Float4(1);
+			blendFactor.z = Float4(1);
 			break;
 		case VK_BLEND_FACTOR_SRC_COLOR:
 			blendFactor.x = oC.x;
@@ -1754,10 +1758,10 @@ namespace sw
 		switch(blendFactorAlphaActive)
 		{
 		case VK_BLEND_FACTOR_ZERO:
-			// Optimized
+			blendFactor.w = Float4(0);
 			break;
 		case VK_BLEND_FACTOR_ONE:
-			// Optimized
+			blendFactor.w = Float4(1);
 			break;
 		case VK_BLEND_FACTOR_SRC_COLOR:
 			blendFactor.w = oC.w;
@@ -1928,19 +1932,13 @@ namespace sw
 		blendFactor(sourceFactor, oC, pixel, state.sourceBlendFactor);
 		blendFactor(destFactor, oC, pixel, state.destBlendFactor);
 
-		if(state.sourceBlendFactor != VK_BLEND_FACTOR_ONE && state.sourceBlendFactor != VK_BLEND_FACTOR_ZERO)
-		{
-			oC.x *= sourceFactor.x;
-			oC.y *= sourceFactor.y;
-			oC.z *= sourceFactor.z;
-		}
+		oC.x *= sourceFactor.x;
+		oC.y *= sourceFactor.y;
+		oC.z *= sourceFactor.z;
 
-		if(state.destBlendFactor != VK_BLEND_FACTOR_ONE && state.destBlendFactor != VK_BLEND_FACTOR_ZERO)
-		{
-			pixel.x *= destFactor.x;
-			pixel.y *= destFactor.y;
-			pixel.z *= destFactor.z;
-		}
+		pixel.x *= destFactor.x;
+		pixel.y *= destFactor.y;
+		pixel.z *= destFactor.z;
 
 		switch(state.blendOperation)
 		{
@@ -1989,15 +1987,8 @@ namespace sw
 		blendFactorAlpha(sourceFactor, oC, pixel, state.sourceBlendFactorAlpha);
 		blendFactorAlpha(destFactor, oC, pixel, state.destBlendFactorAlpha);
 
-		if(state.sourceBlendFactorAlpha != VK_BLEND_FACTOR_ONE && state.sourceBlendFactorAlpha != VK_BLEND_FACTOR_ZERO)
-		{
-			oC.w *= sourceFactor.w;
-		}
-
-		if(state.destBlendFactorAlpha != VK_BLEND_FACTOR_ONE && state.destBlendFactorAlpha != VK_BLEND_FACTOR_ZERO)
-		{
-			pixel.w *= destFactor.w;
-		}
+		oC.w *= sourceFactor.w;
+		pixel.w *= destFactor.w;
 
 		switch(state.blendOperationAlpha)
 		{

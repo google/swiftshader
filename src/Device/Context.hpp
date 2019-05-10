@@ -123,6 +123,7 @@ namespace sw
 
 		bool perspectiveActive() const;
 
+		bool allTargetsColorClamp() const;
 		bool alphaBlendActive() const;
 		VkBlendFactor sourceBlendFactor() const;
 		VkBlendFactor destBlendFactor() const;

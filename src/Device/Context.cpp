@@ -324,6 +324,20 @@ namespace sw
 		return destBlendFactorState;
 	}
 
+	bool Context::allTargetsColorClamp() const
+	{
+		// TODO: remove all of this and support VkPhysicalDeviceFeatures::independentBlend instead
+		for (int i = 0; i < RENDERTARGETS; i++)
+		{
+			if (renderTarget[i] && renderTarget[i]->getFormat().isFloatFormat())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	VkBlendOp Context::blendOperation() const
 	{
 		if(!alphaBlendEnable) return VK_BLEND_OP_SRC_EXT;
@@ -365,7 +379,7 @@ namespace sw
 				}
 			}
 		case VK_BLEND_OP_SUBTRACT:
-			if(sourceBlendFactor() == VK_BLEND_FACTOR_ZERO)
+			if(sourceBlendFactor() == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 			{
 				return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 			}
@@ -405,7 +419,7 @@ namespace sw
 			}
 			else if(sourceBlendFactor() == VK_BLEND_FACTOR_ONE)
 			{
-				if(destBlendFactor() == VK_BLEND_FACTOR_ZERO)
+				if(destBlendFactor() == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 				{
 					return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 				}
@@ -416,7 +430,7 @@ namespace sw
 			}
 			else
 			{
-				if(destBlendFactor() == VK_BLEND_FACTOR_ZERO)
+				if(destBlendFactor() == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 				{
 					return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 				}
@@ -533,7 +547,7 @@ namespace sw
 					}
 				}
 			case VK_BLEND_OP_SUBTRACT:
-				if(sourceBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO)
+				if(sourceBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 				{
 					return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 				}
@@ -573,7 +587,7 @@ namespace sw
 				}
 				else if(sourceBlendFactorAlpha() == VK_BLEND_FACTOR_ONE)
 				{
-					if(destBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO)
+					if(destBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 					{
 						return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 					}
@@ -584,7 +598,7 @@ namespace sw
 				}
 				else
 				{
-					if(destBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO)
+					if(destBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 					{
 						return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 					}
