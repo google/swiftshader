@@ -1,1 +1,0 @@
-dEQP-VK.compute.device_group.device_index
