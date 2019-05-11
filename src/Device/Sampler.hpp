@@ -145,6 +145,7 @@ namespace sw
 		AddressingMode addressingModeW;
 		MipmapType mipmapFilter;
 		VkComponentMapping swizzle;
+		int gatherComponent;
 		bool highPrecisionFiltering;
 		bool compareEnable;
 		VkCompareOp compareOp;

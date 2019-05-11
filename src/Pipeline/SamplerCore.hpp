@@ -36,7 +36,8 @@ namespace sw
 		Fetch,     // Use provided integer coordinates.
 		Base,      // Sample base level.
 		Query,     // Return implicit LOD.
-		SAMPLER_METHOD_LAST = Query,
+		Gather,    // Return one channel of each texel in footprint.
+		SAMPLER_METHOD_LAST = Gather,
 	};
 
 	enum SamplerOption
@@ -109,6 +110,7 @@ namespace sw
 		bool hasYuvFormat() const;
 		bool isRGBComponent(int component) const;
 		bool borderModeActive() const;
+		VkComponentSwizzle gatherSwizzle() const;
 
 		Pointer<Byte> &constants;
 		const Sampler &state;

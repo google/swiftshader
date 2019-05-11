@@ -115,13 +115,13 @@ namespace sw
 			// TODO: Eliminate int-float-int conversion.
 			lod = Float(As<Int>(Float(lodOrBias.x)));
 		}
-		else if(function == Base)
+		else if(function == Base || function == Gather)
 		{
 			lod = Float(0);
 		}
 		else UNREACHABLE("Sampler function %d", int(function));
 
-		if(function != Base && function != Fetch)
+		if(function != Base && function != Fetch && function != Gather)
 		{
 			lod += *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
 
@@ -151,7 +151,7 @@ namespace sw
 		bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 		bool use32BitFiltering = hasFloatTexture() || hasUnnormalizedIntegerTexture() || force32BitFiltering ||
 		                         seamlessCube || state.unnormalizedCoordinates || state.compareEnable || state.largeTexture ||
-		                         borderModeActive();
+		                         borderModeActive() || (function == Gather);
 
 		if(use32BitFiltering)
 		{
@@ -242,17 +242,37 @@ namespace sw
 			}
 		}
 
-		if((state.swizzle.r != VK_COMPONENT_SWIZZLE_R) ||
-			(state.swizzle.g != VK_COMPONENT_SWIZZLE_G) ||
-			(state.swizzle.b != VK_COMPONENT_SWIZZLE_B) ||
-			(state.swizzle.a != VK_COMPONENT_SWIZZLE_A))
+		if(state.textureFilter != FILTER_GATHER)
 		{
-			const Vector4f col(c);
-			auto integer = hasUnnormalizedIntegerTexture();
-			applySwizzle(state.swizzle.r, c.x, col, integer);
-			applySwizzle(state.swizzle.g, c.y, col, integer);
-			applySwizzle(state.swizzle.b, c.z, col, integer);
-			applySwizzle(state.swizzle.a, c.w, col, integer);
+			if((state.swizzle.r != VK_COMPONENT_SWIZZLE_R) ||
+			   (state.swizzle.g != VK_COMPONENT_SWIZZLE_G) ||
+			   (state.swizzle.b != VK_COMPONENT_SWIZZLE_B) ||
+			   (state.swizzle.a != VK_COMPONENT_SWIZZLE_A))
+			{
+				const Vector4f col(c);
+				bool integer = hasUnnormalizedIntegerTexture();
+				applySwizzle(state.swizzle.r, c.x, col, integer);
+				applySwizzle(state.swizzle.g, c.y, col, integer);
+				applySwizzle(state.swizzle.b, c.z, col, integer);
+				applySwizzle(state.swizzle.a, c.w, col, integer);
+			}
+		}
+		else  // Gather
+		{
+			VkComponentSwizzle swizzle = gatherSwizzle();
+
+			// R/G/B/A swizzles affect the component collected from each texel earlier.
+			// Handle the ZERO and ONE cases here because we don't need to know the format.
+
+			if(swizzle == VK_COMPONENT_SWIZZLE_ZERO)
+			{
+				c.x = c.y = c.z = c.w = Float4(0);
+			}
+			else if(swizzle == VK_COMPONENT_SWIZZLE_ONE)
+			{
+				bool integer = hasUnnormalizedIntegerTexture();
+				c.x = c.y = c.z = c.w = integer ? As<Float4>(Int4(1)) : RValue<Float4>(Float4(1.0f));
+			}
 		}
 
 		return c;
@@ -597,10 +617,20 @@ namespace sw
 			}
 			else  // Gather
 			{
-				c.x = c10.x;
-				c.y = c01.x;
-				c.z = c11.x;
-				c.w = c00.x;
+				VkComponentSwizzle swizzle = gatherSwizzle();
+				switch(swizzle)
+				{
+				case VK_COMPONENT_SWIZZLE_ZERO:
+				case VK_COMPONENT_SWIZZLE_ONE:
+					// Handled at the final component swizzle.
+					break;
+				default:
+					c.x = c01[swizzle - VK_COMPONENT_SWIZZLE_R];
+					c.y = c11[swizzle - VK_COMPONENT_SWIZZLE_R];
+					c.z = c10[swizzle - VK_COMPONENT_SWIZZLE_R];
+					c.w = c00[swizzle - VK_COMPONENT_SWIZZLE_R];
+					break;
+				}
 			}
 		}
 
@@ -885,10 +915,20 @@ namespace sw
 			}
 			else  // Gather
 			{
-				c.x = c10.x;
-				c.y = c01.x;
-				c.z = c11.x;
-				c.w = c00.x;
+				VkComponentSwizzle swizzle = gatherSwizzle();
+				switch(swizzle)
+				{
+				case VK_COMPONENT_SWIZZLE_ZERO:
+				case VK_COMPONENT_SWIZZLE_ONE:
+					// Handled at the final component swizzle.
+					break;
+				default:
+					c.x = c01[swizzle - VK_COMPONENT_SWIZZLE_R];
+					c.y = c11[swizzle - VK_COMPONENT_SWIZZLE_R];
+					c.z = c10[swizzle - VK_COMPONENT_SWIZZLE_R];
+					c.w = c00[swizzle - VK_COMPONENT_SWIZZLE_R];
+					break;
+				}
 			}
 		}
 
@@ -2024,6 +2064,20 @@ namespace sw
 		}
 	}
 
+	// TODO: Eliminate when the gather + mirror addressing case is handled by mirroring the footprint.
+	static Int4 mirror(Int4 n)
+	{
+		auto positive = CmpNLT(n, Int4(0));
+		return (positive & n) | (~positive & (-(Int4(1) + n)));
+	}
+
+	static Int4 mod(Int4 n, Int4 d)
+	{
+		auto x = n % d;
+		auto positive = CmpNLT(x, Int4(0));
+		return (positive & x) | (~positive & (x + d));
+	}
+
 	void SamplerCore::address(Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function)
 	{
 		if(addressingMode == ADDRESSING_UNUSED)
@@ -2071,51 +2125,77 @@ namespace sw
 					break;
 				}
 			}
+			else if(state.textureFilter == FILTER_GATHER && addressingMode == ADDRESSING_MIRROR)
+			{
+				// Gather requires the 'footprint' of the texels from which a component is taken, to also mirror around.
+				// Therefore we can't just compute one texel's location and find the other ones at +1 offsets from it.
+				// Here we handle that case separately by doing the mirroring per texel coordinate.
+				// TODO: Mirror the footprint by adjusting the sign of the 0.5f and 1 offsets.
+
+				coord = coord * Float4(dim);
+				coord -= Float4(0.5f);
+				Float4 floor = Floor(coord);
+				xyz0 = Int4(floor);
+
+				if(function.option == Offset)
+				{
+					xyz0 += As<Int4>(texOffset);
+				}
+
+				xyz1 = xyz0 + Int4(1);
+
+				xyz0 = (maxXYZ) - mirror(mod(xyz0, Int4(2) * dim) - dim);
+				xyz1 = (maxXYZ) - mirror(mod(xyz1, Int4(2) * dim) - dim);
+
+				return;
+			}
 			else
 			{
-				switch(addressingMode)
+				if(function.option != Offset)
 				{
-				case ADDRESSING_CLAMP:
-				case ADDRESSING_SEAMLESS:
-					// Linear filtering of cube doesn't require clamping because the coordinates
-					// are already in [0, 1] range and numerical imprecision is tolerated.
-					if(addressingMode != ADDRESSING_SEAMLESS || pointFilter)
+					switch(addressingMode)
 					{
-						Float4 one = As<Float4>(Int4(oneBits));
-						coord = Min(Max(coord, Float4(0.0f)), one);
+					case ADDRESSING_CLAMP:
+					case ADDRESSING_SEAMLESS:
+						// Linear filtering of cube doesn't require clamping because the coordinates
+						// are already in [0, 1] range and numerical imprecision is tolerated.
+						if(addressingMode != ADDRESSING_SEAMLESS || pointFilter)
+						{
+							Float4 one = As<Float4>(Int4(oneBits));
+							coord = Min(Max(coord, Float4(0.0f)), one);
+						}
+						break;
+					case ADDRESSING_MIRROR:
+						{
+							Float4 half = As<Float4>(Int4(halfBits));
+							Float4 one = As<Float4>(Int4(oneBits));
+							Float4 two = As<Float4>(Int4(twoBits));
+							coord = one - Abs(two * Frac(coord * half) - one);
+						}
+						break;
+					case ADDRESSING_MIRRORONCE:
+						{
+							Float4 half = As<Float4>(Int4(halfBits));
+							Float4 one = As<Float4>(Int4(oneBits));
+							Float4 two = As<Float4>(Int4(twoBits));
+							coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
+						}
+						break;
+					case ADDRESSING_BORDER:
+						// Don't map to a valid range here.
+						break;
+					default:   // Wrap
+						coord = Frac(coord);
+						break;
 					}
-					break;
-				case ADDRESSING_MIRROR:
-					{
-						Float4 half = As<Float4>(Int4(halfBits));
-						Float4 one = As<Float4>(Int4(oneBits));
-						Float4 two = As<Float4>(Int4(twoBits));
-						coord = one - Abs(two * Frac(coord * half) - one);
-					}
-					break;
-				case ADDRESSING_MIRRORONCE:
-					{
-						Float4 half = As<Float4>(Int4(halfBits));
-						Float4 one = As<Float4>(Int4(oneBits));
-						Float4 two = As<Float4>(Int4(twoBits));
-						coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
-					}
-					break;
-				case ADDRESSING_BORDER:
-					// Don't map to a valid range here.
-					break;
-				default:   // Wrap
-					coord = Frac(coord);
-					break;
 				}
 
 				coord = coord * Float4(dim);
 			}
 
-			if(state.textureFilter == FILTER_POINT ||
-			   state.textureFilter == FILTER_GATHER)
+			if(state.textureFilter == FILTER_POINT)
 			{
-				if(addressingMode == ADDRESSING_BORDER)
+				if(addressingMode == ADDRESSING_BORDER || function.option == Offset)
 				{
 					xyz0 = Int4(Floor(coord));
 				}
@@ -2176,8 +2256,8 @@ namespace sw
 					xyz1 = Min(Max(xyz1, Int4(0)), maxXYZ);
 					break;
 				default:   // Wrap
-					xyz0 = (xyz0 + dim * Int4(-MIN_PROGRAM_TEXEL_OFFSET)) % dim;
-					xyz1 = (xyz1 + dim * Int4(-MIN_PROGRAM_TEXEL_OFFSET)) % dim;
+					xyz0 = mod(xyz0, dim);
+					xyz1 = mod(xyz1, dim);
 					break;
 				}
 			}
@@ -2291,5 +2371,19 @@ namespace sw
 		return state.addressingModeU == ADDRESSING_BORDER ||
 		       state.addressingModeV == ADDRESSING_BORDER ||
 		       state.addressingModeW == ADDRESSING_BORDER;
+	}
+
+	VkComponentSwizzle SamplerCore::gatherSwizzle() const
+	{
+		switch(state.gatherComponent)
+		{
+		case 0: return state.swizzle.r;
+		case 1: return state.swizzle.g;
+		case 2: return state.swizzle.b;
+		case 3: return state.swizzle.a;
+		default:
+			UNREACHABLE("Invalid component");
+			return VK_COMPONENT_SWIZZLE_R;
+		}
 	}
 }

@@ -524,6 +524,7 @@ namespace sw
 					uint32_t variant : BITS(VARIANT_LAST);
 					uint32_t samplerMethod : BITS(SAMPLER_METHOD_LAST);
 					uint32_t samplerOption : BITS(SAMPLER_OPTION_LAST);
+					uint32_t gatherComponent : 2;
 
 					// Parameters are passed to the sampling routine in this order:
 					uint32_t coordinates : 3;       // 1-4 (does not contain projection component)
@@ -937,6 +938,7 @@ namespace sw
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleImplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageGather(Variant variant, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageFetch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const;
