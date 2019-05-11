@@ -60,14 +60,6 @@ public:
 		}
 	}
 
-	void signal()
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		status = VK_SUCCESS;
-		lock.unlock();
-		condition.notify_all();
-	}
-
 	void reset()
 	{
 		std::unique_lock<std::mutex> lock(mutex);

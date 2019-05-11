@@ -17,6 +17,7 @@
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
 #include "WSI/VkSwapchainKHR.hpp"
+#include "Device/Renderer.hpp"
 
 #include <cstring>
 
@@ -151,6 +152,9 @@ void Queue::submitQueue(const Task& task)
 
 	if(task.fence)
 	{
+		// TODO: fix renderer signaling so that work submitted separately from (but before) a fence
+		// is guaranteed complete by the time the fence signals.
+		renderer->synchronize();
 		task.fence->done();
 	}
 }
@@ -187,9 +191,6 @@ VkResult Queue::waitIdle()
 	pending.put(task);
 
 	fence.wait();
-
-	// Wait for all draw operations to complete, if any
-	renderer->synchronize();
 
 	garbageCollect();
 
