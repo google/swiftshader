@@ -45,7 +45,6 @@ namespace sw
 			VkCullModeFlags cullMode       : BITS(VK_CULL_MODE_FLAG_BITS_MAX_ENUM);
 			bool twoSidedStencil           : 1;
 			bool slopeDepthBias            : 1;
-			bool vFace                     : 1;
 			unsigned int multiSample       : 3;   // 1, 2 or 4
 			bool rasterizerDiscard         : 1;
 

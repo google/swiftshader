@@ -444,15 +444,11 @@ namespace sw
 
 			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 			{
-				// Note: `sprite` mode controls whether to replace this interpolant with the point sprite PointCoord value.
-				// This was an interesting thing to support for old GL because any texture coordinate could be replaced in this way.
-				// In modern GL and in Vulkan, the [gl_]PointCoord builtin variable to the fragment shader is used instead.
 				if (state.gradient[interpolant].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 					setupGradient(primitive, tri, w012, M, v0, v1, v2,
 							OFFSET(Vertex, v[interpolant]),
 							OFFSET(Primitive, V[interpolant]),
 							state.gradient[interpolant].Flat,
-							false /* is pointcoord */,
 							!state.gradient[interpolant].NoPerspective, 0);
 			}
 
@@ -462,38 +458,15 @@ namespace sw
 		routine = function("SetupRoutine");
 	}
 
-	void SetupRoutine::setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flat, bool sprite, bool perspective, int component)
+	void SetupRoutine::setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flat, bool perspective, int component)
 	{
-		Float4 i;
-
 		if(!flat)
 		{
-			if(!sprite)
-			{
-				i.x = *Pointer<Float>(v0 + attribute);
-				i.y = *Pointer<Float>(v1 + attribute);
-				i.z = *Pointer<Float>(v2 + attribute);
-				i.w = 0;
-			}
-			else
-			{
-				if(component == 0) i.x = 0.5f;
-				if(component == 1) i.x = 0.5f;
-				if(component == 2) i.x = 0.0f;
-				if(component == 3) i.x = 1.0f;
-
-				if(component == 0) i.y = 1.0f;
-				if(component == 1) i.y = 0.5f;
-				if(component == 2) i.y = 0.0f;
-				if(component == 3) i.y = 1.0f;
-
-				if(component == 0) i.z = 0.5f;
-				if(component == 1) i.z = 1.0f;
-				if(component == 2) i.z = 0.0f;
-				if(component == 3) i.z = 1.0f;
-
-				i.w = 0;
-			}
+			Float4 i;
+			i.x = *Pointer<Float>(v0 + attribute);
+			i.y = *Pointer<Float>(v1 + attribute);
+			i.z = *Pointer<Float>(v2 + attribute);
+			i.w = 0;
 
 			if(!perspective)
 			{

@@ -84,7 +84,6 @@ namespace sw
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
 		state.slopeDepthBias = context->slopeDepthBias != 0.0f;
-		state.vFace = context->pixelShader && context->pixelShader->hasBuiltinInput(spv::BuiltInFrontFacing);
 
 		state.multiSample = context->sampleCount;
 		state.rasterizerDiscard = context->rasterizerDiscard;
