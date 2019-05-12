@@ -41,7 +41,6 @@ namespace sw
 			bool isDrawTriangle            : 1;
 			bool interpolateZ              : 1;
 			bool interpolateW              : 1;
-			bool perspective               : 1;
 			bool frontFacingCCW            : 1;
 			VkCullModeFlags cullMode       : BITS(VK_CULL_MODE_FLAG_BITS_MAX_ENUM);
 			bool twoSidedStencil           : 1;

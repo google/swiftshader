@@ -161,14 +161,14 @@ namespace sw
 						routine.inputs[interpolant] =
 								interpolateCentroid(XXXX, YYYY, rhwCentroid,
 													primitive + OFFSET(Primitive, V[interpolant]),
-													input.Flat, state.perspective);
+													input.Flat, !input.NoPerspective);
 					}
 					else
 					{
 						routine.inputs[interpolant] =
 								interpolate(xxxx, Dv[interpolant], rhw,
 											primitive + OFFSET(Primitive, V[interpolant]),
-											input.Flat, state.perspective, false);
+											input.Flat, !input.NoPerspective, false);
 					}
 				}
 			}

@@ -352,11 +352,6 @@ namespace sw
 		html += "<option value='1'" + (config.mipmapQuality == 1 ? selected : empty) + ">Linear (default)</option>\n";
 		html += "</select></td>\n";
 		html += "</tr>\n";
-		html += "<tr><td>Perspective correction:</td><td><select name='perspectiveCorrection' title='Enables or disables perspective correction. Disabling it is faster but can causes distortion. Recommended for 2D applications only.'>\n";
-		html += "<option value='0'" + (config.perspectiveCorrection == 0 ? selected : empty) + ">Off</option>\n";
-		html += "<option value='1'" + (config.perspectiveCorrection == 1 ? selected : empty) + ">On (default)</option>\n";
-		html += "</select></td>\n";
-		html += "</tr>\n";
 		html += "<tr><td>Transcendental function precision:</td><td><select name='transcendentalPrecision' title='The precision at which log/exp/pow/rcp/rsq/nrm shader instructions are computed. Lower settings can be faster but cause visual artifacts.'>\n";
 		html += "<option value='0'" + (config.transcendentalPrecision == 0 ? selected : empty) + ">Approximate</option>\n";
 		html += "<option value='1'" + (config.transcendentalPrecision == 1 ? selected : empty) + ">Partial</option>\n";
@@ -592,10 +587,6 @@ namespace sw
 			{
 				config.mipmapQuality = integer;
 			}
-			else if(sscanf(post, "perspectiveCorrection=%d", &integer))
-			{
-				config.perspectiveCorrection = integer != 0;
-			}
 			else if(sscanf(post, "transcendentalPrecision=%d", &integer))
 			{
 				config.transcendentalPrecision = integer;
@@ -721,7 +712,6 @@ namespace sw
 		config.vertexCacheSize = ini.getInteger("Caches", "VertexCacheSize", 64);
 		config.textureSampleQuality = ini.getInteger("Quality", "TextureSampleQuality", 2);
 		config.mipmapQuality = ini.getInteger("Quality", "MipmapQuality", 1);
-		config.perspectiveCorrection = ini.getBoolean("Quality", "PerspectiveCorrection", true);
 		config.transcendentalPrecision = ini.getInteger("Quality", "TranscendentalPrecision", 2);
 		config.transparencyAntialiasing = ini.getInteger("Quality", "TransparencyAntialiasing", 0);
 		config.threadCount = ini.getInteger("Processor", "ThreadCount", DEFAULT_THREAD_COUNT);
@@ -778,7 +768,6 @@ namespace sw
 		ini.addValue("Caches", "VertexCacheSize", itoa(config.vertexCacheSize));
 		ini.addValue("Quality", "TextureSampleQuality", itoa(config.textureSampleQuality));
 		ini.addValue("Quality", "MipmapQuality", itoa(config.mipmapQuality));
-		ini.addValue("Quality", "PerspectiveCorrection", itoa(config.perspectiveCorrection));
 		ini.addValue("Quality", "TranscendentalPrecision", itoa(config.transcendentalPrecision));
 		ini.addValue("Quality", "TransparencyAntialiasing", itoa(config.transparencyAntialiasing));
 		ini.addValue("Processor", "ThreadCount", itoa(config.threadCount));

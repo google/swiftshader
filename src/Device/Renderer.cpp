@@ -68,7 +68,6 @@ namespace sw
 	TranscendentalPrecision expPrecision = ACCURATE;
 	TranscendentalPrecision rcpPrecision = ACCURATE;
 	TranscendentalPrecision rsqPrecision = ACCURATE;
-	bool perspectiveCorrection = true;
 
 	static void setGlobalRenderingSettings(Conventions conventions, bool exactColorRounding)
 	{
@@ -1469,8 +1468,6 @@ namespace sw
 			VertexProcessor::setRoutineCacheSize(configuration.vertexRoutineCacheSize);
 			PixelProcessor::setRoutineCacheSize(configuration.pixelRoutineCacheSize);
 			SetupProcessor::setRoutineCacheSize(configuration.setupRoutineCacheSize);
-
-			setPerspectiveCorrection(configuration.perspectiveCorrection);
 
 			switch(configuration.transcendentalPrecision)
 			{

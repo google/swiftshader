@@ -257,6 +257,8 @@ namespace sw
 
 	bool QuadRasterizer::interpolateW() const
 	{
-		return state.perspective || (spirvShader && spirvShader->hasBuiltinInput(spv::BuiltInPosition));
+		// Note: could optimize cases where there is a fragment shader but it has no
+		// perspective-correct inputs, but that's vanishingly rare.
+		return spirvShader != nullptr;
 	}
 }

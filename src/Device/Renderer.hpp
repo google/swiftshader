@@ -57,7 +57,6 @@ namespace sw
 	extern TranscendentalPrecision expPrecision;
 	extern TranscendentalPrecision rcpPrecision;
 	extern TranscendentalPrecision rsqPrecision;
-	extern bool perspectiveCorrection;
 
 	struct Conventions  // FIXME(capn): Eliminate. Only support Vulkan 1.1 conventions.
 	{

@@ -439,8 +439,6 @@ namespace sw
 
 			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 			{
-				// TODO: fix `perspective` throughout interpolation code to consider NoPerspective-decorated interpolants,
-				// which were not individually-controllable in the GLES implementation.
 				// Note: `sprite` mode controls whether to replace this interpolant with the point sprite PointCoord value.
 				// This was an interesting thing to support for old GL because any texture coordinate could be replaced in this way.
 				// In modern GL and in Vulkan, the [gl_]PointCoord builtin variable to the fragment shader is used instead.
@@ -450,7 +448,7 @@ namespace sw
 							OFFSET(Primitive, V[interpolant]),
 							state.gradient[interpolant].Flat,
 							false /* is pointcoord */,
-							state.perspective, 0);
+							!state.gradient[interpolant].NoPerspective, 0);
 			}
 
 			Return(1);

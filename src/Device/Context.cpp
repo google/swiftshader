@@ -24,8 +24,6 @@
 
 namespace sw
 {
-	extern bool perspectiveCorrection;
-
 	bool booleanFaceRegister = false;
 	bool fullPixelPositionRegister = false;
 
@@ -617,26 +615,6 @@ namespace sw
 
 			return blendOperationStateAlpha;
 		}
-	}
-
-	bool Context::perspectiveActive() const
-	{
-		if(!colorUsed())
-		{
-			return false;
-		}
-
-		if(!perspectiveCorrection)
-		{
-			return false;
-		}
-
-		if(isDrawPoint())
-		{
-			return false;
-		}
-
-		return true;
 	}
 
 	VkFormat Context::renderTargetInternalFormat(int index) const

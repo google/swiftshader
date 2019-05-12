@@ -40,7 +40,6 @@ namespace sw
 			int vertexCacheSize;
 			int textureSampleQuality;
 			int mipmapQuality;
-			bool perspectiveCorrection;
 			int transcendentalPrecision;
 			int threadCount;
 			bool enableSSE;

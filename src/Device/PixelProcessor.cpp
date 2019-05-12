@@ -25,7 +25,6 @@
 namespace sw
 {
 	extern TransparencyAntialiasing transparencyAntialiasing;
-	extern bool perspectiveCorrection;
 
 	bool precachePixel = false;
 
@@ -164,11 +163,6 @@ namespace sw
 		factor.invBlendConstant4F[3][3] = 1 - blendConstant.a;
 	}
 
-	void PixelProcessor::setPerspectiveCorrection(bool perspectiveEnable)
-	{
-		perspectiveCorrection = perspectiveEnable;
-	}
-
 	void PixelProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
@@ -208,8 +202,6 @@ namespace sw
 		}
 
 		state.occlusionEnabled = context->occlusionEnabled;
-
-		state.perspective = context->perspectiveActive();
 		state.depthClamp = (context->depthBias != 0.0f) || (context->slopeDepthBias != 0.0f);
 
 		if(context->alphaBlendActive())

@@ -79,8 +79,7 @@ namespace sw
 		state.isDrawLine = context->isDrawLine();
 		state.isDrawTriangle = context->isDrawTriangle();
 		state.interpolateZ = context->depthBufferActive() || vPosZW;
-		state.interpolateW = context->perspectiveActive() || vPosZW;
-		state.perspective = context->perspectiveActive();
+		state.interpolateW = context->pixelShader != nullptr;
 		state.frontFacingCCW = context->frontFacingCCW;
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;

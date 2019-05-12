@@ -126,8 +126,6 @@ namespace sw
 
 		void setBlendConstant(const Color<float> &blendConstant);
 
-		void setPerspectiveCorrection(bool perspectiveCorrection);
-
 	protected:
 		const State update(const Context* context) const;
 		Routine *routine(const State &state, vk::PipelineLayout const *pipelineLayout,
