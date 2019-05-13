@@ -15,6 +15,15 @@
 #include "VkRenderPass.hpp"
 #include <cstring>
 
+namespace
+{
+	void MarkFirstUse(int& attachment, int subpass)
+	{
+		if (attachment == -1)
+			attachment = subpass;
+	}
+}
+
 namespace vk
 {
 
@@ -39,6 +48,12 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 		attachments = reinterpret_cast<VkAttachmentDescription*>(hostMemory);
 		memcpy(attachments, pCreateInfo->pAttachments, attachmentSize);
 		hostMemory += attachmentSize;
+
+		size_t firstUseSize = pCreateInfo->attachmentCount * sizeof(int);
+		attachmentFirstUse = reinterpret_cast<int*>(hostMemory);
+		for (auto i = 0u; i < pCreateInfo->attachmentCount; i++)
+			attachmentFirstUse[i] = -1;
+		hostMemory += firstUseSize;
 	}
 
 	// Deep copy subpasses
@@ -58,6 +73,12 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			memcpy(const_cast<VkAttachmentReference*>(subpasses[i].pInputAttachments),
 			       pCreateInfo->pSubpasses[i].pInputAttachments, inputAttachmentsSize);
 			hostMemory += inputAttachmentsSize;
+
+			for (auto j = 0u; j < subpasses[i].inputAttachmentCount; j++)
+			{
+				if (subpass.pInputAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
+					MarkFirstUse(attachmentFirstUse[subpass.pInputAttachments[j].attachment], i);
+			}
 		}
 
 		if(subpass.colorAttachmentCount > 0)
@@ -65,15 +86,24 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			size_t colorAttachmentsSize = subpass.colorAttachmentCount * sizeof(VkAttachmentReference);
 			subpasses[i].pColorAttachments = reinterpret_cast<VkAttachmentReference*>(hostMemory);
 			memcpy(const_cast<VkAttachmentReference*>(subpasses[i].pColorAttachments),
-			       pCreateInfo->pSubpasses[i].pColorAttachments, colorAttachmentsSize);
+			       subpass.pColorAttachments, colorAttachmentsSize);
 			hostMemory += colorAttachmentsSize;
 
 			if(subpass.pResolveAttachments != nullptr)
 			{
 				subpasses[i].pResolveAttachments = reinterpret_cast<VkAttachmentReference*>(hostMemory);
 				memcpy(const_cast<VkAttachmentReference*>(subpasses[i].pResolveAttachments),
-				       pCreateInfo->pSubpasses[i].pResolveAttachments, colorAttachmentsSize);
+				       subpass.pResolveAttachments, colorAttachmentsSize);
 				hostMemory += colorAttachmentsSize;
+			}
+
+			for (auto j = 0u; j < subpasses[i].colorAttachmentCount; j++)
+			{
+				if (subpass.pColorAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
+					MarkFirstUse(attachmentFirstUse[subpass.pColorAttachments[j].attachment], i);
+				if (subpass.pResolveAttachments &&
+					subpass.pResolveAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
+					MarkFirstUse(attachmentFirstUse[subpass.pResolveAttachments[j].attachment], i);
 			}
 		}
 
@@ -81,8 +111,11 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 		{
 			subpasses[i].pDepthStencilAttachment = reinterpret_cast<VkAttachmentReference*>(hostMemory);
 			memcpy(const_cast<VkAttachmentReference*>(subpasses[i].pDepthStencilAttachment),
-				pCreateInfo->pSubpasses[i].pDepthStencilAttachment, sizeof(VkAttachmentReference));
+				subpass.pDepthStencilAttachment, sizeof(VkAttachmentReference));
 			hostMemory += sizeof(VkAttachmentReference);
+
+			if (subpass.pDepthStencilAttachment->attachment != VK_ATTACHMENT_UNUSED)
+				MarkFirstUse(attachmentFirstUse[subpass.pDepthStencilAttachment->attachment], i);
 		}
 
 		if(subpass.preserveAttachmentCount > 0)
@@ -92,6 +125,12 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			memcpy(const_cast<uint32_t*>(subpasses[i].pPreserveAttachments),
 			       pCreateInfo->pSubpasses[i].pPreserveAttachments, preserveAttachmentSize);
 			hostMemory += preserveAttachmentSize;
+
+			for (auto j = 0u; j < subpasses[i].preserveAttachmentCount; j++)
+			{
+				if (subpass.pPreserveAttachments[j] != VK_ATTACHMENT_UNUSED)
+					MarkFirstUse(attachmentFirstUse[subpass.pPreserveAttachments[j]], i);
+			}
 		}
 	}
 
@@ -110,7 +149,8 @@ void RenderPass::destroy(const VkAllocationCallbacks* pAllocator)
 
 size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* pCreateInfo)
 {
-	size_t attachmentSize = pCreateInfo->attachmentCount * sizeof(VkAttachmentDescription);
+	size_t attachmentSize = pCreateInfo->attachmentCount * sizeof(VkAttachmentDescription)
+			+ pCreateInfo->attachmentCount * sizeof(int);
 	size_t subpassesSize = 0;
 	for(uint32_t i = 0; i < pCreateInfo->subpassCount; ++i)
 	{

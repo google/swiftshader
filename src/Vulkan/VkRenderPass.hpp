@@ -17,6 +17,8 @@
 
 #include "VkObject.hpp"
 
+#include <vector>
+
 namespace vk
 {
 
@@ -70,6 +72,11 @@ public:
 		return dependencies[i];
 	}
 
+	bool isAttachmentUsed(uint32_t i) const
+	{
+		return attachmentFirstUse[i] >= 0;
+	}
+
 private:
 	uint32_t                 attachmentCount = 0;
 	VkAttachmentDescription* attachments = nullptr;
@@ -78,6 +85,7 @@ private:
 	uint32_t                 dependencyCount = 0;
 	VkSubpassDependency*     dependencies = nullptr;
 	uint32_t                 currentSubpass = 0;
+	int*                     attachmentFirstUse = nullptr;
 };
 
 static inline RenderPass* Cast(VkRenderPass object)
