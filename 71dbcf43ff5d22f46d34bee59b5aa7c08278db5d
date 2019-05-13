@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a98a3865_a1585c95",
+        "filename": "src/Vulkan/VulkanPlatform.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-05-13T18:11:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "01c8333c_5a819f92",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 87
+      },
+      "revId": "71dbcf43ff5d22f46d34bee59b5aa7c08278db5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c435b5e7_35be9598",
         "filename": "src/Vulkan/VulkanPlatform.h",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "71dbcf43ff5d22f46d34bee59b5aa7c08278db5d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "448680c5_33514a88",
+        "filename": "src/Vulkan/VulkanPlatform.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-05-13T18:11:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c435b5e7_35be9598",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 2
+      },
+      "revId": "71dbcf43ff5d22f46d34bee59b5aa7c08278db5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
