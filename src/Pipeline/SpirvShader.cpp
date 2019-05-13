@@ -2076,6 +2076,14 @@ namespace sw
 			}
 		}
 
+		// mergeActiveLaneMasks contains edge lane masks for the merge block.
+		// This is the union of all edge masks across all iterations of the loop.
+		std::unordered_map<Block::ID, SIMD::Int> mergeActiveLaneMasks;
+		for (auto in : getBlock(block.mergeBlock).ins)
+		{
+			mergeActiveLaneMasks.emplace(in, SIMD::Int(0));
+		}
+
 		// Generate an alloca for each of the loop's phis.
 		// These will be primed with the incoming, non back edge Phi values
 		// before the loop, and then updated just before the loop jumps back to
@@ -2192,6 +2200,17 @@ namespace sw
 			}
 		}
 
+		// Add active lanes to the merge lane mask.
+		for (auto in : getBlock(block.mergeBlock).ins)
+		{
+			auto edge = Block::Edge{in, block.mergeBlock};
+			auto it = state->edgeActiveLaneMasks.find(edge);
+			if (it != state->edgeActiveLaneMasks.end())
+			{
+				mergeActiveLaneMasks[in] |= it->second;
+			}
+		}
+
 		// Update loop phi values
 		for (auto &phi : phis)
 		{
@@ -2201,7 +2220,7 @@ namespace sw
 				auto &type = getType(getObject(phi.phiId).type);
 				for (unsigned int i = 0u; i < type.sizeInComponents; i++)
 				{
-					phi.storage[i] = val.Int(i);
+					phi.storage[i] = (val.Int(i) & loopActiveLaneMask) | (phi.storage[i] & ~loopActiveLaneMask);
 				}
 			}
 		}
@@ -2214,6 +2233,10 @@ namespace sw
 		// Continue emitting from the merge block.
 		Nucleus::setInsertBlock(mergeBasicBlock);
 		state->pending->emplace(block.mergeBlock);
+		for (auto it : mergeActiveLaneMasks)
+		{
+			state->addActiveLaneMaskEdge(it.first, block.mergeBlock, it.second);
+		}
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitState *state) const
@@ -4501,8 +4524,7 @@ namespace sw
 	SpirvShader::EmitResult SpirvShader::EmitBranch(InsnIterator insn, EmitState *state) const
 	{
 		auto target = Block::ID(insn.word(1));
-		auto edge = Block::Edge{state->currentBlock, target};
-		state->edgeActiveLaneMasks.emplace(edge, state->activeLaneMask());
+		state->addActiveLaneMaskEdge(state->currentBlock, target, state->activeLaneMask());
 		return EmitResult::Terminator;
 	}
 
