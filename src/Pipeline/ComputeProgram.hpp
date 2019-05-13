@@ -59,6 +59,7 @@ namespace sw
 			vk::DescriptorSet::Bindings const &descriptorSetBindings,
 			vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 			PushConstantStorage const &pushConstants,
+			uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
 			uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
 	protected:

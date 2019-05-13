@@ -165,7 +165,8 @@ private:
 class Dispatch : public CommandBuffer::Command
 {
 public:
-	Dispatch(uint32_t pGroupCountX, uint32_t pGroupCountY, uint32_t pGroupCountZ) :
+	Dispatch(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ, uint32_t pGroupCountX, uint32_t pGroupCountY, uint32_t pGroupCountZ) :
+			baseGroupX(baseGroupX), baseGroupY(baseGroupY), baseGroupZ(baseGroupZ),
 			groupCountX(pGroupCountX), groupCountY(pGroupCountY), groupCountZ(pGroupCountZ)
 	{
 	}
@@ -176,13 +177,17 @@ protected:
 		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
 
 		ComputePipeline* pipeline = static_cast<ComputePipeline*>(pipelineState.pipeline);
-		pipeline->run(groupCountX, groupCountY, groupCountZ,
+		pipeline->run(baseGroupX, baseGroupY, baseGroupZ,
+			groupCountX, groupCountY, groupCountZ,
 			pipelineState.descriptorSets,
 			pipelineState.descriptorDynamicOffsets,
 			executionState.pushConstants);
 	}
 
 private:
+	uint32_t baseGroupX;
+	uint32_t baseGroupY;
+	uint32_t baseGroupZ;
 	uint32_t groupCountX;
 	uint32_t groupCountY;
 	uint32_t groupCountZ;
@@ -204,7 +209,7 @@ protected:
 		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
 
 		ComputePipeline* pipeline = static_cast<ComputePipeline*>(pipelineState.pipeline);
-		pipeline->run(cmd->x, cmd->y, cmd->z,
+		pipeline->run(0, 0, 0, cmd->x, cmd->y, cmd->z,
 			pipelineState.descriptorSets,
 			pipelineState.descriptorDynamicOffsets,
 			executionState.pushConstants);
@@ -1219,7 +1224,7 @@ void CommandBuffer::setDeviceMask(uint32_t deviceMask)
 void CommandBuffer::dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
                                  uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	UNIMPLEMENTED("dispatchBase");
+	addCommand<Dispatch>(baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::pipelineBarrier(VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
@@ -1388,7 +1393,7 @@ void CommandBuffer::bindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkInde
 
 void CommandBuffer::dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	addCommand<Dispatch>(groupCountX, groupCountY, groupCountZ);
+	addCommand<Dispatch>(0, 0, 0, groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::dispatchIndirect(VkBuffer buffer, VkDeviceSize offset)

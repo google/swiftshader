@@ -211,6 +211,7 @@ namespace sw
 		vk::DescriptorSet::Bindings const &descriptorSets,
 		vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 		PushConstantStorage const &pushConstants,
+		uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
 		uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
 		auto &modes = shader->getModes();
@@ -241,11 +242,11 @@ namespace sw
 		data.pushConstants = pushConstants;
 		data.constants = &sw::constants;
 
-		for (uint32_t groupZ = 0; groupZ < groupCountZ; groupZ++)
+		for (uint32_t groupZ = baseGroupZ; groupZ < baseGroupZ + groupCountZ; groupZ++)
 		{
-			for (uint32_t groupY = 0; groupY < groupCountY; groupY++)
+			for (uint32_t groupY = baseGroupY; groupY < baseGroupY + groupCountY; groupY++)
 			{
-				for (uint32_t groupX = 0; groupX < groupCountX; groupX++)
+				for (uint32_t groupX = baseGroupX; groupX < baseGroupX + groupCountX; groupX++)
 				{
 
 					// TODO(bclayton): Split work across threads.

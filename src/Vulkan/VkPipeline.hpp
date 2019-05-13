@@ -112,7 +112,8 @@ public:
 
 	void compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo);
 
-	void run(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
+	void run(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
+			uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
 		vk::DescriptorSet::Bindings const &descriptorSets,
 		vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 		sw::PushConstantStorage const &pushConstants);
