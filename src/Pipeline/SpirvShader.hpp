@@ -960,6 +960,15 @@ namespace sw
 		SIMD::Pointer GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
 		uint32_t GetConstScalarInt(Object::ID id) const;
 
+		// LoadPhi loads the phi values from the alloca storage and places the
+		// load values into the intermediate with the phi's result id.
+		void LoadPhi(InsnIterator insn, EmitState *state) const;
+
+		// StorePhi updates the phi's alloca storage value using the incoming
+		// values from blocks that are both in the OpPhi instruction and in
+		// filter.
+		void StorePhi(InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const;
+
 		// Emits a rr::Fence for the given MemorySemanticsMask.
 		void Fence(spv::MemorySemanticsMask semantics) const;
 
@@ -1007,6 +1016,8 @@ namespace sw
 		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
 
 		std::unordered_map<SpirvShader::Object::ID, SIMD::Pointer> pointers;
+
+		std::unordered_map<SpirvShader::Object::ID, Variable> phis;
 
 		Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
 		Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};

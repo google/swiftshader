@@ -1900,6 +1900,13 @@ namespace sw
 				}
 				break;
 			}
+			case spv::OpPhi:
+			{
+				auto type = getType(insn.word(1));
+				Object::ID resultId = insn.word(2);
+				routine->phis.emplace(resultId, SpirvRoutine::Variable(type.sizeInComponents));
+				break;
+			}
 			default:
 				// Nothing else produces interface variables, so can all be safely ignored.
 				break;
@@ -2065,15 +2072,36 @@ namespace sw
 			return; // Already emitted this loop.
 		}
 
+		std::unordered_set<Block::ID> incomingBlocks;
+		std::unordered_set<Block::ID> loopBlocks;
+		for (auto in : block.ins)
+		{
+			if (!existsPath(blockId, in, block.mergeBlock)) // if not a loop back-edge
+			{
+				incomingBlocks.emplace(in);
+			}
+			else
+			{
+				loopBlocks.emplace(in);
+			}
+		}
+
+		// Emit the loop phi instructions, and initialize them with a value from
+		// the incoming blocks.
+		for (auto insn = block.begin(); insn != block.mergeInstruction; insn++)
+		{
+			if (insn.opcode() == spv::OpPhi)
+			{
+				StorePhi(insn, state, incomingBlocks);
+			}
+		}
+
 		// loopActiveLaneMask is the mask of lanes that are continuing to loop.
 		// This is initialized with the incoming active lane masks.
 		SIMD::Int loopActiveLaneMask = SIMD::Int(0);
-		for (auto in : block.ins)
+		for (auto in : incomingBlocks)
 		{
-			if (!existsPath(blockId, in, block.mergeBlock)) // if not a loop back edge
-			{
-				loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
-			}
+			loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
 		}
 
 		// mergeActiveLaneMasks contains edge lane masks for the merge block.
@@ -2084,71 +2112,6 @@ namespace sw
 			mergeActiveLaneMasks.emplace(in, SIMD::Int(0));
 		}
 
-		// Generate an alloca for each of the loop's phis.
-		// These will be primed with the incoming, non back edge Phi values
-		// before the loop, and then updated just before the loop jumps back to
-		// the block.
-		struct LoopPhi
-		{
-			LoopPhi(Object::ID id, uint32_t size) : phiId(id), storage(size) {}
-
-			Object::ID phiId; // The Phi identifier.
-			Object::ID continueValue; // The source merge value from the loop.
-			Array<SIMD::Int> storage; // The alloca.
-		};
-
-		std::vector<LoopPhi> phis;
-
-		// For each OpPhi between the block start and the merge instruction:
-		for (auto insn = block.begin(); insn != block.mergeInstruction; insn++)
-		{
-			if (insn.opcode() == spv::OpPhi)
-			{
-				auto objectId = Object::ID(insn.word(2));
-				auto &object = getObject(objectId);
-				auto &type = getType(object.type);
-
-				LoopPhi phi(insn.word(2), type.sizeInComponents);
-
-				// Start with the Phi set to 0.
-				for (uint32_t i = 0; i < type.sizeInComponents; i++)
-				{
-					phi.storage[i] = SIMD::Int(0);
-				}
-
-				// For each Phi source:
-				for (uint32_t w = 3; w < insn.wordCount(); w += 2)
-				{
-					auto varId = Object::ID(insn.word(w + 0));
-					auto blockId = Block::ID(insn.word(w + 1));
-
-					if (block.ins.count(blockId) == 0)
-					{
-						continue; // In is unreachable. Ignore.
-					}
-
-					if (existsPath(state->currentBlock, blockId, block.mergeBlock))
-					{
-						// This source is from a loop back-edge.
-						ASSERT(phi.continueValue == 0 || phi.continueValue == varId);
-						phi.continueValue = varId;
-					}
-					else
-					{
-						// This source is from a preceding block.
-						for (uint32_t i = 0; i < type.sizeInComponents; i++)
-						{
-							auto in = GenericValue(this, state->routine, varId);
-							auto mask = GetActiveLaneMaskEdge(state, blockId, state->currentBlock);
-							phi.storage[i] = phi.storage[i] | (in.Int(i) & mask);
-						}
-					}
-				}
-
-				phis.push_back(phi);
-			}
-		}
-
 		// Create the loop basic blocks
 		auto headerBasicBlock = Nucleus::createBasicBlock();
 		auto mergeBasicBlock = Nucleus::createBasicBlock();
@@ -2157,25 +2120,17 @@ namespace sw
 		Nucleus::createBr(headerBasicBlock);
 		Nucleus::setInsertBlock(headerBasicBlock);
 
-		// Load the Phi values from storage.
-		// This will load at the start of each loop.
-		for (auto &phi : phis)
-		{
-			auto &type = getType(getObject(phi.phiId).type);
-			auto &dst = state->routine->createIntermediate(phi.phiId, type.sizeInComponents);
-			for (unsigned int i = 0u; i < type.sizeInComponents; i++)
-			{
-				dst.move(i, phi.storage[i]);
-			}
-		}
-
 		// Load the active lane mask.
 		state->setActiveLaneMask(loopActiveLaneMask);
 
-		// Emit all the non-phi instructions in this loop header block.
+		// Emit the non-phi loop header block's instructions.
 		for (auto insn = block.begin(); insn != block.end(); insn++)
 		{
-			if (insn.opcode() != spv::OpPhi)
+			if (insn.opcode() == spv::OpPhi)
+			{
+				LoadPhi(insn, state);
+			}
+			else
 			{
 				EmitInstruction(insn, state);
 			}
@@ -2211,17 +2166,12 @@ namespace sw
 			}
 		}
 
-		// Update loop phi values
-		for (auto &phi : phis)
+		// Update loop phi values.
+		for (auto insn = block.begin(); insn != block.mergeInstruction; insn++)
 		{
-			if (phi.continueValue != 0)
+			if (insn.opcode() == spv::OpPhi)
 			{
-				auto val = GenericValue(this, state->routine, phi.continueValue);
-				auto &type = getType(getObject(phi.phiId).type);
-				for (unsigned int i = 0u; i < type.sizeInComponents; i++)
-				{
-					phi.storage[i] = (val.Int(i) & loopActiveLaneMask) | (phi.storage[i] & ~loopActiveLaneMask);
-				}
+				StorePhi(insn, state, loopBlocks);
 			}
 		}
 
@@ -4604,43 +4554,60 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitPhi(InsnIterator insn, EmitState *state) const
 	{
+		auto currentBlock = getBlock(state->currentBlock);
+		StorePhi(insn, state, currentBlock.ins);
+		LoadPhi(insn, state);
+		return EmitResult::Continue;
+	}
+
+	void SpirvShader::LoadPhi(InsnIterator insn, EmitState *state) const
+	{
+		auto routine = state->routine;
+		auto typeId = Type::ID(insn.word(1));
+		auto type = getType(typeId);
+		auto objectId = Object::ID(insn.word(2));
+
+		auto storageIt = state->routine->phis.find(objectId);
+		ASSERT(storageIt != state->routine->phis.end());
+		auto &storage = storageIt->second;
+
+		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
+		for(uint32_t i = 0; i < type.sizeInComponents; i++)
+		{
+			dst.move(i, storage[i]);
+		}
+	}
+
+	void SpirvShader::StorePhi(InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const
+	{
 		auto routine = state->routine;
 		auto typeId = Type::ID(insn.word(1));
 		auto type = getType(typeId);
 		auto objectId = Object::ID(insn.word(2));
 		auto currentBlock = getBlock(state->currentBlock);
 
-		auto tmp = std::unique_ptr<SIMD::Int[]>(new SIMD::Int[type.sizeInComponents]);
+		auto storageIt = state->routine->phis.find(objectId);
+		ASSERT(storageIt != state->routine->phis.end());
+		auto &storage = storageIt->second;
 
-		bool first = true;
 		for (uint32_t w = 3; w < insn.wordCount(); w += 2)
 		{
 			auto varId = Object::ID(insn.word(w + 0));
 			auto blockId = Block::ID(insn.word(w + 1));
 
-			if (currentBlock.ins.count(blockId) == 0)
+			if (filter.count(blockId) == 0)
 			{
-				continue; // In is unreachable. Ignore.
+				continue;
 			}
 
-			auto in = GenericValue(this, routine, varId);
 			auto mask = GetActiveLaneMaskEdge(state, blockId, state->currentBlock);
+			auto in = GenericValue(this, routine, varId);
 
 			for (uint32_t i = 0; i < type.sizeInComponents; i++)
 			{
-				auto inMasked = in.Int(i) & mask;
-				tmp[i] = first ? inMasked : (tmp[i] | inMasked);
+				storage[i] = As<SIMD::Float>((As<SIMD::Int>(storage[i]) & ~mask) | (in.Int(i) & mask));
 			}
-			first = false;
 		}
-
-		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
-		for(uint32_t i = 0; i < type.sizeInComponents; i++)
-		{
-			dst.move(i, tmp[i]);
-		}
-
-		return EmitResult::Continue;
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(Variant variant, InsnIterator insn, EmitState *state) const
