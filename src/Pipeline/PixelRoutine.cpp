@@ -1368,6 +1368,19 @@ namespace sw
 		case VK_FORMAT_R16G16B16A16_UNORM:
 			transpose4x4(current.x, current.y, current.z, current.w);
 			break;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		{
+			auto r = Int4(current.x) & Int4(0x3ff);
+			auto g = Int4(current.y) & Int4(0x3ff);
+			auto b = Int4(current.z) & Int4(0x3ff);
+			auto a = Int4(current.w) & Int4(0x3);
+			Int4 packed = (a << 30) | (b << 20) | (g << 10) | r;
+			auto c02 = As<Int2>(Int4(packed.xzzz)); // TODO: auto c02 = packed.xz;
+			auto c13 = As<Int2>(Int4(packed.ywww)); // TODO: auto c13 = packed.yw;
+			current.x = UnpackLow(c02, c13);
+			current.y = UnpackHigh(c02, c13);
+			break;
+		}
 		default:
 			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
 		}
@@ -1660,6 +1673,30 @@ namespace sw
 					current.w |= value;
 					*Pointer<Short4>(buffer + 8) = current.w;
 				}
+			}
+			break;
+			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+			{
+				Pointer<Byte> buffer = cBuffer + 4 * x;
+
+				buffer = cBuffer + 4 * x;
+				Int2 value = *Pointer<Int2>(buffer, 16);
+				Int2 mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
+				if (rgbaWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
+				}
+				*Pointer<Int2>(buffer) = (As<Int2>(current.x) & mergedMask) | (value & ~mergedMask);
+
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+				value = *Pointer<Int2>(buffer, 16);
+				mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
+				if (rgbaWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
+				}
+				*Pointer<Int2>(buffer) = (As<Int2>(current.y) & mergedMask) | (value & ~mergedMask);
 			}
 			break;
 		default:

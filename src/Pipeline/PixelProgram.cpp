@@ -147,7 +147,8 @@ namespace sw
 				continue;
 			}
 
-			switch(state.targetFormat[index])
+			auto format = state.targetFormat[index];
+			switch(format)
 			{
 			case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			case VK_FORMAT_B8G8R8A8_UNORM:
@@ -160,12 +161,13 @@ namespace sw
 			case VK_FORMAT_R16G16B16A16_UNORM:
 			case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 			case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
 					Vector4s color;
 
-					if(state.targetFormat[index] == VK_FORMAT_R5G6B5_UNORM_PACK16)
+					if(format == VK_FORMAT_R5G6B5_UNORM_PACK16)
 					{
 						color.x = UShort4(c[index].x * Float4(0xFBFF), false);
 						color.y = UShort4(c[index].y * Float4(0xFDFF), false);
@@ -227,7 +229,7 @@ namespace sw
 				}
 				break;
 			default:
-				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
+				UNIMPLEMENTED("VkFormat: %d", int(format));
 			}
 		}
 	}

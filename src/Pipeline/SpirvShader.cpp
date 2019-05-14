@@ -5285,6 +5285,12 @@ namespace sw
 			dst.move(2, (packed[0] >> 20) & SIMD::Int(0x3FF));
 			dst.move(3, (packed[0] >> 30) & SIMD::Int(0x3));
 			break;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+			dst.move(0, SIMD::Float((packed[0]) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
+			dst.move(1, SIMD::Float((packed[0] >> 10) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
+			dst.move(2, SIMD::Float((packed[0] >> 20) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
+			dst.move(3, SIMD::Float((packed[0] >> 30) & SIMD::Int(0x3)) * SIMD::Float(1.0f / 0x3));
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			dst.move(0, SIMD::Float((packed[0] >> 11) & SIMD::Int(0x1F)) * SIMD::Float(1.0f / 0x1F));
 			dst.move(1, SIMD::Float((packed[0] >> 5) & SIMD::Int(0x3F)) * SIMD::Float(1.0f / 0x3F));
