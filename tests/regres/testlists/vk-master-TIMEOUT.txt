@@ -6,6 +6,7 @@ dEQP-VK.draw.basic_draw.draw_indexed.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_single_command
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_single_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_single_command
@@ -16,3 +17,4 @@ dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_single_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_single_command
 dEQP-VK.glsl.loops.special.do_while_dynamic_iterations.dowhile_trap_vertex
+dEQP-VK.query_pool.occlusion_query.get_results_conservative_size_64_wait_query_with_availability_draw_triangles
