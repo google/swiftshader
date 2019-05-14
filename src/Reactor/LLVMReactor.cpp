@@ -4103,6 +4103,27 @@ namespace rr
 		return elements;
 	}
 
+	// toInt returns all the integer values in vals extended to a native width
+	// integer.
+	static std::vector<Value*> toInt(const std::vector<Value*>& vals, bool isSigned)
+	{
+		auto intTy = ::llvm::Type::getIntNTy(*::context, sizeof(int) * 8); // Natural integer width.
+		std::vector<Value*> elements;
+		elements.reserve(vals.size());
+		for (auto v : vals)
+		{
+			if (isSigned)
+			{
+				elements.push_back(V(::builder->CreateSExt(V(v), intTy)));
+			}
+			else
+			{
+				elements.push_back(V(::builder->CreateZExt(V(v), intTy)));
+			}
+		}
+		return elements;
+	}
+
 	// toDouble returns all the float values in vals extended to doubles.
 	static std::vector<Value*> toDouble(const std::vector<Value*>& vals)
 	{
@@ -4116,11 +4137,15 @@ namespace rr
 		return elements;
 	}
 
-	std::vector<Value*> PrintValue::Ty<Byte4>::val(const RValue<Byte4>& v) { return extractAll(v.value, 4); }
-	std::vector<Value*> PrintValue::Ty<Int4>::val(const RValue<Int4>& v) { return extractAll(v.value, 4); }
-	std::vector<Value*> PrintValue::Ty<UInt4>::val(const RValue<UInt4>& v) { return extractAll(v.value, 4); }
-	std::vector<Value*> PrintValue::Ty<Short4>::val(const RValue<Short4>& v) { return extractAll(v.value, 4); }
-	std::vector<Value*> PrintValue::Ty<UShort4>::val(const RValue<UShort4>& v) { return extractAll(v.value, 4); }
+	std::vector<Value*> PrintValue::Ty<Byte4>::val(const RValue<Byte4>& v) { return toInt(extractAll(v.value, 4), false); }
+	std::vector<Value*> PrintValue::Ty<Int>::val(const RValue<Int>& v) { return toInt({v.value}, true); }
+	std::vector<Value*> PrintValue::Ty<Int2>::val(const RValue<Int2>& v) { return toInt(extractAll(v.value, 2), true); }
+	std::vector<Value*> PrintValue::Ty<Int4>::val(const RValue<Int4>& v) { return toInt(extractAll(v.value, 4), true); }
+	std::vector<Value*> PrintValue::Ty<UInt>::val(const RValue<UInt>& v) { return toInt({v.value}, false); }
+	std::vector<Value*> PrintValue::Ty<UInt2>::val(const RValue<UInt2>& v) { return toInt(extractAll(v.value, 2), false); }
+	std::vector<Value*> PrintValue::Ty<UInt4>::val(const RValue<UInt4>& v) { return toInt(extractAll(v.value, 4), false); }
+	std::vector<Value*> PrintValue::Ty<Short4>::val(const RValue<Short4>& v) { return toInt(extractAll(v.value, 4), true); }
+	std::vector<Value*> PrintValue::Ty<UShort4>::val(const RValue<UShort4>& v) { return toInt(extractAll(v.value, 4), false); }
 	std::vector<Value*> PrintValue::Ty<Float>::val(const RValue<Float>& v) { return toDouble({v.value}); }
 	std::vector<Value*> PrintValue::Ty<Float4>::val(const RValue<Float4>& v) { return toDouble(extractAll(v.value, 4)); }
 	std::vector<Value*> PrintValue::Ty<const char*>::val(const char* v) { return {V(::builder->CreateGlobalStringPtr(v))}; }
@@ -4129,7 +4154,7 @@ namespace rr
 	{
 		// LLVM types used below.
 		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
-		auto intTy = ::llvm::Type::getInt64Ty(*::context); // TODO: Natural int width.
+		auto intTy = ::llvm::Type::getIntNTy(*::context, sizeof(int) * 8); // Natural integer width.
 		auto i8PtrTy = ::llvm::Type::getInt8PtrTy(*::context);
 		auto funcTy = ::llvm::FunctionType::get(i32Ty, {i8PtrTy}, true);
 
