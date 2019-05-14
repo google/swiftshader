@@ -2027,6 +2027,7 @@ namespace rr
 	RValue<UInt> Extract(RValue<UInt4> val, int i);
 	RValue<UInt4> Insert(RValue<UInt4> val, RValue<UInt> element, int i);
 //	RValue<UInt4> RoundInt(RValue<Float4> cast);
+	RValue<UInt4> Swizzle(RValue<UInt4> x, unsigned char select);
 
 	class Half : public LValue<Half>
 	{

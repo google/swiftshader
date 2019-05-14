@@ -3648,6 +3648,11 @@ namespace rr
 		return RValue<UInt4>(Nucleus::createInsertElement(x.value, element.value, i));
 	}
 
+	RValue<UInt4> Swizzle(RValue<UInt4> x, unsigned char select)
+	{
+		return RValue<UInt4>(createSwizzle4(x.value, select));
+	}
+
 	Half::Half(RValue<Float> cast)
 	{
 		UInt fp32i = As<UInt>(cast);
