@@ -194,9 +194,6 @@ std::vector<uint32_t> preprocessSpirv(
 		}
 		opt.RegisterPass(spvtools::CreateSetSpecConstantDefaultValuePass(specializations));
 	}
-	// Freeze specialization constants into normal constants, and propagate through
-	opt.RegisterPass(spvtools::CreateFreezeSpecConstantValuePass());
-	opt.RegisterPass(spvtools::CreateFoldSpecConstantOpAndCompositePass());
 
 	// Basic optimization passes to primarily address glslang's love of loads &
 	// stores. Significantly reduces time spent in LLVM passes and codegen.

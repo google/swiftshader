@@ -814,7 +814,6 @@ namespace sw
 		template<typename F>
 		void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, F f) const;
 
-		uint32_t GetConstantInt(Object::ID id) const;
 		Object& CreateConstant(InsnIterator it);
 
 		void ProcessInterfaceVariable(Object &object);
@@ -959,6 +958,9 @@ namespace sw
 		void GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
 		SIMD::Pointer GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
 		uint32_t GetConstScalarInt(Object::ID id) const;
+		void EvalSpecConstantOp(InsnIterator insn);
+		void EvalSpecConstantUnaryOp(InsnIterator insn);
+		void EvalSpecConstantBinaryOp(InsnIterator insn);
 
 		// LoadPhi loads the phi values from the alloca storage and places the
 		// load values into the intermediate with the phi's result id.
