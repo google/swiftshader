@@ -17,14 +17,28 @@
 
 namespace
 {
-	VkComponentMapping ResolveIdentityMapping(VkComponentMapping m)
+	VkComponentMapping ResolveComponentMapping(VkComponentMapping m, vk::Format format)
 	{
-		return {
-			(m.r == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_R : m.r,
-			(m.g == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_G : m.g,
-			(m.b == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_B : m.b,
-			(m.a == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_A : m.a,
+		if (m.r == VK_COMPONENT_SWIZZLE_IDENTITY) m.r = VK_COMPONENT_SWIZZLE_R;
+		if (m.g == VK_COMPONENT_SWIZZLE_IDENTITY) m.g = VK_COMPONENT_SWIZZLE_G;
+		if (m.b == VK_COMPONENT_SWIZZLE_IDENTITY) m.b = VK_COMPONENT_SWIZZLE_B;
+		if (m.a == VK_COMPONENT_SWIZZLE_IDENTITY) m.a = VK_COMPONENT_SWIZZLE_A;
+
+		// Replace non-present components with zero/one swizzles so that the sampler
+		// will give us correct interactions between channel replacement and texel replacement,
+		// where we've had to invent new channels behind the app's back (eg transparent decompression
+		// of ETC2 RGB -> BGRA8)
+		VkComponentSwizzle table[] = {
+			VK_COMPONENT_SWIZZLE_IDENTITY,
+			VK_COMPONENT_SWIZZLE_ZERO,
+			VK_COMPONENT_SWIZZLE_ONE,
+			VK_COMPONENT_SWIZZLE_R,
+			format.componentCount() < 2 ? VK_COMPONENT_SWIZZLE_ZERO : VK_COMPONENT_SWIZZLE_G,
+			format.componentCount() < 3 ? VK_COMPONENT_SWIZZLE_ZERO : VK_COMPONENT_SWIZZLE_B,
+			format.componentCount() < 4 ? VK_COMPONENT_SWIZZLE_ONE : VK_COMPONENT_SWIZZLE_A,
 		};
+
+		return {table[m.r], table[m.g], table[m.b], table[m.a]};
 	}
 
 	VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange range, const vk::Image *image)
@@ -46,7 +60,7 @@ std::atomic<uint32_t> ImageView::nextID(1);
 
 ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem) :
 	image(Cast(pCreateInfo->image)), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
-	components(ResolveIdentityMapping(pCreateInfo->components)),
+	components(ResolveComponentMapping(pCreateInfo->components, format)),
 	subresourceRange(ResolveRemainingLevelsLayers(pCreateInfo->subresourceRange, image))
 {
 }
