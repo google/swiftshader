@@ -104,15 +104,6 @@ namespace sw
 		bool setDepthBufferEnable(bool depthBufferEnable);
 
 		bool setAlphaBlendEnable(bool alphaBlendEnable);
-		bool setSourceBlendFactor(VkBlendFactor sourceBlendFactor);
-		bool setDestBlendFactor(VkBlendFactor destBlendFactor);
-		bool setBlendOperation(VkBlendOp blendOperation);
-
-		bool setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
-		bool setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha);
-		bool setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha);
-		bool setBlendOperationAlpha(VkBlendOp blendOperationAlpha);
-
 		bool setColorWriteMask(int index, int colorWriteMask);
 		bool setWriteSRGB(bool sRGB);
 
@@ -182,7 +173,6 @@ namespace sw
 		VkBlendFactor destBlendFactorState;
 		VkBlendOp blendOperationState;
 
-		bool separateAlphaBlendEnable;
 		VkBlendFactor sourceBlendFactorStateAlpha;
 		VkBlendFactor destBlendFactorStateAlpha;
 		VkBlendOp blendOperationStateAlpha;

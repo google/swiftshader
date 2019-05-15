@@ -420,9 +420,6 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[0];
 			context.setColorWriteMask(0, attachment.colorWriteMask);
 			context.alphaBlendEnable = (attachment.blendEnable == VK_TRUE);
-			context.separateAlphaBlendEnable = (attachment.alphaBlendOp != attachment.colorBlendOp) ||
-											   (attachment.dstAlphaBlendFactor != attachment.dstColorBlendFactor) ||
-											   (attachment.srcAlphaBlendFactor != attachment.srcColorBlendFactor);
 			context.blendOperationStateAlpha = attachment.alphaBlendOp;
 			context.blendOperationState = attachment.colorBlendOp;
 			context.destBlendFactorStateAlpha = attachment.dstAlphaBlendFactor;
