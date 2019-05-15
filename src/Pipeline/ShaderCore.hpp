@@ -544,7 +544,19 @@ struct PrintValue::Ty<sw::Vector4s>
 		return PrintValue::vals(v.x, v.y, v.z, v.w);
 	}
 };
+template<>
+struct PrintValue::Ty<sw::SIMD::Pointer>
+{
+	static std::string fmt(const sw::SIMD::Pointer &v)
+	{
+		return "{" + PrintValue::fmt(v.base) + " +" + PrintValue::fmt(v.offsets()) + "}";
+	}
 
+	static std::vector<rr::Value *> val(const sw::SIMD::Pointer &v)
+	{
+		return PrintValue::vals(v.base, v.offsets());
+	}
+};
 }  // namespace rr
 #endif  // ENABLE_RR_PRINT
 

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "SpirvShader.hpp"
+#include "SpirvShaderDebug.hpp"
 
 #include "ShaderCore.hpp"
 
@@ -63,6 +64,8 @@ SpirvShader::EmitResult SpirvShader::EmitLoad(InsnIterator insn, EmitState *stat
 		dst.move(el.index, p.Load<SIMD::Float>(robustness, state->activeLaneMask(), atomic, memoryOrder));
 	});
 
+	SPIRV_SHADER_DBG("Load(atomic: {0}, order: {1}, ptr: {2}, val: {3}, mask: {4})", atomic, int(memoryOrder), ptr, dst, state->activeLaneMask());
+
 	return EmitResult::Continue;
 }
 
@@ -104,6 +107,8 @@ void SpirvShader::Store(Object::ID pointerId, const Operand &value, bool atomic,
 	{
 		mask = mask & state->storesAndAtomicsMask();
 	}
+
+	SPIRV_SHADER_DBG("Store(atomic: {0}, order: {1}, ptr: {2}, val: {3}, mask: {4}", atomic, int(memoryOrder), ptr, value, mask);
 
 	VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
 		auto p = ptr + el.offset;

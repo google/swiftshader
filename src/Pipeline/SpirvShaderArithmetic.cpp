@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "SpirvShader.hpp"
+#include "SpirvShaderDebug.hpp"
 
 #include "ShaderCore.hpp"
 
@@ -505,6 +506,10 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 		}
 	}
 
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(2), dst);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), lhs);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
+
 	return EmitResult::Continue;
 }
 
@@ -518,6 +523,11 @@ SpirvShader::EmitResult SpirvShader::EmitDot(InsnIterator insn, EmitState *state
 	auto rhs = Operand(this, state, insn.word(4));
 
 	dst.move(0, Dot(lhsType.componentCount, lhs, rhs));
+
+	SPIRV_SHADER_DBG("{0}: {1}", insn.resultId(), dst);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), lhs);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), rhs);
+
 	return EmitResult::Continue;
 }
 

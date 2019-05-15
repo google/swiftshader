@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "SpirvShader.hpp"
+#include "SpirvShaderDebug.hpp"
 
 #include "System/Debug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
@@ -1597,6 +1598,19 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 
 	auto opcode = insn.opcode();
 
+#if SPIRV_SHADER_ENABLE_DBG
+	{
+		auto text = spvtools::spvInstructionBinaryToText(
+		    SPV_ENV_VULKAN_1_1,
+		    insn.wordPointer(0),
+		    insn.wordCount(),
+		    insns.data(),
+		    insns.size(),
+		    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+		SPIRV_SHADER_DBG("{0}", text);
+	}
+#endif  // ENABLE_DBG_MSGS
+
 	switch(opcode)
 	{
 		case spv::OpTypeVoid:
@@ -2147,6 +2161,11 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 		auto sel = cond.Int(condIsScalar ? 0 : i);
 		dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));  // TODO: IfThenElse()
 	}
+
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(2), dst);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(3), cond);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(4), lhs);
+	SPIRV_SHADER_DBG("{0}: {1}", insn.word(5), rhs);
 
 	return EmitResult::Continue;
 }

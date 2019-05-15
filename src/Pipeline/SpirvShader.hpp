@@ -83,13 +83,22 @@ public:
 		delete[] scalar;
 	}
 
-	void move(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value); }
-	void move(uint32_t i, RValue<SIMD::Int> &&scalar) { emplace(i, scalar.value); }
-	void move(uint32_t i, RValue<SIMD::UInt> &&scalar) { emplace(i, scalar.value); }
+	// TypeHint is used as a hint for rr::PrintValue::Ty<sw::Intermediate> to
+	// decide the format used to print the intermediate data.
+	enum class TypeHint
+	{
+		Float,
+		Int,
+		UInt
+	};
 
-	void move(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value); }
-	void move(uint32_t i, const RValue<SIMD::Int> &scalar) { emplace(i, scalar.value); }
-	void move(uint32_t i, const RValue<SIMD::UInt> &scalar) { emplace(i, scalar.value); }
+	void move(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value, TypeHint::Float); }
+	void move(uint32_t i, RValue<SIMD::Int> &&scalar) { emplace(i, scalar.value, TypeHint::Int); }
+	void move(uint32_t i, RValue<SIMD::UInt> &&scalar) { emplace(i, scalar.value, TypeHint::UInt); }
+
+	void move(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value, TypeHint::Float); }
+	void move(uint32_t i, const RValue<SIMD::Int> &scalar) { emplace(i, scalar.value, TypeHint::Int); }
+	void move(uint32_t i, const RValue<SIMD::UInt> &scalar) { emplace(i, scalar.value, TypeHint::UInt); }
 
 	// Value retrieval functions.
 	RValue<SIMD::Float> Float(uint32_t i) const
@@ -122,14 +131,20 @@ public:
 	const uint32_t componentCount;
 
 private:
-	void emplace(uint32_t i, rr::Value *value)
+	void emplace(uint32_t i, rr::Value *value, TypeHint type)
 	{
 		ASSERT(i < componentCount);
 		ASSERT(scalar[i] == nullptr);
 		scalar[i] = value;
+		RR_PRINT_ONLY(typeHint = type;)
 	}
 
 	rr::Value **const scalar;
+
+#ifdef ENABLE_RR_PRINT
+	friend struct rr::PrintValue::Ty<sw::Intermediate>;
+	TypeHint typeHint = TypeHint::Float;
+#endif  // ENABLE_RR_PRINT
 };
 
 class SpirvShader
@@ -1028,6 +1043,8 @@ private:
 		}
 
 	private:
+		RR_PRINT_ONLY(friend struct rr::PrintValue::Ty<Operand>;)
+
 		// Delegate constructor
 		Operand(const EmitState *state, const Object &object);
 
@@ -1037,6 +1054,8 @@ private:
 	public:
 		const uint32_t componentCount;
 	};
+
+	RR_PRINT_ONLY(friend struct rr::PrintValue::Ty<Operand>;)
 
 	Type const &getType(Type::ID id) const
 	{
