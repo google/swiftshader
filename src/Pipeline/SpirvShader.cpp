@@ -4976,7 +4976,13 @@ namespace sw
 		int dims = getType(coordinate.type).sizeInComponents - (isArrayed ? 1 : 0);
 
 		SIMD::Int u = coordinate.Int(0);
-		SIMD::Int v = (getType(coordinate.type).sizeInComponents > 1) ? coordinate.Int(1) : RValue<SIMD::Int>(0);
+		SIMD::Int v = SIMD::Int(0);
+
+		if (getType(coordinate.type).sizeInComponents > 1)
+		{
+			v = coordinate.Int(1);
+		}
+
 		if (dim == spv::DimSubpassData)
 		{
 			u += routine->windowSpacePosition[0];
