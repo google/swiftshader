@@ -398,8 +398,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	if(colorBlendState)
 	{
 		if((colorBlendState->flags != 0) ||
-		   ((colorBlendState->logicOpEnable != 0) &&
-			(colorBlendState->attachmentCount > 1)))
+		   ((colorBlendState->logicOpEnable != 0)))
 		{
 			UNIMPLEMENTED("colorBlendState");
 		}
@@ -412,10 +411,15 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			blendConstants.a = colorBlendState->blendConstants[3];
 		}
 
-		if(colorBlendState->attachmentCount == 1)
+		for (auto i = 0u; i < colorBlendState->attachmentCount; i++)
+		{
+			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[i];
+			context.setColorWriteMask(i, attachment.colorWriteMask);
+		}
+
+		if(colorBlendState->attachmentCount > 0)
 		{
 			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[0];
-			context.setColorWriteMask(0, attachment.colorWriteMask);
 			context.alphaBlendEnable = (attachment.blendEnable == VK_TRUE);
 			context.blendOperationStateAlpha = attachment.alphaBlendOp;
 			context.blendOperationState = attachment.colorBlendOp;
