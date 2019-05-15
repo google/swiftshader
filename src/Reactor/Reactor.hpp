@@ -3252,8 +3252,6 @@ namespace rr
 		PrintValue(uint64_t v) : format(std::to_string(v)) {}
 		PrintValue(float v) : format(std::to_string(v)) {}
 		PrintValue(double v) : format(std::to_string(v)) {}
-		PrintValue(const char* v) : format(v) {}
-		PrintValue(const std::string& v) : format(v) {}
 
 		template <typename T>
 		PrintValue(const T* v) : format(addr(v)) {}
@@ -3293,6 +3291,18 @@ namespace rr
 			}
 			return joined;
 		}
+	};
+
+	// PrintValue::Ty<T> specializations for basic types.
+	template <> struct PrintValue::Ty<const char*>
+	{
+		static constexpr const char* fmt = "%s";
+		static std::vector<Value*> val(const char* v);
+	};
+	template <> struct PrintValue::Ty<std::string>
+	{
+		static constexpr const char* fmt = PrintValue::Ty<const char*>::fmt;
+		static std::vector<Value*> val(const std::string& v) { return PrintValue::Ty<const char*>::val(v.c_str()); }
 	};
 
 	// PrintValue::Ty<T> specializations for standard Reactor types.

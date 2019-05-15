@@ -4092,6 +4092,7 @@ namespace rr
 	std::vector<Value*> PrintValue::Ty<UShort4>::val(const RValue<UShort4>& v) { return extractAll(v.value, 4); }
 	std::vector<Value*> PrintValue::Ty<Float>::val(const RValue<Float>& v) { return toDouble({v.value}); }
 	std::vector<Value*> PrintValue::Ty<Float4>::val(const RValue<Float4>& v) { return toDouble(extractAll(v.value, 4)); }
+	std::vector<Value*> PrintValue::Ty<const char*>::val(const char* v) { return {V(::builder->CreateGlobalStringPtr(v))}; }
 
 	void Printv(const char* function, const char* file, int line, const char* fmt, std::initializer_list<PrintValue> args)
 	{
