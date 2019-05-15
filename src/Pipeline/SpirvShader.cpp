@@ -3955,10 +3955,29 @@ namespace sw
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
 				// Assumes IEEE 754
-				auto significandExponent = Exponent(significand.Float(i));
+				auto in = significand.Float(i);
+				auto significandExponent = Exponent(in);
 				auto combinedExponent = exponent.Int(i) + significandExponent;
-				SIMD::UInt v = (significand.UInt(i) & SIMD::UInt(0x807FFFFF)) |
-						(SIMD::UInt(combinedExponent + SIMD::Int(126)) << SIMD::UInt(23));
+				auto isSignificandZero     = SIMD::UInt(CmpEQ(significand.Int(0), SIMD::Int(0)));
+				auto isSignificandInf      = SIMD::UInt(IsInf(in));
+				auto isSignificandNaN      = SIMD::UInt(IsNan(in));
+				auto isExponentNotTooSmall = SIMD::UInt(CmpGE(combinedExponent, SIMD::Int(-126)));
+				auto isExponentNotTooLarge = SIMD::UInt(CmpLE(combinedExponent, SIMD::Int(128)));
+				auto isExponentInBounds    = isExponentNotTooSmall & isExponentNotTooLarge;
+
+				SIMD::UInt v;
+				v  = significand.UInt(i) & SIMD::UInt(0x7FFFFF); // Add significand.
+				v |= (SIMD::UInt(combinedExponent + SIMD::Int(126)) << SIMD::UInt(23)); // Add exponent.
+				v &= isExponentInBounds; // Clear v if the exponent is OOB.
+
+				v |= significand.UInt(i) & SIMD::UInt(0x80000000); // Add sign bit.
+				v |= ~isExponentNotTooLarge & SIMD::UInt(0x7F800000); // Mark as inf if the exponent is too great.
+
+				// If the input significand is zero, inf or nan, just return the
+				// input significand.
+				auto passthrough = isSignificandZero | isSignificandInf | isSignificandNaN;
+				v = (v & ~passthrough) | (significand.UInt(0) & passthrough);
+
 				dst.move(i, As<SIMD::Float>(v));
 			}
 			break;
