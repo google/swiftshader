@@ -2964,6 +2964,18 @@ namespace rr
 		storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
 	}
 
+	UInt4::UInt4(RValue<UInt> rhs) : XYZW(this)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		Value *vector = loadValue();
+		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
+
+		int swizzle[4] = {0, 0, 0, 0};
+		Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+
+		storeValue(replicate);
+	}
+
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();

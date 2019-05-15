@@ -92,7 +92,7 @@ namespace sw
 		{
 			if(state.textureSampling)
 			{
-				vertexID = Int4(index);
+				vertexID = Int4(Int(index));
 			}
 			else
 			{

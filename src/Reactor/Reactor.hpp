@@ -1966,6 +1966,9 @@ namespace rr
 		UInt4(const Int4 &rhs);
 		UInt4(const Reference<Int4> &rhs);
 		UInt4(RValue<UInt2> lo, RValue<UInt2> hi);
+		UInt4(RValue<UInt> rhs);
+		UInt4(const UInt &rhs);
+		UInt4(const Reference<UInt> &rhs);
 
 		RValue<UInt4> operator=(RValue<UInt4> rhs);
 		RValue<UInt4> operator=(const UInt4 &rhs);

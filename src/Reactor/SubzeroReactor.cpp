@@ -3007,6 +3007,16 @@ namespace rr
 		storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
 	}
 
+	UInt4::UInt4(RValue<UInt> rhs) : XYZW(this)
+	{
+		Value *vector = Nucleus::createBitCast(rhs.value, UInt4::getType());
+
+		int swizzle[4] = {0, 0, 0, 0};
+		Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
+
+		storeValue(replicate);
+	}
+
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
 		if(emulateIntrinsics)

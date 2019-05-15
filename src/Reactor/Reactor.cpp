@@ -3500,6 +3500,16 @@ namespace rr
 		storeValue(packed);
 	}
 
+	UInt4::UInt4(const UInt &rhs) : XYZW(this)
+	{
+		*this = RValue<UInt>(rhs.loadValue());
+	}
+
+	UInt4::UInt4(const Reference<UInt> &rhs) : XYZW(this)
+	{
+		*this = RValue<UInt>(rhs.loadValue());
+	}
+
 	RValue<UInt4> UInt4::operator=(RValue<UInt4> rhs)
 	{
 		storeValue(rhs.value);
