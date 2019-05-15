@@ -966,9 +966,9 @@ private:
 
 struct BindDescriptorSet : public CommandBuffer::Command
 {
-	BindDescriptorSet(VkPipelineBindPoint pipelineBindPoint, uint32_t set, const VkDescriptorSet& descriptorSet,
+	BindDescriptorSet(VkPipelineBindPoint pipelineBindPoint, vk::PipelineLayout *pipelineLayout, uint32_t set, const VkDescriptorSet& descriptorSet,
 		uint32_t dynamicOffsetCount, uint32_t const *dynamicOffsets)
-		: pipelineBindPoint(pipelineBindPoint), set(set), descriptorSet(descriptorSet),
+		: pipelineBindPoint(pipelineBindPoint), pipelineLayout(pipelineLayout), set(set), descriptorSet(descriptorSet),
 		  dynamicOffsetCount(dynamicOffsetCount)
 	{
 		for (uint32_t i = 0; i < dynamicOffsetCount; i++)
@@ -981,7 +981,6 @@ struct BindDescriptorSet : public CommandBuffer::Command
 	{
 		ASSERT_OR_RETURN((pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE) && (set < MAX_BOUND_DESCRIPTOR_SETS));
 		auto &pipelineState = executionState.pipelineState[pipelineBindPoint];
-		auto pipelineLayout = pipelineState.pipeline->getLayout();
 		auto dynamicOffsetBase = pipelineLayout->getDynamicOffsetBase(set);
 		ASSERT_OR_RETURN(dynamicOffsetBase + dynamicOffsetCount <= MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
 
@@ -994,6 +993,7 @@ struct BindDescriptorSet : public CommandBuffer::Command
 
 private:
 	VkPipelineBindPoint pipelineBindPoint;
+	vk::PipelineLayout *pipelineLayout;
 	uint32_t set;
 	const VkDescriptorSet descriptorSet;
 	uint32_t dynamicOffsetCount;
@@ -1378,7 +1378,7 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 		ASSERT(dynamicOffsetCount >= numDynamicDescriptors);
 
 		addCommand<BindDescriptorSet>(
-				pipelineBindPoint, descriptorSetIndex, pDescriptorSets[i],
+				pipelineBindPoint, layout, descriptorSetIndex, pDescriptorSets[i],
 				dynamicOffsetCount, pDynamicOffsets);
 
 		pDynamicOffsets += numDynamicDescriptors;
