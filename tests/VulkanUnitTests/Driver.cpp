@@ -14,7 +14,7 @@
 
 #include "Driver.hpp"
 
-#if defined(_WIN64)
+#if defined(_WIN32)
 #    include "Windows.h"
 #    define OS_WINDOWS 1
 #elif defined(__APPLE__)

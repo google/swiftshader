@@ -429,3 +429,36 @@ extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM =
 };
 
 #endif
+
+#if defined(_MSC_VER) && !defined(_WIN64)
+namespace
+{
+	// The following function is a hack to allow compilation in Visual Studio using the 32 bit compiler"
+	// "fatal error C1001: An internal error has occurred in the compiler.
+	//  (compiler file 'd:\agent\_work\1\s\src\vctools\compiler\utc\src\p2\main.c', line 187)"
+	void Dummy()
+	{
+		{ VkSemaphore handle; }
+		{ VkFence handle; }
+		{ VkDeviceMemory handle; }
+		{ VkBuffer handle; }
+		{ VkImage handle; }
+		{ VkEvent handle; }
+		{ VkQueryPool handle; }
+		{ VkBufferView handle; }
+		{ VkImageView handle; }
+		{ VkShaderModule handle; }
+		{ VkPipelineCache handle; }
+		{ VkPipelineLayout handle; }
+		{ VkRenderPass handle; }
+		{ VkPipeline handle; }
+		{ VkDescriptorSetLayout handle; }
+		{ VkSampler handle; }
+		{ VkDescriptorPool handle; }
+		{ VkFramebuffer handle; }
+		{ VkCommandPool handle; }
+		{ VkSamplerYcbcrConversion handle; }
+		{ VkDescriptorUpdateTemplate handle; }
+	}
+}
+#endif

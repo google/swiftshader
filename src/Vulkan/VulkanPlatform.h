@@ -18,20 +18,10 @@
 #include <cstddef>
 #include <cstdint>
 
-// We can't directly use alignas(uint64_t) because on some platforms a uint64_t
-// has an alignment of 8 outside of a struct but inside it has an alignment of
-// 4. We use this dummy struct to figure out the alignment of uint64_t inside a
-// struct.
-struct DummyUInt64Wrapper {
-	uint64_t dummy;
-};
-
-static constexpr size_t kNativeVkHandleAlignment = alignof(DummyUInt64Wrapper);
-
-template<typename HandleType> class alignas(kNativeVkHandleAlignment) VkWrapperBase
+template<typename HandleType> class VkNonDispatchableHandleBase
 {
 public:
-	VkWrapperBase(HandleType handle)
+	VkNonDispatchableHandleBase(HandleType handle)
 	{
 		u.dummy = 0;
 		u.handle = handle;
@@ -57,23 +47,23 @@ private:
 	union PointerHandleUnion
 	{
 		HandleType handle;
-		uint64_t dummy; // VkWrapper's size must always be 64 bits even when void* is 32 bits
+		uint64_t dummy; // VkNonDispatchableHandle's size must always be 64 bits even when void* is 32 bits
 	};
 	PointerHandleUnion u;
 };
 
-template<typename T> class alignas(kNativeVkHandleAlignment) VkWrapper : public VkWrapperBase<T>
+template<typename T> class VkNonDispatchableHandle : public VkNonDispatchableHandleBase<T>
 {
 public:
 	using HandleType = T;
 
-	VkWrapper() : VkWrapperBase<T>(nullptr)
+	VkNonDispatchableHandle() : VkNonDispatchableHandleBase<T>(nullptr)
 	{
 	}
 
-	VkWrapper(HandleType handle) : VkWrapperBase<T>(handle)
+	VkNonDispatchableHandle(HandleType handle) : VkNonDispatchableHandleBase<T>(handle)
 	{
-		static_assert(sizeof(VkWrapper) == sizeof(uint64_t), "Size is not 64 bits!");
+		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 	}
 
 	void operator=(HandleType handle)
@@ -85,14 +75,14 @@ public:
 // VkDescriptorSet objects are really just memory in the VkDescriptorPool
 // object, so define different/more convenient operators for this object.
 struct VkDescriptorSet_T;
-template<> class alignas(kNativeVkHandleAlignment) VkWrapper<VkDescriptorSet_T*> : public VkWrapperBase<uint8_t*>
+template<> class VkNonDispatchableHandle<VkDescriptorSet_T*> : public VkNonDispatchableHandleBase<uint8_t*>
 {
 public:
 	using HandleType = uint8_t*;
 
-	VkWrapper(HandleType handle) : VkWrapperBase<uint8_t*>(handle)
+	VkNonDispatchableHandle(HandleType handle) : VkNonDispatchableHandleBase<uint8_t*>(handle)
 	{
-		static_assert(sizeof(VkWrapper) == sizeof(uint64_t), "Size is not 64 bits!");
+		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 	}
 
 	HandleType operator+(ptrdiff_t rhs) const
@@ -113,7 +103,7 @@ public:
 
 #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) \
 	typedef struct object##_T *object##Ptr; \
-	typedef VkWrapper<object##Ptr> object;
+	typedef VkNonDispatchableHandle<object##Ptr> object;
 
 #include <vulkan/vulkan.h>
 
