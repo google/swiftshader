@@ -2675,11 +2675,6 @@ namespace sw
 			memoryOrder = MemoryOrder(memorySemantics);
 		}
 
-		if (pointerTy.storageClass == spv::StorageClassImage)
-		{
-			UNIMPLEMENTED("StorageClassImage load not yet implemented");
-		}
-
 		auto ptr = GetPointerToData(pointerId, 0, routine);
 
 		bool interleavedByLane = IsStorageInterleavedByLane(pointerTy.storageClass);
@@ -2716,11 +2711,6 @@ namespace sw
 		}
 
 		ASSERT(!atomic || elementTy.opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
-
-		if (pointerTy.storageClass == spv::StorageClassImage)
-		{
-			UNIMPLEMENTED("StorageClassImage store not yet implemented");
-		}
 
 		auto ptr = GetPointerToData(pointerId, 0, routine);
 		bool interleavedByLane = IsStorageInterleavedByLane(pointerTy.storageClass);
