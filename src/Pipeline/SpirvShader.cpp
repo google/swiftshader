@@ -5875,7 +5875,7 @@ namespace sw
 				break;
 
 			case spv::OpSNegate:
-				v = -l;
+				v = -(int)l;
 				break;
 			case spv::OpNot:
 			case spv::OpLogicalNot:
