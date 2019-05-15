@@ -37,13 +37,15 @@ namespace sw
 		  routine(pipelineLayout),
 		  descriptorSets(descriptorSets)
 	{
-		spirvShader->emitProlog(&routine);
-
-		if (forceClearRegisters)
+		if (spirvShader)
 		{
-			for (int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
+			spirvShader->emitProlog(&routine);
+			if (forceClearRegisters)
 			{
-				routine.inputs[i] = Float4(0.0f);
+				for (int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
+				{
+					routine.inputs[i] = Float4(0.0f);
+				}
 			}
 		}
 	}
@@ -59,7 +61,7 @@ namespace sw
 		#endif
 
 		// TODO: consider shader which modifies sample mask in general
-		const bool earlyDepthTest = !spirvShader->getModes().DepthReplacing && !state.alphaToCoverage;
+		const bool earlyDepthTest = !spirvShader || (!spirvShader->getModes().DepthReplacing && !state.alphaToCoverage);
 
 		Int zMask[4];   // Depth mask
 		Int sMask[4];   // Stencil mask
@@ -147,29 +149,32 @@ namespace sw
 				}
 			}
 
-			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+			if (spirvShader)
 			{
-				auto const & input = spirvShader->inputs[interpolant];
-				if (input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
+				for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 				{
-					if (input.Centroid && state.multiSample > 1)
+					auto const &input = spirvShader->inputs[interpolant];
+					if (input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 					{
-						routine.inputs[interpolant] =
-								interpolateCentroid(XXXX, YYYY, rhwCentroid,
-													primitive + OFFSET(Primitive, V[interpolant]),
-													input.Flat, !input.NoPerspective);
-					}
-					else
-					{
-						routine.inputs[interpolant] =
-								interpolate(xxxx, Dv[interpolant], rhw,
-											primitive + OFFSET(Primitive, V[interpolant]),
-											input.Flat, !input.NoPerspective, false);
+						if (input.Centroid && state.multiSample > 1)
+						{
+							routine.inputs[interpolant] =
+									interpolateCentroid(XXXX, YYYY, rhwCentroid,
+														primitive + OFFSET(Primitive, V[interpolant]),
+														input.Flat, !input.NoPerspective);
+						}
+						else
+						{
+							routine.inputs[interpolant] =
+									interpolate(xxxx, Dv[interpolant], rhw,
+												primitive + OFFSET(Primitive, V[interpolant]),
+												input.Flat, !input.NoPerspective, false);
+						}
 					}
 				}
-			}
 
-			setBuiltins(x, y, z, w);
+				setBuiltins(x, y, z, w);
+			}
 
 			#if PERF_PROFILE
 				cycles[PERF_INTERP] += Ticks() - interpTime;

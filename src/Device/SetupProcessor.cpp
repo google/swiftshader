@@ -89,9 +89,12 @@ namespace sw
 		state.multiSample = context->sampleCount;
 		state.rasterizerDiscard = context->rasterizerDiscard;
 
-		for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+		if (context->pixelShader)
 		{
-			state.gradient[interpolant] = context->pixelShader->inputs[interpolant];
+			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+			{
+				state.gradient[interpolant] = context->pixelShader->inputs[interpolant];
+			}
 		}
 
 		state.hash = state.computeHash();
