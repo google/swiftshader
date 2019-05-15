@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f5e1faa_188611b3",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 5878,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-15T20:16:37Z",
+      "side": 1,
+      "message": "Should have probably been an int32_t. I\u0027ll clean it up later.",
+      "range": {
+        "startLine": 5878,
+        "startChar": 10,
+        "endLine": 5878,
+        "endChar": 13
+      },
+      "revId": "e2242e5f77143de7d34899c74cf76bbe3f6180b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
