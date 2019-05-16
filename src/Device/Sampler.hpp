@@ -31,13 +31,13 @@ namespace sw
 	{
 		const void *buffer[6];
 
-		short uHalf[4];
-		short vHalf[4];
-		short wHalf[4];
+		short4 uHalf;
+		short4 vHalf;
+		short4 wHalf;
 		int4 width;
 		int4 height;
 		int4 depth;
-		short onePitchP[4];
+		short4 onePitchP;
 		int4 pitchP;
 		int4 sliceP;
 	};
