@@ -666,7 +666,30 @@ namespace sw
 				break;
 
 			case spv::OpCapability:
+			{
+				auto capability = static_cast<spv::Capability>(insn.word(1));
+				switch (capability)
+				{
+				case spv::CapabilityMatrix:
+				case spv::CapabilityShader:
+				case spv::CapabilityInputAttachment:
+				case spv::CapabilitySampled1D:
+				case spv::CapabilityImage1D:
+				case spv::CapabilitySampledBuffer:
+				case spv::CapabilityImageBuffer:
+				case spv::CapabilityImageQuery:
+				case spv::CapabilityDerivativeControl:
+				case spv::CapabilityMultiView:
+				case spv::CapabilityDeviceGroup:
+				case spv::CapabilityGroupNonUniform:
+					break;
+
+				default:
+					UNSUPPORTED("Unsupported capability %u", insn.word(1));
+				}
 				break; // Various capabilities will be declared, but none affect our code generation at this point.
+			}
+
 			case spv::OpMemoryModel:
 				break; // Memory model does not affect our code generation until we decide to do Vulkan Memory Model support.
 
