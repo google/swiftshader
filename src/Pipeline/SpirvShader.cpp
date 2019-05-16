@@ -43,6 +43,23 @@ namespace
 		return rr::SignMask(~ints) != 0;
 	}
 
+	rr::RValue<sw::SIMD::Float> Sign(rr::RValue<sw::SIMD::Float> const &val)
+	{
+		return rr::As<sw::SIMD::Float>((rr::As<sw::SIMD::UInt>(val) & sw::SIMD::UInt(0x80000000)) | sw::SIMD::UInt(0x3f800000));
+	}
+
+	// Returns the <whole, frac> of val.
+	// Both whole and frac will have the same sign as val.
+	std::pair<rr::RValue<sw::SIMD::Float>, rr::RValue<sw::SIMD::Float>>
+	Modf(rr::RValue<sw::SIMD::Float> const &val)
+	{
+		auto abs = Abs(val);
+		auto sign = Sign(val);
+		auto whole = Floor(abs) * sign;
+		auto frac = Frac(abs) * sign;
+		return std::make_pair(whole, frac);
+	}
+
 	// Returns 1 << bits.
 	// If the resulting bit overflows a 32 bit integer, 0 is returned.
 	rr::RValue<sw::SIMD::UInt> NthBit32(rr::RValue<sw::SIMD::UInt> const &bits)
@@ -3805,11 +3822,9 @@ namespace sw
 
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				auto whole = Floor(val.Float(i));
-				auto frac = Frac(val.Float(i));
-
+				SIMD::Float whole, frac;
+				std::tie(whole, frac) = Modf(val.Float(i));
 				dst.move(i, frac);
-
 				auto p = ptr + (i * sizeof(float));
 				if (interleavedByLane) { p = interleaveByLane(p); }
 				SIMD::Store(p, whole, state->activeLaneMask());
@@ -3823,9 +3838,8 @@ namespace sw
 
 			for (auto i = 0u; i < valTy.sizeInComponents; i++)
 			{
-				auto whole = Floor(val.Float(i));
-				auto frac = Frac(val.Float(i));
-
+				SIMD::Float whole, frac;
+				std::tie(whole, frac) = Modf(val.Float(i));
 				dst.move(i, frac);
 				dst.move(i + valTy.sizeInComponents, whole);
 			}
