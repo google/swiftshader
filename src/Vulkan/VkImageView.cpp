@@ -19,10 +19,7 @@ namespace
 {
 	VkComponentMapping ResolveComponentMapping(VkComponentMapping m, vk::Format format)
 	{
-		if (m.r == VK_COMPONENT_SWIZZLE_IDENTITY) m.r = VK_COMPONENT_SWIZZLE_R;
-		if (m.g == VK_COMPONENT_SWIZZLE_IDENTITY) m.g = VK_COMPONENT_SWIZZLE_G;
-		if (m.b == VK_COMPONENT_SWIZZLE_IDENTITY) m.b = VK_COMPONENT_SWIZZLE_B;
-		if (m.a == VK_COMPONENT_SWIZZLE_IDENTITY) m.a = VK_COMPONENT_SWIZZLE_A;
+		m = vk::ResolveIdentityMapping(m);
 
 		// Replace non-present components with zero/one swizzles so that the sampler
 		// will give us correct interactions between channel replacement and texel replacement,
@@ -58,10 +55,11 @@ namespace vk
 
 std::atomic<uint32_t> ImageView::nextID(1);
 
-ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem) :
+ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem, const vk::SamplerYcbcrConversion *ycbcrConversion) :
 	image(Cast(pCreateInfo->image)), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
 	components(ResolveComponentMapping(pCreateInfo->components, format)),
-	subresourceRange(ResolveRemainingLevelsLayers(pCreateInfo->subresourceRange, image))
+	subresourceRange(ResolveRemainingLevelsLayers(pCreateInfo->subresourceRange, image)),
+	ycbcrConversion(ycbcrConversion)
 {
 }
 
