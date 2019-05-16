@@ -80,7 +80,7 @@ namespace sw
 
 		for(; subresLayers.mipLevel <= lastMipLevel; subresLayers.mipLevel++)
 		{
-			VkExtent3D extent = dest->getMipLevelExtent(subresLayers.mipLevel);
+			VkExtent3D extent = dest->getMipLevelExtent(aspect, subresLayers.mipLevel);
 			if(!renderArea)
 			{
 				area.extent.width = extent.width;
@@ -203,7 +203,7 @@ namespace sw
 		{
 			int rowPitchBytes = dest->rowPitchBytes(aspect, subresLayers.mipLevel);
 			int slicePitchBytes = dest->slicePitchBytes(aspect, subresLayers.mipLevel);
-			VkExtent3D extent = dest->getMipLevelExtent(subresLayers.mipLevel);
+			VkExtent3D extent = dest->getMipLevelExtent(aspect, subresLayers.mipLevel);
 			if(!renderArea)
 			{
 				area.extent.width = extent.width;
@@ -1712,13 +1712,12 @@ namespace sw
 			std::swap(region.dstOffsets[0].y, region.dstOffsets[1].y);
 		}
 
-		VkExtent3D srcExtent = src->getMipLevelExtent(region.srcSubresource.mipLevel);
+		VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(region.srcSubresource.aspectMask);
+		VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
+		VkExtent3D srcExtent = src->getMipLevelExtent(srcAspect, region.srcSubresource.mipLevel);
 
 		int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
 		ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
-
-		VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(region.srcSubresource.aspectMask);
-		VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
 
 		float widthRatio = static_cast<float>(region.srcOffsets[1].x - region.srcOffsets[0].x) /
 		                   static_cast<float>(region.dstOffsets[1].x - region.dstOffsets[0].x);
@@ -1955,7 +1954,7 @@ namespace sw
 
 		void(*cornerUpdateFunction)(const CubeBorderData *data) = (void(*)(const CubeBorderData*))cornerUpdateRoutine->getEntry();
 
-		VkExtent3D extent = image->getMipLevelExtent(subresourceLayers.mipLevel);
+		VkExtent3D extent = image->getMipLevelExtent(aspect, subresourceLayers.mipLevel);
 		CubeBorderData data =
 		{
 			image->getTexelPointer({ 0, 0, 0 }, posX),
@@ -1994,7 +1993,7 @@ namespace sw
 		int bytes = image->getFormat(aspect).bytes();
 		int pitchB = image->rowPitchBytes(aspect, srcSubresourceLayers.mipLevel);
 
-		VkExtent3D extent = image->getMipLevelExtent(srcSubresourceLayers.mipLevel);
+		VkExtent3D extent = image->getMipLevelExtent(aspect, srcSubresourceLayers.mipLevel);
 		int w = extent.width;
 		int h = extent.height;
 		if(w != h)

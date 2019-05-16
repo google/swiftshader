@@ -45,6 +45,7 @@ public:
 
 	VkImageViewType getType() const { return viewType; }
 	Format getFormat(Usage usage = RAW) const;
+	Format getFormat(VkImageAspectFlagBits aspect) const { return image->getFormat(aspect); }
 	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
