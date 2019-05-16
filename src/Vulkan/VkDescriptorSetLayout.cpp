@@ -364,41 +364,76 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 
 			auto &subresourceRange = imageView->getSubresourceRange();
 
-			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+			if(format.isYcbcrFormat())
 			{
-				int level = sw::clamp(mipmapLevel, 0, (int)subresourceRange.levelCount - 1);  // Level within the image view
+				ASSERT(subresourceRange.levelCount == 1);
 
-				VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(imageView->getSubresourceRange().aspectMask);
-				sw::Mipmap &mipmap = texture->mipmap[mipmapLevel];
+				// YCbCr images can only have one level, so we can store parameters for the
+				// different planes in the descriptor's mipmap levels instead.
 
-				if(imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE)
+				const int level = 0;
+				VkOffset3D offset = {0, 0, 0};
+				texture->mipmap[0].buffer[0] = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_0_BIT, level, 0, ImageView::SAMPLING);
+				texture->mipmap[1].buffer[0] = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_1_BIT, level, 0, ImageView::SAMPLING);
+				if(format.getAspects() & VK_IMAGE_ASPECT_PLANE_2_BIT)
 				{
-					for(int face = 0; face < 6; face++)
-					{
-						// Obtain the pointer to the corner of the level including the border, for seamless sampling.
-						// This is taken into account in the sampling routine, which can't handle negative texel coordinates.
-						VkOffset3D offset = {-1, -1, 0};
-
-						// TODO(b/129523279): Implement as 6 consecutive layers instead of separate pointers.
-						mipmap.buffer[face] = imageView->getOffsetPointer(offset, aspect, level, face, ImageView::SAMPLING);
-					}
-				}
-				else
-				{
-					VkOffset3D offset = {0, 0, 0};
-					mipmap.buffer[0] = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
+					texture->mipmap[2].buffer[0] = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_2_BIT, level, 0, ImageView::SAMPLING);
 				}
 
-				VkExtent3D extent = imageView->getMipLevelExtent(level);
+				VkExtent3D extent = imageView->getMipLevelExtent(0);
 
 				int width = extent.width;
 				int height = extent.height;
-				int layers = imageView->getSubresourceRange().layerCount;  // TODO(b/129523279): Untangle depth vs layers throughout the sampler
-				int depth = layers > 1 ? layers : extent.depth;
-				int pitchP = imageView->rowPitchBytes(aspect, level, ImageView::SAMPLING) / format.bytes();
-				int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect, ImageView::SAMPLING) : imageView->slicePitchBytes(aspect, level, ImageView::SAMPLING)) / format.bytes();
+				int pitchP0 = imageView->rowPitchBytes(VK_IMAGE_ASPECT_PLANE_0_BIT, level, ImageView::SAMPLING) /
+				              imageView->getFormat(VK_IMAGE_ASPECT_PLANE_0_BIT).bytes();
 
-				WriteTextureLevelInfo(texture, mipmapLevel, width, height, depth, pitchP, sliceP);
+				// Write plane 0 parameters to mipmap level 0.
+				WriteTextureLevelInfo(texture, 0, width, height, 1, pitchP0, 0);
+
+				// Plane 2, if present, has equal parameters to plane 1, so we use mipmap level 1 for both.
+				int pitchP1 = imageView->rowPitchBytes(VK_IMAGE_ASPECT_PLANE_1_BIT, level, ImageView::SAMPLING) /
+				              imageView->getFormat(VK_IMAGE_ASPECT_PLANE_1_BIT).bytes();
+
+				WriteTextureLevelInfo(texture, 1, width / 2, height / 2, 1, pitchP1, 0);
+			}
+			else
+			{
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+				{
+					int level = sw::clamp(mipmapLevel, 0, (int)subresourceRange.levelCount - 1);  // Level within the image view
+
+					VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(imageView->getSubresourceRange().aspectMask);
+					sw::Mipmap &mipmap = texture->mipmap[mipmapLevel];
+
+					if(imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE)
+					{
+						for(int face = 0; face < 6; face++)
+						{
+							// Obtain the pointer to the corner of the level including the border, for seamless sampling.
+							// This is taken into account in the sampling routine, which can't handle negative texel coordinates.
+							VkOffset3D offset = {-1, -1, 0};
+
+							// TODO(b/129523279): Implement as 6 consecutive layers instead of separate pointers.
+							mipmap.buffer[face] = imageView->getOffsetPointer(offset, aspect, level, face, ImageView::SAMPLING);
+						}
+					}
+					else
+					{
+						VkOffset3D offset = {0, 0, 0};
+						mipmap.buffer[0] = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
+					}
+
+					VkExtent3D extent = imageView->getMipLevelExtent(level);
+
+					int width = extent.width;
+					int height = extent.height;
+					int layers = imageView->getSubresourceRange().layerCount;  // TODO(b/129523279): Untangle depth vs layers throughout the sampler
+					int depth = layers > 1 ? layers : extent.depth;
+					int pitchP = imageView->rowPitchBytes(aspect, level, ImageView::SAMPLING) / format.bytes();
+					int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect, ImageView::SAMPLING) : imageView->slicePitchBytes(aspect, level, ImageView::SAMPLING)) / format.bytes();
+
+					WriteTextureLevelInfo(texture, mipmapLevel, width, height, depth, pitchP, sliceP);
+				}
 			}
 		}
 	}

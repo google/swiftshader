@@ -153,6 +153,10 @@ namespace sw
 		bool unnormalizedCoordinates;
 		bool largeTexture;
 
+		VkSamplerYcbcrModelConversion ycbcrModel;
+		bool studioSwing;    // Narrow range
+		bool swappedChroma;  // Cb/Cr components in reverse order
+
 		#if PERF_PROFILE
 		bool compressedFormat;
 		#endif
