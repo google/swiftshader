@@ -17,7 +17,7 @@
 
 #include <assert.h>
 
-#define STUB() assert(!"Stub function. Should not be called");
+#define STUB() assert(false); // Stub function. Should not be called
 
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
