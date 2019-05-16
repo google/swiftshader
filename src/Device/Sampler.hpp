@@ -68,7 +68,6 @@ namespace sw
 		TEXTURE_1D,
 		TEXTURE_2D,
 		TEXTURE_3D,
-		TEXTURE_RECTANGLE,  // TODO(b/129523279): Eliminate
 		TEXTURE_CUBE,
 		TEXTURE_1D_ARRAY,   // Treated as 2D texture with second coordinate 0.
 		TEXTURE_2D_ARRAY,
@@ -154,6 +153,7 @@ namespace sw
 		bool compareEnable;
 		VkCompareOp compareOp;
 		VkBorderColor border;
+		bool unnormalizedCoordinates;
 
 		#if PERF_PROFILE
 		bool compressedFormat;

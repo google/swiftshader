@@ -65,13 +65,12 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	samplerState.highPrecisionFiltering = false;
 	samplerState.compareEnable = (sampler->compareEnable == VK_TRUE);
 	samplerState.compareOp = sampler->compareOp;
+	samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates == VK_TRUE);
 
 	if(sampler->anisotropyEnable != VK_FALSE)
 	{
 		UNSUPPORTED("anisotropyEnable");
 	}
-
-	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
 
 	auto fptr = emitSamplerFunction(instruction, samplerState);
 
