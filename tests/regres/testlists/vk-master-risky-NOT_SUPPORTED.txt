@@ -6,6 +6,10 @@ dEQP-VK.api.external.memory.android_hardware_buffer.image_formats.r8g8b8a8_unorm
 dEQP-VK.glsl.limits.near_max.fragment_input.components_125
 dEQP-VK.glsl.limits.near_max.fragment_input.components_126
 dEQP-VK.glsl.limits.near_max.fragment_input.components_127
+dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.device.payload_local.buffer.guard_local.buffer.vert
+dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.device.payload_local.buffer.guard_local.image.vert
+dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.device.payload_local.image.guard_local.buffer.vert
+dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.device.payload_local.image.guard_local.image.vert
 dEQP-VK.rasterization.flatshading.line_strip
 dEQP-VK.rasterization.flatshading.lines
 dEQP-VK.rasterization.interpolation.basic.line_strip
