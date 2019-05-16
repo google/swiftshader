@@ -706,6 +706,21 @@ VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 	return arrayLayers * getLayerSize(static_cast<VkImageAspectFlagBits>(aspectMask));
 }
 
+const Image* Image::getSampledImage(const vk::Format& imageViewFormat) const
+{
+	bool isImageViewCompressed = imageViewFormat.isCompressed();
+	if(decompressedImage && !isImageViewCompressed)
+	{
+		ASSERT(flags & VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT);
+		ASSERT(format.bytesPerBlock() == imageViewFormat.bytesPerBlock());
+	}
+	// If the ImageView's format is compressed, then we do need to decompress the image so that
+	// it may be sampled properly by texture sampling functions, which don't support compressed
+	// textures. If the ImageView's format is NOT compressed, then we reinterpret cast the
+	// compressed image into the ImageView's format, so we must return the compressed image as is.
+	return (decompressedImage && isImageViewCompressed) ? decompressedImage : this;
+}
+
 void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 {
 	device->getBlitter()->blit(this, Cast(dstImage), region, filter);

@@ -192,7 +192,7 @@ const Image* ImageView::getImage(Usage usage) const
 	case RAW:
 		return image;
 	case SAMPLING:
-		return image->getSampledImage();
+		return image->getSampledImage(format);
 	default:
 		UNIMPLEMENTED("usage %d", int(usage));
 		return nullptr;

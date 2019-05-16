@@ -71,7 +71,7 @@ public:
 	VkDeviceSize             getLayerSize(VkImageAspectFlagBits aspect) const;
 
 	void                     prepareForSampling(const VkImageSubresourceRange& subresourceRange);
-	const Image*             getSampledImage() const { return decompressedImage ? decompressedImage : this; }
+	const Image*             getSampledImage(const vk::Format& imageViewFormat) const;
 
 	static Format            GetFormat(const vk::Format& format, VkImageAspectFlagBits aspect);
 
