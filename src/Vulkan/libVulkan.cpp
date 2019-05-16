@@ -399,10 +399,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const VkPhysicalDeviceSamplerYcbcrConversionFeatures* samplerYcbcrConversionFeatures = reinterpret_cast<const VkPhysicalDeviceSamplerYcbcrConversionFeatures*>(extensionCreateInfo);
 
-				if(samplerYcbcrConversionFeatures->samplerYcbcrConversion == VK_TRUE)
-				{
-					return VK_ERROR_FEATURE_NOT_PRESENT;
-				}
+				// YCbCr conversion is supported.
+				// samplerYcbcrConversionFeatures->samplerYcbcrConversion can be VK_TRUE or VK_FALSE.
+				// No action needs to be taken on our end in either case; it's the apps responsibility that
+				// "To create a sampler Y’CbCr conversion, the samplerYcbcrConversion feature must be enabled."
+				(void)samplerYcbcrConversionFeatures->samplerYcbcrConversion;
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES:

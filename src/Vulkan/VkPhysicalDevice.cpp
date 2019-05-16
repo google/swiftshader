@@ -93,7 +93,7 @@ const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
 
 void PhysicalDevice::getFeatures(VkPhysicalDeviceSamplerYcbcrConversionFeatures* features) const
 {
-	features->samplerYcbcrConversion = VK_FALSE;
+	features->samplerYcbcrConversion = VK_TRUE;
 }
 
 void PhysicalDevice::getFeatures(VkPhysicalDevice16BitStorageFeatures* features) const
@@ -326,7 +326,7 @@ void PhysicalDevice::getProperties(const VkExternalMemoryHandleTypeFlagBits* han
 
 void PhysicalDevice::getProperties(VkSamplerYcbcrConversionImageFormatProperties* properties) const
 {
-	properties->combinedImageSamplerDescriptorCount = 0;
+	properties->combinedImageSamplerDescriptorCount = 1;  // Need only one descriptor for YCbCr sampling.
 }
 
 #ifdef __ANDROID__
@@ -451,6 +451,16 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 			VK_FORMAT_FEATURE_BLIT_SRC_BIT |
 			VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
 			VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+		break;
+
+		// YCbCr formats:
+	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+		pFormatProperties->optimalTilingFeatures |=
+			VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+			VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+			VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
+			VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT;
 		break;
 	default:
 		break;
