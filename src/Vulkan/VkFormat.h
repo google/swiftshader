@@ -36,13 +36,15 @@ public:
 	bool isUnsignedNonNormalizedInteger() const;
 	bool isNonNormalizedInteger() const;
 
+	VkImageAspectFlags getAspects() const;
+	Format getAspectFormat(VkImageAspectFlags aspect) const;
 	bool isStencil() const;
 	bool isDepth() const;
 	bool hasQuadLayout() const;
 	VkFormat getNonQuadLayoutFormat() const;
-
 	bool isSRGBformat() const;
 	bool isFloatFormat() const;
+	bool isYcbcrFormat() const;
 
 	bool isCompatible(const Format& other) const;
 	bool isCompressed() const;
@@ -65,7 +67,6 @@ public:
 	bool has8bitTextureComponents() const;
 	bool has16bitTextureComponents() const;
 	bool has32bitIntegerTextureComponents() const;
-	bool hasYuvFormat() const;
 	bool isRGBComponent(int component) const;
 
 private:

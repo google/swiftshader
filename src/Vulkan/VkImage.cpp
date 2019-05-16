@@ -22,22 +22,6 @@
 
 namespace
 {
-	VkImageAspectFlags GetAspects(vk::Format format)
-	{
-		// TODO: probably just flatten this out to a full format list, and alter
-		// isDepth / isStencil etc to check for their aspect
-
-		VkImageAspectFlags aspects = 0;
-		if (format.isDepth()) aspects |= VK_IMAGE_ASPECT_DEPTH_BIT;
-		if (format.isStencil()) aspects |= VK_IMAGE_ASPECT_STENCIL_BIT;
-
-		// TODO: YCbCr planar formats have different aspects
-
-		// Anything else is "color".
-		if (!aspects) aspects |= VK_IMAGE_ASPECT_COLOR_BIT;
-		return aspects;
-	}
-
 	ETC_Decoder::InputType GetInputType(const vk::Format& format)
 	{
 		switch(format)
@@ -108,8 +92,8 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	VkMemoryRequirements memoryRequirements;
 	memoryRequirements.alignment = vk::REQUIRED_MEMORY_ALIGNMENT;
 	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
-	memoryRequirements.size = getStorageSize(GetAspects(format)) +
-	                          (decompressedImage ? decompressedImage->getStorageSize(GetAspects(decompressedImage->format)) : 0);
+	memoryRequirements.size = getStorageSize(format.getAspects()) +
+	                          (decompressedImage ? decompressedImage->getStorageSize(decompressedImage->format.getAspects()) : 0);
 	return memoryRequirements;
 }
 
@@ -120,7 +104,7 @@ void Image::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
 	if(decompressedImage)
 	{
 		decompressedImage->deviceMemory = deviceMemory;
-		decompressedImage->memoryOffset = memoryOffset + getStorageSize(GetAspects(format));
+		decompressedImage->memoryOffset = memoryOffset + getStorageSize(format.getAspects());
 	}
 }
 
@@ -569,42 +553,7 @@ int Image::bytesPerTexel(VkImageAspectFlagBits aspect) const
 
 Format Image::getFormat(VkImageAspectFlagBits aspect) const
 {
-	return GetFormat(format, aspect);
-}
-
-Format Image::GetFormat(const vk::Format& format, VkImageAspectFlagBits aspect)
-{
-	switch(aspect)
-	{
-	case VK_IMAGE_ASPECT_DEPTH_BIT:
-		switch(format)
-		{
-		case VK_FORMAT_D16_UNORM_S8_UINT:
-			return VK_FORMAT_D16_UNORM;
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-			return VK_FORMAT_X8_D24_UNORM_PACK32; // FIXME: This will allocate an extra byte per pixel
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			return VK_FORMAT_D32_SFLOAT;
-		default:
-			break;
-		}
-		break;
-	case VK_IMAGE_ASPECT_STENCIL_BIT:
-		switch(format)
-		{
-		case VK_FORMAT_D16_UNORM_S8_UINT:
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			return VK_FORMAT_S8_UINT;
-		default:
-			break;
-		}
-		break;
-	default:
-		break;
-	}
-
-	return format;
+	return format.getAspectFormat(aspect);
 }
 
 bool Image::isCube() const

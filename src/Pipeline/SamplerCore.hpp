@@ -107,7 +107,7 @@ namespace sw
 		bool has8bitTextureComponents() const;
 		bool has16bitTextureComponents() const;
 		bool has32bitIntegerTextureComponents() const;
-		bool hasYuvFormat() const;
+		bool isYcbcrFormat() const;
 		bool isRGBComponent(int component) const;
 		bool borderModeActive() const;
 		VkComponentSwizzle gatherSwizzle() const;
