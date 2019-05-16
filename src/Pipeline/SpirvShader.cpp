@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include "SpirvShader.hpp"
-#include "SamplerCore.hpp"
 
+#include "SamplerCore.hpp"
 #include "Reactor/Coroutine.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkBuffer.hpp"
@@ -919,8 +919,9 @@ namespace sw
 			case spv::OpImageSampleProjDrefImplicitLod:
 			case spv::OpImageSampleProjDrefExplicitLod:
 			case spv::OpImageFetch:
-			case spv::OpImageQuerySize:
 			case spv::OpImageQuerySizeLod:
+			case spv::OpImageQuerySize:
+			case spv::OpImageQueryLod:
 			case spv::OpImageQueryLevels:
 			case spv::OpImageQuerySamples:
 			case spv::OpImageRead:
@@ -2471,11 +2472,14 @@ namespace sw
 		case spv::OpImageFetch:
 			return EmitImageFetch(insn, state);
 
+		case spv::OpImageQuerySizeLod:
+			return EmitImageQuerySizeLod(insn, state);
+
 		case spv::OpImageQuerySize:
 			return EmitImageQuerySize(insn, state);
 
-		case spv::OpImageQuerySizeLod:
-			return EmitImageQuerySizeLod(insn, state);
+		case spv::OpImageQueryLod:
+			return EmitImageQueryLod(insn, state);
 
 		case spv::OpImageQueryLevels:
 			return EmitImageQueryLevels(insn, state);
@@ -4839,6 +4843,19 @@ namespace sw
 		return EmitResult::Continue;
 	}
 
+	SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultTy = getType(Type::ID(insn.word(1)));
+		auto resultId = Object::ID(insn.word(2));
+		auto imageId = Object::ID(insn.word(3));
+		auto lodId = Object::ID(insn.word(4));
+
+		auto &dst = state->routine->createIntermediate(resultId, resultTy.sizeInComponents);
+		GetImageDimensions(state->routine, resultTy, imageId, lodId, dst);
+
+		return EmitResult::Continue;
+	}
+
 	SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitState *state) const
 	{
 		auto &resultTy = getType(Type::ID(insn.word(1)));
@@ -4852,17 +4869,9 @@ namespace sw
 		return EmitResult::Continue;
 	}
 
-	SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
+	SpirvShader::EmitResult SpirvShader::EmitImageQueryLod(InsnIterator insn, EmitState *state) const
 	{
-		auto &resultTy = getType(Type::ID(insn.word(1)));
-		auto resultId = Object::ID(insn.word(2));
-		auto imageId = Object::ID(insn.word(3));
-		auto lodId = Object::ID(insn.word(4));
-
-		auto &dst = state->routine->createIntermediate(resultId, resultTy.sizeInComponents);
-		GetImageDimensions(state->routine, resultTy, imageId, lodId, dst);
-
-		return EmitResult::Continue;
+		return EmitImageSample({None, Query}, insn, state);
 	}
 
 	void SpirvShader::GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const

@@ -35,7 +35,8 @@ namespace sw
 		Grad,      // Use provided gradients.
 		Fetch,     // Use provided integer coordinates.
 		Base,      // Sample base level.
-		SAMPLER_METHOD_LAST = Base,
+		Query,     // Return implicit LOD.
+		SAMPLER_METHOD_LAST = Query,
 	};
 
 	enum SamplerOption

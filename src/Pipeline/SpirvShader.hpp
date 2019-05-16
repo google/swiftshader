@@ -480,7 +480,7 @@ namespace sw
 		// OpImageSample variants
 		enum Variant
 		{
-			None,
+			None,  // No Dref or Proj. Also used by OpImageFetch and OpImageQueryLod.
 			Dref,
 			Proj,
 			ProjDref,
@@ -938,8 +938,9 @@ namespace sw
 		EmitResult EmitImageSampleExplicitLod(Variant variant, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageFetch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
-		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageQueryLod(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQueryLevels(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySamples(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;

@@ -83,7 +83,7 @@ namespace sw
 			cubeFace(face, uuuu, vvvv, u, v, w, M);
 		}
 
-		if(function == Implicit || function == Bias || function == Grad)
+		if(function == Implicit || function == Bias || function == Grad || function == Query)
 		{
 			if(state.textureType != TEXTURE_3D)
 			{
@@ -124,8 +124,27 @@ namespace sw
 		if(function != Base && function != Fetch)
 		{
 			lod += *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
+
+			if(function == Query)
+			{
+				c.y = Float4(lod);  // Unclamped LOD.
+			}
+
 			lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));
 			lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
+
+			if(function == Query)
+			{
+				if(state.mipmapFilter == MIPMAP_POINT)
+				{
+					lod = Round(lod);  // TODO: Preferred formula is ceil(lod + 0.5) - 1
+				}
+
+				c.x = lod;
+			//	c.y contains unclamped LOD.
+
+				return c;
+			}
 		}
 
 		bool force32BitFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
