@@ -48,6 +48,23 @@
     },
     {
       "key": {
+        "uuid": "ba70c577_f1d3955c",
+        "filename": "src/Pipeline/BUILD.gn",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2019-05-17T14:36:49Z",
+      "side": 1,
+      "message": "It might be useful to abstract the location of SPIRV-Headers and SPIRV-Tools for the Chromium and Fuchsia-platform builds. For example by providing a target in swiftshader.gni, but it is something to be address later, imho (and I\u0027d be happy to provide patches).\n\nNote that I cannot test this change in the Fuchsia tree for now, but thanks for letting me in!",
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "033a72bf_9d1d45f0",
         "filename": "src/Vulkan/BUILD.gn",
         "patchSetId": 15
