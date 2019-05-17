@@ -65,7 +65,9 @@ static std::pair<std::chrono::microseconds, std::chrono::microseconds> getRUsage
   ::getrusage(RUSAGE_SELF, &RU);
   return { toDuration(RU.ru_utime), toDuration(RU.ru_stime) };
 #else
+#if !defined(__Fuchsia__)
 #warning Cannot get usage times on this platform
+#endif
   return { std::chrono::microseconds::zero(), std::chrono::microseconds::zero() };
 #endif
 }
@@ -107,7 +109,9 @@ size_t Process::GetMallocUsage() {
     return EndOfMemory - StartOfMemory;
   return 0;
 #else
+#if !defined(__Fuchsia__)
 #warning Cannot get malloc info on this platform
+#endif
   return 0;
 #endif
 }
