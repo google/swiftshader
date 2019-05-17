@@ -91,7 +91,7 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 
 		SamplerCore s(constants, samplerState);
 
-		SIMD::Float uvw[3];
+		SIMD::Float uvw[4];
 		SIMD::Float q;
 		SIMD::Float lodOrBias;  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
 		Vector4f dsx;
