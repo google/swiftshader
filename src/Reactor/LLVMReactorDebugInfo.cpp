@@ -473,6 +473,7 @@ namespace rr
 		}
 		llvm::errs() << "Unimplemented debug type: " << type << "\n";
 		assert(false);
+		return nullptr;
 	}
 
 	llvm::DIFile *DebugInfo::getOrCreateFile(const char* path)
