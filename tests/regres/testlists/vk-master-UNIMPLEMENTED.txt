@@ -303,16 +303,6 @@ dEQP-VK.glsl.texture_gather.offset.min_required_offset.2d_array.rgba8ui.size_npo
 dEQP-VK.glsl.texture_gather.offset.min_required_offset.2d_array.rgba8ui.size_pot.clamp_to_edge_repeat
 dEQP-VK.glsl.texture_gather.offset.min_required_offset.2d_array.rgba8ui.size_pot.mirrored_repeat_clamp_to_edge
 dEQP-VK.glsl.texture_gather.offset.min_required_offset.2d_array.rgba8ui.size_pot.repeat_mirrored_repeat
-dEQP-VK.memory_model.message_passing.core11.u32.coherent.fence_fence.atomicwrite.device.payload_local.buffer.guard_local.image.comp
-dEQP-VK.memory_model.message_passing.core11.u32.coherent.fence_fence.atomicwrite.device.payload_local.image.guard_local.image.comp
-dEQP-VK.memory_model.message_passing.core11.u32.coherent.fence_fence.atomicwrite.device.payload_nonlocal.workgroup.guard_local.image.comp
-dEQP-VK.memory_model.message_passing.core11.u32.coherent.fence_fence.atomicwrite.workgroup.payload_local.buffer.guard_local.image.comp
-dEQP-VK.memory_model.message_passing.core11.u32.coherent.fence_fence.atomicwrite.workgroup.payload_local.image.guard_local.image.comp
-dEQP-VK.memory_model.message_passing.core11.u32.coherent.fence_fence.atomicwrite.workgroup.payload_nonlocal.workgroup.guard_local.image.comp
-dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.device.payload_nonlocal.workgroup.guard_local.image.comp
-dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.workgroup.payload_local.buffer.guard_local.image.comp
-dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.workgroup.payload_local.image.guard_local.image.comp
-dEQP-VK.memory_model.write_after_read.core11.u32.coherent.fence_fence.atomicwrite.workgroup.payload_nonlocal.workgroup.guard_local.image.comp
 dEQP-VK.pipeline.multisample.sampled_image.64x64_1.r16g16_sint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.64x64_1.r32_uint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.64x64_1.r32g32b32a32_sfloat.samples_4
