@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+﻿cmake_minimum_required(VERSION 2.8)
 
 project(SwiftShader C CXX)
 
@@ -1653,8 +1653,6 @@ file(GLOB_RECURSE VULKAN_LIST
     ${SOURCE_DIR}/System/Math.hpp
     ${SOURCE_DIR}/System/Memory.cpp
     ${SOURCE_DIR}/System/Memory.hpp
-    ${SOURCE_DIR}/System/Resource.cpp
-    ${SOURCE_DIR}/System/Resource.hpp
     ${SOURCE_DIR}/System/Socket.cpp
     ${SOURCE_DIR}/System/Socket.hpp
     ${SOURCE_DIR}/System/Synchronization.hpp

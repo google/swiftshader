@@ -178,7 +178,6 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClCompile Include="..\System\Half.cpp" />
     <ClCompile Include="..\System\Math.cpp" />
     <ClCompile Include="..\System\Memory.cpp" />
-    <ClCompile Include="..\System\Resource.cpp" />
     <ClCompile Include="..\System\Socket.cpp" />
     <ClCompile Include="..\System\Timer.cpp" />
     <ClCompile Include="..\WSI\VkSurfaceKHR.cpp" />
@@ -274,7 +273,6 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClInclude Include="..\System\Half.hpp" />
     <ClInclude Include="..\System\Math.hpp" />
     <ClInclude Include="..\System\Memory.hpp" />
-    <ClInclude Include="..\System\Resource.hpp" />
     <ClInclude Include="..\System\SharedLibrary.hpp" />
     <ClInclude Include="..\System\Socket.hpp" />
     <ClInclude Include="..\System\Synchronization.hpp" />

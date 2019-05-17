@@ -652,7 +652,6 @@ cc_defaults {
         "System/Half.cpp",
         "System/Math.cpp",
         "System/Memory.cpp",
-        "System/Resource.cpp",
         "System/Socket.cpp",
         "System/Timer.cpp",
         "System/DebugAndroid.cpp",

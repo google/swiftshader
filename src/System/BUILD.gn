@@ -28,8 +28,6 @@ swiftshader_source_set("System") {
     "Math.hpp",
     "Memory.cpp",
     "Memory.hpp",
-    "Resource.cpp",
-    "Resource.hpp",
     "Socket.cpp",
     "Socket.hpp",
     "Thread.hpp",
