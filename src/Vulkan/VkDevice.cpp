@@ -37,7 +37,9 @@ namespace vk
 {
 
 Device::Device(const Device::CreateInfo* info, void* mem)
-	: physicalDevice(info->pPhysicalDevice), queues(reinterpret_cast<Queue*>(mem))
+	: physicalDevice(info->pPhysicalDevice),
+	  queues(reinterpret_cast<Queue*>(mem)),
+	  enabledExtensionCount(info->pCreateInfo->enabledExtensionCount)
 {
 	const auto* pCreateInfo = info->pCreateInfo;
 	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
@@ -55,6 +57,12 @@ Device::Device(const Device::CreateInfo* info, void* mem)
 		{
 			new (&queues[queueID]) Queue();
 		}
+	}
+
+	extensions = reinterpret_cast<ExtensionName*>(static_cast<uint8_t*>(mem) + (sizeof(Queue) * queueCount));
+	for(uint32_t i = 0; i < enabledExtensionCount; i++)
+	{
+		strncpy(extensions[i], pCreateInfo->ppEnabledExtensionNames[i], VK_MAX_EXTENSION_NAME_SIZE);
 	}
 
 	if(pCreateInfo->enabledLayerCount)
@@ -87,7 +95,19 @@ size_t Device::ComputeRequiredAllocationSize(const Device::CreateInfo* info)
 		queueCount += info->pCreateInfo->pQueueCreateInfos[i].queueCount;
 	}
 
-	return sizeof(Queue) * queueCount;
+	return (sizeof(Queue) * queueCount) + (info->pCreateInfo->enabledExtensionCount * sizeof(ExtensionName));
+}
+
+bool Device::hasExtension(const char* extensionName) const
+{
+	for(uint32_t i = 0; i < enabledExtensionCount; i++)
+	{
+		if(strncmp(extensions[i], extensionName, VK_MAX_EXTENSION_NAME_SIZE) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 VkQueue Device::getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const

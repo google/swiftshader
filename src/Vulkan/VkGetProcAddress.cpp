@@ -13,9 +13,11 @@
 // limitations under the License.
 
 #include "VkGetProcAddress.h"
+#include "VkDevice.hpp"
 
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 #ifdef __ANDROID__
 #include <cerrno>
@@ -234,44 +236,90 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDescriptorUpdateTemplate),
 	MAKE_VULKAN_DEVICE_ENTRY(vkUpdateDescriptorSetWithTemplate),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupport),
-	// VK_KHR_descriptor_update_template
-	MAKE_VULKAN_DEVICE_ENTRY(vkCreateDescriptorUpdateTemplateKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDescriptorUpdateTemplateKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkUpdateDescriptorSetWithTemplateKHR),
-	// VK_KHR_device_group
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPeerMemoryFeaturesKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDeviceMaskKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkCmdDispatchBaseKHR),
-	// VK_KHR_maintenance1
-	MAKE_VULKAN_DEVICE_ENTRY(vkTrimCommandPoolKHR),
-	// VK_KHR_sampler_ycbcr_conversion
-	MAKE_VULKAN_DEVICE_ENTRY(vkCreateSamplerYcbcrConversionKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkDestroySamplerYcbcrConversionKHR),
-	// VK_KHR_bind_memory2
-	MAKE_VULKAN_DEVICE_ENTRY(vkBindBufferMemory2KHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkBindImageMemory2KHR),
-	// VK_KHR_get_memory_requirements2
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetImageMemoryRequirements2KHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferMemoryRequirements2KHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetImageSparseMemoryRequirements2KHR),
-	// VK_KHR_maintenance3
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
-#ifndef __ANDROID__
-	// VK_KHR_swapchain
-	MAKE_VULKAN_DEVICE_ENTRY(vkCreateSwapchainKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkDestroySwapchainKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainImagesKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImageKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkQueuePresentKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
-	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
-#else
+#ifdef __ANDROID__
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainGrallocUsageANDROID),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainGrallocUsage2ANDROID),
 	MAKE_VULKAN_DEVICE_ENTRY(vkAcquireImageANDROID),
 	MAKE_VULKAN_DEVICE_ENTRY(vkQueueSignalReleaseImageANDROID),
 #endif
 };
+
+static const std::vector<std::pair<const char*, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers =
+{
+	// VK_KHR_descriptor_update_template
+	{
+		VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkCreateDescriptorUpdateTemplateKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDescriptorUpdateTemplateKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkUpdateDescriptorSetWithTemplateKHR),
+		}
+	},
+	// VK_KHR_device_group
+	{
+		VK_KHR_DEVICE_GROUP_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPeerMemoryFeaturesKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDeviceMaskKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkCmdDispatchBaseKHR),
+		}
+	},
+	// VK_KHR_maintenance1
+	{
+		VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkTrimCommandPoolKHR),
+		}
+	},
+	// VK_KHR_sampler_ycbcr_conversion
+	{
+		VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkCreateSamplerYcbcrConversionKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkDestroySamplerYcbcrConversionKHR),
+		}
+	},
+	// VK_KHR_bind_memory2
+	{
+		VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkBindBufferMemory2KHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkBindImageMemory2KHR),
+		}
+	},
+	// VK_KHR_get_memory_requirements2
+	{
+		VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetImageMemoryRequirements2KHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferMemoryRequirements2KHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetImageSparseMemoryRequirements2KHR),
+		}
+	},
+	// VK_KHR_maintenance3
+	{
+		VK_KHR_MAINTENANCE3_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
+		}
+	},
+#ifndef __ANDROID__
+	// VK_KHR_swapchain
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkCreateSwapchainKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkDestroySwapchainKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainImagesKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImageKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkQueuePresentKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
+		}
+	},
+#endif
+};
+
 #undef MAKE_VULKAN_DEVICE_ENTRY
 
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
@@ -306,6 +354,19 @@ PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* pName)
 	if(deviceFunction != deviceFunctionPointers.end())
 	{
 		return deviceFunction->second;
+	}
+
+	vk::Device* myDevice = Cast(device);
+	for(const auto& deviceExtensionFunctions : deviceExtensionFunctionPointers)
+	{
+		if(myDevice->hasExtension(deviceExtensionFunctions.first))
+		{
+			deviceFunction = deviceExtensionFunctions.second.find(std::string(pName));
+			if(deviceFunction != deviceExtensionFunctions.second.end())
+			{
+				return deviceFunction->second;
+			}
+		}
 	}
 
 	return nullptr;

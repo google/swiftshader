@@ -43,6 +43,7 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const CreateInfo* info);
 
+	bool hasExtension(const char* extensionName) const;
 	VkQueue getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const;
 	VkResult waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
 	VkResult waitIdle();
@@ -58,6 +59,9 @@ private:
 	Queue* queues = nullptr;
 	uint32_t queueCount = 0;
 	sw::Blitter* blitter = nullptr;
+	uint32_t enabledExtensionCount = 0;
+	typedef char ExtensionName[VK_MAX_EXTENSION_NAME_SIZE];
+	ExtensionName* extensions = nullptr;
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;
