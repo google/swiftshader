@@ -38,8 +38,8 @@ void SwapchainKHR::destroy(const VkAllocationCallbacks *pAllocator)
 		if (currentImage.imageStatus != NONEXISTENT)
 		{
 			vk::Cast(createInfo.surface)->detachImage(&currentImage);
-			vk::destroy(currentImage.imageMemory, pAllocator);
-			vk::destroy(currentImage.image, pAllocator);
+			vk::destroy(currentImage.imageMemory, nullptr);
+			vk::destroy(currentImage.image, nullptr);
 
 			currentImage.imageStatus = NONEXISTENT;
 		}
