@@ -121,7 +121,7 @@ namespace sw
 		}
 		else UNREACHABLE("Sampler function %d", int(function));
 
-		if(function != Base)
+		if(function != Base && function != Fetch)
 		{
 			lod += *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
 			lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));

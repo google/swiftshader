@@ -123,7 +123,7 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 			uvw[2] = in[1];  // Move 1D layer coordinate to 2D layer coordinate index.
 		}
 
-		if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias)
+		if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias || instruction.samplerMethod == Fetch)
 		{
 			lodOrBias = in[i];
 			i++;
