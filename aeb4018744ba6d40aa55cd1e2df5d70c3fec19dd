@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97c88c5b_6ab56c14",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 15
+      },
+      "lineNbr": 1789,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-17T13:32:57Z",
+      "side": 1,
+      "message": "nit: This file uses spaces for alignment.",
+      "range": {
+        "startLine": 1789,
+        "startChar": 0,
+        "endLine": 1789,
+        "endChar": 1
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcb09ece_6d1d70a1",
+        "filename": "build/Visual Studio 15 2017 Win64/libvk_swiftshader.vcxproj",
+        "patchSetId": 15
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-17T13:32:57Z",
+      "side": 1,
+      "message": "Shouldn\u0027t be needed. See other comments.",
+      "range": {
+        "startLine": 73,
+        "startChar": 31,
+        "endLine": 73,
+        "endChar": 42
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "033a72bf_9d1d45f0",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 15
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-17T13:32:57Z",
+      "side": 1,
+      "message": "This should use the libvk_swiftshader.lds version script to restrict the exported symbols. See e.g. libGLESv2/BUILD.gn for version script usage.",
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b0f49d7_79a813cb",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-17T13:32:57Z",
+      "side": 1,
+      "message": "I believe you can just set VKAPI_ATTR for this instead.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "446322dc_54c33944",
+        "filename": "third_party/SPIRV-Tools/BUILD.gn",
+        "patchSetId": 15
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-17T13:32:57Z",
+      "side": 1,
+      "message": "This file is an unaltered copy of the upstream SPIRV-Tools repo. I strongly recommend keeping it that way to avoid merge conflicts in the future. Either this change should be upstreamed or another solution must be found to avoid this conflict.",
+      "range": {
+        "startLine": 697,
+        "startChar": 0,
+        "endLine": 698,
+        "endChar": 60
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
