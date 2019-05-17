@@ -27,7 +27,7 @@ namespace vk
 class PhysicalDevice
 {
 public:
-	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_DEVICE; }
+	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE; }
 
 	PhysicalDevice(const void*, void* mem);
 	void destroy(const VkAllocationCallbacks* pAllocator) {}
