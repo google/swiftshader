@@ -137,36 +137,38 @@ namespace sw
 		{
 			c = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
-			if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable)
+			if (!hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable)
 			{
-				if(has16bitTextureFormat())
+				switch (state.textureFormat)
 				{
-					switch(state.textureFormat)
-					{
-					case VK_FORMAT_R5G6B5_UNORM_PACK16:
-						c.x *= Float4(1.0f / 0xF800);
-						c.y *= Float4(1.0f / 0xFC00);
-						c.z *= Float4(1.0f / 0xF800);
-						break;
-					case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-						c.x *= Float4(1.0f / 0xF000);
-						c.y *= Float4(1.0f / 0xF000);
-						c.z *= Float4(1.0f / 0xF000);
-						c.w *= Float4(1.0f / 0xF000);
-						break;
-					case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-						c.x *= Float4(1.0f / 0xF800);
-						c.y *= Float4(1.0f / 0xF800);
-						c.z *= Float4(1.0f / 0xF800);
-						c.w *= Float4(1.0f / 0x8000);
-						break;
-					default:
-						ASSERT(false);
-					}
-				}
-				else
-				{
-					for(int component = 0; component < textureComponentCount(); component++)
+				case VK_FORMAT_R5G6B5_UNORM_PACK16:
+					c.x *= Float4(1.0f / 0xF800);
+					c.y *= Float4(1.0f / 0xFC00);
+					c.z *= Float4(1.0f / 0xF800);
+					break;
+				case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+					c.x *= Float4(1.0f / 0xF000);
+					c.y *= Float4(1.0f / 0xF000);
+					c.z *= Float4(1.0f / 0xF000);
+					c.w *= Float4(1.0f / 0xF000);
+					break;
+				case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+					c.x *= Float4(1.0f / 0xF800);
+					c.y *= Float4(1.0f / 0xF800);
+					c.z *= Float4(1.0f / 0xF800);
+					c.w *= Float4(1.0f / 0x8000);
+					break;
+				case VK_FORMAT_R8_SNORM:
+				case VK_FORMAT_R8G8_SNORM:
+				case VK_FORMAT_R8G8B8A8_SNORM:
+				case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+					c.x *= Float4(1.0f / 0x7F00);
+					c.y *= Float4(1.0f / 0x7F00);
+					c.z *= Float4(1.0f / 0x7F00);
+					c.w *= Float4(1.0f / 0x7F00);
+					break;
+				default:
+					for (int component = 0; component < textureComponentCount(); component++)
 					{
 						c[component] *= Float4(hasUnsignedTextureComponent(component) ? 1.0f / 0xFFFF : 1.0f / 0x7FFF);
 					}
@@ -177,28 +179,35 @@ namespace sw
 		{
 			Vector4s cs = sampleFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
-			if(state.textureFormat == VK_FORMAT_R5G6B5_UNORM_PACK16)
+			switch (state.textureFormat)
 			{
+			case VK_FORMAT_R5G6B5_UNORM_PACK16:
 				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
 				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
 				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
-			}
-			else if (state.textureFormat == VK_FORMAT_B4G4R4A4_UNORM_PACK16)
-			{
+				break;
+			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
 				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF000);
 				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF000);
 				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF000);
 				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xF000);
-			}
-			else if (state.textureFormat == VK_FORMAT_A1R5G5B5_UNORM_PACK16)
-			{
+				break;
+			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
 				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF800);
 				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
 				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0x8000);
-			}
-			else
-			{
+				break;
+			case VK_FORMAT_R8_SNORM:
+			case VK_FORMAT_R8G8_SNORM:
+			case VK_FORMAT_R8G8B8A8_SNORM:
+			case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+				c.x = Float4(cs.x) * Float4(1.0f / 0x7F00);
+				c.y = Float4(cs.y) * Float4(1.0f / 0x7F00);
+				c.z = Float4(cs.z) * Float4(1.0f / 0x7F00);
+				c.w = Float4(cs.w) * Float4(1.0f / 0x7F00);
+				break;
+			default:
 				for(int component = 0; component < textureComponentCount(); component++)
 				{
 					if(hasUnsignedTextureComponent(component))
@@ -1349,6 +1358,16 @@ namespace sw
 							c.z >>= 8;
 							c.w >>= 8;
 						}
+
+						if (state.textureFormat == VK_FORMAT_R8G8B8A8_SNORM)
+						{
+							// TODO: avoid populating the low bits at all.
+							c.x &= Short4(0xFF00);
+							c.y &= Short4(0xFF00);
+							c.z &= Short4(0xFF00);
+							c.w &= Short4(0xFF00);
+						}
+
 						break;
 					case VK_FORMAT_R8G8B8A8_UINT:
 						c.z = As<Short4>(UnpackHigh(c.x, c.y));
@@ -1374,9 +1393,12 @@ namespace sw
 				switch(state.textureFormat)
 				{
 				case VK_FORMAT_R8G8_UNORM:
-				case VK_FORMAT_R8G8_SNORM:
 					c.y = (c.x & Short4(0xFF00u)) | As<Short4>(As<UShort4>(c.x) >> 8);
 					c.x = (c.x & Short4(0x00FFu)) | (c.x << 8);
+					break;
+				case VK_FORMAT_R8G8_SNORM:
+					c.y = (c.x & Short4(0xFF00u));
+					c.x = (c.x << 8);
 					break;
 				case VK_FORMAT_R8G8_SINT:
 					c.y = c.x >> 8;
@@ -1411,6 +1433,11 @@ namespace sw
 								c.x = (c.x << 8) >> 8;
 							}
 						}
+						break;
+					case VK_FORMAT_R8_SNORM:
+						// TODO: avoid populating the low bits at all.
+						c.x = Unpack(As<Byte4>(c0));
+						c.x &= Short4(0xff00);
 						break;
 					default:
 						c.x = Unpack(As<Byte4>(c0));
