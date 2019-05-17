@@ -88,6 +88,53 @@
     },
     {
       "key": {
+        "uuid": "a79c5905_26581b4c",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 17183
+      },
+      "writtenOn": "2019-05-17T14:24:42Z",
+      "side": 1,
+      "message": "I can\u0027t set VKAPI_ATTR in the build file because then it would complain that it is already defined at https://cs.chromium.org/chromium/src/third_party/swiftshader/include/vulkan/vk_platform.h?rcl\u003d18ebb45055a541cacdc3635da835574dc0dbd0f3\u0026l\u003d66",
+      "parentUuid": "1b0f49d7_79a813cb",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c81e2449_ad7ec8b7",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 17183
+      },
+      "writtenOn": "2019-05-17T14:24:42Z",
+      "side": 1,
+      "message": "Chromium expects this function to be called vkGetInstanceProcAddr.\n\nhttps://cs.chromium.org/chromium/src/gpu/vulkan/vulkan_function_pointers.cc?rcl\u003d79e824b4475b37fb98620f90703c3fc77d814231\u0026l\u003d31\n\nIs there a reason it is named this way? Can I rename this or add a second function with the name that Chromium expects?",
+      "range": {
+        "startLine": 80,
+        "startChar": 51,
+        "endLine": 80,
+        "endChar": 76
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "446322dc_54c33944",
         "filename": "third_party/SPIRV-Tools/BUILD.gn",
         "patchSetId": 15
@@ -99,6 +146,30 @@
       "writtenOn": "2019-05-17T13:32:57Z",
       "side": 1,
       "message": "This file is an unaltered copy of the upstream SPIRV-Tools repo. I strongly recommend keeping it that way to avoid merge conflicts in the future. Either this change should be upstreamed or another solution must be found to avoid this conflict.",
+      "range": {
+        "startLine": 697,
+        "startChar": 0,
+        "endLine": 698,
+        "endChar": 60
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "410d1770_309a1b03",
+        "filename": "third_party/SPIRV-Tools/BUILD.gn",
+        "patchSetId": 15
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 17183
+      },
+      "writtenOn": "2019-05-17T14:24:42Z",
+      "side": 1,
+      "message": "It was recommended to me that swiftshader can depend on chrome\u0027s copy of spvtools instead of its own copy when build_with_chromium is true. Is this something that we\u0027re willing to do? I\u0027m worried that the two versions would deviate far enough that would cause problems.",
+      "parentUuid": "446322dc_54c33944",
       "range": {
         "startLine": 697,
         "startChar": 0,
