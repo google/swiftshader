@@ -19,6 +19,8 @@
 #include "Vulkan/VkSampler.hpp"
 #include "Vulkan/VkDebug.hpp"
 
+#include <limits>
+
 namespace
 {
 	void applySwizzle(VkComponentSwizzle swizzle, sw::Float4& f, const sw::Vector4f& c, bool integer)
@@ -1126,7 +1128,7 @@ namespace sw
 		face[3] = (face[0] >> 12) & 0x7;
 		face[0] &= 0x7;
 
-		M = Max(Max(absX, absY), absZ);
+		M = Max(Max(absX, absY), Max(absZ, Float4(std::numeric_limits<float>::min())));
 
 		// U = xMajor ? (neg ^ -z) : ((zMajor & neg) ^ x)
 		U = As<Float4>((xMajor & (n ^ As<Int4>(-z))) | (~xMajor & ((zMajor & n) ^ As<Int4>(x))));
