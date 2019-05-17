@@ -360,12 +360,10 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			imageSampler[i].format = imageView->getFormat(ImageView::SAMPLING);
 
 			auto &subresourceRange = imageView->getSubresourceRange();
-			int baseLevel = subresourceRange.baseMipLevel;
 
 			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
-				int level = mipmapLevel - baseLevel;  // Level within the image view
-				level = sw::clamp(level, 0, (int)subresourceRange.levelCount - 1);
+				int level = sw::clamp(mipmapLevel, 0, (int)subresourceRange.levelCount - 1);  // Level within the image view
 
 				VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 				sw::Mipmap &mipmap = texture->mipmap[mipmapLevel];
