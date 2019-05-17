@@ -4768,7 +4768,16 @@ namespace sw
 		if(instruction.isDref())
 		{
 			auto drefValue = GenericValue(this, state->routine, insn.word(5));
-			in[i] = drefValue.Float(0);
+
+			if(instruction.isProj())
+			{
+				in[i] = drefValue.Float(0) / coordinate.Float(coordinates);  // TODO(b/129523279): Optimize using reciprocal.
+			}
+			else
+			{
+				in[i] = drefValue.Float(0);
+			}
+
 			i++;
 		}
 
