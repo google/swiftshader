@@ -232,6 +232,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 	TRACE("(VkPhysicalDevice physicalDevice = %p, VkFormat format = %d, VkImageType type = %d, VkImageTiling tiling = %d, VkImageUsageFlags usage = %d, VkImageCreateFlags flags = %d, VkImageFormatProperties* pImageFormatProperties = %p)",
 			physicalDevice, (int)format, (int)type, (int)tiling, usage, flags, pImageFormatProperties);
 
+	// "If the combination of parameters to vkGetPhysicalDeviceImageFormatProperties is not supported by the implementation
+	//  for use in vkCreateImage, then all members of VkImageFormatProperties will be filled with zero."
+	memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
+
 	VkFormatProperties properties;
 	vk::Cast(physicalDevice)->getFormatProperties(format, &properties);
 
@@ -301,6 +305,31 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT |
 			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	ASSERT(!(usage & ~(allRecognizedUsageBits)));
+
+	// "Images created with tiling equal to VK_IMAGE_TILING_LINEAR have further restrictions on their limits and capabilities
+	//  compared to images created with tiling equal to VK_IMAGE_TILING_OPTIMAL."
+	if(tiling == VK_IMAGE_TILING_LINEAR)
+	{
+		if(type != VK_IMAGE_TYPE_2D)
+		{
+			return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		}
+
+		if(vk::Format(format).isDepth() || vk::Format(format).isStencil())
+		{
+			return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		}
+	}
+
+	// "Images created with a format from one of those listed in Formats requiring sampler Y’CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
+	//  have further restrictions on their limits and capabilities compared to images created with other formats."
+	if(vk::Format(format).isYcbcrFormat())
+	{
+		if(type != VK_IMAGE_TYPE_2D)
+		{
+			return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		}
+	}
 
 	vk::Cast(physicalDevice)->getImageFormatProperties(format, type, tiling, usage, flags, pImageFormatProperties);
 

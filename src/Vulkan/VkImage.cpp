@@ -111,11 +111,15 @@ void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubre
 {
 	// By spec, aspectMask has a single bit set.
 	if (!((pSubresource->aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-		  (pSubresource->aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-		  (pSubresource->aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
+	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
+	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
+	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
+	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
 	{
-		UNIMPLEMENTED("aspectMask");
+		UNSUPPORTED("aspectMask %X", pSubresource->aspectMask);
 	}
+
 	auto aspect = static_cast<VkImageAspectFlagBits>(pSubresource->aspectMask);
 	pLayout->offset = getMemoryOffset(aspect, pSubresource->mipLevel, pSubresource->arrayLayer);
 	pLayout->size = getMultiSampledLevelSize(aspect, pSubresource->mipLevel);
@@ -130,18 +134,24 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	// an image to another image that has the same number of bytes per pixel.
 	Image* dst = Cast(dstImage);
 
-	if(!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
+	if (!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+	      (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	      (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
+	      (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
+	      (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
+	      (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
 	{
-		UNIMPLEMENTED("srcSubresource");
+		UNSUPPORTED("srcSubresource.aspectMask %X", pRegion.srcSubresource.aspectMask);
 	}
 
-	if(!((pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
+	if (!((pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+	      (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	      (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
+	      (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
+	      (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
+	      (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
 	{
-		UNIMPLEMENTED("dstSubresource");
+		UNSUPPORTED("dstSubresource.aspectMask %X", pRegion.dstSubresource.aspectMask);
 	}
 
 	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(pRegion.srcSubresource.aspectMask);
@@ -510,9 +520,9 @@ VkExtent3D Image::getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLe
 	mipLevelExtent.height = extent.height >> mipLevel;
 	mipLevelExtent.depth = extent.depth >> mipLevel;
 
-	if(mipLevelExtent.width == 0)  mipLevelExtent.width = 1;
-	if(mipLevelExtent.height == 0) mipLevelExtent.height = 1;
-	if(mipLevelExtent.depth == 0)  mipLevelExtent.depth = 1;
+	if(mipLevelExtent.width  == 0) { mipLevelExtent.width  = 1; }
+	if(mipLevelExtent.height == 0) { mipLevelExtent.height = 1; }
+	if(mipLevelExtent.depth  == 0) { mipLevelExtent.depth  = 1; }
 
 	switch(aspect)
 	{

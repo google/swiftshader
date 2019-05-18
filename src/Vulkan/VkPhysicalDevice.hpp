@@ -16,6 +16,7 @@
 #define VK_PHYSICAL_DEVICE_HPP_
 
 #include "VkObject.hpp"
+#include "VkFormat.h"
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include <vulkan/vk_android_native_buffer.h>
@@ -60,8 +61,8 @@ public:
 	void getProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties) const;
 	void getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;
 
-	void getFormatProperties(VkFormat format, VkFormatProperties* pFormatProperties) const;
-	void getImageFormatProperties(VkFormat format, VkImageType type, VkImageTiling tiling,
+	void getFormatProperties(Format format, VkFormatProperties* pFormatProperties) const;
+	void getImageFormatProperties(Format format, VkImageType type, VkImageTiling tiling,
 	                              VkImageUsageFlags usage, VkImageCreateFlags flags,
 	                              VkImageFormatProperties* pImageFormatProperties) const;
 	uint32_t getQueueFamilyPropertyCount() const;

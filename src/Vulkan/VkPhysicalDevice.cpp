@@ -375,7 +375,7 @@ bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatur
 	return true;
 }
 
-void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pFormatProperties) const
+void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties* pFormatProperties) const
 {
 	pFormatProperties->linearTilingFeatures = 0; // Unsupported format
 	pFormatProperties->optimalTilingFeatures = 0; // Unsupported format
@@ -660,11 +660,17 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 	default:
 		break;
 	}
+
+	if(pFormatProperties->optimalTilingFeatures)
+	{
+		pFormatProperties->linearTilingFeatures = VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+		                                          VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
+	}
 }
 
-void PhysicalDevice::getImageFormatProperties(VkFormat format, VkImageType type, VkImageTiling tiling,
+void PhysicalDevice::getImageFormatProperties(Format format, VkImageType type, VkImageTiling tiling,
                                               VkImageUsageFlags usage, VkImageCreateFlags flags,
-	                                          VkImageFormatProperties* pImageFormatProperties) const
+                                              VkImageFormatProperties* pImageFormatProperties) const
 {
 	pImageFormatProperties->sampleCounts = VK_SAMPLE_COUNT_1_BIT;
 	pImageFormatProperties->maxArrayLayers = vk::MAX_IMAGE_ARRAY_LAYERS;
@@ -713,6 +719,24 @@ void PhysicalDevice::getImageFormatProperties(VkFormat format, VkImageType type,
 	}
 
 	pImageFormatProperties->maxResourceSize = 1 << 31; // Minimum value for maxResourceSize
+
+	// "Images created with tiling equal to VK_IMAGE_TILING_LINEAR have further restrictions on their limits and capabilities
+	//  compared to images created with tiling equal to VK_IMAGE_TILING_OPTIMAL."
+	if(tiling == VK_IMAGE_TILING_LINEAR)
+	{
+		pImageFormatProperties->maxMipLevels = 1;
+		pImageFormatProperties->maxArrayLayers = 1;
+		pImageFormatProperties->sampleCounts = VK_SAMPLE_COUNT_1_BIT;
+	}
+
+	// "Images created with a format from one of those listed in Formats requiring sampler Y’CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
+	//  have further restrictions on their limits and capabilities compared to images created with other formats."
+	if(format.isYcbcrFormat())
+	{
+		pImageFormatProperties->maxMipLevels = 1;
+		pImageFormatProperties->maxArrayLayers = 1;
+		pImageFormatProperties->sampleCounts = VK_SAMPLE_COUNT_1_BIT;
+	}
 }
 
 uint32_t PhysicalDevice::getQueueFamilyPropertyCount() const
