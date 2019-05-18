@@ -170,6 +170,6 @@ namespace sw
 	{
 		return Vector(u.x + t * (v.x - u.x),
 		              u.y + t * (v.y - u.y),
-					  u.z + t * (v.z - u.x));
+		              u.z + t * (v.z - u.z));
 	}
 }
