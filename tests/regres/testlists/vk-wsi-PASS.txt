@@ -1,4 +1,6 @@
 dEQP-VK.wsi.xlib.surface.create
+dEQP-VK.wsi.xlib.surface.create_custom_allocator
+dEQP-VK.wsi.xlib.surface.create_simulate_oom
 dEQP-VK.wsi.xlib.surface.destroy_null_handle
 dEQP-VK.wsi.xlib.surface.initial_size
 dEQP-VK.wsi.xlib.surface.query_capabilities
@@ -22,3 +24,13 @@ dEQP-VK.wsi.xlib.swapchain.destroy.null_handle
 dEQP-VK.wsi.xlib.swapchain.get_images.count
 dEQP-VK.wsi.xlib.swapchain.get_images.incomplete
 dEQP-VK.wsi.xlib.swapchain.render.basic
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.clipped
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.composite_alpha
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_array_layers
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_extent
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_format
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_sharing_mode
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_usage
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.min_image_count
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.pre_transform
+dEQP-VK.wsi.xlib.swapchain.simulate_oom.present_mode

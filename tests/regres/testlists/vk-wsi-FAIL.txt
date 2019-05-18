@@ -1,2 +1,0 @@
-dEQP-VK.wsi.xlib.surface.create_custom_allocator
-dEQP-VK.wsi.xlib.surface.create_simulate_oom

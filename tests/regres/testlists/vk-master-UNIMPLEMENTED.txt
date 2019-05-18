@@ -1,4 +1,3 @@
-dEQP-VK.api.info.get_physical_device_properties2.features
 dEQP-VK.glsl.texture_functions.query.texturequerylod.isampler1d_fragment
 dEQP-VK.glsl.texture_functions.query.texturequerylod.isampler1darray_fragment
 dEQP-VK.glsl.texture_functions.query.texturequerylod.isampler2d_fragment
@@ -319,8 +318,6 @@ dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r16g16_sint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r32_uint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r32g32b32a32_sfloat.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r8g8b8a8_unorm.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_id.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_id.137_191_1.samples_4
 dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.bit_count.128_128_1.samples_4
 dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.bit_count.137_191_1.samples_4
 dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.correct_bit.128_128_1.samples_4
@@ -329,8 +326,4 @@ dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.pattern.128_128_1.sample
 dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.pattern.137_191_1.samples_4
 dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.write.128_128_1.samples_4
 dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.write.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_position.correctness.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_position.correctness.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_position.distribution.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_position.distribution.137_191_1.samples_4
 dEQP-VK.ycbcr.query.lod.fragment.r8g8b8a8_unorm
