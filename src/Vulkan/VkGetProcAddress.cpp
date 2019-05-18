@@ -343,6 +343,15 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
 		{
 			return deviceFunction->second;
 		}
+
+		for(const auto& deviceExtensionFunctions : deviceExtensionFunctionPointers)
+		{
+			deviceFunction = deviceExtensionFunctions.second.find(std::string(pName));
+			if(deviceFunction != deviceExtensionFunctions.second.end())
+			{
+				return deviceFunction->second;
+			}
+		}
 	}
 
 	return nullptr;
