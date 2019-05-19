@@ -140,15 +140,6 @@ dEQP-VK.glsl.texture_functions.textureprojlodoffset.usampler1d_vec4_vertex
 dEQP-VK.glsl.texture_functions.textureprojlodoffset.usampler2d_vec3_vertex
 dEQP-VK.glsl.texture_functions.textureprojlodoffset.usampler2d_vec4_vertex
 dEQP-VK.glsl.texture_functions.textureprojlodoffset.usampler3d_vertex
-dEQP-VK.image.extended_usage_bit.texture_write.r8g8b8a8_snorm
-dEQP-VK.image.mutable.2d_array.b8g8r8a8_srgb_r8g8b8a8_snorm_clear_texture
-dEQP-VK.image.mutable.2d_array.b8g8r8a8_srgb_r8g8b8a8_snorm_copy_texture
-dEQP-VK.image.mutable.2d_array.b8g8r8a8_unorm_r8g8b8a8_snorm_clear_texture
-dEQP-VK.image.mutable.2d_array.b8g8r8a8_unorm_r8g8b8a8_snorm_copy_texture
-dEQP-VK.image.mutable.2d_array.r8g8b8a8_srgb_r8g8b8a8_snorm_clear_texture
-dEQP-VK.image.mutable.2d_array.r8g8b8a8_srgb_r8g8b8a8_snorm_copy_texture
-dEQP-VK.image.mutable.2d_array.r8g8b8a8_unorm_r8g8b8a8_snorm_clear_texture
-dEQP-VK.image.mutable.2d_array.r8g8b8a8_unorm_r8g8b8a8_snorm_copy_texture
 dEQP-VK.memory.pipeline_barrier.all.1024
 dEQP-VK.memory.pipeline_barrier.all.1048576
 dEQP-VK.memory.pipeline_barrier.all.65536
