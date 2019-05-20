@@ -17,9 +17,10 @@
 
 #include "VkObject.hpp"
 #include "Device/Renderer.hpp"
-#include <queue>
 #include <thread>
 #include <vulkan/vk_icd.h>
+
+#include "System/Synchronization.hpp"
 
 namespace sw
 {
@@ -29,91 +30,6 @@ namespace sw
 
 namespace vk
 {
-
-// Chan is a thread-safe FIFO queue of type T.
-// Chan takes its name after Golang's chan.
-template <typename T>
-class Chan
-{
-public:
-	Chan();
-
-	// take returns the next item in the chan, blocking until an item is
-	// available.
-	T take();
-
-	// tryTake returns a <T, bool> pair.
-	// If the chan is not empty, then the next item and true are returned.
-	// If the chan is empty, then a default-initialized T and false are returned.
-	std::pair<T, bool> tryTake();
-
-	// put places an item into the chan, blocking if the chan is bounded and
-	// full.
-	void put(const T &v);
-
-	// Returns the number of items in the chan.
-	// Note: that this may change as soon as the function returns, so should
-	// only be used for debugging.
-	size_t count();
-
-private:
-	std::queue<T> queue;
-	std::mutex mutex;
-	std::condition_variable added;
-	std::condition_variable removed;
-};
-
-template <typename T>
-Chan<T>::Chan() {}
-
-template <typename T>
-T Chan<T>::take()
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	if (queue.size() == 0)
-	{
-		// Chan empty. Wait for item to be added.
-		added.wait(lock, [this] { return queue.size() > 0; });
-	}
-	T out = queue.front();
-	queue.pop();
-	lock.unlock();
-	removed.notify_one();
-	return out;
-}
-
-template <typename T>
-std::pair<T, bool> Chan<T>::tryTake()
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	if (queue.size() == 0)
-	{
-		return std::make_pair(T{}, false);
-	}
-	T out = queue.front();
-	queue.pop();
-	lock.unlock();
-	removed.notify_one();
-	return std::make_pair(out, true);
-}
-
-template <typename T>
-void Chan<T>::put(const T &item)
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	queue.push(item);
-	lock.unlock();
-	added.notify_one();
-}
-
-template <typename T>
-size_t Chan<T>::count()
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	auto out = queue.size();
-	lock.unlock();
-	return out;
-}
 
 class Queue
 {
@@ -152,8 +68,8 @@ private:
 	void submitQueue(const Task& task);
 
 	std::unique_ptr<sw::Renderer> renderer;
-	Chan<Task> pending;
-	Chan<VkSubmitInfo*> toDelete;
+	sw::Chan<Task> pending;
+	sw::Chan<VkSubmitInfo*> toDelete;
 	std::thread queueThread;
 };
 

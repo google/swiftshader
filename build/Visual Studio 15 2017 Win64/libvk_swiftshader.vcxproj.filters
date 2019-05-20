@@ -342,6 +342,9 @@
     <ClInclude Include="$(SolutionDir)src\System\Socket.hpp">
       <Filter>src\System</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Synchronization.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)src\System\Thread.hpp">
       <Filter>src\System</Filter>
     </ClInclude>

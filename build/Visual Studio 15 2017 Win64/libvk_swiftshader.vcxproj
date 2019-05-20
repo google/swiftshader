@@ -263,6 +263,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\System\Resource.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Socket.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\Socket.hpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Synchronization.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Thread.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\Thread.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Timer.cpp" />

@@ -503,6 +503,9 @@
     <ClInclude Include="..\System\Socket.hpp">
       <Filter>Header Files\System</Filter>
     </ClInclude>
+    <ClInclude Include="..\System\Synchronization.hpp">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
     <ClInclude Include="..\System\Thread.hpp">
       <Filter>Header Files\System</Filter>
     </ClInclude>
