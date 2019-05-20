@@ -37,14 +37,13 @@ class Queue
 
 public:
 	Queue();
-	~Queue() = delete;
+	~Queue();
 
 	operator VkQueue()
 	{
 		return reinterpret_cast<VkQueue>(this);
 	}
 
-	void destroy();
 	VkResult submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
 	VkResult waitIdle();
 #ifndef __ANDROID__
