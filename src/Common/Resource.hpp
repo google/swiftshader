@@ -30,7 +30,7 @@ namespace sw
 	// Resource is a form of shared mutex that guards an internally allocated
 	// buffer. Resource has an exclusive lock mode (sw::Accessor) and lock
 	// count, defaulting to sw::Accessor::PUBLIC and 0, respectively.
-	// Resource does treat any of the sw::Accessor enumerator lock modes
+	// Resource doesn't treat any of the sw::Accessor enumerator lock modes
 	// differently, all semantic meaning comes from the usage of Resource.
 	// You can have multiple locks in mode sw::Accessor::EXCLUSIVE.
 	class Resource

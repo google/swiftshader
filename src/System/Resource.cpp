@@ -21,12 +21,6 @@ namespace sw
 {
 	Resource::Resource(size_t bytes) : size(bytes)
 	{
-		blocked = 0;
-
-		accessor = PUBLIC;
-		count = 0;
-		orphaned = false;
-
 		buffer = allocate(bytes);
 	}
 
@@ -37,144 +31,74 @@ namespace sw
 
 	void *Resource::lock(Accessor claimer)
 	{
-		criticalSection.lock();
-
-		while(count > 0 && accessor != claimer)
-		{
-			blocked++;
-			criticalSection.unlock();
-
-			unblock.wait();
-
-			criticalSection.lock();
-			blocked--;
-		}
-
-		accessor = claimer;
-		count++;
-
-		criticalSection.unlock();
-
-		return buffer;
+		std::unique_lock<std::mutex> lock(mutex);
+		return acquire(lock, claimer);
 	}
 
 	void *Resource::lock(Accessor relinquisher, Accessor claimer)
 	{
-		criticalSection.lock();
+		std::unique_lock<std::mutex> lock(mutex);
 
 		// Release
-		while(count > 0 && accessor == relinquisher)
+		if (count > 0 && accessor == relinquisher)
 		{
-			count--;
-
-			if(count == 0)
-			{
-				if(blocked)
-				{
-					unblock.signal();
-				}
-				else if(orphaned)
-				{
-					criticalSection.unlock();
-
-					delete this;
-
-					return 0;
-				}
-			}
+			release(lock);
 		}
 
 		// Acquire
-		while(count > 0 && accessor != claimer)
-		{
-			blocked++;
-			criticalSection.unlock();
-
-			unblock.wait();
-
-			criticalSection.lock();
-			blocked--;
-		}
-
-		accessor = claimer;
-		count++;
-
-		criticalSection.unlock();
+		acquire(lock, claimer);
 
 		return buffer;
 	}
 
 	void Resource::unlock()
 	{
-		criticalSection.lock();
+		std::unique_lock<std::mutex> lock(mutex);
+		release(lock);
+	}
+
+	void *Resource::acquire(std::unique_lock<std::mutex> &lock, Accessor claimer)
+	{
+		while (count > 0 && accessor != claimer)
+		{
+			blocked++;
+			released.wait(lock, [&] { return count == 0 || accessor == claimer; });
+			blocked--;
+		}
+
+		accessor = claimer;
+		count++;
+		return buffer;
+	}
+
+	void Resource::release(std::unique_lock<std::mutex> &lock)
+	{
 		ASSERT(count > 0);
 
 		count--;
 
 		if(count == 0)
 		{
-			if(blocked)
+			if(orphaned)
 			{
-				unblock.signal();
-			}
-			else if(orphaned)
-			{
-				criticalSection.unlock();
-
+				lock.unlock();
 				delete this;
-
 				return;
 			}
+			released.notify_one();
 		}
-
-		criticalSection.unlock();
-	}
-
-	void Resource::unlock(Accessor relinquisher)
-	{
-		criticalSection.lock();
-		ASSERT(count > 0);
-
-		while(count > 0 && accessor == relinquisher)
-		{
-			count--;
-
-			if(count == 0)
-			{
-				if(blocked)
-				{
-					unblock.signal();
-				}
-				else if(orphaned)
-				{
-					criticalSection.unlock();
-
-					delete this;
-
-					return;
-				}
-			}
-		}
-
-		criticalSection.unlock();
 	}
 
 	void Resource::destruct()
 	{
-		criticalSection.lock();
-
-		if(count == 0 && !blocked)
+		std::unique_lock<std::mutex> lock(mutex);
+		if(count == 0 && blocked == 0)
 		{
-			criticalSection.unlock();
-
+			lock.unlock();
 			delete this;
-
 			return;
 		}
-
 		orphaned = true;
-
-		criticalSection.unlock();
 	}
 
 	const void *Resource::data() const
