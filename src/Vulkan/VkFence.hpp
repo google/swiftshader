@@ -16,86 +16,68 @@
 #define VK_FENCE_HPP_
 
 #include "VkObject.hpp"
-#include <chrono>
-#include <condition_variable>
-#include <mutex>
+#include "System/Synchronization.hpp"
 
 namespace vk
 {
 
-using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
-
 class Fence : public Object<Fence, VkFence>
 {
 public:
-	Fence() : status(VK_NOT_READY) {}
+	Fence() : signaled(sw::Event::ClearMode::Manual, false) {}
 
 	Fence(const VkFenceCreateInfo* pCreateInfo, void* mem) :
-		status((pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) ? VK_SUCCESS : VK_NOT_READY)
-	{
-	}
+		signaled(sw::Event::ClearMode::Manual, (pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) != 0) {}
 
 	static size_t ComputeRequiredAllocationSize(const VkFenceCreateInfo* pCreateInfo)
 	{
 		return 0;
 	}
 
-	void add()
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		++count;
-	}
-
-	void done()
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		ASSERT(count > 0);
-		--count;
-		if(count == 0)
-		{
-			// signal the fence, without the unlock/lock required to call signal() here
-			status = VK_SUCCESS;
-			lock.unlock();
-			condition.notify_all();
-		}
-	}
-
 	void reset()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
-		ASSERT(count == 0);
-		status = VK_NOT_READY;
+		ASSERT_MSG(wg.count() == 0, "Fence::reset() called when work is in flight");
+		signaled.clear();
 	}
 
 	VkResult getStatus()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
-		auto out = status;
-		lock.unlock();
-		return out;
+		return signaled ? VK_SUCCESS : VK_NOT_READY;
 	}
 
 	VkResult wait()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
-		condition.wait(lock, [this] { return status == VK_SUCCESS; });
-		auto out = status;
-		lock.unlock();
-		return out;
+		signaled.wait();
+		return VK_SUCCESS;
 	}
 
-	VkResult waitUntil(const time_point& timeout_ns)
+    template <class CLOCK, class DURATION>
+	VkResult wait(const std::chrono::time_point<CLOCK, DURATION>& timeout)
 	{
-		std::unique_lock<std::mutex> lock(mutex);
-		return condition.wait_until(lock, timeout_ns, [this] { return status == VK_SUCCESS; }) ?
-		       VK_SUCCESS : VK_TIMEOUT;
+		return signaled.wait(timeout) ? VK_SUCCESS : VK_TIMEOUT;
+	}
+
+	void start()
+	{
+		ASSERT(!signaled);
+		wg.add();
+	}
+
+	void finish()
+	{
+		ASSERT(!signaled);
+		if (wg.done())
+		{
+			signaled.signal();
+		}
 	}
 
 private:
-	VkResult status = VK_NOT_READY; // guarded by mutex
-	int32_t count = 0; // guarded by mutex
-	std::mutex mutex;
-	std::condition_variable condition;
+	Fence(const Fence&) = delete;
+	Fence& operator = (const Fence&) = delete;
+
+	sw::WaitGroup wg;
+	sw::Event signaled;
 };
 
 static inline Fence* Cast(VkFence object)

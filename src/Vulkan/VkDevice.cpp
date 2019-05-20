@@ -119,6 +119,7 @@ VkQueue Device::getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const
 
 VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout)
 {
+	using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
 	const time_point start = now();
 	const uint64_t max_timeout = (LLONG_MAX - start.time_since_epoch().count());
 	bool infiniteTimeout = (timeout > max_timeout);
@@ -143,7 +144,7 @@ VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBo
 			}
 			else
 			{
-				if(Cast(pFences[i])->waitUntil(end_ns) != VK_SUCCESS) // At least one fence is not signaled
+				if(Cast(pFences[i])->wait(end_ns) != VK_SUCCESS) // At least one fence is not signaled
 				{
 					return VK_TIMEOUT;
 				}
@@ -176,7 +177,7 @@ VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBo
 				}
 				else
 				{
-					if(Cast(pFences[i])->waitUntil(end_ns) == VK_SUCCESS) // At least one fence is signaled
+					if(Cast(pFences[i])->wait(end_ns) == VK_SUCCESS) // At least one fence is signaled
 					{
 						return VK_SUCCESS;
 					}

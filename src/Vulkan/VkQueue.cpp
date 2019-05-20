@@ -106,7 +106,7 @@ VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFen
 
 	if(task.fence)
 	{
-		task.fence->add();
+		task.fence->start();
 	}
 
 	pending.put(task);
@@ -155,7 +155,7 @@ void Queue::submitQueue(const Task& task)
 		// TODO: fix renderer signaling so that work submitted separately from (but before) a fence
 		// is guaranteed complete by the time the fence signals.
 		renderer->synchronize();
-		task.fence->done();
+		task.fence->finish();
 	}
 }
 
@@ -184,7 +184,7 @@ VkResult Queue::waitIdle()
 {
 	// Wait for task queue to flush.
 	vk::Fence fence;
-	fence.add();
+	fence.start();
 
 	Task task;
 	task.fence = &fence;
