@@ -24,13 +24,28 @@
 namespace sw
 {
 
+// TaskEvents is an interface for notifying when tasks begin and end.
+// Tasks can be nested and/or overlapping.
+// TaskEvents is used for task queue synchronization.
+class TaskEvents
+{
+public:
+	// start() is called before a task begins.
+	virtual void start() = 0;
+	// finish() is called after a task ends. finish() must only be called after
+	// a corresponding call to start().
+	virtual void finish() = 0;
+	// complete() is a helper for calling start() followed by finish().
+	inline void complete() { start(); finish(); }
+};
+
 // WaitGroup is a synchronization primitive that allows you to wait for
 // collection of asynchronous tasks to finish executing.
 // Call add() before each task begins, and then call done() when after each task
 // is finished.
 // At the same time, wait() can be used to block until all tasks have finished.
 // WaitGroup takes its name after Golang's sync.WaitGroup.
-class WaitGroup
+class WaitGroup : public TaskEvents
 {
 public:
 	// add() begins a new task.
@@ -81,6 +96,10 @@ public:
 		std::unique_lock<std::mutex> lock(mutex);
 		return count_;
 	}
+
+	// TaskEvents compliance
+	void start() override { add(); }
+	void finish() override { done(); }
 
 private:
 	int32_t count_ = 0; // guarded by mutex
