@@ -183,14 +183,14 @@ void Queue::taskLoop()
 VkResult Queue::waitIdle()
 {
 	// Wait for task queue to flush.
-	vk::Fence fence;
-	fence.start();
+	sw::WaitGroup wg;
+	wg.add();
 
 	Task task;
-	task.events = &fence;
+	task.events = &wg;
 	pending.put(task);
 
-	fence.wait();
+	wg.wait();
 
 	garbageCollect();
 

@@ -75,6 +75,7 @@ public:
 
 private:
 	Fence(const Fence&) = delete;
+	~Fence() = delete;
 	Fence& operator = (const Fence&) = delete;
 
 	sw::WaitGroup wg;
