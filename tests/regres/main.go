@@ -76,6 +76,7 @@ var (
 	keepCheckouts = flag.Bool("keep", false, "don't delete checkout directories after use")
 	dryRun        = flag.Bool("dry", false, "don't post regres reports to gerrit")
 	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
+	dailyNow      = flag.Bool("dailynow", false, "Start by running the daily pass")
 )
 
 func main() {
@@ -96,6 +97,7 @@ func main() {
 		gerritPass:    os.ExpandEnv(*gerritPass),
 		keepCheckouts: *keepCheckouts,
 		dryRun:        *dryRun,
+		dailyNow:      *dailyNow,
 	}
 
 	if err := r.run(); err != nil {
@@ -115,6 +117,7 @@ type regres struct {
 	keepCheckouts bool   // don't delete source & build checkouts after testing
 	dryRun        bool   // don't post any reviews
 	maxProcMemory uint64 // max virtual memory for child processes
+	dailyNow      bool   // start with a daily run
 }
 
 // resolveDirs ensures that the necessary directories used can be found, and
@@ -193,6 +196,10 @@ func (r *regres) run() error {
 	changes := map[string]*changeInfo{} // Change ID -> changeInfo
 	lastUpdatedTestLists := toDate(time.Now())
 	lastQueriedChanges := time.Time{}
+
+	if r.dailyNow {
+		lastUpdatedTestLists = date{}
+	}
 
 	for {
 		if now := time.Now(); toDate(now) != lastUpdatedTestLists && now.Hour() >= dailyUpdateTestListHour {
