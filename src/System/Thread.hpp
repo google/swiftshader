@@ -15,6 +15,8 @@
 #ifndef sw_Thread_hpp
 #define sw_Thread_hpp
 
+#include "Synchronization.hpp"
+
 #if defined(_WIN32)
 	#ifndef WIN32_LEAN_AND_MEAN
 		#define WIN32_LEAN_AND_MEAN
@@ -45,8 +47,6 @@
 
 namespace sw
 {
-	class Event;
-
 	class Thread
 	{
 	public:
@@ -88,28 +88,6 @@ namespace sw
 		#endif
 
 		bool hasJoined = false;
-	};
-
-	class Event
-	{
-		friend class Thread;
-
-	public:
-		Event();
-
-		~Event();
-
-		void signal();
-		void wait();
-
-	private:
-		#if defined(_WIN32)
-			HANDLE handle;
-		#else
-			pthread_cond_t handle;
-			pthread_mutex_t mutex;
-			volatile bool signaled;
-		#endif
 	};
 
 	#if PERF_PROFILE
@@ -207,30 +185,6 @@ namespace sw
 			TlsSetValue(key, nullptr);
 		#else
 			pthread_setspecific(key, nullptr);
-		#endif
-	}
-
-	inline void Event::signal()
-	{
-		#if defined(_WIN32)
-			SetEvent(handle);
-		#else
-			pthread_mutex_lock(&mutex);
-			signaled = true;
-			pthread_cond_signal(&handle);
-			pthread_mutex_unlock(&mutex);
-		#endif
-	}
-
-	inline void Event::wait()
-	{
-		#if defined(_WIN32)
-			WaitForSingleObject(handle, INFINITE);
-		#else
-			pthread_mutex_lock(&mutex);
-			while(!signaled) pthread_cond_wait(&handle, &mutex);
-			signaled = false;
-			pthread_mutex_unlock(&mutex);
 		#endif
 	}
 

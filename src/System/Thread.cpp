@@ -67,25 +67,4 @@ namespace sw
 			return nullptr;
 		}
 	#endif
-
-	Event::Event()
-	{
-		#if defined(_WIN32)
-			handle = CreateEvent(NULL, FALSE, FALSE, NULL);
-		#else
-			pthread_cond_init(&handle, NULL);
-			pthread_mutex_init(&mutex, NULL);
-			signaled = false;
-		#endif
-	}
-
-	Event::~Event()
-	{
-		#if defined(_WIN32)
-			CloseHandle(handle);
-		#else
-			pthread_cond_destroy(&handle);
-			pthread_mutex_destroy(&mutex);
-		#endif
-	}
 }
