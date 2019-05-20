@@ -102,11 +102,11 @@ VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFen
 	Task task;
 	task.submitCount = submitCount;
 	task.pSubmits = DeepCopySubmitInfo(submitCount, pSubmits);
-	task.fence = (fence != VK_NULL_HANDLE) ? vk::Cast(fence) : nullptr;
+	task.events = (fence != VK_NULL_HANDLE) ? vk::Cast(fence) : nullptr;
 
-	if(task.fence)
+	if(task.events)
 	{
-		task.fence->start();
+		task.events->start();
 	}
 
 	pending.put(task);
@@ -132,7 +132,7 @@ void Queue::submitQueue(const Task& task)
 		{
 			CommandBuffer::ExecutionState executionState;
 			executionState.renderer = renderer.get();
-			executionState.fence = task.fence;
+			executionState.events = task.events;
 			for(uint32_t j = 0; j < submitInfo.commandBufferCount; j++)
 			{
 				vk::Cast(submitInfo.pCommandBuffers[j])->submit(executionState);
@@ -150,12 +150,12 @@ void Queue::submitQueue(const Task& task)
 		toDelete.put(task.pSubmits);
 	}
 
-	if(task.fence)
+	if(task.events)
 	{
 		// TODO: fix renderer signaling so that work submitted separately from (but before) a fence
 		// is guaranteed complete by the time the fence signals.
 		renderer->synchronize();
-		task.fence->finish();
+		task.events->finish();
 	}
 }
 
@@ -187,7 +187,7 @@ VkResult Queue::waitIdle()
 	fence.start();
 
 	Task task;
-	task.fence = &fence;
+	task.events = &fence;
 	pending.put(task);
 
 	fence.wait();

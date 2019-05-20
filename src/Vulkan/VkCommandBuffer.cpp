@@ -601,7 +601,7 @@ struct DrawBase : public CommandBuffer::Command
 			{
 				const uint32_t primitiveCount = indexBuffer.first;
 				context.indexBuffer = indexBuffer.second;
-				executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset, executionState.fence);
+				executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset, executionState.events);
 			}
 
 			executionState.renderer->advanceInstanceAttributes(context.input);

@@ -26,12 +26,12 @@ namespace sw
 {
 	class Context;
 	class Renderer;
+	class TaskEvents;
 }
 
 namespace vk
 {
 
-class Fence;
 class Framebuffer;
 class Pipeline;
 class RenderPass;
@@ -133,7 +133,7 @@ public:
 		};
 
 		sw::Renderer* renderer = nullptr;
-		Fence* fence = nullptr;
+		sw::TaskEvents* events = nullptr;
 		RenderPass* renderPass = nullptr;
 		Framebuffer* renderPassFramebuffer = nullptr;
 		std::array<PipelineState, VK_PIPELINE_BIND_POINT_RANGE_SIZE> pipelineState;
