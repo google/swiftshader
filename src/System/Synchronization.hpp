@@ -52,7 +52,6 @@ private:
 	std::queue<T> queue;
 	std::mutex mutex;
 	std::condition_variable added;
-	std::condition_variable removed;
 };
 
 template <typename T>
@@ -62,15 +61,10 @@ template <typename T>
 T Chan<T>::take()
 {
 	std::unique_lock<std::mutex> lock(mutex);
-	if (queue.size() == 0)
-	{
-		// Chan empty. Wait for item to be added.
-		added.wait(lock, [this] { return queue.size() > 0; });
-	}
+	// Wait for item to be added.
+	added.wait(lock, [this] { return queue.size() > 0; });
 	T out = queue.front();
 	queue.pop();
-	lock.unlock();
-	removed.notify_one();
 	return out;
 }
 
@@ -84,8 +78,6 @@ std::pair<T, bool> Chan<T>::tryTake()
 	}
 	T out = queue.front();
 	queue.pop();
-	lock.unlock();
-	removed.notify_one();
 	return std::make_pair(out, true);
 }
 
@@ -102,9 +94,7 @@ template <typename T>
 size_t Chan<T>::count()
 {
 	std::unique_lock<std::mutex> lock(mutex);
-	auto out = queue.size();
-	lock.unlock();
-	return out;
+	return queue.size();
 }
 
 } // namespace sw
