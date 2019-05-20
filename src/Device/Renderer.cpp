@@ -301,6 +301,8 @@ namespace sw
 
 	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex, vk::Fence* fence, bool update)
 	{
+		if(count == 0) { return; }
+
 		#ifndef NDEBUG
 			if(count < minPrimitives || count > maxPrimitives)
 			{
