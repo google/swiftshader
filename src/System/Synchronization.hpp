@@ -15,6 +15,7 @@
 #ifndef sw_Synchronization_hpp
 #define sw_Synchronization_hpp
 
+#include <assert.h>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -22,6 +23,70 @@
 
 namespace sw
 {
+
+// WaitGroup is a synchronization primitive that allows you to wait for
+// collection of asynchronous tasks to finish executing.
+// Call add() before each task begins, and then call done() when after each task
+// is finished.
+// At the same time, wait() can be used to block until all tasks have finished.
+// WaitGroup takes its name after Golang's sync.WaitGroup.
+class WaitGroup
+{
+public:
+	// add() begins a new task.
+	void add()
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		++count_;
+	}
+
+	// done() is called when a task of the WaitGroup has been completed.
+	// Returns true if there are no more tasks currently running in the
+	// WaitGroup.
+	bool done()
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		assert(count_ > 0);
+		--count_;
+		if(count_ == 0)
+		{
+			condition.notify_all();
+		}
+		return count_ == 0;
+	}
+
+	// wait() blocks until all the tasks have been finished.
+	void wait()
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		condition.wait(lock, [this] { return count_ == 0; });
+	}
+
+	// wait() blocks until all the tasks have been finished or the timeout
+	// has been reached, returning true if all tasks have been completed, or
+	// false if the timeout has been reached.
+	template <class CLOCK, class DURATION>
+	bool wait(const std::chrono::time_point<CLOCK, DURATION>& timeout)
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		return condition.wait_until(lock, timeout, [this] { return count_ == 0; });
+	}
+
+	// count() returns the number of times add() has been called without a call
+	// to done().
+	// Note: No lock is held after count() returns, so the count may immediately
+	// change after returning.
+	int32_t count()
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		return count_;
+	}
+
+private:
+	int32_t count_ = 0; // guarded by mutex
+	std::mutex mutex;
+	std::condition_variable condition;
+};
 
 // Event is a synchronization mechanism used to indicate to waiting threads
 // when a boolean condition has become true.
