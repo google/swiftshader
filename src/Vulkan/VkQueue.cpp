@@ -74,10 +74,8 @@ VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubm
 namespace vk
 {
 
-Queue::Queue()
+Queue::Queue() : renderer(sw::OpenGL, true)
 {
-	renderer.reset(new sw::Renderer(sw::OpenGL, true));
-
 	queueThread = std::thread(TaskLoop, this);
 }
 
@@ -129,7 +127,7 @@ void Queue::submitQueue(const Task& task)
 
 		{
 			CommandBuffer::ExecutionState executionState;
-			executionState.renderer = renderer.get();
+			executionState.renderer = &renderer;
 			executionState.events = task.events;
 			for(uint32_t j = 0; j < submitInfo.commandBufferCount; j++)
 			{
@@ -152,7 +150,7 @@ void Queue::submitQueue(const Task& task)
 	{
 		// TODO: fix renderer signaling so that work submitted separately from (but before) a fence
 		// is guaranteed complete by the time the fence signals.
-		renderer->synchronize();
+		renderer.synchronize();
 		task.events->finish();
 	}
 }
