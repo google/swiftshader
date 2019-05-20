@@ -77,6 +77,7 @@ var (
 	dryRun        = flag.Bool("dry", false, "don't post regres reports to gerrit")
 	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
 	dailyNow      = flag.Bool("dailynow", false, "Start by running the daily pass")
+	priority      = flag.String("priority", "", "Prioritize a single change with the given id")
 )
 
 func main() {
@@ -98,6 +99,7 @@ func main() {
 		keepCheckouts: *keepCheckouts,
 		dryRun:        *dryRun,
 		dailyNow:      *dailyNow,
+		priority:      *priority,
 	}
 
 	if err := r.run(); err != nil {
@@ -118,6 +120,7 @@ type regres struct {
 	dryRun        bool   // don't post any reviews
 	maxProcMemory uint64 // max virtual memory for child processes
 	dailyNow      bool   // start with a daily run
+	priority      string // Prioritize a single change with the given id
 }
 
 // resolveDirs ensures that the necessary directories used can be found, and
@@ -225,6 +228,13 @@ func (r *regres) run() error {
 				if err != nil {
 					log.Println(cause.Wrap(err, "Couldn't update info for change '%s'", change.id))
 				}
+			}
+		}
+
+		for _, c := range changes {
+			if c.pending && r.priority == c.id {
+				log.Printf("Prioritizing change '%s'\n", c.id)
+				c.priority = 1e6
 			}
 		}
 
