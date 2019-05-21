@@ -1,5 +1,7 @@
 {
 global:
+	vkGetInstanceProcAddr;
+
 	# Loader-ICD interface functions
 	vk_icdGetInstanceProcAddr;
 	vk_icdNegotiateLoaderICDInterfaceVersion;

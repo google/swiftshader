@@ -19,6 +19,7 @@
 #include "Vulkan/VkImage.hpp"
 #include "libX11.hpp"
 #include "VkSurfaceKHR.hpp"
+#include "vulkan/vulkan_xlib.h"
 
 #include <map>
 

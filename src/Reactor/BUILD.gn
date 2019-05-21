@@ -18,148 +18,7 @@ declare_args() {
   # Subzero produces smaller binaries, but doesn't support ARM64 and MIPS64.
   use_swiftshader_with_subzero =
       target_cpu != "arm64" && target_cpu != "mips64el"
-}
-
-# Need a separate config to ensure the warnings are added to the end.
-config("swiftshader_subzero_common_private_config") {
-  defines = [
-    "ALLOW_DUMP=0",
-    "ALLOW_TIMERS=0",
-    "ALLOW_LLVM_CL=0",
-    "ALLOW_LLVM_IR=0",
-    "ALLOW_LLVM_IR_AS_INPUT=0",
-    "ALLOW_MINIMAL_BUILD=0",
-    "ALLOW_WASM=0",
-    "ICE_THREAD_LOCAL_HACK=0",
-  ]
-
-  if (is_win) {
-    defines += [ "SUBZERO_USE_MICROSOFT_ABI" ]
-  }
-
-  if (target_cpu == "x64") {
-    defines += [
-      "SZTARGET=X8664",
-      "SUBZERO_TARGET=X8664",
-    ]
-  } else if (target_cpu == "x86") {
-    defines += [
-      "SZTARGET=X8632",
-      "SUBZERO_TARGET=X8632",
-    ]
-  } else if (target_cpu == "mipsel") {
-    defines += [
-      "SZTARGET=MIPS32",
-      "SUBZERO_TARGET=MIPS32",
-    ]
-  } else if (target_cpu == "arm") {
-    defines += [
-      "SZTARGET=ARM32",
-      "SUBZERO_TARGET=ARM32",
-    ]
-  }
-
-  include_dirs = [
-    "../../third_party/subzero",
-    "../../third_party/subzero/pnacl-llvm/include/",
-    "../../third_party/llvm-subzero/include/",
-  ]
-
-  if (is_win) {
-    include_dirs += [ "../../third_party/llvm-subzero/build/Windows/include/" ]
-  } else if (is_linux) {
-    include_dirs += [ "../../third_party/llvm-subzero/build/Linux/include/" ]
-  } else if (is_fuchsia) {
-    include_dirs += [ "../../third_party/llvm-subzero/build/Fuchsia/include/" ]
-  } else if (is_mac) {
-    include_dirs += [ "../../third_party/llvm-subzero/build/MacOS/include/" ]
-  }
-}
-
-config("swiftshader_subzero_private_config") {
-  cflags = []
-
-  if (is_win) {
-    cflags += [
-      "/wd4005",
-      "/wd4018",
-      "/wd4141",
-      "/wd4146",
-      "/wd4245",  # conversion from int to unsigned int (llvm)
-      "/wd4267",
-      "/wd4291",
-      "/wd4310",
-      "/wd4334",
-      "/wd4389",
-      "/wd4701",
-      "/wd4702",
-      "/wd4703",
-      "/wd4706",
-      "/wd4800",
-    ]
-
-    if (!is_debug) {
-      cflags += [ "/wd4718" ]
-    }
-
-    if (is_clang) {
-      if (is_debug) {
-        cflags += [ "-Wno-sign-compare" ]
-      }
-    }
-  } else if (is_linux || is_mac || is_fuchsia) {
-    cflags += [ "-Wno-macro-redefined" ]
-  }
-
-  if (is_clang) {
-    cflags += [
-      "-Wno-header-hygiene",
-      "-Wno-enum-compare-switch",
-      "-Wno-unused-lambda-capture",
-    ]
-  }
-
-  if (is_fuchsia) {
-    cflags += [ "-Wno-error" ]
-  }
-}
-
-config("swiftshader_reactor_with_subzero_private_config") {
-  cflags = []
-
-  if (is_win) {
-    cflags += [
-      "/wd4141",
-      "/wd4146",
-      "/wd4245",  # conversion from int to unsigned int (llvm)
-      "/wd4267",
-      "/wd4291",
-      "/wd4309",
-      "/wd4702",
-      "/wd4800",
-    ]
-
-    if (use_swiftshader_with_subzero) {
-      cflags += [
-        "/wd4018",  # signed/unsigned mismatch (llvm)
-        "/wd4310",  # cast truncates constant value (llvm)
-      ]
-    }
-
-    if (is_clang) {
-      if (is_debug) {
-        cflags += [ "-Wno-sign-compare" ]
-      }
-    }
-  }
-
-  if (is_clang) {
-    cflags += [ "-Wno-header-hygiene" ]
-  }
-
-  if (is_fuchsia) {
-    cflags += [ "-Wno-error" ]
-  }
+  supports_llvm = is_linux || is_fuchsia || is_win || is_android
 }
 
 config("swiftshader_reactor_private_config") {
@@ -176,12 +35,167 @@ config("swiftshader_reactor_private_config") {
     ]
 
     if (target_cpu == "x86" || target_cpu == "x64") {
-        cflags += [ "-msse2" ]
+      cflags += [ "-msse2" ]
     }
   }
 }
 
+swiftshader_source_set("swiftshader_reactor_base") {
+  deps = [
+    "../OpenGL/common:swiftshader_opengl_common",
+  ]
+
+  sources = [
+    "Debug.cpp",
+    "ExecutableMemory.cpp",
+    "Reactor.cpp",
+    "Routine.cpp",
+  ]
+}
+
 if (use_swiftshader_with_subzero) {
+  # Need a separate config to ensure the warnings are added to the end.
+  config("swiftshader_subzero_common_private_config") {
+    defines = [
+      "ALLOW_DUMP=0",
+      "ALLOW_TIMERS=0",
+      "ALLOW_LLVM_CL=0",
+      "ALLOW_LLVM_IR=0",
+      "ALLOW_LLVM_IR_AS_INPUT=0",
+      "ALLOW_MINIMAL_BUILD=0",
+      "ALLOW_WASM=0",
+      "ICE_THREAD_LOCAL_HACK=0",
+    ]
+
+    if (is_win) {
+      defines += [ "SUBZERO_USE_MICROSOFT_ABI" ]
+    }
+
+    if (target_cpu == "x64") {
+      defines += [
+        "SZTARGET=X8664",
+        "SUBZERO_TARGET=X8664",
+      ]
+    } else if (target_cpu == "x86") {
+      defines += [
+        "SZTARGET=X8632",
+        "SUBZERO_TARGET=X8632",
+      ]
+    } else if (target_cpu == "mipsel") {
+      defines += [
+        "SZTARGET=MIPS32",
+        "SUBZERO_TARGET=MIPS32",
+      ]
+    } else if (target_cpu == "arm") {
+      defines += [
+        "SZTARGET=ARM32",
+        "SUBZERO_TARGET=ARM32",
+      ]
+    }
+
+    include_dirs = [
+      "../../third_party/subzero",
+      "../../third_party/subzero/pnacl-llvm/include/",
+      "../../third_party/llvm-subzero/include/",
+    ]
+
+    if (is_win) {
+      include_dirs +=
+          [ "../../third_party/llvm-subzero/build/Windows/include/" ]
+    } else if (is_linux) {
+      include_dirs += [ "../../third_party/llvm-subzero/build/Linux/include/" ]
+    } else if (is_fuchsia) {
+      include_dirs +=
+          [ "../../third_party/llvm-subzero/build/Fuchsia/include/" ]
+    } else if (is_mac) {
+      include_dirs += [ "../../third_party/llvm-subzero/build/MacOS/include/" ]
+    }
+  }
+
+  config("swiftshader_subzero_private_config") {
+    cflags = []
+
+    if (is_win) {
+      cflags += [
+        "/wd4005",
+        "/wd4018",
+        "/wd4141",
+        "/wd4146",
+        "/wd4245",  # conversion from int to unsigned int (llvm)
+        "/wd4267",
+        "/wd4291",
+        "/wd4310",
+        "/wd4334",
+        "/wd4389",
+        "/wd4701",
+        "/wd4702",
+        "/wd4703",
+        "/wd4706",
+        "/wd4800",
+      ]
+
+      if (!is_debug) {
+        cflags += [ "/wd4718" ]
+      }
+
+      if (is_clang) {
+        if (is_debug) {
+          cflags += [ "-Wno-sign-compare" ]
+        }
+      }
+    } else if (is_linux || is_mac || is_fuchsia) {
+      cflags += [ "-Wno-macro-redefined" ]
+    }
+
+    if (is_clang) {
+      cflags += [
+        "-Wno-header-hygiene",
+        "-Wno-enum-compare-switch",
+        "-Wno-unused-lambda-capture",
+      ]
+    }
+
+    if (is_fuchsia) {
+      cflags += [ "-Wno-error" ]
+    }
+  }
+
+  config("swiftshader_reactor_with_subzero_private_config") {
+    cflags = []
+
+    if (is_win) {
+      cflags += [
+        "/wd4141",
+        "/wd4146",
+        "/wd4245",  # conversion from int to unsigned int (llvm)
+        "/wd4267",
+        "/wd4291",
+        "/wd4309",
+        "/wd4702",
+        "/wd4800",
+      ]
+
+      cflags += [
+        "/wd4018",  # signed/unsigned mismatch (llvm)
+        "/wd4310",  # cast truncates constant value (llvm)
+      ]
+
+      if (is_clang) {
+        if (is_debug) {
+          cflags += [ "-Wno-sign-compare" ]
+        }
+      }
+    }
+
+    if (is_clang) {
+      cflags += [ "-Wno-header-hygiene" ]
+    }
+
+    if (is_fuchsia) {
+      cflags += [ "-Wno-error" ]
+    }
+  }
+
   swiftshader_source_set("swiftshader_subzero") {
     subzero_dir = "../../third_party/subzero"
     subzero_llvm_dir = "../../third_party/llvm-subzero"
@@ -286,24 +300,13 @@ if (use_swiftshader_with_subzero) {
       ":swiftshader_subzero_private_config",
     ]
   }
-}
+  swiftshader_source_set("swiftshader_subzero_reactor") {
+    deps = [
+      ":swiftshader_reactor_base",
+      ":swiftshader_subzero",
+    ]
 
-swiftshader_source_set("swiftshader_reactor") {
-  deps = [
-    "../OpenGL/common:swiftshader_opengl_common",
-  ]
-
-  sources = [
-    "Reactor.cpp",
-    "Routine.cpp",
-    "Debug.cpp",
-    "ExecutableMemory.cpp",
-  ]
-
-  if (use_swiftshader_with_subzero) {
-    deps += [ ":swiftshader_subzero" ]
-
-    sources += [
+    sources = [
       "Optimizer.cpp",
       "SubzeroReactor.cpp",
     ]
@@ -312,18 +315,22 @@ swiftshader_source_set("swiftshader_reactor") {
       ":swiftshader_subzero_common_private_config",
       ":swiftshader_reactor_with_subzero_private_config",
     ]
+  }
+}
 
-    include_dirs = [
-    ]
-  } else {
+if (supports_llvm) {
+  swiftshader_source_set("swiftshader_llvm_reactor") {
     llvm7_dir = "../../third_party/llvm-7.0"
 
-    deps += [ "$llvm7_dir:swiftshader_llvm" ]
+    deps = [
+      ":swiftshader_reactor_base",
+      "$llvm7_dir:swiftshader_llvm",
+    ]
 
-    sources += [
+    sources = [
+      "CPUID.cpp",
       "LLVMReactor.cpp",
       "LLVMRoutine.cpp",
-      "CPUID.cpp",
     ]
 
     configs = [ ":swiftshader_reactor_private_config" ]
@@ -344,5 +351,17 @@ swiftshader_source_set("swiftshader_reactor") {
     } else {
       assert(false, "llvm-7.0 not configured for target platform")
     }
+  }
+}
+
+swiftshader_source_set("swiftshader_reactor") {
+  if (use_swiftshader_with_subzero) {
+    deps = [
+      ":swiftshader_subzero_reactor",
+    ]
+  } else {
+    deps = [
+      ":swiftshader_llvm_reactor",
+    ]
   }
 }
