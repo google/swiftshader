@@ -1,11 +1,12 @@
-dEQP-VK.api.copy_and_blit.core.blit_image.all_formats.color.e5b9g9r9_ufloat_pack32.r8_unorm.optimal_optimal_linear
 dEQP-VK.draw.basic_draw.draw.line_strip.1
 dEQP-VK.draw.basic_draw.draw.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw.triangle_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.line_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_strip.1
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_single_command
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_single_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_single_command

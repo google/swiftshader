@@ -5,8 +5,6 @@ dEQP-VK.draw.inverted_depth_ranges.nodepthclamp_deltasmall
 dEQP-VK.glsl.440.linkage.varying.component.vert_in.ivec2.as_int_int_unused
 dEQP-VK.glsl.atomic_operations.max_unsigned_compute
 dEQP-VK.glsl.atomic_operations.min_unsigned_compute
-dEQP-VK.glsl.builtin.precision.modf.highp_compute
-dEQP-VK.glsl.builtin.precision.modf.mediump_compute
 dEQP-VK.glsl.builtin_var.simple.pointcoord
 dEQP-VK.glsl.texture_functions.texturegrad.sampler1d_fixed_vertex
 dEQP-VK.glsl.texture_functions.texturegrad.sampler1d_float_vertex

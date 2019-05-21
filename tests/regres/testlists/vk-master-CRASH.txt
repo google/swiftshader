@@ -1,8 +1,4 @@
-dEQP-VK.api.object_management.multithreaded_per_thread_device.compute_pipeline
-dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_multi_command
-dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_multi_command
 dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_multi_command
-dEQP-VK.glsl.texture_functions.texture.samplercube_fixed_vertex
 dEQP-VK.memory.pipeline_barrier.host_write_uniform_texel_buffer.1048576
 dEQP-VK.memory.pipeline_barrier.host_write_uniform_texel_buffer.65536
 dEQP-VK.memory.pipeline_barrier.transfer_dst_uniform_texel_buffer.1048576
