@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains a number of synchronization primitives for concurrency.
+//
+// You may be tempted to change this code to unlock the mutex before calling
+// std::condition_variable::notify_[one,all]. Please read
+// https://issuetracker.google.com/issues/133135427 before making this sort of
+// change.
+
 #ifndef sw_Synchronization_hpp
 #define sw_Synchronization_hpp
 
