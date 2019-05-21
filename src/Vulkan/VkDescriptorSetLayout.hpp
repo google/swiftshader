@@ -73,7 +73,6 @@ class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLa
 {
 public:
 	DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo* pCreateInfo, void* mem);
-	~DescriptorSetLayout() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo* pCreateInfo);

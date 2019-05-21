@@ -26,7 +26,6 @@ class BufferView : public Object<BufferView, VkBufferView>
 {
 public:
 	BufferView(const VkBufferViewCreateInfo* pCreateInfo, void* mem);
-	~BufferView() = delete;
 
 	static size_t ComputeRequiredAllocationSize(const VkBufferViewCreateInfo* pCreateInfo)
 	{

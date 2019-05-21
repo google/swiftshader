@@ -24,7 +24,6 @@ class PipelineLayout : public Object<PipelineLayout, VkPipelineLayout>
 {
 public:
 	PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, void* mem);
-	~PipelineLayout() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo* pCreateInfo);

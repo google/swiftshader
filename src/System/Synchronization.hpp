@@ -44,6 +44,9 @@ public:
 	virtual void finish() = 0;
 	// complete() is a helper for calling start() followed by finish().
 	inline void complete() { start(); finish(); }
+
+protected:
+	virtual ~TaskEvents() = default;
 };
 
 // WaitGroup is a synchronization primitive that allows you to wait for

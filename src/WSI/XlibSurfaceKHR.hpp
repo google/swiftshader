@@ -29,8 +29,6 @@ class XlibSurfaceKHR : public SurfaceKHR, public ObjectBase<XlibSurfaceKHR, VkSu
 public:
 	XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
-	~XlibSurfaceKHR() = delete;
-
 	void destroySurface(const VkAllocationCallbacks *pAllocator) override;
 
 	static size_t ComputeRequiredAllocationSize(const VkXlibSurfaceCreateInfoKHR *pCreateInfo);

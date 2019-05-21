@@ -29,8 +29,6 @@ public:
 	{
 	}
 
-	~Event() = delete;
-
 	static size_t ComputeRequiredAllocationSize(const VkEventCreateInfo* pCreateInfo)
 	{
 		return 0;

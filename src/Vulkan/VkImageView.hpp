@@ -34,7 +34,6 @@ public:
 	enum Usage { RAW, SAMPLING };
 
 	ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem);
-	~ImageView() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkImageViewCreateInfo* pCreateInfo);

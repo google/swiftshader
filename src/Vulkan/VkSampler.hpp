@@ -46,8 +46,6 @@ public:
 	{
 	}
 
-	~Sampler() = delete;
-
 	static size_t ComputeRequiredAllocationSize(const VkSamplerCreateInfo* pCreateInfo)
 	{
 		return 0;

@@ -34,6 +34,7 @@ class Pipeline
 {
 public:
 	Pipeline(PipelineLayout const *layout);
+	virtual ~Pipeline() = default;
 
 	operator VkPipeline()
 	{
@@ -60,7 +61,6 @@ class GraphicsPipeline : public Pipeline, public ObjectBase<GraphicsPipeline, Vk
 {
 public:
 	GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem);
-	~GraphicsPipeline() = delete;
 	void destroyPipeline(const VkAllocationCallbacks* pAllocator) override;
 
 #ifndef NDEBUG
@@ -98,7 +98,6 @@ class ComputePipeline : public Pipeline, public ObjectBase<ComputePipeline, VkPi
 {
 public:
 	ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem);
-	~ComputePipeline() = delete;
 	void destroyPipeline(const VkAllocationCallbacks* pAllocator) override;
 
 #ifndef NDEBUG

@@ -34,7 +34,6 @@ public:
 	};
 
 	Image(const CreateInfo* pCreateInfo, void* mem);
-	~Image() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const CreateInfo* pCreateInfo);

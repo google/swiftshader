@@ -72,12 +72,6 @@ public:
 
 	void destroy(const VkAllocationCallbacks* pAllocator) {} // Method defined by objects to delete their content, if necessary
 
-	void operator delete(void* ptr, const VkAllocationCallbacks* pAllocator)
-	{
-		// Should never happen
-		ASSERT(false);
-	}
-
 	template<typename CreateInfo>
 	static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject)
 	{
@@ -85,10 +79,6 @@ public:
 	}
 
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_OBJECT; }
-
-protected:
-	// All derived classes should have deleted destructors
-	~ObjectBase() {}
 };
 
 template<typename T, typename VkT>
@@ -114,8 +104,6 @@ public:
 	DispatchableObject(Args... args) : object(args...)
 	{
 	}
-
-	~DispatchableObject() = delete;
 
 	void destroy(const VkAllocationCallbacks* pAllocator)
 	{

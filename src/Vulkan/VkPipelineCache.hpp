@@ -24,7 +24,6 @@ class PipelineCache : public Object<PipelineCache, VkPipelineCache>
 {
 public:
 	PipelineCache(const VkPipelineCacheCreateInfo* pCreateInfo, void* mem);
-	~PipelineCache() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkPipelineCacheCreateInfo* pCreateInfo);

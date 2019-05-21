@@ -26,7 +26,6 @@ class RenderPass : public Object<RenderPass, VkRenderPass>
 {
 public:
 	RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem);
-	~RenderPass() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* pCreateInfo);

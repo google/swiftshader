@@ -24,7 +24,6 @@ namespace vk
 	{
 	public:
 		DescriptorPool(const VkDescriptorPoolCreateInfo* pCreateInfo, void* mem);
-		~DescriptorPool() = delete;
 		void destroy(const VkAllocationCallbacks* pAllocator);
 
 		static size_t ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo* pCreateInfo);

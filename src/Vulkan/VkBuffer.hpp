@@ -24,7 +24,6 @@ class Buffer : public Object<Buffer, VkBuffer>
 {
 public:
 	Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem);
-	~Buffer() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkBufferCreateInfo* pCreateInfo);

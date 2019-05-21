@@ -24,7 +24,6 @@ class DeviceMemory : public Object<DeviceMemory, VkDeviceMemory>
 {
 public:
 	DeviceMemory(const VkMemoryAllocateInfo* pCreateInfo, void* mem);
-	~DeviceMemory() = delete;
 
 	static size_t ComputeRequiredAllocationSize(const VkMemoryAllocateInfo* pCreateInfo);
 

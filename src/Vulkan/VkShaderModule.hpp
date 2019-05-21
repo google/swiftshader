@@ -30,7 +30,6 @@ class ShaderModule : public Object<ShaderModule, VkShaderModule>
 {
 public:
 	ShaderModule(const VkShaderModuleCreateInfo* pCreateInfo, void* mem);
-	~ShaderModule() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkShaderModuleCreateInfo* pCreateInfo);

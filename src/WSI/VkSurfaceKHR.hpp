@@ -40,6 +40,8 @@ struct PresentImage
 class SurfaceKHR
 {
 public:
+	virtual ~SurfaceKHR() = default;
+
 	operator VkSurfaceKHR()
 	{
 		return reinterpret_cast<VkSurfaceKHR::HandleType>(this);

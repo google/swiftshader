@@ -25,7 +25,6 @@ namespace vk
 	{
 	public:
 		DescriptorUpdateTemplate(const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo, void* mem);
-		~DescriptorUpdateTemplate() = delete;
 
 		static size_t ComputeRequiredAllocationSize(const VkDescriptorUpdateTemplateCreateInfo* info);
 

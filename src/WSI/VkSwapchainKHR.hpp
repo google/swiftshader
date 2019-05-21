@@ -29,7 +29,6 @@ class SwapchainKHR : public Object<SwapchainKHR, VkSwapchainKHR>
 {
 public:
 	SwapchainKHR(const VkSwapchainCreateInfoKHR* pCreateInfo, void* mem);
-	~SwapchainKHR() = delete;
 
 	void destroy(const VkAllocationCallbacks* pAllocator);
 

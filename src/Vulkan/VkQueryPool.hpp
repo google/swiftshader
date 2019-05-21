@@ -44,7 +44,6 @@ class QueryPool : public Object<QueryPool, VkQueryPool>
 {
 public:
 	QueryPool(const VkQueryPoolCreateInfo* pCreateInfo, void* mem);
-	~QueryPool() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo* pCreateInfo);
@@ -54,7 +53,7 @@ public:
 	void begin(uint32_t query, VkQueryControlFlags flags);
 	void end(uint32_t query);
 	void reset(uint32_t firstQuery, uint32_t queryCount);
-	
+
 	void writeTimestamp(uint32_t query);
 
 	inline Query* getQuery(uint32_t query) const { return &(pool[query]); }
