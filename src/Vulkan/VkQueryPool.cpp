@@ -123,6 +123,7 @@ namespace vk
 			UNIMPLEMENTED("flags");
 		}
 
+		std::unique_lock<std::mutex> lock(pool[query].mutex);
 		ASSERT(pool[query].state == Query::UNAVAILABLE);
 		pool[query].state = Query::ACTIVE;
 		pool[query].data = 0;
