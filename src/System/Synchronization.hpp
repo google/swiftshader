@@ -273,7 +273,6 @@ void Chan<T>::put(const T &item)
 {
 	std::unique_lock<std::mutex> lock(mutex);
 	queue.push(item);
-	lock.unlock();
 	added.notify_one();
 }
 
