@@ -289,7 +289,7 @@ namespace sw
 	{
 		for(auto query : queries)
 		{
-			if(query->type == type)
+			if(query->getType() == type)
 			{
 				return true;
 			}
@@ -377,7 +377,7 @@ namespace sw
 			draw->queries = new std::list<vk::Query*>();
 			for(auto &query : queries)
 			{
-				++query->reference; // Atomic
+				query->start();
 				draw->queries->push_back(query);
 			}
 		}
@@ -855,34 +855,23 @@ namespace sw
 				{
 					for(auto &query : *(draw.queries))
 					{
-						std::unique_lock<std::mutex> mutexLock(query->mutex);
-
-						switch(query->type)
+						switch(query->getType())
 						{
 						case VK_QUERY_TYPE_OCCLUSION:
 							for(int cluster = 0; cluster < clusterCount; cluster++)
 							{
-								query->data += data.occlusion[cluster];
+								query->add(data.occlusion[cluster]);
 							}
 							break;
 						default:
 							break;
 						}
 
-						int queryRef = --query->reference; // Atomic
-						if(queryRef == 0)
-						{
-							query->state = vk::Query::FINISHED;
-						}
-
-						// Manual unlocking is done before notifying, to avoid
-						// waking up the waiting thread only to block again
-						mutexLock.unlock();
-						query->condition.notify_one();
+						query->finish();
 					}
 
 					delete draw.queries;
-					draw.queries = 0;
+					draw.queries = nullptr;
 				}
 
 				draw.vertexRoutine->unbind();

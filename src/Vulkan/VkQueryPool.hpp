@@ -15,6 +15,8 @@
 #ifndef VK_QUERY_POOL_HPP_
 #define VK_QUERY_POOL_HPP_
 
+#include "System/Synchronization.hpp"
+
 #include "VkObject.hpp"
 #include <atomic>
 #include <condition_variable>
@@ -23,8 +25,13 @@
 namespace vk
 {
 
-struct Query
+class Query
 {
+public:
+	static auto constexpr INVALID_TYPE = VK_QUERY_TYPE_MAX_ENUM;
+
+	Query();
+
 	enum State
 	{
 		UNAVAILABLE,
@@ -32,12 +39,53 @@ struct Query
 		FINISHED
 	};
 
-	std::mutex mutex;
-	std::condition_variable condition;
-	State state;  // guarded by mutex
-	int64_t data; // guarded by mutex
-	std::atomic<int> reference;
-	VkQueryType type;
+	struct Data
+	{
+		State state;   // The current query state.
+		int64_t value; // The current query value.
+	};
+
+	// reset() sets the state of the Query to UNAVAILABLE, sets the type to
+	// INVALID_TYPE and clears the query value.
+	// reset() must not be called while the query is in the ACTIVE state.
+	void reset();
+
+	// prepare() sets the Query type to ty, and sets the state to ACTIVE.
+	// prepare() must not be called when the query is already ACTIVE.
+	void prepare(VkQueryType ty);
+
+	// start() begins a query task which is closed with a call to finish().
+	// Query tasks can be nested.
+	// start() must only be called when in the ACTIVE state.
+	void start();
+
+	// finish() ends a query task begun with a call to start().
+	// Once all query tasks are complete the query will transition to the
+	// FINISHED state.
+	// finish() must only be called when in the ACTIVE state.
+	void finish();
+
+	// wait() blocks until the query reaches the FINISHED state.
+	void wait();
+
+	// getData() returns the current query state and value.
+	Data getData() const;
+
+	// getType() returns the type of query.
+	VkQueryType getType() const;
+
+	// set() replaces the current query value with val.
+	void set(int64_t val);
+
+	// add() adds val to the current query value.
+	void add(int64_t val);
+
+private:
+	sw::WaitGroup wg;
+	sw::Event finished;
+	std::atomic<State> state;
+	std::atomic<VkQueryType> type;
+	std::atomic<int64_t> value;
 };
 
 class QueryPool : public Object<QueryPool, VkQueryPool>

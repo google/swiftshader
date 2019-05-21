@@ -32,7 +32,7 @@
 namespace vk
 {
 	class DescriptorSet;
-	struct Query;
+	class Query;
 }
 
 namespace sw

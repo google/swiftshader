@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "VkQueryPool.hpp"
-#include "Common/Thread.hpp"
 
 #include <chrono>
 #include <cstring>
@@ -21,6 +20,69 @@
 
 namespace vk
 {
+	Query::Query() : finished(sw::Event::ClearMode::Manual), state(UNAVAILABLE), type(INVALID_TYPE), value(0) {}
+
+	void Query::reset()
+	{
+		ASSERT(wg.count() == 0);
+		finished.clear();
+		auto prevState = state.exchange(UNAVAILABLE);
+		ASSERT(prevState != ACTIVE);
+		type = INVALID_TYPE;
+		value = 0;
+	}
+
+	void Query::prepare(VkQueryType ty)
+	{
+		auto prevState = state.exchange(ACTIVE);
+		ASSERT(prevState == UNAVAILABLE);
+		type = ty;
+	}
+
+	void Query::start()
+	{
+		ASSERT(state == ACTIVE);
+		wg.add();
+	}
+
+	void Query::finish()
+	{
+		if (wg.done())
+		{
+			auto prevState = state.exchange(FINISHED);
+			ASSERT(prevState == ACTIVE);
+			finished.signal();
+		}
+	}
+
+	Query::Data Query::getData() const
+	{
+		Data out;
+		out.state = state;
+		out.value = value;
+		return out;
+	}
+
+	VkQueryType Query::getType() const
+	{
+		return type;
+	}
+
+	void Query::wait()
+	{
+		finished.wait();
+	}
+
+	void Query::set(int64_t v)
+	{
+		value = v;
+	}
+
+	void Query::add(int64_t v)
+	{
+		value += v;
+	}
+
 	QueryPool::QueryPool(const VkQueryPoolCreateInfo* pCreateInfo, void* mem) :
 		pool(reinterpret_cast<Query*>(mem)), type(pCreateInfo->queryType),
 		count(pCreateInfo->queryCount)
@@ -61,7 +123,7 @@ namespace vk
 
 		// The sum of firstQuery and queryCount must be less than or equal to the number of queries
 		ASSERT((firstQuery + queryCount) <= count);
-		
+
 		VkResult result = VK_SUCCESS;
 		uint8_t* data = static_cast<uint8_t*>(pData);
 		for(uint32_t i = firstQuery; i < (firstQuery + queryCount); i++, data += stride)
@@ -72,14 +134,16 @@ namespace vk
 			// VK_NOT_READY. However, availability state is still written to pData for those
 			// queries if VK_QUERY_RESULT_WITH_AVAILABILITY_BIT is set.
 			auto &query = pool[i];
-			std::unique_lock<std::mutex> mutexLock(query.mutex);
+
 			if(flags & VK_QUERY_RESULT_WAIT_BIT) // Must wait for query to finish
 			{
-				query.condition.wait(mutexLock, [&query] { return query.state == Query::FINISHED; });
+				query.wait();
 			}
 
+			const auto current = query.getData();
+
 			bool writeResult = true;
-			if(pool[i].state == Query::ACTIVE)
+			if(current.state == Query::ACTIVE)
 			{
 				result = VK_NOT_READY;
 				writeResult = (flags & VK_QUERY_RESULT_PARTIAL_BIT); // Allow writing partial results
@@ -90,11 +154,11 @@ namespace vk
 				uint64_t* result64 = reinterpret_cast<uint64_t*>(data);
 				if(writeResult)
 				{
-					result64[0] = pool[i].data;
+					result64[0] = current.value;
 				}
 				if(flags & VK_QUERY_RESULT_WITH_AVAILABILITY_BIT) // Output query availablity
 				{
-					result64[1] = pool[i].state;
+					result64[1] = current.state;
 				}
 			}
 			else
@@ -102,11 +166,11 @@ namespace vk
 				uint32_t* result32 = reinterpret_cast<uint32_t*>(data);
 				if(writeResult)
 				{
-					result32[0] = static_cast<uint32_t>(pool[i].data);
+					result32[0] = static_cast<uint32_t>(current.value);
 				}
 				if(flags & VK_QUERY_RESULT_WITH_AVAILABILITY_BIT) // Output query availablity
 				{
-					result32[1] = pool[i].state;
+					result32[1] = current.state;
 				}
 			}
 		}
@@ -123,31 +187,14 @@ namespace vk
 			UNIMPLEMENTED("flags");
 		}
 
-		std::unique_lock<std::mutex> lock(pool[query].mutex);
-		ASSERT(pool[query].state == Query::UNAVAILABLE);
-		pool[query].state = Query::ACTIVE;
-		pool[query].data = 0;
-		pool[query].reference = 1;
-		pool[query].type = type;
+		pool[query].prepare(type);
+		pool[query].start();
 	}
 
 	void QueryPool::end(uint32_t query)
 	{
 		ASSERT(query < count);
-
-		#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-		{
-			std::unique_lock<std::mutex> mutexLock(pool[query].mutex);
-			ASSERT(pool[query].state == Query::ACTIVE);
-		}
-		#endif
-
-		int ref = --pool[query].reference;
-		if(ref == 0)
-		{
-			std::unique_lock<std::mutex> mutexLock(pool[query].mutex);
-			pool[query].state = Query::FINISHED;
-		}
+		pool[query].finish();
 	}
 
 	void QueryPool::reset(uint32_t firstQuery, uint32_t queryCount)
@@ -157,10 +204,7 @@ namespace vk
 
 		for(uint32_t i = firstQuery; i < (firstQuery + queryCount); i++)
 		{
-			std::unique_lock<std::mutex> mutexLock(pool[i].mutex);
-
-			pool[i].state = Query::UNAVAILABLE;
-			pool[i].data = 0;
+			pool[i].reset();
 		}
 	}
 
@@ -169,8 +213,7 @@ namespace vk
 		ASSERT(query < count);
 		ASSERT(type == VK_QUERY_TYPE_TIMESTAMP);
 
-		std::unique_lock<std::mutex> mutexLock(pool[query].mutex);
-		pool[query].data = std::chrono::time_point_cast<std::chrono::nanoseconds>(
-			std::chrono::system_clock::now()).time_since_epoch().count();
+		pool[query].set(std::chrono::time_point_cast<std::chrono::nanoseconds>(
+			std::chrono::system_clock::now()).time_since_epoch().count());
 	}
 } // namespace vk
