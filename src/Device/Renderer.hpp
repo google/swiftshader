@@ -20,12 +20,14 @@
 #include "SetupProcessor.hpp"
 #include "Plane.hpp"
 #include "Blitter.hpp"
-#include "System/MutexLock.hpp"
-#include "System/Thread.hpp"
 #include "Device/Config.hpp"
+#include "System/Synchronization.hpp"
+#include "System/Thread.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
 #include <list>
+#include <mutex>
+#include <thread>
 
 namespace vk
 {
@@ -255,7 +257,7 @@ namespace sw
 
 		AtomicInt exitThreads;
 		AtomicInt threadsAwake;
-		Thread *worker[16];
+		std::thread *worker[16];
 		Event *resume[16];         // Events for resuming threads
 		Event *suspend[16];        // Events for suspending threads
 		Event *resumeApp;          // Event for resuming the application thread
@@ -285,7 +287,7 @@ namespace sw
 		static AtomicInt unitCount;
 		static AtomicInt clusterCount;
 
-		MutexLock schedulerMutex;
+		std::mutex schedulerMutex;
 
 		#if PERF_HUD
 			int64_t vertexTime[16];

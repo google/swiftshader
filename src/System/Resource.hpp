@@ -15,7 +15,9 @@
 #ifndef sw_Resource_hpp
 #define sw_Resource_hpp
 
-#include "MutexLock.hpp"
+#include "Synchronization.hpp"
+
+#include <mutex>
 
 namespace sw
 {
@@ -45,7 +47,7 @@ namespace sw
 	private:
 		~Resource();   // Always call destruct() instead
 
-		MutexLock criticalSection;
+		std::mutex criticalSection;
 		Event unblock;
 		volatile int blocked;
 

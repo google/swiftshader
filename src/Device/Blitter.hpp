@@ -17,9 +17,9 @@
 
 #include "RoutineCache.hpp"
 #include "Reactor/Reactor.hpp"
-#include "System/MutexLock.hpp"
 #include "Vulkan/VkFormat.h"
 
+#include <mutex>
 #include <string.h>
 
 namespace vk
@@ -144,7 +144,7 @@ namespace sw
 
 		RoutineCache<State> *blitCache;
 		RoutineCache<State> *cornerUpdateCache;
-		MutexLock criticalSection;
+		std::mutex criticalSection;
 	};
 }
 

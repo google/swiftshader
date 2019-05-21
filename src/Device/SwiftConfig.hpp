@@ -17,11 +17,11 @@
 
 #include "Reactor/Nucleus.hpp"
 
-#include "System/Thread.hpp"
-#include "System/MutexLock.hpp"
 #include "System/Socket.hpp"
 
+#include <mutex>
 #include <string>
+#include <thread>
 
 #ifdef Status
 #undef Status // b/127920555
@@ -101,9 +101,9 @@ namespace sw
 
 		Configuration config;
 
-		Thread *serverThread;
+		std::thread *serverThread;
 		volatile bool terminate;
-		MutexLock criticalSection;   // Protects reading and writing the configuration settings
+		std::mutex criticalSection;   // Protects reading and writing the configuration settings
 
 		bool newConfig;
 

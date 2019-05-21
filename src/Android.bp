@@ -654,7 +654,6 @@ cc_defaults {
         "System/Memory.cpp",
         "System/Resource.cpp",
         "System/Socket.cpp",
-        "System/Thread.cpp",
         "System/Timer.cpp",
         "System/DebugAndroid.cpp",
         "System/GrallocAndroid.cpp",

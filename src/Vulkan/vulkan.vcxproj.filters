@@ -156,9 +156,6 @@
     <ClCompile Include="..\System\Socket.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="..\System\Thread.cpp">
-      <Filter>Source Files\System</Filter>
-    </ClCompile>
     <ClCompile Include="..\System\Timer.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
@@ -489,9 +486,6 @@
       <Filter>Header Files\System</Filter>
     </ClInclude>
     <ClInclude Include="..\System\Memory.hpp">
-      <Filter>Header Files\System</Filter>
-    </ClInclude>
-    <ClInclude Include="..\System\MutexLock.hpp">
       <Filter>Header Files\System</Filter>
     </ClInclude>
     <ClInclude Include="..\System\Resource.hpp">

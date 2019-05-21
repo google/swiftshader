@@ -109,9 +109,6 @@
     <ClCompile Include="$(SolutionDir)src\System\Socket.cpp">
       <Filter>src\System</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\System\Thread.cpp">
-      <Filter>src\System</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\System\Timer.cpp">
       <Filter>src\System</Filter>
     </ClCompile>

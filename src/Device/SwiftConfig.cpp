@@ -76,7 +76,7 @@ namespace sw
 		listenSocket->listen();
 
 		terminate = false;
-		serverThread = new Thread(serverRoutine, this);
+		serverThread = new std::thread(serverRoutine, this);
 	}
 
 	void SwiftConfig::destroyServer()
