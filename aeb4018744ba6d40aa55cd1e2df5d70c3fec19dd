@@ -200,6 +200,54 @@
     },
     {
       "key": {
+        "uuid": "46e67604_0b3163eb",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 17183
+      },
+      "writtenOn": "2019-05-21T19:08:26Z",
+      "side": 1,
+      "message": "It doesn\u0027t work when I remove it even though I\u0027m using the version script. In GL swiftshader also, we do something similar in addition to having a version script.",
+      "parentUuid": "ece7cbae_276f2ccf",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "351338c4_926eaeed",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 17183
+      },
+      "writtenOn": "2019-05-21T19:08:26Z",
+      "side": 1,
+      "message": "I added VK_EXPORT to vkGetInstanceProcAddr and removed it from here. Also added it to the version script.",
+      "parentUuid": "e1b53d01_c9d9f884",
+      "range": {
+        "startLine": 80,
+        "startChar": 51,
+        "endLine": 80,
+        "endChar": 76
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "446322dc_54c33944",
         "filename": "third_party/SPIRV-Tools/BUILD.gn",
         "patchSetId": 15
