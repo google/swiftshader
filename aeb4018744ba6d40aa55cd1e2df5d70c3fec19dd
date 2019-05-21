@@ -152,6 +152,54 @@
     },
     {
       "key": {
+        "uuid": "ece7cbae_276f2ccf",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-21T18:29:37Z",
+      "side": 1,
+      "message": "Just remove it again. Shouldn\u0027t be needed when using the version script.",
+      "parentUuid": "a79c5905_26581b4c",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1b53d01_c9d9f884",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-21T18:29:37Z",
+      "side": 1,
+      "message": "vkGetInstanceProcAddr is defined below: https://swiftshader-review.googlesource.com/c/SwiftShader/+/31529/15/src/Vulkan/libVulkan.cpp#304\n\nvk_icdGetInstanceProcAddr is the ICD entry function used by the Vulkan Loader: https://vulkan.lunarg.com/doc/view/1.0.57.0/windows/LoaderAndLayerInterface.html",
+      "parentUuid": "c81e2449_ad7ec8b7",
+      "range": {
+        "startLine": 80,
+        "startChar": 51,
+        "endLine": 80,
+        "endChar": 76
+      },
+      "revId": "aeb4018744ba6d40aa55cd1e2df5d70c3fec19dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "446322dc_54c33944",
         "filename": "third_party/SPIRV-Tools/BUILD.gn",
         "patchSetId": 15
