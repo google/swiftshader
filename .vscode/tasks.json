@@ -21,19 +21,19 @@
             "osx": {
                 "args": [
                     "-c",
-                    "make -j$(sysctl -n hw.logicalcpu)"
+                    "cmake --build . && echo Done"
                 ]
             },
             "linux": {
                 "args": [
                     "-c",
-                    "make -j$(nproc)"
+                    "cmake --build . && echo Done"
                 ]
             },
             "windows": {
                 "args": [
                     "-c",
-                    "make"
+                    "cmake --build . && echo Done"
                 ]
             },
             "options": {
@@ -66,6 +66,7 @@
             "command": "cmake",
             "args": [
                 "..",
+                "-GNinja",
                 "-DCMAKE_BUILD_TYPE=${input:buildType}",
                 "-DWARNINGS_AS_ERRORS=1",
                 "-DDCHECK_ALWAYS_ON=1"
