@@ -2169,6 +2169,9 @@ namespace sw
 			}
 		}
 
+		// Restore current block id after emitting loop blocks.
+		state->currentBlock = blockId;
+
 		// Rebuild the loopActiveLaneMask from the loop back edges.
 		loopActiveLaneMask = SIMD::Int(0);
 		for (auto in : block.ins)
