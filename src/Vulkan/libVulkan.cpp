@@ -1053,6 +1053,16 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 		    device, image.get(), pAllocator);
 
 	vk::destroy(image, pAllocator);
+
+#ifdef __ANDROID__
+	auto it = androidSwapchainMap.find(image);
+
+	if (it != androidSwapchainMap.end())
+	{
+		vk::destroy((it->second).imageMemory, nullptr);
+		androidSwapchainMap.erase(it);
+	}
+#endif
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout(VkDevice device, VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout)
