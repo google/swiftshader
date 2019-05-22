@@ -29,16 +29,17 @@
 #include <spirv/unified1/spirv.hpp>
 
 #include <array>
+#include <atomic>
+#include <cstdint>
 #include <cstring>
 #include <functional>
-#include <string>
-#include <vector>
-#include <unordered_set>
-#include <unordered_map>
-#include <cstdint>
-#include <type_traits>
 #include <memory>
 #include <queue>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace vk
 {
@@ -730,7 +731,7 @@ namespace sw
 
 	private:
 		const int serialID;
-		static volatile int serialCounter;
+		static std::atomic<int> serialCounter;
 		Modes modes;
 		HandleMap<Type> types;
 		HandleMap<Object> defs;

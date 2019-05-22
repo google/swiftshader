@@ -367,7 +367,7 @@ namespace sw
 
 	} // namespace SIMD
 
-	volatile int SpirvShader::serialCounter = 1;    // Start at 1, 0 is invalid shader.
+	std::atomic<int> SpirvShader::serialCounter(1);    // Start at 1, 0 is invalid shader.
 
 	SpirvShader::SpirvShader(
 			VkPipelineShaderStageCreateInfo const *createInfo,
