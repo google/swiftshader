@@ -76,9 +76,10 @@
 #include <unordered_map>
 
 #include <fstream>
+#include <iostream>
+#include <mutex>
 #include <numeric>
 #include <thread>
-#include <iostream>
 
 #if defined(__i386__) || defined(__x86_64__)
 #include <xmmintrin.h>
@@ -599,7 +600,8 @@ namespace rr
 		std::unique_ptr<llvm::TargetMachine> targetMachine;
 		const llvm::DataLayout dataLayout;
 		ObjLayer objLayer;
-		CompileLayer compileLayer;
+		CompileLayer compileLayer; // guarded by mutex
+		std::mutex mutex;
 		size_t emittedFunctionsNum;
 
 	public:
@@ -690,22 +692,27 @@ namespace rr
 			mod->setDataLayout(dataLayout);
 
 			auto moduleKey = session.allocateVModule();
-			llvm::cantFail(compileLayer.addModule(moduleKey, std::move(mod)));
-			funcs = nullptr; // Now points to released memory.
+
+			// Resolve the function symbols - needs to be performed under mutex lock.
+			std::vector<llvm::JITSymbol> symbols;
+			{
+				std::unique_lock<std::mutex> lock(mutex);
+				llvm::cantFail(compileLayer.addModule(moduleKey, std::move(mod)));
+				funcs = nullptr; // Now points to released memory.
+				for (size_t i = 0; i < count; i++)
+				{
+					symbols.push_back(compileLayer.findSymbolIn(moduleKey, mangledNames[i], false));
+				}
+			}
 
 			// Resolve the function addresses.
 			std::vector<void*> addresses(count);
 			for (size_t i = 0; i < count; i++)
 			{
-				llvm::JITSymbol symbol = compileLayer.findSymbolIn(moduleKey, mangledNames[i], false);
-
-				llvm::Expected<llvm::JITTargetAddress> expectAddr = symbol.getAddress();
-				if(!expectAddr)
+				if(auto expectAddr = symbols[i].getAddress())
 				{
-					return nullptr;
+					addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(expectAddr.get()));
 				}
-
-				addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(expectAddr.get()));
 			}
 
 			return new LLVMRoutine(addresses.data(), count, releaseRoutineCallback, this, moduleKey);
@@ -750,6 +757,7 @@ namespace rr
 	private:
 		void releaseRoutineModule(llvm::orc::VModuleKey moduleKey)
 		{
+			std::unique_lock<std::mutex> lock(mutex);
 			llvm::cantFail(compileLayer.removeModule(moduleKey));
 		}
 
