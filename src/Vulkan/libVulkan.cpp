@@ -984,7 +984,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 			const VkNativeBufferANDROID* nativeBufferInfo = reinterpret_cast<const VkNativeBufferANDROID*>(extensionCreateInfo);
 			backmem.nativeHandle = nativeBufferInfo->handle;
 			backmem.stride = nativeBufferInfo->stride;
-			swapchainImage = true
+			swapchainImage = true;
 		}
 		break;
 #endif
