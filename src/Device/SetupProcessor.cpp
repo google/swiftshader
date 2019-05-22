@@ -73,7 +73,7 @@ namespace sw
 	{
 		State state;
 
-		bool vPosZW = (context->pixelShader && context->pixelShader->hasBuiltinInput(spv::BuiltInPosition));
+		bool vPosZW = (context->pixelShader && context->pixelShader->hasBuiltinInput(spv::BuiltInFragCoord));
 
 		state.isDrawPoint = context->isDrawPoint();
 		state.isDrawLine = context->isDrawLine();

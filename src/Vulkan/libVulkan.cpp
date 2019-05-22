@@ -1990,7 +1990,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 {
 	TRACE("(VkDevice device = %p, uint32_t bindInfoCount = %d, const VkBindImageMemoryInfo* pBindInfos = %p)",
 	      device, bindInfoCount, pBindInfos);
-	
+
 	for(uint32_t i = 0; i < bindInfoCount; i++)
 	{
 		if(pBindInfos[i].pNext)
