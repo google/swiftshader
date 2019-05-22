@@ -1449,6 +1449,11 @@ namespace sw
 									{
 										return nullptr;
 									}
+									if(state.convertSRGB && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
+									{
+										if(!ApplyScaleAndClamp(color, state)) return nullptr;
+										preScaled = true;
+									}
 									accum += color;
 								}
 								color = accum * Float4(1.0f / static_cast<float>(state.srcSamples));
@@ -1724,7 +1729,7 @@ namespace sw
 
 		bool doFilter = (filter != VK_FILTER_NEAREST);
 		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), src->getSampleCountFlagBits(), dst->getSampleCountFlagBits(),
-		            { doFilter, doFilter });
+		            { doFilter, doFilter || (src->getSampleCountFlagBits() > 1) });
 		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
 		                    (region.srcOffsets[0].y < 0) ||
 		                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||
