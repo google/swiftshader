@@ -103,6 +103,8 @@ TEST_F(SwiftShaderVulkanTest, Version)
     EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
 
     EXPECT_EQ(strncmp(physicalDeviceProperties.deviceName, "SwiftShader Device", VK_MAX_PHYSICAL_DEVICE_NAME_SIZE), 0);
+
+    driver.vkDestroyInstance(instance, nullptr);
 }
 
 std::vector<uint32_t> compileSpirv(const char* assembly)
@@ -357,6 +359,19 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
 
     device->UnmapMemory(memory);
     buffers = nullptr;
+
+    device->FreeCommandBuffer(commandPool, commandBuffer);
+    device->FreeMemory(memory);
+    device->DestroyPipeline(pipeline);
+    device->DestroyCommandPool(commandPool);
+    device->DestroyPipelineLayout(pipelineLayout);
+    device->DestroyDescriptorSetLayout(descriptorSetLayout);
+    device->DestroyDescriptorPool(descriptorPool);
+    device->DestroyBuffer(bufferIn);
+    device->DestroyBuffer(bufferOut);
+    device->DestroyShaderModule(shaderModule);
+    device.reset(nullptr);
+    driver.vkDestroyInstance(instance, nullptr);
 }
 
 INSTANTIATE_TEST_CASE_P(ComputeParams, SwiftShaderVulkanBufferToBufferComputeTest, testing::Values(

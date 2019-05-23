@@ -171,6 +171,11 @@ VkResult Device::CreateStorageBuffer(
 	return VK_SUCCESS;
 }
 
+void Device::DestroyBuffer(VkBuffer buffer) const
+{
+	driver->vkDestroyBuffer(device, buffer, nullptr);
+}
+
 VkResult Device::CreateShaderModule(
 		const std::vector<uint32_t>& spirv, VkShaderModule* out) const
 {
@@ -182,6 +187,11 @@ VkResult Device::CreateShaderModule(
 		spirv.data(),                                // pCode
 	};
 	return driver->vkCreateShaderModule(device, &info, 0, out);
+}
+
+void Device::DestroyShaderModule(VkShaderModule shaderModule) const
+{
+	driver->vkDestroyShaderModule(device, shaderModule, nullptr);
 }
 
 VkResult Device::CreateDescriptorSetLayout(
@@ -199,6 +209,11 @@ VkResult Device::CreateDescriptorSetLayout(
 	return driver->vkCreateDescriptorSetLayout(device, &info, 0, out);
 }
 
+void Device::DestroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout) const
+{
+	driver->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+}
+
 VkResult Device::CreatePipelineLayout(
 		VkDescriptorSetLayout layout, VkPipelineLayout* out) const
 {
@@ -213,6 +228,11 @@ VkResult Device::CreatePipelineLayout(
 	};
 
 	return driver->vkCreatePipelineLayout(device, &info, 0, out);
+}
+
+void Device::DestroyPipelineLayout(VkPipelineLayout pipelineLayout) const
+{
+	driver->vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 }
 
 VkResult Device::CreateComputePipeline(
@@ -241,6 +261,11 @@ VkResult Device::CreateComputePipeline(
 	return driver->vkCreateComputePipelines(device, 0, 1, &info, 0, out);
 }
 
+void Device::DestroyPipeline(VkPipeline pipeline) const
+{
+	driver->vkDestroyPipeline(device, pipeline, nullptr);
+}
+
 VkResult Device::CreateStorageBufferDescriptorPool(uint32_t descriptorCount,
 		VkDescriptorPool* out) const
 {
@@ -259,6 +284,11 @@ VkResult Device::CreateStorageBufferDescriptorPool(uint32_t descriptorCount,
 	};
 
 	return driver->vkCreateDescriptorPool(device, &info, 0, out);
+}
+
+void Device::DestroyDescriptorPool(VkDescriptorPool descriptorPool) const
+{
+	driver->vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
 VkResult Device::AllocateDescriptorSet(
@@ -331,6 +361,11 @@ VkResult Device::AllocateMemory(size_t size, VkMemoryPropertyFlags flags, VkDevi
     return VK_ERROR_OUT_OF_DEVICE_MEMORY; // TODO: Change to something not made up?
 }
 
+void Device::FreeMemory(VkDeviceMemory memory) const
+{
+	driver->vkFreeMemory(device, memory, nullptr);
+}
+
 VkResult Device::MapMemory(VkDeviceMemory memory, VkDeviceSize offset,
 		VkDeviceSize size, VkMemoryMapFlags flags, void **ppData) const
 {
@@ -353,6 +388,11 @@ VkResult Device::CreateCommandPool(VkCommandPool* out) const
     return driver->vkCreateCommandPool(device, &info, 0, out);
 }
 
+void Device::DestroyCommandPool(VkCommandPool commandPool) const
+{
+    return driver->vkDestroyCommandPool(device, commandPool, nullptr);
+}
+
 VkResult Device::AllocateCommandBuffer(
 		VkCommandPool pool, VkCommandBuffer* out) const
 {
@@ -364,6 +404,11 @@ VkResult Device::AllocateCommandBuffer(
         1,                                               // commandBufferCount
     };
     return driver->vkAllocateCommandBuffers(device, &info, out);
+}
+
+void Device::FreeCommandBuffer(VkCommandPool pool, VkCommandBuffer buffer)
+{
+	driver->vkFreeCommandBuffers(device, pool, 1, &buffer);
 }
 
 VkResult Device::BeginCommandBuffer(

@@ -46,10 +46,16 @@ public:
 	VkResult CreateStorageBuffer(VkDeviceMemory memory, VkDeviceSize size,
 			VkDeviceSize offset, VkBuffer *out) const;
 
+	// DestroyBuffer destroys a VkBuffer.
+	void DestroyBuffer(VkBuffer buffer) const;
+
 	// CreateShaderModule creates a new shader module with the given SPIR-V
 	// code.
 	VkResult CreateShaderModule(const std::vector<uint32_t> &spirv,
 			VkShaderModule *out) const;
+
+	// DestroyShaderModule destroys a VkShaderModule.
+	void DestroyShaderModule(VkShaderModule shaderModule) const;
 
 	// CreateDescriptorSetLayout creates a new descriptor set layout with the
 	// given bindings.
@@ -57,9 +63,15 @@ public:
 			const std::vector<VkDescriptorSetLayoutBinding> &bindings,
 			VkDescriptorSetLayout *out) const;
 
+	// DestroyDescriptorSetLayout destroys a VkDescriptorSetLayout.
+	void DestroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout) const;
+
 	// CreatePipelineLayout creates a new single set descriptor set layout.
 	VkResult CreatePipelineLayout(VkDescriptorSetLayout layout,
 			VkPipelineLayout *out) const;
+
+	// DestroyPipelineLayout destroys a VkPipelineLayout.
+	void DestroyPipelineLayout(VkPipelineLayout pipelineLayout) const;
 
 	// CreateComputePipeline creates a new compute pipeline with the entry point
 	// "main".
@@ -67,10 +79,16 @@ public:
 			VkPipelineLayout pipelineLayout,
 			VkPipeline *out) const;
 
+	// DestroyPipeline destroys a graphics or compute pipeline.
+	void DestroyPipeline(VkPipeline pipeline) const;
+
 	// CreateStorageBufferDescriptorPool creates a new descriptor pool that can
 	// hold descriptorCount storage buffers.
 	VkResult CreateStorageBufferDescriptorPool(uint32_t descriptorCount,
 			VkDescriptorPool *out) const;
+
+	// DestroyDescriptorPool destroys the VkDescriptorPool.
+	void DestroyDescriptorPool(VkDescriptorPool descriptorPool) const;
 
 	// AllocateDescriptorSet allocates a single descriptor set with the given
 	// layout from pool.
@@ -89,6 +107,9 @@ public:
 	// VK_ERROR_OUT_OF_DEVICE_MEMORY is returned.
 	VkResult AllocateMemory(size_t size, VkMemoryPropertyFlags flags, VkDeviceMemory* out) const;
 
+	// FreeMemory frees the VkDeviceMemory.
+	void FreeMemory(VkDeviceMemory memory) const;
+
 	// MapMemory wraps vkMapMemory, supplying the first VkDevice parameter.
 	VkResult MapMemory(VkDeviceMemory memory, VkDeviceSize offset,
 			VkDeviceSize size, VkMemoryMapFlags flags, void **ppData) const;
@@ -99,8 +120,14 @@ public:
 	// CreateCommandPool creates a new command pool.
 	VkResult CreateCommandPool(VkCommandPool* out) const;
 
+	// DestroyCommandPool destroys a VkCommandPool.
+	void DestroyCommandPool(VkCommandPool commandPool) const;
+
 	// AllocateCommandBuffer creates a new command buffer with a primary level.
 	VkResult AllocateCommandBuffer(VkCommandPool pool, VkCommandBuffer* out) const;
+
+	// FreeCommandBuffer frees the VkCommandBuffer.
+	void FreeCommandBuffer(VkCommandPool pool, VkCommandBuffer buffer);
 
 	// BeginCommandBuffer begins writing to commandBuffer.
 	VkResult BeginCommandBuffer(VkCommandBufferUsageFlags usage, VkCommandBuffer commandBuffer) const;
