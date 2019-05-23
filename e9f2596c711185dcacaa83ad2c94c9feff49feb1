@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57c9c02c_fe85219e",
+        "filename": "src/System/Synchronization.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-23T17:13:03Z",
+      "side": 1,
+      "message": "nit: There\u0027s a high likelihood that people tempted to make that change won\u0027t have read this. I would just have a comment at each notify_*",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 10
+      },
+      "revId": "e9f2596c711185dcacaa83ad2c94c9feff49feb1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
