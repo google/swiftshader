@@ -135,6 +135,8 @@ namespace rr
 		static Value *createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicUMin(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicUMax(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal);
 

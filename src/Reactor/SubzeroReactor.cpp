@@ -1077,6 +1077,18 @@ namespace rr
 		return nullptr;
 	}
 
+	Value *Nucleus::createAtomicUMin(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicUMin");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicUMax(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicUMax");
+		return nullptr;
+	}
+
 	Value *Nucleus::createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		UNIMPLEMENTED("createAtomicExchange");

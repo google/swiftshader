@@ -1546,6 +1546,19 @@ namespace rr
 		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Max, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
+	Value *Nucleus::createAtomicUMin(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::UMin, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicUMax(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::UMax, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+
 	Value *Nucleus::createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
