@@ -783,21 +783,20 @@ private:
 
 struct UpdateBuffer : public CommandBuffer::Command
 {
-	UpdateBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData) :
-		dstBuffer(dstBuffer), dstOffset(dstOffset), dataSize(dataSize), pData(pData)
+	UpdateBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const uint8_t* pData) :
+		dstBuffer(dstBuffer), dstOffset(dstOffset), data(pData, &pData[dataSize])
 	{
 	}
 
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		Cast(dstBuffer)->update(dstOffset, dataSize, pData);
+		Cast(dstBuffer)->update(dstOffset, data.size(), data.data());
 	}
 
 private:
 	VkBuffer dstBuffer;
 	VkDeviceSize dstOffset;
-	VkDeviceSize dataSize;
-	const void* pData;
+	std::vector<uint8_t> data; // FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
 };
 
 struct ClearColorImage : public CommandBuffer::Command
@@ -1468,7 +1467,7 @@ void CommandBuffer::updateBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkD
 {
 	ASSERT(state == RECORDING);
 
-	addCommand<UpdateBuffer>(dstBuffer, dstOffset, dataSize, pData);
+	addCommand<UpdateBuffer>(dstBuffer, dstOffset, dataSize, reinterpret_cast<const uint8_t*>(pData));
 }
 
 void CommandBuffer::fillBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data)
