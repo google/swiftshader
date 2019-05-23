@@ -485,13 +485,13 @@ uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
 	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		return vertexCount / 2;
 	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-		return vertexCount - 1;
+		return std::max<uint32_t>(vertexCount, 1) - 1;
 	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
 		return vertexCount / 3;
 	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		return vertexCount - 2;
+		return std::max<uint32_t>(vertexCount, 2) - 2;
 	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-		return vertexCount - 2;
+		return std::max<uint32_t>(vertexCount, 2) - 2;
 	default:
 		UNIMPLEMENTED("context.topology %d", int(context.topology));
 	}
