@@ -63,11 +63,10 @@ namespace sw
 			uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
 	protected:
-		void emit();
-
-		void setWorkgroupBuiltins(Int workgroupID[3]);
-		void setSubgroupBuiltins(Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex);
-		void setInputBuiltin(spv::BuiltIn id, std::function<void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)> cb);
+		void emit(SpirvRoutine* routine);
+		void setWorkgroupBuiltins(SpirvRoutine* routine, Int workgroupID[3]);
+		void setSubgroupBuiltins(SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex);
+		void setInputBuiltin(SpirvRoutine* routine, spv::BuiltIn id, std::function<void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)> cb);
 
 		Pointer<Byte> data; // argument 0
 
@@ -84,7 +83,6 @@ namespace sw
 			const Constants *constants;
 		};
 
-		SpirvRoutine routine;
 		SpirvShader const * const shader;
 		vk::PipelineLayout const * const pipelineLayout;
 		const vk::DescriptorSet::Bindings &descriptorSets;
