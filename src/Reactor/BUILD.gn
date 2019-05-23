@@ -348,6 +348,8 @@ if (supports_llvm) {
       include_dirs += [ "$llvm7_dir/configs/windows/include/" ]
     } else if (is_android) {
       include_dirs += [ "$llvm7_dir/configs/android/include/" ]
+    } else if (is_mac) {
+      include_dirs += [ "$llvm7_dir/configs/darwin/include/" ]
     } else {
       assert(false, "llvm-7.0 not configured for target platform")
     }

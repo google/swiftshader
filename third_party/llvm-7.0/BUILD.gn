@@ -101,6 +101,8 @@ if (is_linux) {
   llvm_include_dirs += [ "configs/windows/include/" ]
 } else if (is_android) {
   llvm_include_dirs += [ "configs/android/include/" ]
+} else if (is_mac) {
+  llvm_include_dirs += [ "configs/darwin/include/" ]
 } else {
   assert(false, "llvm-7.0 not configured for target platform")
 }
