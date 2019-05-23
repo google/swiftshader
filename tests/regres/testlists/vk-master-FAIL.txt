@@ -1,5 +1,4 @@
 dEQP-VK.api.info.android.no_layers
-dEQP-VK.api.version_check.entry_points
 dEQP-VK.draw.inverted_depth_ranges.nodepthclamp_deltaone
 dEQP-VK.draw.inverted_depth_ranges.nodepthclamp_deltasmall
 dEQP-VK.glsl.440.linkage.varying.component.vert_in.ivec2.as_int_int_unused
