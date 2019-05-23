@@ -71,6 +71,8 @@ namespace rr
 				llvm::Module *module,
 				llvm::Function *function);
 
+		~DebugInfo();
+
 		// Finalize debug info generation. Must be called before the LLVM module
 		// is built.
 		void Finalize();
@@ -88,11 +90,11 @@ namespace rr
 
 		// NotifyObjectEmitted informs any attached debuggers of the JIT'd
 		// object.
-		void NotifyObjectEmitted(const llvm::object::ObjectFile &Obj, const llvm::LoadedObjectInfo &L);
+		static void NotifyObjectEmitted(const llvm::object::ObjectFile &Obj, const llvm::LoadedObjectInfo &L);
 
 		// NotifyFreeingObject informs any attached debuggers that the JIT'd
 		// object is now invalid.
-		void NotifyFreeingObject(const llvm::object::ObjectFile &Obj);
+		static void NotifyFreeingObject(const llvm::object::ObjectFile &Obj);
 
 	private:
 		struct Token
@@ -168,7 +170,7 @@ namespace rr
 
 		void registerBasicTypes();
 
-		void emitPending(Scope &scope, IRBuilder *builder, llvm::DIBuilder *diBuilder);
+		void emitPending(Scope &scope, IRBuilder *builder);
 
 		// Returns the source location of the non-Reactor calling function.
 		Location getCallerLocation() const;
@@ -192,7 +194,7 @@ namespace rr
 		llvm::Module *module;
 		llvm::Function *function;
 
-		llvm::DIBuilder *diBuilder;
+		std::unique_ptr<llvm::DIBuilder> diBuilder;
 		llvm::DICompileUnit *diCU;
 		llvm::DISubprogram *diSubprogram;
 		llvm::DILocation *diRootLocation;
@@ -200,7 +202,6 @@ namespace rr
 		std::unordered_map<std::string, llvm::DIFile*> diFiles;
 		std::unordered_map<llvm::Type*, llvm::DIType*> diTypes;
 		std::unordered_map<std::string, std::unique_ptr<LineTokens>> fileTokens;
-		llvm::JITEventListener *jitEventListener;
 		std::vector<void const*> pushed;
 	};
 
