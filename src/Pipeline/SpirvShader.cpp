@@ -1235,6 +1235,19 @@ namespace sw
 		}
 	}
 
+	bool SpirvShader::IsExplicitLayout(spv::StorageClass storageClass)
+	{
+		switch (storageClass)
+		{
+		case spv::StorageClassUniform:
+		case spv::StorageClassStorageBuffer:
+		case spv::StorageClassPushConstant:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	bool SpirvShader::IsStorageInterleavedByLane(spv::StorageClass storageClass)
 	{
 		switch (storageClass)
@@ -1407,7 +1420,7 @@ namespace sw
 	{
 		auto typeId = getObject(id).type;
 		auto const & type = getType(typeId);
-		if (!IsStorageInterleavedByLane(type.storageClass))	// TODO: really "is explicit layout"
+		if (IsExplicitLayout(type.storageClass))
 		{
 			Decorations d{};
 			ApplyDecorationsForId(&d, id);
