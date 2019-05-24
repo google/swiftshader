@@ -31,6 +31,31 @@
 #include <climits>
 #include <mutex>
 
+namespace
+{
+
+struct SamplingRoutineKey
+{
+	uint32_t instruction;
+	uint32_t sampler;
+	uint32_t imageView;
+
+	bool operator==(const SamplingRoutineKey &rhs) const
+	{
+		return instruction == rhs.instruction && sampler == rhs.sampler && imageView == rhs.imageView;
+	}
+
+	struct Hash
+	{
+		std::size_t operator()(const SamplingRoutineKey &key) const noexcept
+		{
+			return (key.instruction << 16) ^ (key.sampler << 8) ^ key.imageView;
+		}
+	};
+};
+
+}
+
 namespace sw {
 
 SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler)
@@ -39,11 +64,10 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	ASSERT(imageDescriptor->imageViewId != 0 && (sampler->id != 0 || instruction.samplerMethod == Fetch));
 
 	// TODO(b/129523279): Move somewhere sensible.
-	static std::unordered_map<uint64_t, ImageSampler*> cache;
+	static std::unordered_map<SamplingRoutineKey, ImageSampler*, SamplingRoutineKey::Hash> cache;
 	static std::mutex mutex;
 
-	// FIXME(b/129523279): Take instruction opcode and optional parameters into account (SamplerMethod / SamplerOption).
-	auto key = (static_cast<uint64_t>(imageDescriptor->imageViewId) << 32) | static_cast<uint64_t>(sampler->id);
+	SamplingRoutineKey key = {inst, imageDescriptor->imageViewId, sampler->id};
 
 	std::unique_lock<std::mutex> lock(mutex);
 	auto it = cache.find(key);
