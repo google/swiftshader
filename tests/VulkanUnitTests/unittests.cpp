@@ -149,7 +149,7 @@ std::vector<uint32_t> compileSpirv(const char* assembly)
                 printf("%zu: '%s' != '%s'\n", line, srcLine.c_str(), disLine.c_str());
             }
         }
-        printf("\n\n---\n");
+        printf("\n\n---\nExpected:\n\n%s", disassembled.c_str());
     }
 
     return spirv;
@@ -390,6 +390,20 @@ INSTANTIATE_TEST_CASE_P(ComputeParams, SwiftShaderVulkanBufferToBufferComputeTes
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, Memcpy)
 {
     std::stringstream src;
+    // #version 450
+    // layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+    // layout(binding = 0, std430) buffer InBuffer
+    // {
+    //     int Data[];
+    // } In;
+    // layout(binding = 1, std430) buffer OutBuffer
+    // {
+    //     int Data[];
+    // } Out;
+    // void main()
+    // {
+    //     Out.Data[gl_GlobalInvocationID.x] = In.Data[gl_GlobalInvocationID.x];
+    // }
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1383,4 +1397,104 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchPhi)
               "OpFunctionEnd\n";
 
     test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 1 : 2; });
+}
+
+TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, LoopDivergentMergePhi)
+{
+    // #version 450
+    // layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+    // layout(binding = 0, std430) buffer InBuffer
+    // {
+    //     int Data[];
+    // } In;
+    // layout(binding = 1, std430) buffer OutBuffer
+    // {
+    //     int Data[];
+    // } Out;
+    // void main()
+    // {
+    //     int phi = 0;
+    //     uint lane = gl_GlobalInvocationID.x % 4;
+    //     for (uint i = 0; i < 4; i++)
+    //     {
+    //         if (lane == i)
+    //         {
+    //             phi = In.Data[gl_GlobalInvocationID.x];
+    //             break;
+    //         }
+    //     }
+    //     Out.Data[gl_GlobalInvocationID.x] = phi;
+    // }
+    std::stringstream src;
+    src <<
+              "OpCapability Shader\n"
+         "%1 = OpExtInstImport \"GLSL.std.450\"\n"
+              "OpMemoryModel Logical GLSL450\n"
+              "OpEntryPoint GLCompute %2 \"main\" %3\n"
+              "OpExecutionMode %2 LocalSize " <<
+                              GetParam().localSizeX << " " <<
+                              GetParam().localSizeY << " " <<
+                              GetParam().localSizeZ << "\n" <<
+              "OpDecorate %3 BuiltIn GlobalInvocationId\n"
+              "OpDecorate %4 ArrayStride 4\n"
+              "OpMemberDecorate %5 0 Offset 0\n"
+              "OpDecorate %5 BufferBlock\n"
+              "OpDecorate %6 DescriptorSet 0\n"
+              "OpDecorate %6 Binding 0\n"
+              "OpDecorate %7 ArrayStride 4\n"
+              "OpMemberDecorate %8 0 Offset 0\n"
+              "OpDecorate %8 BufferBlock\n"
+              "OpDecorate %9 DescriptorSet 0\n"
+              "OpDecorate %9 Binding 1\n"
+        "%10 = OpTypeVoid\n"
+        "%11 = OpTypeFunction %10\n"
+        "%12 = OpTypeInt 32 1\n"
+        "%13 = OpConstant %12 0\n"
+        "%14 = OpTypeInt 32 0\n"
+        "%15 = OpTypeVector %14 3\n"
+        "%16 = OpTypePointer Input %15\n"
+         "%3 = OpVariable %16 Input\n"
+        "%17 = OpConstant %14 0\n"
+        "%18 = OpTypePointer Input %14\n"
+        "%19 = OpConstant %14 4\n"
+        "%20 = OpTypeBool\n"
+         "%4 = OpTypeRuntimeArray %12\n"
+         "%5 = OpTypeStruct %4\n"
+        "%21 = OpTypePointer Uniform %5\n"
+         "%6 = OpVariable %21 Uniform\n"
+        "%22 = OpTypePointer Uniform %12\n"
+        "%23 = OpConstant %12 1\n"
+         "%7 = OpTypeRuntimeArray %12\n"
+         "%8 = OpTypeStruct %7\n"
+        "%24 = OpTypePointer Uniform %8\n"
+         "%9 = OpVariable %24 Uniform\n"
+         "%2 = OpFunction %10 None %11\n"
+        "%25 = OpLabel\n"
+        "%26 = OpAccessChain %18 %3 %17\n"
+        "%27 = OpLoad %14 %26\n"
+        "%28 = OpUMod %14 %27 %19\n"
+              "OpBranch %29\n"
+        "%29 = OpLabel\n"
+        "%30 = OpPhi %14 %17 %25 %31 %32\n"
+        "%33 = OpULessThan %20 %30 %19\n"
+              "OpLoopMerge %34 %32 None\n"
+              "OpBranchConditional %33 %35 %34\n"
+        "%35 = OpLabel\n"
+        "%36 = OpIEqual %20 %28 %30\n"
+              "OpSelectionMerge %32 None\n"
+              "OpBranchConditional %36 %37 %32\n"
+        "%37 = OpLabel\n"
+        "%38 = OpAccessChain %22 %6 %13 %27\n"
+        "%39 = OpLoad %12 %38\n"
+              "OpBranch %34\n"
+        "%32 = OpLabel\n"
+        "%31 = OpIAdd %14 %30 %23\n"
+              "OpBranch %29\n"
+        "%34 = OpLabel\n"
+        "%40 = OpPhi %12 %13 %29 %39 %37\n" // %39: phi
+        "%41 = OpAccessChain %22 %9 %13 %27\n"
+              "OpStore %41 %40\n"
+              "OpReturn\n"
+              "OpFunctionEnd\n";
+    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
 }

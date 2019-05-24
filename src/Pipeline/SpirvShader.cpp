@@ -984,7 +984,7 @@ namespace sw
 		}
 
 		ASSERT_MSG(entryPointFunctionId != 0, "Entry point '%s' not found", createInfo->pName);
-		AssignBlockIns();
+		AssignBlockFields();
 	}
 
 	void SpirvShader::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set& reachable)
@@ -999,7 +999,7 @@ namespace sw
 		}
 	}
 
-	void SpirvShader::AssignBlockIns()
+	void SpirvShader::AssignBlockFields()
 	{
 		Block::Set reachable;
 		TraverseReachableBlocks(entryPointBlockId, reachable);
@@ -1007,6 +1007,7 @@ namespace sw
 		for (auto &it : blocks)
 		{
 			auto &blockId = it.first;
+			auto &block = it.second;
 			if (reachable.count(blockId) > 0)
 			{
 				for (auto &outId : it.second.outs)
@@ -1015,6 +1016,12 @@ namespace sw
 					ASSERT_MSG(outIt != blocks.end(), "Block %d has a non-existent out %d", blockId.value(), outId.value());
 					auto &out = outIt->second;
 					out.ins.emplace(blockId);
+				}
+				if (block.kind == Block::Loop)
+				{
+					auto mergeIt = blocks.find(block.mergeBlock);
+					ASSERT_MSG(mergeIt != blocks.end(), "Loop block %d has a non-existent merge block %d", blockId.value(), block.mergeBlock.value());
+					mergeIt->second.isLoopMerge = true;
 				}
 			}
 		}
@@ -2083,7 +2090,9 @@ namespace sw
 	void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		auto blockId = state->currentBlock;
-		auto block = getBlock(blockId);
+		auto &block = getBlock(blockId);
+		auto mergeBlockId = block.mergeBlock;
+		auto &mergeBlock = getBlock(mergeBlockId);
 
 		// Ensure all incoming non-back edge blocks have been generated.
 		auto depsDone = true;
@@ -2091,7 +2100,7 @@ namespace sw
 		{
 			if (state->visited.count(in) == 0)
 			{
-				if (!existsPath(blockId, in, block.mergeBlock)) // if not a loop back edge
+				if (!existsPath(blockId, in, mergeBlockId)) // if not a loop back edge
 				{
 					state->pending->emplace(in);
 					depsDone = false;
@@ -2115,7 +2124,7 @@ namespace sw
 		std::unordered_set<Block::ID> loopBlocks;
 		for (auto in : block.ins)
 		{
-			if (!existsPath(blockId, in, block.mergeBlock)) // if not a loop back-edge
+			if (!existsPath(blockId, in, mergeBlockId)) // if not a loop back-edge
 			{
 				incomingBlocks.emplace(in);
 			}
@@ -2131,7 +2140,7 @@ namespace sw
 		{
 			if (insn.opcode() == spv::OpPhi)
 			{
-				StorePhi(insn, state, incomingBlocks);
+				StorePhi(blockId, insn, state, incomingBlocks);
 			}
 		}
 
@@ -2146,7 +2155,7 @@ namespace sw
 		// mergeActiveLaneMasks contains edge lane masks for the merge block.
 		// This is the union of all edge masks across all iterations of the loop.
 		std::unordered_map<Block::ID, SIMD::Int> mergeActiveLaneMasks;
-		for (auto in : getBlock(block.mergeBlock).ins)
+		for (auto in : getBlock(mergeBlockId).ins)
 		{
 			mergeActiveLaneMasks.emplace(in, SIMD::Int(0));
 		}
@@ -2179,7 +2188,7 @@ namespace sw
 		// don't emit the merge block yet.
 		for (auto out : block.outs)
 		{
-			EmitBlocks(out, state, block.mergeBlock);
+			EmitBlocks(out, state, mergeBlockId);
 		}
 
 		// Restore current block id after emitting loop blocks.
@@ -2189,16 +2198,16 @@ namespace sw
 		loopActiveLaneMask = SIMD::Int(0);
 		for (auto in : block.ins)
 		{
-			if (existsPath(blockId, in, block.mergeBlock))
+			if (existsPath(blockId, in, mergeBlockId))
 			{
 				loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
 			}
 		}
 
 		// Add active lanes to the merge lane mask.
-		for (auto in : getBlock(block.mergeBlock).ins)
+		for (auto in : getBlock(mergeBlockId).ins)
 		{
-			auto edge = Block::Edge{in, block.mergeBlock};
+			auto edge = Block::Edge{in, mergeBlockId};
 			auto it = state->edgeActiveLaneMasks.find(edge);
 			if (it != state->edgeActiveLaneMasks.end())
 			{
@@ -2211,7 +2220,39 @@ namespace sw
 		{
 			if (insn.opcode() == spv::OpPhi)
 			{
-				StorePhi(insn, state, loopBlocks);
+				StorePhi(blockId, insn, state, loopBlocks);
+			}
+		}
+
+		// Use the [loop -> merge] active lane masks to update the phi values in
+		// the merge block. We need to do this to handle divergent control flow
+		// in the loop.
+		//
+		// Consider the following:
+		//
+		//     int phi_source = 0;
+		//     for (uint i = 0; i < 4; i++)
+		//     {
+		//         phi_source = 0;
+		//         if (gl_GlobalInvocationID.x % 4 == i) // divergent control flow
+		//         {
+		//             phi_source = 42; // single lane assignment.
+		//             break; // activeLaneMask for [loop->merge] is active for a single lane.
+		//         }
+		//         // -- we are here --
+		//     }
+		//     // merge block
+		//     int phi = phi_source; // OpPhi
+		//
+		// In this example, with each iteration of the loop, phi_source will
+		// only have a single lane assigned. However by 'phi' value in the merge
+		// block needs to be assigned the union of all the per-lane assignments
+		// of phi_source when that lane exited the loop.
+		for (auto insn = mergeBlock.begin(); insn != mergeBlock.end(); insn++)
+		{
+			if (insn.opcode() == spv::OpPhi)
+			{
+				StorePhi(mergeBlockId, insn, state, mergeBlock.ins);
 			}
 		}
 
@@ -2222,10 +2263,10 @@ namespace sw
 
 		// Continue emitting from the merge block.
 		Nucleus::setInsertBlock(mergeBasicBlock);
-		state->pending->emplace(block.mergeBlock);
+		state->pending->emplace(mergeBlockId);
 		for (auto it : mergeActiveLaneMasks)
 		{
-			state->addActiveLaneMaskEdge(it.first, block.mergeBlock, it.second);
+			state->addActiveLaneMaskEdge(it.first, mergeBlockId, it.second);
 		}
 	}
 
@@ -4618,7 +4659,13 @@ namespace sw
 	SpirvShader::EmitResult SpirvShader::EmitPhi(InsnIterator insn, EmitState *state) const
 	{
 		auto currentBlock = getBlock(state->currentBlock);
-		StorePhi(insn, state, currentBlock.ins);
+		if (!currentBlock.isLoopMerge)
+		{
+			// If this is a loop merge block, then don't attempt to update the
+			// phi values from the ins. EmitLoop() has had to take special care
+			// of this phi in order to correctly deal with divergent lanes.
+			StorePhi(state->currentBlock, insn, state, currentBlock.ins);
+		}
 		LoadPhi(insn, state);
 		return EmitResult::Continue;
 	}
@@ -4641,13 +4688,12 @@ namespace sw
 		}
 	}
 
-	void SpirvShader::StorePhi(InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const
+	void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const
 	{
 		auto routine = state->routine;
 		auto typeId = Type::ID(insn.word(1));
 		auto type = getType(typeId);
 		auto objectId = Object::ID(insn.word(2));
-		auto currentBlock = getBlock(state->currentBlock);
 
 		auto storageIt = state->routine->phis.find(objectId);
 		ASSERT(storageIt != state->routine->phis.end());
@@ -4663,7 +4709,7 @@ namespace sw
 				continue;
 			}
 
-			auto mask = GetActiveLaneMaskEdge(state, blockId, state->currentBlock);
+			auto mask = GetActiveLaneMaskEdge(state, blockId, currentBlock);
 			auto in = GenericValue(this, routine, varId);
 
 			for (uint32_t i = 0; i < type.sizeInComponents; i++)

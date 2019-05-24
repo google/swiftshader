@@ -449,14 +449,14 @@ namespace sw
 				Loop, // OpLoopMerge + [OpBranchConditional | OpBranch]
 			};
 
-			Kind kind;
+			Kind kind = Simple;
 			InsnIterator mergeInstruction; // Structured control flow merge instruction.
 			InsnIterator branchInstruction; // Branch instruction.
 			ID mergeBlock; // Structured flow merge block.
 			ID continueTarget; // Loop continue block.
 			Set ins; // Blocks that branch into this block.
 			Set outs; // Blocks that this block branches to.
-
+			bool isLoopMerge = false;
 		private:
 			InsnIterator begin_;
 			InsnIterator end_;
@@ -743,8 +743,12 @@ namespace sw
 		// reachable.
 		void TraverseReachableBlocks(Block::ID id, Block::Set& reachable);
 
-		// Assigns Block::ins from Block::outs for every block.
-		void AssignBlockIns();
+		// AssignBlockFields() performs the following for all reachable blocks:
+		// * Assigns Block::ins with the identifiers of all blocks that contain
+		//   this block in their Block::outs.
+		// * Sets Block::isLoopMerge to true if the block is the merge of a
+		//   another loop block.
+		void AssignBlockFields();
 
 		// DeclareType creates a Type for the given OpTypeX instruction, storing
 		// it into the types map. It is called from the analysis pass (constructor).
@@ -974,7 +978,7 @@ namespace sw
 		// StorePhi updates the phi's alloca storage value using the incoming
 		// values from blocks that are both in the OpPhi instruction and in
 		// filter.
-		void StorePhi(InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const;
+		void StorePhi(Block::ID blockID, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const;
 
 		// Emits a rr::Fence for the given MemorySemanticsMask.
 		void Fence(spv::MemorySemanticsMask semantics) const;
