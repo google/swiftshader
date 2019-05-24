@@ -3479,12 +3479,14 @@ namespace sw
 		auto &type = getType(insn.word(1));
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto cond = GenericValue(this, routine, insn.word(3));
+		auto condIsScalar = (getType(cond.type).sizeInComponents == 1);
 		auto lhs = GenericValue(this, routine, insn.word(4));
 		auto rhs = GenericValue(this, routine, insn.word(5));
 
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
-			dst.move(i, (cond.Int(i) & lhs.Int(i)) | (~cond.Int(i) & rhs.Int(i)));   // FIXME: IfThenElse()
+			auto sel = cond.Int(condIsScalar ? 0 : i);
+			dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));   // FIXME: IfThenElse()
 		}
 
 		return EmitResult::Continue;
@@ -5852,12 +5854,14 @@ namespace sw
 		{
 			auto &result = CreateConstant(insn);
 			auto const &cond = getObject(insn.word(4));
+			auto condIsScalar = (getType(cond.type).sizeInComponents == 1);
 			auto const &left = getObject(insn.word(5));
 			auto const &right = getObject(insn.word(6));
 
 			for (auto i = 0u; i < getType(result.type).sizeInComponents; i++)
 			{
-				result.constantValue[i] = cond.constantValue[i] ? left.constantValue[i] : right.constantValue[i];
+				auto sel = cond.constantValue[condIsScalar ? 0 : i];
+				result.constantValue[i] = sel ? left.constantValue[i] : right.constantValue[i];
 			}
 			break;
 		}
