@@ -31,16 +31,12 @@ namespace sw
 	{
 		const void *buffer[6];
 
-		float4 fWidth;
-		float4 fHeight;
-		float4 fDepth;
-
 		short uHalf[4];
 		short vHalf[4];
 		short wHalf[4];
-		short width[4];
-		short height[4];
-		short depth[4];
+		int4 width;
+		int4 height;
+		int4 depth;
 		short onePitchP[4];
 		int4 pitchP;
 		int4 sliceP;
@@ -154,6 +150,7 @@ namespace sw
 		VkCompareOp compareOp;
 		VkBorderColor border;
 		bool unnormalizedCoordinates;
+		bool largeTexture;
 
 		#if PERF_PROFILE
 		bool compressedFormat;

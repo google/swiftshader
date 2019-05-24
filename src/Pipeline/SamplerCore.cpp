@@ -150,7 +150,8 @@ namespace sw
 		bool force32BitFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
 		bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 		bool use32BitFiltering = hasFloatTexture() || hasUnnormalizedIntegerTexture() || force32BitFiltering ||
-		                         seamlessCube || state.unnormalizedCoordinates || state.compareEnable || borderModeActive();
+		                         seamlessCube || state.unnormalizedCoordinates || state.compareEnable || state.largeTexture ||
+		                         borderModeActive();
 
 		if(use32BitFiltering)
 		{
@@ -448,8 +449,8 @@ namespace sw
 			if(!gather)   // Blend
 			{
 				// Fractions
-				UShort4 f0u = As<UShort4>(uuuu0) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
-				UShort4 f0v = As<UShort4>(vvvv0) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
+				UShort4 f0u = As<UShort4>(uuuu0) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap,width)));
+				UShort4 f0v = As<UShort4>(vvvv0) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap,height)));
 
 				UShort4 f1u = ~f0u;
 				UShort4 f1v = ~f0v;
@@ -650,9 +651,9 @@ namespace sw
 			}
 
 			// Fractions
-			UShort4 f0u = As<UShort4>(u[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
-			UShort4 f0v = As<UShort4>(v[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
-			UShort4 f0s = As<UShort4>(s[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,depth));
+			UShort4 f0u = As<UShort4>(u[0][0][0]) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap,width)));
+			UShort4 f0v = As<UShort4>(v[0][0][0]) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap,height)));
+			UShort4 f0s = As<UShort4>(s[0][0][0]) * UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap,depth)));
 
 			UShort4 f1u = ~f0u;
 			UShort4 f1v = ~f0v;
@@ -1203,16 +1204,16 @@ namespace sw
 
 		if(!texelFetch)
 		{
-			uuuu = MulHigh(As<UShort4>(uuuu), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, width)));
-			vvvv = MulHigh(As<UShort4>(vvvv), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, height)));
+			uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width))));
+			vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
 		}
 
 		if(hasOffset)
 		{
-			UShort4 w = *Pointer<UShort4>(mipmap + OFFSET(Mipmap, width));
-			uuuu = applyOffset(uuuu, offset.x, Int4(w), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
-			UShort4 h = *Pointer<UShort4>(mipmap + OFFSET(Mipmap, height));
-			vvvv = applyOffset(vvvv, offset.y, Int4(h), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
+			uuuu = applyOffset(uuuu, offset.x, *Pointer<Int4>(mipmap + OFFSET(Mipmap, width)),
+			                   texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
+			vvvv = applyOffset(vvvv, offset.y, *Pointer<Int4>(mipmap + OFFSET(Mipmap, height)),
+			                   texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
 		}
 
 		Short4 uuu2 = uuuu;
@@ -1227,13 +1228,13 @@ namespace sw
 			{
 				if(!texelFetch)
 				{
-					wwww = MulHigh(As<UShort4>(wwww), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, depth)));
+					wwww = MulHigh(As<UShort4>(wwww), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, depth))));
 				}
 
 				if(hasOffset)
 				{
-					UShort4 d = *Pointer<UShort4>(mipmap + OFFSET(Mipmap, depth));
-					wwww = applyOffset(wwww, offset.z, Int4(d), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeW);
+					wwww = applyOffset(wwww, offset.z, *Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)),
+					                   texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeW);
 				}
 			}
 
@@ -1255,10 +1256,10 @@ namespace sw
 
 		if(texelFetch)
 		{
-			Int size = Int(*Pointer<Int>(mipmap + OFFSET(Mipmap, sliceP)));
+			Int size = *Pointer<Int>(mipmap + OFFSET(Mipmap, sliceP));
 			if(hasThirdCoordinate())
 			{
-				size *= Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, depth)));
+				size *= *Pointer<Int>(mipmap + OFFSET(Mipmap, depth));
 			}
 			UInt min = 0;
 			UInt max = size - 1;
@@ -1989,7 +1990,7 @@ namespace sw
 		}
 		else if(addressingMode == ADDRESSING_LAYER)
 		{
-			return Min(Max(Short4(RoundInt(uw)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
+			return Short4(Min(Max(RoundInt(uw), Int4(0)), *Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)) - Int4(1)));
 		}
 		else if(addressingMode == ADDRESSING_CLAMP || addressingMode == ADDRESSING_BORDER)
 		{
@@ -2030,7 +2031,7 @@ namespace sw
 			return;
 		}
 
-		Int4 dim = Int4(*Pointer<Short4>(mipmap + whd, 16));
+		Int4 dim = *Pointer<Int4>(mipmap + whd, 16);
 		Int4 maxXYZ = dim - Int4(1);
 
 		if(function == Fetch)

@@ -323,7 +323,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 
 			sw::Mipmap &mipmap = imageSampler[i].texture.mipmap[0];
 			mipmap.buffer[0] = bufferView->getPointer();
-			mipmap.width[0] = mipmap.width[1] = mipmap.width[2] = mipmap.width[3] = static_cast<short>(numElements);
+			mipmap.width[0] = mipmap.width[1] = mipmap.width[2] = mipmap.width[3] = numElements;
 			mipmap.height[0] = mipmap.height[1] = mipmap.height[2] = mipmap.height[3] = 1;
 			mipmap.depth[0] = mipmap.depth[1] = mipmap.depth[2] = mipmap.depth[3] = 1;
 			mipmap.pitchP.x = mipmap.pitchP.y = mipmap.pitchP.z = mipmap.pitchP.w = numElements;
@@ -417,24 +417,6 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 					texture->depth[1] = depth;
 					texture->depth[2] = depth;
 					texture->depth[3] = depth;
-				}
-
-				if(format.isFloatFormat())
-				{
-					mipmap.fWidth[0] = (float)width / 65536.0f;
-					mipmap.fWidth[1] = (float)width / 65536.0f;
-					mipmap.fWidth[2] = (float)width / 65536.0f;
-					mipmap.fWidth[3] = (float)width / 65536.0f;
-
-					mipmap.fHeight[0] = (float)height / 65536.0f;
-					mipmap.fHeight[1] = (float)height / 65536.0f;
-					mipmap.fHeight[2] = (float)height / 65536.0f;
-					mipmap.fHeight[3] = (float)height / 65536.0f;
-
-					mipmap.fDepth[0] = (float)depth / 65536.0f;
-					mipmap.fDepth[1] = (float)depth / 65536.0f;
-					mipmap.fDepth[2] = (float)depth / 65536.0f;
-					mipmap.fDepth[3] = (float)depth / 65536.0f;
 				}
 
 				short halfTexelU = 0x8000 / width;

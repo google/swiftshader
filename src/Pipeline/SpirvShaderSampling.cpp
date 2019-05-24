@@ -28,6 +28,7 @@
 #include <spirv/unified1/spirv.hpp>
 #include <spirv/unified1/GLSL.std.450.h>
 
+#include <climits>
 #include <mutex>
 
 namespace sw {
@@ -66,6 +67,9 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	samplerState.compareEnable = (sampler->compareEnable == VK_TRUE);
 	samplerState.compareOp = sampler->compareOp;
 	samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates == VK_TRUE);
+	samplerState.largeTexture = (imageDescriptor->extent.width  > SHRT_MAX) ||
+	                            (imageDescriptor->extent.height > SHRT_MAX) ||
+	                            (imageDescriptor->extent.depth  > SHRT_MAX);
 
 	if(sampler->anisotropyEnable != VK_FALSE)
 	{
