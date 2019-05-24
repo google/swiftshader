@@ -1174,7 +1174,7 @@ namespace sw
 		Int4 linear = CmpLT(c, Float4(0.04045f));
 
 		Float4 s = c;
-		s.xyz = As<Float4>((linear & As<Int4>(lc)) | (~linear & As<Int4>(ec)));   // FIXME: IfThenElse()
+		s.xyz = As<Float4>((linear & As<Int4>(lc)) | (~linear & As<Int4>(ec)));   // TODO: IfThenElse()
 
 		return s;
 	}

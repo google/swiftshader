@@ -2481,7 +2481,7 @@ namespace sw
 				default:   // Wrap
 					{
 						Int4 under = CmpLT(xyz0, Int4(0));
-						xyz0 = (under & maxXYZ) | (~under & xyz0);   // xyz < 0 ? dim - 1 : xyz   // FIXME: IfThenElse()
+						xyz0 = (under & maxXYZ) | (~under & xyz0);   // xyz < 0 ? dim - 1 : xyz   // TODO: IfThenElse()
 
 						Int4 nover = CmpLT(xyz1, dim);
 						xyz1 = nover & xyz1;   // xyz >= dim ? 0 : xyz

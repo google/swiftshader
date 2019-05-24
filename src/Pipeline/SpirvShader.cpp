@@ -275,7 +275,7 @@ namespace
 		sw::SIMD::Int linear = CmpLT(c, sw::SIMD::Float(0.04045f));
 
 		sw::SIMD::Float s = c;
-		s.xyz = rr::As<sw::SIMD::Float>((linear & rr::As<sw::SIMD::Int>(lc)) | (~linear & rr::As<sw::SIMD::Int>(ec)));   // FIXME: IfThenElse()
+		s.xyz = rr::As<sw::SIMD::Float>((linear & rr::As<sw::SIMD::Int>(lc)) | (~linear & rr::As<sw::SIMD::Int>(ec)));   // TODO: IfThenElse()
 
 		return s;
 	}
@@ -3486,7 +3486,7 @@ namespace sw
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			auto sel = cond.Int(condIsScalar ? 0 : i);
-			dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));   // FIXME: IfThenElse()
+			dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));   // TODO: IfThenElse()
 		}
 
 		return EmitResult::Continue;
