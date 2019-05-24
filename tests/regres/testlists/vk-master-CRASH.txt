@@ -1,7 +1,5 @@
-dEQP-VK.api.object_management.multithreaded_shared_resources.compute_pipeline
 dEQP-VK.glsl.texture_functions.texturegrad.samplercube_fixed_vertex
 dEQP-VK.memory.pipeline_barrier.host_write_uniform_texel_buffer.1048576
 dEQP-VK.memory.pipeline_barrier.host_write_uniform_texel_buffer.65536
 dEQP-VK.memory.pipeline_barrier.transfer_dst_uniform_texel_buffer.1048576
 dEQP-VK.memory.pipeline_barrier.transfer_dst_uniform_texel_buffer.65536
-dEQP-VK.synchronization.internally_synchronized_objects.pipeline_cache_compute
