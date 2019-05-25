@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "936f5d18_37ea6786",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-05-25T02:50:20Z",
+      "side": 1,
+      "message": "This is more like it :)",
+      "revId": "2b7744e667db1bf7984e58d7a7dd1c8f8aee6eec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
