@@ -16,6 +16,24 @@
       "revId": "803bd0b8b920ede4fc897ffbab3dbd5780728d13",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22474080_708350b0",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-25T02:50:47Z",
+      "side": 1,
+      "message": "Thanks for pointing that out! I\u0027ve replaced it with a struct for the key. PTAL",
+      "parentUuid": "63ee6067_891eef6e",
+      "revId": "803bd0b8b920ede4fc897ffbab3dbd5780728d13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
