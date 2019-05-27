@@ -37,6 +37,16 @@ namespace sw
 			var[it->second.FirstComponent+3] = w;
 		}
 
+		it = spirvShader->inputBuiltins.find(spv::BuiltInPointCoord);
+		if(it != spirvShader->inputBuiltins.end())
+		{
+			auto &var = routine.getVariable(it->second.Id);
+			var[it->second.FirstComponent] = SIMD::Float(0.5f) +
+				SIMD::Float(Float(x) - (*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX))));
+			var[it->second.FirstComponent + 1] = SIMD::Float(0.5f) +
+				SIMD::Float(Float(y) - (*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY))));
+		}
+
 		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupSize);
 		if (it != spirvShader->inputBuiltins.end())
 		{

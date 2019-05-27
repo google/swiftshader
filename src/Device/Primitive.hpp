@@ -42,6 +42,9 @@ namespace sw
 		float4 xQuad;
 		float4 yQuad;
 
+		float pointCoordX;
+		float pointCoordY;
+
 		PlaneEquation z;
 		PlaneEquation w;
 
