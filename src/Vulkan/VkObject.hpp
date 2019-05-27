@@ -61,6 +61,9 @@ static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo
 
 	*outObject = *object;
 
+	// Assert that potential v-table offsets from multiple inheritance aren't causing an offset on the handle
+	ASSERT(*outObject == objectMemory);
+
 	return VK_SUCCESS;
 }
 
@@ -87,7 +90,9 @@ class Object : public ObjectBase<T, VkT>
 public:
 	operator VkT()
 	{
-		return reinterpret_cast<typename VkT::HandleType>(this);
+		// The static_cast<T*> is used to make sure the returned pointer points to the
+		// beginning of the object, even if the derived class uses multiple inheritance
+		return reinterpret_cast<typename VkT::HandleType>(static_cast<T*>(this));
 	}
 };
 
