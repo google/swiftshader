@@ -134,6 +134,48 @@ if (NOT TARGET libbacktrace)
     endif()
 endif()
 
+# Boost is downloaded if necessary
+
+# From https://www.boost.org/users/download/
+set(BOOST_VER 1.70.0)
+set(BOOST_HASH_TARGZ "882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9")
+set(BOOST_HASH_ZIP   "48f379b2e90dd1084429aae87d6bdbde9670139fa7569ee856c8c86dd366039d")
+
+string(REPLACE "." "_" BOOST_VER_FNAME ${BOOST_VER})
+set(BOOST_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/boost_${BOOST_VER_FNAME})
+
+function(DownloadBoost)
+    if (LINUX)
+        set(BOOST_EXT "tar.gz")
+        set(BOOST_HASH ${BOOST_HASH_TARGZ})
+    else()
+        set(BOOST_EXT "zip")
+        set(BOOST_HASH ${BOOST_HASH_ZIP})
+    endif()
+
+    # Note: bintray.com has rate limiting, so use the sourceforge mirror
+    # set(BOOST_URL https://dl.bintray.com/boostorg/release/${BOOST_VER}/source/boost_${BOOST_VER_FNAME}.${BOOST_EXT})
+    set(BOOST_URL https://iweb.dl.sourceforge.net/project/boost/boost/${BOOST_VER}/boost_${BOOST_VER_FNAME}.${BOOST_EXT})
+
+    if (NOT TARGET Boost::boost)
+        if(NOT EXISTS ${BOOST_THIRD_PARTY_DIR})
+            message(WARNING "
+          third_party/boost is missing.
+          Downloading and extracting boost:
+            ")
+
+            set(BOOST_ARCHIVE ${CMAKE_BINARY_DIR}/temp/boost_archive)
+            message(STATUS "Downloading ${BOOST_URL} to ${BOOST_ARCHIVE}...")
+            file(DOWNLOAD ${BOOST_URL} ${BOOST_ARCHIVE} EXPECTED_HASH SHA256=${BOOST_HASH})
+            message(STATUS "Extracting ${BOOST_ARCHIVE} to ${BOOST_THIRD_PARTY_DIR}...")
+            execute_process(
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+                COMMAND cmake -E tar xf ${BOOST_ARCHIVE}
+            )
+        endif()
+    endif()
+endfunction()
+
 ###########################################################
 # Convenience macros
 ###########################################################
@@ -1729,17 +1771,13 @@ if(${REACTOR_BACKEND} STREQUAL "LLVM")
     target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
 
     if(REACTOR_EMIT_DEBUG_INFO)
-        add_library(Boost INTERFACE)
-        target_include_directories(Boost INTERFACE
-            "${CMAKE_CURRENT_SOURCE_DIR}/third_party/boost"
-        )
         if(WIN32)
             # Boost stacktrace uses COM on Windows.
             # On Windows, cache COM instances in TLS for performance.
-            target_compile_definitions(Boost INTERFACE BOOST_STACKTRACE_USE_WINDBG_CACHED)
+            target_compile_definitions(ReactorLLVM PRIVATE BOOST_STACKTRACE_USE_WINDBG_CACHED)
         else()
             # Boost stacktrace uses libbacktrace
-            target_compile_definitions(Boost INTERFACE BOOST_STACKTRACE_USE_BACKTRACE)
+            target_compile_definitions(ReactorLLVM PRIVATE BOOST_STACKTRACE_USE_BACKTRACE)
 
             # Boost stacktrace uses exceptions, so force enable it
             set_cpp_flag("-fexceptions")
@@ -1753,7 +1791,13 @@ if(${REACTOR_BACKEND} STREQUAL "LLVM")
             target_link_libraries(Libbacktrace ${OS_LIBS})
             target_link_libraries(ReactorLLVM Libbacktrace)
         endif()
-        target_link_libraries(ReactorLLVM Boost)
+
+        # Download boost and use it
+        DownloadBoost()
+        set(BOOST_INCLUDEDIR ${BOOST_THIRD_PARTY_DIR})
+        find_package(Boost REQUIRED)
+        target_link_libraries(ReactorLLVM Boost::boost)
+
     endif(REACTOR_EMIT_DEBUG_INFO)
 
     set(Reactor ReactorLLVM)

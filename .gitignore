@@ -20,6 +20,9 @@ CMakeFiles/
 !/build/cmake.sh
 !/build/Visual Studio 15 2017 Win64/
 
+# Boost is downloaded and extracted to /third_party
+/third_party/boost*
+
 # Ignored files #
 *.obj
 *.lib
