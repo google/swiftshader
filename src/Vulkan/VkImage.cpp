@@ -53,24 +53,23 @@ namespace
 namespace vk
 {
 
-Image::Image(const Image::CreateInfo* pCreateInfo, void* mem) :
-	device(Cast(pCreateInfo->device)),
-	flags(pCreateInfo->pCreateInfo->flags),
-	imageType(pCreateInfo->pCreateInfo->imageType),
-	format(pCreateInfo->pCreateInfo->format),
-	extent(pCreateInfo->pCreateInfo->extent),
-	mipLevels(pCreateInfo->pCreateInfo->mipLevels),
-	arrayLayers(pCreateInfo->pCreateInfo->arrayLayers),
-	samples(pCreateInfo->pCreateInfo->samples),
-	tiling(pCreateInfo->pCreateInfo->tiling),
-	usage(pCreateInfo->pCreateInfo->usage)
+Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem, Device *device) :
+	device(device),
+	flags(pCreateInfo->flags),
+	imageType(pCreateInfo->imageType),
+	format(pCreateInfo->format),
+	extent(pCreateInfo->extent),
+	mipLevels(pCreateInfo->mipLevels),
+	arrayLayers(pCreateInfo->arrayLayers),
+	samples(pCreateInfo->samples),
+	tiling(pCreateInfo->tiling),
+	usage(pCreateInfo->usage)
 {
 	if(format.isCompressed())
 	{
-		VkImageCreateInfo imageCreateInfo = *(pCreateInfo->pCreateInfo);
-		imageCreateInfo.format = format.getDecompressedFormat();
-		Image::CreateInfo createInfo = { &imageCreateInfo, pCreateInfo->device };
-		decompressedImage = new (mem) Image(&createInfo, nullptr);
+		VkImageCreateInfo compressedImageCreateInfo = *pCreateInfo;
+		compressedImageCreateInfo.format = format.getDecompressedFormat();
+		decompressedImage = new (mem) Image(&compressedImageCreateInfo, nullptr, device);
 	}
 }
 
@@ -82,9 +81,9 @@ void Image::destroy(const VkAllocationCallbacks* pAllocator)
 	}
 }
 
-size_t Image::ComputeRequiredAllocationSize(const Image::CreateInfo* pCreateInfo)
+size_t Image::ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo)
 {
-	return Format(pCreateInfo->pCreateInfo->format).isCompressed() ? sizeof(Image) : 0;
+	return Format(pCreateInfo->format).isCompressed() ? sizeof(Image) : 0;
 }
 
 const VkMemoryRequirements Image::getMemoryRequirements() const

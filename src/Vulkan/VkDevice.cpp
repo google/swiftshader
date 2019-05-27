@@ -36,12 +36,11 @@ namespace
 namespace vk
 {
 
-Device::Device(const Device::CreateInfo* info, void* mem)
-	: physicalDevice(info->pPhysicalDevice),
+Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice)
+	: physicalDevice(physicalDevice),
 	  queues(reinterpret_cast<Queue*>(mem)),
-	  enabledExtensionCount(info->pCreateInfo->enabledExtensionCount)
+	  enabledExtensionCount(pCreateInfo->enabledExtensionCount)
 {
-	const auto* pCreateInfo = info->pCreateInfo;
 	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
 	{
 		const VkDeviceQueueCreateInfo& queueCreateInfo = pCreateInfo->pQueueCreateInfos[i];
@@ -87,15 +86,15 @@ void Device::destroy(const VkAllocationCallbacks* pAllocator)
 	delete blitter;
 }
 
-size_t Device::ComputeRequiredAllocationSize(const Device::CreateInfo* info)
+size_t Device::ComputeRequiredAllocationSize(const VkDeviceCreateInfo* pCreateInfo)
 {
 	uint32_t queueCount = 0;
-	for(uint32_t i = 0; i < info->pCreateInfo->queueCreateInfoCount; i++)
+	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
 	{
-		queueCount += info->pCreateInfo->pQueueCreateInfos[i].queueCount;
+		queueCount += pCreateInfo->pQueueCreateInfos[i].queueCount;
 	}
 
-	return (sizeof(Queue) * queueCount) + (info->pCreateInfo->enabledExtensionCount * sizeof(ExtensionName));
+	return (sizeof(Queue) * queueCount) + (pCreateInfo->enabledExtensionCount * sizeof(ExtensionName));
 }
 
 bool Device::hasExtension(const char* extensionName) const

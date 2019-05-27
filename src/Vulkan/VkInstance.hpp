@@ -23,28 +23,23 @@ namespace vk
 class Instance
 {
 public:
-	struct CreateInfo
-	{
-		const VkInstanceCreateInfo* pCreateInfo;
-		VkPhysicalDevice pPhysicalDevice;
-	};
-
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE; }
 
-	Instance(const CreateInfo* pCreateInfo, void* mem);
+	Instance(const VkInstanceCreateInfo* pCreateInfo, void* mem, VkPhysicalDevice physicalDevice);
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const CreateInfo*) { return 0; }
+	static size_t ComputeRequiredAllocationSize(const VkInstanceCreateInfo*) { return 0; }
 
 	uint32_t getPhysicalDeviceCount() const;
 	void getPhysicalDevices(uint32_t pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const;
 	uint32_t getPhysicalDeviceGroupCount() const;
 	void getPhysicalDeviceGroups(uint32_t pPhysicalDeviceGroupCount,
                                  VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) const;
+
 private:
-	uint32_t physicalDeviceCount = 0;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-	uint32_t physicalDeviceGroupCount = 1;
+	const uint32_t physicalDeviceCount = 0;
+	const uint32_t physicalDeviceGroupCount = 1;
 };
 
 using DispatchableInstance = DispatchableObject<Instance, VkInstance>;

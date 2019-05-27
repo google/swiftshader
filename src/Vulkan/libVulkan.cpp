@@ -177,13 +177,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 		return result;
 	}
 
-	vk::Instance::CreateInfo info =
-	{
-		pCreateInfo,
-		physicalDevice
-	};
-
-	result = vk::DispatchableInstance::Create(pAllocator, &info, pInstance);
+	result = vk::DispatchableInstance::Create(pAllocator, pCreateInfo, pInstance, physicalDevice);
 	if(result != VK_SUCCESS)
 	{
 		vk::destroy(physicalDevice, pAllocator);
@@ -479,13 +473,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		(void)queueFamilyPropertyCount; // Silence unused variable warning
 	}
 
-	vk::Device::CreateInfo deviceCreateInfo =
-	{
-		pCreateInfo,
-		physicalDevice
-	};
-
-	return vk::DispatchableDevice::Create(pAllocator, &deviceCreateInfo, pDevice);
+	return vk::DispatchableDevice::Create(pAllocator, pCreateInfo, pDevice, vk::Cast(physicalDevice));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
@@ -687,7 +675,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceMemoryCommitment(VkDevice pDevice, VkDevic
 	auto memory = vk::Cast(pMemory);
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	const auto& memoryProperties = vk::Cast(vk::Cast(pDevice)->getPhysicalDevice())->getMemoryProperties();
+	const auto& memoryProperties = vk::Cast(pDevice)->getPhysicalDevice()->getMemoryProperties();
 	uint32_t typeIndex = memory->getMemoryTypeIndex();
 	ASSERT(typeIndex < memoryProperties.memoryTypeCount);
 	ASSERT(memoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
@@ -997,13 +985,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
-	vk::Image::CreateInfo imageCreateInfo =
-	{
-		pCreateInfo,
-		device
-	};
-
-	VkResult result = vk::Image::Create(pAllocator, &imageCreateInfo, pImage);
+	VkResult result = vk::Image::Create(pAllocator, pCreateInfo, pImage, vk::Cast(device));
 
 #ifdef __ANDROID__
 	if (swapchainImage)
@@ -1479,7 +1461,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 			// pViewMask is a 32 bit value. If maxFramebufferLayers > 32, it's impossible
 			// for pViewMask to contain a bit at an illegal position
 			// Note: Verify pViewMask values instead if we hit this assert
-			ASSERT(vk::Cast(vk::Cast(device)->getPhysicalDevice())->getProperties().limits.maxFramebufferLayers >= 32);
+			ASSERT(vk::Cast(device)->getPhysicalDevice()->getProperties().limits.maxFramebufferLayers >= 32);
 		}
 		break;
 		default:

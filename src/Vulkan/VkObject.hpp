@@ -28,8 +28,8 @@ namespace vk
 // For use in the placement new to make it verbose that we're allocating an object using device memory
 static constexpr VkAllocationCallbacks* DEVICE_MEMORY = nullptr;
 
-template<typename T, typename VkT, typename CreateInfo>
-static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject)
+template<typename T, typename VkT, typename CreateInfo, typename... ExtendedInfo>
+static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject, ExtendedInfo... extendedInfo)
 {
 	*outObject = VK_NULL_HANDLE;
 
@@ -51,7 +51,7 @@ static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo
 		return VK_ERROR_OUT_OF_HOST_MEMORY;
 	}
 
-	auto object = new (objectMemory) T(pCreateInfo, memory);
+	auto object = new (objectMemory) T(pCreateInfo, memory, extendedInfo...);
 
 	if(!object)
 	{
@@ -75,10 +75,10 @@ public:
 
 	void destroy(const VkAllocationCallbacks* pAllocator) {} // Method defined by objects to delete their content, if necessary
 
-	template<typename CreateInfo>
-	static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject)
+	template<typename CreateInfo, typename... ExtendedInfo>
+	static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject, ExtendedInfo... extendedInfo)
 	{
-		return vk::Create<T, VkT, CreateInfo>(pAllocator, pCreateInfo, outObject);
+		return vk::Create<T, VkT, CreateInfo>(pAllocator, pCreateInfo, outObject, extendedInfo...);
 	}
 
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_OBJECT; }
@@ -102,6 +102,7 @@ class DispatchableObject
 	VK_LOADER_DATA loaderData = { ICD_LOADER_MAGIC };
 
 	T object;
+
 public:
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return T::GetAllocationScope(); }
 
@@ -109,6 +110,8 @@ public:
 	DispatchableObject(Args... args) : object(args...)
 	{
 	}
+
+	~DispatchableObject() = delete;
 
 	void destroy(const VkAllocationCallbacks* pAllocator)
 	{
@@ -121,10 +124,10 @@ public:
 		ASSERT(false);
 	}
 
-	template<typename CreateInfo>
-	static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject)
+	template<typename CreateInfo, typename... ExtendedInfo>
+	static VkResult Create(const VkAllocationCallbacks* pAllocator, const CreateInfo* pCreateInfo, VkT* outObject, ExtendedInfo... extendedInfo)
 	{
-		return vk::Create<DispatchableObject<T, VkT>, VkT, CreateInfo>(pAllocator, pCreateInfo, outObject);
+		return vk::Create<DispatchableObject<T, VkT>, VkT, CreateInfo>(pAllocator, pCreateInfo, outObject, extendedInfo...);
 	}
 
 	template<typename CreateInfo>

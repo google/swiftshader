@@ -27,16 +27,10 @@ class DeviceMemory;
 class Image : public Object<Image, VkImage>
 {
 public:
-	struct CreateInfo
-	{
-		const VkImageCreateInfo* pCreateInfo;
-		const VkDevice device;
-	};
-
-	Image(const CreateInfo* pCreateInfo, void* mem);
+	Image(const VkImageCreateInfo* pCreateInfo, void* mem, Device *device);
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const CreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
 	void getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const;

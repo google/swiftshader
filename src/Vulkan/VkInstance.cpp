@@ -18,13 +18,10 @@
 namespace vk
 {
 
-Instance::Instance(const CreateInfo* pCreateInfo, void* mem)
+Instance::Instance(const VkInstanceCreateInfo* pCreateInfo, void* mem, VkPhysicalDevice physicalDevice)
+	: physicalDevice(physicalDevice),
+	  physicalDeviceCount(physicalDevice ? 1 : 0)
 {
-	if(pCreateInfo->pPhysicalDevice)
-	{
-		physicalDevice = pCreateInfo->pPhysicalDevice;
-		physicalDeviceCount = 1;
-	}
 }
 
 void Instance::destroy(const VkAllocationCallbacks* pAllocator)
