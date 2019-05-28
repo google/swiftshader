@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "59796981_2506dd3e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-28T16:44:08Z",
+      "side": 1,
+      "message": "Our libEGL implementation needs to be able to use the Image interface, but we want to avoid pulling in all of the dependencies. In particular some image operations use dynamically generated code, and we don\u0027t want to duplicate our entire JIT engine in libEGL. It should only be in libGLESv2.\n\nSo I don\u0027t think this dependency should be added. The class dependency should be purely on virtual functions which can be called across shared libraries.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "3f5c31b47fdc34386dd5ce1f1bf6d23cc0a18105",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b57c61b_bf68c3a6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-28T16:44:08Z",
+      "side": 1,
+      "message": "Good find! Those look like two correct conclusions to me.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 45
+      },
+      "revId": "3f5c31b47fdc34386dd5ce1f1bf6d23cc0a18105",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
