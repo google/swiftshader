@@ -40,11 +40,15 @@ namespace sw
 
 		UInt occlusion;
 
+		Int y;
+		Int yMin;
+		Int yMax;
+
 #if PERF_PROFILE
 		Long cycles[PERF_TIMERS];
 #endif
 
-		virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
+		virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x) = 0;
 
 		bool interpolateZ() const;
 		bool interpolateW() const;
@@ -54,7 +58,7 @@ namespace sw
 		const PixelShader *const shader;
 
 	private:
-		void rasterize(Int &yMin, Int &yMax);
+		void rasterize();
 	};
 }
 

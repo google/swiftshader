@@ -53,8 +53,8 @@ namespace sw
 
 		Do
 		{
-			Int yMin = *Pointer<Int>(primitive + OFFSET(Primitive,yMin));
-			Int yMax = *Pointer<Int>(primitive + OFFSET(Primitive,yMax));
+			yMin = *Pointer<Int>(primitive + OFFSET(Primitive,yMin));
+			yMax = *Pointer<Int>(primitive + OFFSET(Primitive,yMax));
 
 			Int cluster2 = cluster + cluster;
 			yMin += clusterCount * 2 - 2 - cluster2;
@@ -63,7 +63,7 @@ namespace sw
 
 			If(yMin < yMax)
 			{
-				rasterize(yMin, yMax);
+				rasterize();
 			}
 
 			primitive += sizeof(Primitive) * state.multiSample;
@@ -90,7 +90,7 @@ namespace sw
 		Return();
 	}
 
-	void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
+	void QuadRasterizer::rasterize()
 	{
 		Pointer<Byte> cBuffer[RENDERTARGETS];
 		Pointer<Byte> zBuffer;
@@ -114,7 +114,7 @@ namespace sw
 			sBuffer = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,stencilBuffer)) + yMin * *Pointer<Int>(data + OFFSET(DrawData,stencilPitchB));
 		}
 
-		Int y = yMin;
+		y = yMin;
 
 		Do
 		{
@@ -287,7 +287,7 @@ namespace sw
 						cMask[q] = SignMask(PackSigned(mask, mask)) & 0x0000000F;
 					}
 
-					quad(cBuffer, zBuffer, sBuffer, cMask, x, y);
+					quad(cBuffer, zBuffer, sBuffer, cMask, x);
 				}
 			}
 
