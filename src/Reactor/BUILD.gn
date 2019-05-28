@@ -18,7 +18,7 @@ declare_args() {
   # Subzero produces smaller binaries, but doesn't support ARM64 and MIPS64.
   use_swiftshader_with_subzero =
       target_cpu != "arm64" && target_cpu != "mips64el"
-  supports_llvm = is_linux || is_fuchsia || is_win || is_android
+  supports_llvm = is_linux || is_fuchsia || is_win || is_android || is_mac
 }
 
 config("swiftshader_reactor_private_config") {
