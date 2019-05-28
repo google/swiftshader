@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f41e6062_c86e19a7",
+        "filename": "src/Vulkan/VkFence.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-05-28T11:39:00Z",
+      "side": 1,
+      "message": "In my opinion, issue with all of this is that vk::Object::operator T() casts down to vk::Object (by using \u0027this\u0027) before reinterpreting to the Vulkan handle type. Your fix here is to perform the inverse here.\n\nI think a general solution that would avoid having to do any per-type changes would be to modify vk::Object to keep the handle as a reinterpret of the derived type:\n\n    template\u003ctypename T, typename VkT\u003e\n    class Object : public ObjectBase\u003cT, VkT\u003e\n    {\n    public:\n        operator VkT()\n        {\n            auto object \u003d static_cast\u003cT*\u003e(this);\n            return reinterpret_cast\u003ctypename VkT::HandleType\u003e(object);\n        }\n    };",
+      "range": {
+        "startLine": 85,
+        "startChar": 1,
+        "endLine": 85,
+        "endChar": 85
+      },
+      "revId": "a71a1dbb4de45932eb53b2a9478709f4af6d3852",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
