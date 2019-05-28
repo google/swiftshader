@@ -2175,13 +2175,11 @@ namespace sw
 			}
 		}
 
-		// Emit all loop blocks, but don't emit the merge block yet.
+		// Emit all blocks between the loop header and the merge block, but
+		// don't emit the merge block yet.
 		for (auto out : block.outs)
 		{
-			if (existsPath(out, blockId, block.mergeBlock))
-			{
-				EmitBlocks(out, state, block.mergeBlock);
-			}
+			EmitBlocks(out, state, block.mergeBlock);
 		}
 
 		// Restore current block id after emitting loop blocks.
