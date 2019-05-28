@@ -4525,6 +4525,7 @@ namespace rr
 		return elements;
 	}
 
+	std::vector<Value*> PrintValue::Ty<Byte>::val(const RValue<Byte>& v) { return toInt({v.value}, false); }
 	std::vector<Value*> PrintValue::Ty<Byte4>::val(const RValue<Byte4>& v) { return toInt(extractAll(v.value, 4), false); }
 	std::vector<Value*> PrintValue::Ty<Int>::val(const RValue<Int>& v) { return toInt({v.value}, true); }
 	std::vector<Value*> PrintValue::Ty<Int2>::val(const RValue<Int2>& v) { return toInt(extractAll(v.value, 2), true); }
@@ -4532,7 +4533,9 @@ namespace rr
 	std::vector<Value*> PrintValue::Ty<UInt>::val(const RValue<UInt>& v) { return toInt({v.value}, false); }
 	std::vector<Value*> PrintValue::Ty<UInt2>::val(const RValue<UInt2>& v) { return toInt(extractAll(v.value, 2), false); }
 	std::vector<Value*> PrintValue::Ty<UInt4>::val(const RValue<UInt4>& v) { return toInt(extractAll(v.value, 4), false); }
+	std::vector<Value*> PrintValue::Ty<Short>::val(const RValue<Short>& v) { return toInt({v.value}, true); }
 	std::vector<Value*> PrintValue::Ty<Short4>::val(const RValue<Short4>& v) { return toInt(extractAll(v.value, 4), true); }
+	std::vector<Value*> PrintValue::Ty<UShort>::val(const RValue<UShort>& v) { return toInt({v.value}, false); }
 	std::vector<Value*> PrintValue::Ty<UShort4>::val(const RValue<UShort4>& v) { return toInt(extractAll(v.value, 4), false); }
 	std::vector<Value*> PrintValue::Ty<Float>::val(const RValue<Float>& v) { return toDouble({v.value}); }
 	std::vector<Value*> PrintValue::Ty<Float4>::val(const RValue<Float4>& v) { return toDouble(extractAll(v.value, 4)); }

@@ -94,4 +94,39 @@ namespace sw
 	UInt4 halfToFloatBits(UInt4 halfBits);
 }
 
+#ifdef ENABLE_RR_PRINT
+namespace rr {
+	template <> struct PrintValue::Ty<sw::Vector4f>
+	{
+		static std::string fmt(const sw::Vector4f& v)
+		{
+			return "[x: " + PrintValue::fmt(v.x) + ","
+			       " y: " + PrintValue::fmt(v.y) + ","
+			       " z: " + PrintValue::fmt(v.z) + ","
+			       " w: " + PrintValue::fmt(v.w) + "]";
+		}
+
+		static std::vector<rr::Value*> val(const sw::Vector4f& v)
+		{
+			return PrintValue::vals(v.x, v.y, v.z, v.w);
+		}
+	};
+	template <> struct PrintValue::Ty<sw::Vector4s>
+	{
+		static std::string fmt(const sw::Vector4s& v)
+		{
+			return "[x: " + PrintValue::fmt(v.x) + ","
+			       " y: " + PrintValue::fmt(v.y) + ","
+			       " z: " + PrintValue::fmt(v.z) + ","
+			       " w: " + PrintValue::fmt(v.w) + "]";
+		}
+
+		static std::vector<rr::Value*> val(const sw::Vector4s& v)
+		{
+			return PrintValue::vals(v.x, v.y, v.z, v.w);
+		}
+	};
+}
+#endif // ENABLE_RR_PRINT
+
 #endif   // sw_ShaderCore_hpp

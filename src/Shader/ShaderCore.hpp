@@ -386,11 +386,13 @@ namespace sw
 namespace rr {
 	template <> struct PrintValue::Ty<sw::Vector4f>
 	{
-		static constexpr const char* fmt =
-			"[x: <%f, %f, %f, %f>,"
-			" y: <%f, %f, %f, %f>,"
-			" z: <%f, %f, %f, %f>,"
-			" w: <%f, %f, %f, %f>]";
+		static std::string fmt(const sw::Vector4f& v)
+		{
+			return "[x: " + PrintValue::fmt(v.x) + ","
+			       " y: " + PrintValue::fmt(v.y) + ","
+			       " z: " + PrintValue::fmt(v.z) + ","
+			       " w: " + PrintValue::fmt(v.w) + "]";
+		}
 
 		static std::vector<rr::Value*> val(const sw::Vector4f& v)
 		{
@@ -399,11 +401,13 @@ namespace rr {
 	};
 	template <> struct PrintValue::Ty<sw::Vector4s>
 	{
-		static constexpr const char* fmt =
-			"[x: <%d, %d, %d, %d>,"
-			" y: <%d, %d, %d, %d>,"
-			" z: <%d, %d, %d, %d>,"
-			" w: <%d, %d, %d, %d>]";
+		static std::string fmt(const sw::Vector4s& v)
+		{
+			return "[x: " + PrintValue::fmt(v.x) + ","
+			       " y: " + PrintValue::fmt(v.y) + ","
+			       " z: " + PrintValue::fmt(v.z) + ","
+			       " w: " + PrintValue::fmt(v.w) + "]";
+		}
 
 		static std::vector<rr::Value*> val(const sw::Vector4s& v)
 		{

@@ -3295,28 +3295,15 @@ namespace rr
 	{
 		// Ty is a template that can be specialized for printing type T.
 		// Each specialization must expose:
-		//  * A 'static constexpr const char* fmt' field that provides the
+		//  * A 'static std::string fmt(const T& v)' method that provides the
 		//    printf format specifier.
 		//  * A 'static std::vector<rr::Value*> val(const T& v)' method that
 		//    returns all the printf format values.
 		template <typename T> struct Ty
 		{
-			// static constexpr const char* fmt;
-			// static std::vector<rr::Value*> val(const T& v)
+			// static std::string fmt(const T& v);
+			// static std::vector<rr::Value*> val(const T& v);
 		};
-
-		// returns the printf value(s) for the given LValue.
-		template <typename T>
-		static std::vector<Value*> val(const LValue<T>& v) { return val(RValue<T>(v.loadValue())); }
-
-		// returns the printf value(s) for the given RValue.
-		template <typename T>
-		static std::vector<Value*> val(const RValue<T>& v) { return Ty<T>::val(v); }
-
-		// returns the printf value from for the given type with a
-		// PrintValue::Ty<T> specialization.
-		template <typename T>
-		static std::vector<Value*> val(const T& v) { return Ty<T>::val(v); }
 
 		// returns the printf values for all the values in the given array.
 		template <typename T>
@@ -3331,15 +3318,16 @@ namespace rr
 			return values;
 		}
 
-		// fmt returns a comma-delimited list of the string el repeated count
-		// times enclosed in square brackets.
-		static std::string fmt(const char* el, int count)
+		// fmt returns the comma-delimited list of printf format strings for
+		// every element in the provided list, all enclosed in square brackets.
+		template <typename T>
+		static std::string fmt(const T* list, int count)
 		{
 			std::string out = "[";
 			for (int i = 0; i < count; i++)
 			{
 				if (i > 0) { out += ", "; }
-				out += el;
+				out += fmt(list[i]);
 			}
 			return out + "]";
 		}
@@ -3357,16 +3345,16 @@ namespace rr
 
 		// Constructs a PrintValue for the given value.
 		template <typename T>
-		PrintValue(const T& v) : format(Ty<T>::fmt), values(val(v)) {}
+		PrintValue(const T& v) : format(fmt(v)), values(val(v)) {}
 
 		// Constructs a PrintValue for the given static array.
 		template <typename T, int N>
-		PrintValue(const T (&v)[N]) : format(fmt(Ty<T>::fmt, N)), values(val(&v[0], N)) {}
+		PrintValue(const T (&v)[N]) : format(fmt(&v[0], N)), values(val(&v[0], N)) {}
 
 		// Constructs a PrintValue for the given array starting at arr of length
 		// len.
 		template <typename T>
-		PrintValue(const T* arr, int len) : format(fmt(Ty<T>::fmt, len)), values(val(arr, len)) {}
+		PrintValue(const T* arr, int len) : format(fmt(arr, len)), values(val(arr, len)) {}
 
 		// PrintValue constructors for plain-old-data values.
 		PrintValue(bool v) : format(v ? "true" : "false") {}
@@ -3397,11 +3385,13 @@ namespace rr
 		// {
 		//		template <> struct PrintValue::Ty<Mat4x4>
 		//		{
-		//			static constexpr const char* fmt =
-		//				"[a: <%f, %f, %f, %f>,"
-		//				" b: <%f, %f, %f, %f>,"
-		//				" c: <%f, %f, %f, %f>,"
-		//				" d: <%f, %f, %f, %f>]";
+		//			static std::string fmt(const Mat4x4& v)
+		//			{
+		//				return	"[a: <%f, %f, %f, %f>,"
+		//				        " b: <%f, %f, %f, %f>,"
+		//				        " c: <%f, %f, %f, %f>,"
+		//				        " d: <%f, %f, %f, %f>]";
+		//			}
 		//			static std::vector<rr::Value*> val(const Mat4x4& v)
 		//			{
 		//				return PrintValue::vals(v.a, v.b, v.c, v.d);
@@ -3419,114 +3409,124 @@ namespace rr
 			}
 			return joined;
 		}
+
+		// returns the printf format specifier for the given type via the
+		// PrintValue::Ty<T> specialization.
+		template <typename T>
+		static std::string fmt(const T& v) { return Ty<T>::fmt(v); }
+
+		// returns the printf value for the given type with a
+		// PrintValue::Ty<T> specialization.
+		template <typename T>
+		static std::vector<Value*> val(const T& v) { return Ty<T>::val(v); }
 	};
 
 	// PrintValue::Ty<T> specializations for basic types.
 	template <> struct PrintValue::Ty<const char*>
 	{
-		static constexpr const char* fmt = "%s";
+		static std::string fmt(const char* v) { return "%s"; }
 		static std::vector<Value*> val(const char* v);
 	};
 	template <> struct PrintValue::Ty<std::string>
 	{
-		static constexpr const char* fmt = PrintValue::Ty<const char*>::fmt;
+		static std::string fmt(const std::string& v) { return PrintValue::Ty<const char*>::fmt(v.c_str()); }
 		static std::vector<Value*> val(const std::string& v) { return PrintValue::Ty<const char*>::val(v.c_str()); }
 	};
 
 	// PrintValue::Ty<T> specializations for standard Reactor types.
 	template <> struct PrintValue::Ty<Bool>
 	{
-		static constexpr const char* fmt = "%d";
+		static std::string fmt(const RValue<Bool>& v) { return "%d"; }
 		static std::vector<Value*> val(const RValue<Bool>& v) { return {v.value}; }
 	};
 	template <> struct PrintValue::Ty<Byte>
 	{
-		static constexpr const char* fmt = "%d";
-		static std::vector<Value*> val(const RValue<Byte>& v) { return {v.value}; }
+		static std::string fmt(const RValue<Byte>& v) { return "%d"; }
+		static std::vector<Value*> val(const RValue<Byte>& v);
 	};
 	template <> struct PrintValue::Ty<Byte4>
 	{
-		static constexpr const char* fmt = "[%d, %d, %d, %d]";
+		static std::string fmt(const RValue<Byte4>& v) { return "[%d, %d, %d, %d]"; }
 		static std::vector<Value*> val(const RValue<Byte4>& v);
 	};
 	template <> struct PrintValue::Ty<Int>
 	{
-		static constexpr const char* fmt = "%d";
+		static std::string fmt(const RValue<Int>& v) { return "%d"; }
 		static std::vector<Value*> val(const RValue<Int>& v);
 	};
 	template <> struct PrintValue::Ty<Int2>
 	{
-		static constexpr const char* fmt = "[%d, %d]";
+		static std::string fmt(const RValue<Int>& v) { return "[%d, %d]"; }
 		static std::vector<Value*> val(const RValue<Int2>& v);
 	};
 	template <> struct PrintValue::Ty<Int4>
 	{
-		static constexpr const char* fmt = "[%d, %d, %d, %d]";
+		static std::string fmt(const RValue<Int4>& v) { return "[%d, %d, %d, %d]"; }
 		static std::vector<Value*> val(const RValue<Int4>& v);
 	};
 	template <> struct PrintValue::Ty<UInt>
 	{
-		static constexpr const char* fmt = "%u";
+		static std::string fmt(const RValue<UInt>& v) { return "%u"; }
 		static std::vector<Value*> val(const RValue<UInt>& v);
 	};
 	template <> struct PrintValue::Ty<UInt2>
 	{
-		static constexpr const char* fmt = "[%u, %u]";
+		static std::string fmt(const RValue<UInt>& v) { return "[%u, %u]"; }
 		static std::vector<Value*> val(const RValue<UInt2>& v);
 	};
 	template <> struct PrintValue::Ty<UInt4>
 	{
-		static constexpr const char* fmt = "[%u, %u, %u, %u]";
+		static std::string fmt(const RValue<UInt4>& v) { return "[%u, %u, %u, %u]"; }
 		static std::vector<Value*> val(const RValue<UInt4>& v);
 	};
 	template <> struct PrintValue::Ty<Short>
 	{
-		static constexpr const char* fmt = "%d";
-		static std::vector<Value*> val(const RValue<Short>& v) { return {v.value}; }
+		static std::string fmt(const RValue<Short>& v) { return "%d"; }
+		static std::vector<Value*> val(const RValue<Short>& v);
 	};
 	template <> struct PrintValue::Ty<Short4>
 	{
-		static constexpr const char* fmt = "[%d, %d, %d, %d]";
+		static std::string fmt(const RValue<Short4>& v) { return "[%d, %d, %d, %d]"; }
 		static std::vector<Value*> val(const RValue<Short4>& v);
 	};
 	template <> struct PrintValue::Ty<UShort>
 	{
-		static constexpr const char* fmt = "%u";
-		static std::vector<Value*> val(const RValue<UShort>& v) { return {v.value}; }
+		static std::string fmt(const RValue<UShort>& v) { return "%u"; }
+		static std::vector<Value*> val(const RValue<UShort>& v);
 	};
 	template <> struct PrintValue::Ty<UShort4>
 	{
-		static constexpr const char* fmt = "[%u, %u, %u, %u]";
+		static std::string fmt(const RValue<UShort4>& v) { return "[%u, %u, %u, %u]"; }
 		static std::vector<Value*> val(const RValue<UShort4>& v);
 	};
 	template <> struct PrintValue::Ty<Float>
 	{
-		static constexpr const char* fmt = "[%f]";
+		static std::string fmt(const RValue<Float>& v) { return "[%f]"; }
 		static std::vector<Value*> val(const RValue<Float>& v);
 	};
 	template <> struct PrintValue::Ty<Float4>
 	{
-		static constexpr const char* fmt = "[%f, %f, %f, %f]";
+		static std::string fmt(const RValue<Float4>& v) { return "[%f, %f, %f, %f]"; }
 		static std::vector<Value*> val(const RValue<Float4>& v);
 	};
 	template <> struct PrintValue::Ty<Long>
 	{
-		static constexpr const char* fmt = "%lld";
+		static std::string fmt(const RValue<Long>& v) { return "%lld"; }
 		static std::vector<Value*> val(const RValue<Long>& v) { return {v.value}; }
 	};
 	template <typename T> struct PrintValue::Ty< Pointer<T> >
 	{
-		static constexpr const char* fmt = "%p";
+		static std::string fmt(const RValue<Pointer<T>>& v) { return "%p"; }
 		static std::vector<Value*> val(const RValue<Pointer<T>>& v) { return {v.value}; }
 	};
 	template <typename T> struct PrintValue::Ty< Reference<T> >
 	{
-		static constexpr const char* fmt = PrintValue::Ty<T>::fmt;
+		static std::string fmt(const Reference<T>& v) { return PrintValue::Ty<T>::fmt(v); }
 		static std::vector<Value*> val(const Reference<T>& v) { return PrintValue::Ty<T>::val(v); }
 	};
 	template <typename T> struct PrintValue::Ty< RValue<T> >
 	{
-		static constexpr const char* fmt = PrintValue::Ty<T>::fmt;
+		static std::string fmt(const RValue<T>& v) { return PrintValue::Ty<T>::fmt(v); }
 		static std::vector<Value*> val(const RValue<T>& v) { return PrintValue::Ty<T>::val(v); }
 	};
 
