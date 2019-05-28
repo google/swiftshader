@@ -23,8 +23,6 @@
 
 namespace sw
 {
-	extern TranscendentalPrecision logPrecision;
-
 	SetupRoutine::SetupRoutine(const SetupProcessor::State &state) : state(state)
 	{
 		routine = 0;

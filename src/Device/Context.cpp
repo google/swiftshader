@@ -24,16 +24,6 @@
 
 namespace sw
 {
-	bool booleanFaceRegister = false;
-	bool fullPixelPositionRegister = false;
-
-	bool forceWindowed = false;
-	bool quadLayoutEnabled = false;
-	bool postBlendSRGB = false;
-	bool exactColorRounding = false;
-	TransparencyAntialiasing transparencyAntialiasing = TRANSPARENCY_NONE;
-	bool forceClearRegisters = false;
-
 	Context::Context()
 	{
 		init();
@@ -195,11 +185,6 @@ namespace sw
 		if(!depthBufferActive()) return false;
 
 		return depthWriteEnable;
-	}
-
-	bool Context::alphaTestActive() const
-	{
-		return transparencyAntialiasing != TRANSPARENCY_NONE;
 	}
 
 	bool Context::depthBufferActive() const
@@ -589,6 +574,6 @@ namespace sw
 
 	bool Context::colorUsed() const
 	{
-		return colorWriteActive() || alphaTestActive() || (pixelShader && pixelShader->getModes().ContainsKill);
+		return colorWriteActive() || (pixelShader && pixelShader->getModes().ContainsKill);
 	}
 }

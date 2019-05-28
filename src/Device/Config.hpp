@@ -17,18 +17,6 @@
 
 #include "System/Types.hpp"
 
-#define PERF_HUD 0       // Display time spent on vertex, setup and pixel processing for each thread
-#define PERF_PROFILE 0   // Profile various pipeline stages and display the timing in SwiftConfig
-
-#define ASTC_SUPPORT 0
-
-// Worker thread count when not set by SwiftConfig
-// 0 = process affinity count (recommended)
-// 1 = rendering on main thread (no worker threads), useful for debugging
-#ifndef DEFAULT_THREAD_COUNT
-#define DEFAULT_THREAD_COUNT 0
-#endif
-
 namespace sw
 {
 	enum
@@ -53,22 +41,6 @@ namespace sw
 		int framesSec;
 		int framesTotal;
 		double FPS;
-
-		#if PERF_PROFILE
-		double cycles[PERF_TIMERS];
-
-		int64_t ropOperations;
-		int64_t ropOperationsTotal;
-		int64_t ropOperationsFrame;
-
-		int64_t texOperations;
-		int64_t texOperationsTotal;
-		int64_t texOperationsFrame;
-
-		int64_t compressedTex;
-		int64_t compressedTexTotal;
-		int64_t compressedTexFrame;
-		#endif
 	};
 
 	extern Profiler profiler;

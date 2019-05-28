@@ -22,10 +22,6 @@
 
 namespace sw
 {
-	extern bool fullPixelPositionRegister;
-
-	extern int clusterCount;
-
 	QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader) : state(state), spirvShader{spirvShader}
 	{
 	}
@@ -36,15 +32,6 @@ namespace sw
 
 	void QuadRasterizer::generate()
 	{
-		#if PERF_PROFILE
-			for(int i = 0; i < PERF_TIMERS; i++)
-			{
-				cycles[i] = 0;
-			}
-
-			Long pixelTime = Ticks();
-		#endif
-
 		constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
 		occlusion = 0;
 		int clusterCount = Renderer::getClusterCount();
@@ -75,15 +62,6 @@ namespace sw
 			clusterOcclusion += occlusion;
 			*Pointer<UInt>(data + OFFSET(DrawData,occlusion) + 4 * cluster) = clusterOcclusion;
 		}
-
-		#if PERF_PROFILE
-			cycles[PERF_PIXEL] = Ticks() - pixelTime;
-
-			for(int i = 0; i < PERF_TIMERS; i++)
-			{
-				*Pointer<Long>(data + OFFSET(DrawData,cycles[i]) + 8 * cluster) += cycles[i];
-			}
-		#endif
 
 		Return();
 	}

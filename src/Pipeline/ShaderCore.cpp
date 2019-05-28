@@ -21,11 +21,6 @@
 
 namespace sw
 {
-	extern TranscendentalPrecision logPrecision;
-	extern TranscendentalPrecision expPrecision;
-	extern TranscendentalPrecision rcpPrecision;
-	extern TranscendentalPrecision rsqPrecision;
-
 	Vector4s::Vector4s()
 	{
 	}
@@ -186,20 +181,11 @@ namespace sw
 
 	Float4 reciprocal(RValue<Float4> x, bool pp, bool finite, bool exactAtPow2)
 	{
-		Float4 rcp;
+		Float4 rcp = Rcp_pp(x, exactAtPow2);
 
-		if(!pp && rcpPrecision >= WHQL)
+		if(!pp)
 		{
-			rcp = Float4(1.0f) / x;
-		}
-		else
-		{
-			rcp = Rcp_pp(x, exactAtPow2);
-
-			if(!pp)
-			{
-				rcp = (rcp + rcp) - (x * rcp * rcp);
-			}
+			rcp = (rcp + rcp) - (x * rcp * rcp);
 		}
 
 		if(finite)

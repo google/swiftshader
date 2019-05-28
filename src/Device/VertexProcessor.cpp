@@ -23,8 +23,6 @@
 
 namespace sw
 {
-	bool precacheVertex = false;
-
 	void VertexCache::clear()
 	{
 		for(int i = 0; i < 16; i++)

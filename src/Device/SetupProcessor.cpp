@@ -25,10 +25,6 @@
 
 namespace sw
 {
-	extern bool fullPixelPositionRegister;
-
-	bool precacheSetup = false;
-
 	unsigned int SetupProcessor::States::computeHash()
 	{
 		unsigned int *state = (unsigned int*)this;

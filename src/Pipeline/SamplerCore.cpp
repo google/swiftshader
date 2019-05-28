@@ -57,15 +57,6 @@ namespace sw
 	{
 		Vector4f c;
 
-		#if PERF_PROFILE
-			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
-
-			if(state.compressedFormat)
-			{
-				AddAtomic(Pointer<Long>(&profiler.compressedTex), 4);
-			}
-		#endif
-
 		Float4 uuuu = u;
 		Float4 vvvv = v;
 		Float4 wwww = w;

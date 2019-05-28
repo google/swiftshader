@@ -20,8 +20,6 @@
 
 namespace sw
 {
-	extern bool postBlendSRGB;
-
 	void PixelProgram::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w)
 	{
 		routine.windowSpacePosition[0] = x + SIMD::Int(0,1,0,1);

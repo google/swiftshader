@@ -30,39 +30,10 @@ namespace sw
 		framesSec = 0;
 		framesTotal = 0;
 		FPS = 0;
-
-		#if PERF_PROFILE
-			for(int i = 0; i < PERF_TIMERS; i++)
-			{
-				cycles[i] = 0;
-			}
-
-			ropOperations = 0;
-			ropOperationsTotal = 0;
-			ropOperationsFrame = 0;
-
-			texOperations = 0;
-			texOperationsTotal = 0;
-			texOperationsFrame = 0;
-
-			compressedTex = 0;
-			compressedTexTotal = 0;
-			compressedTexFrame = 0;
-		#endif
 	}
 
 	void Profiler::nextFrame()
 	{
-		#if PERF_PROFILE
-			ropOperationsFrame = sw::atomicExchange(&ropOperations, 0);
-			texOperationsFrame = sw::atomicExchange(&texOperations, 0);
-			compressedTexFrame = sw::atomicExchange(&compressedTex, 0);
-
-			ropOperationsTotal += ropOperationsFrame;
-			texOperationsTotal += texOperationsFrame;
-			compressedTexTotal += compressedTexFrame;
-		#endif
-
 		static double fpsTime = sw::Timer::seconds();
 
 		double time = sw::Timer::seconds();

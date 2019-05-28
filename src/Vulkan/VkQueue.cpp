@@ -74,7 +74,7 @@ VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubm
 namespace vk
 {
 
-Queue::Queue() : renderer(sw::OpenGL, true)
+Queue::Queue() : renderer()
 {
 	queueThread = std::thread(TaskLoop, this);
 }

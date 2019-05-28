@@ -17,7 +17,6 @@
 #include "Clipper.hpp"
 #include "Primitive.hpp"
 #include "Polygon.hpp"
-#include "Device/SwiftConfig.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Pipeline/Constants.hpp"
 #include "System/CPUID.hpp"
@@ -35,8 +34,6 @@
 
 #undef max
 
-bool disableServer = true;
-
 #ifndef NDEBUG
 unsigned int minPrimitives = 1;
 unsigned int maxPrimitives = 1 << 21;
@@ -44,41 +41,10 @@ unsigned int maxPrimitives = 1 << 21;
 
 namespace sw
 {
-	extern bool booleanFaceRegister;
-	extern bool fullPixelPositionRegister;
-
-	extern bool forceWindowed;
-	extern bool postBlendSRGB;
-	extern bool exactColorRounding;
-	extern TransparencyAntialiasing transparencyAntialiasing;
-	extern bool forceClearRegisters;
-
-	extern bool precacheVertex;
-	extern bool precacheSetup;
-	extern bool precachePixel;
-
 	static const int batchSize = 128;
 	AtomicInt threadCount(1);
 	AtomicInt Renderer::unitCount(1);
 	AtomicInt Renderer::clusterCount(1);
-
-	TranscendentalPrecision logPrecision = ACCURATE;
-	TranscendentalPrecision expPrecision = ACCURATE;
-	TranscendentalPrecision rcpPrecision = ACCURATE;
-	TranscendentalPrecision rsqPrecision = ACCURATE;
-
-	static void setGlobalRenderingSettings(Conventions conventions, bool exactColorRounding)
-	{
-		static bool initialized = false;
-
-		if(!initialized)
-		{
-			sw::booleanFaceRegister = conventions.booleanFaceRegister;
-			sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
-			sw::exactColorRounding = exactColorRounding;
-			initialized = true;
-		}
-	}
 
 	template<typename T>
 	inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topology, T indices, unsigned int start, unsigned int triangleCount)
@@ -196,14 +162,8 @@ namespace sw
 		deallocate(data);
 	}
 
-	Renderer::Renderer(Conventions conventions, bool exactColorRounding)
+	Renderer::Renderer()
 	{
-		setGlobalRenderingSettings(conventions, exactColorRounding);
-
-		#if PERF_HUD
-			resetTimers();
-		#endif
-
 		for(int i = 0; i < 16; i++)
 		{
 			vertexTask[i] = nullptr;
@@ -246,7 +206,6 @@ namespace sw
 
 		clipFlags = 0;
 
-		swiftConfig = new SwiftConfig(disableServer);
 		updateConfiguration(true);
 	}
 
@@ -263,9 +222,6 @@ namespace sw
 			delete drawCall[draw];
 			drawCall[draw] = nullptr;
 		}
-
-		delete swiftConfig;
-		swiftConfig = nullptr;
 	}
 
 	// This object has to be mem aligned
@@ -298,10 +254,14 @@ namespace sw
 		if(count == 0) { return; }
 
 		#ifndef NDEBUG
+		{
+			unsigned int minPrimitives = 1;
+			unsigned int maxPrimitives = 1 << 21;
 			if(count < minPrimitives || count > maxPrimitives)
 			{
 				return;
 			}
+		}
 		#endif
 
 		updateConfiguration();
@@ -455,16 +415,6 @@ namespace sw
 			}
 		}
 
-		#if PERF_PROFILE
-			for(int cluster = 0; cluster < clusterCount; cluster++)
-			{
-				for(int i = 0; i < PERF_TIMERS; i++)
-				{
-					data->cycles[i][cluster] = 0;
-				}
-			}
-		#endif
-
 		// Viewport
 		{
 			float W = 0.5f * viewport.width;
@@ -574,11 +524,8 @@ namespace sw
 		Renderer *renderer = static_cast<Parameters*>(parameters)->renderer;
 		int threadIndex = static_cast<Parameters*>(parameters)->threadIndex;
 
-		if(logPrecision < IEEE)
-		{
-			CPUID::setFlushToZero(true);
-			CPUID::setDenormalsAreZero(true);
-		}
+		CPUID::setFlushToZero(true);
+		CPUID::setDenormalsAreZero(true);
 
 		renderer->threadLoop(threadIndex);
 	}
@@ -733,10 +680,6 @@ namespace sw
 
 	void Renderer::executeTask(int threadIndex)
 	{
-		#if PERF_HUD
-			int64_t startTick = Timer::ticks();
-		#endif
-
 		switch(task[threadIndex].type)
 		{
 		case Task::PRIMITIVES:
@@ -750,12 +693,6 @@ namespace sw
 
 				processPrimitiveVertices(unit, input, count, draw->count, threadIndex);
 
-				#if PERF_HUD
-					int64_t time = Timer::ticks();
-					vertexTime[threadIndex] += time - startTick;
-					startTick = time;
-				#endif
-
 				int visible = 0;
 
 				if(!draw->setupState.rasterizerDiscard)
@@ -765,10 +702,6 @@ namespace sw
 
 				primitiveProgress[unit].visible = visible;
 				primitiveProgress[unit].references = clusterCount;
-
-				#if PERF_HUD
-					setupTime[threadIndex] += Timer::ticks() - startTick;
-				#endif
 			}
 			break;
 		case Task::PIXELS:
@@ -788,10 +721,6 @@ namespace sw
 				}
 
 				finishRendering(task[threadIndex]);
-
-				#if PERF_HUD
-					pixelTime[threadIndex] += Timer::ticks() - startTick;
-				#endif
 			}
 			break;
 		case Task::RESUME:
@@ -835,16 +764,6 @@ namespace sw
 
 			if(ref == 0)
 			{
-				#if PERF_PROFILE
-					for(int cluster = 0; cluster < clusterCount; cluster++)
-					{
-						for(int i = 0; i < PERF_TIMERS; i++)
-						{
-							profiler.cycles[i] += data.cycles[i][cluster];
-						}
-					}
-				#endif
-
 				if(draw.queries)
 				{
 					for(auto &query : *(draw.queries))
@@ -1393,38 +1312,6 @@ namespace sw
 		}
 	}
 
-	#if PERF_HUD
-		int Renderer::getThreadCount()
-		{
-			return threadCount;
-		}
-
-		int64_t Renderer::getVertexTime(int thread)
-		{
-			return vertexTime[thread];
-		}
-
-		int64_t Renderer::getSetupTime(int thread)
-		{
-			return setupTime[thread];
-		}
-
-		int64_t Renderer::getPixelTime(int thread)
-		{
-			return pixelTime[thread];
-		}
-
-		void Renderer::resetTimers()
-		{
-			for(int thread = 0; thread < threadCount; thread++)
-			{
-				vertexTime[thread] = 0;
-				setupTime[thread] = 0;
-				pixelTime[thread] = 0;
-			}
-		}
-	#endif
-
 	void Renderer::setViewport(const VkViewport &viewport)
 	{
 		this->viewport = viewport;
@@ -1437,97 +1324,21 @@ namespace sw
 
 	void Renderer::updateConfiguration(bool initialUpdate)
 	{
-		bool newConfiguration = swiftConfig->hasNewConfiguration();
-
-		if(newConfiguration || initialUpdate)
+		if(initialUpdate)
 		{
 			terminateThreads();
 
-			SwiftConfig::Configuration configuration = {};
-			swiftConfig->getConfiguration(configuration);
+			VertexProcessor::setRoutineCacheSize(1024);
+			PixelProcessor::setRoutineCacheSize(1024);
+			SetupProcessor::setRoutineCacheSize(1024);
 
-			precacheVertex = !newConfiguration && configuration.precache;
-			precacheSetup = !newConfiguration && configuration.precache;
-			precachePixel = !newConfiguration && configuration.precache;
+			threadCount = CPUID::processAffinity();
 
-			VertexProcessor::setRoutineCacheSize(configuration.vertexRoutineCacheSize);
-			PixelProcessor::setRoutineCacheSize(configuration.pixelRoutineCacheSize);
-			SetupProcessor::setRoutineCacheSize(configuration.setupRoutineCacheSize);
-
-			switch(configuration.transcendentalPrecision)
-			{
-			case 0:
-				logPrecision = APPROXIMATE;
-				expPrecision = APPROXIMATE;
-				rcpPrecision = APPROXIMATE;
-				rsqPrecision = APPROXIMATE;
-				break;
-			case 1:
-				logPrecision = PARTIAL;
-				expPrecision = PARTIAL;
-				rcpPrecision = PARTIAL;
-				rsqPrecision = PARTIAL;
-				break;
-			case 2:
-				logPrecision = ACCURATE;
-				expPrecision = ACCURATE;
-				rcpPrecision = ACCURATE;
-				rsqPrecision = ACCURATE;
-				break;
-			case 3:
-				logPrecision = WHQL;
-				expPrecision = WHQL;
-				rcpPrecision = WHQL;
-				rsqPrecision = WHQL;
-				break;
-			case 4:
-				logPrecision = IEEE;
-				expPrecision = IEEE;
-				rcpPrecision = IEEE;
-				rsqPrecision = IEEE;
-				break;
-			default:
-				logPrecision = ACCURATE;
-				expPrecision = ACCURATE;
-				rcpPrecision = ACCURATE;
-				rsqPrecision = ACCURATE;
-				break;
-			}
-
-			switch(configuration.transparencyAntialiasing)
-			{
-			case 0:  transparencyAntialiasing = TRANSPARENCY_NONE;              break;
-			case 1:  transparencyAntialiasing = TRANSPARENCY_ALPHA_TO_COVERAGE; break;
-			default: transparencyAntialiasing = TRANSPARENCY_NONE;              break;
-			}
-
-			switch(configuration.threadCount)
-			{
-			case -1: threadCount = CPUID::coreCount();        break;
-			case 0:  threadCount = CPUID::processAffinity();  break;
-			default: threadCount = configuration.threadCount; break;
-			}
-
-			CPUID::setEnableSSE4_1(configuration.enableSSE4_1);
-			CPUID::setEnableSSSE3(configuration.enableSSSE3);
-			CPUID::setEnableSSE3(configuration.enableSSE3);
-			CPUID::setEnableSSE2(configuration.enableSSE2);
-			CPUID::setEnableSSE(configuration.enableSSE);
-
-			for(int pass = 0; pass < 10; pass++)
-			{
-				optimization[pass] = configuration.optimization[pass];
-			}
-
-			forceWindowed = configuration.forceWindowed;
-			postBlendSRGB = configuration.postBlendSRGB;
-			exactColorRounding = configuration.exactColorRounding;
-			forceClearRegisters = configuration.forceClearRegisters;
-
-		#ifndef NDEBUG
-			minPrimitives = configuration.minPrimitives;
-			maxPrimitives = configuration.maxPrimitives;
-		#endif
+			CPUID::setEnableSSE4_1(true);
+			CPUID::setEnableSSSE3(true);
+			CPUID::setEnableSSE3(true);
+			CPUID::setEnableSSE2(true);
+			CPUID::setEnableSSE(true);
 		}
 
 		if(!initialUpdate && !worker[0])

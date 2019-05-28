@@ -24,10 +24,6 @@
 
 namespace sw
 {
-	extern TransparencyAntialiasing transparencyAntialiasing;
-
-	bool precachePixel = false;
-
 	unsigned int PixelProcessor::States::computeHash()
 	{
 		unsigned int *state = (unsigned int*)this;

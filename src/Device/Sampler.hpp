@@ -157,10 +157,6 @@ namespace sw
 		VkSamplerYcbcrModelConversion ycbcrModel;
 		bool studioSwing;    // Narrow range
 		bool swappedChroma;  // Cb/Cr components in reverse order
-
-		#if PERF_PROFILE
-		bool compressedFormat;
-		#endif
 	};
 }
 
