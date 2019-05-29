@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "5b2d3033_34f47669",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 17183
+      },
+      "writtenOn": "2019-05-29T17:03:21Z",
+      "side": 1,
+      "message": "You\u0027re right. Fixed.",
+      "parentUuid": "cbc2000a_c70270b6",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "3f5c31b47fdc34386dd5ce1f1bf6d23cc0a18105",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b57c61b_bf68c3a6",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
