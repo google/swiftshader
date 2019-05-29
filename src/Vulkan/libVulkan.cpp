@@ -322,7 +322,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 		}
 	}
 
-	// "Images created with a format from one of those listed in Formats requiring sampler Y’CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
+	// "Images created with a format from one of those listed in Formats requiring sampler Y'CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
 	//  have further restrictions on their limits and capabilities compared to images created with other formats."
 	if(vk::Format(format).isYcbcrFormat())
 	{
@@ -432,7 +432,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				// YCbCr conversion is supported.
 				// samplerYcbcrConversionFeatures->samplerYcbcrConversion can be VK_TRUE or VK_FALSE.
 				// No action needs to be taken on our end in either case; it's the apps responsibility that
-				// "To create a sampler Y’CbCr conversion, the samplerYcbcrConversion feature must be enabled."
+				// "To create a sampler Y'CbCr conversion, the samplerYcbcrConversion feature must be enabled."
 				(void)samplerYcbcrConversionFeatures->samplerYcbcrConversion;
 			}
 			break;
@@ -2584,6 +2584,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateXlibSurfaceKHR(VkInstance instance, const
 
 	return vk::XlibSurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
 }
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceXlibPresentationSupportKHR(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, Display* dpy, VisualID visualID)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t queueFamilyIndex = %d, Display* dpy = %p, VisualID visualID = %lu)",
+		  physicalDevice, int(queueFamilyIndex), dpy, visualID);
+
+	return VK_TRUE;
+}
 #endif
 
 #ifndef __ANDROID__
@@ -2603,7 +2611,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceSupportKHR(VkPhysicalDe
 	*pSupported =  VK_TRUE;
 	return VK_SUCCESS;
 }
-
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities)
 {
