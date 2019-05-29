@@ -400,7 +400,7 @@ namespace {
 		},
 		.EnumerateInstanceExtensionProperties = vkEnumerateInstanceExtensionProperties,
 		.CreateInstance = vkCreateInstance,
-		.GetInstanceProcAddr = vk::GetInstanceProcAddr,
+		.GetInstanceProcAddr = vkGetInstanceProcAddr,
 	};
 
 	int OpenDevice(const hw_module_t *module, const char *id, hw_device_t **device)

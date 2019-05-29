@@ -675,12 +675,6 @@ cc_defaults {
 cc_library_shared {
     name: "vulkan.pastel",
 
-    target: {
-        android_arm: {
-            enabled: false
-        },
-    },
-
     static_libs: [
         "libswiftshadervk_llvm_debug",
         "libLLVM7_swiftshader",
@@ -696,12 +690,6 @@ cc_library_shared {
 
 cc_library_shared {
     name: "vulkan.pastel.debug",
-
-    target: {
-        android_arm: {
-            enabled: false
-        },
-    },
 
     static_libs: [
         "libswiftshadervk_llvm_debug",
