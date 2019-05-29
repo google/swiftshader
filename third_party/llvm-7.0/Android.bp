@@ -754,6 +754,7 @@ cc_library_static {
         "llvm/lib/Transforms/Scalar/SeparateConstOffsetFromGEP.cpp",
         "llvm/lib/Transforms/Scalar/SROA.cpp",
         "llvm/lib/Transforms/Scalar/SimplifyCFGPass.cpp",
+        "llvm/lib/Transforms/Scalar/LowerAtomic.cpp",
         "llvm/lib/Transforms/Utils/BasicBlockUtils.cpp",
         "llvm/lib/Transforms/Utils/BreakCriticalEdges.cpp",
         "llvm/lib/Transforms/Utils/BuildLibCalls.cpp",
