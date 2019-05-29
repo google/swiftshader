@@ -2809,7 +2809,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue, u
 
 	BackingMemory backmem = it->second;
 
-	VkExtent3D extent = vk::Cast(image)->getMipLevelExtent(0);
+	VkExtent3D extent = vk::Cast(image)->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 	grallocMod->lock(backmem.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer);
 
 	char* buffer = static_cast<char*>(vk::Cast(backmem.imageMemory)->getOffsetPointer(0));

@@ -41,6 +41,7 @@ cc_library_static {
         "llvm/lib/Analysis/LoopAnalysisManager.cpp",
         "llvm/lib/Analysis/LoopInfo.cpp",
         "llvm/lib/Analysis/LoopPass.cpp",
+        "llvm/lib/Analysis/LoopAccessAnalysis.cpp",
         "llvm/lib/Analysis/MemoryBuiltins.cpp",
         "llvm/lib/Analysis/MemoryDependenceAnalysis.cpp",
         "llvm/lib/Analysis/MemoryLocation.cpp",
