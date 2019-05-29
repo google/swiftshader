@@ -18,7 +18,17 @@
 #include <cstddef>
 #include <cstdint>
 
-template<typename HandleType> class alignas(sizeof(uint64_t)) VkWrapperBase
+// We can't directly use alignas(uint64_t) because on some platforms a uint64_t
+// has an alignment of 8 outside of a struct but inside it has an alignment of
+// 4. We use this dummy struct to figure out the alignment of uint64_t inside a
+// struct.
+struct DummyUInt64Wrapper {
+	uint64_t dummy;
+};
+
+static constexpr size_t kNativeVkHandleAlignment = alignof(DummyUInt64Wrapper);
+
+template<typename HandleType> class alignas(kNativeVkHandleAlignment) VkWrapperBase
 {
 public:
 	VkWrapperBase(HandleType handle)
@@ -52,7 +62,7 @@ private:
 	PointerHandleUnion u;
 };
 
-template<typename T> class alignas(sizeof(uint64_t)) VkWrapper : public VkWrapperBase<T>
+template<typename T> class alignas(kNativeVkHandleAlignment) VkWrapper : public VkWrapperBase<T>
 {
 public:
 	using HandleType = T;
@@ -75,7 +85,7 @@ public:
 // VkDescriptorSet objects are really just memory in the VkDescriptorPool
 // object, so define different/more convenient operators for this object.
 struct VkDescriptorSet_T;
-template<> class alignas(sizeof(uint64_t)) VkWrapper<VkDescriptorSet_T*> : public VkWrapperBase<uint8_t*>
+template<> class alignas(kNativeVkHandleAlignment) VkWrapper<VkDescriptorSet_T*> : public VkWrapperBase<uint8_t*>
 {
 public:
 	using HandleType = uint8_t*;
