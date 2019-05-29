@@ -41,10 +41,6 @@ config("swiftshader_reactor_private_config") {
 }
 
 swiftshader_source_set("swiftshader_reactor_base") {
-  deps = [
-    "../OpenGL/common:swiftshader_opengl_common",
-  ]
-
   sources = [
     "Debug.cpp",
     "ExecutableMemory.cpp",

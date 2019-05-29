@@ -62,6 +62,7 @@ config("swiftshader_libGLESv2_private_config") {
 
 swiftshader_static_library("swiftshader_libGLESv2_static") {
   deps = [
+    "../../OpenGL/common:swiftshader_opengl_common",
     "../../OpenGL/compiler:swiftshader_opengl_compiler",
     "../../Reactor:swiftshader_reactor",
     "../../Renderer:swiftshader_renderer",
