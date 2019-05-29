@@ -656,12 +656,21 @@ namespace sw
 		struct InterfaceComponent
 		{
 			AttribType Type;
-			bool Flat : 1;
-			bool Centroid : 1;
-			bool NoPerspective : 1;
+
+			union
+			{
+				struct
+				{
+					bool Flat : 1;
+					bool Centroid : 1;
+					bool NoPerspective : 1;
+				};
+
+				uint8_t DecorationBits;
+			};
 
 			InterfaceComponent()
-					: Type{ATTRIBTYPE_UNUSED}, Flat{false}, Centroid{false}, NoPerspective{false}
+				: Type{ATTRIBTYPE_UNUSED}, DecorationBits{0}
 			{
 			}
 		};
