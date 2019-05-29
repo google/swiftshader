@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "cbc2000a_c70270b6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-29T03:43:39Z",
+      "side": 1,
+      "message": "I don\u0027t think this part of the change is required at all. Surface and Image are part of the OpenGL ES implementation, not the Vulkan implementation, and the build issue is limited to Vulkan which should be addressed entirely by the item below.\n\nRephrasing for clarity: The OpenGL ES build was not broken before https://chromium-review.googlesource.com/c/chromium/src/+/1615710. It only got roped into it by the dependency of swiftshader_reactor_base on swiftshader_opengl_common, which shouldn\u0027t exist in the first place and fixing that should be all that\u0027s necessary.\n\nAt least that\u0027s my theory. Let me know if it doesn\u0027t work out and I\u0027ll have another look.",
+      "parentUuid": "e5edf19b_5e7e16df",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "3f5c31b47fdc34386dd5ce1f1bf6d23cc0a18105",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6b57c61b_bf68c3a6",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
