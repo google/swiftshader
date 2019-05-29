@@ -22,6 +22,30 @@
       "revId": "d369a44549f341199edb03c9f0ab24fb0504f1e4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b6d0ceb_40c78d89",
+        "filename": "tests/regres/testlists/vk-master-ASSERT.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-05-29T13:57:18Z",
+      "side": 1,
+      "message": "test bug: https://gerrit.khronos.org/#/c/3909/",
+      "parentUuid": "f24513d4_a3983bfd",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 29
+      },
+      "revId": "d369a44549f341199edb03c9f0ab24fb0504f1e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
