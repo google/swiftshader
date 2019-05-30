@@ -2770,6 +2770,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainGrallocUsageANDROID(VkDevice device
 	TRACE("(VkDevice device = %p, VkFormat format = %d, VkImageUsageFlags imageUsage = %d, int* grallocUsage = %p)",
 			device, format, imageUsage, grallocUsage);
 
+	*grallocUsage = GRALLOC_USAGE_SW_WRITE_OFTEN;
+
 	return VK_SUCCESS;
 }
 
