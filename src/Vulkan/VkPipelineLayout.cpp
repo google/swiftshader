@@ -25,7 +25,10 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, vo
 
 	size_t setLayoutsSize = pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout*);
 	setLayouts = reinterpret_cast<DescriptorSetLayout**>(hostMem);
-	memcpy(setLayouts, pCreateInfo->pSetLayouts, setLayoutsSize); // Assumes Cast(VkDescriptorSetLayout) is nothing but a cast
+	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
+	{
+		setLayouts[i] = Cast(pCreateInfo->pSetLayouts[i]);
+	}
 	hostMem += setLayoutsSize;
 
 	size_t pushConstantRangesSize = pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange);
