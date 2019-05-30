@@ -57,7 +57,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4141;4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -91,7 +91,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
-      <DisableSpecificWarnings>4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4141;4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
