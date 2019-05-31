@@ -272,12 +272,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 		}
 		// Fall through to CUBE case:
 	case VK_IMAGE_VIEW_TYPE_CUBE:
-		if(coordinateIndex >= 2)
-		{
-			// Cube faces are addressed as 2D images.
-			return ADDRESSING_UNUSED;
-		}
-		else
+		if(coordinateIndex <= 1)  // Cube faces themselves are addressed as 2D images.
 		{
 			// Vulkan 1.1 spec:
 			// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
@@ -285,6 +280,15 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 			//  is performed as described earlier in the Cube map edge handling section."
 			// This corresponds with our 'SEAMLESS' addressing mode.
 			return ADDRESSING_SEAMLESS;
+		}
+		else if(coordinateIndex == 2)
+		{
+			// The cube face is an index into array layers.
+			return ADDRESSING_CUBEFACE;
+		}
+		else
+		{
+			return ADDRESSING_UNUSED;
 		}
 		break;
 

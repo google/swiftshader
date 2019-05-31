@@ -1855,7 +1855,7 @@ namespace sw
 			// Low Border, Low Pixel, High Border, High Pixel
 			Int LB(-1), LP(0), HB(dim), HP(dim-1);
 
-			for(int i = 0; i < 6; ++i)
+			for(int face = 0; face < 6; face++)
 			{
 				computeCubeCorner(layers, LB, LP, LB, LP, pitchB, state);
 				computeCubeCorner(layers, LB, LP, HB, HP, pitchB, state);

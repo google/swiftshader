@@ -1475,7 +1475,7 @@ namespace rr
 		RValue<Vector4> operator=(RValue<typename Scalar<Vector4>::Type> rhs);
 
 	private:
-		Float4 *parent;
+		Vector4 *parent;
 	};
 
 	template<class Vector4, int T>

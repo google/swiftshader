@@ -322,7 +322,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			imageSampler[i].texture.depth = sw::replicate(1);
 
 			sw::Mipmap &mipmap = imageSampler[i].texture.mipmap[0];
-			mipmap.buffer[0] = bufferView->getPointer();
+			mipmap.buffer = bufferView->getPointer();
 			mipmap.width[0] = mipmap.width[1] = mipmap.width[2] = mipmap.width[3] = numElements;
 			mipmap.height[0] = mipmap.height[1] = mipmap.height[2] = mipmap.height[3] = 1;
 			mipmap.depth[0] = mipmap.depth[1] = mipmap.depth[2] = mipmap.depth[3] = 1;
@@ -373,11 +373,11 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 
 				const int level = 0;
 				VkOffset3D offset = {0, 0, 0};
-				texture->mipmap[0].buffer[0] = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_0_BIT, level, 0, ImageView::SAMPLING);
-				texture->mipmap[1].buffer[0] = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_1_BIT, level, 0, ImageView::SAMPLING);
+				texture->mipmap[0].buffer = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_0_BIT, level, 0, ImageView::SAMPLING);
+				texture->mipmap[1].buffer = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_1_BIT, level, 0, ImageView::SAMPLING);
 				if(format.getAspects() & VK_IMAGE_ASPECT_PLANE_2_BIT)
 				{
-					texture->mipmap[2].buffer[0] = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_2_BIT, level, 0, ImageView::SAMPLING);
+					texture->mipmap[2].buffer = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_2_BIT, level, 0, ImageView::SAMPLING);
 				}
 
 				VkExtent3D extent = imageView->getMipLevelExtent(0);
@@ -407,20 +407,15 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 
 					if(imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE)
 					{
-						for(int face = 0; face < 6; face++)
-						{
-							// Obtain the pointer to the corner of the level including the border, for seamless sampling.
-							// This is taken into account in the sampling routine, which can't handle negative texel coordinates.
-							VkOffset3D offset = {-1, -1, 0};
-
-							// TODO(b/129523279): Implement as 6 consecutive layers instead of separate pointers.
-							mipmap.buffer[face] = imageView->getOffsetPointer(offset, aspect, level, face, ImageView::SAMPLING);
-						}
+						// Obtain the pointer to the corner of the level including the border, for seamless sampling.
+						// This is taken into account in the sampling routine, which can't handle negative texel coordinates.
+						VkOffset3D offset = {-1, -1, 0};
+						mipmap.buffer = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
 					}
 					else
 					{
 						VkOffset3D offset = {0, 0, 0};
-						mipmap.buffer[0] = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
+						mipmap.buffer = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
 					}
 
 					VkExtent3D extent = imageView->getMipLevelExtent(level);
@@ -438,7 +433,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		}
 	}
 	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
-			 entry.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
+	         entry.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
 	{
 		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
@@ -485,9 +480,9 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		}
 	}
 	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
-			 entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ||
-			 entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
-			 entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC)
+	         entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ||
+	         entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
+	         entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC)
 	{
 		auto descriptor = reinterpret_cast<BufferDescriptor *>(memToWrite);
 		for (uint32_t i = 0; i < entry.descriptorCount; i++)

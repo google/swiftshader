@@ -29,7 +29,7 @@ namespace sw
 {
 	struct Mipmap
 	{
-		const void *buffer[6];
+		const void *buffer;
 
 		short4 uHalf;
 		short4 vHalf;
@@ -102,7 +102,8 @@ namespace sw
 		ADDRESSING_MIRRORONCE,
 		ADDRESSING_BORDER,     // Single color
 		ADDRESSING_SEAMLESS,   // Border of pixels
-		ADDRESSING_LAYER,
+		ADDRESSING_CUBEFACE,   // Cube face layer
+		ADDRESSING_LAYER,      // Array layer
 		ADDRESSING_TEXELFETCH,
 
 		ADDRESSING_LAST = ADDRESSING_TEXELFETCH
