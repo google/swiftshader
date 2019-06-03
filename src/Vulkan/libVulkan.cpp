@@ -49,6 +49,7 @@
 #ifdef __ANDROID__
 #include <vulkan/vk_android_native_buffer.h>
 #include "System/GrallocAndroid.hpp"
+#include <sync/sync.h>
 #endif
 
 #include "WSI/VkSwapchainKHR.hpp"
