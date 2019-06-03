@@ -1,5 +1,4 @@
 dEQP-VK.api.info.android.no_layers
-dEQP-VK.glsl.builtin_var.simple.pointcoord
 dEQP-VK.glsl.texture_functions.texturegrad.sampler1d_fixed_vertex
 dEQP-VK.glsl.texture_functions.texturegrad.sampler1d_float_vertex
 dEQP-VK.glsl.texture_functions.texturegrad.sampler1dshadow_vertex
