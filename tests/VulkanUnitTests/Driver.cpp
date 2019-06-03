@@ -49,15 +49,29 @@ Driver::~Driver()
 bool Driver::loadSwiftShader()
 {
 #if OS_WINDOWS
-#    if defined(NDEBUG)
-    return load("./build/Release/libvk_swiftshader.dll");
-#    else
-    return load("./build/Debug/libvk_swiftshader.dll");
-#    endif
+    #if !defined(STANDALONE)
+        // The DLL is delay loaded (see BUILD.gn), so we can load
+        // the correct ones from Chrome's swiftshader subdirectory.
+        HMODULE libvulkan = LoadLibraryA("swiftshader\\libvulkan.dll");
+        EXPECT_NE((HMODULE)NULL, libvulkan);
+        return true;
+    #elif defined(NDEBUG)
+        return load("./build/Release/libvk_swiftshader.dll");
+    #else
+        return load("./build/Debug/libvk_swiftshader.dll");
+    #endif
 #elif OS_MAC
-    return load("./build/Darwin/libvk_swiftshader.dylib");
+    #if defined(STANDALONE)
+        return load("./build/Darwin/libvk_swiftshader.dylib");
+    #else
+        return load("libvulkan.dylib");
+    #endif
 #elif OS_LINUX
-    return load("./build/Linux/libvk_swiftshader.so");
+    #if defined(STANDALONE)
+        return load("./build/Linux/libvk_swiftshader.so");
+    #else
+        return load("libvulkan.so");
+    #endif
 #elif OS_ANDROID
     return load("libvk_swiftshader.so");
 #else

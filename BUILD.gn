@@ -186,5 +186,6 @@ group("swiftshader_tests") {
 
   data_deps = [
     "tests/GLESUnitTests:swiftshader_unittests",
+    "tests/VulkanUnitTests:swiftshader_vulkan_unittests",
   ]
 }
