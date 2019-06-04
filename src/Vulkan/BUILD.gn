@@ -17,10 +17,14 @@ import("../swiftshader.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_libvulkan_private_config") {
-  defines = [
-    "VK_USE_PLATFORM_XLIB_KHR",
-    "VK_EXPORT=__attribute__((visibility(\"default\")))",
-  ]
+  if (is_linux) {
+    defines = [
+      "VK_USE_PLATFORM_XLIB_KHR",
+      "VK_EXPORT=__attribute__((visibility(\"default\")))",
+    ]
+  } else {
+    defines = [ "VK_EXPORT=" ]
+  }
 
   cflags = [
     "-Wno-unused-private-field",
