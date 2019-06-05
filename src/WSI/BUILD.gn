@@ -20,11 +20,16 @@ swiftshader_source_set("WSI") {
     "VkSurfaceKHR.hpp",
     "VkSwapchainKHR.cpp",
     "VkSwapchainKHR.hpp",
-    "XlibSurfaceKHR.cpp",
-    "XlibSurfaceKHR.hpp",
-    "libX11.cpp",
-    "libX11.hpp",
   ]
+
+  if (is_linux) {
+    sources += [
+      "XlibSurfaceKHR.cpp",
+      "XlibSurfaceKHR.hpp",
+      "libX11.cpp",
+      "libX11.hpp",
+    ]
+  }
 
   include_dirs = [
     "..",

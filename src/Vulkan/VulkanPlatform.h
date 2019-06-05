@@ -18,10 +18,10 @@
 #include <cstddef>
 #include <cstdint>
 
-template<typename HandleType> class VkNonDispatchableHandleBase
+template<typename HandleType> class VkHandle
 {
 public:
-	VkNonDispatchableHandleBase(HandleType handle)
+	VkHandle(HandleType handle)
 	{
 		u.dummy = 0;
 		u.handle = handle;
@@ -52,18 +52,13 @@ private:
 	PointerHandleUnion u;
 };
 
-template<typename T> class VkNonDispatchableHandle : public VkNonDispatchableHandleBase<T>
+template<typename T> class VkNonDispatchableHandleBase : public VkHandle<T>
 {
 public:
 	using HandleType = T;
 
-	VkNonDispatchableHandle() : VkNonDispatchableHandleBase<T>(nullptr)
+	VkNonDispatchableHandleBase(HandleType handle) : VkHandle<T>(handle)
 	{
-	}
-
-	VkNonDispatchableHandle(HandleType handle) : VkNonDispatchableHandleBase<T>(handle)
-	{
-		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 	}
 
 	void operator=(HandleType handle)
@@ -75,14 +70,13 @@ public:
 // VkDescriptorSet objects are really just memory in the VkDescriptorPool
 // object, so define different/more convenient operators for this object.
 struct VkDescriptorSet_T;
-template<> class VkNonDispatchableHandle<VkDescriptorSet_T*> : public VkNonDispatchableHandleBase<uint8_t*>
+template<> class VkNonDispatchableHandleBase<VkDescriptorSet_T*> : public VkHandle<uint8_t*>
 {
 public:
 	using HandleType = uint8_t*;
 
-	VkNonDispatchableHandle(HandleType handle) : VkNonDispatchableHandleBase<uint8_t*>(handle)
+	VkNonDispatchableHandleBase(HandleType handle) : VkHandle<uint8_t*>(handle)
 	{
-		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 	}
 
 	HandleType operator+(ptrdiff_t rhs) const
@@ -101,9 +95,23 @@ public:
 	}
 };
 
+template<typename T> class VkNonDispatchableHandle : public VkNonDispatchableHandleBase<T>
+{
+public:
+	VkNonDispatchableHandle() : VkNonDispatchableHandleBase<T>(nullptr)
+	{
+	}
+
+	VkNonDispatchableHandle(typename VkNonDispatchableHandleBase<T>::HandleType handle) : VkNonDispatchableHandleBase<T>(handle)
+	{
+		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
+	}
+};
+
 #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) \
 	typedef struct object##_T *object##Ptr; \
-	typedef VkNonDispatchableHandle<object##Ptr> object;
+	typedef VkNonDispatchableHandle<object##Ptr> object; \
+    template class VkNonDispatchableHandle<object##Ptr>;
 
 #include <vulkan/vulkan.h>
 
