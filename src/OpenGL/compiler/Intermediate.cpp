@@ -497,7 +497,7 @@ TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermTyped* child, con
 	case EOpPostDecrement:
 	case EOpPreDecrement:
 	case EOpNegative:
-		if (child->getType().getBasicType() == EbtStruct || child->getType().isArray())
+		if (!child->getType().isScalar() && !child->getType().isVector() && !child->getType().isMatrix())
 			return 0;
 	default: break;
 	}

@@ -381,23 +381,26 @@ protected:
 		checkCompiles("", s);
 	}
 
-	void checkCompileFails(GLuint glShader, std::string source)
+	void checkCompileFails(GLenum glShaderType, std::string source)
 	{
-		GLchar buf[1024];
+		Initialize(3, false);
+
 		GLint compileStatus = 0;
 		const char *c_source[1] = { source.c_str() };
+		GLuint glShader = glCreateShader(glShaderType);
 
 		glShaderSource(glShader, 1, c_source, nullptr);
 		glCompileShader(glShader);
 
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
 
 		glGetShaderiv(glShader, GL_COMPILE_STATUS, &compileStatus);
-		glGetShaderInfoLog(glShader, sizeof(buf), nullptr, buf);
 
-		EXPECT_EQ(compileStatus, GL_FALSE) << "Compile status: " << std::endl << buf;
+		EXPECT_EQ(compileStatus, GL_FALSE);
 
 		glDeleteShader(glShader);
+
+		Uninitialize();
 	}
 
 	void checkCompileFails(std::string s)
@@ -429,8 +432,8 @@ protected:
 		vs = replace(vs, "$INSERT", s);
 		fs = replace(fs, "$INSERT", s);
 
-		checkCompileFails(glCreateShader(GL_VERTEX_SHADER), vs);
-		checkCompileFails(glCreateShader(GL_FRAGMENT_SHADER), fs);
+		checkCompileFails(GL_VERTEX_SHADER, vs);
+		checkCompileFails(GL_FRAGMENT_SHADER, fs);
 	}
 
 	EGLDisplay getDisplay() const { return display; }
@@ -1823,8 +1826,6 @@ TEST_F(SwiftShaderTest, CompilerLimits_SparseLabels)
 // GL_MAX_{VERTEX/FRAGMENT}_UNIFORM_VECTOR.
 TEST_F(SwiftShaderTest, CompilerLimits_ArraySize)
 {
-	Initialize(3, false);
-
 	checkCompileFails(
 		"uniform float u_var[100000000];\n"
 		"float F(float f) { return u_var[2]; }\n");
@@ -1832,8 +1833,35 @@ TEST_F(SwiftShaderTest, CompilerLimits_ArraySize)
 		"struct structType { mediump sampler2D m0; mediump samplerCube m1; }; \n"
 		"uniform structType u_var[100000000];\n"
 		"float F(float f) { return texture(u_var[2].m1, vec3(0.0)), vec4(0.26, 1.72, 0.60, 0.12).x; }\n");
+}
 
-	Uninitialize();
+// Test that the compiler rejects negations of things that can't be negated.
+TEST_F(SwiftShaderTest, BadNegation)
+{
+	checkCompileFails(
+		"uniform samplerCube m;\n"
+		"float F (float f) { vec4 ret = texture(-m, vec3(f)); return ret.x; }\n"
+	);
+	checkCompileFails(
+		"uniform sampler2D m[9];\n"
+		"vec4 G (sampler2D X[9]) { return texture(X[0], vec2(0.0f)); }"
+		"float F (float f) { vec4 ret = G(-m); return ret.x; }\n"
+	);
+	checkCompileFails(
+		"struct structType { int a; float b; };\n"
+		"uniform structType m;\n"
+		"float F (float f) { structType n = -m; return f; }\n"
+	);
+	checkCompileFails(
+		"struct structType { int a; float b; };\n"
+		"uniform structType m[4];\n"
+		"float F (float f) { structType n[4] = -m; return f; }\n"
+	);
+	checkCompileFails(
+		"uniform float m[4];\n"
+		"float G (float f[4]) { return f[0]; }\n"
+		"float F (float f) { return G(-m); }\n"
+	);
 }
 
 #ifndef EGL_ANGLE_iosurface_client_buffer
