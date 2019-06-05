@@ -123,7 +123,8 @@ VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBo
 	const uint64_t max_timeout = (LLONG_MAX - start.time_since_epoch().count());
 	bool infiniteTimeout = (timeout > max_timeout);
 	const time_point end_ns = start + std::chrono::nanoseconds(std::min(max_timeout, timeout));
-	if(waitAll) // All fences must be signaled
+
+	if(waitAll != VK_FALSE) // All fences must be signaled
 	{
 		for(uint32_t i = 0; i < fenceCount; i++)
 		{

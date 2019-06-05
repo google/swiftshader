@@ -303,7 +303,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		UNIMPLEMENTED("pCreateInfo->pInputAssemblyState settings");
 	}
 
-	primitiveRestartEnable = assemblyState->primitiveRestartEnable;
+	primitiveRestartEnable = (assemblyState->primitiveRestartEnable != VK_FALSE);
 	context.topology = assemblyState->topology;
 
 	const VkPipelineViewportStateCreateInfo* viewportState = pCreateInfo->pViewportState;
@@ -329,7 +329,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 
 	const VkPipelineRasterizationStateCreateInfo* rasterizationState = pCreateInfo->pRasterizationState;
 	if((rasterizationState->flags != 0) ||
-	   (rasterizationState->depthClampEnable != 0) ||
+	   (rasterizationState->depthClampEnable != VK_FALSE) ||
 	   (rasterizationState->polygonMode != VK_POLYGON_MODE_FILL))
 	{
 		UNIMPLEMENTED("pCreateInfo->pRasterizationState settings");
@@ -338,8 +338,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	context.rasterizerDiscard = (rasterizationState->rasterizerDiscardEnable == VK_TRUE);
 	context.cullMode = rasterizationState->cullMode;
 	context.frontFacingCCW = rasterizationState->frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	context.depthBias = (rasterizationState->depthBiasEnable ? rasterizationState->depthBiasConstantFactor : 0.0f);
-	context.slopeDepthBias = (rasterizationState->depthBiasEnable ? rasterizationState->depthBiasSlopeFactor : 0.0f);
+	context.depthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
+	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
 
 	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
@@ -361,8 +361,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable == VK_TRUE);
 
 		if((multisampleState->flags != 0) ||
-			(multisampleState->sampleShadingEnable != 0) ||
-			(multisampleState->alphaToOneEnable != 0))
+			(multisampleState->sampleShadingEnable != VK_FALSE) ||
+			(multisampleState->alphaToOneEnable != VK_FALSE))
 		{
 			UNIMPLEMENTED("multisampleState");
 		}
@@ -376,7 +376,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	if(depthStencilState)
 	{
 		if((depthStencilState->flags != 0) ||
-		   (depthStencilState->depthBoundsTestEnable != 0))
+		   (depthStencilState->depthBoundsTestEnable != VK_FALSE))
 		{
 			UNIMPLEMENTED("depthStencilState");
 		}
@@ -398,7 +398,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	if(colorBlendState)
 	{
 		if((colorBlendState->flags != 0) ||
-		   ((colorBlendState->logicOpEnable != 0)))
+		   ((colorBlendState->logicOpEnable != VK_FALSE)))
 		{
 			UNIMPLEMENTED("colorBlendState");
 		}
