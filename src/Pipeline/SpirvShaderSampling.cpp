@@ -145,7 +145,7 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 			i++;
 		}
 
-		// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
+		// TODO(b/134669567): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
 		// Implement optimized 1D sampling.
 		if(samplerState.textureType == TEXTURE_1D)
 		{
@@ -184,13 +184,52 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 		}
 
 		SamplerCore s(constants, samplerState);
-		Vector4f sample = s.sampleTexture(texture, sampler, uvw[0], uvw[1], uvw[2], q, lodOrBias, dsx, dsy, offset, samplerFunction);
 
-		Pointer<SIMD::Float> rgba = out;
-		rgba[0] = sample.x;
-		rgba[1] = sample.y;
-		rgba[2] = sample.z;
-		rgba[3] = sample.w;
+		// For explicit-lod instructions the LOD can be different per SIMD lane. SamplerCore currently assumes
+		// a single LOD per four elements, so we sample the image again for each LOD separately.
+		if(samplerFunction.method == Lod || samplerFunction.method == Grad)  // TODO(b/133868964): Also handle divergent Bias and Fetch with Lod.
+		{
+			auto lod = Pointer<Float>(&lodOrBias);
+
+			For(Int i = 0, i < SIMD::Width, i++)
+			{
+				SIMD::Float dPdx;
+				SIMD::Float dPdy;
+
+				dPdx.x = Pointer<Float>(&dsx.x)[i];
+				dPdx.y = Pointer<Float>(&dsx.y)[i];
+				dPdx.z = Pointer<Float>(&dsx.z)[i];
+
+				dPdy.x = Pointer<Float>(&dsy.x)[i];
+				dPdy.y = Pointer<Float>(&dsy.y)[i];
+				dPdy.z = Pointer<Float>(&dsy.z)[i];
+
+				// 1D textures are treated as 2D texture with second coordinate 0, so we also need to zero out the second grad component. TODO(b/134669567)
+				if(samplerState.textureType == TEXTURE_1D || samplerState.textureType == TEXTURE_1D_ARRAY)
+				{
+					dPdx.y = Float(0.0f);
+					dPdy.y = Float(0.0f);
+				}
+
+				Vector4f sample = s.sampleTexture(texture, sampler, uvw[0], uvw[1], uvw[2], q, lod[i], dPdx, dPdy, offset, samplerFunction);
+
+				Pointer<Float> rgba = out;
+				rgba[0 * SIMD::Width + i] = Pointer<Float>(&sample.x)[i];
+				rgba[1 * SIMD::Width + i] = Pointer<Float>(&sample.y)[i];
+				rgba[2 * SIMD::Width + i] = Pointer<Float>(&sample.z)[i];
+				rgba[3 * SIMD::Width + i] = Pointer<Float>(&sample.w)[i];
+			}
+		}
+		else
+		{
+			Vector4f sample = s.sampleTexture(texture, sampler, uvw[0], uvw[1], uvw[2], q, lodOrBias.x, (dsx.x), (dsy.x), offset, samplerFunction);
+
+			Pointer<SIMD::Float> rgba = out;
+			rgba[0] = sample.x;
+			rgba[1] = sample.y;
+			rgba[2] = sample.z;
+			rgba[3] = sample.w;
+		}
 	}
 
 	return (ImageSampler*)function("sampler")->getEntry();
@@ -292,7 +331,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 		}
 		break;
 
-	case VK_IMAGE_VIEW_TYPE_1D:  // Treated as 2D texture with second coordinate 0.
+	case VK_IMAGE_VIEW_TYPE_1D:  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
 		if(coordinateIndex == 1)
 		{
 			return ADDRESSING_WRAP;
@@ -310,7 +349,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 		}
 		break;
 
-	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D texture with second coordinate 0.
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
 		if(coordinateIndex == 1)
 		{
 			return ADDRESSING_WRAP;

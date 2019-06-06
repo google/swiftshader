@@ -41,8 +41,6 @@ namespace sw
 
 	void VertexRoutine::generate()
 	{
-		const bool textureSampling = state.textureSampling;
-
 		Pointer<Byte> cache = task + OFFSET(VertexTask,vertexCache);
 		Pointer<Byte> vertexCache = cache + OFFSET(VertexCache,vertex);
 		Pointer<Byte> tagCache = cache + OFFSET(VertexCache,tag);
@@ -55,7 +53,7 @@ namespace sw
 		{
 			UInt index = *Pointer<UInt>(batch);
 			UInt tagIndex = index & 0x0000003C;
-			UInt indexQ = !textureSampling ? UInt(index & 0xFFFFFFFC) : index;   // FIXME: TEXLDL hack to have independent LODs, hurts performance.
+			UInt indexQ = index & 0xFFFFFFFC;
 
 			If(*Pointer<UInt>(tagCache + tagIndex) != indexQ)
 			{
@@ -139,14 +137,12 @@ namespace sw
 
 	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
 	{
-		const bool textureSampling = state.textureSampling;
-
 		Vector4f v;
 
 		Pointer<Byte> source0 = buffer + index * stride;
-		Pointer<Byte> source1 = source0 + (!textureSampling ? stride : 0);
-		Pointer<Byte> source2 = source1 + (!textureSampling ? stride : 0);
-		Pointer<Byte> source3 = source2 + (!textureSampling ? stride : 0);
+		Pointer<Byte> source1 = source0 + stride;
+		Pointer<Byte> source2 = source1 + stride;
+		Pointer<Byte> source3 = source2 + stride;
 
 		bool isNativeFloatAttrib = (stream.attribType == SpirvShader::ATTRIBTYPE_FLOAT) || stream.normalized;
 

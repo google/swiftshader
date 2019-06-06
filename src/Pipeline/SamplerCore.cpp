@@ -53,7 +53,7 @@ namespace sw
 	{
 	}
 
-	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &lodOrBias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
+	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float &&lodOrBias, Float4 &dsx, Float4 &dsy, Vector4f &offset, SamplerFunction function)
 	{
 		Vector4f c;
 
@@ -103,17 +103,17 @@ namespace sw
 
 			if(function == Bias)
 			{
-				lod += lodOrBias.x;
+				lod += lodOrBias;
 			}
 		}
 		else if(function == Lod)
 		{
-			lod = lodOrBias.x;
+			lod = lodOrBias;
 		}
 		else if(function == Fetch)
 		{
 			// TODO: Eliminate int-float-int conversion.
-			lod = Float(As<Int>(Float(lodOrBias.x)));
+			lod = Float(As<Int>(lodOrBias));
 		}
 		else if(function == Base || function == Gather)
 		{
@@ -1031,7 +1031,7 @@ namespace sw
 		return lod;
 	}
 
-	void SamplerCore::computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
+	void SamplerCore::computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float4 &dsx, Float4 &dsy, SamplerFunction function)
 	{
 		Float4 duvdxy;
 
@@ -1041,8 +1041,8 @@ namespace sw
 		}
 		else
 		{
-			Float4 dudxy = Float4(dsx.x.xx, dsy.x.xx);
-			Float4 dvdxy = Float4(dsx.y.xx, dsy.y.xx);
+			Float4 dudxy = Float4(dsx.xx, dsy.xx);
+			Float4 dvdxy = Float4(dsx.yy, dsy.yy);
 
 			duvdxy = Float4(dudxy.xz, dvdxy.xz);
 		}
@@ -1077,7 +1077,7 @@ namespace sw
 		lod = log2sqrt(lod);   // log2(sqrt(lod))
 	}
 
-	void SamplerCore::computeLodCube(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &u, Float4 &v, Float4 &w, Vector4f &dsx, Vector4f &dsy, Float4 &M, SamplerFunction function)
+	void SamplerCore::computeLodCube(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &u, Float4 &v, Float4 &w, Float4 &dsx, Float4 &dsy, Float4 &M, SamplerFunction function)
 	{
 		Float4 dudxy, dvdxy, dsdxy;
 
@@ -1093,9 +1093,9 @@ namespace sw
 		}
 		else
 		{
-			dudxy = Float4(dsx.x.xx, dsy.x.xx);
-			dvdxy = Float4(dsx.y.xx, dsy.y.xx);
-			dsdxy = Float4(dsx.z.xx, dsy.z.xx);
+			dudxy = Float4(dsx.xx, dsy.xx);
+			dvdxy = Float4(dsx.yy, dsy.yy);
+			dsdxy = Float4(dsx.zz, dsy.zz);
 
 			dudxy = Abs(dudxy * Float4(M.x));
 			dvdxy = Abs(dvdxy * Float4(M.x));
@@ -1118,7 +1118,7 @@ namespace sw
 		lod = log2(lod);
 	}
 
-	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
+	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, Float4 &dsx, Float4 &dsy, SamplerFunction function)
 	{
 		Float4 dudxy, dvdxy, dsdxy;
 
@@ -1130,9 +1130,9 @@ namespace sw
 		}
 		else
 		{
-			dudxy = Float4(dsx.x.xx, dsy.x.xx);
-			dvdxy = Float4(dsx.y.xx, dsy.y.xx);
-			dsdxy = Float4(dsx.z.xx, dsy.z.xx);
+			dudxy = Float4(dsx.xx, dsy.xx);
+			dvdxy = Float4(dsx.yy, dsy.yy);
+			dsdxy = Float4(dsx.zz, dsy.zz);
 		}
 
 		// Scale by texture dimensions.
@@ -2344,7 +2344,7 @@ namespace sw
 	{
 		return (state.textureType == TEXTURE_3D) ||
 		       (state.textureType == TEXTURE_2D_ARRAY) ||
-		       (state.textureType == TEXTURE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0.
+		       (state.textureType == TEXTURE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
 	}
 
 	bool SamplerCore::has16bitTextureFormat() const

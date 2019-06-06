@@ -85,24 +85,6 @@ namespace sw
 
 		state.shaderID = context->vertexShader->getSerialID();
 
-		switch(context->topology)
-		{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-			state.verticesPerPrimitive = 1;
-			break;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			state.verticesPerPrimitive = 2;
-			break;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			state.verticesPerPrimitive = 3;
-			break;
-		default:
-			UNIMPLEMENTED("topology %d", int(context->topology));
-		}
-
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			state.input[i].type = context->input[i].type;
