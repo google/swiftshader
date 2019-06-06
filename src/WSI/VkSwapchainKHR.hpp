@@ -36,7 +36,7 @@ public:
 
 	void retire();
 
-	VkResult createImages(VkDevice device);
+	VkResult createImages(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo);
 
 	uint32_t getImageCount() const;
 	VkResult getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapchainImages) const;
@@ -46,9 +46,10 @@ public:
 	void present(uint32_t index);
 
 private:
-	VkSwapchainCreateInfoKHR createInfo;
-	std::vector<PresentImage> images;
-	bool retired;
+	SurfaceKHR* surface = nullptr;
+	PresentImage* images = nullptr;
+	uint32_t imageCount = 0;
+	bool retired = false;
 
 	void resetImages();
 };

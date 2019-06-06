@@ -12,14 +12,15 @@
 #include "XlibSurfaceKHR.hpp"
 
 #include "Vulkan/VkDeviceMemory.hpp"
+#include "Vulkan/VkImage.hpp"
 
 #include <string.h>
 
 namespace vk {
 
 XlibSurfaceKHR::XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, void *mem) :
-		pDisplay(pCreateInfo->dpy),
-		window(pCreateInfo->window)
+	pDisplay(pCreateInfo->dpy),
+	window(pCreateInfo->window)
 {
 	int screen = DefaultScreen(pDisplay);
 	gc = libX11->XDefaultGC(pDisplay, screen);
@@ -58,10 +59,10 @@ void XlibSurfaceKHR::attachImage(PresentImage* image)
 	XWindowAttributes attr;
 	libX11->XGetWindowAttributes(pDisplay, window, &attr);
 
-	VkExtent3D extent = vk::Cast(image->image)->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-	int bytes_per_line = vk::Cast(image->image)->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-	char* buffer = static_cast<char*>(vk::Cast(image->imageMemory)->getOffsetPointer(0));
+	int bytes_per_line = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	char* buffer = static_cast<char*>(image->getImageMemory()->getOffsetPointer(0));
 
 	XImage* xImage = libX11->XCreateImage(pDisplay, visual, attr.depth, ZPixmap, 0, buffer, extent.width, extent.height, 32, bytes_per_line);
 
@@ -89,7 +90,7 @@ void XlibSurfaceKHR::present(PresentImage* image)
 
 		if(xImage->data)
 		{
-			VkExtent3D extent = vk::Cast(image->image)->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			libX11->XPutImage(pDisplay, window, gc, xImage, 0, 0, 0, 0, extent.width, extent.height);
 		}
 	}

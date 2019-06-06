@@ -181,7 +181,7 @@ void ImageView::resolve(ImageView* resolveAttachment)
 	region.extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
 	                                         subresourceRange.baseMipLevel);
 
-	image->copyTo(*(resolveAttachment->image), region);
+	image->copyTo(resolveAttachment->image, region);
 }
 
 const Image* ImageView::getImage(Usage usage) const

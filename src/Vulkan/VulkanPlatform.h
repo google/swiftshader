@@ -98,10 +98,6 @@ public:
 template<typename T> class VkNonDispatchableHandle : public VkNonDispatchableHandleBase<T>
 {
 public:
-	VkNonDispatchableHandle() : VkNonDispatchableHandleBase<T>(nullptr)
-	{
-	}
-
 	VkNonDispatchableHandle(typename VkNonDispatchableHandleBase<T>::HandleType handle) : VkNonDispatchableHandleBase<T>(handle)
 	{
 		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");

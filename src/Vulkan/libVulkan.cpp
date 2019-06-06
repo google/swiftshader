@@ -2652,7 +2652,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR(VkDevice device, const VkSwa
 		vk::Cast(pCreateInfo->oldSwapchain)->retire();
 	}
 
-	if(vk::Cast(pCreateInfo->surface)->getAssociatedSwapchain() != VK_NULL_HANDLE)
+	if(vk::Cast(pCreateInfo->surface)->hasAssociatedSwapchain())
 	{
 		return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
 	}
@@ -2664,7 +2664,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR(VkDevice device, const VkSwa
 		return status;
 	}
 
-	status = vk::Cast(*pSwapchain)->createImages(device);
+	status = vk::Cast(*pSwapchain)->createImages(device, pCreateInfo);
 
 	if(status != VK_SUCCESS)
 	{

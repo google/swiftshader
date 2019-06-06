@@ -21,6 +21,7 @@
 namespace vk
 {
 
+class Buffer;
 class Device;
 class DeviceMemory;
 
@@ -35,12 +36,12 @@ public:
 	const VkMemoryRequirements getMemoryRequirements() const;
 	void getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const;
 	void bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset);
-	void copyTo(VkImage dstImage, const VkImageCopy& pRegion);
-	void copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& region);
-	void copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& region);
+	void copyTo(Image* dstImage, const VkImageCopy& pRegion) const;
+	void copyTo(Buffer* dstBuffer, const VkBufferImageCopy& region);
+	void copyFrom(Buffer* srcBuffer, const VkBufferImageCopy& region);
 
-	void blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter);
-	void resolve(VkImage dstImage, const VkImageResolve& region);
+	void blit(Image* dstImage, const VkImageBlit& region, VkFilter filter) const;
+	void resolve(Image* dstImage, const VkImageResolve& region) const;
 	void clear(const VkClearValue& clearValue, const vk::Format& viewFormat, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange);
@@ -67,7 +68,7 @@ public:
 	const Image*             getSampledImage(const vk::Format& imageViewFormat) const;
 
 private:
-	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);
+	void copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsSource);
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
 	VkDeviceSize getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	VkDeviceSize getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;

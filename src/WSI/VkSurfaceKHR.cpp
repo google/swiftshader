@@ -14,10 +14,97 @@
 
 #include "VkSurfaceKHR.hpp"
 
+#include "Vulkan/VkDestroy.h"
+
 #include <algorithm>
+
+namespace
+{
+
+static const VkSurfaceFormatKHR surfaceFormats[] =
+{
+	{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
+};
+
+static const VkPresentModeKHR presentModes[] =
+{
+	VK_PRESENT_MODE_FIFO_KHR,
+};
+
+}
 
 namespace vk
 {
+
+VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo& createInfo)
+{
+	VkImage* vkImagePtr = reinterpret_cast<VkImage*>(allocate(sizeof(VkImage), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
+	if(!vkImagePtr)
+	{
+		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+	}
+
+	VkResult status = vkCreateImage(device, &createInfo, nullptr, vkImagePtr);
+	if(status != VK_SUCCESS)
+	{
+		deallocate(vkImagePtr, DEVICE_MEMORY);
+		return status;
+	}
+
+	image = Cast(*vkImagePtr);
+	deallocate(vkImagePtr, DEVICE_MEMORY);
+
+	return status;
+}
+
+VkResult PresentImage::allocateAndBindImageMemory(VkDevice device, const VkMemoryAllocateInfo& allocateInfo)
+{
+	ASSERT(image);
+
+	VkDeviceMemory* vkDeviceMemoryPtr = reinterpret_cast<VkDeviceMemory*>(
+		allocate(sizeof(VkDeviceMemory), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
+	if(!vkDeviceMemoryPtr)
+	{
+		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+	}
+
+	VkResult status = vkAllocateMemory(device, &allocateInfo, nullptr, vkDeviceMemoryPtr);
+	if(status != VK_SUCCESS)
+	{
+		deallocate(vkDeviceMemoryPtr, DEVICE_MEMORY);
+		return status;
+	}
+
+	imageMemory = Cast(*vkDeviceMemoryPtr);
+	vkBindImageMemory(device, *image, *vkDeviceMemoryPtr, 0);
+
+	imageStatus = AVAILABLE;
+	deallocate(vkDeviceMemoryPtr, DEVICE_MEMORY);
+
+	return status;
+}
+
+void PresentImage::clear()
+{
+	if(imageMemory)
+	{
+		vk::destroy(static_cast<VkDeviceMemory>(*imageMemory), nullptr);
+		imageMemory = nullptr;
+	}
+
+	if(image)
+	{
+		vk::destroy(static_cast<VkImage>(*image), nullptr);
+		image = nullptr;
+	}
+
+	imageStatus = NONEXISTENT;
+}
+
+VkImage PresentImage::asVkImage() const
+{
+	return image ? static_cast<VkImage>(*image) : VK_NULL_HANDLE;
+}
 
 void SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
 {
@@ -34,7 +121,7 @@ void SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabi
 
 uint32_t SurfaceKHR::getSurfaceFormatsCount() const
 {
-	return static_cast<uint32_t>(surfaceFormats.size());
+	return static_cast<uint32_t>(sizeof(surfaceFormats) / sizeof(surfaceFormats[0]));
 }
 
 VkResult SurfaceKHR::getSurfaceFormats(uint32_t *pSurfaceFormatCount, VkSurfaceFormatKHR *pSurfaceFormats) const
@@ -49,7 +136,7 @@ VkResult SurfaceKHR::getSurfaceFormats(uint32_t *pSurfaceFormatCount, VkSurfaceF
 
 	*pSurfaceFormatCount = i;
 
-	if (*pSurfaceFormatCount < count)
+	if(*pSurfaceFormatCount < count)
 	{
 		return VK_INCOMPLETE;
 	}
@@ -59,9 +146,8 @@ VkResult SurfaceKHR::getSurfaceFormats(uint32_t *pSurfaceFormatCount, VkSurfaceF
 
 uint32_t SurfaceKHR::getPresentModeCount() const
 {
-	return static_cast<uint32_t>(presentModes.size());
+	return static_cast<uint32_t>(sizeof(presentModes) / sizeof(presentModes[0]));
 }
-
 
 VkResult SurfaceKHR::getPresentModes(uint32_t *pPresentModeCount, VkPresentModeKHR *pPresentModes) const
 {
@@ -75,7 +161,7 @@ VkResult SurfaceKHR::getPresentModes(uint32_t *pPresentModeCount, VkPresentModeK
 
 	*pPresentModeCount = i;
 
-	if (*pPresentModeCount < count)
+	if(*pPresentModeCount < count)
 	{
 		return VK_INCOMPLETE;
 	}
@@ -85,17 +171,17 @@ VkResult SurfaceKHR::getPresentModes(uint32_t *pPresentModeCount, VkPresentModeK
 
 void SurfaceKHR::associateSwapchain(VkSwapchainKHR swapchain)
 {
-	associatedSwapchain = swapchain;
+	associatedSwapchain = Cast(swapchain);
 }
 
 void SurfaceKHR::disassociateSwapchain()
 {
-	associatedSwapchain = VK_NULL_HANDLE;
+	associatedSwapchain = nullptr;
 }
 
-VkSwapchainKHR SurfaceKHR::getAssociatedSwapchain()
+bool SurfaceKHR::hasAssociatedSwapchain()
 {
-	return associatedSwapchain;
+	return (associatedSwapchain != nullptr);
 }
 
 }

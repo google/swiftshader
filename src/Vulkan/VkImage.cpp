@@ -128,11 +128,10 @@ void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubre
 	pLayout->arrayPitch = getLayerSize(aspect);
 }
 
-void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
+void Image::copyTo(Image* dstImage, const VkImageCopy& pRegion) const
 {
 	// Image copy does not perform any conversion, it simply copies memory from
 	// an image to another image that has the same number of bytes per pixel.
-	Image* dst = Cast(dstImage);
 
 	if (!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 	      (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
@@ -158,7 +157,7 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(pRegion.dstSubresource.aspectMask);
 
 	Format srcFormat = getFormat(srcAspect);
-	Format dstFormat = dst->getFormat(dstAspect);
+	Format dstFormat = dstImage->getFormat(dstAspect);
 
 	if(((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger()) ||
 		srcFormat.hasQuadLayout() || dstFormat.hasQuadLayout())
@@ -177,22 +176,22 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		region.dstOffsets[1].y = region.dstOffsets[0].y + pRegion.extent.height;
 		region.dstOffsets[1].z = region.dstOffsets[0].z + pRegion.extent.depth;
 
-		return device->getBlitter()->blit(this, dst, region, VK_FILTER_NEAREST);
+		return device->getBlitter()->blit(this, dstImage, region, VK_FILTER_NEAREST);
 	}
 
 	int srcBytesPerBlock = srcFormat.bytesPerBlock();
 	ASSERT(srcBytesPerBlock == dstFormat.bytesPerBlock());
 
 	const uint8_t* srcMem = static_cast<const uint8_t*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource));
-	uint8_t* dstMem = static_cast<uint8_t*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
+	uint8_t* dstMem = static_cast<uint8_t*>(dstImage->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
 
 	int srcRowPitchBytes = rowPitchBytes(srcAspect, pRegion.srcSubresource.mipLevel);
 	int srcSlicePitchBytes = slicePitchBytes(srcAspect, pRegion.srcSubresource.mipLevel);
-	int dstRowPitchBytes = dst->rowPitchBytes(dstAspect, pRegion.dstSubresource.mipLevel);
-	int dstSlicePitchBytes = dst->slicePitchBytes(dstAspect, pRegion.dstSubresource.mipLevel);
+	int dstRowPitchBytes = dstImage->rowPitchBytes(dstAspect, pRegion.dstSubresource.mipLevel);
+	int dstSlicePitchBytes = dstImage->slicePitchBytes(dstAspect, pRegion.dstSubresource.mipLevel);
 
 	VkExtent3D srcExtent = getMipLevelExtent(srcAspect, pRegion.srcSubresource.mipLevel);
-	VkExtent3D dstExtent = dst->getMipLevelExtent(dstAspect, pRegion.dstSubresource.mipLevel);
+	VkExtent3D dstExtent = dstImage->getMipLevelExtent(dstAspect, pRegion.dstSubresource.mipLevel);
 	VkExtent3D copyExtent = imageExtentInBlocks(pRegion.extent, srcAspect);
 
 	bool isSinglePlane = (copyExtent.depth == 1);
@@ -223,21 +222,21 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	{
 		size_t copySize = copyExtent.width * srcBytesPerBlock;
 		ASSERT((srcMem + copySize) < end());
-		ASSERT((dstMem + copySize) < dst->end());
+		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
 	}
 	else if(isEntireLine && isSinglePlane) // Copy one plane
 	{
 		size_t copySize = copyExtent.height * srcRowPitchBytes;
 		ASSERT((srcMem + copySize) < end());
-		ASSERT((dstMem + copySize) < dst->end());
+		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
 	}
 	else if(isEntirePlane) // Copy multiple planes
 	{
 		size_t copySize = copyExtent.depth * srcSlicePitchBytes;
 		ASSERT((srcMem + copySize) < end());
-		ASSERT((dstMem + copySize) < dst->end());
+		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
 	}
 	else if(isEntireLine) // Copy plane by plane
@@ -247,7 +246,7 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		for(uint32_t z = 0; z < copyExtent.depth; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
 		{
 			ASSERT((srcMem + copySize) < end());
-			ASSERT((dstMem + copySize) < dst->end());
+			ASSERT((dstMem + copySize) < dstImage->end());
 			memcpy(dstMem, srcMem, copySize);
 		}
 	}
@@ -260,14 +259,14 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 			for(uint32_t y = 0; y < copyExtent.height; y++, dstMem += dstRowPitchBytes, srcMem += srcRowPitchBytes)
 			{
 				ASSERT((srcMem + copySize) < end());
-				ASSERT((dstMem + copySize) < dst->end());
+				ASSERT((dstMem + copySize) < dstImage->end());
 				memcpy(dstMem, srcMem, copySize);
 			}
 		}
 	}
 }
 
-void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSource)
+void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsSource)
 {
 	switch(region.imageSubresource.aspectMask)
 	{
@@ -292,7 +291,6 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
 	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
 
-	Buffer* buffer = Cast(buf);
 	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
 
 	if (copyFormat.hasQuadLayout())
@@ -415,12 +413,12 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 	}
 }
 
-void Image::copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& region)
+void Image::copyTo(Buffer* dstBuffer, const VkBufferImageCopy& region)
 {
 	copy(dstBuffer, region, false);
 }
 
-void Image::copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& region)
+void Image::copyFrom(Buffer* srcBuffer, const VkBufferImageCopy& region)
 {
 	copy(srcBuffer, region, true);
 }
@@ -730,12 +728,12 @@ const Image* Image::getSampledImage(const vk::Format& imageViewFormat) const
 	return (decompressedImage && isImageViewCompressed) ? decompressedImage : this;
 }
 
-void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
+void Image::blit(Image* dstImage, const VkImageBlit& region, VkFilter filter) const
 {
-	device->getBlitter()->blit(this, Cast(dstImage), region, filter);
+	device->getBlitter()->blit(this, dstImage, region, filter);
 }
 
-void Image::resolve(VkImage dstImage, const VkImageResolve& region)
+void Image::resolve(Image* dstImage, const VkImageResolve& region) const
 {
 	VkImageBlit blitRegion;
 
@@ -752,7 +750,7 @@ void Image::resolve(VkImage dstImage, const VkImageResolve& region)
 	blitRegion.srcSubresource = region.srcSubresource;
 	blitRegion.dstSubresource = region.dstSubresource;
 
-	device->getBlitter()->blit(this, Cast(dstImage), blitRegion, VK_FILTER_NEAREST);
+	device->getBlitter()->blit(this, dstImage, blitRegion, VK_FILTER_NEAREST);
 }
 
 VkFormat Image::getClearFormat() const

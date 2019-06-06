@@ -31,7 +31,7 @@ public:
 	VkResult allocate();
 	VkResult map(VkDeviceSize offset, VkDeviceSize size, void** ppData);
 	VkDeviceSize getCommittedMemoryInBytes() const;
-	void* getOffsetPointer(VkDeviceSize pOffset);
+	void* getOffsetPointer(VkDeviceSize pOffset) const;
 	uint32_t getMemoryTypeIndex() const { return memoryTypeIndex; }
 
 private:

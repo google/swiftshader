@@ -30,11 +30,28 @@ enum PresentImageStatus
 	PRESENTING,
 };
 
-struct PresentImage
+class DeviceMemory;
+class Image;
+class SwapchainKHR;
+
+class PresentImage
 {
-	VkImage image;
-	VkDeviceMemory imageMemory;
-	PresentImageStatus imageStatus;
+public:
+	VkResult allocateImage(VkDevice device, const VkImageCreateInfo& createInfo);
+	VkResult allocateAndBindImageMemory(VkDevice device, const VkMemoryAllocateInfo& allocateInfo);
+	void clear();
+	VkImage asVkImage() const;
+
+	const Image* getImage() const { return image; }
+	const DeviceMemory* getImageMemory() const { return imageMemory; }
+	bool isAvailable() const { return (imageStatus == AVAILABLE); }
+	bool exists() const { return (imageStatus != NONEXISTENT); }
+	void setStatus(PresentImageStatus status) { imageStatus = status; }
+
+private:
+	Image* image = nullptr;
+	DeviceMemory* imageMemory = nullptr;
+	PresentImageStatus imageStatus = NONEXISTENT;
 };
 
 class SurfaceKHR
@@ -68,21 +85,10 @@ public:
 
 	void associateSwapchain(VkSwapchainKHR swapchain);
 	void disassociateSwapchain();
-	VkSwapchainKHR getAssociatedSwapchain();
-
+	bool hasAssociatedSwapchain();
 
 private:
-	VkSwapchainKHR associatedSwapchain;
-
-	const std::vector<VkSurfaceFormatKHR> surfaceFormats =
-	{
-		{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
-	};
-
-	const std::vector<VkPresentModeKHR> presentModes =
-	{
-		VK_PRESENT_MODE_FIFO_KHR,
-	};
+	SwapchainKHR* associatedSwapchain = nullptr;
 };
 
 static inline SurfaceKHR* Cast(VkSurfaceKHR object)
