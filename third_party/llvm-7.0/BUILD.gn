@@ -269,6 +269,7 @@ swiftshader_source_set("swiftshader_llvm") {
     "llvm/lib/MC/MCSymbolELF.cpp",
     "llvm/lib/MC/MCTargetOptions.cpp",
     "llvm/lib/MC/MCValue.cpp",
+    "llvm/lib/MC/MCWasmObjectTargetWriter.cpp",
     "llvm/lib/MC/MCWasmStreamer.cpp",
     "llvm/lib/MC/MCWin64EH.cpp",
     "llvm/lib/MC/MCWinCOFFStreamer.cpp",
@@ -295,10 +296,18 @@ swiftshader_source_set("swiftshader_llvm") {
     "llvm/lib/Object/WasmObjectFile.cpp",
     "llvm/lib/Object/WindowsResource.cpp",
     "llvm/lib/ProfileData/InstrProf.cpp",
+    "llvm/lib/Target/TargetIntrinsicInfo.cpp",
     "llvm/lib/Target/TargetLoweringObjectFile.cpp",
     "llvm/lib/Target/TargetMachine.cpp",
     "stubs/Stubs.cpp",
   ]
+
+  # This class is declared on all platforms but only used on ARM. UBSanVPtr
+  # builds require that all declared classes have a definition even if they're
+  # not used.
+  if (is_ubsan_vptr) {
+    sources += [ "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp" ]
+  }
 
   configs = [ ":swiftshader_llvm_private_config" ]
 
@@ -409,7 +418,6 @@ swiftshader_source_set("swiftshader_llvm_arm") {
     "llvm/lib/Target/ARM/MCTargetDesc/ARMWinCOFFObjectWriter.cpp",
     "llvm/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp",
     "llvm/lib/Target/ARM/MCTargetDesc/ARMMCCodeEmitter.cpp",
-    "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp",
     "llvm/lib/Target/ARM/MCTargetDesc/ARMMachORelocationInfo.cpp",
     "llvm/lib/Target/ARM/MCTargetDesc/ARMMCExpr.cpp",
     "llvm/lib/Target/ARM/MCTargetDesc/ARMELFObjectWriter.cpp",
@@ -461,6 +469,11 @@ swiftshader_source_set("swiftshader_llvm_arm") {
     "llvm/lib/Target/ARM/ARMLegalizerInfo.cpp",
     "llvm/lib/Target/ARM/ARMOptimizeBarriersPass.cpp",
   ]
+
+  # When is_ubsan_vptr is true, this file is added to swiftshader_llvm instead.
+  if (!is_ubsan_vptr) {
+    sources += [ "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp" ]
+  }
 
   configs = [ ":swiftshader_llvm_private_config" ]
 

@@ -5,6 +5,16 @@
 # This file contains configs that need to be added or removed to all
 # SwiftShader libraries
 
+import("//build_overrides/build.gni")
+
+if (build_with_chromium) {
+  import("//build/config/sanitizers/sanitizers.gni")
+} else {
+  declare_args() {
+    is_ubsan_vptr = false
+  }
+}
+
 configs_to_add = []
 configs_to_delete = []
 
