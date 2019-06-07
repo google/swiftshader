@@ -85,6 +85,25 @@ namespace sw
 			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(frontFacing);
 		}
 
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSampleMask);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			static_assert(SIMD::Width == 4, "Expects SIMD width to be 4");
+			Int4 laneBits = Int4(1, 2, 4, 8);
+
+			Int4 inputSampleMask = Int4(1) & CmpNEQ(Int4(cMask[0]) & laneBits, Int4(0));
+			for (auto i = 1u; i < state.multiSample; i++)
+			{
+				inputSampleMask |= Int4(1 << i) & CmpNEQ(Int4(cMask[i]) & laneBits, Int4(0));
+			}
+
+			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(inputSampleMask);
+			// Sample mask input is an array, as the spec contemplates MSAA levels higher than 32.
+			// Fill any non-zero indices with 0.
+			for (auto i = 1u; i < it->second.SizeInComponents; i++)
+				routine.getVariable(it->second.Id)[it->second.FirstComponent + i] = Float4(0);
+		}
+
 		// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
 		// handled separately, through the cMask.
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF);

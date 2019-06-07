@@ -199,8 +199,15 @@ namespace sw
 
 					for(unsigned int q = 0; q < state.multiSample; q++)
 					{
-						Short4 mask = CmpGT(xxxx, xLeft[q]) & CmpGT(xRight[q], xxxx);
-						cMask[q] = SignMask(PackSigned(mask, mask)) & 0x0000000F;
+						if (state.multiSampleMask & (1<<q))
+						{
+							Short4 mask = CmpGT(xxxx, xLeft[q]) & CmpGT(xRight[q], xxxx);
+							cMask[q] = SignMask(PackSigned(mask, mask)) & 0x0000000F;
+						}
+						else
+						{
+							cMask[q] = 0;
+						}
 					}
 
 					quad(cBuffer, zBuffer, sBuffer, cMask, x, y);
