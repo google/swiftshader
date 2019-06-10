@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d6f09ea6_f50e6e1f",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-06-10T17:10:12Z",
+      "side": 1,
+      "message": "Thanks, will follow up on it.",
+      "parentUuid": "97d00e3c_a526d517",
+      "revId": "a5deafd7746fb71bf9b70a61466a72f02987e8c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "757ee99e_ae0c1a9d",
         "filename": "src/WSI/VkSurfaceKHR.cpp",
         "patchSetId": 6
