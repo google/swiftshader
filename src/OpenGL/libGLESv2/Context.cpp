@@ -694,6 +694,20 @@ void Context::setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	mState.scissorX = x;
 	mState.scissorY = y;
+
+	// An overflow happens when (infinite precision) X + Width > INT32_MAX. We
+	// can change that formula to "X > INT32_MAX - Width". And when we bring it
+	// down to 32-bit precision, we know it's safe because width is non-negative.
+	if (x > INT32_MAX - width)
+	{
+		width = INT32_MAX - x;
+	}
+
+	if (y > INT32_MAX - height)
+	{
+		height = INT32_MAX - y;
+	}
+
 	mState.scissorWidth = width;
 	mState.scissorHeight = height;
 }
