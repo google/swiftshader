@@ -28,8 +28,7 @@ namespace
 namespace sw
 {
 	ComputeProgram::ComputeProgram(SpirvShader const *shader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets)
-		: data(Arg<0>()),
-		  shader(shader),
+		: shader(shader),
 		  pipelineLayout(pipelineLayout),
 		  descriptorSets(descriptorSets)
 	{
@@ -47,7 +46,7 @@ namespace sw
 		shader->emitEpilog(&routine);
 	}
 
-	void ComputeProgram::setWorkgroupBuiltins(SpirvRoutine* routine, Int workgroupID[3])
+	void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3])
 	{
 		setInputBuiltin(routine, spv::BuiltInNumWorkgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 		{
@@ -106,7 +105,7 @@ namespace sw
 		});
 	}
 
-	void ComputeProgram::setSubgroupBuiltins(SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex)
+	void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex)
 	{
 		Int4 numWorkgroups = *Pointer<Int4>(data + OFFSET(Data, numWorkgroups));
 		Int4 workgroupSize = *Pointer<Int4>(data + OFFSET(Data, workgroupSize));
@@ -163,6 +162,7 @@ namespace sw
 
 	void ComputeProgram::emit(SpirvRoutine* routine)
 	{
+		Pointer<Byte> data = Arg<0>();
 		Int workgroupX = Arg<1>();
 		Int workgroupY = Arg<2>();
 		Int workgroupZ = Arg<3>();
@@ -179,7 +179,7 @@ namespace sw
 		Int invocationsPerWorkgroup = *Pointer<Int>(data + OFFSET(Data, invocationsPerWorkgroup));
 
 		Int workgroupID[3] = {workgroupX, workgroupY, workgroupZ};
-		setWorkgroupBuiltins(routine, workgroupID);
+		setWorkgroupBuiltins(data, routine, workgroupID);
 
 		For(Int i = 0, i < subgroupCount, i++)
 		{
@@ -191,7 +191,7 @@ namespace sw
 			// Disable lanes where (invocationIDs >= invocationsPerWorkgroup)
 			auto activeLaneMask = CmpLT(localInvocationIndex, SIMD::Int(invocationsPerWorkgroup));
 
-			setSubgroupBuiltins(routine, workgroupID, localInvocationIndex, subgroupIndex);
+			setSubgroupBuiltins(data, routine, workgroupID, localInvocationIndex, subgroupIndex);
 
 			shader->emit(routine, activeLaneMask, descriptorSets);
 		}
