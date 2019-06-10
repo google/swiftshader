@@ -200,6 +200,15 @@ endmacro()
 macro(set_shared_library_export_map TARGET DIR)
     if(MSVC)
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " /DEF:\"${DIR}/${TARGET}.def\"")
+    elseif(APPLE)
+        # The exported symbols list only exports the API functions and
+        # hides all the others.
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS "-exported_symbols_list ${DIR}/${TARGET}.exports")
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_DEPENDS "${DIR}/${TARGET}.exports;")
+        # Don't allow undefined symbols, unless it's a Sanitizer build.
+        if(NOT MSAN AND NOT ASAN AND NOT TSAN AND NOT UBSAN)
+            set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
+        endif()
     elseif(LINUX)
         # The version script only exports the API functions and
         # hides all the others.
