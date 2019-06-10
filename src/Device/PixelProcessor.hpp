@@ -43,7 +43,6 @@ namespace sw
 			bool quadLayoutDepthBuffer;
 
 			bool stencilActive;
-			bool twoSidedStencil;
 			VkStencilOpState frontStencil;
 			VkStencilOpState backStencil;
 
@@ -66,7 +65,7 @@ namespace sw
 			unsigned int multiSampleMask;
 			bool alphaToCoverage;
 			bool centroid;
-			bool frontFaceCCW;
+			VkFrontFace frontFace;
 			VkFormat depthFormat;
 		};
 

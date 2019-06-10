@@ -180,7 +180,6 @@ namespace sw
 		if(context->stencilActive())
 		{
 			state.stencilActive = true;
-			state.twoSidedStencil = context->twoSidedStencil;
 			state.frontStencil = context->frontStencil;
 			state.backStencil = context->backStencil;
 		}
@@ -221,7 +220,7 @@ namespace sw
 			state.centroid = context->pixelShader->getModes().NeedsCentroid;
 		}
 
-		state.frontFaceCCW = context->frontFacingCCW;
+		state.frontFace = context->frontFace;
 
 		state.hash = state.computeHash();
 

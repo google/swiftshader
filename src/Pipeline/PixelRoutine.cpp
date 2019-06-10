@@ -265,19 +265,16 @@ namespace sw
 
 		stencilTest(value, state.frontStencil.compareOp, false);
 
-		if(state.twoSidedStencil)
+		if(state.backStencil.compareMask != 0xff)
 		{
-			if(state.backStencil.compareMask != 0xff)
-			{
-				valueBack &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].testMaskQ));
-			}
-
-			stencilTest(valueBack, state.backStencil.compareOp, true);
-
-			value &= *Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask));
-			valueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask));
-			value |= valueBack;
+			valueBack &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].testMaskQ));
 		}
+
+		stencilTest(valueBack, state.backStencil.compareOp, true);
+
+		value &= *Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask));
+		valueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask));
+		value |= valueBack;
 
 		sMask = SignMask(value) & cMask;
 	}
@@ -697,13 +694,13 @@ namespace sw
 
 		if(state.frontStencil.passOp == VK_STENCIL_OP_KEEP && state.frontStencil.depthFailOp == VK_STENCIL_OP_KEEP && state.frontStencil.failOp == VK_STENCIL_OP_KEEP)
 		{
-			if(!state.twoSidedStencil || (state.backStencil.passOp == VK_STENCIL_OP_KEEP && state.backStencil.depthFailOp == VK_STENCIL_OP_KEEP && state.backStencil.failOp == VK_STENCIL_OP_KEEP))
+			if(state.backStencil.passOp == VK_STENCIL_OP_KEEP && state.backStencil.depthFailOp == VK_STENCIL_OP_KEEP && state.backStencil.failOp == VK_STENCIL_OP_KEEP)
 			{
 				return;
 			}
 		}
 
-		if((state.frontStencil.writeMask == 0) && (!state.twoSidedStencil || (state.backStencil.writeMask == 0)))
+		if((state.frontStencil.writeMask == 0) && (state.backStencil.writeMask == 0))
 		{
 			return;
 		}
@@ -728,24 +725,21 @@ namespace sw
 			newValue |= maskedValue;
 		}
 
-		if(state.twoSidedStencil)
+		Byte8 newValueBack;
+
+		stencilOperation(newValueBack, bufferValue, state.backStencil, true, zMask, sMask);
+
+		if(state.backStencil.writeMask != 0)
 		{
-			Byte8 newValueBack;
-
-			stencilOperation(newValueBack, bufferValue, state.backStencil, true, zMask, sMask);
-
-			if(state.backStencil.writeMask != 0)
-			{
-				Byte8 maskedValue = bufferValue;
-				newValueBack &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].writeMaskQ));
-				maskedValue &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].invWriteMaskQ));
-				newValueBack |= maskedValue;
-			}
-
-			newValue &= *Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask));
-			newValueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask));
-			newValue |= newValueBack;
+			Byte8 maskedValue = bufferValue;
+			newValueBack &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].writeMaskQ));
+			maskedValue &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].invWriteMaskQ));
+			newValueBack |= maskedValue;
 		}
+
+		newValue &= *Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask));
+		newValueBack &= *Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask));
+		newValue |= newValueBack;
 
 		newValue &= *Pointer<Byte8>(constants + OFFSET(Constants,maskB4Q) + 8 * cMask);
 		bufferValue &= *Pointer<Byte8>(constants + OFFSET(Constants,invMaskB4Q) + 8 * cMask);

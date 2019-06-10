@@ -367,7 +367,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 
 	context.rasterizerDiscard = (rasterizationState->rasterizerDiscardEnable == VK_TRUE);
 	context.cullMode = rasterizationState->cullMode;
-	context.frontFacingCCW = rasterizationState->frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	context.frontFace = rasterizationState->frontFace;
 	context.depthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
 	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
 
@@ -416,7 +416,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		context.depthWriteEnable = (depthStencilState->depthWriteEnable == VK_TRUE);
 		context.depthCompareMode = depthStencilState->depthCompareOp;
 
-		context.stencilEnable = context.twoSidedStencil = (depthStencilState->stencilTestEnable == VK_TRUE);
+		context.stencilEnable = (depthStencilState->stencilTestEnable == VK_TRUE);
 		if(context.stencilEnable)
 		{
 			context.frontStencil = depthStencilState->front;
@@ -444,7 +444,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		for (auto i = 0u; i < colorBlendState->attachmentCount; i++)
 		{
 			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[i];
-			context.setColorWriteMask(i, attachment.colorWriteMask);
+			context.colorWriteMask[i] = attachment.colorWriteMask;
 		}
 
 		if(colorBlendState->attachmentCount > 0)

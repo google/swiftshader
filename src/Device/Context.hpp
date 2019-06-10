@@ -23,7 +23,6 @@
 
 namespace vk
 {
-	class DescriptorSet;
 	class ImageView;
 	class PipelineLayout;
 }
@@ -31,43 +30,6 @@ namespace vk
 namespace sw
 {
 	class SpirvShader;
-
-	enum In   // Default input stream semantic
-	{
-		Position = 0,
-		BlendWeight = 1,
-		BlendIndices = 2,
-		Normal = 3,
-		PointSize = 4,
-		Color0 = 5,
-		Color1 = 6,
-		TexCoord0 = 7,
-		TexCoord1 = 8,
-		TexCoord2 = 9,
-		TexCoord3 = 10,
-		TexCoord4 = 11,
-		TexCoord5 = 12,
-		TexCoord6 = 13,
-		TexCoord7 = 14,
-		PositionT = 15
-	};
-
-	enum CullMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		CULL_NONE,
-		CULL_CLOCKWISE,
-		CULL_COUNTERCLOCKWISE,
-
-		CULL_LAST = CULL_COUNTERCLOCKWISE
-	};
-
-	enum TransparencyAntialiasing ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		TRANSPARENCY_NONE,
-		TRANSPARENCY_ALPHA_TO_COVERAGE,
-
-		TRANSPARENCY_LAST = TRANSPARENCY_ALPHA_TO_COVERAGE
-	};
 
 	struct PushConstantStorage
 	{
@@ -79,22 +41,11 @@ namespace sw
 	public:
 		Context();
 
-		~Context();
-
-		void *operator new(size_t bytes);
-		void operator delete(void *pointer, size_t bytes);
-
 		void init();
 
 		bool isDrawPoint() const;
 		bool isDrawLine() const;
 		bool isDrawTriangle() const;
-
-		bool setDepthBufferEnable(bool depthBufferEnable);
-
-		bool setAlphaBlendEnable(bool alphaBlendEnable);
-		bool setColorWriteMask(int index, int colorWriteMask);
-		bool setWriteSRGB(bool sRGB);
 
 		bool depthWriteActive() const;
 		bool depthBufferActive() const;
@@ -113,13 +64,12 @@ namespace sw
 		VkPrimitiveTopology topology;
 
 		bool stencilEnable;
-		bool twoSidedStencil;
 		VkStencilOpState frontStencil;
 		VkStencilOpState backStencil;
 
 		// Pixel processor states
 		VkCullModeFlags cullMode;
-		bool frontFacingCCW;
+		VkFrontFace frontFace;
 
 		float depthBias;
 		float slopeDepthBias;

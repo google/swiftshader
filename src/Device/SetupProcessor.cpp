@@ -74,9 +74,8 @@ namespace sw
 		state.isDrawTriangle = context->isDrawTriangle();
 		state.interpolateZ = context->depthBufferActive() || vPosZW;
 		state.interpolateW = context->pixelShader != nullptr;
-		state.frontFacingCCW = context->frontFacingCCW;
+		state.frontFace = context->frontFace;
 		state.cullMode = context->cullMode;
-		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
 		state.slopeDepthBias = context->slopeDepthBias != 0.0f;
 
 		state.multiSample = context->sampleCount;
