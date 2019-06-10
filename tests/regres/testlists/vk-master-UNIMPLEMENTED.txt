@@ -14,11 +14,3 @@ dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r16g16_sint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r32_uint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r32g32b32a32_sfloat.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r8g8b8a8_unorm.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.bit_count.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.bit_count.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.correct_bit.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.correct_bit.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.pattern.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.pattern.137_191_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.write.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.write.137_191_1.samples_4
