@@ -968,7 +968,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyBufferView(VkDevice device, VkBufferView buf
 struct BackingMemory {
 	buffer_handle_t nativeHandle;
 	int stride;
-	VkDeviceMemory imageMemory;
+	vk::DeviceMemory* imageMemory;
 	VkSwapchainImageUsageFlagsANDROID androidUsage;
 };
 
@@ -1033,13 +1033,17 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = 0;
 
-		result = vkAllocateMemory(device, &allocInfo, nullptr, &backmem.imageMemory);
+		VkDeviceMemory devmem = VK_NULL_HANDLE;
+		result = vkAllocateMemory(device, &allocInfo, nullptr, &devmem);
 		if(result != VK_SUCCESS)
 		{
 			return result;
 		}
 
-		vkBindImageMemory(device, *pImage, backmem.imageMemory, 0);
+		backmem.imageMemory = vk::Cast(devmem);
+		vkBindImageMemory(device, *pImage, devmem, 0);
+
+		vk::deallocate(vkDeviceMemoryPtr, vk::DEVICE_MEMORY);
 
 		androidSwapchainMap[*pImage] = backmem;
 	}
@@ -1060,7 +1064,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 
 	if (it != androidSwapchainMap.end())
 	{
-		vk::destroy((it->second).imageMemory, nullptr);
+		vk::destroy(static_cast<VkDeviceMemory>(*((it->second).imageMemory)), nullptr);
 		androidSwapchainMap.erase(it);
 	}
 #endif
@@ -2822,7 +2826,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue, u
 	VkExtent3D extent = vk::Cast(image)->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 	grallocMod->lock(backmem.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer);
 
-	char* buffer = static_cast<char*>(vk::Cast(backmem.imageMemory)->getOffsetPointer(0));
+	char* buffer = static_cast<char*>(backmem.imageMemory->getOffsetPointer(0));
 	int imageRowBytes = vk::Cast(image)->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 	int colorBytes = vk::Cast(image)->getFormat().bytes();
 
