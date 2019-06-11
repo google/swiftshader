@@ -277,9 +277,11 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
 		}
 		break;
 	default:
-		UNIMPLEMENTED("magFilter %d", sampler->magFilter);
-		return FILTER_POINT;
+		break;
 	}
+
+	UNIMPLEMENTED("magFilter %d", sampler->magFilter);
+	return FILTER_POINT;
 }
 
 sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)

@@ -183,8 +183,10 @@ bool ValidateTexParamParameters(GLenum pname, GLint param)
 		return true;
 
 	default:
-		return error(GL_INVALID_ENUM, false);
+		break;
 	}
+
+	return error(GL_INVALID_ENUM, false);
 }
 
 static bool ValidateSamplerObjectParameter(GLenum pname)
