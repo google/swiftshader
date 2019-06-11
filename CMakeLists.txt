@@ -463,12 +463,12 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/BlockFrequencyInfo.cpp
     ${LLVM_DIR}/lib/Analysis/BlockFrequencyInfoImpl.cpp
     ${LLVM_DIR}/lib/Analysis/BranchProbabilityInfo.cpp
-    ${LLVM_DIR}/lib/Analysis/CFG.cpp
-    ${LLVM_DIR}/lib/Analysis/CFLAndersAliasAnalysis.cpp
-    ${LLVM_DIR}/lib/Analysis/CFLSteensAliasAnalysis.cpp
     ${LLVM_DIR}/lib/Analysis/CallGraph.cpp
     ${LLVM_DIR}/lib/Analysis/CallGraphSCCPass.cpp
     ${LLVM_DIR}/lib/Analysis/CaptureTracking.cpp
+    ${LLVM_DIR}/lib/Analysis/CFG.cpp
+    ${LLVM_DIR}/lib/Analysis/CFLAndersAliasAnalysis.cpp
+    ${LLVM_DIR}/lib/Analysis/CFLSteensAliasAnalysis.cpp
     ${LLVM_DIR}/lib/Analysis/CmpInstAnalysis.cpp
     ${LLVM_DIR}/lib/Analysis/CodeMetrics.cpp
     ${LLVM_DIR}/lib/Analysis/ConstantFolding.cpp
@@ -478,10 +478,10 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/DominanceFrontier.cpp
     ${LLVM_DIR}/lib/Analysis/EHPersonalities.cpp
     ${LLVM_DIR}/lib/Analysis/GlobalsModRef.cpp
-    ${LLVM_DIR}/lib/Analysis/IVUsers.cpp
     ${LLVM_DIR}/lib/Analysis/InlineCost.cpp
     ${LLVM_DIR}/lib/Analysis/InstructionSimplify.cpp
     ${LLVM_DIR}/lib/Analysis/IteratedDominanceFrontier.cpp
+    ${LLVM_DIR}/lib/Analysis/IVUsers.cpp
     ${LLVM_DIR}/lib/Analysis/LazyBlockFrequencyInfo.cpp
     ${LLVM_DIR}/lib/Analysis/LazyBranchProbabilityInfo.cpp
     ${LLVM_DIR}/lib/Analysis/LazyValueInfo.cpp
@@ -530,18 +530,18 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/AggressiveAntiDepBreaker.cpp
     ${LLVM_DIR}/lib/CodeGen/AllocationOrder.cpp
     ${LLVM_DIR}/lib/CodeGen/Analysis.cpp
-    ${LLVM_DIR}/lib/CodeGen/AsmPrinter/ARMException.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/AccelTable.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/AddressPool.cpp
+    ${LLVM_DIR}/lib/CodeGen/AsmPrinter/ARMException.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/AsmPrinter.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/AsmPrinterDwarf.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/AsmPrinterInlineAsm.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/CodeViewDebug.cpp
-    ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DIE.cpp
-    ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DIEHash.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DbgValueHistoryCalculator.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DebugHandlerBase.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DebugLocStream.cpp
+    ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DIE.cpp
+    ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DIEHash.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DwarfCFIException.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DwarfCompileUnit.cpp
     ${LLVM_DIR}/lib/CodeGen/AsmPrinter/DwarfDebug.cpp
@@ -557,15 +557,15 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/BranchFolding.cpp
     ${LLVM_DIR}/lib/CodeGen/BranchRelaxation.cpp
     ${LLVM_DIR}/lib/CodeGen/BreakFalseDeps.cpp
-    ${LLVM_DIR}/lib/CodeGen/CFIInstrInserter.cpp
     ${LLVM_DIR}/lib/CodeGen/CalcSpillWeights.cpp
     ${LLVM_DIR}/lib/CodeGen/CallingConvLower.cpp
+    ${LLVM_DIR}/lib/CodeGen/CFIInstrInserter.cpp
     ${LLVM_DIR}/lib/CodeGen/CodeGen.cpp
     ${LLVM_DIR}/lib/CodeGen/CodeGenPrepare.cpp
     ${LLVM_DIR}/lib/CodeGen/CriticalAntiDepBreaker.cpp
-    ${LLVM_DIR}/lib/CodeGen/DFAPacketizer.cpp
     ${LLVM_DIR}/lib/CodeGen/DeadMachineInstructionElim.cpp
     ${LLVM_DIR}/lib/CodeGen/DetectDeadLanes.cpp
+    ${LLVM_DIR}/lib/CodeGen/DFAPacketizer.cpp
     ${LLVM_DIR}/lib/CodeGen/DwarfEHPrepare.cpp
     ${LLVM_DIR}/lib/CodeGen/EarlyIfConversion.cpp
     ${LLVM_DIR}/lib/CodeGen/EdgeBundles.cpp
@@ -574,8 +574,8 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/ExpandMemCmp.cpp
     ${LLVM_DIR}/lib/CodeGen/ExpandPostRAPseudos.cpp
     ${LLVM_DIR}/lib/CodeGen/ExpandReductions.cpp
-    ${LLVM_DIR}/lib/CodeGen/FEntryInserter.cpp
     ${LLVM_DIR}/lib/CodeGen/FaultMaps.cpp
+    ${LLVM_DIR}/lib/CodeGen/FEntryInserter.cpp
     ${LLVM_DIR}/lib/CodeGen/FuncletLayout.cpp
     ${LLVM_DIR}/lib/CodeGen/GCMetadata.cpp
     ${LLVM_DIR}/lib/CodeGen/GCMetadataPrinter.cpp
@@ -583,9 +583,9 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/GCStrategy.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/CallLowering.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/GlobalISel.cpp
-    ${LLVM_DIR}/lib/CodeGen/GlobalISel/IRTranslator.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/InstructionSelect.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/InstructionSelector.cpp
+    ${LLVM_DIR}/lib/CodeGen/GlobalISel/IRTranslator.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/LegalityPredicates.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/LegalizeMutations.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/Legalizer.cpp
@@ -604,15 +604,14 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/InterferenceCache.cpp
     ${LLVM_DIR}/lib/CodeGen/InterleavedAccessPass.cpp
     ${LLVM_DIR}/lib/CodeGen/IntrinsicLowering.cpp
-    ${LLVM_DIR}/lib/CodeGen/LLVMTargetMachine.cpp
     ${LLVM_DIR}/lib/CodeGen/LatencyPriorityQueue.cpp
     ${LLVM_DIR}/lib/CodeGen/LazyMachineBlockFrequencyInfo.cpp
     ${LLVM_DIR}/lib/CodeGen/LexicalScopes.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveDebugValues.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveDebugVariables.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveInterval.cpp
-    ${LLVM_DIR}/lib/CodeGen/LiveIntervalUnion.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveIntervals.cpp
+    ${LLVM_DIR}/lib/CodeGen/LiveIntervalUnion.cpp
     ${LLVM_DIR}/lib/CodeGen/LivePhysRegs.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveRangeCalc.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveRangeEdit.cpp
@@ -621,20 +620,18 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/LiveRegUnits.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveStacks.cpp
     ${LLVM_DIR}/lib/CodeGen/LiveVariables.cpp
+    ${LLVM_DIR}/lib/CodeGen/LLVMTargetMachine.cpp
     ${LLVM_DIR}/lib/CodeGen/LocalStackSlotAllocation.cpp
     ${LLVM_DIR}/lib/CodeGen/LoopTraversal.cpp
-    ${LLVM_DIR}/lib/CodeGen/LowLevelType.cpp
     ${LLVM_DIR}/lib/CodeGen/LowerEmuTLS.cpp
-    ${LLVM_DIR}/lib/CodeGen/MIRCanonicalizerPass.cpp
-    ${LLVM_DIR}/lib/CodeGen/MIRPrinter.cpp
-    ${LLVM_DIR}/lib/CodeGen/MIRPrintingPass.cpp
+    ${LLVM_DIR}/lib/CodeGen/LowLevelType.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineBasicBlock.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineBlockFrequencyInfo.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineBlockPlacement.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineBranchProbabilityInfo.cpp
-    ${LLVM_DIR}/lib/CodeGen/MachineCSE.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineCombiner.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineCopyPropagation.cpp
+    ${LLVM_DIR}/lib/CodeGen/MachineCSE.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineDominanceFrontier.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineDominators.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineFrameInfo.cpp
@@ -655,17 +652,20 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/MachinePostDominators.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineRegionInfo.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineRegisterInfo.cpp
-    ${LLVM_DIR}/lib/CodeGen/MachineSSAUpdater.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineScheduler.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineSink.cpp
+    ${LLVM_DIR}/lib/CodeGen/MachineSSAUpdater.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineTraceMetrics.cpp
     ${LLVM_DIR}/lib/CodeGen/MachineVerifier.cpp
     ${LLVM_DIR}/lib/CodeGen/MacroFusion.cpp
+    ${LLVM_DIR}/lib/CodeGen/MIRCanonicalizerPass.cpp
+    ${LLVM_DIR}/lib/CodeGen/MIRPrinter.cpp
+    ${LLVM_DIR}/lib/CodeGen/MIRPrintingPass.cpp
     ${LLVM_DIR}/lib/CodeGen/OptimizePHIs.cpp
-    ${LLVM_DIR}/lib/CodeGen/PHIElimination.cpp
-    ${LLVM_DIR}/lib/CodeGen/PHIEliminationUtils.cpp
     ${LLVM_DIR}/lib/CodeGen/PatchableFunction.cpp
     ${LLVM_DIR}/lib/CodeGen/PeepholeOptimizer.cpp
+    ${LLVM_DIR}/lib/CodeGen/PHIElimination.cpp
+    ${LLVM_DIR}/lib/CodeGen/PHIEliminationUtils.cpp
     ${LLVM_DIR}/lib/CodeGen/PostRAHazardRecognizer.cpp
     ${LLVM_DIR}/lib/CodeGen/PostRASchedulerList.cpp
     ${LLVM_DIR}/lib/CodeGen/PreISelIntrinsicLowering.cpp
@@ -677,13 +677,13 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/RegAllocBasic.cpp
     ${LLVM_DIR}/lib/CodeGen/RegAllocFast.cpp
     ${LLVM_DIR}/lib/CodeGen/RegAllocGreedy.cpp
-    ${LLVM_DIR}/lib/CodeGen/RegUsageInfoCollector.cpp
-    ${LLVM_DIR}/lib/CodeGen/RegUsageInfoPropagate.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterClassInfo.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterCoalescer.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterPressure.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterScavenging.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterUsageInfo.cpp
+    ${LLVM_DIR}/lib/CodeGen/RegUsageInfoCollector.cpp
+    ${LLVM_DIR}/lib/CodeGen/RegUsageInfoPropagate.cpp
     ${LLVM_DIR}/lib/CodeGen/RenameIndependentSubregs.cpp
     ${LLVM_DIR}/lib/CodeGen/ResetMachineFunctionPass.cpp
     ${LLVM_DIR}/lib/CodeGen/SafeStack.cpp
@@ -747,10 +747,10 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/WasmEHPrepare.cpp
     ${LLVM_DIR}/lib/CodeGen/WinEHPrepare.cpp
     ${LLVM_DIR}/lib/CodeGen/XRayInstrumentation.cpp
-    ${LLVM_DIR}/lib/DebugInfo/CodeView/CVTypeVisitor.cpp
     ${LLVM_DIR}/lib/DebugInfo/CodeView/CodeViewError.cpp
     ${LLVM_DIR}/lib/DebugInfo/CodeView/CodeViewRecordIO.cpp
     ${LLVM_DIR}/lib/DebugInfo/CodeView/ContinuationRecordBuilder.cpp
+    ${LLVM_DIR}/lib/DebugInfo/CodeView/CVTypeVisitor.cpp
     ${LLVM_DIR}/lib/DebugInfo/CodeView/Formatters.cpp
     ${LLVM_DIR}/lib/DebugInfo/CodeView/GlobalTypeTableBuilder.cpp
     ${LLVM_DIR}/lib/DebugInfo/CodeView/Line.cpp
@@ -772,8 +772,8 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/JITSymbol.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RTDyldMemoryManager.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RuntimeDyld.cpp
-    ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RuntimeDyldCOFF.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RuntimeDyldChecker.cpp
+    ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RuntimeDyldCOFF.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RuntimeDyldELF.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/RuntimeDyldMachO.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/RuntimeDyld/Targets/RuntimeDyldELFMips.cpp
@@ -787,7 +787,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/IR/ConstantFold.cpp
     ${LLVM_DIR}/lib/IR/ConstantRange.cpp
     ${LLVM_DIR}/lib/IR/Constants.cpp
-    ${LLVM_DIR}/lib/IR/DIBuilder.cpp
     ${LLVM_DIR}/lib/IR/DataLayout.cpp
     ${LLVM_DIR}/lib/IR/DebugInfo.cpp
     ${LLVM_DIR}/lib/IR/DebugInfoMetadata.cpp
@@ -795,21 +794,22 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/IR/DiagnosticHandler.cpp
     ${LLVM_DIR}/lib/IR/DiagnosticInfo.cpp
     ${LLVM_DIR}/lib/IR/DiagnosticPrinter.cpp
+    ${LLVM_DIR}/lib/IR/DIBuilder.cpp
     ${LLVM_DIR}/lib/IR/Dominators.cpp
     ${LLVM_DIR}/lib/IR/Function.cpp
-    ${LLVM_DIR}/lib/IR/GVMaterializer.cpp
     ${LLVM_DIR}/lib/IR/Globals.cpp
-    ${LLVM_DIR}/lib/IR/IRBuilder.cpp
-    ${LLVM_DIR}/lib/IR/IRPrintingPasses.cpp
+    ${LLVM_DIR}/lib/IR/GVMaterializer.cpp
     ${LLVM_DIR}/lib/IR/InlineAsm.cpp
     ${LLVM_DIR}/lib/IR/Instruction.cpp
     ${LLVM_DIR}/lib/IR/Instructions.cpp
     ${LLVM_DIR}/lib/IR/IntrinsicInst.cpp
+    ${LLVM_DIR}/lib/IR/IRBuilder.cpp
+    ${LLVM_DIR}/lib/IR/IRPrintingPasses.cpp
+    ${LLVM_DIR}/lib/IR/LegacyPassManager.cpp
     ${LLVM_DIR}/lib/IR/LLVMContext.cpp
     ${LLVM_DIR}/lib/IR/LLVMContextImpl.cpp
-    ${LLVM_DIR}/lib/IR/LegacyPassManager.cpp
-    ${LLVM_DIR}/lib/IR/MDBuilder.cpp
     ${LLVM_DIR}/lib/IR/Mangler.cpp
+    ${LLVM_DIR}/lib/IR/MDBuilder.cpp
     ${LLVM_DIR}/lib/IR/Metadata.cpp
     ${LLVM_DIR}/lib/IR/Module.cpp
     ${LLVM_DIR}/lib/IR/Operator.cpp
@@ -827,6 +827,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/IR/ValueSymbolTable.cpp
     ${LLVM_DIR}/lib/IR/Verifier.cpp
     ${LLVM_DIR}/lib/MC/ELFObjectWriter.cpp
+    ${LLVM_DIR}/lib/MC/MachObjectWriter.cpp
     ${LLVM_DIR}/lib/MC/MCAsmBackend.cpp
     ${LLVM_DIR}/lib/MC/MCAsmInfo.cpp
     ${LLVM_DIR}/lib/MC/MCAsmInfoCOFF.cpp
@@ -850,8 +851,8 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/MC/MCInstrAnalysis.cpp
     ${LLVM_DIR}/lib/MC/MCInstrDesc.cpp
     ${LLVM_DIR}/lib/MC/MCLinkerOptimizationHint.cpp
-    ${LLVM_DIR}/lib/MC/MCMachOStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCMachObjectTargetWriter.cpp
+    ${LLVM_DIR}/lib/MC/MCMachOStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCNullStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCObjectFileInfo.cpp
     ${LLVM_DIR}/lib/MC/MCObjectStreamer.cpp
@@ -882,7 +883,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/MC/MCWin64EH.cpp
     ${LLVM_DIR}/lib/MC/MCWinCOFFStreamer.cpp
     ${LLVM_DIR}/lib/MC/MCWinEH.cpp
-    ${LLVM_DIR}/lib/MC/MachObjectWriter.cpp
     ${LLVM_DIR}/lib/MC/StringTableBuilder.cpp
     ${LLVM_DIR}/lib/MC/SubtargetFeature.cpp
     ${LLVM_DIR}/lib/MC/WasmObjectWriter.cpp
@@ -916,22 +916,23 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/BlockFrequency.cpp
     ${LLVM_DIR}/lib/Support/BranchProbability.cpp
     ${LLVM_DIR}/lib/Support/Chrono.cpp
+    ${LLVM_DIR}/lib/Support/circular_raw_ostream.cpp
     ${LLVM_DIR}/lib/Support/CodeGenCoverage.cpp
     ${LLVM_DIR}/lib/Support/CommandLine.cpp
     ${LLVM_DIR}/lib/Support/Compression.cpp
     ${LLVM_DIR}/lib/Support/ConvertUTF.cpp
     ${LLVM_DIR}/lib/Support/ConvertUTFWrapper.cpp
-    ${LLVM_DIR}/lib/Support/DJB.cpp
     ${LLVM_DIR}/lib/Support/DataExtractor.cpp
     ${LLVM_DIR}/lib/Support/Debug.cpp
     ${LLVM_DIR}/lib/Support/DebugCounter.cpp
+    ${LLVM_DIR}/lib/Support/DJB.cpp
     ${LLVM_DIR}/lib/Support/DynamicLibrary.cpp
     ${LLVM_DIR}/lib/Support/Errno.cpp
     ${LLVM_DIR}/lib/Support/Error.cpp
     ${LLVM_DIR}/lib/Support/ErrorHandling.cpp
     ${LLVM_DIR}/lib/Support/FoldingSet.cpp
-    ${LLVM_DIR}/lib/Support/FormatVariadic.cpp
     ${LLVM_DIR}/lib/Support/FormattedStream.cpp
+    ${LLVM_DIR}/lib/Support/FormatVariadic.cpp
     ${LLVM_DIR}/lib/Support/GraphWriter.cpp
     ${LLVM_DIR}/lib/Support/Hashing.cpp
     ${LLVM_DIR}/lib/Support/Host.cpp
@@ -943,9 +944,9 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/LineIterator.cpp
     ${LLVM_DIR}/lib/Support/Locale.cpp
     ${LLVM_DIR}/lib/Support/LowLevelType.cpp
-    ${LLVM_DIR}/lib/Support/MD5.cpp
     ${LLVM_DIR}/lib/Support/ManagedStatic.cpp
     ${LLVM_DIR}/lib/Support/MathExtras.cpp
+    ${LLVM_DIR}/lib/Support/MD5.cpp
     ${LLVM_DIR}/lib/Support/Memory.cpp
     ${LLVM_DIR}/lib/Support/MemoryBuffer.cpp
     ${LLVM_DIR}/lib/Support/Mutex.cpp
@@ -954,12 +955,18 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/PrettyStackTrace.cpp
     ${LLVM_DIR}/lib/Support/Process.cpp
     ${LLVM_DIR}/lib/Support/Program.cpp
-    ${LLVM_DIR}/lib/Support/RWMutex.cpp
     ${LLVM_DIR}/lib/Support/RandomNumberGenerator.cpp
+    ${LLVM_DIR}/lib/Support/raw_ostream.cpp
+    ${LLVM_DIR}/lib/Support/regcomp.c
+    ${LLVM_DIR}/lib/Support/regerror.c
     ${LLVM_DIR}/lib/Support/Regex.cpp
-    ${LLVM_DIR}/lib/Support/SHA1.cpp
+    ${LLVM_DIR}/lib/Support/regexec.c
+    ${LLVM_DIR}/lib/Support/regfree.c
+    ${LLVM_DIR}/lib/Support/regstrlcpy.c
+    ${LLVM_DIR}/lib/Support/RWMutex.cpp
     ${LLVM_DIR}/lib/Support/ScaledNumber.cpp
     ${LLVM_DIR}/lib/Support/ScopedPrinter.cpp
+    ${LLVM_DIR}/lib/Support/SHA1.cpp
     ${LLVM_DIR}/lib/Support/Signals.cpp
     ${LLVM_DIR}/lib/Support/SmallPtrSet.cpp
     ${LLVM_DIR}/lib/Support/SmallVector.cpp
@@ -981,13 +988,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/Valgrind.cpp
     ${LLVM_DIR}/lib/Support/YAMLParser.cpp
     ${LLVM_DIR}/lib/Support/YAMLTraits.cpp
-    ${LLVM_DIR}/lib/Support/circular_raw_ostream.cpp
-    ${LLVM_DIR}/lib/Support/raw_ostream.cpp
-    ${LLVM_DIR}/lib/Support/regcomp.c
-    ${LLVM_DIR}/lib/Support/regerror.c
-    ${LLVM_DIR}/lib/Support/regexec.c
-    ${LLVM_DIR}/lib/Support/regfree.c
-    ${LLVM_DIR}/lib/Support/regstrlcpy.c
     ${LLVM_DIR}/lib/Target/TargetLoweringObjectFile.cpp
     ${LLVM_DIR}/lib/Target/TargetMachine.cpp
     ${LLVM_DIR}/lib/Transforms/Coroutines/CoroCleanup.cpp
@@ -1021,8 +1021,8 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Scalar/PartiallyInlineLibCalls.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/Reassociate.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SCCP.cpp
-    ${LLVM_DIR}/lib/Transforms/Scalar/SROA.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SimplifyCFGPass.cpp
+    ${LLVM_DIR}/lib/Transforms/Scalar/SROA.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BasicBlockUtils.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BreakCriticalEdges.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BuildLibCalls.cpp
@@ -1039,12 +1039,12 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Utils/LowerInvoke.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/OrderedInstructions.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/PromoteMemoryToRegister.cpp
-    ${LLVM_DIR}/lib/Transforms/Utils/SSAUpdater.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/SimplifyCFG.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/SimplifyLibCalls.cpp
+    ${LLVM_DIR}/lib/Transforms/Utils/SSAUpdater.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/SymbolRewriter.cpp
-    ${LLVM_DIR}/lib/Transforms/Utils/VNCoercion.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/ValueMapper.cpp
+    ${LLVM_DIR}/lib/Transforms/Utils/VNCoercion.cpp
     ${LLVM_DIR}/../stubs/Stubs.cpp
 )
 
@@ -1058,10 +1058,10 @@ if(ARCH STREQUAL "x86" OR ARCH STREQUAL "x86_64")
         ${LLVM_DIR}/lib/Target/X86/InstPrinter/X86IntelInstPrinter.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86AsmBackend.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86ELFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86MachObjectWriter.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86MCAsmInfo.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86MCCodeEmitter.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86MCTargetDesc.cpp
-        ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86MachObjectWriter.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86WinCOFFObjectWriter.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86WinCOFFStreamer.cpp
         ${LLVM_DIR}/lib/Target/X86/MCTargetDesc/X86WinCOFFTargetStreamer.cpp
@@ -1071,8 +1071,8 @@ if(ARCH STREQUAL "x86" OR ARCH STREQUAL "x86_64")
         ${LLVM_DIR}/lib/Target/X86/X86AsmPrinter.cpp
         ${LLVM_DIR}/lib/Target/X86/X86AvoidStoreForwardingBlocks.cpp
         ${LLVM_DIR}/lib/Target/X86/X86CallFrameOptimization.cpp
-        ${LLVM_DIR}/lib/Target/X86/X86CallLowering.cpp
         ${LLVM_DIR}/lib/Target/X86/X86CallingConv.cpp
+        ${LLVM_DIR}/lib/Target/X86/X86CallLowering.cpp
         ${LLVM_DIR}/lib/Target/X86/X86CmovConversion.cpp
         ${LLVM_DIR}/lib/Target/X86/X86DomainReassignment.cpp
         ${LLVM_DIR}/lib/Target/X86/X86EvexToVex.cpp
@@ -1084,18 +1084,18 @@ if(ARCH STREQUAL "x86" OR ARCH STREQUAL "x86_64")
         ${LLVM_DIR}/lib/Target/X86/X86FlagsCopyLowering.cpp
         ${LLVM_DIR}/lib/Target/X86/X86FloatingPoint.cpp
         ${LLVM_DIR}/lib/Target/X86/X86FrameLowering.cpp
-        ${LLVM_DIR}/lib/Target/X86/X86ISelDAGToDAG.cpp
-        ${LLVM_DIR}/lib/Target/X86/X86ISelLowering.cpp
         ${LLVM_DIR}/lib/Target/X86/X86IndirectBranchTracking.cpp
         ${LLVM_DIR}/lib/Target/X86/X86InstrFMA3Info.cpp
         ${LLVM_DIR}/lib/Target/X86/X86InstrFoldTables.cpp
         ${LLVM_DIR}/lib/Target/X86/X86InstrInfo.cpp
         ${LLVM_DIR}/lib/Target/X86/X86InstructionSelector.cpp
         ${LLVM_DIR}/lib/Target/X86/X86InterleavedAccess.cpp
+        ${LLVM_DIR}/lib/Target/X86/X86ISelDAGToDAG.cpp
+        ${LLVM_DIR}/lib/Target/X86/X86ISelLowering.cpp
         ${LLVM_DIR}/lib/Target/X86/X86LegalizerInfo.cpp
-        ${LLVM_DIR}/lib/Target/X86/X86MCInstLower.cpp
         ${LLVM_DIR}/lib/Target/X86/X86MachineFunctionInfo.cpp
         ${LLVM_DIR}/lib/Target/X86/X86MacroFusion.cpp
+        ${LLVM_DIR}/lib/Target/X86/X86MCInstLower.cpp
         ${LLVM_DIR}/lib/Target/X86/X86OptimizeLEAs.cpp
         ${LLVM_DIR}/lib/Target/X86/X86PadShortFunction.cpp
         ${LLVM_DIR}/lib/Target/X86/X86RegisterBankInfo.cpp
@@ -1119,15 +1119,16 @@ elseif(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsABIFlagsSection.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsABIInfo.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsAsmBackend.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsELFStreamer.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCAsmInfo.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCCodeEmitter.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCExpr.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCTargetDesc.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsNaClELFStreamer.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsOptionRecord.cpp
         ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsTargetStreamer.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCExpr.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsNaClELFStreamer.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MicroMipsSizeReduction.cpp
         ${LLVM_DIR}/lib/Target/Mips/Mips16FrameLowering.cpp
         ${LLVM_DIR}/lib/Target/Mips/Mips16HardFloat.cpp
         ${LLVM_DIR}/lib/Target/Mips/Mips16HardFloatInfo.cpp
@@ -1137,21 +1138,21 @@ elseif(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
         ${LLVM_DIR}/lib/Target/Mips/Mips16RegisterInfo.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsAnalyzeImmediate.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsAsmPrinter.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MipsBranchExpansion.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsCallLowering.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsCCState.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsConstantIslandPass.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsDelaySlotFiller.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsExpandPseudo.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsFastISel.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MipsFrameLowering.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsInstrInfo.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsInstructionSelector.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsISelDAGToDAG.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsISelLowering.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MipsFrameLowering.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsLegalizerInfo.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MipsBranchExpansion.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MipsMCInstLower.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsMachineFunction.cpp
+        ${LLVM_DIR}/lib/Target/Mips/MipsMCInstLower.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsModuleISelDAGToDAG.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsOptimizePICCall.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsOs16.cpp
@@ -1165,122 +1166,121 @@ elseif(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
         ${LLVM_DIR}/lib/Target/Mips/MipsSubtarget.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsTargetMachine.cpp
         ${LLVM_DIR}/lib/Target/Mips/MipsTargetObjectFile.cpp
-        ${LLVM_DIR}/lib/Target/Mips/MicroMipsSizeReduction.cpp
         ${LLVM_DIR}/lib/Target/Mips/TargetInfo/MipsTargetInfo.cpp
     )
 elseif(ARCH STREQUAL "aarch64")
     list(APPEND LLVM_LIST
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64ELFObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCTargetDesc.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64WinCOFFStreamer.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64WinCOFFObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64TargetStreamer.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MachObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCCodeEmitter.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCAsmInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64ELFStreamer.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64AsmBackend.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCExpr.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64ISelLowering.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64A57FPLoadBalancing.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64FastISel.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64InstrInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64PromoteConstant.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64FalkorHWPFFix.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/Utils/AArch64BaseInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64InstructionSelector.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64SelectionDAGInfo.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64A53Fix835769.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetMachine.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64A57FPLoadBalancing.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64AdvSIMDScalarPass.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64AsmPrinter.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64CallLowering.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64SIMDInstrOpt.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64Subtarget.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetObjectFile.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64RegisterInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64CleanupLocalDynamicTLSPass.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64CollectLOH.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64CondBrTuning.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64ConditionalCompares.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64ConditionOptimizer.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64DeadRegisterDefinitionsPass.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64ExpandPseudoInsts.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64FalkorHWPFFix.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64FastISel.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64FrameLowering.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64InstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64InstructionSelector.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64ISelDAGToDAG.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64ISelLowering.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64LegalizerInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64LoadStoreOptimizer.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64MacroFusion.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64MCInstLower.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64PBQPRegAlloc.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64PromoteConstant.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64RedundantCopyElimination.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64RegisterBankInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64RegisterInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64SelectionDAGInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64SIMDInstrOpt.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64StorePairSuppress.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64Subtarget.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetMachine.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetObjectFile.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetTransformInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/AsmParser/AArch64AsmParser.cpp
         ${LLVM_DIR}/lib/Target/AArch64/Disassembler/AArch64Disassembler.cpp
         ${LLVM_DIR}/lib/Target/AArch64/Disassembler/AArch64ExternalSymbolizer.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/TargetInfo/AArch64TargetInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64AdvSIMDScalarPass.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64ConditionalCompares.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64DeadRegisterDefinitionsPass.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64LegalizerInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64StorePairSuppress.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64PBQPRegAlloc.cpp
         ${LLVM_DIR}/lib/Target/AArch64/InstPrinter/AArch64InstPrinter.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64CleanupLocalDynamicTLSPass.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AsmParser/AArch64AsmParser.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64MCInstLower.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetTransformInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64RedundantCopyElimination.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64ExpandPseudoInsts.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64CollectLOH.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64AsmPrinter.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64LoadStoreOptimizer.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64RegisterBankInfo.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64CondBrTuning.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64ISelDAGToDAG.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64FrameLowering.cpp
-        ${LLVM_DIR}/lib/Target/AArch64/AArch64MacroFusion.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64AsmBackend.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64ELFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64ELFStreamer.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MachObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCAsmInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCCodeEmitter.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCExpr.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCTargetDesc.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64TargetStreamer.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64WinCOFFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64WinCOFFStreamer.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/TargetInfo/AArch64TargetInfo.cpp
+        ${LLVM_DIR}/lib/Target/AArch64/Utils/AArch64BaseInfo.cpp
     )
 elseif(ARCH STREQUAL "arm")
     list(APPEND LLVM_LIST
-        ${LLVM_DIR}/lib/Target/ARM/ARMConstantIslandPass.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMachObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMWinCOFFObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCCodeEmitter.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMachORelocationInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCExpr.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMELFObjectWriter.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMAsmBackend.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMWinCOFFStreamer.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMELFStreamer.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCTargetDesc.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMUnwindOpAsm.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ThumbRegisterInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMMachineFunctionInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMFrameLowering.cpp
+        ${LLVM_DIR}/lib/Target/ARM/A15SDOptimizer.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMAsmPrinter.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMBaseInstrInfo.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMBaseRegisterInfo.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMCallLowering.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMTargetMachine.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMBaseInstrInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Thumb1FrameLowering.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMRegisterBankInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Utils/ARMBaseInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMComputeBlockSize.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMSelectionDAGInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMInstructionSelector.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMLoadStoreOptimizer.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMTargetObjectFile.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMISelLowering.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Disassembler/ARMDisassembler.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMExpandPseudoInsts.cpp
-        ${LLVM_DIR}/lib/Target/ARM/TargetInfo/ARMTargetInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMInstrInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/MLxExpansionPass.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Thumb2SizeReduction.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMConstantPoolValue.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Thumb2InstrInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMRegisterInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/InstPrinter/ARMInstPrinter.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMSubtarget.cpp
-        ${LLVM_DIR}/lib/Target/ARM/AsmParser/ARMAsmParser.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMParallelDSP.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMISelDAGToDAG.cpp
-        ${LLVM_DIR}/lib/Target/ARM/A15SDOptimizer.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Thumb2ITBlockPass.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMFastISel.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMMacroFusion.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMAsmPrinter.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMMCInstLower.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMHazardRecognizer.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMCodeGenPrepare.cpp
-        ${LLVM_DIR}/lib/Target/ARM/ARMTargetTransformInfo.cpp
-        ${LLVM_DIR}/lib/Target/ARM/Thumb1InstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMComputeBlockSize.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMConstantIslandPass.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMConstantPoolValue.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMExpandPseudoInsts.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMFastISel.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMFrameLowering.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMHazardRecognizer.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMInstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMInstructionSelector.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMISelDAGToDAG.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMISelLowering.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMLegalizerInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMLoadStoreOptimizer.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMMachineFunctionInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMMacroFusion.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMMCInstLower.cpp
         ${LLVM_DIR}/lib/Target/ARM/ARMOptimizeBarriersPass.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMParallelDSP.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMRegisterBankInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMRegisterInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMSelectionDAGInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMSubtarget.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMTargetMachine.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMTargetObjectFile.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ARMTargetTransformInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/AsmParser/ARMAsmParser.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Disassembler/ARMDisassembler.cpp
+        ${LLVM_DIR}/lib/Target/ARM/InstPrinter/ARMInstPrinter.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMAsmBackend.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMELFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMELFStreamer.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMachObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMachORelocationInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCCodeEmitter.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCExpr.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCTargetDesc.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMUnwindOpAsm.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMWinCOFFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMWinCOFFStreamer.cpp
+        ${LLVM_DIR}/lib/Target/ARM/MLxExpansionPass.cpp
+        ${LLVM_DIR}/lib/Target/ARM/TargetInfo/ARMTargetInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Thumb1FrameLowering.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Thumb1InstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Thumb2InstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Thumb2ITBlockPass.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Thumb2SizeReduction.cpp
+        ${LLVM_DIR}/lib/Target/ARM/ThumbRegisterInfo.cpp
+        ${LLVM_DIR}/lib/Target/ARM/Utils/ARMBaseInfo.cpp
     )
 endif()
 
