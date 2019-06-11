@@ -218,7 +218,7 @@ void *allocateExecutable(size_t bytes)
 		}
 	#elif defined(__Fuchsia__)
 		zx_handle_t vmo;
-		if (zx_vmo_create(length, ZX_VMO_NON_RESIZABLE, &vmo) != ZX_OK) {
+		if (zx_vmo_create(length, 0, &vmo) != ZX_OK) {
 			return nullptr;
 		}
 		if (zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo) != ZX_OK) {
