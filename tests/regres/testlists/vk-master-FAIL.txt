@@ -3,8 +3,6 @@ dEQP-VK.memory.pipeline_barrier.all.1024
 dEQP-VK.memory.pipeline_barrier.all.1048576
 dEQP-VK.memory.pipeline_barrier.all.65536
 dEQP-VK.memory.pipeline_barrier.all.8192
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.pattern.128_128_1.samples_4
-dEQP-VK.pipeline.multisample_shader_builtin.sample_mask.pattern.137_191_1.samples_4
 dEQP-VK.renderpass.suballocation.multisample.a2b10g10r10_unorm_pack32.samples_4
 dEQP-VK.renderpass.suballocation.multisample.a8b8g8r8_srgb_pack32.samples_4
 dEQP-VK.renderpass.suballocation.multisample.b8g8r8a8_srgb.samples_4
