@@ -16,10 +16,15 @@
 #define VK_DEVICE_HPP_
 
 #include "VkObject.hpp"
+#include "Device/LRUCache.hpp"
+#include "Reactor/Routine.hpp"
+#include <memory>
+#include <mutex>
 
 namespace sw
 {
 	class Blitter;
+	class SamplingRoutineCache;
 }
 
 namespace vk
@@ -48,19 +53,43 @@ public:
 	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
 	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies);
 	const VkPhysicalDeviceFeatures &getEnabledFeatures() const { return enabledFeatures; }
-	sw::Blitter* getBlitter() const { return blitter; }
+	sw::Blitter* getBlitter() const { return blitter.get(); }
+
+	class SamplingRoutineCache
+	{
+	public:
+		SamplingRoutineCache() : cache(1024) {}
+		~SamplingRoutineCache() {}
+
+		struct Key
+		{
+			uint32_t instruction;
+			uint32_t sampler;
+			uint32_t imageView;
+		};
+
+		rr::Routine* query(const Key& key) const;
+		void add(const Key& key, rr::Routine* routine);
+
+	private:
+		std::size_t hash(const Key &key) const;
+		sw::LRUCache<std::size_t, rr::Routine> cache;
+	};
+
+	SamplingRoutineCache* getSamplingRoutineCache();
+	std::mutex& getSamplingRoutineCacheMutex();
 
 private:
 	PhysicalDevice *const physicalDevice = nullptr;
 	Queue *const queues = nullptr;
 	uint32_t queueCount = 0;
-
-	const uint32_t enabledExtensionCount = 0;
+	std::unique_ptr<sw::Blitter> blitter;
+	std::unique_ptr<SamplingRoutineCache> samplingRoutineCache;
+	std::mutex samplingRoutineCacheMutex;
+	uint32_t enabledExtensionCount = 0;
 	typedef char ExtensionName[VK_MAX_EXTENSION_NAME_SIZE];
 	ExtensionName* extensions = nullptr;
 	const VkPhysicalDeviceFeatures enabledFeatures = {};
-
-	sw::Blitter* blitter = nullptr;
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;

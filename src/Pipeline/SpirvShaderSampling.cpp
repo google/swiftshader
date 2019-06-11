@@ -16,13 +16,11 @@
 
 #include "SamplerCore.hpp" // TODO: Figure out what's needed.
 #include "System/Math.hpp"
-#include "Vulkan/VkBuffer.hpp"
 #include "Vulkan/VkDebug.hpp"
-#include "Vulkan/VkDescriptorSet.hpp"
-#include "Vulkan/VkPipelineLayout.hpp"
+#include "Vulkan/VkDescriptorSetLayout.hpp"
+#include "Vulkan/VkDevice.hpp"
 #include "Vulkan/VkImageView.hpp"
 #include "Vulkan/VkSampler.hpp"
-#include "Vulkan/VkDescriptorSetLayout.hpp"
 #include "Device/Config.hpp"
 
 #include <spirv/unified1/spirv.hpp>
@@ -31,31 +29,6 @@
 #include <climits>
 #include <mutex>
 
-namespace
-{
-
-struct SamplingRoutineKey
-{
-	uint32_t instruction;
-	uint32_t sampler;
-	uint32_t imageView;
-
-	bool operator==(const SamplingRoutineKey &rhs) const
-	{
-		return instruction == rhs.instruction && sampler == rhs.sampler && imageView == rhs.imageView;
-	}
-
-	struct Hash
-	{
-		std::size_t operator()(const SamplingRoutineKey &key) const noexcept
-		{
-			return (key.instruction << 16) ^ (key.sampler << 8) ^ key.imageView;
-		}
-	};
-};
-
-}
-
 namespace sw {
 
 SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler)
@@ -63,15 +36,18 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	ImageInstruction instruction(inst);
 	ASSERT(imageDescriptor->imageViewId != 0 && (sampler->id != 0 || instruction.samplerMethod == Fetch));
 
-	// TODO(b/129523279): Move somewhere sensible.
-	static std::unordered_map<SamplingRoutineKey, ImageSampler*, SamplingRoutineKey::Hash> cache;
-	static std::mutex mutex;
+	vk::Device::SamplingRoutineCache::Key key = {inst, imageDescriptor->imageViewId, sampler->id};
 
-	SamplingRoutineKey key = {inst, imageDescriptor->imageViewId, sampler->id};
+	ASSERT(imageDescriptor->device);
 
-	std::unique_lock<std::mutex> lock(mutex);
-	auto it = cache.find(key);
-	if (it != cache.end()) { return it->second; }
+	std::unique_lock<std::mutex> lock(imageDescriptor->device->getSamplingRoutineCacheMutex());
+	vk::Device::SamplingRoutineCache* cache = imageDescriptor->device->getSamplingRoutineCache();
+
+	rr::Routine* routine = cache->query(key);
+	if(routine)
+	{
+		return (ImageSampler*)(routine->getEntry());
+	}
 
 	auto type = imageDescriptor->type;
 
@@ -108,13 +84,13 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		UNSUPPORTED("anisotropyEnable");
 	}
 
-	auto fptr = emitSamplerFunction(instruction, samplerState);
+	routine = emitSamplerRoutine(instruction, samplerState);
 
-	cache.emplace(key, fptr);
-	return fptr;
+	cache->add(key, routine);
+	return (ImageSampler*)(routine->getEntry());
 }
 
-SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction instruction, const Sampler &samplerState)
+rr::Routine *SpirvShader::emitSamplerRoutine(ImageInstruction instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
 	rr::Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
@@ -231,7 +207,7 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 		}
 	}
 
-	return (ImageSampler*)function("sampler")->getEntry();
+	return function("sampler");
 }
 
 sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)

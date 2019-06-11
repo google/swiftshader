@@ -1196,7 +1196,7 @@ namespace sw
 		std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
 		static ImageSampler *getImageSampler(uint32_t instruction, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler);
-		static ImageSampler *emitSamplerFunction(ImageInstruction instruction, const Sampler &samplerState);
+		static rr::Routine *emitSamplerRoutine(ImageInstruction instruction, const Sampler &samplerState);
 
 		// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
 		static sw::TextureType convertTextureType(VkImageViewType imageViewType);

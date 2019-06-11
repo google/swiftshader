@@ -35,14 +35,14 @@ namespace vk
 		return info->descriptorUpdateEntryCount * sizeof(VkDescriptorUpdateTemplateEntry);
 	}
 
-	void DescriptorUpdateTemplate::updateDescriptorSet(VkDescriptorSet vkDescriptorSet, const void* pData)
+	void DescriptorUpdateTemplate::updateDescriptorSet(Device* device, VkDescriptorSet vkDescriptorSet, const void* pData)
 	{
 
 		DescriptorSet* descriptorSet = vk::Cast(vkDescriptorSet);
 
 		for(uint32_t i = 0; i < descriptorUpdateEntryCount; i++)
 		{
-			DescriptorSetLayout::WriteDescriptorSet(descriptorSet, descriptorUpdateEntries[i],
+			DescriptorSetLayout::WriteDescriptorSet(device, descriptorSet, descriptorUpdateEntries[i],
 													reinterpret_cast<char const *>(pData));
 		}
 	}
