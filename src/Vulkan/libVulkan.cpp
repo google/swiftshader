@@ -1043,8 +1043,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		backmem.imageMemory = vk::Cast(devmem);
 		vkBindImageMemory(device, *pImage, devmem, 0);
 
-		vk::deallocate(vkDeviceMemoryPtr, vk::DEVICE_MEMORY);
-
 		androidSwapchainMap[*pImage] = backmem;
 	}
 #endif
