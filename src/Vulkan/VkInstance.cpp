@@ -19,8 +19,7 @@ namespace vk
 {
 
 Instance::Instance(const VkInstanceCreateInfo* pCreateInfo, void* mem, VkPhysicalDevice physicalDevice)
-	: physicalDevice(physicalDevice),
-	  physicalDeviceCount(physicalDevice ? 1 : 0)
+	: physicalDevice(physicalDevice)
 {
 }
 
@@ -29,31 +28,45 @@ void Instance::destroy(const VkAllocationCallbacks* pAllocator)
 	vk::destroy(physicalDevice, pAllocator);
 }
 
-uint32_t Instance::getPhysicalDeviceCount() const
+VkResult Instance::getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const
 {
-	return physicalDeviceCount;
+	if (!pPhysicalDevices)
+	{
+		*pPhysicalDeviceCount = 1;
+		return VK_SUCCESS;
+	}
+
+	if (*pPhysicalDeviceCount < 1)
+	{
+		return VK_INCOMPLETE;
+	}
+
+	pPhysicalDevices[0] = physicalDevice;
+	*pPhysicalDeviceCount = 1;
+
+	return VK_SUCCESS;
 }
 
-void Instance::getPhysicalDevices(uint32_t pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const
+VkResult Instance::getPhysicalDeviceGroups(uint32_t *pPhysicalDeviceGroupCount,
+                                           VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) const
 {
-	ASSERT(pPhysicalDeviceCount == 1);
+	if (!pPhysicalDeviceGroupProperties)
+	{
+		*pPhysicalDeviceGroupCount = 1;
+		return VK_SUCCESS;
+	}
 
-	*pPhysicalDevices = physicalDevice;
-}
+	if (*pPhysicalDeviceGroupCount < 1)
+	{
+		return VK_INCOMPLETE;
+	}
 
-uint32_t Instance::getPhysicalDeviceGroupCount() const
-{
-	return physicalDeviceGroupCount;
-}
+	pPhysicalDeviceGroupProperties[0].physicalDeviceCount = 1;
+	pPhysicalDeviceGroupProperties[0].physicalDevices[0] = physicalDevice;
+	pPhysicalDeviceGroupProperties[0].subsetAllocation = VK_FALSE;
+	*pPhysicalDeviceGroupCount = 1;
 
-void Instance::getPhysicalDeviceGroups(uint32_t pPhysicalDeviceGroupCount,
-                                       VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) const
-{
-	ASSERT(pPhysicalDeviceGroupCount == 1);
-
-	pPhysicalDeviceGroupProperties->physicalDeviceCount = physicalDeviceCount;
-	pPhysicalDeviceGroupProperties->physicalDevices[0] = physicalDevice;
-	pPhysicalDeviceGroupProperties->subsetAllocation = VK_FALSE;
+	return VK_SUCCESS;
 }
 
 } // namespace vk

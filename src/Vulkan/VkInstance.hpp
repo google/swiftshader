@@ -30,16 +30,12 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkInstanceCreateInfo*) { return 0; }
 
-	uint32_t getPhysicalDeviceCount() const;
-	void getPhysicalDevices(uint32_t pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const;
-	uint32_t getPhysicalDeviceGroupCount() const;
-	void getPhysicalDeviceGroups(uint32_t pPhysicalDeviceGroupCount,
+	VkResult getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const;
+	VkResult getPhysicalDeviceGroups(uint32_t *pPhysicalDeviceGroupCount,
                                  VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) const;
 
 private:
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-	const uint32_t physicalDeviceCount = 0;
-	const uint32_t physicalDeviceGroupCount = 1;
 };
 
 using DispatchableInstance = DispatchableObject<Instance, VkInstance>;

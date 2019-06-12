@@ -200,16 +200,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDevices(VkInstance instance, u
 	TRACE("(VkInstance instance = %p, uint32_t* pPhysicalDeviceCount = %p, VkPhysicalDevice* pPhysicalDevices = %p)",
 		    instance, pPhysicalDeviceCount, pPhysicalDevices);
 
-	if(!pPhysicalDevices)
-	{
-		*pPhysicalDeviceCount = vk::Cast(instance)->getPhysicalDeviceCount();
-	}
-	else
-	{
-		vk::Cast(instance)->getPhysicalDevices(*pPhysicalDeviceCount, pPhysicalDevices);
-	}
-
-	return VK_SUCCESS;
+	return vk::Cast(instance)->getPhysicalDevices(pPhysicalDeviceCount, pPhysicalDevices);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures* pFeatures)
@@ -527,12 +518,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceExtensionProperties(const char
 		return VK_SUCCESS;
 	}
 
-	for(uint32_t i = 0; i < std::min(*pPropertyCount, extensionPropertiesCount); i++)
+	auto toCopy = std::min(*pPropertyCount, extensionPropertiesCount);
+	for(uint32_t i = 0; i < toCopy; i++)
 	{
 		pProperties[i] = instanceExtensionProperties[i];
 	}
 
-	return (*pPropertyCount < extensionPropertiesCount) ? VK_INCOMPLETE : VK_SUCCESS;
+	*pPropertyCount = toCopy;
+	return (toCopy < extensionPropertiesCount) ? VK_INCOMPLETE : VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physicalDevice, const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
@@ -547,12 +540,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceExtensionProperties(VkPhysicalDe
 		return VK_SUCCESS;
 	}
 
-	for(uint32_t i = 0; i < std::min(*pPropertyCount, extensionPropertiesCount); i++)
+	auto toCopy = std::min(*pPropertyCount, extensionPropertiesCount);
+	for(uint32_t i = 0; i < toCopy; i++)
 	{
 		pProperties[i] = deviceExtensionProperties[i];
 	}
 
-	return (*pPropertyCount < extensionPropertiesCount) ? VK_INCOMPLETE : VK_SUCCESS;
+	*pPropertyCount = toCopy;
+	return (toCopy < extensionPropertiesCount) ? VK_INCOMPLETE : VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount, VkLayerProperties* pProperties)
@@ -2082,16 +2077,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDeviceGroups(VkInstance instan
 	TRACE("VkInstance instance = %p, uint32_t* pPhysicalDeviceGroupCount = %p, VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties = %p",
 	      instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
 
-	if(!pPhysicalDeviceGroupProperties)
-	{
-		*pPhysicalDeviceGroupCount = vk::Cast(instance)->getPhysicalDeviceGroupCount();
-	}
-	else
-	{
-		vk::Cast(instance)->getPhysicalDeviceGroups(*pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
-	}
-
-	return VK_SUCCESS;
+	return vk::Cast(instance)->getPhysicalDeviceGroups(pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements)
