@@ -274,7 +274,6 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClInclude Include="..\System\SharedLibrary.hpp" />
     <ClInclude Include="..\System\Socket.hpp" />
     <ClInclude Include="..\System\Synchronization.hpp" />
-    <ClInclude Include="..\System\Thread.hpp" />
     <ClInclude Include="..\System\Timer.hpp" />
     <ClInclude Include="..\System\Types.hpp" />
     <ClInclude Include="..\WSI\VkSurfaceKHR.hpp" />

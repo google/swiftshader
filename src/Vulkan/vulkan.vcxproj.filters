@@ -488,9 +488,6 @@
     <ClInclude Include="..\System\Synchronization.hpp">
       <Filter>Header Files\System</Filter>
     </ClInclude>
-    <ClInclude Include="..\System\Thread.hpp">
-      <Filter>Header Files\System</Filter>
-    </ClInclude>
     <ClInclude Include="..\System\Timer.hpp">
       <Filter>Header Files\System</Filter>
     </ClInclude>

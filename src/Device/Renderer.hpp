@@ -22,9 +22,9 @@
 #include "Blitter.hpp"
 #include "Device/Config.hpp"
 #include "System/Synchronization.hpp"
-#include "System/Thread.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
+#include <atomic>
 #include <list>
 #include <mutex>
 #include <thread>
@@ -111,9 +111,16 @@ namespace sw
 				SUSPEND
 			};
 
-			AtomicInt type;
-			AtomicInt primitiveUnit;
-			AtomicInt pixelCluster;
+			void operator=(const Task& task)
+			{
+				type = task.type.load();
+				primitiveUnit = task.primitiveUnit.load();
+				pixelCluster = task.pixelCluster.load();
+			}
+
+			std::atomic<int> type;
+			std::atomic<int> primitiveUnit;
+			std::atomic<int> pixelCluster;
 		};
 
 		struct PrimitiveProgress
@@ -127,11 +134,11 @@ namespace sw
 				references = 0;
 			}
 
-			AtomicInt drawCall;
-			AtomicInt firstPrimitive;
-			AtomicInt primitiveCount;
-			AtomicInt visible;
-			AtomicInt references;
+			std::atomic<int> drawCall;
+			std::atomic<int> firstPrimitive;
+			std::atomic<int> primitiveCount;
+			std::atomic<int> visible;
+			std::atomic<int> references;
 		};
 
 		struct PixelProgress
@@ -143,9 +150,9 @@ namespace sw
 				executing = false;
 			}
 
-			AtomicInt drawCall;
-			AtomicInt processedPrimitives;
-			AtomicInt executing;
+			std::atomic<int> drawCall;
+			std::atomic<int> processedPrimitives;
+			std::atomic<int> executing;
 		};
 
 	public:
@@ -201,8 +208,8 @@ namespace sw
 		Triangle *triangleBatch[16];
 		Primitive *primitiveBatch[16];
 
-		AtomicInt exitThreads;
-		AtomicInt threadsAwake;
+		std::atomic<int> exitThreads;
+		std::atomic<int> threadsAwake;
 		std::thread *worker[16];
 		Event *resume[16];         // Events for resuming threads
 		Event *suspend[16];        // Events for suspending threads
@@ -219,19 +226,19 @@ namespace sw
 		DrawCall *drawCall[DRAW_COUNT];
 		DrawCall *drawList[DRAW_COUNT];
 
-		AtomicInt currentDraw;
-		AtomicInt nextDraw;
+		std::atomic<int> currentDraw;
+		std::atomic<int> nextDraw;
 
 		enum {
 			TASK_COUNT = 32,   // Size of the task queue (must be power of 2)
 			TASK_COUNT_BITS = TASK_COUNT - 1,
 		};
 		Task taskQueue[TASK_COUNT];
-		AtomicInt qHead;
-		AtomicInt qSize;
+		std::atomic<int> qHead;
+		std::atomic<int> qSize;
 
-		static AtomicInt unitCount;
-		static AtomicInt clusterCount;
+		static std::atomic<int> unitCount;
+		static std::atomic<int> clusterCount;
 
 		std::mutex schedulerMutex;
 
@@ -255,9 +262,9 @@ namespace sw
 
 		~DrawCall();
 
-		AtomicInt topology;
-		AtomicInt indexType;
-		AtomicInt batchSize;
+		std::atomic<int> topology;
+		std::atomic<int> indexType;
+		std::atomic<int> batchSize;
 
 		Routine *vertexRoutine;
 		Routine *setupRoutine;
@@ -277,9 +284,9 @@ namespace sw
 
 		std::list<vk::Query*> *queries;
 
-		AtomicInt primitive;    // Current primitive to enter pipeline
-		AtomicInt count;        // Number of primitives to render
-		AtomicInt references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
+		std::atomic<int> primitive;    // Current primitive to enter pipeline
+		std::atomic<int> count;        // Number of primitives to render
+		std::atomic<int> references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
 
 		DrawData *data;
 	};

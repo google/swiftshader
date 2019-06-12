@@ -1749,7 +1749,6 @@ file(GLOB_RECURSE VULKAN_LIST
     ${SOURCE_DIR}/System/Socket.cpp
     ${SOURCE_DIR}/System/Socket.hpp
     ${SOURCE_DIR}/System/Synchronization.hpp
-    ${SOURCE_DIR}/System/Thread.hpp
     ${SOURCE_DIR}/System/Timer.cpp
     ${SOURCE_DIR}/System/Timer.hpp
     ${SOURCE_DIR}/Device/*.cpp

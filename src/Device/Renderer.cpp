@@ -42,9 +42,9 @@ unsigned int maxPrimitives = 1 << 21;
 namespace sw
 {
 	static const int batchSize = 128;
-	AtomicInt threadCount(1);
-	AtomicInt Renderer::unitCount(1);
-	AtomicInt Renderer::clusterCount(1);
+	std::atomic<int> threadCount(1);
+	std::atomic<int> Renderer::unitCount(1);
+	std::atomic<int> Renderer::clusterCount(1);
 
 	template<typename T>
 	inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topology, T indices, unsigned int start, unsigned int triangleCount)
@@ -572,7 +572,7 @@ namespace sw
 
 								// Commit to the task queue
 								qHead = (qHead + 1) & TASK_COUNT_BITS;
-								qSize++;
+								++qSize; // Atomic
 
 								break;
 							}
@@ -613,7 +613,7 @@ namespace sw
 				count = draw->count;
 				int batch = draw->batchSize;
 
-				primitiveProgress[unit].drawCall = currentDraw;
+				primitiveProgress[unit].drawCall = currentDraw.load();
 				primitiveProgress[unit].firstPrimitive = primitive;
 				primitiveProgress[unit].primitiveCount = count - primitive >= batch ? batch : count - primitive;
 
@@ -627,7 +627,7 @@ namespace sw
 
 				// Commit to the task queue
 				qHead = (qHead + 1) & TASK_COUNT_BITS;
-				qSize++;
+				++qSize; // Atomic
 			}
 		}
 	}
@@ -646,7 +646,7 @@ namespace sw
 		if(qSize != 0)
 		{
 			task[threadIndex] = taskQueue[(qHead - qSize) & TASK_COUNT_BITS];
-			qSize--;
+			--qSize; // Atomic
 
 			if(curThreadsAwake != threadCount)
 			{
@@ -678,7 +678,7 @@ namespace sw
 
 	void Renderer::executeTask(int threadIndex)
 	{
-		switch(task[threadIndex].type)
+		switch(task[threadIndex].type.load())
 		{
 		case Task::PRIMITIVES:
 			{
@@ -699,7 +699,7 @@ namespace sw
 				}
 
 				primitiveProgress[unit].visible = visible;
-				primitiveProgress[unit].references = clusterCount;
+				primitiveProgress[unit].references = clusterCount.load();
 			}
 			break;
 		case Task::PIXELS:
@@ -754,11 +754,11 @@ namespace sw
 			pixelProgress[cluster].processedPrimitives = 0;
 		}
 
-		int ref = primitiveProgress[unit].references--; // Atomic
+		int ref = --primitiveProgress[unit].references; // Atomic
 
 		if(ref == 0)
 		{
-			ref = draw.references--; // Atomic
+			ref = --draw.references; // Atomic
 
 			if(ref == 0)
 			{
@@ -839,7 +839,7 @@ namespace sw
 		}
 		else
 		{
-			switch(draw->indexType)
+			switch(draw->indexType.load())
 			{
 			case VK_INDEX_TYPE_UINT16:
 				if(!setBatchIndices(batch, topology, static_cast<const uint16_t*>(indices), start, triangleCount))
