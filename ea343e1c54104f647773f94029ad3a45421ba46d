@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "169a2a5d_8e51b0e3",
+        "filename": "src/Pipeline/VertexRoutine.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-06-12T17:39:43Z",
+      "side": 1,
+      "message": "Is this comment specific to the cacheIndex2? Seems like an odd placement.",
+      "range": {
+        "startLine": 547,
+        "startChar": 124,
+        "endLine": 547,
+        "endChar": 164
+      },
+      "revId": "ea343e1c54104f647773f94029ad3a45421ba46d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
