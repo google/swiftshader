@@ -99,7 +99,6 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "VulkanPlatform.h",
     "libVulkan.cpp",
     "libvk_swiftshader.def",
-    "libvk_swiftshader.lds",
     "main.cpp",
     "resource.h",
   ]
@@ -109,8 +108,10 @@ swiftshader_shared_library("swiftshader_libvulkan") {
   output_name = "libvulkan"
   output_dir = "$root_out_dir/swiftshader"
 
-  if (is_linux)
-  {
+  if (is_linux) {
+    inputs = [
+      "libvk_swiftshader.lds",
+    ]
     ldflags = [ "-Wl,--version-script=" +
                 rebase_path("libvk_swiftshader.lds", root_build_dir) ]
   }
