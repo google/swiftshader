@@ -23,14 +23,12 @@ namespace sw
 {
 	ALIGN(16, struct Vertex
 	{
-		float v[MAX_INTERFACE_COMPONENTS];
+		float4 position;
+		float pointSize;
 
-		struct
-		{
-			float4 position;
-			float pointSize;
-		} builtins;
-		struct
+		int clipFlags;
+
+		alignas(16) struct
 		{
 			int x;
 			int y;
@@ -38,8 +36,7 @@ namespace sw
 			float w;
 		} projected;
 
-		int clipFlags;
-		int padding[2];
+		alignas(16) float v[MAX_INTERFACE_COMPONENTS];
 	});
 
 	static_assert((sizeof(Vertex) & 0x0000000F) == 0, "Vertex size not a multiple of 16 bytes (alignment requirement)");

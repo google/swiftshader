@@ -888,7 +888,7 @@ namespace sw
 
 			if((v0.clipFlags & v1.clipFlags & v2.clipFlags) == Clipper::CLIP_FINITE)
 			{
-				Polygon polygon(&v0.builtins.position, &v1.builtins.position, &v2.builtins.position);
+				Polygon polygon(&v0.position, &v1.position, &v2.position);
 
 				int clipFlagsOr = v0.clipFlags | v1.clipFlags | v2.clipFlags;
 
@@ -972,8 +972,8 @@ namespace sw
 		Vertex &v0 = triangle.v0;
 		Vertex &v1 = triangle.v1;
 
-		const float4 &P0 = v0.builtins.position;
-		const float4 &P1 = v1.builtins.position;
+		const float4 &P0 = v0.position;
+		const float4 &P1 = v1.position;
 
 		if(P0.w <= 0 && P1.w <= 0)
 		{
@@ -1162,17 +1162,17 @@ namespace sw
 
 		Vertex &v = triangle.v0;
 
-		float pSize = v.builtins.pointSize;
+		float pSize = v.pointSize;
 
 		pSize = clamp(pSize, 1.0f, static_cast<float>(vk::MAX_POINT_SIZE));
 
 		float4 P[4];
 		int C[4];
 
-		P[0] = v.builtins.position;
-		P[1] = v.builtins.position;
-		P[2] = v.builtins.position;
-		P[3] = v.builtins.position;
+		P[0] = v.position;
+		P[1] = v.position;
+		P[2] = v.position;
+		P[3] = v.position;
 
 		const float X = pSize * P[0].w * data.halfPixelX[0];
 		const float Y = pSize * P[0].w * data.halfPixelY[0];

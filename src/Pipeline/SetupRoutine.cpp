@@ -86,9 +86,9 @@ namespace sw
 					Return(0);
 				}
 
-				Int w0w1w2 = *Pointer<Int>(v0 + OFFSET(Vertex, builtins.position.w)) ^
-							 *Pointer<Int>(v1 + OFFSET(Vertex, builtins.position.w)) ^
-							 *Pointer<Int>(v2 + OFFSET(Vertex, builtins.position.w));
+				Int w0w1w2 = *Pointer<Int>(v0 + OFFSET(Vertex, position.w)) ^
+							 *Pointer<Int>(v1 + OFFSET(Vertex, position.w)) ^
+							 *Pointer<Int>(v2 + OFFSET(Vertex, position.w));
 
 				A = IfThenElse(w0w1w2 < 0, -A, A);
 
@@ -268,9 +268,9 @@ namespace sw
 			// Sort by minimum y
 			if(triangle)
 			{
-				Float y0 = *Pointer<Float>(v0 + OFFSET(Vertex, builtins.position.y));
-				Float y1 = *Pointer<Float>(v1 + OFFSET(Vertex, builtins.position.y));
-				Float y2 = *Pointer<Float>(v2 + OFFSET(Vertex, builtins.position.y));
+				Float y0 = *Pointer<Float>(v0 + OFFSET(Vertex, position.y));
+				Float y1 = *Pointer<Float>(v1 + OFFSET(Vertex, position.y));
+				Float y2 = *Pointer<Float>(v2 + OFFSET(Vertex, position.y));
 
 				Float yMin = Min(Min(y0, y1), y2);
 
@@ -281,9 +281,9 @@ namespace sw
 			// Sort by maximum w
 			if(triangle)
 			{
-				Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, builtins.position.w));
-				Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, builtins.position.w));
-				Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, builtins.position.w));
+				Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, position.w));
+				Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, position.w));
+				Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, position.w));
 
 				Float wMax = Max(Max(w0, w1), w2);
 
@@ -292,13 +292,13 @@ namespace sw
 			}
 
 			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX)) =
-				*Pointer<Float>(v0 + OFFSET(Vertex, builtins.position.x));
+				*Pointer<Float>(v0 + OFFSET(Vertex, position.x));
 			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY)) =
-				*Pointer<Float>(v0 + OFFSET(Vertex, builtins.position.y));
+				*Pointer<Float>(v0 + OFFSET(Vertex, position.y));
 
-			Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, builtins.position.w));
-			Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, builtins.position.w));
-			Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, builtins.position.w));
+			Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, position.w));
+			Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, position.w));
+			Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, position.w));
 
 			Float4 w012;
 

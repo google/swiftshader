@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <Device/Vertex.hpp>
 #include "VertexRoutine.hpp"
 
 #include "Constants.hpp"
+#include "SpirvShader.hpp"
 #include "Device/Vertex.hpp"
 #include "Device/Renderer.hpp"
-#include "System/Half.hpp"
 #include "Vulkan/VkDebug.hpp"
-#include "SpirvShader.hpp"
+#include "System/Half.hpp"
 
 namespace sw
 {
@@ -51,7 +50,7 @@ namespace sw
 
 		Do
 		{
-			UInt index = *Pointer<UInt>(batch);
+			UInt index = *batch;
 			UInt tagIndex = index & 0x0000003C;
 			UInt indexQ = index & 0xFFFFFFFC;
 
@@ -72,7 +71,7 @@ namespace sw
 			writeVertex(vertex, cacheLine);
 
 			vertex += sizeof(Vertex);
-			batch += sizeof(unsigned int);
+			batch = Pointer<UInt>(Pointer<Byte>(batch) + sizeof(uint32_t));
 			vertexCount--;
 		}
 		Until(vertexCount == 0)
@@ -84,20 +83,20 @@ namespace sw
 	{
 		for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i += 4)
 		{
-			if (spirvShader->inputs[i].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
-				spirvShader->inputs[i + 1].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
-				spirvShader->inputs[i + 2].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
-				spirvShader->inputs[i + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
+			if(spirvShader->inputs[i + 0].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
+			   spirvShader->inputs[i + 1].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
+			   spirvShader->inputs[i + 2].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
+			   spirvShader->inputs[i + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
 
-				Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void *) * (i/4));
-				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(unsigned int) * (i/4));
+				Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void*) * (i / 4));
+				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(uint32_t) * (i / 4));
 
-				auto value = readStream(input, stride, state.input[i/4], index);
-				routine.inputs[i] = value.x;
-				routine.inputs[i+1] = value.y;
-				routine.inputs[i+2] = value.z;
-				routine.inputs[i+3] = value.w;
+				auto value = readStream(input, stride, state.input[i / 4], index);
+				routine.inputs[i + 0] = value.x;
+				routine.inputs[i + 1] = value.y;
+				routine.inputs[i + 2] = value.z;
+				routine.inputs[i + 3] = value.w;
 			}
 		}
 	}
@@ -108,7 +107,7 @@ namespace sw
 		assert(it != spirvShader->outputBuiltins.end());
 		assert(it->second.SizeInComponents == 4);
 		auto &pos = routine.getVariable(it->second.Id);
-		auto posX = pos[it->second.FirstComponent];
+		auto posX = pos[it->second.FirstComponent + 0];
 		auto posY = pos[it->second.FirstComponent + 1];
 		auto posZ = pos[it->second.FirstComponent + 2];
 		auto posW = pos[it->second.FirstComponent + 3];
@@ -120,19 +119,19 @@ namespace sw
 		Int4 minY = CmpNLE(-posW, posY);
 		Int4 minZ = CmpNLE(Float4(0.0f), posZ);
 
-		clipFlags = *Pointer<Int>(constants + OFFSET(Constants,maxX) + SignMask(maxX) * 4);   // FIXME: Array indexing
-		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,maxY) + SignMask(maxY) * 4);
-		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,maxZ) + SignMask(maxZ) * 4);
-		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,minX) + SignMask(minX) * 4);
-		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,minY) + SignMask(minY) * 4);
-		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,minZ) + SignMask(minZ) * 4);
+		clipFlags =  Pointer<Int>(constants + OFFSET(Constants,maxX))[SignMask(maxX)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,maxY))[SignMask(maxY)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,maxZ))[SignMask(maxZ)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,minX))[SignMask(minX)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,minY))[SignMask(minY)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,minZ))[SignMask(minZ)];
 
 		Int4 finiteX = CmpLE(Abs(posX), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
 		Int4 finiteY = CmpLE(Abs(posY), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
 		Int4 finiteZ = CmpLE(Abs(posZ), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
 
 		Int4 finiteXYZ = finiteX & finiteY & finiteZ;
-		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,fini) + SignMask(finiteXYZ) * 4);
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,fini))[SignMask(finiteXYZ)];
 	}
 
 	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
@@ -476,7 +475,7 @@ namespace sw
 			}
 			break;
 		default:
-			ASSERT(false);
+			UNSUPPORTED("stream.type %d", int(stream.type));
 		}
 
 		if(stream.count < 1) v.x = Float4(0.0f);
@@ -489,19 +488,70 @@ namespace sw
 
 	void VertexRoutine::writeCache(Pointer<Byte> &cacheLine)
 	{
-		Vector4f v;
+		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
+		assert(it != spirvShader->outputBuiltins.end());
+		assert(it->second.SizeInComponents == 4);
+		auto &position = routine.getVariable(it->second.Id);
 
-		for (int i = 0; i < MAX_INTERFACE_COMPONENTS; i += 4)
+		Vector4f pos;
+		pos.x = position[it->second.FirstComponent + 0];
+		pos.y = position[it->second.FirstComponent + 1];
+		pos.z = position[it->second.FirstComponent + 2];
+		pos.w = position[it->second.FirstComponent + 3];
+
+		// Projection and viewport transform.
+		Float4 w = As<Float4>(As<Int4>(pos.w) | (As<Int4>(CmpEQ(pos.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
+		Float4 rhw = Float4(1.0f) / w;
+
+		Vector4f proj;
+		proj.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,X0x16)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData,Wx16))));
+		proj.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,Y0x16)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData,Hx16))));
+		proj.z = pos.z * rhw;
+		proj.w = rhw;
+
+		transpose4x4(pos.x, pos.y, pos.z, pos.w);
+
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,position) + sizeof(Vertex) * 0, 16) = pos.x;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,position) + sizeof(Vertex) * 1, 16) = pos.y;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,position) + sizeof(Vertex) * 2, 16) = pos.z;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,position) + sizeof(Vertex) * 3, 16) = pos.w;
+
+		it = spirvShader->outputBuiltins.find(spv::BuiltInPointSize);
+		if(it != spirvShader->outputBuiltins.end())
 		{
-			if (spirvShader->outputs[i].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
-				spirvShader->outputs[i+1].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
-				spirvShader->outputs[i+2].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
-				spirvShader->outputs[i+3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
+			assert(it->second.SizeInComponents == 1);
+			auto psize = routine.getVariable(it->second.Id)[it->second.FirstComponent];
+
+			*Pointer<Float>(cacheLine + OFFSET(Vertex,pointSize) + sizeof(Vertex) * 0) = Extract(psize, 0);
+			*Pointer<Float>(cacheLine + OFFSET(Vertex,pointSize) + sizeof(Vertex) * 1) = Extract(psize, 1);
+			*Pointer<Float>(cacheLine + OFFSET(Vertex,pointSize) + sizeof(Vertex) * 2) = Extract(psize, 2);
+			*Pointer<Float>(cacheLine + OFFSET(Vertex,pointSize) + sizeof(Vertex) * 3) = Extract(psize, 3);
+		}
+
+		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 0) = (clipFlags >> 0)  & 0x0000000FF;
+		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 1) = (clipFlags >> 8)  & 0x0000000FF;
+		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 2) = (clipFlags >> 16) & 0x0000000FF;
+		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 3) = (clipFlags >> 24) & 0x0000000FF;
+
+		transpose4x4(proj.x, proj.y, proj.z, proj.w);
+
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 0, 16) = proj.x;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 1, 16) = proj.y;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 2, 16) = proj.z;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 3, 16) = proj.w;
+
+		for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i += 4)
+		{
+			if(spirvShader->outputs[i + 0].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
+			   spirvShader->outputs[i + 1].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
+			   spirvShader->outputs[i + 2].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
+			   spirvShader->outputs[i + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
-				v.x = routine.outputs[i];
-				v.y = routine.outputs[i+1];
-				v.z = routine.outputs[i+2];
-				v.w = routine.outputs[i+3];
+				Vector4f v;
+				v.x = routine.outputs[i + 0];
+				v.y = routine.outputs[i + 1];
+				v.z = routine.outputs[i + 2];
+				v.w = routine.outputs[i + 3];
 
 				transpose4x4(v.x, v.y, v.z, v.w);
 
@@ -511,77 +561,22 @@ namespace sw
 				*Pointer<Float4>(cacheLine + OFFSET(Vertex,v[i]) + sizeof(Vertex) * 3, 16) = v.w;
 			}
 		}
-
-		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 0) = (clipFlags >> 0)  & 0x0000000FF;
-		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 1) = (clipFlags >> 8)  & 0x0000000FF;
-		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 2) = (clipFlags >> 16) & 0x0000000FF;
-		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 3) = (clipFlags >> 24) & 0x0000000FF;
-
-		// Viewport transform
-		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
-		assert(it != spirvShader->outputBuiltins.end());
-		assert(it->second.SizeInComponents == 4);
-		auto &pos = routine.getVariable(it->second.Id);
-		auto posX = pos[it->second.FirstComponent];
-		auto posY = pos[it->second.FirstComponent + 1];
-		auto posZ = pos[it->second.FirstComponent + 2];
-		auto posW = pos[it->second.FirstComponent + 3];
-
-		v.x = posX;
-		v.y = posY;
-		v.z = posZ;
-		v.w = posW;
-
-		// Write the builtin pos into the vertex; it's not going to be consumed by the FS, but may need to reproject if we have to clip.
-		Vector4f v2 = v;
-		transpose4x4(v2.x, v2.y, v2.z, v2.w);
-
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 0, 16) = v2.x;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 1, 16) = v2.y;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 2, 16) = v2.z;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 3, 16) = v2.w;
-
-		Float4 w = As<Float4>(As<Int4>(v.w) | (As<Int4>(CmpEQ(v.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
-		Float4 rhw = Float4(1.0f) / w;
-
-		v.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,X0x16)) + v.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData,Wx16))));
-		v.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,Y0x16)) + v.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData,Hx16))));
-		v.z = v.z * rhw;
-		v.w = rhw;
-
-		transpose4x4(v.x, v.y, v.z, v.w);
-
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 0, 16) = v.x;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 1, 16) = v.y;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 2, 16) = v.z;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 3, 16) = v.w;
-
-		it = spirvShader->outputBuiltins.find(spv::BuiltInPointSize);
-		if (it != spirvShader->outputBuiltins.end())
-		{
-			assert(it->second.SizeInComponents == 1);
-			auto psize = routine.getVariable(it->second.Id)[it->second.FirstComponent];
-			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 0) = Extract(psize, 0);
-			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 1) = Extract(psize, 1);
-			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 2) = Extract(psize, 2);
-			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 3) = Extract(psize, 3);
-		}
 	}
 
-	void VertexRoutine::writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cache)
+	void VertexRoutine::writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheEntry)
 	{
+		*Pointer<Int4>(vertex + OFFSET(Vertex,position)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex,position));
+		*Pointer<Int>(vertex + OFFSET(Vertex,pointSize)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,pointSize));
+
+		*Pointer<Int>(vertex + OFFSET(Vertex,clipFlags)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,clipFlags));
+		*Pointer<Int4>(vertex + OFFSET(Vertex,projected)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex,projected));
+
 		for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
 		{
 			if(spirvShader->outputs[i].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
-				*Pointer<Int>(vertex + OFFSET(Vertex, v[i]), 4) = *Pointer<Int>(cache + OFFSET(Vertex, v[i]), 4);
+				*Pointer<Int>(vertex + OFFSET(Vertex, v[i]), 4) = *Pointer<Int>(cacheEntry + OFFSET(Vertex, v[i]), 4);
 			}
 		}
-
-		*Pointer<Int4>(vertex + OFFSET(Vertex,projected)) = *Pointer<Int4>(cache + OFFSET(Vertex,projected));
-		*Pointer<Int>(vertex + OFFSET(Vertex,clipFlags)) = *Pointer<Int>(cache + OFFSET(Vertex,clipFlags));
-		*Pointer<Int4>(vertex + OFFSET(Vertex,builtins.position)) = *Pointer<Int4>(cache + OFFSET(Vertex,builtins.position));
-		*Pointer<Int>(vertex + OFFSET(Vertex,builtins.pointSize)) = *Pointer<Int>(cache + OFFSET(Vertex,builtins.pointSize));
-
 	}
 }
