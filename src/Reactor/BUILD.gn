@@ -15,9 +15,10 @@
 import("../swiftshader.gni")
 
 declare_args() {
-  # Subzero produces smaller binaries, but doesn't support ARM64 and MIPS64.
+  # Subzero produces smaller binaries, but doesn't support ARM64, MIPS64, and
+  # PPC64.
   use_swiftshader_with_subzero =
-      target_cpu != "arm64" && target_cpu != "mips64el"
+      target_cpu != "arm64" && target_cpu != "mips64el" && target_cpu != "ppc64"
   supports_llvm = is_linux || is_fuchsia || is_win || is_android || is_mac
 }
 

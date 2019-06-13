@@ -912,6 +912,8 @@ namespace rr
 			#else
 			    static const char arch[] = "mipsel";
 			#endif
+		#elif defined(__powerpc64__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+			static const char arch[] = "ppc64le";
 		#else
 		#error "unknown architecture"
 		#endif
@@ -919,8 +921,16 @@ namespace rr
 		llvm::SmallVector<std::string, 8> mattrs;
 
 		llvm::StringMap<bool> features;
+
 		bool ok = llvm::sys::getHostCPUFeatures(features);
+
+		#if defined(__i386__) || defined(__x86_64__) || \
+		   (defined(__linux__) && (defined(__arm__) || defined(__aarch64__)))
 		ASSERT_MSG(ok, "llvm::sys::getHostCPUFeatures returned false");
+		#else
+		(void) ok; // getHostCPUFeatures always returns false on other platforms
+		#endif
+
 		for (auto &feature : features)
 		{
 			if (feature.second) { mattrs.push_back(feature.first()); }
