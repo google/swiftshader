@@ -22,6 +22,30 @@
       "revId": "b7c0a80a917abe57bd43d20d5b265395febf1a95",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efce50de_fb3c1efd",
+        "filename": "docs/dEQP.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 22464
+      },
+      "writtenOn": "2019-06-13T19:21:27Z",
+      "side": 1,
+      "message": "Well one of them is `../candy-build/deqp-wgl/execserver/Release` and the other is `../candy-build/deqp-wgl`?\nThough the latter one is what I assumed it should be and works locally.",
+      "parentUuid": "a62266af_2accaec6",
+      "range": {
+        "startLine": 229,
+        "startChar": 14,
+        "endLine": 229,
+        "endChar": 37
+      },
+      "revId": "b7c0a80a917abe57bd43d20d5b265395febf1a95",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
