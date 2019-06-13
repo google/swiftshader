@@ -74,7 +74,6 @@ namespace sw
 		float slopeDepthBias;
 		float depthRange;
 		float depthNear;
-		Plane clipPlane[6];
 
 		unsigned int *colorBuffer[RENDERTARGETS];
 		int colorPitchB[RENDERTARGETS];
@@ -198,7 +197,6 @@ namespace sw
 
 		VkViewport viewport;
 		VkRect2D scissor;
-		int clipFlags;
 
 		Triangle *triangleBatch[16];
 		Primitive *primitiveBatch[16];

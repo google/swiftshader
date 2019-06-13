@@ -204,8 +204,6 @@ namespace sw
 			pixelProgress[cluster].init();
 		}
 
-		clipFlags = 0;
-
 		updateConfiguration(true);
 	}
 
