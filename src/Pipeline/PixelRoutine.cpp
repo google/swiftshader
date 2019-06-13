@@ -1913,13 +1913,6 @@ namespace sw
 			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
 		}
 
-		if(isSRGB(index))
-		{
-			sRGBtoLinear(pixel.x);
-			sRGBtoLinear(pixel.y);
-			sRGBtoLinear(pixel.z);
-		}
-
 		// Final Color = ObjectColor * SourceBlendFactor + PixelColor * DestinationBlendFactor
 		Vector4f sourceFactor;
 		Vector4f destFactor;

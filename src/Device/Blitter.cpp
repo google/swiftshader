@@ -1441,6 +1441,11 @@ namespace sw
 
 							if(state.srcSamples > 1) // Resolve multisampled source
 							{
+								if(state.convertSRGB && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
+								{
+									if(!ApplyScaleAndClamp(color, state)) return nullptr;
+									preScaled = true;
+								}
 								Float4 accum = color;
 								for(int i = 1; i < state.srcSamples; i++)
 								{
