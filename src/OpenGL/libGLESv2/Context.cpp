@@ -4523,6 +4523,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_EXT_color_buffer_float",   // OpenGL ES 3.0 specific.
 		"GL_EXT_color_buffer_half_float",
 		"GL_EXT_draw_buffers",
+		"GL_EXT_float_blend",
 		"GL_EXT_instanced_arrays",
 		"GL_EXT_occlusion_query_boolean",
 		"GL_EXT_read_format_bgra",

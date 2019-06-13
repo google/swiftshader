@@ -229,6 +229,7 @@ Preparing the server
 * Search for `../candy-build/deqp-wgl/execserver/Release` and replace that by `<path to deqp>/build/execserver/`
 * Just above, add an option to CommandLine: `--deqp-gl-context-type=egl`
 * Just below, remove 'Debug/' from the BinaryPath.
+* Just one more line below, replace `../candy-build/deqp-wgl/` with `<path to deqp>/build`.
 
 Testing OpenGL ES
 -----------------
