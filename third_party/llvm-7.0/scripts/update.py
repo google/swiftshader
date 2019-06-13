@@ -34,6 +34,7 @@ LLVM_TARGETS = [
     ('ARM', ('__arm__',)),
     ('X86', ('__i386__', '__x86_64__')),
     ('Mips', ('__mips__',)),
+    ('PowerPC', ('__powerpc64__',)),
 ]
 
 LLVM_TRIPLES = {
@@ -50,6 +51,7 @@ LLVM_TRIPLES = {
         ('__aarch64__', 'aarch64-linux-gnu'),
         ('__mips__', 'mipsel-linux-gnu'),
         ('__mips64', 'mips64el-linux-gnuabi64'),
+        ('__powerpc64__', 'powerpc64le-unknown-linux-gnu'),
     ],
     'darwin': [
         ('__x86_64__', 'x86_64-apple-darwin'),
@@ -122,6 +124,7 @@ def copy_common_generated_files(dst_base):
         os.path.join('lib', 'Target', 'ARM'),
         os.path.join('lib', 'Target', 'X86'),
         os.path.join('lib', 'Target', 'Mips'),
+        os.path.join('lib', 'Target', 'PowerPC'),
         os.path.join('lib', 'Transforms', 'InstCombine'),
     ]
     for subdir in subdirs:
