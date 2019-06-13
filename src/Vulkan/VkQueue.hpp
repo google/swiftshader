@@ -31,6 +31,8 @@ namespace sw
 namespace vk
 {
 
+class Fence;
+
 class Queue
 {
 	VK_LOADER_DATA loaderData = { ICD_LOADER_MAGIC };
@@ -44,7 +46,7 @@ public:
 		return reinterpret_cast<VkQueue>(this);
 	}
 
-	VkResult submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
+	VkResult submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence* fence);
 	VkResult waitIdle();
 #ifndef __ANDROID__
 	void present(const VkPresentInfoKHR* presentInfo);

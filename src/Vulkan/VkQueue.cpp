@@ -91,14 +91,14 @@ Queue::~Queue()
 	garbageCollect();
 }
 
-VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
+VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence* fence)
 {
 	garbageCollect();
 
 	Task task;
 	task.submitCount = submitCount;
 	task.pSubmits = DeepCopySubmitInfo(submitCount, pSubmits);
-	task.events = (fence != VK_NULL_HANDLE) ? vk::Cast(fence) : nullptr;
+	task.events = fence;
 
 	if(task.events)
 	{

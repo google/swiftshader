@@ -169,9 +169,9 @@ VkResult SurfaceKHR::getPresentModes(uint32_t *pPresentModeCount, VkPresentModeK
 	return VK_SUCCESS;
 }
 
-void SurfaceKHR::associateSwapchain(VkSwapchainKHR swapchain)
+void SurfaceKHR::associateSwapchain(SwapchainKHR* swapchain)
 {
-	associatedSwapchain = Cast(swapchain);
+	associatedSwapchain = swapchain;
 }
 
 void SurfaceKHR::disassociateSwapchain()

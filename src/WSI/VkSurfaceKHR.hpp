@@ -83,7 +83,7 @@ public:
 	virtual void detachImage(PresentImage* image) = 0;
 	virtual void present(PresentImage* image) = 0;
 
-	void associateSwapchain(VkSwapchainKHR swapchain);
+	void associateSwapchain(SwapchainKHR* swapchain);
 	void disassociateSwapchain();
 	bool hasAssociatedSwapchain();
 

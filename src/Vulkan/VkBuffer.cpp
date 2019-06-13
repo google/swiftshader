@@ -68,9 +68,9 @@ const VkMemoryRequirements Buffer::getMemoryRequirements() const
 	return memoryRequirements;
 }
 
-void Buffer::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
+void Buffer::bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset)
 {
-	memory = Cast(pDeviceMemory)->getOffsetPointer(pMemoryOffset);
+	memory = pDeviceMemory->getOffsetPointer(pMemoryOffset);
 }
 
 void Buffer::copyFrom(const void* srcMemory, VkDeviceSize pSize, VkDeviceSize pOffset)

@@ -25,6 +25,9 @@
 namespace vk
 {
 
+class Fence;
+class Semaphore;
+
 class SwapchainKHR : public Object<SwapchainKHR, VkSwapchainKHR>
 {
 public:
@@ -41,7 +44,7 @@ public:
 	uint32_t getImageCount() const;
 	VkResult getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapchainImages) const;
 
-	VkResult getNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
+	VkResult getNextImage(uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* pImageIndex);
 
 	void present(uint32_t index);
 

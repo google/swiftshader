@@ -96,9 +96,9 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	return memoryRequirements;
 }
 
-void Image::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
+void Image::bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset)
 {
-	deviceMemory = Cast(pDeviceMemory);
+	deviceMemory = pDeviceMemory;
 	memoryOffset = pMemoryOffset;
 	if(decompressedImage)
 	{

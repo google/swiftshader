@@ -62,7 +62,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	{
 		for(uint32_t i = 0; i < descriptorSetCount; i++)
 		{
-			Cast(pSetLayouts[i])->initialize(pDescriptorSets[i]);
+			Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]));
 		}
 	}
 	return result;

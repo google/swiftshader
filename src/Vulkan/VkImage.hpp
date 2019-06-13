@@ -35,7 +35,7 @@ public:
 
 	const VkMemoryRequirements getMemoryRequirements() const;
 	void getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const;
-	void bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset);
+	void bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset);
 	void copyTo(Image* dstImage, const VkImageCopy& pRegion) const;
 	void copyTo(Buffer* dstBuffer, const VkBufferImageCopy& region);
 	void copyFrom(Buffer* srcBuffer, const VkBufferImageCopy& region);

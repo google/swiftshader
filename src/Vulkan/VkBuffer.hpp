@@ -20,6 +20,8 @@
 namespace vk
 {
 
+class DeviceMemory;
+
 class Buffer : public Object<Buffer, VkBuffer>
 {
 public:
@@ -29,7 +31,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkBufferCreateInfo* pCreateInfo);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
-	void bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset);
+	void bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset);
 	void copyFrom(const void* srcMemory, VkDeviceSize size, VkDeviceSize offset);
 	void copyTo(void* dstMemory, VkDeviceSize size, VkDeviceSize offset) const;
 	void copyTo(Buffer* dstBuffer, const VkBufferCopy& pRegion) const;

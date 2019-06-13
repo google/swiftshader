@@ -22,6 +22,8 @@
 namespace vk
 {
 
+class Buffer;
+
 class BufferView : public Object<BufferView, VkBufferView>
 {
 public:
@@ -39,7 +41,7 @@ public:
 
 	const uint32_t id = ImageView::nextID++;	// ID space for sampling function cache, shared with imageviews
 private:
-	VkBuffer     buffer;
+	Buffer      *buffer;
 	VkFormat     format;
 	VkDeviceSize offset;
 	VkDeviceSize range;

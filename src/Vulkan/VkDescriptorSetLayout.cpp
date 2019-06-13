@@ -144,10 +144,9 @@ uint32_t DescriptorSetLayout::getBindingIndex(uint32_t binding) const
 	return 0;
 }
 
-void DescriptorSetLayout::initialize(VkDescriptorSet vkDescriptorSet)
+void DescriptorSetLayout::initialize(DescriptorSet* descriptorSet)
 {
 	// Use a pointer to this descriptor set layout as the descriptor set's header
-	DescriptorSet* descriptorSet = vk::Cast(vkDescriptorSet);
 	descriptorSet->header.layout = this;
 	uint8_t* mem = descriptorSet->data;
 

@@ -84,7 +84,7 @@ public:
 	static void WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src);
 	static void WriteTextureLevelInfo(sw::Texture *texture, int level, int width, int height, int depth, int pitchP, int sliceP);
 
-	void initialize(VkDescriptorSet descriptorSet);
+	void initialize(DescriptorSet* descriptorSet);
 
 	// Returns the total size of the descriptor set in bytes.
 	size_t getDescriptorSetAllocationSize() const;

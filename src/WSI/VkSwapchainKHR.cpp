@@ -171,7 +171,7 @@ VkResult SwapchainKHR::getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapc
 	return VK_SUCCESS;
 }
 
-VkResult SwapchainKHR::getNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t *pImageIndex)
+VkResult SwapchainKHR::getNextImage(uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t *pImageIndex)
 {
 	for(uint32_t i = 0; i < imageCount; i++)
 	{
@@ -183,12 +183,12 @@ VkResult SwapchainKHR::getNextImage(uint64_t timeout, VkSemaphore semaphore, VkF
 
 			if(semaphore)
 			{
-				vk::Cast(semaphore)->signal();
+				semaphore->signal();
 			}
 
 			if(fence)
 			{
-				vk::Cast(fence)->complete();
+				fence->complete();
 			}
 
 			return VK_SUCCESS;

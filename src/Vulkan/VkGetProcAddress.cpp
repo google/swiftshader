@@ -323,7 +323,7 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 
 #undef MAKE_VULKAN_DEVICE_ENTRY
 
-PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
+PFN_vkVoidFunction GetInstanceProcAddr(Instance* instance, const char* pName)
 {
 	auto globalFunction = globalFunctionPointers.find(std::string(pName));
 	if(globalFunction != globalFunctionPointers.end())
@@ -331,7 +331,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
 		return globalFunction->second;
 	}
 
-	if(instance != VK_NULL_HANDLE)
+	if(instance != nullptr)
 	{
 		auto instanceFunction = instanceFunctionPointers.find(std::string(pName));
 		if(instanceFunction != instanceFunctionPointers.end())
@@ -358,7 +358,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
 	return nullptr;
 }
 
-PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* pName)
+PFN_vkVoidFunction GetDeviceProcAddr(Device* device, const char* pName)
 {
 	auto deviceFunction = deviceFunctionPointers.find(std::string(pName));
 	if(deviceFunction != deviceFunctionPointers.end())
@@ -366,10 +366,9 @@ PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* pName)
 		return deviceFunction->second;
 	}
 
-	vk::Device* myDevice = Cast(device);
 	for(const auto& deviceExtensionFunctions : deviceExtensionFunctionPointers)
 	{
-		if(myDevice->hasExtension(deviceExtensionFunctions.first))
+		if(device->hasExtension(deviceExtensionFunctions.first))
 		{
 			deviceFunction = deviceExtensionFunctions.second.find(std::string(pName));
 			if(deviceFunction != deviceExtensionFunctions.second.end())
