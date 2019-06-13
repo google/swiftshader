@@ -83,12 +83,14 @@ llvm_include_dirs = [
   "llvm/lib/Target/AArch64/",
   "llvm/lib/Target/ARM/",
   "llvm/lib/Target/Mips/",
+  "llvm/lib/Target/PowerPC/",
   "llvm/lib/Target/X86/",
   "configs/common/include/",
   "configs/common/lib/IR/",
   "configs/common/lib/Target/AArch64/",
   "configs/common/lib/Target/ARM/",
   "configs/common/lib/Target/Mips/",
+  "configs/common/lib/Target/PowerPC/",
   "configs/common/lib/Target/X86/",
   "configs/common/lib/Transforms/InstCombine/",
 ]
@@ -328,6 +330,8 @@ swiftshader_source_set("swiftshader_llvm") {
     deps += [":swiftshader_llvm_aarch64"]
   } else if (target_cpu == "mipsel" || target_cpu == "mips64el") {
     deps += [":swiftshader_llvm_mips"]
+  } else if (target_cpu == "ppc64") {
+    deps += [":swiftshader_llvm_ppc"]
   } else {
     assert(false, "Unsupported target_cpu")
   }
@@ -596,6 +600,58 @@ swiftshader_source_set("swiftshader_llvm_mips") {
     "llvm/lib/Target/Mips/MipsTargetMachine.cpp",
     "llvm/lib/Target/Mips/MipsTargetObjectFile.cpp",
     "llvm/lib/Target/Mips/TargetInfo/MipsTargetInfo.cpp",
+  ]
+
+  configs = [ ":swiftshader_llvm_private_config" ]
+
+  include_dirs = llvm_include_dirs
+}
+
+swiftshader_source_set("swiftshader_llvm_ppc") {
+  sources = [
+    "llvm/lib/Target/PowerPC/AsmParser/PPCAsmParser.cpp",
+    "llvm/lib/Target/PowerPC/Disassembler/PPCDisassembler.cpp",
+    "llvm/lib/Target/PowerPC/InstPrinter/PPCInstPrinter.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCAsmBackend.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCELFObjectWriter.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCMachObjectWriter.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCMCAsmInfo.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCMCCodeEmitter.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCMCExpr.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCMCTargetDesc.cpp",
+    "llvm/lib/Target/PowerPC/MCTargetDesc/PPCPredicates.cpp",
+    "llvm/lib/Target/PowerPC/PPCAsmPrinter.cpp",
+    "llvm/lib/Target/PowerPC/PPCBoolRetToInt.cpp",
+    "llvm/lib/Target/PowerPC/PPCBranchCoalescing.cpp",
+    "llvm/lib/Target/PowerPC/PPCBranchSelector.cpp",
+    "llvm/lib/Target/PowerPC/PPCCCState.cpp",
+    "llvm/lib/Target/PowerPC/PPCCTRLoops.cpp",
+    "llvm/lib/Target/PowerPC/PPCEarlyReturn.cpp",
+    "llvm/lib/Target/PowerPC/PPCExpandISEL.cpp",
+    "llvm/lib/Target/PowerPC/PPCFastISel.cpp",
+    "llvm/lib/Target/PowerPC/PPCFrameLowering.cpp",
+    "llvm/lib/Target/PowerPC/PPCHazardRecognizers.cpp",
+    "llvm/lib/Target/PowerPC/PPCInstrInfo.cpp",
+    "llvm/lib/Target/PowerPC/PPCISelDAGToDAG.cpp",
+    "llvm/lib/Target/PowerPC/PPCISelLowering.cpp",
+    "llvm/lib/Target/PowerPC/PPCLoopPreIncPrep.cpp",
+    "llvm/lib/Target/PowerPC/PPCMachineFunctionInfo.cpp",
+    "llvm/lib/Target/PowerPC/PPCMCInstLower.cpp",
+    "llvm/lib/Target/PowerPC/PPCMIPeephole.cpp",
+    "llvm/lib/Target/PowerPC/PPCPreEmitPeephole.cpp",
+    "llvm/lib/Target/PowerPC/PPCQPXLoadSplat.cpp",
+    "llvm/lib/Target/PowerPC/PPCReduceCRLogicals.cpp",
+    "llvm/lib/Target/PowerPC/PPCRegisterInfo.cpp",
+    "llvm/lib/Target/PowerPC/PPCSubtarget.cpp",
+    "llvm/lib/Target/PowerPC/PPCTargetMachine.cpp",
+    "llvm/lib/Target/PowerPC/PPCTargetObjectFile.cpp",
+    "llvm/lib/Target/PowerPC/PPCTargetTransformInfo.cpp",
+    "llvm/lib/Target/PowerPC/PPCTLSDynamicCall.cpp",
+    "llvm/lib/Target/PowerPC/PPCTOCRegDeps.cpp",
+    "llvm/lib/Target/PowerPC/PPCVSXCopy.cpp",
+    "llvm/lib/Target/PowerPC/PPCVSXFMAMutate.cpp",
+    "llvm/lib/Target/PowerPC/PPCVSXSwapRemoval.cpp",
+    "llvm/lib/Target/PowerPC/TargetInfo/PowerPCTargetInfo.cpp",
   ]
 
   configs = [ ":swiftshader_llvm_private_config" ]
@@ -899,6 +955,7 @@ swiftshader_source_set("swiftshader_llvm_support") {
     "llvm/lib/Support/APSInt.cpp",
     "llvm/lib/Support/ARMAttributeParser.cpp",
     "llvm/lib/Support/ARMBuildAttrs.cpp",
+    "llvm/lib/Support/Atomic.cpp",
     "llvm/lib/Support/BinaryStreamError.cpp",
     "llvm/lib/Support/BinaryStreamReader.cpp",
     "llvm/lib/Support/BinaryStreamRef.cpp",

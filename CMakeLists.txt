@@ -39,6 +39,12 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "mips*")
     else()
         set(ARCH "mipsel")
     endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc*")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(ARCH "ppc64le")
+    else()
+        message(FATAL_ERROR "Architecture is not supported")
+    endif()
 else()
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(ARCH "x86_64")
@@ -918,6 +924,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/APSInt.cpp
     ${LLVM_DIR}/lib/Support/ARMAttributeParser.cpp
     ${LLVM_DIR}/lib/Support/ARMBuildAttrs.cpp
+    ${LLVM_DIR}/lib/Support/Atomic.cpp
     ${LLVM_DIR}/lib/Support/BinaryStreamError.cpp
     ${LLVM_DIR}/lib/Support/BinaryStreamReader.cpp
     ${LLVM_DIR}/lib/Support/BinaryStreamRef.cpp
@@ -1025,11 +1032,13 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Scalar/EarlyCSE.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/GVN.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LICM.cpp
+    ${LLVM_DIR}/lib/Transforms/Scalar/LoopDataPrefetch.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopStrengthReduce.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/MergeICmps.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/PartiallyInlineLibCalls.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/Reassociate.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SCCP.cpp
+    ${LLVM_DIR}/lib/Transforms/Scalar/SeparateConstOffsetFromGEP.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SimplifyCFGPass.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SROA.cpp
     ${LLVM_DIR}/lib/Transforms/Utils/BasicBlockUtils.cpp
@@ -1296,6 +1305,52 @@ elseif(ARCH STREQUAL "arm")
         ${LLVM_DIR}/lib/Target/ARM/ThumbRegisterInfo.cpp
         ${LLVM_DIR}/lib/Target/ARM/Utils/ARMBaseInfo.cpp
     )
+elseif(ARCH STREQUAL "ppc64le")
+    list(APPEND LLVM_LIST
+        ${LLVM_DIR}/lib/Target/PowerPC/AsmParser/PPCAsmParser.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/Disassembler/PPCDisassembler.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/InstPrinter/PPCInstPrinter.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCAsmBackend.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCELFObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCMachObjectWriter.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCMCAsmInfo.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCMCCodeEmitter.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCMCExpr.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCMCTargetDesc.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/MCTargetDesc/PPCPredicates.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCAsmPrinter.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCBoolRetToInt.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCBranchCoalescing.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCBranchSelector.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCCCState.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCCTRLoops.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCEarlyReturn.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCExpandISEL.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCFastISel.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCFrameLowering.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCHazardRecognizers.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCInstrInfo.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCISelDAGToDAG.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCISelLowering.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCLoopPreIncPrep.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCMachineFunctionInfo.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCMCInstLower.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCMIPeephole.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCPreEmitPeephole.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCQPXLoadSplat.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCReduceCRLogicals.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCRegisterInfo.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCSubtarget.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCTargetMachine.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCTargetObjectFile.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCTargetTransformInfo.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCTLSDynamicCall.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCTOCRegDeps.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCVSXCopy.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCVSXFMAMutate.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/PPCVSXSwapRemoval.cpp
+        ${LLVM_DIR}/lib/Target/PowerPC/TargetInfo/PowerPCTargetInfo.cpp
+    )
 endif()
 
 if(REACTOR_EMIT_DEBUG_INFO)
@@ -1324,12 +1379,14 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/lib/Target/AArch64
     ${LLVM_DIR}/lib/Target/ARM
     ${LLVM_DIR}/lib/Target/Mips
+    ${LLVM_DIR}/lib/Target/PowerPC
     ${LLVM_DIR}/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/include
     ${LLVM_CONFIG_DIR}/common/lib/IR
     ${LLVM_CONFIG_DIR}/common/lib/Target/AArch64
     ${LLVM_CONFIG_DIR}/common/lib/Target/ARM
     ${LLVM_CONFIG_DIR}/common/lib/Target/Mips
+    ${LLVM_CONFIG_DIR}/common/lib/Target/PowerPC
     ${LLVM_CONFIG_DIR}/common/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/lib/Transforms/InstCombine
 )
