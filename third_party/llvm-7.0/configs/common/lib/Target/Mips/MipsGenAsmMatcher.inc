@@ -1908,8 +1908,8 @@ enum MatchClassKind {
   MCK_bit, // 'bit'
   MCK_inst, // 'inst'
   MCK_LAST_TOKEN = MCK_inst,
-  MCK_Reg15, // derived register class
   MCK_Reg29, // derived register class
+  MCK_Reg15, // derived register class
   MCK_ACC128, // register class 'ACC128'
   MCK_ACC64, // register class 'ACC64'
   MCK_CPURAReg, // register class 'CPURAReg,RA'
@@ -1924,25 +1924,25 @@ enum MatchClassKind {
   MCK_LO64, // register class 'LO64'
   MCK_PC, // register class 'PC'
   MCK_SP64, // register class 'SP64'
-  MCK_Reg11, // derived register class
   MCK_Reg26, // derived register class
+  MCK_Reg11, // derived register class
   MCK_OCTEON_MPL, // register class 'OCTEON_MPL'
   MCK_OCTEON_P, // register class 'OCTEON_P'
-  MCK_Reg4, // derived register class
-  MCK_Reg9, // derived register class
-  MCK_Reg19, // derived register class
   MCK_Reg24, // derived register class
+  MCK_Reg19, // derived register class
+  MCK_Reg9, // derived register class
+  MCK_Reg4, // derived register class
   MCK_ACC64DSP, // register class 'ACC64DSP'
   MCK_HI32DSP, // register class 'HI32DSP'
   MCK_LO32DSP, // register class 'LO32DSP'
-  MCK_Reg8, // derived register class
-  MCK_Reg10, // derived register class
-  MCK_Reg23, // derived register class
   MCK_Reg25, // derived register class
-  MCK_Reg17, // derived register class
-  MCK_Reg18, // derived register class
-  MCK_Reg21, // derived register class
+  MCK_Reg23, // derived register class
+  MCK_Reg10, // derived register class
+  MCK_Reg8, // derived register class
   MCK_Reg36, // derived register class
+  MCK_Reg21, // derived register class
+  MCK_Reg18, // derived register class
+  MCK_Reg17, // derived register class
   MCK_CPU16Regs, // register class 'CPU16Regs,GPRMM16'
   MCK_FCC, // register class 'FCC'
   MCK_GPRMM16MoveP, // register class 'GPRMM16MoveP'
@@ -1950,10 +1950,10 @@ enum MatchClassKind {
   MCK_MSACtrl, // register class 'MSACtrl'
   MCK_Reg22, // derived register class
   MCK_CPU16RegsPlusSP, // register class 'CPU16RegsPlusSP'
-  MCK_Reg31, // derived register class
-  MCK_Reg34, // derived register class
-  MCK_Reg39, // derived register class
   MCK_Reg42, // derived register class
+  MCK_Reg39, // derived register class
+  MCK_Reg34, // derived register class
+  MCK_Reg31, // derived register class
   MCK_AFGR64, // register class 'AFGR64'
   MCK_MSA128WEvens, // register class 'MSA128WEvens'
   MCK_Reg37, // derived register class
@@ -2114,19 +2114,19 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
   default:
     return false;
 
-  case MCK_Reg15:
-    switch (B) {
-    default: return false;
-    case MCK_Reg19: return true;
-    case MCK_Reg17: return true;
-    case MCK_Reg18: return true;
-    case MCK_GPR64: return true;
-    }
-
   case MCK_Reg29:
     switch (B) {
     default: return false;
     case MCK_Reg20: return true;
+    case MCK_GPR64: return true;
+    }
+
+  case MCK_Reg15:
+    switch (B) {
+    default: return false;
+    case MCK_Reg19: return true;
+    case MCK_Reg18: return true;
+    case MCK_Reg17: return true;
     case MCK_GPR64: return true;
     }
 
@@ -2185,13 +2185,28 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_GPR64: return true;
     }
 
+  case MCK_Reg26:
+    switch (B) {
+    default: return false;
+    case MCK_Reg24: return true;
+    case MCK_Reg19: return true;
+    case MCK_Reg25: return true;
+    case MCK_Reg23: return true;
+    case MCK_Reg21: return true;
+    case MCK_Reg18: return true;
+    case MCK_Reg17: return true;
+    case MCK_Reg22: return true;
+    case MCK_Reg20: return true;
+    case MCK_GPR64: return true;
+    }
+
   case MCK_Reg11:
     switch (B) {
     default: return false;
-    case MCK_Reg4: return true;
     case MCK_Reg9: return true;
-    case MCK_Reg8: return true;
+    case MCK_Reg4: return true;
     case MCK_Reg10: return true;
+    case MCK_Reg8: return true;
     case MCK_CPU16Regs: return true;
     case MCK_GPRMM16MoveP: return true;
     case MCK_GPRMM16Zero: return true;
@@ -2200,27 +2215,23 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DSPR: return true;
     }
 
-  case MCK_Reg26:
+  case MCK_Reg24:
     switch (B) {
     default: return false;
-    case MCK_Reg19: return true;
-    case MCK_Reg24: return true;
-    case MCK_Reg23: return true;
     case MCK_Reg25: return true;
-    case MCK_Reg17: return true;
-    case MCK_Reg18: return true;
     case MCK_Reg21: return true;
+    case MCK_Reg18: return true;
     case MCK_Reg22: return true;
     case MCK_Reg20: return true;
     case MCK_GPR64: return true;
     }
 
-  case MCK_Reg4:
+  case MCK_Reg19:
     switch (B) {
     default: return false;
-    case MCK_GPRMM16MoveP: return true;
-    case MCK_GPRMM16Zero: return true;
-    case MCK_DSPR: return true;
+    case MCK_Reg18: return true;
+    case MCK_Reg17: return true;
+    case MCK_GPR64: return true;
     }
 
   case MCK_Reg9:
@@ -2234,23 +2245,38 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DSPR: return true;
     }
 
-  case MCK_Reg19:
+  case MCK_Reg4:
     switch (B) {
     default: return false;
-    case MCK_Reg17: return true;
+    case MCK_GPRMM16MoveP: return true;
+    case MCK_GPRMM16Zero: return true;
+    case MCK_DSPR: return true;
+    }
+
+  case MCK_Reg25:
+    switch (B) {
+    default: return false;
     case MCK_Reg18: return true;
+    case MCK_Reg20: return true;
     case MCK_GPR64: return true;
     }
 
-  case MCK_Reg24:
+  case MCK_Reg23:
     switch (B) {
     default: return false;
-    case MCK_Reg25: return true;
-    case MCK_Reg18: return true;
     case MCK_Reg21: return true;
+    case MCK_Reg17: return true;
     case MCK_Reg22: return true;
     case MCK_Reg20: return true;
     case MCK_GPR64: return true;
+    }
+
+  case MCK_Reg10:
+    switch (B) {
+    default: return false;
+    case MCK_GPRMM16MoveP: return true;
+    case MCK_GPR32NONZERO: return true;
+    case MCK_DSPR: return true;
     }
 
   case MCK_Reg8:
@@ -2263,37 +2289,13 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DSPR: return true;
     }
 
-  case MCK_Reg10:
+  case MCK_Reg36:
     switch (B) {
     default: return false;
-    case MCK_GPRMM16MoveP: return true;
-    case MCK_GPR32NONZERO: return true;
-    case MCK_DSPR: return true;
+    case MCK_AFGR64: return true;
+    case MCK_Reg37: return true;
+    case MCK_OddSP: return true;
     }
-
-  case MCK_Reg23:
-    switch (B) {
-    default: return false;
-    case MCK_Reg17: return true;
-    case MCK_Reg21: return true;
-    case MCK_Reg22: return true;
-    case MCK_Reg20: return true;
-    case MCK_GPR64: return true;
-    }
-
-  case MCK_Reg25:
-    switch (B) {
-    default: return false;
-    case MCK_Reg18: return true;
-    case MCK_Reg20: return true;
-    case MCK_GPR64: return true;
-    }
-
-  case MCK_Reg17:
-    return B == MCK_GPR64;
-
-  case MCK_Reg18:
-    return B == MCK_GPR64;
 
   case MCK_Reg21:
     switch (B) {
@@ -2303,13 +2305,11 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_GPR64: return true;
     }
 
-  case MCK_Reg36:
-    switch (B) {
-    default: return false;
-    case MCK_AFGR64: return true;
-    case MCK_Reg37: return true;
-    case MCK_OddSP: return true;
-    }
+  case MCK_Reg18:
+    return B == MCK_GPR64;
+
+  case MCK_Reg17:
+    return B == MCK_GPR64;
 
   case MCK_CPU16Regs:
     switch (B) {
@@ -2339,10 +2339,14 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DSPR: return true;
     }
 
-  case MCK_Reg31:
+  case MCK_Reg42:
+    return B == MCK_MSA128F16;
+
+  case MCK_Reg39:
     switch (B) {
     default: return false;
-    case MCK_FGR32: return true;
+    case MCK_Reg37: return true;
+    case MCK_FGR64: return true;
     case MCK_OddSP: return true;
     }
 
@@ -2353,16 +2357,12 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_OddSP: return true;
     }
 
-  case MCK_Reg39:
+  case MCK_Reg31:
     switch (B) {
     default: return false;
-    case MCK_Reg37: return true;
-    case MCK_FGR64: return true;
+    case MCK_FGR32: return true;
     case MCK_OddSP: return true;
     }
-
-  case MCK_Reg42:
-    return B == MCK_MSA128F16;
 
   case MCK_MSA128WEvens:
     return B == MCK_MSA128F16;
@@ -4535,8 +4535,8 @@ const char *getMatchClassName(MatchClassKind Kind) {
   case MCK__93_: return "MCK__93_";
   case MCK_bit: return "MCK_bit";
   case MCK_inst: return "MCK_inst";
-  case MCK_Reg15: return "MCK_Reg15";
   case MCK_Reg29: return "MCK_Reg29";
+  case MCK_Reg15: return "MCK_Reg15";
   case MCK_ACC128: return "MCK_ACC128";
   case MCK_ACC64: return "MCK_ACC64";
   case MCK_CPURAReg: return "MCK_CPURAReg";
@@ -4551,25 +4551,25 @@ const char *getMatchClassName(MatchClassKind Kind) {
   case MCK_LO64: return "MCK_LO64";
   case MCK_PC: return "MCK_PC";
   case MCK_SP64: return "MCK_SP64";
-  case MCK_Reg11: return "MCK_Reg11";
   case MCK_Reg26: return "MCK_Reg26";
+  case MCK_Reg11: return "MCK_Reg11";
   case MCK_OCTEON_MPL: return "MCK_OCTEON_MPL";
   case MCK_OCTEON_P: return "MCK_OCTEON_P";
-  case MCK_Reg4: return "MCK_Reg4";
-  case MCK_Reg9: return "MCK_Reg9";
-  case MCK_Reg19: return "MCK_Reg19";
   case MCK_Reg24: return "MCK_Reg24";
+  case MCK_Reg19: return "MCK_Reg19";
+  case MCK_Reg9: return "MCK_Reg9";
+  case MCK_Reg4: return "MCK_Reg4";
   case MCK_ACC64DSP: return "MCK_ACC64DSP";
   case MCK_HI32DSP: return "MCK_HI32DSP";
   case MCK_LO32DSP: return "MCK_LO32DSP";
-  case MCK_Reg8: return "MCK_Reg8";
-  case MCK_Reg10: return "MCK_Reg10";
-  case MCK_Reg23: return "MCK_Reg23";
   case MCK_Reg25: return "MCK_Reg25";
-  case MCK_Reg17: return "MCK_Reg17";
-  case MCK_Reg18: return "MCK_Reg18";
-  case MCK_Reg21: return "MCK_Reg21";
+  case MCK_Reg23: return "MCK_Reg23";
+  case MCK_Reg10: return "MCK_Reg10";
+  case MCK_Reg8: return "MCK_Reg8";
   case MCK_Reg36: return "MCK_Reg36";
+  case MCK_Reg21: return "MCK_Reg21";
+  case MCK_Reg18: return "MCK_Reg18";
+  case MCK_Reg17: return "MCK_Reg17";
   case MCK_CPU16Regs: return "MCK_CPU16Regs";
   case MCK_FCC: return "MCK_FCC";
   case MCK_GPRMM16MoveP: return "MCK_GPRMM16MoveP";
@@ -4577,10 +4577,10 @@ const char *getMatchClassName(MatchClassKind Kind) {
   case MCK_MSACtrl: return "MCK_MSACtrl";
   case MCK_Reg22: return "MCK_Reg22";
   case MCK_CPU16RegsPlusSP: return "MCK_CPU16RegsPlusSP";
-  case MCK_Reg31: return "MCK_Reg31";
-  case MCK_Reg34: return "MCK_Reg34";
-  case MCK_Reg39: return "MCK_Reg39";
   case MCK_Reg42: return "MCK_Reg42";
+  case MCK_Reg39: return "MCK_Reg39";
+  case MCK_Reg34: return "MCK_Reg34";
+  case MCK_Reg31: return "MCK_Reg31";
   case MCK_AFGR64: return "MCK_AFGR64";
   case MCK_MSA128WEvens: return "MCK_MSA128WEvens";
   case MCK_Reg37: return "MCK_Reg37";

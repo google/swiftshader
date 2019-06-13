@@ -303,6 +303,8 @@
 #define LLVM_DEFAULT_TARGET_TRIPLE "mipsel-linux-gnu"
 #elif defined(__mips64)
 #define LLVM_DEFAULT_TARGET_TRIPLE "mips64el-linux-gnuabi64"
+#elif defined(__powerpc64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "powerpc64le-unknown-linux-gnu"
 #else
 #error "unknown architecture"
 #endif

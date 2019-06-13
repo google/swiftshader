@@ -14,6 +14,16 @@
 #ifndef LLVM_CONFIG_H
 #define LLVM_CONFIG_H
 
+#if !defined(__i386__) && defined(_M_IX86)
+#define __i386__ 1
+#endif
+
+#if !defined(__x86_64__) && (defined(_M_AMD64) || defined (_M_X64))
+#define __x86_64__ 1
+#endif
+
+#define LLVM_CONFIG_H
+
 /* Define if LLVM_ENABLE_DUMP is enabled */
 /* #undef LLVM_ENABLE_DUMP */
 
@@ -33,6 +43,8 @@
 #define LLVM_DEFAULT_TARGET_TRIPLE "mipsel-linux-gnu"
 #elif defined(__mips64)
 #define LLVM_DEFAULT_TARGET_TRIPLE "mips64el-linux-gnuabi64"
+#elif defined(__powerpc64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "powerpc64le-unknown-linux-gnu"
 #else
 #error "unknown architecture"
 #endif
@@ -56,6 +68,8 @@
 #define LLVM_HOST_TRIPLE "mipsel-linux-gnu"
 #elif defined(__mips64)
 #define LLVM_HOST_TRIPLE "mips64el-linux-gnuabi64"
+#elif defined(__powerpc64__)
+#define LLVM_HOST_TRIPLE "powerpc64le-unknown-linux-gnu"
 #else
 #error "unknown architecture"
 #endif
@@ -69,6 +83,8 @@
 #define LLVM_NATIVE_ARCH X86
 #elif defined(__mips__)
 #define LLVM_NATIVE_ARCH Mips
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_ARCH PowerPC
 #else
 #error "unknown architecture"
 #endif
@@ -82,6 +98,8 @@
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeX86AsmParser
 #elif defined(__mips__)
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeMipsAsmParser
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_ASMPARSER LLVMInitializePowerPCAsmParser
 #else
 #error "unknown architecture"
 #endif
@@ -95,6 +113,8 @@
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeX86AsmPrinter
 #elif defined(__mips__)
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeMipsAsmPrinter
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_ASMPRINTER LLVMInitializePowerPCAsmPrinter
 #else
 #error "unknown architecture"
 #endif
@@ -108,6 +128,8 @@
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeX86Disassembler
 #elif defined(__mips__)
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeMipsDisassembler
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_DISASSEMBLER LLVMInitializePowerPCDisassembler
 #else
 #error "unknown architecture"
 #endif
@@ -121,6 +143,8 @@
 #define LLVM_NATIVE_TARGET LLVMInitializeX86Target
 #elif defined(__mips__)
 #define LLVM_NATIVE_TARGET LLVMInitializeMipsTarget
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_TARGET LLVMInitializePowerPCTarget
 #else
 #error "unknown architecture"
 #endif
@@ -134,6 +158,8 @@
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeX86TargetInfo
 #elif defined(__mips__)
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeMipsTargetInfo
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_TARGETINFO LLVMInitializePowerPCTargetInfo
 #else
 #error "unknown architecture"
 #endif
@@ -147,6 +173,8 @@
 #define LLVM_NATIVE_TARGETMC LLVMInitializeX86TargetMC
 #elif defined(__mips__)
 #define LLVM_NATIVE_TARGETMC LLVMInitializeMipsTargetMC
+#elif defined(__powerpc64__)
+#define LLVM_NATIVE_TARGETMC LLVMInitializePowerPCTargetMC
 #else
 #error "unknown architecture"
 #endif

@@ -35,6 +35,9 @@ LLVM_TARGET(X86)
 #if defined(__mips__)
 LLVM_TARGET(Mips)
 #endif
+#if defined(__powerpc64__)
+LLVM_TARGET(PowerPC)
+#endif
 
 
 #undef LLVM_TARGET

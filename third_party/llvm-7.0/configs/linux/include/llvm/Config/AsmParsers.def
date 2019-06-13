@@ -36,6 +36,9 @@ LLVM_ASM_PARSER(X86)
 #if defined(__mips__)
 LLVM_ASM_PARSER(Mips)
 #endif
+#if defined(__powerpc64__)
+LLVM_ASM_PARSER(PowerPC)
+#endif
 
 
 #undef LLVM_ASM_PARSER

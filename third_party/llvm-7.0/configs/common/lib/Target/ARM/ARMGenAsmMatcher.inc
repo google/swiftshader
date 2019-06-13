@@ -4291,9 +4291,9 @@ enum MatchClassKind {
   MCK__123_, // '{'
   MCK__125_, // '}'
   MCK_LAST_TOKEN = MCK__125_,
-  MCK_Reg11, // derived register class
-  MCK_Reg59, // derived register class
   MCK_Reg75, // derived register class
+  MCK_Reg59, // derived register class
+  MCK_Reg11, // derived register class
   MCK_APSR, // register class 'APSR'
   MCK_APSR_NZCV, // register class 'APSR_NZCV'
   MCK_CCR, // register class 'CCR,CPSR'
@@ -4309,57 +4309,57 @@ enum MatchClassKind {
   MCK_MVFR2, // register class 'MVFR2'
   MCK_PC, // register class 'PC'
   MCK_SPSR, // register class 'SPSR'
-  MCK_Reg60, // derived register class
-  MCK_Reg68, // derived register class
-  MCK_Reg73, // derived register class
   MCK_Reg100, // derived register class
-  MCK_Reg45, // derived register class
-  MCK_Reg61, // derived register class
-  MCK_Reg72, // derived register class
-  MCK_Reg74, // derived register class
-  MCK_Reg83, // derived register class
-  MCK_Reg88, // derived register class
+  MCK_Reg73, // derived register class
+  MCK_Reg68, // derived register class
+  MCK_Reg60, // derived register class
   MCK_Reg101, // derived register class
-  MCK_Reg0, // derived register class
-  MCK_Reg46, // derived register class
-  MCK_Reg62, // derived register class
-  MCK_Reg69, // derived register class
-  MCK_Reg84, // derived register class
-  MCK_Reg89, // derived register class
-  MCK_Reg93, // derived register class
+  MCK_Reg88, // derived register class
+  MCK_Reg83, // derived register class
+  MCK_Reg74, // derived register class
+  MCK_Reg72, // derived register class
+  MCK_Reg61, // derived register class
+  MCK_Reg45, // derived register class
   MCK_Reg102, // derived register class
+  MCK_Reg93, // derived register class
+  MCK_Reg89, // derived register class
+  MCK_Reg84, // derived register class
+  MCK_Reg69, // derived register class
+  MCK_Reg62, // derived register class
+  MCK_Reg46, // derived register class
+  MCK_Reg0, // derived register class
   MCK_QPR_8, // register class 'QPR_8'
-  MCK_Reg57, // derived register class
   MCK_Reg63, // derived register class
+  MCK_Reg57, // derived register class
   MCK_tcGPR, // register class 'tcGPR'
-  MCK_Reg10, // derived register class
-  MCK_Reg40, // derived register class
-  MCK_Reg58, // derived register class
-  MCK_Reg64, // derived register class
-  MCK_Reg70, // derived register class
-  MCK_Reg76, // derived register class
-  MCK_Reg94, // derived register class
   MCK_Reg103, // derived register class
-  MCK_Reg8, // derived register class
-  MCK_Reg26, // derived register class
-  MCK_Reg47, // derived register class
-  MCK_Reg55, // derived register class
-  MCK_Reg65, // derived register class
-  MCK_Reg77, // derived register class
-  MCK_Reg85, // derived register class
-  MCK_Reg90, // derived register class
+  MCK_Reg94, // derived register class
+  MCK_Reg76, // derived register class
+  MCK_Reg70, // derived register class
+  MCK_Reg64, // derived register class
+  MCK_Reg58, // derived register class
+  MCK_Reg40, // derived register class
+  MCK_Reg10, // derived register class
   MCK_Reg104, // derived register class
+  MCK_Reg90, // derived register class
+  MCK_Reg85, // derived register class
+  MCK_Reg77, // derived register class
+  MCK_Reg65, // derived register class
+  MCK_Reg55, // derived register class
+  MCK_Reg47, // derived register class
+  MCK_Reg26, // derived register class
+  MCK_Reg8, // derived register class
   MCK_GPRPair, // register class 'GPRPair'
-  MCK_Reg27, // derived register class
-  MCK_Reg41, // derived register class
-  MCK_Reg48, // derived register class
-  MCK_Reg56, // derived register class
-  MCK_Reg66, // derived register class
-  MCK_Reg78, // derived register class
-  MCK_Reg86, // derived register class
-  MCK_Reg91, // derived register class
-  MCK_Reg95, // derived register class
   MCK_Reg105, // derived register class
+  MCK_Reg95, // derived register class
+  MCK_Reg91, // derived register class
+  MCK_Reg86, // derived register class
+  MCK_Reg78, // derived register class
+  MCK_Reg66, // derived register class
+  MCK_Reg56, // derived register class
+  MCK_Reg48, // derived register class
+  MCK_Reg41, // derived register class
+  MCK_Reg27, // derived register class
   MCK_DPR_8, // register class 'DPR_8'
   MCK_QPR_VFP2, // register class 'QPR_VFP2'
   MCK_hGPR, // register class 'hGPR'
@@ -4368,24 +4368,24 @@ enum MatchClassKind {
   MCK_Reg96, // derived register class
   MCK_Reg53, // derived register class
   MCK_QQQQPR, // register class 'QQQQPR'
-  MCK_Reg42, // derived register class
-  MCK_Reg54, // derived register class
-  MCK_Reg79, // derived register class
-  MCK_Reg97, // derived register class
   MCK_Reg106, // derived register class
+  MCK_Reg97, // derived register class
+  MCK_Reg79, // derived register class
+  MCK_Reg54, // derived register class
+  MCK_Reg42, // derived register class
   MCK_rGPR, // register class 'rGPR'
-  MCK_Reg24, // derived register class
-  MCK_Reg51, // derived register class
-  MCK_Reg80, // derived register class
-  MCK_Reg87, // derived register class
   MCK_Reg92, // derived register class
+  MCK_Reg87, // derived register class
+  MCK_Reg80, // derived register class
+  MCK_Reg51, // derived register class
+  MCK_Reg24, // derived register class
   MCK_GPRnopc, // register class 'GPRnopc'
   MCK_QQPR, // register class 'QQPR'
-  MCK_Reg25, // derived register class
-  MCK_Reg43, // derived register class
-  MCK_Reg52, // derived register class
-  MCK_Reg81, // derived register class
   MCK_Reg98, // derived register class
+  MCK_Reg81, // derived register class
+  MCK_Reg52, // derived register class
+  MCK_Reg43, // derived register class
+  MCK_Reg25, // derived register class
   MCK_DPR_VFP2, // register class 'DPR_VFP2'
   MCK_GPR, // register class 'GPR'
   MCK_GPRwithAPSR, // register class 'GPRwithAPSR'
@@ -5003,17 +5003,12 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
   case MCK__DOT_p8:
     return B == MCK__DOT_8;
 
-  case MCK_Reg11:
+  case MCK_Reg75:
     switch (B) {
     default: return false;
-    case MCK_tcGPR: return true;
-    case MCK_Reg10: return true;
-    case MCK_Reg8: return true;
-    case MCK_hGPR: return true;
-    case MCK_rGPR: return true;
-    case MCK_GPRnopc: return true;
-    case MCK_GPR: return true;
-    case MCK_GPRwithAPSR: return true;
+    case MCK_Reg74: return true;
+    case MCK_Reg72: return true;
+    case MCK_GPRPair: return true;
     }
 
   case MCK_Reg59:
@@ -5029,12 +5024,17 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_QQQQPR: return true;
     }
 
-  case MCK_Reg75:
+  case MCK_Reg11:
     switch (B) {
     default: return false;
-    case MCK_Reg72: return true;
-    case MCK_Reg74: return true;
-    case MCK_GPRPair: return true;
+    case MCK_tcGPR: return true;
+    case MCK_Reg10: return true;
+    case MCK_Reg8: return true;
+    case MCK_hGPR: return true;
+    case MCK_rGPR: return true;
+    case MCK_GPRnopc: return true;
+    case MCK_GPR: return true;
+    case MCK_GPRwithAPSR: return true;
     }
 
   case MCK_APSR_NZCV:
@@ -5070,6 +5070,43 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_GPR: return true;
     }
 
+  case MCK_Reg100:
+    switch (B) {
+    default: return false;
+    case MCK_Reg101: return true;
+    case MCK_Reg102: return true;
+    case MCK_Reg57: return true;
+    case MCK_Reg103: return true;
+    case MCK_Reg58: return true;
+    case MCK_Reg104: return true;
+    case MCK_Reg55: return true;
+    case MCK_Reg105: return true;
+    case MCK_Reg56: return true;
+    case MCK_Reg53: return true;
+    case MCK_Reg106: return true;
+    case MCK_Reg54: return true;
+    case MCK_Reg51: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
+    }
+
+  case MCK_Reg73:
+    switch (B) {
+    default: return false;
+    case MCK_Reg74: return true;
+    case MCK_Reg70: return true;
+    case MCK_GPRPair: return true;
+    }
+
+  case MCK_Reg68:
+    switch (B) {
+    default: return false;
+    case MCK_Reg72: return true;
+    case MCK_Reg69: return true;
+    case MCK_Reg70: return true;
+    case MCK_GPRPair: return true;
+    }
+
   case MCK_Reg60:
     switch (B) {
     default: return false;
@@ -5082,60 +5119,61 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_QQQQPR: return true;
     }
 
-  case MCK_Reg68:
+  case MCK_Reg101:
     switch (B) {
     default: return false;
-    case MCK_Reg72: return true;
-    case MCK_Reg69: return true;
-    case MCK_Reg70: return true;
-    case MCK_GPRPair: return true;
-    }
-
-  case MCK_Reg73:
-    switch (B) {
-    default: return false;
-    case MCK_Reg74: return true;
-    case MCK_Reg70: return true;
-    case MCK_GPRPair: return true;
-    }
-
-  case MCK_Reg100:
-    switch (B) {
-    default: return false;
-    case MCK_Reg101: return true;
     case MCK_Reg102: return true;
-    case MCK_Reg57: return true;
-    case MCK_Reg58: return true;
     case MCK_Reg103: return true;
-    case MCK_Reg55: return true;
+    case MCK_Reg58: return true;
     case MCK_Reg104: return true;
-    case MCK_Reg56: return true;
+    case MCK_Reg55: return true;
     case MCK_Reg105: return true;
+    case MCK_Reg56: return true;
     case MCK_Reg53: return true;
-    case MCK_Reg54: return true;
     case MCK_Reg106: return true;
+    case MCK_Reg54: return true;
     case MCK_Reg51: return true;
     case MCK_Reg52: return true;
     case MCK_DQuad: return true;
     }
 
-  case MCK_Reg45:
+  case MCK_Reg88:
     switch (B) {
     default: return false;
-    case MCK_Reg46: return true;
-    case MCK_Reg57: return true;
-    case MCK_Reg58: return true;
-    case MCK_Reg47: return true;
-    case MCK_Reg55: return true;
-    case MCK_Reg48: return true;
-    case MCK_Reg56: return true;
-    case MCK_Reg53: return true;
-    case MCK_Reg54: return true;
-    case MCK_Reg51: return true;
-    case MCK_QQPR: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
+    case MCK_Reg89: return true;
+    case MCK_Reg76: return true;
+    case MCK_Reg90: return true;
+    case MCK_Reg77: return true;
+    case MCK_Reg91: return true;
+    case MCK_Reg78: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg92: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
     }
+
+  case MCK_Reg83:
+    switch (B) {
+    default: return false;
+    case MCK_Reg84: return true;
+    case MCK_Reg76: return true;
+    case MCK_Reg85: return true;
+    case MCK_Reg77: return true;
+    case MCK_Reg86: return true;
+    case MCK_Reg78: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg87: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg74:
+    return B == MCK_GPRPair;
+
+  case MCK_Reg72:
+    return B == MCK_GPRPair;
 
   case MCK_Reg61:
     switch (B) {
@@ -5148,58 +5186,105 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_QQQQPR: return true;
     }
 
-  case MCK_Reg72:
-    return B == MCK_GPRPair;
-
-  case MCK_Reg74:
-    return B == MCK_GPRPair;
-
-  case MCK_Reg83:
+  case MCK_Reg45:
     switch (B) {
     default: return false;
-    case MCK_Reg84: return true;
-    case MCK_Reg76: return true;
-    case MCK_Reg77: return true;
-    case MCK_Reg85: return true;
-    case MCK_Reg78: return true;
-    case MCK_Reg86: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg87: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg88:
-    switch (B) {
-    default: return false;
-    case MCK_Reg89: return true;
-    case MCK_Reg76: return true;
-    case MCK_Reg77: return true;
-    case MCK_Reg90: return true;
-    case MCK_Reg78: return true;
-    case MCK_Reg91: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg92: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg101:
-    switch (B) {
-    default: return false;
-    case MCK_Reg102: return true;
+    case MCK_Reg46: return true;
+    case MCK_Reg57: return true;
     case MCK_Reg58: return true;
-    case MCK_Reg103: return true;
     case MCK_Reg55: return true;
-    case MCK_Reg104: return true;
+    case MCK_Reg47: return true;
     case MCK_Reg56: return true;
-    case MCK_Reg105: return true;
+    case MCK_Reg48: return true;
     case MCK_Reg53: return true;
     case MCK_Reg54: return true;
-    case MCK_Reg106: return true;
     case MCK_Reg51: return true;
+    case MCK_QQPR: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
+    }
+
+  case MCK_Reg102:
+    switch (B) {
+    default: return false;
+    case MCK_Reg103: return true;
+    case MCK_Reg104: return true;
+    case MCK_Reg105: return true;
+    case MCK_Reg56: return true;
+    case MCK_Reg53: return true;
+    case MCK_Reg106: return true;
+    case MCK_Reg54: return true;
+    case MCK_Reg51: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
+    }
+
+  case MCK_Reg93:
+    switch (B) {
+    default: return false;
+    case MCK_Reg94: return true;
+    case MCK_Reg95: return true;
+    case MCK_Reg96: return true;
+    case MCK_Reg97: return true;
+    case MCK_Reg98: return true;
+    case MCK_DTripleSpc: return true;
+    }
+
+  case MCK_Reg89:
+    switch (B) {
+    default: return false;
+    case MCK_Reg90: return true;
+    case MCK_Reg91: return true;
+    case MCK_Reg78: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg92: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg84:
+    switch (B) {
+    default: return false;
+    case MCK_Reg85: return true;
+    case MCK_Reg77: return true;
+    case MCK_Reg86: return true;
+    case MCK_Reg78: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg87: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg69:
+    switch (B) {
+    default: return false;
+    case MCK_Reg70: return true;
+    case MCK_GPRPair: return true;
+    }
+
+  case MCK_Reg62:
+    switch (B) {
+    default: return false;
+    case MCK_Reg63: return true;
+    case MCK_Reg64: return true;
+    case MCK_Reg65: return true;
+    case MCK_Reg66: return true;
+    case MCK_QQQQPR: return true;
+    }
+
+  case MCK_Reg46:
+    switch (B) {
+    default: return false;
+    case MCK_Reg55: return true;
+    case MCK_Reg47: return true;
+    case MCK_Reg56: return true;
+    case MCK_Reg48: return true;
+    case MCK_Reg53: return true;
+    case MCK_Reg54: return true;
+    case MCK_Reg51: return true;
+    case MCK_QQPR: return true;
     case MCK_Reg52: return true;
     case MCK_DQuad: return true;
     }
@@ -5216,91 +5301,6 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_GPRwithAPSR: return true;
     }
 
-  case MCK_Reg46:
-    switch (B) {
-    default: return false;
-    case MCK_Reg47: return true;
-    case MCK_Reg55: return true;
-    case MCK_Reg48: return true;
-    case MCK_Reg56: return true;
-    case MCK_Reg53: return true;
-    case MCK_Reg54: return true;
-    case MCK_Reg51: return true;
-    case MCK_QQPR: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
-    }
-
-  case MCK_Reg62:
-    switch (B) {
-    default: return false;
-    case MCK_Reg63: return true;
-    case MCK_Reg64: return true;
-    case MCK_Reg65: return true;
-    case MCK_Reg66: return true;
-    case MCK_QQQQPR: return true;
-    }
-
-  case MCK_Reg69:
-    switch (B) {
-    default: return false;
-    case MCK_Reg70: return true;
-    case MCK_GPRPair: return true;
-    }
-
-  case MCK_Reg84:
-    switch (B) {
-    default: return false;
-    case MCK_Reg77: return true;
-    case MCK_Reg85: return true;
-    case MCK_Reg78: return true;
-    case MCK_Reg86: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg87: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg89:
-    switch (B) {
-    default: return false;
-    case MCK_Reg90: return true;
-    case MCK_Reg78: return true;
-    case MCK_Reg91: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg92: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg93:
-    switch (B) {
-    default: return false;
-    case MCK_Reg94: return true;
-    case MCK_Reg95: return true;
-    case MCK_Reg96: return true;
-    case MCK_Reg97: return true;
-    case MCK_Reg98: return true;
-    case MCK_DTripleSpc: return true;
-    }
-
-  case MCK_Reg102:
-    switch (B) {
-    default: return false;
-    case MCK_Reg103: return true;
-    case MCK_Reg104: return true;
-    case MCK_Reg56: return true;
-    case MCK_Reg105: return true;
-    case MCK_Reg53: return true;
-    case MCK_Reg54: return true;
-    case MCK_Reg106: return true;
-    case MCK_Reg51: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
-    }
-
   case MCK_QPR_8:
     switch (B) {
     default: return false;
@@ -5311,6 +5311,15 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_Reg25: return true;
     case MCK_QPR: return true;
     case MCK_DPair: return true;
+    }
+
+  case MCK_Reg63:
+    switch (B) {
+    default: return false;
+    case MCK_Reg64: return true;
+    case MCK_Reg65: return true;
+    case MCK_Reg66: return true;
+    case MCK_QQQQPR: return true;
     }
 
   case MCK_Reg57:
@@ -5326,15 +5335,6 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DQuad: return true;
     }
 
-  case MCK_Reg63:
-    switch (B) {
-    default: return false;
-    case MCK_Reg64: return true;
-    case MCK_Reg65: return true;
-    case MCK_Reg66: return true;
-    case MCK_QQQQPR: return true;
-    }
-
   case MCK_tcGPR:
     switch (B) {
     default: return false;
@@ -5344,24 +5344,49 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_GPRwithAPSR: return true;
     }
 
-  case MCK_Reg10:
+  case MCK_Reg103:
     switch (B) {
     default: return false;
-    case MCK_Reg8: return true;
-    case MCK_hGPR: return true;
-    case MCK_rGPR: return true;
-    case MCK_GPRnopc: return true;
-    case MCK_GPR: return true;
-    case MCK_GPRwithAPSR: return true;
+    case MCK_Reg104: return true;
+    case MCK_Reg105: return true;
+    case MCK_Reg53: return true;
+    case MCK_Reg106: return true;
+    case MCK_Reg54: return true;
+    case MCK_Reg51: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
     }
 
-  case MCK_Reg40:
+  case MCK_Reg94:
     switch (B) {
     default: return false;
-    case MCK_Reg41: return true;
-    case MCK_Reg42: return true;
-    case MCK_Reg43: return true;
-    case MCK_DPairSpc: return true;
+    case MCK_Reg95: return true;
+    case MCK_Reg96: return true;
+    case MCK_Reg97: return true;
+    case MCK_Reg98: return true;
+    case MCK_DTripleSpc: return true;
+    }
+
+  case MCK_Reg76:
+    switch (B) {
+    default: return false;
+    case MCK_Reg77: return true;
+    case MCK_Reg78: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg70:
+    return B == MCK_GPRPair;
+
+  case MCK_Reg64:
+    switch (B) {
+    default: return false;
+    case MCK_Reg65: return true;
+    case MCK_Reg66: return true;
+    case MCK_QQQQPR: return true;
     }
 
   case MCK_Reg58:
@@ -5376,21 +5401,62 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DQuad: return true;
     }
 
-  case MCK_Reg64:
+  case MCK_Reg40:
     switch (B) {
     default: return false;
-    case MCK_Reg65: return true;
-    case MCK_Reg66: return true;
-    case MCK_QQQQPR: return true;
+    case MCK_Reg41: return true;
+    case MCK_Reg42: return true;
+    case MCK_Reg43: return true;
+    case MCK_DPairSpc: return true;
     }
 
-  case MCK_Reg70:
-    return B == MCK_GPRPair;
-
-  case MCK_Reg76:
+  case MCK_Reg10:
     switch (B) {
     default: return false;
-    case MCK_Reg77: return true;
+    case MCK_Reg8: return true;
+    case MCK_hGPR: return true;
+    case MCK_rGPR: return true;
+    case MCK_GPRnopc: return true;
+    case MCK_GPR: return true;
+    case MCK_GPRwithAPSR: return true;
+    }
+
+  case MCK_Reg104:
+    switch (B) {
+    default: return false;
+    case MCK_Reg105: return true;
+    case MCK_Reg106: return true;
+    case MCK_Reg54: return true;
+    case MCK_Reg51: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
+    }
+
+  case MCK_Reg90:
+    switch (B) {
+    default: return false;
+    case MCK_Reg91: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg92: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg85:
+    switch (B) {
+    default: return false;
+    case MCK_Reg86: return true;
+    case MCK_Reg79: return true;
+    case MCK_Reg87: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg77:
+    switch (B) {
+    default: return false;
     case MCK_Reg78: return true;
     case MCK_Reg79: return true;
     case MCK_Reg80: return true;
@@ -5398,45 +5464,22 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DTriple: return true;
     }
 
-  case MCK_Reg94:
+  case MCK_Reg65:
     switch (B) {
     default: return false;
-    case MCK_Reg95: return true;
-    case MCK_Reg96: return true;
-    case MCK_Reg97: return true;
-    case MCK_Reg98: return true;
-    case MCK_DTripleSpc: return true;
+    case MCK_Reg66: return true;
+    case MCK_QQQQPR: return true;
     }
 
-  case MCK_Reg103:
+  case MCK_Reg55:
     switch (B) {
     default: return false;
-    case MCK_Reg104: return true;
-    case MCK_Reg105: return true;
+    case MCK_Reg56: return true;
     case MCK_Reg53: return true;
     case MCK_Reg54: return true;
-    case MCK_Reg106: return true;
     case MCK_Reg51: return true;
     case MCK_Reg52: return true;
     case MCK_DQuad: return true;
-    }
-
-  case MCK_Reg8:
-    switch (B) {
-    default: return false;
-    case MCK_hGPR: return true;
-    case MCK_GPRnopc: return true;
-    case MCK_GPR: return true;
-    case MCK_GPRwithAPSR: return true;
-    }
-
-  case MCK_Reg26:
-    switch (B) {
-    default: return false;
-    case MCK_Reg27: return true;
-    case MCK_Reg24: return true;
-    case MCK_Reg25: return true;
-    case MCK_DPair: return true;
     }
 
   case MCK_Reg47:
@@ -5451,129 +5494,30 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DQuad: return true;
     }
 
-  case MCK_Reg55:
+  case MCK_Reg26:
     switch (B) {
     default: return false;
-    case MCK_Reg56: return true;
-    case MCK_Reg53: return true;
-    case MCK_Reg54: return true;
-    case MCK_Reg51: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
-    }
-
-  case MCK_Reg65:
-    switch (B) {
-    default: return false;
-    case MCK_Reg66: return true;
-    case MCK_QQQQPR: return true;
-    }
-
-  case MCK_Reg77:
-    switch (B) {
-    default: return false;
-    case MCK_Reg78: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg85:
-    switch (B) {
-    default: return false;
-    case MCK_Reg86: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg87: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg90:
-    switch (B) {
-    default: return false;
-    case MCK_Reg91: return true;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg92: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg104:
-    switch (B) {
-    default: return false;
-    case MCK_Reg105: return true;
-    case MCK_Reg54: return true;
-    case MCK_Reg106: return true;
-    case MCK_Reg51: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
-    }
-
-  case MCK_Reg27:
-    switch (B) {
-    default: return false;
+    case MCK_Reg27: return true;
     case MCK_Reg24: return true;
     case MCK_Reg25: return true;
     case MCK_DPair: return true;
     }
 
-  case MCK_Reg41:
+  case MCK_Reg8:
     switch (B) {
     default: return false;
-    case MCK_Reg42: return true;
-    case MCK_Reg43: return true;
-    case MCK_DPairSpc: return true;
+    case MCK_hGPR: return true;
+    case MCK_GPRnopc: return true;
+    case MCK_GPR: return true;
+    case MCK_GPRwithAPSR: return true;
     }
 
-  case MCK_Reg48:
+  case MCK_Reg105:
     switch (B) {
     default: return false;
-    case MCK_Reg51: return true;
-    case MCK_QQPR: return true;
+    case MCK_Reg106: return true;
     case MCK_Reg52: return true;
     case MCK_DQuad: return true;
-    }
-
-  case MCK_Reg56:
-    switch (B) {
-    default: return false;
-    case MCK_Reg53: return true;
-    case MCK_Reg54: return true;
-    case MCK_Reg51: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
-    }
-
-  case MCK_Reg66:
-    return B == MCK_QQQQPR;
-
-  case MCK_Reg78:
-    switch (B) {
-    default: return false;
-    case MCK_Reg79: return true;
-    case MCK_Reg80: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg86:
-    switch (B) {
-    default: return false;
-    case MCK_Reg80: return true;
-    case MCK_Reg87: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
-    }
-
-  case MCK_Reg91:
-    switch (B) {
-    default: return false;
-    case MCK_Reg92: return true;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
     }
 
   case MCK_Reg95:
@@ -5585,12 +5529,68 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DTripleSpc: return true;
     }
 
-  case MCK_Reg105:
+  case MCK_Reg91:
     switch (B) {
     default: return false;
-    case MCK_Reg106: return true;
+    case MCK_Reg92: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg86:
+    switch (B) {
+    default: return false;
+    case MCK_Reg87: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg78:
+    switch (B) {
+    default: return false;
+    case MCK_Reg79: return true;
+    case MCK_Reg80: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
+    }
+
+  case MCK_Reg66:
+    return B == MCK_QQQQPR;
+
+  case MCK_Reg56:
+    switch (B) {
+    default: return false;
+    case MCK_Reg53: return true;
+    case MCK_Reg54: return true;
+    case MCK_Reg51: return true;
     case MCK_Reg52: return true;
     case MCK_DQuad: return true;
+    }
+
+  case MCK_Reg48:
+    switch (B) {
+    default: return false;
+    case MCK_Reg51: return true;
+    case MCK_QQPR: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
+    }
+
+  case MCK_Reg41:
+    switch (B) {
+    default: return false;
+    case MCK_Reg42: return true;
+    case MCK_Reg43: return true;
+    case MCK_DPairSpc: return true;
+    }
+
+  case MCK_Reg27:
+    switch (B) {
+    default: return false;
+    case MCK_Reg24: return true;
+    case MCK_Reg25: return true;
+    case MCK_DPair: return true;
     }
 
   case MCK_DPR_8:
@@ -5642,19 +5642,14 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DQuad: return true;
     }
 
-  case MCK_Reg42:
-    switch (B) {
-    default: return false;
-    case MCK_Reg43: return true;
-    case MCK_DPairSpc: return true;
-    }
+  case MCK_Reg106:
+    return B == MCK_DQuad;
 
-  case MCK_Reg54:
+  case MCK_Reg97:
     switch (B) {
     default: return false;
-    case MCK_Reg51: return true;
-    case MCK_Reg52: return true;
-    case MCK_DQuad: return true;
+    case MCK_Reg98: return true;
+    case MCK_DTripleSpc: return true;
     }
 
   case MCK_Reg79:
@@ -5665,15 +5660,20 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DTriple: return true;
     }
 
-  case MCK_Reg97:
+  case MCK_Reg54:
     switch (B) {
     default: return false;
-    case MCK_Reg98: return true;
-    case MCK_DTripleSpc: return true;
+    case MCK_Reg51: return true;
+    case MCK_Reg52: return true;
+    case MCK_DQuad: return true;
     }
 
-  case MCK_Reg106:
-    return B == MCK_DQuad;
+  case MCK_Reg42:
+    switch (B) {
+    default: return false;
+    case MCK_Reg43: return true;
+    case MCK_DPairSpc: return true;
+    }
 
   case MCK_rGPR:
     switch (B) {
@@ -5683,11 +5683,17 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_GPRwithAPSR: return true;
     }
 
-  case MCK_Reg24:
+  case MCK_Reg92:
+    return B == MCK_DTriple;
+
+  case MCK_Reg87:
+    return B == MCK_DTriple;
+
+  case MCK_Reg80:
     switch (B) {
     default: return false;
-    case MCK_Reg25: return true;
-    case MCK_DPair: return true;
+    case MCK_Reg81: return true;
+    case MCK_DTriple: return true;
     }
 
   case MCK_Reg51:
@@ -5697,18 +5703,12 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
     case MCK_DQuad: return true;
     }
 
-  case MCK_Reg80:
+  case MCK_Reg24:
     switch (B) {
     default: return false;
-    case MCK_Reg81: return true;
-    case MCK_DTriple: return true;
+    case MCK_Reg25: return true;
+    case MCK_DPair: return true;
     }
-
-  case MCK_Reg87:
-    return B == MCK_DTriple;
-
-  case MCK_Reg92:
-    return B == MCK_DTriple;
 
   case MCK_GPRnopc:
     switch (B) {
@@ -5720,20 +5720,20 @@ static bool isSubclass(MatchClassKind A, MatchClassKind B) {
   case MCK_QQPR:
     return B == MCK_DQuad;
 
-  case MCK_Reg25:
-    return B == MCK_DPair;
-
-  case MCK_Reg43:
-    return B == MCK_DPairSpc;
-
-  case MCK_Reg52:
-    return B == MCK_DQuad;
+  case MCK_Reg98:
+    return B == MCK_DTripleSpc;
 
   case MCK_Reg81:
     return B == MCK_DTriple;
 
-  case MCK_Reg98:
-    return B == MCK_DTripleSpc;
+  case MCK_Reg52:
+    return B == MCK_DQuad;
+
+  case MCK_Reg43:
+    return B == MCK_DPairSpc;
+
+  case MCK_Reg25:
+    return B == MCK_DPair;
 
   case MCK_DPR_VFP2:
     return B == MCK_DPR;
@@ -7345,9 +7345,9 @@ const char *getMatchClassName(MatchClassKind Kind) {
   case MCK__94_: return "MCK__94_";
   case MCK__123_: return "MCK__123_";
   case MCK__125_: return "MCK__125_";
-  case MCK_Reg11: return "MCK_Reg11";
-  case MCK_Reg59: return "MCK_Reg59";
   case MCK_Reg75: return "MCK_Reg75";
+  case MCK_Reg59: return "MCK_Reg59";
+  case MCK_Reg11: return "MCK_Reg11";
   case MCK_APSR: return "MCK_APSR";
   case MCK_APSR_NZCV: return "MCK_APSR_NZCV";
   case MCK_CCR: return "MCK_CCR";
@@ -7363,57 +7363,57 @@ const char *getMatchClassName(MatchClassKind Kind) {
   case MCK_MVFR2: return "MCK_MVFR2";
   case MCK_PC: return "MCK_PC";
   case MCK_SPSR: return "MCK_SPSR";
-  case MCK_Reg60: return "MCK_Reg60";
-  case MCK_Reg68: return "MCK_Reg68";
-  case MCK_Reg73: return "MCK_Reg73";
   case MCK_Reg100: return "MCK_Reg100";
-  case MCK_Reg45: return "MCK_Reg45";
-  case MCK_Reg61: return "MCK_Reg61";
-  case MCK_Reg72: return "MCK_Reg72";
-  case MCK_Reg74: return "MCK_Reg74";
-  case MCK_Reg83: return "MCK_Reg83";
-  case MCK_Reg88: return "MCK_Reg88";
+  case MCK_Reg73: return "MCK_Reg73";
+  case MCK_Reg68: return "MCK_Reg68";
+  case MCK_Reg60: return "MCK_Reg60";
   case MCK_Reg101: return "MCK_Reg101";
-  case MCK_Reg0: return "MCK_Reg0";
-  case MCK_Reg46: return "MCK_Reg46";
-  case MCK_Reg62: return "MCK_Reg62";
-  case MCK_Reg69: return "MCK_Reg69";
-  case MCK_Reg84: return "MCK_Reg84";
-  case MCK_Reg89: return "MCK_Reg89";
-  case MCK_Reg93: return "MCK_Reg93";
+  case MCK_Reg88: return "MCK_Reg88";
+  case MCK_Reg83: return "MCK_Reg83";
+  case MCK_Reg74: return "MCK_Reg74";
+  case MCK_Reg72: return "MCK_Reg72";
+  case MCK_Reg61: return "MCK_Reg61";
+  case MCK_Reg45: return "MCK_Reg45";
   case MCK_Reg102: return "MCK_Reg102";
+  case MCK_Reg93: return "MCK_Reg93";
+  case MCK_Reg89: return "MCK_Reg89";
+  case MCK_Reg84: return "MCK_Reg84";
+  case MCK_Reg69: return "MCK_Reg69";
+  case MCK_Reg62: return "MCK_Reg62";
+  case MCK_Reg46: return "MCK_Reg46";
+  case MCK_Reg0: return "MCK_Reg0";
   case MCK_QPR_8: return "MCK_QPR_8";
-  case MCK_Reg57: return "MCK_Reg57";
   case MCK_Reg63: return "MCK_Reg63";
+  case MCK_Reg57: return "MCK_Reg57";
   case MCK_tcGPR: return "MCK_tcGPR";
-  case MCK_Reg10: return "MCK_Reg10";
-  case MCK_Reg40: return "MCK_Reg40";
-  case MCK_Reg58: return "MCK_Reg58";
-  case MCK_Reg64: return "MCK_Reg64";
-  case MCK_Reg70: return "MCK_Reg70";
-  case MCK_Reg76: return "MCK_Reg76";
-  case MCK_Reg94: return "MCK_Reg94";
   case MCK_Reg103: return "MCK_Reg103";
-  case MCK_Reg8: return "MCK_Reg8";
-  case MCK_Reg26: return "MCK_Reg26";
-  case MCK_Reg47: return "MCK_Reg47";
-  case MCK_Reg55: return "MCK_Reg55";
-  case MCK_Reg65: return "MCK_Reg65";
-  case MCK_Reg77: return "MCK_Reg77";
-  case MCK_Reg85: return "MCK_Reg85";
-  case MCK_Reg90: return "MCK_Reg90";
+  case MCK_Reg94: return "MCK_Reg94";
+  case MCK_Reg76: return "MCK_Reg76";
+  case MCK_Reg70: return "MCK_Reg70";
+  case MCK_Reg64: return "MCK_Reg64";
+  case MCK_Reg58: return "MCK_Reg58";
+  case MCK_Reg40: return "MCK_Reg40";
+  case MCK_Reg10: return "MCK_Reg10";
   case MCK_Reg104: return "MCK_Reg104";
+  case MCK_Reg90: return "MCK_Reg90";
+  case MCK_Reg85: return "MCK_Reg85";
+  case MCK_Reg77: return "MCK_Reg77";
+  case MCK_Reg65: return "MCK_Reg65";
+  case MCK_Reg55: return "MCK_Reg55";
+  case MCK_Reg47: return "MCK_Reg47";
+  case MCK_Reg26: return "MCK_Reg26";
+  case MCK_Reg8: return "MCK_Reg8";
   case MCK_GPRPair: return "MCK_GPRPair";
-  case MCK_Reg27: return "MCK_Reg27";
-  case MCK_Reg41: return "MCK_Reg41";
-  case MCK_Reg48: return "MCK_Reg48";
-  case MCK_Reg56: return "MCK_Reg56";
-  case MCK_Reg66: return "MCK_Reg66";
-  case MCK_Reg78: return "MCK_Reg78";
-  case MCK_Reg86: return "MCK_Reg86";
-  case MCK_Reg91: return "MCK_Reg91";
-  case MCK_Reg95: return "MCK_Reg95";
   case MCK_Reg105: return "MCK_Reg105";
+  case MCK_Reg95: return "MCK_Reg95";
+  case MCK_Reg91: return "MCK_Reg91";
+  case MCK_Reg86: return "MCK_Reg86";
+  case MCK_Reg78: return "MCK_Reg78";
+  case MCK_Reg66: return "MCK_Reg66";
+  case MCK_Reg56: return "MCK_Reg56";
+  case MCK_Reg48: return "MCK_Reg48";
+  case MCK_Reg41: return "MCK_Reg41";
+  case MCK_Reg27: return "MCK_Reg27";
   case MCK_DPR_8: return "MCK_DPR_8";
   case MCK_QPR_VFP2: return "MCK_QPR_VFP2";
   case MCK_hGPR: return "MCK_hGPR";
@@ -7422,24 +7422,24 @@ const char *getMatchClassName(MatchClassKind Kind) {
   case MCK_Reg96: return "MCK_Reg96";
   case MCK_Reg53: return "MCK_Reg53";
   case MCK_QQQQPR: return "MCK_QQQQPR";
-  case MCK_Reg42: return "MCK_Reg42";
-  case MCK_Reg54: return "MCK_Reg54";
-  case MCK_Reg79: return "MCK_Reg79";
-  case MCK_Reg97: return "MCK_Reg97";
   case MCK_Reg106: return "MCK_Reg106";
+  case MCK_Reg97: return "MCK_Reg97";
+  case MCK_Reg79: return "MCK_Reg79";
+  case MCK_Reg54: return "MCK_Reg54";
+  case MCK_Reg42: return "MCK_Reg42";
   case MCK_rGPR: return "MCK_rGPR";
-  case MCK_Reg24: return "MCK_Reg24";
-  case MCK_Reg51: return "MCK_Reg51";
-  case MCK_Reg80: return "MCK_Reg80";
-  case MCK_Reg87: return "MCK_Reg87";
   case MCK_Reg92: return "MCK_Reg92";
+  case MCK_Reg87: return "MCK_Reg87";
+  case MCK_Reg80: return "MCK_Reg80";
+  case MCK_Reg51: return "MCK_Reg51";
+  case MCK_Reg24: return "MCK_Reg24";
   case MCK_GPRnopc: return "MCK_GPRnopc";
   case MCK_QQPR: return "MCK_QQPR";
-  case MCK_Reg25: return "MCK_Reg25";
-  case MCK_Reg43: return "MCK_Reg43";
-  case MCK_Reg52: return "MCK_Reg52";
-  case MCK_Reg81: return "MCK_Reg81";
   case MCK_Reg98: return "MCK_Reg98";
+  case MCK_Reg81: return "MCK_Reg81";
+  case MCK_Reg52: return "MCK_Reg52";
+  case MCK_Reg43: return "MCK_Reg43";
+  case MCK_Reg25: return "MCK_Reg25";
   case MCK_DPR_VFP2: return "MCK_DPR_VFP2";
   case MCK_GPR: return "MCK_GPR";
   case MCK_GPRwithAPSR: return "MCK_GPRwithAPSR";
