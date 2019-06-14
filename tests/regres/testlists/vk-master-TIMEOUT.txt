@@ -1,1 +1,0 @@
-dEQP-VK.glsl.loops.special.do_while_dynamic_iterations.dowhile_trap_vertex
