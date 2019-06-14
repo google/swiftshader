@@ -22,6 +22,30 @@
       "revId": "ea343e1c54104f647773f94029ad3a45421ba46d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8294ecd9_edb2d193",
+        "filename": "src/Pipeline/VertexRoutine.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-06-14T17:08:50Z",
+      "side": 1,
+      "message": "Comment deleted. It was mainly a reminder to look into whether we can reduce the clipFlags field to a byte. 95% of Vulkan implementations support ClipDistance/CullDistance so it\u0027s highly likely we\u0027ll need more bits in the future.",
+      "parentUuid": "169a2a5d_8e51b0e3",
+      "range": {
+        "startLine": 547,
+        "startChar": 124,
+        "endLine": 547,
+        "endChar": 164
+      },
+      "revId": "ea343e1c54104f647773f94029ad3a45421ba46d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
