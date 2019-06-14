@@ -55,7 +55,7 @@ namespace vk
 
 	static inline DescriptorPool* Cast(VkDescriptorPool object)
 	{
-		return reinterpret_cast<DescriptorPool*>(object.get());
+		return DescriptorPool::Cast(object);
 	}
 
 } // namespace vk

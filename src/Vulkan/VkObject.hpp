@@ -25,6 +25,19 @@
 
 namespace vk
 {
+
+template<typename T, typename VkT>
+static inline T* VkTtoT(VkT vkObject)
+{
+	return static_cast<T*>(vkObject.get());
+}
+
+template<typename T, typename VkT>
+static inline VkT TtoVkT(T* object)
+{
+	return VkT(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(object)));
+}
+
 // For use in the placement new to make it verbose that we're allocating an object using device memory
 static constexpr VkAllocationCallbacks* DEVICE_MEMORY = nullptr;
 
@@ -92,7 +105,12 @@ public:
 	{
 		// The static_cast<T*> is used to make sure the returned pointer points to the
 		// beginning of the object, even if the derived class uses multiple inheritance
-		return reinterpret_cast<typename VkT::HandleType>(static_cast<T*>(this));
+		return vk::TtoVkT<T, VkT>(static_cast<T*>(this));
+	}
+
+	static inline T* Cast(VkT vkObject)
+	{
+		return vk::VkTtoT<T, VkT>(vkObject);
 	}
 };
 

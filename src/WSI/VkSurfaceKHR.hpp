@@ -61,7 +61,12 @@ public:
 
 	operator VkSurfaceKHR()
 	{
-		return reinterpret_cast<VkSurfaceKHR::HandleType>(this);
+		return vk::TtoVkT<SurfaceKHR, VkSurfaceKHR>(this);
+	}
+
+	static inline SurfaceKHR* Cast(VkSurfaceKHR object)
+	{
+		return vk::VkTtoT<SurfaceKHR, VkSurfaceKHR>(object);
 	}
 
 	void destroy(const VkAllocationCallbacks* pAllocator)
@@ -93,7 +98,7 @@ private:
 
 static inline SurfaceKHR* Cast(VkSurfaceKHR object)
 {
-	return reinterpret_cast<SurfaceKHR*>(object.get());
+	return SurfaceKHR::Cast(object);
 }
 
 }

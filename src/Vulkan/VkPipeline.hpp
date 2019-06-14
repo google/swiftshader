@@ -38,7 +38,12 @@ public:
 
 	operator VkPipeline()
 	{
-		return reinterpret_cast<VkPipeline::HandleType>(this);
+		return vk::TtoVkT<Pipeline, VkPipeline>(this);
+	}
+
+	static inline Pipeline* Cast(VkPipeline object)
+	{
+		return vk::VkTtoT<Pipeline, VkPipeline>(object);
 	}
 
 	void destroy(const VkAllocationCallbacks* pAllocator)
@@ -124,7 +129,7 @@ protected:
 
 static inline Pipeline* Cast(VkPipeline object)
 {
-	return reinterpret_cast<Pipeline*>(object.get());
+	return Pipeline::Cast(object);
 }
 
 } // namespace vk

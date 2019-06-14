@@ -53,7 +53,7 @@ private:
 
 static inline Buffer* Cast(VkBuffer object)
 {
-	return reinterpret_cast<Buffer*>(object.get());
+	return Buffer::Cast(object);
 }
 
 } // namespace vk

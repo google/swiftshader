@@ -43,7 +43,7 @@ private:
 
 static inline Framebuffer* Cast(VkFramebuffer object)
 {
-	return reinterpret_cast<Framebuffer*>(object.get());
+	return Framebuffer::Cast(object);
 }
 
 } // namespace vk

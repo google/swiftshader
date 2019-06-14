@@ -18,90 +18,26 @@
 #include <cstddef>
 #include <cstdint>
 
-template<typename HandleType> class VkHandle
+template<typename T> class VkNonDispatchableHandle
 {
 public:
-	VkHandle(HandleType handle)
-	{
-		u.dummy = 0;
-		u.handle = handle;
-	}
-
-	HandleType get() const
-	{
-		return u.handle;
-	}
-
-	operator HandleType() const
-	{
-		return u.handle;
-	}
-
-protected:
-	HandleType set(HandleType handle)
-	{
-		return (u.handle = handle);
-	}
-
-private:
-	union PointerHandleUnion
-	{
-		HandleType handle;
-		uint64_t dummy; // VkNonDispatchableHandle's size must always be 64 bits even when void* is 32 bits
-	};
-	PointerHandleUnion u;
-};
-
-template<typename T> class VkNonDispatchableHandleBase : public VkHandle<T>
-{
-public:
-	using HandleType = T;
-
-	VkNonDispatchableHandleBase(HandleType handle) : VkHandle<T>(handle)
-	{
-	}
-
-	void operator=(HandleType handle)
-	{
-		this->set(handle);
-	}
-};
-
-// VkDescriptorSet objects are really just memory in the VkDescriptorPool
-// object, so define different/more convenient operators for this object.
-struct VkDescriptorSet_T;
-template<> class VkNonDispatchableHandleBase<VkDescriptorSet_T*> : public VkHandle<uint8_t*>
-{
-public:
-	using HandleType = uint8_t*;
-
-	VkNonDispatchableHandleBase(HandleType handle) : VkHandle<uint8_t*>(handle)
-	{
-	}
-
-	HandleType operator+(ptrdiff_t rhs) const
-	{
-		return get() + rhs;
-	}
-
-	HandleType operator+=(ptrdiff_t rhs)
-	{
-		return this->set(get() + rhs);
-	}
-
-	ptrdiff_t operator-(const HandleType rhs) const
-	{
-		return get() - rhs;
-	}
-};
-
-template<typename T> class VkNonDispatchableHandle : public VkNonDispatchableHandleBase<T>
-{
-public:
-	VkNonDispatchableHandle(typename VkNonDispatchableHandleBase<T>::HandleType handle) : VkNonDispatchableHandleBase<T>(handle)
+	VkNonDispatchableHandle(uint64_t h) : handle(h)
 	{
 		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 	}
+
+	void* get() const
+	{
+		return reinterpret_cast<void*>(static_cast<uintptr_t>(handle));
+	}
+
+	operator void*() const
+	{
+		return get();
+	}
+
+private:
+	uint64_t handle;
 };
 
 #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) \

@@ -45,7 +45,7 @@ private:
 
 static inline PipelineLayout* Cast(VkPipelineLayout object)
 {
-	return reinterpret_cast<PipelineLayout*>(object.get());
+	return PipelineLayout::Cast(object);
 }
 
 } // namespace vk

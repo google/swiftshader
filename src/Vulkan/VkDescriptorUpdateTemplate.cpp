@@ -22,7 +22,7 @@ namespace vk
 	DescriptorUpdateTemplate::DescriptorUpdateTemplate(const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo, void* mem) :
 		descriptorUpdateEntryCount(pCreateInfo->descriptorUpdateEntryCount),
 		descriptorUpdateEntries(reinterpret_cast<VkDescriptorUpdateTemplateEntry*>(mem)),
-		descriptorSetLayout(Cast(pCreateInfo->descriptorSetLayout))
+		descriptorSetLayout(vk::Cast(pCreateInfo->descriptorSetLayout))
 	{
 		for(uint32_t i = 0; i < descriptorUpdateEntryCount; i++)
 		{

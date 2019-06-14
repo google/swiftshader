@@ -116,12 +116,12 @@ public:
 
 static inline Sampler* Cast(VkSampler object)
 {
-	return reinterpret_cast<Sampler*>(object.get());
+	return Sampler::Cast(object);
 }
 
 static inline SamplerYcbcrConversion* Cast(VkSamplerYcbcrConversion object)
 {
-	return reinterpret_cast<SamplerYcbcrConversion*>(object.get());
+	return SamplerYcbcrConversion::Cast(object);
 }
 
 } // namespace vk

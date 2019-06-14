@@ -59,7 +59,7 @@ private:
 
 static inline SwapchainKHR* Cast(VkSwapchainKHR object)
 {
-	return reinterpret_cast<SwapchainKHR*>(object.get());
+	return SwapchainKHR::Cast(object);
 }
 
 }

@@ -303,7 +303,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		for (uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
-			auto bufferView = Cast(*update);
+			auto bufferView = vk::Cast(*update);
 
 			imageSampler[i].type = VK_IMAGE_VIEW_TYPE_1D;
 			imageSampler[i].imageViewId = bufferView->id;
@@ -438,7 +438,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
-			auto imageView = Cast(update->imageView);
+			auto imageView = vk::Cast(update->imageView);
 			descriptor[i].ptr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT, 0, 0);
 			descriptor[i].extent = imageView->getMipLevelExtent(0);
 			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
@@ -467,7 +467,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		for (uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
-			auto bufferView = Cast(*update);
+			auto bufferView = vk::Cast(*update);
 			descriptor[i].ptr = bufferView->getPointer();
 			descriptor[i].extent = {bufferView->getElementCount(), 1, 1};
 			descriptor[i].rowPitchBytes = 0;
@@ -487,7 +487,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		for (uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkDescriptorBufferInfo const *>(src + entry.offset + entry.stride * i);
-			auto buffer = Cast(update->buffer);
+			auto buffer = vk::Cast(update->buffer);
 			descriptor[i].ptr = buffer->getOffsetPointer(update->offset);
 			descriptor[i].sizeInBytes = static_cast<int>((update->range == VK_WHOLE_SIZE) ? buffer->getSize() - update->offset : update->range);
 			descriptor[i].robustnessSize = static_cast<int>(buffer->getSize() - update->offset);

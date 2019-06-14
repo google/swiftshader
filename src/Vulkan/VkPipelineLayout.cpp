@@ -27,7 +27,7 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, vo
 	setLayouts = reinterpret_cast<DescriptorSetLayout**>(hostMem);
 	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
 	{
-		setLayouts[i] = Cast(pCreateInfo->pSetLayouts[i]);
+		setLayouts[i] = vk::Cast(pCreateInfo->pSetLayouts[i]);
 	}
 	hostMem += setLayoutsSize;
 

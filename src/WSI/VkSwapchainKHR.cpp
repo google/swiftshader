@@ -26,7 +26,7 @@ namespace vk
 {
 
 SwapchainKHR::SwapchainKHR(const VkSwapchainCreateInfoKHR *pCreateInfo, void *mem) :
-	surface(Cast(pCreateInfo->surface)),
+	surface(vk::Cast(pCreateInfo->surface)),
 	images(reinterpret_cast<PresentImage*>(mem)),
 	imageCount(pCreateInfo->minImageCount),
 	retired(false)

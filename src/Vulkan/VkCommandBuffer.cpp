@@ -1384,7 +1384,7 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, co
 		ASSERT(dynamicOffsetCount >= numDynamicDescriptors);
 
 		addCommand<BindDescriptorSet>(
-				pipelineBindPoint, layout, descriptorSetIndex, Cast(pDescriptorSets[i]),
+				pipelineBindPoint, layout, descriptorSetIndex, vk::Cast(pDescriptorSets[i]),
 				dynamicOffsetCount, pDynamicOffsets);
 
 		pDynamicOffsets += numDynamicDescriptors;

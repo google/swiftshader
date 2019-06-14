@@ -47,7 +47,7 @@ private:
 
 static inline PipelineCache* Cast(VkPipelineCache object)
 {
-	return reinterpret_cast<PipelineCache*>(object.get());
+	return PipelineCache::Cast(object);
 }
 
 } // namespace vk

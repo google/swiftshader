@@ -95,7 +95,7 @@ VkResult CommandPool::reset(VkCommandPoolResetFlags flags)
 	//  the command pool are put in the initial state."
 	for(auto commandBuffer : *commandBuffers)
 	{
-		Cast(commandBuffer)->reset(flags);
+		vk::Cast(commandBuffer)->reset(flags);
 	}
 
 	// According the Vulkan 1.1 spec:

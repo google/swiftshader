@@ -42,7 +42,7 @@ private:
 
 static inline DeviceMemory* Cast(VkDeviceMemory object)
 {
-	return reinterpret_cast<DeviceMemory*>(object.get());
+	return DeviceMemory::Cast(object);
 }
 
 

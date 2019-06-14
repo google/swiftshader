@@ -114,7 +114,7 @@ private:
 
 static inline QueryPool* Cast(VkQueryPool object)
 {
-	return reinterpret_cast<QueryPool*>(object.get());
+	return QueryPool::Cast(object);
 }
 
 } // namespace vk

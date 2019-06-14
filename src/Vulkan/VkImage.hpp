@@ -102,7 +102,7 @@ private:
 
 static inline Image* Cast(VkImage object)
 {
-	return reinterpret_cast<Image*>(object.get());
+	return Image::Cast(object);
 }
 
 } // namespace vk

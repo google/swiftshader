@@ -20,18 +20,43 @@
 #include <algorithm>
 #include <memory>
 
+namespace
+{
+
+inline uintptr_t toPtr(const VkDescriptorSet& descSet)
+{
+	return reinterpret_cast<uintptr_t>(vk::Cast(descSet));
+}
+
+inline uint64_t operator+(const VkDescriptorSet& lhs, size_t offset)
+{
+	return static_cast<uint64_t>(toPtr(lhs) + offset);
+}
+
+inline void operator+=(VkDescriptorSet& lhs, size_t offset)
+{
+	lhs = static_cast<uint64_t>(toPtr(lhs) + offset);
+}
+
+inline uintptr_t operator-(const VkDescriptorSet& lhs, const VkDescriptorSet& rhs)
+{
+	return toPtr(lhs) - toPtr(rhs);
+}
+
+}
+
 namespace vk
 {
 
 DescriptorPool::DescriptorPool(const VkDescriptorPoolCreateInfo* pCreateInfo, void* mem) :
-	pool(static_cast<uint8_t*>(mem)),
+	pool(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(mem))),
 	poolSize(ComputeRequiredAllocationSize(pCreateInfo))
 {
 }
 
 void DescriptorPool::destroy(const VkAllocationCallbacks* pAllocator)
 {
-	vk::deallocate(pool, pAllocator);
+	vk::deallocate(pool.get(), pAllocator);
 }
 
 size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo* pCreateInfo)
@@ -54,7 +79,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{
 		pDescriptorSets[i] = VK_NULL_HANDLE;
-		layoutSizes[i] = Cast(pSetLayouts[i])->getDescriptorSetAllocationSize();
+		layoutSizes[i] = vk::Cast(pSetLayouts[i])->getDescriptorSetAllocationSize();
 	}
 
 	VkResult result = allocateSets(&(layoutSizes[0]), descriptorSetCount, pDescriptorSets);
@@ -62,7 +87,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	{
 		for(uint32_t i = 0; i < descriptorSetCount; i++)
 		{
-			Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]));
+			vk::Cast(pSetLayouts[i])->initialize(vk::Cast(pDescriptorSets[i]));
 		}
 	}
 	return result;

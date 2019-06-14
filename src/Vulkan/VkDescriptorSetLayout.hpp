@@ -141,7 +141,7 @@ private:
 
 static inline DescriptorSetLayout* Cast(VkDescriptorSetLayout object)
 {
-	return reinterpret_cast<DescriptorSetLayout*>(object.get());
+	return DescriptorSetLayout::Cast(object);
 }
 
 } // namespace vk

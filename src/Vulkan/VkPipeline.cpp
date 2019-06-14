@@ -228,7 +228,7 @@ namespace vk
 Pipeline::Pipeline(PipelineLayout const *layout) : layout(layout) {}
 
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem)
-	: Pipeline(Cast(pCreateInfo->layout))
+	: Pipeline(vk::Cast(pCreateInfo->layout))
 {
 	if(((pCreateInfo->flags &
 		~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
@@ -451,12 +451,12 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 			UNIMPLEMENTED("pStage->flags");
 		}
 
-		auto module = Cast(pStage->module);
+		auto module = vk::Cast(pStage->module);
 		auto code = preprocessSpirv(module->getCode(), pStage->pSpecializationInfo);
 
 		// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 		// TODO: also pass in any pipeline state which will affect shader compilation
-		auto spirvShader = new sw::SpirvShader{pStage, code, Cast(pCreateInfo->renderPass), pCreateInfo->subpass};
+		auto spirvShader = new sw::SpirvShader{pStage, code, vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass};
 
 		switch (pStage->stage)
 		{
@@ -525,7 +525,7 @@ bool GraphicsPipeline::hasDynamicState(VkDynamicState dynamicState) const
 }
 
 ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem)
-	: Pipeline(Cast(pCreateInfo->layout))
+	: Pipeline(vk::Cast(pCreateInfo->layout))
 {
 }
 
@@ -542,7 +542,7 @@ size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCre
 
 void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo)
 {
-	auto module = Cast(pCreateInfo->stage.module);
+	auto module = vk::Cast(pCreateInfo->stage.module);
 
 	auto code = preprocessSpirv(module->getCode(), pCreateInfo->stage.pSpecializationInfo);
 

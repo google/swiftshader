@@ -104,7 +104,7 @@ inline VkComponentMapping ResolveIdentityMapping(VkComponentMapping m)
 
 static inline ImageView* Cast(VkImageView object)
 {
-	return reinterpret_cast<ImageView*>(object.get());
+	return ImageView::Cast(object);
 }
 
 } // namespace vk

@@ -32,6 +32,11 @@ namespace vk
 	class DescriptorSet
 	{
 	public:
+		static inline DescriptorSet* Cast(VkDescriptorSet object)
+		{
+			return static_cast<DescriptorSet*>(object.get());
+		}
+
 		using Bindings = std::array<vk::DescriptorSet*, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 		using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;
 
@@ -41,7 +46,7 @@ namespace vk
 
 	inline DescriptorSet* Cast(VkDescriptorSet object)
 	{
-		return reinterpret_cast<DescriptorSet*>(object.get());
+		return DescriptorSet::Cast(object);
 	}
 
 } // namespace vk

@@ -70,7 +70,7 @@ private:
 
 static inline Event* Cast(VkEvent object)
 {
-	return reinterpret_cast<Event*>(object.get());
+	return Event::Cast(object);
 }
 
 } // namespace vk

@@ -27,7 +27,7 @@ Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) 
 {
 	for(uint32_t i = 0; i < attachmentCount; i++)
 	{
-		attachments[i] = Cast(pCreateInfo->pAttachments[i]);
+		attachments[i] = vk::Cast(pCreateInfo->pAttachments[i]);
 	}
 }
 
