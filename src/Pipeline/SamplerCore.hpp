@@ -40,21 +40,18 @@ namespace sw
 		SAMPLER_METHOD_LAST = Gather,
 	};
 
-	enum SamplerOption
-	{
-		None,
-		Offset,   // Offset sample location by provided integer coordinates.
-		SAMPLER_OPTION_LAST = Offset,
-	};
-
 	// TODO(b/129523279): Eliminate and use SpirvShader::ImageInstruction instead.
 	struct SamplerFunction
 	{
-		SamplerFunction(SamplerMethod method, SamplerOption option = None) : method(method), option(option) {}
+		SamplerFunction(SamplerMethod method, bool offset = false, bool sample = false)
+			: method(method), offset(offset), sample(sample)
+		{}
+
 		operator SamplerMethod() { return method; }
 
 		const SamplerMethod method;
-		const SamplerOption option;
+		const bool offset;
+		const bool sample;
  	};
 
 	class SamplerCore

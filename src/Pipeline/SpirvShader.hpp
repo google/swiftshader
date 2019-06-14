@@ -504,7 +504,7 @@ namespace sw
 
 			SamplerFunction getSamplerFunction() const
 			{
-				return { static_cast<SamplerMethod>(samplerMethod), static_cast<SamplerOption>(samplerOption) };
+				return { static_cast<SamplerMethod>(samplerMethod), offset != 0, sample != 0 };
 			}
 
 			bool isDref() const
@@ -523,22 +523,22 @@ namespace sw
 				{
 					uint32_t variant : BITS(VARIANT_LAST);
 					uint32_t samplerMethod : BITS(SAMPLER_METHOD_LAST);
-					uint32_t samplerOption : BITS(SAMPLER_OPTION_LAST);
 					uint32_t gatherComponent : 2;
 
 					// Parameters are passed to the sampling routine in this order:
 					uint32_t coordinates : 3;       // 1-4 (does not contain projection component)
 				//	uint32_t dref : 1;              // Indicated by Variant::ProjDref|Dref
 				//	uint32_t lodOrBias : 1;         // Indicated by SamplerMethod::Lod|Bias|Fetch
-					uint32_t gradComponents : 2;    // 0-3 (for each of dx / dy)
-					uint32_t offsetComponents : 2;  // 0-3
+					uint32_t grad : 2;              // 0-3 components (for each of dx / dy)
+					uint32_t offset : 2;            // 0-3 components
+					uint32_t sample : 1;            // 0-1 scalar integer
 				};
 
 				uint32_t parameters;
 			};
 		};
 
-		static_assert(sizeof(ImageInstruction) == 4, "ImageInstruction must be 32-bit");
+		static_assert(sizeof(ImageInstruction) == sizeof(uint32_t), "ImageInstruction must be 32-bit");
 
 		int getSerialID() const
 		{

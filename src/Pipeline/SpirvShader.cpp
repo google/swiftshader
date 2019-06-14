@@ -4783,6 +4783,7 @@ namespace sw
 		bool constOffset = false;
 		Object::ID offsetId = 0;
 		bool sample = false;
+		Object::ID sampleId = 0;
 
 		uint32_t operand = (instruction.isDref() || instruction.samplerMethod == Gather) ? 6 : 5;
 
@@ -4829,14 +4830,17 @@ namespace sw
 
 			if(imageOperands & spv::ImageOperandsSampleMask)
 			{
-				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsSampleMask); (void)sample;
 				sample = true;
+				sampleId = insn.word(operand);
 				imageOperands &= ~spv::ImageOperandsSampleMask;
+
+				ASSERT(instruction.samplerMethod == Fetch);
+				instruction.sample = true;
 			}
 
 			if(imageOperands != 0)
 			{
-				UNIMPLEMENTED("Image operand %x", imageOperands);
+				UNSUPPORTED("Image operand %x", imageOperands);
 			}
 		}
 
@@ -4887,7 +4891,7 @@ namespace sw
 			auto &dxyType = getType(dxValue.type);
 			ASSERT(dxyType.sizeInComponents == getType(dyValue.type).sizeInComponents);
 
-			instruction.gradComponents = dxyType.sizeInComponents;
+			instruction.grad = dxyType.sizeInComponents;
 
 			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++, i++)
 			{
@@ -4913,13 +4917,18 @@ namespace sw
 			auto offsetValue = GenericValue(this, state->routine, offsetId);
 			auto &offsetType = getType(offsetValue.type);
 
-			instruction.samplerOption = Offset;
-			instruction.offsetComponents = offsetType.sizeInComponents;
+			instruction.offset = offsetType.sizeInComponents;
 
 			for(uint32_t j = 0; j < offsetType.sizeInComponents; j++, i++)
 			{
 				in[i] = offsetValue.Float(j);  // Integer values, but transfered as float.
 			}
+		}
+
+		if(sample)
+		{
+			auto sampleValue = GenericValue(this, state->routine, sampleId);
+			in[i] = sampleValue.Float(0);
 		}
 
 		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageDescriptor, sampler);
@@ -5455,7 +5464,7 @@ namespace sw
 
 		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
 
-		// Not handling any image operands yet.
+		// TODO(b/131171141): Not handling any image operands yet.
 		ASSERT(insn.wordCount() == 4);
 
 		auto coordinate = GenericValue(this, state->routine, insn.word(2));

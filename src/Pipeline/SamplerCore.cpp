@@ -1231,7 +1231,7 @@ namespace sw
 	void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, SamplerFunction function)
 	{
 		bool texelFetch = (function == Fetch);
-		bool hasOffset = (function.option == Offset);
+		bool hasOffset = (function.offset != 0);
 
 		if(!texelFetch)
 		{
@@ -2088,7 +2088,7 @@ namespace sw
 
 		if(function == Fetch)
 		{
-			xyz0 = Min(Max(((function.option == Offset) && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw), Int4(0)), maxXYZ);
+			xyz0 = Min(Max(((function.offset != 0) && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw), Int4(0)), maxXYZ);
 		}
 		else if(addressingMode == ADDRESSING_LAYER)   // Note: Offset does not apply to array layers
 		{
@@ -2139,7 +2139,7 @@ namespace sw
 				Float4 floor = Floor(coord);
 				xyz0 = Int4(floor);
 
-				if(function.option == Offset)
+				if(function.offset != 0)
 				{
 					xyz0 += As<Int4>(texOffset);
 				}
@@ -2153,7 +2153,7 @@ namespace sw
 			}
 			else
 			{
-				if(function.option != Offset)
+				if(function.offset == 0)
 				{
 					switch(addressingMode)
 					{
@@ -2197,7 +2197,7 @@ namespace sw
 
 			if(state.textureFilter == FILTER_POINT)
 			{
-				if(addressingMode == ADDRESSING_BORDER || function.option == Offset)
+				if(addressingMode == ADDRESSING_BORDER || function.offset != 0)
 				{
 					xyz0 = Int4(Floor(coord));
 				}
@@ -2223,7 +2223,7 @@ namespace sw
 				f = coord - floor;
 			}
 
-			if(function.option == Offset)
+			if(function.offset != 0)
 			{
 				xyz0 += As<Int4>(texOffset);
 			}
@@ -2243,7 +2243,7 @@ namespace sw
 				xyz0 |= border0;
 				xyz1 |= border1;
 			}
-			else if(function.option == Offset)
+			else if(function.offset != 0)
 			{
 				switch(addressingMode)
 				{
