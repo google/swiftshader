@@ -1,5 +1,0 @@
-dEQP-VK.renderpass.suballocation.sampleread.numsamples_4_add
-dEQP-VK.renderpass.suballocation.sampleread.numsamples_4_selected_sample_0
-dEQP-VK.renderpass.suballocation.sampleread.numsamples_4_selected_sample_1
-dEQP-VK.renderpass.suballocation.sampleread.numsamples_4_selected_sample_2
-dEQP-VK.renderpass.suballocation.sampleread.numsamples_4_selected_sample_3
