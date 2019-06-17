@@ -534,7 +534,17 @@ namespace rr
 					}
 				}
 			};
-			struct F { static void nop() {} };
+			struct F
+			{
+				static void nop() {}
+				static void neverCalled() { UNREACHABLE("Should never be called"); }
+
+#ifdef __ANDROID__
+				// forwarders since we can't take address of builtins
+				static void sync_synchronize() { __sync_synchronize(); }
+				static uint32_t sync_fetch_and_add_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_add_4(ptr, val); }
+#endif
+			};
 
 			func_.emplace("nop", reinterpret_cast<void*>(F::nop));
 			func_.emplace("floorf", reinterpret_cast<void*>(floorf));
@@ -572,6 +582,12 @@ namespace rr
 #elif defined(__linux__)
 			func_.emplace("sincosf", reinterpret_cast<void*>(sincosf));
 #endif // __APPLE__
+
+#ifdef __ANDROID__
+			func_.emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void*>(F::neverCalled));
+			func_.emplace("sync_synchronize", reinterpret_cast<void*>(F::sync_synchronize));
+			func_.emplace("sync_fetch_and_add_4", reinterpret_cast<void*>(F::sync_fetch_and_add_4));
+#endif
 		}
 
 		void *findSymbol(const std::string &name) const
