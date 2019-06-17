@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7b021cf_858f3db5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-06-17T14:43:49Z",
+      "side": 1,
+      "message": "As discussed, let\u0027s have a follow-up patch to ensure this doesn\u0027t regress easily by adding a static assert which checks for std::is_trivial and std::is_standard_layout (which is equivalent to just std::is_pod but that\u0027s deprecated in C++20).",
+      "range": {
+        "startLine": 10,
+        "startChar": 12,
+        "endLine": 10,
+        "endChar": 42
+      },
+      "revId": "bd4cf81fbd5fab203cdd8d70eed20e83a28140e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
