@@ -89,7 +89,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			       subpass.pColorAttachments, colorAttachmentsSize);
 			hostMemory += colorAttachmentsSize;
 
-			if(subpass.pResolveAttachments != nullptr)
+			if(subpass.pResolveAttachments)
 			{
 				subpasses[i].pResolveAttachments = reinterpret_cast<VkAttachmentReference*>(hostMemory);
 				memcpy(const_cast<VkAttachmentReference*>(subpasses[i].pResolveAttachments),
@@ -107,7 +107,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			}
 		}
 
-		if(subpass.pDepthStencilAttachment != nullptr)
+		if(subpass.pDepthStencilAttachment)
 		{
 			subpasses[i].pDepthStencilAttachment = reinterpret_cast<VkAttachmentReference*>(hostMemory);
 			memcpy(const_cast<VkAttachmentReference*>(subpasses[i].pDepthStencilAttachment),
@@ -156,11 +156,11 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* p
 	{
 		const auto& subpass = pCreateInfo->pSubpasses[i];
 		uint32_t nbAttachments = subpass.inputAttachmentCount + subpass.colorAttachmentCount;
-		if(subpass.pResolveAttachments != nullptr)
+		if(subpass.pResolveAttachments)
 		{
 			nbAttachments += subpass.colorAttachmentCount;
 		}
-		if(subpass.pDepthStencilAttachment != nullptr)
+		if(subpass.pDepthStencilAttachment)
 		{
 			nbAttachments += 1;
 		}

@@ -331,7 +331,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(Instance* instance, const char* pName)
 		return globalFunction->second;
 	}
 
-	if(instance != nullptr)
+	if(instance)
 	{
 		auto instanceFunction = instanceFunctionPointers.find(std::string(pName));
 		if(instanceFunction != instanceFunctionPointers.end())

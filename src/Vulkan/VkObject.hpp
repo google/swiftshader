@@ -29,13 +29,13 @@ namespace vk
 template<typename T, typename VkT>
 static inline T* VkTtoT(VkT vkObject)
 {
-	return static_cast<T*>(vkObject.get());
+	return static_cast<T*>(static_cast<void*>(vkObject));
 }
 
 template<typename T, typename VkT>
 static inline VkT TtoVkT(T* object)
 {
-	return VkT(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(object)));
+	return { static_cast<uint64_t>(reinterpret_cast<uintptr_t>(object)) };
 }
 
 // For use in the placement new to make it verbose that we're allocating an object using device memory

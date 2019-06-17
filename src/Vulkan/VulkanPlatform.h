@@ -17,26 +17,29 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 template<typename T> class VkNonDispatchableHandle
 {
 public:
-	VkNonDispatchableHandle(uint64_t h) : handle(h)
+	operator void*() const
 	{
 		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
-	}
 
-	void* get() const
-	{
+		// VkNonDispatchabbleHandle must be POD to ensure it gets passed by value the same way as a uint64_t,
+		// which is the upstream header's handle type when compiled for 32b architectures. On 64b architectures,
+		// the upstream header's handle type is a pointer type.
+		static_assert(std::is_trivial<VkNonDispatchableHandle<T>>::value, "VkNonDispatchableHandle<T> is not trivial!");
+		static_assert(std::is_standard_layout<VkNonDispatchableHandle<T>>::value, "VkNonDispatchableHandle<T> is not standard layout!");
+
 		return reinterpret_cast<void*>(static_cast<uintptr_t>(handle));
 	}
 
-	operator void*() const
+	void operator=(uint64_t h)
 	{
-		return get();
+		handle = h;
 	}
 
-private:
 	uint64_t handle;
 };
 

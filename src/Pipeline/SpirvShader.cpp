@@ -379,7 +379,7 @@ namespace sw
 	{
 		ASSERT(insns.size() > 0);
 
-		if (renderPass != VK_NULL_HANDLE)
+		if (renderPass)
 		{
 			// capture formats of any input attachments present
 			auto subpass = renderPass->getSubpass(subpassIndex);

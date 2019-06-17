@@ -34,7 +34,7 @@ namespace vk
 	public:
 		static inline DescriptorSet* Cast(VkDescriptorSet object)
 		{
-			return static_cast<DescriptorSet*>(object.get());
+			return static_cast<DescriptorSet*>(static_cast<void*>(object));
 		}
 
 		using Bindings = std::array<vk::DescriptorSet*, vk::MAX_BOUND_DESCRIPTOR_SETS>;

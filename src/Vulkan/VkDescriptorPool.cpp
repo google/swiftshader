@@ -23,24 +23,14 @@
 namespace
 {
 
-inline uintptr_t toPtr(const VkDescriptorSet& descSet)
+inline VkDescriptorSet asDescriptorSet(uint8_t* memory)
 {
-	return reinterpret_cast<uintptr_t>(vk::Cast(descSet));
+	return vk::TtoVkT<vk::DescriptorSet, VkDescriptorSet>(reinterpret_cast<vk::DescriptorSet*>(memory));
 }
 
-inline uint64_t operator+(const VkDescriptorSet& lhs, size_t offset)
+inline uint8_t* asMemory(VkDescriptorSet descriptorSet)
 {
-	return static_cast<uint64_t>(toPtr(lhs) + offset);
-}
-
-inline void operator+=(VkDescriptorSet& lhs, size_t offset)
-{
-	lhs = static_cast<uint64_t>(toPtr(lhs) + offset);
-}
-
-inline uintptr_t operator-(const VkDescriptorSet& lhs, const VkDescriptorSet& rhs)
-{
-	return toPtr(lhs) - toPtr(rhs);
+	return reinterpret_cast<uint8_t*>(vk::Cast(descriptorSet));
 }
 
 }
@@ -49,14 +39,14 @@ namespace vk
 {
 
 DescriptorPool::DescriptorPool(const VkDescriptorPoolCreateInfo* pCreateInfo, void* mem) :
-	pool(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(mem))),
+	pool(static_cast<uint8_t*>(mem)),
 	poolSize(ComputeRequiredAllocationSize(pCreateInfo))
 {
 }
 
 void DescriptorPool::destroy(const VkAllocationCallbacks* pAllocator)
 {
-	vk::deallocate(pool.get(), pAllocator);
+	vk::deallocate(pool, pAllocator);
 }
 
 size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo* pCreateInfo)
@@ -93,7 +83,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	return result;
 }
 
-VkDescriptorSet DescriptorPool::findAvailableMemory(size_t size)
+uint8_t* DescriptorPool::findAvailableMemory(size_t size)
 {
 	if(nodes.empty())
 	{
@@ -124,7 +114,7 @@ VkDescriptorSet DescriptorPool::findAvailableMemory(size_t size)
 	++nextIt;
 	for(auto it = itBegin; nextIt != itEnd; ++it, ++nextIt)
 	{
-		VkDescriptorSet freeSpaceStart(it->set + it->size);
+		uint8_t* freeSpaceStart = it->set + it->size;
 		freeSpace = nextIt->set - freeSpaceStart;
 		if(freeSpace >= size)
 		{
@@ -132,7 +122,7 @@ VkDescriptorSet DescriptorPool::findAvailableMemory(size_t size)
 		}
 	}
 
-	return VK_NULL_HANDLE;
+	return nullptr;
 }
 
 VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescriptorSet* pDescriptorSets)
@@ -150,13 +140,13 @@ VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescr
 
 	// Attempt to allocate single chunk of memory
 	{
-		VkDescriptorSet memory = findAvailableMemory(totalSize);
-		if(memory != VK_NULL_HANDLE)
+		uint8_t* memory = findAvailableMemory(totalSize);
+		if(memory)
 		{
 			for(uint32_t i = 0; i < numAllocs; i++)
 			{
-				pDescriptorSets[i] = memory;
-				nodes.insert(Node(pDescriptorSets[i], sizes[i]));
+				pDescriptorSets[i] = asDescriptorSet(memory);
+				nodes.insert(Node(memory, sizes[i]));
 				memory += sizes[i];
 			}
 
@@ -167,8 +157,12 @@ VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescr
 	// Atttempt to allocate each descriptor set separately
 	for(uint32_t i = 0; i < numAllocs; i++)
 	{
-		pDescriptorSets[i] = findAvailableMemory(sizes[i]);
-		if(pDescriptorSets[i] == VK_NULL_HANDLE)
+		uint8_t* memory = findAvailableMemory(sizes[i]);
+		if(memory)
+		{
+			pDescriptorSets[i] = asDescriptorSet(memory);
+		}
+		else
 		{
 			// vkAllocateDescriptorSets can be used to create multiple descriptor sets. If the
 			// creation of any of those descriptor sets fails, then the implementation must
@@ -181,7 +175,7 @@ VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescr
 			}
 			return (computeTotalFreeSize() > totalSize) ? VK_ERROR_FRAGMENTED_POOL : VK_ERROR_OUT_OF_POOL_MEMORY;
 		}
-		nodes.insert(Node(pDescriptorSets[i], sizes[i]));
+		nodes.insert(Node(memory, sizes[i]));
 	}
 
 	return VK_SUCCESS;
@@ -198,7 +192,7 @@ void DescriptorPool::freeSets(uint32_t descriptorSetCount, const VkDescriptorSet
 void DescriptorPool::freeSet(const VkDescriptorSet descriptorSet)
 {
 	const auto itEnd = nodes.end();
-	auto it = std::find(nodes.begin(), itEnd, descriptorSet);
+	auto it = std::find(nodes.begin(), itEnd, asMemory(descriptorSet));
 	if(it != itEnd)
 	{
 		nodes.erase(it);

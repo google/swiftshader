@@ -103,7 +103,7 @@ void PresentImage::clear()
 
 VkImage PresentImage::asVkImage() const
 {
-	return image ? static_cast<VkImage>(*image) : VK_NULL_HANDLE;
+	return image ? static_cast<VkImage>(*image) : VkImage({ VK_NULL_HANDLE });
 }
 
 void SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const

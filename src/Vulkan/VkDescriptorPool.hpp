@@ -34,22 +34,22 @@ namespace vk
 
 	private:
 		VkResult allocateSets(size_t* sizes, uint32_t numAllocs, VkDescriptorSet* pDescriptorSets);
-		VkDescriptorSet findAvailableMemory(size_t size);
+		uint8_t* findAvailableMemory(size_t size);
 		void freeSet(const VkDescriptorSet descriptorSet);
 		size_t computeTotalFreeSize() const;
 
 		struct Node
 		{
-			Node(VkDescriptorSet set, size_t size) : set(set), size(size) {}
+			Node(uint8_t* set, size_t size) : set(set), size(size) {}
 			bool operator<(const Node& node) const { return set < node.set; }
-			bool operator==(VkDescriptorSet other) const { return set == other; }
+			bool operator==(const uint8_t* other) const { return set == other; }
 
-			VkDescriptorSet set = VK_NULL_HANDLE;
+			uint8_t* set = nullptr;
 			size_t size = 0;
 		};
 		std::set<Node> nodes;
 
-		VkDescriptorSet pool = VK_NULL_HANDLE;
+		uint8_t* pool = nullptr;
 		size_t poolSize = 0;
 	};
 
