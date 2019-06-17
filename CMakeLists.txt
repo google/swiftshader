@@ -344,6 +344,10 @@ else()
             "-Werror=string-conversion"
             "-Werror=extra-semi"
             "-Werror=ignored-qualifiers"
+            # Silence errors caused by unknown warnings when building with older
+            # versions of Clang. This demands checking that warnings added above
+            # are spelled correctly and work as intended!
+            "-Wno-unknown-warning-option"
         )
     endif()
 
