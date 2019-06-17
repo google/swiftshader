@@ -885,6 +885,27 @@ namespace rr
 		}
 	}
 
+	static ::llvm::Function* createFunction(const char *name, ::llvm::Type *retTy, const std::vector<::llvm::Type*> &params)
+	{
+		llvm::FunctionType *functionType = llvm::FunctionType::get(retTy, params, false);
+		auto func = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, name, ::module);
+		func->setDoesNotThrow();
+		func->setCallingConv(llvm::CallingConv::C);
+
+		#if defined(_WIN32)
+			// FIXME(capn):
+			// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
+			// having a trap which allows the OS to grow the stack. For functions with a stack frame
+			// larger than 4 kB this can cause an issue when a variable is accessed beyond the guard
+			// page. Therefore the compiler emits a call to __chkstk in the function prolog to probe
+			// the stack and ensure all pages have been committed. This is currently broken in LLVM
+			// JIT, but we can prevent emitting the stack probe call:
+			func->addFnAttr("stack-probe-size", "1048576");
+		#endif
+
+		return func;
+	}
+
 	Nucleus::Nucleus()
 	{
 		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
@@ -1087,20 +1108,7 @@ namespace rr
 
 	void Nucleus::createFunction(Type *ReturnType, std::vector<Type*> &Params)
 	{
-		llvm::FunctionType *functionType = llvm::FunctionType::get(T(ReturnType), T(Params), false);
-		::function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "", ::module);
-		::function->setCallingConv(llvm::CallingConv::C);
-
-		#if defined(_WIN32)
-			// FIXME(capn):
-			// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
-			// having a trap which allows the OS to grow the stack. For functions with a stack frame
-			// larger than 4 kB this can cause an issue when a variable is accessed beyond the guard
-			// page. Therefore the compiler emits a call to __chkstk in the function prolog to probe
-			// the stack and ensure all pages have been committed. This is currently broken in LLVM
-			// JIT, but we can prevent emitting the stack probe call:
-			::function->addFnAttr("stack-probe-size", "1048576");
-		#endif
+		::function = rr::createFunction("", T(ReturnType), T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
 		::debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(::builder, ::context, ::module, ::function));
@@ -4338,9 +4346,7 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 	//        }
 	//    }
 	//
-	llvm::FunctionType *coroutineAwaitTy = llvm::FunctionType::get(boolTy, {handleTy, promisePtrTy}, false);
-	::coroutine.await = llvm::Function::Create(coroutineAwaitTy, llvm::GlobalValue::InternalLinkage, "coroutine_await", ::module);
-	::coroutine.await->setCallingConv(llvm::CallingConv::C);
+	::coroutine.await = rr::createFunction("coroutine_await", boolTy, {handleTy, promisePtrTy});
 	{
 		auto args = ::coroutine.await->arg_begin();
 		auto handle = args++;
@@ -4371,9 +4377,7 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 	//        llvm.coro.destroy(handle);
 	//    }
 	//
-	llvm::FunctionType *coroutineDestroyTy = llvm::FunctionType::get(voidTy, handleTy, false);
-	::coroutine.destroy = llvm::Function::Create(coroutineDestroyTy, llvm::GlobalValue::InternalLinkage, "coroutine_destroy", ::module);
-	::coroutine.destroy->setCallingConv(llvm::CallingConv::C);
+	::coroutine.destroy = rr::createFunction("coroutine_destroy", voidTy, {handleTy});
 	{
 		auto handle = ::coroutine.destroy->arg_begin();
 		::builder->SetInsertPoint(llvm::BasicBlock::Create(*::context, "", ::coroutine.destroy));
@@ -4413,9 +4417,7 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 	//        return handle;
 	//    }
 	//
-	llvm::FunctionType *functionType = llvm::FunctionType::get(handleTy, T(Params), false);
-	::function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "coroutine_begin", ::module);
-	::function->setCallingConv(llvm::CallingConv::C);
+	::function = rr::createFunction("coroutine_begin", handleTy, T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
 	::debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(::builder, ::context, ::module, ::function));
@@ -4462,17 +4464,6 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 
 	// Switch back to the entry block for reactor codegen.
 	::builder->SetInsertPoint(entryBlock);
-
-	#if defined(_WIN32)
-		// FIXME(capn):
-		// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
-		// having a trap which allows the OS to grow the stack. For functions with a stack frame
-		// larger than 4 kB this can cause an issue when a variable is accessed beyond the guard
-		// page. Therefore the compiler emits a call to __chkstk in the function prolog to probe
-		// the stack and ensure all pages have been committed. This is currently broken in LLVM
-		// JIT, but we can prevent emitting the stack probe call:
-		::function->addFnAttr("stack-probe-size", "1048576");
-	#endif
 }
 
 void Nucleus::yield(Value* val)
