@@ -333,17 +333,17 @@ else()
 
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS
         "-Wall"
-        "-Werror=reorder"
-        "-Werror=sign-compare"
-        "-Werror=missing-braces"
+        "-Wreorder"
+        "-Wsign-compare"
+        "-Wmissing-braces"
     )
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-            "-Werror=unused-lambda-capture"
-            "-Werror=string-conversion"
-            "-Werror=extra-semi"
-            "-Werror=ignored-qualifiers"
+            "-Wunused-lambda-capture"
+            "-Wstring-conversion"
+            "-Wextra-semi"
+            "-Wignored-qualifiers"
             # Silence errors caused by unknown warnings when building with older
             # versions of Clang. This demands checking that warnings added above
             # are spelled correctly and work as intended!
