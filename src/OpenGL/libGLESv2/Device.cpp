@@ -707,7 +707,7 @@ namespace es2
 
 	bool Device::bindResources()
 	{
-		if(!bindViewport())
+		if(!bindViewport() && !context->transformFeedbackEnabled)
 		{
 			return false;   // Zero-area target region
 		}

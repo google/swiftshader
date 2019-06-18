@@ -233,45 +233,58 @@ protected:
 		GLuint fragmentShader;
 	};
 
-	ProgramHandles createProgram(const std::string& vs, const std::string& fs)
+	GLuint MakeShader(const std::string &source, GLenum shaderType)
+	{
+		GLuint shader = glCreateShader(shaderType);
+		const char *c_source[1] = { source.c_str() };
+		glShaderSource(shader, 1, c_source, nullptr);
+		glCompileShader(shader);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+		GLchar buf[1024];
+		GLint compileStatus = 0;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+		glGetShaderInfoLog(shader, sizeof(buf), nullptr, buf);
+		EXPECT_EQ(compileStatus, GL_TRUE) << "Compile status: " << std::endl << buf;
+
+		return shader;
+	}
+
+	GLuint MakeProgram(GLuint vs, GLuint fs)
+	{
+		GLuint program;
+
+		program = glCreateProgram();
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+		glAttachShader(program, vs);
+		glAttachShader(program, fs);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+		return program;
+	}
+
+	void LinkProgram(GLuint program)
 	{
 		GLchar buf[1024];
-
-		ProgramHandles ph;
-		ph.program = glCreateProgram();
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-
-		ph.vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		const char* vsSource[1] = { vs.c_str() };
-		glShaderSource(ph.vertexShader, 1, vsSource, nullptr);
-		glCompileShader(ph.vertexShader);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		GLint vsCompileStatus = 0;
-		glGetShaderiv(ph.vertexShader, GL_COMPILE_STATUS, &vsCompileStatus);
-		glGetShaderInfoLog(ph.vertexShader, sizeof(buf), nullptr, buf);
-		EXPECT_EQ(vsCompileStatus, GL_TRUE) << "Compile status: " << std::endl << buf;
-
-		ph.fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		const char* fsSource[1] = { fs.c_str() };
-		glShaderSource(ph.fragmentShader, 1, fsSource, nullptr);
-		glCompileShader(ph.fragmentShader);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		GLint fsCompileStatus = 0;
-		glGetShaderiv(ph.fragmentShader, GL_COMPILE_STATUS, &fsCompileStatus);
-		glGetShaderInfoLog(ph.fragmentShader, sizeof(buf), nullptr, buf);
-		EXPECT_EQ(fsCompileStatus, GL_TRUE) << "Compile status: " << std::endl << buf;
-
-		glAttachShader(ph.program, ph.vertexShader);
-		glAttachShader(ph.program, ph.fragmentShader);
-		glLinkProgram(ph.program);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		glLinkProgram(program);
 
 		GLint linkStatus = 0;
-		glGetProgramiv(ph.program, GL_LINK_STATUS, &linkStatus);
-		glGetProgramInfoLog(ph.program, sizeof(buf), nullptr, buf);
+		glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+		glGetProgramInfoLog(program, sizeof(buf), nullptr, buf);
 		EXPECT_NE(linkStatus, 0) << "Link status: " << std::endl << buf;
 
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	}
+
+
+	ProgramHandles createProgram(const std::string& vs, const std::string& fs)
+	{
+		ProgramHandles ph;
+		ph.vertexShader = MakeShader(vs, GL_VERTEX_SHADER);
+		ph.fragmentShader = MakeShader(fs, GL_FRAGMENT_SHADER);
+		ph.program = MakeProgram(ph.vertexShader, ph.fragmentShader);
+		LinkProgram(ph.program);
 
 		return ph;
 	}
@@ -1202,6 +1215,81 @@ TEST_F(SwiftShaderTest, TransformFeedback_DrawArraysInstanced)
 	glUseProgram(program);
 	glBeginTransformFeedback(GL_POINTS);
 	glDrawArraysInstanced(GL_POINTS, 0, 1, 1);
+
+	Uninitialize();
+}
+
+TEST_F(SwiftShaderTest, TransformFeedback_BadViewport)
+{
+	Initialize(3, false);
+
+	GLuint tfBuffer;
+	glGenBuffers(1, &tfBuffer);
+	glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, tfBuffer);
+	glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER, 1 << 12, nullptr, GL_STATIC_DRAW);
+
+	std::string vsSource =
+		R"(#version 300 es
+		in vec4 a_position;
+		void main()
+		{
+			gl_Position = a_position;
+		})";
+	std::string fsSource =
+		R"(#version 300 es
+		precision highp float;
+		out vec4 my_FragColor;
+		void main()
+		{
+			my_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+		})";
+
+	const char *varyings[] = { "gl_Position" };
+
+	GLuint vs = MakeShader(vsSource, GL_VERTEX_SHADER);
+	GLuint fs = MakeShader(fsSource, GL_FRAGMENT_SHADER);
+	GLuint program = MakeProgram(vs, fs);
+
+	glTransformFeedbackVaryings(program, 1,
+			&varyings[0], GL_INTERLEAVED_ATTRIBS);
+	LinkProgram(program);
+	glUseProgram(program);
+
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, tfBuffer);
+	glBeginTransformFeedback(GL_TRIANGLES);
+
+	GLuint primitivesWrittenQuery = 0;
+	glGenQueries(1, &primitivesWrittenQuery);
+	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, primitivesWrittenQuery);
+
+	glViewport(0, 10000000, 300, 300);
+
+	GLint positionLocation = glGetAttribLocation(program, "a_position");
+	GLfloat quadVertices[] = {
+		-1.0f,  1.0f, 0.5f,
+		-1.0f, -1.0f, 0.5f,
+		 1.0f, -1.0f, 0.5f,
+		-1.0f,  1.0f, 0.5f,
+		 1.0f, -1.0f, 0.5f,
+		 1.0f,  1.0f, 0.5f,
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, &quadVertices[0]);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDisableVertexAttribArray(positionLocation);
+	glVertexAttribPointer(positionLocation, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+	glEndTransformFeedback();
+
+	GLuint primitivesWritten = 0;
+	glGetQueryObjectuiv(primitivesWrittenQuery, GL_QUERY_RESULT_EXT, &primitivesWritten);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	EXPECT_EQ(2u, primitivesWritten);
 
 	Uninitialize();
 }

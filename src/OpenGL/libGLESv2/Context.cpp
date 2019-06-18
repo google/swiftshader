@@ -2797,6 +2797,23 @@ bool Context::applyRenderTarget()
 	viewport.minZ = zNear;
 	viewport.maxZ = zFar;
 
+	if (viewport.x0 > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
+		viewport.y0 > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
+	{
+		TransformFeedback* transformFeedback = getTransformFeedback();
+		if (!transformFeedback->isActive() || transformFeedback->isPaused())
+		{
+			return false;
+		}
+		else
+		{
+			viewport.x0 = 0;
+			viewport.y0 = 0;
+			viewport.width = 0;
+			viewport.height = 0;
+		}
+	}
+
 	device->setViewport(viewport);
 
 	applyScissor(width, height);
