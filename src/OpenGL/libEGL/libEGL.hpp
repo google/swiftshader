@@ -94,9 +94,9 @@ private:
 		{
 			#if defined(_WIN32)
 				#if defined(__LP64__)
-					const char *libEGL_lib[] = {"libEGL.dll", "lib64EGL_translator.dll"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dll", "libEGL.dll", "lib64EGL_translator.dll"};
 				#else
-					const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dll", "libEGL.dll", "libEGL_translator.dll"};
 				#endif
 			#elif defined(__ANDROID__)
 				const char *libEGL_lib[] = {"libEGL_swiftshader.so", "libEGL_swiftshader.so"};
