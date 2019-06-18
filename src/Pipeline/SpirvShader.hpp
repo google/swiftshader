@@ -34,7 +34,7 @@
 #include <cstring>
 #include <functional>
 #include <memory>
-#include <queue>
+#include <deque>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -888,7 +888,7 @@ namespace sw
 			Block::ID currentBlock; // The current block being built.
 			Block::Set visited; // Blocks already built.
 			std::unordered_map<Block::Edge, RValue<SIMD::Int>, Block::Edge::Hash> edgeActiveLaneMasks;
-			std::queue<Block::ID> *pending;
+			std::deque<Block::ID> *pending;
 
 			const vk::DescriptorSet::Bindings &descriptorSets;
 		};
@@ -910,7 +910,12 @@ namespace sw
 		// Asserts if from is reachable and the edge does not exist.
 		RValue<SIMD::Int> GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const;
 
-		// Emit all the unvisited blocks (except for ignore) in BFS order,
+		// ForeachBlockDependency calls f with each dependency of the given
+		// block. A dependency is an incoming block that is not a loop-back
+		// edge.
+		void ForeachBlockDependency(Block::ID blockId, std::function<void(Block::ID)> f) const;
+
+		// Emit all the unvisited blocks (except for ignore) in DFS order,
 		// starting with id.
 		void EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore = 0) const;
 		void EmitNonLoop(EmitState *state) const;

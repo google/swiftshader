@@ -29,6 +29,8 @@
 #include <spirv/unified1/spirv.hpp>
 #include <spirv/unified1/GLSL.std.450.h>
 
+#include <queue>
+
 namespace
 {
 	constexpr float PI = 3.141592653589793f;
@@ -1980,19 +1982,37 @@ namespace sw
 	{
 		auto oldPending = state->pending;
 
-		std::queue<Block::ID> pending;
+		std::deque<Block::ID> pending;
 		state->pending = &pending;
-		pending.push(id);
+		pending.push_front(id);
 		while (pending.size() > 0)
 		{
 			auto id = pending.front();
-			pending.pop();
 
 			auto const &block = getBlock(id);
 			if (id == ignore)
 			{
+				pending.pop_front();
 				continue;
 			}
+
+			// Ensure all dependency blocks have been generated.
+			auto depsDone = true;
+			ForeachBlockDependency(id, [&](Block::ID dep)
+			{
+				if (state->visited.count(dep) == 0)
+				{
+					state->pending->push_front(dep);
+					depsDone = false;
+				}
+			});
+
+			if (!depsDone)
+			{
+				continue;
+			}
+
+			pending.pop_front();
 
 			state->currentBlock = id;
 
@@ -2036,28 +2056,23 @@ namespace sw
 		}
 	}
 
+	void SpirvShader::ForeachBlockDependency(Block::ID blockId, std::function<void(Block::ID)> f) const
+	{
+		auto block = getBlock(blockId);
+		for (auto dep : block.ins)
+		{
+			if (block.kind != Block::Loop ||                 // if not a loop...
+				!existsPath(blockId, dep, block.mergeBlock)) // or a loop and not a loop back edge
+			{
+				f(dep);
+			}
+		}
+	}
+
 	void SpirvShader::EmitNonLoop(EmitState *state) const
 	{
 		auto blockId = state->currentBlock;
 		auto block = getBlock(blockId);
-
-		// Ensure all incoming blocks have been generated.
-		auto depsDone = true;
-		for (auto in : block.ins)
-		{
-			if (state->visited.count(in) == 0)
-			{
-				state->pending->emplace(in);
-				depsDone = false;
-			}
-		}
-
-		if (!depsDone)
-		{
-			// come back to this once the dependencies have been generated
-			state->pending->emplace(blockId);
-			return;
-		}
 
 		if (!state->visited.emplace(blockId).second)
 		{
@@ -2080,7 +2095,10 @@ namespace sw
 
 		for (auto out : block.outs)
 		{
-			state->pending->emplace(out);
+			if (state->visited.count(out) == 0)
+			{
+				state->pending->push_back(out);
+			}
 		}
 	}
 
@@ -2090,27 +2108,6 @@ namespace sw
 		auto &block = getBlock(blockId);
 		auto mergeBlockId = block.mergeBlock;
 		auto &mergeBlock = getBlock(mergeBlockId);
-
-		// Ensure all incoming non-back edge blocks have been generated.
-		auto depsDone = true;
-		for (auto in : block.ins)
-		{
-			if (state->visited.count(in) == 0)
-			{
-				if (!existsPath(blockId, in, mergeBlockId)) // if not a loop back edge
-				{
-					state->pending->emplace(in);
-					depsDone = false;
-				}
-			}
-		}
-
-		if (!depsDone)
-		{
-			// come back to this once the dependencies have been generated
-			state->pending->emplace(blockId);
-			return;
-		}
 
 		if (!state->visited.emplace(blockId).second)
 		{
@@ -2260,7 +2257,7 @@ namespace sw
 
 		// Continue emitting from the merge block.
 		Nucleus::setInsertBlock(mergeBasicBlock);
-		state->pending->emplace(mergeBlockId);
+		state->pending->push_back(mergeBlockId);
 		for (auto it : mergeActiveLaneMasks)
 		{
 			state->addActiveLaneMaskEdge(it.first, mergeBlockId, it.second);
