@@ -142,6 +142,22 @@ namespace sw
 			{
 				ASSERT(accessSize > 0);
 
+				if (!hasDynamicOffsets && !hasDynamicLimit)
+				{
+					// Common fast paths.
+					if (hasStaticEqualOffsets())
+					{
+						return SIMD::Int((staticOffsets[0] + accessSize - 1 < staticLimit) ? 0xffffffff : 0);
+					}
+
+					static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
+					return SIMD::Int(
+						(staticOffsets[0] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
+						(staticOffsets[1] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
+						(staticOffsets[2] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
+						(staticOffsets[3] + accessSize - 1 < staticLimit) ? 0xffffffff : 0);
+				}
+
 				return CmpLT(offsets() + SIMD::Int(accessSize - 1), SIMD::Int(limit()));
 			}
 
@@ -178,14 +194,22 @@ namespace sw
 					static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
 					return rr::SignMask(~CmpEQ(o, o.yzwx)) == 0;
 				}
-				else
+				return hasStaticEqualOffsets();
+			}
+
+			// Returns true if all offsets are compile-time static and are equal
+			// (N, N, N, N)
+			inline bool hasStaticEqualOffsets() const
+			{
+				if (hasDynamicOffsets)
 				{
-					for (int i = 1; i < SIMD::Width; i++)
-					{
-						if (staticOffsets[i-1] != staticOffsets[i]) { return false; }
-					}
-					return true;
+					return false;
 				}
+				for (int i = 1; i < SIMD::Width; i++)
+				{
+					if (staticOffsets[i-1] != staticOffsets[i]) { return false; }
+				}
+				return true;
 			}
 
 			// Base address for the pointer, common across all lanes.
