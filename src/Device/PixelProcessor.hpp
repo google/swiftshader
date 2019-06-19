@@ -34,7 +34,7 @@ namespace sw
 		{
 			unsigned int computeHash();
 
-			int shaderID;
+			uint64_t shaderID;
 
 			VkCompareOp depthCompareMode;
 			bool depthWriteEnable;

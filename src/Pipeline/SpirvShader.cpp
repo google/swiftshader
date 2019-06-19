@@ -366,16 +366,16 @@ namespace sw
 
 	} // namespace SIMD
 
-	std::atomic<int> SpirvShader::serialCounter(1);    // Start at 1, 0 is invalid shader.
-
 	SpirvShader::SpirvShader(
-			VkPipelineShaderStageCreateInfo const *createInfo,
+			uint32_t codeSerialID,
+			VkShaderStageFlagBits pipelineStage,
+			const char *entryPointName,
 			InsnStore const &insns,
 			vk::RenderPass *renderPass,
 			uint32_t subpassIndex)
 				: insns{insns}, inputs{MAX_INTERFACE_COMPONENTS},
 				outputs{MAX_INTERFACE_COMPONENTS},
-				serialID{serialCounter++}, modes{}
+				codeSerialID(codeSerialID), modes{}
 	{
 		ASSERT(insns.size() > 0);
 
@@ -411,7 +411,7 @@ namespace sw
 				auto id = Object::ID(insn.word(2));
 				auto name = insn.string(3);
 				auto stage = executionModelToStage(executionModel);
-				if (stage == createInfo->stage && strcmp(name, createInfo->pName) == 0)
+				if (stage == pipelineStage && strcmp(name, entryPointName) == 0)
 				{
 					ASSERT_MSG(entryPointFunctionId == 0, "Duplicate entry point with name '%s' and stage %d", name, int(stage));
 					entryPointFunctionId = id;
@@ -982,7 +982,7 @@ namespace sw
 			}
 		}
 
-		ASSERT_MSG(entryPointFunctionId != 0, "Entry point '%s' not found", createInfo->pName);
+		ASSERT_MSG(entryPointFunctionId != 0, "Entry point '%s' not found", entryPointName);
 		AssignBlockFields();
 	}
 

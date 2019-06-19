@@ -152,8 +152,7 @@ unsigned char getNumberOfChannels(VkFormat format)
 	return 0;
 }
 
-// preprocessSpirv applies and freezes specializations into constants, inlines
-// all functions and performs constant folding.
+// preprocessSpirv applies and freezes specializations into constants, and inlines all functions.
 std::vector<uint32_t> preprocessSpirv(
 		std::vector<uint32_t> const &code,
 		VkSpecializationInfo const *specializationInfo)
@@ -451,12 +450,16 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 			UNIMPLEMENTED("pStage->flags");
 		}
 
-		auto module = vk::Cast(pStage->module);
+		const ShaderModule *module = vk::Cast(pStage->module);
 		auto code = preprocessSpirv(module->getCode(), pStage->pSpecializationInfo);
+
+		// If the pipeline has specialization constants, assume they're unique and
+		// use a new serial ID so the shader gets recompiled.
+		uint32_t codeSerialID = (pStage->pSpecializationInfo ? ShaderModule::nextSerialID() : module->getSerialID());
 
 		// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 		// TODO: also pass in any pipeline state which will affect shader compilation
-		auto spirvShader = new sw::SpirvShader{pStage, code, vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass};
+		auto spirvShader = new sw::SpirvShader(codeSerialID, pStage->stage, pStage->pName, code, vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass);
 
 		switch (pStage->stage)
 		{
@@ -542,16 +545,21 @@ size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCre
 
 void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo)
 {
-	auto module = vk::Cast(pCreateInfo->stage.module);
+	auto &stage = pCreateInfo->stage;
+	const ShaderModule *module = vk::Cast(stage.module);
 
-	auto code = preprocessSpirv(module->getCode(), pCreateInfo->stage.pSpecializationInfo);
+	auto code = preprocessSpirv(module->getCode(), stage.pSpecializationInfo);
 
 	ASSERT_OR_RETURN(code.size() > 0);
 
 	ASSERT(shader == nullptr);
 
-	// FIXME(b/119409619): use allocator.
-	shader = new sw::SpirvShader(&pCreateInfo->stage, code, nullptr, 0);
+	// If the pipeline has specialization constants, assume they're unique and
+	// use a new serial ID so the shader gets recompiled.
+	uint32_t codeSerialID = (stage.pSpecializationInfo ? ShaderModule::nextSerialID() : module->getSerialID());
+
+	// TODO(b/119409619): use allocator.
+	shader = new sw::SpirvShader(codeSerialID, stage.stage, stage.pName, code, nullptr, 0);
 	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
 	program = new sw::ComputeProgram(shader, layout, descriptorSets);
 	program->generate();
