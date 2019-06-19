@@ -1028,7 +1028,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = 0;
 
-		VkDeviceMemory devmem = VK_NULL_HANDLE;
+		VkDeviceMemory devmem = { VK_NULL_HANDLE };
 		result = vkAllocateMemory(device, &allocInfo, nullptr, &devmem);
 		if(result != VK_SUCCESS)
 		{
