@@ -74,7 +74,7 @@ namespace sw
 			Pointer(rr::Pointer<Byte> base, rr::Int limit)
 				: base(base), limit(limit), dynamicOffsets(0), staticOffsets{}, hasDynamicOffsets(false) {}
 			Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset)
-				: base(base), limit(limit), dynamicOffsets(offset), staticOffsets{}, hasDynamicOffsets(false) {}
+				: base(base), limit(limit), dynamicOffsets(offset), staticOffsets{}, hasDynamicOffsets(true) {}
 
 			inline Pointer& operator += (Int i)
 			{
