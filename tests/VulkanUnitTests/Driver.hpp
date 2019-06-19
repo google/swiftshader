@@ -48,12 +48,12 @@ public:
     VKAPI_ATTR PFN_vkVoidFunction(VKAPI_CALL* vk_icdGetInstanceProcAddr)(VkInstance instance, const char* pName);
 
     // Global vulkan function pointers.
-#define VK_GLOBAL(N, R, ...) R (*N)(__VA_ARGS__)
+#define VK_GLOBAL(N, R, ...) VKAPI_ATTR R (VKAPI_CALL *N)(__VA_ARGS__)
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
 
     // Per-instance vulkan function pointers.
-#define VK_INSTANCE(N, R, ...) R (*N)(__VA_ARGS__)
+#define VK_INSTANCE(N, R, ...) VKAPI_ATTR R (VKAPI_CALL *N)(__VA_ARGS__)
 #include "VkInstanceFuncs.hpp"
 #undef VK_INSTANCE
 

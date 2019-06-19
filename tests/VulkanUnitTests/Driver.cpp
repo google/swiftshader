@@ -56,9 +56,19 @@ bool Driver::loadSwiftShader()
         EXPECT_NE((HMODULE)NULL, libvulkan);
         return true;
     #elif defined(NDEBUG)
-        return load("./build/Release/libvk_swiftshader.dll");
+		#if defined(_WIN64)
+			return load("./build/Release_Win64/vk_swiftshader.dll") ||
+		#else
+			return load("./build/Release_Win32/vk_swiftshader.dll") ||
+		#endif
+			       load("./build/Release/libvk_swiftshader.dll");
     #else
-        return load("./build/Debug/libvk_swiftshader.dll");
+		#if defined(_WIN64)
+			return load("./build/Debug_Win64/vk_swiftshader.dll") ||
+		#else
+			return load("./build/Debug_Win32/vk_swiftshader.dll") ||
+		#endif
+			       load("./build/Debug/libvk_swiftshader.dll");
     #endif
 #elif OS_MAC
     #if defined(STANDALONE)
