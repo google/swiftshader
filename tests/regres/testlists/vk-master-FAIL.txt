@@ -1,5 +1,1 @@
 dEQP-VK.api.info.android.no_layers
-dEQP-VK.memory.pipeline_barrier.all.1024
-dEQP-VK.memory.pipeline_barrier.all.1048576
-dEQP-VK.memory.pipeline_barrier.all.65536
-dEQP-VK.memory.pipeline_barrier.all.8192
