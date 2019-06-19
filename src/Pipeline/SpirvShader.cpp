@@ -294,6 +294,10 @@ namespace sw
 			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB reads.
 			if (!atomic && order == std::memory_order_relaxed)
 			{
+				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
+				{
+					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, sizeof(float));
+				}
 				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, sizeof(float));
 			}
 			else
@@ -338,6 +342,10 @@ namespace sw
 			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB writes.
 			if (!atomic && order == std::memory_order_relaxed)
 			{
+				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
+				{
+					return rr::MaskedStore(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), val, mask, sizeof(float));
+				}
 				return rr::Scatter(rr::Pointer<EL>(ptr.base), val, offsets, mask, sizeof(float));
 			}
 			else
