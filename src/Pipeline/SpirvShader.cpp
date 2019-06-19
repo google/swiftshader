@@ -291,7 +291,7 @@ namespace sw
 		{
 			using EL = typename Element<T>::type;
 			auto offsets = ptr.offsets();
-			mask &= CmpLT(offsets + SIMD::Int(sizeof(float) - 1), SIMD::Int(ptr.limit)); // Disable OOB reads.
+			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB reads.
 			if (!atomic && order == std::memory_order_relaxed)
 			{
 				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, sizeof(float));
@@ -335,7 +335,7 @@ namespace sw
 		{
 			using EL = typename Element<T>::type;
 			auto offsets = ptr.offsets();
-			mask &= CmpLT(offsets + SIMD::Int(sizeof(float) - 1), SIMD::Int(ptr.limit)); // Disable OOB reads.
+			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB writes.
 			if (!atomic && order == std::memory_order_relaxed)
 			{
 				return rr::Scatter(rr::Pointer<EL>(ptr.base), val, offsets, mask, sizeof(float));
@@ -5863,7 +5863,7 @@ namespace sw
 		ASSERT(d.HasOffset);
 
 		auto arrayBase = structBase + d.Offset;
-		auto arraySizeInBytes = SIMD::Int(arrayBase.limit) - arrayBase.offsets();
+		auto arraySizeInBytes = SIMD::Int(arrayBase.limit()) - arrayBase.offsets();
 		auto arrayLength = arraySizeInBytes / SIMD::Int(arrayElTy.sizeInComponents * sizeof(float));
 
 		result.move(0, SIMD::Int(arrayLength));
