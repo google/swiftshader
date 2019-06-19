@@ -4232,6 +4232,26 @@ namespace rr
 		Nucleus::setInsertBlock(bodyBB);
 	}
 
+	RValue<Float4> MaskedLoad(RValue<Pointer<Float4>> base, RValue<Int4> mask, unsigned int alignment)
+	{
+		return RValue<Float4>(Nucleus::createMaskedLoad(base.value, Float::getType(), mask.value, alignment));
+	}
+
+	RValue<Int4> MaskedLoad(RValue<Pointer<Int4>> base, RValue<Int4> mask, unsigned int alignment)
+	{
+		return RValue<Int4>(Nucleus::createMaskedLoad(base.value, Int::getType(), mask.value, alignment));
+	}
+
+	void MaskedStore(RValue<Pointer<Float4>> base, RValue<Float4> val, RValue<Int4> mask, unsigned int alignment)
+	{
+		Nucleus::createMaskedStore(base.value, val.value, mask.value, alignment);
+	}
+
+	void MaskedStore(RValue<Pointer<Int4>> base, RValue<Int4> val, RValue<Int4> mask, unsigned int alignment)
+	{
+		Nucleus::createMaskedStore(base.value, val.value, mask.value, alignment);
+	}
+
 	RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
 	{
 		return RValue<Float4>(Nucleus::createGather(base.value, Float::getType(), offsets.value, mask.value, alignment));

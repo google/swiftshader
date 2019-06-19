@@ -1446,6 +1446,40 @@ namespace rr
 		}
 	}
 
+	Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned int alignment)
+	{
+		ASSERT(V(ptr)->getType()->isPointerTy());
+		ASSERT(V(mask)->getType()->isVectorTy());
+
+		auto numEls = V(mask)->getType()->getVectorNumElements();
+		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
+		auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
+		auto elVecPtrTy = elVecTy->getPointerTo();
+		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto passthrough = ::llvm::Constant::getNullValue(elVecTy);
+		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
+		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_load, { elVecTy, elVecPtrTy } );
+		return V(::builder->CreateCall(func, { V(ptr), align, i8Mask, passthrough }));
+	}
+
+	void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned int alignment)
+	{
+		ASSERT(V(ptr)->getType()->isPointerTy());
+		ASSERT(V(val)->getType()->isVectorTy());
+		ASSERT(V(mask)->getType()->isVectorTy());
+
+		auto numEls = V(mask)->getType()->getVectorNumElements();
+		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
+		auto elVecTy = V(val)->getType();
+		auto elVecPtrTy = elVecTy->getPointerTo();
+		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
+		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_store, { elVecTy, elVecPtrTy } );
+		::builder->CreateCall(func, { V(val), V(ptr), align, i8Mask });
+	}
+
 	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment)
 	{
 		ASSERT(V(base)->getType()->isPointerTy());
