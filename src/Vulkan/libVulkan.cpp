@@ -113,14 +113,14 @@ void initializeLibrary()
 
 extern "C"
 {
-VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkInstance instance, const char* pName)
+VK_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkInstance instance, const char* pName)
 {
 	TRACE("(VkInstance instance = %p, const char* pName = %p)", instance, pName);
 
 	return vk::GetInstanceProcAddr(vk::Cast(instance), pName);
 }
 
-VKAPI_ATTR VkResult VKAPI_CALL vk_icdNegotiateLoaderICDInterfaceVersion(uint32_t* pSupportedVersion)
+VK_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vk_icdNegotiateLoaderICDInterfaceVersion(uint32_t* pSupportedVersion)
 {
 	*pSupportedVersion = 3;
 	return VK_SUCCESS;
