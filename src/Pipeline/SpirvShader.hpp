@@ -166,23 +166,32 @@ namespace sw
 				return dynamicLimit + staticLimit;
 			}
 
-			// Returns true if all offsets are sequential (N+0, N+1, N+2, N+3)
-			inline rr::Bool hasSequentialOffsets() const
+			// Returns true if all offsets are sequential
+			// (N+0*step, N+1*step, N+2*step, N+3*step)
+			inline rr::Bool hasSequentialOffsets(unsigned int step) const
 			{
 				if (hasDynamicOffsets)
 				{
 					auto o = offsets();
 					static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
-					return rr::SignMask(~CmpEQ(o.yzww, o + SIMD::Int(1, 2, 3, 0))) == 0;
+					return rr::SignMask(~CmpEQ(o.yzww, o + SIMD::Int(1*step, 2*step, 3*step, 0))) == 0;
 				}
-				else
+				return hasStaticSequentialOffsets(step);
+			}
+
+			// Returns true if all offsets are are compile-time static and
+			// sequential (N+0*step, N+1*step, N+2*step, N+3*step)
+			inline bool hasStaticSequentialOffsets(unsigned int step) const
+			{
+				if (hasDynamicOffsets)
 				{
-					for (int i = 1; i < SIMD::Width; i++)
-					{
-						if (staticOffsets[i-1] + 1 != staticOffsets[i]) { return false; }
-					}
-					return true;
+					return false;
 				}
+				for (int i = 1; i < SIMD::Width; i++)
+				{
+					if (staticOffsets[i-1] + int32_t(step) != staticOffsets[i]) { return false; }
+				}
+				return true;
 			}
 
 			// Returns true if all offsets are equal (N, N, N, N)

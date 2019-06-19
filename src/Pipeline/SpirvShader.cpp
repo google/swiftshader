@@ -306,7 +306,7 @@ namespace sw
 					auto offset = Extract(offsets, 0);
 					out = T(rr::Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order));
 				}
-				Else If(ptr.hasSequentialOffsets() && !anyLanesDisabled)
+				Else If(ptr.hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
 				{
 					// Load all elements in a single SIMD instruction.
 					auto offset = Extract(offsets, 0);
@@ -343,7 +343,7 @@ namespace sw
 			else
 			{
 				auto anyLanesDisabled = AnyFalse(mask);
-				If(ptr.hasSequentialOffsets() && !anyLanesDisabled)
+				If(ptr.hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
 				{
 					// Store all elements in a single SIMD instruction.
 					auto offset = Extract(offsets, 0);
