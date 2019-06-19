@@ -1097,12 +1097,6 @@ namespace sw
 
 		std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 
-		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
-
-		std::unordered_map<SpirvShader::Object::ID, SIMD::Pointer> pointers;
-
-		std::unordered_map<SpirvShader::Object::ID, Variable> phis;
-
 		Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
 		Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};
 
@@ -1120,6 +1114,24 @@ namespace sw
 			ASSERT_MSG(added, "Variable %d created twice", id.value());
 		}
 
+		Variable& getVariable(SpirvShader::Object::ID id)
+		{
+			auto it = variables.find(id);
+			ASSERT_MSG(it != variables.end(), "Unknown variables %d", id.value());
+			return it->second;
+		}
+
+	private:
+		// The fields and accessors below are only accessible to SpirvShader
+		// and GenericValue as they are only used and exist between calls to
+		// SpirvShader::emitProlog() and SpirvShader::emitEpilog().
+		friend class SpirvShader;
+		friend class GenericValue;
+
+		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
+		std::unordered_map<SpirvShader::Object::ID, SIMD::Pointer> pointers;
+		std::unordered_map<SpirvShader::Object::ID, Variable> phis;
+
 		void createPointer(SpirvShader::Object::ID id, SIMD::Pointer ptr)
 		{
 			bool added = pointers.emplace(id, ptr).second;
@@ -1133,13 +1145,6 @@ namespace sw
 					std::forward_as_tuple(size));
 			ASSERT_MSG(it.second, "Intermediate %d created twice", id.value());
 			return it.first->second;
-		}
-
-		Variable& getVariable(SpirvShader::Object::ID id)
-		{
-			auto it = variables.find(id);
-			ASSERT_MSG(it != variables.end(), "Unknown variables %d", id.value());
-			return it->second;
 		}
 
 		Intermediate const& getIntermediate(SpirvShader::Object::ID id) const

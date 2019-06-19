@@ -6199,6 +6199,14 @@ namespace sw
 				break;
 			}
 		}
+
+		// Clear all transient containers. This serves two purposes:
+		// (1) All rr::Variables held in these containers are destructed,
+		//     preventing pointless materialization.
+		// (2) Frees memory that will never be used again.
+		routine->pointers.clear();
+		routine->intermediates.clear();
+		routine->phis.clear();
 	}
 
 	SpirvShader::Block::Block(InsnIterator begin, InsnIterator end) : begin_(begin), end_(end)
