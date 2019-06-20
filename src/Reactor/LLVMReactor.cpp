@@ -530,6 +530,22 @@ namespace rr
 		std::atomic_store_explicit<T>(reinterpret_cast<std::atomic<T>*>(ptr), *reinterpret_cast<T*>(val), atomicOrdering(ordering));
 	}
 
+#ifdef __ANDROID__
+	template<typename F>
+	static uint32_t sync_fetch_and_op(uint32_t volatile *ptr, uint32_t val, F f)
+	{
+		// Build an arbitrary op out of looped CAS
+		for (;;)
+		{
+			uint32_t expected = *ptr;
+			uint32_t desired = f(expected, val);
+
+			if (expected == __sync_val_compare_and_swap_4(ptr, expected, desired))
+				return expected;
+		}
+	}
+#endif
+
 	class ExternalFunctionSymbolResolver
 	{
 	private:
@@ -578,6 +594,17 @@ namespace rr
 				// forwarders since we can't take address of builtins
 				static void sync_synchronize() { __sync_synchronize(); }
 				static uint32_t sync_fetch_and_add_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_add_4(ptr, val); }
+				static uint32_t sync_fetch_and_and_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_and_4(ptr, val); }
+				static uint32_t sync_fetch_and_or_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_or_4(ptr, val); }
+				static uint32_t sync_fetch_and_xor_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_xor_4(ptr, val); }
+				static uint32_t sync_fetch_and_sub_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_sub_4(ptr, val); }
+				static uint32_t sync_lock_test_and_set_4(uint32_t *ptr, uint32_t val) { return __sync_lock_test_and_set_4(ptr, val); }
+				static uint32_t sync_val_compare_and_swap_4(uint32_t *ptr, uint32_t expected, uint32_t desired) { return __sync_val_compare_and_swap_4(ptr, expected, desired); }
+
+				static uint32_t sync_fetch_and_max_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](int32_t a, int32_t b) { return std::max(a,b);}); }
+				static uint32_t sync_fetch_and_min_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](int32_t a, int32_t b) { return std::min(a,b);}); }
+				static uint32_t sync_fetch_and_umax_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::max(a,b);}); }
+				static uint32_t sync_fetch_and_umin_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::min(a,b);}); }
 #endif
 			};
 
@@ -646,6 +673,16 @@ namespace rr
 			func_.emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void*>(F::neverCalled));
 			func_.emplace("sync_synchronize", reinterpret_cast<void*>(F::sync_synchronize));
 			func_.emplace("sync_fetch_and_add_4", reinterpret_cast<void*>(F::sync_fetch_and_add_4));
+			func_.emplace("sync_fetch_and_and_4", reinterpret_cast<void*>(F::sync_fetch_and_and_4));
+			func_.emplace("sync_fetch_and_or_4", reinterpret_cast<void*>(F::sync_fetch_and_or_4));
+			func_.emplace("sync_fetch_and_xor_4", reinterpret_cast<void*>(F::sync_fetch_and_xor_4));
+			func_.emplace("sync_fetch_and_sub_4", reinterpret_cast<void*>(F::sync_fetch_and_sub_4));
+			func_.emplace("sync_lock_test_and_set_4", reinterpret_cast<void*>(F::sync_lock_test_and_set_4));
+			func_.emplace("sync_val_compare_and_swap_4", reinterpret_cast<void*>(F::sync_val_compare_and_swap_4));
+			func_.emplace("sync_fetch_and_max_4", reinterpret_cast<void*>(F::sync_fetch_and_max_4));
+			func_.emplace("sync_fetch_and_min_4", reinterpret_cast<void*>(F::sync_fetch_and_min_4));
+			func_.emplace("sync_fetch_and_umax_4", reinterpret_cast<void*>(F::sync_fetch_and_umax_4));
+			func_.emplace("sync_fetch_and_umin_4", reinterpret_cast<void*>(F::sync_fetch_and_umin_4));
 #endif
 		}
 
