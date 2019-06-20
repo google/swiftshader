@@ -294,6 +294,19 @@ namespace sw
 			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB reads.
 			if (!atomic && order == std::memory_order_relaxed)
 			{
+				if (ptr.hasStaticEqualOffsets())
+				{
+					// Load one, replicate.
+					// Be careful of the case where the post-bounds-check mask
+					// is 0, in which case we must not load.
+					T out = T(0);
+					If(AnyTrue(mask))
+					{
+						EL el = *rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], sizeof(float));
+						out = T(el);
+					}
+					return out;
+				}
 				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
 				{
 					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, sizeof(float));
