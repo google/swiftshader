@@ -326,7 +326,6 @@ namespace sw
 		InsnStore insns;
 
 		using ImageSampler = void(void* texture, void *sampler, void* uvsIn, void* texelOut, void* constants);
-		using GetImageSampler = ImageSampler*(const vk::ImageView *imageView, const vk::Sampler *sampler);
 
 		enum class YieldResult
 		{
