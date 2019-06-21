@@ -51,12 +51,12 @@ void DescriptorPool::destroy(const VkAllocationCallbacks* pAllocator)
 
 size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo* pCreateInfo)
 {
-	size_t size = pCreateInfo->maxSets * sizeof(DescriptorSetHeader);
+	size_t size = pCreateInfo->maxSets * sw::align(sizeof(DescriptorSetHeader), 16);
 
 	for(uint32_t i = 0; i < pCreateInfo->poolSizeCount; i++)
 	{
 		size += pCreateInfo->pPoolSizes[i].descriptorCount *
-		        DescriptorSetLayout::GetDescriptorSize(pCreateInfo->pPoolSizes[i].type);
+		        sw::align(DescriptorSetLayout::GetDescriptorSize(pCreateInfo->pPoolSizes[i].type), 16);
 	}
 
 	return size;

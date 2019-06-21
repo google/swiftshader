@@ -29,7 +29,7 @@ namespace vk
 		DescriptorSetLayout* layout;
 	};
 
-	class DescriptorSet
+	class alignas(16) DescriptorSet
 	{
 	public:
 		static inline DescriptorSet* Cast(VkDescriptorSet object)
