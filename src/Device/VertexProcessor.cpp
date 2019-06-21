@@ -19,7 +19,7 @@
 #include "System/Math.hpp"
 #include "Vulkan/VkDebug.hpp"
 
-#include <string.h>
+#include <cstring>
 
 namespace sw
 {
@@ -31,22 +31,17 @@ namespace sw
 		}
 	}
 
-	unsigned int VertexProcessor::States::computeHash()
+	uint32_t VertexProcessor::States::computeHash()
 	{
-		unsigned int *state = (unsigned int*)this;
-		unsigned int hash = 0;
+		uint32_t *state = reinterpret_cast<uint32_t*>(this);
+		uint32_t hash = 0;
 
-		for(unsigned int i = 0; i < sizeof(States) / 4; i++)
+		for(unsigned int i = 0; i < sizeof(States) / sizeof(uint32_t); i++)
 		{
 			hash ^= state[i];
 		}
 
 		return hash;
-	}
-
-	VertexProcessor::State::State()
-	{
-		memset(this, 0, sizeof(State));
 	}
 
 	bool VertexProcessor::State::operator==(const State &state) const
@@ -56,6 +51,7 @@ namespace sw
 			return false;
 		}
 
+		static_assert(is_memcmparable<State>::value, "Cannot memcmp States");
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 

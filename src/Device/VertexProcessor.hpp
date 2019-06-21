@@ -49,9 +49,11 @@ namespace sw
 	class VertexProcessor
 	{
 	public:
-		struct States
+		struct States : Memset<States>
 		{
-			unsigned int computeHash();
+			States() : Memset(this, 0) {}
+
+			uint32_t computeHash();
 
 			uint64_t shaderID;
 
@@ -73,11 +75,9 @@ namespace sw
 
 		struct State : States
 		{
-			State();
-
 			bool operator==(const State &state) const;
 
-			unsigned int hash;
+			uint32_t hash;
 		};
 
 		typedef void (*RoutinePointer)(Vertex *output, unsigned int *batch, VertexTask *vertexTask, DrawData *draw);

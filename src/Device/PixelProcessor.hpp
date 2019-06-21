@@ -30,9 +30,11 @@ namespace sw
 	class PixelProcessor
 	{
 	public:
-		struct States
+		struct States : Memset<States>
 		{
-			unsigned int computeHash();
+			States() : Memset(this, 0) {}
+
+			uint32_t computeHash();
 
 			uint64_t shaderID;
 
@@ -70,8 +72,6 @@ namespace sw
 
 		struct State : States
 		{
-			State();
-
 			bool operator==(const State &state) const;
 
 			int colorWriteActive(int index) const
@@ -79,7 +79,7 @@ namespace sw
 				return (colorWriteMask >> (index * 4)) & 0xF;
 			}
 
-			unsigned int hash;
+			uint32_t hash;
 		};
 
 		struct Stencil

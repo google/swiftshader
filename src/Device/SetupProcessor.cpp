@@ -23,24 +23,21 @@
 #include "Vulkan/VkDebug.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
+#include <cstring>
+
 namespace sw
 {
-	unsigned int SetupProcessor::States::computeHash()
+	uint32_t SetupProcessor::States::computeHash()
 	{
-		unsigned int *state = (unsigned int*)this;
-		unsigned int hash = 0;
+		uint32_t *state = reinterpret_cast<uint32_t*>(this);
+		uint32_t hash = 0;
 
-		for(unsigned int i = 0; i < sizeof(States) / 4; i++)
+		for(unsigned int i = 0; i < sizeof(States) / sizeof(uint32_t); i++)
 		{
 			hash ^= state[i];
 		}
 
 		return hash;
-	}
-
-	SetupProcessor::State::State(int i)
-	{
-		memset(this, 0, sizeof(State));
 	}
 
 	bool SetupProcessor::State::operator==(const State &state) const
@@ -50,6 +47,7 @@ namespace sw
 			return false;
 		}
 
+		static_assert(is_memcmparable<State>::value, "Cannot memcmp States");
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
