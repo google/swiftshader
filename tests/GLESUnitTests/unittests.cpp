@@ -34,6 +34,9 @@
 
 #define EXPECT_GLENUM_EQ(expected, actual) EXPECT_EQ(static_cast<GLenum>(expected), static_cast<GLenum>(actual))
 
+#define EXPECT_NO_GL_ERROR() EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError())
+#define EXPECT_NO_EGL_ERROR() EXPECT_EQ(EGL_SUCCESS, eglGetError())
+
 class SwiftShaderTest : public testing::Test
 {
 protected:
@@ -54,7 +57,7 @@ protected:
 	{
 		unsigned char color[4] = { 0 };
 		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &color);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 		EXPECT_EQ(color[0], referenceColor[0]);
 		EXPECT_EQ(color[1], referenceColor[1]);
 		EXPECT_EQ(color[2], referenceColor[2]);
@@ -65,7 +68,7 @@ protected:
 	{
 		float color[4] = { 0 };
 		glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, &color);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 		EXPECT_EQ(color[0], referenceColor[0]);
 		EXPECT_EQ(color[1], referenceColor[1]);
 		EXPECT_EQ(color[2], referenceColor[2]);
@@ -74,13 +77,13 @@ protected:
 
 	void Initialize(int version, bool withChecks)
 	{
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 
 		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
 		if(withChecks)
 		{
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_NE(EGL_NO_DISPLAY, display);
 
 			eglQueryString(display, EGL_VENDOR);
@@ -93,22 +96,22 @@ protected:
 
 		if(withChecks)
 		{
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_EQ((EGLBoolean)EGL_TRUE, initialized);
 			EXPECT_EQ(1, major);
 			EXPECT_EQ(4, minor);
 
 			const char *eglVendor = eglQueryString(display, EGL_VENDOR);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_STREQ("Google Inc.", eglVendor);
 
 			const char *eglVersion = eglQueryString(display, EGL_VERSION);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_THAT(eglVersion, testing::HasSubstr("1.4 SwiftShader "));
 		}
 
 		eglBindAPI(EGL_OPENGL_ES_API);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 
 		const EGLint configAttributes[] =
 		{
@@ -120,7 +123,7 @@ protected:
 
 		EGLint num_config = -1;
 		EGLBoolean success = eglChooseConfig(display, configAttributes, &config, 1, &num_config);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ(num_config, 1);
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 
@@ -128,17 +131,17 @@ protected:
 		{
 			EGLint conformant = 0;
 			eglGetConfigAttrib(display, config, EGL_CONFORMANT, &conformant);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_TRUE(conformant & EGL_OPENGL_ES2_BIT);
 
 			EGLint renderableType = 0;
 			eglGetConfigAttrib(display, config, EGL_RENDERABLE_TYPE, &renderableType);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_TRUE(renderableType & EGL_OPENGL_ES2_BIT);
 
 			EGLint surfaceType = 0;
 			eglGetConfigAttrib(display, config, EGL_SURFACE_TYPE, &surfaceType);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_TRUE(surfaceType & EGL_WINDOW_BIT);
 		}
 
@@ -150,7 +153,7 @@ protected:
 		};
 
 		surface = eglCreatePbufferSurface(display, config, surfaceAttributes);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_NE(EGL_NO_SURFACE, surface);
 
 		EGLint contextAttributes[] =
@@ -160,69 +163,69 @@ protected:
 		};
 
 		context = eglCreateContext(display, config, NULL, contextAttributes);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_NE(EGL_NO_CONTEXT, context);
 
 		success = eglMakeCurrent(display, surface, surface, context);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 
 		if(withChecks)
 		{
 			EGLDisplay currentDisplay = eglGetCurrentDisplay();
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_EQ(display, currentDisplay);
 
 			EGLSurface currentDrawSurface = eglGetCurrentSurface(EGL_DRAW);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_EQ(surface, currentDrawSurface);
 
 			EGLSurface currentReadSurface = eglGetCurrentSurface(EGL_READ);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_EQ(surface, currentReadSurface);
 
 			EGLContext currentContext = eglGetCurrentContext();
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 			EXPECT_EQ(context, currentContext);
 		}
 
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		EXPECT_NO_GL_ERROR();
 	}
 
 	void Uninitialize()
 	{
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		EGLBoolean success = eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 
 		EGLDisplay currentDisplay = eglGetCurrentDisplay();
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ(EGL_NO_DISPLAY, currentDisplay);
 
 		EGLSurface currentDrawSurface = eglGetCurrentSurface(EGL_DRAW);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ(EGL_NO_SURFACE, currentDrawSurface);
 
 		EGLSurface currentReadSurface = eglGetCurrentSurface(EGL_READ);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ(EGL_NO_SURFACE, currentReadSurface);
 
 		EGLContext currentContext = eglGetCurrentContext();
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ(EGL_NO_CONTEXT, currentContext);
 
 		success = eglDestroyContext(display, context);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 
 		success = eglDestroySurface(display, surface);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 
 		success = eglTerminate(display);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 	}
 
@@ -239,7 +242,7 @@ protected:
 		const char *c_source[1] = { source.c_str() };
 		glShaderSource(shader, 1, c_source, nullptr);
 		glCompileShader(shader);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		GLchar buf[1024];
 		GLint compileStatus = 0;
@@ -255,11 +258,11 @@ protected:
 		GLuint program;
 
 		program = glCreateProgram();
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		glAttachShader(program, vs);
 		glAttachShader(program, fs);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		return program;
 	}
@@ -274,7 +277,7 @@ protected:
 		glGetProgramInfoLog(program, sizeof(buf), nullptr, buf);
 		EXPECT_NE(linkStatus, 0) << "Link status: " << std::endl << buf;
 
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 	}
 
 
@@ -295,7 +298,7 @@ protected:
 		glDeleteShader(ph.vertexShader);
 		glDeleteProgram(ph.program);
 
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 	}
 
 	void drawQuad(GLuint program, const char* textureName = nullptr)
@@ -304,10 +307,10 @@ protected:
 		glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
 
 		glUseProgram(program);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		GLint posLoc = glGetAttribLocation(program, "position");
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		if(textureName)
 		{
@@ -326,12 +329,12 @@ protected:
 		glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, vertices);
 		glEnableVertexAttribArray(posLoc);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		glVertexAttribPointer(posLoc, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
 		glDisableVertexAttribArray(posLoc);
 		glUseProgram(prevProgram);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 	}
 
 	std::string replace(std::string str, const std::string& substr, const std::string& replacement)
@@ -349,28 +352,28 @@ protected:
 		Initialize(3, false);
 
 		std::string vs =
-			"#version 300 es\n"
-			"in vec4 position;\n"
-			"out float unfoldable;\n"
-			"$INSERT\n"
-			"void main()\n"
-			"{\n"
-			"    unfoldable = position.x;\n"
-			"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-			"    gl_Position.x += F(unfoldable);\n"
-			"}\n";
+			R"(#version 300 es
+			in vec4 position;
+			out float unfoldable;
+			$INSERT
+			void main()
+			{
+			    unfoldable = position.x;
+			    gl_Position = vec4(position.xy, 0.0, 1.0);
+			    gl_Position.x += F(unfoldable);\
+			})";
 
 		std::string fs =
-			"#version 300 es\n"
-			"precision mediump float;\n"
-			"in float unfoldable;\n"
-			"out vec4 fragColor;\n"
-			"$INSERT\n"
-			"void main()\n"
-			"{\n"
-			"    fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
-			"    fragColor.x += F(unfoldable);\n"
-			"}\n";
+			R"(#version 300 es
+			precision mediump float;
+			in float unfoldable;
+			out vec4 fragColor;
+			$INSERT
+			void main()
+			{
+			    fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+			    fragColor.x += F(unfoldable);
+			})";
 
 		vs = replace(vs, "$INSERT", (v.length() > 0) ? v : "float F(float ignored) { return 0.0; }");
 		fs = replace(fs, "$INSERT", (f.length() > 0) ? f : "float F(float ignored) { return 0.0; }");
@@ -383,7 +386,7 @@ protected:
 
 		deleteProgram(ph);
 
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		Uninitialize();
 	}
@@ -394,7 +397,7 @@ protected:
 		checkCompiles("", s);
 	}
 
-	void checkCompileFails(GLenum glShaderType, std::string source)
+	std::string checkCompileFails(std::string source, GLenum glShaderType)
 	{
 		Initialize(3, false);
 
@@ -404,49 +407,65 @@ protected:
 
 		glShaderSource(glShader, 1, c_source, nullptr);
 		glCompileShader(glShader);
+		EXPECT_NO_GL_ERROR();
 
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		std::string log;
+		char *buf;
+		GLsizei length = 0;
+		GLsizei written = 0;
 
 		glGetShaderiv(glShader, GL_COMPILE_STATUS, &compileStatus);
-
 		EXPECT_EQ(compileStatus, GL_FALSE);
+
+		glGetShaderiv(glShader, GL_INFO_LOG_LENGTH, &length);
+		EXPECT_NO_GL_ERROR();
+		EXPECT_NE(length, 0);
+		buf = new char[length];
+
+		glGetShaderInfoLog(glShader, length, &written, buf);
+		EXPECT_NO_GL_ERROR();
+		EXPECT_EQ(length, written + 1);
+		log.assign(buf, length);
+		delete[] buf;
 
 		glDeleteShader(glShader);
 
 		Uninitialize();
+
+		return log;
 	}
 
 	void checkCompileFails(std::string s)
 	{
 		std::string vs =
-			"#version 300 es\n"
-			"in vec4 position;\n"
-			"out float unfoldable;\n"
-			"$INSERT\n"
-			"void main()\n"
-			"{\n"
-			"    unfoldable = position.x;\n"
-			"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-			"    gl_Position.x += F(unfoldable);\n"
-			"}\n";
+			R"(#version 300 es
+			in vec4 position;
+			out float unfoldable;
+			$INSERT
+			void main()
+			{
+			    unfoldable = position.x;
+			    gl_Position = vec4(position.xy, 0.0, 1.0);
+			    gl_Position.x += F(unfoldable);
+			})";
 
 		std::string fs =
-			"#version 300 es\n"
-			"precision mediump float;\n"
-			"in float unfoldable;\n"
-			"out vec4 fragColor;\n"
-			"$INSERT\n"
-			"void main()\n"
-			"{\n"
-			"    fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
-			"    fragColor.x += F(unfoldable);\n"
-			"}\n";
+			R"(#version 300 es
+			precision mediump float;
+			in float unfoldable;
+			out vec4 fragColor;
+			$INSERT
+			void main()
+			{
+			    fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+			    fragColor.x += F(unfoldable);
+			})";
 
 		vs = replace(vs, "$INSERT", s);
 		fs = replace(fs, "$INSERT", s);
 
-		checkCompileFails(GL_VERTEX_SHADER, vs);
-		checkCompileFails(GL_FRAGMENT_SHADER, fs);
+		checkCompileFails(vs, GL_VERTEX_SHADER);
+		checkCompileFails(fs, GL_FRAGMENT_SHADER);
 	}
 
 	EGLDisplay getDisplay() const { return display; }
@@ -466,16 +485,16 @@ TEST_F(SwiftShaderTest, Initalization)
 	Initialize(2, true);
 
 	const GLubyte *glVendor = glGetString(GL_VENDOR);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_STREQ("Google Inc.", (const char*)glVendor);
 
 	const GLubyte *glRenderer = glGetString(GL_RENDERER);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_STREQ("Google SwiftShader", (const char*)glRenderer);
 
 	// SwiftShader return an OpenGL ES 3.0 context when a 2.0 context is requested, as allowed by the spec.
 	const GLubyte *glVersion = glGetString(GL_VERSION);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_THAT((const char*)glVersion, testing::HasSubstr("OpenGL ES 3.0 SwiftShader "));
 
 	Uninitialize();
@@ -493,15 +512,15 @@ TEST_F(SwiftShaderTest, ClearIncomplete)
 	glGenFramebuffers(1, &framebuffer);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_R8I, 43, 27);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glClearBufferfv(GL_DEPTH, 0, &zero_float);
 	EXPECT_GLENUM_EQ(GL_INVALID_FRAMEBUFFER_OPERATION, glGetError());
 
@@ -516,39 +535,39 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 	unsigned char green[4] = { 0, 255, 0, 255 };
 
 	const std::string vs =
-		"#version 300 es\n"
-		"in vec4 position;\n"
-		"out vec4 color;\n"
-		"void main()\n"
-		"{\n"
-		"   for(int i = 0; i < 4; i++)\n"
-		"   {\n"
-		"       color[i] = (i % 2 == 0) ? 0.0 : 1.0;\n"
-		"   }\n"
-		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(#version 300 es
+		in vec4 position;
+		out vec4 color;
+		void main()
+		{
+		   for(int i = 0; i < 4; i++)
+		   {
+		       color[i] = (i % 2 == 0) ? 0.0 : 1.0;
+		   }
+			gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"in vec4 color;\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"	fragColor = color;\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		in vec4 color;
+		out vec4 fragColor;
+		void main()
+		{
+			fragColor = color;
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
 	// Expect the info log to contain "unrolled". This is not a spec requirement.
 	GLsizei length = 0;
 	glGetShaderiv(ph.vertexShader, GL_INFO_LOG_LENGTH, &length);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_NE(length, 0);
 	char *log = new char[length];
 	GLsizei written = 0;
 	glGetShaderInfoLog(ph.vertexShader, length, &written, log);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_EQ(length, written + 1);
 	EXPECT_NE(strstr(log, "unrolled"), nullptr);
 	delete[] log;
@@ -557,7 +576,7 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program);
 
@@ -565,7 +584,7 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -576,51 +595,51 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 	Initialize(3, false);
 
 	const std::string vs =
-		"#version 300 es\n"
-		"in vec4 position;\n"
-		"out vec4 color;\n"
-		"void main()\n"
-		"{\n"
-		"   for(int i = 0; i < 4; )\n"
-		"   {\n"
-		"       color[i] = (i % 2 == 0) ? 0.0 : 1.0;\n"
-		"       i++;"
-		"   }\n"
-		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(#version 300 es
+		in vec4 position;
+		out vec4 color;
+		void main()
+		{
+		   for(int i = 0; i < 4; )
+		   {
+		       color[i] = (i % 2 == 0) ? 0.0 : 1.0;
+		       i++;
+		   }
+			gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"in vec4 color;\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"   vec4 temp;"
-		"   for(int i = 0; i < 4; i++)\n"
-		"   {\n"
-		"       if(color.x < 0.0) return;"
-		"       temp[i] = color[i];\n"
-		"   }\n"
-		"	fragColor = vec4(temp[0], temp[1], temp[2], temp[3]);\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		in vec4 color;
+		out vec4 fragColor;
+		void main()
+		{
+		   vec4 temp;
+		   for(int i = 0; i < 4; i++)
+		   {
+		       if(color.x < 0.0) return;
+		       temp[i] = color[i];
+		   }
+			fragColor = vec4(temp[0], temp[1], temp[2], temp[3]);
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
 	// Expect the info logs to be empty. This is not a spec requirement.
 	GLsizei length = 0;
 	glGetShaderiv(ph.vertexShader, GL_INFO_LOG_LENGTH, &length);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_EQ(length, 0);
 	glGetShaderiv(ph.fragmentShader, GL_INFO_LOG_LENGTH, &length);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_EQ(length, 0);
 
 	glUseProgram(ph.program);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program);
 
@@ -629,7 +648,7 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -640,35 +659,35 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 	Initialize(3, false);
 
 	const std::string vs =
-		"#version 300 es\n"
-		"in vec4 position;\n"
-		"out float color[4];\n"
-		"void main()\n"
-		"{\n"
-		"   for(int i = 0; i < 4; )\n"
-		"   {\n"
-		"       int j = (gl_VertexID + i) % 4;\n"
-		"       color[j] = (j % 2 == 0) ? 0.0 : 1.0;\n"
-		"       i++;"
-		"   }\n"
-		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(#version 300 es
+		in vec4 position;
+		out float color[4];
+		void main()
+		{
+		   for(int i = 0; i < 4; )
+		   {
+		       int j = (gl_VertexID + i) % 4;
+		       color[j] = (j % 2 == 0) ? 0.0 : 1.0;
+		       i++;
+		   }
+			gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"in float color[4];\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"   float temp[4];"
-		"   for(int i = 0; i < 4; )\n"
-		"   {\n"
-		"       temp[i] = color[i];\n"
-		"       i++;"
-		"   }\n"
-		"	fragColor = vec4(temp[0], temp[1], temp[2], temp[3]);\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		in float color[4];
+		out vec4 fragColor;
+		void main()
+		{
+		   float temp[4];
+		   for(int i = 0; i < 4; )
+		   {
+		       temp[i] = color[i];
+		       i++;
+		   }
+			fragColor = vec4(temp[0], temp[1], temp[2], temp[3]);
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
@@ -676,7 +695,7 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program);
 
@@ -685,7 +704,7 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -696,71 +715,55 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	Initialize(3, false);
 
 	const std::string vs =
-		"#version 300 es\n"
-		"layout(location = 0) in vec4 a0;\n"   // Explicitly bound in GLSL
-		"layout(location = 2) in vec4 a2;\n"   // Explicitly bound in GLSL
-		"in vec4 a5;\n"                        // Bound to location 5 by API
-		"in mat2 a3;\n"                        // Implicit location
-		"in vec4 a1;\n"                        // Implicit location
-		"in vec4 a6;\n"                        // Implicit location
-		"out vec4 color;\n"
-		"void main()\n"
-		"{\n"
-		"   vec4 a34 = vec4(a3[0], a3[1]);\n"
-		"	gl_Position = a0;\n"
-		"   color = (a2 == vec4(1.0, 2.0, 3.0, 4.0) &&\n"
-		"            a34 == vec4(5.0, 6.0, 7.0, 8.0) &&\n"
-		"            a5 == vec4(9.0, 10.0, 11.0, 12.0) &&\n"
-		"            a1 == vec4(13.0, 14.0, 15.0, 16.0) &&\n"
-		"            a6 == vec4(17.0, 18.0, 19.0, 20.0)) ?\n"
-		"           vec4(0.0, 1.0, 0.0, 1.0) :\n"
-		"           vec4(1.0, 0.0, 0.0, 1.0);"
-		"}\n";
+		R"(#version 300 es
+		layout(location = 0) in vec4 a0;   // Explicitly bound in GLSL
+		layout(location = 2) in vec4 a2;   // Explicitly bound in GLSL
+		in vec4 a5;                        // Bound to location 5 by API
+		in mat2 a3;                        // Implicit location
+		in vec4 a1;                        // Implicit location
+		in vec4 a6;                        // Implicit location
+		out vec4 color;
+		void main()
+		{
+		   vec4 a34 = vec4(a3[0], a3[1]);
+			gl_Position = a0;
+		   color = (a2 == vec4(1.0, 2.0, 3.0, 4.0) &&
+		            a34 == vec4(5.0, 6.0, 7.0, 8.0) &&
+		            a5 == vec4(9.0, 10.0, 11.0, 12.0) &&
+		            a1 == vec4(13.0, 14.0, 15.0, 16.0) &&
+		            a6 == vec4(17.0, 18.0, 19.0, 20.0)) ?
+		           vec4(0.0, 1.0, 0.0, 1.0) :
+		           vec4(1.0, 0.0, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"in vec4 color;\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"	fragColor = color;\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		in vec4 color;
+		out vec4 fragColor;
+		void main()
+		{
+			fragColor = color;
+		})";
 
 	ProgramHandles ph;
+	ph.vertexShader = MakeShader(vs, GL_VERTEX_SHADER);
+	ph.fragmentShader = MakeShader(fs, GL_FRAGMENT_SHADER);
 	ph.program = glCreateProgram();
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-
-	ph.vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	const char* vsSource[1] = { vs.c_str() };
-	glShaderSource(ph.vertexShader, 1, vsSource, nullptr);
-	glCompileShader(ph.vertexShader);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-	GLint vsCompileStatus = 0;
-	glGetShaderiv(ph.vertexShader, GL_COMPILE_STATUS, &vsCompileStatus);
-	EXPECT_EQ(vsCompileStatus, GL_TRUE);
-
-	ph.fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char* fsSource[1] = { fs.c_str() };
-	glShaderSource(ph.fragmentShader, 1, fsSource, nullptr);
-	glCompileShader(ph.fragmentShader);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-	GLint fsCompileStatus = 0;
-	glGetShaderiv(ph.fragmentShader, GL_COMPILE_STATUS, &fsCompileStatus);
-	EXPECT_EQ(fsCompileStatus, GL_TRUE);
+	EXPECT_NO_GL_ERROR();
 
 	// Not assigned a layout location in GLSL. Bind it explicitly with the API.
 	glBindAttribLocation(ph.program, 5, "a5");
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Should not override GLSL layout location qualifier
 	glBindAttribLocation(ph.program, 8, "a2");
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	glAttachShader(ph.program, ph.vertexShader);
 	glAttachShader(ph.program, ph.fragmentShader);
 	glLinkProgram(ph.program);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Changes after linking should have no effect
 	glBindAttribLocation(ph.program, 0, "a1");
@@ -770,7 +773,7 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	GLint linkStatus = 0;
 	glGetProgramiv(ph.program, GL_LINK_STATUS, &linkStatus);
 	EXPECT_NE(linkStatus, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	float vertices[6][3] = { { -1.0f,  1.0f, 0.5f },
 	                         { -1.0f, -1.0f, 0.5f },
@@ -789,14 +792,14 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	EXPECT_EQ(a0, 0);
 	glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 0, vertices);
 	glEnableVertexAttribArray(a0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLint a2 = glGetAttribLocation(ph.program, "a2");
 	EXPECT_EQ(a2, 2);
 	glVertexAttribPointer(a2, 4, GL_FLOAT, GL_FALSE, 0, attributes[0]);
 	glVertexAttribDivisor(a2, 1);
 	glEnableVertexAttribArray(a2);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLint a3 = glGetAttribLocation(ph.program, "a3");
 	EXPECT_EQ(a3, 3);   // Note: implementation specific
@@ -806,39 +809,39 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	glVertexAttribDivisor(a3 + 1, 1);
 	glEnableVertexAttribArray(a3 + 0);
 	glEnableVertexAttribArray(a3 + 1);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLint a5 = glGetAttribLocation(ph.program, "a5");
 	EXPECT_EQ(a5, 5);
 	glVertexAttribPointer(a5, 4, GL_FLOAT, GL_FALSE, 0, attributes[2]);
 	glVertexAttribDivisor(a5, 1);
 	glEnableVertexAttribArray(a5);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLint a1 = glGetAttribLocation(ph.program, "a1");
 	EXPECT_EQ(a1, 1);   // Note: implementation specific
 	glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 0, attributes[3]);
 	glVertexAttribDivisor(a1, 1);
 	glEnableVertexAttribArray(a1);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLint a6 = glGetAttribLocation(ph.program, "a6");
 	EXPECT_EQ(a6, 6);   // Note: implementation specific
 	glVertexAttribPointer(a6, 4, GL_FLOAT, GL_FALSE, 0, attributes[4]);
 	glVertexAttribDivisor(a6, 1);
 	glEnableVertexAttribArray(a6);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	glUseProgram(ph.program);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	deleteProgram(ph);
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -846,93 +849,47 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 // Test negative layout locations
 TEST_F(SwiftShaderTest, NegativeLocation)
 {
-	Initialize(3, false);
-
 	const std::string vs =
-		"#version 300 es\n"
-		"layout(location = 0x86868686u) in vec4 a0;\n"   // Explicitly bound in GLSL
-		"layout(location = 0x96969696u) in vec4 a2;\n"   // Explicitly bound in GLSL
-		"in vec4 a5;\n"                        // Bound to location 5 by API
-		"in mat2 a3;\n"                        // Implicit location
-		"in vec4 a1;\n"                        // Implicit location
-		"in vec4 a6;\n"                        // Implicit location
-		"out vec4 color;\n"
-		"void main()\n"
-		"{\n"
-		"   vec4 a34 = vec4(a3[0], a3[1]);\n"
-		"	gl_Position = a0;\n"
-		"   color = (a2 == vec4(1.0, 2.0, 3.0, 4.0) &&\n"
-		"            a34 == vec4(5.0, 6.0, 7.0, 8.0) &&\n"
-		"            a5 == vec4(9.0, 10.0, 11.0, 12.0) &&\n"
-		"            a1 == vec4(13.0, 14.0, 15.0, 16.0) &&\n"
-		"            a6 == vec4(17.0, 18.0, 19.0, 20.0)) ?\n"
-		"           vec4(0.0, 1.0, 0.0, 1.0) :\n"
-		"           vec4(1.0, 0.0, 0.0, 1.0);"
-		"}\n";
+		R"(#version 300 es
+		layout(location = 0x86868686u) in vec4 a0;   // Explicitly bound in GLSL
+		layout(location = 0x96969696u) in vec4 a2;   // Explicitly bound in GLSL
+		in vec4 a5;                        // Bound to location 5 by API
+		in mat2 a3;                        // Implicit location
+		in vec4 a1;                        // Implicit location
+		in vec4 a6;                        // Implicit location
+		out vec4 color;
+		float F(float f)
+		{
+		   vec4 a34 = vec4(a3[0], a3[1]);\n"
+			gl_Position = a0;\n"
+		   color = (a2 == vec4(1.0, 2.0, 3.0, 4.0) &&
+		            a34 == vec4(5.0, 6.0, 7.0, 8.0) &&
+		            a5 == vec4(9.0, 10.0, 11.0, 12.0) &&
+		            a1 == vec4(13.0, 14.0, 15.0, 16.0) &&
+		            a6 == vec4(17.0, 18.0, 19.0, 20.0)) ?
+		           vec4(0.0, 1.0, 0.0, 1.0) :
+		           vec4(1.0, 0.0, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"in vec4 color;\n"
-		"layout(location = 0xA6A6A6A6u) out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"	fragColor = color;\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		in vec4 color;
+		layout(location = 0xA6A6A6A6u) out vec4 fragColor;
+		float F main()
+		{
+			fragColor = color;
+		})";
 
 	{
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		const char* vsSource[1] = { vs.c_str() };
-		glShaderSource(vertexShader, 1, vsSource, nullptr);
-		glCompileShader(vertexShader);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		GLint vsCompileStatus = 0;
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vsCompileStatus);
-		EXPECT_EQ(vsCompileStatus, GL_FALSE);
-
-		// Expect the info log to contain "out of range: location must be non-negative". This is not a spec requirement.
-		GLsizei length = 0;
-		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &length);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		EXPECT_NE(length, 0);
-		char *log = new char[length];
-		GLsizei written = 0;
-		glGetShaderInfoLog(vertexShader, length, &written, log);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		EXPECT_EQ(length, written + 1);
-		EXPECT_NE(strstr(log, "out of range: location must be non-negative"), nullptr);
-		delete[] log;
-
-		glDeleteShader(vertexShader);
+		std::string log = checkCompileFails(vs, GL_VERTEX_SHADER);
+		EXPECT_NE(strstr(log.c_str(), "out of range: location must be non-negative"), nullptr);
 	}
 
 	{
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		const char* fsSource[1] = { fs.c_str() };
-		glShaderSource(fragmentShader, 1, fsSource, nullptr);
-		glCompileShader(fragmentShader);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		GLint fsCompileStatus = 0;
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fsCompileStatus);
-		EXPECT_EQ(fsCompileStatus, GL_FALSE);
-
-		// Expect the info log to contain "out of range: location must be non-negative". This is not a spec requirement.
-		GLsizei length = 0;
-		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &length);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		EXPECT_NE(length, 0);
-		char *log = new char[length];
-		GLsizei written = 0;
-		glGetShaderInfoLog(fragmentShader, length, &written, log);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-		EXPECT_EQ(length, written + 1);
-		EXPECT_NE(strstr(log, "out of range: location must be non-negative"), nullptr);
-		delete[] log;
-
-		glDeleteShader(fragmentShader);
+		std::string log = checkCompileFails(fs, GL_FRAGMENT_SHADER);
+		EXPECT_NE(strstr(log.c_str(), "out of range: location must be non-negative"), nullptr);
 	}
-
-	Uninitialize();
 }
 
 // Tests clearing of a texture with 'dirty' content.
@@ -943,12 +900,12 @@ TEST_F(SwiftShaderTest, ClearDirtyTexture)
 	GLuint tex = 1;
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, 256, 256, 0, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV, nullptr);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint fbo = 1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, glCheckFramebufferStatus(GL_FRAMEBUFFER));
 
 	float dirty_color[3] = { 128 / 255.0f, 64 / 255.0f, 192 / 255.0f };
@@ -959,7 +916,7 @@ TEST_F(SwiftShaderTest, ClearDirtyTexture)
 	const float clear_color[4] = { 1.0f, 32.0f, 0.5f, 1.0f };
 	glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	expectFramebufferColor(clear_color, dirty_x, dirty_y);
 
@@ -976,21 +933,21 @@ TEST_F(SwiftShaderTest, CopyTexImage)
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, 16, 16);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 5, 10, 1, 1, GL_RGBA, GL_FLOAT, &green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint fbo = 1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex1, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint tex2 = 2;
 	glBindTexture(GL_TEXTURE_2D, tex2);
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 6, 8, 8, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex2, 0);
 	expectFramebufferColor(green, 3, 4);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1003,18 +960,18 @@ TEST_F(SwiftShaderTest, ReadHalfFloat)
 	GLuint tex = 1;
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 256, 256, 0, GL_RGB, GL_HALF_FLOAT, nullptr);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint fbo = 1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, glCheckFramebufferStatus(GL_FRAMEBUFFER));
 
 	const float clear_color[4] = { 1.0f, 32.0f, 0.5f, 1.0f };
 	glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	uint16_t pixel[3] = { 0x1234, 0x3F80, 0xAAAA };
 	GLint x = 6;
@@ -1025,7 +982,7 @@ TEST_F(SwiftShaderTest, ReadHalfFloat)
 	// which isn't guaranteed by the spec but is supported by SwiftShader.
 	uint16_t read_color[3] = { 0, 0, 0 };
 	glReadPixels(x, y, 1, 1, GL_RGB, GL_HALF_FLOAT, &read_color);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	EXPECT_EQ(read_color[0], pixel[0]);
 	EXPECT_EQ(read_color[1], pixel[1]);
 	EXPECT_EQ(read_color[2], pixel[2]);
@@ -1039,26 +996,20 @@ TEST_F(SwiftShaderTest, MatrixInStruct)
 	Initialize(2, false);
 
 	const std::string fs =
-		"#version 100\n"
-		"precision mediump float;\n"
-		"struct S\n"
-		"{\n"
-		"	mat2 rotation;\n"
-		"};\n"
-		"void main(void)\n"
-		"{\n"
-		"	float angle = 1.0;\n"
-		"	S(mat2(1.0, angle, 1.0, 1.0));\n"
-		"}\n";
+		R"(#version 100
+		precision mediump float;
+		struct S
+		{
+			mat2 rotation;
+		};
+		void main(void)
+		{
+			float angle = 1.0;
+			S(mat2(1.0, angle, 1.0, 1.0));
+		})";
 
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char *fsSource[1] = { fs.c_str() };
-	glShaderSource(fragmentShader, 1, fsSource, nullptr);
-	glCompileShader(fragmentShader);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
-	GLint compileStatus = 0;
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &compileStatus);
-	EXPECT_NE(compileStatus, 0);
+	MakeShader(fs, GL_FRAGMENT_SHADER);
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1070,34 +1021,34 @@ TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 
 	GLuint tex = 1;
 	glBindTexture(GL_TEXTURE_2D, tex);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	const std::string vs =
-		"#version 300 es\n"
-		"in vec4 position;\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(#version 300 es
+		in vec4 position;
+		void main()
+		{
+			gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"struct SamplerStruct{ sampler2D tex[2]; };\n"
-		"vec4 doSample(in SamplerStruct s[2])\n"
-		"{\n"
-		"	return texture(s[1].tex[1], vec2(0.0));\n"
-		"}\n"
-		"uniform SamplerStruct samplerStruct[2];\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"	fragColor = doSample(samplerStruct);\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		struct SamplerStruct{ sampler2D tex[2]; };
+		vec4 doSample(in SamplerStruct s[2])
+		{
+			return texture(s[1].tex[1], vec2(0.0));
+		}
+		uniform SamplerStruct samplerStruct[2];
+		out vec4 fragColor;
+		void main()
+		{
+			fragColor = doSample(samplerStruct);
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
@@ -1108,7 +1059,7 @@ TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program, "samplerStruct[1].tex[1]");
 
@@ -1116,7 +1067,7 @@ TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1127,27 +1078,27 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	Initialize(3, false);
 
 	const std::string vs =
-		"#version 300 es\n"
-		"in vec4 position;\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(#version 300 es
+		in vec4 position;
+		void main()
+		{
+			gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"precision mediump float;\n"
-		"const float kPI = 3.14159265358979323846;"
-		"uniform float positive_value;\n"
-		"uniform float negative_value;\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"	// Should yield vec4(0, pi, pi/2, -pi/2)\n"
-		"	vec4 result = atan(vec4(0.0, 0.0, positive_value, negative_value),\n"
-		"	                   vec4(positive_value, negative_value, 0.0, 0.0));\n"
-		"	fragColor = (result / vec4(kPI)) + vec4(0.5, -0.5, 0.0, 1.0) + vec4(0.5 / 255.0);\n"
-		"}\n";
+		R"(#version 300 es
+		precision mediump float;
+		const float kPI = 3.14159265358979323846;
+		uniform float positive_value;
+		uniform float negative_value;
+		out vec4 fragColor;
+		void main()
+		{
+			// Should yield vec4(0, pi, pi/2, -pi/2)
+			vec4 result = atan(vec4(0.0, 0.0, positive_value, negative_value),
+			                   vec4(positive_value, negative_value, 0.0, 0.0));
+			fragColor = (result / vec4(kPI)) + vec4(0.5, -0.5, 0.0, 1.0) + vec4(0.5 / 255.0);
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
@@ -1161,7 +1112,7 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program, nullptr);
 
@@ -1170,7 +1121,7 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	unsigned char grey[4] = { 128, 128, 128, 128 };
 	expectFramebufferColor(grey);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1179,40 +1130,28 @@ TEST_F(SwiftShaderTest, TransformFeedback_DrawArraysInstanced)
 {
 	Initialize(3, false);
 
-	const char * data0[] =
-	{
-		"#version 300 es\n"
-		"in mediump vec2 vary;"
-		"out mediump vec4 color;"
-		"void main()"
-		"{\t"
-			"color = vec4(vary, 0.0, 1.0);"
-		"}"
-	};
-	const char * data1[] =
-	{
-		"#version 300 es\n"
-		"layout(location=0) in mediump vec2 pos;"
-		"out mediump vec2 vary;"
-		"void main()"
-		"{\t"
-			"vary = pos;\t"
-			"gl_Position = vec4(pos, 0.0, 1.0);"
-		"}"
-	};
+	std::string fs =
+		R"(#version 300 es
+		in mediump vec2 vary;
+		out mediump vec4 color;
+		void main()
+		{
+			color = vec4(vary, 0.0, 1.0);
+		})";
+	std::string vs =
+		R"(#version 300 es
+		layout(location=0) in mediump vec2 pos;
+		out mediump vec2 vary;
+		void main()
+		{
+			vary = pos;
+			gl_Position = vec4(pos, 0.0, 1.0);
+		})";
 
-	GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-	GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
-	GLuint program = glCreateProgram();
-
-	glShaderSource(frag, 1, data0, (const GLint *)0);
-	glAttachShader(program, vert);
-	glCompileShader(frag);
-	glAttachShader(program, frag);
-	glShaderSource(vert, 1, data1, (const GLint *)0);
-	glCompileShader(vert);
-	glLinkProgram(program);
-	glUseProgram(program);
+	GLuint vert = MakeShader(vs, GL_VERTEX_SHADER);
+	GLuint frag = MakeShader(fs, GL_FRAGMENT_SHADER);
+	GLuint program = MakeProgram(vert, frag);
+	LinkProgram(program);
 	glBeginTransformFeedback(GL_POINTS);
 	glDrawArraysInstanced(GL_POINTS, 0, 1, 1);
 
@@ -1287,7 +1226,7 @@ TEST_F(SwiftShaderTest, TransformFeedback_BadViewport)
 
 	GLuint primitivesWritten = 0;
 	glGetQueryObjectuiv(primitivesWrittenQuery, GL_QUERY_RESULT_EXT, &primitivesWritten);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	EXPECT_EQ(2u, primitivesWritten);
 
@@ -1324,24 +1263,24 @@ TEST_F(SwiftShaderTest, ViewportBounds)
 		Initialize(3, false);
 
 		std::string vs =
-			"#version 300 es\n"
-			"in vec4 position;\n"
-			"out float unfoldable;\n"
-			"void main()\n"
-			"{\n"
-			"    unfoldable = position.x;\n"
-			"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-			"}\n";
+			R"(#version 300 es
+			in vec4 position;
+			out float unfoldable;
+			void main()
+			{
+			    unfoldable = position.x;
+			    gl_Position = vec4(position.xy, 0.0, 1.0);
+			})";
 
 		std::string fs =
-			"#version 300 es\n"
-			"precision mediump float;\n"
-			"in float unfoldable;\n"
-			"out vec4 fragColor;\n"
-			"void main()\n"
-			"{\n"
-			"    fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
-			"}\n";
+			R"(#version 300 es
+			precision mediump float;
+			in float unfoldable;
+			out vec4 fragColor;
+			void main()
+			{
+			    fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+			})";
 
 		const ProgramHandles ph = createProgram(vs, fs);
 
@@ -1350,7 +1289,7 @@ TEST_F(SwiftShaderTest, ViewportBounds)
 		glViewport(x, y, w, h);
 
 		drawQuad(ph.program);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		deleteProgram(ph);
 		Uninitialize();
@@ -1380,7 +1319,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_TexImage2D)
 
 	// Defining level 0 is allowed
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Defining level other than 0 is not allowed
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 1, GL_RGBA, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -1417,7 +1356,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CompressedTexImage2DDisallowed)
 		GLuint tex = 1;
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 16, 16, 0, 128, data);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 	}
 
 	// Rectangle textures cannot be compressed
@@ -1441,7 +1380,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_TexStorage2D)
 		GLuint tex = 1;
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
 		glTexStorage2D(GL_TEXTURE_RECTANGLE_ARB, 1, GL_RGBA8UI, 16, 16);
-		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NO_GL_ERROR();
 	}
 
 	// Having more than one level is not allowed
@@ -1496,7 +1435,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_TexParameterRestriction)
 	// Only wrap mode CLAMP_TO_EDGE is supported
 	// Wrap S
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
@@ -1504,7 +1443,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_TexParameterRestriction)
 
 	// Wrap T
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -1512,9 +1451,9 @@ TEST_F(SwiftShaderTest, TextureRectangle_TexParameterRestriction)
 
 	// Min filter has to be nearest or linear
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
@@ -1526,7 +1465,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_TexParameterRestriction)
 
 	// Base level has to be 0
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_BASE_LEVEL, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_BASE_LEVEL, 1);
 	EXPECT_GLENUM_EQ(GL_INVALID_OPERATION, glGetError());
 
@@ -1541,7 +1480,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_FramebufferTexture2DLevel)
 	GLuint tex = 1;
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint fbo = 1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1549,7 +1488,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_FramebufferTexture2DLevel)
 	// Using level 0 of a rectangle texture is valid.
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, tex, 0);
 	EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, glCheckFramebufferStatus(GL_FRAMEBUFFER));
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Setting level != 0 is invalid
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, tex, 1);
@@ -1565,27 +1504,27 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 
 	GLuint tex = 1;
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	const std::string vs =
-		"attribute vec4 position;\n"
-		"void main()\n"
-		"{\n"
-		"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(attribute vec4 position;
+		void main()
+		{
+		    gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#extension GL_ARB_texture_rectangle : require\n"
-		"precision mediump float;\n"
-		"uniform sampler2DRect tex;\n"
-		"void main()\n"
-		"{\n"
-		"    gl_FragColor = texture2DRect(tex, vec2(0, 0));\n"
-		"}\n";
+		R"(#extension GL_ARB_texture_rectangle : require
+		precision mediump float;
+		uniform sampler2DRect tex;
+		void main()
+		{
+		    gl_FragColor = texture2DRect(tex, vec2(0, 0));
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
@@ -1596,7 +1535,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program, "tex");
 
@@ -1604,7 +1543,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1616,30 +1555,30 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 
 	GLuint tex = 1;
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	const std::string vs =
-		"#version 300 es\n"
-		"in vec4 position;\n"
-		"void main()\n"
-		"{\n"
-		"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-		"}\n";
+		R"(#version 300 es
+		in vec4 position;
+		void main()
+		{
+		    gl_Position = vec4(position.xy, 0.0, 1.0);
+		})";
 
 	const std::string fs =
-		"#version 300 es\n"
-		"#extension GL_ARB_texture_rectangle : require\n"
-		"precision mediump float;\n"
-		"uniform sampler2DRect tex;\n"
-		"out vec4 fragColor;\n"
-		"void main()\n"
-		"{\n"
-		"    fragColor = texture(tex, vec2(0, 0));\n"
-		"}\n";
+		R"(#version 300 es
+		#extension GL_ARB_texture_rectangle : require
+		precision mediump float;
+		uniform sampler2DRect tex;
+		out vec4 fragColor;
+		void main()
+		{
+		    fragColor = texture(tex, vec2(0, 0));
+		})";
 
 	const ProgramHandles ph = createProgram(vs, fs);
 
@@ -1650,7 +1589,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	drawQuad(ph.program, "tex");
 
@@ -1658,7 +1597,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 
 	expectFramebufferColor(green);
 
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1677,7 +1616,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_RenderToRectangle)
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, tex, 0);
 	EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, glCheckFramebufferStatus(GL_FRAMEBUFFER));
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Clearing a texture is just as good as checking we can render to it, right?
 	glClearColor(0.0, 1.0, 0.0, 1.0);
@@ -1685,7 +1624,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_RenderToRectangle)
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1723,7 +1662,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexImage)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 1, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Error case: level != 0
 	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 1, GL_RGBA8, 0, 0, 1, 1, 0);
@@ -1731,7 +1670,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexImage)
 
 	// level = 0 works and defines the texture.
 	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, 0, 0, 1, 1, 0);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint fbo = 1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1739,7 +1678,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexImage)
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1757,7 +1696,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexSubImage)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 1, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	// Error case: level != 0
 	glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 1, 0, 0, 0, 0, 1, 1);
@@ -1765,7 +1704,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexSubImage)
 
 	// level = 0 works and defines the texture.
 	glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, 1, 1);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	GLuint fbo = 1;
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1773,7 +1712,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexSubImage)
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
-	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NO_GL_ERROR();
 
 	Uninitialize();
 }
@@ -1901,12 +1840,12 @@ TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCallsInUnusedFunction)
 TEST_F(SwiftShaderTest, CompilerLimits_SparseLabels)
 {
 	checkCompiles(
-		"void Dead1() {}\n"
-		"void Dead2() {}\n"
-		"void Dead3() {}\n"
-		"void Dead4() {}\n"
-		"void Dead5() { Dead1(); Dead2(); Dead3(); Dead4(); }\n"
-		"float F(float f) { for(int i = 0; i < -1; ++i) { Dead5(); } return f; }\n"
+		R"(void Dead1() {}
+		void Dead2() {}
+		void Dead3() {}
+		void Dead4() {}
+		void Dead5() { Dead1(); Dead2(); Dead3(); Dead4(); }
+		float F(float f) { for(int i = 0; i < -1; ++i) { Dead5(); } return f; })"
 	);
 }
 
@@ -1915,40 +1854,40 @@ TEST_F(SwiftShaderTest, CompilerLimits_SparseLabels)
 TEST_F(SwiftShaderTest, CompilerLimits_ArraySize)
 {
 	checkCompileFails(
-		"uniform float u_var[100000000];\n"
-		"float F(float f) { return u_var[2]; }\n");
+		R"(uniform float u_var[100000000];
+		float F(float f) { return u_var[2]; })");
 	checkCompileFails(
-		"struct structType { mediump sampler2D m0; mediump samplerCube m1; }; \n"
-		"uniform structType u_var[100000000];\n"
-		"float F(float f) { return texture(u_var[2].m1, vec3(0.0)), vec4(0.26, 1.72, 0.60, 0.12).x; }\n");
+		R"(struct structType { mediump sampler2D m0; mediump samplerCube m1; };
+		uniform structType u_var[100000000];
+		float F(float f) { return texture(u_var[2].m1, vec3(0.0)), vec4(0.26, 1.72, 0.60, 0.12).x; })");
 }
 
 // Test that the compiler rejects negations of things that can't be negated.
 TEST_F(SwiftShaderTest, BadNegation)
 {
 	checkCompileFails(
-		"uniform samplerCube m;\n"
-		"float F (float f) { vec4 ret = texture(-m, vec3(f)); return ret.x; }\n"
+		R"(uniform samplerCube m;
+		float F (float f) { vec4 ret = texture(-m, vec3(f)); return ret.x; })"
 	);
 	checkCompileFails(
-		"uniform sampler2D m[9];\n"
-		"vec4 G (sampler2D X[9]) { return texture(X[0], vec2(0.0f)); }"
-		"float F (float f) { vec4 ret = G(-m); return ret.x; }\n"
+		R"(uniform sampler2D m[9];
+		vec4 G (sampler2D X[9]) { return texture(X[0], vec2(0.0f)); }
+		float F (float f) { vec4 ret = G(-m); return ret.x; })"
 	);
 	checkCompileFails(
-		"struct structType { int a; float b; };\n"
-		"uniform structType m;\n"
-		"float F (float f) { structType n = -m; return f; }\n"
+		R"(struct structType { int a; float b; };
+		uniform structType m;
+		float F (float f) { structType n = -m; return f; })"
 	);
 	checkCompileFails(
-		"struct structType { int a; float b; };\n"
-		"uniform structType m[4];\n"
-		"float F (float f) { structType n[4] = -m; return f; }\n"
+		R"(struct structType { int a; float b; };
+		uniform structType m[4];
+		float F (float f) { structType n[4] = -m; return f; })"
 	);
 	checkCompileFails(
-		"uniform float m[4];\n"
-		"float G (float f[4]) { return f[0]; }\n"
-		"float F (float f) { return G(-m); }\n"
+		R"(uniform float m[4];
+		float G (float f[4]) { return f[0]; }
+		float F (float f) { return G(-m); })"
 	);
 }
 
@@ -2099,7 +2038,7 @@ protected:
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, *texture);
 		EGLBoolean result = eglBindTexImage(getDisplay(), *pbuffer, EGL_BACK_BUFFER);
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 	}
 
 	void doClear(GLenum internalFormat, bool clearToZero)
@@ -2108,7 +2047,7 @@ protected:
 		{
 			GLuint color = clearToZero ? 0 : 257;
 			glClearBufferuiv(GL_COLOR, 0, &color);
-			EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+			EXPECT_NO_GL_ERROR();
 		}
 		else
 		{
@@ -2116,9 +2055,9 @@ protected:
 				clearToZero ? 0.0f : 2.0f / 255.0f,
 				clearToZero ? 0.0f : 3.0f / 255.0f,
 				clearToZero ? 0.0f : 4.0f / 255.0f);
-			EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+			EXPECT_NO_GL_ERROR();
 			glClear(GL_COLOR_BUFFER_BIT);
-			EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+			EXPECT_NO_GL_ERROR();
 		}
 	}
 
@@ -2134,18 +2073,18 @@ protected:
 		// glClear the pbuffer
 		GLuint fbo = 2;
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		EXPECT_NO_GL_ERROR();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, texture, 0);
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		EXPECT_NO_GL_ERROR();
 		EXPECT_GLENUM_EQ(glCheckFramebufferStatus(GL_FRAMEBUFFER), GL_FRAMEBUFFER_COMPLETE);
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		doClear(internalFormat, false);
 
 		// Unbind pbuffer and check content.
 		EGLBoolean result = eglReleaseTexImage(getDisplay(), pbuffer, EGL_BACK_BUFFER);
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 
 		const unsigned char* color = clientBufferWrapper.lockColor();
 		for(size_t i = 0; i < dataSize; ++i)
@@ -2155,7 +2094,7 @@ protected:
 
 		result = eglDestroySurface(getDisplay(), pbuffer);
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 	}
 
 	void doSampleTest(EGLClientBufferWrapper& clientBufferWrapper, GLenum internalFormat, GLenum type, void *data, size_t dataSize)
@@ -2173,33 +2112,32 @@ protected:
 
 		// Create program and draw quad using it
 		const std::string vs =
-			"attribute vec4 position;\n"
-			"void main()\n"
-			"{\n"
-			"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
-			"}\n";
+			R"(attribute vec4 position;
+			void main()
+			{
+			    gl_Position = vec4(position.xy, 0.0, 1.0);
+			})";
 
 		const std::string fs =
-			"#extension GL_ARB_texture_rectangle : require\n"
-			"precision mediump float;\n"
-			"uniform sampler2DRect tex;\n"
-			"void main()\n"
-			"{\n"
-			"    gl_FragColor = texture2DRect(tex, vec2(0, 0));\n"
-			"}\n";
+			R"(#extension GL_ARB_texture_rectangle : require
+			precision mediump float;
+			uniform sampler2DRect tex;
+			void main()
+			{
+			    gl_FragColor = texture2DRect(tex, vec2(0, 0));
+			})";
 
 		const ProgramHandles ph = createProgram(vs, fs);
 
 		drawQuad(ph.program, "tex");
 
 		deleteProgram(ph);
-
-		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+		EXPECT_NO_GL_ERROR();
 
 		// Unbind pbuffer and check content.
 		EGLBoolean result = eglReleaseTexImage(getDisplay(), pbuffer, EGL_BACK_BUFFER);
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
-		EXPECT_EQ(EGL_SUCCESS, eglGetError());
+		EXPECT_NO_EGL_ERROR();
 
 		const unsigned char* color = clientBufferWrapper.lockColor();
 		for(size_t i = 0; i < dataSize; ++i)
@@ -2349,7 +2287,7 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 
 			EGLBoolean result = eglDestroySurface(getDisplay(), pbuffer);
 			EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 		}
 
 		// Missing EGL_WIDTH
@@ -2503,7 +2441,7 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 
 			EGLBoolean result = eglDestroySurface(getDisplay(), pbuffer);
 			EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
-			EXPECT_EQ(EGL_SUCCESS, eglGetError());
+			EXPECT_NO_EGL_ERROR();
 		}
 
 		// EGL_TEXTURE_FORMAT must be EGL_TEXTURE_RGBA
