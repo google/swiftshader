@@ -20,7 +20,7 @@
 #include "Vulkan/VkFormat.h"
 
 #include <mutex>
-#include <string.h>
+#include <cstring>
 
 namespace vk
 {
@@ -59,15 +59,16 @@ namespace sw
 			bool clampToEdge : 1;
 		};
 
-		struct State : Options
+		struct State : Memset<State>, Options
 		{
-			State() = default;
-			State(const Options &options) : Options(options) {}
+			State() : Memset(this, 0) {}
+			State(const Options &options) : Memset(this, 0), Options(options) {}
 			State(vk::Format sourceFormat, vk::Format destFormat, int srcSamples, int destSamples, const Options &options) :
-				Options(options), sourceFormat(sourceFormat), destFormat(destFormat), srcSamples(srcSamples), destSamples(destSamples) {}
+				Memset(this, 0), Options(options), sourceFormat(sourceFormat), destFormat(destFormat), srcSamples(srcSamples), destSamples(destSamples) {}
 
 			bool operator==(const State &state) const
 			{
+				static_assert(is_memcmparable<State>::value, "Cannot memcmp State");
 				return memcmp(this, &state, sizeof(State)) == 0;
 			}
 
