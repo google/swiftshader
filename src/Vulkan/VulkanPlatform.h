@@ -46,7 +46,7 @@ public:
 #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) \
 	typedef struct object##_T *object##Ptr; \
 	typedef VkNonDispatchableHandle<object##Ptr> object; \
-    template class VkNonDispatchableHandle<object##Ptr>;
+	template class VkNonDispatchableHandle<object##Ptr>;
 
 #include <vulkan/vulkan.h>
 
