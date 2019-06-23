@@ -88,10 +88,16 @@
 #include <math.h>
 
 #if defined(__x86_64__) && defined(_WIN32)
-extern "C" void X86CompilationCallback()
-{
-	UNIMPLEMENTED("X86CompilationCallback");
-}
+	extern "C" void X86CompilationCallback()
+	{
+		UNIMPLEMENTED("X86CompilationCallback");
+	}
+#endif
+
+#if defined(_WIN64)
+	extern "C" void __chkstk();
+#elif defined(_WIN32)
+	extern "C" void _chkstk();
 #endif
 
 namespace rr
@@ -610,7 +616,11 @@ namespace rr
 			func_.emplace("sincosf_stret", reinterpret_cast<void*>(__sincosf_stret));
 #elif defined(__linux__)
 			func_.emplace("sincosf", reinterpret_cast<void*>(sincosf));
-#endif // __APPLE__
+#elif defined(_WIN64)
+			func_.emplace("chkstk", reinterpret_cast<void*>(__chkstk));
+#elif defined(_WIN32)
+			func_.emplace("chkstk", reinterpret_cast<void*>(_chkstk));
+#endif
 
 #ifdef __ANDROID__
 			func_.emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void*>(F::neverCalled));
@@ -936,18 +946,6 @@ namespace rr
 		auto func = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, name, ::module);
 		func->setDoesNotThrow();
 		func->setCallingConv(llvm::CallingConv::C);
-
-		#if defined(_WIN32)
-			// FIXME(capn):
-			// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
-			// having a trap which allows the OS to grow the stack. For functions with a stack frame
-			// larger than 4 kB this can cause an issue when a variable is accessed beyond the guard
-			// page. Therefore the compiler emits a call to __chkstk in the function prolog to probe
-			// the stack and ensure all pages have been committed. This is currently broken in LLVM
-			// JIT, but we can prevent emitting the stack probe call:
-			func->addFnAttr("stack-probe-size", "1048576");
-		#endif
-
 		return func;
 	}
 
