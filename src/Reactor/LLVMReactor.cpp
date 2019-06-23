@@ -125,6 +125,32 @@ namespace
 	}
 #endif // ENABLE_RR_PRINT
 
+	template <typename T>
+	T alignUp(T val, T alignment)
+	{
+		return alignment * ((val + alignment - 1) / alignment);
+	}
+
+	void* alignedAlloc(size_t size, size_t alignment)
+	{
+		ASSERT(alignment < 256);
+		auto allocation = new uint8_t[size + sizeof(uint8_t) + alignment];
+		auto aligned = allocation;
+		aligned += sizeof(uint8_t); // Make space for the base-address offset.
+		aligned = reinterpret_cast<uint8_t*>(alignUp(reinterpret_cast<uintptr_t>(aligned), alignment)); // align
+		auto offset = static_cast<uint8_t>(aligned - allocation);
+		aligned[-1] = offset;
+		return aligned;
+	}
+
+	void alignedFree(void* ptr)
+	{
+		auto aligned = reinterpret_cast<uint8_t*>(ptr);
+		auto offset = aligned[-1];
+		auto allocation = aligned - offset;
+		delete[] allocation;
+	}
+
 	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -539,6 +565,9 @@ namespace rr
 				static void nop() {}
 				static void neverCalled() { UNREACHABLE("Should never be called"); }
 
+				static void* coroutine_alloc_frame(size_t size) { return alignedAlloc(size, 16); }
+				static void coroutine_free_frame(void* ptr) { alignedFree(ptr); }
+
 #ifdef __ANDROID__
 				// forwarders since we can't take address of builtins
 				static void sync_synchronize() { __sync_synchronize(); }
@@ -574,8 +603,8 @@ namespace rr
 			func_.emplace("atomic_store", reinterpret_cast<void*>(Atomic::store));
 
 			// FIXME (b/119409619): use an allocator here so we can control all memory allocations
-			func_.emplace("coroutine_alloc_frame", reinterpret_cast<void*>(malloc));
-			func_.emplace("coroutine_free_frame", reinterpret_cast<void*>(free));
+			func_.emplace("coroutine_alloc_frame", reinterpret_cast<void*>(F::coroutine_alloc_frame));
+			func_.emplace("coroutine_free_frame", reinterpret_cast<void*>(F::coroutine_free_frame));
 
 #ifdef __APPLE__
 			func_.emplace("sincosf_stret", reinterpret_cast<void*>(__sincosf_stret));
