@@ -3450,21 +3450,17 @@ namespace rr
 	// RR_LOG() is intended to be used for debugging JIT compiled code, and is
 	// not intended for production use.
 	#if defined(_WIN32)
-		#define RR_LOG(msg, ...) Print(__FUNCSIG__, __FILE__, __LINE__, msg "\n", ##__VA_ARGS__)
+		#define RR_LOG(msg, ...) Print(__FUNCSIG__, __FILE__, static_cast<int>(__LINE__), msg "\n", ##__VA_ARGS__)
 	#else
-		#define RR_LOG(msg, ...) Print(__PRETTY_FUNCTION__, __FILE__, __LINE__, msg "\n", ##__VA_ARGS__)
+		#define RR_LOG(msg, ...) Print(__PRETTY_FUNCTION__, __FILE__, static_cast<int>(__LINE__), msg "\n", ##__VA_ARGS__)
 	#endif
 
 	// Macro magic to perform variadic dispatch.
 	// See: https://renenyffenegger.ch/notes/development/languages/C-C-plus-plus/preprocessor/macros/__VA_ARGS__/count-arguments
 	// Note, this doesn't attempt to use the ##__VA_ARGS__ trick to handle 0
-	// args as this appears to still be broken on certain compilers.
-	// MSVC also has issues with variadic macros which requires the RR_VA_MSVC_BUG() work-around.
-	// See: https://stackoverflow.com/a/48711060
-	#define RR_VA_MSVC_BUG(MACRO, ARGS) MACRO ARGS
-	#define RR_GET_NTH_ARG_EX(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
-	#define RR_GET_NTH_ARG(...) RR_VA_MSVC_BUG(RR_GET_NTH_ARG_EX, (__VA_ARGS__))
-	#define RR_COUNT_ARGUMENTS(...) RR_GET_NTH_ARG(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+	#define RR_MSVC_EXPAND_BUG(X) X // Helper macro to force expanding __VA_ARGS__ to satisfy MSVC compiler.
+	#define RR_GET_NTH_ARG(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
+	#define RR_COUNT_ARGUMENTS(...) RR_MSVC_EXPAND_BUG(RR_GET_NTH_ARG(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
 	static_assert(1 == RR_COUNT_ARGUMENTS(a), "RR_COUNT_ARGUMENTS broken"); // Sanity checks.
 	static_assert(2 == RR_COUNT_ARGUMENTS(a, b), "RR_COUNT_ARGUMENTS broken");
 	static_assert(3 == RR_COUNT_ARGUMENTS(a, b, c), "RR_COUNT_ARGUMENTS broken");
@@ -3477,7 +3473,7 @@ namespace rr
 	// corresponding RR_WATCH_FMT_n specialization macro below.
 	#define RR_WATCH_CONCAT(a, b) a ## b
 	#define RR_WATCH_CONCAT2(a, b) RR_WATCH_CONCAT(a, b)
-	#define RR_WATCH_FMT(...) RR_WATCH_CONCAT2(RR_WATCH_FMT_, RR_COUNT_ARGUMENTS(__VA_ARGS__))(__VA_ARGS__)
+	#define RR_WATCH_FMT(...) RR_MSVC_EXPAND_BUG(RR_WATCH_CONCAT2(RR_WATCH_FMT_, RR_COUNT_ARGUMENTS(__VA_ARGS__))(__VA_ARGS__))
 	#define RR_WATCH_FMT_1(_1) "\n  " #_1 ": {0}"
 	#define RR_WATCH_FMT_2(_1, _2)                                             RR_WATCH_FMT_1(_1) "\n  " #_2 ": {1}"
 	#define RR_WATCH_FMT_3(_1, _2, _3)                                         RR_WATCH_FMT_2(_1, _2) "\n  " #_3 ": {2}"
