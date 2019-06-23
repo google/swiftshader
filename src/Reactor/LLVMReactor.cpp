@@ -678,6 +678,7 @@ namespace rr
 		void startSession()
 		{
 			::module = new llvm::Module("", *::context);
+			::module->setDataLayout(dataLayout);
 		}
 
 		void endSession()
@@ -705,7 +706,6 @@ namespace rr
 			// been freed.
 			std::unique_ptr<llvm::Module> mod(::module);
 			::module = nullptr;
-			mod->setDataLayout(dataLayout);
 
 			auto moduleKey = session.allocateVModule();
 
