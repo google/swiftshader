@@ -355,6 +355,23 @@ namespace sw
 			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB writes.
 			if (!atomic && order == std::memory_order_relaxed)
 			{
+				if (ptr.hasStaticEqualOffsets())
+				{
+					If (AnyTrue(mask))
+					{
+						// All equal. One of these writes will win -- elect the winning lane.
+						auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+						auto elect = mask & ~(v0111 & (mask.xxyz | mask.xxxy | mask.xxxx));
+						auto maskedVal = As<SIMD::Int>(val) & elect;
+						auto scalarVal = Extract(maskedVal, 0) |
+							Extract(maskedVal, 1) |
+							Extract(maskedVal, 2) |
+							Extract(maskedVal, 3);
+						*rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], sizeof(float)) = As<EL>(scalarVal);
+					}
+					return;
+				}
+
 				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
 				{
 					return rr::MaskedStore(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), val, mask, sizeof(float));
