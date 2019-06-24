@@ -1051,14 +1051,13 @@ namespace rr
 			::module->print(file, 0);
 		}
 
-		// FIXME: Disable for release builds once heavy development is over.
-		bool verifyIR = true;
-		if(verifyIR)
+#if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 		{
 			llvm::legacy::PassManager pm;
 			pm.add(llvm::createVerifierPass());
 			pm.run(*::module);
 		}
+#endif // defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 
 		if(runOptimizations)
 		{

@@ -89,6 +89,7 @@ option(WARNINGS_AS_ERRORS "Treat all warnings as errors" 1)
 option(DCHECK_ALWAYS_ON "Check validation macros even in release builds" 0)
 option(REACTOR_EMIT_DEBUG_INFO "Emit debug info for JIT functions" 0)
 option(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location info for JIT functions" 0)
+option(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" 0)
 
 if(ARCH STREQUAL "arm")
     set(DEFAULT_REACTOR_BACKEND "Subzero")
@@ -462,6 +463,10 @@ endif()
 if(REACTOR_EMIT_DEBUG_INFO)
     message(WARNING "REACTOR_EMIT_DEBUG_INFO is enabled. This will likely affect performance.")
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_RR_DEBUG_INFO")
+endif()
+
+if(REACTOR_VERIFY_LLVM_IR)
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_RR_LLVM_IR_VERIFICATION")
 endif()
 
 if(WIN32)

@@ -69,7 +69,8 @@
                 "-GNinja",
                 "-DCMAKE_BUILD_TYPE=${input:buildType}",
                 "-DWARNINGS_AS_ERRORS=1",
-                "-DDCHECK_ALWAYS_ON=1"
+                "-DDCHECK_ALWAYS_ON=1",
+                "-DREACTOR_VERIFY_LLVM_IR=1",
             ],
             "options": {
                 "cwd": "${workspaceRoot}/build"

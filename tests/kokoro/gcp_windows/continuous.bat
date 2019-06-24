@@ -17,7 +17,7 @@ SET CONFIG=Debug
 cd %SRC%\build
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
-cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DREACTOR_BACKEND=%REACTOR_BACKEND%"
+cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DREACTOR_BACKEND=%REACTOR_BACKEND%" "-DREACTOR_VERIFY_LLVM_IR=1"
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
 %MSBUILD% /p:Configuration=%CONFIG% SwiftShader.sln

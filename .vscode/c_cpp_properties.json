@@ -3,7 +3,8 @@
         {
             "name": "Linux",
             "defines": [
-                "ENABLE_RR_DEBUG_INFO=1"
+                "ENABLE_RR_DEBUG_INFO=1",
+                "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
                 "${workspaceFolder}/src",
@@ -19,7 +20,8 @@
         {
             "name": "Mac",
             "defines": [
-                "ENABLE_RR_DEBUG_INFO=1"
+                "ENABLE_RR_DEBUG_INFO=1",
+                "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
                 "${workspaceFolder}/src",
@@ -35,7 +37,8 @@
         {
             "name": "Win32",
             "defines": [
-                "ENABLE_RR_DEBUG_INFO=1"
+                "ENABLE_RR_DEBUG_INFO=1",
+                "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
                 "${workspaceFolder}/src",
