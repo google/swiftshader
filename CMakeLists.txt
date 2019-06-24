@@ -2006,6 +2006,18 @@ if(BUILD_VULKAN)
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libvk_swiftshader> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
     )
+
+    # The vk_swiftshader_icd.json manifest file will point to ICD_LIBRARY_PATH.
+    # Set ICD_LIBRARY_PATH to be a relative path similar to "./libvk_swiftshader.so", so both files can be moved.
+    # A relative path is relative to the manifest file.
+    # Note that the library name is always "libvk_swiftshader"; we do not use the platform-specific prefix.
+    set(ICD_LIBRARY_PATH "libvk_swiftshader${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    if(WIN32)
+        # The path is output to a JSON file, which requires backslashes to be escaped.
+        set(ICD_LIBRARY_PATH ".\\${ICD_LIBRARY_PATH}")
+    else()
+        set(ICD_LIBRARY_PATH "./${ICD_LIBRARY_PATH}")
+    endif()
     configure_file(
         "${VULKAN_DIR}/vk_swiftshader_icd.json.tmpl"
         "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/vk_swiftshader_icd.json")
