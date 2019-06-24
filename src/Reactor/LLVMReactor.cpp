@@ -588,6 +588,7 @@ namespace rr
 			func_.emplace("printf", reinterpret_cast<void*>(printf));
 			func_.emplace("puts", reinterpret_cast<void*>(puts));
 			func_.emplace("fmodf", reinterpret_cast<void*>(fmodf));
+
 			func_.emplace("sinf", reinterpret_cast<void*>(sinf));
 			func_.emplace("cosf", reinterpret_cast<void*>(cosf));
 			func_.emplace("asinf", reinterpret_cast<void*>(asinf));
@@ -605,6 +606,25 @@ namespace rr
 			func_.emplace("logf", reinterpret_cast<void*>(logf));
 			func_.emplace("exp2f", reinterpret_cast<void*>(exp2f));
 			func_.emplace("log2f", reinterpret_cast<void*>(log2f));
+
+			func_.emplace("sin", reinterpret_cast<void*>(static_cast<double(*)(double)>(sin)));
+			func_.emplace("cos", reinterpret_cast<void*>(static_cast<double(*)(double)>(cos)));
+			func_.emplace("asin", reinterpret_cast<void*>(static_cast<double(*)(double)>(asin)));
+			func_.emplace("acos", reinterpret_cast<void*>(static_cast<double(*)(double)>(acos)));
+			func_.emplace("atan", reinterpret_cast<void*>(static_cast<double(*)(double)>(atan)));
+			func_.emplace("sinh", reinterpret_cast<void*>(static_cast<double(*)(double)>(sinh)));
+			func_.emplace("cosh", reinterpret_cast<void*>(static_cast<double(*)(double)>(cosh)));
+			func_.emplace("tanh", reinterpret_cast<void*>(static_cast<double(*)(double)>(tanh)));
+			func_.emplace("asinh", reinterpret_cast<void*>(static_cast<double(*)(double)>(asinh)));
+			func_.emplace("acosh", reinterpret_cast<void*>(static_cast<double(*)(double)>(acosh)));
+			func_.emplace("atanh", reinterpret_cast<void*>(static_cast<double(*)(double)>(atanh)));
+			func_.emplace("atan2", reinterpret_cast<void*>(static_cast<double(*)(double,double)>(atan2)));
+			func_.emplace("pow", reinterpret_cast<void*>(static_cast<double(*)(double,double)>(pow)));
+			func_.emplace("exp", reinterpret_cast<void*>(static_cast<double(*)(double)>(exp)));
+			func_.emplace("log", reinterpret_cast<void*>(static_cast<double(*)(double)>(log)));
+			func_.emplace("exp2", reinterpret_cast<void*>(static_cast<double(*)(double)>(exp2)));
+			func_.emplace("log2", reinterpret_cast<void*>(static_cast<double(*)(double)>(log2)));
+
 			func_.emplace("atomic_load", reinterpret_cast<void*>(Atomic::load));
 			func_.emplace("atomic_store", reinterpret_cast<void*>(Atomic::store));
 
