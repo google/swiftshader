@@ -157,6 +157,10 @@ namespace rr
 		{
 			return false;
 		}
+
+		// self() returns the this pointer to this LValue<T> object.
+		// This function exists because operator&() is overloaded.
+		inline LValue<T>* self() { return this; }
 	};
 
 	template<class T>
@@ -2448,6 +2452,10 @@ namespace rr
 		Reference<T> operator[](unsigned int index);
 		Reference<T> operator[](RValue<Int> index);
 		Reference<T> operator[](RValue<UInt> index);
+
+		// self() returns the this pointer to this Array object.
+		// This function exists because operator&() is overloaded by LValue<T>.
+		inline Array* self() { return this; }
 	};
 
 //	RValue<Array<T>> operator++(Array<T> &val, int);   // Post-increment
