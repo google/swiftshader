@@ -541,6 +541,45 @@ namespace sw
 			InsnIterator end_;
 		};
 
+		class Function
+		{
+		public:
+			using ID = SpirvID<Function>;
+
+			// Walks all reachable the blocks starting from id adding them to
+			// reachable.
+			void TraverseReachableBlocks(Block::ID id, Block::Set& reachable);
+
+			// AssignBlockFields() performs the following for all reachable blocks:
+			// * Assigns Block::ins with the identifiers of all blocks that contain
+			//   this block in their Block::outs.
+			// * Sets Block::isLoopMerge to true if the block is the merge of a
+			//   another loop block.
+			void AssignBlockFields();
+
+			// ForeachBlockDependency calls f with each dependency of the given
+			// block. A dependency is an incoming block that is not a loop-back
+			// edge.
+			void ForeachBlockDependency(Block::ID blockId, std::function<void(Block::ID)> f) const;
+
+			// ExistsPath returns true if there's a direct or indirect flow from
+			// the 'from' block to the 'to' block that does not pass through
+			// notPassingThrough.
+			bool ExistsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const;
+
+			Block const &getBlock(Block::ID id) const
+			{
+				auto it = blocks.find(id);
+				ASSERT_MSG(it != blocks.end(), "Unknown block %d", id.value());
+				return it->second;
+			}
+
+			Block::ID entry; // function entry point block.
+			HandleMap<Block> blocks; // blocks belonging to this function.
+			Type::ID type; // type of the function.
+			Type::ID result; // return type.
+		};
+
 		struct TypeOrObject {}; // Dummy struct to represent a Type or Object.
 
 		// TypeOrObjectID is an identifier that represents a Type or an Object,
@@ -623,7 +662,7 @@ namespace sw
 		// shader entry point represented by this object.
 		uint64_t getSerialID() const
 		{
-			return  ((uint64_t)entryPointBlockId.value() << 32) | codeSerialID;
+			return  ((uint64_t)entryPoint.value() << 32) | codeSerialID;
 		}
 
 		SpirvShader(uint32_t codeSerialID,
@@ -816,10 +855,10 @@ namespace sw
 			return it->second;
 		}
 
-		Block const &getBlock(Block::ID id) const
+		Function const &getFunction(Function::ID id) const
 		{
-			auto it = blocks.find(id);
-			ASSERT_MSG(it != blocks.end(), "Unknown block %d", id.value());
+			auto it = functions.find(id);
+			ASSERT_MSG(it != functions.end(), "Unknown function %d", id.value());
 			return it->second;
 		}
 
@@ -828,21 +867,10 @@ namespace sw
 		Modes modes;
 		HandleMap<Type> types;
 		HandleMap<Object> defs;
-		HandleMap<Block> blocks;
-		Block::ID entryPointBlockId; // Block of the entry point function.
+		HandleMap<Function> functions;
+		Function::ID entryPoint;
 
 		const bool robustBufferAccess = true;
-
-		// Walks all reachable the blocks starting from id adding them to
-		// reachable.
-		void TraverseReachableBlocks(Block::ID id, Block::Set& reachable);
-
-		// AssignBlockFields() performs the following for all reachable blocks:
-		// * Assigns Block::ins with the identifiers of all blocks that contain
-		//   this block in their Block::outs.
-		// * Sets Block::isLoopMerge to true if the block is the merge of a
-		//   another loop block.
-		void AssignBlockFields();
 
 		// DeclareType creates a Type for the given OpTypeX instruction, storing
 		// it into the types map. It is called from the analysis pass (constructor).
@@ -923,8 +951,13 @@ namespace sw
 		class EmitState
 		{
 		public:
-			EmitState(SpirvRoutine *routine, RValue<SIMD::Int> activeLaneMask, const vk::DescriptorSet::Bindings &descriptorSets, bool robustBufferAccess)
+			EmitState(SpirvRoutine *routine,
+					Function::ID function,
+					RValue<SIMD::Int> activeLaneMask,
+					const vk::DescriptorSet::Bindings &descriptorSets,
+					bool robustBufferAccess)
 				: routine(routine),
+				  function(function),
 				  activeLaneMaskValue(activeLaneMask.value),
 				  descriptorSets(descriptorSets),
 				  robust(robustBufferAccess)
@@ -954,6 +987,7 @@ namespace sw
 			void addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask);
 
 			SpirvRoutine *routine = nullptr; // The current routine being built.
+			Function::ID function; // The current function being built.
 			rr::Value *activeLaneMaskValue = nullptr; // The current active lane mask.
 			Block::ID currentBlock; // The current block being built.
 			Block::Set visited; // Blocks already built.
@@ -1055,20 +1089,10 @@ namespace sw
 		// Returns the *component* offset in the literal for the given access chain.
 		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
-		// existsPath returns true if there's a direct or indirect flow from
-		// the 'from' block to the 'to' block that does not pass through
-		// notPassingThrough.
-		bool existsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const;
-
 		// Lookup the active lane mask for the edge from -> to.
 		// If from is unreachable, then a mask of all zeros is returned.
 		// Asserts if from is reachable and the edge does not exist.
 		RValue<SIMD::Int> GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const;
-
-		// ForeachBlockDependency calls f with each dependency of the given
-		// block. A dependency is an incoming block that is not a loop-back
-		// edge.
-		void ForeachBlockDependency(Block::ID blockId, std::function<void(Block::ID)> f) const;
 
 		// Emit all the unvisited blocks (except for ignore) in DFS order,
 		// starting with id.

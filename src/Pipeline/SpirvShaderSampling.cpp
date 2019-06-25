@@ -117,7 +117,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
-	Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
+	rr::Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
 	{
 		Pointer<Byte> texture = function.Arg<0>();
 		Pointer<Byte> sampler = function.Arg<1>();
