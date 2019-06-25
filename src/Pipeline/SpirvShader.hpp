@@ -919,22 +919,6 @@ namespace sw
 
 		void ProcessInterfaceVariable(Object &object);
 
-		// Returns a SIMD::Pointer to the underlying data for the given pointer
-		// object.
-		// Handles objects of the following kinds:
-		//  • DescriptorSet
-		//  • DivergentPointer
-		//  • InterfaceVariable
-		//  • NonDivergentPointer
-		// Calling GetPointerToData with objects of any other kind will assert.
-		SIMD::Pointer GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const;
-
-		SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
-		SIMD::Pointer WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
-
-		// Returns the *component* offset in the literal for the given access chain.
-		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
-
 		// EmitState holds control-flow state for the emit() pass.
 		class EmitState
 		{
@@ -979,6 +963,38 @@ namespace sw
 			const vk::DescriptorSet::Bindings &descriptorSets;
 
 			const bool robust = true;  // Emit robustBufferAccess safe code.
+
+			Intermediate& createIntermediate(Object::ID id, uint32_t size)
+			{
+				auto it = intermediates.emplace(std::piecewise_construct,
+						std::forward_as_tuple(id),
+						std::forward_as_tuple(size));
+				ASSERT_MSG(it.second, "Intermediate %d created twice", id.value());
+				return it.first->second;
+			}
+
+			Intermediate const& getIntermediate(Object::ID id) const
+			{
+				auto it = intermediates.find(id);
+				ASSERT_MSG(it != intermediates.end(), "Unknown intermediate %d", id.value());
+				return it->second;
+			}
+
+			void createPointer(Object::ID id, SIMD::Pointer ptr)
+			{
+				bool added = pointers.emplace(id, ptr).second;
+				ASSERT_MSG(added, "Pointer %d created twice", id.value());
+			}
+
+			SIMD::Pointer const& getPointer(Object::ID id) const
+			{
+				auto it = pointers.find(id);
+				ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
+				return it->second;
+			}
+		private:
+			std::unordered_map<Object::ID, Intermediate> intermediates;
+			std::unordered_map<Object::ID, SIMD::Pointer> pointers;
 		};
 
 		// EmitResult is an enumerator of result values from the Emit functions.
@@ -998,7 +1014,7 @@ namespace sw
 			Intermediate const *intermediate;
 
 		public:
-			GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::Object::ID objId);
+			GenericValue(SpirvShader const *shader, EmitState const *state, SpirvShader::Object::ID objId);
 
 			RValue<SIMD::Float> Float(uint32_t i) const
 			{
@@ -1022,6 +1038,22 @@ namespace sw
 
 			SpirvShader::Type::ID const type;
 		};
+
+		// Returns a SIMD::Pointer to the underlying data for the given pointer
+		// object.
+		// Handles objects of the following kinds:
+		//  • DescriptorSet
+		//  • DivergentPointer
+		//  • InterfaceVariable
+		//  • NonDivergentPointer
+		// Calling GetPointerToData with objects of any other kind will assert.
+		SIMD::Pointer GetPointerToData(Object::ID id, int arrayIndex, EmitState const *state) const;
+
+		SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const;
+		SIMD::Pointer WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const;
+
+		// Returns the *component* offset in the literal for the given access chain.
+		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
 		// existsPath returns true if there's a direct or indirect flow from
 		// the 'from' block to the 'to' block that does not pass through
@@ -1101,8 +1133,8 @@ namespace sw
 		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitArrayLength(InsnIterator insn, EmitState *state) const;
 
-		void GetImageDimensions(SpirvRoutine const *routine, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
-		SIMD::Pointer GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
+		void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
+		SIMD::Pointer GetTexelAddress(EmitState const *state, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
 		uint32_t GetConstScalarInt(Object::ID id) const;
 		void EvalSpecConstantOp(InsnIterator insn);
 		void EvalSpecConstantUnaryOp(InsnIterator insn);
@@ -1186,43 +1218,13 @@ namespace sw
 		}
 
 	private:
-		// The fields and accessors below are only accessible to SpirvShader
-		// as they are only used and exist between calls to
-		// SpirvShader::emitProlog() and SpirvShader::emitEpilog().
+		// The phis are only accessible to SpirvShader as they are only used and
+		// exist between calls to SpirvShader::emitProlog() and
+		// SpirvShader::emitEpilog().
 		friend class SpirvShader;
 
-		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
-		std::unordered_map<SpirvShader::Object::ID, SIMD::Pointer> pointers;
 		std::unordered_map<SpirvShader::Object::ID, Variable> phis;
 
-		void createPointer(SpirvShader::Object::ID id, SIMD::Pointer ptr)
-		{
-			bool added = pointers.emplace(id, ptr).second;
-			ASSERT_MSG(added, "Pointer %d created twice", id.value());
-		}
-
-		Intermediate& createIntermediate(SpirvShader::Object::ID id, uint32_t size)
-		{
-			auto it = intermediates.emplace(std::piecewise_construct,
-					std::forward_as_tuple(id),
-					std::forward_as_tuple(size));
-			ASSERT_MSG(it.second, "Intermediate %d created twice", id.value());
-			return it.first->second;
-		}
-
-		Intermediate const& getIntermediate(SpirvShader::Object::ID id) const
-		{
-			auto it = intermediates.find(id);
-			ASSERT_MSG(it != intermediates.end(), "Unknown intermediate %d", id.value());
-			return it->second;
-		}
-
-		SIMD::Pointer const& getPointer(SpirvShader::Object::ID id) const
-		{
-			auto it = pointers.find(id);
-			ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
-			return it->second;
-		}
 	};
 
 }
