@@ -841,27 +841,6 @@ namespace sw
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
 		WorkgroupMemory workgroupMemory;
 
-		Type const &getType(Type::ID id) const
-		{
-			auto it = types.find(id);
-			ASSERT_MSG(it != types.end(), "Unknown type %d", id.value());
-			return it->second;
-		}
-
-		Object const &getObject(Object::ID id) const
-		{
-			auto it = defs.find(id);
-			ASSERT_MSG(it != defs.end(), "Unknown object %d", id.value());
-			return it->second;
-		}
-
-		Function const &getFunction(Function::ID id) const
-		{
-			auto it = functions.find(id);
-			ASSERT_MSG(it != functions.end(), "Unknown function %d", id.value());
-			return it->second;
-		}
-
 	private:
 		const uint32_t codeSerialID;
 		Modes modes;
@@ -1072,6 +1051,27 @@ namespace sw
 
 			SpirvShader::Type::ID const type;
 		};
+
+		Type const &getType(Type::ID id) const
+		{
+			auto it = types.find(id);
+			ASSERT_MSG(it != types.end(), "Unknown type %d", id.value());
+			return it->second;
+		}
+
+		Object const &getObject(Object::ID id) const
+		{
+			auto it = defs.find(id);
+			ASSERT_MSG(it != defs.end(), "Unknown object %d", id.value());
+			return it->second;
+		}
+
+		Function const &getFunction(Function::ID id) const
+		{
+			auto it = functions.find(id);
+			ASSERT_MSG(it != functions.end(), "Unknown function %d", id.value());
+			return it->second;
+		}
 
 		// Returns a SIMD::Pointer to the underlying data for the given pointer
 		// object.
