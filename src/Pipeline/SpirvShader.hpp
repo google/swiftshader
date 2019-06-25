@@ -251,7 +251,7 @@ namespace sw
 		}
 
 		template<typename T>
-		T Load(Pointer ptr, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+		T Load(Pointer ptr, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
 	}
 
 	// Incrementally constructed complex bundle of rvalues

@@ -287,7 +287,7 @@ namespace sw
 	{
 
 		template<typename T>
-		T Load(Pointer ptr, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+		T Load(Pointer ptr, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
 		{
 			using EL = typename Element<T>::type;
 			auto offsets = ptr.offsets();
@@ -302,16 +302,16 @@ namespace sw
 					T out = T(0);
 					If(AnyTrue(mask))
 					{
-						EL el = *rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], sizeof(float));
+						EL el = *rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], alignment);
 						out = T(el);
 					}
 					return out;
 				}
 				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
 				{
-					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, sizeof(float));
+					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, alignment);
 				}
-				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, sizeof(float));
+				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, alignment);
 			}
 			else
 			{
@@ -321,13 +321,13 @@ namespace sw
 				{
 					// Load one, replicate.
 					auto offset = Extract(offsets, 0);
-					out = T(rr::Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order));
+					out = T(rr::Load(rr::Pointer<EL>(&ptr.base[offset]), alignment, atomic, order));
 				}
 				Else If(ptr.hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
 				{
 					// Load all elements in a single SIMD instruction.
 					auto offset = Extract(offsets, 0);
-					out = rr::Load(rr::Pointer<T>(&ptr.base[offset]), sizeof(float), atomic, order);
+					out = rr::Load(rr::Pointer<T>(&ptr.base[offset]), alignment, atomic, order);
 				}
 				Else
 				{
@@ -338,7 +338,7 @@ namespace sw
 						If(Extract(mask, i) != 0)
 						{
 							auto offset = Extract(offsets, i);
-							auto el = rr::Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order);
+							auto el = rr::Load(rr::Pointer<EL>(&ptr.base[offset]), alignment, atomic, order);
 							out = Insert(out, el, i);
 						}
 					}
@@ -5258,7 +5258,7 @@ namespace sw
 		// TODO: specialize for small formats?
 		for (auto i = 0; i < (texelSize + 3)/4; i++)
 		{
-			packed[i] = SIMD::Load<SIMD::Int>(texelPtr, state->activeLaneMask());
+			packed[i] = SIMD::Load<SIMD::Int>(texelPtr, state->activeLaneMask(), false, std::memory_order_relaxed, std::min(texelSize, 4));
 			texelPtr += sizeof(float);
 		}
 
