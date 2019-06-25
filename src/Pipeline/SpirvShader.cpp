@@ -2058,7 +2058,7 @@ namespace sw
 
 			pending.pop_front();
 
-			state->currentBlock = id;
+			state->block = id;
 
 			switch (block.kind)
 			{
@@ -2103,7 +2103,7 @@ namespace sw
 	void SpirvShader::EmitNonLoop(EmitState *state) const
 	{
 		auto &function = getFunction(state->function);
-		auto blockId = state->currentBlock;
+		auto blockId = state->block;
 		auto block = function.getBlock(blockId);
 
 		if (!state->visited.emplace(blockId).second)
@@ -2137,7 +2137,7 @@ namespace sw
 	void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		auto &function = getFunction(state->function);
-		auto blockId = state->currentBlock;
+		auto blockId = state->block;
 		auto &block = function.getBlock(blockId);
 		auto mergeBlockId = block.mergeBlock;
 		auto &mergeBlock = function.getBlock(mergeBlockId);
@@ -2219,7 +2219,7 @@ namespace sw
 		}
 
 		// Restore current block id after emitting loop blocks.
-		state->currentBlock = blockId;
+		state->block = blockId;
 
 		// Rebuild the loopActiveLaneMask from the loop back edges.
 		loopActiveLaneMask = SIMD::Int(0);
@@ -4583,14 +4583,14 @@ namespace sw
 	SpirvShader::EmitResult SpirvShader::EmitBranch(InsnIterator insn, EmitState *state) const
 	{
 		auto target = Block::ID(insn.word(1));
-		state->addActiveLaneMaskEdge(state->currentBlock, target, state->activeLaneMask());
+		state->addActiveLaneMaskEdge(state->block, target, state->activeLaneMask());
 		return EmitResult::Terminator;
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, EmitState *state) const
 	{
 		auto &function = getFunction(state->function);
-		auto block = function.getBlock(state->currentBlock);
+		auto block = function.getBlock(state->block);
 		ASSERT(block.branchInstruction == insn);
 
 		auto condId = Object::ID(block.branchInstruction.word(1));
@@ -4611,7 +4611,7 @@ namespace sw
 	SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *state) const
 	{
 		auto &function = getFunction(state->function);
-		auto block = function.getBlock(state->currentBlock);
+		auto block = function.getBlock(state->block);
 		ASSERT(block.branchInstruction == insn);
 
 		auto selId = Object::ID(block.branchInstruction.word(1));
@@ -4666,13 +4666,13 @@ namespace sw
 	SpirvShader::EmitResult SpirvShader::EmitPhi(InsnIterator insn, EmitState *state) const
 	{
 		auto &function = getFunction(state->function);
-		auto currentBlock = function.getBlock(state->currentBlock);
+		auto currentBlock = function.getBlock(state->block);
 		if (!currentBlock.isLoopMerge)
 		{
 			// If this is a loop merge block, then don't attempt to update the
 			// phi values from the ins. EmitLoop() has had to take special care
 			// of this phi in order to correctly deal with divergent lanes.
-			StorePhi(state->currentBlock, insn, state, currentBlock.ins);
+			StorePhi(state->block, insn, state, currentBlock.ins);
 		}
 		LoadPhi(insn, state);
 		return EmitResult::Continue;
@@ -6391,7 +6391,7 @@ namespace sw
 
 	void SpirvShader::EmitState::addOutputActiveLaneMaskEdge(Block::ID to, RValue<SIMD::Int> mask)
 	{
-		addActiveLaneMaskEdge(currentBlock, to, mask & activeLaneMask());
+		addActiveLaneMaskEdge(block, to, mask & activeLaneMask());
 	}
 
 	void SpirvShader::EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask)

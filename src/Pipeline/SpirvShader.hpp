@@ -967,8 +967,8 @@ namespace sw
 
 			SpirvRoutine *routine = nullptr; // The current routine being built.
 			Function::ID function; // The current function being built.
+			Block::ID block; // The current block being built.
 			rr::Value *activeLaneMaskValue = nullptr; // The current active lane mask.
-			Block::ID currentBlock; // The current block being built.
 			Block::Set visited; // Blocks already built.
 			std::unordered_map<Block::Edge, RValue<SIMD::Int>, Block::Edge::Hash> edgeActiveLaneMasks;
 			std::deque<Block::ID> *pending;
