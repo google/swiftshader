@@ -3732,6 +3732,13 @@ namespace rr
 		for (auto arg : args) { arguments.push_back(V(arg)); }
 		return V(::builder->CreateCall(funcPtr, arguments));
 	}
+
+	void Breakpoint()
+	{
+		llvm::Function *debugtrap = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::debugtrap);
+
+		::builder->CreateCall(debugtrap);
+	}
 }
 
 namespace rr
@@ -4292,12 +4299,6 @@ namespace rr
 		::builder->CreateCall(func, vals);
 	}
 #endif // ENABLE_RR_PRINT
-
-	void Break()
-	{
-		auto trap = ::llvm::Intrinsic::getDeclaration(module, llvm::Intrinsic::trap);
-		builder->CreateCall(trap);
-	}
 
 	void Nop()
 	{

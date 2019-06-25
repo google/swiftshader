@@ -3465,6 +3465,14 @@ namespace rr
 		return V(ret);
 	}
 
+	void Breakpoint()
+	{
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Trap, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto trap = Ice::InstIntrinsicCall::create(::function, 0, nullptr, target, intrinsic);
+		::basicBlock->appendInst(trap);
+	}
+
 	// Below are functions currently unimplemented for the Subzero backend.
 	// They are stubbed to satisfy the linker.
 	void Nucleus::createFence(std::memory_order memoryOrder) { UNIMPLEMENTED("Subzero createFence()"); }
