@@ -339,6 +339,15 @@ else()
         "-Wmissing-braces"
     )
 
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8)
+            list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+                # Warnings that should not be treated as errors:
+                "-Wno-error=class-memaccess"  # TODO(b/134932616): Reliably initializing cache keys currently requires memset().
+            )
+        endif()
+    endif()
+
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
             "-Wunused-lambda-capture"
