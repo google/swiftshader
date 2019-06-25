@@ -54,7 +54,6 @@ namespace sw
 {
 	// Forward declarations.
 	class SpirvRoutine;
-	class GenericValue;
 
 	// SIMD contains types that represent multiple scalars packed into a single
 	// vector data type. Types in the SIMD namespace provide a semantic hint
@@ -989,6 +988,41 @@ namespace sw
 			Terminator, // Reached a termination instruction.
 		};
 
+		// Generic wrapper over either per-lane intermediate value, or a constant.
+		// Constants are transparently widened to per-lane values in operator[].
+		// This is appropriate in most cases -- if we're not going to do something
+		// significantly different based on whether the value is uniform across lanes.
+		class GenericValue
+		{
+			SpirvShader::Object const &obj;
+			Intermediate const *intermediate;
+
+		public:
+			GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::Object::ID objId);
+
+			RValue<SIMD::Float> Float(uint32_t i) const
+			{
+				if (intermediate != nullptr)
+				{
+					return intermediate->Float(i);
+				}
+				auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
+				return RValue<SIMD::Float>(constantValue[i]);
+			}
+
+			RValue<SIMD::Int> Int(uint32_t i) const
+			{
+				return As<SIMD::Int>(Float(i));
+			}
+
+			RValue<SIMD::UInt> UInt(uint32_t i) const
+			{
+				return As<SIMD::UInt>(Float(i));
+			}
+
+			SpirvShader::Type::ID const type;
+		};
+
 		// existsPath returns true if there's a direct or indirect flow from
 		// the 'from' block to the 'to' block that does not pass through
 		// notPassingThrough.
@@ -1153,10 +1187,9 @@ namespace sw
 
 	private:
 		// The fields and accessors below are only accessible to SpirvShader
-		// and GenericValue as they are only used and exist between calls to
+		// as they are only used and exist between calls to
 		// SpirvShader::emitProlog() and SpirvShader::emitEpilog().
 		friend class SpirvShader;
-		friend class GenericValue;
 
 		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
 		std::unordered_map<SpirvShader::Object::ID, SIMD::Pointer> pointers;
@@ -1190,45 +1223,6 @@ namespace sw
 			ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
 			return it->second;
 		}
-	};
-
-	class GenericValue
-	{
-		// Generic wrapper over either per-lane intermediate value, or a constant.
-		// Constants are transparently widened to per-lane values in operator[].
-		// This is appropriate in most cases -- if we're not going to do something
-		// significantly different based on whether the value is uniform across lanes.
-
-		SpirvShader::Object const &obj;
-		Intermediate const *intermediate;
-
-	public:
-		GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::Object::ID objId) :
-				obj(shader->getObject(objId)),
-				intermediate(obj.kind == SpirvShader::Object::Kind::Intermediate ? &routine->getIntermediate(objId) : nullptr),
-				type(obj.type) {}
-
-		RValue<SIMD::Float> Float(uint32_t i) const
-		{
-			if (intermediate != nullptr)
-			{
-				return intermediate->Float(i);
-			}
-			auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
-			return RValue<SIMD::Float>(constantValue[i]);
-		}
-
-		RValue<SIMD::Int> Int(uint32_t i) const
-		{
-			return As<SIMD::Int>(Float(i));
-		}
-
-		RValue<SIMD::UInt> UInt(uint32_t i) const
-		{
-			return As<SIMD::UInt>(Float(i));
-		}
-
-		SpirvShader::Type::ID const type;
 	};
 
 }
