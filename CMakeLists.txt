@@ -339,15 +339,6 @@ else()
         "-Wmissing-braces"
     )
 
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8)
-            list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-                # Warnings that should not be treated as errors:
-                "-Wno-error=class-memaccess"  # TODO(b/134932616): Reliably initializing cache keys currently requires memset().
-            )
-        endif()
-    endif()
-
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
             "-Wunused-lambda-capture"
@@ -1417,6 +1408,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
         "-Wno-unused-but-set-variable" # variable ‘X’ set but not used
     )
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8)
+        list(APPEND LLVM_COMPILE_OPTIONS
+            "-Wno-class-memaccess"  # memset/memcmp used on non-trivial class object
+        )
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     list(APPEND LLVM_COMPILE_OPTIONS
         "/wd4141" # 'inline': used more than once
