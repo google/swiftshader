@@ -729,7 +729,7 @@ void PhysicalDevice::getImageFormatProperties(Format format, VkImageType type, V
 		pImageFormatProperties->sampleCounts = VK_SAMPLE_COUNT_1_BIT;
 	}
 
-	// "Images created with a format from one of those listed in Formats requiring sampler Y’CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
+	// "Images created with a format from one of those listed in Formats requiring sampler Y'CbCr conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
 	//  have further restrictions on their limits and capabilities compared to images created with other formats."
 	if(format.isYcbcrFormat())
 	{
