@@ -33,11 +33,12 @@ namespace vk
 class PipelineCache;
 class PipelineLayout;
 class ShaderModule;
+class Device;
 
 class Pipeline
 {
 public:
-	Pipeline(PipelineLayout const *layout);
+	Pipeline(PipelineLayout const *layout, const Device *device);
 	virtual ~Pipeline() = default;
 
 	operator VkPipeline()
@@ -64,12 +65,14 @@ public:
 
 protected:
 	PipelineLayout const *layout = nullptr;
+
+	const bool robustBufferAccess = true;
 };
 
 class GraphicsPipeline : public Pipeline, public ObjectBase<GraphicsPipeline, VkPipeline>
 {
 public:
-	GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem);
+	GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem, const Device *device);
 	virtual ~GraphicsPipeline() = default;
 
 	void destroyPipeline(const VkAllocationCallbacks* pAllocator) override;
@@ -110,7 +113,7 @@ private:
 class ComputePipeline : public Pipeline, public ObjectBase<ComputePipeline, VkPipeline>
 {
 public:
-	ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem);
+	ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem, const Device *device);
 	virtual ~ComputePipeline() = default;
 
 	void destroyPipeline(const VkAllocationCallbacks* pAllocator) override;

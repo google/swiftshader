@@ -36,10 +36,11 @@ namespace
 namespace vk
 {
 
-Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice)
+Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures)
 	: physicalDevice(physicalDevice),
 	  queues(reinterpret_cast<Queue*>(mem)),
-	  enabledExtensionCount(pCreateInfo->enabledExtensionCount)
+	  enabledExtensionCount(pCreateInfo->enabledExtensionCount),
+	  enabledFeatures(enabledFeatures ? *enabledFeatures : VkPhysicalDeviceFeatures{})  // "Setting pEnabledFeatures to NULL and not including a VkPhysicalDeviceFeatures2 in the pNext member of VkDeviceCreateInfo is equivalent to setting all members of the structure to VK_FALSE."
 {
 	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
 	{

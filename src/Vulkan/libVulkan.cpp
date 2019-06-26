@@ -393,6 +393,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 
 	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 
+	const VkPhysicalDeviceFeatures *enabledFeatures = pCreateInfo->pEnabledFeatures;
+
 	while(extensionCreateInfo)
 	{
 		switch(extensionCreateInfo->sType)
@@ -410,10 +412,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 
 				const VkPhysicalDeviceFeatures2* physicalDeviceFeatures2 = reinterpret_cast<const VkPhysicalDeviceFeatures2*>(extensionCreateInfo);
 
-				if(!vk::Cast(physicalDevice)->hasFeatures(physicalDeviceFeatures2->features))
-				{
-					return VK_ERROR_FEATURE_NOT_PRESENT;
-				}
+				enabledFeatures = &physicalDeviceFeatures2->features;
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES:
@@ -473,9 +472,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 
 	ASSERT(pCreateInfo->queueCreateInfoCount > 0);
 
-	if(pCreateInfo->pEnabledFeatures)
+	if(enabledFeatures)
 	{
-		if(!vk::Cast(physicalDevice)->hasFeatures(*(pCreateInfo->pEnabledFeatures)))
+		if(!vk::Cast(physicalDevice)->hasFeatures(*enabledFeatures))
 		{
 			return VK_ERROR_FEATURE_NOT_PRESENT;
 		}
@@ -495,7 +494,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		(void)queueFamilyPropertyCount; // Silence unused variable warning
 	}
 
-	return vk::DispatchableDevice::Create(pAllocator, pCreateInfo, pDevice, vk::Cast(physicalDevice));
+	return vk::DispatchableDevice::Create(pAllocator, pCreateInfo, pDevice, vk::Cast(physicalDevice), enabledFeatures);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
@@ -1193,7 +1192,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateGraphicsPipelines(VkDevice device, VkPipe
 	VkResult errorResult = VK_SUCCESS;
 	for(uint32_t i = 0; i < createInfoCount; i++)
 	{
-		VkResult result = vk::GraphicsPipeline::Create(pAllocator, &pCreateInfos[i], &pPipelines[i]);
+		VkResult result = vk::GraphicsPipeline::Create(pAllocator, &pCreateInfos[i], &pPipelines[i], vk::Cast(device));
+
 		if(result == VK_SUCCESS)
 		{
 			static_cast<vk::GraphicsPipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i], vk::Cast(pipelineCache));
@@ -1224,7 +1224,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateComputePipelines(VkDevice device, VkPipel
 	VkResult errorResult = VK_SUCCESS;
 	for(uint32_t i = 0; i < createInfoCount; i++)
 	{
-		VkResult result = vk::ComputePipeline::Create(pAllocator, &pCreateInfos[i], &pPipelines[i]);
+		VkResult result = vk::ComputePipeline::Create(pAllocator, &pCreateInfos[i], &pPipelines[i], vk::Cast(device));
+
 		if(result == VK_SUCCESS)
 		{
 			static_cast<vk::ComputePipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i], vk::Cast(pipelineCache));

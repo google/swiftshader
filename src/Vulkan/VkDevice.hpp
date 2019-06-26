@@ -33,7 +33,7 @@ class Device
 public:
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_DEVICE; }
 
-	Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice);
+	Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures);
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkDeviceCreateInfo* pCreateInfo);
@@ -47,16 +47,20 @@ public:
 	PhysicalDevice *getPhysicalDevice() const { return physicalDevice; }
 	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
 	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies);
+	const VkPhysicalDeviceFeatures &getEnabledFeatures() const { return enabledFeatures; }
 	sw::Blitter* getBlitter() const { return blitter; }
 
 private:
-	PhysicalDevice *physicalDevice = nullptr;
-	Queue* queues = nullptr;
+	PhysicalDevice *const physicalDevice = nullptr;
+	Queue *const queues = nullptr;
 	uint32_t queueCount = 0;
-	sw::Blitter* blitter = nullptr;
-	uint32_t enabledExtensionCount = 0;
+
+	const uint32_t enabledExtensionCount = 0;
 	typedef char ExtensionName[VK_MAX_EXTENSION_NAME_SIZE];
 	ExtensionName* extensions = nullptr;
+	const VkPhysicalDeviceFeatures enabledFeatures = {};
+
+	sw::Blitter* blitter = nullptr;
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;

@@ -258,16 +258,16 @@ namespace sw
 		template <> struct Element<UInt>  { using type = rr::UInt; };
 
 		template<typename T>
-		void Store(Pointer ptr, T val, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+		void Store(Pointer ptr, T val, bool robust, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
 
 		template<typename T>
-		void Store(Pointer ptr, RValue<T> val, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed)
+		void Store(Pointer ptr, RValue<T> val, bool robust, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed)
 		{
-			Store(ptr, T(val), mask, atomic, order);
+			Store(ptr, T(val), robust, mask, atomic, order);
 		}
 
 		template<typename T>
-		T Load(Pointer ptr, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
+		T Load(Pointer ptr, bool robust, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
 	}
 
 	// Incrementally constructed complex bundle of rvalues
@@ -632,7 +632,8 @@ namespace sw
 		            const char *entryPointName,
 		            InsnStore const &insns,
 		            const vk::RenderPass *renderPass,
-		            uint32_t subpassIndex);
+		            uint32_t subpassIndex,
+		            bool robustBufferAccess);
 
 		struct Modes
 		{
@@ -831,6 +832,8 @@ namespace sw
 		HandleMap<Block> blocks;
 		Block::ID entryPointBlockId; // Block of the entry point function.
 
+		const bool robustBufferAccess = true;
+
 		// Walks all reachable the blocks starting from id adding them to
 		// reachable.
 		void TraverseReachableBlocks(Block::ID id, Block::Set& reachable);
@@ -937,10 +940,11 @@ namespace sw
 		class EmitState
 		{
 		public:
-			EmitState(SpirvRoutine *routine, RValue<SIMD::Int> activeLaneMask, const vk::DescriptorSet::Bindings &descriptorSets)
+			EmitState(SpirvRoutine *routine, RValue<SIMD::Int> activeLaneMask, const vk::DescriptorSet::Bindings &descriptorSets, bool robustBufferAccess)
 				: routine(routine),
 				  activeLaneMaskValue(activeLaneMask.value),
-				  descriptorSets(descriptorSets)
+				  descriptorSets(descriptorSets),
+				  robust(robustBufferAccess)
 			{
 			}
 
@@ -974,6 +978,8 @@ namespace sw
 			std::deque<Block::ID> *pending;
 
 			const vk::DescriptorSet::Bindings &descriptorSets;
+
+			const bool robust = true;  // Emit robustBufferAccess safe code.
 		};
 
 		// EmitResult is an enumerator of result values from the Emit functions.

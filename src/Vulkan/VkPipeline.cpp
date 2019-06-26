@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "VkPipeline.hpp"
+
+#include "VkDevice.hpp"
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
 #include "VkShaderModule.hpp"
@@ -220,7 +222,7 @@ std::vector<uint32_t> preprocessSpirv(
 	return optimized;
 }
 
-std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShaderKey& key, const vk::ShaderModule *module)
+std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShaderKey& key, const vk::ShaderModule *module, bool robustBufferAccess)
 {
 	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo());
 	ASSERT(code.size() > 0);
@@ -231,7 +233,7 @@ std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShad
 
 	// TODO(b/119409619): use allocator.
 	return std::make_shared<sw::SpirvShader>(codeSerialID, key.getPipelineStage(), key.getEntryPointName().c_str(),
-		code, key.getRenderPass(), key.getSubpassIndex());
+		code, key.getRenderPass(), key.getSubpassIndex(), robustBufferAccess);
 }
 
 std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey& key)
@@ -249,10 +251,14 @@ std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::Compu
 namespace vk
 {
 
-Pipeline::Pipeline(PipelineLayout const *layout) : layout(layout) {}
+Pipeline::Pipeline(PipelineLayout const *layout, const Device *device)
+	: layout(layout),
+	  robustBufferAccess(device->getEnabledFeatures().robustBufferAccess)
+{
+}
 
-GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem)
-	: Pipeline(vk::Cast(pCreateInfo->layout))
+GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem, const Device *device)
+	: Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
 	if(((pCreateInfo->flags &
 		~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
@@ -515,6 +521,8 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 		const PipelineCache::SpirvShaderKey key(pStage->stage, pStage->pName, module->getCode(),
 		                                        vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass,
 		                                        pStage->pSpecializationInfo);
+		auto pipelineStage = key.getPipelineStage();
+
 		if(pPipelineCache)
 		{
 			PipelineCache& pipelineCache = *pPipelineCache;
@@ -523,18 +531,20 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 				const std::shared_ptr<sw::SpirvShader>* spirvShader = pipelineCache[key];
 				if(!spirvShader)
 				{
-					setShader(key.getPipelineStage(), createShader(key, module));
-					pipelineCache.insert(key, getShader(key.getPipelineStage()));
+					auto shader = createShader(key, module, robustBufferAccess);
+					setShader(pipelineStage, shader);
+					pipelineCache.insert(key, getShader(pipelineStage));
 				}
 				else
 				{
-					setShader(key.getPipelineStage(), *spirvShader);
+					setShader(pipelineStage, *spirvShader);
 				}
 			}
 		}
 		else
 		{
-			setShader(key.getPipelineStage(), createShader(key, module));
+			auto shader = createShader(key, module, robustBufferAccess);
+			setShader(pipelineStage, shader);
 		}
 	}
 }
@@ -587,8 +597,8 @@ bool GraphicsPipeline::hasDynamicState(VkDynamicState dynamicState) const
 	return (dynamicStateFlags & (1 << dynamicState)) != 0;
 }
 
-ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem)
-	: Pipeline(vk::Cast(pCreateInfo->layout))
+ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem, const Device *device)
+	: Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
 }
 
@@ -621,7 +631,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 			const std::shared_ptr<sw::SpirvShader>* spirvShader = pipelineCache[shaderKey];
 			if(!spirvShader)
 			{
-				shader = createShader(shaderKey, module);
+				shader = createShader(shaderKey, module, robustBufferAccess);
 				pipelineCache.insert(shaderKey, shader);
 			}
 			else
@@ -647,7 +657,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 	}
 	else
 	{
-		shader = createShader(shaderKey, module);
+		shader = createShader(shaderKey, module, robustBufferAccess);
 		const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
 		program = createProgram(programKey);
 	}

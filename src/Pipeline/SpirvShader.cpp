@@ -287,7 +287,7 @@ namespace sw
 	{
 
 		template<typename T>
-		T Load(Pointer ptr, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
+		T Load(Pointer ptr, bool robust, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
 		{
 			using EL = typename Element<T>::type;
 
@@ -301,7 +301,11 @@ namespace sw
 			}
 
 			auto offsets = ptr.offsets();
-			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB reads.
+
+			if(robust)  // Disable OOB reads.
+			{
+				mask &= ptr.isInBounds(sizeof(float));
+			}
 
 			if (!atomic && order == std::memory_order_relaxed)
 			{
@@ -359,12 +363,17 @@ namespace sw
 		}
 
 		template<typename T>
-		void Store(Pointer ptr, T val, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
+		void Store(Pointer ptr, T val, bool robust, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
 		{
 			using EL = typename Element<T>::type;
 			constexpr size_t alignment = sizeof(float);
 			auto offsets = ptr.offsets();
-			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB writes.
+
+			if(robust)  // Disable OOB writes.
+			{
+				mask &= ptr.isInBounds(sizeof(float));
+			}
+
 			if (!atomic && order == std::memory_order_relaxed)
 			{
 				if (ptr.hasStaticEqualOffsets())
@@ -434,10 +443,12 @@ namespace sw
 			const char *entryPointName,
 			InsnStore const &insns,
 			const vk::RenderPass *renderPass,
-			uint32_t subpassIndex)
+			uint32_t subpassIndex,
+			bool robustBufferAccess)
 				: insns{insns}, inputs{MAX_INTERFACE_COMPONENTS},
-				outputs{MAX_INTERFACE_COMPONENTS},
-				codeSerialID(codeSerialID), modes{}
+				  outputs{MAX_INTERFACE_COMPONENTS},
+				  codeSerialID(codeSerialID), modes{},
+				  robustBufferAccess(robustBufferAccess)
 	{
 		ASSERT(insns.size() > 0);
 
@@ -2024,7 +2035,7 @@ namespace sw
 
 	void SpirvShader::emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, const vk::DescriptorSet::Bindings &descriptorSets) const
 	{
-		EmitState state(routine, activeLaneMask, descriptorSets);
+		EmitState state(routine, activeLaneMask, descriptorSets, robustBufferAccess);
 
 		// Emit everything up to the first label
 		// TODO: Separate out dispatch of block from non-block instructions?
@@ -2773,7 +2784,7 @@ namespace sw
 				{
 					auto p = ptr + offset;
 					if (interleavedByLane) { p = interleaveByLane(p); }
-					SIMD::Store(p, initialValue.Float(i), state->activeLaneMask());
+					SIMD::Store(p, initialValue.Float(i), state->robust, state->activeLaneMask());
 				});
 				break;
 			}
@@ -2826,7 +2837,7 @@ namespace sw
 		{
 			auto p = ptr + offset;
 			if (interleavedByLane) { p = interleaveByLane(p); }
-			dst.move(i, SIMD::Load<SIMD::Float>(p, state->activeLaneMask(), atomic, memoryOrder));
+			dst.move(i, SIMD::Load<SIMD::Float>(p, state->robust, state->activeLaneMask(), atomic, memoryOrder));
 		});
 
 		return EmitResult::Continue;
@@ -2864,7 +2875,7 @@ namespace sw
 			{
 				auto p = ptr + offset;
 				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, SIMD::Float(src[i]), state->activeLaneMask(), atomic, memoryOrder);
+				SIMD::Store(p, SIMD::Float(src[i]), state->robust, state->activeLaneMask(), atomic, memoryOrder);
 			});
 		}
 		else
@@ -2875,7 +2886,7 @@ namespace sw
 			{
 				auto p = ptr + offset;
 				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, src.Float(i), state->activeLaneMask(), atomic, memoryOrder);
+				SIMD::Store(p, src.Float(i), state->robust, state->activeLaneMask(), atomic, memoryOrder);
 			});
 		}
 
@@ -3949,7 +3960,7 @@ namespace sw
 				dst.move(i, frac);
 				auto p = ptr + (i * sizeof(float));
 				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, whole, state->activeLaneMask());
+				SIMD::Store(p, whole, state->robust, state->activeLaneMask());
 			}
 			break;
 		}
@@ -4085,7 +4096,7 @@ namespace sw
 
 				auto p = ptr + (i * sizeof(float));
 				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, exponent, state->activeLaneMask());
+				SIMD::Store(p, exponent, state->robust, state->activeLaneMask());
 			}
 			break;
 		}
@@ -5300,7 +5311,7 @@ namespace sw
 		// TODO: specialize for small formats?
 		for (auto i = 0; i < (texelSize + 3)/4; i++)
 		{
-			packed[i] = SIMD::Load<SIMD::Int>(texelPtr, state->activeLaneMask(), false, std::memory_order_relaxed, std::min(texelSize, 4));
+			packed[i] = SIMD::Load<SIMD::Int>(texelPtr, state->robust, state->activeLaneMask(), false, std::memory_order_relaxed, std::min(texelSize, 4));
 			texelPtr += sizeof(float);
 		}
 
@@ -5638,7 +5649,7 @@ namespace sw
 
 		for (auto i = 0u; i < numPackedElements; i++)
 		{
-			SIMD::Store(texelPtr, packed[i], state->activeLaneMask());
+			SIMD::Store(texelPtr, packed[i], state->robust, state->activeLaneMask());
 			texelPtr += sizeof(float);
 		}
 
@@ -5826,7 +5837,9 @@ namespace sw
 			auto src = srcPtr + srcOffset;
 			if (dstInterleavedByLane) { dst = interleaveByLane(dst); }
 			if (srcInterleavedByLane) { src = interleaveByLane(src); }
-			SIMD::Store(dst, SIMD::Load<SIMD::Float>(src, state->activeLaneMask()), state->activeLaneMask());
+
+			auto value = SIMD::Load<SIMD::Float>(src, state->robust, state->activeLaneMask());
+			SIMD::Store(dst, value, state->robust, state->activeLaneMask());
 		});
 		return EmitResult::Continue;
 	}
