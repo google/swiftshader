@@ -1391,11 +1391,36 @@ namespace rr
 			{
 				auto elTy = T(type);
 				ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
-				if (atomic && !(elTy->isIntegerTy() || elTy->isPointerTy() || elTy->isFloatTy()))
+
+				if (!atomic)
 				{
-					// atomic load operand must have integer, pointer, or floating point type
-					// Fall back to using:
-					//   void __atomic_load(size_t size, void *ptr, void *ret, int ordering)
+					return V(::builder->CreateAlignedLoad(V(ptr), alignment, isVolatile));
+				}
+				else if (elTy->isIntegerTy() || elTy->isPointerTy())
+				{
+					// Integers and pointers can be atomically loaded by setting
+					// the ordering constraint on the load instruction.
+					auto load = ::builder->CreateAlignedLoad(V(ptr), alignment, isVolatile);
+					load->setAtomic(atomicOrdering(atomic, memoryOrder));
+					return V(load);
+				}
+				else if (elTy->isFloatTy() || elTy->isDoubleTy())
+				{
+					// LLVM claims to support atomic loads of float types as
+					// above, but certain backends cannot deal with this.
+					// Load as an integer and bitcast. See b/136037244.
+  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
+					auto elAsIntTy = ::llvm::IntegerType::get(*::context, size * 8);
+					auto ptrCast = ::builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
+					auto load = ::builder->CreateAlignedLoad(ptrCast, alignment, isVolatile);
+					load->setAtomic(atomicOrdering(atomic, memoryOrder));
+					auto loadCast = ::builder->CreateBitCast(load, elTy);
+					return V(loadCast);
+				}
+				else
+				{
+					// More exotic types require falling back to the extern:
+					// void __atomic_load(size_t size, void *ptr, void *ret, int ordering)
 					auto sizetTy = ::llvm::IntegerType::get(*::context, sizeof(size_t) * 8);
 					auto intTy = ::llvm::IntegerType::get(*::context, sizeof(int) * 8);
 					auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
@@ -1412,12 +1437,6 @@ namespace rr
 						::llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
 					 });
 					 return V(::builder->CreateLoad(V(out)));
-				}
-				else
-				{
-					auto load = new llvm::LoadInst(V(ptr), "", isVolatile, alignment);
-					load->setAtomic(atomicOrdering(atomic, memoryOrder));
-					return V(::builder->Insert(load));
 				}
 			}
 		default:
@@ -1456,11 +1475,34 @@ namespace rr
 			{
 				auto elTy = T(type);
 				ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
-				if (atomic && !(elTy->isIntegerTy() || elTy->isPointerTy() || elTy->isFloatTy()))
+
+				if (!atomic)
 				{
-					// atomic store operand must have integer, pointer, or floating point type
-					// Fall back to using:
-					//   void __atomic_store(size_t size, void *ptr, void *val, int ordering)
+					::builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
+				}
+				else if (elTy->isIntegerTy() || elTy->isPointerTy())
+				{
+					// Integers and pointers can be atomically stored by setting
+					// the ordering constraint on the store instruction.
+					auto store = ::builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
+					store->setAtomic(atomicOrdering(atomic, memoryOrder));
+				}
+				else if (elTy->isFloatTy() || elTy->isDoubleTy())
+				{
+					// LLVM claims to support atomic stores of float types as
+					// above, but certain backends cannot deal with this.
+					// Store as an bitcast integer. See b/136037244.
+  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
+					auto elAsIntTy = ::llvm::IntegerType::get(*::context, size * 8);
+					auto valCast = ::builder->CreateBitCast(V(value), elAsIntTy);
+					auto ptrCast = ::builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
+					auto store = ::builder->CreateAlignedStore(valCast, ptrCast, alignment, isVolatile);
+					store->setAtomic(atomicOrdering(atomic, memoryOrder));
+				}
+				else
+				{
+					// More exotic types require falling back to the extern:
+					// void __atomic_store(size_t size, void *ptr, void *val, int ordering)
 					auto sizetTy = ::llvm::IntegerType::get(*::context, sizeof(size_t) * 8);
 					auto intTy = ::llvm::IntegerType::get(*::context, sizeof(int) * 8);
 					auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
@@ -1477,11 +1519,6 @@ namespace rr
 						::builder->CreatePointerCast(V(copy), i8PtrTy),
 						::llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
 					 });
-				}
-				else
-				{
-					auto store = ::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
-					store->setAtomic(atomicOrdering(atomic, memoryOrder));
 				}
 
 				return value;
