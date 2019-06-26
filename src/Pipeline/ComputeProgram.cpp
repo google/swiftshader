@@ -253,7 +253,7 @@ namespace sw
 					using Coroutine = std::unique_ptr<rr::Stream<SpirvShader::YieldResult>>;
 					std::queue<Coroutine> coroutines;
 
-					if (shader->getModes().ContainsControlBarriers)
+					if (modes.ContainsControlBarriers)
 					{
 						// Make a function call per subgroup so each subgroup
 						// can yield, bringing all subgroups to the barrier

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkPipeline.hpp"
+#include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
 #include "VkShaderModule.hpp"
 #include "VkRenderPass.hpp"
@@ -217,6 +218,30 @@ std::vector<uint32_t> preprocessSpirv(
 	}
 
 	return optimized;
+}
+
+std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShaderKey& key, const vk::ShaderModule *module)
+{
+	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo());
+	ASSERT(code.size() > 0);
+
+	// If the pipeline has specialization constants, assume they're unique and
+	// use a new serial ID so the shader gets recompiled.
+	uint32_t codeSerialID = (key.getSpecializationInfo() ? vk::ShaderModule::nextSerialID() : module->getSerialID());
+
+	// TODO(b/119409619): use allocator.
+	return std::make_shared<sw::SpirvShader>(codeSerialID, key.getPipelineStage(), key.getEntryPointName().c_str(),
+		code, key.getRenderPass(), key.getSubpassIndex());
+}
+
+std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey& key)
+{
+	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
+	// TODO(b/119409619): use allocator.
+	auto program = std::make_shared<sw::ComputeProgram>(key.getShader(), key.getLayout(), descriptorSets);
+	program->generate();
+	program->finalize();
+	return program;
 }
 
 } // anonymous namespace
@@ -432,8 +457,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 
 void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
 {
-	delete vertexShader;
-	delete fragmentShader;
+	vertexShader.reset();
+	fragmentShader.reset();
 }
 
 size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineCreateInfo* pCreateInfo)
@@ -441,7 +466,43 @@ size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineC
 	return 0;
 }
 
-void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo)
+void GraphicsPipeline::setShader(const VkShaderStageFlagBits& stage, const std::shared_ptr<sw::SpirvShader> spirvShader)
+{
+	switch(stage)
+	{
+	case VK_SHADER_STAGE_VERTEX_BIT:
+		ASSERT(vertexShader.get() == nullptr);
+		vertexShader = spirvShader;
+		context.vertexShader = vertexShader.get();
+		break;
+
+	case VK_SHADER_STAGE_FRAGMENT_BIT:
+		ASSERT(fragmentShader.get() == nullptr);
+		fragmentShader = spirvShader;
+		context.pixelShader = fragmentShader.get();
+		break;
+
+	default:
+		UNSUPPORTED("Unsupported stage");
+		break;
+	}
+}
+
+const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShaderStageFlagBits& stage) const
+{
+	switch(stage)
+	{
+	case VK_SHADER_STAGE_VERTEX_BIT:
+		return vertexShader;
+	case VK_SHADER_STAGE_FRAGMENT_BIT:
+		return fragmentShader;
+	default:
+		UNSUPPORTED("Unsupported stage");
+		return fragmentShader;
+	}
+}
+
+void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo, PipelineCache* pPipelineCache)
 {
 	for (auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++)
 	{
@@ -451,30 +512,29 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 		}
 
 		const ShaderModule *module = vk::Cast(pStage->module);
-		auto code = preprocessSpirv(module->getCode(), pStage->pSpecializationInfo);
-
-		// If the pipeline has specialization constants, assume they're unique and
-		// use a new serial ID so the shader gets recompiled.
-		uint32_t codeSerialID = (pStage->pSpecializationInfo ? ShaderModule::nextSerialID() : module->getSerialID());
-
-		// FIXME (b/119409619): use an allocator here so we can control all memory allocations
-		// TODO: also pass in any pipeline state which will affect shader compilation
-		auto spirvShader = new sw::SpirvShader(codeSerialID, pStage->stage, pStage->pName, code, vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass);
-
-		switch (pStage->stage)
+		const PipelineCache::SpirvShaderKey key(pStage->stage, pStage->pName, module->getCode(),
+		                                        vk::Cast(pCreateInfo->renderPass), pCreateInfo->subpass,
+		                                        pStage->pSpecializationInfo);
+		if(pPipelineCache)
 		{
-		case VK_SHADER_STAGE_VERTEX_BIT:
-			ASSERT(vertexShader == nullptr);
-			context.vertexShader = vertexShader = spirvShader;
-			break;
-
-		case VK_SHADER_STAGE_FRAGMENT_BIT:
-			ASSERT(fragmentShader == nullptr);
-			context.pixelShader = fragmentShader = spirvShader;
-			break;
-
-		default:
-			UNIMPLEMENTED("Unsupported stage");
+			PipelineCache& pipelineCache = *pPipelineCache;
+			{
+				std::unique_lock<std::mutex> lock(pipelineCache.getShaderMutex());
+				const std::shared_ptr<sw::SpirvShader>* spirvShader = pipelineCache[key];
+				if(!spirvShader)
+				{
+					setShader(key.getPipelineStage(), createShader(key, module));
+					pipelineCache.insert(key, getShader(key.getPipelineStage()));
+				}
+				else
+				{
+					setShader(key.getPipelineStage(), *spirvShader);
+				}
+			}
+		}
+		else
+		{
+			setShader(key.getPipelineStage(), createShader(key, module));
 		}
 	}
 }
@@ -534,8 +594,8 @@ ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo,
 
 void ComputePipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
 {
-	delete shader;
-	delete program;
+	shader.reset();
+	program.reset();
 }
 
 size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCreateInfo* pCreateInfo)
@@ -543,27 +603,54 @@ size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCre
 	return 0;
 }
 
-void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo)
+void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo, PipelineCache* pPipelineCache)
 {
 	auto &stage = pCreateInfo->stage;
 	const ShaderModule *module = vk::Cast(stage.module);
 
-	auto code = preprocessSpirv(module->getCode(), stage.pSpecializationInfo);
+	ASSERT(shader.get() == nullptr);
+	ASSERT(program.get() == nullptr);
 
-	ASSERT_OR_RETURN(code.size() > 0);
+	const PipelineCache::SpirvShaderKey shaderKey(
+		stage.stage, stage.pName, module->getCode(), nullptr, 0, stage.pSpecializationInfo);
+	if(pPipelineCache)
+	{
+		PipelineCache& pipelineCache = *pPipelineCache;
+		{
+			std::unique_lock<std::mutex> lock(pipelineCache.getShaderMutex());
+			const std::shared_ptr<sw::SpirvShader>* spirvShader = pipelineCache[shaderKey];
+			if(!spirvShader)
+			{
+				shader = createShader(shaderKey, module);
+				pipelineCache.insert(shaderKey, shader);
+			}
+			else
+			{
+				shader = *spirvShader;
+			}
+		}
 
-	ASSERT(shader == nullptr);
-
-	// If the pipeline has specialization constants, assume they're unique and
-	// use a new serial ID so the shader gets recompiled.
-	uint32_t codeSerialID = (stage.pSpecializationInfo ? ShaderModule::nextSerialID() : module->getSerialID());
-
-	// TODO(b/119409619): use allocator.
-	shader = new sw::SpirvShader(codeSerialID, stage.stage, stage.pName, code, nullptr, 0);
-	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
-	program = new sw::ComputeProgram(shader, layout, descriptorSets);
-	program->generate();
-	program->finalize();
+		{
+			const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
+			std::unique_lock<std::mutex> lock(pipelineCache.getProgramMutex());
+			const std::shared_ptr<sw::ComputeProgram>* computeProgram = pipelineCache[programKey];
+			if(!computeProgram)
+			{
+				program = createProgram(programKey);
+				pipelineCache.insert(programKey, program);
+			}
+			else
+			{
+				program = *computeProgram;
+			}
+		}
+	}
+	else
+	{
+		shader = createShader(shaderKey, module);
+		const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
+		program = createProgram(programKey);
+	}
 }
 
 void ComputePipeline::run(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,

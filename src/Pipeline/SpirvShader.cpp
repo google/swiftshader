@@ -409,7 +409,7 @@ namespace sw
 			VkShaderStageFlagBits pipelineStage,
 			const char *entryPointName,
 			InsnStore const &insns,
-			vk::RenderPass *renderPass,
+			const vk::RenderPass *renderPass,
 			uint32_t subpassIndex)
 				: insns{insns}, inputs{MAX_INTERFACE_COMPONENTS},
 				outputs{MAX_INTERFACE_COMPONENTS},

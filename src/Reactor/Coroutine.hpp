@@ -25,7 +25,7 @@ namespace rr
 	class StreamBase
 	{
 	protected:
-		StreamBase(std::shared_ptr<Routine> &routine, Nucleus::CoroutineHandle handle)
+		StreamBase(const std::shared_ptr<Routine> &routine, Nucleus::CoroutineHandle handle)
 			: routine(routine), handle(handle) {}
 
 		~StreamBase()
@@ -52,7 +52,7 @@ private:
 	class Stream : public StreamBase
 	{
 	public:
-		inline Stream(std::shared_ptr<Routine> &routine, Nucleus::CoroutineHandle handle)
+		inline Stream(const std::shared_ptr<Routine> &routine, Nucleus::CoroutineHandle handle)
 			: StreamBase(routine, handle) {}
 
 		// await() retrieves the next yielded value from the coroutine.

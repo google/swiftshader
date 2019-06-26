@@ -615,7 +615,7 @@ namespace sw
 		            VkShaderStageFlagBits stage,
 		            const char *entryPointName,
 		            InsnStore const &insns,
-		            vk::RenderPass *renderPass,
+		            const vk::RenderPass *renderPass,
 		            uint32_t subpassIndex);
 
 		struct Modes

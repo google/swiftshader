@@ -1190,15 +1190,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateGraphicsPipelines(VkDevice device, VkPipe
 	TRACE("(VkDevice device = %p, VkPipelineCache pipelineCache = %p, uint32_t createInfoCount = %d, const VkGraphicsPipelineCreateInfo* pCreateInfos = %p, const VkAllocationCallbacks* pAllocator = %p, VkPipeline* pPipelines = %p)",
 		    device, static_cast<void*>(pipelineCache), int(createInfoCount), pCreateInfos, pAllocator, pPipelines);
 
-	// TODO (b/123588002): Optimize based on pipelineCache.
-
 	VkResult errorResult = VK_SUCCESS;
 	for(uint32_t i = 0; i < createInfoCount; i++)
 	{
 		VkResult result = vk::GraphicsPipeline::Create(pAllocator, &pCreateInfos[i], &pPipelines[i]);
 		if(result == VK_SUCCESS)
 		{
-			static_cast<vk::GraphicsPipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i]);
+			static_cast<vk::GraphicsPipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i], vk::Cast(pipelineCache));
 		}
 		else
 		{
@@ -1223,15 +1221,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateComputePipelines(VkDevice device, VkPipel
 	TRACE("(VkDevice device = %p, VkPipelineCache pipelineCache = %p, uint32_t createInfoCount = %d, const VkComputePipelineCreateInfo* pCreateInfos = %p, const VkAllocationCallbacks* pAllocator = %p, VkPipeline* pPipelines = %p)",
 		device, static_cast<void*>(pipelineCache), int(createInfoCount), pCreateInfos, pAllocator, pPipelines);
 
-	// TODO (b/123588002): Optimize based on pipelineCache.
-
 	VkResult errorResult = VK_SUCCESS;
 	for(uint32_t i = 0; i < createInfoCount; i++)
 	{
 		VkResult result = vk::ComputePipeline::Create(pAllocator, &pCreateInfos[i], &pPipelines[i]);
 		if(result == VK_SUCCESS)
 		{
-			static_cast<vk::ComputePipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i]);
+			static_cast<vk::ComputePipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i], vk::Cast(pipelineCache));
 		}
 		else
 		{
