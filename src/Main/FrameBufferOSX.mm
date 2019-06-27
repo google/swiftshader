@@ -74,12 +74,12 @@ namespace sw {
 		stride = width * 4 * sizeof(uint8_t);
 		framebuffer = buffer;
 		return framebuffer;
-	};
+	}
 
 	void FrameBufferOSX::unlock()
 	{
 		framebuffer = nullptr;
-	};
+	}
 }
 
 sw::FrameBuffer *createFrameBuffer(void *display, EGLNativeWindowType nativeWindow, int width, int height)
