@@ -115,4 +115,22 @@ namespace sw
 	};
 }
 
+#ifdef ENABLE_RR_PRINT
+namespace rr {
+	template <> struct PrintValue::Ty<sw::SamplerFunction>
+	{
+		static std::string fmt(const sw::SamplerFunction& v)
+		{
+			return std::string("SamplerFunction[") +
+				"method: " + std::to_string(v.method) +
+				", offset: " + std::to_string(v.offset) +
+				", sample: " + std::to_string(v.sample) +
+				"]";
+		}
+
+		static std::vector<rr::Value*> val(const sw::SamplerFunction& v) { return {}; }
+	};
+}
+#endif // ENABLE_RR_PRINT
+
 #endif   // sw_SamplerCore_hpp
