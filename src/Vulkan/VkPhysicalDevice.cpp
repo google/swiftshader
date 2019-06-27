@@ -388,6 +388,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties* pFor
 	case VK_FORMAT_R5G6B5_UNORM_PACK16:
 	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 	case VK_FORMAT_R8_UNORM:
+	case VK_FORMAT_R8_SRGB:
 	case VK_FORMAT_R8_SNORM:
 	case VK_FORMAT_R8G8_UNORM:
 	case VK_FORMAT_R8G8_SNORM:

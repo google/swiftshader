@@ -275,6 +275,7 @@ namespace sw
 			break;
 		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8_SRGB:
 			c.x = Float(Int(*Pointer<Byte>(element)));
 			c.w = float(0xFF);
 			break;
@@ -627,7 +628,6 @@ namespace sw
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_SNORM:
 		case VK_FORMAT_R8_SSCALED:
-		case VK_FORMAT_R8_SRGB:
 			if(writeR) { *Pointer<SByte>(element) = SByte(RoundInt(Float(c.x))); }
 			break;
 		case VK_FORMAT_R8G8B8_UINT:
@@ -641,6 +641,7 @@ namespace sw
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_R8_USCALED:
+		case VK_FORMAT_R8_SRGB:
 			if(writeR) { *Pointer<Byte>(element) = Byte(RoundInt(Float(c.x))); }
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
