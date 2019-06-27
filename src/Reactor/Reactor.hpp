@@ -132,6 +132,8 @@ namespace rr
 
 		~Variable();
 
+		const int arraySize;
+
 	private:
 		static void materializeAll();
 		static void killUnmaterialized();
@@ -139,7 +141,6 @@ namespace rr
 		static std::unordered_set<Variable*> unmaterializedVariables;
 
 		Type *const type;
-		const int arraySize;
 		mutable Value *rvalue = nullptr;
 		mutable Value *address = nullptr;
 	};
@@ -2915,6 +2916,7 @@ namespace rr
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](int index)
 	{
+		assert(index < this->arraySize);
 		Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), false);
 
 		return Reference<T>(element);
@@ -2923,6 +2925,7 @@ namespace rr
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](unsigned int index)
 	{
+		assert(index < static_cast<unsigned int>(this->arraySize));
 		Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), true);
 
 		return Reference<T>(element);

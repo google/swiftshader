@@ -26,7 +26,7 @@ namespace rr
 	// Set of variables that do not have a stack location yet.
 	std::unordered_set<Variable*> Variable::unmaterializedVariables;
 
-	Variable::Variable(Type *type, int arraySize) : type(type), arraySize(arraySize)
+	Variable::Variable(Type *type, int arraySize) : arraySize(arraySize), type(type)
 	{
 		#if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
 			materialize();
