@@ -185,6 +185,7 @@ namespace sw
 				case VK_FORMAT_B8G8R8A8_SRGB:
 				case VK_FORMAT_R8G8B8A8_SRGB:
 				case VK_FORMAT_R8_SRGB:
+				case VK_FORMAT_R8G8_SRGB:
 					c.x *= Float4(1.0f / 0xFF00u);
 					c.y *= Float4(1.0f / 0xFF00u);
 					c.z *= Float4(1.0f / 0xFF00u);
@@ -237,6 +238,7 @@ namespace sw
 			case VK_FORMAT_B8G8R8A8_SRGB:
 			case VK_FORMAT_R8G8B8A8_SRGB:
 			case VK_FORMAT_R8_SRGB:
+			case VK_FORMAT_R8G8_SRGB:
 				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xFF00u);
 				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFF00u);
 				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xFF00u);
@@ -1454,6 +1456,7 @@ namespace sw
 				{
 				case VK_FORMAT_R8G8_UNORM:
 				case VK_FORMAT_R8G8_SNORM:
+				case VK_FORMAT_R8G8_SRGB:
 					c.y = (c.x & Short4(0xFF00u));
 					c.x = (c.x << 8);
 					break;
