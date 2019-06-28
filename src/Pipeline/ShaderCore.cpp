@@ -548,14 +548,22 @@ namespace sw
 
 	UInt4 halfToFloatBits(UInt4 halfBits)
 	{
-		static const uint32_t mask_nosign = 0x7FFF;
-		static const uint32_t magic = (254 - 15) << 23;
-		static const uint32_t was_infnan = 0x7BFF;
-		static const uint32_t exp_infnan = 255 << 23;
+		auto magic = UInt4(126 << 23);
 
-		UInt4 expmant = halfBits & UInt4(mask_nosign);
-		return As<UInt4>(As<Float4>(expmant << 13) * As<Float4>(UInt4(magic))) |
-		((halfBits ^ UInt4(expmant)) << 16) |
-		(CmpNLE(As<UInt4>(expmant), UInt4(was_infnan)) & UInt4(exp_infnan));
+		auto sign16 = halfBits & UInt4(0x8000);
+		auto man16  = halfBits & UInt4(0x3FF);
+		auto exp16  = halfBits & UInt4(0x7C00);
+
+		auto isDnormOrZero = CmpEQ(exp16, UInt4(0));
+		auto isInfOrNaN = CmpEQ(exp16, UInt4(0x7C00));
+
+		auto sign32 = sign16 << 16;
+		auto man32  = man16 << 13;
+		auto exp32  = (exp16 + UInt4(0x1C000)) << 13;
+		auto norm32 = (man32 | exp32) | (isInfOrNaN & UInt4(0x7F800000));
+
+		auto denorm32 = As<UInt4>(As<Float4>(magic + man16) - As<Float4>(magic));
+
+		return sign32 | (norm32 & ~isDnormOrZero) | (denorm32 & isDnormOrZero);
 	}
 }
