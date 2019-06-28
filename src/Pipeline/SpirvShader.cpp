@@ -1324,6 +1324,7 @@ namespace sw
 		case spv::StorageClassStorageBuffer:
 		case spv::StorageClassPushConstant:
 		case spv::StorageClassWorkgroup:
+		case spv::StorageClassImage:
 			return false;
 		default:
 			return true;
