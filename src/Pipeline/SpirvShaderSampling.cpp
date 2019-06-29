@@ -231,7 +231,7 @@ SpirvShader::ImageSampler *SpirvShader::emitSamplerFunction(ImageInstruction ins
 		}
 	}
 
-	return (ImageSampler*)function("sampler")->getEntry();
+	return (ImageSampler*)function(vk::ReactorOptimizationLevel, "sampler")->getEntry();
 }
 
 sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)

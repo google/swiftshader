@@ -585,7 +585,7 @@ namespace rr
 		::codegenMutex.unlock();
 	}
 
-	Routine *Nucleus::acquireRoutine(const char *name, bool runOptimizations)
+	Routine *Nucleus::acquireRoutine(const char *name, OptimizationLevel optimizationLevel)
 	{
 		if(basicBlock->getInsts().empty() || basicBlock->getInsts().back().getKind() != Ice::Inst::Ret)
 		{
@@ -3506,7 +3506,7 @@ namespace rr
 	void FlushDebug() {}
 
 	void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params) { UNIMPLEMENTED("createCoroutine"); }
-	Routine* Nucleus::acquireCoroutine(const char *name, bool runOptimizations) { UNIMPLEMENTED("acquireCoroutine"); return nullptr; }
+	Routine* Nucleus::acquireCoroutine(const char *name, OptimizationLevel optimizationLevel) { UNIMPLEMENTED("acquireCoroutine"); return nullptr; }
 	void Nucleus::yield(Value* val) { UNIMPLEMENTED("Yield"); }
 
 }

@@ -133,7 +133,7 @@ private:
 		// called without building a new rr::Function or rr::Coroutine.
 		// While automatically called by operator(), finalize() should be called
 		// as early as possible to release the global Reactor mutex lock.
-		inline void finalize();
+		inline void finalize(OptimizationLevel optLevel = OptimizationLevel::Default);
 
 		// Starts execution of the coroutine and returns a unique_ptr to a
 		// Stream<> that exposes the await() function for obtaining yielded
@@ -147,7 +147,7 @@ private:
 	};
 
 	template<typename Return, typename... Arguments>
-	Coroutine<Return(Arguments...)>::Coroutine() : routine{}
+	Coroutine<Return(Arguments...)>::Coroutine()
 	{
 		core.reset(new Nucleus());
 
@@ -164,11 +164,11 @@ private:
 	}
 
 	template<typename Return, typename... Arguments>
-	void Coroutine<Return(Arguments...)>::finalize()
+	void Coroutine<Return(Arguments...)>::finalize(OptimizationLevel optLevel /* = OptimizationLevel::Default */)
 	{
 		if(core != nullptr)
 		{
-			routine.reset(core->acquireCoroutine("coroutine", true));
+			routine.reset(core->acquireCoroutine("coroutine", optLevel));
 			core.reset(nullptr);
 		}
 	}

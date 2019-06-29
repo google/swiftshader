@@ -21,6 +21,10 @@
 #include <vector>
 #include <atomic>
 
+#ifdef None
+#undef None  // b/127920555
+#endif
+
 namespace rr
 {
 	class Type;
@@ -47,6 +51,14 @@ namespace rr
 
 	extern Optimization optimization[10];
 
+	enum class OptimizationLevel
+	{
+		None,
+		Less,
+		Default,
+		Aggressive,
+	};
+
 	class Nucleus
 	{
 	public:
@@ -54,7 +66,7 @@ namespace rr
 
 		virtual ~Nucleus();
 
-		Routine *acquireRoutine(const char *name, bool runOptimizations = true);
+		Routine *acquireRoutine(const char *name, OptimizationLevel optimizationLevel);
 
 		static Value *allocateStackVariable(Type *type, int arraySize = 0);
 		static BasicBlock *createBasicBlock();
@@ -81,7 +93,7 @@ namespace rr
 		};
 
 		static void createCoroutine(Type *ReturnType, std::vector<Type*> &Params);
-		Routine *acquireCoroutine(const char *name, bool runOptimizations = true);
+		Routine *acquireCoroutine(const char *name, OptimizationLevel optimizationLevel);
 		static void yield(Value*);
 
 		// Terminators
