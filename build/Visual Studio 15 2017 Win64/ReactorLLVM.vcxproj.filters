@@ -13,9 +13,6 @@
     <ClCompile Include="$(SolutionDir)src\Reactor\Routine.cpp">
       <Filter>src\Reactor</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\Reactor\LLVMRoutine.cpp">
-      <Filter>src\Reactor</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Reactor\CPUID.cpp">
       <Filter>src\Reactor</Filter>
     </ClCompile>
@@ -37,9 +34,6 @@
       <Filter>src\Reactor</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Reactor\Routine.hpp">
-      <Filter>src\Reactor</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\Reactor\LLVMRoutine.hpp">
       <Filter>src\Reactor</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Reactor\CPUID.hpp">

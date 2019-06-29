@@ -177,7 +177,6 @@ cc_defaults {
         "Reactor/Reactor.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
-        "Reactor/LLVMRoutine.cpp",
         "Reactor/Debug.cpp",
     ],
 
@@ -198,7 +197,6 @@ cc_defaults {
         "Reactor/Reactor.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
-        "Reactor/LLVMRoutine.cpp",
         "Reactor/Debug.cpp",
     ],
 

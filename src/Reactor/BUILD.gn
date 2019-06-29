@@ -327,7 +327,6 @@ if (supports_llvm) {
     sources = [
       "CPUID.cpp",
       "LLVMReactor.cpp",
-      "LLVMRoutine.cpp",
     ]
 
     configs = [ ":swiftshader_reactor_private_config" ]

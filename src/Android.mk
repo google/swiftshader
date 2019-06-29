@@ -69,7 +69,6 @@ COMMON_SRC_FILES += \
 else
 COMMON_SRC_FILES += \
 	Reactor/LLVMReactor.cpp \
-	Reactor/LLVMRoutine.cpp \
 	Reactor/CPUID.cpp
 endif
 

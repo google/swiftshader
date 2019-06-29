@@ -1668,8 +1668,6 @@ set(REACTOR_LLVM_LIST
     ${SOURCE_DIR}/Reactor/Nucleus.hpp
     ${SOURCE_DIR}/Reactor/Routine.cpp
     ${SOURCE_DIR}/Reactor/Routine.hpp
-    ${SOURCE_DIR}/Reactor/LLVMRoutine.cpp
-    ${SOURCE_DIR}/Reactor/LLVMRoutine.hpp
     ${SOURCE_DIR}/Reactor/CPUID.cpp
     ${SOURCE_DIR}/Reactor/CPUID.hpp
     ${SOURCE_DIR}/Reactor/Debug.cpp

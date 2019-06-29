@@ -286,7 +286,6 @@
   <ItemGroup>
     <ClCompile Include="CPUID.cpp" />
     <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="LLVMRoutine.cpp" />
     <ClCompile Include="LLVMReactor.cpp" />
     <ClCompile Include="LLVMReactorDebugInfo.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
@@ -299,7 +298,6 @@
     <ClInclude Include="Debug.hpp" />
     <ClInclude Include="LLVMReactor.hpp" />
     <ClInclude Include="LLVMReactorDebugInfo.hpp" />
-    <ClInclude Include="LLVMRoutine.hpp" />
     <ClInclude Include="ExecutableMemory.hpp" />
     <ClInclude Include="MutexLock.hpp" />
     <ClInclude Include="Nucleus.hpp" />

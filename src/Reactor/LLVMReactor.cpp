@@ -67,8 +67,6 @@
 #pragma clang diagnostic pop
 #endif // defined(__clang__)
 
-#include "LLVMRoutine.hpp"
-
 #define ARGS(...) {__VA_ARGS__}
 #define CreateCall2 CreateCall
 #define CreateCall3 CreateCall
@@ -102,22 +100,298 @@
 
 namespace rr
 {
-	class LLVMReactorJIT;
+	void* resolveExternalSymbol(const char*);
 }
 
 namespace
 {
-	rr::LLVMReactorJIT *reactorJIT = nullptr;
-	llvm::IRBuilder<> *builder = nullptr;
-	llvm::LLVMContext *context = nullptr;
-	llvm::Module *module = nullptr;
-	llvm::Function *function = nullptr;
+	class LLVMInitializer
+	{
+	protected:
+		LLVMInitializer()
+		{
+			llvm::InitializeNativeTarget();
+			llvm::InitializeNativeTargetAsmPrinter();
+			llvm::InitializeNativeTargetAsmParser();
+		}
+	};
 
-#ifdef ENABLE_RR_DEBUG_INFO
-	std::unique_ptr<rr::DebugInfo> debugInfo;
+	// JITGlobals is a singleton that holds all the immutable machine specific
+	// information for the host device.
+	class JITGlobals : LLVMInitializer
+	{
+	public:
+		static JITGlobals const * get();
+
+		std::vector<std::string> mattrs;
+		const char* arch;
+		llvm::TargetOptions targetOptions;
+		llvm::DataLayout dataLayout = llvm::DataLayout("");
+
+	private:
+		JITGlobals();
+	};
+
+	JITGlobals const * JITGlobals::get()
+	{
+		static JITGlobals instance;
+		return &instance;
+	}
+
+	JITGlobals::JITGlobals()
+	{
+		// mattrs
+		llvm::StringMap<bool> features;
+		bool ok = llvm::sys::getHostCPUFeatures(features);
+
+#if defined(__i386__) || defined(__x86_64__) || \
+(defined(__linux__) && (defined(__arm__) || defined(__aarch64__)))
+		ASSERT_MSG(ok, "llvm::sys::getHostCPUFeatures returned false");
+#else
+		(void) ok; // getHostCPUFeatures always returns false on other platforms
 #endif
 
-	rr::MutexLock codegenMutex;
+		for (auto &feature : features)
+		{
+			if (feature.second) { mattrs.push_back(feature.first()); }
+		}
+
+#if 0
+#if defined(__i386__) || defined(__x86_64__)
+		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"    : "-mmx");
+		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"   : "-cmov");
+		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"    : "-sse");
+		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"   : "-sse2");
+		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"   : "-sse3");
+		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3"  : "-ssse3");
+		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
+#elif defined(__arm__)
+#if __ARM_ARCH >= 8
+		mattrs.push_back("+armv8-a");
+#else
+		// armv7-a requires compiler-rt routines; otherwise, compiled kernel
+		// might fail to link.
+#endif
+#endif
+#endif
+
+		// arch
+#if defined(__x86_64__)
+		arch = "x86-64";
+#elif defined(__i386__)
+		arch = "x86";
+#elif defined(__aarch64__)
+		arch = "arm64";
+#elif defined(__arm__)
+		arch = "arm";
+#elif defined(__mips__)
+#if defined(__mips64)
+		arch = "mips64el";
+#else
+		arch = "mipsel";
+#endif
+#elif defined(__powerpc64__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+		arch = "ppc64le";
+#else
+		#error "unknown architecture"
+#endif
+
+		targetOptions.UnsafeFPMath = false;
+		// targetOpts.NoInfsFPMath = true;
+		// targetOpts.NoNaNsFPMath = true;
+
+		auto targetMachine = std::unique_ptr<llvm::TargetMachine>(
+			llvm::EngineBuilder()
+				.setOptLevel(llvm::CodeGenOpt::None)
+				.setMArch(arch)
+				.setMAttrs(mattrs)
+				.setTargetOptions(targetOptions)
+				.selectTarget());
+
+		dataLayout = targetMachine->createDataLayout();
+	}
+
+	// JITRoutine is a rr::Routine that holds a LLVM JIT session, compiler and
+	// object layer as each routine may require different target machine
+	// settings and no Reactor routine directly links against another.
+	class JITRoutine : public rr::Routine
+	{
+		using ObjLayer = llvm::orc::RTDyldObjectLinkingLayer;
+		using CompileLayer = llvm::orc::IRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
+	public:
+		JITRoutine(std::unique_ptr<llvm::Module> module, llvm::Function **funcs, size_t count) :
+			resolver(createLegacyLookupResolver(
+				session,
+				[&](const std::string &name) {
+					void *func = rr::resolveExternalSymbol(name.c_str());
+					if (func != nullptr)
+					{
+						return llvm::JITSymbol(
+							reinterpret_cast<uintptr_t>(func), llvm::JITSymbolFlags::Absolute);
+					}
+					return objLayer.findSymbol(name, true);
+				},
+				[](llvm::Error err) {
+					if (err)
+					{
+						// TODO: Log the symbol resolution errors.
+						return;
+					}
+				})),
+			targetMachine(llvm::EngineBuilder()
+#ifdef ENABLE_RR_DEBUG_INFO
+				.setOptLevel(llvm::CodeGenOpt::None)
+#endif // ENABLE_RR_DEBUG_INFO
+				.setMArch(JITGlobals::get()->arch)
+				.setMAttrs(JITGlobals::get()->mattrs)
+				.setTargetOptions(JITGlobals::get()->targetOptions)
+				.selectTarget()),
+			compileLayer(objLayer, llvm::orc::SimpleCompiler(*targetMachine)),
+			objLayer(
+				session,
+				[this](llvm::orc::VModuleKey) {
+					return ObjLayer::Resources{std::make_shared<llvm::SectionMemoryManager>(), resolver};
+				},
+				ObjLayer::NotifyLoadedFtor(),
+				[](llvm::orc::VModuleKey, const llvm::object::ObjectFile &Obj, const llvm::RuntimeDyld::LoadedObjectInfo &L) {
+#ifdef ENABLE_RR_DEBUG_INFO
+					rr::DebugInfo::NotifyObjectEmitted(Obj, L);
+#endif // ENABLE_RR_DEBUG_INFO
+				},
+				[](llvm::orc::VModuleKey, const llvm::object::ObjectFile &Obj) {
+#ifdef ENABLE_RR_DEBUG_INFO
+					rr::DebugInfo::NotifyFreeingObject(Obj);
+#endif // ENABLE_RR_DEBUG_INFO
+				}
+			),
+			addresses(count)
+		{
+			std::vector<std::string> mangledNames(count);
+			for (size_t i = 0; i < count; i++)
+			{
+				auto func = funcs[i];
+				static size_t numEmittedFunctions = 0;
+				std::string name = "f" + llvm::Twine(numEmittedFunctions++).str();
+				func->setName(name);
+				func->setLinkage(llvm::GlobalValue::ExternalLinkage);
+				func->setDoesNotThrow();
+
+				llvm::raw_string_ostream mangledNameStream(mangledNames[i]);
+				llvm::Mangler::getNameWithPrefix(mangledNameStream, name, JITGlobals::get()->dataLayout);
+			}
+
+			auto moduleKey = session.allocateVModule();
+
+			// Once the module is passed to the compileLayer, the
+			// llvm::Functions are freed. Make sure funcs are not referenced
+			// after this point.
+			funcs = nullptr;
+
+			llvm::cantFail(compileLayer.addModule(moduleKey, std::move(module)));
+
+			// Resolve the function addresses.
+			for (size_t i = 0; i < count; i++)
+			{
+				auto symbol = compileLayer.findSymbolIn(moduleKey, mangledNames[i], false);
+				if(auto address = symbol.getAddress())
+				{
+					addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(address.get()));
+				}
+			}
+		}
+
+		const void *getEntry(int index) override
+		{
+			return addresses[index];
+		}
+
+	private:
+		std::shared_ptr<llvm::orc::SymbolResolver> resolver;
+		std::unique_ptr<llvm::TargetMachine> targetMachine;
+		llvm::orc::ExecutionSession session;
+		CompileLayer compileLayer;
+		ObjLayer objLayer;
+		std::vector<const void *> addresses;
+	};
+
+	// JITBuilder holds all the LLVM state for building routines.
+	class JITBuilder
+	{
+	public:
+		JITBuilder():
+			module(new llvm::Module("", context)),
+			builder(new llvm::IRBuilder<>(context))
+		{
+			module->setDataLayout(JITGlobals::get()->dataLayout);
+		}
+
+		void optimize()
+		{
+#ifdef ENABLE_RR_DEBUG_INFO
+			if (debugInfo != nullptr)
+			{
+				return; // Don't optimize if we're generating debug info.
+			}
+#endif // ENABLE_RR_DEBUG_INFO
+
+			std::unique_ptr<llvm::legacy::PassManager> passManager(
+				new llvm::legacy::PassManager());
+
+			passManager->add(llvm::createSROAPass());
+
+			for(int pass = 0; pass < 10 && rr::optimization[pass] != rr::Disabled; pass++)
+			{
+				switch(rr::optimization[pass])
+				{
+				case rr::Disabled:                                                                       break;
+				case rr::CFGSimplification:    passManager->add(llvm::createCFGSimplificationPass());    break;
+				case rr::LICM:                 passManager->add(llvm::createLICMPass());                 break;
+				case rr::AggressiveDCE:        passManager->add(llvm::createAggressiveDCEPass());        break;
+				case rr::GVN:                  passManager->add(llvm::createGVNPass());                  break;
+				case rr::InstructionCombining: passManager->add(llvm::createInstructionCombiningPass()); break;
+				case rr::Reassociate:          passManager->add(llvm::createReassociatePass());          break;
+				case rr::DeadStoreElimination: passManager->add(llvm::createDeadStoreEliminationPass()); break;
+				case rr::SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
+				case rr::ScalarReplAggregates: passManager->add(llvm::createSROAPass());                 break;
+				default:
+					UNREACHABLE("optimization[pass]: %d, pass: %d", int(rr::optimization[pass]), int(pass));
+				}
+			}
+
+			passManager->run(*module);
+		}
+
+		rr::Routine *acquireRoutine(llvm::Function **funcs, size_t count)
+		{
+			ASSERT(module);
+			return new JITRoutine(std::move(module), funcs, count);
+		}
+
+		llvm::LLVMContext context;
+		std::unique_ptr<llvm::Module> module;
+		std::unique_ptr<llvm::IRBuilder<>> builder;
+		llvm::Function *function = nullptr;
+
+		struct CoroutineState
+		{
+			llvm::Function *await = nullptr;
+			llvm::Function *destroy = nullptr;
+			llvm::Value *handle = nullptr;
+			llvm::Value *id = nullptr;
+			llvm::Value *promise = nullptr;
+			llvm::BasicBlock *suspendBlock = nullptr;
+			llvm::BasicBlock *endBlock = nullptr;
+			llvm::BasicBlock *destroyBlock = nullptr;
+		};
+		CoroutineState coroutine;
+
+#ifdef ENABLE_RR_DEBUG_INFO
+		std::unique_ptr<rr::DebugInfo> debugInfo;
+#endif
+	};
+
+	std::unique_ptr<JITBuilder> jit;
+	std::mutex codegenMutex;
 
 #ifdef ENABLE_RR_PRINT
 	std::string replace(std::string str, const std::string& substr, const std::string& replacement)
@@ -163,27 +437,27 @@ namespace
 
 		llvm::VectorType *extTy =
 			llvm::VectorType::getExtendedElementVectorType(ty);
-		x = ::builder->CreateZExt(x, extTy);
-		y = ::builder->CreateZExt(y, extTy);
+		x = jit->builder->CreateZExt(x, extTy);
+		y = jit->builder->CreateZExt(y, extTy);
 
 		// (x + y + 1) >> 1
 		llvm::Constant *one = llvm::ConstantInt::get(extTy, 1);
-		llvm::Value *res = ::builder->CreateAdd(x, y);
-		res = ::builder->CreateAdd(res, one);
-		res = ::builder->CreateLShr(res, one);
-		return ::builder->CreateTrunc(res, ty);
+		llvm::Value *res = jit->builder->CreateAdd(x, y);
+		res = jit->builder->CreateAdd(res, one);
+		res = jit->builder->CreateLShr(res, one);
+		return jit->builder->CreateTrunc(res, ty);
 	}
 
 	llvm::Value *lowerPMINMAX(llvm::Value *x, llvm::Value *y,
 	                          llvm::ICmpInst::Predicate pred)
 	{
-		return ::builder->CreateSelect(::builder->CreateICmp(pred, x, y), x, y);
+		return jit->builder->CreateSelect(jit->builder->CreateICmp(pred, x, y), x, y);
 	}
 
 	llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
 	                       llvm::Value *y, llvm::Type *dstTy)
 	{
-		return ::builder->CreateSExt(::builder->CreateICmp(pred, x, y), dstTy, "");
+		return jit->builder->CreateSExt(jit->builder->CreateICmp(pred, x, y), dstTy, "");
 	}
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -195,18 +469,18 @@ namespace
 		llvm::Value *undef = llvm::UndefValue::get(srcTy);
 		llvm::SmallVector<uint32_t, 16> mask(dstTy->getNumElements());
 		std::iota(mask.begin(), mask.end(), 0);
-		llvm::Value *v = ::builder->CreateShuffleVector(op, undef, mask);
+		llvm::Value *v = jit->builder->CreateShuffleVector(op, undef, mask);
 
-		return sext ? ::builder->CreateSExt(v, dstTy)
-		            : ::builder->CreateZExt(v, dstTy);
+		return sext ? jit->builder->CreateSExt(v, dstTy)
+		            : jit->builder->CreateZExt(v, dstTy);
 	}
 
 	llvm::Value *lowerPABS(llvm::Value *v)
 	{
 		llvm::Value *zero = llvm::Constant::getNullValue(v->getType());
-		llvm::Value *cmp = ::builder->CreateICmp(llvm::ICmpInst::ICMP_SGT, v, zero);
-		llvm::Value *neg = ::builder->CreateNeg(v);
-		return ::builder->CreateSelect(cmp, v, neg);
+		llvm::Value *cmp = jit->builder->CreateICmp(llvm::ICmpInst::ICMP_SGT, v, zero);
+		llvm::Value *neg = jit->builder->CreateNeg(v);
+		return jit->builder->CreateSelect(cmp, v, neg);
 	}
 #endif  // defined(__i386__) || defined(__x86_64__)
 
@@ -214,33 +488,33 @@ namespace
 	llvm::Value *lowerPFMINMAX(llvm::Value *x, llvm::Value *y,
 	                           llvm::FCmpInst::Predicate pred)
 	{
-		return ::builder->CreateSelect(::builder->CreateFCmp(pred, x, y), x, y);
+		return jit->builder->CreateSelect(jit->builder->CreateFCmp(pred, x, y), x, y);
 	}
 
 	llvm::Value *lowerRound(llvm::Value *x)
 	{
 		llvm::Function *nearbyint = llvm::Intrinsic::getDeclaration(
-			::module, llvm::Intrinsic::nearbyint, {x->getType()});
-		return ::builder->CreateCall(nearbyint, ARGS(x));
+			jit->module.get(), llvm::Intrinsic::nearbyint, {x->getType()});
+		return jit->builder->CreateCall(nearbyint, ARGS(x));
 	}
 
 	llvm::Value *lowerRoundInt(llvm::Value *x, llvm::Type *ty)
 	{
-		return ::builder->CreateFPToSI(lowerRound(x), ty);
+		return jit->builder->CreateFPToSI(lowerRound(x), ty);
 	}
 
 	llvm::Value *lowerFloor(llvm::Value *x)
 	{
 		llvm::Function *floor = llvm::Intrinsic::getDeclaration(
-			::module, llvm::Intrinsic::floor, {x->getType()});
-		return ::builder->CreateCall(floor, ARGS(x));
+			jit->module.get(), llvm::Intrinsic::floor, {x->getType()});
+		return jit->builder->CreateCall(floor, ARGS(x));
 	}
 
 	llvm::Value *lowerTrunc(llvm::Value *x)
 	{
 		llvm::Function *trunc = llvm::Intrinsic::getDeclaration(
-			::module, llvm::Intrinsic::trunc, {x->getType()});
-		return ::builder->CreateCall(trunc, ARGS(x));
+			jit->module.get(), llvm::Intrinsic::trunc, {x->getType()});
+		return jit->builder->CreateCall(trunc, ARGS(x));
 	}
 
 	// Packed add/sub saturatation
@@ -256,8 +530,8 @@ namespace
 		{
 			max = llvm::ConstantInt::get(extTy, (1LL << (numBits - 1)) - 1, true);
 			min = llvm::ConstantInt::get(extTy, (-1LL << (numBits - 1)), true);
-			extX = ::builder->CreateSExt(x, extTy);
-			extY = ::builder->CreateSExt(y, extTy);
+			extX = jit->builder->CreateSExt(x, extTy);
+			extY = jit->builder->CreateSExt(y, extTy);
 		}
 		else
 		{
@@ -265,17 +539,17 @@ namespace
 			uint64_t maxVal = (numBits == 64) ? ~0ULL : (1ULL << numBits) - 1;
 			max = llvm::ConstantInt::get(extTy, maxVal, false);
 			min = llvm::ConstantInt::get(extTy, 0, false);
-			extX = ::builder->CreateZExt(x, extTy);
-			extY = ::builder->CreateZExt(y, extTy);
+			extX = jit->builder->CreateZExt(x, extTy);
+			extY = jit->builder->CreateZExt(y, extTy);
 		}
 
-		llvm::Value *res = isAdd ? ::builder->CreateAdd(extX, extY)
-		                         : ::builder->CreateSub(extX, extY);
+		llvm::Value *res = isAdd ? jit->builder->CreateAdd(extX, extY)
+		                         : jit->builder->CreateSub(extX, extY);
 
 		res = lowerPMINMAX(res, min, llvm::ICmpInst::ICMP_SGT);
 		res = lowerPMINMAX(res, max, llvm::ICmpInst::ICMP_SLT);
 
-		return ::builder->CreateTrunc(res, ty);
+		return jit->builder->CreateTrunc(res, ty);
 	}
 
 	llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
@@ -301,8 +575,8 @@ namespace
 	llvm::Value *lowerSQRT(llvm::Value *x)
 	{
 		llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(
-			::module, llvm::Intrinsic::sqrt, {x->getType()});
-		return ::builder->CreateCall(sqrt, ARGS(x));
+			jit->module.get(), llvm::Intrinsic::sqrt, {x->getType()});
+		return jit->builder->CreateCall(sqrt, ARGS(x));
 	}
 
 	llvm::Value *lowerRCP(llvm::Value *x)
@@ -319,7 +593,7 @@ namespace
 		{
 			one = llvm::ConstantFP::get(ty, 1);
 		}
-		return ::builder->CreateFDiv(one, x);
+		return jit->builder->CreateFDiv(one, x);
 	}
 
 	llvm::Value *lowerRSQRT(llvm::Value *x)
@@ -333,7 +607,7 @@ namespace
 		llvm::Value *y = llvm::ConstantVector::getSplat(
 			ty->getNumElements(),
 			llvm::ConstantInt::get(ty->getElementType(), scalarY));
-		return ::builder->CreateShl(x, y);
+		return jit->builder->CreateShl(x, y);
 	}
 
 	llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
@@ -342,7 +616,7 @@ namespace
 		llvm::Value *y = llvm::ConstantVector::getSplat(
 			ty->getNumElements(),
 			llvm::ConstantInt::get(ty->getElementType(), scalarY));
-		return ::builder->CreateAShr(x, y);
+		return jit->builder->CreateAShr(x, y);
 	}
 
 	llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
@@ -351,7 +625,7 @@ namespace
 		llvm::Value *y = llvm::ConstantVector::getSplat(
 			ty->getNumElements(),
 			llvm::ConstantInt::get(ty->getElementType(), scalarY));
-		return ::builder->CreateLShr(x, y);
+		return jit->builder->CreateLShr(x, y);
 	}
 
 	llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
@@ -359,9 +633,9 @@ namespace
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
 		llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
 
-		llvm::Value *extX = ::builder->CreateSExt(x, extTy);
-		llvm::Value *extY = ::builder->CreateSExt(y, extTy);
-		llvm::Value *mult = ::builder->CreateMul(extX, extY);
+		llvm::Value *extX = jit->builder->CreateSExt(x, extTy);
+		llvm::Value *extY = jit->builder->CreateSExt(y, extTy);
+		llvm::Value *mult = jit->builder->CreateMul(extX, extY);
 
 		llvm::Value *undef = llvm::UndefValue::get(extTy);
 
@@ -373,9 +647,9 @@ namespace
 			oddIdx.push_back(i + 1);
 		}
 
-		llvm::Value *lhs = ::builder->CreateShuffleVector(mult, undef, evenIdx);
-		llvm::Value *rhs = ::builder->CreateShuffleVector(mult, undef, oddIdx);
-		return ::builder->CreateAdd(lhs, rhs);
+		llvm::Value *lhs = jit->builder->CreateShuffleVector(mult, undef, evenIdx);
+		llvm::Value *rhs = jit->builder->CreateShuffleVector(mult, undef, oddIdx);
+		return jit->builder->CreateAdd(lhs, rhs);
 	}
 
 	llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
@@ -405,28 +679,28 @@ namespace
 		y = lowerPMINMAX(y, min, llvm::ICmpInst::ICMP_SGT);
 		y = lowerPMINMAX(y, max, llvm::ICmpInst::ICMP_SLT);
 
-		x = ::builder->CreateTrunc(x, dstTy);
-		y = ::builder->CreateTrunc(y, dstTy);
+		x = jit->builder->CreateTrunc(x, dstTy);
+		y = jit->builder->CreateTrunc(y, dstTy);
 
 		llvm::SmallVector<uint32_t, 16> index(srcTy->getNumElements() * 2);
 		std::iota(index.begin(), index.end(), 0);
 
-		return ::builder->CreateShuffleVector(x, y, index);
+		return jit->builder->CreateShuffleVector(x, y, index);
 	}
 
 	llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
 		llvm::Constant *zero = llvm::ConstantInt::get(ty, 0);
-		llvm::Value *cmp = ::builder->CreateICmpSLT(x, zero);
+		llvm::Value *cmp = jit->builder->CreateICmpSLT(x, zero);
 
-		llvm::Value *ret = ::builder->CreateZExt(
-			::builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
+		llvm::Value *ret = jit->builder->CreateZExt(
+			jit->builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
 		for (uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
 		{
-			llvm::Value *elem = ::builder->CreateZExt(
-				::builder->CreateExtractElement(cmp, i), retTy);
-			ret = ::builder->CreateOr(ret, ::builder->CreateShl(elem, i));
+			llvm::Value *elem = jit->builder->CreateZExt(
+				jit->builder->CreateExtractElement(cmp, i), retTy);
+			ret = jit->builder->CreateOr(ret, jit->builder->CreateShl(elem, i));
 		}
 		return ret;
 	}
@@ -435,15 +709,15 @@ namespace
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
 		llvm::Constant *zero = llvm::ConstantFP::get(ty, 0);
-		llvm::Value *cmp = ::builder->CreateFCmpULT(x, zero);
+		llvm::Value *cmp = jit->builder->CreateFCmpULT(x, zero);
 
-		llvm::Value *ret = ::builder->CreateZExt(
-			::builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
+		llvm::Value *ret = jit->builder->CreateZExt(
+			jit->builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
 		for (uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
 		{
-			llvm::Value *elem = ::builder->CreateZExt(
-				::builder->CreateExtractElement(cmp, i), retTy);
-			ret = ::builder->CreateOr(ret, ::builder->CreateShl(elem, i));
+			llvm::Value *elem = jit->builder->CreateZExt(
+				jit->builder->CreateExtractElement(cmp, i), retTy);
+			ret = jit->builder->CreateOr(ret, jit->builder->CreateShl(elem, i));
 		}
 		return ret;
 	}
@@ -457,20 +731,20 @@ namespace
 		llvm::Value *extX, *extY;
 		if (sext)
 		{
-			extX = ::builder->CreateSExt(x, extTy);
-			extY = ::builder->CreateSExt(y, extTy);
+			extX = jit->builder->CreateSExt(x, extTy);
+			extY = jit->builder->CreateSExt(y, extTy);
 		}
 		else
 		{
-			extX = ::builder->CreateZExt(x, extTy);
-			extY = ::builder->CreateZExt(y, extTy);
+			extX = jit->builder->CreateZExt(x, extTy);
+			extY = jit->builder->CreateZExt(y, extTy);
 		}
 
-		llvm::Value *mult = ::builder->CreateMul(extX, extY);
+		llvm::Value *mult = jit->builder->CreateMul(extX, extY);
 
 		llvm::IntegerType *intTy = llvm::cast<llvm::IntegerType>(ty->getElementType());
-		llvm::Value *mulh = ::builder->CreateAShr(mult, intTy->getBitWidth());
-		return ::builder->CreateTrunc(mulh, ty);
+		llvm::Value *mulh = jit->builder->CreateAShr(mult, intTy->getBitWidth());
+		return jit->builder->CreateTrunc(mulh, ty);
 	}
 }
 
@@ -546,338 +820,162 @@ namespace rr
 	}
 #endif
 
-	class ExternalFunctionSymbolResolver
+	void* resolveExternalSymbol(const char* name)
 	{
-	private:
-		using FunctionMap = std::unordered_map<std::string, void *>;
-		FunctionMap func_;
-
-	public:
-		ExternalFunctionSymbolResolver()
+		struct Atomic
 		{
-			struct Atomic
+			static void load(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
 			{
-				static void load(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
+				switch (size)
 				{
-					switch (size)
-					{
-						case 1: atomicLoad<uint8_t>(ptr, ret, ordering); break;
-						case 2: atomicLoad<uint16_t>(ptr, ret, ordering); break;
-						case 4: atomicLoad<uint32_t>(ptr, ret, ordering); break;
-						case 8: atomicLoad<uint64_t>(ptr, ret, ordering); break;
-						default:
-							UNIMPLEMENTED("Atomic::load(size: %d)", int(size));
-					}
+					case 1: atomicLoad<uint8_t>(ptr, ret, ordering); break;
+					case 2: atomicLoad<uint16_t>(ptr, ret, ordering); break;
+					case 4: atomicLoad<uint32_t>(ptr, ret, ordering); break;
+					case 8: atomicLoad<uint64_t>(ptr, ret, ordering); break;
+					default:
+						UNIMPLEMENTED("Atomic::load(size: %d)", int(size));
 				}
-				static void store(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
-				{
-					switch (size)
-					{
-						case 1: atomicStore<uint8_t>(ptr, ret, ordering); break;
-						case 2: atomicStore<uint16_t>(ptr, ret, ordering); break;
-						case 4: atomicStore<uint32_t>(ptr, ret, ordering); break;
-						case 8: atomicStore<uint64_t>(ptr, ret, ordering); break;
-						default:
-							UNIMPLEMENTED("Atomic::store(size: %d)", int(size));
-					}
-				}
-			};
-			struct F
+			}
+			static void store(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
 			{
-				static void nop() {}
-				static void neverCalled() { UNREACHABLE("Should never be called"); }
+				switch (size)
+				{
+					case 1: atomicStore<uint8_t>(ptr, ret, ordering); break;
+					case 2: atomicStore<uint16_t>(ptr, ret, ordering); break;
+					case 4: atomicStore<uint32_t>(ptr, ret, ordering); break;
+					case 8: atomicStore<uint64_t>(ptr, ret, ordering); break;
+					default:
+						UNIMPLEMENTED("Atomic::store(size: %d)", int(size));
+				}
+			}
+		};
 
-				static void* coroutine_alloc_frame(size_t size) { return alignedAlloc(size, 16); }
-				static void coroutine_free_frame(void* ptr) { alignedFree(ptr); }
+		struct F
+		{
+			static void nop() {}
+			static void neverCalled() { UNREACHABLE("Should never be called"); }
+
+			static void* coroutine_alloc_frame(size_t size) { return alignedAlloc(size, 16); }
+			static void coroutine_free_frame(void* ptr) { alignedFree(ptr); }
 
 #ifdef __ANDROID__
-				// forwarders since we can't take address of builtins
-				static void sync_synchronize() { __sync_synchronize(); }
-				static uint32_t sync_fetch_and_add_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_add_4(ptr, val); }
-				static uint32_t sync_fetch_and_and_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_and_4(ptr, val); }
-				static uint32_t sync_fetch_and_or_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_or_4(ptr, val); }
-				static uint32_t sync_fetch_and_xor_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_xor_4(ptr, val); }
-				static uint32_t sync_fetch_and_sub_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_sub_4(ptr, val); }
-				static uint32_t sync_lock_test_and_set_4(uint32_t *ptr, uint32_t val) { return __sync_lock_test_and_set_4(ptr, val); }
-				static uint32_t sync_val_compare_and_swap_4(uint32_t *ptr, uint32_t expected, uint32_t desired) { return __sync_val_compare_and_swap_4(ptr, expected, desired); }
+			// forwarders since we can't take address of builtins
+			static void sync_synchronize() { __sync_synchronize(); }
+			static uint32_t sync_fetch_and_add_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_add_4(ptr, val); }
+			static uint32_t sync_fetch_and_and_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_and_4(ptr, val); }
+			static uint32_t sync_fetch_and_or_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_or_4(ptr, val); }
+			static uint32_t sync_fetch_and_xor_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_xor_4(ptr, val); }
+			static uint32_t sync_fetch_and_sub_4(uint32_t *ptr, uint32_t val) { return __sync_fetch_and_sub_4(ptr, val); }
+			static uint32_t sync_lock_test_and_set_4(uint32_t *ptr, uint32_t val) { return __sync_lock_test_and_set_4(ptr, val); }
+			static uint32_t sync_val_compare_and_swap_4(uint32_t *ptr, uint32_t expected, uint32_t desired) { return __sync_val_compare_and_swap_4(ptr, expected, desired); }
 
-				static uint32_t sync_fetch_and_max_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](int32_t a, int32_t b) { return std::max(a,b);}); }
-				static uint32_t sync_fetch_and_min_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](int32_t a, int32_t b) { return std::min(a,b);}); }
-				static uint32_t sync_fetch_and_umax_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::max(a,b);}); }
-				static uint32_t sync_fetch_and_umin_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::min(a,b);}); }
+			static uint32_t sync_fetch_and_max_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](int32_t a, int32_t b) { return std::max(a,b);}); }
+			static uint32_t sync_fetch_and_min_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](int32_t a, int32_t b) { return std::min(a,b);}); }
+			static uint32_t sync_fetch_and_umax_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::max(a,b);}); }
+			static uint32_t sync_fetch_and_umin_4(uint32_t *ptr, uint32_t val) { return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::min(a,b);}); }
 #endif
-			};
+		};
 
-			func_.emplace("nop", reinterpret_cast<void*>(F::nop));
-			func_.emplace("floorf", reinterpret_cast<void*>(floorf));
-			func_.emplace("nearbyintf", reinterpret_cast<void*>(nearbyintf));
-			func_.emplace("truncf", reinterpret_cast<void*>(truncf));
-			func_.emplace("printf", reinterpret_cast<void*>(printf));
-			func_.emplace("puts", reinterpret_cast<void*>(puts));
-			func_.emplace("fmodf", reinterpret_cast<void*>(fmodf));
+		class Resolver
+		{
+		public:
+			using FunctionMap = std::unordered_map<std::string, void *>;
 
-			func_.emplace("sinf", reinterpret_cast<void*>(sinf));
-			func_.emplace("cosf", reinterpret_cast<void*>(cosf));
-			func_.emplace("asinf", reinterpret_cast<void*>(asinf));
-			func_.emplace("acosf", reinterpret_cast<void*>(acosf));
-			func_.emplace("atanf", reinterpret_cast<void*>(atanf));
-			func_.emplace("sinhf", reinterpret_cast<void*>(sinhf));
-			func_.emplace("coshf", reinterpret_cast<void*>(coshf));
-			func_.emplace("tanhf", reinterpret_cast<void*>(tanhf));
-			func_.emplace("asinhf", reinterpret_cast<void*>(asinhf));
-			func_.emplace("acoshf", reinterpret_cast<void*>(acoshf));
-			func_.emplace("atanhf", reinterpret_cast<void*>(atanhf));
-			func_.emplace("atan2f", reinterpret_cast<void*>(atan2f));
-			func_.emplace("powf", reinterpret_cast<void*>(powf));
-			func_.emplace("expf", reinterpret_cast<void*>(expf));
-			func_.emplace("logf", reinterpret_cast<void*>(logf));
-			func_.emplace("exp2f", reinterpret_cast<void*>(exp2f));
-			func_.emplace("log2f", reinterpret_cast<void*>(log2f));
+			FunctionMap functions;
 
-			func_.emplace("sin", reinterpret_cast<void*>(static_cast<double(*)(double)>(sin)));
-			func_.emplace("cos", reinterpret_cast<void*>(static_cast<double(*)(double)>(cos)));
-			func_.emplace("asin", reinterpret_cast<void*>(static_cast<double(*)(double)>(asin)));
-			func_.emplace("acos", reinterpret_cast<void*>(static_cast<double(*)(double)>(acos)));
-			func_.emplace("atan", reinterpret_cast<void*>(static_cast<double(*)(double)>(atan)));
-			func_.emplace("sinh", reinterpret_cast<void*>(static_cast<double(*)(double)>(sinh)));
-			func_.emplace("cosh", reinterpret_cast<void*>(static_cast<double(*)(double)>(cosh)));
-			func_.emplace("tanh", reinterpret_cast<void*>(static_cast<double(*)(double)>(tanh)));
-			func_.emplace("asinh", reinterpret_cast<void*>(static_cast<double(*)(double)>(asinh)));
-			func_.emplace("acosh", reinterpret_cast<void*>(static_cast<double(*)(double)>(acosh)));
-			func_.emplace("atanh", reinterpret_cast<void*>(static_cast<double(*)(double)>(atanh)));
-			func_.emplace("atan2", reinterpret_cast<void*>(static_cast<double(*)(double,double)>(atan2)));
-			func_.emplace("pow", reinterpret_cast<void*>(static_cast<double(*)(double,double)>(pow)));
-			func_.emplace("exp", reinterpret_cast<void*>(static_cast<double(*)(double)>(exp)));
-			func_.emplace("log", reinterpret_cast<void*>(static_cast<double(*)(double)>(log)));
-			func_.emplace("exp2", reinterpret_cast<void*>(static_cast<double(*)(double)>(exp2)));
-			func_.emplace("log2", reinterpret_cast<void*>(static_cast<double(*)(double)>(log2)));
+			Resolver()
+			{
+				functions.emplace("nop", reinterpret_cast<void*>(F::nop));
+				functions.emplace("floorf", reinterpret_cast<void*>(floorf));
+				functions.emplace("nearbyintf", reinterpret_cast<void*>(nearbyintf));
+				functions.emplace("truncf", reinterpret_cast<void*>(truncf));
+				functions.emplace("printf", reinterpret_cast<void*>(printf));
+				functions.emplace("puts", reinterpret_cast<void*>(puts));
+				functions.emplace("fmodf", reinterpret_cast<void*>(fmodf));
 
-			func_.emplace("atomic_load", reinterpret_cast<void*>(Atomic::load));
-			func_.emplace("atomic_store", reinterpret_cast<void*>(Atomic::store));
+				functions.emplace("sinf", reinterpret_cast<void*>(sinf));
+				functions.emplace("cosf", reinterpret_cast<void*>(cosf));
+				functions.emplace("asinf", reinterpret_cast<void*>(asinf));
+				functions.emplace("acosf", reinterpret_cast<void*>(acosf));
+				functions.emplace("atanf", reinterpret_cast<void*>(atanf));
+				functions.emplace("sinhf", reinterpret_cast<void*>(sinhf));
+				functions.emplace("coshf", reinterpret_cast<void*>(coshf));
+				functions.emplace("tanhf", reinterpret_cast<void*>(tanhf));
+				functions.emplace("asinhf", reinterpret_cast<void*>(asinhf));
+				functions.emplace("acoshf", reinterpret_cast<void*>(acoshf));
+				functions.emplace("atanhf", reinterpret_cast<void*>(atanhf));
+				functions.emplace("atan2f", reinterpret_cast<void*>(atan2f));
+				functions.emplace("powf", reinterpret_cast<void*>(powf));
+				functions.emplace("expf", reinterpret_cast<void*>(expf));
+				functions.emplace("logf", reinterpret_cast<void*>(logf));
+				functions.emplace("exp2f", reinterpret_cast<void*>(exp2f));
+				functions.emplace("log2f", reinterpret_cast<void*>(log2f));
 
-			// FIXME (b/119409619): use an allocator here so we can control all memory allocations
-			func_.emplace("coroutine_alloc_frame", reinterpret_cast<void*>(F::coroutine_alloc_frame));
-			func_.emplace("coroutine_free_frame", reinterpret_cast<void*>(F::coroutine_free_frame));
+				functions.emplace("sin", reinterpret_cast<void*>(static_cast<double(*)(double)>(sin)));
+				functions.emplace("cos", reinterpret_cast<void*>(static_cast<double(*)(double)>(cos)));
+				functions.emplace("asin", reinterpret_cast<void*>(static_cast<double(*)(double)>(asin)));
+				functions.emplace("acos", reinterpret_cast<void*>(static_cast<double(*)(double)>(acos)));
+				functions.emplace("atan", reinterpret_cast<void*>(static_cast<double(*)(double)>(atan)));
+				functions.emplace("sinh", reinterpret_cast<void*>(static_cast<double(*)(double)>(sinh)));
+				functions.emplace("cosh", reinterpret_cast<void*>(static_cast<double(*)(double)>(cosh)));
+				functions.emplace("tanh", reinterpret_cast<void*>(static_cast<double(*)(double)>(tanh)));
+				functions.emplace("asinh", reinterpret_cast<void*>(static_cast<double(*)(double)>(asinh)));
+				functions.emplace("acosh", reinterpret_cast<void*>(static_cast<double(*)(double)>(acosh)));
+				functions.emplace("atanh", reinterpret_cast<void*>(static_cast<double(*)(double)>(atanh)));
+				functions.emplace("atan2", reinterpret_cast<void*>(static_cast<double(*)(double,double)>(atan2)));
+				functions.emplace("pow", reinterpret_cast<void*>(static_cast<double(*)(double,double)>(pow)));
+				functions.emplace("exp", reinterpret_cast<void*>(static_cast<double(*)(double)>(exp)));
+				functions.emplace("log", reinterpret_cast<void*>(static_cast<double(*)(double)>(log)));
+				functions.emplace("exp2", reinterpret_cast<void*>(static_cast<double(*)(double)>(exp2)));
+				functions.emplace("log2", reinterpret_cast<void*>(static_cast<double(*)(double)>(log2)));
+
+				functions.emplace("atomic_load", reinterpret_cast<void*>(Atomic::load));
+				functions.emplace("atomic_store", reinterpret_cast<void*>(Atomic::store));
+
+				// FIXME (b/119409619): use an allocator here so we can control all memory allocations
+				functions.emplace("coroutine_alloc_frame", reinterpret_cast<void*>(F::coroutine_alloc_frame));
+				functions.emplace("coroutine_free_frame", reinterpret_cast<void*>(F::coroutine_free_frame));
 
 #ifdef __APPLE__
-			func_.emplace("sincosf_stret", reinterpret_cast<void*>(__sincosf_stret));
+				functions.emplace("sincosf_stret", reinterpret_cast<void*>(__sincosf_stret));
 #elif defined(__linux__)
-			func_.emplace("sincosf", reinterpret_cast<void*>(sincosf));
+				functions.emplace("sincosf", reinterpret_cast<void*>(sincosf));
 #elif defined(_WIN64)
-			func_.emplace("chkstk", reinterpret_cast<void*>(__chkstk));
+				functions.emplace("chkstk", reinterpret_cast<void*>(__chkstk));
 #elif defined(_WIN32)
-			func_.emplace("chkstk", reinterpret_cast<void*>(_chkstk));
+				functions.emplace("chkstk", reinterpret_cast<void*>(_chkstk));
 #endif
 
 #ifdef __ANDROID__
-			func_.emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void*>(F::neverCalled));
-			func_.emplace("sync_synchronize", reinterpret_cast<void*>(F::sync_synchronize));
-			func_.emplace("sync_fetch_and_add_4", reinterpret_cast<void*>(F::sync_fetch_and_add_4));
-			func_.emplace("sync_fetch_and_and_4", reinterpret_cast<void*>(F::sync_fetch_and_and_4));
-			func_.emplace("sync_fetch_and_or_4", reinterpret_cast<void*>(F::sync_fetch_and_or_4));
-			func_.emplace("sync_fetch_and_xor_4", reinterpret_cast<void*>(F::sync_fetch_and_xor_4));
-			func_.emplace("sync_fetch_and_sub_4", reinterpret_cast<void*>(F::sync_fetch_and_sub_4));
-			func_.emplace("sync_lock_test_and_set_4", reinterpret_cast<void*>(F::sync_lock_test_and_set_4));
-			func_.emplace("sync_val_compare_and_swap_4", reinterpret_cast<void*>(F::sync_val_compare_and_swap_4));
-			func_.emplace("sync_fetch_and_max_4", reinterpret_cast<void*>(F::sync_fetch_and_max_4));
-			func_.emplace("sync_fetch_and_min_4", reinterpret_cast<void*>(F::sync_fetch_and_min_4));
-			func_.emplace("sync_fetch_and_umax_4", reinterpret_cast<void*>(F::sync_fetch_and_umax_4));
-			func_.emplace("sync_fetch_and_umin_4", reinterpret_cast<void*>(F::sync_fetch_and_umin_4));
-#endif
-		}
-
-		void *findSymbol(const std::string &name) const
-		{
-			// Trim off any underscores from the start of the symbol. LLVM likes
-			// to append these on macOS.
-			const char* trimmed = name.c_str();
-			while (trimmed[0] == '_') { trimmed++; }
-
-			FunctionMap::const_iterator it = func_.find(trimmed);
-			// Missing functions will likely make the module fail in exciting non-obvious ways.
-			ASSERT_MSG(it != func_.end(), "Missing external function: '%s'", name.c_str());
-			return it->second;
-		}
-	};
-
-	class LLVMReactorJIT
-	{
-	private:
-		using ObjLayer = llvm::orc::RTDyldObjectLinkingLayer;
-		using CompileLayer = llvm::orc::IRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
-
-		llvm::orc::ExecutionSession session;
-		ExternalFunctionSymbolResolver externalSymbolResolver;
-		std::shared_ptr<llvm::orc::SymbolResolver> resolver;
-		std::unique_ptr<llvm::TargetMachine> targetMachine;
-		const llvm::DataLayout dataLayout;
-		ObjLayer objLayer;
-		CompileLayer compileLayer; // guarded by mutex
-		std::mutex mutex;
-		size_t emittedFunctionsNum;
-
-	public:
-		LLVMReactorJIT(const char *arch, const llvm::SmallVectorImpl<std::string>& mattrs,
-					   const llvm::TargetOptions &targetOpts):
-			resolver(createLegacyLookupResolver(
-				session,
-				[this](const std::string &name) {
-					void *func = externalSymbolResolver.findSymbol(name);
-					if (func != nullptr)
-					{
-						return llvm::JITSymbol(
-							reinterpret_cast<uintptr_t>(func), llvm::JITSymbolFlags::Absolute);
-					}
-
-					return objLayer.findSymbol(name, true);
-				},
-				[](llvm::Error err) {
-					if (err)
-					{
-						// TODO: Log the symbol resolution errors.
-						return;
-					}
-				})),
-			targetMachine(llvm::EngineBuilder()
-#ifdef ENABLE_RR_DEBUG_INFO
-				.setOptLevel(llvm::CodeGenOpt::None)
-#endif // ENABLE_RR_DEBUG_INFO
-				.setMArch(arch)
-				.setMAttrs(mattrs)
-				.setTargetOptions(targetOpts)
-				.selectTarget()),
-			dataLayout(targetMachine->createDataLayout()),
-			objLayer(
-				session,
-				[this](llvm::orc::VModuleKey) {
-					return ObjLayer::Resources{
-						std::make_shared<llvm::SectionMemoryManager>(),
-						resolver};
-				},
-				ObjLayer::NotifyLoadedFtor(),
-				[](llvm::orc::VModuleKey, const llvm::object::ObjectFile &Obj, const llvm::RuntimeDyld::LoadedObjectInfo &L) {
-#ifdef ENABLE_RR_DEBUG_INFO
-					DebugInfo::NotifyObjectEmitted(Obj, L);
-#endif // ENABLE_RR_DEBUG_INFO
-				},
-				[](llvm::orc::VModuleKey, const llvm::object::ObjectFile &Obj) {
-#ifdef ENABLE_RR_DEBUG_INFO
-					DebugInfo::NotifyFreeingObject(Obj);
-#endif // ENABLE_RR_DEBUG_INFO
-				}
-	  		),
-			compileLayer(objLayer, llvm::orc::SimpleCompiler(*targetMachine)),
-			emittedFunctionsNum(0)
-		{
-		}
-
-		void startSession()
-		{
-			::module = new llvm::Module("", *::context);
-			::module->setDataLayout(dataLayout);
-		}
-
-		void endSession()
-		{
-			::function = nullptr;
-			::module = nullptr;
-		}
-
-		LLVMRoutine *acquireRoutine(llvm::Function **funcs, size_t count)
-		{
-			std::vector<std::string> mangledNames(count);
-			for (size_t i = 0; i < count; i++)
-			{
-				auto func = funcs[i];
-				std::string name = "f" + llvm::Twine(emittedFunctionsNum++).str();
-				func->setName(name);
-				func->setLinkage(llvm::GlobalValue::ExternalLinkage);
-				func->setDoesNotThrow();
-
-				llvm::raw_string_ostream mangledNameStream(mangledNames[i]);
-				llvm::Mangler::getNameWithPrefix(mangledNameStream, name, dataLayout);
+				functions.emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void*>(F::neverCalled));
+				functions.emplace("sync_synchronize", reinterpret_cast<void*>(F::sync_synchronize));
+				functions.emplace("sync_fetch_and_add_4", reinterpret_cast<void*>(F::sync_fetch_and_add_4));
+				functions.emplace("sync_fetch_and_and_4", reinterpret_cast<void*>(F::sync_fetch_and_and_4));
+				functions.emplace("sync_fetch_and_or_4", reinterpret_cast<void*>(F::sync_fetch_and_or_4));
+				functions.emplace("sync_fetch_and_xor_4", reinterpret_cast<void*>(F::sync_fetch_and_xor_4));
+				functions.emplace("sync_fetch_and_sub_4", reinterpret_cast<void*>(F::sync_fetch_and_sub_4));
+				functions.emplace("sync_lock_test_and_set_4", reinterpret_cast<void*>(F::sync_lock_test_and_set_4));
+				functions.emplace("sync_val_compare_and_swap_4", reinterpret_cast<void*>(F::sync_val_compare_and_swap_4));
+				functions.emplace("sync_fetch_and_max_4", reinterpret_cast<void*>(F::sync_fetch_and_max_4));
+				functions.emplace("sync_fetch_and_min_4", reinterpret_cast<void*>(F::sync_fetch_and_min_4));
+				functions.emplace("sync_fetch_and_umax_4", reinterpret_cast<void*>(F::sync_fetch_and_umax_4));
+				functions.emplace("sync_fetch_and_umin_4", reinterpret_cast<void*>(F::sync_fetch_and_umin_4));
+	#endif
 			}
+		};
 
-			// Compile the module - after this the llvm::Functions will have
-			// been freed.
-			std::unique_ptr<llvm::Module> mod(::module);
-			::module = nullptr;
+		static Resolver resolver;
 
-			auto moduleKey = session.allocateVModule();
+		// Trim off any underscores from the start of the symbol. LLVM likes
+		// to append these on macOS.
+		const char* trimmed = name;
+		while (trimmed[0] == '_') { trimmed++; }
 
-			// Resolve the function symbols - needs to be performed under mutex lock.
-			std::vector<llvm::JITSymbol> symbols;
-			{
-				std::unique_lock<std::mutex> lock(mutex);
-				llvm::cantFail(compileLayer.addModule(moduleKey, std::move(mod)));
-				funcs = nullptr; // Now points to released memory.
-				for (size_t i = 0; i < count; i++)
-				{
-					symbols.push_back(compileLayer.findSymbolIn(moduleKey, mangledNames[i], false));
-				}
-			}
-
-			// Resolve the function addresses.
-			std::vector<void*> addresses(count);
-			for (size_t i = 0; i < count; i++)
-			{
-				if(auto expectAddr = symbols[i].getAddress())
-				{
-					addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(expectAddr.get()));
-				}
-			}
-
-			return new LLVMRoutine(addresses.data(), count, releaseRoutineCallback, this, moduleKey);
-		}
-
-		void optimize(llvm::Module *module)
-		{
-#ifdef ENABLE_RR_DEBUG_INFO
-			if (debugInfo != nullptr)
-			{
-				return; // Don't optimize if we're generating debug info.
-			}
-#endif // ENABLE_RR_DEBUG_INFO
-
-			std::unique_ptr<llvm::legacy::PassManager> passManager(
-				new llvm::legacy::PassManager());
-
-			passManager->add(llvm::createSROAPass());
-
-			for(int pass = 0; pass < 10 && optimization[pass] != Disabled; pass++)
-			{
-				switch(optimization[pass])
-				{
-				case Disabled:                                                                       break;
-				case CFGSimplification:    passManager->add(llvm::createCFGSimplificationPass());    break;
-				case LICM:                 passManager->add(llvm::createLICMPass());                 break;
-				case AggressiveDCE:        passManager->add(llvm::createAggressiveDCEPass());        break;
-				case GVN:                  passManager->add(llvm::createGVNPass());                  break;
-				case InstructionCombining: passManager->add(llvm::createInstructionCombiningPass()); break;
-				case Reassociate:          passManager->add(llvm::createReassociatePass());          break;
-				case DeadStoreElimination: passManager->add(llvm::createDeadStoreEliminationPass()); break;
-				case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
-				case ScalarReplAggregates: passManager->add(llvm::createSROAPass());                 break;
-				default:
-					UNREACHABLE("optimization[pass]: %d, pass: %d", int(optimization[pass]), int(pass));
-				}
-			}
-
-			passManager->run(*::module);
-		}
-
-	private:
-		void releaseRoutineModule(llvm::orc::VModuleKey moduleKey)
-		{
-			std::unique_lock<std::mutex> lock(mutex);
-			llvm::cantFail(compileLayer.removeModule(moduleKey));
-		}
-
-		static void releaseRoutineCallback(LLVMReactorJIT *jit, uint64_t moduleKey)
-		{
-			jit->releaseRoutineModule(moduleKey);
-		}
-	};
+		auto it = resolver.functions.find(trimmed);
+		// Missing functions will likely make the module fail in exciting non-obvious ways.
+		ASSERT_MSG(it != resolver.functions.end(), "Missing external function: '%s'", name);
+		return it->second;
+	}
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
@@ -1000,7 +1098,7 @@ namespace rr
 	static ::llvm::Function* createFunction(const char *name, ::llvm::Type *retTy, const std::vector<::llvm::Type*> &params)
 	{
 		llvm::FunctionType *functionType = llvm::FunctionType::get(retTy, params, false);
-		auto func = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, name, ::module);
+		auto func = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, name, jit->module.get());
 		func->setDoesNotThrow();
 		func->setCallingConv(llvm::CallingConv::C);
 		return func;
@@ -1010,106 +1108,21 @@ namespace rr
 	{
 		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
 
-		llvm::InitializeNativeTarget();
-		llvm::InitializeNativeTargetAsmPrinter();
-		llvm::InitializeNativeTargetAsmParser();
-
-		if(!::context)
-		{
-			::context = new llvm::LLVMContext();
-		}
-
-		#if defined(__x86_64__)
-			static const char arch[] = "x86-64";
-		#elif defined(__i386__)
-			static const char arch[] = "x86";
-		#elif defined(__aarch64__)
-			static const char arch[] = "arm64";
-		#elif defined(__arm__)
-			static const char arch[] = "arm";
-		#elif defined(__mips__)
-			#if defined(__mips64)
-			    static const char arch[] = "mips64el";
-			#else
-			    static const char arch[] = "mipsel";
-			#endif
-		#elif defined(__powerpc64__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-			static const char arch[] = "ppc64le";
-		#else
-		#error "unknown architecture"
-		#endif
-
-		llvm::SmallVector<std::string, 8> mattrs;
-
-		llvm::StringMap<bool> features;
-
-		bool ok = llvm::sys::getHostCPUFeatures(features);
-
-		#if defined(__i386__) || defined(__x86_64__) || \
-		   (defined(__linux__) && (defined(__arm__) || defined(__aarch64__)))
-		ASSERT_MSG(ok, "llvm::sys::getHostCPUFeatures returned false");
-		#else
-		(void) ok; // getHostCPUFeatures always returns false on other platforms
-		#endif
-
-		for (auto &feature : features)
-		{
-			if (feature.second) { mattrs.push_back(feature.first()); }
-		}
-
-#if 0
-#if defined(__i386__) || defined(__x86_64__)
-		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"    : "-mmx");
-		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"   : "-cmov");
-		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"    : "-sse");
-		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"   : "-sse2");
-		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"   : "-sse3");
-		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3"  : "-ssse3");
-		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
-#elif defined(__arm__)
-#if __ARM_ARCH >= 8
-		mattrs.push_back("+armv8-a");
-#else
-		// armv7-a requires compiler-rt routines; otherwise, compiled kernel
-		// might fail to link.
-#endif
-#endif
-#endif
-
-		llvm::TargetOptions targetOpts;
-		targetOpts.UnsafeFPMath = false;
-		// targetOpts.NoInfsFPMath = true;
-		// targetOpts.NoNaNsFPMath = true;
-
-		if(!::reactorJIT)
-		{
-			::reactorJIT = new LLVMReactorJIT(arch, mattrs, targetOpts);
-		}
-
-		::reactorJIT->startSession();
-
-		if(!::builder)
-		{
-			::builder = new llvm::IRBuilder<>(*::context);
-		}
+		ASSERT(jit == nullptr);
+		jit.reset(new JITBuilder());
 	}
 
 	Nucleus::~Nucleus()
 	{
-#ifdef ENABLE_RR_DEBUG_INFO
-		debugInfo.reset(nullptr);
-#endif // ENABLE_RR_DEBUG_INFO
-
-		::reactorJIT->endSession();
-
+		jit.reset();
 		::codegenMutex.unlock();
 	}
 
 	Routine *Nucleus::acquireRoutine(const char *name, bool runOptimizations)
 	{
-		if(::builder->GetInsertBlock()->empty() || !::builder->GetInsertBlock()->back().isTerminator())
+		if(jit->builder->GetInsertBlock()->empty() || !jit->builder->GetInsertBlock()->back().isTerminator())
 		{
-			llvm::Type *type = ::function->getReturnType();
+			llvm::Type *type = jit->function->getReturnType();
 
 			if(type->isVoidTy())
 			{
@@ -1122,9 +1135,9 @@ namespace rr
 		}
 
 #ifdef ENABLE_RR_DEBUG_INFO
-		if (debugInfo != nullptr)
+		if (jit->debugInfo != nullptr)
 		{
-			debugInfo->Finalize();
+			jit->debugInfo->Finalize();
 		}
 #endif // ENABLE_RR_DEBUG_INFO
 
@@ -1132,14 +1145,14 @@ namespace rr
 		{
 			std::error_code error;
 			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
-			::module->print(file, 0);
+			jit->module->print(file, 0);
 		}
 
 #if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 		{
 			llvm::legacy::PassManager pm;
 			pm.add(llvm::createVerifierPass());
-			pm.run(*::module);
+			pm.run(*jit->module);
 		}
 #endif // defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 
@@ -1152,23 +1165,24 @@ namespace rr
 		{
 			std::error_code error;
 			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
-			::module->print(file, 0);
+			jit->module->print(file, 0);
 		}
 
-		LLVMRoutine *routine = ::reactorJIT->acquireRoutine(&::function, 1);
+		auto routine = jit->acquireRoutine(&jit->function, 1);
+		jit.reset();
 
 		return routine;
 	}
 
 	void Nucleus::optimize()
 	{
-		::reactorJIT->optimize(::module);
+		jit->optimize();
 	}
 
 	Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
 	{
 		// Need to allocate it in the entry block for mem2reg to work
-		llvm::BasicBlock &entryBlock = ::function->getEntryBlock();
+		llvm::BasicBlock &entryBlock = jit->function->getEntryBlock();
 
 		llvm::Instruction *declaration;
 
@@ -1188,37 +1202,37 @@ namespace rr
 
 	BasicBlock *Nucleus::createBasicBlock()
 	{
-		return B(llvm::BasicBlock::Create(*::context, "", ::function));
+		return B(llvm::BasicBlock::Create(jit->context, "", jit->function));
 	}
 
 	BasicBlock *Nucleus::getInsertBlock()
 	{
-		return B(::builder->GetInsertBlock());
+		return B(jit->builder->GetInsertBlock());
 	}
 
 	void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 	{
-	//	assert(::builder->GetInsertBlock()->back().isTerminator());
+	//	assert(jit->builder->GetInsertBlock()->back().isTerminator());
 
 		Variable::materializeAll();
 
-		::builder->SetInsertPoint(B(basicBlock));
+		jit->builder->SetInsertPoint(B(basicBlock));
 	}
 
 	void Nucleus::createFunction(Type *ReturnType, std::vector<Type*> &Params)
 	{
-		::function = rr::createFunction("", T(ReturnType), T(Params));
+		jit->function = rr::createFunction("", T(ReturnType), T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
-		::debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(::builder, ::context, ::module, ::function));
+		jit->debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(jit->builder, jit->context, jit->module.get(), jit->function));
 #endif // ENABLE_RR_DEBUG_INFO
 
-		::builder->SetInsertPoint(llvm::BasicBlock::Create(*::context, "", ::function));
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->function));
 	}
 
 	Value *Nucleus::getArgument(unsigned int index)
 	{
-		llvm::Function::arg_iterator args = ::function->arg_begin();
+		llvm::Function::arg_iterator args = jit->function->arg_begin();
 
 		while(index)
 		{
@@ -1233,28 +1247,28 @@ namespace rr
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 
-		ASSERT_MSG(::function->getReturnType() == T(Void::getType()), "Return type mismatch");
+		ASSERT_MSG(jit->function->getReturnType() == T(Void::getType()), "Return type mismatch");
 
 		// Code generated after this point is unreachable, so any variables
 		// being read can safely return an undefined value. We have to avoid
 		// materializing variables after the terminator ret instruction.
 		Variable::killUnmaterialized();
 
-		::builder->CreateRetVoid();
+		jit->builder->CreateRetVoid();
 	}
 
 	void Nucleus::createRet(Value *v)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 
-		ASSERT_MSG(::function->getReturnType() == V(v)->getType(), "Return type mismatch");
+		ASSERT_MSG(jit->function->getReturnType() == V(v)->getType(), "Return type mismatch");
 
 		// Code generated after this point is unreachable, so any variables
 		// being read can safely return an undefined value. We have to avoid
 		// materializing variables after the terminator ret instruction.
 		Variable::killUnmaterialized();
 
-		::builder->CreateRet(V(v));
+		jit->builder->CreateRet(V(v));
 	}
 
 	void Nucleus::createBr(BasicBlock *dest)
@@ -1262,140 +1276,140 @@ namespace rr
 		RR_DEBUG_INFO_UPDATE_LOC();
 		Variable::materializeAll();
 
-		::builder->CreateBr(B(dest));
+		jit->builder->CreateBr(B(dest));
 	}
 
 	void Nucleus::createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 		Variable::materializeAll();
-		::builder->CreateCondBr(V(cond), B(ifTrue), B(ifFalse));
+		jit->builder->CreateCondBr(V(cond), B(ifTrue), B(ifFalse));
 	}
 
 	Value *Nucleus::createAdd(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAdd(V(lhs), V(rhs)));
+		return V(jit->builder->CreateAdd(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createSub(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateSub(V(lhs), V(rhs)));
+		return V(jit->builder->CreateSub(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createMul(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateMul(V(lhs), V(rhs)));
+		return V(jit->builder->CreateMul(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createUDiv(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateUDiv(V(lhs), V(rhs)));
+		return V(jit->builder->CreateUDiv(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createSDiv(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateSDiv(V(lhs), V(rhs)));
+		return V(jit->builder->CreateSDiv(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFAdd(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFAdd(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFAdd(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFSub(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFSub(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFSub(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFMul(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFMul(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFMul(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFDiv(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFDiv(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFDiv(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createURem(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateURem(V(lhs), V(rhs)));
+		return V(jit->builder->CreateURem(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createSRem(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateSRem(V(lhs), V(rhs)));
+		return V(jit->builder->CreateSRem(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFRem(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFRem(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFRem(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createShl(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateShl(V(lhs), V(rhs)));
+		return V(jit->builder->CreateShl(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createLShr(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateLShr(V(lhs), V(rhs)));
+		return V(jit->builder->CreateLShr(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createAShr(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAShr(V(lhs), V(rhs)));
+		return V(jit->builder->CreateAShr(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createAnd(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAnd(V(lhs), V(rhs)));
+		return V(jit->builder->CreateAnd(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createOr(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateOr(V(lhs), V(rhs)));
+		return V(jit->builder->CreateOr(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createXor(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateXor(V(lhs), V(rhs)));
+		return V(jit->builder->CreateXor(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createNeg(Value *v)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateNeg(V(v)));
+		return V(jit->builder->CreateNeg(V(v)));
 	}
 
 	Value *Nucleus::createFNeg(Value *v)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFNeg(V(v)));
+		return V(jit->builder->CreateFNeg(V(v)));
 	}
 
 	Value *Nucleus::createNot(Value *v)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateNot(V(v)));
+		return V(jit->builder->CreateNot(V(v)));
 	}
 
 	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
@@ -1431,13 +1445,13 @@ namespace rr
 
 				if (!atomic)
 				{
-					return V(::builder->CreateAlignedLoad(V(ptr), alignment, isVolatile));
+					return V(jit->builder->CreateAlignedLoad(V(ptr), alignment, isVolatile));
 				}
 				else if (elTy->isIntegerTy() || elTy->isPointerTy())
 				{
 					// Integers and pointers can be atomically loaded by setting
 					// the ordering constraint on the load instruction.
-					auto load = ::builder->CreateAlignedLoad(V(ptr), alignment, isVolatile);
+					auto load = jit->builder->CreateAlignedLoad(V(ptr), alignment, isVolatile);
 					load->setAtomic(atomicOrdering(atomic, memoryOrder));
 					return V(load);
 				}
@@ -1446,34 +1460,34 @@ namespace rr
 					// LLVM claims to support atomic loads of float types as
 					// above, but certain backends cannot deal with this.
 					// Load as an integer and bitcast. See b/136037244.
-  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
-					auto elAsIntTy = ::llvm::IntegerType::get(*::context, size * 8);
-					auto ptrCast = ::builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
-					auto load = ::builder->CreateAlignedLoad(ptrCast, alignment, isVolatile);
+  					auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
+					auto elAsIntTy = ::llvm::IntegerType::get(jit->context, size * 8);
+					auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
+					auto load = jit->builder->CreateAlignedLoad(ptrCast, alignment, isVolatile);
 					load->setAtomic(atomicOrdering(atomic, memoryOrder));
-					auto loadCast = ::builder->CreateBitCast(load, elTy);
+					auto loadCast = jit->builder->CreateBitCast(load, elTy);
 					return V(loadCast);
 				}
 				else
 				{
 					// More exotic types require falling back to the extern:
 					// void __atomic_load(size_t size, void *ptr, void *ret, int ordering)
-					auto sizetTy = ::llvm::IntegerType::get(*::context, sizeof(size_t) * 8);
-					auto intTy = ::llvm::IntegerType::get(*::context, sizeof(int) * 8);
-					auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+					auto sizetTy = ::llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
+					auto intTy = ::llvm::IntegerType::get(jit->context, sizeof(int) * 8);
+					auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 					auto i8PtrTy = i8Ty->getPointerTo();
-					auto voidTy = ::llvm::Type::getVoidTy(*::context);
+					auto voidTy = ::llvm::Type::getVoidTy(jit->context);
 					auto funcTy = ::llvm::FunctionType::get(voidTy, {sizetTy, i8PtrTy, i8PtrTy, intTy}, false);
-					auto func = ::module->getOrInsertFunction("__atomic_load", funcTy);
-  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
+					auto func = jit->module->getOrInsertFunction("__atomic_load", funcTy);
+  					auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
 					auto out = allocateStackVariable(type);
-					::builder->CreateCall(func, {
+					jit->builder->CreateCall(func, {
 						::llvm::ConstantInt::get(sizetTy, size),
-						::builder->CreatePointerCast(V(ptr), i8PtrTy),
-						::builder->CreatePointerCast(V(out), i8PtrTy),
+						jit->builder->CreatePointerCast(V(ptr), i8PtrTy),
+						jit->builder->CreatePointerCast(V(out), i8PtrTy),
 						::llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
 					 });
-					 return V(::builder->CreateLoad(V(out)));
+					 return V(jit->builder->CreateLoad(V(out)));
 				}
 			}
 		default:
@@ -1515,13 +1529,13 @@ namespace rr
 
 				if (!atomic)
 				{
-					::builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
+					jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
 				}
 				else if (elTy->isIntegerTy() || elTy->isPointerTy())
 				{
 					// Integers and pointers can be atomically stored by setting
 					// the ordering constraint on the store instruction.
-					auto store = ::builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
+					auto store = jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
 					store->setAtomic(atomicOrdering(atomic, memoryOrder));
 				}
 				else if (elTy->isFloatTy() || elTy->isDoubleTy())
@@ -1529,31 +1543,31 @@ namespace rr
 					// LLVM claims to support atomic stores of float types as
 					// above, but certain backends cannot deal with this.
 					// Store as an bitcast integer. See b/136037244.
-  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
-					auto elAsIntTy = ::llvm::IntegerType::get(*::context, size * 8);
-					auto valCast = ::builder->CreateBitCast(V(value), elAsIntTy);
-					auto ptrCast = ::builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
-					auto store = ::builder->CreateAlignedStore(valCast, ptrCast, alignment, isVolatile);
+  					auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
+					auto elAsIntTy = ::llvm::IntegerType::get(jit->context, size * 8);
+					auto valCast = jit->builder->CreateBitCast(V(value), elAsIntTy);
+					auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
+					auto store = jit->builder->CreateAlignedStore(valCast, ptrCast, alignment, isVolatile);
 					store->setAtomic(atomicOrdering(atomic, memoryOrder));
 				}
 				else
 				{
 					// More exotic types require falling back to the extern:
 					// void __atomic_store(size_t size, void *ptr, void *val, int ordering)
-					auto sizetTy = ::llvm::IntegerType::get(*::context, sizeof(size_t) * 8);
-					auto intTy = ::llvm::IntegerType::get(*::context, sizeof(int) * 8);
-					auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+					auto sizetTy = ::llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
+					auto intTy = ::llvm::IntegerType::get(jit->context, sizeof(int) * 8);
+					auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 					auto i8PtrTy = i8Ty->getPointerTo();
-					auto voidTy = ::llvm::Type::getVoidTy(*::context);
+					auto voidTy = ::llvm::Type::getVoidTy(jit->context);
 					auto funcTy = ::llvm::FunctionType::get(voidTy, {sizetTy, i8PtrTy, i8PtrTy, intTy}, false);
-					auto func = ::module->getOrInsertFunction("__atomic_store", funcTy);
-  					auto size = ::module->getDataLayout().getTypeStoreSize(elTy);
+					auto func = jit->module->getOrInsertFunction("__atomic_store", funcTy);
+  					auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
 					auto copy = allocateStackVariable(type);
-					::builder->CreateStore(V(value), V(copy));
-					::builder->CreateCall(func, {
+					jit->builder->CreateStore(V(value), V(copy));
+					jit->builder->CreateCall(func, {
 						::llvm::ConstantInt::get(sizetTy, size),
-						::builder->CreatePointerCast(V(ptr), i8PtrTy),
-						::builder->CreatePointerCast(V(copy), i8PtrTy),
+						jit->builder->CreatePointerCast(V(ptr), i8PtrTy),
+						jit->builder->CreatePointerCast(V(copy), i8PtrTy),
 						::llvm::ConstantInt::get(intTy, uint64_t(atomicOrdering(true, memoryOrder))),
 					 });
 				}
@@ -1572,15 +1586,15 @@ namespace rr
 		ASSERT(V(mask)->getType()->isVectorTy());
 
 		auto numEls = V(mask)->getType()->getVectorNumElements();
-		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
-		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
+		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 		auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
 		auto elVecPtrTy = elVecTy->getPointerTo();
-		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
 		auto passthrough = ::llvm::Constant::getNullValue(elVecTy);
 		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
-		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_load, { elVecTy, elVecPtrTy } );
-		return V(::builder->CreateCall(func, { V(ptr), align, i8Mask, passthrough }));
+		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_load, { elVecTy, elVecPtrTy } );
+		return V(jit->builder->CreateCall(func, { V(ptr), align, i8Mask, passthrough }));
 	}
 
 	void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned int alignment)
@@ -1590,14 +1604,14 @@ namespace rr
 		ASSERT(V(mask)->getType()->isVectorTy());
 
 		auto numEls = V(mask)->getType()->getVectorNumElements();
-		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
-		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
+		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 		auto elVecTy = V(val)->getType();
 		auto elVecPtrTy = elVecTy->getPointerTo();
-		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
 		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
-		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_store, { elVecTy, elVecPtrTy } );
-		::builder->CreateCall(func, { V(val), V(ptr), align, i8Mask });
+		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_store, { elVecTy, elVecPtrTy } );
+		jit->builder->CreateCall(func, { V(val), V(ptr), align, i8Mask });
 	}
 
 	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment)
@@ -1607,21 +1621,21 @@ namespace rr
 		ASSERT(V(mask)->getType()->isVectorTy());
 
 		auto numEls = V(mask)->getType()->getVectorNumElements();
-		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
-		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
-		auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
+		auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 		auto i8PtrTy = i8Ty->getPointerTo();
 		auto elPtrTy = T(elTy)->getPointerTo();
 		auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
 		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
-		auto i8Base = ::builder->CreatePointerCast(V(base), i8PtrTy);
-		auto i8Ptrs = ::builder->CreateGEP(i8Base, V(offsets));
-		auto elPtrs = ::builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
-		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto i8Base = jit->builder->CreatePointerCast(V(base), i8PtrTy);
+		auto i8Ptrs = jit->builder->CreateGEP(i8Base, V(offsets));
+		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
+		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
 		auto passthrough = ::llvm::Constant::getNullValue(elVecTy);
 		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
-		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy } );
-		return V(::builder->CreateCall(func, { elPtrs, align, i8Mask, passthrough }));
+		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy } );
+		return V(jit->builder->CreateCall(func, { elPtrs, align, i8Mask, passthrough }));
 	}
 
 	void Nucleus::createScatter(Value *base, Value *val, Value *offsets, Value *mask, unsigned int alignment)
@@ -1632,26 +1646,26 @@ namespace rr
 		ASSERT(V(mask)->getType()->isVectorTy());
 
 		auto numEls = V(mask)->getType()->getVectorNumElements();
-		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
-		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
-		auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
+		auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 		auto i8PtrTy = i8Ty->getPointerTo();
 		auto elVecTy = V(val)->getType();
 		auto elTy = elVecTy->getVectorElementType();
 		auto elPtrTy = elTy->getPointerTo();
 		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
-		auto i8Base = ::builder->CreatePointerCast(V(base), i8PtrTy);
-		auto i8Ptrs = ::builder->CreateGEP(i8Base, V(offsets));
-		auto elPtrs = ::builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
-		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto i8Base = jit->builder->CreatePointerCast(V(base), i8PtrTy);
+		auto i8Ptrs = jit->builder->CreateGEP(i8Base, V(offsets));
+		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
+		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
 		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
-		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_scatter, { elVecTy, elPtrVecTy } );
-		::builder->CreateCall(func, { V(val), elPtrs, align, i8Mask });
+		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_scatter, { elVecTy, elPtrVecTy } );
+		jit->builder->CreateCall(func, { V(val), elPtrs, align, i8Mask });
 	}
 
 	void Nucleus::createFence(std::memory_order memoryOrder)
 	{
-		::builder->CreateFence(atomicOrdering(true, memoryOrder));
+		jit->builder->CreateFence(atomicOrdering(true, memoryOrder));
 	}
 
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
@@ -1682,7 +1696,7 @@ namespace rr
 		// effective address correctly.
 		if(asInternalType(type) == Type_LLVM)
 		{
-			return V(::builder->CreateGEP(V(ptr), V(index)));
+			return V(jit->builder->CreateGEP(V(ptr), V(index)));
 		}
 
 		// For emulated types we have to multiply the index by the intended
@@ -1694,120 +1708,120 @@ namespace rr
 		// Cast to a byte pointer, apply the byte offset, and cast back to the
 		// original pointer type.
 		return createBitCast(
-			V(::builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::getType()), 0)))), V(index))),
+			V(jit->builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::getType()), 0)))), V(index))),
 			T(llvm::PointerType::get(T(type), 0)));
 	}
 
 	Value *Nucleus::createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Add, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Add, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Sub, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Sub, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::And, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::And, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicOr(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Or, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Or, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xor, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xor, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Min, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Min, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Max, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Max, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicUMin(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::UMin, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::UMin, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicUMax(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::UMax, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::UMax, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 
 	Value *Nucleus::createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xchg, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+		return V(jit->builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xchg, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 		// Note: AtomicCmpXchgInstruction returns a 2-member struct containing {result, success-flag}, not the result directly.
-		return V(::builder->CreateExtractValue(
-				::builder->CreateAtomicCmpXchg(V(ptr), V(compare), V(value), atomicOrdering(true, memoryOrderEqual), atomicOrdering(true, memoryOrderUnequal)),
+		return V(jit->builder->CreateExtractValue(
+				jit->builder->CreateAtomicCmpXchg(V(ptr), V(compare), V(value), atomicOrdering(true, memoryOrderEqual), atomicOrdering(true, memoryOrderUnequal)),
 				llvm::ArrayRef<unsigned>(0u)));
 	}
 
 	Value *Nucleus::createTrunc(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateTrunc(V(v), T(destType)));
+		return V(jit->builder->CreateTrunc(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createZExt(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateZExt(V(v), T(destType)));
+		return V(jit->builder->CreateZExt(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createSExt(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateSExt(V(v), T(destType)));
+		return V(jit->builder->CreateSExt(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createFPToSI(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFPToSI(V(v), T(destType)));
+		return V(jit->builder->CreateFPToSI(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createSIToFP(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateSIToFP(V(v), T(destType)));
+		return V(jit->builder->CreateSIToFP(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createFPTrunc(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFPTrunc(V(v), T(destType)));
+		return V(jit->builder->CreateFPTrunc(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createFPExt(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFPExt(V(v), T(destType)));
+		return V(jit->builder->CreateFPExt(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createBitCast(Value *v, Type *destType)
@@ -1831,164 +1845,164 @@ namespace rr
 			return createLoad(readAddress, destType);
 		}
 
-		return V(::builder->CreateBitCast(V(v), T(destType)));
+		return V(jit->builder->CreateBitCast(V(v), T(destType)));
 	}
 
 	Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpEQ(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpEQ(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpNE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpNE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpNE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpUGT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpUGT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpUGT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpUGE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpUGE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpUGE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpULT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpULT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpULT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpULE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpULE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpULE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpSGT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpSGT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpSGT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpSGE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpSGE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpSGE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpSLT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpSLT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpSLT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createICmpSLE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateICmpSLE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateICmpSLE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpOEQ(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpOEQ(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpOEQ(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpOGT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpOGT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpOGT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpOGE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpOGE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpOGE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpOLT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpOLT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpOLT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpOLE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpOLE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpOLE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpONE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpONE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpONE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpORD(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpORD(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpORD(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpUNO(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpUNO(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpUNO(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpUEQ(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpUEQ(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpUEQ(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpUGT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpUGT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpUGT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpUGE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpUGE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpUGE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpULT(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpULT(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpULT(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpULE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpULE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpULE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createFCmpUNE(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateFCmpUNE(V(lhs), V(rhs)));
+		return V(jit->builder->CreateFCmpUNE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 		ASSERT(V(vector)->getType()->getContainedType(0) == T(type));
-		return V(::builder->CreateExtractElement(V(vector), V(createConstantInt(index))));
+		return V(jit->builder->CreateExtractElement(V(vector), V(createConstantInt(index))));
 	}
 
 	Value *Nucleus::createInsertElement(Value *vector, Value *element, int index)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateInsertElement(V(vector), V(element), V(createConstantInt(index))));
+		return V(jit->builder->CreateInsertElement(V(vector), V(element), V(createConstantInt(index))));
 	}
 
 	Value *Nucleus::createShuffleVector(Value *v1, Value *v2, const int *select)
@@ -2002,37 +2016,37 @@ namespace rr
 
 		for(int i = 0; i < size; i++)
 		{
-			swizzle[i] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*::context), select[i]);
+			swizzle[i] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), select[i]);
 		}
 
 		llvm::Value *shuffle = llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(swizzle, size));
 
-		return V(::builder->CreateShuffleVector(V(v1), V(v2), shuffle));
+		return V(jit->builder->CreateShuffleVector(V(v1), V(v2), shuffle));
 	}
 
 	Value *Nucleus::createSelect(Value *c, Value *ifTrue, Value *ifFalse)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateSelect(V(c), V(ifTrue), V(ifFalse)));
+		return V(jit->builder->CreateSelect(V(c), V(ifTrue), V(ifFalse)));
 	}
 
 	SwitchCases *Nucleus::createSwitch(Value *control, BasicBlock *defaultBranch, unsigned numCases)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return reinterpret_cast<SwitchCases*>(::builder->CreateSwitch(V(control), B(defaultBranch), numCases));
+		return reinterpret_cast<SwitchCases*>(jit->builder->CreateSwitch(V(control), B(defaultBranch), numCases));
 	}
 
 	void Nucleus::addSwitchCase(SwitchCases *switchCases, int label, BasicBlock *branch)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
 		llvm::SwitchInst *sw = reinterpret_cast<llvm::SwitchInst *>(switchCases);
-		sw->addCase(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*::context), label, true), B(branch));
+		sw->addCase(llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), label, true), B(branch));
 	}
 
 	void Nucleus::createUnreachable()
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		::builder->CreateUnreachable();
+		jit->builder->CreateUnreachable();
 	}
 
 	Type *Nucleus::getPointerType(Type *ElementType)
@@ -2049,49 +2063,49 @@ namespace rr
 	Value *Nucleus::createConstantLong(int64_t i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt64Ty(*::context), i, true));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt64Ty(jit->context), i, true));
 	}
 
 	Value *Nucleus::createConstantInt(int i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*::context), i, true));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), i, true));
 	}
 
 	Value *Nucleus::createConstantInt(unsigned int i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*::context), i, false));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), i, false));
 	}
 
 	Value *Nucleus::createConstantBool(bool b)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt1Ty(*::context), b));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt1Ty(jit->context), b));
 	}
 
 	Value *Nucleus::createConstantByte(signed char i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(*::context), i, true));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(jit->context), i, true));
 	}
 
 	Value *Nucleus::createConstantByte(unsigned char i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(*::context), i, false));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(jit->context), i, false));
 	}
 
 	Value *Nucleus::createConstantShort(short i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(*::context), i, true));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(jit->context), i, true));
 	}
 
 	Value *Nucleus::createConstantShort(unsigned short i)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(*::context), i, false));
+		return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(jit->context), i, false));
 	}
 
 	Value *Nucleus::createConstantFloat(float x)
@@ -2140,32 +2154,32 @@ namespace rr
 
 	Type *Void::getType()
 	{
-		return T(llvm::Type::getVoidTy(*::context));
+		return T(llvm::Type::getVoidTy(jit->context));
 	}
 
 	Type *Bool::getType()
 	{
-		return T(llvm::Type::getInt1Ty(*::context));
+		return T(llvm::Type::getInt1Ty(jit->context));
 	}
 
 	Type *Byte::getType()
 	{
-		return T(llvm::Type::getInt8Ty(*::context));
+		return T(llvm::Type::getInt8Ty(jit->context));
 	}
 
 	Type *SByte::getType()
 	{
-		return T(llvm::Type::getInt8Ty(*::context));
+		return T(llvm::Type::getInt8Ty(jit->context));
 	}
 
 	Type *Short::getType()
 	{
-		return T(llvm::Type::getInt16Ty(*::context));
+		return T(llvm::Type::getInt16Ty(jit->context));
 	}
 
 	Type *UShort::getType()
 	{
-		return T(llvm::Type::getInt16Ty(*::context));
+		return T(llvm::Type::getInt16Ty(jit->context));
 	}
 
 	Type *Byte4::getType()
@@ -2732,12 +2746,12 @@ namespace rr
 
 	Type *Int::getType()
 	{
-		return T(llvm::Type::getInt32Ty(*::context));
+		return T(llvm::Type::getInt32Ty(jit->context));
 	}
 
 	Type *Long::getType()
 	{
-		return T(llvm::Type::getInt64Ty(*::context));
+		return T(llvm::Type::getInt64Ty(jit->context));
 	}
 
 	UInt::UInt(RValue<Float> cast)
@@ -2811,7 +2825,7 @@ namespace rr
 
 	Type *UInt::getType()
 	{
-		return T(llvm::Type::getInt32Ty(*::context));
+		return T(llvm::Type::getInt32Ty(jit->context));
 	}
 
 //	Int2::Int2(RValue<Int> cast)
@@ -3249,7 +3263,7 @@ namespace rr
 
 	Type *Half::getType()
 	{
-		return T(llvm::Type::getInt16Ty(*::context));
+		return T(llvm::Type::getInt16Ty(jit->context));
 	}
 
 	RValue<Float> Rcp_pp(RValue<Float> x, bool exactAtPow2)
@@ -3375,7 +3389,7 @@ namespace rr
 
 	Type *Float::getType()
 	{
-		return T(llvm::Type::getFloatTy(*::context));
+		return T(llvm::Type::getFloatTy(jit->context));
 	}
 
 	Type *Float2::getType()
@@ -3632,14 +3646,14 @@ namespace rr
 
 	RValue<Float4> Sin(RValue<Float4> v)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sin, { V(v.value)->getType() } );
-		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::sin, { V(v.value)->getType() } );
+		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Cos(RValue<Float4> v)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cos, { V(v.value)->getType() } );
-		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cos, { V(v.value)->getType() } );
+		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Tan(RValue<Float4> v)
@@ -3650,11 +3664,11 @@ namespace rr
 	static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char* name)
 	{
 		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), ::llvm::ArrayRef<llvm::Type*>(T(Float::getType())), false);
-		auto func = ::module->getOrInsertFunction(name, funcTy);
+		auto func = jit->module->getOrInsertFunction(name, funcTy);
 		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
 		for (uint64_t i = 0; i < 4; i++)
 		{
-			auto el = ::builder->CreateCall(func, V(Nucleus::createExtractElement(v.value, Float::getType(), i)));
+			auto el = jit->builder->CreateCall(func, V(Nucleus::createExtractElement(v.value, Float::getType(), i)));
 			out = V(Nucleus::createInsertElement(V(out), V(el), i));
 		}
 		return RValue<Float4>(V(out));
@@ -3711,11 +3725,11 @@ namespace rr
 		paramTys.push_back(T(Float::getType()));
 		paramTys.push_back(T(Float::getType()));
 		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), paramTys, false);
-		auto func = ::module->getOrInsertFunction("atan2f", funcTy);
+		auto func = jit->module->getOrInsertFunction("atan2f", funcTy);
 		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
 		for (uint64_t i = 0; i < 4; i++)
 		{
-			auto el = ::builder->CreateCall2(func, ARGS(
+			auto el = jit->builder->CreateCall2(func, ARGS(
 					V(Nucleus::createExtractElement(x.value, Float::getType(), i)),
 					V(Nucleus::createExtractElement(y.value, Float::getType(), i))
 				));
@@ -3726,49 +3740,49 @@ namespace rr
 
 	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::pow, { T(Float4::getType()) });
-		return RValue<Float4>(V(::builder->CreateCall2(func, ARGS(V(x.value), V(y.value)))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::pow, { T(Float4::getType()) });
+		return RValue<Float4>(V(jit->builder->CreateCall2(func, ARGS(V(x.value), V(y.value)))));
 	}
 
 	RValue<Float4> Exp(RValue<Float4> v)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::exp, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp, { T(Float4::getType()) } );
+		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Log(RValue<Float4> v)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::log, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log, { T(Float4::getType()) } );
+		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Exp2(RValue<Float4> v)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::exp2, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp2, { T(Float4::getType()) } );
+		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Log2(RValue<Float4> v)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::log2, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log2, { T(Float4::getType()) } );
+		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::ctlz, { T(UInt4::getType()) } );
-		return RValue<UInt4>(V(::builder->CreateCall2(func, ARGS(
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt4::getType()) } );
+		return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
 			V(v.value),
-			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
+			isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)
 		))));
 	}
 
 	RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cttz, { T(UInt4::getType()) } );
-		return RValue<UInt4>(V(::builder->CreateCall2(func, ARGS(
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt4::getType()) } );
+		return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
 			V(v.value),
-			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
+			isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)
 		))));
 	}
 
@@ -3780,17 +3794,17 @@ namespace rr
 	RValue<Long> Ticks()
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		llvm::Function *rdtsc = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::readcyclecounter);
+		llvm::Function *rdtsc = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::readcyclecounter);
 
-		return RValue<Long>(V(::builder->CreateCall(rdtsc)));
+		return RValue<Long>(V(jit->builder->CreateCall(rdtsc)));
 	}
 
 	RValue<Pointer<Byte>> ConstantPointer(void const * ptr)
 	{
 		// Note: this should work for 32-bit pointers as well because 'inttoptr'
 		// is defined to truncate (and zero extend) if necessary.
-		auto ptrAsInt = ::llvm::ConstantInt::get(::llvm::Type::getInt64Ty(*::context), reinterpret_cast<uintptr_t>(ptr));
-		return RValue<Pointer<Byte>>(V(::builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::getType()))));
+		auto ptrAsInt = ::llvm::ConstantInt::get(::llvm::Type::getInt64Ty(jit->context), reinterpret_cast<uintptr_t>(ptr));
+		return RValue<Pointer<Byte>>(V(jit->builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::getType()))));
 	}
 
 	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
@@ -3800,18 +3814,18 @@ namespace rr
 		auto funcTy = ::llvm::FunctionType::get(T(retTy), paramTys, false);
 
 		auto funcPtrTy = funcTy->getPointerTo();
-		auto funcPtr = ::builder->CreatePointerCast(V(fptr.value), funcPtrTy);
+		auto funcPtr = jit->builder->CreatePointerCast(V(fptr.value), funcPtrTy);
 
 		::llvm::SmallVector<::llvm::Value*, 8> arguments;
 		for (auto arg : args) { arguments.push_back(V(arg)); }
-		return V(::builder->CreateCall(funcPtr, arguments));
+		return V(jit->builder->CreateCall(funcPtr, arguments));
 	}
 
 	void Breakpoint()
 	{
-		llvm::Function *debugtrap = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::debugtrap);
+		llvm::Function *debugtrap = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::debugtrap);
 
-		::builder->CreateCall(debugtrap);
+		jit->builder->CreateCall(debugtrap);
 	}
 }
 
@@ -3822,88 +3836,88 @@ namespace rr
 	{
 		RValue<Int> cvtss2si(RValue<Float> val)
 		{
-			llvm::Function *cvtss2si = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_cvtss2si);
+			llvm::Function *cvtss2si = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_cvtss2si);
 
 			Float4 vector;
 			vector.x = val;
 
-			return RValue<Int>(V(::builder->CreateCall(cvtss2si, ARGS(V(RValue<Float4>(vector).value)))));
+			return RValue<Int>(V(jit->builder->CreateCall(cvtss2si, ARGS(V(RValue<Float4>(vector).value)))));
 		}
 
 		RValue<Int4> cvtps2dq(RValue<Float4> val)
 		{
-			llvm::Function *cvtps2dq = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_cvtps2dq);
+			llvm::Function *cvtps2dq = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_cvtps2dq);
 
-			return RValue<Int4>(V(::builder->CreateCall(cvtps2dq, ARGS(V(val.value)))));
+			return RValue<Int4>(V(jit->builder->CreateCall(cvtps2dq, ARGS(V(val.value)))));
 		}
 
 		RValue<Float> rcpss(RValue<Float> val)
 		{
-			llvm::Function *rcpss = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_rcp_ss);
+			llvm::Function *rcpss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rcp_ss);
 
 			Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(rcpss, ARGS(V(vector)))), Float::getType(), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rcpss, ARGS(V(vector)))), Float::getType(), 0));
 		}
 
 		RValue<Float> sqrtss(RValue<Float> val)
 		{
-			llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
-			return RValue<Float>(V(::builder->CreateCall(sqrt, ARGS(V(val.value)))));
+			llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::sqrt, {V(val.value)->getType()});
+			return RValue<Float>(V(jit->builder->CreateCall(sqrt, ARGS(V(val.value)))));
 		}
 
 		RValue<Float> rsqrtss(RValue<Float> val)
 		{
-			llvm::Function *rsqrtss = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_rsqrt_ss);
+			llvm::Function *rsqrtss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rsqrt_ss);
 
 			Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(rsqrtss, ARGS(V(vector)))), Float::getType(), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rsqrtss, ARGS(V(vector)))), Float::getType(), 0));
 		}
 
 		RValue<Float4> rcpps(RValue<Float4> val)
 		{
-			llvm::Function *rcpps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_rcp_ps);
+			llvm::Function *rcpps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rcp_ps);
 
-			return RValue<Float4>(V(::builder->CreateCall(rcpps, ARGS(V(val.value)))));
+			return RValue<Float4>(V(jit->builder->CreateCall(rcpps, ARGS(V(val.value)))));
 		}
 
 		RValue<Float4> sqrtps(RValue<Float4> val)
 		{
-			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
+			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::sqrt, {V(val.value)->getType()});
 
-			return RValue<Float4>(V(::builder->CreateCall(sqrtps, ARGS(V(val.value)))));
+			return RValue<Float4>(V(jit->builder->CreateCall(sqrtps, ARGS(V(val.value)))));
 		}
 
 		RValue<Float4> rsqrtps(RValue<Float4> val)
 		{
-			llvm::Function *rsqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_rsqrt_ps);
+			llvm::Function *rsqrtps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rsqrt_ps);
 
-			return RValue<Float4>(V(::builder->CreateCall(rsqrtps, ARGS(V(val.value)))));
+			return RValue<Float4>(V(jit->builder->CreateCall(rsqrtps, ARGS(V(val.value)))));
 		}
 
 		RValue<Float4> maxps(RValue<Float4> x, RValue<Float4> y)
 		{
-			llvm::Function *maxps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_max_ps);
+			llvm::Function *maxps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_max_ps);
 
-			return RValue<Float4>(V(::builder->CreateCall2(maxps, ARGS(V(x.value), V(y.value)))));
+			return RValue<Float4>(V(jit->builder->CreateCall2(maxps, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Float4> minps(RValue<Float4> x, RValue<Float4> y)
 		{
-			llvm::Function *minps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_min_ps);
+			llvm::Function *minps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_min_ps);
 
-			return RValue<Float4>(V(::builder->CreateCall2(minps, ARGS(V(x.value), V(y.value)))));
+			return RValue<Float4>(V(jit->builder->CreateCall2(minps, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Float> roundss(RValue<Float> val, unsigned char imm)
 		{
-			llvm::Function *roundss = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_round_ss);
+			llvm::Function *roundss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_round_ss);
 
 			Value *undef = V(llvm::UndefValue::get(T(Float4::getType())));
 			Value *vector = Nucleus::createInsertElement(undef, val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall3(roundss, ARGS(V(undef), V(vector), V(Nucleus::createConstantInt(imm))))), Float::getType(), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall3(roundss, ARGS(V(undef), V(vector), V(Nucleus::createConstantInt(imm))))), Float::getType(), 0));
 		}
 
 		RValue<Float> floorss(RValue<Float> val)
@@ -3918,9 +3932,9 @@ namespace rr
 
 		RValue<Float4> roundps(RValue<Float4> val, unsigned char imm)
 		{
-			llvm::Function *roundps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_round_ps);
+			llvm::Function *roundps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_round_ps);
 
-			return RValue<Float4>(V(::builder->CreateCall2(roundps, ARGS(V(val.value), V(Nucleus::createConstantInt(imm))))));
+			return RValue<Float4>(V(jit->builder->CreateCall2(roundps, ARGS(V(val.value), V(Nucleus::createConstantInt(imm))))));
 		}
 
 		RValue<Float4> floorps(RValue<Float4> val)
@@ -3940,58 +3954,58 @@ namespace rr
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *paddsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_padds_w);
+			llvm::Function *paddsw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_padds_w);
 
-			return As<Short4>(V(::builder->CreateCall2(paddsw, ARGS(V(x.value), V(y.value)))));
+			return As<Short4>(V(jit->builder->CreateCall2(paddsw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Short4> psubsw(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *psubsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psubs_w);
+			llvm::Function *psubsw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubs_w);
 
-			return As<Short4>(V(::builder->CreateCall2(psubsw, ARGS(V(x.value), V(y.value)))));
+			return As<Short4>(V(jit->builder->CreateCall2(psubsw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<UShort4> paddusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-			llvm::Function *paddusw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_paddus_w);
+			llvm::Function *paddusw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_paddus_w);
 
-			return As<UShort4>(V(::builder->CreateCall2(paddusw, ARGS(V(x.value), V(y.value)))));
+			return As<UShort4>(V(jit->builder->CreateCall2(paddusw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<UShort4> psubusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-			llvm::Function *psubusw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psubus_w);
+			llvm::Function *psubusw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubus_w);
 
-			return As<UShort4>(V(::builder->CreateCall2(psubusw, ARGS(V(x.value), V(y.value)))));
+			return As<UShort4>(V(jit->builder->CreateCall2(psubusw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<SByte8> paddsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
-			llvm::Function *paddsb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_padds_b);
+			llvm::Function *paddsb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_padds_b);
 
-			return As<SByte8>(V(::builder->CreateCall2(paddsb, ARGS(V(x.value), V(y.value)))));
+			return As<SByte8>(V(jit->builder->CreateCall2(paddsb, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<SByte8> psubsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
-			llvm::Function *psubsb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psubs_b);
+			llvm::Function *psubsb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubs_b);
 
-			return As<SByte8>(V(::builder->CreateCall2(psubsb, ARGS(V(x.value), V(y.value)))));
+			return As<SByte8>(V(jit->builder->CreateCall2(psubsb, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Byte8> paddusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
-			llvm::Function *paddusb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_paddus_b);
+			llvm::Function *paddusb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_paddus_b);
 
-			return As<Byte8>(V(::builder->CreateCall2(paddusb, ARGS(V(x.value), V(y.value)))));
+			return As<Byte8>(V(jit->builder->CreateCall2(paddusb, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Byte8> psubusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
-			llvm::Function *psubusb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psubus_b);
+			llvm::Function *psubusb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubus_b);
 
-			return As<Byte8>(V(::builder->CreateCall2(psubusb, ARGS(V(x.value), V(y.value)))));
+			return As<Byte8>(V(jit->builder->CreateCall2(psubusb, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y)
@@ -4031,39 +4045,39 @@ namespace rr
 
 		RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y)
 		{
-			llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_packssdw_128);
+			llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packssdw_128);
 
-			return As<Short4>(V(::builder->CreateCall2(packssdw, ARGS(V(x.value), V(y.value)))));
+			return As<Short4>(V(jit->builder->CreateCall2(packssdw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Short8> packssdw(RValue<Int4> x, RValue<Int4> y)
 		{
-			llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_packssdw_128);
+			llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packssdw_128);
 
-			return RValue<Short8>(V(::builder->CreateCall2(packssdw, ARGS(V(x.value), V(y.value)))));
+			return RValue<Short8>(V(jit->builder->CreateCall2(packssdw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<SByte8> packsswb(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *packsswb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_packsswb_128);
+			llvm::Function *packsswb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packsswb_128);
 
-			return As<SByte8>(V(::builder->CreateCall2(packsswb, ARGS(V(x.value), V(y.value)))));
+			return As<SByte8>(V(jit->builder->CreateCall2(packsswb, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Byte8> packuswb(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *packuswb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_packuswb_128);
+			llvm::Function *packuswb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packuswb_128);
 
-			return As<Byte8>(V(::builder->CreateCall2(packuswb, ARGS(V(x.value), V(y.value)))));
+			return As<Byte8>(V(jit->builder->CreateCall2(packuswb, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<UShort8> packusdw(RValue<Int4> x, RValue<Int4> y)
 		{
 			if(CPUID::supportsSSE4_1())
 			{
-				llvm::Function *packusdw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_packusdw);
+				llvm::Function *packusdw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_packusdw);
 
-				return RValue<UShort8>(V(::builder->CreateCall2(packusdw, ARGS(V(x.value), V(y.value)))));
+				return RValue<UShort8>(V(jit->builder->CreateCall2(packusdw, ARGS(V(x.value), V(y.value)))));
 			}
 			else
 			{
@@ -4076,86 +4090,86 @@ namespace rr
 
 		RValue<UShort4> psrlw(RValue<UShort4> x, unsigned char y)
 		{
-			llvm::Function *psrlw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrli_w);
+			llvm::Function *psrlw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_w);
 
-			return As<UShort4>(V(::builder->CreateCall2(psrlw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return As<UShort4>(V(jit->builder->CreateCall2(psrlw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<UShort8> psrlw(RValue<UShort8> x, unsigned char y)
 		{
-			llvm::Function *psrlw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrli_w);
+			llvm::Function *psrlw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_w);
 
-			return RValue<UShort8>(V(::builder->CreateCall2(psrlw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return RValue<UShort8>(V(jit->builder->CreateCall2(psrlw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Short4> psraw(RValue<Short4> x, unsigned char y)
 		{
-			llvm::Function *psraw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrai_w);
+			llvm::Function *psraw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_w);
 
-			return As<Short4>(V(::builder->CreateCall2(psraw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return As<Short4>(V(jit->builder->CreateCall2(psraw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Short8> psraw(RValue<Short8> x, unsigned char y)
 		{
-			llvm::Function *psraw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrai_w);
+			llvm::Function *psraw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_w);
 
-			return RValue<Short8>(V(::builder->CreateCall2(psraw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return RValue<Short8>(V(jit->builder->CreateCall2(psraw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Short4> psllw(RValue<Short4> x, unsigned char y)
 		{
-			llvm::Function *psllw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pslli_w);
+			llvm::Function *psllw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_w);
 
-			return As<Short4>(V(::builder->CreateCall2(psllw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return As<Short4>(V(jit->builder->CreateCall2(psllw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Short8> psllw(RValue<Short8> x, unsigned char y)
 		{
-			llvm::Function *psllw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pslli_w);
+			llvm::Function *psllw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_w);
 
-			return RValue<Short8>(V(::builder->CreateCall2(psllw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return RValue<Short8>(V(jit->builder->CreateCall2(psllw, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Int2> pslld(RValue<Int2> x, unsigned char y)
 		{
-			llvm::Function *pslld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pslli_d);
+			llvm::Function *pslld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_d);
 
-			return As<Int2>(V(::builder->CreateCall2(pslld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return As<Int2>(V(jit->builder->CreateCall2(pslld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Int4> pslld(RValue<Int4> x, unsigned char y)
 		{
-			llvm::Function *pslld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pslli_d);
+			llvm::Function *pslld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_d);
 
-			return RValue<Int4>(V(::builder->CreateCall2(pslld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return RValue<Int4>(V(jit->builder->CreateCall2(pslld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Int2> psrad(RValue<Int2> x, unsigned char y)
 		{
-			llvm::Function *psrad = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrai_d);
+			llvm::Function *psrad = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_d);
 
-			return As<Int2>(V(::builder->CreateCall2(psrad, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return As<Int2>(V(jit->builder->CreateCall2(psrad, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Int4> psrad(RValue<Int4> x, unsigned char y)
 		{
-			llvm::Function *psrad = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrai_d);
+			llvm::Function *psrad = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_d);
 
-			return RValue<Int4>(V(::builder->CreateCall2(psrad, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return RValue<Int4>(V(jit->builder->CreateCall2(psrad, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<UInt2> psrld(RValue<UInt2> x, unsigned char y)
 		{
-			llvm::Function *psrld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrli_d);
+			llvm::Function *psrld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_d);
 
-			return As<UInt2>(V(::builder->CreateCall2(psrld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return As<UInt2>(V(jit->builder->CreateCall2(psrld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<UInt4> psrld(RValue<UInt4> x, unsigned char y)
 		{
-			llvm::Function *psrld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrli_d);
+			llvm::Function *psrld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_d);
 
-			return RValue<UInt4>(V(::builder->CreateCall2(psrld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
+			return RValue<UInt4>(V(jit->builder->CreateCall2(psrld, ARGS(V(x.value), V(Nucleus::createConstantInt(y))))));
 		}
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
@@ -4180,58 +4194,58 @@ namespace rr
 
 		RValue<Short4> pmulhw(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *pmulhw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmulh_w);
+			llvm::Function *pmulhw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulh_w);
 
-			return As<Short4>(V(::builder->CreateCall2(pmulhw, ARGS(V(x.value), V(y.value)))));
+			return As<Short4>(V(jit->builder->CreateCall2(pmulhw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<UShort4> pmulhuw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-			llvm::Function *pmulhuw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmulhu_w);
+			llvm::Function *pmulhuw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulhu_w);
 
-			return As<UShort4>(V(::builder->CreateCall2(pmulhuw, ARGS(V(x.value), V(y.value)))));
+			return As<UShort4>(V(jit->builder->CreateCall2(pmulhuw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Int2> pmaddwd(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *pmaddwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmadd_wd);
+			llvm::Function *pmaddwd = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmadd_wd);
 
-			return As<Int2>(V(::builder->CreateCall2(pmaddwd, ARGS(V(x.value), V(y.value)))));
+			return As<Int2>(V(jit->builder->CreateCall2(pmaddwd, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Short8> pmulhw(RValue<Short8> x, RValue<Short8> y)
 		{
-			llvm::Function *pmulhw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmulh_w);
+			llvm::Function *pmulhw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulh_w);
 
-			return RValue<Short8>(V(::builder->CreateCall2(pmulhw, ARGS(V(x.value), V(y.value)))));
+			return RValue<Short8>(V(jit->builder->CreateCall2(pmulhw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<UShort8> pmulhuw(RValue<UShort8> x, RValue<UShort8> y)
 		{
-			llvm::Function *pmulhuw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmulhu_w);
+			llvm::Function *pmulhuw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulhu_w);
 
-			return RValue<UShort8>(V(::builder->CreateCall2(pmulhuw, ARGS(V(x.value), V(y.value)))));
+			return RValue<UShort8>(V(jit->builder->CreateCall2(pmulhuw, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Int4> pmaddwd(RValue<Short8> x, RValue<Short8> y)
 		{
-			llvm::Function *pmaddwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmadd_wd);
+			llvm::Function *pmaddwd = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmadd_wd);
 
-			return RValue<Int4>(V(::builder->CreateCall2(pmaddwd, ARGS(V(x.value), V(y.value)))));
+			return RValue<Int4>(V(jit->builder->CreateCall2(pmaddwd, ARGS(V(x.value), V(y.value)))));
 		}
 
 		RValue<Int> movmskps(RValue<Float4> x)
 		{
-			llvm::Function *movmskps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_movmsk_ps);
+			llvm::Function *movmskps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_movmsk_ps);
 
-			return RValue<Int>(V(::builder->CreateCall(movmskps, ARGS(V(x.value)))));
+			return RValue<Int>(V(jit->builder->CreateCall(movmskps, ARGS(V(x.value)))));
 		}
 
 		RValue<Int> pmovmskb(RValue<Byte8> x)
 		{
-			llvm::Function *pmovmskb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmovmskb_128);
+			llvm::Function *pmovmskb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmovmskb_128);
 
-			return RValue<Int>(V(::builder->CreateCall(pmovmskb, ARGS(V(x.value))))) & 0xFF;
+			return RValue<Int>(V(jit->builder->CreateCall(pmovmskb, ARGS(V(x.value))))) & 0xFF;
 		}
 
 		RValue<Int4> pmovzxbd(RValue<Byte16> x)
@@ -4265,7 +4279,7 @@ namespace rr
 		elements.reserve(n);
 		for (int i = 0; i < n; i++)
 		{
-			auto el = V(::builder->CreateExtractElement(V(vec), i));
+			auto el = V(jit->builder->CreateExtractElement(V(vec), i));
 			elements.push_back(el);
 		}
 		return elements;
@@ -4275,18 +4289,18 @@ namespace rr
 	// integer.
 	static std::vector<Value*> toInt(const std::vector<Value*>& vals, bool isSigned)
 	{
-		auto intTy = ::llvm::Type::getIntNTy(*::context, sizeof(int) * 8); // Natural integer width.
+		auto intTy = ::llvm::Type::getIntNTy(jit->context, sizeof(int) * 8); // Natural integer width.
 		std::vector<Value*> elements;
 		elements.reserve(vals.size());
 		for (auto v : vals)
 		{
 			if (isSigned)
 			{
-				elements.push_back(V(::builder->CreateSExt(V(v), intTy)));
+				elements.push_back(V(jit->builder->CreateSExt(V(v), intTy)));
 			}
 			else
 			{
-				elements.push_back(V(::builder->CreateZExt(V(v), intTy)));
+				elements.push_back(V(jit->builder->CreateZExt(V(v), intTy)));
 			}
 		}
 		return elements;
@@ -4295,12 +4309,12 @@ namespace rr
 	// toDouble returns all the float values in vals extended to doubles.
 	static std::vector<Value*> toDouble(const std::vector<Value*>& vals)
 	{
-		auto doubleTy = ::llvm::Type::getDoubleTy(*::context);
+		auto doubleTy = ::llvm::Type::getDoubleTy(jit->context);
 		std::vector<Value*> elements;
 		elements.reserve(vals.size());
 		for (auto v : vals)
 		{
-			elements.push_back(V(::builder->CreateFPExt(V(v), doubleTy)));
+			elements.push_back(V(jit->builder->CreateFPExt(V(v), doubleTy)));
 		}
 		return elements;
 	}
@@ -4316,17 +4330,17 @@ namespace rr
 	std::vector<Value*> PrintValue::Ty<UShort4>::val(const RValue<UShort4>& v) { return toInt(extractAll(v.value, 4), false); }
 	std::vector<Value*> PrintValue::Ty<Float>::val(const RValue<Float>& v) { return toDouble({v.value}); }
 	std::vector<Value*> PrintValue::Ty<Float4>::val(const RValue<Float4>& v) { return toDouble(extractAll(v.value, 4)); }
-	std::vector<Value*> PrintValue::Ty<const char*>::val(const char* v) { return {V(::builder->CreateGlobalStringPtr(v))}; }
+	std::vector<Value*> PrintValue::Ty<const char*>::val(const char* v) { return {V(jit->builder->CreateGlobalStringPtr(v))}; }
 
 	void Printv(const char* function, const char* file, int line, const char* fmt, std::initializer_list<PrintValue> args)
 	{
 		// LLVM types used below.
-		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
-		auto intTy = ::llvm::Type::getIntNTy(*::context, sizeof(int) * 8); // Natural integer width.
-		auto i8PtrTy = ::llvm::Type::getInt8PtrTy(*::context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
+		auto intTy = ::llvm::Type::getIntNTy(jit->context, sizeof(int) * 8); // Natural integer width.
+		auto i8PtrTy = ::llvm::Type::getInt8PtrTy(jit->context);
 		auto funcTy = ::llvm::FunctionType::get(i32Ty, {i8PtrTy}, true);
 
-		auto func = ::module->getOrInsertFunction("printf", funcTy);
+		auto func = jit->module->getOrInsertFunction("printf", funcTy);
 
 		// Build the printf format message string.
 		std::string str;
@@ -4345,12 +4359,12 @@ namespace rr
 		::llvm::SmallVector<::llvm::Value*, 8> vals;
 
 		// The format message is always the first argument.
-		vals.push_back(::builder->CreateGlobalStringPtr(str));
+		vals.push_back(jit->builder->CreateGlobalStringPtr(str));
 
 		// Add optional file, line and function info if provided.
 		if (file != nullptr)
 		{
-			vals.push_back(::builder->CreateGlobalStringPtr(file));
+			vals.push_back(jit->builder->CreateGlobalStringPtr(file));
 			if (line > 0)
 			{
 				vals.push_back(::llvm::ConstantInt::get(intTy, line));
@@ -4358,7 +4372,7 @@ namespace rr
 		}
 		if (function != nullptr)
 		{
-			vals.push_back(::builder->CreateGlobalStringPtr(function));
+			vals.push_back(jit->builder->CreateGlobalStringPtr(function));
 		}
 
 		// Add all format arguments.
@@ -4370,24 +4384,24 @@ namespace rr
 			}
 		}
 
-		::builder->CreateCall(func, vals);
+		jit->builder->CreateCall(func, vals);
 	}
 #endif // ENABLE_RR_PRINT
 
 	void Nop()
 	{
-		auto voidTy = ::llvm::Type::getVoidTy(*context);
+		auto voidTy = ::llvm::Type::getVoidTy(jit->context);
 		auto funcTy = ::llvm::FunctionType::get(voidTy, {}, false);
-		auto func = ::module->getOrInsertFunction("nop", funcTy);
-		builder->CreateCall(func);
+		auto func = jit->module->getOrInsertFunction("nop", funcTy);
+		jit->builder->CreateCall(func);
 	}
 
 	void EmitDebugLocation()
 	{
 #ifdef ENABLE_RR_DEBUG_INFO
-		if (debugInfo != nullptr)
+		if (jit->debugInfo != nullptr)
 		{
-			debugInfo->EmitLocation();
+			jit->debugInfo->EmitLocation();
 		}
 #endif // ENABLE_RR_DEBUG_INFO
 	}
@@ -4395,9 +4409,9 @@ namespace rr
 	void EmitDebugVariable(Value* value)
 	{
 #ifdef ENABLE_RR_DEBUG_INFO
-		if (debugInfo != nullptr)
+		if (jit->debugInfo != nullptr)
 		{
-			debugInfo->EmitVariable(value);
+			jit->debugInfo->EmitVariable(value);
 		}
 #endif // ENABLE_RR_DEBUG_INFO
 	}
@@ -4405,9 +4419,9 @@ namespace rr
 	void FlushDebug()
 	{
 #ifdef ENABLE_RR_DEBUG_INFO
-		if (debugInfo != nullptr)
+		if (jit->debugInfo != nullptr)
 		{
-			debugInfo->Flush();
+			jit->debugInfo->Flush();
 		}
 #endif // ENABLE_RR_DEBUG_INFO
 	}
@@ -4417,20 +4431,6 @@ namespace rr
 // ------------------------------  Coroutines ------------------------------
 
 namespace {
-
-	struct CoroutineState
-	{
-		llvm::Function *await = nullptr;
-		llvm::Function *destroy = nullptr;
-		llvm::Value *handle = nullptr;
-		llvm::Value *id = nullptr;
-		llvm::Value *promise = nullptr;
-		llvm::BasicBlock *suspendBlock = nullptr;
-		llvm::BasicBlock *endBlock = nullptr;
-		llvm::BasicBlock *destroyBlock = nullptr;
-	};
-	CoroutineState coroutine;
-
 	// Magic values retuned by llvm.coro.suspend.
 	// See: https://llvm.org/docs/Coroutines.html#llvm-coro-suspend-intrinsic
 	enum SuspendAction
@@ -4447,32 +4447,32 @@ namespace rr {
 void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 {
 	// Types
-	auto voidTy = ::llvm::Type::getVoidTy(*::context);
-	auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
-	auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
-	auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
-	auto i8PtrTy = ::llvm::Type::getInt8PtrTy(*::context);
+	auto voidTy = ::llvm::Type::getVoidTy(jit->context);
+	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+	auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
+	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
+	auto i8PtrTy = ::llvm::Type::getInt8PtrTy(jit->context);
 	auto promiseTy = T(YieldType);
 	auto promisePtrTy = promiseTy->getPointerTo();
 	auto handleTy = i8PtrTy;
 	auto boolTy = i1Ty;
 
 	// LLVM intrinsics
-	auto coro_id = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::coro_id);
-	auto coro_size = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::coro_size, {i32Ty});
-	auto coro_begin = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::coro_begin);
-	auto coro_resume = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_resume);
-	auto coro_end = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_end);
-	auto coro_free = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_free);
-	auto coro_destroy = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_destroy);
-	auto coro_promise = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_promise);
-	auto coro_done = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_done);
-	auto coro_suspend = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_suspend);
+	auto coro_id = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::coro_id);
+	auto coro_size = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::coro_size, {i32Ty});
+	auto coro_begin = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::coro_begin);
+	auto coro_resume = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_resume);
+	auto coro_end = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_end);
+	auto coro_free = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_free);
+	auto coro_destroy = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_destroy);
+	auto coro_promise = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_promise);
+	auto coro_done = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_done);
+	auto coro_suspend = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_suspend);
 
 	auto allocFrameTy = ::llvm::FunctionType::get(i8PtrTy, {i32Ty}, false);
-	auto allocFrame = ::module->getOrInsertFunction("coroutine_alloc_frame", allocFrameTy);
+	auto allocFrame = jit->module->getOrInsertFunction("coroutine_alloc_frame", allocFrameTy);
 	auto freeFrameTy = ::llvm::FunctionType::get(voidTy, {i8PtrTy}, false);
-	auto freeFrame = ::module->getOrInsertFunction("coroutine_free_frame", freeFrameTy);
+	auto freeFrame = jit->module->getOrInsertFunction("coroutine_free_frame", freeFrameTy);
 
 	// Build the coroutine_await() function:
 	//
@@ -4490,28 +4490,28 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 	//        }
 	//    }
 	//
-	::coroutine.await = rr::createFunction("coroutine_await", boolTy, {handleTy, promisePtrTy});
+	jit->coroutine.await = rr::createFunction("coroutine_await", boolTy, {handleTy, promisePtrTy});
 	{
-		auto args = ::coroutine.await->arg_begin();
+		auto args = jit->coroutine.await->arg_begin();
 		auto handle = args++;
 		auto outPtr = args++;
-		::builder->SetInsertPoint(llvm::BasicBlock::Create(*::context, "co_await", ::coroutine.await));
-		auto doneBlock = llvm::BasicBlock::Create(*::context, "done", ::coroutine.await);
-		auto resumeBlock = llvm::BasicBlock::Create(*::context, "resume", ::coroutine.await);
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "co_await", jit->coroutine.await));
+		auto doneBlock = llvm::BasicBlock::Create(jit->context, "done", jit->coroutine.await);
+		auto resumeBlock = llvm::BasicBlock::Create(jit->context, "resume", jit->coroutine.await);
 
-		auto done = ::builder->CreateCall(coro_done, {handle}, "done");
-		::builder->CreateCondBr(done, doneBlock, resumeBlock);
+		auto done = jit->builder->CreateCall(coro_done, {handle}, "done");
+		jit->builder->CreateCondBr(done, doneBlock, resumeBlock);
 
-		::builder->SetInsertPoint(doneBlock);
-		::builder->CreateRet(::llvm::ConstantInt::getFalse(i1Ty));
+		jit->builder->SetInsertPoint(doneBlock);
+		jit->builder->CreateRet(::llvm::ConstantInt::getFalse(i1Ty));
 
-		::builder->SetInsertPoint(resumeBlock);
+		jit->builder->SetInsertPoint(resumeBlock);
 		auto promiseAlignment = ::llvm::ConstantInt::get(i32Ty, 4); // TODO: Get correct alignment.
-		auto promisePtr = ::builder->CreateCall(coro_promise, {handle, promiseAlignment, ::llvm::ConstantInt::get(i1Ty, 0)});
-		auto promise = ::builder->CreateLoad(::builder->CreatePointerCast(promisePtr, promisePtrTy));
-		::builder->CreateStore(promise, outPtr);
-		::builder->CreateCall(coro_resume, {handle});
-		::builder->CreateRet(::llvm::ConstantInt::getTrue(i1Ty));
+		auto promisePtr = jit->builder->CreateCall(coro_promise, {handle, promiseAlignment, ::llvm::ConstantInt::get(i1Ty, 0)});
+		auto promise = jit->builder->CreateLoad(jit->builder->CreatePointerCast(promisePtr, promisePtrTy));
+		jit->builder->CreateStore(promise, outPtr);
+		jit->builder->CreateCall(coro_resume, {handle});
+		jit->builder->CreateRet(::llvm::ConstantInt::getTrue(i1Ty));
 	}
 
 	// Build the coroutine_destroy() function:
@@ -4521,12 +4521,12 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 	//        llvm.coro.destroy(handle);
 	//    }
 	//
-	::coroutine.destroy = rr::createFunction("coroutine_destroy", voidTy, {handleTy});
+	jit->coroutine.destroy = rr::createFunction("coroutine_destroy", voidTy, {handleTy});
 	{
-		auto handle = ::coroutine.destroy->arg_begin();
-		::builder->SetInsertPoint(llvm::BasicBlock::Create(*::context, "", ::coroutine.destroy));
-		::builder->CreateCall(coro_destroy, {handle});
-		::builder->CreateRetVoid();
+		auto handle = jit->coroutine.destroy->arg_begin();
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->coroutine.destroy));
+		jit->builder->CreateCall(coro_destroy, {handle});
+		jit->builder->CreateRetVoid();
 	}
 
 	// Begin building the main coroutine_begin() function.
@@ -4561,58 +4561,58 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 	//        return handle;
 	//    }
 	//
-	::function = rr::createFunction("coroutine_begin", handleTy, T(Params));
+	jit->function = rr::createFunction("coroutine_begin", handleTy, T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	::debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(::builder, ::context, ::module, ::function));
+	jit->debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(jit->builder, jit->context, jit->module, jit->function));
 #endif // ENABLE_RR_DEBUG_INFO
 
-	auto entryBlock = llvm::BasicBlock::Create(*::context, "coroutine", ::function);
-	::coroutine.suspendBlock = llvm::BasicBlock::Create(*::context, "suspend", ::function);
-	::coroutine.endBlock = llvm::BasicBlock::Create(*::context, "end", ::function);
-	::coroutine.destroyBlock = llvm::BasicBlock::Create(*::context, "destroy", ::function);
+	auto entryBlock = llvm::BasicBlock::Create(jit->context, "coroutine", jit->function);
+	jit->coroutine.suspendBlock = llvm::BasicBlock::Create(jit->context, "suspend", jit->function);
+	jit->coroutine.endBlock = llvm::BasicBlock::Create(jit->context, "end", jit->function);
+	jit->coroutine.destroyBlock = llvm::BasicBlock::Create(jit->context, "destroy", jit->function);
 
-	::builder->SetInsertPoint(entryBlock);
+	jit->builder->SetInsertPoint(entryBlock);
 	Variable::materializeAll();
-	::coroutine.promise = ::builder->CreateAlloca(T(YieldType), nullptr, "promise");
-	::coroutine.id = ::builder->CreateCall(coro_id, {
+	jit->coroutine.promise = jit->builder->CreateAlloca(T(YieldType), nullptr, "promise");
+	jit->coroutine.id = jit->builder->CreateCall(coro_id, {
 		::llvm::ConstantInt::get(i32Ty, 0),
-		::builder->CreatePointerCast(::coroutine.promise, i8PtrTy),
+		jit->builder->CreatePointerCast(jit->coroutine.promise, i8PtrTy),
 		::llvm::ConstantPointerNull::get(i8PtrTy),
 		::llvm::ConstantPointerNull::get(i8PtrTy),
 	});
-	auto size = ::builder->CreateCall(coro_size, {});
-	auto frame = ::builder->CreateCall(allocFrame, {size});
-	::coroutine.handle = ::builder->CreateCall(coro_begin, {::coroutine.id, frame});
+	auto size = jit->builder->CreateCall(coro_size, {});
+	auto frame = jit->builder->CreateCall(allocFrame, {size});
+	jit->coroutine.handle = jit->builder->CreateCall(coro_begin, {jit->coroutine.id, frame});
 
 	// Build the suspend block
-	::builder->SetInsertPoint(::coroutine.suspendBlock);
-	::builder->CreateCall(coro_end, {::coroutine.handle, ::llvm::ConstantInt::get(i1Ty, 0)});
-	::builder->CreateRet(::coroutine.handle);
+	jit->builder->SetInsertPoint(jit->coroutine.suspendBlock);
+	jit->builder->CreateCall(coro_end, {jit->coroutine.handle, ::llvm::ConstantInt::get(i1Ty, 0)});
+	jit->builder->CreateRet(jit->coroutine.handle);
 
 	// Build the end block
-	::builder->SetInsertPoint(::coroutine.endBlock);
-	auto action = ::builder->CreateCall(coro_suspend, {
-		::llvm::ConstantTokenNone::get(*::context),
+	jit->builder->SetInsertPoint(jit->coroutine.endBlock);
+	auto action = jit->builder->CreateCall(coro_suspend, {
+		::llvm::ConstantTokenNone::get(jit->context),
 		::llvm::ConstantInt::get(i1Ty, 1), // final: true
 	});
-	auto switch_ = ::builder->CreateSwitch(action, ::coroutine.suspendBlock, 3);
+	auto switch_ = jit->builder->CreateSwitch(action, jit->coroutine.suspendBlock, 3);
 	// switch_->addCase(::llvm::ConstantInt::get(i8Ty, SuspendActionResume), trapBlock); // TODO: Trap attempting to resume after final suspend
-	switch_->addCase(::llvm::ConstantInt::get(i8Ty, SuspendActionDestroy), ::coroutine.destroyBlock);
+	switch_->addCase(::llvm::ConstantInt::get(i8Ty, SuspendActionDestroy), jit->coroutine.destroyBlock);
 
 	// Build the destroy block
-	::builder->SetInsertPoint(::coroutine.destroyBlock);
-	auto memory = ::builder->CreateCall(coro_free, {::coroutine.id, ::coroutine.handle});
-	::builder->CreateCall(freeFrame, {memory});
-	::builder->CreateBr(::coroutine.suspendBlock);
+	jit->builder->SetInsertPoint(jit->coroutine.destroyBlock);
+	auto memory = jit->builder->CreateCall(coro_free, {jit->coroutine.id, jit->coroutine.handle});
+	jit->builder->CreateCall(freeFrame, {memory});
+	jit->builder->CreateBr(jit->coroutine.suspendBlock);
 
 	// Switch back to the entry block for reactor codegen.
-	::builder->SetInsertPoint(entryBlock);
+	jit->builder->SetInsertPoint(entryBlock);
 }
 
 void Nucleus::yield(Value* val)
 {
-	ASSERT_MSG(::coroutine.id != nullptr, "yield() can only be called when building a Coroutine");
+	ASSERT_MSG(jit->coroutine.id != nullptr, "yield() can only be called when building a Coroutine");
 
 	//      promise = val;
 	//
@@ -4633,39 +4633,39 @@ void Nucleus::yield(Value* val)
 	Variable::materializeAll();
 
 	// Types
-	auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
-	auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+	auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 
 	// Intrinsics
-	auto coro_suspend = ::llvm::Intrinsic::getDeclaration(::module, ::llvm::Intrinsic::coro_suspend);
+	auto coro_suspend = ::llvm::Intrinsic::getDeclaration(jit->module.get(), ::llvm::Intrinsic::coro_suspend);
 
 	// Create a block to resume execution.
-	auto resumeBlock = llvm::BasicBlock::Create(*::context, "resume", ::function);
+	auto resumeBlock = llvm::BasicBlock::Create(jit->context, "resume", jit->function);
 
 	// Store the promise (yield value)
-	::builder->CreateStore(V(val), ::coroutine.promise);
-	auto action = ::builder->CreateCall(coro_suspend, {
-		::llvm::ConstantTokenNone::get(*::context),
+	jit->builder->CreateStore(V(val), jit->coroutine.promise);
+	auto action = jit->builder->CreateCall(coro_suspend, {
+		::llvm::ConstantTokenNone::get(jit->context),
 		::llvm::ConstantInt::get(i1Ty, 0), // final: true
 	});
-	auto switch_ = ::builder->CreateSwitch(action, ::coroutine.suspendBlock, 3);
+	auto switch_ = jit->builder->CreateSwitch(action, jit->coroutine.suspendBlock, 3);
 	switch_->addCase(::llvm::ConstantInt::get(i8Ty, SuspendActionResume), resumeBlock);
-	switch_->addCase(::llvm::ConstantInt::get(i8Ty, SuspendActionDestroy), ::coroutine.destroyBlock);
+	switch_->addCase(::llvm::ConstantInt::get(i8Ty, SuspendActionDestroy), jit->coroutine.destroyBlock);
 
 	// Continue building in the resume block.
-	::builder->SetInsertPoint(resumeBlock);
+	jit->builder->SetInsertPoint(resumeBlock);
 }
 
 Routine* Nucleus::acquireCoroutine(const char *name, bool runOptimizations)
 {
-	ASSERT_MSG(::coroutine.id != nullptr, "acquireCoroutine() called without a call to createCoroutine()");
+	ASSERT_MSG(jit->coroutine.id != nullptr, "acquireCoroutine() called without a call to createCoroutine()");
 
-	::builder->CreateBr(::coroutine.endBlock);
+	jit->builder->CreateBr(jit->coroutine.endBlock);
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	if (debugInfo != nullptr)
+	if (jit->debugInfo != nullptr)
 	{
-		debugInfo->Finalize();
+		jit->debugInfo->Finalize();
 	}
 #endif // ENABLE_RR_DEBUG_INFO
 
@@ -4673,7 +4673,7 @@ Routine* Nucleus::acquireCoroutine(const char *name, bool runOptimizations)
 	{
 		std::error_code error;
 		llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
-		::module->print(file, 0);
+		jit->module->print(file, 0);
 	}
 
 	// Run manadory coroutine transforms.
@@ -4683,7 +4683,7 @@ Routine* Nucleus::acquireCoroutine(const char *name, bool runOptimizations)
 	pm.add(llvm::createCoroElidePass());
 	pm.add(llvm::createBarrierNoopPass());
 	pm.add(llvm::createCoroCleanupPass());
-	pm.run(*::module);
+	pm.run(*jit->module);
 
 	if(runOptimizations)
 	{
@@ -4694,16 +4694,15 @@ Routine* Nucleus::acquireCoroutine(const char *name, bool runOptimizations)
 	{
 		std::error_code error;
 		llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
-		::module->print(file, 0);
+		jit->module->print(file, 0);
 	}
 
 	llvm::Function *funcs[Nucleus::CoroutineEntryCount];
-	funcs[Nucleus::CoroutineEntryBegin] = ::function;
-	funcs[Nucleus::CoroutineEntryAwait] = ::coroutine.await;
-	funcs[Nucleus::CoroutineEntryDestroy] = ::coroutine.destroy;
-	Routine *routine = ::reactorJIT->acquireRoutine(funcs, Nucleus::CoroutineEntryCount);
-
-	::coroutine = CoroutineState{};
+	funcs[Nucleus::CoroutineEntryBegin] = jit->function;
+	funcs[Nucleus::CoroutineEntryAwait] = jit->coroutine.await;
+	funcs[Nucleus::CoroutineEntryDestroy] = jit->coroutine.destroy;
+	Routine *routine = jit->acquireRoutine(funcs, Nucleus::CoroutineEntryCount);
+	jit.reset();
 
 	return routine;
 }
