@@ -31,6 +31,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -1115,14 +1116,53 @@ func compare(old, new *CommitTestResults) string {
 		sb.WriteString(fmt.Sprintf("\n--- No change in test results ---\n"))
 	}
 
+	type timingDiff struct {
+		old      time.Duration
+		new      time.Duration
+		relDelta float64
+		name     string
+	}
+
+	timingDiffs := []timingDiff{}
+	for name, new := range new.Tests {
+		if old, ok := old.Tests[name]; ok {
+			old, new := old.TimeTaken, new.TimeTaken
+			delta := new.Seconds() - old.Seconds()
+			absDelta := math.Abs(delta)
+			relDelta := delta / old.Seconds()
+			if absDelta > 2.0 && math.Abs(relDelta) > 0.05 { // If change > ±2s and > than ±5% old time...
+				timingDiffs = append(timingDiffs, timingDiff{
+					old:      old,
+					new:      new,
+					name:     name,
+					relDelta: relDelta,
+				})
+			}
+		}
+	}
+	if len(timingDiffs) > 0 {
+		sb.WriteString(fmt.Sprintf("\n--- Test duration changes ---\n"))
+		const limit = 10
+		if len(timingDiffs) > limit {
+			sort.Slice(timingDiffs, func(i, j int) bool { return math.Abs(timingDiffs[i].relDelta) > math.Abs(timingDiffs[j].relDelta) })
+			timingDiffs = timingDiffs[:limit]
+		}
+		sort.Slice(timingDiffs, func(i, j int) bool { return timingDiffs[i].relDelta < timingDiffs[j].relDelta })
+		for _, d := range timingDiffs {
+			percent := percent64(int64(d.new-d.old), int64(d.old))
+			sb.WriteString(fmt.Sprintf("  > %v: %v -> %v (%+d%%)\n", d.name, d.old, d.new, percent))
+		}
+	}
+
 	return sb.String()
 }
 
 // TestResult holds the results of a single API test.
 type TestResult struct {
-	Test   string
-	Status testlist.Status
-	Err    string `json:",omitempty"`
+	Test      string
+	Status    testlist.Status
+	TimeTaken time.Duration
+	Err       string `json:",omitempty"`
 }
 
 func (r TestResult) String() string {
@@ -1163,6 +1203,7 @@ nextTest:
 			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
 		}
 
+		start := time.Now()
 		outRaw, err := shell.Exec(testTimeout, exe, filepath.Dir(exe), env,
 			"--deqp-surface-type=pbuffer",
 			"--deqp-shadercache=disable",
@@ -1170,6 +1211,7 @@ nextTest:
 			"--deqp-log-shader-sources=disable",
 			"--deqp-log-flush=disable",
 			"-n="+name)
+		duration := time.Since(start)
 		out := string(outRaw)
 		out = strings.ReplaceAll(out, t.srcDir, "<SwiftShader>")
 		out = strings.ReplaceAll(out, exe, "<dEQP>")
@@ -1187,21 +1229,24 @@ nextTest:
 			} {
 				if s := test.re.FindString(out); s != "" {
 					results <- TestResult{
-						Test:   name,
-						Status: test.s,
-						Err:    s,
+						Test:      name,
+						Status:    test.s,
+						TimeTaken: duration,
+						Err:       s,
 					}
 					continue nextTest
 				}
 			}
 			results <- TestResult{
-				Test:   name,
-				Status: testlist.Crash,
+				Test:      name,
+				Status:    testlist.Crash,
+				TimeTaken: duration,
 			}
 		case shell.ErrTimeout:
 			results <- TestResult{
-				Test:   name,
-				Status: testlist.Timeout,
+				Test:      name,
+				Status:    testlist.Timeout,
+				TimeTaken: duration,
 			}
 		case nil:
 			toks := deqpRE.FindStringSubmatch(out)
@@ -1213,23 +1258,23 @@ nextTest:
 			}
 			switch toks[1] {
 			case "Pass":
-				results <- TestResult{Test: name, Status: testlist.Pass}
+				results <- TestResult{Test: name, Status: testlist.Pass, TimeTaken: duration}
 			case "NotSupported":
-				results <- TestResult{Test: name, Status: testlist.NotSupported}
+				results <- TestResult{Test: name, Status: testlist.NotSupported, TimeTaken: duration}
 			case "CompatibilityWarning":
-				results <- TestResult{Test: name, Status: testlist.CompatibilityWarning}
+				results <- TestResult{Test: name, Status: testlist.CompatibilityWarning, TimeTaken: duration}
 			case "QualityWarning":
-				results <- TestResult{Test: name, Status: testlist.QualityWarning}
+				results <- TestResult{Test: name, Status: testlist.QualityWarning, TimeTaken: duration}
 			case "Fail":
 				var err string
 				if toks[2] != "Fail" {
 					err = toks[2]
 				}
-				results <- TestResult{Test: name, Status: testlist.Fail, Err: err}
+				results <- TestResult{Test: name, Status: testlist.Fail, Err: err, TimeTaken: duration}
 			default:
 				err := fmt.Sprintf("Couldn't parse test output:\n%s", out)
 				log.Println("Warning: ", err)
-				results <- TestResult{Test: name, Status: testlist.Fail, Err: err}
+				results <- TestResult{Test: name, Status: testlist.Fail, Err: err, TimeTaken: duration}
 			}
 		}
 	}
