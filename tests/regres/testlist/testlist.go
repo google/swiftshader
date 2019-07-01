@@ -196,7 +196,7 @@ var Statuses = []Status{
 // Failing returns true if the task status requires fixing.
 func (s Status) Failing() bool {
 	switch s {
-	case Fail, Timeout, Crash, Unimplemented, Unreachable, Assert:
+	case Fail, Timeout, Crash, Unimplemented, Unreachable, Assert, Abort:
 		return true
 	case Unsupported:
 		// This may seem surprising that this should be a failure, however these
