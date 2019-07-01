@@ -2949,6 +2949,114 @@ TEST(ReactorUnitTests, LoadFromConstantData)
 	EXPECT_EQ(result, value);
 }
 
+TEST(ReactorUnitTests, Multithreaded_Function)
+{
+	constexpr int numThreads = 32;
+	constexpr int numLoops = 64;
+
+	auto threads = std::unique_ptr<std::thread[]>(new std::thread[numThreads]);
+	auto results = std::unique_ptr<int[]>(new int[numThreads * numLoops]);
+
+	for(int t = 0; t < numThreads; t++)
+	{
+		auto threadFunc = [&](int t) {
+			for(int l = 0; l < numLoops; l++)
+			{
+				FunctionT<int(int, int)> function;
+				{
+					Int a = function.Arg<0>();
+					Int b = function.Arg<1>();
+					Return((a << 16) | b);
+				}
+
+				auto f = function("thread%d_loop%d", t, l);
+				results[t * numLoops + l] = f(t, l);
+			}
+		};
+		threads[t] = std::thread(threadFunc, t);
+	}
+
+	for(int t = 0; t < numThreads; t++)
+	{
+		threads[t].join();
+	}
+
+	for(int t = 0; t < numThreads; t++)
+	{
+		for(int l = 0; l < numLoops; l++)
+		{
+			auto expect = (t << 16) | l;
+			auto result = results[t * numLoops + l];
+			EXPECT_EQ(result, expect);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Multithreaded_Coroutine)
+{
+	if(!rr::Caps.CoroutinesSupported)
+	{
+		SUCCEED() << "Coroutines not supported";
+		return;
+	}
+
+	constexpr int numThreads = 32;
+	constexpr int numLoops = 64;
+
+	struct Result
+	{
+		bool yieldReturns[3];
+		int yieldValues[3];
+	};
+
+	auto threads = std::unique_ptr<std::thread[]>(new std::thread[numThreads]);
+	auto results = std::unique_ptr<Result[]>(new Result[numThreads * numLoops]);
+
+	for(int t = 0; t < numThreads; t++)
+	{
+		auto threadFunc = [&](int t) {
+			for(int l = 0; l < numLoops; l++)
+			{
+				Coroutine<int(int, int)> function;
+				{
+					Int a = function.Arg<0>();
+					Int b = function.Arg<1>();
+					Yield(a);
+					Yield(b);
+				}
+
+				auto coroutine = function(t, l);
+
+				auto &result = results[t * numLoops + l];
+				result = {};
+				result.yieldReturns[0] = coroutine->await(result.yieldValues[0]);
+				result.yieldReturns[1] = coroutine->await(result.yieldValues[1]);
+				result.yieldReturns[2] = coroutine->await(result.yieldValues[2]);
+			}
+		};
+		threads[t] = std::thread(threadFunc, t);
+	}
+
+	for(int t = 0; t < numThreads; t++)
+	{
+		threads[t].join();
+	}
+
+	for(int t = 0; t < numThreads; t++)
+	{
+		for(int l = 0; l < numLoops; l++)
+		{
+			auto const &result = results[t * numLoops + l];
+			EXPECT_EQ(result.yieldReturns[0], true);
+			EXPECT_EQ(result.yieldValues[0], t);
+			EXPECT_EQ(result.yieldReturns[1], true);
+			EXPECT_EQ(result.yieldValues[1], l);
+			EXPECT_EQ(result.yieldReturns[2], false);
+			EXPECT_EQ(result.yieldValues[2], 0);
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

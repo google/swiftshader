@@ -57,6 +57,7 @@ __pragma(warning(push))
     __pragma(warning(pop))
 #endif
 
+#include <atomic>
 #include <unordered_map>
 
 #if defined(_WIN64)
@@ -610,7 +611,7 @@ public:
 		for(size_t i = 0; i < count; i++)
 		{
 			auto func = funcs[i];
-			static size_t numEmittedFunctions = 0;
+			static std::atomic<size_t> numEmittedFunctions = { 0 };
 			std::string name = "f" + llvm::Twine(numEmittedFunctions++).str();
 			func->setName(name);
 			func->setLinkage(llvm::GlobalValue::ExternalLinkage);
