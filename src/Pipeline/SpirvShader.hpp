@@ -142,14 +142,14 @@ namespace sw
 			{
 				ASSERT(accessSize > 0);
 
+				if (isStaticAllInBounds(accessSize))
+				{
+					return SIMD::Int(0xffffffff);
+				}
+
 				if (!hasDynamicOffsets && !hasDynamicLimit)
 				{
 					// Common fast paths.
-					if (hasStaticEqualOffsets())
-					{
-						return SIMD::Int((staticOffsets[0] + accessSize - 1 < staticLimit) ? 0xffffffff : 0);
-					}
-
 					static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
 					return SIMD::Int(
 						(staticOffsets[0] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
@@ -159,6 +159,22 @@ namespace sw
 				}
 
 				return CmpLT(offsets() + SIMD::Int(accessSize - 1), SIMD::Int(limit()));
+			}
+
+			inline bool isStaticAllInBounds(unsigned int accessSize) const
+			{
+				if (hasDynamicOffsets || hasDynamicLimit)
+				{
+					return false;
+				}
+				for (int i = 0; i < SIMD::Width; i++)
+				{
+					if (staticOffsets[i] + accessSize - 1 >= staticLimit)
+					{
+						return false;
+					}
+				}
+				return true;
 			}
 
 			inline Int limit() const

@@ -290,8 +290,19 @@ namespace sw
 		T Load(Pointer ptr, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
 		{
 			using EL = typename Element<T>::type;
+
+			if (ptr.hasStaticSequentialOffsets(sizeof(float)) &&
+				ptr.isStaticAllInBounds(sizeof(float)))
+			{
+				// All elements sequential and in bounds.
+				// Perform regular load.
+				auto load = rr::Load(rr::Pointer<SIMD::Int>(ptr.base + ptr.staticOffsets[0]), alignment, atomic, order);
+				return As<T>(load & mask); // TODO: Mask here should be unnecessary, but keeps with MaskedLoad and Gather.
+			}
+
 			auto offsets = ptr.offsets();
 			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB reads.
+
 			if (!atomic && order == std::memory_order_relaxed)
 			{
 				if (ptr.hasStaticEqualOffsets())
@@ -351,6 +362,7 @@ namespace sw
 		void Store(Pointer ptr, T val, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
 		{
 			using EL = typename Element<T>::type;
+			constexpr size_t alignment = sizeof(float);
 			auto offsets = ptr.offsets();
 			mask &= ptr.isInBounds(sizeof(float)); // Disable OOB writes.
 			if (!atomic && order == std::memory_order_relaxed)
@@ -367,16 +379,28 @@ namespace sw
 							Extract(maskedVal, 1) |
 							Extract(maskedVal, 2) |
 							Extract(maskedVal, 3);
-						*rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], sizeof(float)) = As<EL>(scalarVal);
+						*rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], alignment) = As<EL>(scalarVal);
 					}
-					return;
 				}
-
-				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
+				else if (ptr.hasStaticSequentialOffsets(sizeof(float)))
 				{
-					return rr::MaskedStore(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), val, mask, sizeof(float));
+					if (ptr.isStaticAllInBounds(sizeof(float)))
+					{
+						// Pointer has no elements OOB, and the store is not atomic.
+						// Perform a RMW.
+						auto p = rr::Pointer<SIMD::Int>(ptr.base + ptr.staticOffsets[0], alignment);
+						auto prev = *p;
+						*p = (prev & ~mask) | (As<SIMD::Int>(val) & mask);
+					}
+					else
+					{
+						rr::MaskedStore(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), val, mask, alignment);
+					}
 				}
-				return rr::Scatter(rr::Pointer<EL>(ptr.base), val, offsets, mask, sizeof(float));
+				else
+				{
+					rr::Scatter(rr::Pointer<EL>(ptr.base), val, offsets, mask, alignment);
+				}
 			}
 			else
 			{
@@ -385,7 +409,7 @@ namespace sw
 				{
 					// Store all elements in a single SIMD instruction.
 					auto offset = Extract(offsets, 0);
-					Store(val, rr::Pointer<T>(&ptr.base[offset]), sizeof(float), atomic, order);
+					Store(val, rr::Pointer<T>(&ptr.base[offset]), alignment, atomic, order);
 				}
 				Else
 				{
@@ -395,7 +419,7 @@ namespace sw
 						If(Extract(mask, i) != 0)
 						{
 							auto offset = Extract(offsets, i);
-							rr::Store(Extract(val, i), rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order);
+							rr::Store(Extract(val, i), rr::Pointer<EL>(&ptr.base[offset]), alignment, atomic, order);
 						}
 					}
 				}
