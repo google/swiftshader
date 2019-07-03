@@ -30,7 +30,7 @@ import (
 )
 
 // MaxProcMemory is the maximum virtual memory per child process
-var MaxProcMemory uint64 = 2 * 1024 * 1024 * 1024 // 2GB
+var MaxProcMemory uint64 = 3 * 1024 * 1024 * 1024 // 3GB
 
 func init() {
 	// As we are going to be running a number of tests concurrently, we need to
