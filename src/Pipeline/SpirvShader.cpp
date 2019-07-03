@@ -291,21 +291,28 @@ namespace sw
 		{
 			using EL = typename Element<T>::type;
 
-			if (ptr.hasStaticSequentialOffsets(sizeof(float)) &&
-				ptr.isStaticAllInBounds(sizeof(float)))
+			if (ptr.isStaticAllInBounds(sizeof(float)))
 			{
-				// All elements sequential and in bounds.
-				// Perform regular load.
-				auto load = rr::Load(rr::Pointer<SIMD::Int>(ptr.base + ptr.staticOffsets[0]), alignment, atomic, order);
-				return As<T>(load & mask); // TODO: Mask here should be unnecessary, but keeps with MaskedLoad and Gather.
+				// All elements are statically known to be in-bounds.
+				// We can avoid costly conditional on masks.
+
+				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
+				{
+					// Offsets are sequential. Perform regular load.
+					return rr::Load(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), alignment, atomic, order);
+				}
+				if (ptr.hasStaticEqualOffsets())
+				{
+					// Load one, replicate.
+					return T(*rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], alignment));
+				}
 			}
-
-			auto offsets = ptr.offsets();
-
-			if(robust)  // Disable OOB reads.
+			else if(robust)  // Disable OOB reads.
 			{
 				mask &= ptr.isInBounds(sizeof(float));
 			}
+
+			auto offsets = ptr.offsets();
 
 			if (!atomic && order == std::memory_order_relaxed)
 			{
