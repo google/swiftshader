@@ -331,9 +331,9 @@ namespace sw
 				}
 				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
 				{
-					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, alignment);
+					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, alignment, robust);
 				}
-				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, alignment);
+				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, alignment, robust);
 			}
 			else
 			{

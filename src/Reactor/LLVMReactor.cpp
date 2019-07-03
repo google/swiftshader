@@ -1596,7 +1596,7 @@ namespace rr
 		}
 	}
 
-	Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned int alignment)
+	Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned int alignment, bool zeroMaskedLanes)
 	{
 		ASSERT(V(ptr)->getType()->isPointerTy());
 		ASSERT(V(mask)->getType()->isVectorTy());
@@ -1607,7 +1607,7 @@ namespace rr
 		auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
 		auto elVecPtrTy = elVecTy->getPointerTo();
 		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
-		auto passthrough = ::llvm::Constant::getNullValue(elVecTy);
+		auto passthrough = zeroMaskedLanes ? ::llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
 		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
 		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_load, { elVecTy, elVecPtrTy } );
 		return V(jit->builder->CreateCall(func, { V(ptr), align, i8Mask, passthrough }));
@@ -1630,7 +1630,7 @@ namespace rr
 		jit->builder->CreateCall(func, { V(val), V(ptr), align, i8Mask });
 	}
 
-	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment)
+	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment, bool zeroMaskedLanes)
 	{
 		ASSERT(V(base)->getType()->isPointerTy());
 		ASSERT(V(offsets)->getType()->isVectorTy());
@@ -1648,7 +1648,7 @@ namespace rr
 		auto i8Ptrs = jit->builder->CreateGEP(i8Base, V(offsets));
 		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
 		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
-		auto passthrough = ::llvm::Constant::getNullValue(elVecTy);
+		auto passthrough = zeroMaskedLanes ? ::llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
 		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
 		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy } );
 		return V(jit->builder->CreateCall(func, { elPtrs, align, i8Mask, passthrough }));
