@@ -453,7 +453,7 @@ namespace sw
 			Return(1);
 		}
 
-		routine = function(vk::ReactorConfig, "SetupRoutine");
+		routine = function("SetupRoutine");
 	}
 
 	void SetupRoutine::setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flat, bool perspective, int component)

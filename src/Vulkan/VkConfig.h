@@ -17,8 +17,6 @@
 
 #include "Version.h"
 
-#include "Reactor/Nucleus.hpp" // ReactorConfig
-
 #include <Vulkan/VulkanPlatform.h>
 
 namespace vk
@@ -78,9 +76,6 @@ enum
 {
 	MAX_POINT_SIZE = 1,		// Large points are not supported. If/when we turn this on, must be >= 64.
 };
-
-// Configuration to use for JIT functions.
-static const auto ReactorConfig = rr::Config::Edit().set(rr::Optimization::Level::Default);
 
 }
 

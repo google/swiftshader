@@ -54,6 +54,8 @@
 
 #include "WSI/VkSwapchainKHR.hpp"
 
+#include "Reactor/Nucleus.hpp"
+
 #include <algorithm>
 #include <cstring>
 #include <string>
@@ -73,6 +75,27 @@ bool HasExtensionProperty(const char* extensionName, const VkExtensionProperties
 	}
 
 	return false;
+}
+
+// setReactorDefaultConfig() sets the default configuration for Vulkan's use of
+// Reactor.
+void setReactorDefaultConfig()
+{
+	auto cfg = rr::Config::Edit()
+		.set(rr::Optimization::Level::Default);
+
+	rr::Nucleus::adjustDefaultConfig(cfg);
+}
+
+// initializeLibrary() is called by vkCreateInstance() to perform one-off global
+// initialization of the swiftshader driver.
+void initializeLibrary()
+{
+	static bool doOnce = [] {
+		setReactorDefaultConfig();
+		return true;
+	}();
+	(void)doOnce;
 }
 
 }
@@ -138,6 +161,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 {
 	TRACE("(const VkInstanceCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkInstance* pInstance = %p)",
 			pCreateInfo, pAllocator, pInstance);
+
+	initializeLibrary();
 
 	if(pCreateInfo->enabledLayerCount)
 	{

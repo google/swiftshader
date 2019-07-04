@@ -262,7 +262,7 @@ std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::Compu
 	// TODO(b/119409619): use allocator.
 	auto program = std::make_shared<sw::ComputeProgram>(key.getShader(), key.getLayout(), descriptorSets);
 	program->generate();
-	program->finalize(vk::ReactorConfig);
+	program->finalize();
 	return program;
 }
 
