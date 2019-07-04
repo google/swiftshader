@@ -401,19 +401,19 @@ namespace sw
 		html += "<h2><em>Compiler optimizations</em></h2>\n";
 		html += "<table>\n";
 
-		for(int pass = 0; pass < 10; pass++)
+		for(size_t pass = 0; pass < config.optimization.size(); pass++)
 		{
 			html += "<tr><td>Optimization pass " + itoa(pass + 1) + ":</td><td><select name='optimization" + itoa(pass + 1) + "' title='An optimization pass for the shader compiler.'>\n";
-			html += "<option value='0'"  + (config.optimization[pass] == 0  ? selected : empty) + ">Disabled" + (pass > 0 ? " (default)" : "") + "</option>\n";
-			html += "<option value='1'"  + (config.optimization[pass] == 1  ? selected : empty) + ">Instruction Combining" + (pass == 0 ? " (default)" : "") + "</option>\n";
-			html += "<option value='2'"  + (config.optimization[pass] == 2  ? selected : empty) + ">Control Flow Simplification</option>\n";
-			html += "<option value='3'"  + (config.optimization[pass] == 3  ? selected : empty) + ">Loop Invariant Code Motion</option>\n";
-			html += "<option value='4'"  + (config.optimization[pass] == 4  ? selected : empty) + ">Aggressive Dead Code Elimination</option>\n";
-			html += "<option value='5'"  + (config.optimization[pass] == 5  ? selected : empty) + ">Global Value Numbering</option>\n";
-			html += "<option value='6'"  + (config.optimization[pass] == 6  ? selected : empty) + ">Commutative Expressions Reassociation</option>\n";
-			html += "<option value='7'"  + (config.optimization[pass] == 7  ? selected : empty) + ">Dead Store Elimination</option>\n";
-			html += "<option value='8'"  + (config.optimization[pass] == 8  ? selected : empty) + ">Sparse Conditional Copy Propagation</option>\n";
-			html += "<option value='9'"  + (config.optimization[pass] == 9  ? selected : empty) + ">Scalar Replacement of Aggregates</option>\n";
+			html += "<option value='0'"  + (config.optimization[pass] == rr::Optimization::Pass::Disabled ? selected : empty) + ">Disabled" + (pass > 0 ? " (default)" : "") + "</option>\n";
+			html += "<option value='1'"  + (config.optimization[pass] == rr::Optimization::Pass::InstructionCombining ? selected : empty) + ">Instruction Combining" + (pass == 0 ? " (default)" : "") + "</option>\n";
+			html += "<option value='2'"  + (config.optimization[pass] == rr::Optimization::Pass::CFGSimplification ? selected : empty) + ">Control Flow Simplification</option>\n";
+			html += "<option value='3'"  + (config.optimization[pass] == rr::Optimization::Pass::LICM ? selected : empty) + ">Loop Invariant Code Motion</option>\n";
+			html += "<option value='4'"  + (config.optimization[pass] == rr::Optimization::Pass::AggressiveDCE ? selected : empty) + ">Aggressive Dead Code Elimination</option>\n";
+			html += "<option value='5'"  + (config.optimization[pass] == rr::Optimization::Pass::GVN ? selected : empty) + ">Global Value Numbering</option>\n";
+			html += "<option value='6'"  + (config.optimization[pass] == rr::Optimization::Pass::Reassociate ? selected : empty) + ">Commutative Expressions Reassociation</option>\n";
+			html += "<option value='7'"  + (config.optimization[pass] == rr::Optimization::Pass::DeadStoreElimination ? selected : empty) + ">Dead Store Elimination</option>\n";
+			html += "<option value='8'"  + (config.optimization[pass] == rr::Optimization::Pass::SCCP ? selected : empty) + ">Sparse Conditional Copy Propagation</option>\n";
+			html += "<option value='9'"  + (config.optimization[pass] == rr::Optimization::Pass::ScalarReplAggregates ? selected : empty) + ">Scalar Replacement of Aggregates</option>\n";
 			html += "</select></td></tr>\n";
 		}
 
@@ -652,7 +652,7 @@ namespace sw
 			}
 			else if(sscanf(post, "optimization%d=%d", &index, &integer))
 			{
-				config.optimization[index - 1] = (rr::Optimization)integer;
+				config.optimization[index - 1] = (rr::Optimization::Pass)integer;
 			}
 			else if(strstr(post, "disableServer=on"))
 			{
@@ -737,9 +737,10 @@ namespace sw
 		config.enableSSSE3 = ini.getBoolean("Processor", "EnableSSSE3", true);
 		config.enableSSE4_1 = ini.getBoolean("Processor", "EnableSSE4_1", true);
 
-		for(int pass = 0; pass < 10; pass++)
+		for(size_t pass = 0; pass < config.optimization.size(); pass++)
 		{
-			config.optimization[pass] = (rr::Optimization)ini.getInteger("Optimization", "OptimizationPass" + itoa(pass + 1), pass == 0 ? rr::InstructionCombining : rr::Disabled);
+			auto def = pass == 0 ? rr::Optimization::Pass::InstructionCombining : rr::Optimization::Pass::Disabled;
+			config.optimization[pass] = (rr::Optimization::Pass)ini.getInteger("Optimization", "OptimizationPass" + itoa(pass + 1), (int)def);
 		}
 
 		config.disableServer = ini.getBoolean("Testing", "DisableServer", false);
@@ -795,9 +796,9 @@ namespace sw
 		ini.addValue("Processor", "EnableSSSE3", itoa(config.enableSSSE3));
 		ini.addValue("Processor", "EnableSSE4_1", itoa(config.enableSSE4_1));
 
-		for(int pass = 0; pass < 10; pass++)
+		for(size_t pass = 0; pass < config.optimization.size(); pass++)
 		{
-			ini.addValue("Optimization", "OptimizationPass" + itoa(pass + 1), itoa(config.optimization[pass]));
+			ini.addValue("Optimization", "OptimizationPass" + itoa(pass + 1), itoa((int)config.optimization[pass]));
 		}
 
 		ini.addValue("Testing", "DisableServer", itoa(config.disableServer));

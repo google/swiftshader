@@ -21,6 +21,7 @@
 #include "Common/MutexLock.hpp"
 #include "Common/Socket.hpp"
 
+#include <array>
 #include <string>
 
 namespace sw
@@ -48,7 +49,7 @@ namespace sw
 			bool enableSSE3;
 			bool enableSSSE3;
 			bool enableSSE4_1;
-			rr::Optimization optimization[10];
+			std::array<rr::Optimization::Pass, 10> optimization;
 			bool disableServer;
 			bool keepSystemCursor;
 			bool forceWindowed;

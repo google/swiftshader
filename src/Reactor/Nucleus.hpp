@@ -33,30 +33,85 @@ namespace rr
 	class BasicBlock;
 	class Routine;
 
-	enum Optimization
+	// Optimization holds the optimization settings for code generation.
+	class Optimization
 	{
-		Disabled             = 0,
-		InstructionCombining = 1,
-		CFGSimplification    = 2,
-		LICM                 = 3,
-		AggressiveDCE        = 4,
-		GVN                  = 5,
-		Reassociate          = 6,
-		DeadStoreElimination = 7,
-		SCCP                 = 8,
-		ScalarReplAggregates = 9,
+	public:
+		enum class Level
+		{
+			None,
+			Less,
+			Default,
+			Aggressive,
+		};
 
-		OptimizationCount
+		enum class Pass
+		{
+			Disabled,
+			InstructionCombining,
+			CFGSimplification,
+			LICM,
+			AggressiveDCE,
+			GVN,
+			Reassociate,
+			DeadStoreElimination,
+			SCCP,
+			ScalarReplAggregates,
+
+			Count,
+		};
+
+		using Passes = std::vector<Pass>;
+
+		Optimization() = default;
+		Optimization(Level level, const Passes & passes) : level(level), passes(passes) {}
+
+		Level getLevel() const { return level; }
+		const Passes & getPasses() const { return passes; }
+
+	private:
+		Level level = Level::Default;
+		Passes passes;
 	};
 
-	extern Optimization optimization[10];
-
-	enum class OptimizationLevel
+	// Config holds the Reactor configuration settings.
+	class Config
 	{
-		None,
-		Less,
-		Default,
-		Aggressive,
+	public:
+		// Edit holds a number of modifications to a config, that can be applied
+		// on an existing Config to produce a new Config with the specified
+		// changes.
+		class Edit
+		{
+		public:
+			static const Edit None;
+
+			Edit & set(Optimization::Level level) { optLevel = level; optLevelChanged = true; return *this; }
+			Edit & add(Optimization::Pass pass) { optPassEdits.push_back({ListEdit::Add, pass}); return *this; }
+			Edit & remove(Optimization::Pass pass) { optPassEdits.push_back({ListEdit::Remove, pass}); return *this; }
+			Edit & clearOptimizationPasses() { optPassEdits.push_back({ListEdit::Clear, Optimization::Pass::Disabled}); return *this; }
+
+			Config apply(const Config &cfg) const;
+
+		private:
+			enum class ListEdit { Add, Remove, Clear };
+			using OptPassesEdit = std::pair<ListEdit, Optimization::Pass>;
+
+			template <typename T>
+			void apply(const std::vector<std::pair<ListEdit, T>> & edits, std::vector<T>& list) const;
+
+			Optimization::Level optLevel;
+			bool optLevelChanged = false;
+			std::vector<OptPassesEdit> optPassEdits;
+		};
+
+		Config() = default;
+		Config(const Optimization & optimization) : optimization(optimization) {}
+
+		const Optimization & getOptimization() const { return optimization; }
+
+	private:
+		Optimization optimization;
 	};
 
 	class Nucleus
@@ -66,7 +121,13 @@ namespace rr
 
 		virtual ~Nucleus();
 
-		Routine *acquireRoutine(const char *name, OptimizationLevel optimizationLevel);
+		// Default configuration to use when no other configuration is specified.
+		// The new configuration will be applied to subsequent reactor calls.
+		static void setDefaultConfig(const Config &cfg);
+		static void adjustDefaultConfig(const Config::Edit &cfgEdit);
+		static Config getDefaultConfig();
+
+		Routine *acquireRoutine(const char *name, const Config::Edit &cfgEdit = Config::Edit::None);
 
 		static Value *allocateStackVariable(Type *type, int arraySize = 0);
 		static BasicBlock *createBasicBlock();
@@ -93,7 +154,7 @@ namespace rr
 		};
 
 		static void createCoroutine(Type *ReturnType, std::vector<Type*> &Params);
-		Routine *acquireCoroutine(const char *name, OptimizationLevel optimizationLevel);
+		Routine *acquireCoroutine(const char *name, const Config::Edit &cfg = Config::Edit::None);
 		static void yield(Value*);
 
 		// Terminators
@@ -219,9 +280,6 @@ namespace rr
 		static Value *createConstantVector(const double *constants, Type *type);
 
 		static Type *getPointerType(Type *elementType);
-
-	private:
-		void optimize();
 	};
 }
 

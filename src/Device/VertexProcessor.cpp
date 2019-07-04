@@ -105,7 +105,7 @@ namespace sw
 		{
 			VertexRoutine *generator = new VertexProgram(state, pipelineLayout, vertexShader, descriptorSets);
 			generator->generate();
-			routine = (*generator)(vk::ReactorOptimizationLevel, "VertexRoutine_%0.8X", state.shaderID);
+			routine = (*generator)(vk::ReactorConfig, "VertexRoutine_%0.8X", state.shaderID);
 			delete generator;
 
 			routineCache->add(state, routine);

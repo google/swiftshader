@@ -2465,7 +2465,7 @@ namespace rr
 		}
 
 		Routine *operator()(const char *name, ...);
-		Routine *operator()(OptimizationLevel optLevel, const char *name, ...);
+		Routine *operator()(const Config::Edit &cfg, const char *name, ...);
 
 	protected:
 		Nucleus *core;
@@ -3040,11 +3040,11 @@ namespace rr
 		vsnprintf(fullName, 1024, name, vararg);
 		va_end(vararg);
 
-		return core->acquireRoutine(fullName, OptimizationLevel::Default);
+		return core->acquireRoutine(fullName, Config::Edit::None);
 	}
 
 	template<typename Return, typename... Arguments>
-	Routine *Function<Return(Arguments...)>::operator()(OptimizationLevel optLevel, const char *name, ...)
+	Routine *Function<Return(Arguments...)>::operator()(const Config::Edit &cfg, const char *name, ...)
 	{
 		char fullName[1024 + 1];
 
@@ -3053,7 +3053,7 @@ namespace rr
 		vsnprintf(fullName, 1024, name, vararg);
 		va_end(vararg);
 
-		return core->acquireRoutine(fullName, optLevel);
+		return core->acquireRoutine(fullName, cfg);
 	}
 
 	template<class T, class S>

@@ -238,7 +238,7 @@ namespace sw
 		{
 			QuadRasterizer *generator = new PixelProgram(state, pipelineLayout, pixelShader, descriptorSets);
 			generator->generate();
-			routine = (*generator)(vk::ReactorOptimizationLevel, "PixelRoutine_%0.8X", state.shaderID);
+			routine = (*generator)(vk::ReactorConfig, "PixelRoutine_%0.8X", state.shaderID);
 			delete generator;
 
 			routineCache->add(state, routine);

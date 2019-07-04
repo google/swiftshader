@@ -2855,10 +2855,13 @@ namespace sw
 			CPUID::setEnableSSE2(configuration.enableSSE2);
 			CPUID::setEnableSSE(configuration.enableSSE);
 
-			for(int pass = 0; pass < 10; pass++)
+			rr::Config::Edit cfg;
+			cfg.clearOptimizationPasses();
+			for(auto pass : configuration.optimization)
 			{
-				optimization[pass] = configuration.optimization[pass];
+				if (pass != rr::Optimization::Pass::Disabled) { cfg.add(pass); }
 			}
+			rr::Nucleus::adjustDefaultConfig(cfg);
 
 			forceWindowed = configuration.forceWindowed;
 			complementaryDepthBuffer = configuration.complementaryDepthBuffer;

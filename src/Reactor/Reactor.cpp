@@ -21,8 +21,59 @@
 #define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
 #endif
 
+namespace
+{
+	// Introduced in C++20.
+	template <class ForwardIterator, class UnaryPredicate>
+	ForwardIterator remove_if(ForwardIterator first, ForwardIterator last,
+								UnaryPredicate pred)
+	{
+		ForwardIterator result = first;
+		while (first!=last) {
+			if (!pred(*first)) {
+				*result = std::move(*first);
+				++result;
+			}
+			++first;
+		}
+		return result;
+	}
+}
+
 namespace rr
 {
+	const Config::Edit Config::Edit::None = {};
+
+	Config Config::Edit::apply(const Config &cfg) const
+	{
+		if (this == &None) { return cfg; }
+
+		auto level = optLevelChanged ? optLevel : cfg.optimization.getLevel();
+		auto passes = cfg.optimization.getPasses();
+		apply(optPassEdits, passes);
+		return Config{ Optimization{level, passes} };
+	}
+
+	template <typename T>
+	void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> & edits, std::vector<T>& list) const
+	{
+		for (auto & edit : edits)
+		{
+			switch (edit.first)
+			{
+			case ListEdit::Add:
+				list.push_back(edit.second);
+				break;
+			case ListEdit::Remove:
+				::remove_if(list.begin(), list.end(), [&](T item) { return item == edit.second; });
+				break;
+			case ListEdit::Clear:
+				list.clear();
+				break;
+			}
+		}
+	}
+
 	// Set of variables that do not have a stack location yet.
 	std::unordered_set<Variable*> Variable::unmaterializedVariables;
 
