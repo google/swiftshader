@@ -79,7 +79,7 @@ namespace sw
 
 		state.shaderID = context->vertexShader->getSerialID();
 
-		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
+		for(int i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
 		{
 			state.input[i].type = context->input[i].type;
 			state.input[i].count = context->input[i].count;

@@ -52,8 +52,8 @@ namespace sw
 		vk::DescriptorSet::Bindings descriptorSets = {};
 		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 
-		const void *input[MAX_VERTEX_INPUTS];
-		unsigned int stride[MAX_VERTEX_INPUTS];
+		const void *input[MAX_INTERFACE_COMPONENTS / 4];
+		unsigned int stride[MAX_INTERFACE_COMPONENTS / 4];
 		const void *indices;
 
 		int instanceID;

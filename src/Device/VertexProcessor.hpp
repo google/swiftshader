@@ -70,7 +70,7 @@ namespace sw
 				unsigned int attribType : BITS(SpirvShader::ATTRIBTYPE_LAST);
 			};
 
-			Input input[MAX_VERTEX_INPUTS];
+			Input input[MAX_INTERFACE_COMPONENTS / 4];
 		};
 
 		struct State : States

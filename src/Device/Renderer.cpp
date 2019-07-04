@@ -363,7 +363,7 @@ namespace sw
 		ASSERT(!draw->events);
 		draw->events = events;
 
-		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
+		for(int i = 0; i < MAX_INTERFACE_COMPONENTS/4; i++)
 		{
 			data->input[i] = context->input[i].buffer;
 			data->stride[i] = context->input[i].vertexStride;

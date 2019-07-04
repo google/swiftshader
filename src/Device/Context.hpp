@@ -81,7 +81,7 @@ namespace sw
 
 		vk::DescriptorSet::Bindings descriptorSets = {};
 		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
-		Stream input[MAX_VERTEX_INPUTS];
+		Stream input[MAX_INTERFACE_COMPONENTS / 4];
 		void *indexBuffer;
 
 		vk::ImageView *renderTarget[RENDERTARGETS];

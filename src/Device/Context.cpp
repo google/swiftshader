@@ -86,7 +86,7 @@ namespace sw
 	void Context::init()
 	{
 		// Set vertex streams to null stream
-		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
+		for(int i = 0; i < MAX_INTERFACE_COMPONENTS/4; i++)
 		{
 			input[i].defaults();
 		}
