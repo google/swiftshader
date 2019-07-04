@@ -123,8 +123,9 @@ namespace
 	public:
 		static JITGlobals const * get();
 
+		std::string mcpu;
 		std::vector<std::string> mattrs;
-		const char* arch;
+		const char* march;
 		llvm::TargetOptions targetOptions;
 		llvm::DataLayout dataLayout = llvm::DataLayout("");
 
@@ -140,6 +141,9 @@ namespace
 
 	JITGlobals::JITGlobals()
 	{
+		// mcpu
+		mcpu = llvm::sys::getHostCPUName();
+
 		// mattrs
 		llvm::StringMap<bool> features;
 		bool ok = llvm::sys::getHostCPUFeatures(features);
@@ -177,21 +181,21 @@ namespace
 
 		// arch
 #if defined(__x86_64__)
-		arch = "x86-64";
+		march = "x86-64";
 #elif defined(__i386__)
-		arch = "x86";
+		march = "x86";
 #elif defined(__aarch64__)
-		arch = "arm64";
+		march = "arm64";
 #elif defined(__arm__)
-		arch = "arm";
+		march = "arm";
 #elif defined(__mips__)
 #if defined(__mips64)
-		arch = "mips64el";
+		march = "mips64el";
 #else
-		arch = "mipsel";
+		march = "mipsel";
 #endif
 #elif defined(__powerpc64__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-		arch = "ppc64le";
+		march = "ppc64le";
 #else
 		#error "unknown architecture"
 #endif
@@ -203,7 +207,8 @@ namespace
 		auto targetMachine = std::unique_ptr<llvm::TargetMachine>(
 			llvm::EngineBuilder()
 				.setOptLevel(llvm::CodeGenOpt::None)
-				.setMArch(arch)
+				.setMCPU(mcpu)
+				.setMArch(march)
 				.setMAttrs(mattrs)
 				.setTargetOptions(targetOptions)
 				.selectTarget());
@@ -248,7 +253,8 @@ namespace
 #else
 				.setOptLevel(toLLVM(optLevel))
 #endif // ENABLE_RR_DEBUG_INFO
-				.setMArch(JITGlobals::get()->arch)
+				.setMCPU(JITGlobals::get()->mcpu)
+				.setMArch(JITGlobals::get()->march)
 				.setMAttrs(JITGlobals::get()->mattrs)
 				.setTargetOptions(JITGlobals::get()->targetOptions)
 				.selectTarget()),
