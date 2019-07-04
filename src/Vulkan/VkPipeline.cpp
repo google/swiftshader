@@ -176,12 +176,6 @@ std::vector<uint32_t> preprocessSpirv(
 		vk::trace("%s: %d:%d %s", category, int(p.line), int(p.column), m);
 	});
 
-
-	opt.RegisterPass(spvtools::CreateDeadBranchElimPass()); // Required for MergeReturnPass
-	opt.RegisterPass(spvtools::CreateMergeReturnPass());
-	opt.RegisterPass(spvtools::CreateInlineExhaustivePass());
-	opt.RegisterPass(spvtools::CreateEliminateDeadFunctionsPass());
-
 	// If the pipeline uses specialization, apply the specializations before freezing
 	if (specializationInfo)
 	{
@@ -197,14 +191,40 @@ std::vector<uint32_t> preprocessSpirv(
 		opt.RegisterPass(spvtools::CreateSetSpecConstantDefaultValuePass(specializations));
 	}
 
-	// Basic optimization passes to primarily address glslang's love of loads &
-	// stores. Significantly reduces time spent in LLVM passes and codegen.
-	opt.RegisterPass(spvtools::CreateLocalAccessChainConvertPass());
-	opt.RegisterPass(spvtools::CreateLocalSingleBlockLoadStoreElimPass());
-	opt.RegisterPass(spvtools::CreateLocalSingleStoreElimPass());
-	opt.RegisterPass(spvtools::CreateBlockMergePass());
-	opt.RegisterPass(spvtools::CreateLocalMultiStoreElimPass());
-	opt.RegisterPass(spvtools::CreateSSARewritePass());
+	// Full optimization list taken from spirv-opt.
+	opt.RegisterPass(spvtools::CreateDeadBranchElimPass())
+		.RegisterPass(spvtools::CreateMergeReturnPass())
+		.RegisterPass(spvtools::CreateInlineExhaustivePass())
+		.RegisterPass(spvtools::CreateAggressiveDCEPass())
+		.RegisterPass(spvtools::CreatePrivateToLocalPass())
+		.RegisterPass(spvtools::CreateLocalSingleBlockLoadStoreElimPass())
+		.RegisterPass(spvtools::CreateLocalSingleStoreElimPass())
+		.RegisterPass(spvtools::CreateAggressiveDCEPass())
+		.RegisterPass(spvtools::CreateScalarReplacementPass())
+		.RegisterPass(spvtools::CreateLocalAccessChainConvertPass())
+		.RegisterPass(spvtools::CreateLocalSingleBlockLoadStoreElimPass())
+		.RegisterPass(spvtools::CreateLocalSingleStoreElimPass())
+		.RegisterPass(spvtools::CreateAggressiveDCEPass())
+		.RegisterPass(spvtools::CreateLocalMultiStoreElimPass())
+		.RegisterPass(spvtools::CreateAggressiveDCEPass())
+		.RegisterPass(spvtools::CreateCCPPass())
+		.RegisterPass(spvtools::CreateAggressiveDCEPass())
+		.RegisterPass(spvtools::CreateRedundancyEliminationPass())
+		.RegisterPass(spvtools::CreateCombineAccessChainsPass())
+		.RegisterPass(spvtools::CreateSimplificationPass())
+		.RegisterPass(spvtools::CreateVectorDCEPass())
+		.RegisterPass(spvtools::CreateDeadInsertElimPass())
+		.RegisterPass(spvtools::CreateDeadBranchElimPass())
+		.RegisterPass(spvtools::CreateSimplificationPass())
+		.RegisterPass(spvtools::CreateIfConversionPass())
+		.RegisterPass(spvtools::CreateCopyPropagateArraysPass())
+		.RegisterPass(spvtools::CreateReduceLoadSizePass())
+		.RegisterPass(spvtools::CreateAggressiveDCEPass())
+		.RegisterPass(spvtools::CreateBlockMergePass())
+		.RegisterPass(spvtools::CreateRedundancyEliminationPass())
+		.RegisterPass(spvtools::CreateDeadBranchElimPass())
+		.RegisterPass(spvtools::CreateBlockMergePass())
+		.RegisterPass(spvtools::CreateSimplificationPass());
 
 	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized);
