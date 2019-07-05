@@ -46,6 +46,30 @@
       "revId": "d02b247836f443a2509516a0993d9368f424b85b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b6965389_38732c2c",
+        "filename": "src/Vulkan/VkPipeline.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-07-05T01:02:14Z",
+      "side": 1,
+      "message": "Makes sense. We want to be able to handle instructions often eliminated by spirv-opt.\n\nRelatedly I\u0027m starting to think maybe we should treat function calls spirv-opt wasn\u0027t able/willing to inline as as true calls and not try to inline them ourselves.",
+      "parentUuid": "9da56305_d82b38ed",
+      "range": {
+        "startLine": 194,
+        "startChar": 27,
+        "endLine": 194,
+        "endChar": 47
+      },
+      "revId": "d02b247836f443a2509516a0993d9368f424b85b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
