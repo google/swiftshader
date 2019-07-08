@@ -394,9 +394,13 @@ else()
         set_cpp_flag("-fPIC")
     endif()
 
-    if(LINUX)
+    if(WIN32)
+        set_cpp_flag("-DVK_USE_PLATFORM_WIN32_KHR")
+    elseif(LINUX)
         set_cpp_flag("-DUSE_X11=1")
         set_cpp_flag("-DVK_USE_PLATFORM_XLIB_KHR")
+    elseif(APPLE)
+        set_cpp_flag("-DVK_USE_PLATFORM_MACOS_MVK")
     endif()
 
     # Use -g3 to have even more debug info
@@ -1811,6 +1815,11 @@ elseif(APPLE)
     )
     list(APPEND OPENGL_COMPILER_LIST
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
+    )
+
+    list(APPEND VULKAN_LIST
+        ${SOURCE_DIR}/WSI/MacOSSurfaceMVK.mm
+        ${SOURCE_DIR}/WSI/MacOSSurfaceMVK.h
     )
 elseif(ANDROID)
     list(APPEND SWIFTSHADER_LIST

@@ -42,6 +42,10 @@
 #include "VkShaderModule.hpp"
 #include "VkRenderPass.hpp"
 
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+#include "WSI/MacOSSurfaceMVK.h"
+#endif
+
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include "WSI/XlibSurfaceKHR.hpp"
 #endif
@@ -134,6 +138,9 @@ static const VkExtensionProperties instanceExtensionProperties[] =
 #endif
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 	{ VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION },
+#endif
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+    { VK_MVK_MACOS_SURFACE_EXTENSION_NAME, VK_MVK_MACOS_SURFACE_SPEC_VERSION },
 #endif
 };
 
@@ -2608,6 +2615,16 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceXlibPresentationSupportKHR(VkP
 		  physicalDevice, int(queueFamilyIndex), dpy, visualID);
 
 	return VK_TRUE;
+}
+#endif
+
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateMacOSSurfaceMVK(VkInstance instance, const VkMacOSSurfaceCreateInfoMVK* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface)
+{
+    TRACE("(VkInstance instance = %p, VkMacOSSurfaceCreateInfoMVK* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
+          instance, pCreateInfo, pAllocator, pSurface);
+
+    return vk::MacOSSurfaceMVK::Create(pAllocator, pCreateInfo, pSurface);
 }
 #endif
 
