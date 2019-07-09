@@ -82,7 +82,14 @@ bool HasExtensionProperty(const char* extensionName, const VkExtensionProperties
 void setReactorDefaultConfig()
 {
 	auto cfg = rr::Config::Edit()
-		.set(rr::Optimization::Level::Default);
+		.set(rr::Optimization::Level::Default)
+		.clearOptimizationPasses()
+		.add(rr::Optimization::Pass::ScalarReplAggregates)
+		.add(rr::Optimization::Pass::SCCP)
+		.add(rr::Optimization::Pass::CFGSimplification)
+		.add(rr::Optimization::Pass::EarlyCSEPass)
+		.add(rr::Optimization::Pass::CFGSimplification)
+		.add(rr::Optimization::Pass::InstructionCombining);
 
 	rr::Nucleus::adjustDefaultConfig(cfg);
 }
