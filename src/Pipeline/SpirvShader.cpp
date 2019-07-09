@@ -291,7 +291,7 @@ namespace sw
 		{
 			using EL = typename Element<T>::type;
 
-			if (ptr.isStaticAllInBounds(sizeof(float)))
+			if (ptr.isStaticallyInBounds(sizeof(float), robustness))
 			{
 				// All elements are statically known to be in-bounds.
 				// We can avoid costly conditional on masks.
@@ -314,7 +314,7 @@ namespace sw
 				case OutOfBoundsBehavior::Nullify:
 				case OutOfBoundsBehavior::RobustBufferAccess:
 				case OutOfBoundsBehavior::UndefinedValue:
-					mask &= ptr.isInBounds(sizeof(float));  // Disable out-of-bounds reads.
+					mask &= ptr.isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
 					break;
 				case OutOfBoundsBehavior::UndefinedBehavior:
 					// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
@@ -406,7 +406,7 @@ namespace sw
 			case OutOfBoundsBehavior::Nullify:
 			case OutOfBoundsBehavior::RobustBufferAccess:  // TODO: Allows writing anywhere within bounds. Could be faster than masking.
 			case OutOfBoundsBehavior::UndefinedValue:  // Should not be used for store operations. Treat as robust buffer access.
-				mask &= ptr.isInBounds(sizeof(float));  // Disable out-of-bounds writes.
+				mask &= ptr.isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
 				break;
 			case OutOfBoundsBehavior::UndefinedBehavior:
 				// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
@@ -432,7 +432,7 @@ namespace sw
 				}
 				else if (ptr.hasStaticSequentialOffsets(sizeof(float)))
 				{
-					if (ptr.isStaticAllInBounds(sizeof(float)))
+					if (ptr.isStaticallyInBounds(sizeof(float), robustness))
 					{
 						// Pointer has no elements OOB, and the store is not atomic.
 						// Perform a RMW.

@@ -145,11 +145,11 @@ namespace sw
 				return dynamicOffsets + SIMD::Int(staticOffsets[0], staticOffsets[1], staticOffsets[2], staticOffsets[3]);
 			}
 
-			inline SIMD::Int isInBounds(unsigned int accessSize) const
+			inline SIMD::Int isInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const
 			{
 				ASSERT(accessSize > 0);
 
-				if (isStaticAllInBounds(accessSize))
+				if (isStaticallyInBounds(accessSize, robustness))
 				{
 					return SIMD::Int(0xffffffff);
 				}
@@ -168,12 +168,31 @@ namespace sw
 				return CmpLT(offsets() + SIMD::Int(accessSize - 1), SIMD::Int(limit()));
 			}
 
-			inline bool isStaticAllInBounds(unsigned int accessSize) const
+			inline bool isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const
 			{
-				if (hasDynamicOffsets || hasDynamicLimit)
+				if (hasDynamicOffsets)
 				{
 					return false;
 				}
+
+				if (hasDynamicLimit)
+				{
+					if (hasStaticEqualOffsets() || hasStaticSequentialOffsets(accessSize))
+					{
+						switch(robustness)
+						{
+						case OutOfBoundsBehavior::UndefinedBehavior:
+							// With this robustness setting the application/compiler guarantees in-bounds accesses on active lanes,
+							// but since it can't know in advance which branches are taken this must be true even for inactives lanes.
+							return true;
+						case OutOfBoundsBehavior::Nullify:
+						case OutOfBoundsBehavior::RobustBufferAccess:
+						case OutOfBoundsBehavior::UndefinedValue:
+							return false;
+						}
+					}
+				}
+
 				for (int i = 0; i < SIMD::Width; i++)
 				{
 					if (staticOffsets[i] + accessSize - 1 >= staticLimit)
@@ -181,6 +200,7 @@ namespace sw
 						return false;
 					}
 				}
+
 				return true;
 			}
 
@@ -255,8 +275,8 @@ namespace sw
 			SIMD::Int dynamicOffsets; // If hasDynamicOffsets is false, all dynamicOffsets are zero.
 			std::array<int32_t, SIMD::Width> staticOffsets;
 
-			bool hasDynamicLimit; // True if dynamicLimit is zero.
-			bool hasDynamicOffsets; // True if all dynamicOffsets are zero.
+			bool hasDynamicLimit;    // True if dynamicLimit is non-zero.
+			bool hasDynamicOffsets;  // True if any dynamicOffsets are non-zero.
 		};
 
 		template <typename T> struct Element {};
