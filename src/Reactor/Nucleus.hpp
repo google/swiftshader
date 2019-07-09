@@ -57,6 +57,7 @@ namespace rr
 			DeadStoreElimination,
 			SCCP,
 			ScalarReplAggregates,
+			EarlyCSEPass,
 
 			Count,
 		};

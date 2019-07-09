@@ -404,16 +404,17 @@ namespace sw
 		for(size_t pass = 0; pass < config.optimization.size(); pass++)
 		{
 			html += "<tr><td>Optimization pass " + itoa(pass + 1) + ":</td><td><select name='optimization" + itoa(pass + 1) + "' title='An optimization pass for the shader compiler.'>\n";
-			html += "<option value='0'"  + (config.optimization[pass] == rr::Optimization::Pass::Disabled ? selected : empty) + ">Disabled" + (pass > 0 ? " (default)" : "") + "</option>\n";
-			html += "<option value='1'"  + (config.optimization[pass] == rr::Optimization::Pass::InstructionCombining ? selected : empty) + ">Instruction Combining" + (pass == 0 ? " (default)" : "") + "</option>\n";
-			html += "<option value='2'"  + (config.optimization[pass] == rr::Optimization::Pass::CFGSimplification ? selected : empty) + ">Control Flow Simplification</option>\n";
-			html += "<option value='3'"  + (config.optimization[pass] == rr::Optimization::Pass::LICM ? selected : empty) + ">Loop Invariant Code Motion</option>\n";
-			html += "<option value='4'"  + (config.optimization[pass] == rr::Optimization::Pass::AggressiveDCE ? selected : empty) + ">Aggressive Dead Code Elimination</option>\n";
-			html += "<option value='5'"  + (config.optimization[pass] == rr::Optimization::Pass::GVN ? selected : empty) + ">Global Value Numbering</option>\n";
-			html += "<option value='6'"  + (config.optimization[pass] == rr::Optimization::Pass::Reassociate ? selected : empty) + ">Commutative Expressions Reassociation</option>\n";
-			html += "<option value='7'"  + (config.optimization[pass] == rr::Optimization::Pass::DeadStoreElimination ? selected : empty) + ">Dead Store Elimination</option>\n";
-			html += "<option value='8'"  + (config.optimization[pass] == rr::Optimization::Pass::SCCP ? selected : empty) + ">Sparse Conditional Copy Propagation</option>\n";
-			html += "<option value='9'"  + (config.optimization[pass] == rr::Optimization::Pass::ScalarReplAggregates ? selected : empty) + ">Scalar Replacement of Aggregates</option>\n";
+			html += "<option value='0'"   + (config.optimization[pass] == rr::Optimization::Pass::Disabled ? selected : empty) + ">Disabled" + (pass > 0 ? " (default)" : "") + "</option>\n";
+			html += "<option value='1'"   + (config.optimization[pass] == rr::Optimization::Pass::InstructionCombining ? selected : empty) + ">Instruction Combining" + (pass == 0 ? " (default)" : "") + "</option>\n";
+			html += "<option value='2'"   + (config.optimization[pass] == rr::Optimization::Pass::CFGSimplification ? selected : empty) + ">Control Flow Simplification</option>\n";
+			html += "<option value='3'"   + (config.optimization[pass] == rr::Optimization::Pass::LICM ? selected : empty) + ">Loop Invariant Code Motion</option>\n";
+			html += "<option value='4'"   + (config.optimization[pass] == rr::Optimization::Pass::AggressiveDCE ? selected : empty) + ">Aggressive Dead Code Elimination</option>\n";
+			html += "<option value='5'"   + (config.optimization[pass] == rr::Optimization::Pass::GVN ? selected : empty) + ">Global Value Numbering</option>\n";
+			html += "<option value='6'"   + (config.optimization[pass] == rr::Optimization::Pass::Reassociate ? selected : empty) + ">Commutative Expressions Reassociation</option>\n";
+			html += "<option value='7'"   + (config.optimization[pass] == rr::Optimization::Pass::DeadStoreElimination ? selected : empty) + ">Dead Store Elimination</option>\n";
+			html += "<option value='8'"   + (config.optimization[pass] == rr::Optimization::Pass::SCCP ? selected : empty) + ">Sparse Conditional Copy Propagation</option>\n";
+			html += "<option value='9'"   + (config.optimization[pass] == rr::Optimization::Pass::ScalarReplAggregates ? selected : empty) + ">Scalar Replacement of Aggregates</option>\n";
+			html += "<option value='10'"  + (config.optimization[pass] == rr::Optimization::Pass::EarlyCSEPass ? selected : empty) + ">Eliminate trivially redundant instructions</option>\n";
 			html += "</select></td></tr>\n";
 		}
 
