@@ -55,6 +55,14 @@ namespace sw
 	// Forward declarations.
 	class SpirvRoutine;
 
+	enum class OutOfBoundsBehavior
+	{
+		Nullify,             // Loads become zero, stores are elided.
+		RobustBufferAccess,  // As defined by the Vulkan spec (in short: access anywhere within bounds, or zeroing).
+		UndefinedValue,      // Only for load operations. Not secure. No program termination.
+		UndefinedBehavior,   // Program may terminate.
+	};
+
 	// SIMD contains types that represent multiple scalars packed into a single
 	// vector data type. Types in the SIMD namespace provide a semantic hint
 	// that the data should be treated as a per-execution-lane scalar instead of
@@ -257,16 +265,16 @@ namespace sw
 		template <> struct Element<UInt>  { using type = rr::UInt; };
 
 		template<typename T>
-		void Store(Pointer ptr, T val, bool robust, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+		void Store(Pointer ptr, T val, OutOfBoundsBehavior robustness, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
 
 		template<typename T>
-		void Store(Pointer ptr, RValue<T> val, bool robust, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed)
+		void Store(Pointer ptr, RValue<T> val, OutOfBoundsBehavior robustness, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed)
 		{
-			Store(ptr, T(val), robust, mask, atomic, order);
+			Store(ptr, T(val), robustness, mask, atomic, order);
 		}
 
 		template<typename T>
-		T Load(Pointer ptr, bool robust, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
+		T Load(Pointer ptr, OutOfBoundsBehavior robustness, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed, int alignment = sizeof(float));
 	}
 
 	// Incrementally constructed complex bundle of rvalues
@@ -850,6 +858,7 @@ namespace sw
 		Function::ID entryPoint;
 
 		const bool robustBufferAccess = true;
+		spv::ExecutionModel executionModel = spv::ExecutionModelMax; // Invalid prior to OpEntryPoint parsing.
 
 		// DeclareType creates a Type for the given OpTypeX instruction, storing
 		// it into the types map. It is called from the analysis pass (constructor).
@@ -934,13 +943,16 @@ namespace sw
 					Function::ID function,
 					RValue<SIMD::Int> activeLaneMask,
 					const vk::DescriptorSet::Bindings &descriptorSets,
-					bool robustBufferAccess)
+					bool robustBufferAccess,
+					spv::ExecutionModel executionModel)
 				: routine(routine),
 				  function(function),
 				  activeLaneMaskValue(activeLaneMask.value),
 				  descriptorSets(descriptorSets),
-				  robust(robustBufferAccess)
+				  robustBufferAccess(robustBufferAccess),
+				  executionModel(executionModel)
 			{
+				ASSERT(executionModelToStage(executionModel) != VkShaderStageFlagBits(0));  // Must parse OpEntryPoint before emitting.
 			}
 
 			RValue<SIMD::Int> activeLaneMask() const
@@ -975,7 +987,7 @@ namespace sw
 
 			const vk::DescriptorSet::Bindings &descriptorSets;
 
-			const bool robust = true;  // Emit robustBufferAccess safe code.
+			OutOfBoundsBehavior getOutOfBoundsBehavior(spv::StorageClass storageClass) const;
 
 			Intermediate& createIntermediate(Object::ID id, uint32_t size)
 			{
@@ -1005,9 +1017,13 @@ namespace sw
 				ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
 				return it->second;
 			}
+
 		private:
 			std::unordered_map<Object::ID, Intermediate> intermediates;
 			std::unordered_map<Object::ID, SIMD::Pointer> pointers;
+
+			const bool robustBufferAccess = true;  // Emit robustBufferAccess safe code.
+			const spv::ExecutionModel executionModel = spv::ExecutionModelMax;
 		};
 
 		// EmitResult is an enumerator of result values from the Emit functions.
@@ -1203,6 +1219,8 @@ namespace sw
 		static sw::FilterType convertFilterMode(const vk::Sampler *sampler);
 		static sw::MipmapType convertMipmapMode(const vk::Sampler *sampler);
 		static sw::AddressingMode convertAddressingMode(int coordinateIndex, VkSamplerAddressMode addressMode, VkImageViewType imageViewType);
+
+		// Returns 0 when invalid.
 		static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);
 	};
 
