@@ -31,6 +31,7 @@
 #endif
 
 #include <cstring>
+#include <cstdlib>
 
 #undef allocate
 #undef deallocate
@@ -70,7 +71,7 @@ void *allocateRaw(size_t bytes, size_t alignment)
 			return allocation;
 		}
 	#else
-		unsigned char *block = new unsigned char[bytes + sizeof(Allocation) + alignment];
+		unsigned char *block = (unsigned char*)malloc(bytes + sizeof(Allocation) + alignment);
 		unsigned char *aligned = nullptr;
 
 		if(block)
@@ -127,7 +128,7 @@ void deallocate(void *memory)
 			unsigned char *aligned = (unsigned char*)memory;
 			Allocation *allocation = (Allocation*)(aligned - sizeof(Allocation));
 
-			delete[] allocation->block;
+			free(allocation->block);
 		}
 	#endif
 }
