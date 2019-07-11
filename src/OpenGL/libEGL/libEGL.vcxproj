@@ -131,7 +131,7 @@
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>5030</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;5030</DisableSpecificWarnings>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -164,7 +164,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\trans
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>5030</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;5030</DisableSpecificWarnings>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -198,7 +198,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\trans
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>5030</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;5030</DisableSpecificWarnings>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -232,7 +232,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\trans
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>5030</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;5030</DisableSpecificWarnings>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -268,7 +268,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\trans
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>5030</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;5030</DisableSpecificWarnings>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -302,7 +302,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\trans
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>5030</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4267;5030</DisableSpecificWarnings>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
