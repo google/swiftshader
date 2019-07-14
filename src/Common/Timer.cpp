@@ -65,9 +65,7 @@ namespace sw
 				return __rdtsc();
 			#endif
 		#elif defined(__i386__) || defined(__x86_64__)
-			int64_t tsc;
-			__asm volatile("rdtsc": "=A" (tsc));
-			return tsc;
+			return __builtin_ia32_rdtsc();
 		#else
 			return 0;
 		#endif
