@@ -34,8 +34,8 @@ namespace sw
 		virtual ~PixelProgram() {}
 
 	protected:
-		virtual void setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w);
-		virtual void applyShader(Int cMask[4]);
+		virtual void setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w, Int cMask[4]);
+		virtual void applyShader(Int cMask[4], Int sMask[4], Int zMask[4]);
 		virtual Bool alphaTest(Int cMask[4]);
 		virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4]);
 
@@ -46,6 +46,8 @@ namespace sw
 		// Raster operations
 		void clampColor(Vector4f oC[RENDERTARGETS]);
 
+		Int4 maskAny(Int cMask[4]) const;
+		Int4 maskAny(Int cMask[4], Int sMask[4], Int zMask[4]) const;
 		Float4 linearToSRGB(const Float4 &x);
 	};
 }

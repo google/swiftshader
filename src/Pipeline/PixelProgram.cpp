@@ -20,7 +20,43 @@
 
 namespace sw
 {
-	void PixelProgram::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w)
+	// Union all cMask and return it as 4 booleans
+	Int4 PixelProgram::maskAny(Int cMask[4]) const
+	{
+		// See if at least 1 sample is used
+		Int maskUnion = cMask[0];
+		for(auto i = 1u; i < state.multiSample; i++)
+		{
+			maskUnion |= cMask[i];
+		}
+
+		// Convert to 4 booleans
+		Int4 laneBits = Int4(1, 2, 4, 8);
+		Int4 laneShiftsToMSB = Int4(31, 30, 29, 28);
+		Int4 mask(maskUnion);
+		mask = ((mask & laneBits) << laneShiftsToMSB) >> Int4(31);
+		return mask;
+	}
+
+	// Union all cMask/sMask/zMask and return it as 4 booleans
+	Int4 PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4]) const
+	{
+		// See if at least 1 sample is used
+		Int maskUnion = cMask[0] & sMask[0] & zMask[0];
+		for(auto i = 1u; i < state.multiSample; i++)
+		{
+			maskUnion |= (cMask[i] & sMask[i] & zMask[i]);
+		}
+
+		// Convert to 4 booleans
+		Int4 laneBits = Int4(1, 2, 4, 8);
+		Int4 laneShiftsToMSB = Int4(31, 30, 29, 28);
+		Int4 mask(maskUnion);
+		mask = ((mask & laneBits) << laneShiftsToMSB) >> Int4(31);
+		return mask;
+	}
+
+	void PixelProgram::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w, Int cMask[4])
 	{
 		routine.setImmutableInputBuiltins(spirvShader);
 
@@ -54,12 +90,18 @@ namespace sw
 			value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(SIMD::Width));
 		});
 
+		routine.setInputBuiltin(spirvShader, spv::BuiltInHelperInvocation, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
+		{
+			assert(builtin.SizeInComponents == 1);
+			value[builtin.FirstComponent] = As<SIMD::Float>(~maskAny(cMask));
+		});
+
 		routine.windowSpacePosition[0] = x + SIMD::Int(0,1,0,1);
 		routine.windowSpacePosition[1] = y + SIMD::Int(0,0,1,1);
 		routine.viewID = *Pointer<Int>(data + OFFSET(DrawData, viewID));
 	}
 
-	void PixelProgram::applyShader(Int cMask[4])
+	void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	{
 		routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
 		routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
@@ -96,9 +138,10 @@ namespace sw
 		// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
 		// handled separately, through the cMask.
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
+		auto storesAndAtomicsMask = maskAny(cMask, sMask, zMask);
 		routine.killMask = 0;
 
-		spirvShader->emit(&routine, activeLaneMask, descriptorSets);
+		spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets);
 		spirvShader->emitEpilog(&routine);
 
 		for(int i = 0; i < RENDERTARGETS; i++)

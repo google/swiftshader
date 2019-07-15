@@ -188,7 +188,7 @@ namespace sw
 
 			setSubgroupBuiltins(data, routine, workgroupID, localInvocationIndex, subgroupIndex);
 
-			shader->emit(routine, activeLaneMask, descriptorSets);
+			shader->emit(routine, activeLaneMask, activeLaneMask, descriptorSets);
 		}
 	}
 

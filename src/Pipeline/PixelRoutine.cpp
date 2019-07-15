@@ -53,7 +53,7 @@ namespace sw
 	void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y)
 	{
 		// TODO: consider shader which modifies sample mask in general
-		const bool earlyDepthTest = !spirvShader || (!spirvShader->getModes().DepthReplacing && !state.alphaToCoverage);
+		const bool earlyDepthTest = !spirvShader || (spirvShader->getModes().EarlyFragmentTests && !spirvShader->getModes().DepthReplacing && !state.alphaToCoverage);
 
 		Int zMask[4];   // Depth mask
 		Int sMask[4];   // Stencil mask
@@ -161,14 +161,15 @@ namespace sw
 					}
 				}
 
-				setBuiltins(x, y, z, w);
+				setBuiltins(x, y, z, w, cMask);
 			}
 
 			Bool alphaPass = true;
 
 			if (spirvShader)
 			{
-				applyShader(cMask);
+				bool earlyFragTests = (spirvShader && spirvShader->getModes().EarlyFragmentTests);
+				applyShader(cMask, earlyFragTests ? sMask : cMask, earlyDepthTest ? zMask : cMask);
 			}
 
 			alphaPass = alphaTest(cMask);
