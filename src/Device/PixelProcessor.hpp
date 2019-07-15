@@ -52,13 +52,7 @@ namespace sw
 			bool perspective;
 			bool depthClamp;
 
-			bool alphaBlendActive;
-			VkBlendFactor sourceBlendFactor;
-			VkBlendFactor destBlendFactor;
-			VkBlendOp blendOperation;
-			VkBlendFactor sourceBlendFactorAlpha;
-			VkBlendFactor destBlendFactorAlpha;
-			VkBlendOp blendOperationAlpha;
+			BlendState blendState[RENDERTARGETS];
 
 			unsigned int colorWriteMask;
 			VkFormat targetFormat[RENDERTARGETS];

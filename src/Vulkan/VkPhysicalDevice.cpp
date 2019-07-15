@@ -34,7 +34,7 @@ const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
 		VK_TRUE,   // robustBufferAccess
 		VK_FALSE,  // fullDrawIndexUint32
 		VK_FALSE,  // imageCubeArray
-		VK_FALSE,  // independentBlend
+		VK_TRUE,   // independentBlend
 		VK_FALSE,  // geometryShader
 		VK_FALSE,  // tessellationShader
 		VK_FALSE,  // sampleRateShading

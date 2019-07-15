@@ -36,6 +36,19 @@ namespace sw
 		unsigned char data[vk::MAX_PUSH_CONSTANT_SIZE];
 	};
 
+	struct BlendState
+	{
+		void init();
+
+		bool alphaBlendEnable;
+		VkBlendFactor sourceBlendFactor;
+		VkBlendFactor destBlendFactor;
+		VkBlendOp blendOperation;
+		VkBlendFactor sourceBlendFactorAlpha;
+		VkBlendFactor destBlendFactorAlpha;
+		VkBlendOp blendOperationAlpha;
+	};
+
 	class Context
 	{
 	public:
@@ -52,14 +65,9 @@ namespace sw
 		bool stencilActive() const;
 
 		bool allTargetsColorClamp() const;
-		bool alphaBlendActive() const;
-		VkBlendFactor sourceBlendFactor() const;
-		VkBlendFactor destBlendFactor() const;
-		VkBlendOp blendOperation() const;
 
-		VkBlendFactor sourceBlendFactorAlpha() const;
-		VkBlendFactor destBlendFactorAlpha() const;
-		VkBlendOp blendOperationAlpha() const;
+		void setBlendState(int index, BlendState state);
+		BlendState getBlendState(int index) const;
 
 		VkPrimitiveTopology topology;
 
@@ -75,9 +83,7 @@ namespace sw
 		float slopeDepthBias;
 
 		VkFormat renderTargetInternalFormat(int index) const;
-		bool colorWriteActive() const;
 		int colorWriteActive(int index) const;
-		bool colorUsed() const;
 
 		vk::DescriptorSet::Bindings descriptorSets = {};
 		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
@@ -102,15 +108,6 @@ namespace sw
 		VkCompareOp depthCompareMode;
 		bool depthWriteEnable;
 
-		bool alphaBlendEnable;
-		VkBlendFactor sourceBlendFactorState;
-		VkBlendFactor destBlendFactorState;
-		VkBlendOp blendOperationState;
-
-		VkBlendFactor sourceBlendFactorStateAlpha;
-		VkBlendFactor destBlendFactorStateAlpha;
-		VkBlendOp blendOperationStateAlpha;
-
 		float lineWidth;
 
 		int colorWriteMask[RENDERTARGETS];   // RGBA
@@ -118,6 +115,21 @@ namespace sw
 		unsigned int multiSampleMask;
 		int sampleCount;
 		bool alphaToCoverage;
+
+	private:
+		bool colorWriteActive() const;
+		bool colorUsed() const;
+
+		bool alphaBlendActive(int index) const;
+		VkBlendFactor sourceBlendFactor(int index) const;
+		VkBlendFactor destBlendFactor(int index) const;
+		VkBlendOp blendOperation(int index) const;
+
+		VkBlendFactor sourceBlendFactorAlpha(int index) const;
+		VkBlendFactor destBlendFactorAlpha(int index) const;
+		VkBlendOp blendOperationAlpha(int index) const;
+
+		BlendState blendState[RENDERTARGETS];
 	};
 }
 
