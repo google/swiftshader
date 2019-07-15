@@ -1196,12 +1196,6 @@ namespace sw
 		P[3].y -= Y;
 		C[3] = Clipper::ComputeClipFlags(P[3]);
 
-		triangle.v1 = triangle.v0;
-		triangle.v2 = triangle.v0;
-
-		triangle.v1.projected.x += iround(16 * 0.5f * pSize);
-		triangle.v2.projected.y -= iround(16 * 0.5f * pSize) * (data.Hx16[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
-
 		Polygon polygon(P, 4);
 
 		if((C[0] & C[1] & C[2] & C[3]) == Clipper::CLIP_FINITE)
@@ -1216,6 +1210,11 @@ namespace sw
 				}
 			}
 
+			triangle.v1 = triangle.v0;
+			triangle.v2 = triangle.v0;
+
+			triangle.v1.projected.x += iround(16 * 0.5f * pSize);
+			triangle.v2.projected.y -= iround(16 * 0.5f * pSize) * (data.Hx16[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
 			return setupRoutine(&primitive, &triangle, &polygon, &data);
 		}
 
