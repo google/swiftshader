@@ -108,7 +108,13 @@ swiftshader_shared_library("swiftshader_libvulkan") {
   output_name = "libvulkan"
   output_dir = "$root_out_dir/swiftshader"
 
-  if (is_linux) {
+  if (is_mac) {
+    ldflags = [
+      "-Wl,-install_name,@rpath/libvk_swiftshader.dylib",
+      "-Wl,-exported_symbols_list," +
+          rebase_path("libvk_swiftshader.exports", root_build_dir),
+    ]
+  } else if (is_linux) {
     inputs = [
       "libvk_swiftshader.lds",
     ]

@@ -73,7 +73,11 @@ swiftshader_shared_library("swiftshader_libEGL") {
       "CoreFoundation.framework",
       "IOSurface.framework",
     ]
-    ldflags = [ "-Wl,-install_name,@rpath/libswiftshader_libEGL.dylib" ]
+    ldflags = [
+      "-Wl,-install_name,@rpath/libswiftshader_libEGL.dylib",
+      "-Wl,-exported_symbols_list," +
+          rebase_path("libEGL.exports", root_build_dir),
+    ]
   } else if (is_linux) {
     if (use_x11) {
       sources += [ "../../Main/libX11.cpp" ]
