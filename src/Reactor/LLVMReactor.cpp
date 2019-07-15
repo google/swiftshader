@@ -119,46 +119,111 @@ namespace
 		return config;
 	}
 
-	class LLVMInitializer
+	// Cache provides a simple, thread-safe key-value store.
+	template <typename KEY, typename VALUE>
+	class Cache
 	{
-	protected:
-		LLVMInitializer()
-		{
-			llvm::InitializeNativeTarget();
-			llvm::InitializeNativeTargetAsmPrinter();
-			llvm::InitializeNativeTargetAsmParser();
-		}
+	public:
+		Cache() = default;
+		Cache(const Cache& other);
+		VALUE getOrCreate(KEY key, std::function<VALUE()> create);
+	private:
+		mutable std::mutex mutex; // mutable required for copy constructor.
+		std::unordered_map<KEY, VALUE> map;
 	};
+
+	template <typename KEY, typename VALUE>
+	Cache<KEY, VALUE>::Cache(const Cache& other)
+	{
+		std::unique_lock<std::mutex> lock(other.mutex);
+		map = other.map;
+	}
+
+	template <typename KEY, typename VALUE>
+	VALUE Cache<KEY, VALUE>::getOrCreate(KEY key, std::function<VALUE()> create)
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		auto it = map.find(key);
+		if (it != map.end())
+		{
+			return it->second;
+		}
+		auto value = create();
+		map.emplace(key, value);
+		return value;
+	}
 
 	// JITGlobals is a singleton that holds all the immutable machine specific
 	// information for the host device.
-	class JITGlobals : LLVMInitializer
+	class JITGlobals
 	{
 	public:
-		static JITGlobals const * get();
+		using TargetMachineSPtr = std::shared_ptr<llvm::TargetMachine>;
 
-		std::string mcpu;
-		std::vector<std::string> mattrs;
-		const char* march;
-		llvm::TargetOptions targetOptions;
-		llvm::DataLayout dataLayout = llvm::DataLayout("");
+		static JITGlobals * get();
+
+		const std::string mcpu;
+		const std::vector<std::string> mattrs;
+		const char* const march;
+		const llvm::TargetOptions targetOptions;
+		const llvm::DataLayout dataLayout;
+
+		TargetMachineSPtr getTargetMachine(rr::Optimization::Level optlevel);
 
 	private:
-		JITGlobals();
+		static JITGlobals create();
+		static llvm::CodeGenOpt::Level toLLVM(rr::Optimization::Level level);
+		JITGlobals(const char *mcpu,
+		           const std::vector<std::string> &mattrs,
+		           const char *march,
+		           const llvm::TargetOptions &targetOptions,
+		           const llvm::DataLayout &dataLayout);
+		JITGlobals(const JITGlobals&) = default;
+
+		// The cache key here is actually a rr::Optimization::Level. We use int
+		// as 'enum class' types do not provide builtin hash functions until
+		// C++14. See: https://stackoverflow.com/a/29618545.
+		Cache<int, TargetMachineSPtr> targetMachines;
 	};
 
-	JITGlobals const * JITGlobals::get()
+	JITGlobals * JITGlobals::get()
 	{
-		static JITGlobals instance;
+		static JITGlobals instance = create();
 		return &instance;
 	}
 
-	JITGlobals::JITGlobals()
+	JITGlobals::TargetMachineSPtr JITGlobals::getTargetMachine(rr::Optimization::Level optlevel)
 	{
-		// mcpu
-		mcpu = llvm::sys::getHostCPUName();
+		return targetMachines.getOrCreate(static_cast<int>(optlevel), [&]() {
+			return TargetMachineSPtr(llvm::EngineBuilder()
+#ifdef ENABLE_RR_DEBUG_INFO
+				.setOptLevel(llvm::CodeGenOpt::None)
+#else
+				.setOptLevel(toLLVM(optlevel))
+#endif // ENABLE_RR_DEBUG_INFO
+				.setMCPU(mcpu)
+				.setMArch(march)
+				.setMAttrs(mattrs)
+				.setTargetOptions(targetOptions)
+				.selectTarget());
+		});
+	}
 
-		// mattrs
+	JITGlobals JITGlobals::create()
+	{
+		struct LLVMInitializer
+		{
+			LLVMInitializer()
+			{
+				llvm::InitializeNativeTarget();
+				llvm::InitializeNativeTargetAsmPrinter();
+				llvm::InitializeNativeTargetAsmParser();
+			}
+		};
+		static LLVMInitializer initializeLLVM;
+
+		auto mcpu = llvm::sys::getHostCPUName();
+
 		llvm::StringMap<bool> features;
 		bool ok = llvm::sys::getHostCPUFeatures(features);
 
@@ -169,31 +234,13 @@ namespace
 		(void) ok; // getHostCPUFeatures always returns false on other platforms
 #endif
 
+		std::vector<std::string> mattrs;
 		for (auto &feature : features)
 		{
 			if (feature.second) { mattrs.push_back(feature.first()); }
 		}
 
-#if 0
-#if defined(__i386__) || defined(__x86_64__)
-		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"    : "-mmx");
-		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"   : "-cmov");
-		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"    : "-sse");
-		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"   : "-sse2");
-		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"   : "-sse3");
-		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3"  : "-ssse3");
-		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
-#elif defined(__arm__)
-#if __ARM_ARCH >= 8
-		mattrs.push_back("+armv8-a");
-#else
-		// armv7-a requires compiler-rt routines; otherwise, compiled kernel
-		// might fail to link.
-#endif
-#endif
-#endif
-
-		// arch
+		const char* march = nullptr;
 #if defined(__x86_64__)
 		march = "x86-64";
 #elif defined(__i386__)
@@ -214,9 +261,8 @@ namespace
 		#error "unknown architecture"
 #endif
 
+		llvm::TargetOptions targetOptions;
 		targetOptions.UnsafeFPMath = false;
-		// targetOpts.NoInfsFPMath = true;
-		// targetOpts.NoNaNsFPMath = true;
 
 		auto targetMachine = std::unique_ptr<llvm::TargetMachine>(
 			llvm::EngineBuilder()
@@ -227,7 +273,35 @@ namespace
 				.setTargetOptions(targetOptions)
 				.selectTarget());
 
-		dataLayout = targetMachine->createDataLayout();
+		auto dataLayout = targetMachine->createDataLayout();
+
+		return JITGlobals(mcpu.data(), mattrs, march, targetOptions, dataLayout);
+	}
+
+	llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
+	{
+		switch (level)
+		{
+			case rr::Optimization::Level::None:       return ::llvm::CodeGenOpt::None;
+			case rr::Optimization::Level::Less:       return ::llvm::CodeGenOpt::Less;
+			case rr::Optimization::Level::Default:    return ::llvm::CodeGenOpt::Default;
+			case rr::Optimization::Level::Aggressive: return ::llvm::CodeGenOpt::Aggressive;
+			default: UNREACHABLE("Unknown Optimization Level %d", int(level));
+		}
+		return ::llvm::CodeGenOpt::Default;
+	}
+
+	JITGlobals::JITGlobals(const char* mcpu,
+	                       const std::vector<std::string> &mattrs,
+	                       const char* march,
+	                       const llvm::TargetOptions &targetOptions,
+	                       const llvm::DataLayout &dataLayout) :
+			mcpu(mcpu),
+			mattrs(mattrs),
+			march(march),
+			targetOptions(targetOptions),
+			dataLayout(dataLayout)
+	{
 	}
 
 	// JITRoutine is a rr::Routine that holds a LLVM JIT session, compiler and
@@ -261,17 +335,7 @@ namespace
 						return;
 					}
 				})),
-			targetMachine(llvm::EngineBuilder()
-#ifdef ENABLE_RR_DEBUG_INFO
-				.setOptLevel(llvm::CodeGenOpt::None)
-#else
-				.setOptLevel(toLLVM(config.getOptimization().getLevel()))
-#endif // ENABLE_RR_DEBUG_INFO
-				.setMCPU(JITGlobals::get()->mcpu)
-				.setMArch(JITGlobals::get()->march)
-				.setMAttrs(JITGlobals::get()->mattrs)
-				.setTargetOptions(JITGlobals::get()->targetOptions)
-				.selectTarget()),
+			targetMachine(JITGlobals::get()->getTargetMachine(config.getOptimization().getLevel())),
 			compileLayer(objLayer, llvm::orc::SimpleCompiler(*targetMachine)),
 			objLayer(
 				session,
@@ -332,21 +396,8 @@ namespace
 		}
 
 	private:
-		static ::llvm::CodeGenOpt::Level toLLVM(rr::Optimization::Level level)
-		{
-			switch (level)
-			{
-				case rr::Optimization::Level::None:       return ::llvm::CodeGenOpt::None;
-				case rr::Optimization::Level::Less:       return ::llvm::CodeGenOpt::Less;
-				case rr::Optimization::Level::Default:    return ::llvm::CodeGenOpt::Default;
-				case rr::Optimization::Level::Aggressive: return ::llvm::CodeGenOpt::Aggressive;
-				default: UNREACHABLE("Unknown Optimization Level %d", int(level));
-			}
-			return ::llvm::CodeGenOpt::Default;
-		}
-
 		std::shared_ptr<llvm::orc::SymbolResolver> resolver;
-		std::unique_ptr<llvm::TargetMachine> targetMachine;
+		std::shared_ptr<llvm::TargetMachine> targetMachine;
 		llvm::orc::ExecutionSession session;
 		CompileLayer compileLayer;
 		ObjLayer objLayer;
