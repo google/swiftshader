@@ -993,9 +993,9 @@ func compare(old, new *CommitTestResults) string {
 			continue
 		}
 		switch {
-		case old.Status.Passing() && new.Status.Failing():
+		case !old.Status.Failing() && new.Status.Failing():
 			broken = append(broken, test)
-		case old.Status.Failing() && new.Status.Passing():
+		case !old.Status.Passing() && new.Status.Passing():
 			fixed = append(fixed, test)
 		case old.Status != new.Status:
 			changed = append(changed, test)
