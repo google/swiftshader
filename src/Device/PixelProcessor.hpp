@@ -129,8 +129,8 @@ namespace sw
 
 	protected:
 		const State update(const Context* context) const;
-		Routine *routine(const State &state, vk::PipelineLayout const *pipelineLayout,
-		                 SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);
+		std::shared_ptr<Routine> routine(const State &state, vk::PipelineLayout const *pipelineLayout,
+		                                 SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);
 		void setRoutineCacheSize(int routineCacheSize);
 
 		// Other semi-constants

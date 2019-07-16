@@ -88,8 +88,8 @@ namespace sw
 
 	protected:
 		const State update(const sw::Context* context);
-		Routine *routine(const State &state, vk::PipelineLayout const *pipelineLayout,
-		                 SpirvShader const *vertexShader, const vk::DescriptorSet::Bindings &descriptorSets);
+		std::shared_ptr<Routine> routine(const State &state, vk::PipelineLayout const *pipelineLayout,
+		                                 SpirvShader const *vertexShader, const vk::DescriptorSet::Bindings &descriptorSets);
 
 		void setRoutineCacheSize(int cacheSize);
 

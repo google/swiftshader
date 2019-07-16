@@ -168,7 +168,7 @@ private:
 	{
 		if(core != nullptr)
 		{
-			routine.reset(core->acquireCoroutine("coroutine", cfg));
+			routine = core->acquireCoroutine("coroutine", cfg);
 			core.reset(nullptr);
 		}
 	}

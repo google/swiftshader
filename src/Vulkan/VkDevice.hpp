@@ -67,21 +67,21 @@ public:
 			uint32_t imageView;
 		};
 
-		rr::Routine* query(const Key& key) const;
-		void add(const Key& key, rr::Routine* routine);
+		std::shared_ptr<rr::Routine> query(const Key& key) const;
+		void add(const Key& key, const std::shared_ptr<rr::Routine>& routine);
 
-		rr::Routine* queryConst(const Key& key) const;
+		std::shared_ptr<rr::Routine> queryConst(const Key& key) const;
 		void updateConstCache();
 
 		static std::size_t hash(const Key &key);
 
 	private:
-		sw::LRUConstCache<std::size_t, rr::Routine> cache;
+		sw::LRUConstCache<std::size_t, std::shared_ptr<rr::Routine>> cache;
 	};
 
 	SamplingRoutineCache* getSamplingRoutineCache() const;
 	std::mutex& getSamplingRoutineCacheMutex();
-	rr::Routine* findInConstCache(const SamplingRoutineCache::Key& key) const;
+	std::shared_ptr<rr::Routine> findInConstCache(const SamplingRoutineCache::Key& key) const;
 	void updateSamplingRoutineConstCache();
 
 private:

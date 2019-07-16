@@ -31,8 +31,8 @@ namespace sw
 
 		virtual ~LRUCache();
 
-		Data *query(const Key &key) const;
-		virtual Data *add(const Key &key, Data *data);
+		Data query(const Key &key) const;
+		virtual Data add(const Key &key, const Data &data);
 
 		int getSize() {return size;}
 		Key &getKey(int i) {return key[i];}
@@ -45,7 +45,7 @@ namespace sw
 
 		Key *key;
 		Key **ref;
-		Data **data;
+		Data *data;
 	};
 
 	template<class Key, class Data>
@@ -56,19 +56,19 @@ namespace sw
 		LRUConstCache(int n) : LRUBase(n) {}
 		~LRUConstCache() { clearConstCache(); }
 
-		Data *add(const Key &key, Data *data) override
+		Data add(const Key &key, const Data& data) override
 		{
 			constCacheNeedsUpdate = true;
 			return LRUBase::add(key, data);
 		}
 
 		void updateConstCache();
-		Data *queryConstCache(const Key &key) const;
+		Data queryConstCache(const Key &key) const;
 
 	private:
 		void clearConstCache();
 		bool constCacheNeedsUpdate = false;
-		std::unordered_map<Key, Data*> constCache;
+		std::unordered_map<Key, Data> constCache;
 	};
 
 	// Helper class for clearing the memory of objects at construction.
@@ -124,12 +124,10 @@ namespace sw
 
 		key = new Key[size];
 		ref = new Key*[size];
-		data = new Data*[size];
+		data = new Data[size];
 
 		for(int i = 0; i < size; i++)
 		{
-			data[i] = nullptr;
-
 			ref[i] = &key[i];
 		}
 	}
@@ -143,21 +141,12 @@ namespace sw
 		delete[] ref;
 		ref = nullptr;
 
-		for(int i = 0; i < size; i++)
-		{
-			if(data[i])
-			{
-				data[i]->unbind();
-				data[i] = nullptr;
-			}
-		}
-
 		delete[] data;
 		data = nullptr;
 	}
 
 	template<class Key, class Data>
-	Data *LRUCache<Key, Data>::query(const Key &key) const
+	Data LRUCache<Key, Data>::query(const Key &key) const
 	{
 		for(int i = top; i > top - fill; i--)
 		{
@@ -165,14 +154,14 @@ namespace sw
 
 			if(key == *ref[j])
 			{
-				Data *hit = data[j];
+				Data hit = data[j];
 
 				if(i != top)
 				{
 					// Move one up
 					int k = (j + 1) & mask;
 
-					Data *swapD = data[k];
+					Data swapD = data[k];
 					data[k] = data[j];
 					data[j] = swapD;
 
@@ -189,20 +178,12 @@ namespace sw
 	}
 
 	template<class Key, class Data>
-	Data *LRUCache<Key, Data>::add(const Key &key, Data *data)
+	Data LRUCache<Key, Data>::add(const Key &key, const Data &data)
 	{
 		top = (top + 1) & mask;
 		fill = fill + 1 < size ? fill + 1 : size;
 
 		*ref[top] = key;
-
-		data->bind();
-
-		if(this->data[top])
-		{
-			this->data[top]->unbind();
-		}
-
 		this->data[top] = data;
 
 		return data;
@@ -211,12 +192,6 @@ namespace sw
 	template<class Key, class Data>
 	void LRUConstCache<Key, Data>::clearConstCache()
 	{
-		auto it = constCache.begin();
-		auto itEnd = constCache.end();
-		for(; it != itEnd; ++it)
-		{
-			it->second->unbind();
-		}
 		constCache.clear();
 	}
 
@@ -231,7 +206,6 @@ namespace sw
 			{
 				if(LRUBase::data[i])
 				{
-					LRUBase::data[i]->bind();
 					constCache[*LRUBase::ref[i]] = LRUBase::data[i];
 				}
 			}
@@ -241,7 +215,7 @@ namespace sw
 	}
 
 	template<class Key, class Data>
-	Data *LRUConstCache<Key, Data>::queryConstCache(const Key &key) const
+	Data LRUConstCache<Key, Data>::queryConstCache(const Key &key) const
 	{
 		auto it = constCache.find(key);
 		return (it != constCache.end()) ? it->second : nullptr;

@@ -1179,7 +1179,7 @@ namespace sw
 		return s;
 	}
 
-	Routine *Blitter::generate(const State &state)
+	std::shared_ptr<Routine> Blitter::generate(const State &state)
 	{
 		Function<Void(Pointer<Byte>)> function;
 		{
@@ -1420,7 +1420,7 @@ namespace sw
 		state.destSamples = dest->getSamples();
 
 		criticalSection.lock();
-		Routine *blitRoutine = blitCache->query(state);
+		auto blitRoutine = blitCache->query(state);
 
 		if(!blitRoutine)
 		{

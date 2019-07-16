@@ -94,12 +94,12 @@ namespace sw
 		return state;
 	}
 
-	Routine *VertexProcessor::routine(const State &state,
-	                                  vk::PipelineLayout const *pipelineLayout,
-	                                  SpirvShader const *vertexShader,
-	                                  const vk::DescriptorSet::Bindings &descriptorSets)
+	std::shared_ptr<Routine> VertexProcessor::routine(const State &state,
+	                                                  vk::PipelineLayout const *pipelineLayout,
+	                                                  SpirvShader const *vertexShader,
+	                                                  const vk::DescriptorSet::Bindings &descriptorSets)
 	{
-		Routine *routine = routineCache->query(state);
+		auto routine = routineCache->query(state);
 
 		if(!routine)   // Create one
 		{

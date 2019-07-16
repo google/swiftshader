@@ -54,7 +54,7 @@ namespace sw
 		static void setCursorOrigin(int x0, int y0);
 		static void setCursorPosition(int x, int y);
 
-		static Routine *copyRoutine(const BlitState &state);
+		static std::shared_ptr<Routine> copyRoutine(const BlitState &state);
 
 	protected:
 		void copy(sw::Surface *source);
@@ -90,7 +90,7 @@ namespace sw
 		static Cursor cursor;
 
 		void (*blitFunction)(void *dst, void *src, Cursor *cursor);
-		Routine *blitRoutine;
+		std::shared_ptr<Routine> blitRoutine;
 		BlitState blitState;     // State of the current blitRoutine.
 		BlitState updateState;   // State of the routine to be generated.
 

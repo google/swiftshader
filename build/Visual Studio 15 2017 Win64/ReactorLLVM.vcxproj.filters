@@ -10,9 +10,6 @@
     <ClCompile Include="$(SolutionDir)src\Reactor\LLVMReactorDebugInfo.cpp">
       <Filter>src\Reactor</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\Reactor\Routine.cpp">
-      <Filter>src\Reactor</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Reactor\CPUID.cpp">
       <Filter>src\Reactor</Filter>
     </ClCompile>

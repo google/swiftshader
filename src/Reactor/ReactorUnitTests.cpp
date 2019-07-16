@@ -38,7 +38,7 @@ int reference(int *p, int y)
 
 TEST(ReactorUnitTests, Sample)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Int>, Int)> function;
@@ -73,12 +73,11 @@ TEST(ReactorUnitTests, Sample)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Uninitialized)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int()> function;
@@ -110,12 +109,11 @@ TEST(ReactorUnitTests, Uninitialized)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Unreachable)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Int)> function;
@@ -141,12 +139,11 @@ TEST(ReactorUnitTests, Unreachable)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, VariableAddress)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Int)> function;
@@ -169,12 +166,11 @@ TEST(ReactorUnitTests, VariableAddress)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, SubVectorLoadStore)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>, Pointer<Byte>)> function;
@@ -229,12 +225,11 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, VectorConstant)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -278,12 +273,11 @@ TEST(ReactorUnitTests, VectorConstant)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Concatenate)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -321,12 +315,11 @@ TEST(ReactorUnitTests, Concatenate)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Swizzle)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -448,12 +441,11 @@ TEST(ReactorUnitTests, Swizzle)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Branching)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Void)> function;
@@ -513,12 +505,11 @@ TEST(ReactorUnitTests, Branching)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, MinMax)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -604,12 +595,11 @@ TEST(ReactorUnitTests, MinMax)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, NotNeg)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -689,12 +679,11 @@ TEST(ReactorUnitTests, NotNeg)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, VectorCompare)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -751,12 +740,11 @@ TEST(ReactorUnitTests, VectorCompare)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -864,12 +852,11 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Unpack)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>,Pointer<Byte>)> function;
@@ -911,12 +898,11 @@ TEST(ReactorUnitTests, Unpack)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Pack)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -973,12 +959,11 @@ TEST(ReactorUnitTests, Pack)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, MulHigh)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -1050,12 +1035,11 @@ TEST(ReactorUnitTests, MulHigh)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, MulAdd)
 {
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function<Int(Pointer<Byte>)> function;
@@ -1086,7 +1070,6 @@ TEST(ReactorUnitTests, MulAdd)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Call)
@@ -1097,7 +1080,7 @@ TEST(ReactorUnitTests, Call)
 		return;
 	}
 
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	struct Class
 	{
@@ -1137,7 +1120,6 @@ TEST(ReactorUnitTests, Call)
 		}
 	}
 
-	delete routine;
 }
 
 // Check that a complex generated function which utilizes all 8 or 16 XMM
@@ -1148,7 +1130,7 @@ TEST(ReactorUnitTests, Call)
 // It's necessary to inspect the registers in a debugger to actually verify.)
 TEST(ReactorUnitTests, PreserveXMMRegisters)
 {
-    Routine *routine = nullptr;
+    std::shared_ptr<Routine> routine;
 
     {
         Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
@@ -1225,7 +1207,6 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
         EXPECT_EQ(result[3], 0.0f);
     }
 
-    delete routine;
 }
 
 template <typename T>
@@ -1255,7 +1236,7 @@ TYPED_TEST(CToReactorCastTest, Casts)
 	using CType = typename TestFixture::CType;
 	using ReactorType = typename TestFixture::ReactorType;
 
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function< Int(ReactorType) > function;
@@ -1277,7 +1258,6 @@ TYPED_TEST(CToReactorCastTest, Casts)
 		}
 	}
 
-	delete routine;
 }
 
 template <typename T>
@@ -1327,7 +1307,7 @@ TYPED_TEST(GEPTest, PtrOffsets)
 	using CType = typename TestFixture::CType;
 	using ReactorType = typename TestFixture::ReactorType;
 
-	Routine *routine = nullptr;
+	std::shared_ptr<Routine> routine;
 
 	{
 		Function< Pointer<ReactorType>(Pointer<ReactorType>, Int) > function;
@@ -1367,7 +1347,6 @@ TYPED_TEST(GEPTest, PtrOffsets)
 		}
 	}
 
-	delete routine;
 }
 
 TEST(ReactorUnitTests, Coroutines_Fibonacci)

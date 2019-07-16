@@ -306,7 +306,7 @@ namespace sw
 
 	protected:
 		const State update() const;
-		Routine *routine(const State &state);
+		std::shared_ptr<Routine> routine(const State &state);
 		void setRoutineCacheSize(int routineCacheSize);
 
 		// Shader constants

@@ -52,7 +52,7 @@ namespace sw
 		}
 
 		State state(format, dstFormat, 1, dest->getSampleCountFlagBits(), { 0xF });
-		Routine *blitRoutine = getBlitRoutine(state);
+		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1304,7 +1304,7 @@ namespace sw
 		return s;
 	}
 
-	Routine *Blitter::generate(const State &state)
+	std::shared_ptr<Routine> Blitter::generate(const State &state)
 	{
 		Function<Void(Pointer<Byte>)> function;
 		{
@@ -1538,10 +1538,10 @@ namespace sw
 		return function("BlitRoutine");
 	}
 
-	Routine *Blitter::getBlitRoutine(const State &state)
+	std::shared_ptr<Routine> Blitter::getBlitRoutine(const State &state)
 	{
 		std::unique_lock<std::mutex> lock(blitMutex);
-		Routine *blitRoutine = blitCache.query(state);
+		auto blitRoutine = blitCache.query(state);
 
 		if(!blitRoutine)
 		{
@@ -1559,10 +1559,10 @@ namespace sw
 		return blitRoutine;
 	}
 
-	Routine *Blitter::getCornerUpdateRoutine(const State &state)
+	std::shared_ptr<Routine> Blitter::getCornerUpdateRoutine(const State &state)
 	{
 		std::unique_lock<std::mutex> lock(cornerUpdateMutex);
-		Routine *cornerUpdateRoutine = cornerUpdateCache.query(state);
+		auto cornerUpdateRoutine = cornerUpdateCache.query(state);
 
 		if(!cornerUpdateRoutine)
 		{
@@ -1587,7 +1587,7 @@ namespace sw
 		State state(format, format.getNonQuadLayoutFormat(), VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
 					{false, false});
 
-		Routine *blitRoutine = getBlitRoutine(state);
+		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1653,7 +1653,7 @@ namespace sw
 		State state(format.getNonQuadLayoutFormat(), format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
 					{false, false});
 
-		Routine *blitRoutine = getBlitRoutine(state);
+		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1760,7 +1760,7 @@ namespace sw
 		                    (static_cast<uint32_t>(region.srcOffsets[1].y) > srcExtent.height) ||
 		                    (doFilter && ((x0 < 0.5f) || (y0 < 0.5f)));
 
-		Routine *blitRoutine = getBlitRoutine(state);
+		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
 			return;
@@ -1857,7 +1857,7 @@ namespace sw
 		write(c0, layer + ComputeOffset(x0, y0, pitchB, bytes, quadLayout), state);
 	}
 
-	Routine *Blitter::generateCornerUpdate(const State& state)
+	std::shared_ptr<Routine> Blitter::generateCornerUpdate(const State& state)
 	{
 		// Reading and writing from/to the same image
 		ASSERT(state.sourceFormat == state.destFormat);
@@ -1958,7 +1958,7 @@ namespace sw
 			UNIMPLEMENTED("Multi-sampled cube: %d samples", static_cast<int>(samples));
 		}
 
-		Routine *cornerUpdateRoutine = getCornerUpdateRoutine(state);
+		auto cornerUpdateRoutine = getCornerUpdateRoutine(state);
 		if(!cornerUpdateRoutine)
 		{
 			return;

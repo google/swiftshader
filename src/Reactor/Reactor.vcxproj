@@ -290,7 +290,6 @@
     <ClCompile Include="LLVMReactorDebugInfo.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
     <ClCompile Include="Reactor.cpp" />
-    <ClCompile Include="Routine.cpp" />
     <ClCompile Include="Thread.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -15,11 +15,12 @@
 #ifndef rr_Nucleus_hpp
 #define rr_Nucleus_hpp
 
+#include <atomic>
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
+#include <memory>
 #include <vector>
-#include <atomic>
 
 #ifdef None
 #undef None  // b/127920555
@@ -128,7 +129,7 @@ namespace rr
 		static void adjustDefaultConfig(const Config::Edit &cfgEdit);
 		static Config getDefaultConfig();
 
-		Routine *acquireRoutine(const char *name, const Config::Edit &cfgEdit = Config::Edit::None);
+		std::shared_ptr<Routine> acquireRoutine(const char *name, const Config::Edit &cfgEdit = Config::Edit::None);
 
 		static Value *allocateStackVariable(Type *type, int arraySize = 0);
 		static BasicBlock *createBasicBlock();
@@ -155,7 +156,7 @@ namespace rr
 		};
 
 		static void createCoroutine(Type *ReturnType, std::vector<Type*> &Params);
-		Routine *acquireCoroutine(const char *name, const Config::Edit &cfg = Config::Edit::None);
+		std::shared_ptr<Routine> acquireCoroutine(const char *name, const Config::Edit &cfg = Config::Edit::None);
 		static void yield(Value*);
 
 		// Terminators

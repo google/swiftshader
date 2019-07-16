@@ -1830,7 +1830,7 @@ namespace D3D9
 			void *destBuffer = dest->lockExternal(0, 0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
 
 			static void (__cdecl *blitFunction)(void *dst, void *src);
-			static sw::Routine *blitRoutine;
+			static std::shared_ptr<sw::Routine> blitRoutine;
 			static sw::BlitState blitState = {};
 
 			sw::BlitState update;
@@ -1846,8 +1846,6 @@ namespace D3D9
 			if(memcmp(&blitState, &update, sizeof(sw::BlitState)) != 0)
 			{
 				blitState = update;
-				delete blitRoutine;
-
 				blitRoutine = sw::FrameBuffer::copyRoutine(blitState);
 				blitFunction = (void(__cdecl*)(void*, void*))blitRoutine->getEntry();
 			}

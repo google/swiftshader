@@ -627,7 +627,7 @@ namespace rr
 		return ::defaultConfig();
 	}
 
-	Routine *Nucleus::acquireRoutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
+	std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
 	{
 		if(basicBlock->getInsts().empty() || basicBlock->getInsts().back().getKind() != Ice::Inst::Ret)
 		{
@@ -663,7 +663,7 @@ namespace rr
 		Routine *handoffRoutine = ::routine;
 		::routine = nullptr;
 
-		return handoffRoutine;
+		return std::shared_ptr<Routine>(handoffRoutine);
 	}
 
 	Value *Nucleus::allocateStackVariable(Type *t, int arraySize)
@@ -3543,7 +3543,7 @@ namespace rr
 	void FlushDebug() {}
 
 	void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params) { UNIMPLEMENTED("createCoroutine"); }
-	Routine* Nucleus::acquireCoroutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */) { UNIMPLEMENTED("acquireCoroutine"); return nullptr; }
+	std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */) { UNIMPLEMENTED("acquireCoroutine"); return nullptr; }
 	void Nucleus::yield(Value* val) { UNIMPLEMENTED("Yield"); }
 
 }

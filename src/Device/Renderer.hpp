@@ -252,9 +252,9 @@ namespace sw
 		SetupProcessor::State setupState;
 		PixelProcessor::State pixelState;
 
-		Routine *vertexRoutine;
-		Routine *setupRoutine;
-		Routine *pixelRoutine;
+		std::shared_ptr<Routine> vertexRoutine;
+		std::shared_ptr<Routine> setupRoutine;
+		std::shared_ptr<Routine> pixelRoutine;
 
 		vk::Device* device;
 	};
@@ -269,9 +269,9 @@ namespace sw
 		std::atomic<int> indexType;
 		std::atomic<int> batchSize;
 
-		Routine *vertexRoutine;
-		Routine *setupRoutine;
-		Routine *pixelRoutine;
+		std::shared_ptr<Routine> vertexRoutine;
+		std::shared_ptr<Routine> setupRoutine;
+		std::shared_ptr<Routine> pixelRoutine;
 
 		VertexProcessor::RoutinePointer vertexPointer;
 		SetupProcessor::RoutinePointer setupPointer;

@@ -458,9 +458,9 @@ namespace sw
 		SetupProcessor::State setupState;
 		PixelProcessor::State pixelState;
 
-		Routine *vertexRoutine;
-		Routine *setupRoutine;
-		Routine *pixelRoutine;
+		std::shared_ptr<Routine> vertexRoutine;
+		std::shared_ptr<Routine> setupRoutine;
+		std::shared_ptr<Routine> pixelRoutine;
 	};
 
 	struct DrawCall
@@ -472,9 +472,9 @@ namespace sw
 		AtomicInt drawType;
 		AtomicInt batchSize;
 
-		Routine *vertexRoutine;
-		Routine *setupRoutine;
-		Routine *pixelRoutine;
+		std::shared_ptr<Routine> vertexRoutine;
+		std::shared_ptr<Routine> setupRoutine;
+		std::shared_ptr<Routine> pixelRoutine;
 
 		VertexProcessor::RoutinePointer vertexPointer;
 		SetupProcessor::RoutinePointer setupPointer;

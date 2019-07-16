@@ -111,7 +111,7 @@ namespace sw
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
 		bool blitReactor(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Options &options);
-		Routine *generate(const State &state);
+		std::shared_ptr<Routine> generate(const State &state);
 
 		RoutineCache<State> *blitCache;
 		MutexLock criticalSection;

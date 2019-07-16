@@ -1088,9 +1088,9 @@ namespace sw
 		return state;
 	}
 
-	Routine *VertexProcessor::routine(const State &state)
+	std::shared_ptr<Routine> VertexProcessor::routine(const State &state)
 	{
-		Routine *routine = routineCache->query(state);
+		auto routine = routineCache->query(state);
 
 		if(!routine)   // Create one
 		{

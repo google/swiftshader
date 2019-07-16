@@ -134,10 +134,10 @@ namespace sw
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
-		Routine *getBlitRoutine(const State &state);
-		Routine *generate(const State &state);
-		Routine *getCornerUpdateRoutine(const State &state);
-		Routine *generateCornerUpdate(const State& state);
+		std::shared_ptr<Routine> getBlitRoutine(const State &state);
+		std::shared_ptr<Routine> generate(const State &state);
+		std::shared_ptr<Routine> getCornerUpdateRoutine(const State &state);
+		std::shared_ptr<Routine> generateCornerUpdate(const State& state);
 		void computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state);
 
 		void copyCubeEdge(vk::Image* image,

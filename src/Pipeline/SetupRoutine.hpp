@@ -30,7 +30,7 @@ namespace sw
 		virtual ~SetupRoutine();
 
 		void generate();
-		Routine *getRoutine();
+		std::shared_ptr<Routine> getRoutine();
 
 	private:
 		void setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flatShading, bool perspective, int component);
@@ -40,7 +40,7 @@ namespace sw
 
 		const SetupProcessor::State &state;
 
-		Routine *routine;
+		std::shared_ptr<Routine> routine;
 	};
 }
 

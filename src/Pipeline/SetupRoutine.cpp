@@ -601,7 +601,7 @@ namespace sw
 		#endif
 	}
 
-	Routine *SetupRoutine::getRoutine()
+	std::shared_ptr<Routine> SetupRoutine::getRoutine()
 	{
 		return routine;
 	}

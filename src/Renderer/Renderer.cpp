@@ -360,10 +360,6 @@ namespace sw
 			draw->drawType = drawType;
 			draw->batchSize = batch;
 
-			vertexRoutine->bind();
-			setupRoutine->bind();
-			pixelRoutine->bind();
-
 			draw->vertexRoutine = vertexRoutine;
 			draw->setupRoutine = setupRoutine;
 			draw->pixelRoutine = pixelRoutine;
@@ -1105,9 +1101,9 @@ namespace sw
 					}
 				}
 
-				draw.vertexRoutine->unbind();
-				draw.setupRoutine->unbind();
-				draw.pixelRoutine->unbind();
+				draw.vertexRoutine.reset();
+				draw.setupRoutine.reset();
+				draw.pixelRoutine.reset();
 
 				sync->unlock();
 

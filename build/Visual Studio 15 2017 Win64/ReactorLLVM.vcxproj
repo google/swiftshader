@@ -127,7 +127,6 @@
     <ClCompile Include="$(SolutionDir)src\Reactor\LLVMReactorDebugInfo.cpp" />
     <ClInclude Include="$(SolutionDir)src\Reactor\LLVMReactorDebugInfo.hpp" />
     <ClInclude Include="$(SolutionDir)src\Reactor\Nucleus.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Reactor\Routine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Reactor\Routine.hpp" />
     <ClCompile Include="$(SolutionDir)src\Reactor\CPUID.cpp" />
     <ClInclude Include="$(SolutionDir)src\Reactor\CPUID.hpp" />

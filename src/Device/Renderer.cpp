@@ -340,10 +340,6 @@ namespace sw
 		draw->indexType = indexType;
 		draw->batchSize = batch;
 
-		vertexRoutine->bind();
-		setupRoutine->bind();
-		pixelRoutine->bind();
-
 		draw->vertexRoutine = vertexRoutine;
 		draw->setupRoutine = setupRoutine;
 		draw->pixelRoutine = pixelRoutine;
@@ -787,9 +783,9 @@ namespace sw
 					draw.queries = nullptr;
 				}
 
-				draw.vertexRoutine->unbind();
-				draw.setupRoutine->unbind();
-				draw.pixelRoutine->unbind();
+				draw.vertexRoutine.reset();
+				draw.setupRoutine.reset();
+				draw.pixelRoutine.reset();
 
 				if(draw.events)
 				{

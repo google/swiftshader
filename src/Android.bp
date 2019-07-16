@@ -176,7 +176,6 @@ cc_defaults {
     srcs: [
         "Reactor/Reactor.cpp",
         "Reactor/LLVMReactor.cpp",
-        "Reactor/Routine.cpp",
         "Reactor/Debug.cpp",
     ],
 
@@ -196,7 +195,6 @@ cc_defaults {
     srcs: [
         "Reactor/Reactor.cpp",
         "Reactor/LLVMReactor.cpp",
-        "Reactor/Routine.cpp",
         "Reactor/Debug.cpp",
     ],
 
@@ -223,7 +221,6 @@ cc_defaults {
     srcs: [
         "Reactor/Reactor.cpp",
         "Reactor/SubzeroReactor.cpp",
-        "Reactor/Routine.cpp",
         "Reactor/Optimizer.cpp",
         "Reactor/Debug.cpp",
     ],
