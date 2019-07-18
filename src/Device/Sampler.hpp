@@ -52,26 +52,6 @@ namespace sw
 		float4 depth;
 	};
 
-	enum SamplerType
-	{
-		SAMPLER_PIXEL,
-		SAMPLER_VERTEX
-	};
-
-	enum TextureType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		TEXTURE_NULL,       // TODO(b/129523279): Eliminate
-		TEXTURE_1D,
-		TEXTURE_2D,
-		TEXTURE_3D,
-		TEXTURE_CUBE,
-		TEXTURE_1D_ARRAY,   // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
-		TEXTURE_2D_ARRAY,
-		TEXTURE_CUBE_ARRAY,
-
-		TEXTURE_LAST = TEXTURE_CUBE_ARRAY
-	};
-
 	enum FilterType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		FILTER_POINT,
@@ -109,36 +89,9 @@ namespace sw
 		ADDRESSING_LAST = ADDRESSING_TEXELFETCH
 	};
 
-	enum CompareFunc ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		COMPARE_BYPASS,
-		COMPARE_LESSEQUAL,
-		COMPARE_GREATEREQUAL,
-		COMPARE_LESS,
-		COMPARE_GREATER,
-		COMPARE_EQUAL,
-		COMPARE_NOTEQUAL,
-		COMPARE_ALWAYS,
-		COMPARE_NEVER,
-
-		COMPARE_LAST = COMPARE_NEVER
-	};
-
-	enum SwizzleType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		SWIZZLE_RED,
-		SWIZZLE_GREEN,
-		SWIZZLE_BLUE,
-		SWIZZLE_ALPHA,
-		SWIZZLE_ZERO,
-		SWIZZLE_ONE,
-
-		SWIZZLE_LAST = SWIZZLE_ONE
-	};
-
 	struct Sampler
 	{
-		TextureType textureType;
+		VkImageViewType textureType;
 		vk::Format textureFormat;
 		FilterType textureFilter;
 		AddressingMode addressingModeU;

@@ -57,7 +57,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	auto type = imageDescriptor->type;
 
 	Sampler samplerState = {};
-	samplerState.textureType = convertTextureType(type);
+	samplerState.textureType = type;
 	samplerState.textureFormat = imageDescriptor->format;
 	samplerState.textureFilter = (instruction.samplerMethod == Gather) ? FILTER_GATHER : convertFilterMode(sampler);
 	samplerState.border = sampler->borderColor;
@@ -128,11 +128,11 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 
 		// TODO(b/134669567): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
 		// Implement optimized 1D sampling.
-		if(samplerState.textureType == TEXTURE_1D)
+		if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D)
 		{
 			uvw[1] = SIMD::Float(0);
 		}
-		else if(samplerState.textureType == TEXTURE_1D_ARRAY)
+		else if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
 		{
 			uvw[1] = SIMD::Float(0);
 			uvw[2] = in[1];  // Move 1D layer coordinate to 2D layer coordinate index.
@@ -185,7 +185,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 				dPdy.z = Pointer<Float>(&dsy.z)[i];
 
 				// 1D textures are treated as 2D texture with second coordinate 0, so we also need to zero out the second grad component. TODO(b/134669567)
-				if(samplerState.textureType == TEXTURE_1D || samplerState.textureType == TEXTURE_1D_ARRAY)
+				if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D || samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
 				{
 					dPdx.y = Float(0.0f);
 					dPdy.y = Float(0.0f);
@@ -213,23 +213,6 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 	}
 
 	return function("sampler");
-}
-
-sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)
-{
-	switch(imageViewType)
-	{
-	case VK_IMAGE_VIEW_TYPE_1D:         return TEXTURE_1D;
-	case VK_IMAGE_VIEW_TYPE_2D:         return TEXTURE_2D;
-	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
-	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
-	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
-	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
-//	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: return TEXTURE_CUBE_ARRAY;
-	default:
-		UNIMPLEMENTED("imageViewType %d", imageViewType);
-		return TEXTURE_2D;
-	}
 }
 
 sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)

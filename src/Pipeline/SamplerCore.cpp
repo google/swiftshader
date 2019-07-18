@@ -68,7 +68,7 @@ namespace sw
 		Float4 vDelta;
 		Float4 M;  // Major axis
 
-		if(state.textureType == TEXTURE_CUBE)
+		if(state.textureType == VK_IMAGE_VIEW_TYPE_CUBE)
 		{
 			Int4 face = cubeFace(uuuu, vvvv, u, v, w, M);
 			wwww = As<Float4>(face);
@@ -76,9 +76,9 @@ namespace sw
 
 		if(function == Implicit || function == Bias || function == Grad || function == Query)
 		{
-			if(state.textureType != TEXTURE_3D)
+			if(state.textureType != VK_IMAGE_VIEW_TYPE_3D)
 			{
-				if(state.textureType != TEXTURE_CUBE)
+				if(state.textureType != VK_IMAGE_VIEW_TYPE_CUBE)
 				{
 					computeLod(texture, sampler, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, dsx, dsy, function);
 				}
@@ -446,7 +446,7 @@ namespace sw
 
 	Vector4s SamplerCore::sampleQuad(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Vector4f &offset, Float &lod, bool secondLOD, SamplerFunction function)
 	{
-		if(state.textureType != TEXTURE_3D)
+		if(state.textureType != VK_IMAGE_VIEW_TYPE_3D)
 		{
 			return sampleQuad2D(texture, u, v, w, offset, lod, secondLOD, function);
 		}
@@ -867,7 +867,7 @@ namespace sw
 
 	Vector4f SamplerCore::sampleFloat(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &offset, Float &lod, bool secondLOD, SamplerFunction function)
 	{
-		if(state.textureType != TEXTURE_3D)
+		if(state.textureType != VK_IMAGE_VIEW_TYPE_3D)
 		{
 			return sampleFloat2D(texture, u, v, w, q, offset, lod, secondLOD, function);
 		}
@@ -1288,7 +1288,7 @@ namespace sw
 
 		if(hasThirdCoordinate())
 		{
-			if(state.textureType == TEXTURE_3D)
+			if(state.textureType == VK_IMAGE_VIEW_TYPE_3D)
 			{
 				if(!texelFetch)
 				{
@@ -2361,9 +2361,9 @@ namespace sw
 
 	bool SamplerCore::hasThirdCoordinate() const
 	{
-		return (state.textureType == TEXTURE_3D) ||
-		       (state.textureType == TEXTURE_2D_ARRAY) ||
-		       (state.textureType == TEXTURE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
+		return (state.textureType == VK_IMAGE_VIEW_TYPE_3D) ||
+		       (state.textureType == VK_IMAGE_VIEW_TYPE_2D_ARRAY) ||
+		       (state.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
 	}
 
 	bool SamplerCore::has16bitTextureFormat() const
