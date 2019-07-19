@@ -1491,7 +1491,7 @@ void CommandBuffer::clearColorImage(Image* image, VkImageLayout imageLayout, con
 
 	for(uint32_t i = 0; i < rangeCount; i++)
 	{
-		addCommand<ClearColorImage>(image, pColor[i], pRanges[i]);
+		addCommand<ClearColorImage>(image, *pColor, pRanges[i]);
 	}
 }
 
@@ -1502,7 +1502,7 @@ void CommandBuffer::clearDepthStencilImage(Image* image, VkImageLayout imageLayo
 
 	for(uint32_t i = 0; i < rangeCount; i++)
 	{
-		addCommand<ClearDepthStencilImage>(image, pDepthStencil[i], pRanges[i]);
+		addCommand<ClearDepthStencilImage>(image, *pDepthStencil, pRanges[i]);
 	}
 }
 
