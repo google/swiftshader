@@ -197,7 +197,7 @@ namespace
 		return targetMachines.getOrCreate(static_cast<int>(optlevel), [&]() {
 			return TargetMachineSPtr(llvm::EngineBuilder()
 #ifdef ENABLE_RR_DEBUG_INFO
-				.setOptLevel(llvm::CodeGenOpt::None)
+				.setOptLevel(toLLVM(rr::Optimization::Level::None))
 #else
 				.setOptLevel(toLLVM(optlevel))
 #endif // ENABLE_RR_DEBUG_INFO
@@ -1329,7 +1329,7 @@ namespace rr
 		jit->function = rr::createFunction("", T(ReturnType), T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
-		jit->debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(jit->builder, jit->context, jit->module.get(), jit->function));
+		jit->debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(jit->builder.get(), &jit->context, jit->module.get(), jit->function));
 #endif // ENABLE_RR_DEBUG_INFO
 
 		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->function));
