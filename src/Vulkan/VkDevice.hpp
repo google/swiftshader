@@ -24,7 +24,6 @@
 namespace sw
 {
 	class Blitter;
-	class SamplingRoutineCache;
 }
 
 namespace vk
@@ -71,13 +70,19 @@ public:
 		rr::Routine* query(const Key& key) const;
 		void add(const Key& key, rr::Routine* routine);
 
+		rr::Routine* queryConst(const Key& key) const;
+		void updateConstCache();
+
+		static std::size_t hash(const Key &key);
+
 	private:
-		std::size_t hash(const Key &key) const;
-		sw::LRUCache<std::size_t, rr::Routine> cache;
+		sw::LRUConstCache<std::size_t, rr::Routine> cache;
 	};
 
-	SamplingRoutineCache* getSamplingRoutineCache();
+	SamplingRoutineCache* getSamplingRoutineCache() const;
 	std::mutex& getSamplingRoutineCacheMutex();
+	rr::Routine* findInConstCache(const SamplingRoutineCache::Key& key) const;
+	void updateSamplingRoutineConstCache();
 
 private:
 	PhysicalDevice *const physicalDevice = nullptr;

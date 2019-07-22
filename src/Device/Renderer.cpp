@@ -26,6 +26,7 @@
 #include "System/Timer.hpp"
 #include "Vulkan/VkConfig.h"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkDevice.hpp"
 #include "Vulkan/VkFence.hpp"
 #include "Vulkan/VkImageView.hpp"
 #include "Vulkan/VkQueryPool.hpp"
@@ -162,7 +163,7 @@ namespace sw
 		deallocate(data);
 	}
 
-	Renderer::Renderer()
+	Renderer::Renderer(vk::Device* device) : device(device)
 	{
 		for(int i = 0; i < 16; i++)
 		{
@@ -733,6 +734,7 @@ namespace sw
 	void Renderer::synchronize()
 	{
 		sync.wait();
+		device->updateSamplingRoutineConstCache();
 	}
 
 	void Renderer::finishRendering(Task &pixelTask)

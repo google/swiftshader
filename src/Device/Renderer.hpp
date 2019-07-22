@@ -32,6 +32,7 @@
 namespace vk
 {
 	class DescriptorSet;
+	class Device;
 	class Query;
 }
 
@@ -156,7 +157,7 @@ namespace sw
 		};
 
 	public:
-		Renderer();
+		Renderer(vk::Device* device);
 
 		virtual ~Renderer();
 
@@ -254,6 +255,8 @@ namespace sw
 		Routine *vertexRoutine;
 		Routine *setupRoutine;
 		Routine *pixelRoutine;
+
+		vk::Device* device;
 	};
 
 	struct DrawCall

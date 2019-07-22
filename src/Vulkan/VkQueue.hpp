@@ -31,6 +31,7 @@ namespace sw
 namespace vk
 {
 
+class Device;
 class Fence;
 
 class Queue
@@ -38,7 +39,7 @@ class Queue
 	VK_LOADER_DATA loaderData = { ICD_LOADER_MAGIC };
 
 public:
-	Queue();
+	Queue(Device* device);
 	~Queue();
 
 	operator VkQueue()

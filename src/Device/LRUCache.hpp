@@ -19,6 +19,7 @@
 
 #include <cstring>
 #include <type_traits>
+#include <unordered_map>
 
 namespace sw
 {
@@ -28,15 +29,15 @@ namespace sw
 	public:
 		LRUCache(int n);
 
-		~LRUCache();
+		virtual ~LRUCache();
 
 		Data *query(const Key &key) const;
-		Data *add(const Key &key, Data *data);
+		virtual Data *add(const Key &key, Data *data);
 
 		int getSize() {return size;}
 		Key &getKey(int i) {return key[i];}
 
-	private:
+	protected:
 		int size;
 		int mask;
 		int top;
@@ -45,6 +46,29 @@ namespace sw
 		Key *key;
 		Key **ref;
 		Data **data;
+	};
+
+	template<class Key, class Data>
+	class LRUConstCache : public LRUCache<Key, Data>
+	{
+		using LRUBase = LRUCache<Key, Data>;
+	public:
+		LRUConstCache(int n) : LRUBase(n) {}
+		~LRUConstCache() { clearConstCache(); }
+
+		Data *add(const Key &key, Data *data) override
+		{
+			constCacheNeedsUpdate = true;
+			return LRUBase::add(key, data);
+		}
+
+		void updateConstCache();
+		Data *queryConstCache(const Key &key) const;
+
+	private:
+		void clearConstCache();
+		bool constCacheNeedsUpdate = false;
+		std::unordered_map<Key, Data*> constCache;
 	};
 
 	// Helper class for clearing the memory of objects at construction.
@@ -182,6 +206,45 @@ namespace sw
 		this->data[top] = data;
 
 		return data;
+	}
+
+	template<class Key, class Data>
+	void LRUConstCache<Key, Data>::clearConstCache()
+	{
+		auto it = constCache.begin();
+		auto itEnd = constCache.end();
+		for(; it != itEnd; ++it)
+		{
+			it->second->unbind();
+		}
+		constCache.clear();
+	}
+
+	template<class Key, class Data>
+	void LRUConstCache<Key, Data>::updateConstCache()
+	{
+		if(constCacheNeedsUpdate)
+		{
+			clearConstCache();
+
+			for(int i = 0; i < LRUBase::size; i++)
+			{
+				if(LRUBase::data[i])
+				{
+					LRUBase::data[i]->bind();
+					constCache[*LRUBase::ref[i]] = LRUBase::data[i];
+				}
+			}
+
+			constCacheNeedsUpdate = false;
+		}
+	}
+
+	template<class Key, class Data>
+	Data *LRUConstCache<Key, Data>::queryConstCache(const Key &key) const
+	{
+		auto it = constCache.find(key);
+		return (it != constCache.end()) ? it->second : nullptr;
 	}
 }
 

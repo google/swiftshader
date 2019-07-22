@@ -47,7 +47,17 @@ void Device::SamplingRoutineCache::add(const vk::Device::SamplingRoutineCache::K
 	cache.add(hash(key), routine);
 }
 
-std::size_t Device::SamplingRoutineCache::hash(const vk::Device::SamplingRoutineCache::Key &key) const
+rr::Routine* Device::SamplingRoutineCache::queryConst(const vk::Device::SamplingRoutineCache::Key& key) const
+{
+	return cache.queryConstCache(hash(key));
+}
+
+void Device::SamplingRoutineCache::updateConstCache()
+{
+	cache.updateConstCache();
+}
+
+std::size_t Device::SamplingRoutineCache::hash(const vk::Device::SamplingRoutineCache::Key &key)
 {
 	return (key.instruction << 16) ^ (key.sampler << 8) ^ key.imageView;
 }
@@ -71,7 +81,7 @@ Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice 
 
 		for(uint32_t j = 0; j < queueCreateInfo.queueCount; j++, queueID++)
 		{
-			new (&queues[queueID]) Queue();
+			new (&queues[queueID]) Queue(this);
 		}
 	}
 
@@ -89,6 +99,7 @@ Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice 
 
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	blitter.reset(new sw::Blitter());
+	samplingRoutineCache.reset(new SamplingRoutineCache());
 }
 
 void Device::destroy(const VkAllocationCallbacks* pAllocator)
@@ -235,13 +246,20 @@ void Device::updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDe
 	}
 }
 
-Device::SamplingRoutineCache* Device::getSamplingRoutineCache()
+Device::SamplingRoutineCache* Device::getSamplingRoutineCache() const
 {
-	if(!samplingRoutineCache.get())
-	{
-		samplingRoutineCache.reset(new SamplingRoutineCache());
-	}
 	return samplingRoutineCache.get();
+}
+
+rr::Routine* Device::findInConstCache(const SamplingRoutineCache::Key& key) const
+{
+	return samplingRoutineCache->queryConst(key);
+}
+
+void Device::updateSamplingRoutineConstCache()
+{
+	std::unique_lock<std::mutex> lock(samplingRoutineCacheMutex);
+	samplingRoutineCache->updateConstCache();
 }
 
 std::mutex& Device::getSamplingRoutineCacheMutex()
