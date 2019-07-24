@@ -2612,8 +2612,8 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 	Uninitialize();
 }
 
-// Test IOSurface pbuffers cannot be made current
-TEST_F(IOSurfaceClientBufferTest, MakeCurrentDisallowed)
+// Test IOSurface pbuffers can be made current
+TEST_F(IOSurfaceClientBufferTest, MakeCurrentAllowed)
 {
 	Initialize(3, false);
 
@@ -2623,8 +2623,8 @@ TEST_F(IOSurfaceClientBufferTest, MakeCurrentDisallowed)
 		EGLSurface pbuffer = createIOSurfacePbuffer(clientBufferWrapper.getClientBuffer(), 10, 10, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE);
 
 		EGLBoolean result = eglMakeCurrent(getDisplay(), pbuffer, pbuffer, getContext());
-		EXPECT_EQ((EGLBoolean)EGL_FALSE, result);
-		EXPECT_EQ(EGL_BAD_SURFACE, eglGetError());
+		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
+		EXPECT_NO_EGL_ERROR();
 	}
 
 	Uninitialize();
