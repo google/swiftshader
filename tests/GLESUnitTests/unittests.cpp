@@ -1717,6 +1717,84 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexSubImage)
 	Uninitialize();
 }
 
+TEST_F(SwiftShaderTest, BlitTest)
+{
+	Initialize(3, false);
+
+	GLuint fbos[] = {0, 0};
+	glGenFramebuffers(2, fbos);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbos[0]);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbos[1]);
+
+	GLuint textures[] = {0, 0};
+	glGenTextures(2, textures);
+
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	unsigned char red[4][4] = {
+		{255, 0, 0, 255},
+		{255, 0, 0, 255},
+		{255, 0, 0, 255},
+		{255, 0, 0, 255}
+	};
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, red);
+	EXPECT_NO_GL_ERROR();
+
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[0], 0);
+	EXPECT_NO_GL_ERROR();
+
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	unsigned char black[4][4] = {
+		{0, 0, 0, 255},
+		{0, 0, 0, 255},
+		{0, 0, 0, 255},
+		{0, 0, 0, 255}
+	};
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, black);
+	EXPECT_NO_GL_ERROR();
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[1], 0);
+
+	// Test that glBlitFramebuffer works as expected for the normal case.
+	glBlitFramebuffer(0, 0, 1, 1, 0, 0, 1, 1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	EXPECT_NO_GL_ERROR();
+	EXPECT_EQ(red[0][1], black[0][1]);
+
+	// Check that glBlitFramebuffer doesn't crash with ugly input.
+	glBlitFramebuffer(-2, -2, 127, 2147483470, 10, 10, 200, 200, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	EXPECT_NO_GL_ERROR();
+
+	const int big = (int) 2e9;
+	const int small = 200;
+	const int neg_small = -small;
+	const int neg_big = -big;
+	int data[][8] = {
+		// sx0, sy0, sx1, sy1, dx0, dy0, dx1, dy1
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{-1, -1, -1, -1, -1, -1, -1, -1},
+		{1, 1, 1, 1, 1, 1, 1, 1},
+		{-1, -1, 1, 1, -1, -1, 1, 1},
+		{0, 0, 127, (int) 2e9, 10, 10, 200, 200},
+		{big, small, small, big, big, big, small, small},
+		{neg_small, small, neg_small, neg_small, neg_small, big, small},
+		{big, big-1, big-2, big-3, big-4, big-5, big-6, big-7},
+		{big, neg_big, neg_big, big, small, big, 0, neg_small},
+		{323479648, 21931, 1769809195, 32733, 0, 0, -161640504, 32766}
+	};
+
+	for (int i = 0; i < (int) (sizeof(data)/sizeof(data[0])); i++)
+	{
+		glBlitFramebuffer(
+				data[i][0], data[i][1], data[i][2], data[i][3],
+				data[i][4], data[i][5], data[i][6], data[i][7],
+				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		EXPECT_NO_GL_ERROR();
+	}
+
+	glDeleteFramebuffers(2, fbos);
+	glDeleteTextures(2, textures);
+	Uninitialize();
+}
+
 TEST_F(SwiftShaderTest, InvalidEnum_TexImage2D)
 {
 	Initialize(3, false);

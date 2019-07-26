@@ -452,6 +452,14 @@ namespace es2
 		int dWidth = dest->getWidth();
 		int dHeight = dest->getHeight();
 
+		if(sourceRect && destRect &&
+			(sourceRect->width() == 0.0f || std::isnan(sourceRect->width()) ||
+			sourceRect->height() == 0.0f || std::isnan(sourceRect->height()) ||
+			destRect->width() == 0.0f || destRect->height() == 0.0f))
+		{
+			return true; // No work to do.
+		}
+
 		bool flipX = false;
 		bool flipY = false;
 		if(sourceRect && destRect)
@@ -528,7 +536,8 @@ namespace es2
 		ClipDstRect(sRect, dRect, dstClipRect, flipX, flipY);
 
 		if((sRect.width() == 0) || (sRect.height() == 0) ||
-		   (dRect.width() == 0) || (dRect.height() == 0))
+		   (dRect.width() == 0) || (dRect.height() == 0) ||
+		   (std::isnan(sRect.width()) || std::isnan(sRect.height())))
 		{
 			return true; // no work to do
 		}
@@ -872,6 +881,11 @@ namespace es2
 		}
 
 		if(rect->x1 <= rect->x0 || rect->y1 <= rect->y0)
+		{
+			return false;
+		}
+
+		if (std::isnan(rect->x0) || std::isnan(rect->x1) || std::isnan(rect->y0) || std::isnan(rect->y1))
 		{
 			return false;
 		}
