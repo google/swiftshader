@@ -2022,7 +2022,7 @@ if(BUILD_VULKAN)
     set(ICD_LIBRARY_PATH "libvk_swiftshader${CMAKE_SHARED_LIBRARY_SUFFIX}")
     if(WIN32)
         # The path is output to a JSON file, which requires backslashes to be escaped.
-        set(ICD_LIBRARY_PATH ".\\${ICD_LIBRARY_PATH}")
+        set(ICD_LIBRARY_PATH ".\\\\${ICD_LIBRARY_PATH}")
     else()
         set(ICD_LIBRARY_PATH "./${ICD_LIBRARY_PATH}")
     endif()
