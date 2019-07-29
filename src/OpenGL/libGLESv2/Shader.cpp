@@ -158,8 +158,14 @@ TranslatorASM *Shader::createCompiler(GLenum shaderType)
 {
 	if(!compilerInitialized)
 	{
-		InitCompilerGlobals();
-		compilerInitialized = true;
+		compilerInitialized = InitCompilerGlobals();
+
+		if(!compilerInitialized)
+		{
+			infoLog += "GLSL compiler failed to initialize.\n";
+
+			return nullptr;
+		}
 	}
 
 	TranslatorASM *assembler = new TranslatorASM(this, shaderType);
@@ -204,6 +210,13 @@ void Shader::compile()
 
 	createShader();
 	TranslatorASM *compiler = createCompiler(getType());
+
+	if(!compiler)
+	{
+		deleteShader();
+
+		return;
+	}
 
 	// Ensure we don't pass a nullptr source to the compiler
 	const char *source = "\0";
