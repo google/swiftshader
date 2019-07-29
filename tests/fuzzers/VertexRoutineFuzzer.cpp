@@ -207,7 +207,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	assert(routine);
 	const void *entry = routine->getEntry();
 	assert(entry); (void)entry;
-	delete routine;
 
 	return 0;
 }
