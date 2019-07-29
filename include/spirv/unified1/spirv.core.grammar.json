@@ -26,7 +26,7 @@
   ],
   "magic_number" : "0x07230203",
   "major_version" : 1,
-  "minor_version" : 3,
+  "minor_version" : 4,
   "revision" : 1,
   "instructions" : [
     {
@@ -519,6 +519,7 @@
       "operands" : [
         { "kind" : "IdRef",                            "name" : "'Target'" },
         { "kind" : "IdRef",                            "name" : "'Source'" },
+        { "kind" : "MemoryAccess", "quantifier" : "?" },
         { "kind" : "MemoryAccess", "quantifier" : "?" }
       ]
     },
@@ -529,6 +530,7 @@
         { "kind" : "IdRef",                            "name" : "'Target'" },
         { "kind" : "IdRef",                            "name" : "'Source'" },
         { "kind" : "IdRef",                            "name" : "'Size'" },
+        { "kind" : "MemoryAccess", "quantifier" : "?" },
         { "kind" : "MemoryAccess", "quantifier" : "?" }
       ],
       "capabilities" : [ "Addresses" ]
@@ -2047,7 +2049,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" }
       ]
     },
@@ -2056,7 +2058,7 @@
       "opcode" : 228,
       "operands" : [
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2068,7 +2070,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2080,7 +2082,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Equal'" },
         { "kind" : "IdMemorySemantics", "name" : "'Unequal'" },
         { "kind" : "IdRef",             "name" : "'Value'" },
@@ -2094,13 +2096,14 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Equal'" },
         { "kind" : "IdMemorySemantics", "name" : "'Unequal'" },
         { "kind" : "IdRef",             "name" : "'Value'" },
         { "kind" : "IdRef",             "name" : "'Comparator'" }
       ],
-      "capabilities" : [ "Kernel" ]
+      "capabilities" : [ "Kernel" ],
+      "lastVersion" : "1.3"
     },
     {
       "opname" : "OpAtomicIIncrement",
@@ -2109,7 +2112,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" }
       ]
     },
@@ -2120,7 +2123,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" }
       ]
     },
@@ -2131,7 +2134,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2143,7 +2146,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2155,7 +2158,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2167,7 +2170,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2179,7 +2182,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2191,7 +2194,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2203,7 +2206,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2215,7 +2218,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2227,7 +2230,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" },
         { "kind" : "IdRef",             "name" : "'Value'" }
       ]
@@ -2999,7 +3002,7 @@
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" }
       ],
       "capabilities" : [ "Kernel" ]
@@ -3009,7 +3012,7 @@
       "opcode" : 319,
       "operands" : [
         { "kind" : "IdRef",             "name" : "'Pointer'" },
-        { "kind" : "IdScope",           "name" : "'Scope'" },
+        { "kind" : "IdScope",           "name" : "'Memory'" },
         { "kind" : "IdMemorySemantics", "name" : "'Semantics'" }
       ],
       "capabilities" : [ "Kernel" ]
@@ -3366,7 +3369,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3380,7 +3383,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3394,7 +3397,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3408,7 +3411,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3422,7 +3425,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3436,7 +3439,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3450,7 +3453,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3464,7 +3467,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3478,7 +3481,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3492,7 +3495,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3506,7 +3509,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3520,7 +3523,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3534,7 +3537,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3548,7 +3551,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3562,7 +3565,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3576,7 +3579,7 @@
         { "kind" : "IdRef", "name" : "'Value'" },
         { "kind" : "IdRef", "name" : "'ClusterSize'", "quantifier" : "?" }
       ],
-      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered" ],
+      "capabilities" : [ "GroupNonUniformArithmetic", "GroupNonUniformClustered", "GroupNonUniformPartitionedNV" ],
       "version" : "1.3"
     },
     {
@@ -3604,6 +3607,50 @@
       ],
       "capabilities" : [ "GroupNonUniformQuad" ],
       "version" : "1.3"
+    },
+    {
+      "opname" : "OpCopyLogical",
+      "opcode" : 400,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand'" }
+      ],
+      "version" : "1.4"
+    },
+    {
+      "opname" : "OpPtrEqual",
+      "opcode" : 401,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "version" : "1.4"
+    },
+    {
+      "opname" : "OpPtrNotEqual",
+      "opcode" : 402,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "version" : "1.4"
+    },
+    {
+      "opname" : "OpPtrDiff",
+      "opcode" : 403,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "Addresses", "VariablePointers", "VariablePointersStorageBuffer" ],
+      "version" : "1.4"
     },
     {
       "opname" : "OpSubgroupBallotKHR",
@@ -3824,6 +3871,46 @@
       "version" : "None"
     },
     {
+      "opname" : "OpReadClockKHR",
+      "opcode" : 5056,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdScope", "name" : "'Execution'" }
+      ],
+      "capabilities" : [ "ShaderClockKHR" ],
+      "extensions" : [ "SPV_KHR_shader_clock" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpImageSampleFootprintNV",
+      "opcode" : 5283,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Sampled Image'" },
+        { "kind" : "IdRef", "name" : "'Coordinate'" },
+        { "kind" : "IdRef", "name" : "'Granularity'" },
+        { "kind" : "IdRef", "name" : "'Coarse'" },
+        { "kind" : "ImageOperands", "quantifier" : "?" }
+      ],
+      "capabilities" : [ "ImageFootprintNV" ],
+      "extensions" : [ "SPV_NV_shader_image_footprint" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpGroupNonUniformPartitionNV",
+      "opcode" : 5296,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Value'" }
+      ],
+      "capabilities" : [ "GroupNonUniformPartitionedNV" ],
+      "extensions" : [ "SPV_NV_shader_subgroup_partitioned" ],
+      "version" : "None"
+    },
+    {
       "opname" : "OpWritePackedPrimitiveIndices4x8NV",
       "opcode" : 5299,
       "operands" : [
@@ -3899,6 +3986,107 @@
       ],
       "capabilities" : [ "RayTracingNV" ],
       "extensions" : [ "SPV_NV_ray_tracing" ]
+    },
+    {
+      "opname" : "OpTypeCooperativeMatrixNV",
+      "opcode" : 5358,
+      "operands" : [
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Component Type'" },
+        { "kind" : "IdScope",      "name" : "'Execution'" },
+        { "kind" : "IdRef",        "name" : "'Rows'" },
+        { "kind" : "IdRef",        "name" : "'Columns'" }
+      ],
+      "capabilities" : [ "CooperativeMatrixNV" ],
+      "extensions" : [ "SPV_NV_cooperative_matrix" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpCooperativeMatrixLoadNV",
+      "opcode" : 5359,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",             "name" : "'Pointer'" },
+        { "kind" : "IdRef",             "name" : "'Stride'" },
+        { "kind" : "IdRef",             "name" : "'Column Major'" },
+        { "kind" : "MemoryAccess",      "quantifier" : "?" }
+      ],
+      "capabilities" : [ "CooperativeMatrixNV" ],
+      "extensions" : [ "SPV_NV_cooperative_matrix" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpCooperativeMatrixStoreNV",
+      "opcode" : 5360,
+      "operands" : [
+        { "kind" : "IdRef",             "name" : "'Pointer'" },
+        { "kind" : "IdRef",             "name" : "'Object'" },
+        { "kind" : "IdRef",             "name" : "'Stride'" },
+        { "kind" : "IdRef",             "name" : "'Column Major'" },
+        { "kind" : "MemoryAccess",      "quantifier" : "?" }
+      ],
+      "capabilities" : [ "CooperativeMatrixNV" ],
+      "extensions" : [ "SPV_NV_cooperative_matrix" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpCooperativeMatrixMulAddNV",
+      "opcode" : 5361,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",             "name" : "'A'" },
+        { "kind" : "IdRef",             "name" : "'B'" },
+        { "kind" : "IdRef",             "name" : "'C'" }
+      ],
+      "capabilities" : [ "CooperativeMatrixNV" ],
+      "extensions" : [ "SPV_NV_cooperative_matrix" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpCooperativeMatrixLengthNV",
+      "opcode" : 5362,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Type'" }
+      ],
+      "capabilities" : [ "CooperativeMatrixNV" ],
+      "extensions" : [ "SPV_NV_cooperative_matrix" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpBeginInvocationInterlockEXT",
+      "opcode" : 5364,
+      "capabilities" : [ "FragmentShaderSampleInterlockEXT", "FragmentShaderPixelInterlockEXT", "FragmentShaderShadingRateInterlockEXT" ],
+      "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpEndInvocationInterlockEXT",
+      "opcode" : 5365,
+      "capabilities" : [ "FragmentShaderSampleInterlockEXT", "FragmentShaderPixelInterlockEXT", "FragmentShaderShadingRateInterlockEXT" ],
+      "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpDemoteToHelperInvocationEXT",
+      "opcode" : 5380,
+      "capabilities" : [ "DemoteToHelperInvocationEXT" ],
+      "extensions" : [ "SPV_EXT_demote_to_helper_invocation" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpIsHelperInvocationEXT",
+      "opcode" : 5381,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "DemoteToHelperInvocationEXT" ],
+      "extensions" : [ "SPV_EXT_demote_to_helper_invocation" ],
+      "version" : "None"
     },
     {
       "opname" : "OpSubgroupShuffleINTEL",
@@ -3995,6 +4183,209 @@
       "version" : "None"
     },
     {
+      "opname" : "OpSubgroupImageMediaBlockReadINTEL",
+      "opcode" : 5580,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Image'" },
+        { "kind" : "IdRef", "name" : "'Coordinate'" },
+        { "kind" : "IdRef", "name" : "'Width'" },
+        { "kind" : "IdRef", "name" : "'Height'" }
+      ],
+      "capabilities" : [ "SubgroupImageMediaBlockIOINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupImageMediaBlockWriteINTEL",
+      "opcode" : 5581,
+      "operands" : [
+        { "kind" : "IdRef", "name" : "'Image'" },
+        { "kind" : "IdRef", "name" : "'Coordinate'" },
+        { "kind" : "IdRef", "name" : "'Width'" },
+        { "kind" : "IdRef", "name" : "'Height'" },
+        { "kind" : "IdRef", "name" : "'Data'" }
+      ],
+      "capabilities" : [ "SubgroupImageMediaBlockIOINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUCountLeadingZerosINTEL",
+      "opcode" : 5585,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUCountTrailingZerosINTEL",
+      "opcode" : 5586,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpAbsISubINTEL",
+      "opcode" : 5587,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpAbsUSubINTEL",
+      "opcode" : 5588,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpIAddSatINTEL",
+      "opcode" : 5589,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUAddSatINTEL",
+      "opcode" : 5590,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpIAverageINTEL",
+      "opcode" : 5591,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUAverageINTEL",
+      "opcode" : 5592,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpIAverageRoundedINTEL",
+      "opcode" : 5593,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUAverageRoundedINTEL",
+      "opcode" : 5594,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpISubSatINTEL",
+      "opcode" : 5595,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUSubSatINTEL",
+      "opcode" : 5596,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpIMul32x16INTEL",
+      "opcode" : 5597,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpUMul32x16INTEL",
+      "opcode" : 5598,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef",        "name" : "'Operand 1'" },
+        { "kind" : "IdRef",        "name" : "'Operand 2'" }
+      ],
+      "capabilities" : [ "IntegerFunctions2INTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpDecorateString",
+      "opcode" : 5632,
+      "operands" : [
+        { "kind" : "IdRef",         "name" : "'Target'" },
+        { "kind" : "Decoration" }
+      ],
+      "extensions" : [ "SPV_GOOGLE_decorate_string", "SPV_GOOGLE_hlsl_functionality1" ],
+      "version" : "1.4"
+    },
+    {
       "opname" : "OpDecorateStringGOOGLE",
       "opcode" : 5632,
       "operands" : [
@@ -4002,7 +4393,18 @@
         { "kind" : "Decoration" }
       ],
       "extensions" : [ "SPV_GOOGLE_decorate_string", "SPV_GOOGLE_hlsl_functionality1" ],
-      "version" : "None"
+      "version" : "1.4"
+    },
+    {
+      "opname" : "OpMemberDecorateString",
+      "opcode" : 5633,
+      "operands" : [
+        { "kind" : "IdRef",          "name" : "'Struct Type'" },
+        { "kind" : "LiteralInteger", "name" : "'Member'" },
+        { "kind" : "Decoration" }
+      ],
+      "extensions" : [ "SPV_GOOGLE_decorate_string", "SPV_GOOGLE_hlsl_functionality1" ],
+      "version" : "1.4"
     },
     {
       "opname" : "OpMemberDecorateStringGOOGLE",
@@ -4013,34 +4415,1405 @@
         { "kind" : "Decoration" }
       ],
       "extensions" : [ "SPV_GOOGLE_decorate_string", "SPV_GOOGLE_hlsl_functionality1" ],
+      "version" : "1.4"
+    },
+    {
+      "opname" : "OpVmeImageINTEL",
+      "opcode" : 5699,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Image Type'" },
+        { "kind" : "IdRef", "name" : "'Sampler'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
       "version" : "None"
     },
     {
-      "opname" : "OpGroupNonUniformPartitionNV",
-      "opcode" : 5296,
+      "opname" : "OpTypeVmeImageINTEL",
+      "opcode" : 5700,
       "operands" : [
-        { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
-        { "kind" : "IdRef", "name" : "'Value'" }
+        { "kind" : "IdRef", "name" : "'Image Type'" }
       ],
-      "capabilities" : [ "GroupNonUniformPartitionedNV" ],
-      "extensions" : [ "SPV_NV_shader_subgroup_partitioned" ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
       "version" : "None"
     },
-	{
-      "opname" : "OpImageSampleFootprintNV",
-      "opcode" : 5283,
+    {
+      "opname" : "OpTypeAvcImePayloadINTEL",
+      "opcode" : 5701,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcRefPayloadINTEL",
+      "opcode" : 5702,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcSicPayloadINTEL",
+      "opcode" : 5703,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcMcePayloadINTEL",
+      "opcode" : 5704,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcMceResultINTEL",
+      "opcode" : 5705,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcImeResultINTEL",
+      "opcode" : 5706,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcImeResultSingleReferenceStreamoutINTEL",
+      "opcode" : 5707,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcImeResultDualReferenceStreamoutINTEL",
+      "opcode" : 5708,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcImeSingleReferenceStreaminINTEL",
+      "opcode" : 5709,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcImeDualReferenceStreaminINTEL",
+      "opcode" : 5710,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcRefResultINTEL",
+      "opcode" : 5711,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpTypeAvcSicResultINTEL",
+      "opcode" : 5712,
+      "operands" : [
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultInterBaseMultiReferencePenaltyINTEL",
+      "opcode" : 5713,
       "operands" : [
         { "kind" : "IdResultType" },
         { "kind" : "IdResult" },
-        { "kind" : "IdRef", "name" : "'Sampled Image'" },
-        { "kind" : "IdRef", "name" : "'Coordinate'" },
-        { "kind" : "IdRef", "name" : "'Granularity'" },
-        { "kind" : "IdRef", "name" : "'Coarse'" },
-        { "kind" : "ImageOperands", "quantifier" : "?" }
+        { "kind" : "IdRef", "name" : "'Slice Type'" },
+        { "kind" : "IdRef", "name" : "'Qp'" }
       ],
-      "capabilities" : [ "ImageFootprintNV" ],
-      "extensions" : [ "SPV_NV_shader_image_footprint" ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetInterBaseMultiReferencePenaltyINTEL",
+      "opcode" : 5714,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Reference Base Penalty'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultInterShapePenaltyINTEL",
+      "opcode" : 5715,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Slice Type'" },
+        { "kind" : "IdRef", "name" : "'Qp'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetInterShapePenaltyINTEL",
+      "opcode" : 5716,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Packed Shape Penalty'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultInterDirectionPenaltyINTEL",
+      "opcode" : 5717,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Slice Type'" },
+        { "kind" : "IdRef", "name" : "'Qp'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetInterDirectionPenaltyINTEL",
+      "opcode" : 5718,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Direction Cost'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultIntraLumaShapePenaltyINTEL",
+      "opcode" : 5719,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Slice Type'" },
+        { "kind" : "IdRef", "name" : "'Qp'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultInterMotionVectorCostTableINTEL",
+      "opcode" : 5720,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Slice Type'" },
+        { "kind" : "IdRef", "name" : "'Qp'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultHighPenaltyCostTableINTEL",
+      "opcode" : 5721,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultMediumPenaltyCostTableINTEL",
+      "opcode" : 5722,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultLowPenaltyCostTableINTEL",
+      "opcode" : 5723,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetMotionVectorCostFunctionINTEL",
+      "opcode" : 5724,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Packed Cost Center Delta'" },
+        { "kind" : "IdRef", "name" : "'Packed Cost Table'" },
+        { "kind" : "IdRef", "name" : "'Cost Precision'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultIntraLumaModePenaltyINTEL",
+      "opcode" : 5725,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Slice Type'" },
+        { "kind" : "IdRef", "name" : "'Qp'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultNonDcLumaIntraPenaltyINTEL",
+      "opcode" : 5726,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetDefaultIntraChromaModeBasePenaltyINTEL",
+      "opcode" : 5727,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationChromaINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetAcOnlyHaarINTEL",
+      "opcode" : 5728,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetSourceInterlacedFieldPolarityINTEL",
+      "opcode" : 5729,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Source Field Polarity'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetSingleReferenceInterlacedFieldPolarityINTEL",
+      "opcode" : 5730,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Reference Field Polarity'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceSetDualReferenceInterlacedFieldPolaritiesINTEL",
+      "opcode" : 5731,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Forward Reference Field Polarity'" },
+        { "kind" : "IdRef", "name" : "'Backward Reference Field Polarity'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceConvertToImePayloadINTEL",
+      "opcode" : 5732,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceConvertToImeResultINTEL",
+      "opcode" : 5733,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceConvertToRefPayloadINTEL",
+      "opcode" : 5734,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceConvertToRefResultINTEL",
+      "opcode" : 5735,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceConvertToSicPayloadINTEL",
+      "opcode" : 5736,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceConvertToSicResultINTEL",
+      "opcode" : 5737,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetMotionVectorsINTEL",
+      "opcode" : 5738,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterDistortionsINTEL",
+      "opcode" : 5739,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetBestInterDistortionsINTEL",
+      "opcode" : 5740,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterMajorShapeINTEL",
+      "opcode" : 5741,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterMinorShapeINTEL",
+      "opcode" : 5742,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterDirectionsINTEL",
+      "opcode" : 5743,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterMotionVectorCountINTEL",
+      "opcode" : 5744,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterReferenceIdsINTEL",
+      "opcode" : 5745,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcMceGetInterReferenceInterlacedFieldPolaritiesINTEL",
+      "opcode" : 5746,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Ids'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Parameter Field Polarities'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeInitializeINTEL",
+      "opcode" : 5747,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Coord'" },
+        { "kind" : "IdRef", "name" : "'Partition Mask'" },
+        { "kind" : "IdRef", "name" : "'SAD Adjustment'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeSetSingleReferenceINTEL",
+      "opcode" : 5748,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Ref Offset'" },
+        { "kind" : "IdRef", "name" : "'Search Window Config'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeSetDualReferenceINTEL",
+      "opcode" : 5749,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Offset'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Offset'" },
+        { "kind" : "IdRef", "name" : "'id> Search Window Config'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeRefWindowSizeINTEL",
+      "opcode" : 5750,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Search Window Config'" },
+        { "kind" : "IdRef", "name" : "'Dual Ref'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeAdjustRefOffsetINTEL",
+      "opcode" : 5751,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Ref Offset'" },
+        { "kind" : "IdRef", "name" : "'Src Coord'" },
+        { "kind" : "IdRef", "name" : "'Ref Window Size'" },
+        { "kind" : "IdRef", "name" : "'Image Size'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeConvertToMcePayloadINTEL",
+      "opcode" : 5752,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeSetMaxMotionVectorCountINTEL",
+      "opcode" : 5753,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Max Motion Vector Count'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeSetUnidirectionalMixDisableINTEL",
+      "opcode" : 5754,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeSetEarlySearchTerminationThresholdINTEL",
+      "opcode" : 5755,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Threshold'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeSetWeightedSadINTEL",
+      "opcode" : 5756,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Packed Sad Weights'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithSingleReferenceINTEL",
+      "opcode" : 5757,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithDualReferenceINTEL",
+      "opcode" : 5758,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithSingleReferenceStreaminINTEL",
+      "opcode" : 5759,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Streamin Components'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithDualReferenceStreaminINTEL",
+      "opcode" : 5760,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Streamin Components'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithSingleReferenceStreamoutINTEL",
+      "opcode" : 5761,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithDualReferenceStreamoutINTEL",
+      "opcode" : 5762,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithSingleReferenceStreaminoutINTEL",
+      "opcode" : 5763,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Streamin Components'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeEvaluateWithDualReferenceStreaminoutINTEL",
+      "opcode" : 5764,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Streamin Components'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeConvertToMceResultINTEL",
+      "opcode" : 5765,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetSingleReferenceStreaminINTEL",
+      "opcode" : 5766,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetDualReferenceStreaminINTEL",
+      "opcode" : 5767,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeStripSingleReferenceStreamoutINTEL",
+      "opcode" : 5768,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeStripDualReferenceStreamoutINTEL",
+      "opcode" : 5769,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeMotionVectorsINTEL",
+      "opcode" : 5770,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Major Shape'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeDistortionsINTEL",
+      "opcode" : 5771,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Major Shape'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeReferenceIdsINTEL",
+      "opcode" : 5772,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Major Shape'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeMotionVectorsINTEL",
+      "opcode" : 5773,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Major Shape'" },
+        { "kind" : "IdRef", "name" : "'Direction'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeDistortionsINTEL",
+      "opcode" : 5774,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Major Shape'" },
+        { "kind" : "IdRef", "name" : "'Direction'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeReferenceIdsINTEL",
+      "opcode" : 5775,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" },
+        { "kind" : "IdRef", "name" : "'Major Shape'" },
+        { "kind" : "IdRef", "name" : "'Direction'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetBorderReachedINTEL",
+      "opcode" : 5776,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Image Select'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetTruncatedSearchIndicationINTEL",
+      "opcode" : 5777,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetUnidirectionalEarlySearchTerminationINTEL",
+      "opcode" : 5778,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetWeightingPatternMinimumMotionVectorINTEL",
+      "opcode" : 5779,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcImeGetWeightingPatternMinimumDistortionINTEL",
+      "opcode" : 5780,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcFmeInitializeINTEL",
+      "opcode" : 5781,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Coord'" },
+        { "kind" : "IdRef", "name" : "'Motion Vectors'" },
+        { "kind" : "IdRef", "name" : "'Major Shapes'" },
+        { "kind" : "IdRef", "name" : "'Minor Shapes'" },
+        { "kind" : "IdRef", "name" : "'Direction'" },
+        { "kind" : "IdRef", "name" : "'Pixel Resolution'" },
+        { "kind" : "IdRef", "name" : "'Sad Adjustment'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcBmeInitializeINTEL",
+      "opcode" : 5782,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Coord'" },
+        { "kind" : "IdRef", "name" : "'Motion Vectors'" },
+        { "kind" : "IdRef", "name" : "'Major Shapes'" },
+        { "kind" : "IdRef", "name" : "'Minor Shapes'" },
+        { "kind" : "IdRef", "name" : "'Direction'" },
+        { "kind" : "IdRef", "name" : "'Pixel Resolution'" },
+        { "kind" : "IdRef", "name" : "'Bidirectional Weight'" },
+        { "kind" : "IdRef", "name" : "'Sad Adjustment'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefConvertToMcePayloadINTEL",
+      "opcode" : 5783,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefSetBidirectionalMixDisableINTEL",
+      "opcode" : 5784,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefSetBilinearFilterEnableINTEL",
+      "opcode" : 5785,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefEvaluateWithSingleReferenceINTEL",
+      "opcode" : 5786,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefEvaluateWithDualReferenceINTEL",
+      "opcode" : 5787,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefEvaluateWithMultiReferenceINTEL",
+      "opcode" : 5788,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Ids'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefEvaluateWithMultiReferenceInterlacedINTEL",
+      "opcode" : 5789,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Ids'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Field Polarities'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcRefConvertToMceResultINTEL",
+      "opcode" : 5790,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicInitializeINTEL",
+      "opcode" : 5791,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Coord'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicConfigureSkcINTEL",
+      "opcode" : 5792,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Skip Block Partition Type'" },
+        { "kind" : "IdRef", "name" : "'Skip Motion Vector Mask'" },
+        { "kind" : "IdRef", "name" : "'Motion Vectors'" },
+        { "kind" : "IdRef", "name" : "'Bidirectional Weight'" },
+        { "kind" : "IdRef", "name" : "'Sad Adjustment'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicConfigureIpeLumaINTEL",
+      "opcode" : 5793,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Luma Intra Partition Mask'" },
+        { "kind" : "IdRef", "name" : "'Intra Neighbour Availabilty'" },
+        { "kind" : "IdRef", "name" : "'Left Edge Luma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Upper Left Corner Luma Pixel'" },
+        { "kind" : "IdRef", "name" : "'Upper Edge Luma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Upper Right Edge Luma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Sad Adjustment'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicConfigureIpeLumaChromaINTEL",
+      "opcode" : 5794,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Luma Intra Partition Mask'" },
+        { "kind" : "IdRef", "name" : "'Intra Neighbour Availabilty'" },
+        { "kind" : "IdRef", "name" : "'Left Edge Luma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Upper Left Corner Luma Pixel'" },
+        { "kind" : "IdRef", "name" : "'Upper Edge Luma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Upper Right Edge Luma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Left Edge Chroma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Upper Left Corner Chroma Pixel'" },
+        { "kind" : "IdRef", "name" : "'Upper Edge Chroma Pixels'" },
+        { "kind" : "IdRef", "name" : "'Sad Adjustment'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationChromaINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetMotionVectorMaskINTEL",
+      "opcode" : 5795,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Skip Block Partition Type'" },
+        { "kind" : "IdRef", "name" : "'Direction'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicConvertToMcePayloadINTEL",
+      "opcode" : 5796,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicSetIntraLumaShapePenaltyINTEL",
+      "opcode" : 5797,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Packed Shape Penalty'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicSetIntraLumaModeCostFunctionINTEL",
+      "opcode" : 5798,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Luma Mode Penalty'" },
+        { "kind" : "IdRef", "name" : "'Luma Packed Neighbor Modes'" },
+        { "kind" : "IdRef", "name" : "'Luma Packed Non Dc Penalty'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicSetIntraChromaModeCostFunctionINTEL",
+      "opcode" : 5799,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Chroma Mode Base Penalty'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationChromaINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicSetBilinearFilterEnableINTEL",
+      "opcode" : 5800,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicSetSkcForwardTransformEnableINTEL",
+      "opcode" : 5801,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Packed Sad Coefficients'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicSetBlockBasedRawSkipSadINTEL",
+      "opcode" : 5802,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Block Based Skip Type'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicEvaluateIpeINTEL",
+      "opcode" : 5803,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicEvaluateWithSingleReferenceINTEL",
+      "opcode" : 5804,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicEvaluateWithDualReferenceINTEL",
+      "opcode" : 5805,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Fwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Bwd Ref Image'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicEvaluateWithMultiReferenceINTEL",
+      "opcode" : 5806,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Ids'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicEvaluateWithMultiReferenceInterlacedINTEL",
+      "opcode" : 5807,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Src Image'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Ids'" },
+        { "kind" : "IdRef", "name" : "'Packed Reference Field Polarities'" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicConvertToMceResultINTEL",
+      "opcode" : 5808,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetIpeLumaShapeINTEL",
+      "opcode" : 5809,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetBestIpeLumaDistortionINTEL",
+      "opcode" : 5810,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetBestIpeChromaDistortionINTEL",
+      "opcode" : 5811,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetPackedIpeLumaModesINTEL",
+      "opcode" : 5812,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetIpeChromaModeINTEL",
+      "opcode" : 5813,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationChromaINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetPackedSkcLumaCountThresholdINTEL",
+      "opcode" : 5814,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetPackedSkcLumaSumThresholdINTEL",
+      "opcode" : 5815,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL", "SubgroupAvcMotionEstimationIntraINTEL" ],
+      "version" : "None"
+    },
+    {
+      "opname" : "OpSubgroupAvcSicGetInterRawSadsINTEL",
+      "opcode" : 5816,
+      "operands" : [
+        { "kind" : "IdResultType" },
+        { "kind" : "IdResult" },
+        { "kind" : "IdRef", "name" : "'Payload'" }
+      ],
+      "capabilities" : [ "SubgroupAvcMotionEstimationINTEL" ],
       "version" : "None"
     }
   ],
@@ -4120,7 +5893,8 @@
           "capabilities" : [ "VulkanMemoryModelKHR" ],
           "parameters" : [
             { "kind" : "IdScope" }
-          ]
+          ],
+          "version" : "None"
         },
         {
           "enumerant" : "MakeTexelVisibleKHR",
@@ -4128,17 +5902,30 @@
           "capabilities" : [ "VulkanMemoryModelKHR" ],
           "parameters" : [
             { "kind" : "IdScope" }
-          ]
+          ],
+          "version" : "None"
         },
         {
           "enumerant" : "NonPrivateTexelKHR",
           "value" : "0x0400",
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         },
         {
           "enumerant" : "VolatileTexelKHR",
           "value" : "0x0800",
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "SignExtend",
+          "value" : "0x1000",
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "ZeroExtend",
+          "value" : "0x2000",
+          "version" : "1.4"
         }
       ]
     },
@@ -4223,6 +6010,46 @@
             { "kind" : "LiteralInteger" }
           ],
           "version" : "1.1"
+        },
+        {
+          "enumerant" : "MinIterations",
+          "value" : "0x0010",
+          "parameters" : [
+            { "kind" : "LiteralInteger" }
+          ],
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "MaxIterations",
+          "value" : "0x0020",
+          "parameters" : [
+            { "kind" : "LiteralInteger" }
+          ],
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "IterationMultiple",
+          "value" : "0x0040",
+          "parameters" : [
+            { "kind" : "LiteralInteger" }
+          ],
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "PeelCount",
+          "value" : "0x0080",
+          "parameters" : [
+            { "kind" : "LiteralInteger" }
+          ],
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "PartialCount",
+          "value" : "0x0100",
+          "parameters" : [
+            { "kind" : "LiteralInteger" }
+          ],
+          "version" : "1.4"
         }
       ]
     },
@@ -4309,17 +6136,26 @@
         {
           "enumerant" : "OutputMemoryKHR",
           "value" : "0x1000",
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         },
         {
           "enumerant" : "MakeAvailableKHR",
           "value" : "0x2000",
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         },
         {
           "enumerant" : "MakeVisibleKHR",
           "value" : "0x4000",
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "Volatile",
+          "value" : "0x8000",
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         }
       ]
     },
@@ -4352,7 +6188,8 @@
           "parameters" : [
             { "kind" : "IdScope" }
           ],
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         },
         {
           "enumerant" : "MakePointerVisibleKHR",
@@ -4360,12 +6197,14 @@
           "parameters" : [
             { "kind" : "IdScope" }
           ],
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         },
         {
           "enumerant" : "NonPrivatePointerKHR",
           "value" : "0x0020",
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         }
       ]
     },
@@ -4456,42 +6295,50 @@
         {
           "enumerant" : "TaskNV",
           "value" : 5267,
-          "capabilities" : [ "MeshShadingNV" ]
+          "capabilities" : [ "MeshShadingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "MeshNV",
           "value" : 5268,
-          "capabilities" : [ "MeshShadingNV" ]
+          "capabilities" : [ "MeshShadingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "RayGenerationNV",
           "value" : 5313,
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "IntersectionNV",
           "value" : 5314,
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "AnyHitNV",
           "value" : 5315,
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "ClosestHitNV",
           "value" : 5316,
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "MissNV",
           "value" : 5317,
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "CallableNV",
           "value" : 5318,
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         }
       ]
     },
@@ -4517,7 +6364,8 @@
           "enumerant" : "PhysicalStorageBuffer64EXT",
           "value" : 5348,
           "extensions" : [ "SPV_EXT_physical_storage_buffer" ],
-          "capabilities" : [ "PhysicalStorageBufferAddressesEXT" ]
+          "capabilities" : [ "PhysicalStorageBufferAddressesEXT" ],
+          "version" : "None"
         }
       ]
     },
@@ -4543,7 +6391,8 @@
         {
           "enumerant" : "VulkanKHR",
           "value" : 3,
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         }
       ]
     },
@@ -4789,55 +6638,55 @@
           "extensions" : [ "SPV_KHR_post_depth_coverage" ],
           "version" : "None"
         },
-{
+        {
           "enumerant" : "DenormPreserve",
           "value" : 4459,
-          "capabilities" : [ "DenormPreserve"],
+          "capabilities" : [ "DenormPreserve" ],
           "extensions" : [ "SPV_KHR_float_controls" ],
           "parameters" : [
             { "kind" : "LiteralInteger", "name" : "'Target Width'" }
           ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "DenormFlushToZero",
           "value" : 4460,
-          "capabilities" : [ "DenormFlushToZero"],
+          "capabilities" : [ "DenormFlushToZero" ],
           "extensions" : [ "SPV_KHR_float_controls" ],
           "parameters" : [
             { "kind" : "LiteralInteger", "name" : "'Target Width'" }
           ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "SignedZeroInfNanPreserve",
           "value" : 4461,
-          "capabilities" : [ "SignedZeroInfNanPreserve"],
+          "capabilities" : [ "SignedZeroInfNanPreserve" ],
           "extensions" : [ "SPV_KHR_float_controls" ],
           "parameters" : [
             { "kind" : "LiteralInteger", "name" : "'Target Width'" }
           ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "RoundingModeRTE",
           "value" : 4462,
-          "capabilities" : [ "RoundingModeRTE"],
+          "capabilities" : [ "RoundingModeRTE" ],
           "extensions" : [ "SPV_KHR_float_controls" ],
           "parameters" : [
             { "kind" : "LiteralInteger", "name" : "'Target Width'" }
           ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "RoundingModeRTZ",
           "value" : 4463,
-          "capabilities" : [ "RoundingModeRTZ"],
+          "capabilities" : [ "RoundingModeRTZ" ],
           "extensions" : [ "SPV_KHR_float_controls" ],
           "parameters" : [
             { "kind" : "LiteralInteger", "name" : "'Target Width'" }
           ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "StencilRefReplacingEXT",
@@ -4882,6 +6731,48 @@
           "value" : 5298,
           "capabilities" : [ "MeshShadingNV" ],
           "extensions" : [ "SPV_NV_mesh_shader" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "PixelInterlockOrderedEXT",
+          "value" : 5366,
+          "capabilities" : [ "FragmentShaderPixelInterlockEXT" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "PixelInterlockUnorderedEXT",
+          "value" : 5367,
+          "capabilities" : [ "FragmentShaderPixelInterlockEXT" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "SampleInterlockOrderedEXT",
+          "value" : 5368,
+          "capabilities" : [ "FragmentShaderSampleInterlockEXT" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "SampleInterlockUnorderedEXT",
+          "value" : 5369,
+          "capabilities" : [ "FragmentShaderSampleInterlockEXT" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ShadingRateInterlockOrderedEXT",
+          "value" : 5370,
+          "capabilities" : [ "FragmentShaderShadingRateInterlockEXT" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ShadingRateInterlockUnorderedEXT",
+          "value" : 5371,
+          "capabilities" : [ "FragmentShaderShadingRateInterlockEXT" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
           "version" : "None"
         }
       ]
@@ -4958,43 +6849,50 @@
           "enumerant" : "CallableDataNV",
           "value" : 5328,
           "extensions" : [ "SPV_NV_ray_tracing" ],
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "IncomingCallableDataNV",
           "value" : 5329,
           "extensions" : [ "SPV_NV_ray_tracing" ],
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "RayPayloadNV",
           "value" : 5338,
           "extensions" : [ "SPV_NV_ray_tracing" ],
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "HitAttributeNV",
           "value" : 5339,
           "extensions" : [ "SPV_NV_ray_tracing" ],
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "IncomingRayPayloadNV",
           "value" : 5342,
           "extensions" : [ "SPV_NV_ray_tracing" ],
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "ShaderRecordBufferNV",
           "value" : 5343,
           "extensions" : [ "SPV_NV_ray_tracing" ],
-          "capabilities" : [ "RayTracingNV" ]
+          "capabilities" : [ "RayTracingNV" ],
+          "version" : "None"
         },
         {
           "enumerant" : "PhysicalStorageBufferEXT",
           "value" : 5349,
           "extensions" : [ "SPV_EXT_physical_storage_buffer" ],
-          "capabilities" : [ "PhysicalStorageBufferAddressesEXT" ]
+          "capabilities" : [ "PhysicalStorageBufferAddressesEXT" ],
+          "version" : "None"
         }
       ]
     },
@@ -5617,7 +7515,8 @@
         {
           "enumerant" : "BufferBlock",
           "value" : 3,
-          "capabilities" : [ "Shader" ]
+          "capabilities" : [ "Shader" ],
+          "lastVersion" : "1.3"
         },
         {
           "enumerant" : "RowMajor",
@@ -5730,6 +7629,15 @@
           "enumerant" : "Uniform",
           "value" : 26,
           "capabilities" : [ "Shader" ]
+        },
+        {
+          "enumerant" : "UniformId",
+          "value" : 27,
+          "capabilities" : [ "Shader" ],
+          "parameters" : [
+            { "kind" : "IdScope",           "name" : "'Execution'" }
+          ],
+          "version" : "1.4"
         },
         {
           "enumerant" : "SaturatedConversion",
@@ -5892,13 +7800,13 @@
           "enumerant" : "NoSignedWrap",
           "value" : 4469,
           "extensions" : [ "SPV_KHR_no_integer_wrap_decoration" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "NoUnsignedWrap",
           "value" : 4470,
           "extensions" : [ "SPV_KHR_no_integer_wrap_decoration" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "ExplicitInterpAMD",
@@ -5957,7 +7865,7 @@
           "extensions" : [ "SPV_NV_mesh_shader" ],
           "version" : "None"
         },
-		{
+        {
           "enumerant" : "PerVertexNV",
           "value" : 5285,
           "capabilities" : [ "FragmentBarycentricNV" ],
@@ -5968,24 +7876,6 @@
           "enumerant" : "NonUniformEXT",
           "value" : 5300,
           "capabilities" : [ "ShaderNonUniformEXT" ]
-        },
-        {
-          "enumerant" : "HlslCounterBufferGOOGLE",
-          "value" : 5634,
-          "parameters" : [
-            { "kind" : "IdRef", "name" : "'Counter Buffer'" }
-          ],
-          "extensions" : [ "SPV_GOOGLE_hlsl_functionality1" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "HlslSemanticGOOGLE",
-          "value" : 5635,
-          "parameters" : [
-            { "kind" : "LiteralString", "name" : "'Semantic'" }
-          ],
-          "extensions" : [ "SPV_GOOGLE_hlsl_functionality1" ],
-          "version" : "None"
         },
         {
           "enumerant" : "RestrictPointerEXT",
@@ -5999,6 +7889,49 @@
           "value" : 5356,
           "capabilities" : [ "PhysicalStorageBufferAddressesEXT" ],
           "extensions" : [ "SPV_EXT_physical_storage_buffer" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "CounterBuffer",
+          "value" : 5634,
+          "parameters" : [
+            { "kind" : "IdRef", "name" : "'Counter Buffer'" }
+          ],
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "HlslCounterBufferGOOGLE",
+          "value" : 5634,
+          "parameters" : [
+            { "kind" : "IdRef", "name" : "'Counter Buffer'" }
+          ],
+          "extensions" : [ "SPV_GOOGLE_hlsl_functionality1" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "UserSemantic",
+          "value" : 5635,
+          "parameters" : [
+            { "kind" : "LiteralString", "name" : "'Semantic'" }
+          ],
+          "version" : "1.4"
+        },
+        {
+          "enumerant" : "HlslSemanticGOOGLE",
+          "value" : 5635,
+          "parameters" : [
+            { "kind" : "LiteralString", "name" : "'Semantic'" }
+          ],
+          "extensions" : [ "SPV_GOOGLE_hlsl_functionality1" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "UserTypeGOOGLE",
+          "value" : 5636,
+          "parameters" : [
+            { "kind" : "LiteralString", "name" : "'User Type'" }
+          ],
+          "extensions" : [ "SPV_GOOGLE_user_type" ],
           "version" : "None"
         }
       ]
@@ -6499,85 +8432,127 @@
           "enumerant" : "LaunchIdNV",
           "value" : 5319,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "LaunchSizeNV",
           "value" : 5320,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "WorldRayOriginNV",
           "value" : 5321,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "WorldRayDirectionNV",
           "value" : 5322,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "ObjectRayOriginNV",
           "value" : 5323,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "ObjectRayDirectionNV",
           "value" : 5324,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "RayTminNV",
           "value" : 5325,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "RayTmaxNV",
           "value" : 5326,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "InstanceCustomIndexNV",
           "value" : 5327,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "ObjectToWorldNV",
           "value" : 5330,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "WorldToObjectNV",
           "value" : 5331,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "HitTNV",
           "value" : 5332,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "HitKindNV",
           "value" : 5333,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
         },
         {
           "enumerant" : "IncomingRayFlagsNV",
           "value" : 5351,
           "capabilities" : [ "RayTracingNV" ],
-          "extensions" : [ "SPV_NV_ray_tracing" ]
+          "extensions" : [ "SPV_NV_ray_tracing" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "WarpsPerSMNV",
+          "value" : 5374,
+          "capabilities" : [ "ShaderSMBuiltinsNV" ],
+          "extensions" : [ "SPV_NV_shader_sm_builtins" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "SMCountNV",
+          "value" : 5375,
+          "capabilities" : [ "ShaderSMBuiltinsNV" ],
+          "extensions" : [ "SPV_NV_shader_sm_builtins" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "WarpIDNV",
+          "value" : 5376,
+          "capabilities" : [ "ShaderSMBuiltinsNV" ],
+          "extensions" : [ "SPV_NV_shader_sm_builtins" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "SMIDNV",
+          "value" : 5377,
+          "capabilities" : [ "ShaderSMBuiltinsNV" ],
+          "extensions" : [ "SPV_NV_shader_sm_builtins" ],
+          "version" : "None"
         }
       ]
     },
@@ -6608,7 +8583,8 @@
         {
           "enumerant" : "QueueFamilyKHR",
           "value" : 5,
-          "capabilities" : [ "VulkanMemoryModelKHR" ]
+          "capabilities" : [ "VulkanMemoryModelKHR" ],
+          "version" : "None"
         }
       ]
     },
@@ -6765,7 +8741,8 @@
         },
         {
           "enumerant" : "Groups",
-          "value" : 18
+          "value" : 18,
+          "extensions" : [ "SPV_AMD_shader_ballot" ]
         },
         {
           "enumerant" : "DeviceEnqueue",
@@ -7143,31 +9120,31 @@
           "enumerant" : "DenormPreserve",
           "value" : 4464,
           "extensions" : [ "SPV_KHR_float_controls" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "DenormFlushToZero",
           "value" : 4465,
           "extensions" : [ "SPV_KHR_float_controls" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "SignedZeroInfNanPreserve",
           "value" : 4466,
           "extensions" : [ "SPV_KHR_float_controls" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "RoundingModeRTE",
           "value" : 4467,
           "extensions" : [ "SPV_KHR_float_controls" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "RoundingModeRTZ",
           "value" : 4468,
           "extensions" : [ "SPV_KHR_float_controls" ],
-          "version" : "None"
+          "version" : "1.4"
         },
         {
           "enumerant" : "Float16ImageAMD",
@@ -7202,6 +9179,13 @@
           "value" : 5015,
           "capabilities" : [ "Shader" ],
           "extensions" : [ "SPV_AMD_shader_image_load_store_lod" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ShaderClockKHR",
+          "value" : 5055,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_KHR_shader_clock" ],
           "version" : "None"
         },
         {
@@ -7265,6 +9249,44 @@
           "value" : 5266,
           "capabilities" : [ "Shader" ],
           "extensions" : [ "SPV_NV_mesh_shader" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ImageFootprintNV",
+          "value" : 5282,
+          "extensions" : [ "SPV_NV_shader_image_footprint" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "FragmentBarycentricNV",
+          "value" : 5284,
+          "extensions" : [ "SPV_NV_fragment_shader_barycentric" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ComputeDerivativeGroupQuadsNV",
+          "value" : 5288,
+          "extensions" : [ "SPV_NV_compute_shader_derivatives" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "FragmentDensityEXT",
+          "value" : 5291,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_EXT_fragment_invocation_density", "SPV_NV_shading_rate" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ShadingRateNV",
+          "value" : 5291,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_NV_shading_rate", "SPV_EXT_fragment_invocation_density" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "GroupNonUniformPartitionedNV",
+          "value" : 5297,
+          "extensions" : [ "SPV_NV_shader_subgroup_partitioned" ],
           "version" : "None"
         },
         {
@@ -7359,6 +9381,73 @@
           "version" : "None"
         },
         {
+          "enumerant" : "VulkanMemoryModelKHR",
+          "value" : 5345,
+          "extensions" : [ "SPV_KHR_vulkan_memory_model" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "VulkanMemoryModelDeviceScopeKHR",
+          "value" : 5346,
+          "extensions" : [ "SPV_KHR_vulkan_memory_model" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "PhysicalStorageBufferAddressesEXT",
+          "value" : 5347,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_EXT_physical_storage_buffer" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ComputeDerivativeGroupLinearNV",
+          "value" : 5350,
+          "extensions" : [ "SPV_NV_compute_shader_derivatives" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "CooperativeMatrixNV",
+          "value" : 5357,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_NV_cooperative_matrix" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "FragmentShaderSampleInterlockEXT",
+          "value" : 5363,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "FragmentShaderShadingRateInterlockEXT",
+          "value" : 5372,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "ShaderSMBuiltinsNV",
+          "value" : 5373,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_NV_shader_sm_builtins" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "FragmentShaderPixelInterlockEXT",
+          "value" : 5378,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_EXT_fragment_shader_interlock" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "DemoteToHelperInvocationEXT",
+          "value" : 5379,
+          "capabilities" : [ "Shader" ],
+          "extensions" : [ "SPV_EXT_demote_to_helper_invocation" ],
+          "version" : "None"
+        },
+        {
           "enumerant" : "SubgroupShuffleINTEL",
           "value" : 5568,
           "extensions" : [ "SPV_INTEL_subgroups" ],
@@ -7377,66 +9466,34 @@
           "version" : "None"
         },
         {
-          "enumerant" : "GroupNonUniformPartitionedNV",
-          "value" : 5297,
-          "extensions" : [ "SPV_NV_shader_subgroup_partitioned" ],
+          "enumerant" : "SubgroupImageMediaBlockIOINTEL",
+          "value" : 5579,
+          "extensions" : [ "SPV_INTEL_media_block_io" ],
           "version" : "None"
         },
         {
-          "enumerant" : "VulkanMemoryModelKHR",
-          "value" : 5345,
-          "extensions" : [ "SPV_KHR_vulkan_memory_model" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "VulkanMemoryModelDeviceScopeKHR",
-          "value" : 5346,
-          "extensions" : [ "SPV_KHR_vulkan_memory_model" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "ImageFootprintNV",
-          "value" : 5282,
-          "extensions" : [ "SPV_NV_shader_image_footprint" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "FragmentBarycentricNV",
-          "value" : 5284,
-          "extensions" : [ "SPV_NV_fragment_shader_barycentric" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "ComputeDerivativeGroupQuadsNV",
-          "value" : 5288,
-          "extensions" : [ "SPV_NV_compute_shader_derivatives" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "ComputeDerivativeGroupLinearNV",
-          "value" : 5350,
-          "extensions" : [ "SPV_NV_compute_shader_derivatives" ],
-          "version" : "None"
-        },
-        {
-          "enumerant" : "FragmentDensityEXT",
-          "value" : 5291,
+          "enumerant" : "IntegerFunctions2INTEL",
+          "value" : 5584,
           "capabilities" : [ "Shader" ],
-          "extensions" : [ "SPV_EXT_fragment_invocation_density", "SPV_NV_shading_rate" ],
+          "extensions" : [ "SPV_INTEL_shader_integer_functions2" ],
           "version" : "None"
         },
         {
-          "enumerant" : "ShadingRateNV",
-          "value" : 5291,
-          "capabilities" : [ "Shader" ],
-          "extensions" : [ "SPV_NV_shading_rate", "SPV_EXT_fragment_invocation_density" ],
+          "enumerant" : "SubgroupAvcMotionEstimationINTEL",
+          "value" : 5696,
+          "extensions" : [ "SPV_INTEL_device_side_avc_motion_estimation" ],
           "version" : "None"
         },
         {
-          "enumerant" : "PhysicalStorageBufferAddressesEXT",
-          "value" : 5347,
-          "capabilities" : [ "Shader" ],
-          "extensions" : [ "SPV_EXT_physical_storage_buffer" ],
+          "enumerant" : "SubgroupAvcMotionEstimationIntraINTEL",
+          "value" : 5697,
+          "extensions" : [ "SPV_INTEL_device_side_avc_motion_estimation" ],
+          "version" : "None"
+        },
+        {
+          "enumerant" : "SubgroupAvcMotionEstimationChromaINTEL",
+          "value" : 5698,
+          "extensions" : [ "SPV_INTEL_device_side_avc_motion_estimation" ],
           "version" : "None"
         }
       ]

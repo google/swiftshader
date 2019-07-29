@@ -42,6 +42,7 @@
 #include <cctype>
 #include <vector>
 #include <utility>
+#include <set>
 
 #include "jsoncpp/dist/json/json.h"
 
@@ -68,9 +69,9 @@ namespace {
         TPrinter();
 
         static const int         DocMagicNumber = 0x07230203;
-        static const int         DocVersion     = 0x00010300;
-        static const int         DocRevision    = 6;
-        #define DocRevisionString                "6"
+        static const int         DocVersion     = 0x00010400;
+        static const int         DocRevision    = 1;
+        #define DocRevisionString                "1"
         static const std::string DocCopyright;
         static const std::string DocComment1;
         static const std::string DocComment2;
@@ -97,6 +98,7 @@ namespace {
         virtual void printEpilogue(std::ostream&) const { }
         virtual void printMeta(std::ostream&)     const;
         virtual void printTypes(std::ostream&)    const { }
+        virtual void printHasResultType(std::ostream&)     const { };
 
         virtual std::string escapeComment(const std::string& s) const;
 
@@ -346,7 +348,7 @@ namespace {
                 bool printMax = (style != enumMask && maxEnum.size() > 0);
 
                 for (const auto& v : sorted)
-                    out << enumFmt(opPrefix, v, style, !printMax && v.first == sorted.back().first);
+                    out << enumFmt(opPrefix, v, style, !printMax && v.second == sorted.back().second);
 
                 if (printMax)
                     out << maxEnum;
@@ -364,6 +366,7 @@ namespace {
         printTypes(out);
         printMeta(out);
         printDefs(out);
+        printHasResultType(out);
         printEpilogue(out);
     }
 
@@ -478,7 +481,7 @@ namespace {
         }
 
         virtual void printEpilogue(std::ostream& out) const override {
-            out << "#endif  // #ifndef spirv_" << headerGuardSuffix() << std::endl;
+            out << "#endif" << std::endl;
         }
 
         virtual void printTypes(std::ostream& out) const override {
@@ -494,6 +497,45 @@ namespace {
 
         virtual std::string pre() const { return ""; } // C name prefix
         virtual std::string headerGuardSuffix() const = 0;
+
+        virtual std::string fmtEnumUse(const std::string& opPrefix, const std::string& name) const { return pre() + name; }
+
+        virtual void printHasResultType(std::ostream& out) const
+        {
+            const Json::Value& enums = spvRoot["spv"]["enum"];
+
+            std::set<unsigned> seenValues;
+
+            for (auto opClass = enums.begin(); opClass != enums.end(); ++opClass) {
+                const auto opName   = (*opClass)["Name"].asString();
+                if (opName != "Op") {
+                    continue;
+                }
+
+                out << "#ifdef SPV_ENABLE_UTILITY_CODE" << std::endl;
+                out << "inline void " << pre() << "HasResultAndType(" << pre() << opName << " opcode, bool *hasResult, bool *hasResultType) {" << std::endl;
+                out << "    *hasResult = *hasResultType = false;" << std::endl;
+                out << "    switch (opcode) {" << std::endl;
+                out << "    default: /* unknown opcode */ break;" << std::endl;
+
+                for (auto& inst : spv::InstructionDesc) {
+
+                    // Filter out duplicate enum values, which would break the switch statement.
+                    // These are probably just extension enums promoted to core.
+                    if (seenValues.find(inst.value) != seenValues.end()) {
+                        continue;
+                    }
+                    seenValues.insert(inst.value);
+
+                    std::string name = inst.name;
+                    out << "    case " << fmtEnumUse("Op", name) << ": *hasResult = " << (inst.hasResult() ? "true" : "false") << "; *hasResultType = " << (inst.hasType() ? "true" : "false") << "; break;" << std::endl;
+                }
+
+                out << "    }" << std::endl;
+                out << "}" << std::endl;
+                out << "#endif /* SPV_ENABLE_UTILITY_CODE */" << std::endl << std::endl;
+            }
+        }
     };
 
     // C printer
@@ -552,7 +594,7 @@ namespace {
             }
 
             out << "\n}  // end namespace spv\n\n";
-            TPrinterCBase::printEpilogue(out);
+            out << "#endif  // #ifndef spirv_" << headerGuardSuffix() << std::endl;
         }
 
         std::string commentBOL() const override { return "// "; }
@@ -599,6 +641,9 @@ namespace {
                                enumStyle_t style) const override {
             return enumFmt(s, v, style, true);
         }
+
+        // Add type prefix for scoped enum
+        virtual std::string fmtEnumUse(const std::string& opPrefix, const std::string& name) const { return opPrefix + "::" + name; }
 
         std::string headerGuardSuffix() const override { return "HPP"; }
     };

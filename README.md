@@ -25,9 +25,17 @@ the files under [include](include).
 
 The SPIR-V XML registry file is updated by Khronos whenever a new enum range is allocated.
 
-Pull requests can be made to 
+Pull requests can be made to
 - request allocation of new enum ranges in the XML registry file
 - reserve specific tokens in the JSON grammar
+
+### Reserving tokens in the JSON grammar
+
+Care should be taken to follow existing precedent in populating the details of reserved tokens. This includes:
+- pointing to what extension has more information, when possible
+- keeping enumerants in numeric order
+- when there are aliases, listing the preferred spelling first
+- adding the statement `"version" : "None"`
 
 ## How to install the headers
 
