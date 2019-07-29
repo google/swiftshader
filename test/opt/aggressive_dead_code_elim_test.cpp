@@ -3811,7 +3811,7 @@ OpName %output "output"
 %6 = OpTypeFunction %void
 %float = OpTypeFloat 32
 %_ptr_Private_float = OpTypePointer Private %float
-%initializer = OpVariable %_ptr_Private_float Private
+%initializer = OpConstant %float 0
 %live = OpVariable %_ptr_Private_float Private %initializer
 %_ptr_Output_float = OpTypePointer Output %float
 %output = OpVariable %_ptr_Output_float Output
@@ -4254,7 +4254,7 @@ TEST_P(AggressiveEliminateDeadConstantTest, Custom) {
   SinglePassRunAndMatch<AggressiveDCEPass>(assembly_with_dead_const, false);
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ScalarTypeConstants, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -4346,7 +4346,7 @@ INSTANTIATE_TEST_CASE_P(
         // clang-format on
     })));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     VectorTypeConstants, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -4473,7 +4473,7 @@ INSTANTIATE_TEST_CASE_P(
         // clang-format on
     })));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     StructTypeConstants, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -4644,7 +4644,7 @@ INSTANTIATE_TEST_CASE_P(
         // clang-format on
     })));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ScalarTypeSpecConstants, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -4697,7 +4697,7 @@ INSTANTIATE_TEST_CASE_P(
         // clang-format on
     })));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     VectorTypeSpecConstants, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -4819,7 +4819,7 @@ INSTANTIATE_TEST_CASE_P(
         // clang-format on
     })));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     SpecConstantOp, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -5001,7 +5001,7 @@ INSTANTIATE_TEST_CASE_P(
         // clang-format on
     })));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     LongDefUseChain, AggressiveEliminateDeadConstantTest,
     ::testing::ValuesIn(std::vector<AggressiveEliminateDeadConstantTestCase>({
         // clang-format off
@@ -5151,7 +5151,6 @@ OpFunctionEnd
 TEST_F(AggressiveDCETest, ParitallyDeadDecorationGroup) {
   const std::string text = R"(
 ; CHECK: OpDecorate [[grp:%\w+]] Restrict
-; CHECK: OpDecorate [[grp]] Aliased
 ; CHECK: [[grp]] = OpDecorationGroup
 ; CHECK: OpGroupDecorate [[grp]] [[output:%\w+]]
 ; CHECK: [[output]] = OpVariable {{%\w+}} Output
@@ -5161,7 +5160,6 @@ OpMemoryModel Logical GLSL450
 OpEntryPoint Fragment %main "main" %output
 OpExecutionMode %main OriginUpperLeft
 OpDecorate %1 Restrict
-OpDecorate %1 Aliased
 %1 = OpDecorationGroup
 OpGroupDecorate %1 %var %output
 %void = OpTypeVoid
@@ -5185,7 +5183,6 @@ OpFunctionEnd
 TEST_F(AggressiveDCETest, ParitallyDeadDecorationGroupDifferentGroupDecorate) {
   const std::string text = R"(
 ; CHECK: OpDecorate [[grp:%\w+]] Restrict
-; CHECK: OpDecorate [[grp]] Aliased
 ; CHECK: [[grp]] = OpDecorationGroup
 ; CHECK: OpGroupDecorate [[grp]] [[output:%\w+]]
 ; CHECK-NOT: OpGroupDecorate
@@ -5196,7 +5193,6 @@ OpMemoryModel Logical GLSL450
 OpEntryPoint Fragment %main "main" %output
 OpExecutionMode %main OriginUpperLeft
 OpDecorate %1 Restrict
-OpDecorate %1 Aliased
 %1 = OpDecorationGroup
 OpGroupDecorate %1 %output
 OpGroupDecorate %1 %var
@@ -6214,6 +6210,412 @@ TEST_F(AggressiveDCETest, Dead) {
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   SinglePassRunAndMatch<AggressiveDCEPass>(test, true);
 }
+
+TEST_F(AggressiveDCETest, DeadInfiniteLoop) {
+  const std::string test = R"(
+; CHECK: OpSwitch {{%\w+}} {{%\w+}} {{\w+}} {{%\w+}} {{\w+}} [[block:%\w+]]
+; CHECK: [[block]] = OpLabel
+; CHECK-NEXT: OpBranch [[block:%\w+]]
+; CHECK: [[block]] = OpLabel
+; CHECK-NEXT: OpBranch [[block:%\w+]]
+; CHECK: [[block]] = OpLabel
+; CHECK-NEXT: OpReturn
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+          %6 = OpTypeVoid
+          %7 = OpTypeFunction %6
+          %8 = OpTypeFloat 32
+          %9 = OpTypeVector %8 3
+         %10 = OpTypeFunction %9
+         %11 = OpConstant %8 1
+         %12 = OpConstantComposite %9 %11 %11 %11
+         %13 = OpTypeInt 32 1
+         %32 = OpUndef %13
+          %2 = OpFunction %6 None %7
+         %33 = OpLabel
+               OpBranch %34
+         %34 = OpLabel
+               OpLoopMerge %35 %36 None
+               OpBranch %37
+         %37 = OpLabel
+         %38 = OpFunctionCall %9 %39
+               OpSelectionMerge %40 None
+               OpSwitch %32 %40 14 %41 58 %42
+         %42 = OpLabel
+               OpBranch %43
+         %43 = OpLabel
+               OpLoopMerge %44 %45 None
+               OpBranch %45
+         %45 = OpLabel
+               OpBranch %43
+         %44 = OpLabel
+               OpUnreachable
+         %41 = OpLabel
+               OpBranch %36
+         %40 = OpLabel
+               OpBranch %36
+         %36 = OpLabel
+               OpBranch %34
+         %35 = OpLabel
+               OpReturn
+               OpFunctionEnd
+         %39 = OpFunction %9 None %10
+         %46 = OpLabel
+               OpReturnValue %12
+               OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<AggressiveDCEPass>(test, true);
+}
+
+TEST_F(AggressiveDCETest, DeadInfiniteLoopReturnValue) {
+  const std::string test = R"(
+; CHECK: [[vec3:%\w+]] = OpTypeVector
+; CHECK: [[undef:%\w+]] = OpUndef [[vec3]]
+; CHECK: OpSwitch {{%\w+}} {{%\w+}} {{\w+}} {{%\w+}} {{\w+}} [[block:%\w+]]
+; CHECK: [[block]] = OpLabel
+; CHECK-NEXT: OpBranch [[block:%\w+]]
+; CHECK: [[block]] = OpLabel
+; CHECK-NEXT: OpBranch [[block:%\w+]]
+; CHECK: [[block]] = OpLabel
+; CHECK-NEXT: OpReturnValue [[undef]]
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+          %6 = OpTypeVoid
+          %7 = OpTypeFunction %6
+          %8 = OpTypeFloat 32
+          %9 = OpTypeVector %8 3
+         %10 = OpTypeFunction %9
+         %11 = OpConstant %8 1
+         %12 = OpConstantComposite %9 %11 %11 %11
+         %13 = OpTypeInt 32 1
+         %32 = OpUndef %13
+          %2 = OpFunction %6 None %7
+      %entry = OpLabel
+       %call = OpFunctionCall %9 %func
+               OpReturn
+               OpFunctionEnd
+       %func = OpFunction %9 None %10
+         %33 = OpLabel
+               OpBranch %34
+         %34 = OpLabel
+               OpLoopMerge %35 %36 None
+               OpBranch %37
+         %37 = OpLabel
+         %38 = OpFunctionCall %9 %39
+               OpSelectionMerge %40 None
+               OpSwitch %32 %40 14 %41 58 %42
+         %42 = OpLabel
+               OpBranch %43
+         %43 = OpLabel
+               OpLoopMerge %44 %45 None
+               OpBranch %45
+         %45 = OpLabel
+               OpBranch %43
+         %44 = OpLabel
+               OpUnreachable
+         %41 = OpLabel
+               OpBranch %36
+         %40 = OpLabel
+               OpBranch %36
+         %36 = OpLabel
+               OpBranch %34
+         %35 = OpLabel
+               OpReturnValue %12
+               OpFunctionEnd
+         %39 = OpFunction %9 None %10
+         %46 = OpLabel
+               OpReturnValue %12
+               OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<AggressiveDCEPass>(test, true);
+}
+
+TEST_F(AggressiveDCETest, TestVariablePointer) {
+  const std::string before =
+      R"(OpCapability Shader
+OpCapability VariablePointers
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %2 "main"
+OpExecutionMode %2 LocalSize 1 1 1
+OpSource GLSL 450
+OpMemberDecorate %_struct_3 0 Offset 0
+OpDecorate %_struct_3 Block
+OpDecorate %4 DescriptorSet 0
+OpDecorate %4 Binding 0
+OpDecorate %_ptr_StorageBuffer_int ArrayStride 4
+OpDecorate %_arr_int_int_128 ArrayStride 4
+%void = OpTypeVoid
+%8 = OpTypeFunction %void
+%int = OpTypeInt 32 1
+%int_128 = OpConstant %int 128
+%_arr_int_int_128 = OpTypeArray %int %int_128
+%_struct_3 = OpTypeStruct %_arr_int_int_128
+%_ptr_StorageBuffer__struct_3 = OpTypePointer StorageBuffer %_struct_3
+%4 = OpVariable %_ptr_StorageBuffer__struct_3 StorageBuffer
+%bool = OpTypeBool
+%true = OpConstantTrue %bool
+%int_0 = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%_ptr_StorageBuffer_int = OpTypePointer StorageBuffer %int
+%2 = OpFunction %void None %8
+%16 = OpLabel
+%17 = OpAccessChain %_ptr_StorageBuffer_int %4 %int_0 %int_0
+OpBranch %18
+%18 = OpLabel
+%19 = OpPhi %_ptr_StorageBuffer_int %17 %16 %20 %21
+OpLoopMerge %22 %21 None
+OpBranchConditional %true %23 %22
+%23 = OpLabel
+OpStore %19 %int_0
+OpBranch %21
+%21 = OpLabel
+%20 = OpPtrAccessChain %_ptr_StorageBuffer_int %19 %int_1
+OpBranch %18
+%22 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndCheck<AggressiveDCEPass>(before, before, true, true);
+}
+
+TEST_F(AggressiveDCETest, DeadInputInterfaceV13) {
+  const std::string spirv = R"(
+; CHECK: OpEntryPoint GLCompute %main "main" [[var:%\w+]]
+; CHECK: [[var]] = OpVariable
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %dead
+OpExecutionMode %main LocalSize 1 1 1
+OpName %main "main"
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_input_int = OpTypePointer Input %int
+%dead = OpVariable %ptr_input_int Input
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_3);
+  SinglePassRunAndMatch<AggressiveDCEPass>(spirv, true);
+}
+
+TEST_F(AggressiveDCETest, DeadInputInterfaceV14) {
+  const std::string spirv = R"(
+; CHECK: OpEntryPoint GLCompute %main "main" [[var:%\w+]]
+; CHECK: [[var]] = OpVariable
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %dead
+OpExecutionMode %main LocalSize 1 1 1
+OpName %main "main"
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_input_int = OpTypePointer Input %int
+%dead = OpVariable %ptr_input_int Input
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<AggressiveDCEPass>(spirv, true);
+}
+
+TEST_F(AggressiveDCETest, DeadInterfaceV14) {
+  const std::string spirv = R"(
+; CHECK-NOT: OpEntryPoint GLCompute %main "main" %
+; CHECK: OpEntryPoint GLCompute %main "main"
+; CHECK-NOT: OpVariable
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %dead
+OpExecutionMode %main LocalSize 1 1 1
+OpName %main "main"
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_private_int = OpTypePointer Private %int
+%dead = OpVariable %ptr_private_int Private
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<AggressiveDCEPass>(spirv, true);
+}
+
+TEST_F(AggressiveDCETest, DeadInterfacesV14) {
+  const std::string spirv = R"(
+; CHECK: OpEntryPoint GLCompute %main "main" %live1 %live2
+; CHECK-NOT: %dead
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %live1 %dead1 %dead2 %live2
+OpExecutionMode %main LocalSize 1 1 1
+OpName %main "main"
+OpName %live1 "live1"
+OpName %live2 "live2"
+OpName %dead1 "dead1"
+OpName %dead2 "dead2"
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int0 = OpConstant %int 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%live1 = OpVariable %ptr_ssbo_int StorageBuffer
+%live2 = OpVariable %ptr_ssbo_int StorageBuffer
+%dead1 = OpVariable %ptr_ssbo_int StorageBuffer
+%dead2 = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpStore %live1 %int0
+OpStore %live2 %int0
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<AggressiveDCEPass>(spirv, true);
+}
+
+TEST_F(AggressiveDCETest, PreserveBindings) {
+  const std::string spirv = R"(
+; CHECK: OpDecorate %unusedSampler DescriptorSet 0
+; CHECK: OpDecorate %unusedSampler Binding 0
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+OpSource GLSL 430
+OpName %main "main"
+OpName %unusedSampler "unusedSampler"
+OpDecorate %unusedSampler DescriptorSet 0
+OpDecorate %unusedSampler Binding 0
+%void = OpTypeVoid
+%5 = OpTypeFunction %void
+%float = OpTypeFloat 32
+%7 = OpTypeImage %float 2D 0 0 0 1 Unknown
+%8 = OpTypeSampledImage %7
+%_ptr_UniformConstant_8 = OpTypePointer UniformConstant %8
+%unusedSampler = OpVariable %_ptr_UniformConstant_8 UniformConstant
+%main = OpFunction %void None %5
+%10 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+
+  OptimizerOptions()->preserve_bindings_ = true;
+
+  SinglePassRunAndMatch<AggressiveDCEPass>(spirv, true);
+}
+
+TEST_F(AggressiveDCETest, PreserveSpecConstants) {
+  const std::string spirv = R"(
+; CHECK: OpName %specConstant "specConstant"
+; CHECK: %specConstant = OpSpecConstant %int 0
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+OpSource GLSL 430
+OpName %main "main"
+OpName %specConstant "specConstant"
+OpDecorate %specConstant SpecId 0
+%void = OpTypeVoid
+%3 = OpTypeFunction %void
+%int = OpTypeInt 32 1
+%specConstant = OpSpecConstant %int 0
+%main = OpFunction %void None %3
+%5 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+
+  OptimizerOptions()->preserve_spec_constants_ = true;
+
+  SinglePassRunAndMatch<AggressiveDCEPass>(spirv, true);
+}
+
+TEST_F(AggressiveDCETest, LiveDecorateId) {
+  const std::string spirv = R"(OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %1 "main" %2
+OpExecutionMode %1 LocalSize 8 1 1
+OpDecorate %2 DescriptorSet 0
+OpDecorate %2 Binding 0
+OpDecorateId %3 UniformId %uint_2
+%void = OpTypeVoid
+%uint = OpTypeInt 32 0
+%uint_2 = OpConstant %uint 2
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%2 = OpVariable %_ptr_StorageBuffer_uint StorageBuffer
+%8 = OpTypeFunction %void
+%1 = OpFunction %void None %8
+%9 = OpLabel
+%3 = OpLoad %uint %2
+OpStore %2 %3
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  OptimizerOptions()->preserve_spec_constants_ = true;
+  SinglePassRunAndCheck<AggressiveDCEPass>(spirv, spirv, true);
+}
+
+TEST_F(AggressiveDCETest, LiveDecorateIdOnGroup) {
+  const std::string spirv = R"(OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %1 "main" %2
+OpExecutionMode %1 LocalSize 8 1 1
+OpDecorate %2 DescriptorSet 0
+OpDecorate %2 Binding 0
+OpDecorateId %3 UniformId %uint_2
+%3 = OpDecorationGroup
+OpGroupDecorate %3 %5
+%void = OpTypeVoid
+%uint = OpTypeInt 32 0
+%uint_2 = OpConstant %uint 2
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%2 = OpVariable %_ptr_StorageBuffer_uint StorageBuffer
+%9 = OpTypeFunction %void
+%1 = OpFunction %void None %9
+%10 = OpLabel
+%5 = OpLoad %uint %2
+OpStore %2 %5
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  OptimizerOptions()->preserve_spec_constants_ = true;
+  SinglePassRunAndCheck<AggressiveDCEPass>(spirv, spirv, true);
+}
+
 // TODO(greg-lunarg): Add tests to verify handling of these cases:
 //
 //    Check that logical addressing required

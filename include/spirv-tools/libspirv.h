@@ -370,6 +370,8 @@ typedef struct spv_optimizer_options_t spv_optimizer_options_t;
 
 typedef struct spv_reducer_options_t spv_reducer_options_t;
 
+typedef struct spv_fuzzer_options_t spv_fuzzer_options_t;
+
 // Type Definitions
 
 typedef spv_const_binary_t* spv_const_binary;
@@ -385,6 +387,8 @@ typedef spv_optimizer_options_t* spv_optimizer_options;
 typedef const spv_optimizer_options_t* spv_const_optimizer_options;
 typedef spv_reducer_options_t* spv_reducer_options;
 typedef const spv_reducer_options_t* spv_const_reducer_options;
+typedef spv_fuzzer_options_t* spv_fuzzer_options;
+typedef const spv_fuzzer_options_t* spv_const_fuzzer_options;
 
 // Platform API
 
@@ -427,6 +431,8 @@ typedef enum {
   SPV_ENV_UNIVERSAL_1_3,  // SPIR-V 1.3 latest revision, no other restrictions.
   SPV_ENV_VULKAN_1_1,     // Vulkan 1.1 latest revision.
   SPV_ENV_WEBGPU_0,       // Work in progress WebGPU 1.0.
+  SPV_ENV_UNIVERSAL_1_4,  // SPIR-V 1.4 latest revision, no other restrictions.
+  SPV_ENV_VULKAN_1_1_SPIRV_1_4,  // Vulkan 1.1 with SPIR-V 1.4 binary.
 } spv_target_env;
 
 // SPIR-V Validator can be parameterized with the following Universal Limits.
@@ -444,6 +450,10 @@ typedef enum {
 
 // Returns a string describing the given SPIR-V target environment.
 SPIRV_TOOLS_EXPORT const char* spvTargetEnvDescription(spv_target_env env);
+
+// Parses s into *env and returns true if successful.  If unparsable, returns
+// false and sets *env to SPV_ENV_UNIVERSAL_1_0.
+SPIRV_TOOLS_EXPORT bool spvParseTargetEnv(const char* s, spv_target_env* env);
 
 // Creates a context object.  Returns null if env is invalid.
 SPIRV_TOOLS_EXPORT spv_context spvContextCreate(spv_target_env env);
@@ -488,6 +498,20 @@ SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetRelaxStoreStruct(
 SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetRelaxLogicalPointer(
     spv_validator_options options, bool val);
 
+// Records whether or not the validator should relax the rules because it is
+// expected that the optimizations will make the code legal.
+//
+// When relaxed, it will allow the following:
+// 1) It will allow relaxed logical pointers.  Setting this option will also
+//    set that option.
+// 2) Pointers that are pass as parameters to function calls do not have to
+//    match the storage class of the formal parameter.
+// 3) Pointers that are actaul parameters on function calls do not have to point
+//    to the same type pointed as the formal parameter.  The types just need to
+//    logically match.
+SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetBeforeHlslLegalization(
+    spv_validator_options options, bool val);
+
 // Records whether the validator should use "relaxed" block layout rules.
 // Relaxed layout rules are described by Vulkan extension
 // VK_KHR_relaxed_block_layout, and they affect uniform blocks, storage blocks,
@@ -496,6 +520,11 @@ SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetRelaxLogicalPointer(
 // This is enabled by default when targeting Vulkan 1.1 or later.
 // Relaxed layout is more permissive than the default rules in Vulkan 1.0.
 SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetRelaxBlockLayout(
+    spv_validator_options options, bool val);
+
+// Records whether the validator should use standard block layout rules for
+// uniform blocks.
+SPIRV_TOOLS_EXPORT void spvValidatorOptionsSetUniformBufferStandardLayout(
     spv_validator_options options, bool val);
 
 // Records whether the validator should use "scalar" block layout rules.
@@ -545,6 +574,15 @@ SPIRV_TOOLS_EXPORT void spvOptimizerOptionsSetValidatorOptions(
 SPIRV_TOOLS_EXPORT void spvOptimizerOptionsSetMaxIdBound(
     spv_optimizer_options options, uint32_t val);
 
+// Records whether all bindings within the module should be preserved.
+SPIRV_TOOLS_EXPORT void spvOptimizerOptionsSetPreserveBindings(
+    spv_optimizer_options options, bool val);
+
+// Records whether all specialization constants within the module
+// should be preserved.
+SPIRV_TOOLS_EXPORT void spvOptimizerOptionsSetPreserveSpecConstants(
+    spv_optimizer_options options, bool val);
+
 // Creates a reducer options object with default options. Returns a valid
 // options object. The object remains valid until it is passed into
 // |spvReducerOptionsDestroy|.
@@ -553,14 +591,35 @@ SPIRV_TOOLS_EXPORT spv_reducer_options spvReducerOptionsCreate();
 // Destroys the given reducer options object.
 SPIRV_TOOLS_EXPORT void spvReducerOptionsDestroy(spv_reducer_options options);
 
-// Records the maximum number of reduction steps that should run before the
-// reducer gives up.
+// Sets the maximum number of reduction steps that should run before the reducer
+// gives up.
 SPIRV_TOOLS_EXPORT void spvReducerOptionsSetStepLimit(
     spv_reducer_options options, uint32_t step_limit);
 
-// Sets seed for random number generation.
-SPIRV_TOOLS_EXPORT void spvReducerOptionsSetSeed(spv_reducer_options options,
-                                                 uint32_t seed);
+// Sets the fail-on-validation-error option; if true, the reducer will return
+// kStateInvalid if a reduction step yields a state that fails SPIR-V
+// validation. Otherwise, an invalid state is treated as uninteresting and the
+// reduction backtracks and continues.
+SPIRV_TOOLS_EXPORT void spvReducerOptionsSetFailOnValidationError(
+    spv_reducer_options options, bool fail_on_validation_error);
+
+// Creates a fuzzer options object with default options. Returns a valid
+// options object. The object remains valid until it is passed into
+// |spvFuzzerOptionsDestroy|.
+SPIRV_TOOLS_EXPORT spv_fuzzer_options spvFuzzerOptionsCreate();
+
+// Destroys the given fuzzer options object.
+SPIRV_TOOLS_EXPORT void spvFuzzerOptionsDestroy(spv_fuzzer_options options);
+
+// Sets the seed with which the random number generator used by the fuzzer
+// should be initialized.
+SPIRV_TOOLS_EXPORT void spvFuzzerOptionsSetRandomSeed(
+    spv_fuzzer_options options, uint32_t seed);
+
+// Sets the maximum number of steps that the shrinker should take before giving
+// up.
+SPIRV_TOOLS_EXPORT void spvFuzzerOptionsSetShrinkerStepLimit(
+    spv_fuzzer_options options, uint32_t shrinker_step_limit);
 
 // Encodes the given SPIR-V assembly text to its binary representation. The
 // length parameter specifies the number of bytes for text. Encoded binary will

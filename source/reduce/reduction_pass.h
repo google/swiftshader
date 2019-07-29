@@ -15,10 +15,11 @@
 #ifndef SOURCE_REDUCE_REDUCTION_PASS_H_
 #define SOURCE_REDUCE_REDUCTION_PASS_H_
 
-#include "spirv-tools/libspirv.hpp"
+#include <limits>
 
-#include "reduction_opportunity.h"
 #include "source/opt/ir_context.h"
+#include "source/reduce/reduction_opportunity_finder.h"
+#include "spirv-tools/libspirv.hpp"
 
 namespace spvtools {
 namespace reduce {
@@ -32,15 +33,28 @@ namespace reduce {
 // again, until the minimum granularity is reached.
 class ReductionPass {
  public:
-  // Constructs a reduction pass with a given target environment, |target_env|.
-  // Initially the pass is uninitialized.
-  explicit ReductionPass(const spv_target_env target_env)
-      : target_env_(target_env), is_initialized_(false) {}
+  // Constructs a reduction pass with a given target environment, |target_env|,
+  // and a given finder of reduction opportunities, |finder|.
+  explicit ReductionPass(const spv_target_env target_env,
+                         std::unique_ptr<ReductionOpportunityFinder> finder)
+      : target_env_(target_env),
+        finder_(std::move(finder)),
+        index_(0),
+        granularity_(std::numeric_limits<uint32_t>::max()) {}
 
-  virtual ~ReductionPass() = default;
-
-  // Applies the reduction pass to the given binary.
+  // Applies the reduction pass to the given binary by applying a "chunk" of
+  // reduction opportunities. Returns the new binary if a chunk was applied; in
+  // this case, before the next call the caller must invoke
+  // NotifyInteresting(...) to indicate whether the new binary is interesting.
+  // Returns an empty vector if there are no more chunks left to apply; in this
+  // case, the index will be reset and the granularity lowered for the next
+  // round.
   std::vector<uint32_t> TryApplyReduction(const std::vector<uint32_t>& binary);
+
+  // Notifies the reduction pass whether the binary returned from
+  // TryApplyReduction is interesting, so that the next call to
+  // TryApplyReduction will avoid applying the same chunk of opportunities.
+  void NotifyInteresting(bool interesting);
 
   // Sets a consumer to which relevant messages will be directed.
   void SetMessageConsumer(MessageConsumer consumer);
@@ -49,20 +63,14 @@ class ReductionPass {
   // applied has reached a minimum.
   bool ReachedMinimumGranularity() const;
 
-  // Returns the name of the reduction pass (useful for monitoring reduction
-  // progress).
-  virtual std::string GetName() const = 0;
-
- protected:
-  // Finds and returns the reduction opportunities relevant to this pass that
-  // could be applied to the given SPIR-V module.
-  virtual std::vector<std::unique_ptr<ReductionOpportunity>>
-  GetAvailableOpportunities(opt::IRContext* context) const = 0;
+  // Returns the name associated with this reduction pass (based on its
+  // associated finder).
+  std::string GetName() const;
 
  private:
   const spv_target_env target_env_;
+  const std::unique_ptr<ReductionOpportunityFinder> finder_;
   MessageConsumer consumer_;
-  bool is_initialized_;
   uint32_t index_;
   uint32_t granularity_;
 };

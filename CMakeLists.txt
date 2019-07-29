@@ -69,6 +69,10 @@ if(NOT ${SKIP_SPIRV_TOOLS_INSTALL})
 endif()
 
 option(SPIRV_BUILD_COMPRESSION "Build SPIR-V compressing codec" OFF)
+if(SPIRV_BUILD_COMPRESSION)
+  message(FATAL_ERROR "SPIR-V compression codec has been removed from SPIR-V tools. "
+          "Please remove SPIRV_BUILD_COMPRESSION from your build options.")
+endif(SPIRV_BUILD_COMPRESSION)
 
 option(SPIRV_WERROR "Enable error on warning" ON)
 if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")))
@@ -140,6 +144,8 @@ function(spvtools_default_compile_options TARGET)
       if(NOT "${SPIRV_USE_SANITIZER}" STREQUAL "")
         target_compile_options(${TARGET} PRIVATE
           -fsanitize=${SPIRV_USE_SANITIZER})
+        set_target_properties(${TARGET} PROPERTIES
+          LINK_FLAGS -fsanitize=${SPIRV_USE_SANITIZER})
       endif()
       target_compile_options(${TARGET} PRIVATE
          -ftemplate-depth=1024)
@@ -176,7 +182,8 @@ if(NOT COMMAND find_host_program)
   endmacro()
 endif()
 
-find_host_package(PythonInterp)
+# Tests require Python3
+find_host_package(PythonInterp 3 REQUIRED)
 
 # Check for symbol exports on Linux.
 # At the moment, this check will fail on the OSX build machines for the Android NDK.
@@ -254,9 +261,6 @@ endif()
 
 set(SPIRV_LIBRARIES "-lSPIRV-Tools -lSPIRV-Tools-link -lSPIRV-Tools-opt")
 set(SPIRV_SHARED_LIBRARIES "-lSPIRV-Tools-shared")
-if(SPIRV_BUILD_COMPRESSION)
-  set(SPIRV_LIBRARIES "${SPIRV_LIBRARIES} -lSPIRV-Tools-comp")
-endif(SPIRV_BUILD_COMPRESSION)
 
 # Build pkg-config file
 # Use a first-class target so it's regenerated when relevant files are updated.

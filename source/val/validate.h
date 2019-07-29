@@ -199,11 +199,21 @@ spv_result_t ModeSettingPass(ValidationState_t& _, const Instruction* inst);
 /// Validates correctness of function instructions.
 spv_result_t FunctionPass(ValidationState_t& _, const Instruction* inst);
 
+/// Validates correctness of miscellaneous instructions.
+spv_result_t MiscPass(ValidationState_t& _, const Instruction* inst);
+
 /// Validates execution limitations.
 ///
 /// Verifies execution models are allowed for all functionality they contain.
 spv_result_t ValidateExecutionLimitations(ValidationState_t& _,
                                           const Instruction* inst);
+
+/// Validates restricted  uses of 8- and 16-bit types.
+///
+/// Validates shaders that uses 8- or 16-bit storage capabilities, but not full
+/// capabilities only have appropriate uses of those types.
+spv_result_t ValidateSmallTypeUses(ValidationState_t& _,
+                                   const Instruction* inst);
 
 /// @brief Validate the ID's within a SPIR-V binary
 ///

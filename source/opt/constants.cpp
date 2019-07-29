@@ -167,6 +167,10 @@ Instruction* ConstantManager::BuildInstructionAndAddToModule(
     const Constant* new_const, Module::inst_iterator* pos, uint32_t type_id) {
   // TODO(1841): Handle id overflow.
   uint32_t new_id = context()->TakeNextId();
+  if (new_id == 0) {
+    return nullptr;
+  }
+
   auto new_inst = CreateInstruction(new_id, new_const, type_id);
   if (!new_inst) {
     return nullptr;
@@ -181,8 +185,6 @@ Instruction* ConstantManager::BuildInstructionAndAddToModule(
 
 Instruction* ConstantManager::GetDefiningInstruction(
     const Constant* c, uint32_t type_id, Module::inst_iterator* pos) {
-  assert(type_id == 0 ||
-         context()->get_type_mgr()->GetType(type_id) == c->type());
   uint32_t decl_id = FindDeclaredConstant(c, type_id);
   if (decl_id == 0) {
     auto iter = context()->types_values_end();

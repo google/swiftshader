@@ -16,30 +16,12 @@
 #define TEST_REDUCE_REDUCE_TEST_UTIL_H_
 
 #include "gtest/gtest.h"
-
 #include "source/opt/ir_context.h"
 #include "source/reduce/reduction_opportunity.h"
 #include "spirv-tools/libspirv.h"
 
 namespace spvtools {
 namespace reduce {
-
-// A helper class that subclasses a given reduction pass class in order to
-// provide a wrapper for its protected methods.
-template <class ReductionPassT>
-class TestSubclass : public ReductionPassT {
- public:
-  // Creates an instance of the reduction pass subclass with respect to target
-  // environment |env|.
-  explicit TestSubclass(const spv_target_env env) : ReductionPassT(env) {}
-  ~TestSubclass() = default;
-
-  // A wrapper for GetAvailableOpportunities(...)
-  std::vector<std::unique_ptr<ReductionOpportunity>>
-  WrapGetAvailableOpportunities(opt::IRContext* context) const {
-    return ReductionPassT::GetAvailableOpportunities(context);
-  }
-};
 
 // Checks whether the given binaries are bit-wise equal.
 void CheckEqual(spv_target_env env,
@@ -75,6 +57,17 @@ const uint32_t kReduceDisassembleOption =
 // Don't print reducer info during testing.
 void NopDiagnostic(spv_message_level_t /*level*/, const char* /*source*/,
                    const spv_position_t& /*position*/, const char* /*message*/);
+
+// Prints reducer messages (for debugging).
+void CLIMessageConsumer(spv_message_level_t level, const char*,
+                        const spv_position_t& position, const char* message);
+
+// Dumps the SPIRV-V module in |context| to file |filename|. Useful for
+// interactive debugging.
+void DumpShader(opt::IRContext* context, const char* filename);
+
+// Dumps |binary| to file |filename|. Useful for interactive debugging.
+void DumpShader(const std::vector<uint32_t>& binary, const char* filename);
 
 }  // namespace reduce
 }  // namespace spvtools

@@ -510,7 +510,7 @@ TEST_P(ValidateModeGeometry, ExecutionMode) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     GeometryRequiredModes, ValidateModeGeometry,
     Combine(Combine(Values("InputPoints", ""), Values("InputLines", ""),
                     Values("InputLinesAdjacency", ""), Values("Triangles", ""),
@@ -531,16 +531,24 @@ TEST_P(ValidateModeExecution, ExecutionMode) {
 
   std::ostringstream sstr;
   sstr << "OpCapability Shader\n";
-  sstr << "OpCapability Geometry\n";
-  sstr << "OpCapability Tessellation\n";
-  sstr << "OpCapability TransformFeedback\n";
-  if (!spvIsVulkanEnv(env)) {
+  if (!spvIsWebGPUEnv(env)) {
+    sstr << "OpCapability Geometry\n";
+    sstr << "OpCapability Tessellation\n";
+    sstr << "OpCapability TransformFeedback\n";
+  }
+  if (!spvIsVulkanOrWebGPUEnv(env)) {
     sstr << "OpCapability Kernel\n";
     if (env == SPV_ENV_UNIVERSAL_1_3) {
       sstr << "OpCapability SubgroupDispatch\n";
     }
   }
-  sstr << "OpMemoryModel Logical GLSL450\n";
+  if (spvIsWebGPUEnv(env)) {
+    sstr << "OpCapability VulkanMemoryModelKHR\n";
+    sstr << "OpExtension \"SPV_KHR_vulkan_memory_model\"\n";
+    sstr << "OpMemoryModel Logical VulkanKHR\n";
+  } else {
+    sstr << "OpMemoryModel Logical GLSL450\n";
+  }
   sstr << "OpEntryPoint " << model << " %main \"main\"\n";
   if (mode.find("LocalSizeId") == 0 || mode.find("LocalSizeHintId") == 0 ||
       mode.find("SubgroupsPerWorkgroupId") == 0) {
@@ -584,7 +592,7 @@ TEST_P(ValidateModeExecution, ExecutionMode) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeGeometryOnlyGoodSpv10, ValidateModeExecution,
     Combine(Values(SPV_SUCCESS), Values(""), Values("Geometry"),
             Values("Invocations 3", "InputPoints", "InputLines",
@@ -592,7 +600,7 @@ INSTANTIATE_TEST_CASE_P(
                    "OutputPoints", "OutputLineStrip", "OutputTriangleStrip"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeGeometryOnlyBadSpv10, ValidateModeExecution,
     Combine(Values(SPV_ERROR_INVALID_DATA),
             Values("Execution mode can only be used with the Geometry "
@@ -604,7 +612,7 @@ INSTANTIATE_TEST_CASE_P(
                    "OutputPoints", "OutputLineStrip", "OutputTriangleStrip"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeTessellationOnlyGoodSpv10, ValidateModeExecution,
     Combine(Values(SPV_SUCCESS), Values(""),
             Values("TessellationControl", "TessellationEvaluation"),
@@ -613,7 +621,7 @@ INSTANTIATE_TEST_CASE_P(
                    "PointMode", "Quads", "Isolines"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeTessellationOnlyBadSpv10, ValidateModeExecution,
     Combine(Values(SPV_ERROR_INVALID_DATA),
             Values("Execution mode can only be used with a tessellation "
@@ -624,15 +632,15 @@ INSTANTIATE_TEST_CASE_P(
                    "PointMode", "Quads", "Isolines"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(ValidateModeGeometryAndTessellationGoodSpv10,
-                        ValidateModeExecution,
-                        Combine(Values(SPV_SUCCESS), Values(""),
-                                Values("TessellationControl",
-                                       "TessellationEvaluation", "Geometry"),
-                                Values("Triangles", "OutputVertices 3"),
-                                Values(SPV_ENV_UNIVERSAL_1_0)));
+INSTANTIATE_TEST_SUITE_P(ValidateModeGeometryAndTessellationGoodSpv10,
+                         ValidateModeExecution,
+                         Combine(Values(SPV_SUCCESS), Values(""),
+                                 Values("TessellationControl",
+                                        "TessellationEvaluation", "Geometry"),
+                                 Values("Triangles", "OutputVertices 3"),
+                                 Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeGeometryAndTessellationBadSpv10, ValidateModeExecution,
     Combine(Values(SPV_ERROR_INVALID_DATA),
             Values("Execution mode can only be used with a Geometry or "
@@ -641,7 +649,7 @@ INSTANTIATE_TEST_CASE_P(
             Values("Triangles", "OutputVertices 3"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeFragmentOnlyGoodSpv10, ValidateModeExecution,
     Combine(Values(SPV_SUCCESS), Values(""), Values("Fragment"),
             Values("PixelCenterInteger", "OriginUpperLeft", "OriginLowerLeft",
@@ -649,7 +657,7 @@ INSTANTIATE_TEST_CASE_P(
                    "DepthUnchanged"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeFragmentOnlyBadSpv10, ValidateModeExecution,
     Combine(Values(SPV_ERROR_INVALID_DATA),
             Values("Execution mode can only be used with the Fragment "
@@ -657,19 +665,19 @@ INSTANTIATE_TEST_CASE_P(
             Values("Geometry", "TessellationControl", "TessellationEvaluation",
                    "GLCompute", "Vertex", "Kernel"),
             Values("PixelCenterInteger", "OriginUpperLeft", "OriginLowerLeft",
-                   "EarlyFragmentTests", "DepthReplacing", "DepthLess",
-                   "DepthUnchanged"),
+                   "EarlyFragmentTests", "DepthReplacing", "DepthGreater",
+                   "DepthLess", "DepthUnchanged"),
             Values(SPV_ENV_UNIVERSAL_1_0)));
 
-INSTANTIATE_TEST_CASE_P(ValidateModeKernelOnlyGoodSpv13, ValidateModeExecution,
-                        Combine(Values(SPV_SUCCESS), Values(""),
-                                Values("Kernel"),
-                                Values("LocalSizeHint 1 1 1", "VecTypeHint 4",
-                                       "ContractionOff",
-                                       "LocalSizeHintId %int1"),
-                                Values(SPV_ENV_UNIVERSAL_1_3)));
+INSTANTIATE_TEST_SUITE_P(ValidateModeKernelOnlyGoodSpv13, ValidateModeExecution,
+                         Combine(Values(SPV_SUCCESS), Values(""),
+                                 Values("Kernel"),
+                                 Values("LocalSizeHint 1 1 1", "VecTypeHint 4",
+                                        "ContractionOff",
+                                        "LocalSizeHintId %int1"),
+                                 Values(SPV_ENV_UNIVERSAL_1_3)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeKernelOnlyBadSpv13, ValidateModeExecution,
     Combine(
         Values(SPV_ERROR_INVALID_DATA),
@@ -681,13 +689,13 @@ INSTANTIATE_TEST_CASE_P(
                "LocalSizeHintId %int1"),
         Values(SPV_ENV_UNIVERSAL_1_3)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeGLComputeAndKernelGoodSpv13, ValidateModeExecution,
     Combine(Values(SPV_SUCCESS), Values(""), Values("Kernel", "GLCompute"),
             Values("LocalSize 1 1 1", "LocalSizeId %int1 %int1 %int1"),
             Values(SPV_ENV_UNIVERSAL_1_3)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeGLComputeAndKernelBadSpv13, ValidateModeExecution,
     Combine(Values(SPV_ERROR_INVALID_DATA),
             Values("Execution mode can only be used with a Kernel or GLCompute "
@@ -697,7 +705,7 @@ INSTANTIATE_TEST_CASE_P(
             Values("LocalSize 1 1 1", "LocalSizeId %int1 %int1 %int1"),
             Values(SPV_ENV_UNIVERSAL_1_3)));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     ValidateModeAllGoodSpv13, ValidateModeExecution,
     Combine(Values(SPV_SUCCESS), Values(""),
             Values("Kernel", "GLCompute", "Geometry", "TessellationControl",
@@ -705,6 +713,39 @@ INSTANTIATE_TEST_CASE_P(
             Values("Xfb", "Initializer", "Finalizer", "SubgroupSize 1",
                    "SubgroupsPerWorkgroup 1", "SubgroupsPerWorkgroupId %int1"),
             Values(SPV_ENV_UNIVERSAL_1_3)));
+
+INSTANTIATE_TEST_SUITE_P(ValidateModeGLComputeWebGPUWhitelistGood,
+                         ValidateModeExecution,
+                         Combine(Values(SPV_SUCCESS), Values(""),
+                                 Values("GLCompute"), Values("LocalSize 1 1 1"),
+                                 Values(SPV_ENV_WEBGPU_0)));
+
+INSTANTIATE_TEST_SUITE_P(
+    ValidateModeGLComputeWebGPUWhitelistBad, ValidateModeExecution,
+    Combine(Values(SPV_ERROR_INVALID_DATA),
+            Values("Execution mode must be one of OriginUpperLeft, "
+                   "DepthReplacing, DepthGreater, DepthLess, DepthUnchanged, "
+                   "LocalSize, or LocalSizeHint for WebGPU environment"),
+            Values("GLCompute"), Values("LocalSizeId %int1 %int1 %int1"),
+            Values(SPV_ENV_WEBGPU_0)));
+
+INSTANTIATE_TEST_SUITE_P(
+    ValidateModeFragmentWebGPUWhitelistGood, ValidateModeExecution,
+    Combine(Values(SPV_SUCCESS), Values(""), Values("Fragment"),
+            Values("OriginUpperLeft", "DepthReplacing", "DepthGreater",
+                   "DepthLess", "DepthUnchanged"),
+            Values(SPV_ENV_WEBGPU_0)));
+
+INSTANTIATE_TEST_SUITE_P(
+    ValidateModeFragmentWebGPUWhitelistBad, ValidateModeExecution,
+    Combine(Values(SPV_ERROR_INVALID_DATA),
+            Values("Execution mode must be one of OriginUpperLeft, "
+                   "DepthReplacing, DepthGreater, DepthLess, DepthUnchanged, "
+                   "LocalSize, or LocalSizeHint for WebGPU environment"),
+            Values("Fragment"),
+            Values("PixelCenterInteger", "OriginLowerLeft",
+                   "EarlyFragmentTests"),
+            Values(SPV_ENV_WEBGPU_0)));
 
 TEST_F(ValidateModeExecution, MeshNVLocalSize) {
   const std::string spirv = R"(
@@ -794,6 +835,347 @@ OpExecutionModeId %main LocalSizeId %int_1 %int_1 %int_1
   spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
   CompileSuccessfully(spirv, env);
   EXPECT_THAT(SPV_SUCCESS, ValidateInstructions(env));
+}
+
+TEST_F(ValidateModeExecution, ExecModeSubgroupsPerWorkgroupIdBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability SubgroupDispatch
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+OpExecutionMode %main SubgroupsPerWorkgroupId %int_1
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_ERROR_INVALID_DATA, ValidateInstructions(env));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpExecutionMode is only valid when the Mode operand "
+                        "is an execution mode that takes no Extra Operands"));
+}
+
+TEST_F(ValidateModeExecution, ExecModeIdSubgroupsPerWorkgroupIdGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability SubgroupDispatch
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+OpExecutionModeId %main SubgroupsPerWorkgroupId %int_1
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_SUCCESS, ValidateInstructions(env));
+}
+
+TEST_F(ValidateModeExecution, ExecModeIdSubgroupsPerWorkgroupIdNonConstantBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability SubgroupDispatch
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+OpExecutionModeId %main SubgroupsPerWorkgroupId %int_1
+%int = OpTypeInt 32 0
+%int_ptr = OpTypePointer Private %int
+%int_1 = OpVariable %int_ptr Private
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_ERROR_INVALID_ID, ValidateInstructions(env));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("For OpExecutionModeId all Extra Operand ids must be "
+                        "constant instructions."));
+}
+
+TEST_F(ValidateModeExecution, ExecModeLocalSizeHintIdBad) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Kernel %main "main"
+OpExecutionMode %main LocalSizeHintId %int_1
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_ERROR_INVALID_DATA, ValidateInstructions(env));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpExecutionMode is only valid when the Mode operand "
+                        "is an execution mode that takes no Extra Operands"));
+}
+
+TEST_F(ValidateModeExecution, ExecModeIdLocalSizeHintIdGood) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Kernel %main "main"
+OpExecutionModeId %main LocalSizeHintId %int_1
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_SUCCESS, ValidateInstructions(env));
+}
+
+TEST_F(ValidateModeExecution, ExecModeIdLocalSizeHintIdNonConstantBad) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+OpExecutionModeId %main LocalSizeHintId %int_1
+%int = OpTypeInt 32 0
+%int_ptr = OpTypePointer Private %int
+%int_1 = OpVariable %int_ptr Private
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_ERROR_INVALID_ID, ValidateInstructions(env));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("For OpExecutionModeId all Extra Operand ids must be "
+                        "constant instructions."));
+}
+
+TEST_F(ValidateModeExecution, ExecModeLocalSizeIdBad) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Kernel %main "main"
+OpExecutionMode %main LocalSizeId %int_1 %int_1 %int_1
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_ERROR_INVALID_DATA, ValidateInstructions(env));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpExecutionMode is only valid when the Mode operand "
+                        "is an execution mode that takes no Extra Operands"));
+}
+
+TEST_F(ValidateModeExecution, ExecModeIdLocalSizeIdGood) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Kernel %main "main"
+OpExecutionModeId %main LocalSizeId %int_1 %int_1 %int_1
+%int = OpTypeInt 32 0
+%int_1 = OpConstant %int 1
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_SUCCESS, ValidateInstructions(env));
+}
+
+TEST_F(ValidateModeExecution, ExecModeIdLocalSizeIdNonConstantBad) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+OpExecutionModeId %main LocalSizeId %int_1 %int_1 %int_1
+%int = OpTypeInt 32 0
+%int_ptr = OpTypePointer Private %int
+%int_1 = OpVariable %int_ptr Private
+)" + kVoidFunction;
+
+  spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
+  CompileSuccessfully(spirv, env);
+  EXPECT_THAT(SPV_ERROR_INVALID_ID, ValidateInstructions(env));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("For OpExecutionModeId all Extra Operand ids must be "
+                        "constant instructions."));
+}
+
+TEST_F(ValidateMode, FragmentShaderInterlockVertexBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability FragmentShaderPixelInterlockEXT
+OpExtension "SPV_EXT_fragment_shader_interlock"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+OpExecutionMode %main PixelInterlockOrderedEXT
+)" + kVoidFunction;
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_ERROR_INVALID_DATA, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "Execution mode can only be used with the Fragment execution model"));
+}
+
+TEST_F(ValidateMode, FragmentShaderInterlockTooManyModesBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability FragmentShaderPixelInterlockEXT
+OpCapability FragmentShaderSampleInterlockEXT
+OpExtension "SPV_EXT_fragment_shader_interlock"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+OpExecutionMode %main PixelInterlockOrderedEXT
+OpExecutionMode %main SampleInterlockOrderedEXT
+)" + kVoidFunction;
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_ERROR_INVALID_DATA, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("Fragment execution model entry points can specify at most "
+                "one fragment shader interlock execution mode"));
+}
+
+TEST_F(ValidateMode, FragmentShaderInterlockNoModeBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability FragmentShaderPixelInterlockEXT
+OpExtension "SPV_EXT_fragment_shader_interlock"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entryf = OpLabel
+OpBeginInvocationInterlockEXT
+OpEndInvocationInterlockEXT
+OpReturn
+OpFunctionEnd
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+%1 = OpFunctionCall %void %func
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_ERROR_INVALID_ID, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "OpBeginInvocationInterlockEXT/OpEndInvocationInterlockEXT require a "
+          "fragment shader interlock execution mode"));
+}
+
+TEST_F(ValidateMode, FragmentShaderInterlockGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability FragmentShaderPixelInterlockEXT
+OpExtension "SPV_EXT_fragment_shader_interlock"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+OpExecutionMode %main PixelInterlockOrderedEXT
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entryf = OpLabel
+OpBeginInvocationInterlockEXT
+OpEndInvocationInterlockEXT
+OpReturn
+OpFunctionEnd
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+%1 = OpFunctionCall %void %func
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateMode, FragmentShaderDemoteVertexBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability DemoteToHelperInvocationEXT
+OpExtension "SPV_EXT_demote_to_helper_invocation"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main"
+%bool = OpTypeBool
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpDemoteToHelperInvocationEXT
+%1 = OpIsHelperInvocationEXT %bool
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_ERROR_INVALID_ID, ValidateInstructions());
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "OpDemoteToHelperInvocationEXT requires Fragment execution model"));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("OpIsHelperInvocationEXT requires Fragment execution model"));
+}
+
+TEST_F(ValidateMode, FragmentShaderDemoteGood) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability DemoteToHelperInvocationEXT
+OpExtension "SPV_EXT_demote_to_helper_invocation"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+%bool = OpTypeBool
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpDemoteToHelperInvocationEXT
+%1 = OpIsHelperInvocationEXT %bool
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateMode, FragmentShaderDemoteBadType) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability DemoteToHelperInvocationEXT
+OpExtension "SPV_EXT_demote_to_helper_invocation"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+%u32 = OpTypeInt 32 0
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpDemoteToHelperInvocationEXT
+%1 = OpIsHelperInvocationEXT %u32
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(spirv);
+  EXPECT_THAT(SPV_ERROR_INVALID_DATA, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Expected bool scalar type as Result Type"));
 }
 
 }  // namespace

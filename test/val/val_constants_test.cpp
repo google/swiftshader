@@ -22,14 +22,17 @@
 
 #include "gmock/gmock.h"
 #include "test/unit_spirv.h"
+#include "test/val/val_code_generator.h"
 #include "test/val/val_fixtures.h"
 
 namespace spvtools {
 namespace val {
 namespace {
 
+using ::testing::Combine;
 using ::testing::Eq;
 using ::testing::HasSubstr;
+using ::testing::Values;
 using ::testing::ValuesIn;
 
 using ValidateConstant = spvtest::ValidateBase<bool>;
@@ -84,7 +87,7 @@ TEST_P(ValidateConstantOp, Samples) {
   { SPV_ENV_UNIVERSAL_1_0, kShaderPreamble kBasicTypes STR, true, "" }
 #define GOOD_KERNEL_10(STR) \
   { SPV_ENV_UNIVERSAL_1_0, kKernelPreamble kBasicTypes STR, true, "" }
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     UniversalInShader, ValidateConstantOp,
     ValuesIn(std::vector<ConstantOpCase>{
         // TODO(dneto): Conversions must change width.
@@ -141,7 +144,7 @@ INSTANTIATE_TEST_CASE_P(
             "%v = OpSpecConstantOp %bool SGreaterThanEqual %uint_0 %uint_0"),
     }));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     UniversalInKernel, ValidateConstantOp,
     ValuesIn(std::vector<ConstantOpCase>{
         // TODO(dneto): Conversions must change width.
@@ -198,7 +201,61 @@ INSTANTIATE_TEST_CASE_P(
             "%v = OpSpecConstantOp %bool SGreaterThanEqual %uint_0 %uint_0"),
     }));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
+    UConvert, ValidateConstantOp,
+    ValuesIn(std::vector<ConstantOpCase>{
+        // TODO(dneto): Conversions must change width.
+        {SPV_ENV_UNIVERSAL_1_0,
+         kKernelPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         true, ""},
+        {SPV_ENV_UNIVERSAL_1_1,
+         kKernelPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         true, ""},
+        {SPV_ENV_UNIVERSAL_1_3,
+         kKernelPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         true, ""},
+        {SPV_ENV_UNIVERSAL_1_3,
+         kKernelPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         true, ""},
+        {SPV_ENV_UNIVERSAL_1_4,
+         kKernelPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         true, ""},
+        {SPV_ENV_UNIVERSAL_1_0,
+         kShaderPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         false,
+         "Prior to SPIR-V 1.4, specialization constant operation "
+         "UConvert requires Kernel capability"},
+        {SPV_ENV_UNIVERSAL_1_1,
+         kShaderPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         false,
+         "Prior to SPIR-V 1.4, specialization constant operation "
+         "UConvert requires Kernel capability"},
+        {SPV_ENV_UNIVERSAL_1_3,
+         kShaderPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         false,
+         "Prior to SPIR-V 1.4, specialization constant operation "
+         "UConvert requires Kernel capability"},
+        {SPV_ENV_UNIVERSAL_1_3,
+         kShaderPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         false,
+         "Prior to SPIR-V 1.4, specialization constant operation "
+         "UConvert requires Kernel capability"},
+        {SPV_ENV_UNIVERSAL_1_4,
+         kShaderPreamble kBasicTypes
+         "%v = OpSpecConstantOp %uint UConvert %uint_0",
+         true, ""},
+    }));
+
+INSTANTIATE_TEST_SUITE_P(
     KernelInKernel, ValidateConstantOp,
     ValuesIn(std::vector<ConstantOpCase>{
         // TODO(dneto): Conversions must change width.
@@ -235,7 +292,7 @@ INSTANTIATE_TEST_CASE_P(
         "Specialization constant operation " NAME                  \
         " requires Kernel capability"                              \
   }
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     KernelInShader, ValidateConstantOp,
     ValuesIn(std::vector<ConstantOpCase>{
         // TODO(dneto): Conversions must change width.
@@ -280,7 +337,7 @@ INSTANTIATE_TEST_CASE_P(
                       "InBoundsPtrAccessChain"),
     }));
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     UConvertInAMD_gpu_shader_int16, ValidateConstantOp,
     ValuesIn(std::vector<ConstantOpCase>{
         // SPV_AMD_gpu_shader_int16 should enable UConvert for OpSpecConstantOp
@@ -293,6 +350,97 @@ INSTANTIATE_TEST_CASE_P(
          "%v = OpSpecConstantOp %uint UConvert %uint_0",
          true, ""},
     }));
+
+TEST_F(ValidateConstant, SpecConstantUConvert1p3Binary1p4EnvBad) {
+  const std::string spirv = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+%int = OpTypeInt 32 0
+%int0 = OpConstant %int 0
+%const = OpSpecConstantOp %int UConvert %int0
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_UNIVERSAL_1_4));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "Prior to SPIR-V 1.4, specialization constant operation UConvert "
+          "requires Kernel capability or extension SPV_AMD_gpu_shader_int16"));
+}
+
+using SmallStorageConstants = spvtest::ValidateBase<std::string>;
+
+CodeGenerator GetSmallStorageCodeGenerator() {
+  CodeGenerator generator;
+  generator.capabilities_ = R"(
+OpCapability Shader
+OpCapability Linkage
+OpCapability UniformAndStorageBuffer16BitAccess
+OpCapability StoragePushConstant16
+OpCapability StorageInputOutput16
+OpCapability UniformAndStorageBuffer8BitAccess
+OpCapability StoragePushConstant8
+)";
+  generator.extensions_ = R"(
+OpExtension "SPV_KHR_16bit_storage"
+OpExtension "SPV_KHR_8bit_storage"
+)";
+  generator.memory_model_ = "OpMemoryModel Logical GLSL450\n";
+  generator.types_ = R"(
+%short = OpTypeInt 16 0
+%short2 = OpTypeVector %short 2
+%char = OpTypeInt 8 0
+%char2 = OpTypeVector %char 2
+%half = OpTypeFloat 16
+%half2 = OpTypeVector %half 2
+%int = OpTypeInt 32 0
+%int_0 = OpConstant %int 0
+%float = OpTypeFloat 32
+%float_0 = OpConstant %float 0
+)";
+  return generator;
+}
+
+TEST_P(SmallStorageConstants, SmallConstant) {
+  std::string constant = GetParam();
+  CodeGenerator generator = GetSmallStorageCodeGenerator();
+  generator.after_types_ += constant + "\n";
+  CompileSuccessfully(generator.Build(), SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Cannot form constants of 8- or 16-bit types"));
+}
+
+// Constant composites would be caught through scalar constants.
+INSTANTIATE_TEST_SUITE_P(
+    SmallConstants, SmallStorageConstants,
+    Values("%c = OpConstant %char 0", "%c = OpConstantNull %char2",
+           "%c = OpConstant %short 0", "%c = OpConstantNull %short",
+           "%c = OpConstant %half 0", "%c = OpConstantNull %half",
+           "%c = OpSpecConstant %char 0", "%c = OpSpecConstant %short 0",
+           "%c = OpSpecConstant %half 0",
+           "%c = OpSpecConstantOp %char SConvert %int_0",
+           "%c = OpSpecConstantOp %short SConvert %int_0",
+           "%c = OpSpecConstantOp %half FConvert %float_0"));
+
+TEST_F(ValidateConstant, NullPointerTo16BitStorageOk) {
+  std::string spirv = R"(
+OpCapability Shader
+OpCapability VariablePointersStorageBuffer
+OpCapability UniformAndStorageBuffer16BitAccess
+OpCapability Linkage
+OpExtension "SPV_KHR_16bit_storage"
+OpMemoryModel Logical GLSL450
+%half = OpTypeFloat 16
+%ptr_ssbo_half = OpTypePointer StorageBuffer %half
+%null_ptr = OpConstantNull %ptr_ssbo_half
+)";
+
+  CompileSuccessfully(spirv, SPV_ENV_UNIVERSAL_1_3);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+}
 
 }  // namespace
 }  // namespace val

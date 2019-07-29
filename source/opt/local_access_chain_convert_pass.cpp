@@ -264,6 +264,12 @@ void LocalAccessChainConvertPass::Initialize() {
 }
 
 bool LocalAccessChainConvertPass::AllExtensionsSupported() const {
+  // This capability can now exist without the extension, so we have to check
+  // for the capability.  This pass is only looking at function scope symbols,
+  // so we do not care if there are variable pointers on storage buffers.
+  if (context()->get_feature_mgr()->HasCapability(
+          SpvCapabilityVariablePointers))
+    return false;
   // If any extension not in whitelist, return false
   for (auto& ei : get_module()->extensions()) {
     const char* extName =
@@ -337,6 +343,7 @@ void LocalAccessChainConvertPass::InitExtensions() {
       "SPV_AMD_gpu_shader_half_float_fetch",
       "SPV_GOOGLE_decorate_string",
       "SPV_GOOGLE_hlsl_functionality1",
+      "SPV_GOOGLE_user_type",
       "SPV_NV_shader_subgroup_partitioned",
       "SPV_EXT_descriptor_indexing",
       "SPV_NV_fragment_shader_barycentric",

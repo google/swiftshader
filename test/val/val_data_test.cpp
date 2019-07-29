@@ -717,8 +717,7 @@ OpTypeForwardPointer %_ptr_Generic_struct_A Generic
 }
 
 TEST_F(ValidateData, ext_16bit_storage_caps_allow_free_fp_rounding_mode) {
-  for (const char* cap : {"StorageUniform16", "StorageUniformBufferBlock16",
-                          "StoragePushConstant16", "StorageInputOutput16"}) {
+  for (const char* cap : {"StorageUniform16", "StorageUniformBufferBlock16"}) {
     for (const char* mode : {"RTE", "RTZ", "RTP", "RTN"}) {
       std::string str = std::string(R"(
         OpCapability Shader
@@ -778,9 +777,10 @@ TEST_F(ValidateData, vulkan_disallow_free_fp_rounding_mode) {
       ASSERT_EQ(SPV_ERROR_INVALID_CAPABILITY, ValidateInstructions(env));
       EXPECT_THAT(
           getDiagnosticString(),
-          HasSubstr("Operand 2 of Decorate requires one of these capabilities: "
-                    "StorageBuffer16BitAccess StorageUniform16 "
-                    "StoragePushConstant16 StorageInputOutput16"));
+          HasSubstr(
+              "Operand 2 of Decorate requires one of these capabilities: "
+              "StorageBuffer16BitAccess UniformAndStorageBuffer16BitAccess "
+              "StoragePushConstant16 StorageInputOutput16"));
     }
   }
 }
@@ -932,6 +932,23 @@ TEST_F(ValidateData, webgpu_RTA_not_at_end_of_struct) {
               HasSubstr("In WebGPU, OpTypeRuntimeArray must only be used for "
                         "the last member of an OpTypeStruct\n  %_struct_3 = "
                         "OpTypeStruct %_runtimearr_uint %uint\n"));
+}
+
+TEST_F(ValidateData, invalid_forward_reference_in_array) {
+  std::string str = R"(
+               OpCapability Shader
+               OpCapability Linkage
+               OpMemoryModel Logical GLSL450
+       %uint = OpTypeInt 32 0
+%uint_1 = OpConstant %uint 1
+%_arr_3_uint_1 = OpTypeArray %_arr_3_uint_1 %uint_1
+)";
+
+  CompileSuccessfully(str.c_str(), SPV_ENV_UNIVERSAL_1_3);
+  ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Forward reference operands in an OpTypeArray must "
+                        "first be declared using OpTypeForwardPointer."));
 }
 
 }  // namespace
