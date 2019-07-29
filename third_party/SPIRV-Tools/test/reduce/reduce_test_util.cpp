@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "reduce_test_util.h"
+#include "test/reduce/reduce_test_util.h"
+
+#include <iostream>
+
+#include "tools/io.h"
 
 namespace spvtools {
 namespace reduce {
@@ -67,6 +71,42 @@ std::string ToString(spv_target_env env, const opt::IRContext* ir) {
 void NopDiagnostic(spv_message_level_t /*level*/, const char* /*source*/,
                    const spv_position_t& /*position*/,
                    const char* /*message*/) {}
+
+void CLIMessageConsumer(spv_message_level_t level, const char*,
+                        const spv_position_t& position, const char* message) {
+  switch (level) {
+    case SPV_MSG_FATAL:
+    case SPV_MSG_INTERNAL_ERROR:
+    case SPV_MSG_ERROR:
+      std::cerr << "error: line " << position.index << ": " << message
+                << std::endl;
+      break;
+    case SPV_MSG_WARNING:
+      std::cout << "warning: line " << position.index << ": " << message
+                << std::endl;
+      break;
+    case SPV_MSG_INFO:
+      std::cout << "info: line " << position.index << ": " << message
+                << std::endl;
+      break;
+    default:
+      break;
+  }
+}
+
+void DumpShader(opt::IRContext* context, const char* filename) {
+  std::vector<uint32_t> binary;
+  context->module()->ToBinary(&binary, false);
+  DumpShader(binary, filename);
+}
+
+void DumpShader(const std::vector<uint32_t>& binary, const char* filename) {
+  auto write_file_succeeded =
+      WriteFile(filename, "wb", &binary[0], binary.size());
+  if (!write_file_succeeded) {
+    std::cerr << "Failed to dump shader" << std::endl;
+  }
+}
 
 }  // namespace reduce
 }  // namespace spvtools

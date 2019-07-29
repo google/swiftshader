@@ -117,9 +117,12 @@ class ScalarReplacementPass : public Pass {
   // for element of the composite type. Uses of |inst| are updated as
   // appropriate. If the replacement variables are themselves scalarizable, they
   // get added to |worklist| for further processing. If any replacement
-  // variable ends up with no uses it is erased. Returns false if any
-  // subsequent access chain is out of bounds.
-  bool ReplaceVariable(Instruction* inst, std::queue<Instruction*>* worklist);
+  // variable ends up with no uses it is erased. Returns
+  //  - Status::SuccessWithoutChange if the variable could not be replaced.
+  //  - Status::SuccessWithChange if it made replacements.
+  //  - Status::Failure if it couldn't create replacement variables.
+  Pass::Status ReplaceVariable(Instruction* inst,
+                               std::queue<Instruction*>* worklist);
 
   // Returns the underlying storage type for |inst|.
   //
@@ -145,30 +148,31 @@ class ScalarReplacementPass : public Pass {
                       std::vector<Instruction*>* replacements);
 
   // Populates |replacements| with a new OpVariable for each element of |inst|.
+  // Returns true if the replacement variables were successfully created.
   //
   // |inst| must be an OpVariable of a composite type. New variables are
   // initialized the same as the corresponding index in |inst|. |replacements|
   // will contain a variable for each element of the composite with matching
   // indexes (i.e. the 0'th element of |inst| is the 0'th entry of
   // |replacements|).
-  void CreateReplacementVariables(Instruction* inst,
+  bool CreateReplacementVariables(Instruction* inst,
                                   std::vector<Instruction*>* replacements);
 
   // Returns the value of an OpConstant of integer type.
   //
   // |constant| must use two or fewer words to generate the value.
-  size_t GetConstantInteger(const Instruction* constant) const;
+  uint64_t GetConstantInteger(const Instruction* constant) const;
 
   // Returns the integer literal for |op|.
-  size_t GetIntegerLiteral(const Operand& op) const;
+  uint64_t GetIntegerLiteral(const Operand& op) const;
 
   // Returns the array length for |arrayInst|.
-  size_t GetArrayLength(const Instruction* arrayInst) const;
+  uint64_t GetArrayLength(const Instruction* arrayInst) const;
 
   // Returns the number of elements in |type|.
   //
   // |type| must be a vector or matrix type.
-  size_t GetNumElements(const Instruction* type) const;
+  uint64_t GetNumElements(const Instruction* type) const;
 
   // Returns true if |id| is a specialization constant.
   //
@@ -217,6 +221,7 @@ class ScalarReplacementPass : public Pass {
 
   // Returns an instruction defining a null constant with type |type_id|.  If
   // one already exists, it is returned.  Otherwise a new one is created.
+  // Returns |nullptr| if the new constant could not be created.
   Instruction* CreateNullConstant(uint32_t type_id);
 
   // Maps storage type to a pointer type enclosing that type.
@@ -228,7 +233,7 @@ class ScalarReplacementPass : public Pass {
   // Limit on the number of members in an object that will be replaced.
   // 0 means there is no limit.
   uint32_t max_num_elements_;
-  bool IsLargerThanSizeLimit(size_t length) const;
+  bool IsLargerThanSizeLimit(uint64_t length) const;
   char name_[55];
 };
 

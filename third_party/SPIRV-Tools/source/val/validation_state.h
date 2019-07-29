@@ -106,9 +106,20 @@ class ValidationState_t {
     // Members need not be listed in offset order
     bool scalar_block_layout = false;
 
-    // Permit UConvert as an OpSpecConstantOp operation.
+    // SPIR-V 1.4 allows us to select between any two composite values
+    // of the same type.
+    bool select_between_composites = false;
+
+    // SPIR-V 1.4 allows two memory access operands for OpCopyMemory and
+    // OpCopyMemorySized.
+    bool copy_memory_permits_two_memory_accesses = false;
+
+    // SPIR-V 1.4 allows UConvert as a spec constant op in any environment.
     // The Kernel capability already enables it, separately from this flag.
     bool uconvert_spec_constant_op = false;
+
+    // SPIR-V 1.4 allows Function and Private variables to be NonWritable
+    bool nonwritable_var_in_function_or_private = false;
   };
 
   ValidationState_t(const spv_const_context context,
@@ -432,13 +443,13 @@ class ValidationState_t {
     return all_definitions_;
   }
 
-  /// Returns a vector containing the Ids of instructions that consume the given
+  /// Returns a vector containing the instructions that consume the given
   /// SampledImage id.
-  std::vector<uint32_t> getSampledImageConsumers(uint32_t id) const;
+  std::vector<Instruction*> getSampledImageConsumers(uint32_t id) const;
 
   /// Records cons_id as a consumer of sampled_image_id.
   void RegisterSampledImageConsumer(uint32_t sampled_image_id,
-                                    uint32_t cons_id);
+                                    Instruction* consumer);
 
   /// Returns the set of Global Variables.
   std::unordered_set<uint32_t>& global_vars() { return global_vars_; }
@@ -472,6 +483,18 @@ class ValidationState_t {
   /// Returns the nesting depth of a given structure ID
   uint32_t struct_nesting_depth(uint32_t id) {
     return struct_nesting_depth_[id];
+  }
+
+  /// Records the has a nested block/bufferblock decorated struct for a given
+  /// struct ID
+  void SetHasNestedBlockOrBufferBlockStruct(uint32_t id, bool has) {
+    struct_has_nested_blockorbufferblock_struct_[id] = has;
+  }
+
+  /// For a given struct ID returns true if it has a nested block/bufferblock
+  /// decorated struct
+  bool GetHasNestedBlockOrBufferBlockStruct(uint32_t id) {
+    return struct_has_nested_blockorbufferblock_struct_[id];
   }
 
   /// Records that the structure type has a member decorated with a built-in.
@@ -525,6 +548,7 @@ class ValidationState_t {
 
   // Returns true iff |id| is a type corresponding to the name of the function.
   // Only works for types not for objects.
+  bool IsVoidType(uint32_t id) const;
   bool IsFloatScalarType(uint32_t id) const;
   bool IsFloatVectorType(uint32_t id) const;
   bool IsFloatScalarOrVectorType(uint32_t id) const;
@@ -540,6 +564,18 @@ class ValidationState_t {
   bool IsBoolVectorType(uint32_t id) const;
   bool IsBoolScalarOrVectorType(uint32_t id) const;
   bool IsPointerType(uint32_t id) const;
+  bool IsCooperativeMatrixType(uint32_t id) const;
+  bool IsFloatCooperativeMatrixType(uint32_t id) const;
+  bool IsIntCooperativeMatrixType(uint32_t id) const;
+  bool IsUnsignedIntCooperativeMatrixType(uint32_t id) const;
+
+  // Returns true if |id| is a type id that contains |type| (or integer or
+  // floating point type) of |width| bits.
+  bool ContainsSizedIntOrFloatType(uint32_t id, SpvOp type,
+                                   uint32_t width) const;
+  // Returns true if |id| is a type id that contains a 8- or 16-bit int or
+  // 16-bit float that is not generally enabled for use.
+  bool ContainsLimitedUseIntOrFloatType(uint32_t id) const;
 
   // Gets value from OpConstant and OpSpecConstant as uint64.
   // Returns false on failure (no instruction, wrong instruction, not int).
@@ -562,17 +598,104 @@ class ValidationState_t {
   bool GetPointerTypeInfo(uint32_t id, uint32_t* data_type,
                           uint32_t* storage_class) const;
 
+  // Is the ID the type of a pointer to a uniform block: Block-decorated struct
+  // in uniform storage class? The result is only valid after internal method
+  // CheckDecorationsOfBuffers has been called.
+  bool IsPointerToUniformBlock(uint32_t type_id) const {
+    return pointer_to_uniform_block_.find(type_id) !=
+           pointer_to_uniform_block_.cend();
+  }
+  // Save the ID of a pointer to uniform block.
+  void RegisterPointerToUniformBlock(uint32_t type_id) {
+    pointer_to_uniform_block_.insert(type_id);
+  }
+  // Is the ID the type of a struct used as a uniform block?
+  // The result is only valid after internal method CheckDecorationsOfBuffers
+  // has been called.
+  bool IsStructForUniformBlock(uint32_t type_id) const {
+    return struct_for_uniform_block_.find(type_id) !=
+           struct_for_uniform_block_.cend();
+  }
+  // Save the ID of a struct of a uniform block.
+  void RegisterStructForUniformBlock(uint32_t type_id) {
+    struct_for_uniform_block_.insert(type_id);
+  }
+  // Is the ID the type of a pointer to a storage buffer: BufferBlock-decorated
+  // struct in uniform storage class, or Block-decorated struct in StorageBuffer
+  // storage class? The result is only valid after internal method
+  // CheckDecorationsOfBuffers has been called.
+  bool IsPointerToStorageBuffer(uint32_t type_id) const {
+    return pointer_to_storage_buffer_.find(type_id) !=
+           pointer_to_storage_buffer_.cend();
+  }
+  // Save the ID of a pointer to a storage buffer.
+  void RegisterPointerToStorageBuffer(uint32_t type_id) {
+    pointer_to_storage_buffer_.insert(type_id);
+  }
+  // Is the ID the type of a struct for storage buffer?
+  // The result is only valid after internal method CheckDecorationsOfBuffers
+  // has been called.
+  bool IsStructForStorageBuffer(uint32_t type_id) const {
+    return struct_for_storage_buffer_.find(type_id) !=
+           struct_for_storage_buffer_.cend();
+  }
+  // Save the ID of a struct of a storage buffer.
+  void RegisterStructForStorageBuffer(uint32_t type_id) {
+    struct_for_storage_buffer_.insert(type_id);
+  }
+
+  // Is the ID the type of a pointer to a storage image?  That is, the pointee
+  // type is an image type which is known to not use a sampler.
+  bool IsPointerToStorageImage(uint32_t type_id) const {
+    return pointer_to_storage_image_.find(type_id) !=
+           pointer_to_storage_image_.cend();
+  }
+  // Save the ID of a pointer to a storage image.
+  void RegisterPointerToStorageImage(uint32_t type_id) {
+    pointer_to_storage_image_.insert(type_id);
+  }
+
   // Tries to evaluate a 32-bit signed or unsigned scalar integer constant.
   // Returns tuple <is_int32, is_const_int32, value>.
   // OpSpecConstant* return |is_const_int32| as false since their values cannot
   // be relied upon during validation.
-  std::tuple<bool, bool, uint32_t> EvalInt32IfConst(uint32_t id);
+  std::tuple<bool, bool, uint32_t> EvalInt32IfConst(uint32_t id) const;
 
   // Returns the disassembly string for the given instruction.
   std::string Disassemble(const Instruction& inst) const;
 
   // Returns the disassembly string for the given instruction.
   std::string Disassemble(const uint32_t* words, uint16_t num_words) const;
+
+  // Returns whether type m1 and type m2 are cooperative matrices with
+  // the same "shape" (matching scope, rows, cols). If any are specialization
+  // constants, we assume they can match because we can't prove they don't.
+  spv_result_t CooperativeMatrixShapesMatch(const Instruction* inst,
+                                            uint32_t m1, uint32_t m2);
+
+  // Returns true if |lhs| and |rhs| logically match and, if the decorations of
+  // |rhs| are a subset of |lhs|.
+  //
+  // 1. Must both be either OpTypeArray or OpTypeStruct
+  // 2. If OpTypeArray, then
+  //  * Length must be the same
+  //  * Element type must match or logically match
+  // 3. If OpTypeStruct, then
+  //  * Both have same number of elements
+  //  * Element N for both structs must match or logically match
+  //
+  // If |check_decorations| is false, then the decorations are not checked.
+  bool LogicallyMatch(const Instruction* lhs, const Instruction* rhs,
+                      bool check_decorations);
+
+  // Traces |inst| to find a single base pointer. Returns the base pointer.
+  // Will trace through the following instructions:
+  // * OpAccessChain
+  // * OpInBoundsAccessChain
+  // * OpPtrAccessChain
+  // * OpInBoundsPtrAccessChain
+  // * OpCopyObject
+  const Instruction* TracePointer(const Instruction* inst) const;
 
  private:
   ValidationState_t(const ValidationState_t&);
@@ -605,7 +728,8 @@ class ValidationState_t {
 
   /// Stores a vector of instructions that use the result of a given
   /// OpSampledImage instruction.
-  std::unordered_map<uint32_t, std::vector<uint32_t>> sampled_image_consumers_;
+  std::unordered_map<uint32_t, std::vector<Instruction*>>
+      sampled_image_consumers_;
 
   /// A map of operand IDs and their names defined by the OpName instruction
   std::unordered_map<uint32_t, std::string> operand_names_;
@@ -659,6 +783,10 @@ class ValidationState_t {
   /// Structure Nesting Depth
   std::unordered_map<uint32_t, uint32_t> struct_nesting_depth_;
 
+  /// Structure has nested blockorbufferblock struct
+  std::unordered_map<uint32_t, bool>
+      struct_has_nested_blockorbufferblock_struct_;
+
   /// Stores the list of decorations for a given <id>
   std::map<uint32_t, std::vector<Decoration>> id_decorations_;
 
@@ -700,6 +828,23 @@ class ValidationState_t {
   /// module which can (indirectly) call the function.
   std::unordered_map<uint32_t, std::vector<uint32_t>> function_to_entry_points_;
   const std::vector<uint32_t> empty_ids_;
+
+  // The IDs of types of pointers to Block-decorated structs in Uniform storage
+  // class. This is populated at the start of ValidateDecorations.
+  std::unordered_set<uint32_t> pointer_to_uniform_block_;
+  // The IDs of struct types for uniform blocks.
+  // This is populated at the start of ValidateDecorations.
+  std::unordered_set<uint32_t> struct_for_uniform_block_;
+  // The IDs of types of pointers to BufferBlock-decorated structs in Uniform
+  // storage class, or Block-decorated structs in StorageBuffer storage class.
+  // This is populated at the start of ValidateDecorations.
+  std::unordered_set<uint32_t> pointer_to_storage_buffer_;
+  // The IDs of struct types for storage buffers.
+  // This is populated at the start of ValidateDecorations.
+  std::unordered_set<uint32_t> struct_for_storage_buffer_;
+  // The IDs of types of pointers to storage images.  This is populated in the
+  // TypePass.
+  std::unordered_set<uint32_t> pointer_to_storage_image_;
 
   /// Maps ids to friendly names.
   std::unique_ptr<spvtools::FriendlyNameMapper> friendly_mapper_;

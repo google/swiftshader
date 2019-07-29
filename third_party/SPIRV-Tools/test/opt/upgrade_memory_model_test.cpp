@@ -1713,4 +1713,527 @@ OpFunctionEnd
   SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
 }
 
+TEST_F(UpgradeMemoryModelTest, SPV14NormalizeCopyMemoryAddOperands) {
+  const std::string text = R"(
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} None None
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14NormalizeCopyMemoryDuplicateOperand) {
+  const std::string text = R"(
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Nontemporal Nontemporal
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Nontemporal
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14NormalizeCopyMemoryDuplicateOperands) {
+  const std::string text = R"(
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Aligned 4 Aligned 4
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Aligned 4
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryDstCoherent) {
+  const std::string text = R"(
+; CHECK: [[scope:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} MakePointerAvailableKHR|NonPrivatePointerKHR [[scope]] None
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %dst Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryDstCoherentPreviousArgs) {
+  const std::string text = R"(
+; CHECK: [[scope:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Aligned|MakePointerAvailableKHR|NonPrivatePointerKHR 4 [[scope]] Aligned 4
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %dst Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Aligned 4
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemorySrcCoherent) {
+  const std::string text = R"(
+; CHECK: [[scope:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} None MakePointerVisibleKHR|NonPrivatePointerKHR [[scope]]
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %src Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemorySrcCoherentPreviousArgs) {
+  const std::string text = R"(
+; CHECK: [[scope:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Aligned 4 Aligned|MakePointerVisibleKHR|NonPrivatePointerKHR 4 [[scope]]
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %src Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Aligned 4
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryBothCoherent) {
+  const std::string text = R"(
+; CHECK-DAG: [[queue:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK-DAG: [[wg:%\w+]] = OpConstant {{%\w+}} 2
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} MakePointerAvailableKHR|NonPrivatePointerKHR [[wg]] MakePointerVisibleKHR|NonPrivatePointerKHR [[queue]]
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %src Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ptr_wg_int = OpTypePointer Workgroup %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_wg_int Workgroup
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryBothCoherentPreviousArgs) {
+  const std::string text = R"(
+; CHECK-DAG: [[queue:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK-DAG: [[wg:%\w+]] = OpConstant {{%\w+}} 2
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Aligned|MakePointerAvailableKHR|NonPrivatePointerKHR 4 [[queue]] Aligned|MakePointerVisibleKHR|NonPrivatePointerKHR 4 [[wg]]
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %dst Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ptr_wg_int = OpTypePointer Workgroup %int
+%src = OpVariable %ptr_wg_int Workgroup
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Aligned 4
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryBothVolatile) {
+  const std::string text = R"(
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Volatile Volatile
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %src Volatile
+OpDecorate %dst Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryBothVolatilePreviousArgs) {
+  const std::string text = R"(
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Volatile|Aligned 4 Volatile|Aligned 4
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %src Volatile
+OpDecorate %dst Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Aligned 4
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, SPV14CopyMemoryDstCoherentTwoOperands) {
+  const std::string text = R"(
+; CHECK: [[scope:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} MakePointerAvailableKHR|NonPrivatePointerKHR [[scope]] None
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %dst Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src None None
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest,
+       SPV14CopyMemoryDstCoherentPreviousArgsTwoOperands) {
+  const std::string text = R"(
+; CHECK: [[scope:%\w+]] = OpConstant {{%\w+}} 5
+; CHECK: OpCopyMemory {{%\w+}} {{%\w+}} Aligned|MakePointerAvailableKHR|NonPrivatePointerKHR 4 [[scope]] Aligned 8
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %func "func" %src %dst
+OpDecorate %dst Coherent
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%src = OpVariable %ptr_ssbo_int StorageBuffer
+%dst = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpCopyMemory %dst %src Aligned 4 Aligned 8
+OpReturn
+OpFunctionEnd
+)";
+
+  SetTargetEnv(SPV_ENV_UNIVERSAL_1_4);
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicLoad) {
+  const std::string text = R"(
+; CHECK-NOT: OpDecorate {{.*}} Volatile
+; CHECK: [[volatile:%[a-zA-Z0-9_]+]] = OpConstant [[int:%[a-zA-Z0-9_]+]] 32768
+; CHECK: OpAtomicLoad [[int]] {{.*}} {{.*}} [[volatile]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ssbo_var Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%device = OpConstant %int 1
+%relaxed = OpConstant %int 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ssbo_var = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+%ld = OpAtomicLoad %int %ssbo_var %device %relaxed
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicLoadPreviousFlags) {
+  const std::string text = R"(
+; CHECK-NOT: OpDecorate {{.*}} Volatile
+; CHECK: [[volatile:%[a-zA-Z0-9_]+]] = OpConstant [[int:%[a-zA-Z0-9_]+]] 32834
+; CHECK: OpAtomicLoad [[int]] {{.*}} {{.*}} [[volatile]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ssbo_var Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%device = OpConstant %int 1
+%acquire_ssbo = OpConstant %int 66
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ssbo_var = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+%ld = OpAtomicLoad %int %ssbo_var %device %acquire_ssbo
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicStore) {
+  const std::string text = R"(
+; CHECK-NOT: OpDecorate {{.*}} Volatile
+; CHECK: [[volatile:%[a-zA-Z0-9_]+]] = OpConstant {{.*}} 32768
+; CHECK: OpAtomicStore {{.*}} {{.*}} [[volatile]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ssbo_var Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int_0 = OpConstant %int 0
+%device = OpConstant %int 1
+%relaxed = OpConstant %int 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ssbo_var = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpAtomicStore %ssbo_var %device %relaxed %int_0
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicStorePreviousFlags) {
+  const std::string text = R"(
+; CHECK-NOT: OpDecorate {{.*}} Volatile
+; CHECK: [[volatile:%[a-zA-Z0-9_]+]] = OpConstant {{.*}} 32836
+; CHECK: OpAtomicStore {{.*}} {{.*}} [[volatile]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ssbo_var Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int_0 = OpConstant %int 0
+%device = OpConstant %int 1
+%release_ssbo = OpConstant %int 68
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ssbo_var = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+OpAtomicStore %ssbo_var %device %release_ssbo %int_0
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicCompareExchange) {
+  const std::string text = R"(
+; CHECK-NOT: OpDecorate {{.*}} Volatile
+; CHECK: [[volatile:%[a-zA-Z0-9_]+]] = OpConstant [[int:%[a-zA-Z0-9_]+]] 32768
+; CHECK: OpAtomicCompareExchange [[int]] {{.*}} {{.*}} [[volatile]] [[volatile]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ssbo_var Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int_0 = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%device = OpConstant %int 1
+%relaxed = OpConstant %int 0
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ssbo_var = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+%ld = OpAtomicCompareExchange %int %ssbo_var %device %relaxed %relaxed %int_0 %int_1
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicCompareExchangePreviousFlags) {
+  const std::string text = R"(
+; CHECK-NOT: OpDecorate {{.*}} Volatile
+; CHECK: [[volatile_acq_rel:%[a-zA-Z0-9_]+]] = OpConstant [[int:%[a-zA-Z0-9_]+]] 32840
+; CHECK: [[volatile_acq:%[a-zA-Z0-9_]+]] = OpConstant [[int:%[a-zA-Z0-9_]+]] 32834
+; CHECK: OpAtomicCompareExchange [[int]] {{.*}} {{.*}} [[volatile_acq_rel]] [[volatile_acq]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpDecorate %ssbo_var Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int_0 = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%device = OpConstant %int 1
+%acq_ssbo = OpConstant %int 66
+%acq_rel_ssbo = OpConstant %int 72
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%ssbo_var = OpVariable %ptr_ssbo_int StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+%ld = OpAtomicCompareExchange %int %ssbo_var %device %acq_rel_ssbo %acq_ssbo %int_0 %int_1
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
+TEST_F(UpgradeMemoryModelTest, VolatileAtomicLoadMemberDecoration) {
+  const std::string text = R"(
+; CHECK-NOT: OpMemberDecorate {{.*}} {{.*}} Volatile
+; CHECK: [[relaxed:%[a-zA-Z0-9_]+]] = OpConstant {{.*}} 0
+; CHECK: [[volatile:%[a-zA-Z0-9_]+]] = OpConstant [[int:%[a-zA-Z0-9_]+]] 32768
+; CHECK: OpAtomicLoad [[int]] {{.*}} {{.*}} [[relaxed]]
+; CHECK: OpAtomicLoad [[int]] {{.*}} {{.*}} [[volatile]]
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+OpMemberDecorate %struct 1 Volatile
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%device = OpConstant %int 1
+%relaxed = OpConstant %int 0
+%int_0 = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%ptr_ssbo_int = OpTypePointer StorageBuffer %int
+%struct = OpTypeStruct %int %int
+%ptr_ssbo_struct = OpTypePointer StorageBuffer %struct
+%ssbo_var = OpVariable %ptr_ssbo_struct StorageBuffer
+%void_fn = OpTypeFunction %void
+%func = OpFunction %void None %void_fn
+%entry = OpLabel
+%gep0 = OpAccessChain %ptr_ssbo_int %ssbo_var %int_0
+%ld0 = OpAtomicLoad %int %gep0 %device %relaxed
+%gep1 = OpAccessChain %ptr_ssbo_int %ssbo_var %int_1
+%ld1 = OpAtomicLoad %int %gep1 %device %relaxed
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<opt::UpgradeMemoryModel>(text, true);
+}
+
 }  // namespace
