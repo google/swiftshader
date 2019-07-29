@@ -194,7 +194,7 @@ void *allocateExecutable(size_t bytes)
 {
 	size_t pageSize = memoryPageSize();
 	size_t length = roundUp(bytes, pageSize);
-	void *mapping;
+	void *mapping = nullptr;
 
 	#if defined(LINUX_ENABLE_NAMED_MMAP)
 		// Try to name the memory region for the executable code,
@@ -237,6 +237,18 @@ void *allocateExecutable(size_t bytes)
 		ASSERT(roundUp(reservation, pageSize) == reservation);
 
 		mapping = reinterpret_cast<void*>(reservation);
+	#elif defined(__APPLE__)
+		// On macOS 10.14 and higher, executables that are code signed with the
+		// "runtime" option cannot execute writable memory by default. They can opt
+		// into this capability by specifying the "com.apple.security.cs.allow-jit"
+		// code signing entitlement and allocating the region with the MAP_JIT flag.
+		mapping = mmap(nullptr, length, PROT_READ | PROT_WRITE,
+		               MAP_PRIVATE | MAP_ANONYMOUS | MAP_JIT, -1, 0);
+
+		if(mapping == MAP_FAILED)
+		{
+			mapping = nullptr;
+		}
 	#else
 		mapping = allocate(length, pageSize);
 	#endif
@@ -267,7 +279,7 @@ void deallocateExecutable(void *memory, size_t bytes)
 		unsigned long oldProtection;
 		VirtualProtect(memory, bytes, PAGE_READWRITE, &oldProtection);
 		deallocate(memory);
-	#elif defined(LINUX_ENABLE_NAMED_MMAP)
+	#elif defined(LINUX_ENABLE_NAMED_MMAP) || defined(__APPLE__)
 		size_t pageSize = memoryPageSize();
 		size_t length = (bytes + pageSize - 1) & ~(pageSize - 1);
 		munmap(memory, length);

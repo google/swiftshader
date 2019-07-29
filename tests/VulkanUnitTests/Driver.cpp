@@ -72,7 +72,8 @@ bool Driver::loadSwiftShader()
 	#endif
 #elif OS_MAC
 	return load("./build/Darwin/libvk_swiftshader.dylib") ||
-	       load("swiftshader/libvulkan.dylib");
+	       load("swiftshader/libvulkan.dylib") ||
+	       load("libvk_swiftshader.dylib");
 #elif OS_LINUX
 	return load("./build/Linux/libvk_swiftshader.so") ||
 	       load("swiftshader/libvulkan.so") ||
