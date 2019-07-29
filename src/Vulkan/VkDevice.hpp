@@ -70,7 +70,7 @@ public:
 		std::shared_ptr<rr::Routine> query(const Key& key) const;
 		void add(const Key& key, const std::shared_ptr<rr::Routine>& routine);
 
-		std::shared_ptr<rr::Routine> queryConst(const Key& key) const;
+		rr::Routine* queryConst(const Key& key) const;
 		void updateConstCache();
 
 		static std::size_t hash(const Key &key);
@@ -81,7 +81,7 @@ public:
 
 	SamplingRoutineCache* getSamplingRoutineCache() const;
 	std::mutex& getSamplingRoutineCacheMutex();
-	std::shared_ptr<rr::Routine> findInConstCache(const SamplingRoutineCache::Key& key) const;
+	rr::Routine* findInConstCache(const SamplingRoutineCache::Key& key) const;
 	void updateSamplingRoutineConstCache();
 
 private:

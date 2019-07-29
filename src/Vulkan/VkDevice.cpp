@@ -47,9 +47,9 @@ void Device::SamplingRoutineCache::add(const vk::Device::SamplingRoutineCache::K
 	cache.add(hash(key), routine);
 }
 
-std::shared_ptr<rr::Routine> Device::SamplingRoutineCache::queryConst(const vk::Device::SamplingRoutineCache::Key& key) const
+rr::Routine* Device::SamplingRoutineCache::queryConst(const vk::Device::SamplingRoutineCache::Key& key) const
 {
-	return cache.queryConstCache(hash(key));
+	return cache.queryConstCache(hash(key)).get();
 }
 
 void Device::SamplingRoutineCache::updateConstCache()
@@ -251,7 +251,7 @@ Device::SamplingRoutineCache* Device::getSamplingRoutineCache() const
 	return samplingRoutineCache.get();
 }
 
-std::shared_ptr<rr::Routine> Device::findInConstCache(const SamplingRoutineCache::Key& key) const
+rr::Routine* Device::findInConstCache(const SamplingRoutineCache::Key& key) const
 {
 	return samplingRoutineCache->queryConst(key);
 }

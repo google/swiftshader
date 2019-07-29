@@ -63,7 +63,7 @@ namespace sw
 		}
 
 		void updateConstCache();
-		Data queryConstCache(const Key &key) const;
+		const Data& queryConstCache(const Key &key) const;
 
 	private:
 		void clearConstCache();
@@ -215,10 +215,11 @@ namespace sw
 	}
 
 	template<class Key, class Data>
-	Data LRUConstCache<Key, Data>::queryConstCache(const Key &key) const
+	const Data& LRUConstCache<Key, Data>::queryConstCache(const Key &key) const
 	{
 		auto it = constCache.find(key);
-		return (it != constCache.end()) ? it->second : nullptr;
+		static Data null = {};
+		return (it != constCache.end()) ? it->second : null;
 	}
 }
 
