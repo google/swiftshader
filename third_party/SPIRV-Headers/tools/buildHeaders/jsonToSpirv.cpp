@@ -119,8 +119,7 @@ ClassOptionality ToOperandClassAndOptionality(const std::string& operandKind, co
         else if (quantifier == "?")
             return {OperandLiteralString, true};
         else {
-            assert(0 && "this case should not exist");
-            return {OperandNone, false};
+            return {OperandOptionalLiteralStrings, false};
         }
     } else if (operandKind == "PairLiteralIntegerIdRef") {
         // Used by OpSwitch in the grammar
@@ -198,7 +197,7 @@ ClassOptionality ToOperandClassAndOptionality(const std::string& operandKind, co
         } else if (operandKind == "FunctionControl") {
             type = OperandFunction;
         } else if (operandKind == "MemoryAccess") {
-            type = OperandMemoryAccess;
+            type = OperandMemoryOperands;
         }
 
         if (type == OperandNone) {
@@ -230,7 +229,21 @@ unsigned int NumberStringToBit(const std::string& str)
     return bit;
 }
 
-void jsonToSpirv(const std::string& jsonPath)
+bool ExcludeInstruction(unsigned op, bool buildingHeaders)
+{
+    // Some instructions in the grammar don't need to be reflected
+    // in the specification.
+
+    if (buildingHeaders)
+        return false;
+
+    if (op >= 5699 /* OpVmeImageINTEL */ && op <= 5816 /* OpSubgroupAvcSicGetInterRawSadsINTEL */)
+        return true;
+
+    return false;
+}
+
+void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
 {
     // only do this once.
     static bool initialized = false;
@@ -288,9 +301,12 @@ void jsonToSpirv(const std::string& jsonPath)
     const Json::Value insts = root["instructions"];
     for (const auto& inst : insts) {
         const unsigned int opcode = inst["opcode"].asUInt();
+        if (ExcludeInstruction(opcode, buildingHeaders))
+            continue;
         const std::string name = inst["opname"].asString();
         EnumCaps caps = getCaps(inst);
         std::string version = inst["version"].asString();
+        std::string lastVersion = inst["lastVersion"].asString();
         Extensions exts = getExts(inst);
         OperandParameters operands;
         bool defResultId = false;
@@ -306,7 +322,7 @@ void jsonToSpirv(const std::string& jsonPath)
         }
         InstructionDesc.emplace_back(
             std::move(EnumValue(opcode, name,
-                                std::move(caps), std::move(version), std::move(exts),
+                                std::move(caps), std::move(version), std::move(lastVersion), std::move(exts),
                                 std::move(operands))),
             defTypeId, defResultId);
     }
@@ -339,6 +355,7 @@ void jsonToSpirv(const std::string& jsonPath)
                 continue;
             EnumCaps caps(getCaps(enumerant));
             std::string version = enumerant["version"].asString();
+            std::string lastVersion = enumerant["lastVersion"].asString();
             Extensions exts(getExts(enumerant));
             OperandParameters params;
             const Json::Value& paramsJson = enumerant["parameters"];
@@ -353,7 +370,7 @@ void jsonToSpirv(const std::string& jsonPath)
             }
             dest->emplace_back(
                 value, enumerant["enumerant"].asString(),
-                std::move(caps), std::move(version), std::move(exts), std::move(params));
+                std::move(caps), std::move(version), std::move(lastVersion), std::move(exts), std::move(params));
         }
     };
 
@@ -421,7 +438,7 @@ void jsonToSpirv(const std::string& jsonPath)
         } else if (enumName == "Dim") {
             establishOperandClass(enumName, OperandDimensionality, &DimensionalityParams, operandEnum, category);
         } else if (enumName == "MemoryAccess") {
-            establishOperandClass(enumName, OperandMemoryAccess, &MemoryAccessParams, operandEnum, category);
+            establishOperandClass(enumName, OperandMemoryOperands, &MemoryAccessParams, operandEnum, category);
         } else if (enumName == "Scope") {
             establishOperandClass(enumName, OperandScope, &ScopeParams, operandEnum, category);
         } else if (enumName == "GroupOperation") {
