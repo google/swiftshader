@@ -7,13 +7,19 @@
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\change_operand_to_undef_reduction_opportunity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_const_reduction_pass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\merge_blocks_reduction_opportunity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_undef_reduction_pass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\merge_blocks_reduction_opportunity_finder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_dominating_id_reduction_pass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_const_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_undef_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_dominating_id_reduction_opportunity_finder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reducer.cpp">
@@ -28,19 +34,49 @@
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_block_reduction_opportunity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_block_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_function_reduction_opportunity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_function_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_instruction_reduction_opportunity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_pass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_selection_reduction_opportunity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_opname_instruction_reduction_pass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_selection_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_opname_instruction_reduction_opportunity_finder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_pass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\conditional_branch_to_simple_conditional_branch_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\conditional_branch_to_simple_conditional_branch_reduction_opportunity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\simple_conditional_branch_to_branch_opportunity_finder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\simple_conditional_branch_to_branch_reduction_opportunity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\pch_source_reduce.cpp">
@@ -54,13 +90,19 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\change_operand_to_undef_reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_const_reduction_pass.h">
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\merge_blocks_reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_undef_reduction_pass.h">
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\merge_blocks_reduction_opportunity_finder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_dominating_id_reduction_pass.h">
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_const_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_undef_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_dominating_id_reduction_opportunity_finder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reducer.h">
@@ -69,34 +111,67 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_block_reduction_opportunity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_block_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_instruction_reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_opname_instruction_reduction_pass.h">
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_function_reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_pass.h">
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_function_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_opname_instruction_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_selection_reduction_opportunity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_selection_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_opportunity_finder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_pass.h">
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\conditional_branch_to_simple_conditional_branch_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\conditional_branch_to_simple_conditional_branch_reduction_opportunity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\simple_conditional_branch_to_branch_opportunity_finder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\simple_conditional_branch_to_branch_reduction_opportunity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{281137F3-F765-344F-81A1-5EAF572A72BC}</UniqueIdentifier>
+      <UniqueIdentifier>{BC358C2F-D735-3D9B-A16C-3BC6057ABC2B}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{31403CE8-892F-3DE6-A3E1-A936F5B54DE7}</UniqueIdentifier>
+      <UniqueIdentifier>{B11E6D1A-DF77-39FB-B209-A851B3357F47}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

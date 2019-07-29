@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{02ED56AE-98AF-3FAB-BA26-B310F23DBCC7}</ProjectGuid>
+    <ProjectGuid>{E6C11FBC-3EC2-3A61-B2F4-EC03BE2CDC63}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -65,7 +65,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\build-version.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\build-version.inc.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Update build-version.inc in the SPIRV-Tools build directory (if necessary).</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 python $(SolutionDir)third_party/SPIRV-Tools/utils/update_build_version.py $(SolutionDir)third_party/SPIRV-Tools "$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/build-version.inc"
@@ -76,7 +76,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Update build-version.inc in the SPIRV-Tools build directory (if necessary).</Message>
@@ -89,13 +89,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\b1ac8d369ecc9a1a4407ddbaa3d5a88a\spirv-tools-build-version.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\298c9f9d2535f81bde02602c22b93442\spirv-tools-build-version.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 :cmEnd
@@ -104,7 +104,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/spirv-tools-build-version.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/spirv-tools-build-version.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-build-version</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
@@ -115,7 +115,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/spirv-tools-build-version.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/spirv-tools-build-version.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-build-version</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>

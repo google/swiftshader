@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E1A9E405-1306-3924-AE73-FFD7FB095685}</ProjectGuid>
+    <ProjectGuid>{CF43CEBC-9B44-3697-8262-5DC3F9AC532A}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -151,7 +151,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\build-version.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\build-version.inc.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Update build-version.inc in the SPIRV-Tools build directory (if necessary).</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 python $(SolutionDir)third_party/SPIRV-Tools/utils/update_build_version.py $(SolutionDir)third_party/SPIRV-Tools "$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/build-version.inc"
@@ -162,7 +162,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Update build-version.inc in the SPIRV-Tools build directory (if necessary).</Message>
@@ -175,7 +175,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/build-version.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\update_build_version.py;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\build-version.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
@@ -199,7 +199,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\enum_string_mapping.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\ext_inst.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\extensions.h" />
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\id_descriptor.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\instruction.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\latest_version_glsl_std_450_header.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\latest_version_opencl_std_header.h" />
@@ -213,6 +212,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_constant.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_definition.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_endian.h" />
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_fuzzer_options.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_optimizer_options.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_reducer_options.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_target_env.h" />
@@ -341,18 +341,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\id_descriptor.cpp">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</ForcedIncludeFiles>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\libspirv.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
@@ -438,6 +426,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_endian.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</ForcedIncludeFiles>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\spirv_fuzzer_options.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -881,6 +881,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\val\validate_misc.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</ForcedIncludeFiles>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\val\validate_mode_setting.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
@@ -918,6 +930,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\val\validate_scopes.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</ForcedIncludeFiles>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\val\validate_small_type_uses.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1015,19 +1039,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\core_tables.vcxproj">
-      <Project>{D0817E36-BE58-3C95-BF64-748025994A26}</Project>
+      <Project>{983F7132-9747-3649-BF4B-87E69EE85F3E}</Project>
       <Name>core_tables</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\enum_string_mapping.vcxproj">
-      <Project>{717F5DEC-42F8-378A-90E8-CF6E340D983B}</Project>
+      <Project>{80AF261B-6B92-3143-9FCA-9BC59158D733}</Project>
       <Name>enum_string_mapping</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\extinst_tables.vcxproj">
-      <Project>{0B6F6E15-53DE-3B85-812B-825694B176F8}</Project>
+      <Project>{3F5B4AC4-64E2-3B84-BEE0-405F7EFD435E}</Project>
       <Name>extinst_tables</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

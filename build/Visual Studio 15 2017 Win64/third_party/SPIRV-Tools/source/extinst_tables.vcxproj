@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0B6F6E15-53DE-3B85-812B-825694B176F8}</ProjectGuid>
+    <ProjectGuid>{3F5B4AC4-64E2-3B84-BEE0-405F7EFD435E}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -65,7 +65,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\opencl.std.insts.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\opencl.std.insts.inc.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate info tables for OpenCL extended instructions and operands vunified1.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --extinst-opencl-grammar=$(SolutionDir)third_party/SPIRV-Headers/include/spirv/unified1/extinst.opencl.std.100.grammar.json "--opencl-insts-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/opencl.std.insts.inc"
@@ -76,7 +76,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/opencl.std.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.opencl.std.100.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/opencl.std.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.opencl.std.100.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\opencl.std.insts.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate info tables for OpenCL extended instructions and operands vunified1.</Message>
@@ -89,13 +89,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/opencl.std.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.opencl.std.100.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/opencl.std.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.opencl.std.100.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\opencl.std.insts.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\glsl.std.450.insts.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\glsl.std.450.insts.inc.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate info tables for GLSL extended instructions and operands vunified1.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --extinst-glsl-grammar=$(SolutionDir)third_party/SPIRV-Headers/include/spirv/unified1/extinst.glsl.std.450.grammar.json "--glsl-insts-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/glsl.std.450.insts.inc"
@@ -106,7 +106,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/glsl.std.450.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.glsl.std.450.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/glsl.std.450.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.glsl.std.450.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\glsl.std.450.insts.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate info tables for GLSL extended instructions and operands vunified1.</Message>
@@ -119,13 +119,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/glsl.std.450.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.glsl.std.450.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/glsl.std.450.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\extinst.glsl.std.450.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\glsl.std.450.insts.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\b1ac8d369ecc9a1a4407ddbaa3d5a88a\extinst_tables.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\298c9f9d2535f81bde02602c22b93442\extinst_tables.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 :cmEnd
@@ -134,7 +134,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/extinst_tables.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\opencl.std.insts.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\glsl.std.450.insts.inc;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/extinst_tables.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\opencl.std.insts.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\glsl.std.450.insts.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\extinst_tables</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
@@ -145,7 +145,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/extinst_tables.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\opencl.std.insts.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\glsl.std.450.insts.inc;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/extinst_tables.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\opencl.std.insts.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\glsl.std.450.insts.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\extinst_tables</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
@@ -154,39 +154,39 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <None Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\extinst_tables" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spirv-tools-debuginfo.vcxproj">
-      <Project>{E86A9777-6C04-38BC-AC03-32F171BA9037}</Project>
-      <Name>spirv-tools-debuginfo</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spirv-tools-header-DebugInfo.vcxproj">
-      <Project>{EA1FDDD6-3BE8-3A92-B7F9-C8E032D7F1A2}</Project>
+      <Project>{39DFA88C-1DC6-3E6F-A71F-7970C1B8E483}</Project>
       <Name>spirv-tools-header-DebugInfo</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spirv-tools-spv-amd-gcn-shader.vcxproj">
-      <Project>{4DE77359-5B7E-3EF3-AB38-9F4FF62D4935}</Project>
-      <Name>spirv-tools-spv-amd-gcn-shader</Name>
+    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spv-tools-debuginfo.vcxproj">
+      <Project>{496AF3EC-139A-3EA0-8898-45C5704A5F38}</Project>
+      <Name>spv-tools-debuginfo</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spirv-tools-spv-amd-shader-ballot.vcxproj">
-      <Project>{25CAC665-41EF-3770-B3AC-1C090D2AC7EA}</Project>
-      <Name>spirv-tools-spv-amd-shader-ballot</Name>
+    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spv-tools-spv-amd-gs.vcxproj">
+      <Project>{E0B79E0B-25BB-355B-9390-E9EC0047C632}</Project>
+      <Name>spv-tools-spv-amd-gs</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spirv-tools-spv-amd-shader-explicit-vertex-parameter.vcxproj">
-      <Project>{95DD96F6-D410-3911-B61A-C0AA0D6EBD2C}</Project>
-      <Name>spirv-tools-spv-amd-shader-explicit-vertex-parameter</Name>
+    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spv-tools-spv-amd-sb.vcxproj">
+      <Project>{1262CB67-3BC7-35D5-9036-3D3B3A9DC3CE}</Project>
+      <Name>spv-tools-spv-amd-sb</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spirv-tools-spv-amd-shader-trinary-minmax.vcxproj">
-      <Project>{D31F2A2D-3E6E-3541-A885-0D28DBE02FE8}</Project>
-      <Name>spirv-tools-spv-amd-shader-trinary-minmax</Name>
+    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spv-tools-spv-amd-sevp.vcxproj">
+      <Project>{32C0DDEA-EC24-3465-B0F9-9DA187D45ED3}</Project>
+      <Name>spv-tools-spv-amd-sevp</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\spv-tools-spv-amd-stm.vcxproj">
+      <Project>{9E8623BF-3469-3104-9674-DED25861C7CF}</Project>
+      <Name>spv-tools-spv-amd-stm</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>

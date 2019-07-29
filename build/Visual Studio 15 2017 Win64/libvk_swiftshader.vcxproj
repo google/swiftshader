@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DC7C91AF-3ABC-3480-B47B-A0F04B3327D4}</ProjectGuid>
+    <ProjectGuid>{C8E5841D-D2BC-3987-B6FB-95A1631B497D}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -56,11 +56,12 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\libbacktrace\config\windows\include;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4005;4018;4065;4141;4146;4244;4267;4291;4309;4624;4800;4838;5030;5038</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -68,17 +69,19 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatSpecificWarningsAsErrors>4018;4471;4838;5038</TreatSpecificWarningsAsErrors>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VK_EXPORT=;WIN32;_WINDOWS;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;VK_EXPORT=;NO_SANITIZE_FUNCTION=;DEBUGGER_WAIT_DIALOG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>VK_EXPORT=;WIN32;_DEBUG;_WINDOWS;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\libbacktrace\config\windows\include;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;VK_EXPORT=;NO_SANITIZE_FUNCTION=;DEBUGGER_WAIT_DIALOG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\libbacktrace\config\windows\include;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -120,9 +123,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\libbacktrace\config\windows\include;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4005;4018;4065;4141;4146;4244;4267;4291;4309;4624;4800;4838;5030;5038</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -130,19 +134,21 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatSpecificWarningsAsErrors>4018;4471;4838;5038</TreatSpecificWarningsAsErrors>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VK_EXPORT=WIN32;_WINDOWS;NDEBUG;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;VK_EXPORT=;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>VK_EXPORT=;WIN32;_WINDOWS;NDEBUG;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\libbacktrace\config\windows\include;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;VK_EXPORT=;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\libbacktrace\config\windows\include;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\libbacktrace\src;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -216,8 +222,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="$(SolutionDir)src\Device\SetupProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\SetupProcessor.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Stream.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Device\SwiftConfig.cpp" />
-    <ClInclude Include="$(SolutionDir)src\Device\SwiftConfig.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Triangle.hpp" />
     <ClCompile Include="$(SolutionDir)src\Device\Vector.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Vector.hpp" />
@@ -259,12 +263,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\System\Math.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Memory.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\Memory.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Resource.cpp" />
-    <ClInclude Include="$(SolutionDir)src\System\Resource.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Socket.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\Socket.hpp" />
     <ClInclude Include="$(SolutionDir)src\System\Synchronization.hpp" />
-    <ClInclude Include="$(SolutionDir)src\System\Thread.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Timer.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\Timer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\Version.h" />
@@ -328,6 +329,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkSemaphore.hpp" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkShaderModule.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkShaderModule.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VulkanPlatform.h" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\libVulkan.cpp" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\main.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\resource.h" />
@@ -338,25 +340,25 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">
-      <Project>{5D8ADDAC-197A-3A88-9FB1-61BB28BB5E65}</Project>
+      <Project>{EB784A1C-8E20-3066-9F9C-E4E88F11E1D4}</Project>
       <Name>ReactorLLVM</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
-      <Project>{83D86993-70D0-336A-84F1-8B952B8079DD}</Project>
+      <Project>{59349DEB-AC96-335C-ACC6-8A92F774538A}</Project>
       <Name>SPIRV-Tools</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
-      <Project>{CE414127-5528-30F5-9F5F-5AF9D2B8C04C}</Project>
+      <Project>{EFF5DE98-2741-3BD8-B049-D5647A223B5E}</Project>
       <Name>SPIRV-Tools-opt</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\llvm.vcxproj">
-      <Project>{2F30A9CF-6135-3DB8-A898-CC2638959596}</Project>
+      <Project>{481093B5-4EF0-391E-82FF-BB73CFCD3D51}</Project>
       <Name>llvm</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

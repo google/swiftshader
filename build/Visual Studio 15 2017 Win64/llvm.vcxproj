@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2F30A9CF-6135-3DB8-A898-CC2638959596}</ProjectGuid>
+    <ProjectGuid>{481093B5-4EF0-391E-82FF-BB73CFCD3D51}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -52,7 +52,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -65,17 +65,18 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS; "_SCL_SECURE_NO_WARNINGS" /wd4141;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS; \"_SCL_SECURE_NO_WARNINGS\" /wd4141;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -88,7 +89,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DisableSpecificWarnings>4141;4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
@@ -99,19 +100,20 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG; "_SCL_SECURE_NO_WARNINGS" /wd4141;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG; \"_SCL_SECURE_NO_WARNINGS\" /wd4141;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -131,12 +133,12 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\BlockFrequencyInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\BlockFrequencyInfoImpl.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\BranchProbabilityInfo.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFG.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLAndersAliasAnalysis.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLSteensAliasAnalysis.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CallGraph.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CallGraphSCCPass.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CaptureTracking.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFG.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLAndersAliasAnalysis.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLSteensAliasAnalysis.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CmpInstAnalysis.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CodeMetrics.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\ConstantFolding.cpp" />
@@ -146,10 +148,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\DominanceFrontier.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\EHPersonalities.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\GlobalsModRef.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\IVUsers.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\InlineCost.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\InstructionSimplify.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\IteratedDominanceFrontier.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\IVUsers.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\LazyBlockFrequencyInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\LazyBranchProbabilityInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\LazyValueInfo.cpp" />
@@ -198,18 +200,18 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AggressiveAntiDepBreaker.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AllocationOrder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\Analysis.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\ARMException.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AccelTable.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AddressPool.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\ARMException.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AsmPrinter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AsmPrinterDwarf.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AsmPrinterInlineAsm.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\CodeViewDebug.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIE.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIEHash.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DbgValueHistoryCalculator.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DebugHandlerBase.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DebugLocStream.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIE.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIEHash.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DwarfCFIException.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DwarfCompileUnit.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DwarfDebug.cpp" />
@@ -225,15 +227,15 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\BranchFolding.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\BranchRelaxation.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\BreakFalseDeps.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CFIInstrInserter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CalcSpillWeights.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CallingConvLower.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CFIInstrInserter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CodeGen.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CodeGenPrepare.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CriticalAntiDepBreaker.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DFAPacketizer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DeadMachineInstructionElim.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DetectDeadLanes.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DFAPacketizer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DwarfEHPrepare.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\EarlyIfConversion.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\EdgeBundles.cpp" />
@@ -242,8 +244,8 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\ExpandMemCmp.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\ExpandPostRAPseudos.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\ExpandReductions.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FEntryInserter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FaultMaps.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FEntryInserter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FuncletLayout.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GCMetadata.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GCMetadataPrinter.cpp" />
@@ -251,9 +253,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GCStrategy.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\CallLowering.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\GlobalISel.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\IRTranslator.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\InstructionSelect.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\InstructionSelector.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\IRTranslator.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\LegalityPredicates.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\LegalizeMutations.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\Legalizer.cpp" />
@@ -272,15 +274,14 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\InterferenceCache.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\InterleavedAccessPass.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\IntrinsicLowering.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LLVMTargetMachine.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LatencyPriorityQueue.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LazyMachineBlockFrequencyInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LexicalScopes.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveDebugValues.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveDebugVariables.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveInterval.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervalUnion.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervals.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervalUnion.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LivePhysRegs.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveRangeCalc.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveRangeEdit.cpp" />
@@ -289,22 +290,20 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveRegUnits.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveStacks.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveVariables.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LLVMTargetMachine.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LocalStackSlotAllocation.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LoopTraversal.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LowerEmuTLS.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LowLevelType.cpp">
       <ObjectFileName>$(IntDir)/third_party/llvm-7.0/llvm/lib/CodeGen/LowLevelType.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LowerEmuTLS.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRCanonicalizerPass.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrinter.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrintingPass.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineBasicBlock.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineBlockFrequencyInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineBlockPlacement.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineBranchProbabilityInfo.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCSE.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCombiner.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCopyPropagation.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCSE.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineDominanceFrontier.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineDominators.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineFrameInfo.cpp" />
@@ -325,17 +324,20 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachinePostDominators.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineRegionInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineRegisterInfo.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineSSAUpdater.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineScheduler.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineSink.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineSSAUpdater.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineTraceMetrics.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineVerifier.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MacroFusion.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRCanonicalizerPass.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrinter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrintingPass.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\OptimizePHIs.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIElimination.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIEliminationUtils.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PatchableFunction.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PeepholeOptimizer.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIElimination.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIEliminationUtils.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PostRAHazardRecognizer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PostRASchedulerList.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PreISelIntrinsicLowering.cpp" />
@@ -347,13 +349,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegAllocBasic.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegAllocFast.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegAllocGreedy.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoCollector.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoPropagate.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterClassInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterCoalescer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterPressure.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterScavenging.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterUsageInfo.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoCollector.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoPropagate.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RenameIndependentSubregs.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\ResetMachineFunctionPass.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\SafeStack.cpp" />
@@ -417,10 +419,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\WasmEHPrepare.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\WinEHPrepare.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\XRayInstrumentation.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CVTypeVisitor.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CodeViewError.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CodeViewRecordIO.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\ContinuationRecordBuilder.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CVTypeVisitor.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\Formatters.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\GlobalTypeTableBuilder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\Line.cpp" />
@@ -442,8 +444,8 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\JITSymbol.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RTDyldMemoryManager.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyld.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldCOFF.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldChecker.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldCOFF.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldELF.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldMachO.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\Targets\RuntimeDyldELFMips.cpp" />
@@ -457,7 +459,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\ConstantFold.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\ConstantRange.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Constants.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DIBuilder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DataLayout.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DebugInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DebugInfoMetadata.cpp" />
@@ -465,21 +466,22 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DiagnosticHandler.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DiagnosticInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DiagnosticPrinter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DIBuilder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Dominators.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Function.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\GVMaterializer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Globals.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRBuilder.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRPrintingPasses.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\GVMaterializer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\InlineAsm.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Instruction.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Instructions.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IntrinsicInst.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRBuilder.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRPrintingPasses.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LegacyPassManager.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LLVMContext.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LLVMContextImpl.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LegacyPassManager.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\MDBuilder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Mangler.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\MDBuilder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Metadata.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Module.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Operator.cpp" />
@@ -497,6 +499,7 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\ValueSymbolTable.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Verifier.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\ELFObjectWriter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MachObjectWriter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCAsmBackend.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCAsmInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCAsmInfoCOFF.cpp" />
@@ -520,8 +523,8 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCInstrAnalysis.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCInstrDesc.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCLinkerOptimizationHint.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachOStreamer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachObjectTargetWriter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachOStreamer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCNullStreamer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCObjectFileInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCObjectStreamer.cpp" />
@@ -552,7 +555,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCWin64EH.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCWinCOFFStreamer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCWinEH.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MachObjectWriter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\StringTableBuilder.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\SubtargetFeature.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\WasmObjectWriter.cpp" />
@@ -581,6 +583,7 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\APSInt.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ARMAttributeParser.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ARMBuildAttrs.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Atomic.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\BinaryStreamError.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\BinaryStreamReader.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\BinaryStreamRef.cpp" />
@@ -588,15 +591,16 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\BlockFrequency.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\BranchProbability.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Chrono.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\circular_raw_ostream.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\CodeGenCoverage.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\CommandLine.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Compression.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ConvertUTF.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ConvertUTFWrapper.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DJB.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DataExtractor.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Debug.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DebugCounter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DJB.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DynamicLibrary.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Errno.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Error.cpp">
@@ -604,8 +608,8 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ErrorHandling.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FoldingSet.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormatVariadic.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormattedStream.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormatVariadic.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\GraphWriter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Hashing.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Host.cpp" />
@@ -619,9 +623,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\LowLevelType.cpp">
       <ObjectFileName>$(IntDir)/third_party/llvm-7.0/llvm/lib/Support/LowLevelType.cpp.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MD5.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ManagedStatic.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MathExtras.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MD5.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Memory.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MemoryBuffer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Mutex.cpp" />
@@ -630,12 +634,33 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\PrettyStackTrace.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Process.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Program.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RWMutex.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RandomNumberGenerator.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\raw_ostream.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regcomp.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regerror.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Regex.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\SHA1.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regexec.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regfree.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regstrlcpy.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RWMutex.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ScaledNumber.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ScopedPrinter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\SHA1.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Signals.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\SmallPtrSet.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\SmallVector.cpp" />
@@ -657,28 +682,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Valgrind.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\YAMLParser.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\YAMLTraits.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\circular_raw_ostream.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\raw_ostream.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regcomp.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regerror.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regexec.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regfree.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regstrlcpy.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\TargetLoweringObjectFile.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\TargetMachine.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Coroutines\CoroCleanup.cpp" />
@@ -707,13 +710,15 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\EarlyCSE.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\GVN.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\LICM.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\LoopDataPrefetch.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\LoopStrengthReduce.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\MergeICmps.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\PartiallyInlineLibCalls.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\Reassociate.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SCCP.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SROA.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SeparateConstOffsetFromGEP.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SimplifyCFGPass.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SROA.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\BasicBlockUtils.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\BreakCriticalEdges.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\BuildLibCalls.cpp" />
@@ -730,12 +735,12 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\LowerInvoke.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\OrderedInstructions.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\PromoteMemoryToRegister.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SSAUpdater.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SimplifyCFG.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SimplifyLibCalls.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SSAUpdater.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SymbolRewriter.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\VNCoercion.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\ValueMapper.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\VNCoercion.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\stubs\Stubs.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\AsmParser\X86AsmInstrumentation.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\AsmParser\X86AsmParser.cpp" />
@@ -745,10 +750,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\InstPrinter\X86IntelInstPrinter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86AsmBackend.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86ELFObjectWriter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MachObjectWriter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MCAsmInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MCCodeEmitter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MCTargetDesc.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MachObjectWriter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86WinCOFFObjectWriter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86WinCOFFStreamer.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86WinCOFFTargetStreamer.cpp" />
@@ -758,8 +763,8 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86AsmPrinter.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86AvoidStoreForwardingBlocks.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallFrameOptimization.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallLowering.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallingConv.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallLowering.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CmovConversion.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86DomainReassignment.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86EvexToVex.cpp" />
@@ -771,18 +776,18 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86FlagsCopyLowering.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86FloatingPoint.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86FrameLowering.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelDAGToDAG.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelLowering.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86IndirectBranchTracking.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86InstrFMA3Info.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86InstrFoldTables.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86InstrInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86InstructionSelector.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86InterleavedAccess.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelDAGToDAG.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelLowering.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86LegalizerInfo.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MCInstLower.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MachineFunctionInfo.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MacroFusion.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MCInstLower.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86OptimizeLEAs.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86PadShortFunction.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86RegisterBankInfo.cpp" />

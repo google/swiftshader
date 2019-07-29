@@ -14,11 +14,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E86A9777-6C04-38BC-AC03-32F171BA9037}</ProjectGuid>
+    <ProjectGuid>{1262CB67-3BC7-35D5-9036-3D3B3A9DC3CE}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>spirv-tools-debuginfo</ProjectName>
+    <ProjectName>spv-tools-spv-amd-sb</ProjectName>
     <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -65,10 +65,10 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\debuginfo.insts.inc.rule">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate extended instruction tables for debuginfo.</Message>
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\spv-amd-shader-ballot.insts.inc.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate extended instruction tables for spv-amd-shader-ballot.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=$(SolutionDir)third_party/SPIRV-Tools/source/extinst.debuginfo.grammar.json "--vendor-insts-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/debuginfo.insts.inc"
+python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=$(SolutionDir)third_party/SPIRV-Tools/source/extinst.spv-amd-shader-ballot.grammar.json "--vendor-insts-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/spv-amd-shader-ballot.insts.inc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -76,12 +76,12 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/debuginfo.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\debuginfo.insts.inc</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/spv-amd-shader-ballot.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.spv-amd-shader-ballot.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\spv-amd-shader-ballot.insts.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate extended instruction tables for debuginfo.</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate extended instruction tables for spv-amd-shader-ballot.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=$(SolutionDir)third_party/SPIRV-Tools/source/extinst.debuginfo.grammar.json "--vendor-insts-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/debuginfo.insts.inc"
+python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --extinst-vendor-grammar=$(SolutionDir)third_party/SPIRV-Tools/source/extinst.spv-amd-shader-ballot.grammar.json "--vendor-insts-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/spv-amd-shader-ballot.insts.inc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -89,13 +89,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/debuginfo.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\debuginfo.insts.inc</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/spv-amd-shader-ballot.insts.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.spv-amd-shader-ballot.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\spv-amd-shader-ballot.insts.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\b1ac8d369ecc9a1a4407ddbaa3d5a88a\spirv-tools-debuginfo.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\298c9f9d2535f81bde02602c22b93442\spv-tools-spv-amd-sb.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 :cmEnd
@@ -104,8 +104,8 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/spirv-tools-debuginfo.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\debuginfo.insts.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-debuginfo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/spv-tools-spv-amd-sb.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\spv-amd-shader-ballot.insts.inc;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spv-tools-spv-amd-sb</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
@@ -115,13 +115,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/spirv-tools-debuginfo.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\debuginfo.insts.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-debuginfo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/spv-tools-spv-amd-sb.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\spv-amd-shader-ballot.insts.inc;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spv-tools-spv-amd-sb</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-debuginfo" />
+    <None Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spv-tools-spv-amd-sb" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

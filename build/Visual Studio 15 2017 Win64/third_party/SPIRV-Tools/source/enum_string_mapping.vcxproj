@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{717F5DEC-42F8-378A-90E8-CF6E340D983B}</ProjectGuid>
+    <ProjectGuid>{80AF261B-6B92-3143-9FCA-9BC59158D733}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -65,7 +65,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\extension_enum.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\extension_enum.inc.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate enum-string mapping for SPIR-V vunified1.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_grammar_tables.py --spirv-core-grammar=$(SolutionDir)third_party/SPIRV-Headers/include/spirv/unified1/spirv.core.grammar.json --extinst-debuginfo-grammar=$(SolutionDir)third_party/SPIRV-Tools/source/extinst.debuginfo.grammar.json "--extension-enum-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/extension_enum.inc" "--enum-string-mapping-output=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/enum_string_mapping.inc"
@@ -76,7 +76,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/extension_enum.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/extension_enum.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\extension_enum.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\enum_string_mapping.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate enum-string mapping for SPIR-V vunified1.</Message>
@@ -89,13 +89,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/extension_enum.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/extension_enum.inc.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_grammar_tables.py;$(SolutionDir)third_party\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\extension_enum.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\enum_string_mapping.inc</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\b1ac8d369ecc9a1a4407ddbaa3d5a88a\enum_string_mapping.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\298c9f9d2535f81bde02602c22b93442\enum_string_mapping.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 :cmEnd
@@ -104,7 +104,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/enum_string_mapping.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\extension_enum.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\enum_string_mapping.inc;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/enum_string_mapping.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\extension_enum.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\enum_string_mapping.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\enum_string_mapping</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
@@ -115,7 +115,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/enum_string_mapping.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\extension_enum.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\enum_string_mapping.inc;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/enum_string_mapping.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\extension_enum.inc;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\enum_string_mapping.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\enum_string_mapping</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>

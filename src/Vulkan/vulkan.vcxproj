@@ -293,10 +293,10 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
-      <Project>{ce414127-5528-30f5-9f5f-5af9d2b8c04c}</Project>
+      <Project>{eff5de98-2741-3bd8-b049-d5647a223b5e}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
-      <Project>{83d86993-70d0-336a-84f1-8b952b8079dd}</Project>
+      <Project>{59349deb-ac96-335c-acc6-8a92f774538a}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Reactor\Reactor.vcxproj">
       <Project>{28fd076d-10b5-4bd8-a4cf-f44c7002a803}</Project>

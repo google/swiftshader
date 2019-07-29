@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\extension_enum.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\extension_enum.inc.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\b1ac8d369ecc9a1a4407ddbaa3d5a88a\enum_string_mapping.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\298c9f9d2535f81bde02602c22b93442\enum_string_mapping.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -13,7 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{403A9AA3-1D72-38DC-A6AB-1BFDA2377A05}</UniqueIdentifier>
+      <UniqueIdentifier>{93F83FFB-0A66-3FBE-A52D-9C65B5A808F7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

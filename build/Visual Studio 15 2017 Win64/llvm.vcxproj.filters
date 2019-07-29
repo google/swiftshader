@@ -25,15 +25,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\BranchProbabilityInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFG.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLAndersAliasAnalysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLSteensAliasAnalysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CallGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,6 +32,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CaptureTracking.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLAndersAliasAnalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CFLSteensAliasAnalysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\CmpInstAnalysis.cpp">
@@ -70,9 +70,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\GlobalsModRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\IVUsers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\InlineCost.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -80,6 +77,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\IteratedDominanceFrontier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\IVUsers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\LazyBlockFrequencyInfo.cpp">
@@ -226,13 +226,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\Analysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\ARMException.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AccelTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AddressPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\ARMException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\AsmPrinter.cpp">
@@ -247,12 +247,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\CodeViewDebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIE.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIEHash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DbgValueHistoryCalculator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -260,6 +254,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DebugLocStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DIEHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\AsmPrinter\DwarfCFIException.cpp">
@@ -307,13 +307,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\BreakFalseDeps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CFIInstrInserter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CalcSpillWeights.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CallingConvLower.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CFIInstrInserter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CodeGen.cpp">
@@ -325,13 +325,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\CriticalAntiDepBreaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DFAPacketizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DeadMachineInstructionElim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DetectDeadLanes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DFAPacketizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\DwarfEHPrepare.cpp">
@@ -358,10 +358,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\ExpandReductions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FEntryInserter.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FaultMaps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FaultMaps.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FEntryInserter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\FuncletLayout.cpp">
@@ -385,13 +385,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\GlobalISel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\IRTranslator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\InstructionSelect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\InstructionSelector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\IRTranslator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\GlobalISel\LegalityPredicates.cpp">
@@ -448,9 +448,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\IntrinsicLowering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LLVMTargetMachine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LatencyPriorityQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -469,10 +466,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveInterval.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervalUnion.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervals.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveIntervalUnion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LivePhysRegs.cpp">
@@ -499,25 +496,19 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LiveVariables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LLVMTargetMachine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LocalStackSlotAllocation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LoopTraversal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LowLevelType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LowerEmuTLS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRCanonicalizerPass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrinter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrintingPass.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\LowLevelType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineBasicBlock.cpp">
@@ -532,13 +523,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineBranchProbabilityInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCSE.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCombiner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCopyPropagation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineCSE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineDominanceFrontier.cpp">
@@ -601,13 +592,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineRegisterInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineSSAUpdater.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineScheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineSink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineSSAUpdater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MachineTraceMetrics.cpp">
@@ -619,19 +610,28 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MacroFusion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRCanonicalizerPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrinter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\MIRPrintingPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\OptimizePHIs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIElimination.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIEliminationUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PatchableFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PeepholeOptimizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIElimination.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PHIEliminationUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\PostRAHazardRecognizer.cpp">
@@ -667,12 +667,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegAllocGreedy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoCollector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoPropagate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterClassInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -686,6 +680,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegisterUsageInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoCollector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RegUsageInfoPropagate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\RenameIndependentSubregs.cpp">
@@ -877,9 +877,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\CodeGen\XRayInstrumentation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CVTypeVisitor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CodeViewError.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -887,6 +884,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\ContinuationRecordBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\CVTypeVisitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\DebugInfo\CodeView\Formatters.cpp">
@@ -952,10 +952,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyld.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldCOFF.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldChecker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldChecker.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldCOFF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\ExecutionEngine\RuntimeDyld\RuntimeDyldELF.cpp">
@@ -997,9 +997,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DIBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DataLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1021,22 +1018,19 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DiagnosticPrinter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\DIBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Dominators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\GVMaterializer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Globals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRPrintingPasses.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\GVMaterializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\InlineAsm.cpp">
@@ -1051,19 +1045,25 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IntrinsicInst.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\IRPrintingPasses.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LegacyPassManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LLVMContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LLVMContextImpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\LegacyPassManager.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Mangler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\MDBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Mangler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\IR\Metadata.cpp">
@@ -1115,6 +1115,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\ELFObjectWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MachObjectWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCAsmBackend.cpp">
@@ -1186,10 +1189,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCLinkerOptimizationHint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachOStreamer.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachObjectTargetWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachObjectTargetWriter.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCMachOStreamer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCNullStreamer.cpp">
@@ -1282,9 +1285,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MCWinEH.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\MachObjectWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\MC\StringTableBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1363,6 +1363,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ARMBuildAttrs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Atomic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\BinaryStreamError.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1384,6 +1387,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Chrono.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\circular_raw_ostream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\CodeGenCoverage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1399,9 +1405,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ConvertUTFWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DJB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DataExtractor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1409,6 +1412,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DebugCounter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DJB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\DynamicLibrary.cpp">
@@ -1426,10 +1432,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FoldingSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormatVariadic.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormattedStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormattedStream.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\FormatVariadic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\GraphWriter.cpp">
@@ -1465,13 +1471,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\LowLevelType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MD5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ManagedStatic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MathExtras.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\MD5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Memory.cpp">
@@ -1498,22 +1504,40 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RWMutex.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RandomNumberGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RandomNumberGenerator.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\raw_ostream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regcomp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regerror.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Regex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\SHA1.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regexec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regfree.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regstrlcpy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RWMutex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ScaledNumber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ScopedPrinter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\SHA1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Signals.cpp">
@@ -1577,27 +1601,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\YAMLTraits.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\circular_raw_ostream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\raw_ostream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regcomp.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regerror.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regexec.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regfree.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regstrlcpy.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\TargetLoweringObjectFile.cpp">
@@ -1684,6 +1687,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\LICM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\LoopDataPrefetch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\LoopStrengthReduce.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1699,10 +1705,13 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SCCP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SROA.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SeparateConstOffsetFromGEP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SimplifyCFGPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Scalar\SROA.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\BasicBlockUtils.cpp">
@@ -1753,22 +1762,22 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\PromoteMemoryToRegister.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SSAUpdater.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SimplifyCFG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SimplifyLibCalls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SSAUpdater.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\SymbolRewriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\VNCoercion.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\ValueMapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\ValueMapper.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Transforms\Utils\VNCoercion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\stubs\Stubs.cpp">
@@ -1798,6 +1807,9 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86ELFObjectWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MachObjectWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MCAsmInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1805,9 +1817,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MCTargetDesc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86MachObjectWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\MCTargetDesc\X86WinCOFFObjectWriter.cpp">
@@ -1837,10 +1846,10 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallFrameOptimization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallLowering.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallingConv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallingConv.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CallLowering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86CmovConversion.cpp">
@@ -1876,12 +1885,6 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86FrameLowering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelDAGToDAG.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelLowering.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86IndirectBranchTracking.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1900,16 +1903,22 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86InterleavedAccess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86LegalizerInfo.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelDAGToDAG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MCInstLower.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86ISelLowering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86LegalizerInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MachineFunctionInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MacroFusion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86MCInstLower.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86\X86OptimizeLEAs.cpp">
@@ -1960,7 +1969,7 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{31403CE8-892F-3DE6-A3E1-A936F5B54DE7}</UniqueIdentifier>
+      <UniqueIdentifier>{B11E6D1A-DF77-39FB-B209-A851B3357F47}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

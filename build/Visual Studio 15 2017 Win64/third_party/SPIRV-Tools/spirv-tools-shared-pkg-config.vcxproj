@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B2815DAA-B884-3519-8B30-8249FFED06CD}</ProjectGuid>
+    <ProjectGuid>{871BEB73-7406-3F9A-8A89-072702C81C2C}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -65,7 +65,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\bd99ee5ebe6b18f04cf380fcd08b4788\spirv-tools-shared-pkg-config.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\811e4230f6622211b599c860e325bc08\spirv-tools-shared-pkg-config.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 "cmake" -DCHANGES_FILE=$(SolutionDir)third_party/SPIRV-Tools/CHANGES -DTEMPLATE_FILE=$(SolutionDir)third_party/SPIRV-Tools/cmake/SPIRV-Tools-shared.pc.in "-DOUT_FILE=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/SPIRV-Tools-shared.pc" "-DCMAKE_INSTALL_PREFIX=C:/Program Files/SwiftShader" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include -DSPIRV_SHARED_LIBRARIES=-lSPIRV-Tools-shared -P $(SolutionDir)third_party/SPIRV-Tools/cmake/write_pkg_config.cmake
@@ -76,7 +76,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/bd99ee5ebe6b18f04cf380fcd08b4788/spirv-tools-shared-pkg-config.rule;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;$(SolutionDir)third_party\SPIRV-Tools\cmake\SPIRV-Tools-shared.pc.in;$(SolutionDir)third_party\SPIRV-Tools\cmake\write_pkg_config.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/811e4230f6622211b599c860e325bc08/spirv-tools-shared-pkg-config.rule;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;$(SolutionDir)third_party\SPIRV-Tools\cmake\SPIRV-Tools-shared.pc.in;$(SolutionDir)third_party\SPIRV-Tools\cmake\write_pkg_config.cmake;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\CMakeFiles\spirv-tools-shared-pkg-config</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
@@ -89,7 +89,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/bd99ee5ebe6b18f04cf380fcd08b4788/spirv-tools-shared-pkg-config.rule;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;$(SolutionDir)third_party\SPIRV-Tools\cmake\SPIRV-Tools-shared.pc.in;$(SolutionDir)third_party\SPIRV-Tools\cmake\write_pkg_config.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/811e4230f6622211b599c860e325bc08/spirv-tools-shared-pkg-config.rule;$(SolutionDir)third_party\SPIRV-Tools\CHANGES;$(SolutionDir)third_party\SPIRV-Tools\cmake\SPIRV-Tools-shared.pc.in;$(SolutionDir)third_party\SPIRV-Tools\cmake\write_pkg_config.cmake;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\CMakeFiles\spirv-tools-shared-pkg-config</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>

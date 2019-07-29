@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\bd99ee5ebe6b18f04cf380fcd08b4788\spirv-tools-pkg-config.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\811e4230f6622211b599c860e325bc08\spirv-tools-pkg-config.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -10,7 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{403A9AA3-1D72-38DC-A6AB-1BFDA2377A05}</UniqueIdentifier>
+      <UniqueIdentifier>{93F83FFB-0A66-3FBE-A52D-9C65B5A808F7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

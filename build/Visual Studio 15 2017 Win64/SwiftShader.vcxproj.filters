@@ -324,19 +324,19 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{DEA3D2D6-9E81-34FB-B37F-BFD0AF986E84}</UniqueIdentifier>
+      <UniqueIdentifier>{4CBE9297-1779-302D-AF01-5C79A790DED5}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Common">
-      <UniqueIdentifier>{FAA9C190-0FDA-392B-AF51-6AEAE07F8689}</UniqueIdentifier>
+      <UniqueIdentifier>{B0058071-2A97-3E9E-A00E-6FDE51114CE4}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Main">
-      <UniqueIdentifier>{7C2F423D-E0EE-30D3-A41D-69134C1279F5}</UniqueIdentifier>
+      <UniqueIdentifier>{46D02282-8ABB-32F5-8522-04CF7C13CE38}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Renderer">
-      <UniqueIdentifier>{878C3CD8-D100-3C7B-A7E8-6F03D0A37DA6}</UniqueIdentifier>
+      <UniqueIdentifier>{B15F1FA3-503E-37F7-A584-C589FC3DACFA}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Shader">
-      <UniqueIdentifier>{00302DB4-ECF6-3E33-B1FE-ABB5233346C0}</UniqueIdentifier>
+      <UniqueIdentifier>{B47A3AEA-B1E3-38BC-8D24-842B83F0DCFF}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

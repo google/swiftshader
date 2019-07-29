@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1BA09198-7B91-3346-978B-22BF18453C70}</ProjectGuid>
+    <ProjectGuid>{88540F77-A8DE-31E2-88CC-467DEDD94554}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -61,6 +61,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4005;4018;4065;4141;4146;4244;4267;4291;4309;4624;4800;4838;5030;5038</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -68,13 +69,15 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatSpecificWarningsAsErrors>4018;4471;4838;5038</TreatSpecificWarningsAsErrors>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -104,6 +107,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4005;4018;4065;4141;4146;4244;4267;4291;4309;4624;4800;4838;5030;5038</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -111,15 +115,17 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatSpecificWarningsAsErrors>4018;4471;4838;5038</TreatSpecificWarningsAsErrors>
+      <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -149,37 +155,37 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\GLCompiler.vcxproj">
-      <Project>{087C5089-C3C6-3073-98B0-E99395FE4D6C}</Project>
+      <Project>{C52D9E3E-BDC2-372A-AE88-2EAC1CC3BD61}</Project>
       <Name>GLCompiler</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">
-      <Project>{5D8ADDAC-197A-3A88-9FB1-61BB28BB5E65}</Project>
+      <Project>{EB784A1C-8E20-3066-9F9C-E4E88F11E1D4}</Project>
       <Name>ReactorLLVM</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\SwiftShader.vcxproj">
-      <Project>{F78D4702-44DD-3644-AA44-21FC4646083D}</Project>
+      <Project>{E190CBF2-358E-3C1A-8DF7-19F43DF189C0}</Project>
       <Name>SwiftShader</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\libEGL.vcxproj">
-      <Project>{E4456327-6368-3F10-A47F-135E85F957A5}</Project>
+      <Project>{41C068CD-6F81-3756-8AF2-802940422DB5}</Project>
       <Name>libEGL</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\libGLESv2.vcxproj">
-      <Project>{3F8FD665-599B-3564-91A8-C0DAD96366E1}</Project>
+      <Project>{C9485675-5744-3E3A-A7A4-C88A805AFAF6}</Project>
       <Name>libGLESv2</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\llvm.vcxproj">
-      <Project>{2F30A9CF-6135-3DB8-A898-CC2638959596}</Project>
+      <Project>{481093B5-4EF0-391E-82FF-BB73CFCD3D51}</Project>
       <Name>llvm</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

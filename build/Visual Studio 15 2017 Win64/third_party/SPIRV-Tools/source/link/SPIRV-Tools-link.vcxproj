@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F71D815F-E43A-34C5-92DE-15BF331D63CF}</ProjectGuid>
+    <ProjectGuid>{878BEAEA-CC28-3E97-B0F5-DB93FBC28A23}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -129,13 +129,13 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
-      <Project>{83D86993-70D0-336A-84F1-8B952B8079DD}</Project>
+      <Project>{59349DEB-AC96-335C-ACC6-8A92F774538A}</Project>
       <Name>SPIRV-Tools</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
-      <Project>{CE414127-5528-30F5-9F5F-5AF9D2B8C04C}</Project>
+      <Project>{EFF5DE98-2741-3BD8-B049-D5647A223B5E}</Project>
       <Name>SPIRV-Tools-opt</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

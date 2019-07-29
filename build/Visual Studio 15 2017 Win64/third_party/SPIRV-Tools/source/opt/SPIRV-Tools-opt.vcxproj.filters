@@ -10,6 +10,9 @@
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\block_merge_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\block_merge_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\build_module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -26,9 +29,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\combine_access_chains.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\common_uniform_elim_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\compact_ids_pass.cpp">
@@ -55,6 +55,9 @@
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_variable_elimination.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\decompose_initialized_variables_pass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\decoration_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -73,7 +76,16 @@
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_functions_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_functions_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_members_pass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\feature_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\fix_storage_class.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\flatten_decoration_pass.cpp">
@@ -92,6 +104,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\generate_webgpu_initializers_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\if_conversion.cpp">
@@ -122,6 +137,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ir_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\legalize_vector_shuffle_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\licm_pass.cpp">
@@ -229,10 +247,16 @@
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\simplification_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\split_invalid_unreachable_pass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ssa_rewrite_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strength_reduction_pass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_atomic_counter_memory_pass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_debug_info_pass.cpp">
@@ -279,6 +303,9 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\block_merge_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\block_merge_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\build_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -295,9 +322,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\combine_access_chains.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\common_uniform_elim_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\compact_ids_pass.h">
@@ -324,6 +348,9 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_variable_elimination.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\decompose_initialized_variables_pass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\decoration_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -342,7 +369,16 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_functions_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_functions_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_members_pass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\feature_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\fix_storage_class.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\flatten_decoration_pass.h">
@@ -361,6 +397,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\function.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\generate_webgpu_initializers_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\if_conversion.h">
@@ -507,10 +546,16 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\simplification_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\split_invalid_unreachable_pass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ssa_rewrite_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strength_reduction_pass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_atomic_counter_memory_pass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_debug_info_pass.h">
@@ -549,10 +594,10 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{281137F3-F765-344F-81A1-5EAF572A72BC}</UniqueIdentifier>
+      <UniqueIdentifier>{BC358C2F-D735-3D9B-A16C-3BC6057ABC2B}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{31403CE8-892F-3DE6-A3E1-A936F5B54DE7}</UniqueIdentifier>
+      <UniqueIdentifier>{B11E6D1A-DF77-39FB-B209-A851B3357F47}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

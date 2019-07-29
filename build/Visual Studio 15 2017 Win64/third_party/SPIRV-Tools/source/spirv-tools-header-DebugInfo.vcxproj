@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EA1FDDD6-3BE8-3A92-B7F9-C8E032D7F1A2}</ProjectGuid>
+    <ProjectGuid>{39DFA88C-1DC6-3E6F-A71F-7970C1B8E483}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -65,7 +65,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\ce2e413e4d25429b19113f798796d86d\DebugInfo.h.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\91e8d4b9222111077126a1169fd3e172\DebugInfo.h.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate language specific header for DebugInfo.</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 python $(SolutionDir)third_party/SPIRV-Tools/utils/generate_language_headers.py --extinst-name=DebugInfo --extinst-grammar=$(SolutionDir)third_party/SPIRV-Tools/source/extinst.debuginfo.grammar.json "--extinst-output-base=$(SolutionDir)build/Visual Studio 15 2017 Win64/third_party/SPIRV-Tools/DebugInfo"
@@ -76,7 +76,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/DebugInfo.h.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_language_headers.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/DebugInfo.h.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_language_headers.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\DebugInfo.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate language specific header for DebugInfo.</Message>
@@ -89,13 +89,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/ce2e413e4d25429b19113f798796d86d/DebugInfo.h.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_language_headers.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/91e8d4b9222111077126a1169fd3e172/DebugInfo.h.rule;$(SolutionDir)third_party\SPIRV-Tools\utils\generate_language_headers.py;$(SolutionDir)third_party\SPIRV-Tools\source\extinst.debuginfo.grammar.json;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\DebugInfo.h</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\b1ac8d369ecc9a1a4407ddbaa3d5a88a\spirv-tools-header-DebugInfo.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\298c9f9d2535f81bde02602c22b93442\spirv-tools-header-DebugInfo.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 :cmEnd
@@ -104,7 +104,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/spirv-tools-header-DebugInfo.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\DebugInfo.h;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/spirv-tools-header-DebugInfo.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\DebugInfo.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-header-DebugInfo</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></Message>
@@ -115,7 +115,7 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/b1ac8d369ecc9a1a4407ddbaa3d5a88a/spirv-tools-header-DebugInfo.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\DebugInfo.h;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/Visual Studio 15 2017 Win64/CMakeFiles/298c9f9d2535f81bde02602c22b93442/spirv-tools-header-DebugInfo.rule;$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\DebugInfo.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\CMakeFiles\spirv-tools-header-DebugInfo</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
     </CustomBuild>
