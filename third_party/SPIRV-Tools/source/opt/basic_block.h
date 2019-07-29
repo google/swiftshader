@@ -160,6 +160,11 @@ class BasicBlock {
   void ForEachSuccessorLabel(
       const std::function<void(const uint32_t)>& f) const;
 
+  // Runs the given function |f| on each label id of each successor block.  If
+  // |f| returns false, iteration is terminated and this function returns false.
+  bool WhileEachSuccessorLabel(
+      const std::function<bool(const uint32_t)>& f) const;
+
   // Runs the given function |f| on each label id of each successor block.
   // Modifying the pointed value will change the branch taken by the basic
   // block. It is the caller responsibility to update or invalidate the CFG.
@@ -183,9 +188,15 @@ class BasicBlock {
   // block, if any.  If none, returns zero.
   uint32_t MergeBlockIdIfAny() const;
 
+  // Returns MergeBlockIdIfAny() and asserts that it is non-zero.
+  uint32_t MergeBlockId() const;
+
   // Returns the ID of the continue block declared by a merge instruction in
   // this block, if any.  If none, returns zero.
   uint32_t ContinueBlockIdIfAny() const;
+
+  // Returns ContinueBlockIdIfAny() and asserts that it is non-zero.
+  uint32_t ContinueBlockId() const;
 
   // Returns the terminator instruction.  Assumes the terminator exists.
   Instruction* terminator() { return &*tail(); }

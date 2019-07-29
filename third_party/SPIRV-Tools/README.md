@@ -1,10 +1,5 @@
 # SPIR-V Tools
 
-[![Build status](https://ci.appveyor.com/api/projects/status/gpue87cesrx3pi0d/branch/master?svg=true)](https://ci.appveyor.com/project/Khronoswebmaster/spirv-tools/branch/master)
-<img alt="Linux" src="kokoro/img/linux.png" width="20px" height="20px" hspace="2px"/>![Linux Build Status](https://storage.googleapis.com/spirv-tools/badges/build_status_linux_release.svg)
-<img alt="MacOS" src="kokoro/img/macos.png" width="20px" height="20px" hspace="2px"/>![MacOS Build Status](https://storage.googleapis.com/spirv-tools/badges/build_status_macos_release.svg)
-<img alt="Windows" src="kokoro/img/windows.png" width="20px" height="20px" hspace="2px"/>![Windows Build Status](https://storage.googleapis.com/spirv-tools/badges/build_status_windows_release.svg)
-
 ## Overview
 
 The SPIR-V Tools project provides an API and commands for processing SPIR-V
@@ -23,6 +18,15 @@ We don't anticipate making a breaking change for existing features.
 SPIR-V is defined by the Khronos Group Inc.
 See the [SPIR-V Registry][spirv-registry] for the SPIR-V specification,
 headers, and XML registry.
+
+## Downloads
+
+[![Build status](https://ci.appveyor.com/api/projects/status/gpue87cesrx3pi0d/branch/master?svg=true)](https://ci.appveyor.com/project/Khronoswebmaster/spirv-tools/branch/master)
+<img alt="Linux" src="kokoro/img/linux.png" width="20px" height="20px" hspace="2px"/>[![Linux Build Status](https://storage.googleapis.com/spirv-tools/badges/build_status_linux_clang_release.svg)](https://storage.googleapis.com/spirv-tools/badges/build_link_linux_clang_release.html)
+<img alt="MacOS" src="kokoro/img/macos.png" width="20px" height="20px" hspace="2px"/>[![MacOS Build Status](https://storage.googleapis.com/spirv-tools/badges/build_status_macos_clang_release.svg)](https://storage.googleapis.com/spirv-tools/badges/build_link_macos_clang_release.html)
+<img alt="Windows" src="kokoro/img/windows.png" width="20px" height="20px" hspace="2px"/>[![Windows Build Status](https://storage.googleapis.com/spirv-tools/badges/build_status_windows_release.svg)](https://storage.googleapis.com/spirv-tools/badges/build_link_windows_vs2017_release.html)
+
+[More downloads](downloads.md)
 
 ## Versioning SPIRV-Tools
 
@@ -47,7 +51,7 @@ version.  An API call reports the software version as a C-style string.
 
 * Support for SPIR-V 1.0, 1.1, 1.2, and 1.3
   * Based on SPIR-V syntax described by JSON grammar files in the
-    [SPIRV-Headers](spirv-headers) repository.
+    [SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers) repository.
 * Support for extended instruction sets:
   * GLSL std450 version 1.0 Rev 3
   * OpenCL version 1.0 Rev 2
@@ -127,6 +131,23 @@ Current features:
 See the [CHANGES](CHANGES) file for reports on completed work, and the [General
 sub-project](https://github.com/KhronosGroup/SPIRV-Tools/projects/2) for
 planned and in-progress work.
+
+
+### Reducer
+
+*Note:* The reducer is still under development.
+
+The reducer simplifies and shrinks a SPIR-V module with respect to a
+user-supplied *interestingness function*.  For example, given a large
+SPIR-V module that cause some SPIR-V compiler to fail with a given
+fatal error message, the reducer could be used to look for a smaller
+version of the module that causes the compiler to fail with the same
+fatal error message.
+
+To suggest an additional capability for the reducer, [file an
+issue](https://github.com/KhronosGroup/SPIRV-Tools/issues]) with
+"Reducer:" as the start of its title.
+
 
 ### Extras
 
@@ -249,8 +270,37 @@ mkdir build && cd build
 cmake [-G <platform-generator>] <spirv-dir>
 ```
 
+*Note*:
+The script `utils/git-sync-deps` can be used to checkout and/or update the
+contents of the repos under `external/` instead of manually maintaining them.
+
 Once the build files have been generated, build using your preferred
 development environment.
+
+### Tools you'll need
+
+For building and testing SPIRV-Tools, the following tools should be
+installed regardless of your OS:
+
+- [CMake](http://www.cmake.org/): for generating compilation targets.  Version
+  2.8.12 or later.
+- [Python 3](http://www.python.org/): for utility scripts and running the test
+suite.
+
+SPIRV-Tools is regularly tested with the the following compilers:
+
+On Linux
+- GCC version 4.8.5
+- Clang version 3.8
+
+On MacOS
+- AppleClang 10.0
+
+On Windows
+- Visual Studio 2015
+- Visual Studio 2017
+
+Other compilers or later versions may work, but they are not tested.
 
 ### CMake options
 
@@ -261,8 +311,6 @@ The following CMake options are supported:
   the command line tools.  This will prevent the tests from being built.
 * `SPIRV_SKIP_EXECUTABLES={ON|OFF}`, default `OFF`- Build only the library, not
   the command line tools and tests.
-* `SPIRV_BUILD_COMPRESSION={ON|OFF}`, default `OFF`- Build SPIR-V compressing
-  codec.
 * `SPIRV_USE_SANITIZER=<sanitizer>`, default is no sanitizing - On UNIX
   platforms with an appropriate version of `clang` this option enables the use
   of the sanitizers documented [here][clang-sanitizers].
@@ -299,6 +347,13 @@ $ANDROID_NDK/ndk-build -C ../android_test     \
                       NDK_LIBS_OUT=`pwd`/libs \
                       NDK_APP_OUT=`pwd`/app
 ```
+
+### Updating DEPS
+Occasionally the entries in DEPS will need to be updated. This is done on demand
+when there is a request to do this, often due to downstream breakages. There is
+a script `utils/roll_deps.sh` provided, which will generate a patch with the
+updated DEPS values. This will still need to be tested in your checkout to
+confirm that there are no integration issues that need to be resolved.
 
 ## Library
 
@@ -414,6 +469,18 @@ The validator operates on the binary form.
 
 * `spirv-val` - the standalone validator
   * `<spirv-dir>/tools/val`
+
+### Reducer tool
+
+The reducer shrinks a SPIR-V binary module, guided by a user-supplied
+*interestingness test*.
+
+This is a work in progress, with initially only shrinks a module in a few ways.
+
+* `spirv-reduce` - the standalone reducer
+  * `<spirv-dir>/tools/reduce`
+
+Run `spirv-reduce --help` to see how to specify interestingness.
 
 ### Control flow dumper tool
 

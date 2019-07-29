@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "source/opcode.h"
+#include "source/spirv_constant.h"
 #include "source/spirv_target_env.h"
 #include "source/val/basic_block.h"
 #include "source/val/construct.h"
@@ -146,6 +147,30 @@ spv_result_t CountInstructions(void* user_data,
   return SPV_SUCCESS;
 }
 
+spv_result_t setHeader(void* user_data, spv_endianness_t, uint32_t,
+                       uint32_t version, uint32_t generator, uint32_t id_bound,
+                       uint32_t) {
+  ValidationState_t& vstate =
+      *(reinterpret_cast<ValidationState_t*>(user_data));
+  vstate.setIdBound(id_bound);
+  vstate.setGenerator(generator);
+  vstate.setVersion(version);
+
+  return SPV_SUCCESS;
+}
+
+// Add features based on SPIR-V core version number.
+void UpdateFeaturesBasedOnSpirvVersion(ValidationState_t::Feature* features,
+                                       uint32_t version) {
+  assert(features);
+  if (version >= SPV_SPIRV_VERSION_WORD(1, 4)) {
+    features->select_between_composites = true;
+    features->copy_memory_permits_two_memory_accesses = true;
+    features->uconvert_spec_constant_op = true;
+    features->nonwritable_var_in_function_or_private = true;
+  }
+}
+
 }  // namespace
 
 ValidationState_t::ValidationState_t(const spv_const_context ctx,
@@ -168,6 +193,7 @@ ValidationState_t::ValidationState_t(const spv_const_context ctx,
       global_vars_(),
       local_vars_(),
       struct_nesting_depth_(),
+      struct_has_nested_blockorbufferblock_struct_(),
       grammar_(ctx),
       addressing_model_(SpvAddressingModelMax),
       memory_model_(SpvMemoryModelMax),
@@ -204,11 +230,12 @@ ValidationState_t::ValidationState_t(const spv_const_context ctx,
     spv_context_t hijacked_context = *ctx;
     hijacked_context.consumer = [](spv_message_level_t, const char*,
                                    const spv_position_t&, const char*) {};
-    spvBinaryParse(&hijacked_context, this, words, num_words,
-                   /* parsed_header = */ nullptr, CountInstructions,
+    spvBinaryParse(&hijacked_context, this, words, num_words, setHeader,
+                   CountInstructions,
                    /* diagnostic = */ nullptr);
     preallocateStorage();
   }
+  UpdateFeaturesBasedOnSpirvVersion(&features_, version_);
 
   friendly_mapper_ = spvtools::MakeUnique<spvtools::FriendlyNameMapper>(
       context_, words_, num_words_);
@@ -446,7 +473,7 @@ void ValidationState_t::set_addressing_model(SpvAddressingModel am) {
       pointer_size_and_alignment_ = 4;
       break;
     default:
-      // fall through
+    // fall through
     case SpvAddressingModelPhysical64:
     case SpvAddressingModelPhysicalStorageBuffer64EXT:
       pointer_size_and_alignment_ = 8;
@@ -539,15 +566,15 @@ void ValidationState_t::RegisterInstruction(Instruction* inst) {
       const uint32_t operand_word = inst->word(operand.offset);
       Instruction* operand_inst = FindDef(operand_word);
       if (operand_inst && SpvOpSampledImage == operand_inst->opcode()) {
-        RegisterSampledImageConsumer(operand_word, inst->id());
+        RegisterSampledImageConsumer(operand_word, inst);
       }
     }
   }
 }
 
-std::vector<uint32_t> ValidationState_t::getSampledImageConsumers(
+std::vector<Instruction*> ValidationState_t::getSampledImageConsumers(
     uint32_t sampled_image_id) const {
-  std::vector<uint32_t> result;
+  std::vector<Instruction*> result;
   auto iter = sampled_image_consumers_.find(sampled_image_id);
   if (iter != sampled_image_consumers_.end()) {
     result = iter->second;
@@ -556,8 +583,8 @@ std::vector<uint32_t> ValidationState_t::getSampledImageConsumers(
 }
 
 void ValidationState_t::RegisterSampledImageConsumer(uint32_t sampled_image_id,
-                                                     uint32_t consumer_id) {
-  sampled_image_consumers_[sampled_image_id].push_back(consumer_id);
+                                                     Instruction* consumer) {
+  sampled_image_consumers_[sampled_image_id].push_back(consumer);
 }
 
 uint32_t ValidationState_t::getIdBound() const { return id_bound_; }
@@ -609,6 +636,9 @@ uint32_t ValidationState_t::GetComponentType(uint32_t id) const {
     case SpvOpTypeMatrix:
       return GetComponentType(inst->word(2));
 
+    case SpvOpTypeCooperativeMatrixNV:
+      return inst->word(2);
+
     default:
       break;
   }
@@ -633,6 +663,10 @@ uint32_t ValidationState_t::GetDimension(uint32_t id) const {
     case SpvOpTypeMatrix:
       return inst->word(3);
 
+    case SpvOpTypeCooperativeMatrixNV:
+      // Actual dimension isn't known, return 0
+      return 0;
+
     default:
       break;
   }
@@ -655,6 +689,12 @@ uint32_t ValidationState_t::GetBitWidth(uint32_t id) const {
 
   assert(0);
   return 0;
+}
+
+bool ValidationState_t::IsVoidType(uint32_t id) const {
+  const Instruction* inst = FindDef(id);
+  assert(inst);
+  return inst->opcode() == SpvOpTypeVoid;
 }
 
 bool ValidationState_t::IsFloatScalarType(uint32_t id) const {
@@ -861,6 +901,86 @@ bool ValidationState_t::GetPointerTypeInfo(uint32_t id, uint32_t* data_type,
   return true;
 }
 
+bool ValidationState_t::IsCooperativeMatrixType(uint32_t id) const {
+  const Instruction* inst = FindDef(id);
+  assert(inst);
+  return inst->opcode() == SpvOpTypeCooperativeMatrixNV;
+}
+
+bool ValidationState_t::IsFloatCooperativeMatrixType(uint32_t id) const {
+  if (!IsCooperativeMatrixType(id)) return false;
+  return IsFloatScalarType(FindDef(id)->word(2));
+}
+
+bool ValidationState_t::IsIntCooperativeMatrixType(uint32_t id) const {
+  if (!IsCooperativeMatrixType(id)) return false;
+  return IsIntScalarType(FindDef(id)->word(2));
+}
+
+bool ValidationState_t::IsUnsignedIntCooperativeMatrixType(uint32_t id) const {
+  if (!IsCooperativeMatrixType(id)) return false;
+  return IsUnsignedIntScalarType(FindDef(id)->word(2));
+}
+
+spv_result_t ValidationState_t::CooperativeMatrixShapesMatch(
+    const Instruction* inst, uint32_t m1, uint32_t m2) {
+  const auto m1_type = FindDef(m1);
+  const auto m2_type = FindDef(m2);
+
+  if (m1_type->opcode() != SpvOpTypeCooperativeMatrixNV ||
+      m2_type->opcode() != SpvOpTypeCooperativeMatrixNV) {
+    return diag(SPV_ERROR_INVALID_DATA, inst)
+           << "Expected cooperative matrix types";
+  }
+
+  uint32_t m1_scope_id = m1_type->GetOperandAs<uint32_t>(2);
+  uint32_t m1_rows_id = m1_type->GetOperandAs<uint32_t>(3);
+  uint32_t m1_cols_id = m1_type->GetOperandAs<uint32_t>(4);
+
+  uint32_t m2_scope_id = m2_type->GetOperandAs<uint32_t>(2);
+  uint32_t m2_rows_id = m2_type->GetOperandAs<uint32_t>(3);
+  uint32_t m2_cols_id = m2_type->GetOperandAs<uint32_t>(4);
+
+  bool m1_is_int32 = false, m1_is_const_int32 = false, m2_is_int32 = false,
+       m2_is_const_int32 = false;
+  uint32_t m1_value = 0, m2_value = 0;
+
+  std::tie(m1_is_int32, m1_is_const_int32, m1_value) =
+      EvalInt32IfConst(m1_scope_id);
+  std::tie(m2_is_int32, m2_is_const_int32, m2_value) =
+      EvalInt32IfConst(m2_scope_id);
+
+  if (m1_is_const_int32 && m2_is_const_int32 && m1_value != m2_value) {
+    return diag(SPV_ERROR_INVALID_DATA, inst)
+           << "Expected scopes of Matrix and Result Type to be "
+           << "identical";
+  }
+
+  std::tie(m1_is_int32, m1_is_const_int32, m1_value) =
+      EvalInt32IfConst(m1_rows_id);
+  std::tie(m2_is_int32, m2_is_const_int32, m2_value) =
+      EvalInt32IfConst(m2_rows_id);
+
+  if (m1_is_const_int32 && m2_is_const_int32 && m1_value != m2_value) {
+    return diag(SPV_ERROR_INVALID_DATA, inst)
+           << "Expected rows of Matrix type and Result Type to be "
+           << "identical";
+  }
+
+  std::tie(m1_is_int32, m1_is_const_int32, m1_value) =
+      EvalInt32IfConst(m1_cols_id);
+  std::tie(m2_is_int32, m2_is_const_int32, m2_value) =
+      EvalInt32IfConst(m2_cols_id);
+
+  if (m1_is_const_int32 && m2_is_const_int32 && m1_value != m2_value) {
+    return diag(SPV_ERROR_INVALID_DATA, inst)
+           << "Expected columns of Matrix type and Result Type to be "
+           << "identical";
+  }
+
+  return SPV_SUCCESS;
+}
+
 uint32_t ValidationState_t::GetOperandTypeId(const Instruction* inst,
                                              size_t operand_index) const {
   return GetTypeId(inst->GetOperandAs<uint32_t>(operand_index));
@@ -889,7 +1009,7 @@ bool ValidationState_t::GetConstantValUint64(uint32_t id, uint64_t* val) const {
 }
 
 std::tuple<bool, bool, uint32_t> ValidationState_t::EvalInt32IfConst(
-    uint32_t id) {
+    uint32_t id) const {
   const Instruction* const inst = FindDef(id);
   assert(inst);
   const uint32_t type = inst->type_id();
@@ -1019,6 +1139,142 @@ std::string ValidationState_t::Disassemble(const uint32_t* words,
 
   return spvInstructionBinaryToText(context()->target_env, words, num_words,
                                     words_, num_words_, disassembly_options);
+}
+
+bool ValidationState_t::LogicallyMatch(const Instruction* lhs,
+                                       const Instruction* rhs,
+                                       bool check_decorations) {
+  if (lhs->opcode() != rhs->opcode()) {
+    return false;
+  }
+
+  if (check_decorations) {
+    const auto& dec_a = id_decorations(lhs->id());
+    const auto& dec_b = id_decorations(rhs->id());
+
+    for (const auto& dec : dec_b) {
+      if (std::find(dec_a.begin(), dec_a.end(), dec) == dec_a.end()) {
+        return false;
+      }
+    }
+  }
+
+  if (lhs->opcode() == SpvOpTypeArray) {
+    // Size operands must match.
+    if (lhs->GetOperandAs<uint32_t>(2u) != rhs->GetOperandAs<uint32_t>(2u)) {
+      return false;
+    }
+
+    // Elements must match or logically match.
+    const auto lhs_ele_id = lhs->GetOperandAs<uint32_t>(1u);
+    const auto rhs_ele_id = rhs->GetOperandAs<uint32_t>(1u);
+    if (lhs_ele_id == rhs_ele_id) {
+      return true;
+    }
+
+    const auto lhs_ele = FindDef(lhs_ele_id);
+    const auto rhs_ele = FindDef(rhs_ele_id);
+    if (!lhs_ele || !rhs_ele) {
+      return false;
+    }
+    return LogicallyMatch(lhs_ele, rhs_ele, check_decorations);
+  } else if (lhs->opcode() == SpvOpTypeStruct) {
+    // Number of elements must match.
+    if (lhs->operands().size() != rhs->operands().size()) {
+      return false;
+    }
+
+    for (size_t i = 1u; i < lhs->operands().size(); ++i) {
+      const auto lhs_ele_id = lhs->GetOperandAs<uint32_t>(i);
+      const auto rhs_ele_id = rhs->GetOperandAs<uint32_t>(i);
+      // Elements must match or logically match.
+      if (lhs_ele_id == rhs_ele_id) {
+        continue;
+      }
+
+      const auto lhs_ele = FindDef(lhs_ele_id);
+      const auto rhs_ele = FindDef(rhs_ele_id);
+      if (!lhs_ele || !rhs_ele) {
+        return false;
+      }
+
+      if (!LogicallyMatch(lhs_ele, rhs_ele, check_decorations)) {
+        return false;
+      }
+    }
+
+    // All checks passed.
+    return true;
+  }
+
+  // No other opcodes are acceptable at this point. Arrays and structs are
+  // caught above and if they're elements are not arrays or structs they are
+  // required to match exactly.
+  return false;
+}
+
+const Instruction* ValidationState_t::TracePointer(
+    const Instruction* inst) const {
+  auto base_ptr = inst;
+  while (base_ptr->opcode() == SpvOpAccessChain ||
+         base_ptr->opcode() == SpvOpInBoundsAccessChain ||
+         base_ptr->opcode() == SpvOpPtrAccessChain ||
+         base_ptr->opcode() == SpvOpInBoundsPtrAccessChain ||
+         base_ptr->opcode() == SpvOpCopyObject) {
+    base_ptr = FindDef(base_ptr->GetOperandAs<uint32_t>(2u));
+  }
+  return base_ptr;
+}
+
+bool ValidationState_t::ContainsSizedIntOrFloatType(uint32_t id, SpvOp type,
+                                                    uint32_t width) const {
+  if (type != SpvOpTypeInt && type != SpvOpTypeFloat) return false;
+
+  const auto inst = FindDef(id);
+  if (!inst) return false;
+
+  if (inst->opcode() == type) {
+    return inst->GetOperandAs<uint32_t>(1u) == width;
+  }
+
+  switch (inst->opcode()) {
+    case SpvOpTypeArray:
+    case SpvOpTypeRuntimeArray:
+    case SpvOpTypeVector:
+    case SpvOpTypeMatrix:
+    case SpvOpTypeImage:
+    case SpvOpTypeSampledImage:
+    case SpvOpTypeCooperativeMatrixNV:
+      return ContainsSizedIntOrFloatType(inst->GetOperandAs<uint32_t>(1u), type,
+                                         width);
+    case SpvOpTypePointer:
+      if (IsForwardPointer(id)) return false;
+      return ContainsSizedIntOrFloatType(inst->GetOperandAs<uint32_t>(2u), type,
+                                         width);
+    case SpvOpTypeFunction:
+    case SpvOpTypeStruct: {
+      for (uint32_t i = 1; i < inst->operands().size(); ++i) {
+        if (ContainsSizedIntOrFloatType(inst->GetOperandAs<uint32_t>(i), type,
+                                        width))
+          return true;
+      }
+      return false;
+    }
+    default:
+      return false;
+  }
+}
+
+bool ValidationState_t::ContainsLimitedUseIntOrFloatType(uint32_t id) const {
+  if ((!HasCapability(SpvCapabilityInt16) &&
+       ContainsSizedIntOrFloatType(id, SpvOpTypeInt, 16)) ||
+      (!HasCapability(SpvCapabilityInt8) &&
+       ContainsSizedIntOrFloatType(id, SpvOpTypeInt, 8)) ||
+      (!HasCapability(SpvCapabilityFloat16) &&
+       ContainsSizedIntOrFloatType(id, SpvOpTypeFloat, 16))) {
+    return true;
+  }
+  return false;
 }
 
 }  // namespace val

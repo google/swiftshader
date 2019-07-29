@@ -20,25 +20,13 @@
 #include "source/opt/build_module.h"
 #include "source/opt/ir_context.h"
 #include "source/opt/log.h"
-#include "source/reduce/operand_to_const_reduction_pass.h"
-#include "source/reduce/operand_to_dominating_id_reduction_pass.h"
-#include "source/reduce/operand_to_undef_reduction_pass.h"
 #include "source/reduce/reducer.h"
-#include "source/reduce/remove_opname_instruction_reduction_pass.h"
-#include "source/reduce/remove_unreferenced_instruction_reduction_pass.h"
-#include "source/reduce/structured_loop_to_selection_reduction_pass.h"
 #include "source/spirv_reducer_options.h"
-#include "source/util/make_unique.h"
 #include "source/util/string_utils.h"
-#include "spirv-tools/libspirv.hpp"
 #include "tools/io.h"
 #include "tools/util/cli_consumer.h"
 
-using namespace spvtools::reduce;
-
 namespace {
-
-using ErrorOrInt = std::pair<std::string, int>;
 
 // Check that the std::system function can actually be used.
 bool CheckExecuteCommand() {
@@ -77,18 +65,49 @@ USAGE: %s [options] <input> <interestingness-test>
 The SPIR-V binary is read from <input>.
 
 Whether a binary is interesting is determined by <interestingness-test>, which
-is typically a script.
+should be the path to a script.
+
+ * The script must be executable.
+
+ * The script should take the path to a SPIR-V binary file (.spv) as its single
+   argument, and exit with code 0 if and only if the binary file is
+   interesting.
+
+ * Example: an interestingness test for reducing a SPIR-V binary file that
+   causes tool "foo" to exit with error code 1 and print "Fatal error: bar" to
+   standard error should:
+     - invoke "foo" on the binary passed as the script argument;
+     - capture the return code and standard error from "bar";
+     - exit with code 0 if and only if the return code of "foo" was 1 and the
+       standard error from "bar" contained "Fatal error: bar".
+
+ * The reducer does not place a time limit on how long the interestingness test
+   takes to run, so it is advisable to use per-command timeouts inside the
+   script when invoking SPIR-V-processing tools (such as "foo" in the above
+   example).
 
 NOTE: The reducer is a work in progress.
 
 Options (in lexicographical order):
+
+  --fail-on-validation-error
+               Stop reduction with an error if any reduction step produces a
+               SPIR-V module that fails to validate.
   -h, --help
                Print this help.
   --step-limit
-               32-bit unsigned integer specifying maximum number of
-               steps the reducer will take before giving up.
+               32-bit unsigned integer specifying maximum number of steps the
+               reducer will take before giving up.
   --version
                Display reducer version information.
+
+Supported validator options are as follows. See `spirv-val --help` for details.
+  --before-hlsl-legalization
+  --relax-block-layout
+  --relax-logical-pointer
+  --relax-struct-store
+  --scalar-block-layout
+  --skip-block-layout
 )",
       program, program);
 }
@@ -106,7 +125,8 @@ void ReduceDiagnostic(spv_message_level_t level, const char* /*source*/,
 
 ReduceStatus ParseFlags(int argc, const char** argv, const char** in_file,
                         const char** interestingness_test,
-                        spvtools::ReducerOptions* reducer_options) {
+                        spvtools::ReducerOptions* reducer_options,
+                        spvtools::ValidatorOptions* validator_options) {
   uint32_t positional_arg_index = 0;
 
   for (int argi = 1; argi < argc; ++argi) {
@@ -143,6 +163,20 @@ ReduceStatus ParseFlags(int argc, const char** argv, const char** in_file,
       assert(!*interestingness_test);
       *interestingness_test = cur_arg;
       positional_arg_index++;
+    } else if (0 == strcmp(cur_arg, "--fail-on-validation-error")) {
+      reducer_options->set_fail_on_validation_error(true);
+    } else if (0 == strcmp(cur_arg, "--before-hlsl-legalization")) {
+      validator_options->SetBeforeHlslLegalization(true);
+    } else if (0 == strcmp(cur_arg, "--relax-logical-pointer")) {
+      validator_options->SetRelaxLogicalPointer(true);
+    } else if (0 == strcmp(cur_arg, "--relax-block-layout")) {
+      validator_options->SetRelaxBlockLayout(true);
+    } else if (0 == strcmp(cur_arg, "--scalar-block-layout")) {
+      validator_options->SetScalarBlockLayout(true);
+    } else if (0 == strcmp(cur_arg, "--skip-block-layout")) {
+      validator_options->SetSkipBlockLayout(true);
+    } else if (0 == strcmp(cur_arg, "--relax-struct-store")) {
+      validator_options->SetRelaxStructStore(true);
     } else {
       spvtools::Error(ReduceDiagnostic, nullptr, {},
                       "Too many positional arguments specified");
@@ -166,7 +200,24 @@ ReduceStatus ParseFlags(int argc, const char** argv, const char** in_file,
 
 }  // namespace
 
-const auto kDefaultEnvironment = SPV_ENV_UNIVERSAL_1_3;
+// Dumps |binary| to file |filename|. Useful for interactive debugging.
+void DumpShader(const std::vector<uint32_t>& binary, const char* filename) {
+  auto write_file_succeeded =
+      WriteFile(filename, "wb", &binary[0], binary.size());
+  if (!write_file_succeeded) {
+    std::cerr << "Failed to dump shader" << std::endl;
+  }
+}
+
+// Dumps the SPIRV-V module in |context| to file |filename|. Useful for
+// interactive debugging.
+void DumpShader(spvtools::opt::IRContext* context, const char* filename) {
+  std::vector<uint32_t> binary;
+  context->module()->ToBinary(&binary, false);
+  DumpShader(binary, filename);
+}
+
+const auto kDefaultEnvironment = SPV_ENV_UNIVERSAL_1_4;
 
 int main(int argc, const char** argv) {
   const char* in_file = nullptr;
@@ -174,9 +225,10 @@ int main(int argc, const char** argv) {
 
   spv_target_env target_env = kDefaultEnvironment;
   spvtools::ReducerOptions reducer_options;
+  spvtools::ValidatorOptions validator_options;
 
-  ReduceStatus status =
-      ParseFlags(argc, argv, &in_file, &interestingness_test, &reducer_options);
+  ReduceStatus status = ParseFlags(argc, argv, &in_file, &interestingness_test,
+                                   &reducer_options, &validator_options);
 
   if (status.action == REDUCE_STOP) {
     return status.code;
@@ -188,7 +240,7 @@ int main(int argc, const char** argv) {
     return 2;
   }
 
-  Reducer reducer(target_env);
+  spvtools::reduce::Reducer reducer(target_env);
 
   reducer.SetInterestingnessFunction(
       [interestingness_test](std::vector<uint32_t> binary,
@@ -206,19 +258,7 @@ int main(int argc, const char** argv) {
         return ExecuteCommand(command);
       });
 
-  reducer.AddReductionPass(
-      spvtools::MakeUnique<RemoveOpNameInstructionReductionPass>(target_env));
-  reducer.AddReductionPass(
-      spvtools::MakeUnique<OperandToUndefReductionPass>(target_env));
-  reducer.AddReductionPass(
-      spvtools::MakeUnique<OperandToConstReductionPass>(target_env));
-  reducer.AddReductionPass(
-      spvtools::MakeUnique<OperandToDominatingIdReductionPass>(target_env));
-  reducer.AddReductionPass(
-      spvtools::MakeUnique<RemoveUnreferencedInstructionReductionPass>(
-          target_env));
-  reducer.AddReductionPass(
-      spvtools::MakeUnique<StructuredLoopToSelectionReductionPass>(target_env));
+  reducer.AddDefaultReductionPasses();
 
   reducer.SetMessageConsumer(spvtools::utils::CLIMessageConsumer);
 
@@ -228,11 +268,11 @@ int main(int argc, const char** argv) {
   }
 
   std::vector<uint32_t> binary_out;
-  const auto reduction_status =
-      reducer.Run(std::move(binary_in), &binary_out, reducer_options);
+  const auto reduction_status = reducer.Run(std::move(binary_in), &binary_out,
+                                            reducer_options, validator_options);
 
-  if (reduction_status ==
-          Reducer::ReductionResultStatus::kInitialStateNotInteresting ||
+  if (reduction_status == spvtools::reduce::Reducer::ReductionResultStatus::
+                              kInitialStateNotInteresting ||
       !WriteFile<uint32_t>("_reduced_final.spv", "wb", binary_out.data(),
                            binary_out.size())) {
     return 1;

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "reduce_test_util.h"
-
-#include "source/reduce/operand_to_const_reduction_pass.h"
 #include "source/reduce/reducer.h"
-#include "source/reduce/remove_opname_instruction_reduction_pass.h"
-#include "source/reduce/remove_unreferenced_instruction_reduction_pass.h"
+
+#include "source/reduce/operand_to_const_reduction_opportunity_finder.h"
+#include "source/reduce/remove_opname_instruction_reduction_opportunity_finder.h"
+#include "source/reduce/remove_unreferenced_instruction_reduction_opportunity_finder.h"
+#include "test/reduce/reduce_test_util.h"
 
 namespace spvtools {
 namespace reduce {
@@ -217,9 +217,10 @@ TEST(ReducerTest, ExprToConstantAndRemoveUnreferenced) {
       [&](const std::vector<uint32_t>& binary, uint32_t) -> bool {
         return ping_pong_interesting.IsInteresting(binary);
       });
-  reducer.AddReductionPass(MakeUnique<OperandToConstReductionPass>(env));
   reducer.AddReductionPass(
-      MakeUnique<RemoveUnreferencedInstructionReductionPass>(env));
+      MakeUnique<OperandToConstReductionOpportunityFinder>());
+  reducer.AddReductionPass(
+      MakeUnique<RemoveUnreferencedInstructionReductionOpportunityFinder>());
 
   std::vector<uint32_t> binary_in;
   SpirvTools t(env);
@@ -228,8 +229,13 @@ TEST(ReducerTest, ExprToConstantAndRemoveUnreferenced) {
   std::vector<uint32_t> binary_out;
   spvtools::ReducerOptions reducer_options;
   reducer_options.set_step_limit(500);
+  reducer_options.set_fail_on_validation_error(true);
+  spvtools::ValidatorOptions validator_options;
 
-  reducer.Run(std::move(binary_in), &binary_out, reducer_options);
+  Reducer::ReductionResultStatus status = reducer.Run(
+      std::move(binary_in), &binary_out, reducer_options, validator_options);
+
+  ASSERT_EQ(status, Reducer::ReductionResultStatus::kComplete);
 
   CheckEqual(env, expected, binary_out);
 }
@@ -254,7 +260,7 @@ TEST(ReducerTest, RemoveOpnameAndRemoveUnreferenced) {
          %10 = OpLabel
           %3 = OpVariable %8 Function
           %4 = OpLoad %7 %3
-               OpStore %3 %7
+               OpStore %3 %9
                OpReturn
                OpFunctionEnd
   )";
@@ -279,7 +285,7 @@ TEST(ReducerTest, RemoveOpnameAndRemoveUnreferenced) {
 
   spv_target_env env = SPV_ENV_UNIVERSAL_1_3;
   Reducer reducer(env);
-  // Make ping-pong interesting very quickly, as there are not much
+  // Make ping-pong interesting very quickly, as there are not many
   // opportunities.
   PingPongInteresting ping_pong_interesting(1);
   reducer.SetMessageConsumer(NopDiagnostic);
@@ -288,9 +294,9 @@ TEST(ReducerTest, RemoveOpnameAndRemoveUnreferenced) {
         return ping_pong_interesting.IsInteresting(binary);
       });
   reducer.AddReductionPass(
-      MakeUnique<RemoveOpNameInstructionReductionPass>(env));
+      MakeUnique<RemoveOpNameInstructionReductionOpportunityFinder>());
   reducer.AddReductionPass(
-      MakeUnique<RemoveUnreferencedInstructionReductionPass>(env));
+      MakeUnique<RemoveUnreferencedInstructionReductionOpportunityFinder>());
 
   std::vector<uint32_t> binary_in;
   SpirvTools t(env);
@@ -299,8 +305,13 @@ TEST(ReducerTest, RemoveOpnameAndRemoveUnreferenced) {
   std::vector<uint32_t> binary_out;
   spvtools::ReducerOptions reducer_options;
   reducer_options.set_step_limit(500);
+  reducer_options.set_fail_on_validation_error(true);
+  spvtools::ValidatorOptions validator_options;
 
-  reducer.Run(std::move(binary_in), &binary_out, reducer_options);
+  Reducer::ReductionResultStatus status = reducer.Run(
+      std::move(binary_in), &binary_out, reducer_options, validator_options);
+
+  ASSERT_EQ(status, Reducer::ReductionResultStatus::kComplete);
 
   CheckEqual(env, expected, binary_out);
 }

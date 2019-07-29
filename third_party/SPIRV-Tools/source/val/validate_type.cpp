@@ -14,11 +14,10 @@
 
 // Ensures type declarations are unique unless allowed by the specification.
 
-#include "source/val/validate.h"
-
 #include "source/opcode.h"
 #include "source/spirv_target_env.h"
 #include "source/val/instruction.h"
+#include "source/val/validate.h"
 #include "source/val/validation_state.h"
 
 namespace spvtools {
@@ -67,6 +66,16 @@ spv_result_t ValidateUniqueness(ValidationState_t& _, const Instruction* inst) {
   return SPV_SUCCESS;
 }
 
+spv_result_t ValidateTypeInt(ValidationState_t& _, const Instruction* inst) {
+  const auto signedness_index = 2;
+  const auto signedness = inst->GetOperandAs<uint32_t>(signedness_index);
+  if (signedness != 0 && signedness != 1) {
+    return _.diag(SPV_ERROR_INVALID_VALUE, inst)
+           << "OpTypeInt has invalid signedness:";
+  }
+  return SPV_SUCCESS;
+}
+
 spv_result_t ValidateTypeVector(ValidationState_t& _, const Instruction* inst) {
   const auto component_index = 1;
   const auto component_id = inst->GetOperandAs<uint32_t>(component_index);
@@ -107,14 +116,12 @@ spv_result_t ValidateTypeArray(ValidationState_t& _, const Instruction* inst) {
            << "' is a void type.";
   }
 
-  if ((spvIsVulkanEnv(_.context()->target_env) ||
-       spvIsWebGPUEnv(_.context()->target_env)) &&
+  if (spvIsVulkanOrWebGPUEnv(_.context()->target_env) &&
       element_type->opcode() == SpvOpTypeRuntimeArray) {
-    const char* env_text =
-        spvIsVulkanEnv(_.context()->target_env) ? "Vulkan" : "WebGPU";
     return _.diag(SPV_ERROR_INVALID_ID, inst)
            << "OpTypeArray Element Type <id> '" << _.getIdName(element_type_id)
-           << "' is not valid in " << env_text << " environment.";
+           << "' is not valid in "
+           << spvLogStringForEnv(_.context()->target_env) << " environments.";
   }
 
   const auto length_index = 2;
@@ -172,18 +179,44 @@ spv_result_t ValidateTypeRuntimeArray(ValidationState_t& _,
            << _.getIdName(element_id) << "' is a void type.";
   }
 
-  if ((spvIsVulkanEnv(_.context()->target_env) ||
-       spvIsWebGPUEnv(_.context()->target_env)) &&
+  if (spvIsVulkanOrWebGPUEnv(_.context()->target_env) &&
       element_type->opcode() == SpvOpTypeRuntimeArray) {
-    const char* env_text =
-        spvIsVulkanEnv(_.context()->target_env) ? "Vulkan" : "WebGPU";
     return _.diag(SPV_ERROR_INVALID_ID, inst)
            << "OpTypeRuntimeArray Element Type <id> '"
-           << _.getIdName(element_id) << "' is not valid in " << env_text
-           << " environment.";
+           << _.getIdName(element_id) << "' is not valid in "
+           << spvLogStringForEnv(_.context()->target_env) << " environments.";
   }
 
   return SPV_SUCCESS;
+}
+
+bool ContainsOpaqueType(ValidationState_t& _, const Instruction* str) {
+  const size_t elem_type_index = 1;
+  uint32_t elem_type_id;
+  Instruction* elem_type;
+
+  if (spvOpcodeIsBaseOpaqueType(str->opcode())) {
+    return true;
+  }
+
+  switch (str->opcode()) {
+    case SpvOpTypeArray:
+    case SpvOpTypeRuntimeArray:
+      elem_type_id = str->GetOperandAs<uint32_t>(elem_type_index);
+      elem_type = _.FindDef(elem_type_id);
+      return ContainsOpaqueType(_, elem_type);
+    case SpvOpTypeStruct:
+      for (size_t member_type_index = 1;
+           member_type_index < str->operands().size(); ++member_type_index) {
+        auto member_type_id = str->GetOperandAs<uint32_t>(member_type_index);
+        auto member_type = _.FindDef(member_type_id);
+        if (ContainsOpaqueType(_, member_type)) return true;
+      }
+      break;
+    default:
+      break;
+  }
+  return false;
 }
 
 spv_result_t ValidateTypeStruct(ValidationState_t& _, const Instruction* inst) {
@@ -229,19 +262,40 @@ spv_result_t ValidateTypeStruct(ValidationState_t& _, const Instruction* inst) {
       }
     }
 
-    if ((spvIsVulkanEnv(_.context()->target_env) ||
-         spvIsWebGPUEnv(_.context()->target_env)) &&
+    if (spvIsVulkanOrWebGPUEnv(_.context()->target_env) &&
         member_type->opcode() == SpvOpTypeRuntimeArray) {
       const bool is_last_member =
           member_type_index == inst->operands().size() - 1;
       if (!is_last_member) {
-        const char* env_text =
-            spvIsVulkanEnv(_.context()->target_env) ? "Vulkan" : "WebGPU";
         return _.diag(SPV_ERROR_INVALID_ID, inst)
-               << "In " << env_text << ", OpTypeRuntimeArray must only be used "
-               << "for the last member of an OpTypeStruct";
+               << "In " << spvLogStringForEnv(_.context()->target_env)
+               << ", OpTypeRuntimeArray must only be used for the last member "
+                  "of an OpTypeStruct";
       }
     }
+  }
+
+  bool has_nested_blockOrBufferBlock_struct = false;
+  // Struct members start at word 2 of OpTypeStruct instruction.
+  for (size_t word_i = 2; word_i < inst->words().size(); ++word_i) {
+    auto member = inst->word(word_i);
+    auto memberTypeInstr = _.FindDef(member);
+    if (memberTypeInstr && SpvOpTypeStruct == memberTypeInstr->opcode()) {
+      if (_.HasDecoration(memberTypeInstr->id(), SpvDecorationBlock) ||
+          _.HasDecoration(memberTypeInstr->id(), SpvDecorationBufferBlock) ||
+          _.GetHasNestedBlockOrBufferBlockStruct(memberTypeInstr->id()))
+        has_nested_blockOrBufferBlock_struct = true;
+    }
+  }
+
+  _.SetHasNestedBlockOrBufferBlockStruct(inst->id(),
+                                         has_nested_blockOrBufferBlock_struct);
+  if (_.GetHasNestedBlockOrBufferBlockStruct(inst->id()) &&
+      (_.HasDecoration(inst->id(), SpvDecorationBufferBlock) ||
+       _.HasDecoration(inst->id(), SpvDecorationBlock))) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "rules: A Block or BufferBlock cannot be nested within another "
+              "Block or BufferBlock. ";
   }
 
   std::unordered_set<uint32_t> built_in_members;
@@ -264,20 +318,45 @@ spv_result_t ValidateTypeStruct(ValidationState_t& _, const Instruction* inst) {
   if (num_builtin_members > 0) {
     _.RegisterStructTypeWithBuiltInMember(struct_id);
   }
+
+  if (spvIsVulkanEnv(_.context()->target_env) &&
+      !_.options()->before_hlsl_legalization && ContainsOpaqueType(_, inst)) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "In " << spvLogStringForEnv(_.context()->target_env)
+           << ", OpTypeStruct must not contain an opaque type.";
+  }
+
   return SPV_SUCCESS;
 }
 
 spv_result_t ValidateTypePointer(ValidationState_t& _,
                                  const Instruction* inst) {
-  const auto type_id = inst->GetOperandAs<uint32_t>(2);
-  const auto type = _.FindDef(type_id);
+  auto type_id = inst->GetOperandAs<uint32_t>(2);
+  auto type = _.FindDef(type_id);
   if (!type || !spvOpcodeGeneratesType(type->opcode())) {
     return _.diag(SPV_ERROR_INVALID_ID, inst)
            << "OpTypePointer Type <id> '" << _.getIdName(type_id)
            << "' is not a type.";
   }
+  // See if this points to a storage image.
+  const auto storage_class = inst->GetOperandAs<SpvStorageClass>(1);
+  if (storage_class == SpvStorageClassUniformConstant) {
+    // Unpack an optional level of arraying.
+    if (type->opcode() == SpvOpTypeArray ||
+        type->opcode() == SpvOpTypeRuntimeArray) {
+      type_id = type->GetOperandAs<uint32_t>(1);
+      type = _.FindDef(type_id);
+    }
+    if (type->opcode() == SpvOpTypeImage) {
+      const auto sampled = type->GetOperandAs<uint32_t>(6);
+      // 2 indicates this image is known to be be used without a sampler, i.e.
+      // a storage image.
+      if (sampled == 2) _.RegisterPointerToStorageImage(inst->id());
+    }
+  }
   return SPV_SUCCESS;
 }
+}  // namespace
 
 spv_result_t ValidateTypeFunction(ValidationState_t& _,
                                   const Instruction* inst) {
@@ -315,10 +394,12 @@ spv_result_t ValidateTypeFunction(ValidationState_t& _,
            << num_args << " arguments.";
   }
 
-  // The only valid uses of OpTypeFunction are in an OpFunction instruction.
+  // The only valid uses of OpTypeFunction are in an OpFunction, debugging, or
+  // decoration instruction.
   for (auto& pair : inst->uses()) {
     const auto* use = pair.first;
-    if (use->opcode() != SpvOpFunction) {
+    if (use->opcode() != SpvOpFunction && !spvOpcodeIsDebug(use->opcode()) &&
+        !spvOpcodeIsDecoration(use->opcode())) {
       return _.diag(SPV_ERROR_INVALID_ID, use)
              << "Invalid use of function type result id "
              << _.getIdName(inst->id()) << ".";
@@ -347,7 +428,52 @@ spv_result_t ValidateTypeForwardPointer(ValidationState_t& _,
   return SPV_SUCCESS;
 }
 
-}  // namespace
+spv_result_t ValidateTypeCooperativeMatrixNV(ValidationState_t& _,
+                                             const Instruction* inst) {
+  const auto component_type_index = 1;
+  const auto component_type_id =
+      inst->GetOperandAs<uint32_t>(component_type_index);
+  const auto component_type = _.FindDef(component_type_id);
+  if (!component_type || (SpvOpTypeFloat != component_type->opcode() &&
+                          SpvOpTypeInt != component_type->opcode())) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "OpTypeCooperativeMatrixNV Component Type <id> '"
+           << _.getIdName(component_type_id)
+           << "' is not a scalar numerical type.";
+  }
+
+  const auto scope_index = 2;
+  const auto scope_id = inst->GetOperandAs<uint32_t>(scope_index);
+  const auto scope = _.FindDef(scope_id);
+  if (!scope || !_.IsIntScalarType(scope->type_id()) ||
+      !spvOpcodeIsConstant(scope->opcode())) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "OpTypeCooperativeMatrixNV Scope <id> '" << _.getIdName(scope_id)
+           << "' is not a constant instruction with scalar integer type.";
+  }
+
+  const auto rows_index = 3;
+  const auto rows_id = inst->GetOperandAs<uint32_t>(rows_index);
+  const auto rows = _.FindDef(rows_id);
+  if (!rows || !_.IsIntScalarType(rows->type_id()) ||
+      !spvOpcodeIsConstant(rows->opcode())) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "OpTypeCooperativeMatrixNV Rows <id> '" << _.getIdName(rows_id)
+           << "' is not a constant instruction with scalar integer type.";
+  }
+
+  const auto cols_index = 4;
+  const auto cols_id = inst->GetOperandAs<uint32_t>(cols_index);
+  const auto cols = _.FindDef(cols_id);
+  if (!cols || !_.IsIntScalarType(cols->type_id()) ||
+      !spvOpcodeIsConstant(cols->opcode())) {
+    return _.diag(SPV_ERROR_INVALID_ID, inst)
+           << "OpTypeCooperativeMatrixNV Cols <id> '" << _.getIdName(rows_id)
+           << "' is not a constant instruction with scalar integer type.";
+  }
+
+  return SPV_SUCCESS;
+}
 
 spv_result_t TypePass(ValidationState_t& _, const Instruction* inst) {
   if (!spvOpcodeGeneratesType(inst->opcode()) &&
@@ -358,6 +484,9 @@ spv_result_t TypePass(ValidationState_t& _, const Instruction* inst) {
   if (auto error = ValidateUniqueness(_, inst)) return error;
 
   switch (inst->opcode()) {
+    case SpvOpTypeInt:
+      if (auto error = ValidateTypeInt(_, inst)) return error;
+      break;
     case SpvOpTypeVector:
       if (auto error = ValidateTypeVector(_, inst)) return error;
       break;
@@ -381,6 +510,9 @@ spv_result_t TypePass(ValidationState_t& _, const Instruction* inst) {
       break;
     case SpvOpTypeForwardPointer:
       if (auto error = ValidateTypeForwardPointer(_, inst)) return error;
+      break;
+    case SpvOpTypeCooperativeMatrixNV:
+      if (auto error = ValidateTypeCooperativeMatrixNV(_, inst)) return error;
       break;
     default:
       break;

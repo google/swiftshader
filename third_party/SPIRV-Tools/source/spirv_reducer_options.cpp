@@ -17,6 +17,14 @@
 
 #include "source/spirv_reducer_options.h"
 
+namespace {
+// The default maximum number of steps the reducer will take before giving up.
+const uint32_t kDefaultStepLimit = 250;
+}  // namespace
+
+spv_reducer_options_t::spv_reducer_options_t()
+    : step_limit(kDefaultStepLimit), fail_on_validation_error(false) {}
+
 SPIRV_TOOLS_EXPORT spv_reducer_options spvReducerOptionsCreate() {
   return new spv_reducer_options_t();
 }
@@ -28,4 +36,9 @@ SPIRV_TOOLS_EXPORT void spvReducerOptionsDestroy(spv_reducer_options options) {
 SPIRV_TOOLS_EXPORT void spvReducerOptionsSetStepLimit(
     spv_reducer_options options, uint32_t step_limit) {
   options->step_limit = step_limit;
+}
+
+SPIRV_TOOLS_EXPORT void spvReducerOptionsSetFailOnValidationError(
+    spv_reducer_options options, bool fail_on_validation_error) {
+  options->fail_on_validation_error = fail_on_validation_error;
 }
