@@ -22,8 +22,10 @@ PipelineCache::SpirvShaderKey::SpecializationInfo::SpecializationInfo(const VkSp
 {
 	if(specializationInfo)
 	{
-		info = reinterpret_cast<VkSpecializationInfo*>(
+		auto ptr = reinterpret_cast<VkSpecializationInfo*>(
 			allocate(sizeof(VkSpecializationInfo), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
+
+		info = std::shared_ptr<VkSpecializationInfo>(ptr, Deleter());
 
 		info->mapEntryCount = specializationInfo->mapEntryCount;
 		if(specializationInfo->mapEntryCount > 0)
@@ -42,10 +44,14 @@ PipelineCache::SpirvShaderKey::SpecializationInfo::SpecializationInfo(const VkSp
 			memcpy(data, specializationInfo->pData, specializationInfo->dataSize);
 			info->pData = data;
 		}
+		else
+		{
+			info->pData = nullptr;
+		}
 	}
 }
 
-PipelineCache::SpirvShaderKey::SpecializationInfo::~SpecializationInfo()
+void PipelineCache::SpirvShaderKey::SpecializationInfo::Deleter::operator() (VkSpecializationInfo* info) const
 {
 	if(info)
 	{
