@@ -26,6 +26,7 @@
 
 namespace es2
 {
+std::mutex Shader::mutex;
 bool Shader::compilerInitialized = false;
 
 Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mResourceManager(manager)
@@ -206,6 +207,9 @@ void Shader::clear()
 
 void Shader::compile()
 {
+	// Our version of glslang is not thread safe.
+	std::lock_guard<std::mutex> lock(mutex);
+
 	clear();
 
 	createShader();
@@ -295,6 +299,9 @@ void Shader::flagForDeletion()
 
 void Shader::releaseCompiler()
 {
+	// Our version of glslang is not thread safe.
+	std::lock_guard<std::mutex> lock(mutex);
+
 	FreeCompilerGlobals();
 	compilerInitialized = false;
 }
