@@ -247,6 +247,13 @@ void *allocateExecutable(size_t bytes)
 
 		if(mapping == MAP_FAILED)
 		{
+			// Retry without MAP_JIT (for older macOS versions).
+			mapping = mmap(nullptr, length, PROT_READ | PROT_WRITE,
+			               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		}
+
+		if(mapping == MAP_FAILED)
+		{
 			mapping = nullptr;
 		}
 	#else
