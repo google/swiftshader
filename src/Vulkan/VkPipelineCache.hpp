@@ -16,11 +16,13 @@
 #define VK_PIPELINE_CACHE_HPP_
 
 #include "VkObject.hpp"
+
 #include <cstring>
 #include <functional>
-#include <memory>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <vector>
 
 namespace sw
