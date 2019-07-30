@@ -92,14 +92,21 @@ namespace sw
 				computeLod3D(texture, sampler, lod, uuuu, vvvv, wwww, dsx, dsy, function);
 			}
 
+			Float bias = *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
+
 			if(function == Bias)
 			{
-				lod += lodOrBias;
+				// Add SPIR-V Bias operand to the sampler provided bias and clamp to maxSamplerLodBias limit.
+				bias = Min(Max(bias + lodOrBias, -vk::MAX_SAMPLER_LOD_BIAS), vk::MAX_SAMPLER_LOD_BIAS);
 			}
+
+			lod += bias;
 		}
 		else if(function == Lod)
 		{
-			lod = lodOrBias;
+			// Vulkan 1.1: "The absolute value of mipLodBias must be less than or equal to VkPhysicalDeviceLimits::maxSamplerLodBias"
+			// Hence no explicit clamping to maxSamplerLodBias is required in this case.
+			lod = lodOrBias + *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
 		}
 		else if(function == Fetch)
 		{
@@ -114,8 +121,6 @@ namespace sw
 
 		if(function != Base && function != Fetch && function != Gather)
 		{
-			lod += *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
-
 			if(function == Query)
 			{
 				c.y = Float4(lod);  // Unclamped LOD.

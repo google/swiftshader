@@ -205,7 +205,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		4, // mipmapPrecisionBits
 		UINT32_MAX, // maxDrawIndexedIndexValue
 		UINT32_MAX, // maxDrawIndirectCount
-		std::numeric_limits<float>::infinity(), // maxSamplerLodBias (no clamping takes place)
+		vk::MAX_SAMPLER_LOD_BIAS, // maxSamplerLodBias
 		16, // maxSamplerAnisotropy
 		16, // maxViewports
 		{ 4096, 4096 }, // maxViewportDimensions[2]
