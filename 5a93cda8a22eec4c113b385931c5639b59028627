@@ -22,6 +22,30 @@
       "revId": "5a93cda8a22eec4c113b385931c5639b59028627",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c065a221_c26b0ebf",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-07-30T20:44:50Z",
+      "side": 1,
+      "message": "Actually seems to cause issues on Chrome bots running 10.13\n\nAttempt to address in https://swiftshader-review.googlesource.com/c/SwiftShader/+/34511",
+      "parentUuid": "ff44ff30_f6222118",
+      "range": {
+        "startLine": 246,
+        "startChar": 47,
+        "endLine": 246,
+        "endChar": 54
+      },
+      "revId": "5a93cda8a22eec4c113b385931c5639b59028627",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
