@@ -1953,6 +1953,12 @@ namespace rr
 		return V(jit->builder->CreateBitCast(V(v), T(destType)));
 	}
 
+	Value *Nucleus::createPtrEQ(Value *lhs, Value *rhs)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(jit->builder->CreateICmpEQ(V(lhs), V(rhs)));
+	}
+
 	Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();

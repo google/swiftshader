@@ -1222,6 +1222,11 @@ namespace rr
 		return V(result);
 	}
 
+	Value *Nucleus::createPtrEQ(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Eq, lhs, rhs);
+	}
+
 	Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
 	{
 		return createIntCompare(Ice::InstIcmp::Eq, lhs, rhs);

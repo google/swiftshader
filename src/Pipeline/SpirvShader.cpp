@@ -2057,6 +2057,25 @@ namespace sw
 				routine->phis.emplace(resultId, SpirvRoutine::Variable(type.sizeInComponents));
 				break;
 			}
+
+			case spv::OpImageDrefGather:
+			case spv::OpImageFetch:
+			case spv::OpImageGather:
+			case spv::OpImageQueryLod:
+			case spv::OpImageSampleDrefExplicitLod:
+			case spv::OpImageSampleDrefImplicitLod:
+			case spv::OpImageSampleExplicitLod:
+			case spv::OpImageSampleImplicitLod:
+			case spv::OpImageSampleProjDrefExplicitLod:
+			case spv::OpImageSampleProjDrefImplicitLod:
+			case spv::OpImageSampleProjExplicitLod:
+			case spv::OpImageSampleProjImplicitLod:
+			{
+				Object::ID resultId = insn.word(2);
+				routine->samplerCache.emplace(resultId, SpirvRoutine::SamplerCache{});
+				break;
+			}
+
 			default:
 				// Nothing else produces interface variables, so can all be safely ignored.
 				break;
@@ -5013,10 +5032,20 @@ namespace sw
 			in[i] = sampleValue.Float(0);
 		}
 
-		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageDescriptor, sampler);
+		auto cacheIt = state->routine->samplerCache.find(resultId);
+		ASSERT(cacheIt != state->routine->samplerCache.end());
+		auto &cache = cacheIt->second;
+		auto cacheHit = cache.imageDescriptor == imageDescriptor && cache.sampler == sampler;
+
+		If(!cacheHit)
+		{
+			cache.function = Call(getImageSampler, instruction.parameters, imageDescriptor, sampler);
+			cache.imageDescriptor = imageDescriptor;
+			cache.sampler = sampler;
+		}
 
 		Array<SIMD::Float> out(4);
-		Call<ImageSampler>(samplerFunc, texture, sampler, &in[0], &out[0], state->routine->constants);
+		Call<ImageSampler>(cache.function, texture, sampler, &in[0], &out[0], state->routine->constants);
 
 		for (auto i = 0u; i < resultType.sizeInComponents; i++) { result.move(i, out[i]); }
 

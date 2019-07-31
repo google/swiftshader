@@ -1072,6 +1072,39 @@ TEST(ReactorUnitTests, MulAdd)
 
 }
 
+TEST(ReactorUnitTests, PointersEqual)
+{
+	Function<Int(Pointer<Byte>, Pointer<Byte>)> function;
+	{
+		Pointer<Byte> ptrA = function.Arg<0>();
+		Pointer<Byte> ptrB = function.Arg<1>();
+		If (ptrA == ptrB)
+		{
+			Return(1);
+		}
+		Else
+		{
+			Return(0);
+		}
+	}
+
+	auto routine = function("one");
+	auto equal = (int(*)(void*, void*))routine->getEntry();
+	int* a = reinterpret_cast<int*>(uintptr_t(0x0000000000000000));
+	int* b = reinterpret_cast<int*>(uintptr_t(0x00000000F0000000));
+	int* c = reinterpret_cast<int*>(uintptr_t(0xF000000000000000));
+	EXPECT_EQ(equal(&a, &a), 1);
+	EXPECT_EQ(equal(&b, &b), 1);
+	EXPECT_EQ(equal(&c, &c), 1);
+
+	EXPECT_EQ(equal(&a, &b), 0);
+	EXPECT_EQ(equal(&b, &a), 0);
+	EXPECT_EQ(equal(&b, &c), 0);
+	EXPECT_EQ(equal(&c, &b), 0);
+	EXPECT_EQ(equal(&c, &a), 0);
+	EXPECT_EQ(equal(&a, &c), 0);
+}
+
 TEST(ReactorUnitTests, Call)
 {
 	if (!rr::Caps.CallSupported)

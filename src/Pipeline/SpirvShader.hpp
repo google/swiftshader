@@ -1251,10 +1251,17 @@ namespace sw
 
 		using Variable = Array<SIMD::Float>;
 
+		struct SamplerCache
+		{
+			Pointer<Byte> imageDescriptor;
+			Pointer<Byte> sampler;
+			Pointer<Byte> function;
+		};
+
 		vk::PipelineLayout const * const pipelineLayout;
 
 		std::unordered_map<SpirvShader::Object::ID, Variable> variables;
-
+		std::unordered_map<SpirvShader::Object::ID, SamplerCache> samplerCache;
 		Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
 		Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};
 
