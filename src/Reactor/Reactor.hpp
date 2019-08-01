@@ -2092,11 +2092,38 @@ namespace rr
 	RValue<Float> Rcp_pp(RValue<Float> val, bool exactAtPow2 = false);
 	RValue<Float> RcpSqrt_pp(RValue<Float> val);
 	RValue<Float> Sqrt(RValue<Float> x);
-	RValue<Float> Round(RValue<Float> val);
-	RValue<Float> Trunc(RValue<Float> val);
-	RValue<Float> Frac(RValue<Float> val);
-	RValue<Float> Floor(RValue<Float> val);
-	RValue<Float> Ceil(RValue<Float> val);
+
+//	RValue<Int4> IsInf(RValue<Float> x);
+//	RValue<Int4> IsNan(RValue<Float> x);
+	RValue<Float> Round(RValue<Float> x);
+	RValue<Float> Trunc(RValue<Float> x);
+	RValue<Float> Frac(RValue<Float> x);
+	RValue<Float> Floor(RValue<Float> x);
+	RValue<Float> Ceil(RValue<Float> x);
+
+	// Trigonometric functions
+	// TODO: Currently unimplemented for Subzero.
+//	RValue<Float> Sin(RValue<Float> x);
+//	RValue<Float> Cos(RValue<Float> x);
+//	RValue<Float> Tan(RValue<Float> x);
+//	RValue<Float> Asin(RValue<Float> x);
+//	RValue<Float> Acos(RValue<Float> x);
+//	RValue<Float> Atan(RValue<Float> x);
+//	RValue<Float> Sinh(RValue<Float> x);
+//	RValue<Float> Cosh(RValue<Float> x);
+//	RValue<Float> Tanh(RValue<Float> x);
+//	RValue<Float> Asinh(RValue<Float> x);
+//	RValue<Float> Acosh(RValue<Float> x);
+//	RValue<Float> Atanh(RValue<Float> x);
+//	RValue<Float> Atan2(RValue<Float> x, RValue<Float> y);
+
+	// Exponential functions
+	// TODO: Currently unimplemented for Subzero.
+//	RValue<Float> Pow(RValue<Float> x, RValue<Float> y);
+//	RValue<Float> Exp(RValue<Float> x);
+//	RValue<Float> Log(RValue<Float> x);
+	RValue<Float> Exp2(RValue<Float> x);
+	RValue<Float> Log2(RValue<Float> x);
 
 	class Float2 : public LValue<Float2>
 	{
@@ -2264,7 +2291,7 @@ namespace rr
 	RValue<Float4> Ceil(RValue<Float4> x);
 
 	// Trigonometric functions
-	// TODO: Currentlhy unimplemented for Subzero.
+	// TODO: Currently unimplemented for Subzero.
 	RValue<Float4> Sin(RValue<Float4> x);
 	RValue<Float4> Cos(RValue<Float4> x);
 	RValue<Float4> Tan(RValue<Float4> x);
@@ -2280,7 +2307,7 @@ namespace rr
 	RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y);
 
 	// Exponential functions
-	// TODO: Currentlhy unimplemented for Subzero.
+	// TODO: Currently unimplemented for Subzero.
 	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
 	RValue<Float4> Exp(RValue<Float4> x);
 	RValue<Float4> Log(RValue<Float4> x);
@@ -2288,7 +2315,7 @@ namespace rr
 	RValue<Float4> Log2(RValue<Float4> x);
 
 	// Bit Manipulation functions.
-	// TODO: Currentlhy unimplemented for Subzero.
+	// TODO: Currently unimplemented for Subzero.
 
 	// Count leading zeros.
 	// Returns 32 when: isZeroUndef && x == 0.

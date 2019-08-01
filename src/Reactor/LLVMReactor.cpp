@@ -3508,6 +3508,18 @@ namespace rr
 		return T(Type_v2f32);
 	}
 
+	RValue<Float> Exp2(RValue<Float> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp2, { T(Float::getType()) } );
+		return RValue<Float>(V(jit->builder->CreateCall(func, V(v.value))));
+	}
+
+	RValue<Float> Log2(RValue<Float> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log2, { T(Float::getType()) } );
+		return RValue<Float>(V(jit->builder->CreateCall(func, V(v.value))));
+	}
+
 	Float4::Float4(RValue<Float> rhs) : XYZW(this)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();

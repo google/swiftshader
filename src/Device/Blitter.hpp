@@ -126,11 +126,11 @@ namespace sw
 
 		bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
 
-		bool read(Float4 &color, Pointer<Byte> element, const State &state);
-		bool write(Float4 &color, Pointer<Byte> element, const State &state);
-		bool read(Int4 &color, Pointer<Byte> element, const State &state);
-		bool write(Int4 &color, Pointer<Byte> element, const State &state);
-		static bool ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled = false);
+		Float4 readFloat4(Pointer<Byte> element, const State &state);
+		void write(Float4 &color, Pointer<Byte> element, const State &state);
+		Int4 readInt4(Pointer<Byte> element, const State &state);
+		void write(Int4 &color, Pointer<Byte> element, const State &state);
+		static void ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled = false);
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
