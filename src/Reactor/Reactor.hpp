@@ -2325,10 +2325,12 @@ namespace rr
 		Pointer(RValue<Pointer<T>> rhs);
 		Pointer(const Pointer<T> &rhs);
 		Pointer(const Reference<Pointer<T>> &rhs);
+		Pointer(std::nullptr_t);
 
 		RValue<Pointer<T>> operator=(RValue<Pointer<T>> rhs);
 		RValue<Pointer<T>> operator=(const Pointer<T> &rhs);
 		RValue<Pointer<T>> operator=(const Reference<Pointer<T>> &rhs);
+		RValue<Pointer<T>> operator=(std::nullptr_t);
 
 		Reference<T> operator*();
 		Reference<T> operator[](int index);
@@ -2842,6 +2844,13 @@ namespace rr
 	}
 
 	template<class T>
+	Pointer<T>::Pointer(std::nullptr_t) : alignment(1)
+	{
+		Value *value = Nucleus::createNullPointer(T::getType());
+		LValue<Pointer<T>>::storeValue(value);
+	}
+
+	template<class T>
 	RValue<Pointer<T>> Pointer<T>::operator=(RValue<Pointer<T>> rhs)
 	{
 		LValue<Pointer<T>>::storeValue(rhs.value);
@@ -2865,6 +2874,15 @@ namespace rr
 		LValue<Pointer<T>>::storeValue(value);
 
 		return RValue<Pointer<T>>(value);
+	}
+
+	template<class T>
+	RValue<Pointer<T>> Pointer<T>::operator=(std::nullptr_t)
+	{
+		Value *value = Nucleus::createNullPointer(T::getType());
+		LValue<Pointer<T>>::storeValue(value);
+
+		return RValue<Pointer<T>>(this);
 	}
 
 	template<class T>
