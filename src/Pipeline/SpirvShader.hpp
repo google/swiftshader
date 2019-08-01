@@ -1254,8 +1254,8 @@ namespace sw
 		struct SamplerCache
 		{
 			Pointer<Byte> imageDescriptor = nullptr;
-			Pointer<Byte> sampler = nullptr;
-			Pointer<Byte> function = nullptr;
+			Pointer<Byte> sampler;
+			Pointer<Byte> function;
 		};
 
 		vk::PipelineLayout const * const pipelineLayout;
