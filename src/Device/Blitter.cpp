@@ -16,6 +16,7 @@
 
 #include "Pipeline/ShaderCore.hpp"
 #include "Reactor/Reactor.hpp"
+#include "System/Half.hpp"
 #include "System/Memory.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImage.hpp"

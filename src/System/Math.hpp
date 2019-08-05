@@ -16,7 +16,6 @@
 #define sw_Math_hpp
 
 #include "Types.hpp"
-#include "Half.hpp"
 
 #include "Vulkan/VkDebug.hpp"
 
@@ -138,17 +137,7 @@ namespace sw
 	#define MAX(x, y) ((x) > (y) ? (x) : (y))
 	#define MIN(x, y) ((x) < (y) ? (x) : (y))
 
-	inline float exp2(float x)
-	{
-		return exp2f(x);
-	}
-
-	inline int exp2(int x)
-	{
-		return 1 << x;
-	}
-
-	inline unsigned long log2(int x)
+	inline unsigned long log2i(int x)
 	{
 		#if defined(_MSC_VER)
 			unsigned long y;
@@ -157,18 +146,6 @@ namespace sw
 		#else
 			return 31 - __builtin_clz(x);
 		#endif
-	}
-
-	inline int ilog2(float x)
-	{
-		unsigned int y = *(unsigned int*)&x;
-
-		return ((y & 0x7F800000) >> 23) - 127;
-	}
-
-	inline float log2(float x)
-	{
-		return logf(x) * 1.44269504f;   // 1.0 / log[e](2)
 	}
 
 	inline bool isPow2(int x)
