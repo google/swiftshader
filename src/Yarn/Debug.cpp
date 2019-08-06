@@ -1,4 +1,4 @@
-// Copyright 2019 The SwiftShader Authors. All Rights Reserved.
+// Copyright 2019 The yarniftShader Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// A dummy function and file.
-// Will be removed once there's some library code to compile.
-void dummy() {}
+#include "Debug.hpp"
+
+#include <cstdlib>
+
+#include <stdarg.h>
+#include <stdio.h>
+
+namespace yarn
+{
+
+void fatal(const char* msg, ...)
+{
+    va_list vararg;
+    va_start(vararg, msg);
+    vfprintf(stderr, msg, vararg);
+    va_end(vararg);
+    abort();
+}
+
+void assert_has_bound_scheduler(const char* feature)
+{
+    // TODO
+}
+
+}  // namespace yarn
