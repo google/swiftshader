@@ -3891,10 +3891,28 @@ namespace rr
 		return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 	}
 
+	RValue<UInt> Ctlz(RValue<UInt> v, bool isZeroUndef)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt::getType()) } );
+		return RValue<UInt>(V(jit->builder->CreateCall2(func, ARGS(
+			V(v.value),
+			isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)
+		))));
+	}
+
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt4::getType()) } );
 		return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
+			V(v.value),
+			isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)
+		))));
+	}
+
+	RValue<UInt> Cttz(RValue<UInt> v, bool isZeroUndef)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt::getType()) } );
+		return RValue<UInt>(V(jit->builder->CreateCall2(func, ARGS(
 			V(v.value),
 			isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)
 		))));
