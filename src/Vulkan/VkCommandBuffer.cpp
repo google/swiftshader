@@ -567,7 +567,7 @@ struct DrawBase : public CommandBuffer::Command
 		executionState.bindAttachments(context);
 
 		context.multiSampleMask = context.sampleMask & ((unsigned)0xFFFFFFFF >> (32 - context.sampleCount));
-		context.occlusionEnabled = executionState.renderer->hasQueryOfType(VK_QUERY_TYPE_OCCLUSION);
+		context.occlusionEnabled = executionState.renderer->hasOcclusionQuery();
 
 		std::vector<std::pair<uint32_t, void*>> indexBuffers;
 		if(indexed)
@@ -1039,8 +1039,8 @@ struct BeginQuery : public CommandBuffer::Command
 
 	void play(CommandBuffer::ExecutionState& executionState)
 	{
-		executionState.renderer->addQuery(queryPool->getQuery(query));
 		queryPool->begin(query, flags);
+		executionState.renderer->addQuery(queryPool->getQuery(query));
 	}
 
 private:

@@ -146,7 +146,7 @@ namespace sw
 
 	DrawCall::DrawCall()
 	{
-		queries = 0;
+		occlusionQuery = nullptr;
 
 		references = -1;
 
@@ -158,8 +158,6 @@ namespace sw
 
 	DrawCall::~DrawCall()
 	{
-		delete queries;
-
 		deallocate(data);
 	}
 
@@ -233,19 +231,6 @@ namespace sw
 	void Renderer::operator delete(void * mem)
 	{
 		sw::deallocate(mem);
-	}
-
-	bool Renderer::hasQueryOfType(VkQueryType type) const
-	{
-		for(auto query : queries)
-		{
-			if(query->getType() == type)
-			{
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex, TaskEvents *events, bool update)
@@ -326,15 +311,11 @@ namespace sw
 
 		DrawData *data = draw->data;
 
-		if(queries.size() != 0)
+		if (occlusionQuery)
 		{
-			draw->queries = new std::list<vk::Query*>();
-			for(auto &query : queries)
-			{
-				query->start();
-				draw->queries->push_back(query);
-			}
+			occlusionQuery->start();
 		}
+		draw->occlusionQuery = occlusionQuery;
 
 		draw->topology = context->topology;
 		draw->indexType = indexType;
@@ -760,27 +741,13 @@ namespace sw
 
 			if(ref == 0)
 			{
-				if(draw.queries)
+				if (draw.occlusionQuery)
 				{
-					for(auto &query : *(draw.queries))
+					for(int cluster = 0; cluster < clusterCount; cluster++)
 					{
-						switch(query->getType())
-						{
-						case VK_QUERY_TYPE_OCCLUSION:
-							for(int cluster = 0; cluster < clusterCount; cluster++)
-							{
-								query->add(data.occlusion[cluster]);
-							}
-							break;
-						default:
-							break;
-						}
-
-						query->finish();
+						draw.occlusionQuery->add(data.occlusion[cluster]);
 					}
-
-					delete draw.queries;
-					draw.queries = nullptr;
+					draw.occlusionQuery->finish();
 				}
 
 				draw.vertexRoutine.reset();
@@ -1291,12 +1258,18 @@ namespace sw
 
 	void Renderer::addQuery(vk::Query *query)
 	{
-		queries.push_back(query);
+		ASSERT(query->getType() == VK_QUERY_TYPE_OCCLUSION);
+		ASSERT(!occlusionQuery);
+
+		occlusionQuery = query;
 	}
 
 	void Renderer::removeQuery(vk::Query *query)
 	{
-		queries.remove(query);
+		ASSERT(query->getType() == VK_QUERY_TYPE_OCCLUSION);
+		ASSERT(occlusionQuery == query);
+
+		occlusionQuery = nullptr;
 	}
 
 	void Renderer::advanceInstanceAttributes(Stream* inputs)

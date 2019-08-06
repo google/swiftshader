@@ -164,7 +164,7 @@ namespace sw
 		void *operator new(size_t size);
 		void operator delete(void * mem);
 
-		bool hasQueryOfType(VkQueryType type) const;
+		bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 
 		void draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex, TaskEvents *events, bool update = true);
 
@@ -245,7 +245,7 @@ namespace sw
 
 		VertexTask *vertexTask[16];
 
-		std::list<vk::Query*> queries;
+		vk::Query *occlusionQuery;
 		WaitGroup sync;
 
 		VertexProcessor::State vertexState;
@@ -285,7 +285,7 @@ namespace sw
 		vk::ImageView *stencilBuffer;
 		TaskEvents *events;
 
-		std::list<vk::Query*> *queries;
+		vk::Query *occlusionQuery;
 
 		std::atomic<int> primitive;    // Current primitive to enter pipeline
 		std::atomic<int> count;        // Number of primitives to render
