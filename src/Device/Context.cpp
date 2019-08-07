@@ -85,12 +85,6 @@ namespace sw
 
 	void Context::init()
 	{
-		// Set vertex streams to null stream
-		for(int i = 0; i < MAX_INTERFACE_COMPONENTS/4; i++)
-		{
-			input[i].defaults();
-		}
-
 		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
 			renderTarget[i] = nullptr;

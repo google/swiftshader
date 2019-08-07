@@ -36,67 +36,16 @@ namespace sw
 		STREAMTYPE_LAST = STREAMTYPE_2_10_10_10_UINT
 	};
 
-	struct StreamResource
+	struct Stream
 	{
-		const void *buffer;
-		unsigned int vertexStride;
-		unsigned int instanceStride;
-	};
-
-	struct Stream : public StreamResource
-	{
-		Stream(const void *buffer = nullptr, unsigned int vertexStride = 0)
-		{
-			this->buffer = buffer;
-			this->vertexStride = vertexStride;
-			this->instanceStride = 0;
-		}
-
-		Stream &define(StreamType type, unsigned char count, bool normalized = false)
-		{
-			this->type = type;
-			this->count = count;
-			this->normalized = normalized;
-
-			return *this;
-		}
-
-		Stream &define(const void *buffer, StreamType type, unsigned char count, bool normalized = false)
-		{
-			this->buffer = buffer;
-			this->type = type;
-			this->count = count;
-			this->normalized = normalized;
-
-			return *this;
-		}
-
-		Stream &defaults()
-		{
-			static const float4 null = {0, 0, 0, 1};
-
-			buffer = &null;
-			vertexStride = 0;
-			instanceStride = 0;
-			type = STREAMTYPE_FLOAT;
-			count = 0;
-			normalized = false;
-			offset = 0;
-			binding = 0;
-
-			return *this;
-		}
-
-		operator bool() const   // Returns true if stream contains data
-		{
-			return count != 0;
-		}
-
-		StreamType type;
-		unsigned char count;
-		bool normalized;
-		unsigned int offset;
-		unsigned int binding;
+		const void *buffer = nullptr;
+		unsigned int vertexStride = 0;
+		unsigned int instanceStride = 0;
+		StreamType type = STREAMTYPE_FLOAT;
+		unsigned char count = 0;
+		bool normalized = false;
+		unsigned int offset = 0;
+		unsigned int binding = 0;
 	};
 }
 
