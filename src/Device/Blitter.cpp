@@ -604,6 +604,52 @@ namespace sw
 		case VK_FORMAT_R16_SFLOAT:
 			if(writeR) { *Pointer<Half>(element) = Half(c.x); }
 			break;
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			{
+				ASSERT(writeRGBA);  // Can't sensibly write just part of this format.
+
+				// Vulkan 1.1.117 section 15.2.1 RGB to Shared Exponent Conversion
+
+				constexpr int N = 9;       // number of mantissa bits per component
+				constexpr int B = 15;      // exponent bias
+				constexpr int E_max = 31;  // maximum possible biased exponent value
+
+				// Maximum representable value.
+				constexpr float sharedexp_max = ((static_cast<float>(1 << N) - 1) / static_cast<float>(1 << N)) * static_cast<float>(1 << (E_max - B));
+
+				// Clamp components to valid range.
+				Float red_c = Max(0, Min(sharedexp_max, c.x));
+				Float green_c = Max(0, Min(sharedexp_max, c.y));
+				Float blue_c = Max(0, Min(sharedexp_max, c.z));
+
+				// We're reducing the mantissa to 9 bits, so we must round up if the next
+				// bit is 1. In other words add 0.5 to the new mantissa's position and
+				// allow overflow into the exponent so we can scale correctly.
+				constexpr int half = 1 << (23 - N);
+				Float red_r = As<Float>(As<Int>(red_c) + half);
+				Float green_r = As<Float>(As<Int>(green_c) + half);
+				Float blue_r = As<Float>(As<Int>(blue_c) + half);
+
+				// The largest component determines the shared exponent. It can't be lower
+				// than 0 (after bias subtraction) so also limit to the mimimum representable.
+				constexpr float min_s = 0.5f / (1 << B);
+				Float max_s = Max(Max(red_r, green_r), Max(blue_r, min_s));
+
+				// Obtain the reciprocal of the shared exponent by inverting the bits,
+				// and scale by the new mantissa's size. Note that the IEEE-754 single-precision
+				// format has an implicit leading 1, but this shared component format does not.
+				Float scale = As<Float>((As<Int>(max_s) & 0x7F800000) ^ 0x7F800000) * (1 << (N - 2));
+
+				UInt R9 = RoundInt(red_c * scale);
+				UInt G9 = UInt(RoundInt(green_c * scale));
+				UInt B9 = UInt(RoundInt(blue_c * scale));
+				UInt E5 = (As<UInt>(max_s) >> 23) - 127 + 15 + 1;
+
+				UInt E5B9G9R9 = (E5 << 27) | (B9 << 18) | (G9 << 9) | R9;
+
+				*Pointer<UInt>(element) = E5B9G9R9;
+			}
+			break;
 		case VK_FORMAT_B8G8R8A8_SNORM:
 			if(writeB) { *Pointer<SByte>(element) = SByte(RoundInt(Float(c.z))); }
 			if(writeG) { *Pointer<SByte>(element + 1) = SByte(RoundInt(Float(c.y))); }
