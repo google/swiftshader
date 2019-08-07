@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required(VERSION 2.8)
 
-project(SwiftShader C CXX)
+project(SwiftShader C CXX ASM)
 
 # On Windows we use custom solution and project files, except for certain third-
 # party projects which use CMake-generated ones. They are manually (re)generated
@@ -78,6 +78,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "The type of build: Debug Release MinSizeRel RelWithDebInfo." FORCE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
+
+option(BUILD_YARN "Build yarn" 0)
 
 option(BUILD_EGL "Build the EGL library" 1)
 option(BUILD_GLESv2 "Build the OpenGL ES 2 library" 1)
@@ -262,6 +264,7 @@ endif()
 ###########################################################
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(YARN_DIR ${SOURCE_DIR}/Yarn)
 set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
@@ -278,6 +281,9 @@ set(HELLO2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_SDK/Examples/Begi
 ###########################################################
 # Compile flags
 ###########################################################
+
+# Run assembly files through the C preprocessor.
+SET(CMAKE_ASM_FLAGS "-x assembler-with-cpp -DBUILD_ASM=1")
 
 # Flags for project code (non 3rd party)
 set(SWIFTSHADER_COMPILE_OPTIONS "")
@@ -303,6 +309,7 @@ if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_SCL_SECURE_NO_WARNINGS)
     add_definitions(-D_SBCS)  # Single Byte Character Set (ASCII)
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)  # Disable MSVC warnings about std::aligned_storage being broken before VS 2017 15.8
 
     if(WARNINGS_AS_ERRORS)
         set_cpp_flag("/WX") # Treat all warnings as errors
@@ -1753,6 +1760,24 @@ file(GLOB_RECURSE VULKAN_LIST
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
+if(BUILD_YARN)
+    file(GLOB YARN_FULL_LIST
+        ${YARN_DIR}/*.cpp
+        ${YARN_DIR}/*.hpp
+        ${YARN_DIR}/*.c
+    )
+
+    if (NOT MSVC)
+        file(GLOB YARN_ASSEMBLY_LIST ${YARN_DIR}/*.s)
+        list(APPEND YARN_FULL_LIST ${YARN_ASSEMBLY_LIST})
+    endif(NOT MSVC)
+
+    set(YARN_LIST ${YARN_FULL_LIST})
+    set(YARN_TEST_LIST ${YARN_FULL_LIST})
+    list(FILTER YARN_LIST EXCLUDE REGEX ".*_test\\..*")
+    list(FILTER YARN_TEST_LIST INCLUDE REGEX ".*_test\\..*")
+endif(BUILD_YARN)
+
 ###########################################################
 # Append OS specific files to lists
 ###########################################################
@@ -1840,6 +1865,17 @@ endif()
 ###########################################################
 # SwiftShader Targets
 ###########################################################
+
+if(BUILD_YARN)
+    add_library(Yarn STATIC ${YARN_LIST})
+    set_target_properties(Yarn PROPERTIES
+        POSITION_INDEPENDENT_CODE 1
+        FOLDER "Core"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
+    )
+    target_link_libraries(Yarn ${OS_LIBS})
+endif(BUILD_YARN)
 
 add_library(SwiftShader STATIC ${SWIFTSHADER_LIST})
 set_target_properties(SwiftShader PROPERTIES
@@ -2135,7 +2171,31 @@ if(BUILD_TESTS)
     if(ANDROID)
         target_link_libraries(gles-unittests -landroid)
     endif()
-endif()
+endif(BUILD_TESTS)
+
+if(BUILD_TESTS AND BUILD_YARN)
+    file(GLOB YARN_TEST_LIST
+        ${YARN_DIR}/*_test.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+    )
+
+    set(YARN_TEST_INCLUDE_DIR
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+
+    add_executable(yarn-unittests ${YARN_TEST_LIST})
+    set_target_properties(yarn-unittests PROPERTIES
+        INCLUDE_DIRECTORIES "${YARN_TEST_INCLUDE_DIR}"
+        FOLDER "Tests"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_DEFINITIONS "STANDALONE"
+    )
+
+    target_link_libraries(yarn-unittests Yarn ${OS_LIBS})
+endif(BUILD_TESTS AND BUILD_YARN)
 
 if(BUILD_TESTS)
     set(MATH_UNITTESTS_LIST
@@ -2189,4 +2249,4 @@ if(BUILD_TESTS AND BUILD_VULKAN)
     )
 
     target_link_libraries(vk-unittests ${OS_LIBS} SPIRV-Tools)
-endif()
+endif(BUILD_TESTS AND BUILD_VULKAN)
