@@ -281,9 +281,11 @@ namespace sw
 			c.w = float(0xFF);
 			break;
 		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16_SNORM:
 			c.x = Float(Int(*Pointer<Short>(element)));
 			c.w = float(0x7FFF);
 			break;
+		case VK_FORMAT_R16_UNORM:
 		case VK_FORMAT_R16_UINT:
 			c.x = Float(Int(*Pointer<UShort>(element)));
 			c.w = float(0xFFFF);
@@ -341,6 +343,7 @@ namespace sw
 			c.w = float(0xFF);
 			break;
 		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16_SNORM:
 			c.x = Float(Int(*Pointer<Short>(element + 0)));
 			c.y = Float(Int(*Pointer<Short>(element + 2)));
 			c.w = float(0x7FFF);
