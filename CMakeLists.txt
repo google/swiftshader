@@ -2127,6 +2127,32 @@ if(BUILD_TESTS)
     endif()
 endif()
 
+if(BUILD_TESTS)
+    set(MATH_UNITTESTS_LIST
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/unittests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+    )
+
+    set(MATH_UNITTESTS_INCLUDE_DIR
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/
+    )
+
+    add_executable(math-unittests ${MATH_UNITTESTS_LIST})
+    set_target_properties(math-unittests PROPERTIES
+        INCLUDE_DIRECTORIES "${MATH_UNITTESTS_INCLUDE_DIR}"
+        FOLDER "Tests"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+    )
+
+    if(NOT WIN32)
+        target_link_libraries(math-unittests pthread)
+    endif()
+endif()
+
 if(BUILD_TESTS AND BUILD_VULKAN)
     set(VK_UNITTESTS_LIST
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/Device.cpp

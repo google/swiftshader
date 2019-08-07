@@ -15,6 +15,8 @@
 #ifndef sw_Half_hpp
 #define sw_Half_hpp
 
+#include "Math.hpp"
+
 #include <algorithm>
 #include <cmath>
 
@@ -56,8 +58,14 @@ namespace sw
 		unsigned int E : 5;
 
 	public:
-		RGB9E5(float rgb[3])
+		RGB9E5(float rgb[3]) : RGB9E5(rgb[0], rgb[1], rgb[2])
 		{
+		}
+
+		RGB9E5(float r, float g, float b)
+		{
+			// Vulkan 1.1.117 section 15.2.1 RGB to Shared Exponent Conversion
+
 			// B is the exponent bias (15)
 			constexpr int g_sharedexp_bias = 15;
 
@@ -72,19 +80,33 @@ namespace sw
 					static_cast<float>(1 << g_sharedexp_mantissabits)) *
 				static_cast<float>(1 << (g_sharedexp_maxexponent - g_sharedexp_bias));
 
-			const float red_c = std::max<float>(0, std::min(g_sharedexp_max, rgb[0]));
-			const float green_c = std::max<float>(0, std::min(g_sharedexp_max, rgb[1]));
-			const float blue_c = std::max<float>(0, std::min(g_sharedexp_max, rgb[2]));
+			// Clamp components to valid range.
+			const float red_c = std::max<float>(0, std::min(g_sharedexp_max, r));
+			const float green_c = std::max<float>(0, std::min(g_sharedexp_max, g));
+			const float blue_c = std::max<float>(0, std::min(g_sharedexp_max, b));
 
-			const float max_c = std::max<float>(std::max<float>(red_c, green_c), blue_c);
-			const float exp_p = std::max<float>(-g_sharedexp_bias - 1, floor(log2(max_c))) + 1 + g_sharedexp_bias;
-			const int max_s = static_cast<int>(floor((max_c / exp2(exp_p - g_sharedexp_bias - g_sharedexp_mantissabits)) + 0.5f));
-			const int exp_s = static_cast<int>((max_s < exp2(g_sharedexp_mantissabits)) ? exp_p : exp_p + 1);
+			// We're reducing the mantissa to 9 bits, so we must round up if the next
+			// bit is 1. In other words add 0.5 to the new mantissa's position and
+			// allow overflow into the exponent so we can scale correctly.
+			constexpr int half = 1 << (23 - g_sharedexp_mantissabits);
+			const float red_r = bit_cast<float>(bit_cast<int>(red_c) + half);
+			const float green_r = bit_cast<float>(bit_cast<int>(green_c) + half);
+			const float blue_r = bit_cast<float>(bit_cast<int>(blue_c) + half);
 
-			R = static_cast<unsigned int>(floor((red_c / exp2(exp_s - g_sharedexp_bias - g_sharedexp_mantissabits)) + 0.5f));
-			G = static_cast<unsigned int>(floor((green_c / exp2(exp_s - g_sharedexp_bias - g_sharedexp_mantissabits)) + 0.5f));
-			B = static_cast<unsigned int>(floor((blue_c / exp2(exp_s - g_sharedexp_bias - g_sharedexp_mantissabits)) + 0.5f));
-			E = exp_s;
+			// The largest component determines the shared exponent. It can't be lower
+			// than 0 (after bias subtraction) so also limit to the mimimum representable.
+			constexpr float min_s = 0.5f / (1 << g_sharedexp_bias);
+			float max_s = std::max(std::max(red_r, green_r), std::max(blue_r, min_s));
+
+			// Obtain the reciprocal of the shared exponent by inverting the bits,
+			// and scale by the new mantissa's size. Note that the IEEE-754 single-precision
+			// format has an implicit leading 1, but this shared component format does not.
+			float scale = bit_cast<float>((bit_cast<int>(max_s) & 0x7F800000) ^ 0x7F800000) * (1 << (g_sharedexp_mantissabits - 2));
+
+			R = static_cast<unsigned int>(round(red_c * scale));
+			G = static_cast<unsigned int>(round(green_c * scale));
+			B = static_cast<unsigned int>(round(blue_c * scale));
+			E = (bit_cast<unsigned int>(max_s) >> 23) - 127 + 15 + 1;
 		}
 
 		operator unsigned int() const
