@@ -38,28 +38,23 @@ namespace vk
 
 std::shared_ptr<rr::Routine> Device::SamplingRoutineCache::query(const vk::Device::SamplingRoutineCache::Key& key) const
 {
-	return cache.query(hash(key));
+	return cache.query(key);
 }
 
 void Device::SamplingRoutineCache::add(const vk::Device::SamplingRoutineCache::Key& key, const std::shared_ptr<rr::Routine>& routine)
 {
 	ASSERT(routine);
-	cache.add(hash(key), routine);
+	cache.add(key, routine);
 }
 
 rr::Routine* Device::SamplingRoutineCache::queryConst(const vk::Device::SamplingRoutineCache::Key& key) const
 {
-	return cache.queryConstCache(hash(key)).get();
+	return cache.queryConstCache(key).get();
 }
 
 void Device::SamplingRoutineCache::updateConstCache()
 {
 	cache.updateConstCache();
-}
-
-std::size_t Device::SamplingRoutineCache::hash(const vk::Device::SamplingRoutineCache::Key &key)
-{
-	return (key.instruction << 16) ^ (key.sampler << 8) ^ key.imageView;
 }
 
 Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures)

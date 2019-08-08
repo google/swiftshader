@@ -48,7 +48,7 @@ namespace sw
 		Data *data;
 	};
 
-	template<class Key, class Data>
+	template<class Key, class Data, class Hasher = std::hash<Key>>
 	class LRUConstCache : public LRUCache<Key, Data>
 	{
 		using LRUBase = LRUCache<Key, Data>;
@@ -68,7 +68,7 @@ namespace sw
 	private:
 		void clearConstCache();
 		bool constCacheNeedsUpdate = false;
-		std::unordered_map<Key, Data> constCache;
+		std::unordered_map<Key, Data, Hasher> constCache;
 	};
 
 	// Helper class for clearing the memory of objects at construction.
@@ -189,14 +189,14 @@ namespace sw
 		return data;
 	}
 
-	template<class Key, class Data>
-	void LRUConstCache<Key, Data>::clearConstCache()
+	template<class Key, class Data, class Hasher>
+	void LRUConstCache<Key, Data, Hasher>::clearConstCache()
 	{
 		constCache.clear();
 	}
 
-	template<class Key, class Data>
-	void LRUConstCache<Key, Data>::updateConstCache()
+	template<class Key, class Data, class Hasher>
+	void LRUConstCache<Key, Data, Hasher>::updateConstCache()
 	{
 		if(constCacheNeedsUpdate)
 		{
@@ -214,8 +214,8 @@ namespace sw
 		}
 	}
 
-	template<class Key, class Data>
-	const Data& LRUConstCache<Key, Data>::queryConstCache(const Key &key) const
+	template<class Key, class Data, class Hasher>
+	const Data& LRUConstCache<Key, Data, Hasher>::queryConstCache(const Key &key) const
 	{
 		auto it = constCache.find(key);
 		static Data null = {};
