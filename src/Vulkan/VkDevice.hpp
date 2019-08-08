@@ -122,10 +122,12 @@ inline bool vk::Device::SamplingRoutineCache::Key::operator < (const Key& rhs) c
 
 inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (const Key& key) const noexcept
 {
-	auto hash = key.instruction;
-	hash = (hash * 31) ^ key.sampler;
-	hash = (hash * 31) ^ key.imageView;
-	return hash;
+	// Combine three 32-bit integers into a 64-bit hash.
+	// 2642239 is the largest prime which when cubed is smaller than 2^64.
+	uint64_t hash = key.instruction;
+	hash = (hash * 2642239) ^ key.sampler;
+	hash = (hash * 2642239) ^ key.imageView;
+	return static_cast<std::size_t>(hash);  // Truncates to 32-bits on 32-bit platforms.
 }
 
 } // namespace vk
