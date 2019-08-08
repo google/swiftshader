@@ -14,6 +14,8 @@
 
 #include "Debug.hpp"
 
+#include "Scheduler.hpp"
+
 #include <cstdlib>
 
 #include <stdarg.h>
@@ -33,7 +35,7 @@ void fatal(const char* msg, ...)
 
 void assert_has_bound_scheduler(const char* feature)
 {
-    // TODO
+    YARN_ASSERT(Scheduler::get() != nullptr, "%s requires a yarn::Scheduler to be bound", feature);
 }
 
 }  // namespace yarn

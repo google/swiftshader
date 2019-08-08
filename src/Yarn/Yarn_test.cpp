@@ -14,8 +14,17 @@
 
 #include "Yarn_test.hpp"
 
+INSTANTIATE_TEST_SUITE_P(SchedulerParams, WithBoundScheduler, testing::Values(
+    SchedulerParams{0}, // Single-threaded mode test
+    SchedulerParams{1}, // Single worker thread
+    SchedulerParams{2}, // 2 worker threads...
+    SchedulerParams{4},
+    SchedulerParams{8},
+    SchedulerParams{64}
+));
+
 int main(int argc, char **argv)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
