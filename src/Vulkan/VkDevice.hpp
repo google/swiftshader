@@ -65,6 +65,14 @@ public:
 			uint32_t instruction;
 			uint32_t sampler;
 			uint32_t imageView;
+
+			inline bool operator == (const Key& rhs) const;
+			inline bool operator < (const Key& rhs) const;
+
+			struct Hash
+			{
+				inline std::size_t operator()(const Key& key) const noexcept;
+			};
 		};
 
 		std::shared_ptr<rr::Routine> query(const Key& key) const;
@@ -73,10 +81,8 @@ public:
 		rr::Routine* queryConst(const Key& key) const;
 		void updateConstCache();
 
-		static std::size_t hash(const Key &key);
-
 	private:
-		sw::LRUConstCache<std::size_t, std::shared_ptr<rr::Routine>> cache;
+		sw::LRUConstCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;
 	};
 
 	SamplingRoutineCache* getSamplingRoutineCache() const;
@@ -102,6 +108,24 @@ using DispatchableDevice = DispatchableObject<Device, VkDevice>;
 static inline Device* Cast(VkDevice object)
 {
 	return DispatchableDevice::Cast(object);
+}
+
+inline bool vk::Device::SamplingRoutineCache::Key::operator == (const Key& rhs) const
+{
+	return instruction == rhs.instruction && sampler == rhs.sampler && imageView == rhs.imageView;
+}
+
+inline bool vk::Device::SamplingRoutineCache::Key::operator < (const Key& rhs) const
+{
+	return instruction < rhs.instruction || sampler < rhs.sampler || imageView < rhs.imageView;
+}
+
+inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (const Key& key) const noexcept
+{
+	auto hash = key.instruction;
+	hash = (hash * 31) ^ key.sampler;
+	hash = (hash * 31) ^ key.imageView;
+	return hash;
 }
 
 } // namespace vk
