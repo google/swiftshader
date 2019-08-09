@@ -41,6 +41,8 @@
 #include <unordered_set>
 #include <vector>
 
+#undef Yield // b/127920555
+
 namespace vk
 {
 	class PipelineLayout;

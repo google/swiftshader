@@ -97,6 +97,10 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
     // VK_MVK_macos_surface
     MAKE_VULKAN_INSTANCE_ENTRY(vkCreateMacOSSurfaceMVK),
 #endif
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+	// VK_KHR_win32_surface
+	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateWin32SurfaceKHR),
+#endif
 };
 #undef MAKE_VULKAN_INSTANCE_ENTRY
 

@@ -16,7 +16,9 @@
 #define SWIFTSHADER_VKSURFACEKHR_HPP_
 
 #include "Vulkan/VkObject.hpp"
+#include "Vulkan/VkImage.hpp"
 #include <Vulkan/VulkanPlatform.h>
+
 #include <vector>
 
 namespace vk
@@ -24,7 +26,7 @@ namespace vk
 
 enum PresentImageStatus
 {
-	NONEXISTENT, //  Image wasn't made
+	NONEXISTENT,  // Image wasn't created
 	AVAILABLE,
 	DRAWING,
 	PRESENTING,

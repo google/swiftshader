@@ -214,3 +214,5 @@ EXPORTS
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR
 	vkGetPhysicalDeviceSurfaceFormatsKHR
 	vkGetPhysicalDeviceSurfacePresentModesKHR
+	; VK_KHR_win32_surface
+	vkCreateWin32SurfaceKHR
