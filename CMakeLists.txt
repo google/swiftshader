@@ -1779,6 +1779,7 @@ if(WIN32)
     list(APPEND EGL_LIST ${OPENGL_DIR}/libEGL/libEGL.rc)
     list(APPEND GLES2_LIST ${OPENGL_DIR}/libGLESv2/libGLESv2.rc)
     list(APPEND GLES_CM_LIST ${OPENGL_DIR}/libGLES_CM/libGLES_CM.rc)
+    list(APPEND VULKAN_LIST ${VULKAN_DIR}/Vulkan.rc)
 elseif(LINUX)
     list(APPEND SWIFTSHADER_LIST
         ${SOURCE_DIR}/Main/FrameBufferX11.cpp
