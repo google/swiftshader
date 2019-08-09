@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52bb072a_bb0b0974",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-09T19:08:24Z",
+      "side": 1,
+      "message": "Is this due to division by zero? Any chance we can stop them from happening beforehand? I don\u0027t think there\u0027s any guarantee that floating-point division by zero doesn\u0027t throw an exception. Just happens to be the default on most platforms that integer division throws and fp does not.\n\nAnyway, seems reasonable for silencing ClusterFuzz.",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 4
+      },
+      "revId": "37690f6acc5fac49a11ea2e824c8b12f9239779e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73ef6be1_ff98fae0",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-09T19:08:24Z",
+      "side": 1,
+      "message": "nit: Extra blank line?",
+      "revId": "37690f6acc5fac49a11ea2e824c8b12f9239779e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3059df23_02276cdb",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 543,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-09T19:08:24Z",
+      "side": 1,
+      "message": "nit: Note that the return value is used for indicating an internal error only (glBlitFramebuffer doesn\u0027t have any error associated with bad rectangle parameters). So if we encounter a NaN with an ordinary application (not a fuzzer looking for edge cases) we\u0027d probably want to know about it as it indicates an app bug or SwiftShader bug.\n\nAnyway, no big deal, but something ANGLE may want to discern between.",
+      "range": {
+        "startLine": 538,
+        "startChar": 2,
+        "endLine": 543,
+        "endChar": 3
+      },
+      "revId": "37690f6acc5fac49a11ea2e824c8b12f9239779e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
