@@ -1,7 +1,8 @@
 LIBRARY vk_swiftshader
 EXPORTS
-	; Mandatory ICD entry function
+	; Loader-ICD interface functions
 	vk_icdGetInstanceProcAddr
+	vk_icdNegotiateLoaderICDInterfaceVersion
 
 	; Optional Vulkan API entry functions
 	vkCreateInstance
