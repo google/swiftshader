@@ -215,10 +215,10 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT, // minTexelBufferOffsetAlignment
 		vk::MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT, // minUniformBufferOffsetAlignment
 		vk::MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT, // minStorageBufferOffsetAlignment
-		-8, // minTexelOffset
-		7, // maxTexelOffset
-		-8, // minTexelGatherOffset
-		7, // maxTexelGatherOffset
+		sw::MIN_TEXEL_OFFSET, // minTexelOffset
+		sw::MAX_TEXEL_OFFSET, // maxTexelOffset
+		sw::MIN_TEXEL_OFFSET, // minTexelGatherOffset
+		sw::MAX_TEXEL_OFFSET, // maxTexelGatherOffset
 		-0.5, // minInterpolationOffset
 		0.5, // maxInterpolationOffset
 		4, // subPixelInterpolationOffsetBits

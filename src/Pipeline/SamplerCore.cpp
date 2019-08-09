@@ -1242,7 +1242,7 @@ namespace sw
 		switch(mode)
 		{
 		case AddressingMode::ADDRESSING_WRAP:
-			tmp = (tmp + whd * Int4(-MIN_PROGRAM_TEXEL_OFFSET)) % whd;
+			tmp = (tmp + whd * Int4(-MIN_TEXEL_OFFSET)) % whd;
 			break;
 		case AddressingMode::ADDRESSING_CLAMP:
 		case AddressingMode::ADDRESSING_MIRROR:
