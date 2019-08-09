@@ -61,7 +61,7 @@ Changes are uploaded to Gerrit by executing:
 Testing
 -------
 
-SwiftShader's OpenGL ES implementation can be tested using the [dEQP](https://source.android.com/devices/graphics/testing) test suite.
+SwiftShader's OpenGL ES implementation can be tested using the [dEQP](https://github.com/KhronosGroup/VK-GL-CTS) test suite.
 
 See [docs/dEQP.md](docs/dEQP.md) for details.
 

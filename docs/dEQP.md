@@ -34,7 +34,9 @@ Getting the Code
 
 12. Get dEQP (either in 'cmd' or by using TortoiseGit):
 
-    `git clone https://android.googlesource.com/platform/external/deqp`
+    `git clone https://github.com/KhronosGroup/VK-GL-CTS`
+
+    You may wish to check out a stable vulkan-cts-* branch.
 
 13. Get dEQP's dependencies. In your dEQP root directory, open 'cmd' and run:
 
