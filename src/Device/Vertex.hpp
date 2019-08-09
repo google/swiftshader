@@ -39,6 +39,9 @@ namespace sw
 		float pointSize;
 
 		int clipFlags;
+		int cullMask;
+		float clipDistance[MAX_CLIP_DISTANCES];
+		float cullDistance[MAX_CLIP_DISTANCES];
 
 		alignas(16) struct
 		{

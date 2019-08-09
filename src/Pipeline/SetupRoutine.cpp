@@ -452,8 +452,24 @@ namespace sw
 							OFFSET(Vertex, v[interpolant]),
 							OFFSET(Primitive, V[interpolant]),
 							state.gradient[interpolant].Flat,
-							!state.gradient[interpolant].NoPerspective, 0);
+							!state.gradient[interpolant].NoPerspective);
 				}
+			}
+
+			for (int i = 0; i < MAX_CLIP_DISTANCES; i++)
+			{
+				setupGradient(primitive, tri, w012, M, v0, v1, v2,
+						OFFSET(Vertex, clipDistance[i]),
+						OFFSET(Primitive, clipDistance[i]),
+						false, true);
+			}
+
+			for (int i = 0; i < MAX_CULL_DISTANCES; i++)
+			{
+				setupGradient(primitive, tri, w012, M, v0, v1, v2,
+						OFFSET(Vertex, cullDistance[i]),
+						OFFSET(Primitive, cullDistance[i]),
+						false, true);
 			}
 
 			Return(1);
@@ -462,7 +478,7 @@ namespace sw
 		routine = function("SetupRoutine");
 	}
 
-	void SetupRoutine::setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flat, bool perspective, int component)
+	void SetupRoutine::setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flat, bool perspective)
 	{
 		if(!flat)
 		{

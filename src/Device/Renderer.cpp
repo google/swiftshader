@@ -624,25 +624,32 @@ namespace sw
 			Vertex &v1 = triangles->v1;
 			Vertex &v2 = triangles->v2;
 
-			if((v0.clipFlags & v1.clipFlags & v2.clipFlags) == Clipper::CLIP_FINITE)
+			Polygon polygon(&v0.position, &v1.position, &v2.position);
+
+
+			if((v0.cullMask | v1.cullMask | v2.cullMask) == 0)
 			{
-				Polygon polygon(&v0.position, &v1.position, &v2.position);
+				continue;
+			}
 
-				int clipFlagsOr = v0.clipFlags | v1.clipFlags | v2.clipFlags;
+			if((v0.clipFlags & v1.clipFlags & v2.clipFlags) != Clipper::CLIP_FINITE)
+			{
+				continue;
+			}
 
-				if(clipFlagsOr != Clipper::CLIP_FINITE)
+			int clipFlagsOr = v0.clipFlags | v1.clipFlags | v2.clipFlags;
+			if(clipFlagsOr != Clipper::CLIP_FINITE)
+			{
+				if(!Clipper::Clip(polygon, clipFlagsOr, *drawCall))
 				{
-					if(!Clipper::Clip(polygon, clipFlagsOr, *drawCall))
-					{
-						continue;
-					}
+					continue;
 				}
+			}
 
-				if(drawCall->setupRoutine(primitives, triangles, &polygon, data))
-				{
-					primitives += ms;
-					visible++;
-				}
+			if(drawCall->setupRoutine(primitives, triangles, &polygon, data))
+			{
+				primitives += ms;
+				visible++;
 			}
 		}
 
@@ -792,6 +799,11 @@ namespace sw
 
 		Vertex &v0 = triangle.v0;
 		Vertex &v1 = triangle.v1;
+
+		if((v0.cullMask | v1.cullMask) == 0)
+		{
+			return false;
+		}
 
 		const float4 &P0 = v0.position;
 		const float4 &P1 = v1.position;
@@ -1081,6 +1093,11 @@ namespace sw
 		const DrawData &data = *draw.data;
 
 		Vertex &v = triangle.v0;
+
+		if(v.cullMask == 0)
+		{
+			return false;
+		}
 
 		float pSize = v.pointSize;
 

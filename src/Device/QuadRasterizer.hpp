@@ -37,6 +37,8 @@ namespace sw
 		Float4 Dw;
 		Float4 Dv[MAX_INTERFACE_COMPONENTS];
 		Float4 Df;
+		Float4 DclipDistance[MAX_CLIP_DISTANCES];
+		Float4 DcullDistance[MAX_CULL_DISTANCES];
 
 		UInt occlusion;
 

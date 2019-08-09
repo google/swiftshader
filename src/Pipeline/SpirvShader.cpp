@@ -351,21 +351,23 @@ namespace sw
 				{
 				case spv::CapabilityMatrix: capabilities.Matrix = true; break;
 				case spv::CapabilityShader: capabilities.Shader = true; break;
+				case spv::CapabilityClipDistance: capabilities.ClipDistance = true; break;
+				case spv::CapabilityCullDistance: capabilities.CullDistance = true; break;
 				case spv::CapabilityInputAttachment: capabilities.InputAttachment = true; break;
 				case spv::CapabilitySampled1D: capabilities.Sampled1D = true; break;
 				case spv::CapabilityImage1D: capabilities.Image1D = true; break;
 				case spv::CapabilitySampledBuffer: capabilities.SampledBuffer = true; break;
 				case spv::CapabilityImageBuffer: capabilities.ImageBuffer = true; break;
+				case spv::CapabilityStorageImageExtendedFormats: capabilities.StorageImageExtendedFormats = true; break;
 				case spv::CapabilityImageQuery: capabilities.ImageQuery = true; break;
 				case spv::CapabilityDerivativeControl: capabilities.DerivativeControl = true; break;
 				case spv::CapabilityGroupNonUniform: capabilities.GroupNonUniform = true; break;
-				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
-				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 				case spv::CapabilityGroupNonUniformVote: capabilities.GroupNonUniformVote = true; break;
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				case spv::CapabilityGroupNonUniformShuffle: capabilities.GroupNonUniformShuffle = true; break;
 				case spv::CapabilityGroupNonUniformShuffleRelative: capabilities.GroupNonUniformShuffleRelative = true; break;
-				case spv::CapabilityStorageImageExtendedFormats: capabilities.StorageImageExtendedFormats = true; break;
+				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
+				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}

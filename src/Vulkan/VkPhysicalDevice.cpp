@@ -84,8 +84,8 @@ const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
 		VK_FALSE,  // shaderSampledImageArrayDynamicIndexing
 		VK_FALSE,  // shaderStorageBufferArrayDynamicIndexing
 		VK_FALSE,  // shaderStorageImageArrayDynamicIndexing
-		VK_FALSE,  // shaderClipDistance
-		VK_FALSE,  // shaderCullDistance
+		VK_TRUE,   // shaderClipDistance
+		VK_TRUE,   // shaderCullDistance
 		VK_FALSE,  // shaderFloat64
 		VK_FALSE,  // shaderInt64
 		VK_FALSE,  // shaderInt16
@@ -269,9 +269,9 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		1, // maxSampleMaskWords
 		VK_FALSE, // timestampComputeAndGraphics
 		60, // timestampPeriod
-		8, // maxClipDistances
-		8, // maxCullDistances
-		8, // maxCombinedClipAndCullDistances
+		sw::MAX_CLIP_DISTANCES, // maxClipDistances
+		sw::MAX_CULL_DISTANCES, // maxCullDistances
+		sw::MAX_CLIP_DISTANCES + sw::MAX_CULL_DISTANCES, // maxCombinedClipAndCullDistances
 		2, // discreteQueuePriorities
 		{ 1.0, vk::MAX_POINT_SIZE }, // pointSizeRange[2]
 		{ 1.0, 1.0 }, // lineWidthRange[2] (unsupported)

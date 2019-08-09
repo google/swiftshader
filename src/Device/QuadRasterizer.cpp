@@ -157,6 +157,18 @@ namespace sw
 									yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].B), 16);
 						}
 					}
+
+					for (int i = 0; i < MAX_CLIP_DISTANCES; i++)
+					{
+						DclipDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].C), 16) +
+									yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].B), 16);
+					}
+
+					for (int i = 0; i < MAX_CULL_DISTANCES; i++)
+					{
+						DcullDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].C), 16) +
+									yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].B), 16);
+					}
 				}
 
 				Short4 xLeft[4];

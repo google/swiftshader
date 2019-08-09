@@ -62,6 +62,7 @@ namespace sw
 				readInput(batch);
 				program(batch, vertexCount);
 				computeClipFlags();
+				computeCullMask();
 
 				writeCache(vertexCache, tagCache, batch);
 			}
@@ -141,6 +142,26 @@ namespace sw
 
 		Int4 finiteXYZ = finiteX & finiteY & finiteZ;
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,fini))[SignMask(finiteXYZ)];
+	}
+
+	void VertexRoutine::computeCullMask()
+	{
+		cullMask = Int(15);
+
+		if (spirvShader->getUsedCapabilities().CullDistance)
+		{
+			auto it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
+			if (it != spirvShader->outputBuiltins.end())
+			{
+				auto &var = routine.getVariable(it->second.Id);
+				for (uint32_t i = 0; i < it->second.SizeInComponents; i++)
+				{
+					auto const &distance = var[it->second.FirstComponent + i];
+					auto mask = SignMask(CmpGE(distance, SIMD::Float(0)));
+					cullMask &= mask;
+				}
+			}
+		}
 	}
 
 	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
@@ -564,7 +585,7 @@ namespace sw
 		it = spirvShader->outputBuiltins.find(spv::BuiltInPointSize);
 		if(it != spirvShader->outputBuiltins.end())
 		{
-			assert(it->second.SizeInComponents == 1);
+			ASSERT(it->second.SizeInComponents == 1);
 			auto psize = routine.getVariable(it->second.Id)[it->second.FirstComponent];
 
 			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,pointSize)) = Extract(psize, 3);
@@ -573,10 +594,65 @@ namespace sw
 			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,pointSize)) = Extract(psize, 0);
 		}
 
+		uint32_t clipIndex = 0;
+		if (spirvShader->getUsedCapabilities().ClipDistance)
+		{
+			it = spirvShader->outputBuiltins.find(spv::BuiltInClipDistance);
+			if(it != spirvShader->outputBuiltins.end())
+			{
+				ASSERT(it->second.SizeInComponents <= MAX_CLIP_DISTANCES);
+				for(; clipIndex < it->second.SizeInComponents; clipIndex++)
+				{
+					auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + clipIndex];
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 3);
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 2);
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 1);
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 0);
+				}
+			}
+		}
+		for(; clipIndex < MAX_CLIP_DISTANCES; clipIndex++)
+		{
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
+		}
+
+		uint32_t cullIndex = 0;
+		if (spirvShader->getUsedCapabilities().CullDistance)
+		{
+			it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
+			if(it != spirvShader->outputBuiltins.end())
+			{
+				ASSERT(it->second.SizeInComponents <= MAX_CULL_DISTANCES);
+				for(; cullIndex < it->second.SizeInComponents; cullIndex++)
+				{
+					auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + cullIndex];
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 3);
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 2);
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 1);
+					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 0);
+				}
+			}
+		}
+		for(; cullIndex < MAX_CULL_DISTANCES; cullIndex++)
+		{
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
+		}
+
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 8)  & 0x0000000FF;
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 0)  & 0x0000000FF;
+
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullMask)) = -((cullMask >> 3) & 1);
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullMask)) = -((cullMask >> 2) & 1);
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullMask)) = -((cullMask >> 1) & 1);
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullMask)) = -((cullMask >> 0) & 1);
 
 		transpose4x4(proj.x, proj.y, proj.z, proj.w);
 
@@ -614,6 +690,7 @@ namespace sw
 		*Pointer<Int>(vertex + OFFSET(Vertex,pointSize)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,pointSize));
 
 		*Pointer<Int>(vertex + OFFSET(Vertex,clipFlags)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,clipFlags));
+		*Pointer<Int>(vertex + OFFSET(Vertex,cullMask)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,cullMask));
 		*Pointer<Int4>(vertex + OFFSET(Vertex,projected)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex,projected));
 
 		for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
@@ -622,6 +699,14 @@ namespace sw
 			{
 				*Pointer<Int>(vertex + OFFSET(Vertex, v[i]), 4) = *Pointer<Int>(cacheEntry + OFFSET(Vertex, v[i]), 4);
 			}
+		}
+		for(int i = 0; i < MAX_CLIP_DISTANCES; i++)
+		{
+			*Pointer<Float>(vertex + OFFSET(Vertex, clipDistance[i]), 4) = *Pointer<Float>(cacheEntry + OFFSET(Vertex, clipDistance[i]), 4);
+		}
+		for(int i = 0; i < MAX_CULL_DISTANCES; i++)
+		{
+			*Pointer<Float>(vertex + OFFSET(Vertex, cullDistance[i]), 4) = *Pointer<Float>(cacheEntry + OFFSET(Vertex, cullDistance[i]), 4);
 		}
 	}
 }

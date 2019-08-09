@@ -65,6 +65,9 @@ namespace sw
 		PlaneEquation w;
 		PlaneEquation V[MAX_INTERFACE_COMPONENTS];
 
+		PlaneEquation clipDistance[MAX_CLIP_DISTANCES];
+		PlaneEquation cullDistance[MAX_CULL_DISTANCES];
+
 		// Masks for two-sided stencil
 		int64_t clockwiseMask;
 		int64_t invClockwiseMask;
