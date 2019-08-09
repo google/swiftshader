@@ -196,6 +196,7 @@ cc_defaults {
         "Reactor/Reactor.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/Debug.cpp",
+        "Reactor/CPUID.cpp",
     ],
 
     cflags: [
