@@ -45,6 +45,20 @@ namespace
 		return rr::SignMask(~ints) != 0;
 	}
 
+	rr::RValue<sw::SIMD::UInt> AllTrueMask(rr::RValue<sw::SIMD::UInt> const &mask)
+	{
+		sw::SIMD::UInt v1 = mask;              // [x]    [y]    [z]    [w]
+		sw::SIMD::UInt v2 = v1.xzxz & v1.ywyw; // [xy]   [zw]   [xy]   [zw]
+		return v2.xxxx & v2.yyyy;              // [xyzw] [xyzw] [xyzw] [xyzw]
+	}
+
+	rr::RValue<sw::SIMD::UInt> AnyTrueMask(rr::RValue<sw::SIMD::UInt> const &mask)
+	{
+		sw::SIMD::UInt v1 = mask;              // [x]    [y]    [z]    [w]
+		sw::SIMD::UInt v2 = v1.xzxz | v1.ywyw; // [xy]   [zw]   [xy]   [zw]
+		return v2.xxxx | v2.yyyy;              // [xyzw] [xyzw] [xyzw] [xyzw]
+	}
+
 	rr::RValue<sw::SIMD::Float> Sign(rr::RValue<sw::SIMD::Float> const &val)
 	{
 		return rr::As<sw::SIMD::Float>((rr::As<sw::SIMD::UInt>(val) & sw::SIMD::UInt(0x80000000)) | sw::SIMD::UInt(0x3f800000));
@@ -827,6 +841,7 @@ namespace sw
 				case spv::CapabilityGroupNonUniform: capabilities.GroupNonUniform = true; break;
 				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
 				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
+				case spv::CapabilityGroupNonUniformVote: capabilities.GroupNonUniformVote = true; break;
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
@@ -1069,6 +1084,9 @@ namespace sw
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
+			case spv::OpGroupNonUniformAll:
+			case spv::OpGroupNonUniformAny:
+			case spv::OpGroupNonUniformAllEqual:
 			case spv::OpGroupNonUniformBroadcast:
 			case spv::OpGroupNonUniformBroadcastFirst:
 			case spv::OpGroupNonUniformBallot:
@@ -2723,6 +2741,9 @@ namespace sw
 			return EmitMemoryBarrier(insn, state);
 
 		case spv::OpGroupNonUniformElect:
+		case spv::OpGroupNonUniformAll:
+		case spv::OpGroupNonUniformAny:
+		case spv::OpGroupNonUniformAllEqual:
 		case spv::OpGroupNonUniformBroadcast:
 		case spv::OpGroupNonUniformBroadcastFirst:
 		case spv::OpGroupNonUniformBallot:
@@ -5980,6 +6001,40 @@ namespace sw
 			auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 			auto elect = active & ~(v0111 & (active.xxyz | active.xxxy | active.xxxx));
 			dst.move(0, elect);
+			break;
+		}
+
+		case spv::OpGroupNonUniformAll:
+		{
+			GenericValue predicate(this, state, insn.word(4));
+			dst.move(0, AllTrueMask(predicate.UInt(0) | ~As<SIMD::UInt>(state->activeLaneMask())));
+			break;
+		}
+
+		case spv::OpGroupNonUniformAny:
+		{
+			GenericValue predicate(this, state, insn.word(4));
+			dst.move(0, AnyTrueMask(predicate.UInt(0) & As<SIMD::UInt>(state->activeLaneMask())));
+			break;
+		}
+
+		case spv::OpGroupNonUniformAllEqual:
+		{
+			GenericValue value(this, state, insn.word(4));
+			auto res = SIMD::UInt(0xffffffff);
+			SIMD::UInt active = As<SIMD::UInt>(state->activeLaneMask());
+			SIMD::UInt inactive = ~active;
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				SIMD::UInt v = value.UInt(i) & active;
+				SIMD::UInt filled = v;
+				for (int j = 0; j < SIMD::Width - 1; j++)
+				{
+					filled |= filled.yzwx & inactive; // Populate inactive 'holes' with a live value
+				}
+				res &= AllTrueMask(CmpEQ(filled.xyzw, filled.yzwx));
+			}
+			dst.move(0, res);
 			break;
 		}
 
