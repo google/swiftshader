@@ -22,6 +22,11 @@ config("swiftshader_libvulkan_private_config") {
       "VK_USE_PLATFORM_XLIB_KHR",
       "VK_EXPORT=__attribute__((visibility(\"default\")))",
     ]
+  } else if (is_fuchsia) {
+    defines = [
+      "VK_USE_PLATFORM_FUCHSIA=1",
+      "VK_EXPORT=__attribute__((visibility(\"default\")))",
+    ]
   } else {
     defines = [ "VK_EXPORT=" ]
   }
@@ -105,7 +110,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
 
   configs = [ ":swiftshader_libvulkan_private_config" ]
 
-  output_name = "libvulkan"
+  output_name = "libvk_swiftshader"
   output_dir = "$root_out_dir/swiftshader"
 
   if (is_mac) {
@@ -114,7 +119,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
       "-Wl,-exported_symbols_list," +
           rebase_path("libvk_swiftshader.exports", root_build_dir),
     ]
-  } else if (is_linux) {
+  } else if (is_linux || is_fuchsia) {
     inputs = [
       "libvk_swiftshader.lds",
     ]
