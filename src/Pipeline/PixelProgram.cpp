@@ -59,6 +59,56 @@ namespace sw
 			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(SIMD::Int(0, 1, 2, 3));
 		}
 
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupEqMask);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 4);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] = As<SIMD::Float>(SIMD::Int(1, 2, 4, 8));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 2] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 3] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupGeMask);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 4);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] = As<SIMD::Float>(SIMD::Int(15, 14, 12, 8));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 2] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 3] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupGtMask);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 4);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] = As<SIMD::Float>(SIMD::Int(14, 12, 8, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 2] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 3] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupLeMask);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 4);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] = As<SIMD::Float>(SIMD::Int(1, 3, 7, 15));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 2] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 3] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupLtMask);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 4);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] = As<SIMD::Float>(SIMD::Int(0, 1, 3, 7));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 2] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent + 3] = As<SIMD::Float>(SIMD::Int(0, 0, 0, 0));
+		}
+
 		it = spirvShader->inputBuiltins.find(spv::BuiltInDeviceIndex);
 		if (it != spirvShader->inputBuiltins.end())
 		{

@@ -62,6 +62,21 @@ namespace
 		return std::make_pair(whole, frac);
 	}
 
+	// Returns the number of 1s in bits, per lane.
+	sw::SIMD::UInt CountBits(rr::RValue<sw::SIMD::UInt> const &bits)
+	{
+		// TODO: Add an intrinsic to reactor. Even if there isn't a
+		// single vector instruction, there may be target-dependent
+		// ways to make this faster.
+		// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+		sw::SIMD::UInt c = bits - ((bits >> 1) & sw::SIMD::UInt(0x55555555));
+		c = ((c >> 2) & sw::SIMD::UInt(0x33333333)) + (c & sw::SIMD::UInt(0x33333333));
+		c = ((c >> 4) + c) & sw::SIMD::UInt(0x0F0F0F0F);
+		c = ((c >> 8) + c) & sw::SIMD::UInt(0x00FF00FF);
+		c = ((c >> 16) + c) & sw::SIMD::UInt(0x0000FFFF);
+		return c;
+	}
+
 	// Returns 1 << bits.
 	// If the resulting bit overflows a 32 bit integer, 0 is returned.
 	rr::RValue<sw::SIMD::UInt> NthBit32(rr::RValue<sw::SIMD::UInt> const &bits)
@@ -812,6 +827,7 @@ namespace sw
 				case spv::CapabilityGroupNonUniform: capabilities.GroupNonUniform = true; break;
 				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
 				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
+				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -1053,6 +1069,14 @@ namespace sw
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
 			case spv::OpGroupNonUniformElect:
+			case spv::OpGroupNonUniformBroadcast:
+			case spv::OpGroupNonUniformBroadcastFirst:
+			case spv::OpGroupNonUniformBallot:
+			case spv::OpGroupNonUniformInverseBallot:
+			case spv::OpGroupNonUniformBallotBitExtract:
+			case spv::OpGroupNonUniformBallotBitCount:
+			case spv::OpGroupNonUniformBallotFindLSB:
+			case spv::OpGroupNonUniformBallotFindMSB:
 			case spv::OpCopyObject:
 			case spv::OpArrayLength:
 				// Instructions that yield an intermediate value or divergent pointer
@@ -2699,6 +2723,14 @@ namespace sw
 			return EmitMemoryBarrier(insn, state);
 
 		case spv::OpGroupNonUniformElect:
+		case spv::OpGroupNonUniformBroadcast:
+		case spv::OpGroupNonUniformBroadcastFirst:
+		case spv::OpGroupNonUniformBallot:
+		case spv::OpGroupNonUniformInverseBallot:
+		case spv::OpGroupNonUniformBallotBitExtract:
+		case spv::OpGroupNonUniformBallotBitCount:
+		case spv::OpGroupNonUniformBallotFindLSB:
+		case spv::OpGroupNonUniformBallotFindMSB:
 			return EmitGroupNonUniform(insn, state);
 
 		case spv::OpArrayLength:
@@ -3289,20 +3321,8 @@ namespace sw
 				break;
 			}
 			case spv::OpBitCount:
-			{
-				// TODO: Add an intrinsic to reactor. Even if there isn't a
-				// single vector instruction, there may be target-dependent
-				// ways to make this faster.
-				// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-				auto v = src.UInt(i);
-				SIMD::UInt c = v - ((v >> 1) & SIMD::UInt(0x55555555));
-				c = ((c >> 2) & SIMD::UInt(0x33333333)) + (c & SIMD::UInt(0x33333333));
-				c = ((c >> 4) + c) & SIMD::UInt(0x0F0F0F0F);
-				c = ((c >> 8) + c) & SIMD::UInt(0x00FF00FF);
-				c = ((c >> 16) + c) & SIMD::UInt(0x0000FFFF);
-				dst.move(i, c);
+				dst.move(i, CountBits(src.UInt(i)));
 				break;
-			}
 			case spv::OpSNegate:
 				dst.move(i, -src.Int(i));
 				break;
@@ -5906,8 +5926,9 @@ namespace sw
 		switch (executionScope)
 		{
 		case spv::ScopeWorkgroup:
-		case spv::ScopeSubgroup:
 			Yield(YieldResult::ControlBarrier);
+			break;
+		case spv::ScopeSubgroup:
 			break;
 		default:
 			// See Vulkan 1.1 spec, Appendix A, Validation Rules within a Module.
@@ -5938,6 +5959,8 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, EmitState *state) const
 	{
+		static_assert(SIMD::Width == 4, "EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4");
+
 		auto &type = getType(Type::ID(insn.word(1)));
 		Object::ID resultId = insn.word(2);
 		auto scope = spv::Scope(GetConstScalarInt(insn.word(3)));
@@ -5959,6 +5982,127 @@ namespace sw
 			dst.move(0, elect);
 			break;
 		}
+
+		case spv::OpGroupNonUniformBroadcast:
+		{
+			auto valueId = Object::ID(insn.word(4));
+			auto id = SIMD::Int(GetConstScalarInt(insn.word(5)));
+			GenericValue value(this, state, valueId);
+			auto mask = CmpEQ(id, SIMD::Int(0, 1, 2, 3));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto oneVal = SIMD::Int(value.Int(i) & mask);
+				auto replVal = SIMD::Int(oneVal.xxzz | oneVal.yyww);
+				dst.move(i, replVal.xxyy | replVal.zzww);
+			}
+			break;
+		}
+
+		case spv::OpGroupNonUniformBroadcastFirst:
+		{
+			auto valueId = Object::ID(insn.word(4));
+			GenericValue value(this, state, valueId);
+			// Result is true only in the active invocation with the lowest id
+			// in the group, otherwise result is false.
+			SIMD::Int active = state->activeLaneMask();
+			// TODO: Would be nice if we could write this as:
+			//   elect = active & ~(active.Oxyz | active.OOxy | active.OOOx)
+			auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+			auto elect = active & ~(v0111 & (active.xxyz | active.xxxy | active.xxxx));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto oneVal = SIMD::Int(value.Int(i) & elect);
+				auto replVal = SIMD::Int(oneVal.xxzz | oneVal.yyww);
+				dst.move(i, replVal.xxyy | replVal.zzww);
+			}
+			break;
+		}
+
+		case spv::OpGroupNonUniformBallot:
+		{
+			ASSERT(type.sizeInComponents == 4);
+			GenericValue predicate(this, state, insn.word(4));
+			dst.move(0, SIMD::Int(SignMask(state->activeLaneMask() & predicate.Int(0))));
+			dst.move(1, SIMD::Int(0));
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(0));
+			break;
+		}
+
+		case spv::OpGroupNonUniformInverseBallot:
+		{
+			auto valueId = Object::ID(insn.word(4));
+			ASSERT(type.sizeInComponents == 1);
+			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			GenericValue value(this, state, valueId);
+			auto bit = (value.Int(0) >> SIMD::Int(0, 1, 2, 3)) & SIMD::Int(1);
+			dst.move(0, -bit);
+			break;
+		}
+
+		case spv::OpGroupNonUniformBallotBitExtract:
+		{
+			auto valueId = Object::ID(insn.word(4));
+			auto indexId = Object::ID(insn.word(5));
+			ASSERT(type.sizeInComponents == 1);
+			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			ASSERT(getType(getObject(indexId).type).sizeInComponents == 1);
+			GenericValue value(this, state, valueId);
+			GenericValue index(this, state, indexId);
+			auto vecIdx = index.Int(0) / SIMD::Int(32);
+			auto bitIdx = index.Int(0) & SIMD::Int(31);
+			auto bits =	(value.Int(0) & CmpEQ(vecIdx, SIMD::Int(0))) |
+			            (value.Int(1) & CmpEQ(vecIdx, SIMD::Int(1))) |
+			            (value.Int(2) & CmpEQ(vecIdx, SIMD::Int(2))) |
+			            (value.Int(3) & CmpEQ(vecIdx, SIMD::Int(3)));
+			dst.move(0, -((bits >> bitIdx) & SIMD::Int(1)));
+			break;
+		}
+
+		case spv::OpGroupNonUniformBallotBitCount:
+		{
+			auto operation = spv::GroupOperation(insn.word(4));
+			auto valueId = Object::ID(insn.word(5));
+			ASSERT(type.sizeInComponents == 1);
+			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			GenericValue value(this, state, valueId);
+			switch (operation)
+			{
+			case spv::GroupOperationReduce:
+				dst.move(0, CountBits(value.UInt(0) & SIMD::UInt(15)));
+				break;
+			case spv::GroupOperationInclusiveScan:
+				dst.move(0, CountBits(value.UInt(0) & SIMD::UInt(1, 3, 7, 15)));
+				break;
+			case spv::GroupOperationExclusiveScan:
+				dst.move(0, CountBits(value.UInt(0) & SIMD::UInt(0, 1, 3, 7)));
+				break;
+			default:
+				UNSUPPORTED("GroupOperation %d", int(operation));
+			}
+			break;
+		}
+
+		case spv::OpGroupNonUniformBallotFindLSB:
+		{
+			auto valueId = Object::ID(insn.word(4));
+			ASSERT(type.sizeInComponents == 1);
+			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			GenericValue value(this, state, valueId);
+			dst.move(0, Cttz(value.UInt(0) & SIMD::UInt(15), true));
+			break;
+		}
+
+		case spv::OpGroupNonUniformBallotFindMSB:
+		{
+			auto valueId = Object::ID(insn.word(4));
+			ASSERT(type.sizeInComponents == 1);
+			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			GenericValue value(this, state, valueId);
+			dst.move(0, SIMD::UInt(31) - Ctlz(value.UInt(0) & SIMD::UInt(15), false));
+			break;
+		}
+
 		default:
 			UNIMPLEMENTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()).c_str());
 		}
