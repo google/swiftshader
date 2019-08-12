@@ -29,7 +29,7 @@ namespace sw
 		init();
 	}
 
-	bool Context::isDrawPoint() const
+	bool Context::isDrawPoint(bool polygonModeAware) const
 	{
 		switch(topology)
 		{
@@ -37,46 +37,48 @@ namespace sw
 			return true;
 		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+			return false;
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			break;
+			return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_POINT) : false;
 		default:
 			UNIMPLEMENTED("topology %d", int(topology));
 		}
 		return false;
 	}
 
-	bool Context::isDrawLine() const
+	bool Context::isDrawLine(bool polygonModeAware) const
 	{
 		switch(topology)
 		{
+		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+			return false;
 		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
 			return true;
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			break;
+			return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_LINE) : false;
 		default:
 			UNIMPLEMENTED("topology %d", int(topology));
 		}
 		return false;
 	}
 
-	bool Context::isDrawTriangle() const
+	bool Context::isDrawTriangle(bool polygonModeAware) const
 	{
 		switch(topology)
 		{
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			return true;
 		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			break;
+			return false;
+		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+			return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_FILL) : true;
 		default:
 			UNIMPLEMENTED("topology %d", int(topology));
 		}

@@ -42,11 +42,11 @@ namespace sw
 			bool isDrawPoint               : 1;
 			bool isDrawLine                : 1;
 			bool isDrawTriangle            : 1;
+			bool applySlopeDepthBias       : 1;
 			bool interpolateZ              : 1;
 			bool interpolateW              : 1;
 			VkFrontFace frontFace          : BITS(VK_FRONT_FACE_MAX_ENUM);
 			VkCullModeFlags cullMode       : BITS(VK_CULL_MODE_FLAG_BITS_MAX_ENUM);
-			bool slopeDepthBias            : 1;
 			unsigned int multiSample       : 3;   // 1, 2 or 4
 			bool rasterizerDiscard         : 1;
 

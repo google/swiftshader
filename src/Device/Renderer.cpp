@@ -206,16 +206,33 @@ namespace sw
 		}
 
 		DrawCall::SetupFunction setupPrimitives = nullptr;
+		unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
 
-		if(context->isDrawTriangle())
+		if(context->isDrawTriangle(false))
 		{
-			setupPrimitives = &DrawCall::setupTriangles;
+			switch(context->polygonMode)
+			{
+			case VK_POLYGON_MODE_FILL:
+				setupPrimitives = &DrawCall::setupSolidTriangles;
+				break;
+			case VK_POLYGON_MODE_LINE:
+				setupPrimitives = &DrawCall::setupWireframeTriangles;
+				numPrimitivesPerBatch = 1;
+				break;
+			case VK_POLYGON_MODE_POINT:
+				setupPrimitives = &DrawCall::setupPointTriangles;
+				numPrimitivesPerBatch = 1;
+				break;
+			default:
+				UNSUPPORTED("polygon mode: %d", int(context->polygonMode));
+				return;
+			}
 		}
-		else if(context->isDrawLine())
+		else if(context->isDrawLine(false))
 		{
 			setupPrimitives = &DrawCall::setupLines;
 		}
-		else   // Point draw
+		else  // Point primitive topology
 		{
 			setupPrimitives = &DrawCall::setupPoints;
 		}
@@ -224,7 +241,7 @@ namespace sw
 		draw->occlusionQuery = occlusionQuery;
 		draw->batchDataPool = &batchDataPool;
 		draw->numPrimitives = count;
-		draw->numPrimitivesPerBatch = MaxBatchSize / ms;
+		draw->numPrimitivesPerBatch = numPrimitivesPerBatch;
 		draw->numBatches = (count + draw->numPrimitivesPerBatch - 1) / draw->numPrimitivesPerBatch;
 		draw->topology = context->topology;
 		draw->indexType = indexType;
@@ -297,7 +314,7 @@ namespace sw
 			float F = viewport.maxDepth;
 			float Z = F - N;
 
-			if(context->isDrawTriangle())
+			if(context->isDrawTriangle(false))
 			{
 				N += context->depthBias;
 			}
@@ -567,7 +584,7 @@ namespace sw
 		triangleIndicesOut[triangleCount][2] = triangleIndicesOut[triangleCount - 1][2];
 	}
 
-	int DrawCall::setupTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count)
+	int DrawCall::setupSolidTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count)
 	{
 		auto &state = drawCall->setupState;
 		auto setupRoutine = drawCall->setupPointer;
@@ -602,6 +619,94 @@ namespace sw
 					visible++;
 				}
 			}
+		}
+
+		return visible;
+	}
+
+	int DrawCall::setupWireframeTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count)
+	{
+		auto& state = drawCall->setupState;
+
+		int ms = state.multiSample;
+		int visible = 0;
+
+		const Vertex &v0 = triangles[0].v0;
+		const Vertex &v1 = triangles[0].v1;
+		const Vertex &v2 = triangles[0].v2;
+
+		float d = (v0.position.y * v1.position.x - v0.position.x * v1.position.y) * v2.position.w +
+		          (v0.position.x * v2.position.y - v0.position.y * v2.position.x) * v1.position.w +
+		          (v2.position.x * v1.position.y - v1.position.x * v2.position.y) * v0.position.w;
+
+		bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? d > 0.0f : d < 0.0f;
+		if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
+		{
+			if(frontFacing) return 0;
+		}
+		if(state.cullMode & VK_CULL_MODE_BACK_BIT)
+		{
+			if(!frontFacing) return 0;
+		}
+
+		// Copy attributes
+		triangles[1].v0 = v1;
+		triangles[1].v1 = v2;
+		triangles[2].v0 = v2;
+		triangles[2].v1 = v0;
+
+		for(int i = 0; i < 3; i++)
+		{
+			if(setupLine(*primitives, *triangles, *drawCall))
+			{
+				primitives += ms;
+				visible++;
+			}
+
+			triangles++;
+		}
+
+		return visible;
+	}
+
+	int DrawCall::setupPointTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count)
+	{
+		auto& state = drawCall->setupState;
+
+		int ms = state.multiSample;
+		int visible = 0;
+
+		const Vertex &v0 = triangles[0].v0;
+		const Vertex &v1 = triangles[0].v1;
+		const Vertex &v2 = triangles[0].v2;
+
+		float d = (v0.position.y * v1.position.x - v0.position.x * v1.position.y) * v2.position.w +
+		          (v0.position.x * v2.position.y - v0.position.y * v2.position.x) * v1.position.w +
+		          (v2.position.x * v1.position.y - v1.position.x * v2.position.y) * v0.position.w;
+
+		bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? d > 0.0f : d < 0.0f;
+		if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
+		{
+			if(frontFacing) return 0;
+		}
+		if(state.cullMode & VK_CULL_MODE_BACK_BIT)
+		{
+			if(!frontFacing) return 0;
+		}
+
+		// Copy attributes
+		triangles[1].v0 = v1;
+		triangles[2].v0 = v2;
+
+		for(int i = 0; i < 3; i++)
+		{
+			if(setupPoint(*primitives, *triangles, *drawCall))
+			{
+				primitives += ms;
+				visible++;
+			}
+
+			triangles++;
 		}
 
 		return visible;

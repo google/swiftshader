@@ -427,7 +427,7 @@ namespace sw
 
 				Float c = z0;
 
-				if(state.isDrawTriangle && state.slopeDepthBias)
+				if(state.applySlopeDepthBias)
 				{
 					Float bias = Max(Abs(Float(A.x)), Abs(Float(B.x)));
 					bias *= *Pointer<Float>(data + OFFSET(DrawData,slopeDepthBias));

@@ -179,7 +179,9 @@ namespace sw
 				unsigned int triangleCount,
 				VkPrimitiveTopology topology);
 
-		static int setupTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
+		static int setupSolidTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
+		static int setupWireframeTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
+		static int setupPointTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
 		static int setupLines(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 		static int setupPoints(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 
