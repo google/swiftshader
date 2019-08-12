@@ -486,7 +486,7 @@ namespace sw
 			bool robustBufferAccess)
 				: insns{insns}, inputs{MAX_INTERFACE_COMPONENTS},
 				  outputs{MAX_INTERFACE_COMPONENTS},
-				  codeSerialID(codeSerialID), modes{},
+				  codeSerialID(codeSerialID),
 				  robustBufferAccess(robustBufferAccess)
 	{
 		ASSERT(insns.size() > 0);
@@ -800,20 +800,18 @@ namespace sw
 				auto capability = static_cast<spv::Capability>(insn.word(1));
 				switch (capability)
 				{
-				case spv::CapabilityMatrix:
-				case spv::CapabilityShader:
-				case spv::CapabilityInputAttachment:
-				case spv::CapabilitySampled1D:
-				case spv::CapabilityImage1D:
-				case spv::CapabilitySampledBuffer:
-				case spv::CapabilityImageBuffer:
-				case spv::CapabilityImageQuery:
-				case spv::CapabilityDerivativeControl:
-				case spv::CapabilityMultiView:
-				case spv::CapabilityDeviceGroup:
-				case spv::CapabilityGroupNonUniform:
-					break;
-
+				case spv::CapabilityMatrix: capabilities.Matrix = true; break;
+				case spv::CapabilityShader: capabilities.Shader = true; break;
+				case spv::CapabilityInputAttachment: capabilities.InputAttachment = true; break;
+				case spv::CapabilitySampled1D: capabilities.Sampled1D = true; break;
+				case spv::CapabilityImage1D: capabilities.Image1D = true; break;
+				case spv::CapabilitySampledBuffer: capabilities.SampledBuffer = true; break;
+				case spv::CapabilityImageBuffer: capabilities.ImageBuffer = true; break;
+				case spv::CapabilityImageQuery: capabilities.ImageQuery = true; break;
+				case spv::CapabilityDerivativeControl: capabilities.DerivativeControl = true; break;
+				case spv::CapabilityGroupNonUniform: capabilities.GroupNonUniform = true; break;
+				case spv::CapabilityMultiView: capabilities.MultiView = true; break;
+				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}

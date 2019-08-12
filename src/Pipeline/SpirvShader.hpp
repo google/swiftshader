@@ -723,6 +723,27 @@ namespace sw
 			return modes;
 		}
 
+		struct Capabilities
+		{
+			bool Matrix : 1;
+			bool Shader : 1;
+			bool InputAttachment : 1;
+			bool Sampled1D : 1;
+			bool Image1D : 1;
+			bool SampledBuffer : 1;
+			bool ImageBuffer : 1;
+			bool ImageQuery : 1;
+			bool DerivativeControl : 1;
+			bool GroupNonUniform : 1;
+			bool MultiView : 1;
+			bool DeviceGroup : 1;
+		};
+
+		Capabilities const &getUsedCapabilities() const
+		{
+			return capabilities;
+		}
+
 		enum AttribType : unsigned char
 		{
 			ATTRIBTYPE_FLOAT,
@@ -873,7 +894,8 @@ namespace sw
 
 	private:
 		const uint32_t codeSerialID;
-		Modes modes;
+		Modes modes = {};
+		Capabilities capabilities = {};
 		HandleMap<Type> types;
 		HandleMap<Object> defs;
 		HandleMap<Function> functions;
