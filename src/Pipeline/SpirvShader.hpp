@@ -508,6 +508,36 @@ namespace sw
 			return capabilities;
 		}
 
+		// getNumOutputClipDistances() returns the number of ClipDistances
+		// outputted by this shader.
+		unsigned int getNumOutputClipDistances() const
+		{
+			if (getUsedCapabilities().ClipDistance)
+			{
+				auto it = outputBuiltins.find(spv::BuiltInClipDistance);
+				if(it != outputBuiltins.end())
+				{
+					return it->second.SizeInComponents;
+				}
+			}
+			return 0;
+		}
+
+		// getNumOutputCullDistances() returns the number of CullDistances
+		// outputted by this shader.
+		unsigned int getNumOutputCullDistances() const
+		{
+			if (getUsedCapabilities().CullDistance)
+			{
+				auto it = outputBuiltins.find(spv::BuiltInCullDistance);
+				if(it != outputBuiltins.end())
+				{
+					return it->second.SizeInComponents;
+				}
+			}
+			return 0;
+		}
+
 		enum AttribType : unsigned char
 		{
 			ATTRIBTYPE_FLOAT,

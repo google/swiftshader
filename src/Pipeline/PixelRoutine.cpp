@@ -163,7 +163,7 @@ namespace sw
 
 				setBuiltins(x, y, z, w, cMask);
 
-				for (uint32_t i = 0; i < MAX_CLIP_DISTANCES; i++)
+				for (uint32_t i = 0; i < state.numClipDistances; i++)
 				{
 					auto distance = interpolate(xxxx, DclipDistance[i], rhw,
 												primitive + OFFSET(Primitive, clipDistance[i]),
@@ -197,12 +197,15 @@ namespace sw
 					auto it = spirvShader->inputBuiltins.find(spv::BuiltInCullDistance);
 					if(it != spirvShader->inputBuiltins.end())
 					{
-						for (uint32_t i = 0; i < it->second.SizeInComponents; i++)
+						for (uint32_t i = 0; i < state.numCullDistances; i++)
 						{
-							routine.getVariable(it->second.Id)[it->second.FirstComponent + i] =
-									interpolate(xxxx, DcullDistance[i], rhw,
-												primitive + OFFSET(Primitive, cullDistance[i]),
-												false, true, false);
+							if (i < it->second.SizeInComponents)
+							{
+								routine.getVariable(it->second.Id)[it->second.FirstComponent + i] =
+										interpolate(xxxx, DcullDistance[i], rhw,
+													primitive + OFFSET(Primitive, cullDistance[i]),
+													false, true, false);
+							}
 						}
 					}
 				}

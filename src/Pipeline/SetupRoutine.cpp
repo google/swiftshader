@@ -456,7 +456,7 @@ namespace sw
 				}
 			}
 
-			for (int i = 0; i < MAX_CLIP_DISTANCES; i++)
+			for (unsigned int i = 0; i < state.numClipDistances; i++)
 			{
 				setupGradient(primitive, tri, w012, M, v0, v1, v2,
 						OFFSET(Vertex, clipDistance[i]),
@@ -464,7 +464,7 @@ namespace sw
 						false, true);
 			}
 
-			for (int i = 0; i < MAX_CULL_DISTANCES; i++)
+			for (unsigned int i = 0; i < state.numCullDistances; i++)
 			{
 				setupGradient(primitive, tri, w012, M, v0, v1, v2,
 						OFFSET(Vertex, cullDistance[i]),

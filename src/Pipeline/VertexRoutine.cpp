@@ -148,18 +148,15 @@ namespace sw
 	{
 		cullMask = Int(15);
 
-		if (spirvShader->getUsedCapabilities().CullDistance)
+		auto it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
+		if (it != spirvShader->outputBuiltins.end())
 		{
-			auto it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
-			if (it != spirvShader->outputBuiltins.end())
+			auto count = spirvShader->getNumOutputCullDistances();
+			for (uint32_t i = 0; i < count; i++)
 			{
-				auto &var = routine.getVariable(it->second.Id);
-				for (uint32_t i = 0; i < it->second.SizeInComponents; i++)
-				{
-					auto const &distance = var[it->second.FirstComponent + i];
-					auto mask = SignMask(CmpGE(distance, SIMD::Float(0)));
-					cullMask &= mask;
-				}
+				auto const &distance = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
+				auto mask = SignMask(CmpGE(distance, SIMD::Float(0)));
+				cullMask &= mask;
 			}
 		}
 	}
@@ -594,54 +591,32 @@ namespace sw
 			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,pointSize)) = Extract(psize, 0);
 		}
 
-		uint32_t clipIndex = 0;
-		if (spirvShader->getUsedCapabilities().ClipDistance)
+		it = spirvShader->outputBuiltins.find(spv::BuiltInClipDistance);
+		if(it != spirvShader->outputBuiltins.end())
 		{
-			it = spirvShader->outputBuiltins.find(spv::BuiltInClipDistance);
-			if(it != spirvShader->outputBuiltins.end())
+			auto count = spirvShader->getNumOutputClipDistances();
+			for(unsigned int i = 0; i < count; i++)
 			{
-				ASSERT(it->second.SizeInComponents <= MAX_CLIP_DISTANCES);
-				for(; clipIndex < it->second.SizeInComponents; clipIndex++)
-				{
-					auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + clipIndex];
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 3);
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 2);
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 1);
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipDistance[clipIndex])) = Extract(dist, 0);
-				}
+				auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 3);
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 2);
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 1);
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 0);
 			}
-		}
-		for(; clipIndex < MAX_CLIP_DISTANCES; clipIndex++)
-		{
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipDistance[clipIndex])) = Float(0);
 		}
 
-		uint32_t cullIndex = 0;
-		if (spirvShader->getUsedCapabilities().CullDistance)
+		it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
+		if(it != spirvShader->outputBuiltins.end())
 		{
-			it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
-			if(it != spirvShader->outputBuiltins.end())
+			auto count = spirvShader->getNumOutputCullDistances();
+			for(unsigned int i = 0; i < count; i++)
 			{
-				ASSERT(it->second.SizeInComponents <= MAX_CULL_DISTANCES);
-				for(; cullIndex < it->second.SizeInComponents; cullIndex++)
-				{
-					auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + cullIndex];
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 3);
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 2);
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 1);
-					*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullDistance[cullIndex])) = Extract(dist, 0);
-				}
+				auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 3);
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 2);
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 1);
+				*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 0);
 			}
-		}
-		for(; cullIndex < MAX_CULL_DISTANCES; cullIndex++)
-		{
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullDistance[cullIndex])) = Float(0);
 		}
 
 		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
@@ -700,11 +675,11 @@ namespace sw
 				*Pointer<Int>(vertex + OFFSET(Vertex, v[i]), 4) = *Pointer<Int>(cacheEntry + OFFSET(Vertex, v[i]), 4);
 			}
 		}
-		for(int i = 0; i < MAX_CLIP_DISTANCES; i++)
+		for(unsigned int i = 0; i < spirvShader->getNumOutputClipDistances(); i++)
 		{
 			*Pointer<Float>(vertex + OFFSET(Vertex, clipDistance[i]), 4) = *Pointer<Float>(cacheEntry + OFFSET(Vertex, clipDistance[i]), 4);
 		}
-		for(int i = 0; i < MAX_CULL_DISTANCES; i++)
+		for(unsigned int i = 0; i < spirvShader->getNumOutputCullDistances(); i++)
 		{
 			*Pointer<Float>(vertex + OFFSET(Vertex, cullDistance[i]), 4) = *Pointer<Float>(cacheEntry + OFFSET(Vertex, cullDistance[i]), 4);
 		}

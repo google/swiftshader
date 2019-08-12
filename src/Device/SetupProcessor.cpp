@@ -81,6 +81,9 @@ namespace sw
 		state.multiSample = context->sampleCount;
 		state.rasterizerDiscard = context->rasterizerDiscard;
 
+		state.numClipDistances = context->vertexShader->getNumOutputClipDistances();
+		state.numCullDistances = context->vertexShader->getNumOutputCullDistances();
+
 		if (context->pixelShader)
 		{
 			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)

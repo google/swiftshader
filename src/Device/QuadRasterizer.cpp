@@ -158,13 +158,13 @@ namespace sw
 						}
 					}
 
-					for (int i = 0; i < MAX_CLIP_DISTANCES; i++)
+					for (unsigned int i = 0; i < state.numClipDistances; i++)
 					{
 						DclipDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].C), 16) +
 									yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].B), 16);
 					}
 
-					for (int i = 0; i < MAX_CULL_DISTANCES; i++)
+					for (unsigned int i = 0; i < state.numCullDistances; i++)
 					{
 						DcullDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].C), 16) +
 									yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].B), 16);

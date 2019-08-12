@@ -154,6 +154,9 @@ namespace sw
 	{
 		State state;
 
+		state.numClipDistances = context->vertexShader->getNumOutputClipDistances();
+		state.numCullDistances = context->vertexShader->getNumOutputCullDistances();
+
 		if(context->pixelShader)
 		{
 			state.shaderID = context->pixelShader->getSerialID();
