@@ -845,6 +845,7 @@ namespace sw
 				case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 				case spv::CapabilityGroupNonUniformVote: capabilities.GroupNonUniformVote = true; break;
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
+				case spv::CapabilityGroupNonUniformShuffle: capabilities.GroupNonUniformShuffle = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -1097,6 +1098,8 @@ namespace sw
 			case spv::OpGroupNonUniformBallotBitCount:
 			case spv::OpGroupNonUniformBallotFindLSB:
 			case spv::OpGroupNonUniformBallotFindMSB:
+			case spv::OpGroupNonUniformShuffle:
+			case spv::OpGroupNonUniformShuffleXor:
 			case spv::OpCopyObject:
 			case spv::OpArrayLength:
 				// Instructions that yield an intermediate value or divergent pointer
@@ -2754,6 +2757,8 @@ namespace sw
 		case spv::OpGroupNonUniformBallotBitCount:
 		case spv::OpGroupNonUniformBallotFindLSB:
 		case spv::OpGroupNonUniformBallotFindMSB:
+		case spv::OpGroupNonUniformShuffle:
+		case spv::OpGroupNonUniformShuffleXor:
 			return EmitGroupNonUniform(insn, state);
 
 		case spv::OpArrayLength:
@@ -6153,6 +6158,38 @@ namespace sw
 			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
 			GenericValue value(this, state, valueId);
 			dst.move(0, SIMD::UInt(31) - Ctlz(value.UInt(0) & SIMD::UInt(15), false));
+			break;
+		}
+
+		case spv::OpGroupNonUniformShuffle:
+		{
+			GenericValue value(this, state, insn.word(4));
+			GenericValue id(this, state, insn.word(5));
+			auto x = CmpEQ(SIMD::Int(0), id.Int(0));
+			auto y = CmpEQ(SIMD::Int(1), id.Int(0));
+			auto z = CmpEQ(SIMD::Int(2), id.Int(0));
+			auto w = CmpEQ(SIMD::Int(3), id.Int(0));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				SIMD::Int v = value.Int(i);
+				dst.move(i, (x & v.xxxx) | (y & v.yyyy) | (z & v.zzzz) | (w & v.wwww));
+			}
+			break;
+		}
+
+		case spv::OpGroupNonUniformShuffleXor:
+		{
+			GenericValue value(this, state, insn.word(4));
+			GenericValue mask(this, state, insn.word(5));
+			auto x = CmpEQ(SIMD::Int(0), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
+			auto y = CmpEQ(SIMD::Int(1), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
+			auto z = CmpEQ(SIMD::Int(2), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
+			auto w = CmpEQ(SIMD::Int(3), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				SIMD::Int v = value.Int(i);
+				dst.move(i, (x & v.xxxx) | (y & v.yyyy) | (z & v.zzzz) | (w & v.wwww));
+			}
 			break;
 		}
 
