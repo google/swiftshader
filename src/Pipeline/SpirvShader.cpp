@@ -846,6 +846,7 @@ namespace sw
 				case spv::CapabilityGroupNonUniformVote: capabilities.GroupNonUniformVote = true; break;
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				case spv::CapabilityGroupNonUniformShuffle: capabilities.GroupNonUniformShuffle = true; break;
+				case spv::CapabilityGroupNonUniformShuffleRelative: capabilities.GroupNonUniformShuffleRelative = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -1100,6 +1101,8 @@ namespace sw
 			case spv::OpGroupNonUniformBallotFindMSB:
 			case spv::OpGroupNonUniformShuffle:
 			case spv::OpGroupNonUniformShuffleXor:
+			case spv::OpGroupNonUniformShuffleUp:
+			case spv::OpGroupNonUniformShuffleDown:
 			case spv::OpCopyObject:
 			case spv::OpArrayLength:
 				// Instructions that yield an intermediate value or divergent pointer
@@ -2759,6 +2762,8 @@ namespace sw
 		case spv::OpGroupNonUniformBallotFindMSB:
 		case spv::OpGroupNonUniformShuffle:
 		case spv::OpGroupNonUniformShuffleXor:
+		case spv::OpGroupNonUniformShuffleUp:
+		case spv::OpGroupNonUniformShuffleDown:
 			return EmitGroupNonUniform(insn, state);
 
 		case spv::OpArrayLength:
@@ -6189,6 +6194,38 @@ namespace sw
 			{
 				SIMD::Int v = value.Int(i);
 				dst.move(i, (x & v.xxxx) | (y & v.yyyy) | (z & v.zzzz) | (w & v.wwww));
+			}
+			break;
+		}
+
+		case spv::OpGroupNonUniformShuffleUp:
+		{
+			GenericValue value(this, state, insn.word(4));
+			GenericValue delta(this, state, insn.word(5));
+			auto d0 = CmpEQ(SIMD::Int(0), delta.Int(0));
+			auto d1 = CmpEQ(SIMD::Int(1), delta.Int(0));
+			auto d2 = CmpEQ(SIMD::Int(2), delta.Int(0));
+			auto d3 = CmpEQ(SIMD::Int(3), delta.Int(0));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				SIMD::Int v = value.Int(i);
+				dst.move(i, (d0 & v.xyzw) | (d1 & v.xxyz) | (d2 & v.xxxy) | (d3 & v.xxxx));
+			}
+			break;
+		}
+
+		case spv::OpGroupNonUniformShuffleDown:
+		{
+			GenericValue value(this, state, insn.word(4));
+			GenericValue delta(this, state, insn.word(5));
+			auto d0 = CmpEQ(SIMD::Int(0), delta.Int(0));
+			auto d1 = CmpEQ(SIMD::Int(1), delta.Int(0));
+			auto d2 = CmpEQ(SIMD::Int(2), delta.Int(0));
+			auto d3 = CmpEQ(SIMD::Int(3), delta.Int(0));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				SIMD::Int v = value.Int(i);
+				dst.move(i, (d0 & v.xyzw) | (d1 & v.yzww) | (d2 & v.zwww) | (d3 & v.wwww));
 			}
 			break;
 		}
