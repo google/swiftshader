@@ -555,6 +555,7 @@ cc_defaults {
         "System/CPUID.cpp",
         "System/Configurator.cpp",
         "System/Half.cpp",
+        "System/Linux/MemFd.cpp",
         "System/Math.cpp",
         "System/Memory.cpp",
         "System/Socket.cpp",

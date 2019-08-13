@@ -203,6 +203,7 @@ if (build_with_chromium) {
 
       data_deps = [
         "tests/GLESUnitTests:swiftshader_unittests",
+        "tests/SystemUnitTests:swiftshader_system_unittests",
       ]
     }
 }
