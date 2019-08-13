@@ -1313,6 +1313,25 @@ namespace sw
 			return it->second;
 		}
 
+		// setImmutableInputBuiltins() sets all the immutable input builtins,
+		// common for all shader types.
+		void setImmutableInputBuiltins(SpirvShader const *shader);
+
+		// setInputBuiltin() calls f() with the builtin and value if the shader
+		// uses the input builtin, otherwise the call is a no-op.
+		// F is a function with the signature:
+		// void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
+		template <typename F>
+		inline void setInputBuiltin(SpirvShader const *shader, spv::BuiltIn id, F&& f)
+		{
+			auto it = shader->inputBuiltins.find(id);
+			if (it != shader->inputBuiltins.end())
+			{
+				const auto& builtin = it->second;
+				f(builtin, getVariable(builtin.Id));
+			}
+		}
+
 	private:
 		// The phis are only accessible to SpirvShader as they are only used and
 		// exist between calls to SpirvShader::emitProlog() and

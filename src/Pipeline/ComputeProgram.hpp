@@ -66,7 +66,6 @@ namespace sw
 		void emit(SpirvRoutine* routine);
 		void setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3]);
 		void setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex);
-		void setInputBuiltin(SpirvRoutine* routine, spv::BuiltIn id, std::function<void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)> cb);
 
 		struct Data
 		{
