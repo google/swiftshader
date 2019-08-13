@@ -45,18 +45,20 @@ namespace
 		return rr::SignMask(~ints) != 0;
 	}
 
-	rr::RValue<sw::SIMD::UInt> AllTrueMask(rr::RValue<sw::SIMD::UInt> const &mask)
+	template <typename T>
+	rr::RValue<T> AndAll(rr::RValue<T> const &mask)
 	{
-		sw::SIMD::UInt v1 = mask;              // [x]    [y]    [z]    [w]
-		sw::SIMD::UInt v2 = v1.xzxz & v1.ywyw; // [xy]   [zw]   [xy]   [zw]
-		return v2.xxxx & v2.yyyy;              // [xyzw] [xyzw] [xyzw] [xyzw]
+		T v1 = mask;              // [x]    [y]    [z]    [w]
+		T v2 = v1.xzxz & v1.ywyw; // [xy]   [zw]   [xy]   [zw]
+		return v2.xxxx & v2.yyyy; // [xyzw] [xyzw] [xyzw] [xyzw]
 	}
 
-	rr::RValue<sw::SIMD::UInt> AnyTrueMask(rr::RValue<sw::SIMD::UInt> const &mask)
+	template <typename T>
+	rr::RValue<T> OrAll(rr::RValue<T> const &mask)
 	{
-		sw::SIMD::UInt v1 = mask;              // [x]    [y]    [z]    [w]
-		sw::SIMD::UInt v2 = v1.xzxz | v1.ywyw; // [xy]   [zw]   [xy]   [zw]
-		return v2.xxxx | v2.yyyy;              // [xyzw] [xyzw] [xyzw] [xyzw]
+		T v1 = mask;              // [x]    [y]    [z]    [w]
+		T v2 = v1.xzxz | v1.ywyw; // [xy]   [zw]   [xy]   [zw]
+		return v2.xxxx | v2.yyyy; // [xyzw] [xyzw] [xyzw] [xyzw]
 	}
 
 	rr::RValue<sw::SIMD::Float> Sign(rr::RValue<sw::SIMD::Float> const &val)
@@ -6007,14 +6009,14 @@ namespace sw
 		case spv::OpGroupNonUniformAll:
 		{
 			GenericValue predicate(this, state, insn.word(4));
-			dst.move(0, AllTrueMask(predicate.UInt(0) | ~As<SIMD::UInt>(state->activeLaneMask())));
+			dst.move(0, AndAll(predicate.UInt(0) | ~As<SIMD::UInt>(state->activeLaneMask())));
 			break;
 		}
 
 		case spv::OpGroupNonUniformAny:
 		{
 			GenericValue predicate(this, state, insn.word(4));
-			dst.move(0, AnyTrueMask(predicate.UInt(0) & As<SIMD::UInt>(state->activeLaneMask())));
+			dst.move(0, OrAll(predicate.UInt(0) & As<SIMD::UInt>(state->activeLaneMask())));
 			break;
 		}
 
@@ -6032,7 +6034,7 @@ namespace sw
 				{
 					filled |= filled.yzwx & inactive; // Populate inactive 'holes' with a live value
 				}
-				res &= AllTrueMask(CmpEQ(filled.xyzw, filled.yzwx));
+				res &= AndAll(CmpEQ(filled.xyzw, filled.yzwx));
 			}
 			dst.move(0, res);
 			break;
@@ -6046,9 +6048,7 @@ namespace sw
 			auto mask = CmpEQ(id, SIMD::Int(0, 1, 2, 3));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				auto oneVal = SIMD::Int(value.Int(i) & mask);
-				auto replVal = SIMD::Int(oneVal.xxzz | oneVal.yyww);
-				dst.move(i, replVal.xxyy | replVal.zzww);
+				dst.move(i, OrAll(value.Int(i) & mask));
 			}
 			break;
 		}
@@ -6066,9 +6066,7 @@ namespace sw
 			auto elect = active & ~(v0111 & (active.xxyz | active.xxxy | active.xxxx));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				auto oneVal = SIMD::Int(value.Int(i) & elect);
-				auto replVal = SIMD::Int(oneVal.xxzz | oneVal.yyww);
-				dst.move(i, replVal.xxyy | replVal.zzww);
+				dst.move(i, OrAll(value.Int(i) & elect));
 			}
 			break;
 		}
