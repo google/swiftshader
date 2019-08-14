@@ -1266,7 +1266,7 @@ namespace glsl
 		TIntermTyped *result = node;
 		const TType &resultType = node->getType();
 		TIntermSequence &arg = node->getSequence();
-		size_t argumentCount = arg.size();
+		int argumentCount = static_cast<int>(arg.size());
 
 		switch(node->getOp())
 		{
@@ -1339,7 +1339,7 @@ namespace glsl
 
 					TIntermSequence &arguments = *function->arg;
 
-					for(size_t i = 0; i < argumentCount; i++)
+					for(int i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *in = arguments[i]->getAsTyped();
 
@@ -1360,7 +1360,7 @@ namespace glsl
 						copy(result, function->ret);
 					}
 
-					for(size_t i = 0; i < argumentCount; i++)
+					for(int i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *argument = arguments[i]->getAsTyped();
 						TIntermTyped *out = arg[i]->getAsTyped();
@@ -1500,7 +1500,7 @@ namespace glsl
 				int component = 0;
 				int arrayMaxIndex = result->isArray() ? result->getArraySize() - 1 : 0;
 				int arrayComponents = result->getType().getElementSize();
-				for(size_t i = 0; i < argumentCount; i++)
+				for(int i = 0; i < argumentCount; i++)
 				{
 					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->getNominalSize();
@@ -1616,7 +1616,7 @@ namespace glsl
 					int column = 0;
 					int row = 0;
 
-					for(size_t i = 0; i < argumentCount; i++)
+					for(int i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *argi = arg[i]->getAsTyped();
 						int size = argi->getNominalSize();
@@ -1641,7 +1641,7 @@ namespace glsl
 			if(visit == PostVisit)
 			{
 				int offset = 0;
-				for(size_t i = 0; i < argumentCount; i++)
+				for(int i = 0; i < argumentCount; i++)
 				{
 					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->totalRegisterCount();

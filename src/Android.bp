@@ -16,10 +16,8 @@
 
 cc_defaults {
     name: "libswiftshader",
-
-    device_supported: false,
-    host_supported: true,
     vendor: true,
+    host_supported: true,
 
     defaults: [ "swiftshader_common" ],
 
@@ -49,6 +47,7 @@ cc_defaults {
             relative_install_path: "hw",
             header_libs: [
                 "swiftshader_platform_headers",
+		"libnativebase_headers",
             ],
             shared_libs: [
                 "libnativewindow",
@@ -56,6 +55,7 @@ cc_defaults {
                 "libcutils",
                 "libsync",
                 "liblog",
+		"libui",
             ],
         },
 
@@ -63,6 +63,7 @@ cc_defaults {
             header_libs: [
                 "swiftshader_host_headers",
                 "swiftshader_platform_headers",
+		"libnativebase_headers",
             ],
 
             // Pretend to build for Android
@@ -121,6 +122,7 @@ cc_defaults {
         "Common/Socket.cpp",
         "Common/Thread.cpp",
         "Common/Timer.cpp",
+	"Common/SharedLibrary.cpp",
         "Main/Config.cpp",
         "Main/FrameBuffer.cpp",
         "Main/FrameBufferAndroid.cpp",
@@ -214,25 +216,6 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "libswiftshader_subzero_defaults",
-
-    defaults: [ "libswiftshader_common_defaults", "swiftshader_subzero" ],
-    device_supported: false,
-
-    srcs: [
-        "Reactor/Reactor.cpp",
-        "Reactor/SubzeroReactor.cpp",
-        "Reactor/Optimizer.cpp",
-        "Reactor/Debug.cpp",
-    ],
-
-    static_libs: [
-        "libLLVMSupport_subzero",
-        "libsubzero",
-    ],
-}
-
-cc_defaults {
     name: "libswiftshader_common",
 
     defaults: [ "libswiftshader_release", "libswiftshader_common_defaults" ],
@@ -248,48 +231,24 @@ cc_defaults {
 
 cc_library_static {
     name: "libswiftshader_llvm",
-
     defaults: [ "libswiftshader_common", "libswiftshader_llvm_defaults" ],
-    device_supported: false,
 }
 
 cc_library_static {
     name: "libswiftshader_llvm_debug",
-    device_supported: false,
-
     defaults: [ "libswiftshader_common_debug", "libswiftshader_llvm_defaults" ],
 }
 
 cc_library_static {
     name: "libswiftshadervk_llvm",
-    device_supported: true,
-    host_supported: false,
     vendor: true,
-
     defaults: [ "libswiftshadervk_llvm_defaults" ],
 }
 
 cc_library_static {
     name: "libswiftshadervk_llvm_debug",
-    device_supported: true,
-    host_supported: false,
     vendor: true,
-
     defaults: [ "libswiftshadervk_llvm_defaults" ],
-}
-
-cc_library_static {
-    name: "libswiftshader_subzero",
-
-    defaults: [ "libswiftshader_common", "libswiftshader_subzero_defaults" ],
-    device_supported: false,
-}
-
-cc_library_static {
-    name: "libswiftshader_subzero_debug",
-    device_supported: false,
-
-    defaults: [ "libswiftshader_common_debug", "libswiftshader_subzero_defaults" ],
 }
 
 // compiler libraries
@@ -356,63 +315,23 @@ cc_library_static {
 // libEGL libraries
 
 cc_defaults {
-    name: "swiftshader_client_libraries_subzero_or_llvm",
+    name: "swiftshader_client_libraries",
 
     defaults: [ "libswiftshader_release" ],
-
-    target: {
-        android_arm: {
-            static_libs: [
-                "libswiftshader_subzero",
-                "libsubzero",
-                "libLLVMSupport_subzero",
-            ],
-        },
-
-        android: {
-            static_libs: [
-                "libswiftshader_llvm",
-                "libLLVM7_swiftshader",
-            ],
-        },
-
-        host: {
-            static_libs: [
-                "libswiftshader_llvm",
-                "libLLVM7_swiftshader",
-            ],
-        },
-    },
+    static_libs: [
+        "libswiftshader_llvm",
+        "libLLVM7_swiftshader",
+    ],
 }
 
 cc_defaults {
-    name: "swiftshader_client_libraries_subzero_or_llvm_debug",
+    name: "swiftshader_client_libraries_debug",
 
     defaults: [ "libswiftshader_debug" ],
-
-    target: {
-        android_arm: {
-            static_libs: [
-                "libswiftshader_subzero_debug",
-                "libsubzero",
-                "libLLVMSupport_subzero",
-            ],
-        },
-
-        android: {
-            static_libs: [
-                "libswiftshader_llvm_debug",
-                "libLLVM7_swiftshader",
-            ],
-        },
-
-        host: {
-            static_libs: [
-                "libswiftshader_llvm_debug",
-                "libLLVM7_swiftshader",
-            ],
-        },
-    },
+    static_libs: [
+        "libswiftshader_llvm_debug",
+        "libLLVM7_swiftshader",
+    ],
 }
 
 cc_defaults {
@@ -443,9 +362,8 @@ cc_library_shared {
 
     defaults: [
         "libEGL_swiftshader_defaults",
-        "swiftshader_client_libraries_subzero_or_llvm",
+        "swiftshader_client_libraries",
     ],
-    device_supported: false,
 }
 
 cc_library_shared {
@@ -453,9 +371,8 @@ cc_library_shared {
 
     defaults: [
         "libEGL_swiftshader_defaults",
-        "swiftshader_client_libraries_subzero_or_llvm_debug",
+        "swiftshader_client_libraries_debug",
     ],
-    device_supported: false,
 }
 
 // libGLESv1_CM libraries
@@ -497,9 +414,8 @@ cc_library_shared {
 
     defaults: [
         "libGLESv1_CM_swiftshader_defaults",
-        "swiftshader_client_libraries_subzero_or_llvm",
+        "swiftshader_client_libraries",
     ],
-    device_supported: false,
 }
 
 cc_library_shared {
@@ -507,9 +423,8 @@ cc_library_shared {
 
     defaults: [
         "libGLESv1_CM_swiftshader_defaults",
-        "swiftshader_client_libraries_subzero_or_llvm_debug",
+        "swiftshader_client_libraries_debug",
     ],
-    device_supported: false,
 }
 
 // libGLESv2 libraries
@@ -518,7 +433,6 @@ cc_defaults {
     name: "libGLESv2_swiftshader_defaults",
 
     defaults: [ "libswiftshader" ],
-    device_supported: false,
 
     cflags: [
         "-DLOG_TAG=\"libGLESv2_swiftshader\"",
@@ -560,9 +474,8 @@ cc_library_shared {
 
     defaults: [
         "libGLESv2_swiftshader_defaults",
-        "swiftshader_client_libraries_subzero_or_llvm",
+        "swiftshader_client_libraries",
     ],
-    device_supported: false,
 
     static_libs: [ "libswiftshader_compiler" ],
 }
@@ -572,9 +485,8 @@ cc_library_shared {
 
     defaults: [
         "libGLESv2_swiftshader_defaults",
-        "swiftshader_client_libraries_subzero_or_llvm_debug",
+        "swiftshader_client_libraries_debug",
     ],
-    device_supported: false,
 
     static_libs: [ "libswiftshader_compiler_debug" ],
 }
@@ -613,9 +525,6 @@ cc_library_static {
 
 cc_defaults {
     name: "libvk_swiftshader_defaults",
-
-    device_supported: true,
-    host_supported: false,
     vendor: true,
 
     defaults: [ "swiftshader_common" ],
@@ -704,8 +613,6 @@ cc_library_shared {
         "libyarn",
     ],
 
-    host_supported: false,
-
     defaults: [
         "libvk_swiftshader_common_defaults",
         "libvk_swiftshader_defaults"
@@ -720,8 +627,6 @@ cc_library_shared {
         "libLLVM7_swiftshader",
         "libyarn",
     ],
-
-    host_supported: false,
 
     cflags: [
         "-UNDEBUG",
