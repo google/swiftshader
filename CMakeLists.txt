@@ -1768,7 +1768,7 @@ if(BUILD_YARN)
     )
 
     if (NOT MSVC)
-        file(GLOB YARN_ASSEMBLY_LIST ${YARN_DIR}/*.s)
+        file(GLOB YARN_ASSEMBLY_LIST ${YARN_DIR}/*.S)
         list(APPEND YARN_FULL_LIST ${YARN_ASSEMBLY_LIST})
     endif(NOT MSVC)
 
