@@ -71,6 +71,13 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 ###########################################################
+# Host libraries
+###########################################################
+
+find_library(X11 X11)
+find_library(XCB xcb)
+
+###########################################################
 # Options
 ###########################################################
 
@@ -1808,12 +1815,22 @@ elseif(LINUX)
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
     )
 
-    list(APPEND VULKAN_LIST
-        ${SOURCE_DIR}/WSI/libX11.cpp
-        ${SOURCE_DIR}/WSI/libX11.hpp
-        ${SOURCE_DIR}/WSI/XlibSurfaceKHR.cpp
-        ${SOURCE_DIR}/WSI/XlibSurfaceKHR.hpp
-    )
+    if(X11)
+        list(APPEND VULKAN_LIST
+            ${SOURCE_DIR}/WSI/XlibSurfaceKHR.cpp
+            ${SOURCE_DIR}/WSI/XlibSurfaceKHR.hpp
+            ${SOURCE_DIR}/WSI/libX11.cpp
+            ${SOURCE_DIR}/WSI/libX11.hpp
+        )
+    endif(X11)
+
+    if(XCB)
+        list(APPEND VULKAN_LIST
+            ${SOURCE_DIR}/WSI/XcbSurfaceKHR.cpp
+            ${SOURCE_DIR}/WSI/XcbSurfaceKHR.hpp
+        )
+    endif(XCB)
+
 elseif(APPLE)
     list(APPEND SWIFTSHADER_LIST
         ${SOURCE_DIR}/Main/FrameBufferOSX.mm
@@ -1948,7 +1965,9 @@ if(BUILD_EGL)
         PREFIX ""
     )
     if(LINUX)
-        set_property(TARGET libEGL APPEND PROPERTY COMPILE_DEFINITIONS "USE_X11=1")
+        if(X11)
+            set_property(TARGET libEGL APPEND PROPERTY COMPILE_DEFINITIONS "USE_X11=1")
+        endif(X11)
     endif()
     if (ANDROID)
         set_target_properties(libEGL PROPERTIES SUFFIX "_swiftshader.so")
@@ -2033,8 +2052,14 @@ if(BUILD_VULKAN)
         set_property(TARGET libvk_swiftshader APPEND
                      PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_WIN32_KHR")
     elseif(LINUX)
-        set_property(TARGET libvk_swiftshader APPEND
-                     PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XLIB_KHR")
+        if(X11)
+            set_property(TARGET libvk_swiftshader APPEND
+                        PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XLIB_KHR")
+        endif(X11)
+        if(XCB)
+            set_property(TARGET libvk_swiftshader APPEND
+                        PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XCB_KHR")
+        endif(XCB)
     elseif(APPLE)
         set_property(TARGET libvk_swiftshader APPEND
                      PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_MACOS_MVK")
@@ -2090,7 +2115,7 @@ if(BUILD_SAMPLES)
             COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
         )
-        target_link_libraries(OGLES2HelloAPI dl X11 libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
+        target_link_libraries(OGLES2HelloAPI dl ${X11} libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
     elseif(APPLE)
         add_executable(OGLES2HelloAPI MACOSX_BUNDLE
             ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm

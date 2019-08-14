@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SWIFTSHADER_XLIBSURFACEKHR_HPP
-#define SWIFTSHADER_XLIBSURFACEKHR_HPP
+#ifndef SWIFTSHADER_XCBSURFACEKHR_HPP
+#define SWIFTSHADER_XCBSURFACEKHR_HPP
 
 #include "Vulkan/VkObject.hpp"
-#include "libX11.hpp"
 #include "VkSurfaceKHR.hpp"
-#include "vulkan/vulkan_xlib.h"
+#include <xcb/xcb.h>
+#include "vulkan/vulkan_xcb.h"
 
 #include <unordered_map>
 
 namespace vk {
 
-class XlibSurfaceKHR : public SurfaceKHR, public ObjectBase<XlibSurfaceKHR, VkSurfaceKHR> {
+class XcbSurfaceKHR : public SurfaceKHR, public ObjectBase<XcbSurfaceKHR, VkSurfaceKHR> {
 public:
-	XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, void *mem);
+	XcbSurfaceKHR(const VkXcbSurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
 	void destroySurface(const VkAllocationCallbacks *pAllocator) override;
 
-	static size_t ComputeRequiredAllocationSize(const VkXlibSurfaceCreateInfoKHR *pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkXcbSurfaceCreateInfoKHR *pCreateInfo);
 
 	void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
@@ -39,12 +39,10 @@ public:
 	void present(PresentImage* image) override;
 
 private:
-	Display *const pDisplay;
-	const Window window;
-	GC gc;
-	Visual *visual = nullptr;
-	std::unordered_map<PresentImage*, XImage*> imageMap;
+	xcb_connection_t* connection;
+	xcb_window_t window;
+	std::unordered_map<PresentImage*, uint32_t> graphicsContexts;
 };
 
 }
-#endif //SWIFTSHADER_XLIBSURFACEKHR_HPP
+#endif //SWIFTSHADER_XCBSURFACEKHR_HPP
