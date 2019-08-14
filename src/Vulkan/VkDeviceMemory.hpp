@@ -15,6 +15,7 @@
 #ifndef VK_DEVICE_MEMORY_HPP_
 #define VK_DEVICE_MEMORY_HPP_
 
+#include "VkConfig.h"
 #include "VkObject.hpp"
 
 namespace vk
@@ -27,6 +28,10 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkMemoryAllocateInfo* pCreateInfo);
 
+#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+	VkResult exportFd(int* pFd) const;
+#endif
+
 	void destroy(const VkAllocationCallbacks* pAllocator);
 	VkResult allocate();
 	VkResult map(VkDeviceSize offset, VkDeviceSize size, void** ppData);
@@ -34,10 +39,20 @@ public:
 	void* getOffsetPointer(VkDeviceSize pOffset) const;
 	uint32_t getMemoryTypeIndex() const { return memoryTypeIndex; }
 
+	// If this is external memory, return true iff its handle type matches the bitmask
+	// provided by |supportedExternalHandleTypes|. Otherwise, always return true.
+	bool checkExternalMemoryHandleType(
+				VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleType) const;
+
+	// Internal implementation class for external memory. Platform-specific.
+	class ExternalBase;
+
 private:
-	void*        buffer = nullptr;
-	VkDeviceSize size = 0;
-	uint32_t     memoryTypeIndex = 0;
+
+	void*         buffer = nullptr;
+	VkDeviceSize  size = 0;
+	uint32_t      memoryTypeIndex = 0;
+	ExternalBase* external = nullptr;
 };
 
 static inline DeviceMemory* Cast(VkDeviceMemory object)

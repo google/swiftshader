@@ -75,6 +75,16 @@ Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem, Device *device) :
 		compressedImageCreateInfo.format = format.getDecompressedFormat();
 		decompressedImage = new (mem) Image(&compressedImageCreateInfo, nullptr, device);
 	}
+
+	const auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+	for (; nextInfo != nullptr; nextInfo = nextInfo->pNext)
+	{
+		if (nextInfo->sType == VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO)
+		{
+			const auto* externalInfo = reinterpret_cast<const VkExternalMemoryImageCreateInfo*>(nextInfo);
+			supportedExternalMemoryHandleTypes = externalInfo->handleTypes;
+		}
+	}
 }
 
 void Image::destroy(const VkAllocationCallbacks* pAllocator)
@@ -98,6 +108,11 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	memoryRequirements.size = getStorageSize(format.getAspects()) +
 	                          (decompressedImage ? decompressedImage->getStorageSize(decompressedImage->format.getAspects()) : 0);
 	return memoryRequirements;
+}
+
+bool Image::canBindToMemory(DeviceMemory* pDeviceMemory) const
+{
+	return pDeviceMemory->checkExternalMemoryHandleType(supportedExternalMemoryHandleTypes);
 }
 
 void Image::bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset)

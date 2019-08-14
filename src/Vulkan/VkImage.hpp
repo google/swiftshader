@@ -81,6 +81,7 @@ public:
 	bool                     is3DSlice() const;
 	uint8_t*                 end() const;
 	VkDeviceSize             getLayerSize(VkImageAspectFlagBits aspect) const;
+	bool                     canBindToMemory(DeviceMemory* pDeviceMemory) const;
 
 	void                     prepareForSampling(const VkImageSubresourceRange& subresourceRange);
 	const Image*             getSampledImage(const vk::Format& imageViewFormat) const;
@@ -125,6 +126,8 @@ private:
 #ifdef __ANDROID__
 	BackingMemory            backingMemory = {};
 #endif
+
+	VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleTypes = (VkExternalMemoryHandleTypeFlags)0;
 };
 
 static inline Image* Cast(VkImage object)

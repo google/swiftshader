@@ -361,6 +361,17 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 		}
 	},
 #endif
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+	// VK_KHR_external_memory_fd
+	{
+		VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdPropertiesKHR),
+		}
+	},
+#endif
 };
 
 #undef MAKE_VULKAN_DEVICE_ENTRY

@@ -91,6 +91,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
   ]
   if (is_linux || is_android) {
     sources += [
+      "VkDeviceMemoryExternalLinux.hpp",
       "VkSemaphoreExternalLinux.hpp",
     ]
   } else if (is_fuchsia) {

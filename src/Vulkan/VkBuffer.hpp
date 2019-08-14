@@ -40,6 +40,7 @@ public:
 	void* getOffsetPointer(VkDeviceSize offset) const;
 	inline VkDeviceSize getSize() const { return size; }
 	uint8_t* end() const;
+	bool canBindToMemory(DeviceMemory* pDeviceMemory) const;
 
 private:
 	void*                 memory = nullptr;
@@ -49,6 +50,8 @@ private:
 	VkSharingMode         sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	uint32_t              queueFamilyIndexCount = 0;
 	uint32_t*             queueFamilyIndices = nullptr;
+
+	VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleTypes = (VkExternalMemoryHandleTypeFlags)0;
 };
 
 static inline Buffer* Cast(VkBuffer object)

@@ -250,6 +250,9 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
 	{ VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_FD_SPEC_VERSION },
 #endif
+#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+	{ VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME, VK_KHR_EXTERNAL_MEMORY_FD_SPEC_VERSION },
+#endif
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
 	{ VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME, VK_FUCHSIA_EXTERNAL_SEMAPHORE_SPEC_VERSION },
 #endif
@@ -796,8 +799,30 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 			// This extension controls on which physical devices the memory gets allocated.
 			// SwiftShader only has a single physical device, so this extension does nothing in this case.
 			break;
+#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+		case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
+		{
+			auto* importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR *>(allocationInfo);
+			if (importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+			{
+				UNSUPPORTED("importInfo->handleType %u", importInfo->handleType);
+				return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+			}
+			break;
+		}
+		case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
+		{
+			auto* exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(allocationInfo);
+			if (exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+			{
+				UNSUPPORTED("exportInfo->handleTypes %u", exportInfo->handleTypes);
+				return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+			}
+			break;
+		}
+#endif
 		default:
-			UNIMPLEMENTED("allocationInfo->sType");
+			UNIMPLEMENTED("allocationInfo->sType %u", allocationInfo->sType);
 			break;
 		}
 
@@ -828,6 +853,46 @@ VKAPI_ATTR void VKAPI_CALL vkFreeMemory(VkDevice device, VkDeviceMemory memory, 
 
 	vk::destroy(memory, pAllocator);
 }
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryFdKHR(VkDevice device, const VkMemoryGetFdInfoKHR* getFdInfo, int* pFd)
+{
+	TRACE("(VkDevice device = %p, const VkMemoryGetFdInfoKHR* getFdInfo = %p, int* pFd = %p",
+		  device, getFdInfo, pFd);
+
+	if (getFdInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+	{
+		UNSUPPORTED("pGetFdInfo->handleType %u", getFdInfo->handleType);
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
+	return vk::Cast(getFdInfo->memory)->exportFd(pFd);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryFdPropertiesKHR(VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, int fd, VkMemoryFdPropertiesKHR* pMemoryFdProperties)
+{
+	TRACE("(VkDevice device = %p, VkExternalMemoryHandleTypeFlagBits handleType = %x, int fd = %d, VkMemoryFdPropertiesKHR* pMemoryFdProperties = %p)",
+		  device, handleType, fd, pMemoryFdProperties);
+
+	if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+	{
+		UNSUPPORTED("handleType %u", handleType);
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
+
+	if (fd < 0)
+	{
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
+
+	const VkPhysicalDeviceMemoryProperties& memoryProperties =
+			vk::Cast(device)->getPhysicalDevice()->getMemoryProperties();
+
+	// All SwiftShader memory types support this!
+	pMemoryFdProperties->memoryTypeBits = (1U << memoryProperties.memoryTypeCount) - 1U;
+
+	return VK_SUCCESS;
+}
+#endif  // SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
 
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** ppData)
 {
@@ -886,8 +951,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory(VkDevice device, VkBuffer buff
 	TRACE("(VkDevice device = %p, VkBuffer buffer = %p, VkDeviceMemory memory = %p, VkDeviceSize memoryOffset = %d)",
 		    device, static_cast<void*>(buffer), static_cast<void*>(memory), int(memoryOffset));
 
+	if (!vk::Cast(buffer)->canBindToMemory(vk::Cast(memory)))
+	{
+		UNSUPPORTED("vkBindBufferMemory with invalid external memory");
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
 	vk::Cast(buffer)->bind(vk::Cast(memory), memoryOffset);
-
 	return VK_SUCCESS;
 }
 
@@ -896,8 +965,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory(VkDevice device, VkImage image,
 	TRACE("(VkDevice device = %p, VkImage image = %p, VkDeviceMemory memory = %p, VkDeviceSize memoryOffset = %d)",
 		    device, static_cast<void*>(image), static_cast<void*>(memory), int(memoryOffset));
 
+	if (!vk::Cast(image)->canBindToMemory(vk::Cast(memory)))
+	{
+		UNSUPPORTED("vkBindImageMemory with invalid external memory");
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
 	vk::Cast(image)->bind(vk::Cast(memory), memoryOffset);
-
 	return VK_SUCCESS;
 }
 
@@ -1158,9 +1231,18 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBuffer(VkDevice device, const VkBufferCre
 	TRACE("(VkDevice device = %p, const VkBufferCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkBuffer* pBuffer = %p)",
 		    device, pCreateInfo, pAllocator, pBuffer);
 
-	if(pCreateInfo->pNext)
+	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+	while (nextInfo)
 	{
-		UNIMPLEMENTED("pCreateInfo->pNext");
+		switch (nextInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO:
+			// Do nothing. Should be handled by vk::Buffer::Create().
+			break;
+		default:
+			UNIMPLEMENTED("pCreateInfo->pNext sType=0x%X", nextInfo->sType);
+		}
+		nextInfo = nextInfo->pNext;
 	}
 
 	return vk::Buffer::Create(pAllocator, pCreateInfo, pBuffer);
@@ -1227,6 +1309,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		}
 		break;
 #endif
+		case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO:
+			// Do nothing. Should be handled by vk::Image::Create()
+			break;
 		case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
 			/* Do nothing. We don't actually need the swapchain handle yet; we'll do all the work in vkBindImageMemory2. */
 			break;
@@ -1279,8 +1364,6 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 	TRACE("(VkDevice device = %p, VkImage image = %p, const VkAllocationCallbacks* pAllocator = %p)",
 		    device, static_cast<void*>(image), pAllocator);
 
-	vk::destroy(image, pAllocator);
-
 #ifdef __ANDROID__
 	vk::Image* img = vk::Cast(image);
 	if(img && img->hasExternalMemory())
@@ -1288,6 +1371,8 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 		vk::destroy(img->getExternalMemory(), pAllocator);
 	}
 #endif
+
+	vk::destroy(image, pAllocator);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout(VkDevice device, VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout)
@@ -2249,6 +2334,15 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory2(VkDevice device, uint32_t bin
 			UNIMPLEMENTED("pBindInfos[%d].pNext", i);
 		}
 
+		if (!vk::Cast(pBindInfos[i].buffer)->canBindToMemory(vk::Cast(pBindInfos[i].memory)))
+		{
+			UNSUPPORTED("vkBindBufferMemory2 with invalid external memory");
+			return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+		}
+	}
+
+	for (uint32_t i = 0; i < bindInfoCount; i++)
+	{
 		vk::Cast(pBindInfos[i].buffer)->bind(vk::Cast(pBindInfos[i].memory), pBindInfos[i].memoryOffset);
 	}
 
@@ -2259,6 +2353,15 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 {
 	TRACE("(VkDevice device = %p, uint32_t bindInfoCount = %d, const VkBindImageMemoryInfo* pBindInfos = %p)",
 	      device, bindInfoCount, pBindInfos);
+
+	for(uint32_t i = 0; i < bindInfoCount; i++)
+	{
+		if (!vk::Cast(pBindInfos[i].image)->canBindToMemory(vk::Cast(pBindInfos[i].memory)))
+		{
+			UNSUPPORTED("vkBindImageMemory2 with invalid external memory");
+			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+		}
+	}
 
 	for(uint32_t i = 0; i < bindInfoCount; i++)
 	{

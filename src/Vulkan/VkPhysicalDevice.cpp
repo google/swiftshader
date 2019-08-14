@@ -23,6 +23,22 @@
 namespace vk
 {
 
+static void setExternalMemoryProperties(VkExternalMemoryHandleTypeFlagBits handleType, VkExternalMemoryProperties* properties)
+{
+#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+	if (handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+	{
+		properties->compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+		properties->exportFromImportedHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+		properties->externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT | VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT;
+		return;
+	}
+#endif
+	properties->compatibleHandleTypes = 0;
+	properties->exportFromImportedHandleTypes = 0;
+	properties->externalMemoryFeatures = 0;
+}
+
 PhysicalDevice::PhysicalDevice(const void*, void* mem)
 {
 }
@@ -339,9 +355,7 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties* propertie
 
 void PhysicalDevice::getProperties(const VkExternalMemoryHandleTypeFlagBits* handleType, VkExternalImageFormatProperties* properties) const
 {
-	properties->externalMemoryProperties.compatibleHandleTypes = 0;
-	properties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
-	properties->externalMemoryProperties.externalMemoryFeatures = 0;
+	setExternalMemoryProperties(*handleType, &properties->externalMemoryProperties);
 }
 
 void PhysicalDevice::getProperties(VkSamplerYcbcrConversionImageFormatProperties* properties) const
@@ -358,9 +372,7 @@ void PhysicalDevice::getProperties(VkPhysicalDevicePresentationPropertiesANDROID
 
 void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties) const
 {
-	pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
-	pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
-	pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = 0;
+	setExternalMemoryProperties(pExternalBufferInfo->handleType, &pExternalBufferProperties->externalMemoryProperties);
 }
 
 void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties) const
