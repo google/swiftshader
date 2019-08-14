@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cce89a5_2dd1a15e",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-08-14T09:15:18Z",
+      "side": 1,
+      "message": "I think this change might have broken the Chromium autorollers (https://ci.chromium.org/p/chromium/builders/try/linux-rel/166098).\nI _think_ this is where it is looking up \"libvulkan.so\":\nhttps://chromium.googlesource.com/chromium/src/+/HEAD/gpu/vulkan/x/vulkan_implementation_x11.cc#68",
+      "range": {
+        "startLine": 113,
+        "startChar": 16,
+        "endLine": 113,
+        "endChar": 35
+      },
+      "revId": "58c34f5a5b5c0eb165c4af169688a2271ebe55f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
