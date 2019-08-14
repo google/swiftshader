@@ -79,8 +79,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
 
-option(BUILD_YARN "Build yarn" 0)
-
 option(BUILD_EGL "Build the EGL library" 1)
 option(BUILD_GLESv2 "Build the OpenGL ES 2 library" 1)
 option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
@@ -1754,23 +1752,21 @@ file(GLOB_RECURSE VULKAN_LIST
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
-if(BUILD_YARN)
-    file(GLOB YARN_FULL_LIST
-        ${YARN_DIR}/*.cpp
-        ${YARN_DIR}/*.hpp
-        ${YARN_DIR}/*.c
-    )
+file(GLOB YARN_FULL_LIST
+    ${YARN_DIR}/*.cpp
+    ${YARN_DIR}/*.hpp
+    ${YARN_DIR}/*.c
+)
 
-    if (NOT MSVC)
-        file(GLOB YARN_ASSEMBLY_LIST ${YARN_DIR}/*.S)
-        list(APPEND YARN_FULL_LIST ${YARN_ASSEMBLY_LIST})
-    endif(NOT MSVC)
+if (NOT MSVC)
+    file(GLOB YARN_ASSEMBLY_LIST ${YARN_DIR}/*.S)
+    list(APPEND YARN_FULL_LIST ${YARN_ASSEMBLY_LIST})
+endif(NOT MSVC)
 
-    set(YARN_LIST ${YARN_FULL_LIST})
-    set(YARN_TEST_LIST ${YARN_FULL_LIST})
-    list(FILTER YARN_LIST EXCLUDE REGEX ".*_test\\..*")
-    list(FILTER YARN_TEST_LIST INCLUDE REGEX ".*_test\\..*")
-endif(BUILD_YARN)
+set(YARN_LIST ${YARN_FULL_LIST})
+set(YARN_TEST_LIST ${YARN_FULL_LIST})
+list(FILTER YARN_LIST EXCLUDE REGEX ".*_test\\..*")
+list(FILTER YARN_TEST_LIST INCLUDE REGEX ".*_test\\..*")
 
 ###########################################################
 # Append OS specific files to lists
@@ -1860,16 +1856,14 @@ endif()
 # SwiftShader Targets
 ###########################################################
 
-if(BUILD_YARN)
-    add_library(Yarn STATIC ${YARN_LIST})
-    set_target_properties(Yarn PROPERTIES
-        POSITION_INDEPENDENT_CODE 1
-        FOLDER "Core"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
-        COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
-    )
-    target_link_libraries(Yarn ${OS_LIBS})
-endif(BUILD_YARN)
+add_library(Yarn STATIC ${YARN_LIST})
+set_target_properties(Yarn PROPERTIES
+    POSITION_INDEPENDENT_CODE 1
+    FOLDER "Core"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+    COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
+)
+target_link_libraries(Yarn ${OS_LIBS})
 
 add_library(SwiftShader STATIC ${SWIFTSHADER_LIST})
 set_target_properties(SwiftShader PROPERTIES
@@ -2046,7 +2040,7 @@ if(BUILD_VULKAN)
     endif()
 
     set_shared_library_export_map(libvk_swiftshader ${SOURCE_DIR}/Vulkan)
-    target_link_libraries(libvk_swiftshader ${Reactor} ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt)
+    target_link_libraries(libvk_swiftshader ${Reactor} Yarn ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt)
     add_custom_command(
         TARGET libvk_swiftshader
         POST_BUILD
@@ -2167,7 +2161,8 @@ if(BUILD_TESTS)
     endif()
 endif(BUILD_TESTS)
 
-if(BUILD_TESTS AND BUILD_YARN)
+if(BUILD_TESTS)
+    # Yarn unit tests
     file(GLOB YARN_TEST_LIST
         ${YARN_DIR}/*_test.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
@@ -2189,9 +2184,8 @@ if(BUILD_TESTS AND BUILD_YARN)
     )
 
     target_link_libraries(yarn-unittests Yarn ${OS_LIBS})
-endif(BUILD_TESTS AND BUILD_YARN)
 
-if(BUILD_TESTS)
+    # Math unit tests
     set(MATH_UNITTESTS_LIST
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/unittests.cpp
