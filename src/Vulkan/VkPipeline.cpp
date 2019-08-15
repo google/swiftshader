@@ -163,17 +163,16 @@ std::vector<uint32_t> preprocessSpirv(
 	spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
 
 	opt.SetMessageConsumer([](spv_message_level_t level, const char*, const spv_position_t& p, const char* m) {
-		const char* category = "";
 		switch (level)
 		{
-		case SPV_MSG_FATAL:          category = "FATAL";          break;
-		case SPV_MSG_INTERNAL_ERROR: category = "INTERNAL_ERROR"; break;
-		case SPV_MSG_ERROR:          category = "ERROR";          break;
-		case SPV_MSG_WARNING:        category = "WARNING";        break;
-		case SPV_MSG_INFO:           category = "INFO";           break;
-		case SPV_MSG_DEBUG:          category = "DEBUG";          break;
+		case SPV_MSG_FATAL:          vk::warn("SPIR-V FATAL: %d:%d %s", int(p.line), int(p.column), m);
+		case SPV_MSG_INTERNAL_ERROR: vk::warn("SPIR-V INTERNAL_ERROR: %d:%d %s", int(p.line), int(p.column), m);
+		case SPV_MSG_ERROR:          vk::warn("SPIR-V ERROR: %d:%d %s", int(p.line), int(p.column), m);
+		case SPV_MSG_WARNING:        vk::warn("SPIR-V WARNING: %d:%d %s", int(p.line), int(p.column), m);
+		case SPV_MSG_INFO:           vk::trace("SPIR-V INFO: %d:%d %s", int(p.line), int(p.column), m);
+		case SPV_MSG_DEBUG:          vk::trace("SPIR-V DEBUG: %d:%d %s", int(p.line), int(p.column), m);
+		default:                     vk::trace("SPIR-V MESSAGE: %d:%d %s", int(p.line), int(p.column), m);
 		}
-		vk::trace("%s: %d:%d %s", category, int(p.line), int(p.column), m);
 	});
 
 	// If the pipeline uses specialization, apply the specializations before freezing
