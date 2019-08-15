@@ -34,7 +34,7 @@
 #define YARN_REG_SP  0x4c
 #define YARN_REG_LR  0x50
 
-#ifndef BUILD_ASM
+#ifndef YARN_BUILD_ASM
 #include <stdint.h>
 
 // Procedure Call Standard for the ARM 64-bit Architecture
@@ -96,4 +96,4 @@ static_assert(offsetof(yarn_fiber_context, SP)  == YARN_REG_SP,  "Bad register o
 static_assert(offsetof(yarn_fiber_context, LR)  == YARN_REG_LR,  "Bad register offset");
 #endif // __cplusplus
 
-#endif // BUILD_ASM
+#endif // YARN_BUILD_ASM

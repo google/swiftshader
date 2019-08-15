@@ -14,6 +14,7 @@
 
 #if defined(__arm__)
 
+#define YARN_BUILD_ASM 1
 #include "OSFiber_asm_arm.h"
 
 // void yarn_fiber_swap(yarn_fiber_context* from, const yarn_fiber_context* to)

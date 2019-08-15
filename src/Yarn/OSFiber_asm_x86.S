@@ -14,6 +14,7 @@
 
 #if defined(__i386__)
 
+#define YARN_BUILD_ASM 1
 #include "OSFiber_asm_x86.h"
 
 // void yarn_fiber_swap(yarn_fiber_context* from, const yarn_fiber_context* to)

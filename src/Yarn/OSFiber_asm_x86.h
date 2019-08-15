@@ -19,7 +19,7 @@
 #define YARN_REG_ESP 0x10
 #define YARN_REG_EIP 0x14
 
-#ifndef BUILD_ASM
+#ifndef YARN_BUILD_ASM
 #include <stdint.h>
 
 // Assumes cdecl calling convention.
@@ -47,4 +47,4 @@ static_assert(offsetof(yarn_fiber_context, ESP) == YARN_REG_ESP, "Bad register o
 static_assert(offsetof(yarn_fiber_context, EIP) == YARN_REG_EIP, "Bad register offset");
 #endif // __cplusplus
 
-#endif // BUILD_ASM
+#endif // YARN_BUILD_ASM

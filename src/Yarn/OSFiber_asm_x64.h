@@ -29,7 +29,7 @@
 #define YARN_ASM_SYMBOL(x) x
 #endif
 
-#ifndef BUILD_ASM
+#ifndef YARN_BUILD_ASM
 
 #include <stdint.h>
 
@@ -66,4 +66,4 @@ static_assert(offsetof(yarn_fiber_context, RSP) == YARN_REG_RSP, "Bad register o
 static_assert(offsetof(yarn_fiber_context, RIP) == YARN_REG_RIP, "Bad register offset");
 #endif // __cplusplus
 
-#endif // BUILD_ASM
+#endif // YARN_BUILD_ASM
