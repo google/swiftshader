@@ -101,11 +101,7 @@ option(REACTOR_EMIT_DEBUG_INFO "Emit debug info for JIT functions" 0)
 option(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location info for JIT functions" 0)
 option(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" 0)
 
-if(ARCH STREQUAL "arm")
-    set(DEFAULT_REACTOR_BACKEND "Subzero")
-else()
-    set(DEFAULT_REACTOR_BACKEND "LLVM")
-endif()
+set(DEFAULT_REACTOR_BACKEND "LLVM")
 
 set(REACTOR_BACKEND ${DEFAULT_REACTOR_BACKEND} CACHE STRING "JIT compiler back-end used by Reactor")
 set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
