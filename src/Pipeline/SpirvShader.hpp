@@ -578,7 +578,7 @@ namespace sw
 
 			// Walks all reachable the blocks starting from id adding them to
 			// reachable.
-			void TraverseReachableBlocks(Block::ID id, Block::Set& reachable);
+			void TraverseReachableBlocks(Block::ID id, Block::Set& reachable) const;
 
 			// AssignBlockFields() performs the following for all reachable blocks:
 			// * Assigns Block::ins with the identifiers of all blocks that contain

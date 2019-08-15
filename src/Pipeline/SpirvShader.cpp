@@ -2276,17 +2276,18 @@ namespace sw
 			return; // Already emitted this loop.
 		}
 
-		std::unordered_set<Block::ID> incomingBlocks;
+		// Gather all the blocks that make up the loop.
 		std::unordered_set<Block::ID> loopBlocks;
+		loopBlocks.emplace(block.mergeBlock);
+		function.TraverseReachableBlocks(blockId, loopBlocks);
+
+		// incomingBlocks are block ins that are not back-edges.
+		std::unordered_set<Block::ID> incomingBlocks;
 		for (auto in : block.ins)
 		{
-			if (!function.ExistsPath(blockId, in, mergeBlockId)) // if not a loop back-edge
+			if (loopBlocks.count(in) == 0)
 			{
 				incomingBlocks.emplace(in);
-			}
-			else
-			{
-				loopBlocks.emplace(in);
 			}
 		}
 
@@ -2408,7 +2409,7 @@ namespace sw
 		{
 			if (insn.opcode() == spv::OpPhi)
 			{
-				StorePhi(mergeBlockId, insn, state, mergeBlock.ins);
+				StorePhi(mergeBlockId, insn, state, loopBlocks);
 			}
 		}
 
@@ -6692,8 +6693,7 @@ namespace sw
 		}
 	}
 
-
-	void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set& reachable)
+	void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set& reachable) const
 	{
 		if (reachable.count(id) == 0)
 		{
