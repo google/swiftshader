@@ -1087,19 +1087,31 @@ private:
 
 struct WriteTimeStamp : public CommandBuffer::Command
 {
-	WriteTimeStamp(QueryPool* queryPool, uint32_t query)
-		: queryPool(queryPool), query(query)
+	WriteTimeStamp(QueryPool* queryPool, uint32_t query, VkPipelineStageFlagBits stage)
+		: queryPool(queryPool), query(query), stage(stage)
 	{
 	}
 
 	void play(CommandBuffer::ExecutionState& executionState)
 	{
+		if (stage & ~(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT))
+		{
+			// The `top of pipe` and `draw indirect` stages are handled in command buffer processing so a timestamp write
+			// done in those stages can just be done here without any additional synchronization.
+			// Everything else is deferred to the Renderer; we will treat those stages all as if they were
+			// `bottom of pipe`.
+			//
+			// FIXME(chrisforbes): once Yarn is integrated, do this in a task so we don't have to stall here.
+			executionState.renderer->synchronize();
+		}
+
 		queryPool->writeTimestamp(query);
 	}
 
 private:
 	QueryPool* queryPool;
 	uint32_t query;
+	VkPipelineStageFlagBits stage;
 };
 
 struct CopyQueryPoolResults : public CommandBuffer::Command
@@ -1282,7 +1294,7 @@ void CommandBuffer::resetQueryPool(QueryPool* queryPool, uint32_t firstQuery, ui
 
 void CommandBuffer::writeTimestamp(VkPipelineStageFlagBits pipelineStage, QueryPool* queryPool, uint32_t query)
 {
-	addCommand<WriteTimeStamp>(queryPool, query);
+	addCommand<WriteTimeStamp>(queryPool, query, pipelineStage);
 }
 
 void CommandBuffer::copyQueryPoolResults(const QueryPool* queryPool, uint32_t firstQuery, uint32_t queryCount,
