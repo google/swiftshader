@@ -133,6 +133,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "../Reactor:swiftshader_llvm_reactor",
     "../System",
     "../WSI",
+    "../Yarn",
   ]
 
   include_dirs = [
