@@ -4146,7 +4146,11 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 	if(mState.scissorTestEnabled)   // Only write to parts of the destination framebuffer which pass the scissor test
 	{
 		sw::Rect scissorRect(mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight);
-		Device::ClipDstRect(sourceScissoredRect, destScissoredRect, scissorRect, flipX, flipY);
+		if (!Device::ClipDstRect(sourceScissoredRect, destScissoredRect, scissorRect, flipX, flipY))
+		{
+			// Failed to clip, blitting can't happen.
+			return error(GL_INVALID_OPERATION);
+		}
 	}
 
 	sw::SliceRectF sourceTrimmedRect = sourceScissoredRect;
@@ -4155,10 +4159,18 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 	// The source & destination rectangles also may need to be trimmed if
 	// they fall out of the bounds of the actual draw and read surfaces.
 	sw::Rect sourceTrimRect(0, 0, readBufferWidth, readBufferHeight);
-	Device::ClipSrcRect(sourceTrimmedRect, destTrimmedRect, sourceTrimRect, flipX, flipY);
+	if (!Device::ClipSrcRect(sourceTrimmedRect, destTrimmedRect, sourceTrimRect, flipX, flipY))
+	{
+		// Failed to clip, blitting can't happen.
+		return error(GL_INVALID_OPERATION);
+	}
 
 	sw::Rect destTrimRect(0, 0, drawBufferWidth, drawBufferHeight);
-	Device::ClipDstRect(sourceTrimmedRect, destTrimmedRect, destTrimRect, flipX, flipY);
+	if (!Device::ClipDstRect(sourceTrimmedRect, destTrimmedRect, destTrimRect, flipX, flipY))
+	{
+		// Failed to clip, blitting can't happen.
+		return error(GL_INVALID_OPERATION);
+	}
 
 	bool partialBufferCopy = false;
 

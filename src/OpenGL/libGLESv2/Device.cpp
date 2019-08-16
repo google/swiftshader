@@ -453,8 +453,8 @@ namespace es2
 		int dHeight = dest->getHeight();
 
 		if(sourceRect && destRect &&
-			(sourceRect->width() == 0.0f || std::isnan(sourceRect->width()) ||
-			sourceRect->height() == 0.0f || std::isnan(sourceRect->height()) ||
+			(sourceRect->width() == 0.0f || !std::isfinite(sourceRect->width()) ||
+			sourceRect->height() == 0.0f || !std::isfinite(sourceRect->height()) ||
 			destRect->width() == 0.0f || destRect->height() == 0.0f))
 		{
 			return true; // No work to do.
@@ -530,14 +530,20 @@ namespace es2
 		}
 
 		sw::Rect srcClipRect(0, 0, sWidth, sHeight);
-		ClipSrcRect(sRect, dRect, srcClipRect, flipX, flipY);
+		if (!ClipSrcRect(sRect, dRect, srcClipRect, flipX, flipY))
+		{
+			return true;
+		}
 
 		sw::Rect dstClipRect(0, 0, dWidth, dHeight);
-		ClipDstRect(sRect, dRect, dstClipRect, flipX, flipY);
+		if (!ClipDstRect(sRect, dRect, dstClipRect, flipX, flipY))
+		{
+			return true;
+		}
 
 		if((sRect.width() == 0) || (sRect.height() == 0) ||
 		   (dRect.width() == 0) || (dRect.height() == 0) ||
-		   (std::isnan(sRect.width()) || std::isnan(sRect.height())))
+		   !std::isfinite(sRect.width()) || !std::isfinite(sRect.height()))
 		{
 			return true; // no work to do
 		}
@@ -885,7 +891,8 @@ namespace es2
 			return false;
 		}
 
-		if (std::isnan(rect->x0) || std::isnan(rect->x1) || std::isnan(rect->y0) || std::isnan(rect->y1))
+		if (!std::isfinite(rect->x0) || !std::isfinite(rect->x1) ||
+			!std::isfinite(rect->y0) || !std::isfinite(rect->y1))
 		{
 			return false;
 		}
@@ -893,11 +900,15 @@ namespace es2
 		return true;
 	}
 
-	void Device::ClipDstRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX, bool flipY)
+	bool Device::ClipDstRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX, bool flipY)
 	{
 		if(dstRect.x0 < clipRect.x0)
 		{
 			float offset = (static_cast<float>(clipRect.x0 - dstRect.x0) / static_cast<float>(dstRect.width())) * srcRect.width();
+			if (!std::isfinite(offset))
+			{
+				return false;
+			}
 			if(flipX)
 			{
 				srcRect.x1 -= offset;
@@ -911,6 +922,10 @@ namespace es2
 		if(dstRect.x1 > clipRect.x1)
 		{
 			float offset = (static_cast<float>(dstRect.x1 - clipRect.x1) / static_cast<float>(dstRect.width())) * srcRect.width();
+			if (!std::isfinite(offset))
+			{
+				return false;
+			}
 			if(flipX)
 			{
 				srcRect.x0 += offset;
@@ -924,6 +939,10 @@ namespace es2
 		if(dstRect.y0 < clipRect.y0)
 		{
 			float offset = (static_cast<float>(clipRect.y0 - dstRect.y0) / static_cast<float>(dstRect.height())) * srcRect.height();
+			if (!std::isfinite(offset))
+			{
+				return false;
+			}
 			if(flipY)
 			{
 				srcRect.y1 -= offset;
@@ -937,6 +956,10 @@ namespace es2
 		if(dstRect.y1 > clipRect.y1)
 		{
 			float offset = (static_cast<float>(dstRect.y1 - clipRect.y1) / static_cast<float>(dstRect.height())) * srcRect.height();
+			if (!std::isfinite(offset))
+			{
+				return false;
+			}
 			if(flipY)
 			{
 				srcRect.y0 += offset;
@@ -947,14 +970,19 @@ namespace es2
 			}
 			dstRect.y1 = clipRect.y1;
 		}
+		return true;
 	}
 
-	void Device::ClipSrcRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX, bool flipY)
+	bool Device::ClipSrcRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX, bool flipY)
 	{
 		if(srcRect.x0 < static_cast<float>(clipRect.x0))
 		{
 			float ratio = static_cast<float>(dstRect.width()) / srcRect.width();
 			float offsetf = roundf((static_cast<float>(clipRect.x0) - srcRect.x0) * ratio);
+			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			{
+				return false;
+			}
 			int offset = static_cast<int>(offsetf);
 			if(flipX)
 			{
@@ -970,6 +998,10 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.width()) / srcRect.width();
 			float offsetf = roundf((srcRect.x1 - static_cast<float>(clipRect.x1)) * ratio);
+			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			{
+				return false;
+			}
 			int offset = static_cast<int>(offsetf);
 			if(flipX)
 			{
@@ -985,6 +1017,10 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.height()) / srcRect.height();
 			float offsetf = roundf((static_cast<float>(clipRect.y0) - srcRect.y0) * ratio);
+			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			{
+				return false;
+			}
 			int offset = static_cast<int>(offsetf);
 			if(flipY)
 			{
@@ -1000,6 +1036,10 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.height()) / srcRect.height();
 			float offsetf = roundf((srcRect.y1 - static_cast<float>(clipRect.y1)) * ratio);
+			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			{
+				return false;
+			}
 			int offset = static_cast<int>(offsetf);
 			if(flipY)
 			{
@@ -1011,6 +1051,7 @@ namespace es2
 			}
 			srcRect.y1 -= offsetf / ratio;
 		}
+		return true;
 	}
 
 	void Device::finish()

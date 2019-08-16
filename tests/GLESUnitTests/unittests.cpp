@@ -1760,9 +1760,6 @@ TEST_F(SwiftShaderTest, BlitTest)
 	EXPECT_EQ(red[0][1], black[0][1]);
 
 	// Check that glBlitFramebuffer doesn't crash with ugly input.
-	glBlitFramebuffer(-2, -2, 127, 2147483470, 10, 10, 200, 200, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	EXPECT_NO_GL_ERROR();
-
 	const int big = (int) 2e9;
 	const int small = 200;
 	const int neg_small = -small;
@@ -1774,6 +1771,7 @@ TEST_F(SwiftShaderTest, BlitTest)
 		{1, 1, 1, 1, 1, 1, 1, 1},
 		{-1, -1, 1, 1, -1, -1, 1, 1},
 		{0, 0, 127, (int) 2e9, 10, 10, 200, 200},
+		{-2, -2, 127, 2147483470, 10, 10, 200, 200},
 		{big, small, small, big, big, big, small, small},
 		{neg_small, small, neg_small, neg_small, neg_small, big, small},
 		{big, big-1, big-2, big-3, big-4, big-5, big-6, big-7},
@@ -1787,8 +1785,11 @@ TEST_F(SwiftShaderTest, BlitTest)
 				data[i][0], data[i][1], data[i][2], data[i][3],
 				data[i][4], data[i][5], data[i][6], data[i][7],
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		EXPECT_NO_GL_ERROR();
+		// Ignore error state, just make sure that we don't crash on these inputs.
 	}
+
+	// Clear the error state before uninitializing test.
+	glGetError();
 
 	glDeleteFramebuffers(2, fbos);
 	glDeleteTextures(2, textures);

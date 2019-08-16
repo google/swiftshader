@@ -75,8 +75,8 @@ namespace es2
 		bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
 		void finish();
 
-		static void ClipDstRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX = false, bool flipY = false);
-		static void ClipSrcRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX = false, bool flipY = false);
+		static bool ClipDstRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX = false, bool flipY = false);
+		static bool ClipSrcRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX = false, bool flipY = false);
 
 	private:
 		sw::Context *const context;
