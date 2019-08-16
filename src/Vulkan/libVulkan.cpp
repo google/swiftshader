@@ -519,6 +519,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				}
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES:
+			{
+				const VkPhysicalDeviceShaderDrawParametersFeatures* shaderDrawParametersFeatures = reinterpret_cast<const VkPhysicalDeviceShaderDrawParametersFeatures*>(extensionCreateInfo);
+
+				if (shaderDrawParametersFeatures->shaderDrawParameters)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionCreateInfo->sType %d", int(extensionCreateInfo->sType));   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
