@@ -246,8 +246,8 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		{ 1.0, 1.0 }, // lineWidthRange[2] (unsupported)
 		0.0, // pointSizeGranularity (unsupported)
 		0.0, // lineWidthGranularity (unsupported)
-		VK_FALSE,  // strictLines
-		VK_TRUE,   // standardSampleLocations
+		VK_TRUE,  // strictLines
+		VK_TRUE,  // standardSampleLocations
 		64, // optimalBufferCopyOffsetAlignment
 		64, // optimalBufferCopyRowPitchAlignment
 		256, // nonCoherentAtomSize

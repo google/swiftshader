@@ -932,7 +932,6 @@ namespace sw
 	bool Renderer::setupLine(Primitive &primitive, Triangle &triangle, const DrawCall &draw)
 	{
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
-		const SetupProcessor::State &state = draw.setupState;
 		const DrawData &data = *draw.data;
 
 		float lineWidth = data.lineWidth;
@@ -959,7 +958,7 @@ namespace sw
 			return false;
 		}
 
-		if(state.multiSample > 1)   // Rectangle
+		if(true)   // Rectangle centered on the line segment
 		{
 			float4 P[4];
 			int C[4];
