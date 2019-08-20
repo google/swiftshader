@@ -33,9 +33,11 @@ namespace sw
 	class SetupProcessor
 	{
 	public:
-		struct States
+		struct States : Memset<States>
 		{
-			unsigned int computeHash();
+			States() : Memset(this, 0) {}
+
+			uint32_t computeHash();
 
 			bool isDrawPoint               : 1;
 			bool isDrawLine                : 1;
@@ -76,11 +78,9 @@ namespace sw
 
 		struct State : States
 		{
-			State(int i = 0);
-
 			bool operator==(const State &states) const;
 
-			unsigned int hash;
+			uint32_t hash;
 		};
 
 		typedef bool (*RoutinePointer)(Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw);

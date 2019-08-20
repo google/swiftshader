@@ -22,7 +22,7 @@
 #include "Shader/Constants.hpp"
 #include "Common/Debug.hpp"
 
-#include <string.h>
+#include <cstring>
 
 namespace sw
 {
@@ -32,22 +32,17 @@ namespace sw
 
 	bool precachePixel = false;
 
-	unsigned int PixelProcessor::States::computeHash()
+	uint32_t PixelProcessor::States::computeHash()
 	{
-		unsigned int *state = (unsigned int*)this;
-		unsigned int hash = 0;
+		uint32_t *state = reinterpret_cast<uint32_t*>(this);
+		uint32_t hash = 0;
 
-		for(unsigned int i = 0; i < sizeof(States) / 4; i++)
+		for(unsigned int i = 0; i < sizeof(States) / sizeof(uint32_t); i++)
 		{
 			hash ^= state[i];
 		}
 
 		return hash;
-	}
-
-	PixelProcessor::State::State()
-	{
-		memset(this, 0, sizeof(State));
 	}
 
 	bool PixelProcessor::State::operator==(const State &state) const
@@ -57,6 +52,7 @@ namespace sw
 			return false;
 		}
 
+		static_assert(is_memcmparable<State>::value, "Cannot memcmp State");
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
@@ -79,7 +75,7 @@ namespace sw
 	PixelProcessor::~PixelProcessor()
 	{
 		delete routineCache;
-		routineCache = 0;
+		routineCache = nullptr;
 	}
 
 	void PixelProcessor::setFloatConstant(unsigned int index, const float value[4])

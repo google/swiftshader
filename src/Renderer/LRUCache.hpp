@@ -17,6 +17,9 @@
 
 #include "Common/Math.hpp"
 
+#include <cstring>
+#include <type_traits>
+
 namespace sw
 {
 	template<class Key, class Data>
@@ -42,6 +45,46 @@ namespace sw
 		Key *key;
 		Key **ref;
 		Data *data;
+	};
+
+	// Helper class for clearing the memory of objects at construction.
+	// Useful as the first base class of cache keys which may contain padding bytes or bits otherwise left uninitialized.
+	template<class T>
+	struct Memset
+	{
+		Memset(T *object, int val)
+		{
+			static_assert(std::is_base_of<Memset<T>, T>::value, "Memset<T> must only clear the memory of a type of which it is a base class");
+
+			// GCC 8+ warns that
+			// "‘void* memset(void*, int, size_t)’ clearing an object of non-trivial type ‘T’;
+			//  use assignment or value-initialization instead [-Werror=class-memaccess]"
+			// This is benign iff it happens before any of the base or member constructrs are called.
+			#if defined(__GNUC__) && (__GNUC__ >= 8)
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Wclass-memaccess"
+			#endif
+
+			memset(object, 0, sizeof(T));
+
+			#if defined(__GNUC__) && (__GNUC__ >= 8)
+			#pragma GCC diagnostic pop
+			#endif
+		}
+	};
+
+	// Traits-like helper class for checking if objects can be compared using memcmp().
+	// Useful for statically asserting if a cache key can implement operator==() with memcmp().
+	template<typename T>
+	struct is_memcmparable
+	{
+		// std::is_trivially_copyable is not available in older GCC versions.
+		#if !defined(__GNUC__) || __GNUC__ > 5
+			static const bool value = std::is_trivially_copyable<T>::value;
+		#else
+			// At least check it doesn't have virtual methods.
+			static const bool value = !std::is_polymorphic<T>::value;
+		#endif
 	};
 }
 

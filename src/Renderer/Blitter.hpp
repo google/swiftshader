@@ -53,13 +53,14 @@ namespace sw
 			bool clampToEdge : 1;
 		};
 
-		struct State : Options
+		struct State : Memset<State>, Options
 		{
-			State() = default;
-			State(const Options &options) : Options(options) {}
+			State() : Memset(this, 0) {}
+			State(const Options &options) : Memset(this, 0), Options(options) {}
 
 			bool operator==(const State &state) const
 			{
+				static_assert(is_memcmparable<State>::value, "Cannot memcmp State");
 				return memcmp(this, &state, sizeof(State)) == 0;
 			}
 

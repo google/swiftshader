@@ -31,7 +31,7 @@ SwapchainKHR::SwapchainKHR(const VkSwapchainCreateInfoKHR *pCreateInfo, void *me
 	imageCount(pCreateInfo->minImageCount),
 	retired(false)
 {
-	memset(images, 0, imageCount * sizeof(PresentImage));
+	memset(reinterpret_cast<void*>(images), 0, imageCount * sizeof(PresentImage));
 }
 
 void SwapchainKHR::destroy(const VkAllocationCallbacks *pAllocator)

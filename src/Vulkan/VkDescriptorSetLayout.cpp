@@ -259,13 +259,13 @@ void SampledImageDescriptor::updateSampler(const vk::Sampler *newSampler)
 {
 	if(newSampler)
 	{
-		memcpy(&sampler, newSampler, sizeof(sampler));
+		memcpy(reinterpret_cast<void*>(&sampler), newSampler, sizeof(sampler));
 	}
 	else
 	{
 		// Descriptor ID's start at 1, allowing to detect descriptor update
 		// bugs by checking for 0. Also avoid reading random values.
-		memset(&sampler, 0, sizeof(sampler));
+		memset(reinterpret_cast<void*>(&sampler), 0, sizeof(sampler));
 	}
 }
 
