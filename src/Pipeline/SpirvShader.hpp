@@ -1265,7 +1265,7 @@ namespace sw
 		// TODO(b/129523279): Eliminate conversion and use vk::Sampler members directly.
 		static sw::FilterType convertFilterMode(const vk::Sampler *sampler);
 		static sw::MipmapType convertMipmapMode(const vk::Sampler *sampler);
-		static sw::AddressingMode convertAddressingMode(int coordinateIndex, VkSamplerAddressMode addressMode, VkImageViewType imageViewType);
+		static sw::AddressingMode convertAddressingMode(int coordinateIndex, const vk::Sampler *sampler, VkImageViewType imageViewType);
 
 		// Returns 0 when invalid.
 		static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);

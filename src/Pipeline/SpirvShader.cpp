@@ -4910,7 +4910,7 @@ namespace sw
 	{
 		Type::ID resultTypeId = insn.word(1);
 		Object::ID resultId = insn.word(2);
-		Object::ID sampledImageId = insn.word(3);
+		Object::ID sampledImageId = insn.word(3);  // For OpImageFetch this is just an Image, not a SampledImage.
 		Object::ID coordinateId = insn.word(4);
 		auto &resultType = getType(resultTypeId);
 
@@ -4927,6 +4927,14 @@ namespace sw
 
 		Pointer<Byte> sampler = samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler); // vk::Sampler*
 		Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
+
+		// Above we assumed that if the SampledImage operand is not the result of an OpSampledImage,
+		// it must be a combined image sampler loaded straight from the descriptor set. For OpImageFetch
+		// it's just an Image operand, so there's no sampler descriptor data.
+		if(getType(sampledImage.type).opcode() != spv::OpTypeSampledImage)
+		{
+			sampler = Pointer<Byte>(nullptr);
+		}
 
 		uint32_t imageOperands = spv::ImageOperandsMaskNone;
 		bool lodOrBias = false;

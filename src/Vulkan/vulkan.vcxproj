@@ -80,7 +80,8 @@
 mkdir "$(SolutionDir)build\$(Configuration)_$(Platform)\"
 copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
 copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)build\$(Configuration)_$(Platform)\"
-IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\vulkan-1.dll")</Command>
+IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Debug" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Debug\vulkan-1.dll")
+IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release\vulkan-1.dll")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -105,7 +106,8 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
 mkdir "$(SolutionDir)build\$(Configuration)_$(Platform)\"
 copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
 copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)build\$(Configuration)_$(Platform)\"
-IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\vulkan-1.dll")</Command>
+IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Debug" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Debug\vulkan-1.dll")
+IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release\vulkan-1.dll")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
