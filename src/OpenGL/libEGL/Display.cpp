@@ -381,6 +381,7 @@ EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribL
 				case GL_RED:
 				case GL_R16UI:
 				case GL_RG:
+				case GL_RGB:
 				case GL_BGRA_EXT:
 				case GL_RGBA:
 					clientBufferFormat = attribList[1];
@@ -470,6 +471,7 @@ EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribL
 			{
 			case GL_RED:
 			case GL_RG:
+			case GL_RGB:
 			case GL_BGRA_EXT:
 				break;
 			case GL_R16UI:

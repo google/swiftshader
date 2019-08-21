@@ -1233,6 +1233,7 @@ namespace egl
 			{
 			case sw::FORMAT_R8:            return GL_R8;
 			case sw::FORMAT_G8R8:          return GL_RG8;
+			case sw::FORMAT_X8R8G8B8:      return GL_RGB8;
 			case sw::FORMAT_A8R8G8B8:      return GL_BGRA8_EXT;
 			case sw::FORMAT_R16UI:         return GL_R16UI;
 			case sw::FORMAT_A16B16G16R16F: return GL_RGBA16F;

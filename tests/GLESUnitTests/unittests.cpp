@@ -2255,6 +2255,34 @@ TEST_F(IOSurfaceClientBufferTest, ReadFromBGRA8888IOSurface)
 	Uninitialize();
 }
 
+// Test using RGBX8888 IOSurfaces for rendering
+TEST_F(IOSurfaceClientBufferTest, RenderToRGBX8888IOSurface)
+{
+	Initialize(3, false);
+
+	{ // EGLClientBufferWrapper scope
+		EGLClientBufferWrapper clientBufferWrapper;
+		unsigned char data[3] = { 1, 2, 3 };
+		doClearTest(clientBufferWrapper, GL_RGB, GL_UNSIGNED_BYTE, data, 3);
+	} // end of EGLClientBufferWrapper scope
+
+	Uninitialize();
+}
+
+// Test reading from RGBX8888 IOSurfaces
+TEST_F(IOSurfaceClientBufferTest, ReadFromRGBX8888IOSurface)
+{
+	Initialize(3, false);
+
+	{ // EGLClientBufferWrapper scope
+		EGLClientBufferWrapper clientBufferWrapper;
+		unsigned char data[3] = { 1, 2, 3 };
+		doSampleTest(clientBufferWrapper, GL_RGB, GL_UNSIGNED_BYTE, data, 3);
+	} // end of EGLClientBufferWrapper scope
+
+	Uninitialize();
+}
+
 // Test using RG88 IOSurfaces for rendering
 TEST_F(IOSurfaceClientBufferTest, RenderToRG88IOSurface)
 {

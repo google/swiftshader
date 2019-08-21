@@ -250,6 +250,8 @@ sw::Format Surface::getClientBufferFormat() const
 			return sw::FORMAT_R8;
 		case GL_RG:
 			return sw::FORMAT_G8R8;
+		case GL_RGB:
+			return sw::FORMAT_X8R8G8B8;
 		case GL_BGRA_EXT:
 			return sw::FORMAT_A8R8G8B8;
 		default:
