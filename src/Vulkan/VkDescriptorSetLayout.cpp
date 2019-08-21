@@ -158,7 +158,7 @@ void DescriptorSetLayout::initialize(DescriptorSet* descriptorSet)
 			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 			{
 				SampledImageDescriptor* imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor*>(mem);
-				imageSamplerDescriptor->updateSampler(vk::Cast(bindings[i].pImmutableSamplers[j]));
+				imageSamplerDescriptor->updateSampler(bindings[i].pImmutableSamplers[j]);
 				mem += typeSize;
 			}
 		}
@@ -255,18 +255,9 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 	return &descriptorSet->data[byteOffset];
 }
 
-void SampledImageDescriptor::updateSampler(const vk::Sampler *newSampler)
+void SampledImageDescriptor::updateSampler(const VkSampler newSampler)
 {
-	if(newSampler)
-	{
-		memcpy(reinterpret_cast<void*>(&sampler), newSampler, sizeof(sampler));
-	}
-	else
-	{
-		// Descriptor ID's start at 1, allowing to detect descriptor update
-		// bugs by checking for 0. Also avoid reading random values.
-		memset(reinterpret_cast<void*>(&sampler), 0, sizeof(sampler));
-	}
+	memcpy(reinterpret_cast<void*>(&sampler), vk::Cast(newSampler), sizeof(sampler));
 }
 
 void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
@@ -292,7 +283,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
 			if (!binding.pImmutableSamplers)
 			{
-				imageSampler[i].updateSampler(vk::Cast(update->sampler));
+				imageSampler[i].updateSampler(update->sampler);
 			}
 			imageSampler[i].device = device;
 		}
@@ -347,11 +338,14 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 
 			sw::Texture *texture = &imageSampler[i].texture;
 
-			// "All consecutive bindings updated via a single VkWriteDescriptorSet structure, except those with a
-			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
-			if(!binding.pImmutableSamplers)
+			if(entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 			{
-				imageSampler[i].updateSampler(vk::Cast(update->sampler));
+				// "All consecutive bindings updated via a single VkWriteDescriptorSet structure, except those with a
+				//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
+				if(!binding.pImmutableSamplers)
+				{
+					imageSampler[i].updateSampler(update->sampler);
+				}
 			}
 
 			imageSampler[i].imageViewId = imageView->id;

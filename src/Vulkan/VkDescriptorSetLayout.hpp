@@ -32,7 +32,7 @@ struct alignas(16) SampledImageDescriptor
 {
 	~SampledImageDescriptor() = delete;
 
-	void updateSampler(const vk::Sampler *sampler);
+	void updateSampler(VkSampler sampler);
 
 	// TODO(b/129523279): Minimize to the data actually needed.
 	vk::Sampler sampler;
