@@ -60,6 +60,7 @@ namespace sw
 		int instanceID;
 		int baseVertex;
 		float lineWidth;
+		int viewID;
 
 		PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
 		PixelProcessor::Factor factor;

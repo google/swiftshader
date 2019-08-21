@@ -96,6 +96,7 @@ namespace sw
 
 		// Instancing
 		int instanceID;
+		int viewID;
 
 		bool occlusionEnabled;
 

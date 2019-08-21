@@ -511,8 +511,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const VkPhysicalDeviceMultiviewFeatures* multiviewFeatures = reinterpret_cast<const VkPhysicalDeviceMultiviewFeatures*>(extensionCreateInfo);
 
-				if (multiviewFeatures->multiview ||
-				    multiviewFeatures->multiviewGeometryShader ||
+				if (multiviewFeatures->multiviewGeometryShader ||
 				    multiviewFeatures->multiviewTessellationShader)
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;

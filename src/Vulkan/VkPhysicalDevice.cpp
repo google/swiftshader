@@ -119,7 +119,7 @@ void PhysicalDevice::getFeatures(VkPhysicalDevice8BitStorageFeaturesKHR* feature
 
 void PhysicalDevice::getFeatures(VkPhysicalDeviceMultiviewFeatures* features) const
 {
-	features->multiview = VK_FALSE;
+	features->multiview = VK_TRUE;
 	features->multiviewGeometryShader = VK_FALSE;
 	features->multiviewTessellationShader = VK_FALSE;
 }
@@ -295,8 +295,8 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties* prope
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceMultiviewProperties* properties) const
 {
-	properties->maxMultiviewViewCount = 0;
-	properties->maxMultiviewInstanceIndex = 0;
+	properties->maxMultiviewViewCount = 6;
+	properties->maxMultiviewInstanceIndex = 1u<<27;
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDevicePointClippingProperties* properties) const

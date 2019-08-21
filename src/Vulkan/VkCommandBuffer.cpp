@@ -515,7 +515,7 @@ struct DrawBase : public CommandBuffer::Command
 	{
 		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_GRAPHICS];
 
-		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(pipelineState.pipeline);
+		GraphicsPipeline *pipeline = static_cast<GraphicsPipeline *>(pipelineState.pipeline);
 
 		sw::Context context = pipeline->getContext();
 
@@ -527,12 +527,13 @@ struct DrawBase : public CommandBuffer::Command
 
 		// Apply either pipeline state or dynamic state
 		executionState.renderer->setScissor(pipeline->hasDynamicState(VK_DYNAMIC_STATE_SCISSOR) ?
-		                                    executionState.dynamicState.scissor : pipeline->getScissor());
+											executionState.dynamicState.scissor : pipeline->getScissor());
 		executionState.renderer->setViewport(pipeline->hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT) ?
-		                                     executionState.dynamicState.viewport : pipeline->getViewport());
+											 executionState.dynamicState.viewport : pipeline->getViewport());
 		executionState.renderer->setBlendConstant(pipeline->hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS) ?
-		                                          executionState.dynamicState.blendConstants : pipeline->getBlendConstants());
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
+												  executionState.dynamicState.blendConstants
+																											  : pipeline->getBlendConstants());
+		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
 		{
 			// If the depth bias clamping feature is not enabled, depthBiasClamp must be 0.0
 			ASSERT(executionState.dynamicState.depthBiasClamp == 0.0f);
@@ -540,25 +541,27 @@ struct DrawBase : public CommandBuffer::Command
 			context.depthBias = executionState.dynamicState.depthBiasConstantFactor;
 			context.slopeDepthBias = executionState.dynamicState.depthBiasSlopeFactor;
 		}
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)
+		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)
 		{
 			// Unless the VK_EXT_depth_range_unrestricted extension is enabled minDepthBounds and maxDepthBounds must be between 0.0 and 1.0, inclusive
-			ASSERT(executionState.dynamicState.minDepthBounds >= 0.0f && executionState.dynamicState.minDepthBounds <= 1.0f);
-			ASSERT(executionState.dynamicState.maxDepthBounds >= 0.0f && executionState.dynamicState.maxDepthBounds <= 1.0f);
+			ASSERT(executionState.dynamicState.minDepthBounds >= 0.0f &&
+				   executionState.dynamicState.minDepthBounds <= 1.0f);
+			ASSERT(executionState.dynamicState.maxDepthBounds >= 0.0f &&
+				   executionState.dynamicState.maxDepthBounds <= 1.0f);
 
 			UNIMPLEMENTED("depthBoundsTestEnable");
 		}
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && context.stencilEnable)
+		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && context.stencilEnable)
 		{
 			context.frontStencil.compareMask = executionState.dynamicState.compareMask[0];
 			context.backStencil.compareMask = executionState.dynamicState.compareMask[1];
 		}
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && context.stencilEnable)
+		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && context.stencilEnable)
 		{
 			context.frontStencil.writeMask = executionState.dynamicState.writeMask[0];
 			context.backStencil.writeMask = executionState.dynamicState.writeMask[1];
 		}
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && context.stencilEnable)
+		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && context.stencilEnable)
 		{
 			context.frontStencil.reference = executionState.dynamicState.reference[0];
 			context.backStencil.reference = executionState.dynamicState.reference[1];
@@ -566,23 +569,23 @@ struct DrawBase : public CommandBuffer::Command
 
 		executionState.bindAttachments(context);
 
-		context.multiSampleMask = context.sampleMask & ((unsigned)0xFFFFFFFF >> (32 - context.sampleCount));
+		context.multiSampleMask = context.sampleMask & ((unsigned) 0xFFFFFFFF >> (32 - context.sampleCount));
 		context.occlusionEnabled = executionState.renderer->hasOcclusionQuery();
 
-		std::vector<std::pair<uint32_t, void*>> indexBuffers;
-		if(indexed)
+		std::vector<std::pair<uint32_t, void *>> indexBuffers;
+		if (indexed)
 		{
-			void* indexBuffer = executionState.indexBufferBinding.buffer->getOffsetPointer(
-				executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
-			if(pipeline->hasPrimitiveRestartEnable())
+			void *indexBuffer = executionState.indexBufferBinding.buffer->getOffsetPointer(
+					executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
+			if (pipeline->hasPrimitiveRestartEnable())
 			{
-				switch(executionState.indexType)
+				switch (executionState.indexType)
 				{
 				case VK_INDEX_TYPE_UINT16:
-					processPrimitiveRestart(static_cast<uint16_t*>(indexBuffer), count, pipeline, indexBuffers);
+					processPrimitiveRestart(static_cast<uint16_t *>(indexBuffer), count, pipeline, indexBuffers);
 					break;
 				case VK_INDEX_TYPE_UINT32:
-					processPrimitiveRestart(static_cast<uint32_t*>(indexBuffer), count, pipeline, indexBuffers);
+					processPrimitiveRestart(static_cast<uint32_t *>(indexBuffer), count, pipeline, indexBuffers);
 					break;
 				default:
 					UNIMPLEMENTED("executionState.indexType %d", int(executionState.indexType));
@@ -590,23 +593,32 @@ struct DrawBase : public CommandBuffer::Command
 			}
 			else
 			{
-				indexBuffers.push_back({ pipeline->computePrimitiveCount(count), indexBuffer });
+				indexBuffers.push_back({pipeline->computePrimitiveCount(count), indexBuffer});
 			}
 		}
 		else
 		{
-			indexBuffers.push_back({ pipeline->computePrimitiveCount(count), nullptr });
+			indexBuffers.push_back({pipeline->computePrimitiveCount(count), nullptr});
 		}
 
-		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
+		for (uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			context.instanceID = instance;
 
-			for(auto indexBuffer : indexBuffers)
+			// FIXME: reconsider instances/views nesting.
+			auto viewMask = executionState.renderPass->getViewMask();
+			while (viewMask)
 			{
-				const uint32_t primitiveCount = indexBuffer.first;
-				context.indexBuffer = indexBuffer.second;
-				executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset, executionState.events);
+				context.viewID = sw::log2i(viewMask);
+				viewMask &= ~(1 << context.viewID);
+
+				for (auto indexBuffer : indexBuffers)
+				{
+					const uint32_t primitiveCount = indexBuffer.first;
+					context.indexBuffer = indexBuffer.second;
+					executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset,
+												  executionState.events);
+				}
 			}
 
 			executionState.renderer->advanceInstanceAttributes(context.input);

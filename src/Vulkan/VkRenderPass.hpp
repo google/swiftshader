@@ -76,6 +76,21 @@ public:
 		return attachmentFirstUse[i] >= 0;
 	}
 
+	uint32_t getViewMask() const
+	{
+		return viewMasks ? viewMasks[currentSubpass] : 1;
+	}
+
+	bool isMultiView() const
+	{
+		return viewMasks != nullptr;
+	}
+
+	uint32_t getAttachmentViewMask(uint32_t i) const
+	{
+		return attachmentViewMasks[i];
+	}
+
 private:
 	uint32_t                 attachmentCount = 0;
 	VkAttachmentDescription* attachments = nullptr;
@@ -85,6 +100,10 @@ private:
 	VkSubpassDependency*     dependencies = nullptr;
 	uint32_t                 currentSubpass = 0;
 	int*                     attachmentFirstUse = nullptr;
+	uint32_t*                viewMasks = nullptr;
+	uint32_t*                attachmentViewMasks = nullptr;
+
+	void MarkFirstUse(int attachment, int subpass);
 };
 
 static inline RenderPass* Cast(VkRenderPass object)

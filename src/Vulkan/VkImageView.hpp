@@ -42,6 +42,7 @@ public:
 	void clear(const VkClearValue& clearValues, VkImageAspectFlags aspectMask, const VkRect2D& renderArea);
 	void clear(const VkClearValue& clearValue, VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
 	void resolve(ImageView* resolveAttachment);
+	void resolve(ImageView* resolveAttachment, int layer);
 
 	VkImageViewType getType() const { return viewType; }
 	Format getFormat(Usage usage = RAW) const;

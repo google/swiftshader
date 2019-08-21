@@ -1131,6 +1131,7 @@ namespace sw
 				if (!strcmp(ext, "SPV_KHR_16bit_storage")) break;
 				if (!strcmp(ext, "SPV_KHR_variable_pointers")) break;
 				if (!strcmp(ext, "SPV_KHR_device_group")) break;
+				if (!strcmp(ext, "SPV_KHR_multiview")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 				break;
 			}
@@ -5323,6 +5324,12 @@ namespace sw
 		if (isArrayed)
 		{
 			ptr += coordinate.Int(dims) * slicePitch;
+		}
+
+		if (dim == spv::DimSubpassData)
+		{
+			// Multiview input attachment access is to the layer corresponding to the current view
+			ptr += SIMD::Int(routine->viewID) * slicePitch;
 		}
 
 		if (sampleId.value())

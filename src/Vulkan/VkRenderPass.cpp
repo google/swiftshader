@@ -15,15 +15,6 @@
 #include "VkRenderPass.hpp"
 #include <cstring>
 
-namespace
-{
-	void MarkFirstUse(int& attachment, int subpass)
-	{
-		if (attachment == -1)
-			attachment = subpass;
-	}
-}
-
 namespace vk
 {
 
@@ -41,6 +32,8 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 	subpasses = reinterpret_cast<VkSubpassDescription*>(hostMemory);
 	memcpy(subpasses, pCreateInfo->pSubpasses, subpassesSize);
 	hostMemory += subpassesSize;
+	uint32_t *masks = reinterpret_cast<uint32_t *>(hostMemory);
+	hostMemory += pCreateInfo->subpassCount * sizeof(uint32_t);
 
 	if(pCreateInfo->attachmentCount > 0)
 	{
@@ -51,9 +44,43 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 
 		size_t firstUseSize = pCreateInfo->attachmentCount * sizeof(int);
 		attachmentFirstUse = reinterpret_cast<int*>(hostMemory);
-		for (auto i = 0u; i < pCreateInfo->attachmentCount; i++)
-			attachmentFirstUse[i] = -1;
 		hostMemory += firstUseSize;
+
+		attachmentViewMasks = reinterpret_cast<uint32_t *>(hostMemory);
+		hostMemory += pCreateInfo->attachmentCount * sizeof(uint32_t);
+		for (auto i = 0u; i < pCreateInfo->attachmentCount; i++)
+		{
+			attachmentFirstUse[i] = -1;
+			attachmentViewMasks[i] = 0;
+		}
+	}
+
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+	while (extensionCreateInfo)
+	{
+		switch (extensionCreateInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO:
+		{
+			// Renderpass uses multiview if this structure is present AND some subpass specifies
+			// a nonzero view mask
+			auto const *multiviewCreateInfo = reinterpret_cast<VkRenderPassMultiviewCreateInfo const *>(extensionCreateInfo);
+			for (auto i = 0u; i < pCreateInfo->subpassCount; i++)
+			{
+				masks[i] = multiviewCreateInfo->pViewMasks[i];
+				// This is now a multiview renderpass, so make the masks available
+				if (masks[i])
+					viewMasks = masks;
+			}
+
+			break;
+		}
+		default:
+			/* Unknown structure in pNext chain must be ignored */
+			break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
 	// Deep copy subpasses
@@ -77,7 +104,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			for (auto j = 0u; j < subpasses[i].inputAttachmentCount; j++)
 			{
 				if (subpass.pInputAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
-					MarkFirstUse(attachmentFirstUse[subpass.pInputAttachments[j].attachment], i);
+					MarkFirstUse(subpass.pInputAttachments[j].attachment, i);
 			}
 		}
 
@@ -100,10 +127,10 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			for (auto j = 0u; j < subpasses[i].colorAttachmentCount; j++)
 			{
 				if (subpass.pColorAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
-					MarkFirstUse(attachmentFirstUse[subpass.pColorAttachments[j].attachment], i);
+					MarkFirstUse(subpass.pColorAttachments[j].attachment, i);
 				if (subpass.pResolveAttachments &&
 					subpass.pResolveAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
-					MarkFirstUse(attachmentFirstUse[subpass.pResolveAttachments[j].attachment], i);
+					MarkFirstUse(subpass.pResolveAttachments[j].attachment, i);
 			}
 		}
 
@@ -115,7 +142,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			hostMemory += sizeof(VkAttachmentReference);
 
 			if (subpass.pDepthStencilAttachment->attachment != VK_ATTACHMENT_UNUSED)
-				MarkFirstUse(attachmentFirstUse[subpass.pDepthStencilAttachment->attachment], i);
+				MarkFirstUse(subpass.pDepthStencilAttachment->attachment, i);
 		}
 
 		if(subpass.preserveAttachmentCount > 0)
@@ -129,7 +156,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			for (auto j = 0u; j < subpasses[i].preserveAttachmentCount; j++)
 			{
 				if (subpass.pPreserveAttachments[j] != VK_ATTACHMENT_UNUSED)
-					MarkFirstUse(attachmentFirstUse[subpass.pPreserveAttachments[j]], i);
+					MarkFirstUse(subpass.pPreserveAttachments[j], i);
 			}
 		}
 	}
@@ -150,7 +177,8 @@ void RenderPass::destroy(const VkAllocationCallbacks* pAllocator)
 size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* pCreateInfo)
 {
 	size_t attachmentSize = pCreateInfo->attachmentCount * sizeof(VkAttachmentDescription)
-			+ pCreateInfo->attachmentCount * sizeof(int);
+			+ pCreateInfo->attachmentCount * sizeof(int)			// first use
+			+ pCreateInfo->attachmentCount * sizeof(uint32_t);		// union of subpass view masks, per attachment
 	size_t subpassesSize = 0;
 	for(uint32_t i = 0; i < pCreateInfo->subpassCount; ++i)
 	{
@@ -166,7 +194,8 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* p
 		}
 		subpassesSize += sizeof(VkSubpassDescription) +
 		                 sizeof(VkAttachmentReference) * nbAttachments +
-		                 sizeof(uint32_t) * subpass.preserveAttachmentCount;
+		                 sizeof(uint32_t) * subpass.preserveAttachmentCount +
+		                 sizeof(uint32_t);			// view mask
 	}
 	size_t dependenciesSize = pCreateInfo->dependencyCount * sizeof(VkSubpassDependency);
 
@@ -193,6 +222,18 @@ void RenderPass::nextSubpass()
 void RenderPass::end()
 {
 	currentSubpass = 0;
+}
+
+void RenderPass::MarkFirstUse(int attachment, int subpass)
+{
+	// FIXME: we may not actually need to track attachmentFirstUse if we're going to eagerly
+	//  clear attachments at the start of the renderpass; can use attachmentViewMasks always instead.
+
+	if (attachmentFirstUse[attachment] == -1)
+		attachmentFirstUse[attachment] = subpass;
+
+	if (isMultiView())
+		attachmentViewMasks[attachment] |= viewMasks[subpass];
 }
 
 } // namespace vk

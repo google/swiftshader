@@ -1299,6 +1299,7 @@ namespace sw
 		Pointer<Byte> constants;
 		Int killMask = Int{0};
 		SIMD::Int windowSpacePosition[2];
+		Int viewID;	// slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
 
 		void createVariable(SpirvShader::Object::ID id, uint32_t size)
 		{

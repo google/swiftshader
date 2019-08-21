@@ -24,6 +24,12 @@ namespace sw
 	{
 		routine.setImmutableInputBuiltins(spirvShader);
 
+		routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
+		{
+			assert(builtin.SizeInComponents == 1);
+			value[builtin.FirstComponent] = As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, viewID)))));
+		});
+
 		routine.setInputBuiltin(spirvShader, spv::BuiltInFragCoord, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 		{
 			assert(builtin.SizeInComponents == 4);
@@ -50,6 +56,7 @@ namespace sw
 
 		routine.windowSpacePosition[0] = x + SIMD::Int(0,1,0,1);
 		routine.windowSpacePosition[1] = y + SIMD::Int(0,0,1,1);
+		routine.viewID = *Pointer<Int>(data + OFFSET(DrawData, viewID));
 	}
 
 	void PixelProgram::applyShader(Int cMask[4])
