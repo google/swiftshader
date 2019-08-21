@@ -1414,6 +1414,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8)
         list(APPEND LLVM_COMPILE_OPTIONS
             "-Wno-class-memaccess"  # memset/memcmp used on non-trivial class object
+            "-Wno-attributes"	# declared inline but not inline
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
