@@ -21,6 +21,19 @@
 
 using namespace sw;
 
+// Clamps to the [0, hi] range. NaN input produces 0, hi must be non-NaN.
+float clamp0hi(float x, float hi)
+{
+	// If x=NaN, x > 0 will compare false and we return 0.
+	if(!(x > 0))
+	{
+		return 0;
+	}
+
+	// x is non-NaN at this point, so std::min() is safe for non-NaN hi.
+	return std::min(x, hi);
+}
+
 unsigned int RGB9E5_reference(float r, float g, float b)
 {
 	// Vulkan 1.1.117 section 15.2.1 RGB to Shared Exponent Conversion
@@ -39,12 +52,12 @@ unsigned int RGB9E5_reference(float r, float g, float b)
 			static_cast<float>(1 << g_sharedexp_mantissabits)) *
 		static_cast<float>(1 << (g_sharedexp_maxexponent - g_sharedexp_bias));
 
-	const float red_c = std::max<float>(0, std::min(g_sharedexp_max, r));
-	const float green_c = std::max<float>(0, std::min(g_sharedexp_max, g));
-	const float blue_c = std::max<float>(0, std::min(g_sharedexp_max, b));
+	const float red_c = clamp0hi(r, g_sharedexp_max);
+	const float green_c = clamp0hi(g, g_sharedexp_max);
+	const float blue_c = clamp0hi(b, g_sharedexp_max);
 
-	const float max_c = std::max<float>(std::max<float>(red_c, green_c), blue_c);
-	const float exp_p = std::max<float>(-g_sharedexp_bias - 1, floor(log2(max_c))) + 1 + g_sharedexp_bias;
+	const float max_c = fmax(fmax(red_c, green_c), blue_c);
+	const float exp_p = fmax(-g_sharedexp_bias - 1, floor(log2(max_c))) + 1 + g_sharedexp_bias;
 	const int max_s = static_cast<int>(floor((max_c / exp2(exp_p - g_sharedexp_bias - g_sharedexp_mantissabits)) + 0.5f));
 	const int exp_s = static_cast<int>((max_s < exp2(g_sharedexp_mantissabits)) ? exp_p : exp_p + 1);
 

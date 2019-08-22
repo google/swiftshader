@@ -80,10 +80,10 @@ namespace sw
 					static_cast<float>(1 << g_sharedexp_mantissabits)) *
 				static_cast<float>(1 << (g_sharedexp_maxexponent - g_sharedexp_bias));
 
-			// Clamp components to valid range.
-			const float red_c = std::max<float>(0, std::min(g_sharedexp_max, r));
-			const float green_c = std::max<float>(0, std::min(g_sharedexp_max, g));
-			const float blue_c = std::max<float>(0, std::min(g_sharedexp_max, b));
+			// Clamp components to valid range. NaN becomes 0.
+			const float red_c =   std::min(!(r > 0) ? 0 : r, g_sharedexp_max);
+			const float green_c = std::min(!(g > 0) ? 0 : g, g_sharedexp_max);
+			const float blue_c =  std::min(!(b > 0) ? 0 : b, g_sharedexp_max);
 
 			// We're reducing the mantissa to 9 bits, so we must round up if the next
 			// bit is 1. In other words add 0.5 to the new mantissa's position and

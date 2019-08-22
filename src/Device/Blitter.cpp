@@ -642,10 +642,10 @@ namespace sw
 				// Maximum representable value.
 				constexpr float sharedexp_max = ((static_cast<float>(1 << N) - 1) / static_cast<float>(1 << N)) * static_cast<float>(1 << (E_max - B));
 
-				// Clamp components to valid range.
-				Float red_c = Max(0, Min(sharedexp_max, c.x));
-				Float green_c = Max(0, Min(sharedexp_max, c.y));
-				Float blue_c = Max(0, Min(sharedexp_max, c.z));
+				// Clamp components to valid range. NaN becomes 0.
+				Float red_c =   Min(IfThenElse(!(c.x > 0), Float(0), Float(c.x)), sharedexp_max);
+				Float green_c = Min(IfThenElse(!(c.y > 0), Float(0), Float(c.y)), sharedexp_max);
+				Float blue_c =  Min(IfThenElse(!(c.z > 0), Float(0), Float(c.z)), sharedexp_max);
 
 				// We're reducing the mantissa to 9 bits, so we must round up if the next
 				// bit is 1. In other words add 0.5 to the new mantissa's position and
