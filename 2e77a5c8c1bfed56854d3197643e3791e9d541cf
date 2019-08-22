@@ -63,6 +63,30 @@
       "revId": "2e77a5c8c1bfed56854d3197643e3791e9d541cf",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eae2be88_c0ab471d",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-08-22T16:41:26Z",
+      "side": 1,
+      "message": "Not for any particularly good reason. Can adjust to the exact minimum if we want to, but this isnt an interesting limit. Nobody in their right mind draws 2^27 instances of anything, etc.",
+      "parentUuid": "27d9de3a_99565c21",
+      "range": {
+        "startLine": 299,
+        "startChar": 41,
+        "endLine": 299,
+        "endChar": 47
+      },
+      "revId": "2e77a5c8c1bfed56854d3197643e3791e9d541cf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
