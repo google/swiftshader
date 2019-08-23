@@ -17,7 +17,6 @@
 #include "VkRenderPass.hpp"
 #include <algorithm>
 #include <memory.h>
-#include <System/Math.hpp>
 
 namespace vk
 {
@@ -65,34 +64,24 @@ void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, 
 								  (clearStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0);
 				if (renderPass->isMultiView())
 				{
-					auto viewMask = renderPass->getAttachmentViewMask(i);
-					while (viewMask)
-					{
-						uint32_t view = sw::log2i(viewMask);
-						viewMask &= ~(1 << view);
-						VkClearRect r{renderArea, view, 1};
-						attachments[i]->clear(pClearValues[i], aspectMask, r);
-					}
+					attachments[i]->clearWithLayerMask(pClearValues[i], aspectMask, renderArea, renderPass->getAttachmentViewMask(i));
 				}
 				else
+				{
 					attachments[i]->clear(pClearValues[i], aspectMask, renderArea);
+				}
 			}
 		}
 		else if(attachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
 		{
 			if (renderPass->isMultiView())
 			{
-				auto viewMask = renderPass->getAttachmentViewMask(i);
-				while (viewMask)
-				{
-					uint32_t view = sw::log2i(viewMask);
-					viewMask &= ~(1 << view);
-					VkClearRect r{renderArea, view, 1};
-					attachments[i]->clear(pClearValues[i], VK_IMAGE_ASPECT_COLOR_BIT, r);
-				}
+				attachments[i]->clearWithLayerMask(pClearValues[i], VK_IMAGE_ASPECT_COLOR_BIT, renderArea, renderPass->getAttachmentViewMask(i));
 			}
 			else
+			{
 				attachments[i]->clear(pClearValues[i], VK_IMAGE_ASPECT_COLOR_BIT, renderArea);
+			}
 		}
 	}
 }
@@ -101,48 +90,39 @@ void Framebuffer::clearAttachment(const RenderPass* renderPass, uint32_t subpass
 {
 	VkSubpassDescription subpass = renderPass->getSubpass(subpassIndex);
 
-	if(attachment.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
+	if (attachment.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
-		if(attachment.colorAttachment != VK_ATTACHMENT_UNUSED)
+		if (attachment.colorAttachment != VK_ATTACHMENT_UNUSED)
 		{
 			ASSERT(attachment.colorAttachment < subpass.colorAttachmentCount);
 			ASSERT(subpass.pColorAttachments[attachment.colorAttachment].attachment < attachmentCount);
+			ImageView *imageView = attachments[subpass.pColorAttachments[attachment.colorAttachment].attachment];
 
 			if (renderPass->isMultiView())
 			{
-				auto viewMask = renderPass->getViewMask(subpassIndex);
-				while (viewMask)
-				{
-					int view = sw::log2i(viewMask);
-					viewMask &= ~(1 << view);
-					VkClearRect r = rect;
-					r.baseArrayLayer = view;
-					attachments[subpass.pColorAttachments[attachment.colorAttachment].attachment]->clear(attachment.clearValue, attachment.aspectMask, r);
-				}
+				imageView->clearWithLayerMask(attachment.clearValue, attachment.aspectMask, rect.rect,
+											  renderPass->getViewMask(subpassIndex));
 			}
 			else
-				attachments[subpass.pColorAttachments[attachment.colorAttachment].attachment]->clear(
-					attachment.clearValue, attachment.aspectMask, rect);
+			{
+				imageView->clear(attachment.clearValue, attachment.aspectMask, rect);
+			}
 		}
 	}
-	else if(attachment.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT))
+	else if (attachment.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT))
 	{
 		ASSERT(subpass.pDepthStencilAttachment->attachment < attachmentCount);
+		ImageView *imageView = attachments[subpass.pDepthStencilAttachment->attachment];
 
 		if (renderPass->isMultiView())
-			{
-				auto viewMask = renderPass->getViewMask(subpassIndex);
-				while (viewMask)
-				{
-					int view = sw::log2i(viewMask);
-					viewMask &= ~(1 << view);
-					VkClearRect r = rect;
-					r.baseArrayLayer = view;
-					attachments[subpass.pDepthStencilAttachment->attachment]->clear(attachment.clearValue, attachment.aspectMask, r);
-				}
-			}
+		{
+			imageView->clearWithLayerMask(attachment.clearValue, attachment.aspectMask, rect.rect,
+										  renderPass->getViewMask(subpassIndex));
+		}
 		else
-			attachments[subpass.pDepthStencilAttachment->attachment]->clear(attachment.clearValue, attachment.aspectMask, rect);
+		{
+			imageView->clear(attachment.clearValue, attachment.aspectMask, rect);
+		}
 	}
 }
 
@@ -161,19 +141,15 @@ void Framebuffer::resolve(const RenderPass* renderPass, uint32_t subpassIndex)
 			uint32_t resolveAttachment = subpass.pResolveAttachments[i].attachment;
 			if(resolveAttachment != VK_ATTACHMENT_UNUSED)
 			{
+				ImageView *imageView = attachments[subpass.pColorAttachments[i].attachment];
 				if (renderPass->isMultiView())
 				{
-					auto viewMask = renderPass->getViewMask(subpassIndex);
-					while (viewMask)
-					{
-						int view = sw::log2i(viewMask);
-						viewMask &= ~(1 << view);
-						attachments[subpass.pColorAttachments[i].attachment]->resolve(attachments[resolveAttachment], view);
-					}
+					imageView->resolveWithLayerMask(attachments[resolveAttachment],
+													renderPass->getViewMask(subpassIndex));
 				}
 				else
 				{
-					attachments[subpass.pColorAttachments[i].attachment]->resolve(attachments[resolveAttachment]);
+					imageView->resolve(attachments[resolveAttachment]);
 				}
 			}
 		}

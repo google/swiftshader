@@ -14,6 +14,7 @@
 
 #include "VkImageView.hpp"
 #include "VkImage.hpp"
+#include <System/Math.hpp>
 
 namespace
 {
@@ -154,6 +155,18 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 	image->clear(clearValue, format, renderArea.rect, sr);
 }
 
+void ImageView::clearWithLayerMask(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask)
+{
+	while (layerMask)
+	{
+		uint32_t layer = sw::log2i(layerMask);
+		layerMask &= ~(1 << layer);
+		VkClearRect r = {renderArea, layer, 1};
+		r.baseArrayLayer = layer;
+		clear(clearValue, aspectMask, r);
+	}
+}
+
 void ImageView::resolve(ImageView* resolveAttachment, int layer)
 {
 	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
@@ -212,6 +225,16 @@ void ImageView::resolve(ImageView* resolveAttachment)
 	                                         subresourceRange.baseMipLevel);
 
 	image->copyTo(resolveAttachment->image, region);
+}
+
+void ImageView::resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask)
+{
+	while (layerMask)
+	{
+		int layer = sw::log2i(layerMask);
+		layerMask &= ~(1 << layer);
+		resolve(resolveAttachment, layer);
+	}
 }
 
 const Image* ImageView::getImage(Usage usage) const
