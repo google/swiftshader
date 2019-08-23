@@ -32,18 +32,14 @@ public:
 
 	void getRenderAreaGranularity(VkExtent2D* pGranularity) const;
 
-	void begin();
-	void nextSubpass();
-	void end();
-
 	uint32_t getAttachmentCount() const
 	{
 		return attachmentCount;
 	}
 
-	VkAttachmentDescription getAttachment(uint32_t i) const
+	VkAttachmentDescription getAttachment(uint32_t attachmentIndex) const
 	{
-		return attachments[i];
+		return attachments[attachmentIndex];
 	}
 
 	uint32_t getSubpassCount() const
@@ -51,14 +47,9 @@ public:
 		return subpassCount;
 	}
 
-	VkSubpassDescription getSubpass(uint32_t i) const
+	VkSubpassDescription const& getSubpass(uint32_t subpassIndex) const
 	{
-		return subpasses[i];
-	}
-
-	VkSubpassDescription getCurrentSubpass() const
-	{
-		return subpasses[currentSubpass];
+		return subpasses[subpassIndex];
 	}
 
 	uint32_t getDependencyCount() const
@@ -76,9 +67,9 @@ public:
 		return attachmentFirstUse[i] >= 0;
 	}
 
-	uint32_t getViewMask() const
+	uint32_t getViewMask(uint32_t subpassIndex) const
 	{
-		return viewMasks ? viewMasks[currentSubpass] : 1;
+		return viewMasks ? viewMasks[subpassIndex] : 1;
 	}
 
 	bool isMultiView() const
@@ -86,9 +77,9 @@ public:
 		return viewMasks != nullptr;
 	}
 
-	uint32_t getAttachmentViewMask(uint32_t i) const
+	uint32_t getAttachmentViewMask(uint32_t attachmentIndex) const
 	{
-		return attachmentViewMasks[i];
+		return attachmentViewMasks[attachmentIndex];
 	}
 
 private:
@@ -98,7 +89,6 @@ private:
 	VkSubpassDescription*    subpasses = nullptr;
 	uint32_t                 dependencyCount = 0;
 	VkSubpassDependency*     dependencies = nullptr;
-	uint32_t                 currentSubpass = 0;
 	int*                     attachmentFirstUse = nullptr;
 	uint32_t*                viewMasks = nullptr;
 	uint32_t*                attachmentViewMasks = nullptr;

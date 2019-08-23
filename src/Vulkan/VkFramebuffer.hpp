@@ -30,11 +30,11 @@ public:
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	void clear(const RenderPass* renderPass, uint32_t clearValueCount, const VkClearValue* pClearValues, const VkRect2D& renderArea);
-	void clear(const RenderPass* renderPass, const VkClearAttachment& attachment, const VkClearRect& rect);
+	void clearAttachment(const RenderPass* renderPass, uint32_t subpassIndex, const VkClearAttachment& attachment, const VkClearRect& rect);
 
 	static size_t ComputeRequiredAllocationSize(const VkFramebufferCreateInfo* pCreateInfo);
 	ImageView *getAttachment(uint32_t index) const;
-	void resolve(const RenderPass* renderPass);
+	void resolve(const RenderPass* renderPass, uint32_t subpassIndex);
 
 private:
 	uint32_t    attachmentCount = 0;

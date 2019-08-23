@@ -208,22 +208,6 @@ void RenderPass::getRenderAreaGranularity(VkExtent2D* pGranularity) const
 	pGranularity->height = 1;
 }
 
-void RenderPass::begin()
-{
-	currentSubpass = 0;
-}
-
-void RenderPass::nextSubpass()
-{
-	++currentSubpass;
-	ASSERT(currentSubpass < subpassCount);
-}
-
-void RenderPass::end()
-{
-	currentSubpass = 0;
-}
-
 void RenderPass::MarkFirstUse(int attachment, int subpass)
 {
 	// FIXME: we may not actually need to track attachmentFirstUse if we're going to eagerly

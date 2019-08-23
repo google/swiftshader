@@ -97,20 +97,20 @@ void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, 
 	}
 }
 
-void Framebuffer::clear(const RenderPass* renderPass, const VkClearAttachment& attachment, const VkClearRect& rect)
+void Framebuffer::clearAttachment(const RenderPass* renderPass, uint32_t subpassIndex, const VkClearAttachment& attachment, const VkClearRect& rect)
 {
+	VkSubpassDescription subpass = renderPass->getSubpass(subpassIndex);
+
 	if(attachment.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
 		if(attachment.colorAttachment != VK_ATTACHMENT_UNUSED)
 		{
-			VkSubpassDescription subpass = renderPass->getCurrentSubpass();
-
 			ASSERT(attachment.colorAttachment < subpass.colorAttachmentCount);
 			ASSERT(subpass.pColorAttachments[attachment.colorAttachment].attachment < attachmentCount);
 
 			if (renderPass->isMultiView())
 			{
-				auto viewMask = renderPass->getViewMask();
+				auto viewMask = renderPass->getViewMask(subpassIndex);
 				while (viewMask)
 				{
 					int view = sw::log2i(viewMask);
@@ -127,13 +127,11 @@ void Framebuffer::clear(const RenderPass* renderPass, const VkClearAttachment& a
 	}
 	else if(attachment.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT))
 	{
-		VkSubpassDescription subpass = renderPass->getCurrentSubpass();
-
 		ASSERT(subpass.pDepthStencilAttachment->attachment < attachmentCount);
 
 		if (renderPass->isMultiView())
 			{
-				auto viewMask = renderPass->getViewMask();
+				auto viewMask = renderPass->getViewMask(subpassIndex);
 				while (viewMask)
 				{
 					int view = sw::log2i(viewMask);
@@ -153,9 +151,9 @@ ImageView *Framebuffer::getAttachment(uint32_t index) const
 	return attachments[index];
 }
 
-void Framebuffer::resolve(const RenderPass* renderPass)
+void Framebuffer::resolve(const RenderPass* renderPass, uint32_t subpassIndex)
 {
-	VkSubpassDescription subpass = renderPass->getCurrentSubpass();
+	auto const& subpass = renderPass->getSubpass(subpassIndex);
 	if(subpass.pResolveAttachments)
 	{
 		for(uint32_t i = 0; i < subpass.colorAttachmentCount; i++)
@@ -165,7 +163,7 @@ void Framebuffer::resolve(const RenderPass* renderPass)
 			{
 				if (renderPass->isMultiView())
 				{
-					auto viewMask = renderPass->getViewMask();
+					auto viewMask = renderPass->getViewMask(subpassIndex);
 					while (viewMask)
 					{
 						int view = sw::log2i(viewMask);

@@ -61,7 +61,7 @@ protected:
 	{
 		executionState.renderPass = renderPass;
 		executionState.renderPassFramebuffer = framebuffer;
-		renderPass->begin();
+		executionState.subpassIndex = 0;
 		framebuffer->clear(executionState.renderPass, clearValueCount, clearValues, renderArea);
 	}
 
@@ -83,17 +83,17 @@ public:
 protected:
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		bool hasResolveAttachments = (executionState.renderPass->getCurrentSubpass().pResolveAttachments != nullptr);
+		bool hasResolveAttachments = (executionState.renderPass->getSubpass(executionState.subpassIndex).pResolveAttachments != nullptr);
 		if(hasResolveAttachments)
 		{
 			// FIXME(sugoi): remove the following lines and resolve in Renderer::finishRendering()
 			//               for a Draw command or after the last command of the current subpass
 			//               which modifies pixels.
 			executionState.renderer->synchronize();
-			executionState.renderPassFramebuffer->resolve(executionState.renderPass);
+			executionState.renderPassFramebuffer->resolve(executionState.renderPass, executionState.subpassIndex);
 		}
 
-		executionState.renderPass->nextSubpass();
+		++executionState.subpassIndex;
 	}
 };
 
@@ -114,9 +114,7 @@ protected:
 		// FIXME(sugoi): remove the following line and resolve in Renderer::finishRendering()
 		//               for a Draw command or after the last command of the current subpass
 		//               which modifies pixels.
-		executionState.renderPassFramebuffer->resolve(executionState.renderPass);
-
-		executionState.renderPass->end();
+		executionState.renderPassFramebuffer->resolve(executionState.renderPass, executionState.subpassIndex);
 		executionState.renderPass = nullptr;
 		executionState.renderPassFramebuffer = nullptr;
 	}
@@ -434,16 +432,18 @@ void CommandBuffer::ExecutionState::bindAttachments(sw::Context& context)
 	// there is too much stomping of the renderer's state by setContext() in
 	// draws.
 
-	for (auto i = 0u; i < renderPass->getCurrentSubpass().colorAttachmentCount; i++)
+	auto const & subpass = renderPass->getSubpass(subpassIndex);
+
+	for (auto i = 0u; i < subpass.colorAttachmentCount; i++)
 	{
-		auto attachmentReference = renderPass->getCurrentSubpass().pColorAttachments[i];
+		auto attachmentReference = subpass.pColorAttachments[i];
 		if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 		{
 			context.renderTarget[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
 		}
 	}
 
-	auto attachmentReference = renderPass->getCurrentSubpass().pDepthStencilAttachment;
+	auto attachmentReference = subpass.pDepthStencilAttachment;
 	if (attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
 	{
 		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
@@ -606,7 +606,7 @@ struct DrawBase : public CommandBuffer::Command
 			context.instanceID = instance;
 
 			// FIXME: reconsider instances/views nesting.
-			auto viewMask = executionState.renderPass->getViewMask();
+			auto viewMask = executionState.renderPass->getViewMask(executionState.subpassIndex);
 			while (viewMask)
 			{
 				context.viewID = sw::log2i(viewMask);
@@ -869,7 +869,7 @@ struct ClearAttachment : public CommandBuffer::Command
 		// however, we don't do the clear through the rasterizer, so need to ensure prior drawing
 		// has completed first.
 		executionState.renderer->synchronize();
-		executionState.renderPassFramebuffer->clear(executionState.renderPass, attachment, rect);
+		executionState.renderPassFramebuffer->clearAttachment(executionState.renderPass, executionState.subpassIndex, attachment, rect);
 	}
 
 private:

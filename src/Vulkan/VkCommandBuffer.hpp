@@ -177,6 +177,8 @@ public:
 		VertexInputBinding indexBufferBinding;
 		VkIndexType indexType;
 
+		uint32_t subpassIndex = 0;
+
 		void bindAttachments(sw::Context& context);
 		void bindVertexInputs(sw::Context& context, int firstVertex, int firstInstance);
 	};
