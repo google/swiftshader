@@ -41,47 +41,29 @@ void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, 
 	ASSERT(attachmentCount == renderPass->getAttachmentCount());
 
 	const uint32_t count = std::min(clearValueCount, attachmentCount);
-	for(uint32_t i = 0; i < count; i++)
+	for (uint32_t i = 0; i < count; i++)
 	{
-		if (!renderPass->isAttachmentUsed(i))
+		const VkAttachmentDescription attachment = renderPass->getAttachment(i);
+
+		VkImageAspectFlags aspectMask = Format(attachment.format).getAspects();
+		if (attachment.loadOp != VK_ATTACHMENT_LOAD_OP_CLEAR)
+			aspectMask &= VK_IMAGE_ASPECT_STENCIL_BIT;
+		if (attachment.stencilLoadOp != VK_ATTACHMENT_LOAD_OP_CLEAR)
+			aspectMask &= ~VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		if (!aspectMask || !renderPass->isAttachmentUsed(i))
 		{
 			continue;
 		}
 
-		const VkAttachmentDescription attachment = renderPass->getAttachment(i);
-		const Format format(attachment.format);
-		bool isDepth = format.isDepth();
-		bool isStencil = format.isStencil();
-
-		if(isDepth || isStencil)
+		if (renderPass->isMultiView())
 		{
-			bool clearDepth = (isDepth && (attachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR));
-			bool clearStencil = (isStencil && (attachment.stencilLoadOp == VK_ATTACHMENT_LOAD_OP_CLEAR));
-
-			if(clearDepth || clearStencil)
-			{
-				auto aspectMask = (clearDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : 0) |
-								  (clearStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0);
-				if (renderPass->isMultiView())
-				{
-					attachments[i]->clearWithLayerMask(pClearValues[i], aspectMask, renderArea, renderPass->getAttachmentViewMask(i));
-				}
-				else
-				{
-					attachments[i]->clear(pClearValues[i], aspectMask, renderArea);
-				}
-			}
+			attachments[i]->clearWithLayerMask(pClearValues[i], aspectMask, renderArea,
+											   renderPass->getAttachmentViewMask(i));
 		}
-		else if(attachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+		else
 		{
-			if (renderPass->isMultiView())
-			{
-				attachments[i]->clearWithLayerMask(pClearValues[i], VK_IMAGE_ASPECT_COLOR_BIT, renderArea, renderPass->getAttachmentViewMask(i));
-			}
-			else
-			{
-				attachments[i]->clear(pClearValues[i], VK_IMAGE_ASPECT_COLOR_BIT, renderArea);
-			}
+			attachments[i]->clear(pClearValues[i], aspectMask, renderArea);
 		}
 	}
 }
