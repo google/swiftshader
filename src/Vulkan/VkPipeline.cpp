@@ -478,6 +478,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			context.sourceBlendFactorState = attachment.srcColorBlendFactor;
 		}
 	}
+
+	context.multiSampleMask = context.sampleMask & ((unsigned) 0xFFFFFFFF >> (32 - context.sampleCount));
 }
 
 void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)

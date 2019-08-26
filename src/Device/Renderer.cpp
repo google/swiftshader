@@ -233,7 +233,9 @@ namespace sw
 		sw::deallocate(mem);
 	}
 
-	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex, TaskEvents *events, bool update)
+	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex,
+			TaskEvents *events, int instanceID, int viewID, void *indexBuffer,
+			PushConstantStorage const & pushConstants, bool update)
 	{
 		if(count == 0) { return; }
 
@@ -347,10 +349,9 @@ namespace sw
 			data->stride[i] = context->input[i].vertexStride;
 		}
 
-		data->indices = context->indexBuffer;
-		data->viewID = context->viewID;
-		data->instanceID = context->instanceID;
-
+		data->indices = indexBuffer;
+		data->viewID = viewID;
+		data->instanceID = instanceID;
 		data->baseVertex = baseVertex;
 
 		if(pixelState.stencilActive)
@@ -457,7 +458,7 @@ namespace sw
 
 		// Push constants
 		{
-			data->pushConstants = context->pushConstants;
+			data->pushConstants = pushConstants;
 		}
 
 		draw->primitive = 0;

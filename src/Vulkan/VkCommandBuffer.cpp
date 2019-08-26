@@ -523,7 +523,6 @@ struct DrawBase : public CommandBuffer::Command
 
 		context.descriptorSets = pipelineState.descriptorSets;
 		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
-		context.pushConstants = executionState.pushConstants;
 
 		// Apply either pipeline state or dynamic state
 		executionState.renderer->setScissor(pipeline->hasDynamicState(VK_DYNAMIC_STATE_SCISSOR) ?
@@ -569,7 +568,6 @@ struct DrawBase : public CommandBuffer::Command
 
 		executionState.bindAttachments(context);
 
-		context.multiSampleMask = context.sampleMask & ((unsigned) 0xFFFFFFFF >> (32 - context.sampleCount));
 		context.occlusionEnabled = executionState.renderer->hasOcclusionQuery();
 
 		std::vector<std::pair<uint32_t, void *>> indexBuffers;
@@ -603,21 +601,18 @@ struct DrawBase : public CommandBuffer::Command
 
 		for (uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
-			context.instanceID = instance;
-
 			// FIXME: reconsider instances/views nesting.
 			auto viewMask = executionState.renderPass->getViewMask(executionState.subpassIndex);
 			while (viewMask)
 			{
-				context.viewID = sw::log2i(viewMask);
-				viewMask &= ~(1 << context.viewID);
+				int viewID = sw::log2i(viewMask);
+				viewMask &= ~(1 << viewID);
 
 				for (auto indexBuffer : indexBuffers)
 				{
-					const uint32_t primitiveCount = indexBuffer.first;
-					context.indexBuffer = indexBuffer.second;
-					executionState.renderer->draw(&context, executionState.indexType, primitiveCount, vertexOffset,
-												  executionState.events);
+					executionState.renderer->draw(&context, executionState.indexType, indexBuffer.first, vertexOffset,
+												  executionState.events, instance, viewID, indexBuffer.second,
+												  executionState.pushConstants);
 				}
 			}
 

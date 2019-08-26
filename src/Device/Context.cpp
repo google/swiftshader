@@ -128,8 +128,6 @@ namespace sw
 		pixelShader = nullptr;
 		vertexShader = nullptr;
 
-		instanceID = 0;
-
 		occlusionEnabled = false;
 
 		lineWidth = 1.0f;

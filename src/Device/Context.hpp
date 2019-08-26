@@ -82,7 +82,6 @@ namespace sw
 		vk::DescriptorSet::Bindings descriptorSets = {};
 		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 		Stream input[MAX_INTERFACE_COMPONENTS / 4];
-		void *indexBuffer;
 
 		vk::ImageView *renderTarget[RENDERTARGETS];
 		vk::ImageView *depthBuffer;
@@ -93,10 +92,6 @@ namespace sw
 		// Shaders
 		const SpirvShader *pixelShader;
 		const SpirvShader *vertexShader;
-
-		// Instancing
-		int instanceID;
-		int viewID;
 
 		bool occlusionEnabled;
 
@@ -123,8 +118,6 @@ namespace sw
 		unsigned int multiSampleMask;
 		int sampleCount;
 		bool alphaToCoverage;
-
-		PushConstantStorage pushConstants;
 	};
 }
 
