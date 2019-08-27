@@ -36,7 +36,10 @@ namespace sw
 		Vertex vertex[SIZE];
 		uint32_t tag[SIZE];
 
-		int drawCall;
+		// Identifier of the draw call for the cache data. If this cache is
+		// used with a different draw call, then the cache should be invalidated
+		// before use.
+		int drawCall = -1;
 	};
 
 	struct VertexTask

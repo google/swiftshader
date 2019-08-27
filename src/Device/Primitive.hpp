@@ -47,11 +47,7 @@ namespace sw
 
 		PlaneEquation z;
 		PlaneEquation w;
-
-		union
-		{
-			PlaneEquation V[MAX_INTERFACE_COMPONENTS];
-		};
+		PlaneEquation V[MAX_INTERFACE_COMPONENTS];
 
 		// Masks for two-sided stencil
 		int64_t clockwiseMask;

@@ -30,7 +30,7 @@ namespace sw
 
 		~FrameBufferAndroid() override;
 
-		void flip(sw::Surface *source) override {blit(source, nullptr, nullptr);};
+		void flip(sw::Surface *source) override {blit(source, nullptr, nullptr);}
 		void blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect) override;
 
 		void *lock() override;
