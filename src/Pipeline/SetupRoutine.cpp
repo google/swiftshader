@@ -86,9 +86,9 @@ namespace sw
 					Return(0);
 				}
 
-				Int w0w1w2 = *Pointer<Int>(v0 + OFFSET(Vertex, position.w)) ^
-							 *Pointer<Int>(v1 + OFFSET(Vertex, position.w)) ^
-							 *Pointer<Int>(v2 + OFFSET(Vertex, position.w));
+				Int w0w1w2 = *Pointer<Int>(v0 + OFFSET(Vertex, w)) ^
+				             *Pointer<Int>(v1 + OFFSET(Vertex, w)) ^
+				             *Pointer<Int>(v2 + OFFSET(Vertex, w));
 
 				A = IfThenElse(w0w1w2 < 0, -A, A);
 
@@ -268,9 +268,9 @@ namespace sw
 			// Sort by minimum y
 			if(triangle)
 			{
-				Float y0 = *Pointer<Float>(v0 + OFFSET(Vertex, position.y));
-				Float y1 = *Pointer<Float>(v1 + OFFSET(Vertex, position.y));
-				Float y2 = *Pointer<Float>(v2 + OFFSET(Vertex, position.y));
+				Float y0 = *Pointer<Float>(v0 + OFFSET(Vertex, y));
+				Float y1 = *Pointer<Float>(v1 + OFFSET(Vertex, y));
+				Float y2 = *Pointer<Float>(v2 + OFFSET(Vertex, y));
 
 				Float yMin = Min(Min(y0, y1), y2);
 
@@ -281,9 +281,9 @@ namespace sw
 			// Sort by maximum w
 			if(triangle)
 			{
-				Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, position.w));
-				Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, position.w));
-				Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, position.w));
+				Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, w));
+				Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, w));
+				Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, w));
 
 				Float wMax = Max(Max(w0, w1), w2);
 
@@ -292,13 +292,13 @@ namespace sw
 			}
 
 			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX)) =
-				*Pointer<Float>(v0 + OFFSET(Vertex, position.x));
+				*Pointer<Float>(v0 + OFFSET(Vertex, x));
 			*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY)) =
-				*Pointer<Float>(v0 + OFFSET(Vertex, position.y));
+				*Pointer<Float>(v0 + OFFSET(Vertex, y));
 
-			Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, position.w));
-			Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, position.w));
-			Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, position.w));
+			Float w0 = *Pointer<Float>(v0 + OFFSET(Vertex, w));
+			Float w1 = *Pointer<Float>(v1 + OFFSET(Vertex, w));
+			Float w2 = *Pointer<Float>(v2 + OFFSET(Vertex, w));
 
 			Float4 w012;
 
@@ -443,11 +443,13 @@ namespace sw
 			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 			{
 				if (state.gradient[interpolant].Type != SpirvShader::ATTRIBTYPE_UNUSED)
+				{
 					setupGradient(primitive, tri, w012, M, v0, v1, v2,
 							OFFSET(Vertex, v[interpolant]),
 							OFFSET(Primitive, V[interpolant]),
 							state.gradient[interpolant].Flat,
 							!state.gradient[interpolant].NoPerspective, 0);
+				}
 			}
 
 			Return(1);

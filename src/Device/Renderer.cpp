@@ -217,11 +217,11 @@ namespace sw
 				break;
 			case VK_POLYGON_MODE_LINE:
 				setupPrimitives = &DrawCall::setupWireframeTriangles;
-				numPrimitivesPerBatch = 1;
+				numPrimitivesPerBatch /= 3;
 				break;
 			case VK_POLYGON_MODE_POINT:
 				setupPrimitives = &DrawCall::setupPointTriangles;
-				numPrimitivesPerBatch = 1;
+				numPrimitivesPerBatch /= 3;
 				break;
 			default:
 				UNSUPPORTED("polygon mode: %d", int(context->polygonMode));
@@ -631,39 +631,42 @@ namespace sw
 		int ms = state.multiSample;
 		int visible = 0;
 
-		const Vertex &v0 = triangles[0].v0;
-		const Vertex &v1 = triangles[0].v1;
-		const Vertex &v2 = triangles[0].v2;
-
-		float d = (v0.position.y * v1.position.x - v0.position.x * v1.position.y) * v2.position.w +
-		          (v0.position.x * v2.position.y - v0.position.y * v2.position.x) * v1.position.w +
-		          (v2.position.x * v1.position.y - v1.position.x * v2.position.y) * v0.position.w;
-
-		bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? d > 0.0f : d < 0.0f;
-		if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
+		for(int i = 0; i < count; i++)
 		{
-			if(frontFacing) return 0;
-		}
-		if(state.cullMode & VK_CULL_MODE_BACK_BIT)
-		{
-			if(!frontFacing) return 0;
-		}
+			const Vertex &v0 = triangles[i].v0;
+			const Vertex &v1 = triangles[i].v1;
+			const Vertex &v2 = triangles[i].v2;
 
-		// Copy attributes
-		triangles[1].v0 = v1;
-		triangles[1].v1 = v2;
-		triangles[2].v0 = v2;
-		triangles[2].v1 = v0;
+			float d = (v0.y * v1.x - v0.x * v1.y) * v2.w +
+			          (v0.x * v2.y - v0.y * v2.x) * v1.w +
+			          (v2.x * v1.y - v1.x * v2.y) * v0.w;
 
-		for(int i = 0; i < 3; i++)
-		{
-			if(setupLine(*primitives, *triangles, *drawCall))
+			bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? (d > 0) : (d < 0);
+			if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
 			{
-				primitives += ms;
-				visible++;
+				if(frontFacing) continue;
+			}
+			if(state.cullMode & VK_CULL_MODE_BACK_BIT)
+			{
+				if(!frontFacing) continue;
 			}
 
-			triangles++;
+			Triangle lines[3];
+			lines[0].v0 = v0;
+			lines[0].v1 = v1;
+			lines[1].v0 = v1;
+			lines[1].v1 = v2;
+			lines[2].v0 = v2;
+			lines[2].v1 = v0;
+
+			for(int i = 0; i < 3; i++)
+			{
+				if(setupLine(*primitives, lines[i], *drawCall))
+				{
+					primitives += ms;
+					visible++;
+				}
+			}
 		}
 
 		return visible;
@@ -676,37 +679,39 @@ namespace sw
 		int ms = state.multiSample;
 		int visible = 0;
 
-		const Vertex &v0 = triangles[0].v0;
-		const Vertex &v1 = triangles[0].v1;
-		const Vertex &v2 = triangles[0].v2;
-
-		float d = (v0.position.y * v1.position.x - v0.position.x * v1.position.y) * v2.position.w +
-		          (v0.position.x * v2.position.y - v0.position.y * v2.position.x) * v1.position.w +
-		          (v2.position.x * v1.position.y - v1.position.x * v2.position.y) * v0.position.w;
-
-		bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? d > 0.0f : d < 0.0f;
-		if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
+		for(int i = 0; i < count; i++)
 		{
-			if(frontFacing) return 0;
-		}
-		if(state.cullMode & VK_CULL_MODE_BACK_BIT)
-		{
-			if(!frontFacing) return 0;
-		}
+			const Vertex &v0 = triangles[i].v0;
+			const Vertex &v1 = triangles[i].v1;
+			const Vertex &v2 = triangles[i].v2;
 
-		// Copy attributes
-		triangles[1].v0 = v1;
-		triangles[2].v0 = v2;
+			float d = (v0.y * v1.x - v0.x * v1.y) * v2.w +
+			          (v0.x * v2.y - v0.y * v2.x) * v1.w +
+			          (v2.x * v1.y - v1.x * v2.y) * v0.w;
 
-		for(int i = 0; i < 3; i++)
-		{
-			if(setupPoint(*primitives, *triangles, *drawCall))
+			bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? (d > 0) : (d < 0);
+			if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
 			{
-				primitives += ms;
-				visible++;
+				if(frontFacing) continue;
+			}
+			if(state.cullMode & VK_CULL_MODE_BACK_BIT)
+			{
+				if(!frontFacing) continue;
 			}
 
-			triangles++;
+			Triangle points[3];
+			points[0].v0 = v0;
+			points[1].v0 = v1;
+			points[2].v0 = v2;
+
+			for(int i = 0; i < 3; i++)
+			{
+				if(setupPoint(*primitives, points[i], *drawCall))
+				{
+					primitives += ms;
+					visible++;
+				}
+			}
 		}
 
 		return visible;

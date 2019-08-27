@@ -397,7 +397,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
 	{
-		switch (multisampleState->rasterizationSamples) {
+		switch (multisampleState->rasterizationSamples)
+		{
 		case VK_SAMPLE_COUNT_1_BIT:
 			context.sampleCount = 1;
 			break;
@@ -409,7 +410,9 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		}
 
 		if (multisampleState->pSampleMask)
+		{
 			context.sampleMask = multisampleState->pSampleMask[0];
+		}
 
 		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable == VK_TRUE);
 

@@ -23,7 +23,19 @@ namespace sw
 {
 	ALIGN(16, struct Vertex
 	{
-		float4 position;
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+				float w;
+			};
+
+			float4 position;
+		};
+
 		float pointSize;
 
 		int clipFlags;
