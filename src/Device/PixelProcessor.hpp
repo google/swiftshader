@@ -119,7 +119,7 @@ namespace sw
 		};
 
 	public:
-		typedef void (*RoutinePointer)(const Primitive *primitive, int count, int thread, DrawData *draw);
+		typedef void (*RoutinePointer)(const Primitive *primitive, int count, int cluster, int clusterCount, DrawData *draw);
 
 		PixelProcessor();
 

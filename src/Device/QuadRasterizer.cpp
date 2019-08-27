@@ -34,7 +34,6 @@ namespace sw
 	{
 		constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
 		occlusion = 0;
-		int clusterCount = Renderer::getClusterCount();
 
 		Do
 		{
@@ -71,6 +70,8 @@ namespace sw
 		Pointer<Byte> cBuffer[RENDERTARGETS];
 		Pointer<Byte> zBuffer;
 		Pointer<Byte> sBuffer;
+
+		Int clusterCountLog2 = 31 - Ctlz(UInt(clusterCount), false);
 
 		for(int index = 0; index < RENDERTARGETS; index++)
 		{
@@ -192,24 +193,22 @@ namespace sw
 				}
 			}
 
-			int clusterCount = Renderer::getClusterCount();
-
 			for(int index = 0; index < RENDERTARGETS; index++)
 			{
 				if(state.colorWriteActive(index))
 				{
-					cBuffer[index] += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index])) << (1 + log2i(clusterCount));   // FIXME: Precompute
+					cBuffer[index] += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index])) << (1 + clusterCountLog2);   // FIXME: Precompute
 				}
 			}
 
 			if(state.depthTestActive)
 			{
-				zBuffer += *Pointer<Int>(data + OFFSET(DrawData,depthPitchB)) << (1 + log2i(clusterCount));   // FIXME: Precompute
+				zBuffer += *Pointer<Int>(data + OFFSET(DrawData,depthPitchB)) << (1 + clusterCountLog2);   // FIXME: Precompute
 			}
 
 			if(state.stencilActive)
 			{
-				sBuffer += *Pointer<Int>(data + OFFSET(DrawData,stencilPitchB)) << (1 + log2i(clusterCount));   // FIXME: Precompute
+				sBuffer += *Pointer<Int>(data + OFFSET(DrawData,stencilPitchB)) << (1 + clusterCountLog2);   // FIXME: Precompute
 			}
 
 			y += 2 * clusterCount;

@@ -691,7 +691,7 @@ namespace sw
 					DrawData *data = draw->data;
 					PixelProcessor::RoutinePointer pixelRoutine = draw->pixelPointer;
 
-					pixelRoutine(primitive, visible, cluster, data);
+					pixelRoutine(primitive, visible, cluster, clusterCount, data);
 				}
 
 				finishRendering(task[threadIndex]);
