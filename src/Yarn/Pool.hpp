@@ -118,7 +118,7 @@ T* Pool<T>::Item::get()
 template <typename T>
 void Pool<T>::Item::construct()
 {
-    new (&data) T();
+    new (&data) T;
 }
 
 template <typename T>
