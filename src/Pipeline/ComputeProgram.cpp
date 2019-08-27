@@ -18,6 +18,10 @@
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 
+#include "Yarn/Defer.hpp"
+#include "Yarn/Trace.hpp"
+#include "Yarn/WaitGroup.hpp"
+
 #include <queue>
 
 namespace
@@ -40,6 +44,8 @@ namespace sw
 
 	void ComputeProgram::generate()
 	{
+		YARN_SCOPED_EVENT("ComputeProgram::generate");
+
 		SpirvRoutine routine(pipelineLayout);
 		shader->emitProlog(&routine);
 		emit(&routine);
@@ -199,11 +205,6 @@ namespace sw
 		auto invocationsPerWorkgroup = modes.WorkgroupSizeX * modes.WorkgroupSizeY * modes.WorkgroupSizeZ;
 		auto subgroupsPerWorkgroup = (invocationsPerWorkgroup + invocationsPerSubgroup - 1) / invocationsPerSubgroup;
 
-		// We're sharing a buffer here across all workgroups.
-		// We can only do this because we know a single workgroup is in flight
-		// at any time.
-		std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
-
 		Data data;
 		data.descriptorSets = descriptorSets;
 		data.descriptorDynamicOffsets = descriptorDynamicOffsets;
@@ -221,14 +222,33 @@ namespace sw
 		data.pushConstants = pushConstants;
 		data.constants = &sw::constants;
 
-		for (uint32_t groupZ = baseGroupZ; groupZ < baseGroupZ + groupCountZ; groupZ++)
-		{
-			for (uint32_t groupY = baseGroupY; groupY < baseGroupY + groupCountY; groupY++)
-			{
-				for (uint32_t groupX = baseGroupX; groupX < baseGroupX + groupCountX; groupX++)
-				{
+		yarn::WaitGroup wg;
+		const uint32_t batchCount = 16;
 
-					// TODO(bclayton): Split work across threads.
+		auto groupCount = groupCountX * groupCountY * groupCountZ;
+
+		for (uint32_t batchID = 0; batchID < batchCount && batchID < groupCount; batchID++)
+		{
+			wg.add(1);
+			yarn::schedule([=, &data]
+			{
+				defer(wg.done());
+				std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
+
+				for (uint32_t groupIndex = batchID; groupIndex < groupCount; groupIndex += batchCount)
+				{
+					auto modulo = groupIndex;
+					auto groupOffsetZ = modulo / (groupCountX * groupCountY);
+					modulo -= groupOffsetZ * (groupCountX * groupCountY);
+					auto groupOffsetY = modulo / groupCountX;
+					modulo -= groupOffsetY * groupCountX;
+					auto groupOffsetX = modulo;
+
+					auto groupZ = baseGroupZ + groupOffsetZ;
+					auto groupY = baseGroupY + groupOffsetY;
+					auto groupX = baseGroupX + groupOffsetX;
+					YARN_SCOPED_EVENT("groupX: %d, groupY: %d, groupZ: %d", groupX, groupY, groupZ);
+
 					using Coroutine = std::unique_ptr<rr::Stream<SpirvShader::YieldResult>>;
 					std::queue<Coroutine> coroutines;
 
@@ -261,10 +281,11 @@ namespace sw
 							coroutines.push(std::move(coroutine));
 						}
 					}
+				}
+			});
+		}
 
-				} // groupX
-			} // groupY
-		} // groupZ
+		wg.wait();
 	}
 
 } // namespace sw
