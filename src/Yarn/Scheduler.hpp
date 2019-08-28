@@ -294,7 +294,7 @@ private:
 
     // TODO: Make this lot thread-safe so setWorkerThreadCount() can be called
     // during execution of tasks.
-    unsigned int nextEnqueueIndex = 0;
+    std::atomic<unsigned int> nextEnqueueIndex;
     unsigned int numWorkerThreads = 0;
     std::array<Worker*, MaxWorkerThreads> workerThreads;
 
