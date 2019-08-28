@@ -32,6 +32,8 @@ public:
 	Format(VkFormat format) : format(format) {}
 	inline operator VkFormat() const { return format; }
 
+	bool isUnsignedNormalized() const;
+	bool isSignedNormalized() const;
 	bool isSignedNonNormalizedInteger() const;
 	bool isUnsignedNonNormalizedInteger() const;
 	bool isNonNormalizedInteger() const;

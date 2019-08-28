@@ -47,6 +47,22 @@ namespace sw
 			return;
 		}
 
+		float *pPixel = static_cast<float *>(pixel);
+		if (viewFormat.isUnsignedNormalized())
+		{
+			pPixel[0] = sw::clamp(pPixel[0], 0.0f, 1.0f);
+			pPixel[1] = sw::clamp(pPixel[1], 0.0f, 1.0f);
+			pPixel[2] = sw::clamp(pPixel[2], 0.0f, 1.0f);
+			pPixel[3] = sw::clamp(pPixel[3], 0.0f, 1.0f);
+		}
+		else if (viewFormat.isSignedNormalized())
+		{
+			pPixel[0] = sw::clamp(pPixel[0], -1.0f, 1.0f);
+			pPixel[1] = sw::clamp(pPixel[1], -1.0f, 1.0f);
+			pPixel[2] = sw::clamp(pPixel[2], -1.0f, 1.0f);
+			pPixel[3] = sw::clamp(pPixel[3], -1.0f, 1.0f);
+		}
+
 		if(fastClear(pixel, format, dest, dstFormat, subresourceRange, renderArea))
 		{
 			return;
