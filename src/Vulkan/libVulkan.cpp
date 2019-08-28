@@ -2852,6 +2852,15 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupSurfacePresentModesKHR(VkDevice d
 	return VK_SUCCESS;
 }
 
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t* pRectCount, VkRect2D* pRects)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, VkSurfaceKHR surface = %p, uint32_t* pRectCount = %p, VkRect2D* pRects = %p)",
+			physicalDevice, static_cast<void*>(surface), pRectCount, pRects);
+
+	return vk::Cast(surface)->getPresentRectangles(pRectCount, pRects);
+}
+
+
 #endif    // ! __ANDROID__
 
 #ifdef __ANDROID__

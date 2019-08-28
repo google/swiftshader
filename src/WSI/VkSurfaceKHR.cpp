@@ -186,4 +186,27 @@ bool SurfaceKHR::hasAssociatedSwapchain()
 	return (associatedSwapchain != nullptr);
 }
 
+VkResult SurfaceKHR::getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects) const
+{
+	if (!pRects)
+	{
+		*pRectCount = 1;
+		return VK_SUCCESS;
+	}
+
+	if (*pRectCount < 1)
+	{
+		return VK_INCOMPLETE;
+	}
+
+	VkSurfaceCapabilitiesKHR capabilities;
+	getSurfaceCapabilities(&capabilities);
+
+	pRects[0].offset = {0,0};
+	pRects[0].extent = capabilities.currentExtent;
+	*pRectCount = 1;
+
+	return VK_SUCCESS;
+}
+
 }
