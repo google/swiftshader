@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e4983d2_85f425a3",
+        "filename": "src/Yarn/Scheduler.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-08-28T07:44:52Z",
+      "side": 1,
+      "message": "FYI - you can initialize atomics with `\u003d {0};`",
+      "range": {
+        "startLine": 297,
+        "startChar": 46,
+        "endLine": 297,
+        "endChar": 47
+      },
+      "revId": "04e148570dbb420409ce9212f2e8c03e675bea48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
