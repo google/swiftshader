@@ -1411,6 +1411,8 @@ dEQP-GLES3.functional.shaders.constants.const_float_assign_variable_2_vertex
 dEQP-GLES3.functional.shaders.constants.const_float_assign_variable_2_fragment
 dEQP-GLES3.functional.shaders.constants.const_float_assign_user_func_vertex
 dEQP-GLES3.functional.shaders.constants.const_float_assign_user_func_fragment
+dEQP-GLES3.functional.shaders.constants.const_mat_multiply_vertex
+dEQP-GLES3.functional.shaders.constants.const_mat_multiply_fragment
 dEQP-GLES3.functional.shaders.constants.int_decimal_vertex
 dEQP-GLES3.functional.shaders.constants.int_decimal_fragment
 dEQP-GLES3.functional.shaders.constants.int_octal_vertex

@@ -23,6 +23,14 @@ dEQP-GLES2.functional.implementation_limits.max_vertex_texture_image_units
 dEQP-GLES2.functional.implementation_limits.max_texture_image_units
 dEQP-GLES2.functional.implementation_limits.max_fragment_uniform_vectors
 dEQP-GLES2.functional.implementation_limits.max_renderbuffer_size
+dEQP-GLES2.functional.clip_control.initial
+dEQP-GLES2.functional.clip_control.modify_get
+dEQP-GLES2.functional.clip_control.errors
+dEQP-GLES2.functional.clip_control.origin
+dEQP-GLES2.functional.clip_control.depth_mode_zero_to_one
+dEQP-GLES2.functional.clip_control.depth_mode_one_to_one
+dEQP-GLES2.functional.clip_control.face_culling
+dEQP-GLES2.functional.clip_control.viewport_bounds
 dEQP-GLES2.functional.color_clear.single_rgb
 dEQP-GLES2.functional.color_clear.single_rgba
 dEQP-GLES2.functional.color_clear.multiple_rgb
@@ -116,7 +124,6 @@ dEQP-GLES2.functional.light_amount.10omni
 dEQP-GLES2.functional.light_amount.12omni
 dEQP-GLES2.functional.light_amount.14omni
 dEQP-GLES2.functional.light_amount.16omni
-dEQP-GLES2.functional.multisampled_render_to_texture.readpixels
 dEQP-GLES2.functional.shaders.preprocessor.basic.correct_phases_vertex
 dEQP-GLES2.functional.shaders.preprocessor.basic.correct_phases_fragment
 dEQP-GLES2.functional.shaders.preprocessor.basic.invalid_identifier_vertex
