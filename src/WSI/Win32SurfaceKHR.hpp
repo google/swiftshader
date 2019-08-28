@@ -19,7 +19,9 @@
 #include "Vulkan/VkImage.hpp"
 #include "VkSurfaceKHR.hpp"
 
+#if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
+#endif  // !defined(WIN32_LEAN_AND_MEAN)
 #include <Windows.h>
 #include "vulkan/vulkan_win32.h"
 
@@ -42,7 +44,6 @@ public:
 	void present(PresentImage* image) override;
 
 private:
-	const HINSTANCE hinstance;
 	const HWND hwnd;
 
 	HDC windowContext = {};

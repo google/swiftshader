@@ -12,35 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../swiftshader.gni")
+# We are building inside SwiftShader
+spirv_tools_standalone = false
 
-swiftshader_source_set("WSI") {
-  sources = [
-    "VkSurfaceKHR.cpp",
-    "VkSurfaceKHR.hpp",
-    "VkSwapchainKHR.cpp",
-    "VkSwapchainKHR.hpp",
-  ]
-
-  if (is_linux) {
-    sources += [
-      "XlibSurfaceKHR.cpp",
-      "XlibSurfaceKHR.hpp",
-      "libX11.cpp",
-      "libX11.hpp",
-    ]
-  }
-
-  if (is_win) {
-    sources += [
-      "Win32SurfaceKHR.cpp",
-      "Win32SurfaceKHR.hpp",
-    ]
-  }
-
-  include_dirs = [
-    "..",
-    "../../include",
-    "../../third_party/SPIRV-Headers/include",
-  ]
-}
+# Paths to SPIRV-Tools dependencies in SwiftShader
+spirv_tools_googletest_dir = "//third_party/googletest"
+spirv_tools_spirv_headers_dir = "//third_party/SPIRV-Headers"

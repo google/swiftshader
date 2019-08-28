@@ -6,8 +6,10 @@
 # SwiftShader libraries
 
 import("//build_overrides/build.gni")
+import("//build_overrides/spirv_tools.gni")
+import("//build_overrides/swiftshader.gni")
 
-if (build_with_chromium) {
+if (!swiftshader_standalone) {
   import("//build/config/sanitizers/sanitizers.gni")
 } else {
   declare_args() {
@@ -31,7 +33,7 @@ if (is_debug) {
 configs_to_delete += [ "//build/config/compiler:chromium_code" ]
 configs_to_add += [
   "//build/config/compiler:no_chromium_code",
-  "//third_party/swiftshader:swiftshader_config",
+  "$swiftshader_dir:swiftshader_config",
 ]
 
 template("swiftshader_source_set") {

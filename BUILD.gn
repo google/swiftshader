@@ -26,6 +26,8 @@ config("swiftshader_config") {
       "/EHs-c-",  # Disable C++ exceptions
       "/nologo",
       "/Gd",  # Default calling convention
+      # Disable MSVC warnings about std::aligned_storage being broken before VS 2017 15.8
+      "/D_ENABLE_EXTENDED_ALIGNED_STORAGE",
     ]
 
     if (!use_custom_libcxx) {
@@ -181,10 +183,12 @@ group("swiftshader") {
   ]
 }
 
-group("swiftshader_tests") {
-  testonly = true
+if (build_with_chromium) {
+    group("swiftshader_tests") {
+      testonly = true
 
-  data_deps = [
-    "tests/GLESUnitTests:swiftshader_unittests",
-  ]
+      data_deps = [
+        "tests/GLESUnitTests:swiftshader_unittests",
+      ]
+    }
 }

@@ -17,14 +17,11 @@
 #include "Vulkan/VkDeviceMemory.hpp"
 #include "Vulkan/VkDebug.hpp"
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #include <string.h>
 
 namespace vk {
 
 Win32SurfaceKHR::Win32SurfaceKHR(const VkWin32SurfaceCreateInfoKHR *pCreateInfo, void *mem) :
-		hinstance(pCreateInfo->hinstance),
 		hwnd(pCreateInfo->hwnd)
 {
 	ASSERT(IsWindow(hwnd) == TRUE);

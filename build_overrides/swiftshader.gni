@@ -12,35 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("../swiftshader.gni")
+# We are building SwiftShader standalone
+swiftshader_standalone = true
 
-swiftshader_source_set("WSI") {
-  sources = [
-    "VkSurfaceKHR.cpp",
-    "VkSurfaceKHR.hpp",
-    "VkSwapchainKHR.cpp",
-    "VkSwapchainKHR.hpp",
-  ]
+# Path to SwiftShader
+swiftshader_dir = "//"
 
-  if (is_linux) {
-    sources += [
-      "XlibSurfaceKHR.cpp",
-      "XlibSurfaceKHR.hpp",
-      "libX11.cpp",
-      "libX11.hpp",
-    ]
-  }
-
-  if (is_win) {
-    sources += [
-      "Win32SurfaceKHR.cpp",
-      "Win32SurfaceKHR.hpp",
-    ]
-  }
-
-  include_dirs = [
-    "..",
-    "../../include",
-    "../../third_party/SPIRV-Headers/include",
-  ]
-}
+# Paths to SwiftShader dependencies
+swiftshader_spirv_tools_dir = "//third_party/SPIRV-Tools"
