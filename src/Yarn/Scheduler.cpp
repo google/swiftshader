@@ -99,7 +99,6 @@ void Scheduler::unbind()
 }
 
 Scheduler::Scheduler()
-    : nextEnqueueIndex(0)
 {
     for (size_t i = 0; i < spinningWorkers.size(); i++)
     {
