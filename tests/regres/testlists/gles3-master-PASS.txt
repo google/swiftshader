@@ -11577,6 +11577,8 @@ dEQP-GLES3.functional.shaders.constants.const_float_scope_shawdowing_3_vertex
 dEQP-GLES3.functional.shaders.constants.const_float_scope_shawdowing_4_fragment
 dEQP-GLES3.functional.shaders.constants.const_float_scope_shawdowing_4_vertex
 dEQP-GLES3.functional.shaders.constants.const_float_scope_vertex
+dEQP-GLES3.functional.shaders.constants.const_mat_multiply_fragment
+dEQP-GLES3.functional.shaders.constants.const_mat_multiply_vertex
 dEQP-GLES3.functional.shaders.constants.float_0_fragment
 dEQP-GLES3.functional.shaders.constants.float_0_vertex
 dEQP-GLES3.functional.shaders.constants.float_1_fragment

@@ -1,0 +1,5 @@
+dEQP-VK.api.smoke.triangle_ext_structs
+dEQP-VK.rasterization.provoking_vertex.line_list_with_adjacency
+dEQP-VK.rasterization.provoking_vertex.line_strip_with_adjacency
+dEQP-VK.rasterization.provoking_vertex.triangle_list_with_adjacency
+dEQP-VK.rasterization.provoking_vertex.triangle_strip_with_adjacency
