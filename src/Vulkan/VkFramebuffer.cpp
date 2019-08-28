@@ -74,11 +74,13 @@ void Framebuffer::clearAttachment(const RenderPass* renderPass, uint32_t subpass
 
 	if (attachment.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
-		if (attachment.colorAttachment != VK_ATTACHMENT_UNUSED)
+		ASSERT(attachment.colorAttachment < subpass.colorAttachmentCount);
+		uint32_t attachmentIndex = subpass.pColorAttachments[attachment.colorAttachment].attachment;
+
+		if (attachmentIndex != VK_ATTACHMENT_UNUSED)
 		{
-			ASSERT(attachment.colorAttachment < subpass.colorAttachmentCount);
-			ASSERT(subpass.pColorAttachments[attachment.colorAttachment].attachment < attachmentCount);
-			ImageView *imageView = attachments[subpass.pColorAttachments[attachment.colorAttachment].attachment];
+			ASSERT(attachmentIndex < attachmentCount);
+			ImageView *imageView = attachments[attachmentIndex];
 
 			if (renderPass->isMultiView())
 			{
