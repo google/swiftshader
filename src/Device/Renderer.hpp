@@ -220,7 +220,7 @@ namespace sw
 
 		std::atomic<int> nextDrawID = {0};
 
-		vk::Query *occlusionQuery;
+		vk::Query *occlusionQuery = nullptr;
 		yarn::Ticket::Queue drawTickets;
 		yarn::Ticket::Queue clusterQueues[MaxClusterCount];
 
