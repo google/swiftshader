@@ -741,6 +741,7 @@ namespace sw
 			bool GroupNonUniformBallot : 1;
 			bool GroupNonUniformShuffle : 1;
 			bool GroupNonUniformShuffleRelative : 1;
+			bool StorageImageExtendedFormats : 1;
 		};
 
 		Capabilities const &getUsedCapabilities() const

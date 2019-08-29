@@ -293,6 +293,9 @@ namespace
 		case spv::ImageFormatRgba16f: return VK_FORMAT_R16G16B16A16_SFLOAT;
 		case spv::ImageFormatRgba16i: return VK_FORMAT_R16G16B16A16_SINT;
 		case spv::ImageFormatRgba16ui: return VK_FORMAT_R16G16B16A16_UINT;
+		case spv::ImageFormatRg32f: return VK_FORMAT_R32G32_SFLOAT;
+		case spv::ImageFormatRg32i: return VK_FORMAT_R32G32_SINT;
+		case spv::ImageFormatRg32ui: return VK_FORMAT_R32G32_UINT;
 
 		default:
 			UNIMPLEMENTED("SPIR-V ImageFormat %u", format);
@@ -847,6 +850,7 @@ namespace sw
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				case spv::CapabilityGroupNonUniformShuffle: capabilities.GroupNonUniformShuffle = true; break;
 				case spv::CapabilityGroupNonUniformShuffleRelative: capabilities.GroupNonUniformShuffleRelative = true; break;
+				case spv::CapabilityStorageImageExtendedFormats: capabilities.StorageImageExtendedFormats = true; break;
 				default:
 					UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -5725,6 +5729,14 @@ namespace sw
 			numPackedElements = 2;
 			break;
 		case spv::ImageFormatRg32f:
+		case spv::ImageFormatRg32i:
+		case spv::ImageFormatRg32ui:
+			texelSize = 8;
+			packed[0] = texel.Int(0);
+			packed[1] = texel.Int(1);
+			numPackedElements = 2;
+			break;
+
 		case spv::ImageFormatRg16f:
 		case spv::ImageFormatR11fG11fB10f:
 		case spv::ImageFormatR16f:
@@ -5739,13 +5751,11 @@ namespace sw
 		case spv::ImageFormatRg8Snorm:
 		case spv::ImageFormatR16Snorm:
 		case spv::ImageFormatR8Snorm:
-		case spv::ImageFormatRg32i:
 		case spv::ImageFormatRg16i:
 		case spv::ImageFormatRg8i:
 		case spv::ImageFormatR16i:
 		case spv::ImageFormatR8i:
 		case spv::ImageFormatRgb10a2ui:
-		case spv::ImageFormatRg32ui:
 		case spv::ImageFormatRg16ui:
 		case spv::ImageFormatRg8ui:
 		case spv::ImageFormatR16ui:
