@@ -16,6 +16,7 @@ import("../swiftshader.gni")
 
 swiftshader_source_set("System") {
   sources = [
+    "Build.hpp",
     "CPUID.cpp",
     "CPUID.hpp",
     "Configurator.cpp",

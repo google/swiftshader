@@ -17,6 +17,7 @@
 
 #include "Color.hpp"
 #include "Context.hpp"
+#include "Memset.hpp"
 #include "RoutineCache.hpp"
 
 namespace sw

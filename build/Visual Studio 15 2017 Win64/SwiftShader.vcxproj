@@ -166,6 +166,7 @@
     <ClInclude Include="$(SolutionDir)src\Renderer\LRUCache.hpp" />
     <ClCompile Include="$(SolutionDir)src\Renderer\Matrix.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Matrix.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Renderer\Memset.hpp" />
     <ClCompile Include="$(SolutionDir)src\Renderer\PixelProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\PixelProcessor.hpp" />
     <ClCompile Include="$(SolutionDir)src\Renderer\Plane.cpp" />

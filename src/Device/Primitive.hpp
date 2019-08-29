@@ -15,13 +15,22 @@
 #ifndef sw_Primitive_hpp
 #define sw_Primitive_hpp
 
+#include "Memset.hpp"
 #include "Vertex.hpp"
 #include "Device/Config.hpp"
+#include "System/Build.hpp"
 
 namespace sw
 {
-	struct Triangle
+	struct Triangle MEMORY_SANITIZER_ONLY(: Memset<Triangle>)
 	{
+#if MEMORY_SANITIZER_ENABLED
+		// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
+		// false-positives when read. By clearing the struct in the constructor,
+		// we can avoid triggering these false-positives.
+		inline Triangle() : Memset<Triangle>(this, 0) {}
+#endif // MEMORY_SANITIZER_ENABLED
+
 		Vertex v0;
 		Vertex v1;
 		Vertex v2;
@@ -34,8 +43,15 @@ namespace sw
 		float4 C;
 	};
 
-	struct Primitive
+	struct Primitive MEMORY_SANITIZER_ONLY(: Memset<Primitive>)
 	{
+#if MEMORY_SANITIZER_ENABLED
+		// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
+		// false-positives when read. By clearing the struct in the constructor,
+		// we can avoid triggering these false-positives.
+		inline Primitive() : Memset<Primitive>(this, 0) {}
+#endif // MEMORY_SANITIZER_ENABLED
+
 		int yMin;
 		int yMax;
 

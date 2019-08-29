@@ -229,6 +229,9 @@
     <ClInclude Include="..\Renderer\Matrix.hpp">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\Renderer\Memset.hpp">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="..\Renderer\PixelProcessor.hpp">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>

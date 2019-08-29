@@ -15,6 +15,7 @@
 #ifndef sw_Blitter_hpp
 #define sw_Blitter_hpp
 
+#include "Memset.hpp"
 #include "RoutineCache.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Vulkan/VkFormat.h"

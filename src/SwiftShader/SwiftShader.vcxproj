@@ -429,6 +429,7 @@
     <ClInclude Include="..\Renderer\Context.hpp" />
     <ClInclude Include="..\Renderer\LRUCache.hpp" />
     <ClInclude Include="..\Renderer\Matrix.hpp" />
+    <ClInclude Include="..\Renderer\Memset.hpp" />
     <ClInclude Include="..\Renderer\PixelProcessor.hpp" />
     <ClInclude Include="..\Renderer\Plane.hpp" />
     <ClInclude Include="..\Renderer\Point.hpp" />

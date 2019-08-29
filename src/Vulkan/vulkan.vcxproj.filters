@@ -395,6 +395,9 @@
     <ClInclude Include="..\Device\Plane.hpp">
       <Filter>Header Files\Device</Filter>
     </ClInclude>
+    <ClInclude Include="..\Device\Memset.hpp">
+      <Filter>Header Files\Device</Filter>
+    </ClInclude>
     <ClInclude Include="..\Device\PixelProcessor.hpp">
       <Filter>Header Files\Device</Filter>
     </ClInclude>
@@ -451,6 +454,9 @@
     </ClInclude>
     <ClInclude Include="..\Pipeline\PixelProgram.hpp">
       <Filter>Header Files\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\System\Build.hpp">
+      <Filter>Header Files\System</Filter>
     </ClInclude>
     <ClInclude Include="..\Pipeline\ComputeProgram.hpp">
       <Filter>Header Files\Pipeline</Filter>

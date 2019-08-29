@@ -204,6 +204,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Device\LRUCache.hpp" />
     <ClCompile Include="$(SolutionDir)src\Device\Matrix.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Matrix.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Device\Memset.hpp" />
     <ClCompile Include="$(SolutionDir)src\Device\PixelProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\PixelProcessor.hpp" />
     <ClCompile Include="$(SolutionDir)src\Device\Plane.cpp" />
@@ -253,6 +254,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Pipeline\VertexRoutine.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\CPUID.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\CPUID.hpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Build.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Configurator.cpp" />
     <ClInclude Include="$(SolutionDir)src\System\Configurator.hpp" />
     <ClCompile Include="$(SolutionDir)src\System\Debug.cpp" />

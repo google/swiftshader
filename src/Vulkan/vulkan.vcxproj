@@ -236,6 +236,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
     <ClInclude Include="..\Device\ETC_Decoder.hpp" />
     <ClInclude Include="..\Device\LRUCache.hpp" />
     <ClInclude Include="..\Device\Matrix.hpp" />
+    <ClInclude Include="..\Device\Memset.hpp" />
     <ClInclude Include="..\Device\PixelProcessor.hpp" />
     <ClInclude Include="..\Device\Plane.hpp" />
     <ClInclude Include="..\Device\Point.hpp" />
@@ -263,6 +264,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
     <ClInclude Include="..\Pipeline\VertexPipeline.hpp" />
     <ClInclude Include="..\Pipeline\VertexProgram.hpp" />
     <ClInclude Include="..\Pipeline\VertexRoutine.hpp" />
+    <ClInclude Include="..\System\Build.hpp" />
     <ClInclude Include="..\System\Configurator.hpp" />
     <ClInclude Include="..\System\CPUID.hpp" />
     <ClInclude Include="..\System\Debug.hpp" />

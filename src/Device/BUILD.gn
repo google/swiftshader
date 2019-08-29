@@ -30,6 +30,7 @@ swiftshader_source_set("Device") {
     "ETC_Decoder.hpp",
     "Matrix.cpp",
     "Matrix.hpp",
+    "Memset.hpp",
     "PixelProcessor.cpp",
     "PixelProcessor.hpp",
     "Plane.cpp",

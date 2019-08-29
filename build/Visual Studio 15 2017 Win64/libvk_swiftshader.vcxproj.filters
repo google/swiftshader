@@ -225,6 +225,9 @@
     <ClInclude Include="$(SolutionDir)src\Device\Matrix.hpp">
       <Filter>src\Device</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Memset.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Device\PixelProcessor.hpp">
       <Filter>src\Device</Filter>
     </ClInclude>
@@ -305,6 +308,9 @@
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Pipeline\VertexRoutine.hpp">
       <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Build.hpp">
+      <Filter>src\System</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\System\CPUID.hpp">
       <Filter>src\System</Filter>

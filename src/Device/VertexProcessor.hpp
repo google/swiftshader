@@ -15,8 +15,9 @@
 #ifndef sw_VertexProcessor_hpp
 #define sw_VertexProcessor_hpp
 
-#include "Matrix.hpp"
 #include "Context.hpp"
+#include "Matrix.hpp"
+#include "Memset.hpp"
 #include "RoutineCache.hpp"
 #include "Vertex.hpp"
 #include "Pipeline/SpirvShader.hpp"

@@ -17,6 +17,7 @@
 
 #include <Pipeline/SpirvShader.hpp>
 #include "Context.hpp"
+#include "Memset.hpp"
 #include "RoutineCache.hpp"
 #include "System/Types.hpp"
 
