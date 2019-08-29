@@ -1,3 +1,2 @@
-dEQP-VK.wsi.xlib.surface.query_devgroup_present_modes
 dEQP-VK.wsi.xlib.swapchain.render.basic2
 dEQP-VK.wsi.xlib.swapchain.render.device_group

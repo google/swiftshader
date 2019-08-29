@@ -16,4 +16,3 @@ dEQP-VK.glsl.builtin.precision.sinh.highp.vec2
 dEQP-VK.glsl.builtin.precision.sinh.highp.vec3
 dEQP-VK.glsl.builtin.precision.sinh.highp.vec4
 dEQP-VK.glsl.builtin_var.simple.pointcoord_uniform_frag
-dEQP-VK.rasterization.provoking_vertex.line_strip
