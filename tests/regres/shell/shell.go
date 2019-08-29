@@ -30,7 +30,7 @@ import (
 )
 
 // MaxProcMemory is the maximum virtual memory per child process
-var MaxProcMemory uint64 = 3 * 1024 * 1024 * 1024 // 3GB
+var MaxProcMemory uint64 = 4 * 1024 * 1024 * 1024 // 4GB
 
 func init() {
 	// As we are going to be running a number of tests concurrently, we need to
@@ -116,9 +116,8 @@ func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) (
 
 	select {
 	case <-time.NewTimer(timeout).C:
-		log.Printf("Timeout for process %v\n", c.Process.Pid)
 		c.Process.Signal(syscall.SIGINT)
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 3)
 		if !c.ProcessState.Exited() {
 			log.Printf("Process %v still has not exited, killing\n", c.Process.Pid)
 			syscall.Kill(-c.Process.Pid, syscall.SIGKILL)

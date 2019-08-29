@@ -59,7 +59,7 @@ const (
 	dataVersion             = 1
 	changeUpdateFrequency   = time.Minute * 5
 	changeQueryFrequency    = time.Minute * 5
-	testTimeout             = time.Minute * 10 // timeout for a single test
+	testTimeout             = time.Minute * 2  // timeout for a single test
 	buildTimeout            = time.Minute * 10 // timeout for a build
 	dailyUpdateTestListHour = 5                // 5am
 	fullTestListRelPath     = "tests/regres/full-tests.json"
@@ -1241,8 +1241,10 @@ nextTest:
 				Test:      name,
 				Status:    testlist.Crash,
 				TimeTaken: duration,
+				Err:       out,
 			}
 		case shell.ErrTimeout:
+			log.Printf("Timeout for test '%v'\n", name)
 			results <- TestResult{
 				Test:      name,
 				Status:    testlist.Timeout,
