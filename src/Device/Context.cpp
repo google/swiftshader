@@ -24,19 +24,6 @@
 
 namespace sw
 {
-	void BlendState::init()
-	{
-		alphaBlendEnable = false;
-
-		sourceBlendFactor = VK_BLEND_FACTOR_ONE;
-		destBlendFactor = VK_BLEND_FACTOR_ZERO;
-		blendOperation = VK_BLEND_OP_ADD;
-
-		sourceBlendFactorAlpha = VK_BLEND_FACTOR_ONE;
-		destBlendFactorAlpha = VK_BLEND_FACTOR_ZERO;
-		blendOperationAlpha = VK_BLEND_OP_ADD;
-	}
-
 	Context::Context()
 	{
 		init();
@@ -101,9 +88,8 @@ namespace sw
 		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
 			renderTarget[i] = nullptr;
-
-			blendState[i].init();
 		}
+
 		depthBuffer = nullptr;
 		stencilBuffer = nullptr;
 
