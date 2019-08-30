@@ -108,7 +108,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "Vulkan.rc",
     "VulkanPlatform.h",
     "libVulkan.cpp",
-    "libvk_swiftshader.def",
+    "vk_swiftshader.def",
     "main.cpp",
     "resource.h",
   ]
@@ -122,14 +122,14 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     ldflags = [
       "-Wl,-install_name,@rpath/libvk_swiftshader.dylib",
       "-Wl,-exported_symbols_list," +
-          rebase_path("libvk_swiftshader.exports", root_build_dir),
+          rebase_path("vk_swiftshader.exports", root_build_dir),
     ]
   } else if (is_linux || is_fuchsia) {
     inputs = [
-      "libvk_swiftshader.lds",
+      "vk_swiftshader.lds",
     ]
     ldflags = [ "-Wl,--version-script=" +
-                rebase_path("libvk_swiftshader.lds", root_build_dir) ]
+                rebase_path("vk_swiftshader.lds", root_build_dir) ]
   }
 
   deps = [

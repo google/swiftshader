@@ -524,7 +524,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="libvk_swiftshader.def" />
+    <None Include="vk_swiftshader.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Vulkan.rc">

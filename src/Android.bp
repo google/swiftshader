@@ -548,7 +548,7 @@ cc_defaults {
 
     local_include_dirs: [ "Vulkan" ],
 
-    version_script: "Vulkan/libvk_swiftshader.lds",
+    version_script: "Vulkan/vk_swiftshader.lds",
 
     target: {
         android: {

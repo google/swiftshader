@@ -113,7 +113,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libvk_swiftshader.lib</ImportLibrary>
-      <ModuleDefinitionFile>$(SolutionDir)src/Vulkan/libvk_swiftshader.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)src/Vulkan/vk_swiftshader.def</ModuleDefinitionFile>
       <ProgramDataBaseFile>$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libvk_swiftshader.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -180,7 +180,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libvk_swiftshader.lib</ImportLibrary>
-      <ModuleDefinitionFile>$(SolutionDir)src/Vulkan/libvk_swiftshader.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>$(SolutionDir)src/Vulkan/vk_swiftshader.def</ModuleDefinitionFile>
       <ProgramDataBaseFile>$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libvk_swiftshader.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
     </Link>

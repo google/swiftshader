@@ -72,7 +72,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>libvk_swiftshader.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>vk_swiftshader.def</ModuleDefinitionFile>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -98,7 +98,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>libvk_swiftshader.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>vk_swiftshader.def</ModuleDefinitionFile>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -292,7 +292,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="libvk_swiftshader.def" />
+    <None Include="vk_swiftshader.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Vulkan.rc" />
