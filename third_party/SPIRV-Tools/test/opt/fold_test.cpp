@@ -11,6 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "source/opt/fold.h"
+
 #include <limits>
 #include <memory>
 #include <string>
@@ -22,7 +24,6 @@
 #include "gtest/gtest.h"
 #include "source/opt/build_module.h"
 #include "source/opt/def_use_manager.h"
-#include "source/opt/fold.h"
 #include "source/opt/ir_context.h"
 #include "source/opt/module.h"
 #include "spirv-tools/libspirv.hpp"
@@ -209,6 +210,7 @@ OpName %main "main"
 %float_2049 = OpConstant %float 2049
 %float_n2049 = OpConstant %float -2049
 %float_0p5 = OpConstant %float 0.5
+%float_0p2 = OpConstant %float 0.2
 %float_pi = OpConstant %float 1.5555
 %float_1e16 = OpConstant %float 1e16
 %float_n1e16 = OpConstant %float -1e16
@@ -1464,24 +1466,14 @@ INSTANTIATE_TEST_SUITE_P(FloatConstantFoldingTest, FloatInstructionFoldingTest,
             "OpReturn\n" +
             "OpFunctionEnd",
         2, std::numeric_limits<float>::quiet_NaN()),
-    // Test case 20: QuantizeToF16 inf
+    // Test case 20: FMix 1.0 4.0 0.2
     InstructionFoldingCase<float>(
         Header() + "%main = OpFunction %void None %void_func\n" +
             "%main_lab = OpLabel\n" +
-            "%2 = OpFDiv %float %float_1 %float_0\n" +
-            "%3 = OpQuantizeToF16 %float %3\n" +
+            "%2 = OpExtInst %float %1 FMix %float_1 %float_4 %float_0p2\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        2, std::numeric_limits<float>::infinity()),
-    // Test case 21: QuantizeToF16 -inf
-    InstructionFoldingCase<float>(
-        Header() + "%main = OpFunction %void None %void_func\n" +
-            "%main_lab = OpLabel\n" +
-            "%2 = OpFDiv %float %float_n1 %float_0\n" +
-            "%3 = OpQuantizeToF16 %float %3\n" +
-            "OpReturn\n" +
-            "OpFunctionEnd",
-        2, -std::numeric_limits<float>::infinity())
+        2, 1.6f)
 ));
 // clang-format on
 
@@ -2980,7 +2972,17 @@ INSTANTIATE_TEST_SUITE_P(CompositeExtractFoldingTest, GeneralInstructionFoldingT
             "%4 = OpCompositeExtract %int %3 0\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        4, INT_7_ID)
+        4, INT_7_ID),
+    // Test case 13: https://github.com/KhronosGroup/SPIRV-Tools/issues/2608
+    // Out of bounds access.  Do not fold.
+    InstructionFoldingCase<uint32_t>(
+        Header() + "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%2 = OpConstantComposite %v4float %float_1 %float_1 %float_1 %float_1\n" +
+            "%3 = OpCompositeExtract %float %2 4\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        3, 0)
 ));
 
 INSTANTIATE_TEST_SUITE_P(CompositeConstructFoldingTest, GeneralInstructionFoldingTest,

@@ -109,6 +109,11 @@ NOTE: The optimizer is a work in progress.
 Options (in lexicographical order):)",
       program, program);
   printf(R"(
+  --amd-ext-to-khr
+               Replaces the extensions VK_AMD_shader_ballot, VK_AMD_gcn_shader,
+               and VK_AMD_shader_trinary_minmax with equivalant code using core
+               instructions and capabilities.)");
+  printf(R"(
   --ccp
                Apply the conditional constant propagation transform.  This will
                propagate constant values throughout the program, and simplify
@@ -146,6 +151,15 @@ Options (in lexicographical order):)",
                followed by a store of the initial value. This is done to work
                around known issues with some Vulkan drivers for initialize
                variables.)");
+  printf(R"(
+  --descriptor-scalar-replacement
+               Replaces every array variable |desc| that has a DescriptorSet
+               and Binding decorations with a new variable for each element of
+               the array.  Suppose |desc| was bound at binding |b|.  Then the
+               variable corresponding to |desc[i]| will have binding |b+i|.
+               The descriptor set will be the same.  All accesses to |desc|
+               must be in OpAccessChain instructions with a literal index for
+               the first index.)");
   printf(R"(
   --eliminate-dead-branches
                Convert conditional branches with constant condition to the
@@ -205,6 +219,11 @@ Options (in lexicographical order):)",
   --freeze-spec-const
                Freeze the values of specialization constants to their default
                values.)");
+  printf(R"(
+  --graphics-robust-access
+               Clamp indices used to access buffers and internal composite
+               values, providing guarantees that satisfy Vulkan's
+               robustBufferAccess rules.)");
   printf(R"(
   --generate-webgpu-initializers
                Adds initial values to OpVariable instructions that are missing

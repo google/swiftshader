@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
+#include "source/opt/basic_block.h"
+#include "source/opt/instruction.h"
 #include "source/opt/ir_context.h"
 
 namespace spvtools {
@@ -61,6 +63,16 @@ void AddUnreachableEdgeAndUpdateOpPhis(
 // |block_id| is in the continue construct of the associated loop.
 bool BlockIsInLoopContinueConstruct(opt::IRContext* context, uint32_t block_id,
                                     uint32_t maybe_loop_header_id);
+
+// Requires that |base_inst| is either the label instruction of |block| or an
+// instruction inside |block|.
+//
+// If the block contains a (non-label, non-terminator) instruction |offset|
+// instructions after |base_inst|, an iterator to this instruction is returned.
+//
+// Otherwise |block|->end() is returned.
+opt::BasicBlock::iterator GetIteratorForBaseInstructionAndOffset(
+    opt::BasicBlock* block, const opt::Instruction* base_inst, uint32_t offset);
 
 }  // namespace fuzzerutil
 
