@@ -22,6 +22,29 @@
       "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1339e79c_6db3018d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-30T17:12:18Z",
+      "side": 1,
+      "message": "What if we actually wanted a NaN float constant? Clearly not in this case, but just wondering if this is going to bite us again, what LLVM\u0027s stated behavior is, and how to work around it (bitcast from integer constant)?\n\nJust trying to fully understand these \"liberties\" and whether they match SPIR-V behavior.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
