@@ -67,9 +67,14 @@ namespace sw
 			}
 
 			Pointer<Byte> cacheEntry = vertexCache + cacheIndex * UInt((int)sizeof(Vertex));
-			writeVertex(vertex, cacheEntry);
 
-			vertex += sizeof(Vertex);
+			// For points, vertexCount is 1 per primitive, so duplicate vertex for all 3 vertices of the primitive
+			for(int i = 0; i < (state.isPoint ? 3 : 1); i++)
+			{
+				writeVertex(vertex, cacheEntry);
+				vertex += sizeof(Vertex);
+			}
+
 			batch = Pointer<UInt>(Pointer<Byte>(batch) + sizeof(uint32_t));
 			vertexCount--;
 		}

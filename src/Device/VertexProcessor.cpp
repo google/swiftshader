@@ -78,6 +78,7 @@ namespace sw
 		State state;
 
 		state.shaderID = context->vertexShader->getSerialID();
+		state.isPoint = context->topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
 		for(int i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
 		{
