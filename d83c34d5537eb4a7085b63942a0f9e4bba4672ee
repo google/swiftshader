@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7c5a7eb2_e70bfc9e",
+        "filename": "tests/regres/testlists/vk-master-CRASH.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-30T18:18:51Z",
+      "side": 1,
+      "message": "Ah, thanks, these didn\u0027t look shader related to me from afar.",
+      "parentUuid": "e473a902_e0581686",
+      "range": {
+        "startLine": 5,
+        "startChar": 22,
+        "endLine": 5,
+        "endChar": 38
+      },
+      "revId": "d83c34d5537eb4a7085b63942a0f9e4bba4672ee",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8cb97a0_9e2eab6f",
         "filename": "tests/regres/testlists/vk-master-PASS.txt",
         "patchSetId": 1
