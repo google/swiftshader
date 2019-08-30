@@ -274,7 +274,7 @@ void Float::GetExtraHashWords(std::vector<uint32_t>* words,
   words->push_back(width_);
 }
 
-Vector::Vector(Type* type, uint32_t count)
+Vector::Vector(const Type* type, uint32_t count)
     : Type(kVector), element_type_(type), count_(count) {
   assert(type->AsBool() || type->AsInteger() || type->AsFloat());
 }
@@ -299,7 +299,7 @@ void Vector::GetExtraHashWords(std::vector<uint32_t>* words,
   words->push_back(count_);
 }
 
-Matrix::Matrix(Type* type, uint32_t count)
+Matrix::Matrix(const Type* type, uint32_t count)
     : Type(kMatrix), element_type_(type), count_(count) {
   assert(type->AsVector());
 }
@@ -426,7 +426,7 @@ void Array::GetExtraHashWords(std::vector<uint32_t>* words,
 
 void Array::ReplaceElementType(const Type* type) { element_type_ = type; }
 
-RuntimeArray::RuntimeArray(Type* type)
+RuntimeArray::RuntimeArray(const Type* type)
     : Type(kRuntimeArray), element_type_(type) {
   assert(!type->AsVoid());
 }
@@ -571,10 +571,10 @@ void Pointer::GetExtraHashWords(std::vector<uint32_t>* words,
 
 void Pointer::SetPointeeType(const Type* type) { pointee_type_ = type; }
 
-Function::Function(Type* ret_type, const std::vector<const Type*>& params)
+Function::Function(const Type* ret_type, const std::vector<const Type*>& params)
     : Type(kFunction), return_type_(ret_type), param_types_(params) {}
 
-Function::Function(Type* ret_type, std::vector<const Type*>& params)
+Function::Function(const Type* ret_type, std::vector<const Type*>& params)
     : Type(kFunction), return_type_(ret_type), param_types_(params) {}
 
 bool Function::IsSameImpl(const Type* that, IsSameCache* seen) const {
