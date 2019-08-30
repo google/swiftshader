@@ -168,6 +168,7 @@ namespace sw
 			auto format = state.targetFormat[index];
 			switch(format)
 			{
+			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 			case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			case VK_FORMAT_B8G8R8A8_UNORM:
 			case VK_FORMAT_B8G8R8A8_SRGB:
@@ -185,7 +186,14 @@ namespace sw
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
 					Vector4s color;
 
-					if(format == VK_FORMAT_R5G6B5_UNORM_PACK16)
+					if(format == VK_FORMAT_A1R5G5B5_UNORM_PACK16)
+					{
+						color.x = UShort4(c[index].x * Float4(0xFBFF), false);
+						color.y = UShort4(c[index].y * Float4(0xFBFF), false);
+						color.z = UShort4(c[index].z * Float4(0xFBFF), false);
+						color.w = UShort4(c[index].w * Float4(0xFFFF), false);
+					}
+					else if(format == VK_FORMAT_R5G6B5_UNORM_PACK16)
 					{
 						color.x = UShort4(c[index].x * Float4(0xFBFF), false);
 						color.y = UShort4(c[index].y * Float4(0xFDFF), false);
@@ -265,6 +273,7 @@ namespace sw
 			{
 			case VK_FORMAT_UNDEFINED:
 				break;
+			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 			case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			case VK_FORMAT_B8G8R8A8_UNORM:
 			case VK_FORMAT_B8G8R8A8_SRGB:

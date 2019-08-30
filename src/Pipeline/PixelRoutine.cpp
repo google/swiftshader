@@ -959,6 +959,16 @@ namespace sw
 
 		switch(state.targetFormat[index])
 		{
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			buffer = cBuffer + 2 * x;
+			buffer2 = buffer + *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+			c01 = As<Short4>(Int2(*Pointer<Int>(buffer), *Pointer<Int>(buffer2)));
+
+			pixel.x = (c01 & Short4(0x7C00u)) << 1;
+			pixel.y = (c01 & Short4(0x03E0u)) << 6;
+			pixel.z = (c01 & Short4(0x001Fu)) << 11;
+			pixel.w = (c01 & Short4(0x8000u));
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			buffer = cBuffer + 2 * x;
 			buffer2 = buffer + *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1190,6 +1200,11 @@ namespace sw
 
 		switch(state.targetFormat[index])
 		{
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			current.x = AddSat(As<UShort4>(current.x), UShort4(0x0400));
+			current.y = AddSat(As<UShort4>(current.y), UShort4(0x0400));
+			current.z = AddSat(As<UShort4>(current.z), UShort4(0x0400));
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			current.x = AddSat(As<UShort4>(current.x), UShort4(0x0400));
 			current.y = AddSat(As<UShort4>(current.y), UShort4(0x0200));
@@ -1217,6 +1232,16 @@ namespace sw
 
 		switch(state.targetFormat[index])
 		{
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			{
+				current.w = current.w & Short4(0x8000u);
+				current.x = As<UShort4>(current.x & Short4(0xF800)) >> 1;
+				current.y = As<UShort4>(current.y & Short4(0xF800)) >> 6;
+				current.z = As<UShort4>(current.z & Short4(0xF800)) >> 11;
+
+				current.x = current.x | current.y | current.z | current.w;
+			}
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			{
 				current.x = current.x & Short4(0xF800u);
@@ -1358,6 +1383,45 @@ namespace sw
 
 		switch(state.targetFormat[index])
 		{
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			{
+				Pointer<Byte> buffer = cBuffer + 2 * x;
+				Int value = *Pointer<Int>(buffer);
+
+				Int c01 = Extract(As<Int2>(current.x), 0);
+
+				if(bgraWriteMask != 0x0000000F)
+				{
+					Int masked = value;
+					c01 &= *Pointer<Int>(constants + OFFSET(Constants,mask5551Q[bgraWriteMask][0]));
+					masked &= *Pointer<Int>(constants + OFFSET(Constants,mask5551Q[~bgraWriteMask & 0xF][0]));
+					c01 |= masked;
+				}
+
+				c01 &= *Pointer<Int>(constants + OFFSET(Constants,maskW4Q[0][0]) + xMask * 8);
+				value &= *Pointer<Int>(constants + OFFSET(Constants,invMaskW4Q[0][0]) + xMask * 8);
+				c01 |= value;
+				*Pointer<Int>(buffer) = c01;
+
+				buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
+				value = *Pointer<Int>(buffer);
+
+				Int c23 = Extract(As<Int2>(current.x), 1);
+
+				if(bgraWriteMask != 0x0000000F)
+				{
+					Int masked = value;
+					c23 &= *Pointer<Int>(constants + OFFSET(Constants,mask5551Q[bgraWriteMask][0]));
+					masked &= *Pointer<Int>(constants + OFFSET(Constants,mask5551Q[~bgraWriteMask & 0xF][0]));
+					c23 |= masked;
+				}
+
+				c23 &= *Pointer<Int>(constants + OFFSET(Constants,maskW4Q[0][2]) + xMask * 8);
+				value &= *Pointer<Int>(constants + OFFSET(Constants,invMaskW4Q[0][2]) + xMask * 8);
+				c23 |= value;
+				*Pointer<Int>(buffer) = c23;
+			}
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			{
 				Pointer<Byte> buffer = cBuffer + 2 * x;
