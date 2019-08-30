@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bd4feff1_5320865d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-30T19:15:47Z",
+      "side": 1,
+      "message": "I just tried to reconstruct what goes on here exactly. My understanding from the description is that:\n1) Integer value which represents an SNaN gets bitcast to float, using reinterpret_cast\u003cfloat\u003e(uint).\n2) LLVM takes the float to create a constant float IR node, converting it to QNaN in the process.\n3) Float constant gets Reactor bitcast to integer, using As\u003cInt\u003e(Float) essentially.\n\nI can\u0027t seem to reproduce that in a Reactor unit test though. Might be platform specific though...",
+      "parentUuid": "52d984d7_111f3c8d",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 23
+      },
+      "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1339e79c_6db3018d",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -93,6 +117,30 @@
       "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "593e92c6_2488d290",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-08-30T19:15:47Z",
+      "side": 1,
+      "message": "Right, I meant what if we want to keep the exact same bit pattern, like an SNaN. They can be useful as poison values. Probably just requires writing as int.",
+      "parentUuid": "062e77db_cb85db72",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
