@@ -14,51 +14,58 @@
 
 import("../swiftshader.gni")
 
-swiftshader_source_set("Yarn") {
+swiftshader_source_set("Yarn_headers") {
   sources = [
     "ConditionVariable.hpp",
     "Containers.hpp",
-    "Debug.cpp",
     "Debug.hpp",
     "Defer.hpp",
     "Finally.hpp",
     "OSFiber.hpp",
     "Pool.hpp",
     "SAL.hpp",
-    "Scheduler.cpp",
     "Scheduler.hpp",
-    "Thread.cpp",
     "Thread.hpp",
     "Ticket.hpp",
-    "Trace.cpp",
     "Trace.hpp",
     "Utils.hpp",
     "WaitGroup.hpp",
   ]
 
   if (is_win) {
-    sources += [
-      "OSFiber_windows.hpp",
-    ]
-  } else {
+    sources += [ "OSFiber_windows.hpp" ]
+  }
+}
+
+swiftshader_source_set("Yarn") {
+  sources = [
+    "Debug.cpp",
+    "Scheduler.cpp",
+    "Thread.cpp",
+    "Trace.cpp",
+  ]
+
+  if (!is_win) {
     sources += [
       "OSFiber_aarch64.c",
-      "OSFiber_asm_aarch64.h",
-      "OSFiber_asm_aarch64.S",
       "OSFiber_arm.c",
-      "OSFiber_asm_arm.h",
-      "OSFiber_asm_arm.S",
       "OSFiber_asm.hpp",
-      "OSFiber_x64.c",
-      "OSFiber_asm_x64.h",
+      "OSFiber_asm_aarch64.S",
+      "OSFiber_asm_aarch64.h",
+      "OSFiber_asm_arm.S",
+      "OSFiber_asm_arm.h",
       "OSFiber_asm_x64.S",
-      "OSFiber_x86.c",
-      "OSFiber_asm_x86.h",
+      "OSFiber_asm_x64.h",
       "OSFiber_asm_x86.S",
+      "OSFiber_asm_x86.h",
+      "OSFiber_x64.c",
+      "OSFiber_x86.c",
     ]
   }
 
-  include_dirs = [
-    "..",
+  include_dirs = [ ".." ]
+
+  public_deps = [
+    ":Yarn_headers",
   ]
 }

@@ -42,75 +42,80 @@ config("swiftshader_libvulkan_private_config") {
   ]
 }
 
-swiftshader_shared_library("swiftshader_libvulkan") {
+swiftshader_source_set("swiftshader_libvulkan_headers") {
   sources = [
     "Version.h",
-    "VkBuffer.cpp",
     "VkBuffer.hpp",
-    "VkBufferView.cpp",
     "VkBufferView.hpp",
-    "VkCommandBuffer.cpp",
     "VkCommandBuffer.hpp",
-    "VkCommandPool.cpp",
     "VkCommandPool.hpp",
     "VkConfig.h",
-    "VkDebug.cpp",
     "VkDebug.hpp",
-    "VkDescriptorPool.cpp",
     "VkDescriptorPool.hpp",
     "VkDescriptorSet.hpp",
-    "VkDescriptorSetLayout.cpp",
     "VkDescriptorSetLayout.hpp",
-    "VkDescriptorUpdateTemplate.cpp",
     "VkDescriptorUpdateTemplate.hpp",
     "VkDestroy.h",
-    "VkDevice.cpp",
     "VkDevice.hpp",
-    "VkDeviceMemory.cpp",
     "VkDeviceMemory.hpp",
     "VkEvent.hpp",
     "VkFence.hpp",
-    "VkFormat.cpp",
     "VkFormat.h",
-    "VkFramebuffer.cpp",
     "VkFramebuffer.hpp",
-    "VkGetProcAddress.cpp",
     "VkGetProcAddress.h",
-    "VkImage.cpp",
     "VkImage.hpp",
-    "VkImageView.cpp",
     "VkImageView.hpp",
-    "VkInstance.cpp",
     "VkInstance.hpp",
-    "VkMemory.cpp",
     "VkMemory.h",
     "VkObject.hpp",
-    "VkPhysicalDevice.cpp",
     "VkPhysicalDevice.hpp",
-    "VkPipeline.cpp",
     "VkPipeline.hpp",
-    "VkPipelineCache.cpp",
     "VkPipelineCache.hpp",
-    "VkPipelineLayout.cpp",
     "VkPipelineLayout.hpp",
-    "VkPromotedExtensions.cpp",
-    "VkQueryPool.cpp",
     "VkQueryPool.hpp",
-    "VkQueue.cpp",
     "VkQueue.hpp",
-    "VkRenderPass.cpp",
     "VkRenderPass.hpp",
-    "VkSampler.cpp",
     "VkSampler.hpp",
     "VkSemaphore.hpp",
-    "VkShaderModule.cpp",
     "VkShaderModule.hpp",
-    "Vulkan.rc",
     "VulkanPlatform.h",
+  ]
+}
+
+swiftshader_shared_library("swiftshader_libvulkan") {
+  sources = [
+    "VkBuffer.cpp",
+    "VkBufferView.cpp",
+    "VkCommandBuffer.cpp",
+    "VkCommandPool.cpp",
+    "VkDebug.cpp",
+    "VkDescriptorPool.cpp",
+    "VkDescriptorSetLayout.cpp",
+    "VkDescriptorUpdateTemplate.cpp",
+    "VkDevice.cpp",
+    "VkDeviceMemory.cpp",
+    "VkFormat.cpp",
+    "VkFramebuffer.cpp",
+    "VkGetProcAddress.cpp",
+    "VkImage.cpp",
+    "VkImageView.cpp",
+    "VkInstance.cpp",
+    "VkMemory.cpp",
+    "VkPhysicalDevice.cpp",
+    "VkPipeline.cpp",
+    "VkPipelineCache.cpp",
+    "VkPipelineLayout.cpp",
+    "VkPromotedExtensions.cpp",
+    "VkQueryPool.cpp",
+    "VkQueue.cpp",
+    "VkRenderPass.cpp",
+    "VkSampler.cpp",
+    "VkShaderModule.cpp",
+    "Vulkan.rc",
     "libVulkan.cpp",
-    "vk_swiftshader.def",
     "main.cpp",
     "resource.h",
+    "vk_swiftshader.def",
   ]
 
   configs = [ ":swiftshader_libvulkan_private_config" ]
@@ -133,13 +138,13 @@ swiftshader_shared_library("swiftshader_libvulkan") {
   }
 
   deps = [
+    "${swiftshader_spirv_tools_dir}:SPIRV-Tools",
     "../Device",
     "../Pipeline",
     "../Reactor:swiftshader_llvm_reactor",
     "../System",
     "../WSI",
     "../Yarn",
-    "$swiftshader_spirv_tools_dir:SPIRV-Tools",
   ]
 
   include_dirs = [
@@ -147,5 +152,9 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "../../include",
     "$swiftshader_spirv_tools_dir/include",
     "$spirv_tools_spirv_headers_dir/include",
+  ]
+
+  public_deps = [
+    ":swiftshader_libvulkan_headers",
   ]
 }

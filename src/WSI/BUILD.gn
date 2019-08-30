@@ -43,4 +43,8 @@ swiftshader_source_set("WSI") {
     "../../include",
     "../../third_party/SPIRV-Headers/include",
   ]
+
+  deps = [
+    "../Vulkan:swiftshader_libvulkan_headers",
+  ]
 }

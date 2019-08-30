@@ -14,26 +14,34 @@
 
 import("../swiftshader.gni")
 
-swiftshader_source_set("System") {
+swiftshader_source_set("System_headers") {
   sources = [
     "Build.hpp",
-    "CPUID.cpp",
     "CPUID.hpp",
-    "Configurator.cpp",
     "Configurator.hpp",
-    "Debug.cpp",
     "Debug.hpp",
-    "Half.cpp",
     "Half.hpp",
-    "Math.cpp",
     "Math.hpp",
-    "Memory.cpp",
     "Memory.hpp",
     "Socket.cpp",
     "Socket.hpp",
-    "Timer.cpp",
     "Timer.hpp",
+  ]
+}
+
+swiftshader_source_set("System") {
+  sources = [
+    "CPUID.cpp",
+    "Configurator.cpp",
+    "Debug.cpp",
+    "Half.cpp",
+    "Math.cpp",
+    "Memory.cpp",
+    "Timer.cpp",
   ]
 
   include_dirs = [ ".." ]
+  public_deps = [
+    ":System_headers",
+  ]
 }

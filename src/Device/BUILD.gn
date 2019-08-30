@@ -14,44 +14,60 @@
 
 import("../swiftshader.gni")
 
+swiftshader_source_set("Device_headers") {
+  sources = [
+    "Blitter.hpp",
+    "Clipper.hpp",
+    "Color.hpp",
+    "Config.hpp",
+    "Context.hpp",
+    "ETC_Decoder.hpp",
+    "Matrix.hpp",
+    "Memset.hpp",
+    "PixelProcessor.hpp",
+    "Plane.hpp",
+    "Point.hpp",
+    "QuadRasterizer.hpp",
+    "Renderer.hpp",
+    "SetupProcessor.hpp",
+    "Vector.hpp",
+    "VertexProcessor.hpp",
+  ]
+}
+
 swiftshader_source_set("Device") {
   sources = [
     "Blitter.cpp",
-    "Blitter.hpp",
     "Clipper.cpp",
-    "Clipper.hpp",
     "Color.cpp",
-    "Color.hpp",
     "Config.cpp",
-    "Config.hpp",
     "Context.cpp",
-    "Context.hpp",
     "ETC_Decoder.cpp",
-    "ETC_Decoder.hpp",
     "Matrix.cpp",
-    "Matrix.hpp",
-    "Memset.hpp",
     "PixelProcessor.cpp",
-    "PixelProcessor.hpp",
     "Plane.cpp",
-    "Plane.hpp",
     "Point.cpp",
-    "Point.hpp",
     "QuadRasterizer.cpp",
-    "QuadRasterizer.hpp",
     "Renderer.cpp",
-    "Renderer.hpp",
     "SetupProcessor.cpp",
-    "SetupProcessor.hpp",
     "Vector.cpp",
-    "Vector.hpp",
     "VertexProcessor.cpp",
-    "VertexProcessor.hpp",
   ]
 
   include_dirs = [
     "..",
     "../../include",
     "../../third_party/SPIRV-Headers/include",
+  ]
+
+  deps = [
+    "../Pipeline:Pipeline_headers",
+    "../System:System_headers",
+    "../Vulkan:swiftshader_libvulkan_headers",
+    "../Yarn:Yarn_headers",
+  ]
+
+  public_deps = [
+    ":Device_headers",
   ]
 }

@@ -22,6 +22,8 @@ if (build_with_chromium) {
       "//base/test:test_support",
       "//testing/gmock",
       "//testing/gtest",
+      "//third_party/googletest:gmock",
+      "//third_party/googletest:gtest",
       "//third_party/swiftshader/src/OpenGL/libEGL:swiftshader_libEGL",
       "//third_party/swiftshader/src/OpenGL/libGLESv2:swiftshader_libGLESv2",
     ]

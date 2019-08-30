@@ -14,37 +14,51 @@
 
 import("../swiftshader.gni")
 
+swiftshader_source_set("Pipeline_headers") {
+  sources = [
+    "ComputeProgram.hpp",
+    "Constants.hpp",
+    "PixelProgram.hpp",
+    "PixelRoutine.hpp",
+    "SamplerCore.hpp",
+    "SetupRoutine.hpp",
+    "ShaderCore.hpp",
+    "SpirvShader.hpp",
+    "VertexProgram.hpp",
+    "VertexRoutine.hpp",
+  ]
+}
+
 swiftshader_source_set("Pipeline") {
   sources = [
     "ComputeProgram.cpp",
-    "ComputeProgram.hpp",
     "Constants.cpp",
-    "Constants.hpp",
     "PixelProgram.cpp",
-    "PixelProgram.hpp",
     "PixelRoutine.cpp",
-    "PixelRoutine.hpp",
     "SamplerCore.cpp",
-    "SamplerCore.hpp",
     "SetupRoutine.cpp",
-    "SetupRoutine.hpp",
     "ShaderCore.cpp",
-    "ShaderCore.hpp",
     "SpirvShader.cpp",
-    "SpirvShader.hpp",
     "SpirvShaderSampling.cpp",
-    "SpirvShaderSampling.hpp",
     "SpirvShader_dbg.cpp",
-    "SpirvShader_dbg.hpp",
     "VertexProgram.cpp",
-    "VertexProgram.hpp",
     "VertexRoutine.cpp",
-    "VertexRoutine.hpp",
   ]
 
   include_dirs = [
     "..",
     "../../include",
     "../../third_party/SPIRV-Headers/include",
+  ]
+
+  deps = [
+    "../Device:Device_headers",
+    "../System:System_headers",
+    "../Vulkan:swiftshader_libvulkan_headers",
+    "../Yarn:Yarn_headers",
+  ]
+
+  public_deps = [
+    ":Pipeline_headers",
   ]
 }
