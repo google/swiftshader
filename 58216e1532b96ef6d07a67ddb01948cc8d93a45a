@@ -69,6 +69,30 @@
       "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "062e77db_cb85db72",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-08-30T18:30:05Z",
+      "side": 1,
+      "message": "As for SPIRV rules -- this is OK. We will have to *describe* some aspects of our behavior when we do KHR_float_controls support.",
+      "parentUuid": "dc3f58a9_bbda2de7",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
