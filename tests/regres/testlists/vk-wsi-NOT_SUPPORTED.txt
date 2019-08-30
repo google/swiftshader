@@ -4988,11 +4988,9 @@ dEQP-VK.wsi.xcb.shared_presentable_image.scale_none.rotate_90.pre_multiplied.dem
 dEQP-VK.wsi.xcb.surface.create
 dEQP-VK.wsi.xcb.surface.create_custom_allocator
 dEQP-VK.wsi.xcb.surface.create_simulate_oom
-dEQP-VK.wsi.xcb.surface.destroy_null_handle
 dEQP-VK.wsi.xcb.surface.initial_size
 dEQP-VK.wsi.xcb.surface.query_capabilities
 dEQP-VK.wsi.xcb.surface.query_capabilities2
-dEQP-VK.wsi.xcb.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.xcb.surface.query_devgroup_present_modes
 dEQP-VK.wsi.xcb.surface.query_formats
 dEQP-VK.wsi.xcb.surface.query_formats2

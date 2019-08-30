@@ -1,3 +1,5 @@
+dEQP-VK.wsi.xcb.surface.destroy_null_handle
+dEQP-VK.wsi.xcb.surface.query_devgroup_present_capabilities
 dEQP-VK.wsi.xlib.surface.create
 dEQP-VK.wsi.xlib.surface.create_custom_allocator
 dEQP-VK.wsi.xlib.surface.create_simulate_oom
