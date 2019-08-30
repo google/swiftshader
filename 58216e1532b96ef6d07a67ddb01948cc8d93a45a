@@ -45,6 +45,30 @@
       "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc3f58a9_bbda2de7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-08-30T18:27:44Z",
+      "side": 1,
+      "message": "The only mangling that is happening is SNaN -\u003e QNaN conversion. NaN constants will still produce NaNs, just not necessarily the same bit pattern.",
+      "parentUuid": "1339e79c_6db3018d",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "58216e1532b96ef6d07a67ddb01948cc8d93a45a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
