@@ -1101,17 +1101,27 @@ namespace sw
 					return intermediate->Float(i);
 				}
 				auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
-				return RValue<SIMD::Float>(constantValue[i]);
+				return SIMD::Float(constantValue[i]);
 			}
 
 			RValue<SIMD::Int> Int(uint32_t i) const
 			{
-				return As<SIMD::Int>(Float(i));
+				if (intermediate != nullptr)
+				{
+					return intermediate->Int(i);
+				}
+				auto constantValue = reinterpret_cast<int *>(obj.constantValue.get());
+				return SIMD::Int(constantValue[i]);
 			}
 
 			RValue<SIMD::UInt> UInt(uint32_t i) const
 			{
-				return As<SIMD::UInt>(Float(i));
+				if (intermediate != nullptr)
+				{
+					return intermediate->UInt(i);
+				}
+				auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
+				return SIMD::UInt(constantValue[i]);
 			}
 
 			SpirvShader::Type::ID const type;
