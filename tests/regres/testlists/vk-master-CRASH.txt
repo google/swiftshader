@@ -1,7 +1,8 @@
+dEQP-VK.graphicsfuzz.control-flow-switch
 dEQP-VK.graphicsfuzz.fragcoord-control-flow
 dEQP-VK.graphicsfuzz.fragcoord-control-flow-2
 dEQP-VK.graphicsfuzz.mat-array-deep-control-flow
 dEQP-VK.graphicsfuzz.mat-array-distance
-dEQP-VK.rasterization.provoking_vertex.line_list
-dEQP-VK.rasterization.provoking_vertex.triangle_fan
+dEQP-VK.graphicsfuzz.swizzle-struct-init-min
 dEQP-VK.rasterization.provoking_vertex.triangle_list
+dEQP-VK.rasterization.provoking_vertex.triangle_strip
