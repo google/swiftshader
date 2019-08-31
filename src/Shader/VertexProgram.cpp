@@ -725,10 +725,13 @@ namespace sw
 			break;
 		case Shader::PARAMETER_VOID: return r[0];   // Dummy
 		case Shader::PARAMETER_FLOAT4LITERAL:
-			reg.x = Float4(src.value[0]);
-			reg.y = Float4(src.value[1]);
-			reg.z = Float4(src.value[2]);
-			reg.w = Float4(src.value[3]);
+			// This is used for all literal types, and since Reactor doesn't guarantee
+			// preserving the bit pattern of float constants, we must construct them
+			// as integer constants and bitcast.
+			reg.x = As<Float4>(Int4(src.integer[0]));
+			reg.y = As<Float4>(Int4(src.integer[1]));
+			reg.z = As<Float4>(Int4(src.integer[2]));
+			reg.w = As<Float4>(Int4(src.integer[3]));
 			break;
 		case Shader::PARAMETER_ADDR:      reg = a0; break;
 		case Shader::PARAMETER_CONSTBOOL: return r[0];   // Dummy
