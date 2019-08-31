@@ -15,6 +15,8 @@
 #include "Reactor.hpp"
 #include "Debug.hpp"
 
+#include <cmath>
+
 // Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
 // variables have a stack location obtained throuch alloca().
 #ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
@@ -3789,6 +3791,25 @@ namespace rr
 
 	Float::Float(float x)
 	{
+		// C++ does not have a way to write an infinite or NaN literal,
+		// nor does it allow division by zero as a constant expression.
+		// Thus we should not accept inf or NaN as a Reactor Float constant,
+		// as this would typically idicate a bug, and avoids undefined
+		// behavior.
+		//
+		// This also prevents the issue of the LLVM JIT only taking double
+		// values for constructing floating-point constants. During the
+		// conversion from single-precision to double, a signaling NaN can
+		// become a quiet NaN, thus altering its bit pattern. Hence this
+		// assert is also helpful for detecting cases where integers are
+		// being reinterpreted as float and then bitcast to integer again,
+		// which does not guarantee preserving the integer value.
+		//
+		// Should inifinty and NaN constants be required, methods like
+		// infinity(), quiet_NaN(), and signaling_NaN() should be added
+		// to the Float class.
+		ASSERT(std::isfinite(x));
+
 		storeValue(Nucleus::createConstantFloat(x));
 	}
 
@@ -4007,6 +4028,9 @@ namespace rr
 
 	void Float4::constant(float x, float y, float z, float w)
 	{
+		// See Float(float) constructor for the rationale behind this assert.
+		ASSERT(std::isfinite(x) && std::isfinite(y) && std::isfinite(z) && std::isfinite(w));
+
 		double constantVector[4] = {x, y, z, w};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
