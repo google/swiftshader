@@ -773,11 +773,11 @@ namespace sw
 				break;
 			case spv::OpConstantFalse:
 			case spv::OpSpecConstantFalse:
-				CreateConstant(insn).constantValue[0] = 0;		// represent boolean false as zero
+				CreateConstant(insn).constantValue[0] = 0;    // Represent Boolean false as zero.
 				break;
 			case spv::OpConstantTrue:
 			case spv::OpSpecConstantTrue:
-				CreateConstant(insn).constantValue[0] = ~0u;	// represent boolean true as all bits set
+				CreateConstant(insn).constantValue[0] = ~0u;  // Represent Boolean true as all bits set.
 				break;
 			case spv::OpConstantNull:
 			case spv::OpUndef:
@@ -802,7 +802,9 @@ namespace sw
 					auto &constituent = getObject(insn.word(i + 3));
 					auto &constituentTy = getType(constituent.type);
 					for (auto j = 0u; j < constituentTy.sizeInComponents; j++)
+					{
 						object.constantValue[offset++] = constituent.constantValue[j];
+					}
 				}
 
 				auto objectId = Object::ID(insn.word(2));
@@ -2997,12 +2999,12 @@ namespace sw
 		if (object.kind == Object::Kind::Constant)
 		{
 			// Constant source data.
-			auto src = reinterpret_cast<float *>(object.constantValue.get());
+			const uint32_t *src = object.constantValue.get();
 			VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 			{
 				auto p = ptr + offset;
 				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, SIMD::Float(src[i]), robustness, mask, atomic, memoryOrder);
+				SIMD::Store(p, SIMD::Int(src[i]), robustness, mask, atomic, memoryOrder);
 			});
 		}
 		else
