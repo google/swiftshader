@@ -5108,7 +5108,7 @@ namespace sw
 
 			for(uint32_t j = 0; j < offsetType.sizeInComponents; j++, i++)
 			{
-				in[i] = offsetValue.Float(j);  // Integer values, but transfered as float.
+				in[i] = As<SIMD::Float>(offsetValue.Int(j));  // Integer values, but transfered as float.
 			}
 		}
 
