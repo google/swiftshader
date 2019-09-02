@@ -2851,6 +2851,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentI
 	return VK_SUCCESS;
 }
 
+VKAPI_ATTR VkResult VKAPI_CALL vkAcquireNextImage2KHR(VkDevice device, const VkAcquireNextImageInfoKHR *pAcquireInfo, uint32_t *pImageIndex)
+{
+	TRACE("(VkDevice device = %p, const VkAcquireNextImageInfoKHR *pAcquireInfo = %p, uint32_t *pImageIndex = %p",
+			device, pAcquireInfo, pImageIndex);
+
+	return vk::Cast(pAcquireInfo->swapchain)->getNextImage(pAcquireInfo->timeout, vk::Cast(pAcquireInfo->semaphore), vk::Cast(pAcquireInfo->fence), pImageIndex);
+}
+
 VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(VkDevice device, VkDeviceGroupPresentCapabilitiesKHR *pDeviceGroupPresentCapabilities)
 {
 	TRACE("(VkDevice device = %p, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities = %p)",
