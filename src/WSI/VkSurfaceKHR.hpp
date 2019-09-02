@@ -45,7 +45,7 @@ public:
 	VkImage asVkImage() const;
 
 	const Image* getImage() const { return image; }
-	const DeviceMemory* getImageMemory() const { return imageMemory; }
+	DeviceMemory* getImageMemory() const { return imageMemory; }
 	bool isAvailable() const { return (imageStatus == AVAILABLE); }
 	bool exists() const { return (imageStatus != NONEXISTENT); }
 	void setStatus(PresentImageStatus status) { imageStatus = status; }

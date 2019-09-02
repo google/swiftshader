@@ -207,9 +207,15 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 	// Only 1.1 core version of this is supported. The extension has additional requirements
 	//{ VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME, VK_KHR_VARIABLE_POINTERS_SPEC_VERSION },
 #ifndef __ANDROID__
+	// We fully support the KHR_swapchain v70 additions, so just track the spec version.
 	{ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_SPEC_VERSION },
 #else
-	{ VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME, VK_ANDROID_NATIVE_BUFFER_SPEC_VERSION },
+	// We only support V7 of this extension. Missing functionality: in V8,
+	// it becomes possible to pass a VkNativeBufferANDROID structure to
+	// vkBindImageMemory2. Android's swapchain implementation does this in
+	// order to support passing VkBindImageMemorySwapchainInfoKHR
+	// (from KHR_swapchain v70) to vkBindImageMemory2.
+	{ VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME, 7 },
 #endif
 };
 
@@ -1104,6 +1110,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		}
 		break;
 #endif
+		case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
+			/* Do nothing. We don't actually need the swapchain handle yet; we'll do all the work in vkBindImageMemory2. */
+			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionCreateInfo->sType");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
@@ -2137,12 +2146,35 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 
 	for(uint32_t i = 0; i < bindInfoCount; i++)
 	{
-		if(pBindInfos[i].pNext)
+		vk::DeviceMemory *memory = vk::Cast(pBindInfos[i].memory);
+		VkDeviceSize offset = pBindInfos[i].memoryOffset;
+
+		auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pBindInfos[i].pNext);
+		while (extInfo)
 		{
-			UNIMPLEMENTED("pBindInfos[%d].pNext", i);
+			switch (extInfo->sType)
+			{
+			case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO:
+				/* Do nothing */
+				break;
+
+#ifndef __ANDROID__
+			case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR:
+				{
+					auto swapchainInfo = reinterpret_cast<VkBindImageMemorySwapchainInfoKHR const *>(extInfo);
+					memory = vk::Cast(swapchainInfo->swapchain)->getImage(swapchainInfo->imageIndex).getImageMemory();
+					offset = 0;
+				}
+				break;
+#endif
+
+			default:
+				break;
+			}
+			extInfo = extInfo->pNext;
 		}
 
-		vk::Cast(pBindInfos[i].image)->bind(vk::Cast(pBindInfos[i].memory), pBindInfos[i].memoryOffset);
+		vk::Cast(pBindInfos[i].image)->bind(memory, offset);
 	}
 
 	return VK_SUCCESS;
