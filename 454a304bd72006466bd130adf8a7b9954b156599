@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fd05418a_81b7d028",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-09-03T15:28:14Z",
+      "side": 1,
+      "message": "They\u0027re not supposed to, but KHR_swapchain did add new stuff in v69/v70, which coincided with the Vulkan 1.1 release. This wasnt properly covered until 1.1.5.",
+      "parentUuid": "790b87d7_54d31d28",
+      "range": {
+        "startLine": 9,
+        "startChar": 32,
+        "endLine": 9,
+        "endChar": 35
+      },
+      "revId": "454a304bd72006466bd130adf8a7b9954b156599",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e03cecfa_987d94af",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "454a304bd72006466bd130adf8a7b9954b156599",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65e93b36_2905e275",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-09-03T15:28:14Z",
+      "side": 1,
+      "message": "Ugh. Submit button raced with your comment, and I keep forgetting to add it. I\u0027m going to put a hook in my local repo to enforce this :)",
+      "parentUuid": "e03cecfa_987d94af",
+      "revId": "454a304bd72006466bd130adf8a7b9954b156599",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
