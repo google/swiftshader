@@ -334,6 +334,17 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 		}
 	},
 #endif
+
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+	// VK_KHR_external_semaphore_fd
+	{
+		VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreFdKHR),
+			MAKE_VULKAN_DEVICE_ENTRY(vkImportSemaphoreFdKHR),
+		}
+	},
+#endif
 };
 
 #undef MAKE_VULKAN_DEVICE_ENTRY
