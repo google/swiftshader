@@ -88,7 +88,7 @@ void Thread::setName(const char* fmt, ...)
 
 #if defined(__APPLE__)
     pthread_setname_np(name);
-#else
+#elif !defined(__Fuchsia__)
     pthread_setname_np(pthread_self(), name);
 #endif
 
