@@ -113,6 +113,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "VkQueue.cpp",
     "VkRenderPass.cpp",
     "VkSampler.cpp",
+    "VkSemaphore.cpp",
     "VkShaderModule.cpp",
     "Vulkan.rc",
     "libVulkan.cpp",

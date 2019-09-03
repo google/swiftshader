@@ -23,31 +23,24 @@ namespace vk
 class Semaphore : public Object<Semaphore, VkSemaphore>
 {
 public:
-	Semaphore(const VkSemaphoreCreateInfo* pCreateInfo, void* mem) {}
+	Semaphore(const VkSemaphoreCreateInfo* pCreateInfo, void* mem);
+	void destroy(const VkAllocationCallbacks* pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo* pCreateInfo)
-	{
-		return 0;
-	}
+	static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo* pCreateInfo);
 
-	void wait()
-	{
-		// Semaphores are noop for now
-	}
+	void wait();
 
 	void wait(const VkPipelineStageFlags& flag)
 	{
-		// VkPipelineStageFlags is the pipeline stage at which the semaphore wait will occur
-
-		// Semaphores are noop for now
+		// NOTE: not sure what else to do here?
+		wait();
 	}
 
-	void signal()
-	{
-		// Semaphores are noop for now
-	}
+	void signal();
 
 private:
+	class Impl;
+	Impl* impl = nullptr;
 };
 
 static inline Semaphore* Cast(VkSemaphore object)
