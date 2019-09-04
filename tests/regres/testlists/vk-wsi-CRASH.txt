@@ -1,2 +1,0 @@
-dEQP-VK.wsi.xlib.swapchain.render.basic2
-dEQP-VK.wsi.xlib.swapchain.render.device_group

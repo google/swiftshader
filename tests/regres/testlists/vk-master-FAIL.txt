@@ -1,6 +1,5 @@
 dEQP-VK.api.info.android.no_layers
 dEQP-VK.api.info.device.mandatory_features
-dEQP-VK.api.version_check.entry_points
 dEQP-VK.glsl.builtin.precision.cosh.highp.scalar
 dEQP-VK.glsl.builtin.precision.cosh.highp.vec2
 dEQP-VK.glsl.builtin.precision.cosh.highp.vec3

@@ -1,2 +1,0 @@
-dEQP-VK.wsi.xlib.swapchain.create.image_swapchain_create_info
-dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_swapchain_create_info
