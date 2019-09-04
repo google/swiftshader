@@ -18,6 +18,10 @@
 #include "VkConfig.h"
 #include "VkObject.hpp"
 
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#include <zircon/types.h>
+#endif
+
 namespace vk
 {
 
@@ -42,6 +46,11 @@ public:
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
 	VkResult importFd(int fd, bool temporaryImport);
 	VkResult exportFd(int* pFd) const;
+#endif
+
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+	VkResult importHandle(zx_handle_t handle, bool temporaryImport);
+	VkResult exportHandle(zx_handle_t *pHandle) const;
 #endif
 
 private:

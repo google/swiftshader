@@ -346,6 +346,17 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 		}
 	},
 #endif
+
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+	// VK_FUCHSIA_external_semaphore
+	{
+		VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreZirconHandleFUCHSIA),
+			MAKE_VULKAN_DEVICE_ENTRY(vkImportSemaphoreZirconHandleFUCHSIA),
+		}
+	},
+#endif
 };
 
 #undef MAKE_VULKAN_DEVICE_ENTRY

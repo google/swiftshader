@@ -233,6 +233,9 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
 	{ VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_FD_SPEC_VERSION },
 #endif
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+	{ VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME, VK_FUCHSIA_EXTERNAL_SEMAPHORE_SPEC_VERSION },
+#endif
 	{ VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, VK_EXT_PROVOKING_VERTEX_SPEC_VERSION },
 };
 
@@ -1021,6 +1024,42 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreFdKHR(VkDevice device, const VkI
 	return vk::Cast(pImportSemaphoreInfo->semaphore)->importFd(pImportSemaphoreInfo->fd, temporaryImport);
 }
 #endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
+	VkDevice                                        device,
+	const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo)
+{
+	TRACE("(VkDevice device = %p, const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo = %p)",
+	      device, pImportSemaphoreZirconHandleInfo);
+
+	if (pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	{
+		UNIMPLEMENTED("pImportSemaphoreZirconHandleInfo->handleType");
+	}
+	bool temporaryImport = (pImportSemaphoreZirconHandleInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
+
+	return vk::Cast(pImportSemaphoreZirconHandleInfo->semaphore)->importHandle(
+			pImportSemaphoreZirconHandleInfo->handle,
+			temporaryImport);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
+	VkDevice                                     device,
+	const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+	zx_handle_t*                                 pZirconHandle)
+{
+	TRACE("(VkDevice device = %p, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo = %p, zx_handle_t* pZirconHandle = %p)",
+	      device, static_cast<const void*>(pGetZirconHandleInfo), static_cast<void*>(pZirconHandle));
+
+	if (pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	{
+		UNIMPLEMENTED("pGetZirconHandleInfo->handleType");
+	}
+
+	return vk::Cast(pGetZirconHandleInfo->semaphore)->exportHandle(pZirconHandle);
+}
+#endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkEvent* pEvent)
 {

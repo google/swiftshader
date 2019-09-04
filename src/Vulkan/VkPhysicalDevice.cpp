@@ -381,6 +381,15 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* 
 		return;
 	}
 #endif
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+	if (pExternalSemaphoreInfo->handleType == VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	{
+		pExternalSemaphoreProperties->compatibleHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
+		pExternalSemaphoreProperties->exportFromImportedHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
+		pExternalSemaphoreProperties->externalSemaphoreFeatures = VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT | VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+		return;
+	}
+#endif
 	pExternalSemaphoreProperties->compatibleHandleTypes = 0;
 	pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
 	pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
