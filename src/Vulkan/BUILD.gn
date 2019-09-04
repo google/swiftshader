@@ -121,7 +121,10 @@ swiftshader_shared_library("swiftshader_libvulkan") {
   configs = [ ":swiftshader_libvulkan_private_config" ]
 
   output_name = "libvk_swiftshader"
-  output_dir = "$root_out_dir/swiftshader"
+  if (!is_fuchsia) {
+    # NOTE: Work-around for http://crbug.com/1000668
+    output_dir = "$root_out_dir/swiftshader"
+  }
 
   if (is_mac) {
     ldflags = [
