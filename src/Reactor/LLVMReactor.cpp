@@ -3814,12 +3814,12 @@ namespace rr
 
 	RValue<Float4> Sinh(RValue<Float4> v)
 	{
-		return TransformFloat4PerElement(v, "sinhf");
+		return Float4(0.5f) * (Exp(v) - Exp(-v));
 	}
 
 	RValue<Float4> Cosh(RValue<Float4> v)
 	{
-		return TransformFloat4PerElement(v, "coshf");
+		return Float4(0.5f) * (Exp(v) + Exp(-v));
 	}
 
 	RValue<Float4> Tanh(RValue<Float4> v)
