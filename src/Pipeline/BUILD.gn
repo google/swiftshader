@@ -52,10 +52,10 @@ swiftshader_source_set("Pipeline") {
   ]
 
   deps = [
+    "../../third_party/marl:Marl_headers",
     "../Device:Device_headers",
     "../System:System_headers",
     "../Vulkan:swiftshader_libvulkan_headers",
-    "../Yarn:Yarn_headers",
   ]
 
   public_deps = [
