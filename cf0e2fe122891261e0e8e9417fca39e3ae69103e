@@ -22,6 +22,30 @@
       "revId": "cf0e2fe122891261e0e8e9417fca39e3ae69103e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "060a6ebe_adee21ba",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 7
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2019-09-05T16:54:24Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand what you mean here. The library used to be called libvulkan.so which is a little too generic, but we changed it to libvk_swiftshader.so recently, which should avoid most conflicts, since I don\u0027t think there are other Chromium-generated libraries with the same name.\n\nCan you clarify what you meant otherwise?",
+      "parentUuid": "a4d32640_2633323f",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 3
+      },
+      "revId": "cf0e2fe122891261e0e8e9417fca39e3ae69103e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
