@@ -23,7 +23,6 @@ make -j$(sysctl -n hw.logicalcpu)
 cd .. # Some tests must be run from project root
 
 build/ReactorUnitTests
-build/yarn-unittests
 build/gles-unittests
 
 if [ "${REACTOR_BACKEND}" != "Subzero" ]; then

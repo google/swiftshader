@@ -32,9 +32,9 @@
 #include "Pipeline/SpirvShader.hpp"
 #include "Vertex.hpp"
 
-#include "Yarn/Containers.hpp"
-#include "Yarn/Defer.hpp"
-#include "Yarn/Trace.hpp"
+#include "marl/containers.h"
+#include "marl/defer.h"
+#include "marl/trace.h"
 
 #undef max
 
@@ -166,7 +166,7 @@ namespace sw
 		if(count == 0) { return; }
 
 		auto id = nextDrawID++;
-		YARN_SCOPED_EVENT("draw %d", id);
+		MARL_SCOPED_EVENT("draw %d", id);
 
 		#ifndef NDEBUG
 		{
@@ -186,16 +186,16 @@ namespace sw
 			return;
 		}
 
-		yarn::Pool<sw::DrawCall>::Loan draw;
+		marl::Pool<sw::DrawCall>::Loan draw;
 		{
-			YARN_SCOPED_EVENT("drawCallPool.borrow()");
+			MARL_SCOPED_EVENT("drawCallPool.borrow()");
 			draw = drawCallPool.borrow();
 		}
 		draw->id = id;
 
 		if(update)
 		{
-			YARN_SCOPED_EVENT("update");
+			MARL_SCOPED_EVENT("update");
 			vertexState = VertexProcessor::update(context);
 			setupState = SetupProcessor::update(context);
 			pixelState = PixelProcessor::update(context);
@@ -416,7 +416,7 @@ namespace sw
 		pixelRoutine.reset();
 	}
 
-	void DrawCall::run(const yarn::Loan<DrawCall>& draw, yarn::Ticket::Queue* tickets, yarn::Ticket::Queue clusterQueues[MaxClusterCount])
+	void DrawCall::run(const marl::Loan<DrawCall>& draw, marl::Ticket::Queue* tickets, marl::Ticket::Queue clusterQueues[MaxClusterCount])
 	{
 		draw->setup();
 
@@ -425,8 +425,8 @@ namespace sw
 		auto const numBatches = draw->numBatches;
 
 		auto ticket = tickets->take();
-		auto finally = yarn::make_shared_finally([draw, ticket] {
-			YARN_SCOPED_EVENT("FINISH draw %d", draw->id);
+		auto finally = marl::make_shared_finally([draw, ticket] {
+			MARL_SCOPED_EVENT("FINISH draw %d", draw->id);
 			draw->teardown();
 			ticket.done();
 		});
@@ -443,7 +443,7 @@ namespace sw
 				batch->clusterTickets[cluster] = std::move(clusterQueues[cluster].take());
 			}
 
-			yarn::schedule([draw, batch, finally] {
+			marl::schedule([draw, batch, finally] {
 
 				processVertices(draw.get(), batch.get());
 
@@ -468,11 +468,11 @@ namespace sw
 
 	void DrawCall::processVertices(DrawCall* draw, BatchData* batch)
 	{
-		YARN_SCOPED_EVENT("VERTEX draw %d, batch %d", draw->id, batch->id);
+		MARL_SCOPED_EVENT("VERTEX draw %d, batch %d", draw->id, batch->id);
 
 		unsigned int triangleIndices[MaxBatchSize + 1][3];  // One extra for SIMD width overrun. TODO: Adjust to dynamic batch size.
 		{
-			YARN_SCOPED_EVENT("processPrimitiveVertices");
+			MARL_SCOPED_EVENT("processPrimitiveVertices");
 			processPrimitiveVertices(
 				triangleIndices,
 				draw->data->indices,
@@ -496,21 +496,21 @@ namespace sw
 
 	void DrawCall::processPrimitives(DrawCall* draw, BatchData* batch)
 	{
-		YARN_SCOPED_EVENT("PRIMITIVES draw %d batch %d", draw->id, batch->id);
+		MARL_SCOPED_EVENT("PRIMITIVES draw %d batch %d", draw->id, batch->id);
 		auto triangles = &batch->triangles[0];
 		auto primitives = &batch->primitives[0];
 		batch->numVisible = draw->setupPrimitives(triangles, primitives, draw, batch->numPrimitives);
 	}
 
-	void DrawCall::processPixels(const yarn::Loan<DrawCall>& draw, const yarn::Loan<BatchData>& batch, const std::shared_ptr<yarn::Finally>& finally)
+	void DrawCall::processPixels(const marl::Loan<DrawCall>& draw, const marl::Loan<BatchData>& batch, const std::shared_ptr<marl::Finally>& finally)
 	{
 		struct Data
 		{
-			Data(const yarn::Loan<DrawCall>& draw, const yarn::Loan<BatchData>& batch, const std::shared_ptr<yarn::Finally>& finally)
+			Data(const marl::Loan<DrawCall>& draw, const marl::Loan<BatchData>& batch, const std::shared_ptr<marl::Finally>& finally)
 				: draw(draw), batch(batch), finally(finally) {}
-			yarn::Loan<DrawCall> draw;
-			yarn::Loan<BatchData> batch;
-			std::shared_ptr<yarn::Finally> finally;
+			marl::Loan<DrawCall> draw;
+			marl::Loan<BatchData> batch;
+			std::shared_ptr<marl::Finally> finally;
 		};
 		auto data = std::make_shared<Data>(draw, batch, finally);
 		for (int cluster = 0; cluster < MaxClusterCount; cluster++)
@@ -519,7 +519,7 @@ namespace sw
 			{
 				auto& draw = data->draw;
 				auto& batch = data->batch;
-				YARN_SCOPED_EVENT("PIXEL draw %d, batch %d, cluster %d", draw->id, batch->id, cluster);
+				MARL_SCOPED_EVENT("PIXEL draw %d, batch %d, cluster %d", draw->id, batch->id, cluster);
 				draw->pixelPointer(&batch->primitives.front(), batch->numVisible, cluster, MaxClusterCount, draw->data);
 				batch->clusterTickets[cluster].done();
 			});
@@ -528,7 +528,7 @@ namespace sw
 
 	void Renderer::synchronize()
 	{
-		YARN_SCOPED_EVENT("synchronize");
+		MARL_SCOPED_EVENT("synchronize");
 		auto ticket = drawTickets.take();
 		ticket.wait();
 		device->updateSamplingRoutineConstCache();
