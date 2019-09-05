@@ -21,7 +21,7 @@
 #include <memory>
 #include <mutex>
 
-namespace yarn
+namespace marl
 {
 	class Scheduler;
 }
@@ -42,7 +42,7 @@ class Device
 public:
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_DEVICE; }
 
-	Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, yarn::Scheduler *scheduler);
+	Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, marl::Scheduler *scheduler);
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkDeviceCreateInfo* pCreateInfo);

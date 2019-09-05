@@ -18,9 +18,9 @@
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 
-#include "Yarn/Defer.hpp"
-#include "Yarn/Trace.hpp"
-#include "Yarn/WaitGroup.hpp"
+#include "marl/defer.h"
+#include "marl/trace.h"
+#include "marl/waitgroup.h"
 
 #include <queue>
 
@@ -44,7 +44,7 @@ namespace sw
 
 	void ComputeProgram::generate()
 	{
-		YARN_SCOPED_EVENT("ComputeProgram::generate");
+		MARL_SCOPED_EVENT("ComputeProgram::generate");
 
 		SpirvRoutine routine(pipelineLayout);
 		shader->emitProlog(&routine);
@@ -222,7 +222,7 @@ namespace sw
 		data.pushConstants = pushConstants;
 		data.constants = &sw::constants;
 
-		yarn::WaitGroup wg;
+		marl::WaitGroup wg;
 		const uint32_t batchCount = 16;
 
 		auto groupCount = groupCountX * groupCountY * groupCountZ;
@@ -230,7 +230,7 @@ namespace sw
 		for (uint32_t batchID = 0; batchID < batchCount && batchID < groupCount; batchID++)
 		{
 			wg.add(1);
-			yarn::schedule([=, &data]
+			marl::schedule([=, &data]
 			{
 				defer(wg.done());
 				std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
@@ -247,7 +247,7 @@ namespace sw
 					auto groupZ = baseGroupZ + groupOffsetZ;
 					auto groupY = baseGroupY + groupOffsetY;
 					auto groupX = baseGroupX + groupOffsetX;
-					YARN_SCOPED_EVENT("groupX: %d, groupY: %d, groupZ: %d", groupX, groupY, groupZ);
+					MARL_SCOPED_EVENT("groupX: %d, groupY: %d, groupZ: %d", groupX, groupY, groupZ);
 
 					using Coroutine = std::unique_ptr<rr::Stream<SpirvShader::YieldResult>>;
 					std::queue<Coroutine> coroutines;

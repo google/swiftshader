@@ -24,9 +24,9 @@
 #include "Device/Config.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
-#include "Yarn/Pool.hpp"
-#include "Yarn/Finally.hpp"
-#include "Yarn/Ticket.hpp"
+#include "marl/pool.h"
+#include "marl/finally.h"
+#include "marl/ticket.h"
 
 #include <atomic>
 #include <list>
@@ -116,7 +116,7 @@ namespace sw
 	{
 		struct BatchData
 		{
-			using Pool = yarn::BoundedPool<BatchData, MaxBatchCount, yarn::PoolPolicy::Preserve>;
+			using Pool = marl::BoundedPool<BatchData, MaxBatchCount, marl::PoolPolicy::Preserve>;
 
 			TriangleBatch triangles;
 			PrimitiveBatch primitives;
@@ -125,19 +125,19 @@ namespace sw
 			unsigned int firstPrimitive;
 			unsigned int numPrimitives;
 			int numVisible;
-			yarn::Ticket clusterTickets[MaxClusterCount];
+			marl::Ticket clusterTickets[MaxClusterCount];
 		};
 
-		using Pool = yarn::BoundedPool<DrawCall, MaxDrawCount, yarn::PoolPolicy::Preserve>;
+		using Pool = marl::BoundedPool<DrawCall, MaxDrawCount, marl::PoolPolicy::Preserve>;
 		using SetupFunction = int(*)(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 
 		DrawCall();
 		~DrawCall();
 
-		static void run(const yarn::Loan<DrawCall>& draw, yarn::Ticket::Queue* tickets, yarn::Ticket::Queue clusterQueues[MaxClusterCount]);
+		static void run(const marl::Loan<DrawCall>& draw, marl::Ticket::Queue* tickets, marl::Ticket::Queue clusterQueues[MaxClusterCount]);
 		static void processVertices(DrawCall* draw, BatchData* batch);
 		static void processPrimitives(DrawCall* draw, BatchData* batch);
-		static void processPixels(const yarn::Loan<DrawCall>& draw, const yarn::Loan<BatchData>& batch, const std::shared_ptr<yarn::Finally>& finally);
+		static void processPixels(const marl::Loan<DrawCall>& draw, const marl::Loan<BatchData>& batch, const std::shared_ptr<marl::Finally>& finally);
 		void setup();
 		void teardown();
 
@@ -223,8 +223,8 @@ namespace sw
 		std::atomic<int> nextDrawID = {0};
 
 		vk::Query *occlusionQuery = nullptr;
-		yarn::Ticket::Queue drawTickets;
-		yarn::Ticket::Queue clusterQueues[MaxClusterCount];
+		marl::Ticket::Queue drawTickets;
+		marl::Ticket::Queue clusterQueues[MaxClusterCount];
 
 		VertexProcessor::State vertexState;
 		SetupProcessor::State setupState;
