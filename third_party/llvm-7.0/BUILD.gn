@@ -22,6 +22,7 @@ config("swiftshader_llvm_private_config") {
     cflags += [
       "/wd4005",
       "/wd4065",
+      "/wd4141",
       "/wd4146",
       "/wd4245",
       "/wd4267",
@@ -35,6 +36,8 @@ config("swiftshader_llvm_private_config") {
       "/wd4703",
       "/wd4706",
       "/wd4800",
+      "/wd4805",
+      "/wd4828",
     ]
 
     if (!is_debug) {
@@ -55,22 +58,21 @@ config("swiftshader_llvm_private_config") {
   }
 
   if (is_clang) {
-    cflags += [ "-Wno-header-hygiene" ]
+    cflags += [
+      "-Wno-attributes",
+      "-Wno-deprecated-declarations",
+      "-Wno-enum-compare",
+      "-Wno-header-hygiene",
+      "-Wno-unused-function",
+      "-Wno-unused-local-typedef",
+      "-Wno-unused-private-field",
+      "-Wno-unused-result",
+      "-Wno-unused-variable",
+    ]
     if (target_cpu == "x86" || target_cpu == "x64") {
       cflags += [ "-msse2" ]
     }
   }
-
-  cflags += [
-    "-Wno-attributes",
-    "-Wno-deprecated-declarations",
-    "-Wno-enum-compare",
-    "-Wno-unused-function",
-    "-Wno-unused-local-typedef",
-    "-Wno-unused-private-field",
-    "-Wno-unused-result",
-    "-Wno-unused-variable",
-  ]
 
   defines = [
     "__STDC_CONSTANT_MACROS",

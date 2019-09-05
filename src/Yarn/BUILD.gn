@@ -42,6 +42,14 @@ swiftshader_source_set("Yarn_headers") {
 
   if (is_win) {
     sources += [ "OSFiber_windows.hpp" ]
+  } else {
+    sources += [
+      "OSFiber_asm.hpp",
+      "OSFiber_asm_aarch64.h",
+      "OSFiber_asm_arm.h",
+      "OSFiber_asm_x64.h",
+      "OSFiber_asm_x86.h",
+    ]
   }
 
   public_configs = [
@@ -61,15 +69,10 @@ swiftshader_source_set("Yarn") {
     sources += [
       "OSFiber_aarch64.c",
       "OSFiber_arm.c",
-      "OSFiber_asm.hpp",
       "OSFiber_asm_aarch64.S",
-      "OSFiber_asm_aarch64.h",
       "OSFiber_asm_arm.S",
-      "OSFiber_asm_arm.h",
       "OSFiber_asm_x64.S",
-      "OSFiber_asm_x64.h",
       "OSFiber_asm_x86.S",
-      "OSFiber_asm_x86.h",
       "OSFiber_x64.c",
       "OSFiber_x86.c",
     ]
@@ -97,4 +100,11 @@ test("yarn_unittests") {
     "//testing/gtest",
     "//testing/gmock",
   ]
+
+  if (!swiftshader_standalone) {
+    deps += [
+      "//third_party/googletest:gmock",
+      "//third_party/googletest:gtest",
+    ]
+  }
 }

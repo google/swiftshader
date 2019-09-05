@@ -36,10 +36,12 @@ config("swiftshader_libvulkan_private_config") {
     defines = [ "VK_EXPORT=" ]
   }
 
-  cflags = [
-    "-Wno-unused-private-field",
-    "-Wno-switch",
-  ]
+  if (is_clang) {
+    cflags = [
+      "-Wno-unused-private-field",
+      "-Wno-switch",
+    ]
+  }
 }
 
 swiftshader_source_set("swiftshader_libvulkan_headers") {
@@ -120,7 +122,12 @@ swiftshader_shared_library("swiftshader_libvulkan") {
 
   configs = [ ":swiftshader_libvulkan_private_config" ]
 
-  output_name = "libvk_swiftshader"
+  # TODO(capn): Use the same ICD name on both Windows and non-Windows.
+  if (is_win) {
+    output_name = "vk_swiftshader"
+  } else {
+    output_name = "libvk_swiftshader"
+  }
   if (!is_fuchsia) {
     # NOTE: Work-around for http://crbug.com/1000668
     output_dir = "$root_out_dir/swiftshader"

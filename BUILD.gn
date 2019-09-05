@@ -51,6 +51,13 @@ config("swiftshader_config") {
     if (!is_debug) {
       defines += [ "ANGLE_DISABLE_TRACE" ]
     }
+
+    # Diable some MSVC warnings.
+    if (!is_clang) {
+      cflags += [
+        "/wd4309", # Truncation of constant value. See PixelRoutine.cpp casts of signed shorts.
+      ]
+    }
   } else {
     cflags = [
       "-std=c++11",
