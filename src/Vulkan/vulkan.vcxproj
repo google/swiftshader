@@ -141,6 +141,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
     <ClCompile Include="VkRenderPass.cpp" />
     <ClCompile Include="VkSampler.cpp" />
     <ClCompile Include="VkShaderModule.cpp" />
+    <ClCompile Include="VkStringify.cpp" />
     <ClCompile Include="..\Device\Blitter.cpp" />
     <ClCompile Include="..\Device\Clipper.cpp" />
     <ClCompile Include="..\Device\Color.cpp" />
@@ -227,6 +228,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
     <ClInclude Include="VkSampler.hpp" />
     <ClInclude Include="VkSemaphore.hpp" />
     <ClInclude Include="VkShaderModule.hpp" />
+    <ClInclude Include="VkStringify.hpp" />
     <ClInclude Include="VulkanPlatform.h" />
     <ClInclude Include="..\Device\Blitter.hpp" />
     <ClInclude Include="..\Device\Clipper.hpp" />

@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string>
 
 #if !defined(TRACE_OUTPUT_FILE)
 #define TRACE_OUTPUT_FILE "debug.txt"
@@ -43,14 +44,19 @@ namespace vk
 
 	// Outputs the message to the debugging log and stderr, and calls abort().
 	void abort(const char *format, ...) CHECK_PRINTF_ARGS;
+
+	// Outputs text to the debugging log, and asserts once if a debugger is attached.
+	void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
 }
 
 // A macro to output a trace of a function call and its arguments to the
 // debugging log. Disabled if SWIFTSHADER_DISABLE_TRACE is defined.
 #if defined(SWIFTSHADER_DISABLE_TRACE)
 #define TRACE(message, ...) (void(0))
+#define TRACE_ASSERT(message, ...) (void(0))
 #else
 #define TRACE(message, ...) vk::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define TRACE_ASSERT(message, ...) vk::trace_assert("%s:%d %s TRACE_ASSERT: " message "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #endif
 
 // A macro to print a warning message to the debugging log and stderr to denote

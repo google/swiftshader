@@ -136,15 +136,16 @@ public:
 	// complete.
 	VkResult QueueSubmitAndWait(VkCommandBuffer commandBuffer) const;
 
-private:
-	Device(Driver const *driver, VkDevice device, VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex);
-
 	static VkResult GetPhysicalDevices(
 			Driver const *driver, VkInstance instance,
 			std::vector<VkPhysicalDevice> &out);
 
 	static int GetComputeQueueFamilyIndex(
 			Driver const *driver, VkPhysicalDevice device);
+
+private:
+	Device(Driver const *driver, VkDevice device, VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex);
+
 
 	static std::vector<VkQueueFamilyProperties>
 		GetPhysicalDeviceQueueFamilyProperties(

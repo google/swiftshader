@@ -40,6 +40,7 @@
 #include "VkSampler.hpp"
 #include "VkSemaphore.hpp"
 #include "VkShaderModule.hpp"
+#include "VkStringify.hpp"
 #include "VkRenderPass.hpp"
 
 #if defined(VK_USE_PLATFORM_METAL_EXT) || defined(VK_USE_PLATFORM_MACOS_MVK)
@@ -637,7 +638,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
-			UNIMPLEMENTED("extensionCreateInfo->sType %d", int(extensionCreateInfo->sType));   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
+			TRACE_ASSERT("Unimplemented extensionCreateInfo->sType = %s", vk::Stringify(extensionCreateInfo->sType));
 			break;
 		}
 
@@ -822,7 +823,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 		}
 #endif
 		default:
-			UNIMPLEMENTED("allocationInfo->sType %u", allocationInfo->sType);
+			TRACE_ASSERT("Unimplemented allocationInfo->sType = %s", vk::Stringify(allocationInfo->sType));
 			break;
 		}
 
