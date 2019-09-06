@@ -476,7 +476,7 @@ _Requires_lock_held_(lock) void Scheduler::Worker::runUntilIdle(
 }
 
 Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
-  auto id = workerFibers.size() + 1;
+  auto id = static_cast<uint32_t>(workerFibers.size() + 1);
   auto fiber = Fiber::create(id, FiberStackSize, [&] { run(); });
   workerFibers.push_back(std::unique_ptr<Fiber>(fiber));
   return fiber;
