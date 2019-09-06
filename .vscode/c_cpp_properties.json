@@ -9,6 +9,7 @@
             "includePath": [
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
@@ -26,6 +27,7 @@
             "includePath": [
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
@@ -43,6 +45,7 @@
             "includePath": [
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
