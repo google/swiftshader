@@ -68,8 +68,8 @@
 
 #include "Reactor/Nucleus.hpp"
 
-#include "marl/scheduler.h"
-#include "marl/thread.h"
+#include "Yarn/Scheduler.hpp"
+#include "Yarn/Thread.hpp"
 
 #include "System/CPUID.hpp"
 
@@ -120,14 +120,14 @@ void setCPUDefaults()
 	sw::CPUID::setEnableSSE(true);
 }
 
-marl::Scheduler* getOrCreateScheduler()
+yarn::Scheduler* getOrCreateScheduler()
 {
-	static auto scheduler = std::unique_ptr<marl::Scheduler>(new marl::Scheduler());
+	static auto scheduler = std::unique_ptr<yarn::Scheduler>(new yarn::Scheduler());
 	scheduler->setThreadInitializer([] {
 		sw::CPUID::setFlushToZero(true);
 		sw::CPUID::setDenormalsAreZero(true);
 	});
-	scheduler->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+	scheduler->setWorkerThreadCount(std::min<size_t>(yarn::Thread::numLogicalCPUs(), 16));
 	return scheduler.get();
 }
 

@@ -106,8 +106,6 @@ option(REACTOR_EMIT_DEBUG_INFO "Emit debug info for JIT functions" 0)
 option(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location info for JIT functions" 0)
 option(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" 0)
 
-set(BUILD_MARL ${BUILD_VULKAN})
-
 set(DEFAULT_REACTOR_BACKEND "LLVM")
 
 set(REACTOR_BACKEND ${DEFAULT_REACTOR_BACKEND} CACHE STRING "JIT compiler back-end used by Reactor")
@@ -267,6 +265,7 @@ endif()
 ###########################################################
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(YARN_DIR ${SOURCE_DIR}/Yarn)
 set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
@@ -275,7 +274,6 @@ set(LLVM_CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-7.0/configs)
 set(LIBBACKTRACE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace/src)
 set(LIBBACKTRACE_CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace/config)
 set(LIBBACKTRACE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace/src)
-set(MARL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/marl/include)
 set(SUBZERO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/subzero)
 set(SUBZERO_LLVM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-subzero)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
@@ -1599,7 +1597,6 @@ set(OPENGL_INCLUDE_DIR
 
 set(VULKAN_INCLUDE_DIR
     ${COMMON_INCLUDE_DIR}
-    ${MARL_INCLUDE_DIR}
 )
 
 ###########################################################
@@ -1763,6 +1760,22 @@ file(GLOB_RECURSE VULKAN_LIST
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
+file(GLOB YARN_FULL_LIST
+    ${YARN_DIR}/*.cpp
+    ${YARN_DIR}/*.hpp
+    ${YARN_DIR}/*.c
+)
+
+if (NOT MSVC)
+    file(GLOB YARN_ASSEMBLY_LIST ${YARN_DIR}/*.S)
+    list(APPEND YARN_FULL_LIST ${YARN_ASSEMBLY_LIST})
+endif(NOT MSVC)
+
+set(YARN_LIST ${YARN_FULL_LIST})
+set(YARN_TEST_LIST ${YARN_FULL_LIST})
+list(FILTER YARN_LIST EXCLUDE REGEX ".*_test\\..*")
+list(FILTER YARN_TEST_LIST INCLUDE REGEX ".*_test\\..*")
+
 ###########################################################
 # Append OS specific files to lists
 ###########################################################
@@ -1860,6 +1873,15 @@ endif()
 ###########################################################
 # SwiftShader Targets
 ###########################################################
+
+add_library(Yarn STATIC ${YARN_LIST})
+set_target_properties(Yarn PROPERTIES
+    POSITION_INDEPENDENT_CODE 1
+    FOLDER "Core"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+    COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
+)
+target_link_libraries(Yarn ${OS_LIBS})
 
 add_library(SwiftShader STATIC ${SWIFTSHADER_LIST})
 set_target_properties(SwiftShader PROPERTIES
@@ -2008,11 +2030,6 @@ if(BUILD_GLES_CM)
     )
 endif()
 
-if(BUILD_MARL)
-    set(MARL_BUILD_TESTS OFF)
-    add_subdirectory(third_party/marl)
-endif(BUILD_MARL)
-
 if(BUILD_VULKAN)
     if (NOT TARGET SPIRV-Tools)
         # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
@@ -2049,7 +2066,7 @@ if(BUILD_VULKAN)
     endif()
 
     set_shared_library_export_map(vk_swiftshader ${SOURCE_DIR}/Vulkan)
-    target_link_libraries(vk_swiftshader ${Reactor} marl ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt)
+    target_link_libraries(vk_swiftshader ${Reactor} Yarn ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt)
     add_custom_command(
         TARGET vk_swiftshader
         POST_BUILD
@@ -2170,6 +2187,29 @@ if(BUILD_TESTS)
 endif(BUILD_TESTS)
 
 if(BUILD_TESTS)
+    # Yarn unit tests
+    file(GLOB YARN_TEST_LIST
+        ${YARN_DIR}/*_test.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+    )
+
+    set(YARN_TEST_INCLUDE_DIR
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+
+    add_executable(yarn-unittests ${YARN_TEST_LIST})
+    set_target_properties(yarn-unittests PROPERTIES
+        INCLUDE_DIRECTORIES "${YARN_TEST_INCLUDE_DIR}"
+        FOLDER "Tests"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_DEFINITIONS "STANDALONE"
+    )
+
+    target_link_libraries(yarn-unittests Yarn ${OS_LIBS})
+
     # Math unit tests
     set(MATH_UNITTESTS_LIST
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/main.cpp

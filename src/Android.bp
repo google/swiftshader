@@ -492,6 +492,31 @@ cc_library_shared {
     static_libs: [ "libswiftshader_compiler_debug" ],
 }
 
+// Yarn, fibers + scheduler library
+
+cc_library_static {
+    name: "libyarn",
+    vendor: true,
+
+    srcs: [
+        "Yarn/Debug.cpp",
+        "Yarn/Scheduler.cpp",
+        "Yarn/Thread.cpp",
+        "Yarn/Trace.cpp",
+    ],
+
+    arch: {
+        arm: { srcs: ["Yarn/OSFiber_arm.c", "Yarn/OSFiber_asm_arm.S"], },
+        arm64: { srcs: ["Yarn/OSFiber_aarch64.c", "Yarn/OSFiber_asm_aarch64.S"], },
+        x86: { srcs: ["Yarn/OSFiber_x86.c", "Yarn/OSFiber_asm_x86.S"], },
+        x86_64: { srcs: ["Yarn/OSFiber_x64.c", "Yarn/OSFiber_asm_x64.S"], },
+    },
+
+    cflags: [
+        "-Wno-unused-parameter",
+    ],
+}
+
 
 // Vulkan
 
@@ -567,7 +592,6 @@ cc_defaults {
     ],
 
     static_libs: [
-        "swiftshader_marl",
         "swiftshader_spirv-tools",
     ],
 
@@ -583,6 +607,7 @@ cc_library_shared {
     static_libs: [
         "libswiftshadervk_llvm_debug",
         "libLLVM7_swiftshader",
+        "libyarn",
     ],
 
     defaults: [
@@ -597,6 +622,7 @@ cc_library_shared {
     static_libs: [
         "libswiftshadervk_llvm_debug",
         "libLLVM7_swiftshader",
+        "libyarn",
     ],
 
     cflags: [
