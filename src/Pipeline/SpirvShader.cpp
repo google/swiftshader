@@ -2879,9 +2879,19 @@ namespace sw
 		case spv::StorageClassStorageBuffer:
 		{
 			const auto &d = descriptorDecorations.at(resultId);
-			ASSERT(d.DescriptorSet >= 0 && d.DescriptorSet < vk::MAX_BOUND_DESCRIPTOR_SETS);
+			ASSERT(d.DescriptorSet >= 0);
 			auto size = 0; // Not required as this pointer is not directly used by SIMD::Read or SIMD::Write.
-			state->createPointer(resultId, SIMD::Pointer(routine->descriptorSets[d.DescriptorSet], size));
+			// Note: the module may contain descriptor set references that are not suitable for this implementation -- using a set index higher than the number
+			// of descriptor set binding points we support. As long as the selected entrypoint doesn't actually touch the out of range binding points, this
+			// is valid. In this case make the value nullptr to make it easier to diagnose an attempt to dereference it.
+			if (d.DescriptorSet < vk::MAX_BOUND_DESCRIPTOR_SETS)
+			{
+				state->createPointer(resultId, SIMD::Pointer(routine->descriptorSets[d.DescriptorSet], size));
+			}
+			else
+			{
+				state->createPointer(resultId, SIMD::Pointer(nullptr, 0));
+			}
 			break;
 		}
 		case spv::StorageClassPushConstant:
