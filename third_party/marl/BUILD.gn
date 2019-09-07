@@ -70,22 +70,3 @@ swiftshader_source_set("Marl") {
     ":Marl_headers",
   ]
 }
-
-test("marl_unittests") {
-  sources = [
-    "src/conditionvariable_test.cpp",
-    "src/containers_test.cpp",
-    "src/defer_test.cpp",
-    "src/osfiber_test.cpp",
-    "src/pool_test.cpp",
-    "src/scheduler_test.cpp",
-    "src/ticket_test.cpp",
-    "src/waitgroup_test.cpp",
-    "src/marl_test.cpp",
-  ]
-  deps = [
-    ":Marl",
-    "//testing/gtest",
-    "//testing/gmock",
-  ]
-}
