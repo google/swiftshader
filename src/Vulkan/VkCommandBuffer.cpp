@@ -1108,7 +1108,7 @@ struct WriteTimeStamp : public CommandBuffer::Command
 			// Everything else is deferred to the Renderer; we will treat those stages all as if they were
 			// `bottom of pipe`.
 			//
-			// FIXME(chrisforbes): once Marl is integrated, do this in a task so we don't have to stall here.
+			// FIXME(chrisforbes): once Yarn is integrated, do this in a task so we don't have to stall here.
 			executionState.renderer->synchronize();
 		}
 

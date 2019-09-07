@@ -22,7 +22,7 @@
 
 #include "System/Synchronization.hpp"
 
-namespace marl
+namespace yarn
 {
 	class Scheduler;
 }
@@ -44,7 +44,7 @@ class Queue
 	VK_LOADER_DATA loaderData = { ICD_LOADER_MAGIC };
 
 public:
-	Queue(Device* device, marl::Scheduler *scheduler);
+	Queue(Device* device, yarn::Scheduler *scheduler);
 	~Queue();
 
 	operator VkQueue()
@@ -69,7 +69,7 @@ private:
 		Type type = SUBMIT_QUEUE;
 	};
 
-	void taskLoop(marl::Scheduler* scheduler);
+	void taskLoop(yarn::Scheduler* scheduler);
 	void garbageCollect();
 	void submitQueue(const Task& task);
 

@@ -22,7 +22,7 @@
 #include "Pipeline/ComputeProgram.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
-#include "marl/trace.h"
+#include "Yarn/Trace.hpp"
 
 #include "spirv-tools/optimizer.hpp"
 
@@ -259,7 +259,7 @@ std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShad
 
 std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey& key)
 {
-	MARL_SCOPED_EVENT("createProgram");
+	YARN_SCOPED_EVENT("createProgram");
 
 	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
 	// TODO(b/119409619): use allocator.

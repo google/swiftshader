@@ -57,7 +57,7 @@ void Device::SamplingRoutineCache::updateConstCache()
 	cache.updateConstCache();
 }
 
-Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, marl::Scheduler *scheduler)
+Device::Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, yarn::Scheduler *scheduler)
 	: physicalDevice(physicalDevice),
 	  queues(reinterpret_cast<Queue*>(mem)),
 	  enabledExtensionCount(pCreateInfo->enabledExtensionCount),
