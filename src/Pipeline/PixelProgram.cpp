@@ -78,9 +78,9 @@ namespace sw
 		routine.setInputBuiltin(spirvShader, spv::BuiltInPointCoord, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 		{
 			assert(builtin.SizeInComponents == 2);
-			value[builtin.FirstComponent+0] = SIMD::Float(0.5f) +
+			value[builtin.FirstComponent+0] = SIMD::Float(0.5f, 1.5f, 0.5f, 1.5f) +
 				SIMD::Float(Float(x) - (*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX))));
-			value[builtin.FirstComponent+1] = SIMD::Float(0.5f) +
+			value[builtin.FirstComponent+1] = SIMD::Float(0.5f, 0.5f, 1.5f, 1.5f) +
 				SIMD::Float(Float(y) - (*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY))));
 		});
 
