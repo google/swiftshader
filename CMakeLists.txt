@@ -2009,7 +2009,6 @@ if(BUILD_GLES_CM)
 endif()
 
 if(BUILD_MARL)
-    set(MARL_BUILD_TESTS OFF)
     add_subdirectory(third_party/marl)
 endif(BUILD_MARL)
 
