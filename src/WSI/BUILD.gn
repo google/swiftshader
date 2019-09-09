@@ -24,6 +24,8 @@ swiftshader_source_set("WSI") {
 
   if (is_linux) {
     sources += [
+      "XcbSurfaceKHR.cpp",
+      "XcbSurfaceKHR.hpp",
       "XlibSurfaceKHR.cpp",
       "XlibSurfaceKHR.hpp",
       "libX11.cpp",
