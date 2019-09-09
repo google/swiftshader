@@ -43,6 +43,15 @@ static void setExternalMemoryProperties(VkExternalMemoryHandleTypeFlagBits handl
 		return;
 	}
 #endif
+#if VK_USE_PLATFORM_FUCHSIA
+	if(handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)
+	{
+		properties->compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
+		properties->exportFromImportedHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
+		properties->externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT | VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT;
+		return;
+	}
+#endif
 	properties->compatibleHandleTypes = 0;
 	properties->exportFromImportedHandleTypes = 0;
 	properties->externalMemoryFeatures = 0;

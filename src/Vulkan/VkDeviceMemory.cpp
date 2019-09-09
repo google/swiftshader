@@ -51,6 +51,13 @@ public:
 	}
 #endif
 
+#if VK_USE_PLATFORM_FUCHSIA
+	virtual VkResult exportHandle(zx_handle_t *pHandle) const
+	{
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
+#endif
+
 protected:
 	ExternalBase() = default;
 };
@@ -219,6 +226,10 @@ private:
 #	endif
 #endif
 
+#if VK_USE_PLATFORM_FUCHSIA
+#	include "VkDeviceMemoryExternalFuchsia.hpp"
+#endif
+
 namespace vk {
 
 static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
@@ -232,6 +243,12 @@ static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
 #endif
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 	if(parseCreateInfo<AHardwareBufferExternalMemory>(pAllocateInfo, pTraits))
+	{
+		return;
+	}
+#endif
+#if VK_USE_PLATFORM_FUCHSIA
+	if(parseCreateInfo<zircon::VmoExternalMemory>(pAllocateInfo, pTraits))
 	{
 		return;
 	}
@@ -345,6 +362,13 @@ VkResult DeviceMemory::exportAhb(struct AHardwareBuffer **pAhb) const
 VkResult DeviceMemory::getAhbProperties(const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
 {
 	return AHardwareBufferExternalMemory::getAhbProperties(buffer, pProperties);
+}
+#endif
+
+#if VK_USE_PLATFORM_FUCHSIA
+VkResult DeviceMemory::exportHandle(zx_handle_t *pHandle) const
+{
+	return external->exportHandle(pHandle);
 }
 #endif
 

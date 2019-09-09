@@ -36,6 +36,10 @@ public:
 	static VkResult getAhbProperties(const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties);
 #endif
 
+#if VK_USE_PLATFORM_FUCHSIA
+	VkResult exportHandle(zx_handle_t *pHandle) const;
+#endif
+
 	void destroy(const VkAllocationCallbacks *pAllocator);
 	VkResult allocate();
 	VkResult map(VkDeviceSize offset, VkDeviceSize size, void **ppData);
