@@ -21,14 +21,15 @@ project(Marl C CXX ASM)
 ###########################################################
 # Options
 ###########################################################
+option(MARL_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(MARL_BUILD_EXAMPLES "Build example applications" OFF)
-option(MARL_BUILD_TESTS "Build tests" ON)
+option(MARL_BUILD_TESTS "Build tests" OFF)
 option(MARL_ASAN "Build marl with address sanitizer" OFF)
 option(MARL_TSAN "Build marl with thread sanitizer" OFF)
 
-if (MARL_ASAN AND MARL_TSAN)
+if(MARL_ASAN AND MARL_TSAN)
     message(FATAL_ERROR "MARL_ASAN and MARL_TSAN are mutually exclusive")
-endif (MARL_ASAN AND MARL_TSAN)
+endif(MARL_ASAN AND MARL_TSAN)
 
 ###########################################################
 # Directories
@@ -52,21 +53,40 @@ endif(MARL_BUILD_TESTS)
 ###########################################################
 # File lists
 ###########################################################
-file(GLOB MARL_FULL_LIST
-    ${MARL_SRC_DIR}/*.cpp
-    ${MARL_SRC_DIR}/*.h
-    ${MARL_SRC_DIR}/*.c
+file(GLOB MARL_LIST
+    ${MARL_SRC_DIR}/debug.cpp
+    ${MARL_SRC_DIR}/scheduler.cpp
+    ${MARL_SRC_DIR}/thread.cpp
+    ${MARL_SRC_DIR}/trace.cpp
+    ${MARL_SRC_DIR}/osfiber_aarch64.c
+    ${MARL_SRC_DIR}/osfiber_arm.c
+    ${MARL_SRC_DIR}/osfiber_ppc64.c
+    ${MARL_SRC_DIR}/osfiber_x64.c
+    ${MARL_SRC_DIR}/osfiber_x86.c
 )
-
-if (NOT MSVC)
-    file(GLOB MARL_ASSEMBLY_LIST ${MARL_SRC_DIR}/*.S)
-    list(APPEND MARL_FULL_LIST ${MARL_ASSEMBLY_LIST})
+if(NOT MSVC)
+    list(APPEND MARL_LIST
+        ${MARL_SRC_DIR}/osfiber_asm_aarch64.S
+        ${MARL_SRC_DIR}/osfiber_asm_arm.S
+        ${MARL_SRC_DIR}/osfiber_asm_ppc64.S
+        ${MARL_SRC_DIR}/osfiber_asm_x64.S
+        ${MARL_SRC_DIR}/osfiber_asm_x86.S
+    )
 endif(NOT MSVC)
 
-set(MARL_LIST ${MARL_FULL_LIST})
-set(MARL_TEST_LIST ${MARL_FULL_LIST})
-list(FILTER MARL_LIST EXCLUDE REGEX ".*_test\\..*")
-list(FILTER MARL_TEST_LIST INCLUDE REGEX ".*_test\\..*")
+file(GLOB MARL_TEST_LIST
+    ${MARL_SRC_DIR}/blockingcall_test.cpp
+    ${MARL_SRC_DIR}/conditionvariable_test.cpp
+    ${MARL_SRC_DIR}/containers_test.cpp
+    ${MARL_SRC_DIR}/defer_test.cpp
+    ${MARL_SRC_DIR}/marl_test.cpp
+    ${MARL_SRC_DIR}/marl_test.h
+    ${MARL_SRC_DIR}/osfiber_test.cpp
+    ${MARL_SRC_DIR}/pool_test.cpp
+    ${MARL_SRC_DIR}/scheduler_test.cpp
+    ${MARL_SRC_DIR}/ticket_test.cpp
+    ${MARL_SRC_DIR}/waitgroup_test.cpp
+)
 
 ###########################################################
 # OS libraries
@@ -80,23 +100,51 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 endif()
 
 ###########################################################
+# Functions
+###########################################################
+
+function(marl_set_target_options target)
+    # Enable all warnings
+    if(NOT MSVC)
+        target_compile_options(${target} PRIVATE "-Wall")
+    endif()
+
+    # Disable specific, pedantic warnings
+    if(MSVC)
+        target_compile_options(${target} PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
+    endif()
+
+    # Treat all warnings as errors
+    if(MARL_WARNINGS_AS_ERRORS)
+        if(MSVC)
+            target_compile_options(${target} PRIVATE "/WX")
+        else()
+            target_compile_options(${target} PRIVATE "-Werror")
+        endif()
+    endif(MARL_WARNINGS_AS_ERRORS)
+
+    if(MARL_ASAN)
+        target_compile_options(${target} PUBLIC "-fsanitize=address")
+        target_link_libraries(${target} "-fsanitize=address")
+    elseif(MARL_MSAN)
+        target_compile_options(${target} PUBLIC "-fsanitize=memory")
+        target_link_libraries(${target} "-fsanitize=memory")
+    endif()
+
+    target_include_directories(${target} PRIVATE ${MARL_INCLUDE_DIR})
+endfunction(marl_set_target_options)
+
+###########################################################
 # Targets
 ###########################################################
 
 # marl
 add_library(marl STATIC ${MARL_LIST})
 set_target_properties(marl PROPERTIES
-    INCLUDE_DIRECTORIES "${MARL_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
 )
 
-if (MARL_ASAN)
-    target_compile_options(marl PUBLIC "-fsanitize=address")
-    target_link_libraries(marl "-fsanitize=address")
-elseif (MARL_MSAN)
-    target_compile_options(marl PUBLIC "-fsanitize=memory")
-    target_link_libraries(marl "-fsanitize=memory")
-endif ()
+marl_set_target_options(marl)
 
 target_link_libraries(marl "${MARL_OS_LIBS}")
 
@@ -111,7 +159,6 @@ if(MARL_BUILD_TESTS)
         ${GOOGLETEST_DIR}/googletest/include/
         ${GOOGLETEST_DIR}/googlemock/include/
         ${GOOGLETEST_DIR}/googletest/
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
 
     add_executable(marl-unittests ${MARL_TEST_LIST})
@@ -120,20 +167,24 @@ if(MARL_BUILD_TESTS)
         INCLUDE_DIRECTORIES "${MARL_TEST_INCLUDE_DIR}"
         FOLDER "Tests"
     )
+
+    marl_set_target_options(marl-unittests)
+
     target_link_libraries(marl-unittests marl "${MARL_OS_LIBS}")
 endif(MARL_BUILD_TESTS)
 
 # examples
 if(MARL_BUILD_EXAMPLES)
-    function(BUILD_EXAMPLE name)
-        add_executable(${name} "${CMAKE_CURRENT_SOURCE_DIR}/examples/${name}.cpp")
-        set_target_properties(${name} PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    function(build_example target)
+        add_executable(${target} "${CMAKE_CURRENT_SOURCE_DIR}/examples/${target}.cpp")
+        set_target_properties(${target} PROPERTIES
             FOLDER "Examples"
         )
-        target_link_libraries(${name} marl "${MARL_OS_LIBS}")
-    endfunction(BUILD_EXAMPLE)
+        marl_set_target_options(${target})
+        target_link_libraries(${target} marl "${MARL_OS_LIBS}")
+    endfunction(build_example)
 
-    BUILD_EXAMPLE(fractal)
+    build_example(fractal)
+    build_example(primes)
 
 endif(MARL_BUILD_EXAMPLES)
