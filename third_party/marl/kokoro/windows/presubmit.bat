@@ -18,7 +18,7 @@ mkdir %SRC%\build
 cd %SRC%\build
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
-cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DMARL_BUILD_EXAMPLES=1"
+cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DMARL_BUILD_TESTS=1" "-DMARL_BUILD_EXAMPLES=1" "-DMARL_WARNINGS_AS_ERRORS=1"
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
 %MSBUILD% /p:Configuration=%CONFIG% Marl.sln

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This is an example application that uses Marl to parallelize the calculation of
-// a Julia fractal.
+// This is an example application that uses Marl to parallelize the calculation
+// of a Julia fractal.
 
-#include <marl/defer.h>
-#include <marl/scheduler.h>
-#include <marl/thread.h>
-#include <marl/waitgroup.h>
+#include "marl/defer.h"
+#include "marl/scheduler.h"
+#include "marl/thread.h"
+#include "marl/waitgroup.h"
 
 #include <fstream>
 
@@ -64,10 +64,9 @@ inline float lerp(float x, float min, float max) {
 // julia calculates the Julia-set fractal value for the given coordinate and
 // constant. See https://en.wikipedia.org/wiki/Julia_set for more information.
 Color<float> julia(float x, float y, float cx, float cy) {
-  int iteration = 0;
   for (int i = 0; i < 1000; i++) {
     if (x * x + y * y > 4) {
-      return colorize(sqrt(i));
+      return colorize(sqrtf(static_cast<float>(i)));
     }
 
     auto xtemp = x * x - y * y;
@@ -99,7 +98,6 @@ bool writeBMP(const Color<uint8_t>* texels,
   const uint32_t padding = -(3 * width) & 3U;   // in bytes
   const uint32_t stride = 3 * width + padding;  // in bytes
   const uint32_t offset = 54;
-  const uint32_t size = offset + stride * height * 3;
 
   // Bitmap file header
   put1('B');  // header field
@@ -128,7 +126,7 @@ bool writeBMP(const Color<uint8_t>* texels,
       put1(texel.g);
       put1(texel.r);
     }
-    for (int i = 0; i < padding; i++) {
+    for (uint32_t i = 0; i < padding; i++) {
       put1(0);
     }
   }
@@ -139,7 +137,8 @@ bool writeBMP(const Color<uint8_t>* texels,
 // Constants used for rendering the fractal.
 constexpr uint32_t imageWidth = 2048;
 constexpr uint32_t imageHeight = 2048;
-constexpr int samplesPerPixel = 8;
+constexpr int samplesPerPixelW = 3;
+constexpr int samplesPerPixelH = 3;
 constexpr float windowMinX = -0.5f;
 constexpr float windowMaxX = +0.5f;
 constexpr float windowMinY = -0.5f;
@@ -165,7 +164,7 @@ int main(int argc, const char** argv) {
   marl::WaitGroup wg(imageHeight);
 
   // For each line of the image...
-  for (int y = 0; y < imageHeight; y++) {
+  for (uint32_t y = 0; y < imageHeight; y++) {
     // Schedule a task to calculate the image for this line.
     // These may run concurrently across hardware threads.
     marl::schedule([=] {
@@ -173,18 +172,20 @@ int main(int argc, const char** argv) {
       // This is used to indicate that the task is done.
       defer(wg.done());
 
-      for (int x = 0; x < imageWidth; x++) {
+      for (uint32_t x = 0; x < imageWidth; x++) {
         // Calculate the fractal pixel color.
         Color<float> color = {};
-        for (int sample = 0; sample < samplesPerPixel; sample++) {
-          auto fx = float(x) + (rand() / float(RAND_MAX));
-          auto fy = float(y) + (rand() / float(RAND_MAX));
-          auto dx = float(fx) / float(imageWidth);
-          auto dy = float(fy) / float(imageHeight);
-          color += julia(lerp(dx, windowMinX, windowMaxX),
-                         lerp(dy, windowMinY, windowMaxY), cx, cy);
+        for (int sy = 0; sy < samplesPerPixelH; sy++) {
+          auto fy = float(y) + (sy / float(samplesPerPixelH));
+          for (int sx = 0; sx < samplesPerPixelW; sx++) {
+            auto fx = float(x) + (sx / float(samplesPerPixelW));
+            auto dx = float(fx) / float(imageWidth);
+            auto dy = float(fy) / float(imageHeight);
+            color += julia(lerp(dx, windowMinX, windowMaxX),
+                           lerp(dy, windowMinY, windowMaxY), cx, cy);
+          }
         }
-        color /= samplesPerPixel;
+        color /= samplesPerPixelW * samplesPerPixelH;
         pixels[x + y * imageWidth] = {static_cast<uint8_t>(color.r * 255),
                                       static_cast<uint8_t>(color.g * 255),
                                       static_cast<uint8_t>(color.b * 255)};
