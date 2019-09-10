@@ -1108,17 +1108,21 @@ namespace sw
 
 			RValue<SIMD::Float> Float(uint32_t i) const
 			{
-				if (intermediate != nullptr)
+				if (intermediate)
 				{
 					return intermediate->Float(i);
 				}
-				auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
-				return SIMD::Float(constantValue[i]);
+
+				// Constructing a constant SIMD::Float is not guaranteed to preserve the data's exact
+				// bit pattern, but SPIR-V provides 32-bit words representing "the bit pattern for the constant".
+				// Thus we must first construct an integer constant, and bitcast to float.
+				auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
+				return As<SIMD::Float>(SIMD::UInt(constantValue[i]));
 			}
 
 			RValue<SIMD::Int> Int(uint32_t i) const
 			{
-				if (intermediate != nullptr)
+				if (intermediate)
 				{
 					return intermediate->Int(i);
 				}
@@ -1128,7 +1132,7 @@ namespace sw
 
 			RValue<SIMD::UInt> UInt(uint32_t i) const
 			{
-				if (intermediate != nullptr)
+				if (intermediate)
 				{
 					return intermediate->UInt(i);
 				}
