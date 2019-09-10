@@ -1063,6 +1063,21 @@ namespace sw
 			pixel.z = Short4(0xFFFFu);
 			pixel.w = Short4(0xFFFFu);
 			break;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		{
+			buffer = cBuffer;
+			Int4 v = Int4(0);
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 0);
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 1);
+			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 2);
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 3);
+
+			pixel.x = Short4(v << 6) & Short4(0xFFC0u);
+			pixel.y = Short4(v >> 4) & Short4(0xFFC0u);
+			pixel.z = Short4(v >> 14) & Short4(0xFFC0u);
+			pixel.w = Short4(v >> 16) & Short4(0xC000u);
+		} break;
 		default:
 			UNIMPLEMENTED("VkFormat %d", state.targetFormat[index]);
 		}
