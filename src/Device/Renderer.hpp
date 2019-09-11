@@ -189,12 +189,15 @@ namespace sw
 		static bool setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
 	};
 
-	class Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor
+	class alignas(16) Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor
 	{
 	public:
 		Renderer(vk::Device* device);
 
 		virtual ~Renderer();
+
+		void* operator new(size_t size);
+		void operator delete(void* mem);
 
 		bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 

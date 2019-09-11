@@ -62,96 +62,85 @@ namespace sw
 
 	void PixelProcessor::setBlendConstant(const Color<float> &blendConstant)
 	{
-		// FIXME: Compact into generic function   // FIXME: Clamp
-		short blendConstantR = static_cast<short>(iround(65535 * blendConstant.r));
-		short blendConstantG = static_cast<short>(iround(65535 * blendConstant.g));
-		short blendConstantB = static_cast<short>(iround(65535 * blendConstant.b));
-		short blendConstantA = static_cast<short>(iround(65535 * blendConstant.a));
+		// TODO(b/140935644): Compact into generic function, cheack if clamp is required
+		factor.blendConstant4W[0][0] =
+		factor.blendConstant4W[0][1] =
+		factor.blendConstant4W[0][2] =
+		factor.blendConstant4W[0][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.r));
 
-		factor.blendConstant4W[0][0] = blendConstantR;
-		factor.blendConstant4W[0][1] = blendConstantR;
-		factor.blendConstant4W[0][2] = blendConstantR;
-		factor.blendConstant4W[0][3] = blendConstantR;
+		factor.blendConstant4W[1][0] =
+		factor.blendConstant4W[1][1] =
+		factor.blendConstant4W[1][2] =
+		factor.blendConstant4W[1][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.g));
 
-		factor.blendConstant4W[1][0] = blendConstantG;
-		factor.blendConstant4W[1][1] = blendConstantG;
-		factor.blendConstant4W[1][2] = blendConstantG;
-		factor.blendConstant4W[1][3] = blendConstantG;
+		factor.blendConstant4W[2][0] =
+		factor.blendConstant4W[2][1] =
+		factor.blendConstant4W[2][2] =
+		factor.blendConstant4W[2][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.b));
 
-		factor.blendConstant4W[2][0] = blendConstantB;
-		factor.blendConstant4W[2][1] = blendConstantB;
-		factor.blendConstant4W[2][2] = blendConstantB;
-		factor.blendConstant4W[2][3] = blendConstantB;
+		factor.blendConstant4W[3][0] =
+		factor.blendConstant4W[3][1] =
+		factor.blendConstant4W[3][2] =
+		factor.blendConstant4W[3][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.a));
 
-		factor.blendConstant4W[3][0] = blendConstantA;
-		factor.blendConstant4W[3][1] = blendConstantA;
-		factor.blendConstant4W[3][2] = blendConstantA;
-		factor.blendConstant4W[3][3] = blendConstantA;
+		factor.invBlendConstant4W[0][0] =
+		factor.invBlendConstant4W[0][1] =
+		factor.invBlendConstant4W[0][2] =
+		factor.invBlendConstant4W[0][3] = 0xFFFFu - factor.blendConstant4W[0][0];
 
-		// FIXME: Compact into generic function   // FIXME: Clamp
-		short invBlendConstantR = static_cast<short>(iround(65535 * (1 - blendConstant.r)));
-		short invBlendConstantG = static_cast<short>(iround(65535 * (1 - blendConstant.g)));
-		short invBlendConstantB = static_cast<short>(iround(65535 * (1 - blendConstant.b)));
-		short invBlendConstantA = static_cast<short>(iround(65535 * (1 - blendConstant.a)));
+		factor.invBlendConstant4W[1][0] =
+		factor.invBlendConstant4W[1][1] =
+		factor.invBlendConstant4W[1][2] =
+		factor.invBlendConstant4W[1][3] = 0xFFFFu - factor.blendConstant4W[1][0];
 
-		factor.invBlendConstant4W[0][0] = invBlendConstantR;
-		factor.invBlendConstant4W[0][1] = invBlendConstantR;
-		factor.invBlendConstant4W[0][2] = invBlendConstantR;
-		factor.invBlendConstant4W[0][3] = invBlendConstantR;
+		factor.invBlendConstant4W[2][0] =
+		factor.invBlendConstant4W[2][1] =
+		factor.invBlendConstant4W[2][2] =
+		factor.invBlendConstant4W[2][3] = 0xFFFFu - factor.blendConstant4W[2][0];
 
-		factor.invBlendConstant4W[1][0] = invBlendConstantG;
-		factor.invBlendConstant4W[1][1] = invBlendConstantG;
-		factor.invBlendConstant4W[1][2] = invBlendConstantG;
-		factor.invBlendConstant4W[1][3] = invBlendConstantG;
+		factor.invBlendConstant4W[3][0] =
+		factor.invBlendConstant4W[3][1] =
+		factor.invBlendConstant4W[3][2] =
+		factor.invBlendConstant4W[3][3] = 0xFFFFu - factor.blendConstant4W[3][0];
 
-		factor.invBlendConstant4W[2][0] = invBlendConstantB;
-		factor.invBlendConstant4W[2][1] = invBlendConstantB;
-		factor.invBlendConstant4W[2][2] = invBlendConstantB;
-		factor.invBlendConstant4W[2][3] = invBlendConstantB;
-
-		factor.invBlendConstant4W[3][0] = invBlendConstantA;
-		factor.invBlendConstant4W[3][1] = invBlendConstantA;
-		factor.invBlendConstant4W[3][2] = invBlendConstantA;
-		factor.invBlendConstant4W[3][3] = invBlendConstantA;
-
-		factor.blendConstant4F[0][0] = blendConstant.r;
-		factor.blendConstant4F[0][1] = blendConstant.r;
-		factor.blendConstant4F[0][2] = blendConstant.r;
+		factor.blendConstant4F[0][0] =
+		factor.blendConstant4F[0][1] =
+		factor.blendConstant4F[0][2] =
 		factor.blendConstant4F[0][3] = blendConstant.r;
 
-		factor.blendConstant4F[1][0] = blendConstant.g;
-		factor.blendConstant4F[1][1] = blendConstant.g;
-		factor.blendConstant4F[1][2] = blendConstant.g;
+		factor.blendConstant4F[1][0] =
+		factor.blendConstant4F[1][1] =
+		factor.blendConstant4F[1][2] =
 		factor.blendConstant4F[1][3] = blendConstant.g;
 
-		factor.blendConstant4F[2][0] = blendConstant.b;
-		factor.blendConstant4F[2][1] = blendConstant.b;
-		factor.blendConstant4F[2][2] = blendConstant.b;
+		factor.blendConstant4F[2][0] =
+		factor.blendConstant4F[2][1] =
+		factor.blendConstant4F[2][2] =
 		factor.blendConstant4F[2][3] = blendConstant.b;
 
-		factor.blendConstant4F[3][0] = blendConstant.a;
-		factor.blendConstant4F[3][1] = blendConstant.a;
-		factor.blendConstant4F[3][2] = blendConstant.a;
+		factor.blendConstant4F[3][0] =
+		factor.blendConstant4F[3][1] =
+		factor.blendConstant4F[3][2] =
 		factor.blendConstant4F[3][3] = blendConstant.a;
 
-		factor.invBlendConstant4F[0][0] = 1 - blendConstant.r;
-		factor.invBlendConstant4F[0][1] = 1 - blendConstant.r;
-		factor.invBlendConstant4F[0][2] = 1 - blendConstant.r;
+		factor.invBlendConstant4F[0][0] =
+		factor.invBlendConstant4F[0][1] =
+		factor.invBlendConstant4F[0][2] =
 		factor.invBlendConstant4F[0][3] = 1 - blendConstant.r;
 
-		factor.invBlendConstant4F[1][0] = 1 - blendConstant.g;
-		factor.invBlendConstant4F[1][1] = 1 - blendConstant.g;
-		factor.invBlendConstant4F[1][2] = 1 - blendConstant.g;
+		factor.invBlendConstant4F[1][0] =
+		factor.invBlendConstant4F[1][1] =
+		factor.invBlendConstant4F[1][2] =
 		factor.invBlendConstant4F[1][3] = 1 - blendConstant.g;
 
-		factor.invBlendConstant4F[2][0] = 1 - blendConstant.b;
-		factor.invBlendConstant4F[2][1] = 1 - blendConstant.b;
-		factor.invBlendConstant4F[2][2] = 1 - blendConstant.b;
+		factor.invBlendConstant4F[2][0] =
+		factor.invBlendConstant4F[2][1] =
+		factor.invBlendConstant4F[2][2] =
 		factor.invBlendConstant4F[2][3] = 1 - blendConstant.b;
 
-		factor.invBlendConstant4F[3][0] = 1 - blendConstant.a;
-		factor.invBlendConstant4F[3][1] = 1 - blendConstant.a;
-		factor.invBlendConstant4F[3][2] = 1 - blendConstant.a;
+		factor.invBlendConstant4F[3][0] =
+		factor.invBlendConstant4F[3][1] =
+		factor.invBlendConstant4F[3][2] =
 		factor.invBlendConstant4F[3][3] = 1 - blendConstant.a;
 	}
 

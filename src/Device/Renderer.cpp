@@ -159,6 +159,18 @@ namespace sw
 		drawTickets.take().wait();
 	}
 
+	// Renderer objects have to be mem aligned to the alignment provided in the class declaration
+	void* Renderer::operator new(size_t size)
+	{
+		ASSERT(size == sizeof(Renderer));  // This operator can't be called from a derived class
+		return vk::allocate(sizeof(Renderer), alignof(Renderer), vk::DEVICE_MEMORY, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE);
+	}
+
+	void Renderer::operator delete(void* mem)
+	{
+		vk::deallocate(mem, vk::DEVICE_MEMORY);
+	}
+
 	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex,
 			TaskEvents *events, int instanceID, int viewID, void *indexBuffer,
 			PushConstantStorage const & pushConstants, bool update)
