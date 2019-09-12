@@ -277,6 +277,7 @@ namespace sw
 		for(int i = 0; i < MAX_INTERFACE_COMPONENTS/4; i++)
 		{
 			data->input[i] = context->input[i].buffer;
+			data->robustnessSize[i] = context->input[i].robustnessSize;
 			data->stride[i] = context->input[i].vertexStride;
 		}
 
@@ -1057,10 +1058,11 @@ namespace sw
 		for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
 		{
 			auto &attrib = inputs[i];
-			if (attrib.count && attrib.instanceStride)
+			if (attrib.count && attrib.instanceStride && (attrib.instanceStride < attrib.robustnessSize))
 			{
 				// Under the casts: attrib.buffer += attrib.instanceStride
 				attrib.buffer = (void const *)((uintptr_t)attrib.buffer + attrib.instanceStride);
+				attrib.robustnessSize -= attrib.instanceStride;
 			}
 		}
 	}

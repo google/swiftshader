@@ -99,6 +99,8 @@ namespace sw
 		frontStencil = {};
 		backStencil = {};
 
+		robustBufferAccess = false;
+
 		rasterizerDiscard = false;
 
 		depthCompareMode = VK_COMPARE_OP_LESS;

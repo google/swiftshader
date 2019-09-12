@@ -66,7 +66,8 @@ namespace sw
 
 		typedef VertexProcessor::State::Input Stream;
 
-		Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch);
+		Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
+		                    bool robustBufferAccess, UInt& robustnessSize);
 		void readInput(Pointer<UInt> &batch);
 		void computeClipFlags();
 		void writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCache, Pointer<UInt> &batch);

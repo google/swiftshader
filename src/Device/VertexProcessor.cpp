@@ -44,6 +44,32 @@ namespace sw
 		return hash;
 	}
 
+	unsigned int VertexProcessor::States::Input::bytesPerAttrib() const
+	{
+		switch(type)
+		{
+		case STREAMTYPE_FLOAT:
+		case STREAMTYPE_INT:
+		case STREAMTYPE_UINT:
+			return count * sizeof(uint32_t);
+		case STREAMTYPE_HALF:
+		case STREAMTYPE_SHORT:
+		case STREAMTYPE_USHORT:
+			return count * sizeof(uint16_t);
+		case STREAMTYPE_BYTE:
+		case STREAMTYPE_SBYTE:
+			return count * sizeof(uint8_t);
+		case STREAMTYPE_COLOR:
+		case STREAMTYPE_2_10_10_10_INT:
+		case STREAMTYPE_2_10_10_10_UINT:
+			return sizeof(int);
+		default:
+			UNSUPPORTED("stream.type %d", int(type));
+		}
+
+		return 0;
+	}
+
 	bool VertexProcessor::State::operator==(const State &state) const
 	{
 		if(hash != state.hash)
@@ -78,6 +104,7 @@ namespace sw
 		State state;
 
 		state.shaderID = context->vertexShader->getSerialID();
+		state.robustBufferAccess = context->robustBufferAccess;
 		state.isPoint = context->topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
 		for(int i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)

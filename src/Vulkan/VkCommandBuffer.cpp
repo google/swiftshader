@@ -419,8 +419,13 @@ void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int f
 		if (attrib.count)
 		{
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
-			attrib.buffer = vertexInput.buffer ? vertexInput.buffer->getOffsetPointer(
-					attrib.offset + vertexInput.offset + attrib.vertexStride * firstVertex + attrib.instanceStride * firstInstance) : nullptr;
+			VkDeviceSize offset = attrib.offset + vertexInput.offset +
+			                      attrib.vertexStride * firstVertex +
+			                      attrib.instanceStride * firstInstance;
+			attrib.buffer = vertexInput.buffer ? vertexInput.buffer->getOffsetPointer(offset) : nullptr;
+
+			VkDeviceSize size = vertexInput.buffer ? vertexInput.buffer->getSize() : 0;
+			attrib.robustnessSize = (size > offset) ? size - offset : 0;
 		}
 	}
 }

@@ -94,8 +94,13 @@ namespace sw
 			{
 				Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void*) * (i / 4));
 				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(uint32_t) * (i / 4));
+				UInt robustnessSize(0);
+				if(state.robustBufferAccess)
+				{
+					robustnessSize = *Pointer<UInt>(data + OFFSET(DrawData, robustnessSize) + sizeof(uint32_t) * (i / 4));
+				}
 
-				auto value = readStream(input, stride, state.input[i / 4], batch);
+				auto value = readStream(input, stride, state.input[i / 4], batch, state.robustBufferAccess, robustnessSize);
 				routine.inputs[i + 0] = value.x;
 				routine.inputs[i + 1] = value.y;
 				routine.inputs[i + 2] = value.z;
@@ -137,14 +142,28 @@ namespace sw
 		clipFlags |= Pointer<Int>(constants + OFFSET(Constants,fini))[SignMask(finiteXYZ)];
 	}
 
-	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch)
+	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
+	                                   bool robustBufferAccess, UInt & robustnessSize)
 	{
 		Vector4f v;
+		UInt4 offsets = *Pointer<UInt4>(As<Pointer<UInt4>>(batch)) * UInt4(stride);
 
-		Pointer<Byte> source0 = buffer + batch[0] * stride;
-		Pointer<Byte> source1 = buffer + batch[1] * stride;
-		Pointer<Byte> source2 = buffer + batch[2] * stride;
-		Pointer<Byte> source3 = buffer + batch[3] * stride;
+		Pointer<Byte> source0 = buffer + offsets.x;
+		Pointer<Byte> source1 = buffer + offsets.y;
+		Pointer<Byte> source2 = buffer + offsets.z;
+		Pointer<Byte> source3 = buffer + offsets.w;
+
+		UInt4 zero(0);
+		if (robustBufferAccess)
+		{
+			// TODO(b/141124876): Optimize for wide-vector gather operations.
+			UInt4 limits = offsets + UInt4(stream.bytesPerAttrib());
+			Pointer<Byte> zeroSource = As<Pointer<Byte>>(&zero);
+			source0 = IfThenElse(limits.x <= robustnessSize, source0, zeroSource);
+			source1 = IfThenElse(limits.y <= robustnessSize, source1, zeroSource);
+			source2 = IfThenElse(limits.z <= robustnessSize, source2, zeroSource);
+			source3 = IfThenElse(limits.w <= robustnessSize, source3, zeroSource);
+		}
 
 		bool isNativeFloatAttrib = (stream.attribType == SpirvShader::ATTRIBTYPE_FLOAT) || stream.normalized;
 

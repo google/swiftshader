@@ -283,6 +283,8 @@ Pipeline::Pipeline(PipelineLayout const *layout, const Device *device)
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem, const Device *device)
 	: Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
+	context.robustBufferAccess = robustBufferAccess;
+
 	if(((pCreateInfo->flags &
 		~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
 	      VK_PIPELINE_CREATE_DERIVATIVE_BIT |
