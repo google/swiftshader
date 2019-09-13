@@ -60,7 +60,7 @@ namespace sw
 			If(tagCache[cacheIndex] != index)
 			{
 				readInput(batch);
-				program(batch);
+				program(batch, vertexCount);
 				computeClipFlags();
 
 				writeCache(vertexCache, tagCache, batch);

@@ -62,7 +62,7 @@ namespace sw
 		SpirvShader const * const spirvShader;
 
 	private:
-		virtual void program(Pointer<UInt> &batch) = 0;
+		virtual void program(Pointer<UInt> &batch, UInt& vertexCount) = 0;
 
 		typedef VertexProcessor::State::Input Stream;
 

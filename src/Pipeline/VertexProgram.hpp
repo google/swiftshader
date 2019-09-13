@@ -34,7 +34,7 @@ namespace sw
 		virtual ~VertexProgram();
 
 	private:
-		void program(Pointer<UInt> &batch) override;
+		void program(Pointer<UInt> &batch, UInt& vertexCount) override;
 
 		const vk::DescriptorSet::Bindings &descriptorSets;
 	};
