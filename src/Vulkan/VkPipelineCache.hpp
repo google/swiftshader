@@ -105,7 +105,7 @@ public:
 
 		bool operator<(const ComputeProgramKey &other) const
 		{
-			return (shader < other.shader) || (layout < other.layout);
+			return std::tie(shader, layout) < std::tie(other.shader, other.layout);
 		}
 
 		const sw::SpirvShader* getShader() const { return shader; }
