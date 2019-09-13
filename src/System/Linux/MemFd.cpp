@@ -67,7 +67,7 @@ bool MemFd::allocate(const char* name, size_t size)
 	close();
 
 #ifndef __NR_memfd_create
-	sw::trace("memfd_create() not supported on this system!");
+	TRACE("memfd_create() not supported on this system!");
 	return false;
 #else
 	// In the event of no system call this returns -1 with errno set
@@ -75,13 +75,13 @@ bool MemFd::allocate(const char* name, size_t size)
 	fd_ = syscall(__NR_memfd_create, name, MFD_CLOEXEC);
 	if (fd_ < 0)
 	{
-		sw::trace("memfd_create() returned %d: %s", errno, strerror(errno));
+		TRACE("memfd_create() returned %d: %s", errno, strerror(errno));
 		return false;
 	}
 	// Ensure there is enough space.
 	if (size > 0 && ::ftruncate(fd_, size) < 0)
 	{
-		sw::trace("ftruncate() %lld returned %d: %s", (long long)size, errno, strerror(errno));
+		TRACE("ftruncate() %lld returned %d: %s", (long long)size, errno, strerror(errno));
 		close();
 		return false;
 	}
@@ -97,7 +97,7 @@ void MemFd::close()
 		// https://lwn.net/Articles/576478/ for example.
 		int ret = ::close(fd_);
 		if (ret < 0) {
-			sw::trace("MemFd::close() failed with: %s", strerror(errno));
+			TRACE("MemFd::close() failed with: %s", strerror(errno));
 			assert(false);
 		}
 		fd_ = -1;
