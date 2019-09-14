@@ -26,6 +26,7 @@
 namespace marl {
 
 void fatal(const char* msg, ...);
+void warn(const char* msg, ...);
 void assert_has_bound_scheduler(const char* feature);
 
 #if MARL_DEBUG_ENABLED
@@ -39,11 +40,13 @@ void assert_has_bound_scheduler(const char* feature);
 #define MARL_ASSERT_HAS_BOUND_SCHEDULER(feature) \
   assert_has_bound_scheduler(feature);
 #define MARL_UNREACHABLE() MARL_FATAL("UNREACHABLE");
+#define MARL_WARN(msg, ...) marl::warn("WARNING: " msg "\n", ##__VA_ARGS__);
 #else
 #define MARL_FATAL(msg, ...)
 #define MARL_ASSERT(cond, msg, ...)
 #define MARL_ASSERT_HAS_BOUND_SCHEDULER(feature)
 #define MARL_UNREACHABLE()
+#define MARL_WARN(msg, ...)
 #endif
 
 }  // namespace marl

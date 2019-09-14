@@ -137,7 +137,7 @@ class Scheduler {
   static constexpr size_t FiberStackSize = 1024 * 1024;
 
   // Maximum number of worker threads.
-  static constexpr size_t MaxWorkerThreads = 64;
+  static constexpr size_t MaxWorkerThreads = 256;
 
   // TODO: Implement a queue that recycles elements to reduce number of
   // heap allocations.

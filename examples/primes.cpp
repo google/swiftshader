@@ -20,6 +20,8 @@
 #include "marl/thread.h"
 #include "marl/ticket.h"
 
+#include <math.h>
+
 // searchMax defines the upper limit on primes to find.
 constexpr int searchMax = 10000000;
 
