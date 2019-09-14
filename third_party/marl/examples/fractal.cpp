@@ -175,17 +175,20 @@ int main(int argc, const char** argv) {
       for (uint32_t x = 0; x < imageWidth; x++) {
         // Calculate the fractal pixel color.
         Color<float> color = {};
+        // Take a number of sub-pixel samples.
         for (int sy = 0; sy < samplesPerPixelH; sy++) {
           auto fy = float(y) + (sy / float(samplesPerPixelH));
+          auto dy = float(fy) / float(imageHeight);
           for (int sx = 0; sx < samplesPerPixelW; sx++) {
             auto fx = float(x) + (sx / float(samplesPerPixelW));
             auto dx = float(fx) / float(imageWidth);
-            auto dy = float(fy) / float(imageHeight);
             color += julia(lerp(dx, windowMinX, windowMaxX),
                            lerp(dy, windowMinY, windowMaxY), cx, cy);
           }
         }
+        // Average the color.
         color /= samplesPerPixelW * samplesPerPixelH;
+        // Write the pixel out to the image buffer.
         pixels[x + y * imageWidth] = {static_cast<uint8_t>(color.r * 255),
                                       static_cast<uint8_t>(color.g * 255),
                                       static_cast<uint8_t>(color.b * 255)};

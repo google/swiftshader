@@ -161,7 +161,7 @@ void Pool<T>::Loan::reset() {
 }
 
 template <typename T>
-typename Pool<T>::Loan& Pool<T>::Loan::operator=(const Pool<T>::Loan& rhs) {
+typename Pool<T>::Loan& Pool<T>::Loan::operator=(const Loan& rhs) {
   reset();
   if (rhs.item != nullptr) {
     item = rhs.item;
@@ -172,7 +172,7 @@ typename Pool<T>::Loan& Pool<T>::Loan::operator=(const Pool<T>::Loan& rhs) {
 }
 
 template <typename T>
-typename Pool<T>::Loan& Pool<T>::Loan::operator=(Pool<T>::Loan&& rhs) {
+typename Pool<T>::Loan& Pool<T>::Loan::operator=(Loan&& rhs) {
   reset();
   std::swap(item, rhs.item);
   std::swap(storage, rhs.storage);

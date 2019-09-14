@@ -45,7 +45,7 @@ The resulting binaries will be found in `<path-to-marl>/build`
 
 ### Windows
 
-Marl can be build using [Visual Studio 2019's CMake integration](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019).
+Marl can be built using [Visual Studio 2019's CMake integration](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019).
 
 ### Using Marl in your CMake project
 
