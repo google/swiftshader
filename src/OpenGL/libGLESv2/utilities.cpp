@@ -2070,6 +2070,22 @@ namespace es2
 
 		return name.substr(0, open);
 	}
+
+	bool FloatFitsInInt(float f)
+	{
+		// We can't just do a raw comparison of "f > (float) INT32_MAX",
+		// because "(float) INT32_MAX" is unrepresentable as an integer.
+		//
+		// So instead I subtracted an ULP from "(float) INT32_MAX", cast that
+		// to an int, and do the comparison with that value. That value is
+		// 2147483520, and can be found with the following code:
+		//    float f_max = static_cast<float>(INT32_MAX);
+		//    int32_t f_bits = *static_cast<int32_t *>((void *)&f_max);
+		//    f_bits -= 1;
+		//    float f_next = *static_cast<float *>((void *)&f_bits);
+		//    int32_t out = static_cast<int32_t>(f_next);
+		return std::isfinite(f) && (-2147483520.f < f) && (f < 2147483520.f);
+	}
 }
 
 namespace es2sw

@@ -979,7 +979,7 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.width()) / srcRect.width();
 			float offsetf = roundf((static_cast<float>(clipRect.x0) - srcRect.x0) * ratio);
-			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			if (!FloatFitsInInt(offsetf) || !std::isfinite(ratio))
 			{
 				return false;
 			}
@@ -998,7 +998,7 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.width()) / srcRect.width();
 			float offsetf = roundf((srcRect.x1 - static_cast<float>(clipRect.x1)) * ratio);
-			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			if (!FloatFitsInInt(offsetf) || !std::isfinite(ratio))
 			{
 				return false;
 			}
@@ -1017,7 +1017,7 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.height()) / srcRect.height();
 			float offsetf = roundf((static_cast<float>(clipRect.y0) - srcRect.y0) * ratio);
-			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			if (!FloatFitsInInt(offsetf) || !std::isfinite(ratio))
 			{
 				return false;
 			}
@@ -1036,7 +1036,7 @@ namespace es2
 		{
 			float ratio = static_cast<float>(dstRect.height()) / srcRect.height();
 			float offsetf = roundf((srcRect.y1 - static_cast<float>(clipRect.y1)) * ratio);
-			if (!std::isfinite(offsetf) || !std::isfinite(ratio))
+			if (!FloatFitsInInt(offsetf) || !std::isfinite(ratio))
 			{
 				return false;
 			}

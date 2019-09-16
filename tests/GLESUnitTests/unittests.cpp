@@ -1764,6 +1764,7 @@ TEST_F(SwiftShaderTest, BlitTest)
 	const int small = 200;
 	const int neg_small = -small;
 	const int neg_big = -big;
+	int max = 0x7fffffff;
 	int data[][8] = {
 		// sx0, sy0, sx1, sy1, dx0, dy0, dx1, dy1
 		{0, 0, 0, 0, 0, 0, 0, 0},
@@ -1776,7 +1777,14 @@ TEST_F(SwiftShaderTest, BlitTest)
 		{neg_small, small, neg_small, neg_small, neg_small, big, small},
 		{big, big-1, big-2, big-3, big-4, big-5, big-6, big-7},
 		{big, neg_big, neg_big, big, small, big, 0, neg_small},
-		{323479648, 21931, 1769809195, 32733, 0, 0, -161640504, 32766}
+		{323479648, 21931, 1769809195, 32733, 0, 0, -161640504, 32766},
+		{0, 0, max, max, 0, 0, 8, 8},
+		{0, 0, 8, 8, 0, 0, max, max},
+		{0, 0, max, max, 0, 0, max, max},
+		{-1, -1, max, max, 0, 0, 8, 8},
+		{0, 0, 8, 8, -1, -1, max, max},
+		{-1, -1, max, max, -1, -1, max, max},
+		{-max-1, -max-1, max, max, -max-1, -max-1, max, max}
 	};
 
 	for (int i = 0; i < (int) (sizeof(data)/sizeof(data[0])); i++)
