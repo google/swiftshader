@@ -1,9 +1,3 @@
-dEQP-VK.image.format_reinterpret.cube.r16g16b16a16_snorm_r16g16b16a16_sfloat
-dEQP-VK.image.format_reinterpret.cube.r16g16b16a16_snorm_r16g16b16a16_sint
-dEQP-VK.image.format_reinterpret.cube.r16g16b16a16_snorm_r16g16b16a16_uint
-dEQP-VK.image.format_reinterpret.cube.r16g16b16a16_snorm_r32g32_sfloat
-dEQP-VK.image.format_reinterpret.cube.r16g16b16a16_snorm_r32g32_sint
-dEQP-VK.image.format_reinterpret.cube.r16g16b16a16_snorm_r32g32_uint
 dEQP-VK.spirv_assembly.instruction.compute.ptr_access_chain.workgroup
 dEQP-VK.spirv_assembly.instruction.compute.ptr_access_chain.workgroup_bad_stride
 dEQP-VK.spirv_assembly.instruction.compute.ptr_access_chain.workgroup_no_stride

@@ -1,9 +1,2 @@
 dEQP-VK.api.info.android.no_layers
-dEQP-VK.api.info.device.mandatory_features
-dEQP-VK.glsl.builtin.precision.ldexp.highp.vec2
-dEQP-VK.glsl.builtin.precision.ldexp.highp.vec3
-dEQP-VK.glsl.builtin.precision.ldexp.highp.vec4
-dEQP-VK.glsl.builtin.precision.ldexp.mediump.vec2
-dEQP-VK.glsl.builtin.precision.ldexp.mediump.vec3
-dEQP-VK.glsl.builtin.precision.ldexp.mediump.vec4
 dEQP-VK.glsl.builtin_var.simple.pointcoord_uniform_frag

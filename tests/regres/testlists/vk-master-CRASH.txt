@@ -1,7 +1,0 @@
-dEQP-VK.glsl.matrix.add.uniform.highp_mat3x2_float_vertex
-dEQP-VK.graphicsfuzz.fragcoord-control-flow
-dEQP-VK.graphicsfuzz.fragcoord-control-flow-2
-dEQP-VK.graphicsfuzz.mat-array-deep-control-flow
-dEQP-VK.graphicsfuzz.mat-array-distance
-dEQP-VK.rasterization.provoking_vertex.triangle_list
-dEQP-VK.rasterization.provoking_vertex.triangle_strip
