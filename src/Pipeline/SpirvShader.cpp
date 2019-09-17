@@ -917,10 +917,13 @@ namespace sw
 				break;
 
 			case spv::OpFunctionParameter:
-			case spv::OpFunctionCall:
 				// These should have all been removed by preprocessing passes. If we see them here,
 				// our assumptions are wrong and we will probably generate wrong code.
 				UNREACHABLE("%s should have already been lowered.", OpcodeName(opcode).c_str());
+				break;
+
+			case spv::OpFunctionCall:
+				// TODO(b/141246700): Add full support for spv::OpFunctionCall
 				break;
 
 			case spv::OpFConvert:
@@ -2692,6 +2695,9 @@ namespace sw
 
 		case spv::OpReturn:
 			return EmitReturn(insn, state);
+
+		case spv::OpFunctionCall:
+			return EmitFunctionCall(insn, state);
 
 		case spv::OpKill:
 			return EmitKill(insn, state);
@@ -4831,6 +4837,44 @@ namespace sw
 		state->routine->killMask |= SignMask(state->activeLaneMask());
 		state->setActiveLaneMask(SIMD::Int(0));
 		return EmitResult::Terminator;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitState *state) const
+	{
+		auto functionId = Function::ID(insn.word(3));
+		const auto& functionIt = functions.find(functionId);
+		ASSERT(functionIt != functions.end());
+		auto& function = functionIt->second;
+
+		// TODO(b/141246700): Add full support for spv::OpFunctionCall
+		// The only supported function is a single OpKill wrapped in a
+		// function, as a result of the "wrap OpKill" SPIRV-Tools pass
+		ASSERT(function.blocks.size() == 1);
+		spv::Op wrapOpKill[] = { spv::OpLabel, spv::OpKill };
+
+		for (auto block : function.blocks)
+		{
+			int insnNumber = 0;
+			for (auto blockInsn : block.second)
+			{
+				if (insnNumber > 1)
+				{
+					UNIMPLEMENTED("Function block number of instructions: %d", insnNumber);
+					return EmitResult::Continue;
+				}
+				if (blockInsn.opcode() != wrapOpKill[insnNumber++])
+				{
+					UNIMPLEMENTED("Function block instruction %d : %s", insnNumber - 1, OpcodeName(blockInsn.opcode()).c_str());
+					return EmitResult::Continue;
+				}
+				if (blockInsn.opcode() == spv::OpKill)
+				{
+					EmitInstruction(blockInsn, state);
+				}
+			}
+		}
+
+		return EmitResult::Continue;
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitPhi(InsnIterator insn, EmitState *state) const

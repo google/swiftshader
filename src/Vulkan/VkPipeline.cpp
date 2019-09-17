@@ -193,7 +193,8 @@ std::vector<uint32_t> preprocessSpirv(
 	}
 
 	// Full optimization list taken from spirv-opt.
-	opt.RegisterPass(spvtools::CreateDeadBranchElimPass())
+	opt.RegisterPass(spvtools::CreateWrapOpKillPass())
+		.RegisterPass(spvtools::CreateDeadBranchElimPass())
 		.RegisterPass(spvtools::CreateMergeReturnPass())
 		.RegisterPass(spvtools::CreateInlineExhaustivePass())
 		.RegisterPass(spvtools::CreateAggressiveDCEPass())
