@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01ced5a1_05b433d8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-09-17T19:48:20Z",
+      "side": 1,
+      "message": "Can this change be reverted now that the alignment issue has been fixed by https://swiftshader-review.googlesource.com/c/SwiftShader/+/36248 ?",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 140
+      },
+      "revId": "5d0faf9be9d7fa9e265f58d8719e7940d27b708e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
