@@ -253,7 +253,8 @@ const Image* ImageView::getImage(Usage usage) const
 
 Format ImageView::getFormat(Usage usage) const
 {
-	return ((usage == RAW) || (getImage(usage) == image)) ? format : getImage(usage)->getFormat();
+	Format imageFormat = ((usage == RAW) || (getImage(usage) == image)) ? format : getImage(usage)->getFormat();
+	return imageFormat.getAspectFormat(subresourceRange.aspectMask);
 }
 
 int ImageView::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const

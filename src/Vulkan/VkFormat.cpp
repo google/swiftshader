@@ -196,6 +196,7 @@ Format Format::getAspectFormat(VkImageAspectFlags aspect) const
 	case VK_IMAGE_ASPECT_STENCIL_BIT:
 		switch(format)
 		{
+		case VK_FORMAT_S8_UINT:
 		case VK_FORMAT_D16_UNORM_S8_UINT:
 		case VK_FORMAT_D24_UNORM_S8_UINT:
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
@@ -211,6 +212,7 @@ Format Format::getAspectFormat(VkImageAspectFlags aspect) const
 	case VK_IMAGE_ASPECT_PLANE_0_BIT:
 		switch(format)
 		{
+		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 			return VK_FORMAT_R8_UNORM;
@@ -223,8 +225,10 @@ Format Format::getAspectFormat(VkImageAspectFlags aspect) const
 	case VK_IMAGE_ASPECT_PLANE_1_BIT:
 		switch(format)
 		{
+		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 			return VK_FORMAT_R8_UNORM;
+		case VK_FORMAT_R8G8_UNORM:
 		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 			return VK_FORMAT_R8G8_UNORM;
 		default:
@@ -236,6 +240,7 @@ Format Format::getAspectFormat(VkImageAspectFlags aspect) const
 	case VK_IMAGE_ASPECT_PLANE_2_BIT:
 		switch(format)
 		{
+		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 			return VK_FORMAT_R8_UNORM;
 		default:
