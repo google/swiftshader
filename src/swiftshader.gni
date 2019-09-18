@@ -17,6 +17,12 @@ if (!swiftshader_standalone) {
   }
 }
 
+declare_args() {
+  # By default, build SwiftShader with optimizations enabled in debug
+  # for performance reasons. Set to false to build as unoptimized.
+  swiftshader_optimized_debug_build = true
+}
+
 configs_to_add = []
 configs_to_delete = []
 
@@ -24,8 +30,7 @@ if (is_win) {
   configs_to_delete += [ "//build/config/win:unicode" ]
 }
 
-if (is_debug) {
-  # always build optimized version of SwiftShader for performance reasons
+if (is_debug && swiftshader_optimized_debug_build) {
   configs_to_delete += [ "//build/config/compiler:default_optimization" ]
   configs_to_add += [ "//build/config/compiler:optimize" ]
 }
