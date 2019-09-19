@@ -122,6 +122,14 @@ const std::function<void()>& Scheduler::getThreadInitializer() {
 
 void Scheduler::setWorkerThreadCount(int newCount) {
   MARL_ASSERT(newCount >= 0, "count must be positive");
+  if (newCount > int(MaxWorkerThreads)) {
+    MARL_WARN(
+        "marl::Scheduler::setWorkerThreadCount() called with a count of %d, "
+        "which exceeds the maximum of %d. Limiting the number of threads to "
+        "%d.",
+        newCount, int(MaxWorkerThreads), int(MaxWorkerThreads));
+    newCount = MaxWorkerThreads;
+  }
   auto oldCount = numWorkerThreads;
   for (int idx = oldCount - 1; idx >= newCount; idx--) {
     workerThreads[idx]->stop();

@@ -26,6 +26,7 @@ option(MARL_BUILD_EXAMPLES "Build example applications" OFF)
 option(MARL_BUILD_TESTS "Build tests" OFF)
 option(MARL_ASAN "Build marl with address sanitizer" OFF)
 option(MARL_TSAN "Build marl with thread sanitizer" OFF)
+option(MARL_INSTALL "Create marl install target" OFF)
 
 if(MARL_ASAN AND MARL_TSAN)
     message(FATAL_ERROR "MARL_ASAN and MARL_TSAN are mutually exclusive")
@@ -53,7 +54,7 @@ endif(MARL_BUILD_TESTS)
 ###########################################################
 # File lists
 ###########################################################
-file(GLOB MARL_LIST
+set(MARL_LIST
     ${MARL_SRC_DIR}/debug.cpp
     ${MARL_SRC_DIR}/scheduler.cpp
     ${MARL_SRC_DIR}/thread.cpp
@@ -73,20 +74,6 @@ if(NOT MSVC)
         ${MARL_SRC_DIR}/osfiber_asm_x86.S
     )
 endif(NOT MSVC)
-
-file(GLOB MARL_TEST_LIST
-    ${MARL_SRC_DIR}/blockingcall_test.cpp
-    ${MARL_SRC_DIR}/conditionvariable_test.cpp
-    ${MARL_SRC_DIR}/containers_test.cpp
-    ${MARL_SRC_DIR}/defer_test.cpp
-    ${MARL_SRC_DIR}/marl_test.cpp
-    ${MARL_SRC_DIR}/marl_test.h
-    ${MARL_SRC_DIR}/osfiber_test.cpp
-    ${MARL_SRC_DIR}/pool_test.cpp
-    ${MARL_SRC_DIR}/scheduler_test.cpp
-    ${MARL_SRC_DIR}/ticket_test.cpp
-    ${MARL_SRC_DIR}/waitgroup_test.cpp
-)
 
 ###########################################################
 # OS libraries
@@ -148,10 +135,44 @@ marl_set_target_options(marl)
 
 target_link_libraries(marl "${MARL_OS_LIBS}")
 
+# install
+if(MARL_INSTALL)
+    include(GNUInstallDirs)
+
+    install(DIRECTORY ${MARL_INCLUDE_DIR}/marl
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        USE_SOURCE_PERMISSIONS
+    )
+
+    install(TARGETS marl
+        EXPORT marl-targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+
+    install(EXPORT marl-targets
+        FILE marl-config.cmake
+        NAMESPACE marl::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/marl
+    )
+endif(MARL_INSTALL)
+
 # tests
 if(MARL_BUILD_TESTS)
-    file(GLOB MARL_TEST_LIST
-        ${MARL_SRC_DIR}/*_test.cpp
+    set(MARL_TEST_LIST
+        ${MARL_SRC_DIR}/blockingcall_test.cpp
+        ${MARL_SRC_DIR}/conditionvariable_test.cpp
+        ${MARL_SRC_DIR}/containers_test.cpp
+        ${MARL_SRC_DIR}/defer_test.cpp
+        ${MARL_SRC_DIR}/marl_test.cpp
+        ${MARL_SRC_DIR}/marl_test.h
+        ${MARL_SRC_DIR}/osfiber_test.cpp
+        ${MARL_SRC_DIR}/pool_test.cpp
+        ${MARL_SRC_DIR}/scheduler_test.cpp
+        ${MARL_SRC_DIR}/ticket_test.cpp
+        ${MARL_SRC_DIR}/waitgroup_test.cpp
         ${GOOGLETEST_DIR}/googletest/src/gtest-all.cc
     )
 
