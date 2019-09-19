@@ -70,6 +70,30 @@
       "revId": "b62fb2f0f6667d07d87cd0d1c96639d1ea0b4b79",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "905fb6f3_f8d04f26",
+        "filename": "src/Vulkan/VkPipelineCache.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2019-09-19T17:19:35Z",
+      "side": 1,
+      "message": "Discussed this with Nicolas, and the conclusion was to go ahead with using std::tie vs a custom implementation to implement strict weak-ordered operations for a few reasons:\n\n1. Performance: std::tie is guaranteed to evaluate each pair-wise component in the order specified by the template args, and to perform short-circuit evaluation.\n\n2. Correctness: Using std::tie is easier to use correctly (or more difficult to use incorrectly).\n\n3. Idiom: using std::tie to implement operator\u003c (or lexicographic/strict weak ordering comparison) is likely to become a common pattern. Indeed, the cppreference.com page for std::tie (https://en.cppreference.com/w/cpp/utility/tuple/tie) says on the first line in the example section: \"std::tie can be used to introduce lexicographical comparison to a struct or to unpack a tuple:\" and provides an example.\n\nPerformance-wise, the optimized code is similar. Here are both versions of ComputeProgramKey::operator\u003c, one using std::tie, the other hand-implemented, compiled with MSVC 2019 optimized build:\n\n\t\t\treturn std::tie(shader, layout) \u003c std::tie(other.shader, other.layout);\n00007FFAB80760D0  mov         rax,qword ptr [rcx]  \n00007FFAB80760D3  cmp         rax,qword ptr [rdx]  \n00007FFAB80760D6  jb          vk::PipelineCache::ComputeProgramKey::operator\u003c+17h (07FFAB80760E7h)  \n00007FFAB80760D8  ja          vk::PipelineCache::ComputeProgramKey::operator\u003c+14h (07FFAB80760E4h)  \n00007FFAB80760DA  mov         rax,qword ptr [rdx+8]  \n00007FFAB80760DE  cmp         qword ptr [rcx+8],rax  \n00007FFAB80760E2  jb          vk::PipelineCache::ComputeProgramKey::operator\u003c+17h (07FFAB80760E7h)  \n00007FFAB80760E4  xor         al,al  \n\t\t}\n00007FFAB80760E6  ret  \n\t\t\treturn std::tie(shader, layout) \u003c std::tie(other.shader, other.layout);\n00007FFAB80760E7  mov         al,1  \n\t\t}\n00007FFAB80760E9  ret  \n\n\n\n\t\t\treturn (shader !\u003d other.shader) ? (shader \u003c other.shader) : (layout \u003c other.layout);\n00007FFAB86C60D0  mov         rax,qword ptr [rcx]  \n00007FFAB86C60D3  mov         r9,rcx  \n00007FFAB86C60D6  mov         r8,qword ptr [rdx]  \n00007FFAB86C60D9  cmp         rax,r8  \n00007FFAB86C60DC  jne         vk::PipelineCache::ComputeProgramKey::operator\u003c+16h (07FFAB86C60E6h)  \n00007FFAB86C60DE  mov         rax,qword ptr [rdx+8]  \n00007FFAB86C60E2  cmp         qword ptr [rcx+8],rax  \n\t\t}\n00007FFAB86C60E6  setb        al  \n00007FFAB86C60E9  ret  \n\n\nAlthough no identical, both versions have a similar performance profile.",
+      "parentUuid": "51452c4c_42122566",
+      "range": {
+        "startLine": 108,
+        "startChar": 10,
+        "endLine": 108,
+        "endChar": 60
+      },
+      "revId": "b62fb2f0f6667d07d87cd0d1c96639d1ea0b4b79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
