@@ -14,7 +14,10 @@
 
 #include "marl_test.h"
 
+#include "marl/defer.h"
 #include "marl/waitgroup.h"
+
+#include <unordered_set>
 
 TEST(WithoutBoundScheduler, SchedulerConstructAndDestruct) {
   auto scheduler = new marl::Scheduler();
@@ -102,4 +105,27 @@ TEST_P(WithBoundScheduler, FibersResumeOnSameStdThread) {
   for (auto& thread : threads) {
     thread.join();
   }
+}
+
+TEST(WithoutBoundScheduler, TasksOnlyScheduledOnWorkerThreads) {
+  auto scheduler = std::unique_ptr<marl::Scheduler>(new marl::Scheduler());
+  scheduler->bind();
+  scheduler->setWorkerThreadCount(8);
+  std::mutex mutex;
+  std::unordered_set<std::thread::id> threads;
+  marl::WaitGroup wg;
+  for (int i = 0; i < 10000; i++) {
+    wg.add(1);
+    marl::schedule([&mutex, &threads, wg] {
+      defer(wg.done());
+      std::unique_lock<std::mutex> lock(mutex);
+      threads.emplace(std::this_thread::get_id());
+    });
+  }
+  wg.wait();
+
+  ASSERT_EQ(threads.size(), 8U);
+  ASSERT_EQ(threads.count(std::this_thread::get_id()), 0U);
+
+  scheduler->unbind();
 }
