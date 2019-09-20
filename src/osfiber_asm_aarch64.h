@@ -27,16 +27,17 @@
 #define MARL_REG_r26 0x60
 #define MARL_REG_r27 0x68
 #define MARL_REG_r28 0x70
-#define MARL_REG_v8 0x78
-#define MARL_REG_v9 0x80
-#define MARL_REG_v10 0x88
-#define MARL_REG_v11 0x90
-#define MARL_REG_v12 0x98
-#define MARL_REG_v13 0xa0
-#define MARL_REG_v14 0xa8
-#define MARL_REG_v15 0xb0
-#define MARL_REG_SP 0xb8
-#define MARL_REG_LR 0xc0
+#define MARL_REG_r29 0x78
+#define MARL_REG_v8 0x80
+#define MARL_REG_v9 0x88
+#define MARL_REG_v10 0x90
+#define MARL_REG_v11 0x98
+#define MARL_REG_v12 0xa0
+#define MARL_REG_v13 0xa8
+#define MARL_REG_v14 0xb0
+#define MARL_REG_v15 0xb8
+#define MARL_REG_SP 0xc0
+#define MARL_REG_LR 0xc8
 
 #if defined(__APPLE__)
 #define MARL_ASM_SYMBOL(x) _##x
@@ -71,6 +72,7 @@ struct marl_fiber_context {
   uintptr_t r26;
   uintptr_t r27;
   uintptr_t r28;
+  uintptr_t r29;
 
   uintptr_t v8;
   uintptr_t v9;
@@ -116,6 +118,8 @@ static_assert(offsetof(marl_fiber_context, r26) == MARL_REG_r26,
 static_assert(offsetof(marl_fiber_context, r27) == MARL_REG_r27,
               "Bad register offset");
 static_assert(offsetof(marl_fiber_context, r28) == MARL_REG_r28,
+              "Bad register offset");
+static_assert(offsetof(marl_fiber_context, r29) == MARL_REG_r29,
               "Bad register offset");
 static_assert(offsetof(marl_fiber_context, v8) == MARL_REG_v8,
               "Bad register offset");

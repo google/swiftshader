@@ -44,6 +44,7 @@ MARL_ASM_SYMBOL(marl_fiber_swap):
     str x26, [x0, #MARL_REG_r26]
     str x27, [x0, #MARL_REG_r27]
     str x28, [x0, #MARL_REG_r28]
+    str x29, [x0, #MARL_REG_r29]
 
     str d8,  [x0, #MARL_REG_v8]
     str d9,  [x0, #MARL_REG_v9]
@@ -78,6 +79,7 @@ MARL_ASM_SYMBOL(marl_fiber_swap):
     ldr x26, [x7, #MARL_REG_r26]
     ldr x27, [x7, #MARL_REG_r27]
     ldr x28, [x7, #MARL_REG_r28]
+    ldr x29, [x7, #MARL_REG_r29]
 
     ldr d8,  [x7, #MARL_REG_v8]
     ldr d9,  [x7, #MARL_REG_v9]

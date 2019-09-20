@@ -408,7 +408,7 @@ _Requires_lock_held_(lock) void Scheduler::Worker::waitForWork(
     std::unique_lock<std::mutex>& lock) {
   MARL_ASSERT(work.num == work.fibers.size() + work.tasks.size(),
               "work.num out of sync");
-  if (work.num == 0) {
+  if (work.num == 0 && mode == Mode::MultiThreaded) {
     scheduler->onBeginSpinning(id);
     lock.unlock();
     spinForWork();
