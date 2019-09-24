@@ -30,15 +30,15 @@ namespace marl {
 // order in which they are called.
 //
 // The first ticket to be taken from a queue will be in the 'called' state,
-// others will be in the 'waiting' state until the previous ticket has finished.
+// subsequent tickets will be in the 'waiting' state.
 //
 // Ticket::wait() will block until the ticket is called.
-// Ticket::done() sets the ticket into the 'finished' state and calls the next
-// taken ticket from the queue.
 //
-// If a ticket is taken from a queue and does not have done() called before
-// its last reference is dropped, it will implicitly call done(), calling the
-// next ticket.
+// Ticket::done() moves the ticket into the 'finished' state. If all preceeding
+// tickets are finished, done() will call the next unfinished ticket.
+//
+// If the last remaining reference to an unfinished ticket is dropped then
+// done() will be automatically called on that ticket.
 //
 // Example:
 //

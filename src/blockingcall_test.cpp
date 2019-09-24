@@ -35,6 +35,6 @@ TEST_P(WithBoundScheduler, BlockingCall) {
     });
   }
 
-  marl::schedule([=] { mutex->unlock(); });
+  mutex->unlock();
   wg.wait();
 }

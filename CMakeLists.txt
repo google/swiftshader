@@ -25,12 +25,9 @@ option(MARL_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(MARL_BUILD_EXAMPLES "Build example applications" OFF)
 option(MARL_BUILD_TESTS "Build tests" OFF)
 option(MARL_ASAN "Build marl with address sanitizer" OFF)
+option(MARL_MSAN "Build marl with memory sanitizer" OFF)
 option(MARL_TSAN "Build marl with thread sanitizer" OFF)
 option(MARL_INSTALL "Create marl install target" OFF)
-
-if(MARL_ASAN AND MARL_TSAN)
-    message(FATAL_ERROR "MARL_ASAN and MARL_TSAN are mutually exclusive")
-endif(MARL_ASAN AND MARL_TSAN)
 
 ###########################################################
 # Directories
@@ -59,19 +56,19 @@ set(MARL_LIST
     ${MARL_SRC_DIR}/scheduler.cpp
     ${MARL_SRC_DIR}/thread.cpp
     ${MARL_SRC_DIR}/trace.cpp
-    ${MARL_SRC_DIR}/osfiber_aarch64.c
-    ${MARL_SRC_DIR}/osfiber_arm.c
-    ${MARL_SRC_DIR}/osfiber_ppc64.c
-    ${MARL_SRC_DIR}/osfiber_x64.c
-    ${MARL_SRC_DIR}/osfiber_x86.c
 )
 if(NOT MSVC)
     list(APPEND MARL_LIST
+        ${MARL_SRC_DIR}/osfiber_aarch64.c
+        ${MARL_SRC_DIR}/osfiber_arm.c
         ${MARL_SRC_DIR}/osfiber_asm_aarch64.S
         ${MARL_SRC_DIR}/osfiber_asm_arm.S
         ${MARL_SRC_DIR}/osfiber_asm_ppc64.S
         ${MARL_SRC_DIR}/osfiber_asm_x64.S
         ${MARL_SRC_DIR}/osfiber_asm_x86.S
+        ${MARL_SRC_DIR}/osfiber_ppc64.c
+        ${MARL_SRC_DIR}/osfiber_x64.c
+        ${MARL_SRC_DIR}/osfiber_x86.c
     )
 endif(NOT MSVC)
 
@@ -92,7 +89,12 @@ endif()
 
 function(marl_set_target_options target)
     # Enable all warnings
-    if(NOT MSVC)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE
+            "-W4"
+            "/wd4127" # conditional expression is constant
+        )
+    else()
         target_compile_options(${target} PRIVATE "-Wall")
     endif()
 
@@ -116,6 +118,9 @@ function(marl_set_target_options target)
     elseif(MARL_MSAN)
         target_compile_options(${target} PUBLIC "-fsanitize=memory")
         target_link_libraries(${target} "-fsanitize=memory")
+    elseif(MARL_TSAN)
+        target_compile_options(${target} PUBLIC "-fsanitize=thread")
+        target_link_libraries(${target} "-fsanitize=thread")
     endif()
 
     target_include_directories(${target} PRIVATE ${MARL_INCLUDE_DIR})
@@ -168,6 +173,7 @@ if(MARL_BUILD_TESTS)
         ${MARL_SRC_DIR}/defer_test.cpp
         ${MARL_SRC_DIR}/marl_test.cpp
         ${MARL_SRC_DIR}/marl_test.h
+        ${MARL_SRC_DIR}/memory_test.cpp
         ${MARL_SRC_DIR}/osfiber_test.cpp
         ${MARL_SRC_DIR}/pool_test.cpp
         ${MARL_SRC_DIR}/scheduler_test.cpp

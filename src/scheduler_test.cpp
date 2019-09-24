@@ -17,6 +17,7 @@
 #include "marl/defer.h"
 #include "marl/waitgroup.h"
 
+#include <atomic>
 #include <unordered_set>
 
 TEST(WithoutBoundScheduler, SchedulerConstructAndDestruct) {
@@ -41,21 +42,46 @@ TEST_P(WithBoundScheduler, SetAndGetWorkerThreadCount) {
 }
 
 TEST_P(WithBoundScheduler, DestructWithPendingTasks) {
-  for (int i = 0; i < 10000; i++) {
-    marl::schedule([] {});
+  std::atomic<int> counter = {0};
+  for (int i = 0; i < 1000; i++) {
+    marl::schedule([&] { counter++; });
   }
-}
-
-TEST_P(WithBoundScheduler, DestructWithPendingFibers) {
-  marl::WaitGroup wg(1);
-  for (int i = 0; i < 10000; i++) {
-    marl::schedule([=] { wg.wait(); });
-  }
-  wg.done();
 
   auto scheduler = marl::Scheduler::get();
   scheduler->unbind();
   delete scheduler;
+
+  // All scheduled tasks should be completed before the scheduler is destructed.
+  ASSERT_EQ(counter.load(), 1000);
+
+  // Rebind a new scheduler so WithBoundScheduler::TearDown() is happy.
+  (new marl::Scheduler())->bind();
+}
+
+TEST_P(WithBoundScheduler, DestructWithPendingFibers) {
+  std::atomic<int> counter = {0};
+
+  marl::WaitGroup wg(1);
+  for (int i = 0; i < 1000; i++) {
+    marl::schedule([&] {
+      wg.wait();
+      counter++;
+    });
+  }
+
+  // Schedule a task to unblock all the tasks scheduled above.
+  // We assume that some of these tasks will not finish before the scheduler
+  // destruction logic kicks in.
+  marl::schedule([=] {
+    wg.done();  // Ready, steady, go...
+  });
+
+  auto scheduler = marl::Scheduler::get();
+  scheduler->unbind();
+  delete scheduler;
+
+  // All scheduled tasks should be completed before the scheduler is destructed.
+  ASSERT_EQ(counter.load(), 1000);
 
   // Rebind a new scheduler so WithBoundScheduler::TearDown() is happy.
   (new marl::Scheduler())->bind();

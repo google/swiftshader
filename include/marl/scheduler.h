@@ -232,6 +232,12 @@ class Scheduler {
     // frequently putting the thread to sleep and re-waking.
     void spinForWork();
 
+    // numBlockedFibers() returns the number of fibers currently blocked and
+    // held externally.
+    _Requires_lock_held_(lock) inline size_t numBlockedFibers() const {
+      return workerFibers.size() - idleFibers.size();
+    }
+
     // Work holds tasks and fibers that are enqueued on the Worker.
     struct Work {
       std::atomic<uint64_t> num = {0};  // tasks.size() + fibers.size()
