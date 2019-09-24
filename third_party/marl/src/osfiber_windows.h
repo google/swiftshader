@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "marl/debug.h"
+
 #include <functional>
 #include <memory>
 
@@ -58,6 +60,9 @@ OSFiber* OSFiber::createFiberFromCurrentThread() {
   auto out = new OSFiber();
   out->fiber = ConvertThreadToFiber(nullptr);
   out->isFiberFromThread = true;
+  MARL_ASSERT(out->fiber != nullptr,
+              "ConvertThreadToFiber() failed with error 0x%x",
+              int(GetLastError()));
   return out;
 }
 
@@ -66,11 +71,13 @@ OSFiber* OSFiber::createFiber(size_t stackSize,
   auto out = new OSFiber();
   out->fiber = CreateFiber(stackSize, &OSFiber::run, out);
   out->target = func;
+  MARL_ASSERT(out->fiber != nullptr, "CreateFiber() failed with error 0x%x",
+              int(GetLastError()));
   return out;
 }
 
-void OSFiber::switchTo(OSFiber* fiber) {
-  SwitchToFiber(fiber->fiber);
+void OSFiber::switchTo(OSFiber* to) {
+  SwitchToFiber(to->fiber);
 }
 
 void WINAPI OSFiber::run(void* self) {

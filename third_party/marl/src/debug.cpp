@@ -40,6 +40,7 @@ void warn(const char* msg, ...) {
 }
 
 void assert_has_bound_scheduler(const char* feature) {
+  (void)feature;  // unreferenced parameter
   MARL_ASSERT(Scheduler::get() != nullptr,
               "%s requires a marl::Scheduler to be bound", feature);
 }

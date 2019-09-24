@@ -14,6 +14,7 @@
 
 #include "marl_test.h"
 
+#include "marl/memory.h"
 #include "marl/pool.h"
 #include "marl/waitgroup.h"
 
@@ -167,4 +168,29 @@ TEST_P(WithBoundScheduler, BoundedPool_PolicyPreserve) {
     ASSERT_EQ(CtorDtorCounter::dtor_count, 0);
   }
   ASSERT_EQ(CtorDtorCounter::ctor_count, CtorDtorCounter::dtor_count);
+}
+
+struct alignas(64) StructWithAlignment {
+  uint8_t i;
+  uint8_t padding[63];
+};
+
+TEST_P(WithBoundScheduler, BoundedPool_AlignedTypes) {
+  marl::BoundedPool<StructWithAlignment, 100> pool;
+  for (int i = 0; i < 100; i++) {
+    auto loan = pool.borrow();
+    ASSERT_EQ(reinterpret_cast<uintptr_t>(&loan->i) &
+                  (alignof(StructWithAlignment) - 1),
+              0U);
+  }
+}
+
+TEST_P(WithBoundScheduler, UnboundedPool_AlignedTypes) {
+  marl::UnboundedPool<StructWithAlignment> pool;
+  for (int i = 0; i < 100; i++) {
+    auto loan = pool.borrow();
+    ASSERT_EQ(reinterpret_cast<uintptr_t>(&loan->i) &
+                  (alignof(StructWithAlignment) - 1),
+              0U);
+  }
 }

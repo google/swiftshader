@@ -19,8 +19,8 @@
 // assembly implementations *do not* save or restore signal masks,
 // floating-point control or status registers, FS and GS segment registers,
 // thread-local storage state nor any SIMD registers. This should not be a
-// problem as the marl scheduler requires fibers to be executed on a single
-// thread.
+// problem as the marl scheduler requires fibers to be executed on the same
+// thread throughout their lifetime.
 
 #if defined(__x86_64__)
 #include "osfiber_asm_x64.h"

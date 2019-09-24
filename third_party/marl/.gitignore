@@ -1,3 +1,6 @@
+/.vs/
 /.vscode/
 /build/
+/out/
 bazel-*
+CMakeSettings.json

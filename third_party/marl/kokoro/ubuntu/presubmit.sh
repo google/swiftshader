@@ -22,9 +22,15 @@ if [ "$BUILD_SYSTEM" == "cmake" ]; then
         ./primes > /dev/null
     }
 
-    build_and_run ""
-    build_and_run "-DMARL_ASAN=1"
-    build_and_run "-DMARL_MSAN=1"
+    if [ "$BUILD_SANITIZER" == "asan" ]; then
+        build_and_run "-DMARL_ASAN=1"
+    elif [ "$BUILD_SANITIZER" == "msan" ]; then
+        build_and_run "-DMARL_MSAN=1"
+    elif [ "$BUILD_SANITIZER" == "tsan" ]; then
+        build_and_run "-DMARL_TSAN=1"
+    else
+        build_and_run
+    fi
 elif [ "$BUILD_SYSTEM" == "bazel" ]; then
     # Get bazel
     curl -L -k -O -s https://github.com/bazelbuild/bazel/releases/download/0.29.1/bazel-0.29.1-installer-linux-x86_64.sh

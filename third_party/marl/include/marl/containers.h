@@ -16,10 +16,10 @@
 #define marl_containers_h
 
 #include "debug.h"
+#include "memory.h"  // aligned_storage
 
-#include <algorithm>    // std::max
-#include <type_traits>  // std::aligned_storage
-#include <utility>      // std::move
+#include <algorithm>  // std::max
+#include <utility>    // std::move
 
 #include <cstddef>  // size_t
 
@@ -69,7 +69,7 @@ class vector {
   inline void reserve(size_t n);
 
  private:
-  using TStorage = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
+  using TStorage = typename marl::aligned_storage<sizeof(T), alignof(T)>::type;
 
   inline void free();
 
