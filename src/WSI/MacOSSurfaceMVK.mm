@@ -44,6 +44,7 @@ public:
             if ([obj isKindOfClass: [CAMetalLayer class]])
             {
                 layer = (CAMetalLayer*)[obj retain];
+                layer.framebufferOnly = false;
             }
             else
             {
