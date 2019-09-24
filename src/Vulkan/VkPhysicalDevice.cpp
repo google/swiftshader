@@ -367,7 +367,7 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR* properti
 	properties->driverID = VK_DRIVER_ID_GOOGLE_SWIFTSHADER_KHR;
 	strcpy(properties->driverName, "SwiftShader driver");
 	strcpy(properties->driverInfo, "");
-	properties->conformanceVersion = {0, 0, 0, 0};
+	properties->conformanceVersion = {1, 1, 3, 3};
 }
 
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const
