@@ -294,6 +294,7 @@ void Scheduler::Worker::stop() {
 }
 
 void Scheduler::Worker::yield(Fiber* from) {
+  (void)from;  // unreferenced parameter
   MARL_ASSERT(currentFiber == from,
               "Attempting to call yield from a non-current fiber");
 
@@ -382,7 +383,7 @@ void Scheduler::Worker::run() {
       {
         std::unique_lock<std::mutex> lock(work.mutex);
         work.added.wait(lock, [this] { return work.num > 0 || shutdown; });
-        while (!shutdown) {
+        while (!shutdown || work.num > 0 || numBlockedFibers() > 0U) {
           waitForWork(lock);
           runUntilIdle(lock);
         }
@@ -414,7 +415,9 @@ _Requires_lock_held_(lock) void Scheduler::Worker::waitForWork(
     spinForWork();
     lock.lock();
   }
-  work.added.wait(lock, [this] { return work.num > 0 || shutdown; });
+  work.added.wait(lock, [this] {
+    return work.num > 0 || (shutdown && numBlockedFibers() == 0U);
+  });
 }
 
 void Scheduler::Worker::spinForWork() {
@@ -484,8 +487,8 @@ _Requires_lock_held_(lock) void Scheduler::Worker::runUntilIdle(
 }
 
 Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
-  auto id = static_cast<uint32_t>(workerFibers.size() + 1);
-  auto fiber = Fiber::create(id, FiberStackSize, [&] { run(); });
+  auto fiberId = static_cast<uint32_t>(workerFibers.size() + 1);
+  auto fiber = Fiber::create(fiberId, FiberStackSize, [&] { run(); });
   workerFibers.push_back(std::unique_ptr<Fiber>(fiber));
   return fiber;
 }

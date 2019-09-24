@@ -33,13 +33,14 @@ namespace marl {
 // thread will work on other tasks until the ConditionVariable is unblocked.
 class ConditionVariable {
  public:
-  // Notifies and potentially unblocks one waiting fiber or thread.
+  // notify_one() notifies and potentially unblocks one waiting fiber or thread.
   inline void notify_one();
 
-  // Notifies and potentially unblocks all waiting fibers and/or threads.
+  // notify_all() notifies and potentially unblocks all waiting fibers and/or
+  // threads.
   inline void notify_all();
 
-  // Blocks the current fiber or thread until the predicate is satisfied
+  // wait() blocks the current fiber or thread until the predicate is satisfied
   // and the ConditionVariable is notified.
   template <typename Predicate>
   inline void wait(std::unique_lock<std::mutex>& lock, Predicate pred);
