@@ -18,8 +18,6 @@
 #include "VkObject.hpp"
 #include "VkFormat.h"
 
-#include "marl/scheduler.h"
-
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include <vulkan/vk_android_native_buffer.h>
 #endif
@@ -72,13 +70,9 @@ public:
 	                              VkQueueFamilyProperties* pQueueFamilyProperties) const;
 	const VkPhysicalDeviceMemoryProperties& getMemoryProperties() const;
 
-	marl::Scheduler *getScheduler() const;
-
 private:
 	const VkPhysicalDeviceLimits& getLimits() const;
 	VkSampleCountFlags getSampleCounts() const;
-
-	std::unique_ptr<marl::Scheduler> scheduler;
 };
 
 using DispatchablePhysicalDevice = DispatchableObject<PhysicalDevice, VkPhysicalDevice>;

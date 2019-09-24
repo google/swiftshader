@@ -16,9 +16,6 @@
 
 #include "VkConfig.h"
 #include "Pipeline/SpirvShader.hpp" // sw::SIMD::Width
-#include "System/CPUID.hpp"
-
-#include "marl/thread.h"
 
 #include <limits>
 #include <cstring>
@@ -26,13 +23,8 @@
 namespace vk
 {
 
-PhysicalDevice::PhysicalDevice(const void*, void* mem) : scheduler(new marl::Scheduler())
+PhysicalDevice::PhysicalDevice(const void*, void* mem)
 {
-	scheduler->setThreadInitializer([] {
-		sw::CPUID::setFlushToZero(true);
-		sw::CPUID::setDenormalsAreZero(true);
-	});
-	scheduler->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
 }
 
 const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
@@ -801,11 +793,6 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() co
 	};
 
 	return properties;
-}
-
-marl::Scheduler* PhysicalDevice::getScheduler() const
-{
-	return scheduler.get();
 }
 
 } // namespace vk

@@ -68,6 +68,9 @@
 
 #include "Reactor/Nucleus.hpp"
 
+#include "marl/scheduler.h"
+#include "marl/thread.h"
+
 #include "System/CPUID.hpp"
 
 #include <algorithm>
@@ -115,6 +118,17 @@ void setCPUDefaults()
 	sw::CPUID::setEnableSSE3(true);
 	sw::CPUID::setEnableSSE2(true);
 	sw::CPUID::setEnableSSE(true);
+}
+
+marl::Scheduler* getOrCreateScheduler()
+{
+	static auto scheduler = std::unique_ptr<marl::Scheduler>(new marl::Scheduler());
+	scheduler->setThreadInitializer([] {
+		sw::CPUID::setFlushToZero(true);
+		sw::CPUID::setDenormalsAreZero(true);
+	});
+	scheduler->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+	return scheduler.get();
 }
 
 // initializeLibrary() is called by vkCreateInstance() to perform one-off global
@@ -588,7 +602,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		(void)queueFamilyPropertyCount; // Silence unused variable warning
 	}
 
-	auto scheduler = vk::Cast(physicalDevice)->getScheduler();
+	auto scheduler = getOrCreateScheduler();
 	return vk::DispatchableDevice::Create(pAllocator, pCreateInfo, pDevice, vk::Cast(physicalDevice), enabledFeatures, scheduler);
 }
 
