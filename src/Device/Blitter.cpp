@@ -1295,7 +1295,7 @@ namespace sw
 
 	void Blitter::ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled)
 	{
-		float4 scale, unscale;
+		float4 scale{}, unscale{};
 
 		if(state.clearOperation &&
 		   state.sourceFormat.isNonNormalizedInteger() &&

@@ -127,28 +127,14 @@ namespace sw
 		}
 	});
 
-	inline float4 vector(float x, float y, float z, float w)
+	inline constexpr float4 vector(float x, float y, float z, float w)
 	{
-		float4 v;
-
-		v.x = x;
-		v.y = y;
-		v.z = z;
-		v.w = w;
-
-		return v;
+		return { x, y, z, w };
 	}
 
-	inline float4 replicate(float f)
+	inline constexpr float4 replicate(float f)
 	{
-		float4 v;
-
-		v.x = f;
-		v.y = f;
-		v.z = f;
-		v.w = f;
-
-		return v;
+		return vector(f, f, f, f);
 	}
 
 	#define OFFSET(s,m) (int)(size_t)&reinterpret_cast<const volatile char&>((((s*)0)->m))
