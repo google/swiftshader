@@ -160,7 +160,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		0, // sparseAddressSpaceSize (unsupported)
 		MAX_BOUND_DESCRIPTOR_SETS, // maxBoundDescriptorSets
 		16, // maxPerStageDescriptorSamplers
-		12, // maxPerStageDescriptorUniformBuffers
+		14, // maxPerStageDescriptorUniformBuffers
 		4, // maxPerStageDescriptorStorageBuffers
 		16, // maxPerStageDescriptorSampledImages
 		4, // maxPerStageDescriptorStorageImages
@@ -178,7 +178,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		vk::MAX_VERTEX_INPUT_BINDINGS, // maxVertexInputBindings
 		2047, // maxVertexInputAttributeOffset
 		2048, // maxVertexInputBindingStride
-		64, // maxVertexOutputComponents
+		sw::MAX_INTERFACE_COMPONENTS, // maxVertexOutputComponents
 		0, // maxTessellationGenerationLevel (unsupported)
 		0, // maxTessellationPatchSize (unsupported)
 		0, // maxTessellationControlPerVertexInputComponents (unsupported)
@@ -192,7 +192,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		0, // maxGeometryOutputComponents (unsupported)
 		0, // maxGeometryOutputVertices (unsupported)
 		0, // maxGeometryTotalOutputComponents (unsupported)
-		64, // maxFragmentInputComponents
+		sw::MAX_INTERFACE_COMPONENTS, // maxFragmentInputComponents
 		4, // maxFragmentOutputAttachments
 		1, // maxFragmentDualSrcAttachments
 		4, // maxFragmentCombinedOutputResources
