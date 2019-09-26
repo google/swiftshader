@@ -3669,6 +3669,16 @@ TIntermTyped *TParseContext::addFunctionCallOrMethod(TFunction *fnCall, TIntermN
 									callNode = typedReturnNode;
 								}
 							}
+							else if (op == EOpMax || op == EOpMin)
+							{
+								TIntermSymbol *leftSymbol = left->getAsSymbolNode();
+								TIntermSymbol *rightSymbol = right->getAsSymbolNode();
+
+								if (leftSymbol && rightSymbol && leftSymbol->getId() == rightSymbol->getId())
+								{
+									callNode = left;
+								}
+							}
 						}
 					}
 				}
