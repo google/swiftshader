@@ -739,6 +739,7 @@ func (t *test) build() error {
 		"-DCMAKE_BUILD_TYPE=Release",
 		"-DDCHECK_ALWAYS_ON=1",
 		"-DREACTOR_VERIFY_LLVM_IR=1",
+		"-DWARNINGS_AS_ERRORS=0"
 		".."); err != nil {
 		return err
 	}
