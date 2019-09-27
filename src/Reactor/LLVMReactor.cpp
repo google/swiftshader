@@ -309,8 +309,14 @@ namespace
 	// settings and no Reactor routine directly links against another.
 	class JITRoutine : public rr::Routine
 	{
+#if LLVM_VERSION_MAJOR >= 8
+		using ObjLayer = llvm::orc::LegacyRTDyldObjectLinkingLayer;
+		using CompileLayer = llvm::orc::LegacyIRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
+#else
 		using ObjLayer = llvm::orc::RTDyldObjectLinkingLayer;
 		using CompileLayer = llvm::orc::IRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
+#endif
+
 	public:
 		JITRoutine(
 				std::unique_ptr<llvm::Module> module,
@@ -611,7 +617,7 @@ namespace
 		return jit->builder->CreateCall(trunc, ARGS(x));
 	}
 
-	// Packed add/sub saturatation
+	// Packed add/sub with saturation
 	llvm::Value *lowerPSAT(llvm::Value *x, llvm::Value *y, bool isAdd, bool isSigned)
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -644,26 +650,6 @@ namespace
 		res = lowerPMINMAX(res, max, llvm::ICmpInst::ICMP_SLT);
 
 		return jit->builder->CreateTrunc(res, ty);
-	}
-
-	llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
-	{
-		return lowerPSAT(x, y, true, false);
-	}
-
-	llvm::Value *lowerPSADDSAT(llvm::Value *x, llvm::Value *y)
-	{
-		return lowerPSAT(x, y, true, true);
-	}
-
-	llvm::Value *lowerPUSUBSAT(llvm::Value *x, llvm::Value *y)
-	{
-		return lowerPSAT(x, y, false, false);
-	}
-
-	llvm::Value *lowerPSSUBSAT(llvm::Value *x, llvm::Value *y)
-	{
-		return lowerPSAT(x, y, false, true);
 	}
 
 	llvm::Value *lowerSQRT(llvm::Value *x)
@@ -816,6 +802,44 @@ namespace
 		return ret;
 	}
 #endif  // !defined(__i386__) && !defined(__x86_64__)
+
+#if (LLVM_VERSION_MAJOR >= 8) || (!defined(__i386__) && !defined(__x86_64__))
+	llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
+	{
+		#if LLVM_VERSION_MAJOR >= 8
+			return jit->builder->CreateBinaryIntrinsic(llvm::Intrinsic::uadd_sat, x, y);
+		#else
+			return lowerPSAT(x, y, true, false);
+		#endif
+	}
+
+	llvm::Value *lowerPSADDSAT(llvm::Value *x, llvm::Value *y)
+	{
+		#if LLVM_VERSION_MAJOR >= 8
+			return jit->builder->CreateBinaryIntrinsic(llvm::Intrinsic::sadd_sat, x, y);
+		#else
+			return lowerPSAT(x, y, true, true);
+		#endif
+	}
+
+	llvm::Value *lowerPUSUBSAT(llvm::Value *x, llvm::Value *y)
+	{
+		#if LLVM_VERSION_MAJOR >= 8
+			return jit->builder->CreateBinaryIntrinsic(llvm::Intrinsic::usub_sat, x, y);
+		#else
+			return lowerPSAT(x, y, false, false);
+		#endif
+	}
+
+	llvm::Value *lowerPSSUBSAT(llvm::Value *x, llvm::Value *y)
+	{
+		#if LLVM_VERSION_MAJOR >= 8
+			return jit->builder->CreateBinaryIntrinsic(llvm::Intrinsic::ssub_sat, x, y);
+		#else
+			return lowerPSAT(x, y, false, true);
+		#endif
+	}
+#endif  // (LLVM_VERSION_MAJOR >= 8) || (!defined(__i386__) && !defined(__x86_64__))
 
 	llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 	{
@@ -4095,58 +4119,90 @@ namespace rr
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *paddsw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_padds_w);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<Short4>(V(lowerPSADDSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *paddsw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_padds_w);
 
-			return As<Short4>(V(jit->builder->CreateCall2(paddsw, ARGS(V(x.value), V(y.value)))));
+				return As<Short4>(V(jit->builder->CreateCall2(paddsw, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<Short4> psubsw(RValue<Short4> x, RValue<Short4> y)
 		{
-			llvm::Function *psubsw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubs_w);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<Short4>(V(lowerPSSUBSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *psubsw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubs_w);
 
-			return As<Short4>(V(jit->builder->CreateCall2(psubsw, ARGS(V(x.value), V(y.value)))));
+				return As<Short4>(V(jit->builder->CreateCall2(psubsw, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<UShort4> paddusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-			llvm::Function *paddusw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_paddus_w);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<UShort4>(V(lowerPUADDSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *paddusw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_paddus_w);
 
-			return As<UShort4>(V(jit->builder->CreateCall2(paddusw, ARGS(V(x.value), V(y.value)))));
+				return As<UShort4>(V(jit->builder->CreateCall2(paddusw, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<UShort4> psubusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-			llvm::Function *psubusw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubus_w);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<UShort4>(V(lowerPUSUBSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *psubusw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubus_w);
 
-			return As<UShort4>(V(jit->builder->CreateCall2(psubusw, ARGS(V(x.value), V(y.value)))));
+				return As<UShort4>(V(jit->builder->CreateCall2(psubusw, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<SByte8> paddsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
-			llvm::Function *paddsb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_padds_b);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<SByte8>(V(lowerPSADDSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *paddsb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_padds_b);
 
-			return As<SByte8>(V(jit->builder->CreateCall2(paddsb, ARGS(V(x.value), V(y.value)))));
+				return As<SByte8>(V(jit->builder->CreateCall2(paddsb, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<SByte8> psubsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
-			llvm::Function *psubsb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubs_b);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<SByte8>(V(lowerPSSUBSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *psubsb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubs_b);
 
-			return As<SByte8>(V(jit->builder->CreateCall2(psubsb, ARGS(V(x.value), V(y.value)))));
+				return As<SByte8>(V(jit->builder->CreateCall2(psubsb, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<Byte8> paddusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
-			llvm::Function *paddusb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_paddus_b);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<Byte8>(V(lowerPUADDSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *paddusb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_paddus_b);
 
-			return As<Byte8>(V(jit->builder->CreateCall2(paddusb, ARGS(V(x.value), V(y.value)))));
+				return As<Byte8>(V(jit->builder->CreateCall2(paddusb, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<Byte8> psubusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
-			llvm::Function *psubusb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubus_b);
+			#if LLVM_VERSION_MAJOR >= 8
+				return As<Byte8>(V(lowerPUSUBSAT(V(x.value), V(y.value))));
+			#else
+				llvm::Function *psubusb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psubus_b);
 
-			return As<Byte8>(V(jit->builder->CreateCall2(psubusb, ARGS(V(x.value), V(y.value)))));
+				return As<Byte8>(V(jit->builder->CreateCall2(psubusb, ARGS(V(x.value), V(y.value)))));
+			#endif
 		}
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y)
