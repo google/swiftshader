@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f71da29_d1ca0609",
+        "filename": "tests/regres/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-09-30T17:48:29Z",
+      "side": 1,
+      "message": "I\u0027m surprised this compiles - you\u0027re missing a comma at the end of this line.",
+      "range": {
+        "startLine": 742,
+        "startChar": 25,
+        "endLine": 742,
+        "endChar": 26
+      },
+      "revId": "c475f5650417995f175fd29707e82e065ac22107",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
