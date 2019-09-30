@@ -531,7 +531,7 @@ GLenum Framebuffer::getImplementationColorReadFormat() const
 		case GL_RGBA4:          return GL_RGBA;
 		case GL_RGB5_A1:        return GL_RGBA;
 		case GL_RGBA8:          return GL_RGBA;
-		case GL_RGB565:         return GL_RGBA;
+		case GL_RGB565:         return GL_RGB;
 		case GL_RGB8:           return GL_RGB;
 		case GL_R8:             return GL_RED;
 		case GL_RG8:            return GL_RG;
