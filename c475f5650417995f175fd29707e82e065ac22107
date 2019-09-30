@@ -22,6 +22,30 @@
       "revId": "c475f5650417995f175fd29707e82e065ac22107",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a84c678a_888ce465",
+        "filename": "tests/regres/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2019-09-30T17:50:37Z",
+      "side": 1,
+      "message": "I had pushed this from Windows where I wasn\u0027t able to test. Then on Linux, I tested, fixed it, but forgot to push the updated change. This was fixed in a subsequent change.",
+      "parentUuid": "0f71da29_d1ca0609",
+      "range": {
+        "startLine": 742,
+        "startChar": 25,
+        "endLine": 742,
+        "endChar": 26
+      },
+      "revId": "c475f5650417995f175fd29707e82e065ac22107",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
