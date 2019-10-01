@@ -718,7 +718,7 @@ namespace sw
 		Byte8 newValue;
 		stencilOperation(newValue, bufferValue, state.frontStencil, false, zMask, sMask);
 
-		if(state.frontStencil.writeMask != 0)
+		if((state.frontStencil.writeMask & 0xFF) != 0xFF) // Assume 8-bit stencil buffer
 		{
 			Byte8 maskedValue = bufferValue;
 			newValue &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[0].writeMaskQ));
@@ -730,7 +730,7 @@ namespace sw
 
 		stencilOperation(newValueBack, bufferValue, state.backStencil, true, zMask, sMask);
 
-		if(state.backStencil.writeMask != 0)
+		if((state.backStencil.writeMask & 0xFF) != 0xFF) // Assume 8-bit stencil buffer
 		{
 			Byte8 maskedValue = bufferValue;
 			newValueBack &= *Pointer<Byte8>(data + OFFSET(DrawData,stencil[1].writeMaskQ));
