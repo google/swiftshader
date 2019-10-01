@@ -7,6 +7,16 @@ set -x
 
 cd git/SwiftShader
 
+# Validate commit message
+git log -1 --pretty=%B | grep -E '^Bug:|^Issue:|^Regres:'
+
+if [ $? -ne 0 ]
+then
+  echo "Commit message must have a Bug: line."
+  exit 0
+fi
+
+# Download all submodules
 git submodule update --init
 
 mkdir -p build && cd build
