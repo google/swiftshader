@@ -1,4 +1,0 @@
-dEQP-GLES2.functional.read_pixels.choose_align_1
-dEQP-GLES2.functional.read_pixels.choose_align_2
-dEQP-GLES2.functional.read_pixels.choose_align_4
-dEQP-GLES2.functional.read_pixels.choose_align_8

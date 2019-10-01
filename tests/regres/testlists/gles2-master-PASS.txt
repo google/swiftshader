@@ -2866,6 +2866,10 @@ dEQP-GLES2.functional.rasterization.primitives.points
 dEQP-GLES2.functional.rasterization.primitives.triangle_fan
 dEQP-GLES2.functional.rasterization.primitives.triangle_strip
 dEQP-GLES2.functional.rasterization.primitives.triangles
+dEQP-GLES2.functional.read_pixels.choose_align_1
+dEQP-GLES2.functional.read_pixels.choose_align_2
+dEQP-GLES2.functional.read_pixels.choose_align_4
+dEQP-GLES2.functional.read_pixels.choose_align_8
 dEQP-GLES2.functional.read_pixels.rgba_ubyte_align_1
 dEQP-GLES2.functional.read_pixels.rgba_ubyte_align_2
 dEQP-GLES2.functional.read_pixels.rgba_ubyte_align_4
