@@ -86,7 +86,8 @@ bool Driver::loadSwiftShader()
 #elif OS_LINUX
 	return load("./build/Linux/libvk_swiftshader.so") ||
 	       load("swiftshader/libvk_swiftshader.so") ||
-	       load("./libvk_swiftshader.so");
+	       load("./libvk_swiftshader.so") ||
+	       load("libvk_swiftshader.so");
 #elif OS_ANDROID || OS_FUCHSIA
 	return load("libvk_swiftshader.so");
 #else
