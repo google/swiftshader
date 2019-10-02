@@ -122,7 +122,7 @@ inline bool vk::Device::SamplingRoutineCache::Key::operator == (const Key& rhs) 
 
 inline bool vk::Device::SamplingRoutineCache::Key::operator < (const Key& rhs) const
 {
-	return instruction < rhs.instruction || sampler < rhs.sampler || imageView < rhs.imageView;
+	return std::tie(instruction, sampler, imageView) < std::tie(rhs.instruction, rhs.sampler, rhs.imageView);
 }
 
 inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (const Key& key) const noexcept
