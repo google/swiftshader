@@ -525,6 +525,19 @@ int Texture2D::getTopLevel() const
 	return level - 1;
 }
 
+bool Texture2D::hasNonBaseLevels() const
+{
+	for(int level = 1; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
+	{
+		if (image[level])
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool Texture2D::requiresSync() const
 {
 	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
@@ -1005,6 +1018,19 @@ int TextureCubeMap::getTopLevel() const
 	}
 
 	return level - 1;
+}
+
+bool TextureCubeMap::hasNonBaseLevels() const
+{
+	for(int level = 1; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
+	{
+		if (image[0][level])
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool TextureCubeMap::requiresSync() const
@@ -1531,6 +1557,19 @@ int Texture3D::getTopLevel() const
 	}
 
 	return level - 1;
+}
+
+bool Texture3D::hasNonBaseLevels() const
+{
+	for(int level = 1; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
+	{
+		if (image[level])
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool Texture3D::requiresSync() const

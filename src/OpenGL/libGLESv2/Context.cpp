@@ -4450,7 +4450,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
 			return EGL_BAD_PARAMETER;
 		}
 
-		if(textureLevel == 0 && !(texture->isSamplerComplete(nullptr) && texture->getTopLevel() == 0))
+		if(textureLevel == 0 && !texture->isSamplerComplete(nullptr) && texture->hasNonBaseLevels())
 		{
 			return EGL_BAD_PARAMETER;
 		}
