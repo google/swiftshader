@@ -1024,9 +1024,12 @@ bool TextureCubeMap::hasNonBaseLevels() const
 {
 	for(int level = 1; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
-		if (image[0][level])
+		for(int face = 0; face < 6; face++)
 		{
-			return true;
+			if (image[face][level])
+			{
+				return true;
+			}
 		}
 	}
 
