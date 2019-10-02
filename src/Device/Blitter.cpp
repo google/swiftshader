@@ -1032,6 +1032,7 @@ namespace sw
 		case VK_FORMAT_R8G8_UINT:
 			c = Insert(c, Int(*Pointer<Byte>(element + 1)), 1);
 		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_S8_UINT:
 			c = Insert(c, Int(*Pointer<Byte>(element)), 0);
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
@@ -1090,6 +1091,7 @@ namespace sw
 		case VK_FORMAT_R8G8B8_USCALED:
 		case VK_FORMAT_R8G8_USCALED:
 		case VK_FORMAT_R8_USCALED:
+		case VK_FORMAT_S8_UINT:
 			c = Min(As<UInt4>(c), UInt4(0xFF));
 			break;
 		case VK_FORMAT_R16G16B16A16_UINT:
@@ -1215,6 +1217,7 @@ namespace sw
 			if(writeG) { *Pointer<Byte>(element + 1) = Byte(Extract(c, 1)); }
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_USCALED:
+		case VK_FORMAT_S8_UINT:
 			if(writeR) { *Pointer<Byte>(element) = Byte(Extract(c, 0)); }
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
@@ -1358,7 +1361,7 @@ namespace sw
 		{
 			// (x & ~1) * 2 + (x & 1) == (x - (x & 1)) * 2 + (x & 1) == x * 2 - (x & 1) * 2 + (x & 1) == x * 2 - (x & 1)
 			return (y & Int(~1)) * pitchB +
-			       ((y & Int(1)) * 2 + x * 2 - (x & Int(1))) * bytes;
+			       ((((y & Int(1)) + x) << 1) - (x & Int(1))) * bytes;
 		}
 	}
 
