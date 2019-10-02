@@ -1567,15 +1567,16 @@ Buffer *Context::getGenericUniformBuffer() const
 	return mState.genericUniformBuffer;
 }
 
-GLsizei Context::getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type) const
+size_t Context::getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type) const
 {
 	GLsizei inputWidth = (mState.unpackParameters.rowLength == 0) ? width : mState.unpackParameters.rowLength;
 	GLsizei inputPitch = gl::ComputePitch(inputWidth, format, type, mState.unpackParameters.alignment);
 	GLsizei inputHeight = (mState.unpackParameters.imageHeight == 0) ? height : mState.unpackParameters.imageHeight;
-	return inputPitch * inputHeight * depth;
+
+	return static_cast<size_t>(inputPitch) * inputHeight * depth;
 }
 
-GLenum Context::getPixels(const GLvoid **pixels, GLenum type, GLsizei imageSize) const
+GLenum Context::getPixels(const GLvoid **pixels, GLenum type, size_t imageSize) const
 {
 	if(mState.pixelUnpackBuffer)
 	{
@@ -1598,7 +1599,7 @@ GLenum Context::getPixels(const GLvoid **pixels, GLenum type, GLsizei imageSize)
 			return GL_INVALID_OPERATION;
 		}
 
-		if(mState.pixelUnpackBuffer->size() - offset < static_cast<size_t>(imageSize))
+		if(mState.pixelUnpackBuffer->size() - offset < imageSize)
 		{
 			return GL_INVALID_OPERATION;
 		}
