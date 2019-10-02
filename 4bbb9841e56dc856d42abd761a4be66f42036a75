@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9669f375_f1ca3632",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1027,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-10-02T16:06:56Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be checking all the cube faces?",
+      "range": {
+        "startLine": 1027,
+        "startChar": 12,
+        "endLine": 1027,
+        "endChar": 13
+      },
+      "revId": "4bbb9841e56dc856d42abd761a4be66f42036a75",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
