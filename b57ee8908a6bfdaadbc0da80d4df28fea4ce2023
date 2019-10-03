@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1b25526_328c61c8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-10-03T17:32:22Z",
+      "side": 1,
+      "message": "nit: Git guidelines recommend having a title line that is no longer than 50 characters: https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project\n\nThe mention of SwiftShader seems redundant.",
+      "revId": "b57ee8908a6bfdaadbc0da80d4df28fea4ce2023",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e961e642_ebeda8ca",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-10-03T17:32:22Z",
+      "side": 1,
+      "message": "Please add \"Bug: b/139412871\"",
+      "revId": "b57ee8908a6bfdaadbc0da80d4df28fea4ce2023",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f7d0477_a7ea3022",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2314,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-10-03T17:32:22Z",
+      "side": 1,
+      "message": "These generic fallbacks are significantly slower than the intrinsics. Essentially they work by doubling the width of the vector elements, performing the addition/subtraction, and then halving the element widths again, with saturation. LLVM lowers these into three instructions, one for each of these corresponding steps, instead of the single instruction the intrinsic corresponds to. Doubling the element width uses AVX-256 to not require even more instructions.\n\nFortunately, there are target-agnostic intrinsics to accomplish what we need: https://llvm.org/docs/LangRef.html#saturation-arithmetic-intrinsics\n\nSo I suggest creating a separate change which first optimizes lowerPUADDSAT and friends using these intrinsics, and then performing this LLVM 8+ upgrade.",
+      "range": {
+        "startLine": 2314,
+        "startChar": 21,
+        "endLine": 2314,
+        "endChar": 34
+      },
+      "revId": "b57ee8908a6bfdaadbc0da80d4df28fea4ce2023",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
