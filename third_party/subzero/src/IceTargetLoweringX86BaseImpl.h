@@ -5795,7 +5795,7 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
       AddressWasOptimized = true;
       Reason = nullptr;
       SkipLastFolding = nullptr;
-      memset(&Skip, 0, sizeof(Skip));
+      memset(reinterpret_cast<void*>(&Skip), 0, sizeof(Skip));
     }
 
     NewAddrCheckpoint = NewAddr;

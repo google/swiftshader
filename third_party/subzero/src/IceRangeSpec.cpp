@@ -77,7 +77,7 @@ void record(const std::string &Token, RangeSpec::Desc *D) {
   D->IsExplicit = true;
   // A range is identified by starting with a digit or a ':'.
   if (Token[0] == RangeSpec::DELIM_RANGE || std::isdigit(Token[0])) {
-    uint32_t First, Last;
+    uint32_t First = 0, Last = 0;
     getRange(Token, &First, &Last);
     if (Last == RangeSpec::RangeMax) {
       D->AllFrom = std::min(D->AllFrom, First);
