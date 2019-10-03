@@ -120,15 +120,23 @@ void setCPUDefaults()
 	sw::CPUID::setEnableSSE(true);
 }
 
-marl::Scheduler* getOrCreateScheduler()
+std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 {
-	static auto scheduler = std::unique_ptr<marl::Scheduler>(new marl::Scheduler());
-	scheduler->setThreadInitializer([] {
-		sw::CPUID::setFlushToZero(true);
-		sw::CPUID::setDenormalsAreZero(true);
-	});
-	scheduler->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
-	return scheduler.get();
+	static std::mutex mutex;
+	static std::weak_ptr<marl::Scheduler> schedulerWeak;
+	std::unique_lock<std::mutex> lock(mutex);
+	auto scheduler = schedulerWeak.lock();
+	if (!scheduler)
+	{
+		scheduler = std::make_shared<marl::Scheduler>();
+		scheduler->setThreadInitializer([] {
+			sw::CPUID::setFlushToZero(true);
+			sw::CPUID::setDenormalsAreZero(true);
+		});
+		scheduler->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+		schedulerWeak = scheduler;
+	}
+	return scheduler;
 }
 
 // initializeLibrary() is called by vkCreateInstance() to perform one-off global
