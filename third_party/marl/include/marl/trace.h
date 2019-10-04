@@ -18,6 +18,9 @@
 //   https://www.chromium.org/developers/how-tos/trace-event-profiling-tool
 //   https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/edit
 
+#ifndef marl_trace_h
+#define marl_trace_h
+
 #define MARL_TRACE_ENABLED 0
 
 #if MARL_TRACE_ENABLED
@@ -242,3 +245,5 @@ Trace::ScopedAsyncEvent::~ScopedAsyncEvent() {
 #define MARL_NAME_THREAD(...)
 
 #endif  // MARL_TRACE_ENABLED
+
+#endif  // marl_trace_h

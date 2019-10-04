@@ -16,14 +16,14 @@
 
 #include "marl/waitgroup.h"
 
-TEST(WithoutBoundScheduler, WaitGroupDone) {
+TEST_F(WithoutBoundScheduler, WaitGroupDone) {
   marl::WaitGroup wg(2);  // Should not require a scheduler.
   wg.done();
   wg.done();
 }
 
 #if MARL_DEBUG_ENABLED
-TEST(WithoutBoundScheduler, WaitGroupDoneTooMany) {
+TEST_F(WithoutBoundScheduler, WaitGroupDoneTooMany) {
   marl::WaitGroup wg(2);  // Should not require a scheduler.
   wg.done();
   wg.done();

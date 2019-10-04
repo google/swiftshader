@@ -20,12 +20,12 @@
 #include <atomic>
 #include <unordered_set>
 
-TEST(WithoutBoundScheduler, SchedulerConstructAndDestruct) {
+TEST_F(WithoutBoundScheduler, SchedulerConstructAndDestruct) {
   auto scheduler = new marl::Scheduler();
   delete scheduler;
 }
 
-TEST(WithoutBoundScheduler, SchedulerBindGetUnbind) {
+TEST_F(WithoutBoundScheduler, SchedulerBindGetUnbind) {
   auto scheduler = new marl::Scheduler();
   scheduler->bind();
   auto got = marl::Scheduler::get();
@@ -133,7 +133,7 @@ TEST_P(WithBoundScheduler, FibersResumeOnSameStdThread) {
   }
 }
 
-TEST(WithoutBoundScheduler, TasksOnlyScheduledOnWorkerThreads) {
+TEST_F(WithoutBoundScheduler, TasksOnlyScheduledOnWorkerThreads) {
   auto scheduler = std::unique_ptr<marl::Scheduler>(new marl::Scheduler());
   scheduler->bind();
   scheduler->setWorkerThreadCount(8);

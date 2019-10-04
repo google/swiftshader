@@ -13,10 +13,12 @@
 // limitations under the License.
 
 #include "marl/debug.h"
+#include "marl/memory.h"
 
 #include <functional>
 #include <memory>
 
+#define WIN32_LEAN_AND_MEAN 1
 #include <Windows.h>
 
 namespace marl {
@@ -27,13 +29,16 @@ class OSFiber {
 
   // createFiberFromCurrentThread() returns a fiber created from the current
   // thread.
-  static inline OSFiber* createFiberFromCurrentThread();
+  static inline Allocator::unique_ptr<OSFiber> createFiberFromCurrentThread(
+      Allocator* allocator);
 
   // createFiber() returns a new fiber with the given stack size that will
   // call func when switched to. func() must end by switching back to another
   // fiber, and must not return.
-  static inline OSFiber* createFiber(size_t stackSize,
-                                     const std::function<void()>& func);
+  static inline Allocator::unique_ptr<OSFiber> createFiber(
+      Allocator* allocator,
+      size_t stackSize,
+      const std::function<void()>& func);
 
   // switchTo() immediately switches execution to the given fiber.
   // switchTo() must be called on the currently executing fiber.
@@ -56,8 +61,9 @@ OSFiber::~OSFiber() {
   }
 }
 
-OSFiber* OSFiber::createFiberFromCurrentThread() {
-  auto out = new OSFiber();
+Allocator::unique_ptr<OSFiber> OSFiber::createFiberFromCurrentThread(
+    Allocator* allocator) {
+  auto out = allocator->make_unique<OSFiber>();
   out->fiber = ConvertThreadToFiber(nullptr);
   out->isFiberFromThread = true;
   MARL_ASSERT(out->fiber != nullptr,
@@ -66,10 +72,12 @@ OSFiber* OSFiber::createFiberFromCurrentThread() {
   return out;
 }
 
-OSFiber* OSFiber::createFiber(size_t stackSize,
-                              const std::function<void()>& func) {
-  auto out = new OSFiber();
-  out->fiber = CreateFiber(stackSize, &OSFiber::run, out);
+Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
+    Allocator* allocator,
+    size_t stackSize,
+    const std::function<void()>& func) {
+  auto out = allocator->make_unique<OSFiber>();
+  out->fiber = CreateFiber(stackSize, &OSFiber::run, out.get());
   out->target = func;
   MARL_ASSERT(out->fiber != nullptr, "CreateFiber() failed with error 0x%x",
               int(GetLastError()));

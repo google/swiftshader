@@ -16,19 +16,36 @@
 
 #include "marl_test.h"
 
-class MemoryTest : public testing::Test {};
+class AllocatorTest : public testing::Test {
+ public:
+  marl::Allocator* allocator = marl::Allocator::Default;
+};
 
-TEST(MemoryTest, AlignedMalloc) {
+TEST_F(AllocatorTest, AlignedAllocate) {
+  std::vector<bool> guards = {false, true};
   std::vector<size_t> sizes = {1,   2,   3,   4,   5,   7,   8,   14,  16,  17,
                                31,  34,  50,  63,  64,  65,  100, 127, 128, 129,
                                200, 255, 256, 257, 500, 511, 512, 513};
   std::vector<size_t> alignments = {1, 2, 4, 8, 16, 32, 64, 128};
-  for (auto alignment : alignments) {
-    for (auto size : sizes) {
-      auto ptr = marl::aligned_malloc(alignment, size);
-      ASSERT_EQ(reinterpret_cast<uintptr_t>(ptr) & (alignment - 1), 0U);
-      memset(ptr, 0, size);  // Check the memory was actually allocated.
-      marl::aligned_free(ptr);
+  for (auto useGuards : guards) {
+    for (auto alignment : alignments) {
+      for (auto size : sizes) {
+        marl::Allocation::Request request;
+        request.alignment = alignment;
+        request.size = size;
+        request.useGuards = useGuards;
+
+        auto allocation = allocator->allocate(request);
+        auto ptr = allocation.ptr;
+        ASSERT_EQ(allocation.request.size, request.size);
+        ASSERT_EQ(allocation.request.alignment, request.alignment);
+        ASSERT_EQ(allocation.request.useGuards, request.useGuards);
+        ASSERT_EQ(allocation.request.usage, request.usage);
+        ASSERT_EQ(reinterpret_cast<uintptr_t>(ptr) & (alignment - 1), 0U);
+        memset(ptr, 0,
+               size);  // Check the memory was actually allocated.
+        allocator->free(allocation);
+      }
     }
   }
 }
@@ -46,17 +63,28 @@ struct alignas(64) StructWith64ByteAlignment {
   uint8_t padding[63];
 };
 
-TEST(MemoryTest, AlignedNew) {
-  auto s16 = marl::aligned_new<StructWith16ByteAlignment>();
-  auto s32 = marl::aligned_new<StructWith32ByteAlignment>();
-  auto s64 = marl::aligned_new<StructWith64ByteAlignment>();
+TEST_F(AllocatorTest, Create) {
+  auto s16 = allocator->create<StructWith16ByteAlignment>();
+  auto s32 = allocator->create<StructWith32ByteAlignment>();
+  auto s64 = allocator->create<StructWith64ByteAlignment>();
   ASSERT_EQ(alignof(StructWith16ByteAlignment), 16U);
   ASSERT_EQ(alignof(StructWith32ByteAlignment), 32U);
   ASSERT_EQ(alignof(StructWith64ByteAlignment), 64U);
   ASSERT_EQ(reinterpret_cast<uintptr_t>(s16) & 15U, 0U);
   ASSERT_EQ(reinterpret_cast<uintptr_t>(s32) & 31U, 0U);
   ASSERT_EQ(reinterpret_cast<uintptr_t>(s64) & 63U, 0U);
-  marl::aligned_delete(s64);
-  marl::aligned_delete(s32);
-  marl::aligned_delete(s16);
+  allocator->destroy(s64);
+  allocator->destroy(s32);
+  allocator->destroy(s16);
+}
+
+TEST_F(AllocatorTest, Guards) {
+  marl::Allocation::Request request;
+  request.alignment = 16;
+  request.size = 16;
+  request.useGuards = true;
+  auto alloc = allocator->allocate(request);
+  auto ptr = reinterpret_cast<uint8_t*>(alloc.ptr);
+  EXPECT_DEATH(ptr[-1] = 1, "");
+  EXPECT_DEATH(ptr[marl::pageSize()] = 1, "");
 }
