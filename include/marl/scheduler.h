@@ -16,6 +16,7 @@
 #define marl_scheduler_h
 
 #include "debug.h"
+#include "memory.h"
 #include "sal.h"
 
 #include <array>
@@ -44,7 +45,7 @@ class Scheduler {
   class Worker;
 
  public:
-  Scheduler();
+  Scheduler(Allocator* allocator = Allocator::Default);
   ~Scheduler();
 
   // get() returns the scheduler bound to the current thread.
@@ -91,8 +92,6 @@ class Scheduler {
   // thread that previously executed it.
   class Fiber {
    public:
-    ~Fiber();
-
     // current() returns the currently executing fiber, or nullptr if called
     // without a bound scheduler.
     static Fiber* current();
@@ -109,9 +108,10 @@ class Scheduler {
     uint32_t const id;
 
    private:
+    friend class Allocator;
     friend class Scheduler;
 
-    Fiber(OSFiber*, uint32_t id);
+    Fiber(Allocator::unique_ptr<OSFiber>&&, uint32_t id);
 
     // switchTo() switches execution to the given fiber.
     // switchTo() must only be called on the currently executing fiber.
@@ -119,15 +119,19 @@ class Scheduler {
 
     // create() constructs and returns a new fiber with the given identifier,
     // stack size that will executed func when switched to.
-    static Fiber* create(uint32_t id,
-                         size_t stackSize,
-                         const std::function<void()>& func);
+    static Allocator::unique_ptr<Fiber> create(
+        Allocator* allocator,
+        uint32_t id,
+        size_t stackSize,
+        const std::function<void()>& func);
 
     // createFromCurrentThread() constructs and returns a new fiber with the
     // given identifier for the current thread.
-    static Fiber* createFromCurrentThread(uint32_t id);
+    static Allocator::unique_ptr<Fiber> createFromCurrentThread(
+        Allocator* allocator,
+        uint32_t id);
 
-    OSFiber* const impl;
+    Allocator::unique_ptr<OSFiber> const impl;
     Worker* const worker;
   };
 
@@ -266,12 +270,12 @@ class Scheduler {
 
     Mode const mode;
     Scheduler* const scheduler;
-    std::unique_ptr<Fiber> mainFiber;
+    Allocator::unique_ptr<Fiber> mainFiber;
     Fiber* currentFiber = nullptr;
     std::thread thread;
     Work work;
     FiberQueue idleFibers;  // Fibers that have completed which can be reused.
-    std::vector<std::unique_ptr<Fiber>>
+    std::vector<Allocator::unique_ptr<Fiber>>
         workerFibers;  // All fibers created by this worker.
     FastRnd rng;
     std::atomic<bool> shutdown = {false};
@@ -289,6 +293,8 @@ class Scheduler {
   // The scheduler currently bound to the current thread.
   static thread_local Scheduler* bound;
 
+  Allocator* const allocator;
+
   std::function<void()> threadInitFunc;
   std::mutex threadInitFuncMutex;
 
@@ -302,7 +308,7 @@ class Scheduler {
   std::array<Worker*, MaxWorkerThreads> workerThreads;
 
   std::mutex singleThreadedWorkerMutex;
-  std::unordered_map<std::thread::id, std::unique_ptr<Worker>>
+  std::unordered_map<std::thread::id, Allocator::unique_ptr<Worker>>
       singleThreadedWorkers;
 };
 

@@ -69,8 +69,8 @@ void Scheduler::bind() {
   bound = this;
   {
     std::unique_lock<std::mutex> lock(singleThreadedWorkerMutex);
-    auto worker = std::unique_ptr<Worker>(
-        new Worker(this, Worker::Mode::SingleThreaded, 0));
+    auto worker =
+        allocator->make_unique<Worker>(this, Worker::Mode::SingleThreaded, 0);
     worker->start();
     auto tid = std::this_thread::get_id();
     singleThreadedWorkers.emplace(tid, std::move(worker));
@@ -79,7 +79,7 @@ void Scheduler::bind() {
 
 void Scheduler::unbind() {
   MARL_ASSERT(bound != nullptr, "No scheduler bound");
-  std::unique_ptr<Worker> worker;
+  Allocator::unique_ptr<Worker> worker;
   {
     std::unique_lock<std::mutex> lock(bound->singleThreadedWorkerMutex);
     auto tid = std::this_thread::get_id();
@@ -94,7 +94,8 @@ void Scheduler::unbind() {
   bound = nullptr;
 }
 
-Scheduler::Scheduler() {
+Scheduler::Scheduler(Allocator* allocator /* = Allocator::Default */)
+    : allocator(allocator) {
   for (size_t i = 0; i < spinningWorkers.size(); i++) {
     spinningWorkers[i] = -1;
   }
@@ -135,10 +136,11 @@ void Scheduler::setWorkerThreadCount(int newCount) {
     workerThreads[idx]->stop();
   }
   for (int idx = oldCount - 1; idx >= newCount; idx--) {
-    delete workerThreads[idx];
+    allocator->destroy(workerThreads[idx]);
   }
   for (int idx = oldCount; idx < newCount; idx++) {
-    workerThreads[idx] = new Worker(this, Worker::Mode::MultiThreaded, idx);
+    workerThreads[idx] =
+        allocator->create<Worker>(this, Worker::Mode::MultiThreaded, idx);
   }
   numWorkerThreads = newCount;
   for (int idx = oldCount; idx < newCount; idx++) {
@@ -198,13 +200,9 @@ void Scheduler::onBeginSpinning(int workerId) {
 ////////////////////////////////////////////////////////////////////////////////
 // Fiber
 ////////////////////////////////////////////////////////////////////////////////
-Scheduler::Fiber::Fiber(OSFiber* impl, uint32_t id)
-    : id(id), impl(impl), worker(Scheduler::Worker::getCurrent()) {
+Scheduler::Fiber::Fiber(Allocator::unique_ptr<OSFiber>&& impl, uint32_t id)
+    : id(id), impl(std::move(impl)), worker(Scheduler::Worker::getCurrent()) {
   MARL_ASSERT(worker != nullptr, "No Scheduler::Worker bound");
-}
-
-Scheduler::Fiber::~Fiber() {
-  delete impl;
 }
 
 Scheduler::Fiber* Scheduler::Fiber::current() {
@@ -223,18 +221,23 @@ void Scheduler::Fiber::yield() {
 
 void Scheduler::Fiber::switchTo(Fiber* to) {
   if (to != this) {
-    impl->switchTo(to->impl);
+    impl->switchTo(to->impl.get());
   }
 }
 
-Scheduler::Fiber* Scheduler::Fiber::create(uint32_t id,
-                                           size_t stackSize,
-                                           const std::function<void()>& func) {
-  return new Fiber(OSFiber::createFiber(stackSize, func), id);
+Allocator::unique_ptr<Scheduler::Fiber> Scheduler::Fiber::create(
+    Allocator* allocator,
+    uint32_t id,
+    size_t stackSize,
+    const std::function<void()>& func) {
+  return allocator->make_unique<Fiber>(
+      OSFiber::createFiber(allocator, stackSize, func), id);
 }
 
-Scheduler::Fiber* Scheduler::Fiber::createFromCurrentThread(uint32_t id) {
-  return new Fiber(OSFiber::createFiberFromCurrentThread(), id);
+Allocator::unique_ptr<Scheduler::Fiber>
+Scheduler::Fiber::createFromCurrentThread(Allocator* allocator, uint32_t id) {
+  return allocator->make_unique<Fiber>(
+      OSFiber::createFiberFromCurrentThread(allocator), id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +260,7 @@ void Scheduler::Worker::start() {
 
         Scheduler::bound = scheduler;
         Worker::current = this;
-        mainFiber.reset(Fiber::createFromCurrentThread(0));
+        mainFiber = Fiber::createFromCurrentThread(scheduler->allocator, 0);
         currentFiber = mainFiber.get();
         run();
         mainFiber.reset();
@@ -267,7 +270,7 @@ void Scheduler::Worker::start() {
 
     case Mode::SingleThreaded:
       Worker::current = this;
-      mainFiber.reset(Fiber::createFromCurrentThread(0));
+      mainFiber = Fiber::createFromCurrentThread(scheduler->allocator, 0);
       currentFiber = mainFiber.get();
       break;
 
@@ -488,9 +491,11 @@ _Requires_lock_held_(lock) void Scheduler::Worker::runUntilIdle(
 
 Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
   auto fiberId = static_cast<uint32_t>(workerFibers.size() + 1);
-  auto fiber = Fiber::create(fiberId, FiberStackSize, [&] { run(); });
-  workerFibers.push_back(std::unique_ptr<Fiber>(fiber));
-  return fiber;
+  auto fiber = Fiber::create(scheduler->allocator, fiberId, FiberStackSize,
+                             [&] { run(); });
+  auto ptr = fiber.get();
+  workerFibers.push_back(std::move(fiber));
+  return ptr;
 }
 
 void Scheduler::Worker::switchToFiber(Fiber* to) {

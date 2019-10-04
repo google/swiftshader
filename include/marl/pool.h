@@ -210,6 +210,8 @@ class BoundedPool : public Pool<T> {
   using Item = typename Pool<T>::Item;
   using Loan = typename Pool<T>::Loan;
 
+  inline BoundedPool(Allocator* allocator = Allocator::Default);
+
   // borrow() borrows a single item from the pool, blocking until an item is
   // returned if the pool is empty.
   inline Loan borrow() const;
@@ -239,7 +241,7 @@ class BoundedPool : public Pool<T> {
     ConditionVariable returned;
     Item* free = nullptr;
   };
-  std::shared_ptr<Storage> storage = make_aligned_shared<Storage>();
+  std::shared_ptr<Storage> storage;
 };
 
 template <typename T, int N, PoolPolicy POLICY>
@@ -261,6 +263,11 @@ BoundedPool<T, N, POLICY>::Storage::~Storage() {
     }
   }
 }
+
+template <typename T, int N, PoolPolicy POLICY>
+BoundedPool<T, N, POLICY>::BoundedPool(
+    Allocator* allocator /* = Allocator::Default */)
+    : storage(allocator->make_shared<Storage>()) {}
 
 template <typename T, int N, PoolPolicy POLICY>
 typename BoundedPool<T, N, POLICY>::Loan BoundedPool<T, N, POLICY>::borrow()
@@ -329,6 +336,8 @@ class UnboundedPool : public Pool<T> {
   using Item = typename Pool<T>::Item;
   using Loan = typename Pool<T>::Loan;
 
+  inline UnboundedPool(Allocator* allocator = Allocator::Default);
+
   // borrow() borrows a single item from the pool, automatically allocating
   // more items if the pool is empty.
   // This function does not block.
@@ -344,15 +353,23 @@ class UnboundedPool : public Pool<T> {
  private:
   class Storage : public Pool<T>::Storage {
    public:
+    inline Storage(Allocator* allocator);
     inline ~Storage();
     inline void return_(Item*) override;
 
+    Allocator* allocator;
     std::mutex mutex;
     std::vector<Item*> items;
     Item* free = nullptr;
   };
-  std::shared_ptr<Storage> storage = std::make_shared<Storage>();
+
+  Allocator* allocator;
+  std::shared_ptr<Storage> storage;
 };
+
+template <typename T, PoolPolicy POLICY>
+UnboundedPool<T, POLICY>::Storage::Storage(Allocator* allocator)
+    : allocator(allocator) {}
 
 template <typename T, PoolPolicy POLICY>
 UnboundedPool<T, POLICY>::Storage::~Storage() {
@@ -360,9 +377,15 @@ UnboundedPool<T, POLICY>::Storage::~Storage() {
     if (POLICY == PoolPolicy::Preserve) {
       item->destruct();
     }
-    aligned_delete(item);
+    allocator->destroy(item);
   }
 }
+
+template <typename T, PoolPolicy POLICY>
+UnboundedPool<T, POLICY>::UnboundedPool(
+    Allocator* allocator /* = Allocator::Default */)
+    : allocator(allocator),
+      storage(allocator->make_shared<Storage>(allocator)) {}
 
 template <typename T, PoolPolicy POLICY>
 Loan<T> UnboundedPool<T, POLICY>::borrow() const {
@@ -379,7 +402,7 @@ inline void UnboundedPool<T, POLICY>::borrow(size_t n, const F& f) const {
     if (storage->free == nullptr) {
       auto count = std::max<size_t>(storage->items.size(), 32);
       for (size_t j = 0; j < count; j++) {
-        auto item = aligned_new<Item>();
+        auto item = allocator->create<Item>();
         if (POLICY == PoolPolicy::Preserve) {
           item->construct();
         }

@@ -53,6 +53,7 @@ endif(MARL_BUILD_TESTS)
 ###########################################################
 set(MARL_LIST
     ${MARL_SRC_DIR}/debug.cpp
+    ${MARL_SRC_DIR}/memory.cpp
     ${MARL_SRC_DIR}/scheduler.cpp
     ${MARL_SRC_DIR}/thread.cpp
     ${MARL_SRC_DIR}/trace.cpp
