@@ -72,7 +72,6 @@ public:
 			uint32_t imageView;
 
 			inline bool operator == (const Key& rhs) const;
-			inline bool operator < (const Key& rhs) const;
 
 			struct Hash
 			{
@@ -119,11 +118,6 @@ static inline Device* Cast(VkDevice object)
 inline bool vk::Device::SamplingRoutineCache::Key::operator == (const Key& rhs) const
 {
 	return instruction == rhs.instruction && sampler == rhs.sampler && imageView == rhs.imageView;
-}
-
-inline bool vk::Device::SamplingRoutineCache::Key::operator < (const Key& rhs) const
-{
-	return std::tie(instruction, sampler, imageView) < std::tie(rhs.instruction, rhs.sampler, rhs.imageView);
 }
 
 inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (const Key& key) const noexcept
