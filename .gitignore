@@ -12,13 +12,9 @@ CMakeFiles/
 .vscode/launch.json
 .vscode/settings.json
 
-# The /build/ directory is recommended for CMake build output and should be
-# ignored, except for Visual Studio project files that we check into the
-# repository and regenerate with build/cmake.sh
+# The /build/ directory is recommended for CMake build output
 !/build
 /build/*
-!/build/cmake.sh
-!/build/Visual Studio 15 2017 Win64/
 
 # Boost is downloaded and extracted to /third_party
 /third_party/boost*
