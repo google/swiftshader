@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "marl/containers.h"
+#include "marl_test.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -20,15 +21,15 @@
 #include <cstddef>
 #include <string>
 
-class ContainersVectorTest : public testing::Test {};
+class ContainersVectorTest : public WithoutBoundScheduler {};
 
-TEST(ContainersVectorTest, Empty) {
-  marl::containers::vector<std::string, 4> vector;
+TEST_F(ContainersVectorTest, Empty) {
+  marl::containers::vector<std::string, 4> vector(allocator);
   ASSERT_EQ(vector.size(), size_t(0));
 }
 
-TEST(ContainersVectorTest, WithinFixedCapIndex) {
-  marl::containers::vector<std::string, 4> vector;
+TEST_F(ContainersVectorTest, WithinFixedCapIndex) {
+  marl::containers::vector<std::string, 4> vector(allocator);
   vector.resize(4);
   vector[0] = "A";
   vector[1] = "B";
@@ -41,8 +42,8 @@ TEST(ContainersVectorTest, WithinFixedCapIndex) {
   ASSERT_EQ(vector[3], "D");
 }
 
-TEST(ContainersVectorTest, BeyondFixedCapIndex) {
-  marl::containers::vector<std::string, 1> vector;
+TEST_F(ContainersVectorTest, BeyondFixedCapIndex) {
+  marl::containers::vector<std::string, 1> vector(allocator);
   vector.resize(4);
   vector[0] = "A";
   vector[1] = "B";
@@ -55,8 +56,8 @@ TEST(ContainersVectorTest, BeyondFixedCapIndex) {
   ASSERT_EQ(vector[3], "D");
 }
 
-TEST(ContainersVectorTest, WithinFixedCapPushPop) {
-  marl::containers::vector<std::string, 4> vector;
+TEST_F(ContainersVectorTest, WithinFixedCapPushPop) {
+  marl::containers::vector<std::string, 4> vector(allocator);
   vector.push_back("A");
   vector.push_back("B");
   vector.push_back("C");
@@ -89,8 +90,8 @@ TEST(ContainersVectorTest, WithinFixedCapPushPop) {
   ASSERT_EQ(vector.size(), size_t(0));
 }
 
-TEST(ContainersVectorTest, BeyondFixedCapPushPop) {
-  marl::containers::vector<std::string, 2> vector;
+TEST_F(ContainersVectorTest, BeyondFixedCapPushPop) {
+  marl::containers::vector<std::string, 2> vector(allocator);
   vector.push_back("A");
   vector.push_back("B");
   vector.push_back("C");
@@ -123,39 +124,40 @@ TEST(ContainersVectorTest, BeyondFixedCapPushPop) {
   ASSERT_EQ(vector.size(), size_t(0));
 }
 
-TEST(ContainersVectorTest, CopyConstruct) {
-  marl::containers::vector<std::string, 4> vectorA;
+TEST_F(ContainersVectorTest, CopyConstruct) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
 
   vectorA.resize(3);
   vectorA[0] = "A";
   vectorA[1] = "B";
   vectorA[2] = "C";
 
-  marl::containers::vector<std::string, 2> vectorB(vectorA);
+  marl::containers::vector<std::string, 2> vectorB(vectorA, allocator);
   ASSERT_EQ(vectorB.size(), size_t(3));
   ASSERT_EQ(vectorB[0], "A");
   ASSERT_EQ(vectorB[1], "B");
   ASSERT_EQ(vectorB[2], "C");
 }
 
-TEST(ContainersVectorTest, MoveConstruct) {
-  marl::containers::vector<std::string, 4> vectorA;
+TEST_F(ContainersVectorTest, MoveConstruct) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
 
   vectorA.resize(3);
   vectorA[0] = "A";
   vectorA[1] = "B";
   vectorA[2] = "C";
 
-  marl::containers::vector<std::string, 2> vectorB(std::move(vectorA));
+  marl::containers::vector<std::string, 2> vectorB(std::move(vectorA),
+                                                   allocator);
   ASSERT_EQ(vectorB.size(), size_t(3));
   ASSERT_EQ(vectorB[0], "A");
   ASSERT_EQ(vectorB[1], "B");
   ASSERT_EQ(vectorB[2], "C");
 }
 
-TEST(ContainersVectorTest, Copy) {
-  marl::containers::vector<std::string, 4> vectorA;
-  marl::containers::vector<std::string, 2> vectorB;
+TEST_F(ContainersVectorTest, Copy) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
+  marl::containers::vector<std::string, 2> vectorB(allocator);
 
   vectorA.resize(3);
   vectorA[0] = "A";
@@ -172,9 +174,9 @@ TEST(ContainersVectorTest, Copy) {
   ASSERT_EQ(vectorB[2], "C");
 }
 
-TEST(ContainersVectorTest, Move) {
-  marl::containers::vector<std::string, 4> vectorA;
-  marl::containers::vector<std::string, 2> vectorB;
+TEST_F(ContainersVectorTest, Move) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
+  marl::containers::vector<std::string, 2> vectorB(allocator);
 
   vectorA.resize(3);
   vectorA[0] = "A";

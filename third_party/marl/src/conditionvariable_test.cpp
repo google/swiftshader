@@ -16,7 +16,7 @@
 
 #include "marl_test.h"
 
-TEST(WithoutBoundScheduler, ConditionVariable) {
+TEST_F(WithoutBoundScheduler, ConditionVariable) {
   bool trigger[3] = {false, false, false};
   bool signal[3] = {false, false, false};
   std::mutex mutex;

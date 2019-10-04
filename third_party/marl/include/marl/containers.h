@@ -16,7 +16,7 @@
 #define marl_containers_h
 
 #include "debug.h"
-#include "memory.h"  // aligned_storage
+#include "memory.h"
 
 #include <algorithm>  // std::max
 #include <utility>    // std::move
@@ -38,13 +38,15 @@ namespace containers {
 template <typename T, int BASE_CAPACITY>
 class vector {
  public:
-  inline vector() = default;
+  inline vector(Allocator* allocator = Allocator::Default);
 
   template <int BASE_CAPACITY_2>
-  inline vector(const vector<T, BASE_CAPACITY_2>& other);
+  inline vector(const vector<T, BASE_CAPACITY_2>& other,
+                Allocator* allocator = Allocator::Default);
 
   template <int BASE_CAPACITY_2>
-  inline vector(vector<T, BASE_CAPACITY_2>&& other);
+  inline vector(vector<T, BASE_CAPACITY_2>&& other,
+                Allocator* allocator = Allocator::Default);
 
   inline ~vector();
 
@@ -73,21 +75,34 @@ class vector {
 
   inline void free();
 
+  Allocator* const allocator;
   size_t count = 0;
   size_t capacity = BASE_CAPACITY;
   TStorage buffer[BASE_CAPACITY];
   TStorage* elements = buffer;
+  Allocation allocation;
 };
 
 template <typename T, int BASE_CAPACITY>
+vector<T, BASE_CAPACITY>::vector(
+    Allocator* allocator /* = Allocator::Default */)
+    : allocator(allocator) {}
+
+template <typename T, int BASE_CAPACITY>
 template <int BASE_CAPACITY_2>
-vector<T, BASE_CAPACITY>::vector(const vector<T, BASE_CAPACITY_2>& other) {
+vector<T, BASE_CAPACITY>::vector(
+    const vector<T, BASE_CAPACITY_2>& other,
+    Allocator* allocator /* = Allocator::Default */)
+    : allocator(allocator) {
   *this = other;
 }
 
 template <typename T, int BASE_CAPACITY>
 template <int BASE_CAPACITY_2>
-vector<T, BASE_CAPACITY>::vector(vector<T, BASE_CAPACITY_2>&& other) {
+vector<T, BASE_CAPACITY>::vector(
+    vector<T, BASE_CAPACITY_2>&& other,
+    Allocator* allocator /* = Allocator::Default */)
+    : allocator(allocator) {
   *this = std::move(other);
 }
 
@@ -198,13 +213,21 @@ template <typename T, int BASE_CAPACITY>
 void vector<T, BASE_CAPACITY>::reserve(size_t n) {
   if (n > capacity) {
     capacity = std::max<size_t>(n * 2, 8);
-    auto grown = new TStorage[capacity];
+
+    Allocation::Request request;
+    request.size = sizeof(T) * capacity;
+    request.alignment = alignof(T);
+    request.usage = Allocation::Usage::Vector;
+
+    auto alloc = allocator->allocate(request);
+    auto grown = reinterpret_cast<TStorage*>(alloc.ptr);
     for (size_t i = 0; i < count; i++) {
       new (&reinterpret_cast<T*>(grown)[i])
           T(std::move(reinterpret_cast<T*>(elements)[i]));
     }
     free();
     elements = grown;
+    allocation = alloc;
   }
 }
 
@@ -214,8 +237,8 @@ void vector<T, BASE_CAPACITY>::free() {
     reinterpret_cast<T*>(elements)[i].~T();
   }
 
-  if (elements != buffer) {
-    delete[] elements;
+  if (allocation.ptr != nullptr) {
+    allocator->free(allocation);
     elements = nullptr;
   }
 }

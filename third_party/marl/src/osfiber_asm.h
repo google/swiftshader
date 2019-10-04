@@ -36,6 +36,8 @@
 #error "Unsupported target"
 #endif
 
+#include "marl/memory.h"
+
 #include <functional>
 #include <memory>
 
@@ -55,15 +57,21 @@ namespace marl {
 
 class OSFiber {
  public:
+  inline OSFiber(Allocator*);
+  inline ~OSFiber();
+
   // createFiberFromCurrentThread() returns a fiber created from the current
   // thread.
-  static inline OSFiber* createFiberFromCurrentThread();
+  static inline Allocator::unique_ptr<OSFiber> createFiberFromCurrentThread(
+      Allocator* allocator);
 
   // createFiber() returns a new fiber with the given stack size that will
   // call func when switched to. func() must end by switching back to another
   // fiber, and must not return.
-  static inline OSFiber* createFiber(size_t stackSize,
-                                     const std::function<void()>& func);
+  static inline Allocator::unique_ptr<OSFiber> createFiber(
+      Allocator* allocator,
+      size_t stackSize,
+      const std::function<void()>& func);
 
   // switchTo() immediately switches execution to the given fiber.
   // switchTo() must be called on the currently executing fiber.
@@ -72,25 +80,46 @@ class OSFiber {
  private:
   static inline void run(OSFiber* self);
 
+  Allocator* allocator;
   marl_fiber_context context;
   std::function<void()> target;
-  std::unique_ptr<uint8_t[]> stack;
+  Allocation stack;
 };
 
-OSFiber* OSFiber::createFiberFromCurrentThread() {
-  auto out = new OSFiber();
+OSFiber::OSFiber(Allocator* allocator) : allocator(allocator) {}
+
+OSFiber::~OSFiber() {
+  if (stack.ptr != nullptr) {
+    allocator->free(stack);
+  }
+}
+
+Allocator::unique_ptr<OSFiber> OSFiber::createFiberFromCurrentThread(
+    Allocator* allocator) {
+  auto out = allocator->make_unique<OSFiber>(allocator);
   out->context = {};
   return out;
 }
 
-OSFiber* OSFiber::createFiber(size_t stackSize,
-                              const std::function<void()>& func) {
-  auto out = new OSFiber();
+Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
+    Allocator* allocator,
+    size_t stackSize,
+    const std::function<void()>& func) {
+  Allocation::Request request;
+  request.size = stackSize;
+  request.alignment = 16;
+  request.usage = Allocation::Usage::Stack;
+#if MARL_USE_FIBER_STACK_GUARDS
+  request.useGuards = true;
+#endif
+
+  auto out = allocator->make_unique<OSFiber>(allocator);
   out->context = {};
   out->target = func;
-  out->stack = std::unique_ptr<uint8_t[]>(new uint8_t[stackSize]);
-  marl_fiber_set_target(&out->context, out->stack.get(), stackSize,
-                        reinterpret_cast<void (*)(void*)>(&OSFiber::run), out);
+  out->stack = allocator->allocate(request);
+  marl_fiber_set_target(&out->context, out->stack.ptr, stackSize,
+                        reinterpret_cast<void (*)(void*)>(&OSFiber::run),
+                        out.get());
   return out;
 }
 

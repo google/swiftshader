@@ -29,16 +29,32 @@ struct SchedulerParams {
 };
 
 // WithoutBoundScheduler is a test fixture that does not bind a scheduler.
-class WithoutBoundScheduler : public testing::Test {};
+class WithoutBoundScheduler : public testing::Test {
+ public:
+  void SetUp() override {
+    allocator = new marl::TrackedAllocator(marl::Allocator::Default);
+  }
+
+  void TearDown() override {
+    auto stats = allocator->stats();
+    ASSERT_EQ(stats.numAllocations(), 0U);
+    ASSERT_EQ(stats.bytesAllocated(), 0U);
+    delete allocator;
+  }
+
+  marl::TrackedAllocator* allocator = nullptr;
+};
 
 // WithBoundScheduler is a parameterized test fixture that performs tests with
 // a bound scheduler using a number of different configurations.
 class WithBoundScheduler : public testing::TestWithParam<SchedulerParams> {
  public:
   void SetUp() override {
+    allocator = new marl::TrackedAllocator(marl::Allocator::Default);
+
     auto& params = GetParam();
 
-    auto scheduler = new marl::Scheduler();
+    auto scheduler = new marl::Scheduler(allocator);
     scheduler->bind();
     scheduler->setWorkerThreadCount(params.numWorkerThreads);
   }
@@ -47,5 +63,12 @@ class WithBoundScheduler : public testing::TestWithParam<SchedulerParams> {
     auto scheduler = marl::Scheduler::get();
     scheduler->unbind();
     delete scheduler;
+
+    auto stats = allocator->stats();
+    ASSERT_EQ(stats.numAllocations(), 0U);
+    ASSERT_EQ(stats.bytesAllocated(), 0U);
+    delete allocator;
   }
+
+  marl::TrackedAllocator* allocator = nullptr;
 };

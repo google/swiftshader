@@ -20,7 +20,7 @@
 
 #include <mutex>
 
-TEST_P(WithBoundScheduler, BlockingCall) {
+TEST_P(WithBoundScheduler, BlockingCallVoidReturn) {
   auto mutex = std::make_shared<std::mutex>();
   mutex->lock();
 
@@ -37,4 +37,27 @@ TEST_P(WithBoundScheduler, BlockingCall) {
 
   mutex->unlock();
   wg.wait();
+}
+
+TEST_P(WithBoundScheduler, BlockingCallIntReturn) {
+  auto mutex = std::make_shared<std::mutex>();
+  mutex->lock();
+
+  marl::WaitGroup wg(100);
+  std::atomic<int> n = {0};
+  for (int i = 0; i < 100; i++) {
+    marl::schedule([=, &n] {
+      defer(wg.done());
+      n += marl::blocking_call([=] {
+        mutex->lock();
+        defer(mutex->unlock());
+        return i;
+      });
+    });
+  }
+
+  mutex->unlock();
+  wg.wait();
+
+  ASSERT_EQ(n.load(), 4950);
 }

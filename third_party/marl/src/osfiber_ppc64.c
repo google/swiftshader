@@ -26,8 +26,9 @@ void marl_fiber_set_target(struct marl_fiber_context* ctx,
                            void (*target)(void*),
                            void* arg) {
   uintptr_t stack_top = (uintptr_t)((uint8_t*)(stack) + stack_size);
-  if ((stack_top % 16) != 0)
+  if ((stack_top % 16) != 0) {
     stack_top -= (stack_top % 16);
+  }
 
   // Write a backchain and subtract a minimum stack frame size (32)
   *(uintptr_t*)stack_top = 0;
