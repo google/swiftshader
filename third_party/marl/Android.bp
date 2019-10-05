@@ -20,6 +20,7 @@ cc_library_static {
     sdk_version: "27",
     srcs: [
         "src/debug.cpp",
+        "src/memory.cpp",
         "src/scheduler.cpp",
         "src/thread.cpp",
         "src/trace.cpp",

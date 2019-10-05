@@ -31,6 +31,7 @@ swiftshader_source_set("Marl_headers") {
     "include/marl/pool.h",
     "include/marl/sal.h",
     "include/marl/scheduler.h",
+    "include/marl/sanitizers.h",
     "include/marl/thread.h",
     "include/marl/ticket.h",
     "include/marl/trace.h",
@@ -46,6 +47,7 @@ swiftshader_source_set("Marl_headers") {
 swiftshader_source_set("Marl") {
   sources = [
     "src/debug.cpp",
+    "src/memory.cpp",
     "src/scheduler.cpp",
     "src/thread.cpp",
     "src/trace.cpp",
