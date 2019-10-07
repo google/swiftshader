@@ -290,29 +290,18 @@ namespace sw
 			sRGBtoLinear12_16[i] = (unsigned short)(clamp(sw::sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
 		}
 
-		// VK_SAMPLE_COUNT_4_BIT
-		// https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#primsrast-multisampling
-		constexpr float sampleLocations4[][2] = {
-			{0.375, 0.125},
-			{0.875, 0.375},
-			{0.125, 0.625},
-			{0.625, 0.875},
-		};
-
-		// Vulkan spec sample positions are relative to 0,0 in top left corner, with Y+ going down.
-		// Convert to our space, with 0,0 in center, and Y+ going up.
 		constexpr float4 X[4] = {
-			sw::replicate(sampleLocations4[0][0] - 0.5f), // -0.125
-			sw::replicate(sampleLocations4[1][0] - 0.5f), // +0.375
-			sw::replicate(sampleLocations4[2][0] - 0.5f), // -0.375
-			sw::replicate(sampleLocations4[3][0] - 0.5f), // +0.125
+			sw::replicate(SampleLocationsX[0]),
+			sw::replicate(SampleLocationsX[1]),
+			sw::replicate(SampleLocationsX[2]),
+			sw::replicate(SampleLocationsX[3]),
 		};
 
 		constexpr float4 Y[4] = {
-			sw::replicate(-(sampleLocations4[0][1] - 0.5f)), // +0.375
-			sw::replicate(-(sampleLocations4[1][1] - 0.5f)), // +0.125
-			sw::replicate(-(sampleLocations4[2][1] - 0.5f)), // -0.125
-			sw::replicate(-(sampleLocations4[3][1] - 0.5f)), // -0.375
+			sw::replicate(SampleLocationsY[0]),
+			sw::replicate(SampleLocationsY[1]),
+			sw::replicate(SampleLocationsY[2]),
+			sw::replicate(SampleLocationsY[3]),
 		};
 
 		for(int q = 0; q < 4; q++)
@@ -332,8 +321,11 @@ namespace sw
 			}
 		}
 
-		const int Xf[4] = {-5, +5, +2, -2};   // Fragment offsets
-		const int Yf[4] = {-2, +2, -5, +5};   // Fragment offsets
+		constexpr auto subPixB = vk::SUBPIXEL_PRECISION_BITS;
+
+		// Reorder sample points for fragment offset computation
+		const int Xf[4] = { toFixedPoint(X[2][0], subPixB), toFixedPoint(X[1][0], subPixB), toFixedPoint(X[3][0], subPixB), toFixedPoint(X[0][0], subPixB) };
+		const int Yf[4] = { toFixedPoint(Y[2][0], subPixB), toFixedPoint(Y[1][0], subPixB), toFixedPoint(Y[3][0], subPixB), toFixedPoint(Y[0][0], subPixB) };
 
 		memcpy(&this->Xf, &Xf, sizeof(Xf));
 		memcpy(&this->Yf, &Yf, sizeof(Yf));

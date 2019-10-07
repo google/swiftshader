@@ -139,8 +139,8 @@ namespace sw
 					Float w = v.w;
 					Float rhw = IfThenElse(w != 0.0f, 1.0f / w, Float(1.0f));
 
-					X[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,X0x16)) + v.x * rhw * *Pointer<Float>(data + OFFSET(DrawData,Wx16)));
-					Y[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,Y0x16)) + v.y * rhw * *Pointer<Float>(data + OFFSET(DrawData,Hx16)));
+					X[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,X0xF)) + v.x * rhw * *Pointer<Float>(data + OFFSET(DrawData,WxF)));
+					Y[i] = RoundInt(*Pointer<Float>(data + OFFSET(DrawData,Y0xF)) + v.y * rhw * *Pointer<Float>(data + OFFSET(DrawData,HxF)));
 
 					i++;
 				}
@@ -162,15 +162,19 @@ namespace sw
 			}
 			Until(i >= n)
 
+			constexpr int subPixB = vk::SUBPIXEL_PRECISION_BITS;
+			constexpr int subPixM = vk::SUBPIXEL_PRECISION_MASK;
+			constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
+
 			if(state.multiSample > 1)
 			{
-				yMin = (yMin + 0x0A) >> 4;
-				yMax = (yMax + 0x14) >> 4;
+				yMin = (yMin + Constants::yMinMultiSampleOffset) >> subPixB;
+				yMax = (yMax + Constants::yMaxMultiSampleOffset) >> subPixB;
 			}
 			else
 			{
-				yMin = (yMin + 0x0F) >> 4;
-				yMax = (yMax + 0x0F) >> 4;
+				yMin = (yMin + subPixM) >> subPixB;
+				yMax = (yMax + subPixM) >> subPixB;
 			}
 
 			yMin = Max(yMin, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
@@ -213,7 +217,7 @@ namespace sw
 				{
 					Int xMin = *Pointer<Int>(data + OFFSET(DrawData, scissorX0));
 					Int xMax = *Pointer<Int>(data + OFFSET(DrawData, scissorX1));
-					Short x = Short(Clamp((X[0] + 0xF) >> 4, xMin, xMax));
+					Short x = Short(Clamp((X[0] + subPixM) >> subPixB, xMin, xMax));
 
 					For(Int y = yMin - 1, y < yMax + 1, y++)
 					{
@@ -323,8 +327,8 @@ namespace sw
 				Y2 = Y1 + X0 - X1;
 			}
 
-			Float dx = Float(X0) * (1.0f / 16.0f);
-			Float dy = Float(Y0) * (1.0f / 16.0f);
+			Float dx = Float(X0) * (1.0f / subPixF);
+			Float dy = Float(Y0) * (1.0f / subPixF);
 
 			X1 -= X0;
 			Y1 -= Y0;
@@ -332,11 +336,11 @@ namespace sw
 			X2 -= X0;
 			Y2 -= Y0;
 
-			Float x1 = w1 * (1.0f / 16.0f) * Float(X1);
-			Float y1 = w1 * (1.0f / 16.0f) * Float(Y1);
+			Float x1 = w1 * (1.0f / subPixF) * Float(X1);
+			Float y1 = w1 * (1.0f / subPixF) * Float(Y1);
 
-			Float x2 = w2 * (1.0f / 16.0f) * Float(X2);
-			Float y2 = w2 * (1.0f / 16.0f) * Float(Y2);
+			Float x2 = w2 * (1.0f / subPixF) * Float(X2);
+			Float y2 = w2 * (1.0f / subPixF) * Float(Y2);
 
 			Float a = x1 * y2 - x2 * y1;
 
@@ -403,10 +407,10 @@ namespace sw
 
 				if(!point)
 				{
-					Float x1 = Float(X1) * (1.0f / 16.0f);
-					Float y1 = Float(Y1) * (1.0f / 16.0f);
-					Float x2 = Float(X2) * (1.0f / 16.0f);
-					Float y2 = Float(Y2) * (1.0f / 16.0f);
+					Float x1 = Float(X1) * (1.0f / subPixF);
+					Float y1 = Float(Y1) * (1.0f / subPixF);
+					Float x2 = Float(X2) * (1.0f / subPixF);
+					Float y2 = Float(Y2) * (1.0f / subPixF);
 
 					Float D = *Pointer<Float>(data + OFFSET(DrawData,depthRange)) / (x1 * y2 - x2 * y1);
 
@@ -509,8 +513,11 @@ namespace sw
 			Int Y1 = IfThenElse(swap, Yb, Ya);
 			Int Y2 = IfThenElse(swap, Ya, Yb);
 
-			Int y1 = Max((Y1 + 0x0000000F) >> 4, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
-			Int y2 = Min((Y2 + 0x0000000F) >> 4, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
+			constexpr int subPixB = vk::SUBPIXEL_PRECISION_BITS;
+			constexpr int subPixM = vk::SUBPIXEL_PRECISION_MASK;
+
+			Int y1 = Max((Y1 + subPixM) >> subPixB, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
+			Int y2 = Min((Y2 + subPixM) >> subPixB, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
 
 			If(y1 < y2)
 			{
@@ -525,11 +532,11 @@ namespace sw
 				Int DX12 = X2 - X1;
 				Int DY12 = Y2 - Y1;
 
-				Int FDX12 = DX12 << 4;
-				Int FDY12 = DY12 << 4;
+				Int FDX12 = DX12 << subPixB;
+				Int FDY12 = DY12 << subPixB;
 
-				Int X = DX12 * ((y1 << 4) - Y1) + (X1 & 0x0000000F) * DY12;
-				Int x = (X1 >> 4) + X / FDY12;   // Edge
+				Int X = DX12 * ((y1 << subPixB) - Y1) + (X1 & subPixM) * DY12;
+				Int x = (X1 >> subPixB) + X / FDY12;   // Edge
 				Int d = X % FDY12;               // Error-term
 				Int ceil = -d >> 31;             // Ceiling division: remainder <= 0
 				x -= ceil;

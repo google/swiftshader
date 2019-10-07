@@ -330,16 +330,17 @@ namespace sw
 			float N = viewport.minDepth;
 			float F = viewport.maxDepth;
 			float Z = F - N;
+			constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
 
 			if(context->isDrawTriangle(false))
 			{
 				N += context->depthBias;
 			}
 
-			data->Wx16 = replicate(W * 16);
-			data->Hx16 = replicate(H * 16);
-			data->X0x16 = replicate(X0 * 16 - 8);
-			data->Y0x16 = replicate(Y0 * 16 - 8);
+			data->WxF = replicate(W * subPixF);
+			data->HxF = replicate(H * subPixF);
+			data->X0xF = replicate(X0 * subPixF - subPixF / 2);
+			data->Y0xF = replicate(Y0 * subPixF - subPixF / 2);
 			data->halfPixelX = replicate(0.5f / W);
 			data->halfPixelY = replicate(0.5f / H);
 			data->viewportHeight = abs(viewport.height);
@@ -799,8 +800,10 @@ namespace sw
 			return false;
 		}
 
-		const float W = data.Wx16[0] * (1.0f / 16.0f);
-		const float H = data.Hx16[0] * (1.0f / 16.0f);
+		constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
+
+		const float W = data.WxF[0] * (1.0f / subPixF);
+		const float H = data.HxF[0] * (1.0f / subPixF);
 
 		float dx = W * (P1.x / P1.w - P0.x / P0.w);
 		float dy = H * (P1.y / P1.w - P0.y / P0.w);
@@ -1029,8 +1032,10 @@ namespace sw
 			triangle.v1 = triangle.v0;
 			triangle.v2 = triangle.v0;
 
-			triangle.v1.projected.x += iround(16 * 0.5f * pSize);
-			triangle.v2.projected.y -= iround(16 * 0.5f * pSize) * (data.Hx16[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
+			constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
+
+			triangle.v1.projected.x += iround(subPixF * 0.5f * pSize);
+			triangle.v2.projected.y -= iround(subPixF * 0.5f * pSize) * (data.HxF[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
 			return setupRoutine(&primitive, &triangle, &polygon, &data);
 		}
 

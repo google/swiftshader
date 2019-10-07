@@ -543,8 +543,8 @@ namespace sw
 		Float4 rhw = Float4(1.0f) / w;
 
 		Vector4f proj;
-		proj.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,X0x16)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData,Wx16))));
-		proj.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,Y0x16)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData,Hx16))));
+		proj.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData,WxF))));
+		proj.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData,HxF))));
 		proj.z = pos.z * rhw;
 		proj.w = rhw;
 

@@ -32,37 +32,37 @@ namespace sw
 	#undef max
 
 	template<class T>
-	inline T max(T a, T b)
+	inline T constexpr max(T a, T b)
 	{
 		return a > b ? a : b;
 	}
 
 	template<class T>
-	inline T min(T a, T b)
+	inline constexpr T min(T a, T b)
 	{
 		return a < b ? a : b;
 	}
 
 	template<class T>
-	inline T max(T a, T b, T c)
+	inline constexpr T max(T a, T b, T c)
 	{
 		return max(max(a, b), c);
 	}
 
 	template<class T>
-	inline T min(T a, T b, T c)
+	inline constexpr T min(T a, T b, T c)
 	{
 		return min(min(a, b), c);
 	}
 
 	template<class T>
-	inline T max(T a, T b, T c, T d)
+	inline constexpr T max(T a, T b, T c, T d)
 	{
 		return max(max(a, b), max(c, d));
 	}
 
 	template<class T>
-	inline T min(T a, T b, T c, T d)
+	inline constexpr T min(T a, T b, T c, T d)
 	{
 		return min(min(a, b), min(c, d));
 	}
@@ -371,6 +371,11 @@ namespace sw
 	inline int clampToSignedInt(unsigned int x)
 	{
 		return static_cast<int>(min(x, 0x7FFFFFFFu));
+	}
+
+	// Convert floating value v to fixed point with p digits after the decimal point
+	constexpr int toFixedPoint(float v, int p) {
+		return static_cast<int>(v * (1 << p));
 	}
 }
 
