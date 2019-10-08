@@ -217,7 +217,6 @@ genrule { // FIXME this relies on `git` which is no good on build machines
 cc_library_static {
     name: "swiftshader_spirv-tools",
     vendor_available: true,
-    sdk_version: "27",
     srcs: [
         "source/*.cpp",
         "source/util/*.cpp",
