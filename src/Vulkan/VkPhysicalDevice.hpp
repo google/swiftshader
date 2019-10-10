@@ -63,6 +63,7 @@ public:
 	void getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;
 	void getProperties(VkPhysicalDeviceDriverPropertiesKHR* properties) const;
 	void getProperties(VkPhysicalDeviceLineRasterizationPropertiesEXT* properties) const;
+	void getProperties(VkPhysicalDeviceProvokingVertexPropertiesEXT* properties) const;
 
 	void getFormatProperties(Format format, VkFormatProperties* pFormatProperties) const;
 	void getImageFormatProperties(Format format, VkImageType type, VkImageTiling tiling,

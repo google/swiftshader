@@ -394,6 +394,11 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceLineRasterizationPropertiesEX
 	properties->lineSubPixelPrecisionBits = vk::SUBPIXEL_PRECISION_BITS;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceProvokingVertexPropertiesEXT* properties) const
+{
+	properties->provokingVertexModePerPipeline = VK_TRUE;
+}
+
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const
 {
 	const VkPhysicalDeviceFeatures& supportedFeatures = getFeatures();

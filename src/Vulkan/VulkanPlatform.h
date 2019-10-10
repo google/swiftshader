@@ -49,6 +49,7 @@ public:
 	template class VkNonDispatchableHandle<object##Ptr>;
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vk_ext_provoking_vertex.h>
 
 #ifdef Bool
 #undef Bool // b/127920555

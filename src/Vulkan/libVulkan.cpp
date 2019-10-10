@@ -233,6 +233,7 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
 	{ VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_FD_SPEC_VERSION },
 #endif
+	{ VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, VK_EXT_PROVOKING_VERTEX_SPEC_VERSION },
 };
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkInstance* pInstance)
@@ -500,7 +501,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 
 	while(extensionCreateInfo)
 	{
-		switch(extensionCreateInfo->sType)
+		// Casting to a long since some structures, such as
+		// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT
+		// are not enumerated in the official Vulkan header
+		switch((long)(extensionCreateInfo->sType))
 		{
 		case VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO:
 			// According to the Vulkan spec, section 2.7.2. Implicit Valid Usage:
@@ -597,6 +601,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				}
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
+			{
+				const VkPhysicalDeviceProvokingVertexFeaturesEXT* provokingVertexFeatures = reinterpret_cast<const VkPhysicalDeviceProvokingVertexFeaturesEXT*>(extensionCreateInfo);
+
+				// Provoking vertex is supported.
+				// provokingVertexFeatures->provokingVertexLast can be VK_TRUE or VK_FALSE.
+				// No action needs to be taken on our end in either case; it's the apps responsibility to check
+				// that the provokingVertexLast feature is enabled before using the provoking vertex convention.
+				(void)provokingVertexFeatures->provokingVertexLast;
+			}
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionCreateInfo->sType %d", int(extensionCreateInfo->sType));   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
@@ -2434,7 +2448,9 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 	VkBaseOutStructure* extensionProperties = reinterpret_cast<VkBaseOutStructure*>(pProperties->pNext);
 	while(extensionProperties)
 	{
-		// Casting to a long since some structures, such as VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_ANDROID
+		// Casting to a long since some structures, such as
+		// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_ANDROID and
+		// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT
 		// are not enumerated in the official Vulkan header
 		switch((long)(extensionProperties->sType))
 		{
@@ -2500,6 +2516,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT:
 			{
 				auto& properties = *reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceProvokingVertexPropertiesEXT*>(extensionProperties);
 				vk::Cast(physicalDevice)->getProperties(&properties);
 			}
 			break;

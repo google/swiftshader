@@ -150,6 +150,7 @@ namespace sw
 		unsigned int numBatches;
 
 		VkPrimitiveTopology topology;
+		VkProvokingVertexModeEXT provokingVertexMode;
 		VkIndexType indexType;
 		VkLineRasterizationModeEXT lineRasterizationMode;
 
@@ -179,7 +180,8 @@ namespace sw
 				VkIndexType indexType,
 				unsigned int start,
 				unsigned int triangleCount,
-				VkPrimitiveTopology topology);
+				VkPrimitiveTopology topology,
+				VkProvokingVertexModeEXT provokingVertexMode);
 
 		static int setupSolidTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
 		static int setupWireframeTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
