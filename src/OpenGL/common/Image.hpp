@@ -58,6 +58,7 @@ bool IsUnsizedInternalFormat(GLint internalformat);
 GLenum GetBaseInternalFormat(GLint internalformat);
 GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
 GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format);
+GLsizei ComputePixelSize(GLenum format, GLenum type);
 size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei height, const PixelStorageModes &storageModes);
 
 }

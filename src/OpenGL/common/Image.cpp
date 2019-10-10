@@ -436,7 +436,7 @@ namespace gl
 
 	// Returns the size, in bytes, of a single client-side pixel.
     // OpenGL ES 3.0.5 table 3.2.
-	static int ComputePixelSize(GLenum format, GLenum type)
+	GLsizei ComputePixelSize(GLenum format, GLenum type)
 	{
 		switch(format)
 		{

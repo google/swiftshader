@@ -952,6 +952,84 @@ TEST_F(SwiftShaderTest, CopyTexImage)
 	Uninitialize();
 }
 
+// Tests copying to a texture from a pixel buffer object
+TEST_F(SwiftShaderTest, CopyTexImageFromPixelBuffer)
+{
+	Initialize(3, false);
+	const GLuint red   = 0xff0000ff;
+	const GLuint green = 0x00ff00ff;
+	const GLuint blue  = 0x0000ffff;
+	// Set up texture
+	GLuint texture = 0;
+	glGenTextures(1, &texture);
+	EXPECT_NO_GL_ERROR();
+	GLuint tex_data[4][4] = {
+		{red, red, red, red},
+		{red, red, red, red},
+		{red, red, red, red},
+		{red, red, red, red}
+	};
+	glBindTexture(GL_TEXTURE_2D, texture);
+	EXPECT_NO_GL_ERROR();
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *) tex_data[0]);
+	EXPECT_NO_GL_ERROR();
+	// Set up Pixel Buffer Object
+	GLuint pixelBuffer = 0;
+	glGenBuffers(1, &pixelBuffer);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
+	EXPECT_NO_GL_ERROR();
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 4);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	EXPECT_NO_GL_ERROR();
+	GLuint pixel_data[4][4] = {
+		{blue, blue, green, green},
+		{blue, blue, green, green},
+		{blue, blue, green, green},
+		{blue, blue, green, green},
+	};
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof(pixel_data), (void *) pixel_data, GL_STREAM_DRAW);
+	// Should set the 2-rightmost columns of the currently bound texture to the
+	// 2-rightmost columns of the PBO;
+	GLintptr offset = 2 * sizeof(GLuint);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 2, 0, 2, 4, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast<void *>(offset));
+	EXPECT_NO_GL_ERROR();
+	// Create an off-screen framebuffer to render the texture data to.
+	GLuint fbo = 0;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	EXPECT_NO_GL_ERROR();
+	unsigned int color[4][4] = {
+		{0, 0, 0, 0},
+		{0, 0, 0, 0},
+		{0, 0, 0, 0},
+		{0, 0, 0, 0}
+	};
+	glReadPixels(0, 0, 4, 4, GL_RGBA, GL_UNSIGNED_BYTE, &color);
+	EXPECT_NO_GL_ERROR();
+	bool allEqual = true;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			allEqual = allEqual && (color[i][j] == tex_data[i][j]);
+			allEqual = allEqual && (color[i][j+2] == pixel_data[i][j+2]);
+			if (!allEqual)
+				break;
+		}
+		if (!allEqual)
+			break;
+	}
+	EXPECT_EQ(allEqual, true);
+	// We can't use an offset of 3 GLuints or more, because the PBO is not large
+	// enough to satisfy such a request with the current GL_UNPACK_ROW_LENGTH.
+	offset = 3 * sizeof(GLuint);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 2, 0, 2, 4, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast<void *>(offset));
+	GLenum error = glGetError();
+	EXPECT_GLENUM_EQ(GL_INVALID_OPERATION, error);
+	Uninitialize();
+}
+
 // Tests reading of half-float textures.
 TEST_F(SwiftShaderTest, ReadHalfFloat)
 {
