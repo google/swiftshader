@@ -1105,6 +1105,91 @@ TEST(ReactorUnitTests, PointersEqual)
 	EXPECT_EQ(equal(&a, &c), 0);
 }
 
+TEST(ReactorUnitTests, Args_2Mixed)
+{
+	// 2 mixed type args
+	Function<Float(Int, Float)> function;
+	{
+		Int a = function.Arg<0>();
+		Float b = function.Arg<1>();
+		Return(Float(a) + b);
+	}
+
+	if (auto routine = function("one"))
+	{
+		auto callable = (float(*)(int, float))routine->getEntry();
+		float result = callable(1, 2.f);
+		EXPECT_EQ(result, 3.f);
+	}
+}
+
+TEST(ReactorUnitTests, Args_4Mixed)
+{
+	// 4 mixed type args (max register allocation on Windows)
+	Function<Float(Int, Float, Int, Float)> function;
+	{
+		Int a = function.Arg<0>();
+		Float b = function.Arg<1>();
+		Int c = function.Arg<2>();
+		Float d = function.Arg<3>();
+		Return(Float(a) + b + Float(c) + d);
+	}
+
+	if (auto routine = function("one"))
+	{
+		auto callable = (float(*)(int, float, int, float))routine->getEntry();
+		float result = callable(1, 2.f, 3, 4.f);
+		EXPECT_EQ(result, 10.f);
+	}
+}
+
+TEST(ReactorUnitTests, Args_5Mixed)
+{
+	// 5 mixed type args (5th spills over to stack on Windows)
+	Function<Float(Int, Float, Int, Float, Int)> function;
+	{
+		Int a = function.Arg<0>();
+		Float b = function.Arg<1>();
+		Int c = function.Arg<2>();
+		Float d = function.Arg<3>();
+		Int e = function.Arg<4>();
+		Return(Float(a) + b + Float(c) + d + Float(e));
+	}
+
+	if (auto routine = function("one"))
+	{
+		auto callable = (float(*)(int, float, int, float, int))routine->getEntry();
+		float result = callable(1, 2.f, 3, 4.f, 5);
+		EXPECT_EQ(result, 15.f);
+	}
+}
+
+TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
+{
+	// >5 mixed type args
+	Function<Float(Int, Float, Int, Float, Int, Float, Int, Float, Int, Float)> function;
+	{
+		Int a = function.Arg<0>();
+		Float b = function.Arg<1>();
+		Int c = function.Arg<2>();
+		Float d = function.Arg<3>();
+		Int e = function.Arg<4>();
+		Float f = function.Arg<5>();
+		Int g = function.Arg<6>();
+		Float h = function.Arg<7>();
+		Int i = function.Arg<8>();
+		Float j = function.Arg<9>();
+		Return(Float(a) + b + Float(c) + d + Float(e) + f + Float(g) + h + Float(i) + j);
+	}
+
+	if (auto routine = function("one"))
+	{
+		auto callable = (float(*)(int, float, int, float, int, float, int, float, int, float))routine->getEntry();
+		float result = callable(1, 2.f, 3, 4.f, 5, 6.f, 7, 8.f, 9, 10.f);
+		EXPECT_EQ(result, 55.f);
+	}
+}
+
 TEST(ReactorUnitTests, Call)
 {
 	if (!rr::Caps.CallSupported)
