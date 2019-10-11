@@ -1237,7 +1237,54 @@ TEST(ReactorUnitTests, Call)
 			EXPECT_EQ(c.f, 20.0f);
 		}
 	}
+}
 
+TEST(ReactorUnitTests, CallExternalCallRoutine)
+{
+	if (!rr::Caps.CallSupported)
+	{
+		SUCCEED() << "rr::Call() not supported";
+		return;
+	}
+
+	// routine1 calls Class::Func, passing it a pointer to routine2, and Class::Func calls routine2
+
+	auto routine2 = [] {
+		Function<Float(Float, Int)> function;
+		{
+			Float a = function.Arg<0>();
+			Int b = function.Arg<1>();
+			Return(a + Float(b));
+		}
+		return function("two");
+	}();
+
+	struct Class
+	{
+		static float Func(void* p, float a, int b)
+		{
+			auto funcToCall = reinterpret_cast<float(*)(float, int)>(p);
+			return funcToCall(a, b);
+		}
+	};
+
+	auto routine1 = [] {
+		Function<Float(Pointer<Byte>, Float, Int)> function;
+		{
+			Pointer<Byte> funcToCall = function.Arg<0>();
+			Float a = function.Arg<1>();
+			Int b = function.Arg<2>();
+			Float result = Call(Class::Func, funcToCall, a, b);
+			Return(result);
+		}
+		return function("one");
+	}();
+
+	auto callable2 = (float(*)(float, int))routine2->getEntry();
+	auto callable1 = (float(*)(void*, float, int))routine1->getEntry();
+
+	float result = callable1((void*)callable2, 12.f, 13);
+	EXPECT_EQ(result, 25.f);
 }
 
 // Check that a complex generated function which utilizes all 8 or 16 XMM
