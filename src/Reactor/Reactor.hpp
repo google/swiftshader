@@ -3225,6 +3225,14 @@ namespace rr
 		return CallHelper<Return(Arguments...)>::Call(fptr, args...);
 	}
 
+	// Calls the function pointer fptr with the given arguments args.
+	// Overload for calling functions with void return type.
+	template<typename ... Arguments>
+	inline void Call(void(fptr)(Arguments...), CToReactor<Arguments>... args)
+	{
+		CallHelper<void(Arguments...)>::Call(fptr, args...);
+	}
+
 	// Calls the function pointer fptr with the signature FUNCTION_SIGNATURE and
 	// arguments.
 	template<typename FUNCTION_SIGNATURE, typename ... Arguments>
