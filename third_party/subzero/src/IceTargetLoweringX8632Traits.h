@@ -509,7 +509,7 @@ public:
       (Trunc8RcvrRegisters)[Entry.Val] = Entry.IsTrunc8Rcvr;
       (AhRcvrRegisters)[Entry.Val] = Entry.IsAhRcvr;
       (*RegisterAliases)[Entry.Val].resize(RegisterSet::Reg_NUM);
-      for (int J = 0; J < Entry.NumAliases; J++) {
+      for (SizeT J = 0; J < Entry.NumAliases; J++) {
         SizeT Alias = Entry.Aliases[J];
         assert(!(*RegisterAliases)[Entry.Val][Alias] && "Duplicate alias");
         (*RegisterAliases)[Entry.Val].set(Alias);
@@ -730,7 +730,7 @@ public:
   /// representation of the vector.
   static Type getInVectorElementType(Type Ty) {
     assert(isVectorType(Ty));
-    assert(Ty < TableTypeX8632AttributesSize);
+    assert(static_cast<size_t>(Ty) < TableTypeX8632AttributesSize);
     return TableTypeX8632Attributes[Ty].InVectorElementType;
   }
 
@@ -785,7 +785,7 @@ public:
   /// @}
 
   static Cond::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
-    assert(Cond < TableIcmp32Size);
+    assert(static_cast<size_t>(Cond) < TableIcmp32Size);
     return TableIcmp32[Cond].Mapping;
   }
 

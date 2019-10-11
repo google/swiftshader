@@ -100,7 +100,7 @@ class GlobalContext {
     CodeStats() { reset(); }
     void reset() { Stats.fill(0); }
     void update(CSTag Tag, uint32_t Count = 1) {
-      assert(Tag < Stats.size());
+      assert(static_cast<SizeT>(Tag) < Stats.size());
       Stats[Tag] += Count;
     }
     void add(const CodeStats &Other) {
