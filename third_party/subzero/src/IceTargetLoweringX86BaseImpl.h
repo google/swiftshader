@@ -996,9 +996,9 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Stack frame layout:
   //
-  // +------------------------+
-  // | 1. return address      |
-  // +------------------------+
+  // +------------------------+  ^ +
+  // | 1. return address      |  |
+  // +------------------------+  v -
   // | 2. preserved registers |
   // +------------------------+ <--- BasePointer (if used)
   // | 3. padding             |
@@ -1010,6 +1010,8 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // | 6. local spill area    |
   // +------------------------+
   // | 7. padding             |
+  // +------------------------+
+  // | 7.5 shadow (WinX64)    |
   // +------------------------+
   // | 8. allocas             |
   // +------------------------+
@@ -1039,6 +1041,17 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // A middle ground approach is to leverage sparsity and allocate one block of
   // space on the frame for globals (variables with multi-block lifetime), and
   // one block to share for locals (single-block lifetime).
+
+  // The Microsoft x64 ABI requires the caller to allocate a minimum 32 byte
+  // "shadow store" (aka "home space") so that the callee may copy the 4
+  // register args to it.
+#if defined(SUBZERO_USE_MICROSOFT_ABI)
+	const SizeT ShadowStoreSize = Traits::Is64Bit ? 4 * typeWidthInBytes(Traits::WordType) : 0;
+#else
+	const SizeT ShadowStoreSize = 0;
+#endif
+
+  // StackPointer: points just past return address of calling function
 
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
@@ -1092,10 +1105,16 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   for (RegNumT RegNum : RegNumBVIter(Pushed)) {
     assert(RegNum == Traits::getBaseReg(RegNum));
     ++NumCallee;
-    PreservedRegsSizeBytes += typeWidthInBytes(Traits::WordType);
+    if (Traits::isXmm(RegNum)) {
+      PreservedRegsSizeBytes += 16;
+    } else {
+      PreservedRegsSizeBytes += typeWidthInBytes(Traits::WordType);
+    }
     _push_reg(RegNum);
   }
   Ctx->statsUpdateRegistersSaved(NumCallee);
+
+  // StackPointer: points past preserved registers at start of spill area
 
   // Generate "push frameptr; mov frameptr, stackptr"
   if (IsEbpBasedFrame) {
@@ -1148,19 +1167,28 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   if (PrologEmitsFixedAllocas)
     SpillAreaSizeBytes += FixedAllocaSizeBytes;
 
+  // Win64 ABI: add space for shadow store (aka home space)
+  SpillAreaSizeBytes += ShadowStoreSize;
+
   // Entering the function has made the stack pointer unaligned. Re-align it by
   // adjusting the stack size.
-  uint32_t StackOffset = Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
+  // Note that StackOffset does not include spill area. It's the offset from the
+  // base stack pointer (epb), whether we set it or not, to the the first stack
+  // arg (if any). StackSize, on the other hand, does include the spill area.
+  const uint32_t StackOffset =
+      ShadowStoreSize + Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
   uint32_t StackSize = Utils::applyAlignment(StackOffset + SpillAreaSizeBytes,
                                              RequiredStackAlignment);
   StackSize = Utils::applyAlignment(StackSize + maxOutArgsSizeBytes(),
                                     RequiredStackAlignment);
-  SpillAreaSizeBytes = StackSize - StackOffset;
+  SpillAreaSizeBytes = StackSize - StackOffset; // Adjust for alignment, if any
 
   if (SpillAreaSizeBytes) {
     // Generate "sub stackptr, SpillAreaSizeBytes"
     _sub_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
   }
+
+  // StackPointer: points just past the spill area (end of stack frame)
 
   // If the required alignment is greater than the stack pointer's guaranteed
   // alignment, align the stack pointer accordingly.
@@ -1169,6 +1197,8 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
     _and(getPhysicalRegister(getStackReg(), Traits::WordType),
          Ctx->getConstantInt32(-RequiredStackAlignment));
   }
+
+  // StackPointer: may have just been offset for alignment
 
   // Account for known-frame-offset alloca instructions that were not already
   // combined into the prolog.
@@ -1182,8 +1212,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Arg[0] is closest to the stack/frame pointer.
   RegNumT FrameOrStackReg = IsEbpBasedFrame ? getFrameReg() : getStackReg();
   Variable *FramePtr = getPhysicalRegister(FrameOrStackReg, Traits::WordType);
-  size_t BasicFrameOffset =
-      PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
+  size_t BasicFrameOffset = StackOffset;
   if (!IsEbpBasedFrame)
     BasicFrameOffset += SpillAreaSizeBytes;
 
@@ -1193,22 +1222,26 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   size_t InArgsSizeBytes = 0;
   unsigned NumXmmArgs = 0;
   unsigned NumGPRArgs = 0;
-  for (Variable *Arg : Args) {
+  for (SizeT i = 0, NumArgs = Args.size(); i < NumArgs; ++i) {
+    Variable *Arg = Args[i];
     // Skip arguments passed in registers.
     if (isVectorType(Arg->getType())) {
-      if (Traits::getRegisterForXmmArgNum(NumXmmArgs).hasValue()) {
+      if (Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
+              .hasValue()) {
         ++NumXmmArgs;
         continue;
       }
     } else if (isScalarFloatingType(Arg->getType())) {
       if (Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-          Traits::getRegisterForXmmArgNum(NumXmmArgs).hasValue()) {
+          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs))
+              .hasValue()) {
         ++NumXmmArgs;
         continue;
       }
     } else {
       assert(isScalarIntegerType(Arg->getType()));
-      if (Traits::getRegisterForGprArgNum(Traits::WordType, NumGPRArgs)
+      if (Traits::getRegisterForGprArgNum(Traits::WordType,
+                                          Traits::getArgIndex(i, NumGPRArgs))
               .hasValue()) {
         ++NumGPRArgs;
         continue;
@@ -1551,7 +1584,8 @@ void TargetX86Base<TraitsType>::lowerArguments() {
     Variable *RegisterArg = nullptr;
     RegNumT RegNum;
     if (isVectorType(Ty)) {
-      RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
+      RegNum =
+          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs));
       if (RegNum.hasNoValue()) {
         XmmSlotsRemain = false;
         continue;
@@ -1562,7 +1596,8 @@ void TargetX86Base<TraitsType>::lowerArguments() {
       if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
         continue;
       }
-      RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
+      RegNum =
+          Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, NumXmmArgs));
       if (RegNum.hasNoValue()) {
         XmmSlotsRemain = false;
         continue;
@@ -1570,7 +1605,8 @@ void TargetX86Base<TraitsType>::lowerArguments() {
       ++NumXmmArgs;
       RegisterArg = Func->makeVariable(Ty);
     } else if (isScalarIntegerType(Ty)) {
-      RegNum = Traits::getRegisterForGprArgNum(Ty, NumGprArgs);
+      RegNum = Traits::getRegisterForGprArgNum(
+          Ty, Traits::getArgIndex(i, NumGprArgs));
       if (RegNum.hasNoValue()) {
         GprSlotsRemain = false;
         continue;
@@ -2617,11 +2653,14 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
                                             Traits::X86_STACK_ALIGNMENT_BYTES);
 
-  using OperandList =
-      llvm::SmallVector<Operand *, constexprMax(Traits::X86_MAX_XMM_ARGS,
-                                                Traits::X86_MAX_GPR_ARGS)>;
+  constexpr SizeT MaxOperands =
+      constexprMax(Traits::X86_MAX_XMM_ARGS, Traits::X86_MAX_GPR_ARGS);
+  using OperandList = llvm::SmallVector<Operand *, MaxOperands>;
+
   OperandList XmmArgs;
+  llvm::SmallVector<SizeT, MaxOperands> XmmArgIndices;
   CfgVector<std::pair<const Type, Operand *>> GprArgs;
+  CfgVector<SizeT> GprArgIndices;
   OperandList StackArgs, StackArgLocations;
   uint32_t ParameterAreaSizeBytes = 0;
 
@@ -2633,14 +2672,22 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
     if (isVectorType(Ty) &&
-        Traits::getRegisterForXmmArgNum(XmmArgs.size()).hasValue()) {
+        Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, XmmArgs.size()))
+            .hasValue()) {
       XmmArgs.push_back(Arg);
+      XmmArgIndices.push_back(i);
     } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               Traits::getRegisterForXmmArgNum(XmmArgs.size()).hasValue()) {
+               Traits::getRegisterForXmmArgNum(
+                   Traits::getArgIndex(i, XmmArgs.size()))
+                   .hasValue()) {
       XmmArgs.push_back(Arg);
+      XmmArgIndices.push_back(i);
     } else if (isScalarIntegerType(Ty) &&
-               Traits::getRegisterForGprArgNum(Ty, GprArgs.size()).hasValue()) {
+               Traits::getRegisterForGprArgNum(
+                   Ty, Traits::getArgIndex(i, GprArgs.size()))
+                   .hasValue()) {
       GprArgs.emplace_back(Ty, Arg);
+      GprArgIndices.push_back(i);
     } else {
       // Place on stack.
       StackArgs.push_back(Arg);
@@ -2678,16 +2725,18 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   }
   // Copy arguments to be passed in registers to the appropriate registers.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    XmmArgs[i] =
-        legalizeToReg(legalize(XmmArgs[i]), Traits::getRegisterForXmmArgNum(i));
+    XmmArgs[i] = legalizeToReg(legalize(XmmArgs[i]),
+                               Traits::getRegisterForXmmArgNum(
+                                   Traits::getArgIndex(XmmArgIndices[i], i)));
   }
   // Materialize moves for arguments passed in GPRs.
   for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
     const Type SignatureTy = GprArgs[i].first;
     Operand *Arg =
         legalize(GprArgs[i].second, Legal_Default | Legal_Rematerializable);
-    GprArgs[i].second =
-        legalizeToReg(Arg, Traits::getRegisterForGprArgNum(Arg->getType(), i));
+    GprArgs[i].second = legalizeToReg(
+        Arg, Traits::getRegisterForGprArgNum(
+                 Arg->getType(), Traits::getArgIndex(GprArgIndices[i], i)));
     assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
     assert(SignatureTy == Arg->getType());
     (void)SignatureTy;

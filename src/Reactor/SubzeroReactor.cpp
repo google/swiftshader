@@ -160,7 +160,7 @@ namespace rr
 {
 	const Capabilities Caps =
 	{
-		false, // CallSupported
+		true, // CallSupported
 		false, // CoroutinesSupported
 	};
 
