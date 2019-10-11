@@ -315,9 +315,9 @@ namespace rr
 			case R_386_32:
 				*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite);
 				break;
-		//	case R_386_PC32:
-		//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite);
-		//		break;
+			case R_386_PC32:
+				*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite);
+				break;
 			default:
 				ASSERT(false && "Unsupported relocation type");
 				return nullptr;
@@ -3487,7 +3487,14 @@ namespace rr
 
 	RValue<Pointer<Byte>> ConstantPointer(void const * ptr)
 	{
-		return RValue<Pointer<Byte>>(V(::context->getConstantInt64(reinterpret_cast<intptr_t>(ptr))));
+		if (sizeof(void*) == 8)
+		{
+			return RValue<Pointer<Byte>>(V(::context->getConstantInt64(reinterpret_cast<intptr_t>(ptr))));
+		}
+		else
+		{
+			return RValue<Pointer<Byte>>(V(::context->getConstantInt32(reinterpret_cast<intptr_t>(ptr))));
+		}
 	}
 
 	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
