@@ -69,6 +69,8 @@ public:
 	uint32_t getQueueFamilyPropertyCount() const;
 	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
 	                              VkQueueFamilyProperties* pQueueFamilyProperties) const;
+	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
+	                              VkQueueFamilyProperties2* pQueueFamilyProperties) const;
 	const VkPhysicalDeviceMemoryProperties& getMemoryProperties() const;
 
 private:

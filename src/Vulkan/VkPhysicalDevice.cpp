@@ -785,6 +785,20 @@ void PhysicalDevice::getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount
 	}
 }
 
+void PhysicalDevice::getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
+                                              VkQueueFamilyProperties2* pQueueFamilyProperties) const
+{
+	for(uint32_t i = 0; i < pQueueFamilyPropertyCount; i++)
+	{
+		pQueueFamilyProperties[i].queueFamilyProperties.minImageTransferGranularity.width = 1;
+		pQueueFamilyProperties[i].queueFamilyProperties.minImageTransferGranularity.height = 1;
+		pQueueFamilyProperties[i].queueFamilyProperties.minImageTransferGranularity.depth = 1;
+		pQueueFamilyProperties[i].queueFamilyProperties.queueCount = 1;
+		pQueueFamilyProperties[i].queueFamilyProperties.queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
+		pQueueFamilyProperties[i].queueFamilyProperties.timestampValidBits = 0; // No support for time stamps
+	}
+}
+
 const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() const
 {
 	static const VkPhysicalDeviceMemoryProperties properties
