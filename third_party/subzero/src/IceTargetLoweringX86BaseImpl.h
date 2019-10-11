@@ -986,8 +986,17 @@ TargetX86Base<TraitsType>::stackVarToAsmOperand(const Variable *Var) const {
   }
   int32_t Offset = Var->getStackOffset();
   auto BaseRegNum = Var->getBaseRegNum();
-  if (Var->getBaseRegNum().hasNoValue())
-    BaseRegNum = getFrameOrStackReg();
+  if (Var->getBaseRegNum().hasNoValue()) {
+    // If the stack pointer needs alignment, we must use the frame pointer for
+    // arguments. For locals, getFrameOrStackReg will return the stack pointer
+    // in this case.
+    if (needsStackPointerAlignment() && Var->getIsArg()) {
+      assert(hasFramePointer());
+      BaseRegNum = getFrameReg();
+    } else {
+      BaseRegNum = getFrameOrStackReg();
+    }
+  }
   return X86Address(Traits::getEncodedGPR(BaseRegNum), Offset,
                     AssemblerFixup::NoFixup);
 }
