@@ -38,9 +38,6 @@
 // VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) instead.
 //
 
-namespace linux
-{
-
 // A process-shared semaphore implementation that can be stored in
 // a process-shared memory region. It also includes a reference count to
 // ensure it is only destroyed when the last reference to it is dropped.
@@ -129,8 +126,6 @@ private:
 	int ref_count = 1;
 	bool signaled = false;
 };
-
-}  // namespace linux
 
 namespace vk
 {
@@ -226,10 +221,10 @@ private:
 		{
 			ABORT("mmap() failed: %s", strerror(errno));
 		}
-		semaphore = reinterpret_cast<linux::SharedSemaphore *>(addr);
+		semaphore = reinterpret_cast<SharedSemaphore *>(addr);
 		if (needInitialization)
 		{
-			new (semaphore) linux::SharedSemaphore();
+			new (semaphore) SharedSemaphore();
 		}
 		else
 		{
@@ -237,8 +232,8 @@ private:
 		}
 	}
 
-	linux::MemFd memfd;
-	linux::SharedSemaphore* semaphore = nullptr;
+	LinuxMemFd memfd;
+	SharedSemaphore* semaphore = nullptr;
 };
 
 }  // namespace vk
