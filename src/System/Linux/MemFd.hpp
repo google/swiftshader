@@ -22,18 +22,15 @@
 // supported by the Linux kernel since 3.17 (good enough for Android and desktop
 // Linux).
 
-namespace linux
-{
-
-class MemFd {
+class LinuxMemFd {
 public:
-	MemFd() = default;
+	LinuxMemFd() = default;
 
-	MemFd(const char* name, size_t size) : MemFd() {
+	LinuxMemFd(const char* name, size_t size) : LinuxMemFd() {
 		allocate(name, size);
 	}
 
-	~MemFd();
+	~LinuxMemFd();
 
 	// Return true iff the region is valid/allocated.
 	bool isValid() const { return fd_ >= 0; }
@@ -67,7 +64,5 @@ public:
 private:
 	int fd_ = -1;
 };
-
-}  // namespace linux
 
 #endif  // MEMFD_LINUX

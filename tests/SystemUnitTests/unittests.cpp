@@ -26,14 +26,14 @@ using namespace sw;
 
 #ifdef __linux__
 TEST(MemFd, DefaultConstructor) {
-	linux::MemFd memfd;
+	LinuxMemFd memfd;
 	ASSERT_FALSE(memfd.isValid());
 	ASSERT_EQ(-1, memfd.exportFd());
 }
 
 TEST(MemFd, AllocatingConstructor) {
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
-	linux::MemFd memfd("test-region", kRegionSize);
+	LinuxMemFd memfd("test-region", kRegionSize);
 	ASSERT_TRUE(memfd.isValid());
 	ASSERT_GE(memfd.fd(), 0);
 	void* addr = memfd.mapReadWrite(0, kRegionSize);
@@ -43,7 +43,7 @@ TEST(MemFd, AllocatingConstructor) {
 
 TEST(MemFd, ExplicitAllocation) {
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
-	linux::MemFd memfd;
+	LinuxMemFd memfd;
 	ASSERT_FALSE(memfd.isValid());
 	ASSERT_EQ(-1, memfd.exportFd());
 	ASSERT_TRUE(memfd.allocate("test-region", kRegionSize));
@@ -52,7 +52,7 @@ TEST(MemFd, ExplicitAllocation) {
 
 TEST(MemFd, Close) {
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
-	linux::MemFd memfd("test-region", kRegionSize);
+	LinuxMemFd memfd("test-region", kRegionSize);
 	ASSERT_TRUE(memfd.isValid());
 	int fd = memfd.exportFd();
 	memfd.close();
@@ -63,7 +63,7 @@ TEST(MemFd, Close) {
 
 TEST(MemFd, ExportImportFd) {
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
-	linux::MemFd memfd("test-region1", kRegionSize);
+	LinuxMemFd memfd("test-region1", kRegionSize);
 	auto* addr = reinterpret_cast<uint8_t*>(memfd.mapReadWrite(0, kRegionSize));
 	ASSERT_TRUE(addr);
 	for (size_t n = 0; n < kRegionSize; ++n)
@@ -74,7 +74,7 @@ TEST(MemFd, ExportImportFd) {
 	ASSERT_TRUE(memfd.unmap(addr, kRegionSize));
 	memfd.close();
 
-	linux::MemFd memfd2;
+	LinuxMemFd memfd2;
 	memfd2.importFd(fd);
 	ASSERT_TRUE(memfd2.isValid());
 	addr = reinterpret_cast<uint8_t*>(memfd2.mapReadWrite(0, kRegionSize));

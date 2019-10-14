@@ -37,21 +37,18 @@
 #define __NR_memfd_create 319
 #endif /* __NR_memfd_create__ */
 
-namespace linux
-{
-
-MemFd::~MemFd()
+LinuxMemFd::~LinuxMemFd()
 {
 	close();
 }
 
-void MemFd::importFd(int fd)
+void LinuxMemFd::importFd(int fd)
 {
 	close();
 	fd_ = fd;
 }
 
-int MemFd::exportFd() const
+int LinuxMemFd::exportFd() const
 {
 	if (fd_ < 0)
 	{
@@ -62,7 +59,7 @@ int MemFd::exportFd() const
 	return ::fcntl(fd_, F_DUPFD_CLOEXEC, 0);
 }
 
-bool MemFd::allocate(const char* name, size_t size)
+bool LinuxMemFd::allocate(const char* name, size_t size)
 {
 	close();
 
@@ -89,7 +86,7 @@ bool MemFd::allocate(const char* name, size_t size)
 	return true;
 }
 
-void MemFd::close()
+void LinuxMemFd::close()
 {
 	if (fd_ >= 0)
 	{
@@ -97,23 +94,21 @@ void MemFd::close()
 		// https://lwn.net/Articles/576478/ for example.
 		int ret = ::close(fd_);
 		if (ret < 0) {
-			TRACE("MemFd::close() failed with: %s", strerror(errno));
+			TRACE("LinuxMemFd::close() failed with: %s", strerror(errno));
 			assert(false);
 		}
 		fd_ = -1;
 	}
 }
 
-void* MemFd::mapReadWrite(size_t offset, size_t size)
+void* LinuxMemFd::mapReadWrite(size_t offset, size_t size)
 {
 	void* addr = ::mmap(nullptr, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd_,
 						static_cast<off_t>(offset));
 	return (addr == MAP_FAILED) ? nullptr : addr;
 }
 
-bool MemFd::unmap(void* addr, size_t size)
+bool LinuxMemFd::unmap(void* addr, size_t size)
 {
 	return ::munmap(addr, size) == 0;
 }
-
-}  // namespace linux
