@@ -1107,8 +1107,11 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	ASSERT_NE(-1, positive_value);
 	GLint negative_value = glGetUniformLocation(ph.program, "negative_value");
 	ASSERT_NE(-1, negative_value);
-	glUniform1f(positive_value,  1.0);
-	glUniform1f(negative_value, -1.0);
+
+	float value = 1.0f;
+	glUniform1fv(positive_value, 1, &value);
+	value = -1.0f;
+	glUniform1fv(negative_value, 1, &value);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
