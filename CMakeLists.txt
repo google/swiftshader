@@ -105,6 +105,7 @@ option(DCHECK_ALWAYS_ON "Check validation macros even in release builds" 0)
 option(REACTOR_EMIT_DEBUG_INFO "Emit debug info for JIT functions" 0)
 option(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location info for JIT functions" 0)
 option(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" 0)
+option(LESS_DEBUG_INFO "Generate less debug info to reduce file size" 0)
 
 set(BUILD_MARL ${BUILD_VULKAN})
 
@@ -400,9 +401,16 @@ else()
         set_cpp_flag("-fPIC")
     endif()
 
-    # Use -g3 to have even more debug info
-    set_cpp_flag("-g -g3" DEBUG)
-    set_cpp_flag("-g -g3" RELWITHDEBINFO)
+    if(LESS_DEBUG_INFO)
+        # Use -g1 to be able to get stack traces
+        set_cpp_flag("-g -g1" DEBUG)
+        set_cpp_flag("-g -g1" RELWITHDEBINFO)
+    else()
+        # Use -g3 to have even more debug info
+        set_cpp_flag("-g -g3" DEBUG)
+        set_cpp_flag("-g -g3" RELWITHDEBINFO)
+    endif()
+
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # Treated as an unused argument with clang
         set_cpp_flag("-s" RELEASE)
