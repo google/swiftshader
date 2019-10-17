@@ -151,6 +151,7 @@ namespace sw
 
 		VkPrimitiveTopology topology;
 		VkIndexType indexType;
+		VkLineRasterizationModeEXT lineRasterizationMode;
 
 		std::shared_ptr<Routine> vertexRoutine;
 		std::shared_ptr<Routine> setupRoutine;

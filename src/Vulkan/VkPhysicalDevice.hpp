@@ -43,6 +43,7 @@ public:
 	void getFeatures(VkPhysicalDeviceMultiviewFeatures* features) const;
 	void getFeatures(VkPhysicalDeviceProtectedMemoryFeatures* features) const;
 	void getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures* features) const;
+	void getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT* features) const;
 	bool hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const;
 
 	const VkPhysicalDeviceProperties& getProperties() const;
@@ -61,6 +62,7 @@ public:
 	void getProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties) const;
 	void getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;
 	void getProperties(VkPhysicalDeviceDriverPropertiesKHR* properties) const;
+	void getProperties(VkPhysicalDeviceLineRasterizationPropertiesEXT* properties) const;
 
 	void getFormatProperties(Format format, VkFormatProperties* pFormatProperties) const;
 	void getImageFormatProperties(Format format, VkImageType type, VkImageTiling tiling,

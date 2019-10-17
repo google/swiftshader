@@ -217,6 +217,8 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 	// Only 1.1 core version of this is supported. The extension has additional requirements
 	//{ VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME, VK_KHR_VARIABLE_POINTERS_SPEC_VERSION },
 	{ VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME, VK_EXT_QUEUE_FAMILY_FOREIGN_SPEC_VERSION },
+	// The following extension is only used to add support for Bresenham lines
+	{ VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME, VK_EXT_LINE_RASTERIZATION_SPEC_VERSION },
 #ifndef __ANDROID__
 	// We fully support the KHR_swapchain v70 additions, so just track the spec version.
 	{ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_SPEC_VERSION },
@@ -578,6 +580,18 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				const VkPhysicalDeviceShaderDrawParametersFeatures* shaderDrawParametersFeatures = reinterpret_cast<const VkPhysicalDeviceShaderDrawParametersFeatures*>(extensionCreateInfo);
 
 				if (shaderDrawParametersFeatures->shaderDrawParameters)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
+			{
+				const VkPhysicalDeviceLineRasterizationFeaturesEXT* lineRasterizationFeatures = reinterpret_cast<const VkPhysicalDeviceLineRasterizationFeaturesEXT*>(extensionCreateInfo);
+				if((lineRasterizationFeatures->smoothLines == VK_TRUE) ||
+				   (lineRasterizationFeatures->stippledBresenhamLines == VK_TRUE) ||
+				   (lineRasterizationFeatures->stippledRectangularLines == VK_TRUE) ||
+				   (lineRasterizationFeatures->stippledSmoothLines == VK_TRUE))
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}
@@ -2387,6 +2401,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 				vk::Cast(physicalDevice)->getFeatures(&features);
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+			}
+			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
 			ASSERT(!HasExtensionProperty(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME, deviceExtensionProperties,
 										 sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
@@ -2477,6 +2497,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 			}
 			break;
 #endif
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+			}
+			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionProperties->sType");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.

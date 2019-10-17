@@ -134,6 +134,16 @@ void PhysicalDevice::getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures* fe
 	features->shaderDrawParameters = VK_FALSE;
 }
 
+void PhysicalDevice::getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT* features) const
+{
+	features->rectangularLines = VK_TRUE;
+    features->bresenhamLines = VK_TRUE;
+    features->smoothLines = VK_FALSE;
+    features->stippledRectangularLines = VK_FALSE;
+    features->stippledBresenhamLines = VK_FALSE;
+    features->stippledSmoothLines = VK_FALSE;
+}
+
 VkSampleCountFlags PhysicalDevice::getSampleCounts() const
 {
 	return VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT;
@@ -377,6 +387,11 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR* properti
 	strcpy(properties->driverName, "SwiftShader driver");
 	strcpy(properties->driverInfo, "");
 	properties->conformanceVersion = {1, 1, 3, 3};
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceLineRasterizationPropertiesEXT* properties) const
+{
+	properties->lineSubPixelPrecisionBits = vk::SUBPIXEL_PRECISION_BITS;
 }
 
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const

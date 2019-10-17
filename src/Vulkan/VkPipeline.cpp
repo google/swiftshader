@@ -397,6 +397,25 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	context.depthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
 	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
 
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(rasterizationState->pNext);
+	while(extensionCreateInfo)
+	{
+		switch(extensionCreateInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
+		{
+			const VkPipelineRasterizationLineStateCreateInfoEXT* lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT*>(extensionCreateInfo);
+			context.lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
+		}
+		break;
+		default:
+			UNIMPLEMENTED("extensionCreateInfo->sType");
+			break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
+	}
+
 	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
 	{

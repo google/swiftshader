@@ -97,6 +97,7 @@ namespace sw
 		VkCullModeFlags cullMode;
 		VkFrontFace frontFace;
 		VkPolygonMode polygonMode;
+		VkLineRasterizationModeEXT lineRasterizationMode;
 
 		float depthBias;
 		float slopeDepthBias;
