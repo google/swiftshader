@@ -128,7 +128,7 @@ void MacOSSurfaceMVK::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceC
     pSurfaceCapabilities->maxImageExtent = extent;
 }
 
-void MacOSSurfaceMVK::present(PresentImage* image)
+VkResult MacOSSurfaceMVK::present(PresentImage* image)
 {
     auto drawable = metalLayer->getNextDrawable();
     if(drawable)
@@ -140,6 +140,7 @@ void MacOSSurfaceMVK::present(PresentImage* image)
                           bytesPerRow:image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0)];
         [drawable present];
     }
+    return VK_SUCCESS;
 }
 
 }

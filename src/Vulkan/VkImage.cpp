@@ -733,6 +733,11 @@ void Image::blit(Image* dstImage, const VkImageBlit& region, VkFilter filter) co
 	device->getBlitter()->blit(this, dstImage, region, filter);
 }
 
+void Image::blitToBuffer(VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t* dst, int bufferRowPitch, int bufferSlicePitch) const
+{
+	device->getBlitter()->blitToBuffer(this, subresource, offset, extent, dst, bufferRowPitch, bufferSlicePitch);
+}
+
 void Image::resolve(Image* dstImage, const VkImageResolve& region) const
 {
 	VkImageBlit blitRegion;

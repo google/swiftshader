@@ -41,15 +41,20 @@ public:
 
 	virtual void attachImage(PresentImage* image) override;
 	virtual void detachImage(PresentImage* image) override;
-	void present(PresentImage* image) override;
+	VkResult present(PresentImage* image) override;
 
 private:
+	void lazyCreateFrameBuffer();
+	void destroyFrameBuffer();
+
 	const HWND hwnd;
 
 	HDC windowContext = {};
 	HDC bitmapContext = {};
+	VkExtent2D windowExtent = {};
 
 	HBITMAP bitmap = {};
+	int bitmapRowPitch = 0;
 	void *framebuffer = nullptr;
 };
 

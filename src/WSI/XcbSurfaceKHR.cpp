@@ -139,7 +139,7 @@ void XcbSurfaceKHR::detachImage(PresentImage* image)
 	}
 }
 
-void XcbSurfaceKHR::present(PresentImage* image)
+VkResult XcbSurfaceKHR::present(PresentImage* image)
 {
 	auto it = graphicsContexts.find(image);
 	if(it != graphicsContexts.end())
@@ -167,6 +167,8 @@ void XcbSurfaceKHR::present(PresentImage* image)
 
 		libXcb->xcb_flush(connection);
 	}
+
+	return VK_SUCCESS;
 }
 
 }

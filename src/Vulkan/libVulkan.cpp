@@ -2927,9 +2927,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentI
 	TRACE("(VkQueue queue = %p, const VkPresentInfoKHR* pPresentInfo = %p)",
 			queue, pPresentInfo);
 
-	vk::Cast(queue)->present(pPresentInfo);
-
-	return VK_SUCCESS;
+	return vk::Cast(queue)->present(pPresentInfo);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkAcquireNextImage2KHR(VkDevice device, const VkAcquireNextImageInfoKHR *pAcquireInfo, uint32_t *pImageIndex)

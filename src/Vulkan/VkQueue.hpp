@@ -55,7 +55,7 @@ public:
 	VkResult submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence* fence);
 	VkResult waitIdle();
 #ifndef __ANDROID__
-	void present(const VkPresentInfoKHR* presentInfo);
+	VkResult present(const VkPresentInfoKHR* presentInfo);
 #endif
 
 private:

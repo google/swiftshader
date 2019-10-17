@@ -46,7 +46,7 @@ public:
 
 	VkResult getNextImage(uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* pImageIndex);
 
-	void present(uint32_t index);
+	VkResult present(uint32_t index);
 	PresentImage const &getImage(uint32_t imageIndex) { return images[imageIndex]; }
 
 private:

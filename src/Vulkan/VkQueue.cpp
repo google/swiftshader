@@ -213,7 +213,7 @@ void Queue::garbageCollect()
 }
 
 #ifndef __ANDROID__
-void Queue::present(const VkPresentInfoKHR* presentInfo)
+VkResult Queue::present(const VkPresentInfoKHR* presentInfo)
 {
 	// This is a hack to deal with screen tearing for now.
 	// Need to correctly implement threading using VkSemaphore
@@ -227,8 +227,12 @@ void Queue::present(const VkPresentInfoKHR* presentInfo)
 
 	for(uint32_t i = 0; i < presentInfo->swapchainCount; i++)
 	{
-		vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
+		VkResult result = vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
+		if (result != VK_SUCCESS)
+			return result;
 	}
+
+	return VK_SUCCESS;
 }
 #endif
 

@@ -35,7 +35,7 @@ public:
 
     virtual void attachImage(PresentImage* image) override {}
     virtual void detachImage(PresentImage* image) override {}
-    void present(PresentImage* image) override;
+    VkResult present(PresentImage* image) override;
 
 private:
     MetalLayer* metalLayer = nullptr;

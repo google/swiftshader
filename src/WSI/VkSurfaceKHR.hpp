@@ -90,7 +90,7 @@ public:
 
 	virtual void attachImage(PresentImage* image) = 0;
 	virtual void detachImage(PresentImage* image) = 0;
-	virtual void present(PresentImage* image) = 0;
+	virtual VkResult present(PresentImage* image) = 0;
 
 	void associateSwapchain(SwapchainKHR* swapchain);
 	void disassociateSwapchain();

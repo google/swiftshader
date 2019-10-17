@@ -82,7 +82,7 @@ void XlibSurfaceKHR::detachImage(PresentImage* image)
 	}
 }
 
-void XlibSurfaceKHR::present(PresentImage* image)
+VkResult XlibSurfaceKHR::present(PresentImage* image)
 {
 	auto it = imageMap.find(image);
 	if(it != imageMap.end())
@@ -95,6 +95,8 @@ void XlibSurfaceKHR::present(PresentImage* image)
 			libX11->XPutImage(pDisplay, window, gc, xImage, 0, 0, 0, 0, extent.width, extent.height);
 		}
 	}
+
+	return VK_SUCCESS;
 }
 
 }
