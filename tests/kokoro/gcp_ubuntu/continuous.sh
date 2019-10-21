@@ -3,7 +3,7 @@
 cd git/SwiftShader
 
 # Validate commit message
-git log -1 --pretty=%B | grep -E '^Bug:|^Issue:|^Regres:'
+git log -1 --pretty=%B | grep -E '^Bug:|^Issue:|^Fixes:|^Regres:'
 
 if [ $? -ne 0 ]
 then
