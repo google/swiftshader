@@ -68,7 +68,7 @@ namespace sw
 			return;
 		}
 
-		State state(format, dstFormat, 1, dest->getSampleCountFlagBits(), { 0xF });
+		State state(format, dstFormat, 1, dest->getSampleCountFlagBits(), Options{ 0xF });
 		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
 		{
@@ -1328,7 +1328,7 @@ namespace sw
 		bool srcSRGB = state.sourceFormat.isSRGBformat();
 		bool dstSRGB = state.destFormat.isSRGBformat();
 
-		if(state.convertSRGB && ((srcSRGB && !preScaled) || dstSRGB))   // One of the formats is sRGB encoded.
+		if(state.allowSRGBConversion && ((srcSRGB && !preScaled) || dstSRGB))   // One of the formats is sRGB encoded.
 		{
 			value *= preScaled ? Float4(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z, 1.0f / scale.w) : // Unapply scale
 			                     Float4(1.0f / unscale.x, 1.0f / unscale.y, 1.0f / unscale.z, 1.0f / unscale.w); // Apply unscale
@@ -1503,7 +1503,7 @@ namespace sw
 
 							if(state.srcSamples > 1) // Resolve multisampled source
 							{
-								if(state.convertSRGB && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
+								if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
 								{
 									ApplyScaleAndClamp(color, state);
 									preScaled = true;
@@ -1514,7 +1514,7 @@ namespace sw
 									s += *Pointer<Int>(blit + OFFSET(BlitData, sSliceB));
 									color = readFloat4(s, state);
 
-									if(state.convertSRGB && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
+									if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
 									{
 										ApplyScaleAndClamp(color, state);
 										preScaled = true;
@@ -1556,7 +1556,7 @@ namespace sw
 							Float4 c10 = readFloat4(s10, state);
 							Float4 c11 = readFloat4(s11, state);
 
-							if(state.convertSRGB && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
+							if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
 							{
 								ApplyScaleAndClamp(c00, state);
 								ApplyScaleAndClamp(c01, state);
@@ -1623,7 +1623,7 @@ namespace sw
 		auto aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 		auto format = src->getFormat(aspect);
 		State state(format, format.getNonQuadLayoutFormat(), VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
-					{false, false});
+					Options{false, false});
 
 		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
@@ -1689,7 +1689,7 @@ namespace sw
 		auto aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 		auto format = dst->getFormat(aspect);
 		State state(format.getNonQuadLayoutFormat(), format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
-					{false, false});
+					Options{false, false});
 
 		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
@@ -1789,9 +1789,17 @@ namespace sw
 		float x0 = region.srcOffsets[0].x + (0.5f - region.dstOffsets[0].x) * widthRatio;
 		float y0 = region.srcOffsets[0].y + (0.5f - region.dstOffsets[0].y) * heightRatio;
 
+		auto srcFormat = src->getFormat(srcAspect);
+		auto dstFormat = dst->getFormat(dstAspect);
+
 		bool doFilter = (filter != VK_FILTER_NEAREST);
+		bool allowSRGBConversion =
+			doFilter ||
+			(src->getSampleCountFlagBits() > 1) ||
+			(srcFormat.isSRGBformat() != dstFormat.isSRGBformat());
+
 		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), src->getSampleCountFlagBits(), dst->getSampleCountFlagBits(),
-		            { doFilter, doFilter || (src->getSampleCountFlagBits() > 1) });
+		            Options{ doFilter, allowSRGBConversion });
 		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
 		                    (region.srcOffsets[0].y < 0) ||
 		                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||
@@ -1987,7 +1995,7 @@ namespace sw
 		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceLayers.aspectMask);
 		vk::Format format = image->getFormat(aspect);
 		VkSampleCountFlagBits samples = image->getSampleCountFlagBits();
-		State state(format, format, samples, samples, { 0xF });
+		State state(format, format, samples, samples, Options{ 0xF });
 
 		if(samples != VK_SAMPLE_COUNT_1_BIT)
 		{

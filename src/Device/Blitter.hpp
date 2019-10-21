@@ -35,11 +35,11 @@ namespace sw
 	{
 		struct Options
 		{
-			Options() = default;
-			Options(bool filter, bool convertSRGB)
-				: writeMask(0xF), clearOperation(false), filter(filter), convertSRGB(convertSRGB), clampToEdge(false) {}
-			Options(unsigned int writeMask)
-				: writeMask(writeMask), clearOperation(true), filter(false), convertSRGB(true), clampToEdge(false) {}
+			explicit Options() = default;
+			explicit Options(bool filter, bool allowSRGBConversion)
+				: writeMask(0xF), clearOperation(false), filter(filter), allowSRGBConversion(allowSRGBConversion), clampToEdge(false) {}
+			explicit Options(unsigned int writeMask)
+				: writeMask(writeMask), clearOperation(true), filter(false), allowSRGBConversion(true), clampToEdge(false) {}
 
 			union
 			{
@@ -56,7 +56,7 @@ namespace sw
 
 			bool clearOperation : 1;
 			bool filter : 1;
-			bool convertSRGB : 1;
+			bool allowSRGBConversion : 1;
 			bool clampToEdge : 1;
 		};
 
