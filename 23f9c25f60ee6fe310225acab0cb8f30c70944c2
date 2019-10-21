@@ -16,6 +16,24 @@
       "revId": "23f9c25f60ee6fe310225acab0cb8f30c70944c2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e872e97_3fe91fb2",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-10-21T16:16:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9e0ac355_97c9534d",
+      "revId": "23f9c25f60ee6fe310225acab0cb8f30c70944c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
