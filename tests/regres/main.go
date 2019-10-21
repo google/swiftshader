@@ -26,6 +26,8 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -35,6 +37,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -64,12 +67,12 @@ const (
 	dailyUpdateTestListHour = 5                // 5am
 	fullTestListRelPath     = "tests/regres/full-tests.json"
 	ciTestListRelPath       = "tests/regres/ci-tests.json"
+	deqpConfigRelPath       = "tests/regres/deqp.json"
 )
 
 var (
 	numParallelTests = runtime.NumCPU()
 
-	deqpPath      = flag.String("deqp", "", "path to the deqp build directory")
 	cacheDir      = flag.String("cache", "cache", "path to the output cache directory")
 	gerritEmail   = flag.String("email", "$SS_REGRES_EMAIL", "gerrit email address for posting regres results")
 	gerritUser    = flag.String("user", "$SS_REGRES_USER", "gerrit username for posting regres results")
@@ -92,7 +95,6 @@ func main() {
 	shell.MaxProcMemory = *maxProcMemory
 
 	r := regres{
-		deqpBuild:     *deqpPath,
 		cacheRoot:     *cacheDir,
 		gerritEmail:   os.ExpandEnv(*gerritEmail),
 		gerritUser:    os.ExpandEnv(*gerritUser),
@@ -110,9 +112,9 @@ func main() {
 }
 
 type regres struct {
-	deqpBuild     string // path to the build directory of deqp
-	cmake         string // path to cmake
-	make          string // path to make
+	cmake         string // path to cmake executable
+	make          string // path to make executable
+	python        string // path to python executable
 	cacheRoot     string // path to the regres cache directory
 	gerritEmail   string // gerrit email address used for posting results
 	gerritUser    string // gerrit username used for posting results
@@ -128,7 +130,6 @@ type regres struct {
 // expands them to absolute paths.
 func (r *regres) resolveDirs() error {
 	allDirs := []*string{
-		&r.deqpBuild,
 		&r.cacheRoot,
 	}
 
@@ -162,6 +163,7 @@ func (r *regres) resolveExes() error {
 	for _, e := range []exe{
 		{"cmake", &r.cmake},
 		{"make", &r.make},
+		{"python", &r.python},
 	} {
 		path, err := exec.LookPath(e.name)
 		if err != nil {
@@ -293,35 +295,128 @@ func (r *regres) run() error {
 }
 
 func (r *regres) test(change *changeInfo) (string, error) {
+	latest := r.newTest(change.latest)
+	defer latest.cleanup()
+
+	deqp, err := r.getOrBuildDEQP(latest)
+	if err != nil {
+		return "", cause.Wrap(err, "Failed to build dEQP '%v' for change", change.id)
+	}
+
+	if err := latest.checkout(); err != nil {
+		return "", cause.Wrap(err, "Failed to checkout '%s'", change.latest)
+	}
+
 	log.Printf("Testing latest patchset for change '%s'\n", change.id)
-	latest, testlists, err := r.testLatest(change)
+	latestResults, testlists, err := r.testLatest(change, latest, deqp)
 	if err != nil {
 		return "", cause.Wrap(err, "Failed to test latest change of '%v'", change.id)
 	}
 
 	log.Printf("Testing parent of change '%s'\n", change.id)
-	parent, err := r.testParent(change, testlists)
+	parentResults, err := r.testParent(change, testlists, deqp)
 	if err != nil {
 		return "", cause.Wrap(err, "Failed to test parent change of '%v'", change.id)
 	}
 
 	log.Println("Comparing latest patchset's results with parent")
-	msg := compare(parent, latest)
+	msg := compare(parentResults, latestResults)
 
 	return msg, nil
 }
 
-var additionalTestsRE = regexp.MustCompile(`\n\s*Test[s]?:\s*([^\s]+)[^\n]*`)
+type deqp struct {
+	path string // path to deqp directory
+	hash string // hash of the deqp config
+}
 
-func (r *regres) testLatest(change *changeInfo) (*CommitTestResults, testlist.Lists, error) {
-	// Get the test results for the latest patchset in the change.
-	test := r.newTest(change.latest)
-	defer test.cleanup()
+func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
+	srcDir := test.srcDir
+	if !isFile(path.Join(srcDir, deqpConfigRelPath)) {
+		srcDir, _ = os.Getwd()
+		log.Println("Couldn't open dEQP config file from change, falling back to internal version")
+	}
+	file, err := os.Open(path.Join(srcDir, deqpConfigRelPath))
+	if err != nil {
+		return deqp{}, cause.Wrap(err, "Couldn't open dEQP config file")
+	}
+	defer file.Close()
 
-	if err := test.checkout(); err != nil {
-		return nil, nil, cause.Wrap(err, "Failed to checkout '%s'", change.latest)
+	cfg := struct {
+		Remote  string   `json:"remote"`
+		SHA     string   `json:"sha"`
+		Patches []string `json:"patches"`
+	}{}
+	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
+		return deqp{}, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
 	}
 
+	hasher := sha1.New()
+	if err := json.NewEncoder(hasher).Encode(&cfg); err != nil {
+		return deqp{}, cause.Wrap(err, "Couldn't re-encode %s", deqpConfigRelPath)
+	}
+	hash := hex.EncodeToString(hasher.Sum(nil))
+	cacheDir := path.Join(r.cacheRoot, "deqp", hash)
+	buildDir := path.Join(cacheDir, "build")
+	if !isDir(cacheDir) {
+		if err := os.MkdirAll(cacheDir, 0777); err != nil {
+			return deqp{}, cause.Wrap(err, "Couldn't make deqp cache directory '%s'", cacheDir)
+		}
+
+		success := false
+		defer func() {
+			if !success {
+				os.RemoveAll(cacheDir)
+			}
+		}()
+
+		log.Printf("Checking out deqp %s @ %s into %s\n", cfg.Remote, cfg.SHA, cacheDir)
+		if err := git.Checkout(cacheDir, cfg.Remote, git.ParseHash(cfg.SHA)); err != nil {
+			return deqp{}, cause.Wrap(err, "Couldn't build deqp %s @ %s", cfg.Remote, cfg.SHA)
+		}
+
+		log.Println("Fetching deqp dependencies")
+		if err := shell.Shell(buildTimeout, r.python, cacheDir, "external/fetch_sources.py"); err != nil {
+			return deqp{}, cause.Wrap(err, "Couldn't fetch deqp sources %s @ %s", cfg.Remote, cfg.SHA)
+		}
+
+		log.Println("Applying deqp patches")
+		for _, patch := range cfg.Patches {
+			fullPath := path.Join(srcDir, patch)
+			if err := git.Apply(cacheDir, fullPath); err != nil {
+				return deqp{}, cause.Wrap(err, "Couldn't apply deqp patch %s for %s @ %s", patch, cfg.Remote, cfg.SHA)
+			}
+		}
+
+		log.Printf("Building deqp into %s\n", buildDir)
+		if err := os.MkdirAll(buildDir, 0777); err != nil {
+			return deqp{}, cause.Wrap(err, "Couldn't make deqp cache directory '%s'", cacheDir)
+		}
+
+		if err := shell.Shell(buildTimeout, r.cmake, buildDir,
+			"-DDEQP_TARGET=x11_egl",
+			"-DCMAKE_BUILD_TYPE=Release",
+			".."); err != nil {
+			return deqp{}, cause.Wrap(err, "Couldn't generate build rules for deqp %s @ %s", cfg.Remote, cfg.SHA)
+		}
+
+		if err := shell.Shell(buildTimeout, r.make, buildDir, fmt.Sprintf("-j%d", runtime.NumCPU())); err != nil {
+			return deqp{}, cause.Wrap(err, "Couldn't build deqp %s @ %s", cfg.Remote, cfg.SHA)
+		}
+
+		success = true
+	}
+
+	return deqp{
+		path: cacheDir,
+		hash: hash,
+	}, nil
+}
+
+var additionalTestsRE = regexp.MustCompile(`\n\s*Test[s]?:\s*([^\s]+)[^\n]*`)
+
+func (r *regres) testLatest(change *changeInfo, test *test, d deqp) (*CommitTestResults, testlist.Lists, error) {
+	// Get the test results for the latest patchset in the change.
 	testlists, err := test.loadTestLists(ciTestListRelPath)
 	if err != nil {
 		return nil, nil, cause.Wrap(err, "Failed to load '%s'", change.latest)
@@ -350,14 +445,14 @@ func (r *regres) testLatest(change *changeInfo) (*CommitTestResults, testlist.Li
 		}
 	}
 
-	cachePath := test.resultsCachePath(testlists)
+	cachePath := test.resultsCachePath(testlists, d)
 
 	if results, err := loadCommitTestResults(cachePath); err == nil {
 		return results, testlists, nil // Use cached results
 	}
 
 	// Build the change and test it.
-	results := test.buildAndRun(testlists)
+	results := test.buildAndRun(testlists, d)
 
 	// Cache the results for future tests
 	if err := results.save(cachePath); err != nil {
@@ -367,12 +462,12 @@ func (r *regres) testLatest(change *changeInfo) (*CommitTestResults, testlist.Li
 	return results, testlists, nil
 }
 
-func (r *regres) testParent(change *changeInfo, testlists testlist.Lists) (*CommitTestResults, error) {
+func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp) (*CommitTestResults, error) {
 	// Get the test results for the changes's parent changelist.
 	test := r.newTest(change.parent)
 	defer test.cleanup()
 
-	cachePath := test.resultsCachePath(testlists)
+	cachePath := test.resultsCachePath(testlists, d)
 
 	if results, err := loadCommitTestResults(cachePath); err == nil {
 		return results, nil // Use cached results
@@ -384,7 +479,7 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists) (*Comm
 	}
 
 	// Build the parent change and test it.
-	results := test.buildAndRun(testlists)
+	results := test.buildAndRun(testlists, d)
 
 	// Store the results of the parent change to the cache.
 	if err := results.save(cachePath); err != nil {
@@ -411,6 +506,11 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 		return cause.Wrap(err, "Failed to checkout '%s'", headHash)
 	}
 
+	d, err := r.getOrBuildDEQP(test)
+	if err != nil {
+		return cause.Wrap(err, "Failed to build deqp for '%s'", headHash)
+	}
+
 	// Load the test lists.
 	testLists, err := test.loadTestLists(fullTestListRelPath)
 	if err != nil {
@@ -423,7 +523,7 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 	}
 
 	// Run the tests on the change.
-	results, err := test.run(testLists)
+	results, err := test.run(testLists, d)
 	if err != nil {
 		return cause.Wrap(err, "Failed to test '%s'", headHash)
 	}
@@ -708,7 +808,7 @@ func (t *test) checkout() error {
 
 // buildAndRun calls t.build() followed by t.run(). Errors are logged and
 // reported in the returned CommitTestResults.Error field.
-func (t *test) buildAndRun(testLists testlist.Lists) *CommitTestResults {
+func (t *test) buildAndRun(testLists testlist.Lists, d deqp) *CommitTestResults {
 	// Build the parent change.
 	if err := t.build(); err != nil {
 		msg := fmt.Sprintf("Failed to build '%s'", t.commit)
@@ -717,7 +817,7 @@ func (t *test) buildAndRun(testLists testlist.Lists) *CommitTestResults {
 	}
 
 	// Run the tests on the parent change.
-	results, err := t.run(testLists)
+	results, err := t.run(testLists, d)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to test change '%s'", t.commit)
 		log.Println(cause.Wrap(err, msg))
@@ -752,7 +852,7 @@ func (t *test) build() error {
 }
 
 // run runs all the tests.
-func (t *test) run(testLists testlist.Lists) (*CommitTestResults, error) {
+func (t *test) run(testLists testlist.Lists, d deqp) (*CommitTestResults, error) {
 	log.Printf("Running tests for '%s'\n", t.commit)
 
 	outDir := filepath.Join(t.srcDir, "out")
@@ -778,13 +878,13 @@ func (t *test) run(testLists testlist.Lists) (*CommitTestResults, error) {
 		var exe string
 		switch list.API {
 		case testlist.EGL:
-			exe = filepath.Join(t.r.deqpBuild, "modules", "egl", "deqp-egl")
+			exe = filepath.Join(d.path, "build", "modules", "egl", "deqp-egl")
 		case testlist.GLES2:
-			exe = filepath.Join(t.r.deqpBuild, "modules", "gles2", "deqp-gles2")
+			exe = filepath.Join(d.path, "build", "modules", "gles2", "deqp-gles2")
 		case testlist.GLES3:
-			exe = filepath.Join(t.r.deqpBuild, "modules", "gles3", "deqp-gles3")
+			exe = filepath.Join(d.path, "build", "modules", "gles3", "deqp-gles3")
 		case testlist.Vulkan:
-			exe = filepath.Join(t.r.deqpBuild, "external", "vulkancts", "modules", "vulkan", "deqp-vk")
+			exe = filepath.Join(d.path, "build", "external", "vulkancts", "modules", "vulkan", "deqp-vk")
 		default:
 			return nil, fmt.Errorf("Unknown API '%v'", list.API)
 		}
@@ -887,9 +987,9 @@ func (t *test) writeTestListsByStatus(testLists testlist.Lists, results *CommitT
 }
 
 // resultsCachePath returns the path to the cache results file for the given
-// test and testlists.
-func (t *test) resultsCachePath(testLists testlist.Lists) string {
-	return filepath.Join(t.resDir, testLists.Hash())
+// test, testlists and path to deqp.
+func (t *test) resultsCachePath(testLists testlist.Lists, d deqp) string {
+	return filepath.Join(t.resDir, testLists.Hash(), d.hash)
 }
 
 // CommitTestResults holds the results the tests across all APIs for a given

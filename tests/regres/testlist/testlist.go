@@ -84,9 +84,7 @@ func (l Lists) Hash() string {
 	if err := gob.NewEncoder(h).Encode(l); err != nil {
 		panic(cause.Wrap(err, "Could not encode testlist to produce hash"))
 	}
-	var hash [20]byte
-	copy(hash[:], h.Sum(nil))
-	return hex.EncodeToString(hash[:])
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // Load loads the test list json file and returns the full set of tests.

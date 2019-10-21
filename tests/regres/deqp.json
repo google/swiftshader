@@ -1,0 +1,7 @@
+{
+    "remote": "git@gitlab.khronos.org:Tracker/vk-gl-cts.git",
+    "sha": "76a2b81e0ca86a65a927892ee4340bc6685e86b3",
+    "patches": [
+        "tests/regres/deqp-patches/deqp-x11.patch"
+    ]
+}

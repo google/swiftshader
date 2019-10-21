@@ -120,7 +120,7 @@ func Checkout(path, url string, commit Hash) error {
 	for _, cmds := range [][]string{
 		{"init"},
 		{"remote", "add", "origin", url},
-		{"fetch", "origin", commit.String()},
+		{"fetch", "origin", "--depth=1", commit.String()},
 		{"checkout", commit.String()},
 	} {
 		if err := shell.Shell(gitTimeout, exe, path, cmds...); err != nil {
@@ -130,6 +130,11 @@ func Checkout(path, url string, commit Hash) error {
 	}
 
 	return nil
+}
+
+// Apply applys the patch file to the git repo at dir.
+func Apply(dir, patch string) error {
+	return shell.Shell(gitTimeout, exe, dir, "apply", patch)
 }
 
 // FetchRefHash returns the git hash of the given ref.

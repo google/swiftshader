@@ -1,0 +1,39 @@
+diff --git a/.gitignore b/.gitignore
+index d6c5c502b..d22bff565 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,3 +8,4 @@
+ !.editorconfig
+ !.travis.yml
+ !.github
++/build/
+\ No newline at end of file
+diff --git a/framework/platform/lnx/X11/tcuLnxX11.cpp b/framework/platform/lnx/X11/tcuLnxX11.cpp
+index dfe09d060..b4493e431 100644
+--- a/framework/platform/lnx/X11/tcuLnxX11.cpp
++++ b/framework/platform/lnx/X11/tcuLnxX11.cpp
+@@ -24,6 +24,7 @@
+ #include "tcuLnxX11.hpp"
+ #include "gluRenderConfig.hpp"
+ #include "deMemory.h"
++#include "deThread.hpp"
+ 
+ #include <X11/Xutil.h>
+ 
+@@ -80,10 +81,14 @@ XlibDisplay::XlibDisplay (EventState& eventState, const char* name)
+ 	//     a multi-threaded program calls, and it must complete before any other
+ 	//     Xlib call is made.
+ 	DE_CHECK_RUNTIME_ERR(XInitThreads() != 0);
+-	m_display = XOpenDisplay((char*)name); // Won't modify argument string.
++	for (int i = 0; i < 10; i++) {
++		m_display = XOpenDisplay((char*)name); // Won't modify argument string.
++		if (m_display)
++			break;
++		deSleep(100*(1+i));
++	}
+ 	if (!m_display)
+ 		throw ResourceError("Failed to open display", name, __FILE__, __LINE__);
+-
+ 	m_deleteAtom	= XInternAtom(m_display, "WM_DELETE_WINDOW", False);
+ }
+ 
