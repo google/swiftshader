@@ -33,6 +33,11 @@
 #pragma clang diagnostic ignored "-Wextra-semi"
 #endif  // defined(__clang__)
 
+#ifdef _MSC_VER
+__pragma(warning(push))
+__pragma(warning(disable : 4146)) // unary minus operator applied to unsigned type, result still unsigned
+#endif
+
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JITSymbol.h"
@@ -66,6 +71,10 @@
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif // defined(__clang__)
+
+#ifdef _MSC_VER
+__pragma(warning(pop))
+#endif
 
 #define ARGS(...) {__VA_ARGS__}
 #define CreateCall2 CreateCall

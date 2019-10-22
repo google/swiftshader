@@ -131,7 +131,7 @@ void Win32SurfaceKHR::lazyCreateFrameBuffer()
 	bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFO);
 	bitmapInfo.bmiHeader.biBitCount = 32;
 	bitmapInfo.bmiHeader.biPlanes = 1;
-	bitmapInfo.bmiHeader.biHeight = -windowExtent.height;
+	bitmapInfo.bmiHeader.biHeight = -static_cast<LONG>(windowExtent.height); // Negative for top-down DIB, origin in upper-left corner
 	bitmapInfo.bmiHeader.biWidth = windowExtent.width;
 	bitmapInfo.bmiHeader.biCompression = BI_RGB;
 

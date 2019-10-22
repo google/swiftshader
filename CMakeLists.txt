@@ -323,7 +323,6 @@ if(MSVC)
         "/wd4018" # 'expression' : signed/unsigned mismatch
         "/wd4065" # switch statement contains 'default' but no 'case' labels
         "/wd4141" # 'modifier' : used more than once
-        "/wd4146" # unary minus operator applied to unsigned type, result still unsigned
         "/wd4244" # 'conversion' conversion from 'type1' to 'type2', possible loss of data
         "/wd4267" # 'var' : conversion from 'size_t' to 'type', possible loss of data
         "/wd4291" # 'void X new(size_t,unsigned int,unsigned int)': no matching operator delete found; memory will not be freed if initialization throws an exception
@@ -1559,6 +1558,7 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
 
     if(WIN32)
         list(APPEND SUBZERO_COMPILE_OPTIONS
+            "/wd4146" # unary minus operator applied to unsigned type, result still unsigned
             "/wd4334" # ''operator' : result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
             "/wd4996" # The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: new_name.
         )
