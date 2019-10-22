@@ -2832,6 +2832,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateWin32SurfaceKHR(VkInstance instance, cons
 
 	return vk::Win32SurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
 }
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceWin32PresentationSupportKHR(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t queueFamilyIndex = %d)",
+		physicalDevice, queueFamilyIndex);
+	return VK_TRUE;
+}
 #endif
 
 #ifndef __ANDROID__

@@ -106,6 +106,7 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	// VK_KHR_win32_surface
 	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateWin32SurfaceKHR),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceWin32PresentationSupportKHR),
 #endif
 };
 #undef MAKE_VULKAN_INSTANCE_ENTRY
