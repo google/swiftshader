@@ -1453,7 +1453,12 @@ namespace sw
 
 					if(hasConstantColorI)
 					{
-						write(constantColorI, d, state);
+						for(int s = 0; s < state.destSamples; s++)
+						{
+							write(constantColorI, d, state);
+
+							d += *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
+						}
 					}
 					else if(hasConstantColorF)
 					{
@@ -1479,7 +1484,12 @@ namespace sw
 
 						// When both formats are true integer types, we don't go to float to avoid losing precision
 						Int4 color = readInt4(s, state);
-						write(color, d, state);
+						for(int s = 0; s < state.destSamples; s++)
+						{
+							write(color, d, state);
+
+							d += *Pointer<Int>(blit + OFFSET(BlitData,dSliceB));
+						}
 					}
 					else
 					{
