@@ -33,6 +33,28 @@ namespace sw
 	public:
 		struct States : Memset<States>
 		{
+			// Same as VkStencilOpState, but with no reference, as it's not part of the state
+			// (it doesn't require a different program to be generated)
+			struct StencilOpState
+			{
+				VkStencilOp    failOp;
+				VkStencilOp    passOp;
+				VkStencilOp    depthFailOp;
+				VkCompareOp    compareOp;
+				uint32_t       compareMask;
+				uint32_t       writeMask;
+
+				void operator=(const VkStencilOpState &rhs)
+				{
+					failOp = rhs.failOp;
+					passOp = rhs.passOp;
+					depthFailOp = rhs.depthFailOp;
+					compareOp = rhs.compareOp;
+					compareMask = rhs.compareMask;
+					writeMask = rhs.writeMask;
+				}
+			};
+
 			States() : Memset(this, 0) {}
 
 			uint32_t computeHash();
@@ -44,8 +66,8 @@ namespace sw
 			bool quadLayoutDepthBuffer;
 
 			bool stencilActive;
-			VkStencilOpState frontStencil;
-			VkStencilOpState backStencil;
+			StencilOpState frontStencil;
+			StencilOpState backStencil;
 
 			bool depthTestActive;
 			bool occlusionEnabled;

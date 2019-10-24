@@ -67,7 +67,7 @@ namespace sw
 		Float4 interpolateCentroid(Float4 &x, Float4 &y, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
 		void stencilTest(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &cMask);
 		void stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, bool isBack);
-		void stencilOperation(Byte8 &newValue, Byte8 &bufferValue, VkStencilOpState const &ops, bool isBack, Int &zMask, Int &sMask);
+		void stencilOperation(Byte8 &newValue, Byte8 &bufferValue, PixelProcessor::States::StencilOpState const &ops, bool isBack, Int &zMask, Int &sMask);
 		void stencilOperation(Byte8 &output, Byte8 &bufferValue, VkStencilOp operation, bool isBack);
 		Bool depthTest(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
 

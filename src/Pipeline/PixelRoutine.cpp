@@ -749,7 +749,7 @@ namespace sw
 		*Pointer<Byte4>(buffer) = Byte4(newValue);
 	}
 
-	void PixelRoutine::stencilOperation(Byte8 &newValue, Byte8 &bufferValue, VkStencilOpState const &ops, bool isBack, Int &zMask, Int &sMask)
+	void PixelRoutine::stencilOperation(Byte8 &newValue, Byte8 &bufferValue, PixelProcessor::States::StencilOpState const &ops, bool isBack, Int &zMask, Int &sMask)
 	{
 		Byte8 &pass = newValue;
 		Byte8 fail;
