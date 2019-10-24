@@ -1718,7 +1718,10 @@ namespace sw
 			bufferSlicePitch, // sSliceB
 			dst->slicePitchBytes(aspect, subresource.mipLevel), // dSliceB
 
-			0, 0, 1, 1,
+			static_cast<float>(-offset.x), // x0
+			static_cast<float>(-offset.y), // y0
+			1.0f, // w
+			1.0f, // h
 
 			offset.y, // y0d
 			static_cast<int>(offset.y + extent.height), // y1d
