@@ -40,6 +40,17 @@ swiftshader_source_set("WSI") {
     ]
   }
 
+  if (is_mac) {
+    sources += [
+      "MacOSSurfaceMVK.mm",
+      "MacOSSurfaceMVK.h"
+    ]
+    libs = [
+      "Cocoa.framework",
+      "QuartzCore.framework",
+    ]
+  }
+
   include_dirs = [
     "..",
     "../../include",

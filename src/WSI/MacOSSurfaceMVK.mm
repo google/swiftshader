@@ -25,7 +25,7 @@ namespace vk {
 class MetalLayer
 {
 public:
-    void init(const void* pView)
+    void init(const void* pView) API_AVAILABLE(macosx(10.11))
     {
         view = nullptr;
         layer = nullptr;
@@ -53,7 +53,7 @@ public:
         }
     }
 
-    void release()
+    void release() API_AVAILABLE(macosx(10.11))
     {
         if(layer)
         {
@@ -66,7 +66,7 @@ public:
         }
     }
 
-    VkExtent2D getExtent() const
+    VkExtent2D getExtent() const API_AVAILABLE(macosx(10.11))
     {
         if(layer)
         {
@@ -82,7 +82,7 @@ public:
         }
     }
 
-    id<CAMetalDrawable> getNextDrawable() const
+    id<CAMetalDrawable> getNextDrawable() const API_AVAILABLE(macosx(10.11))
     {
         if(layer)
         {
@@ -94,16 +94,16 @@ public:
 
 private:
     NSView* view;
-    CAMetalLayer* layer;
+    CAMetalLayer* layer API_AVAILABLE(macosx(10.11));
 };
 
-MacOSSurfaceMVK::MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem) :
+MacOSSurfaceMVK::MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem) API_AVAILABLE(macosx(10.11)) :
     metalLayer(reinterpret_cast<MetalLayer*>(mem))
 {
     metalLayer->init(pCreateInfo->pView);
 }
 
-void MacOSSurfaceMVK::destroySurface(const VkAllocationCallbacks *pAllocator)
+void MacOSSurfaceMVK::destroySurface(const VkAllocationCallbacks *pAllocator) API_AVAILABLE(macosx(10.11))
 {
     if(metalLayer)
     {
@@ -113,12 +113,12 @@ void MacOSSurfaceMVK::destroySurface(const VkAllocationCallbacks *pAllocator)
     vk::deallocate(metalLayer, pAllocator);
 }
 
-size_t MacOSSurfaceMVK::ComputeRequiredAllocationSize(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo)
+size_t MacOSSurfaceMVK::ComputeRequiredAllocationSize(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo) API_AVAILABLE(macosx(10.11))
 {
     return sizeof(MetalLayer);
 }
 
-void MacOSSurfaceMVK::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
+void MacOSSurfaceMVK::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const API_AVAILABLE(macosx(10.11))
 {
     SurfaceKHR::getSurfaceCapabilities(pSurfaceCapabilities);
 
@@ -128,7 +128,7 @@ void MacOSSurfaceMVK::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceC
     pSurfaceCapabilities->maxImageExtent = extent;
 }
 
-VkResult MacOSSurfaceMVK::present(PresentImage* image)
+VkResult MacOSSurfaceMVK::present(PresentImage* image) API_AVAILABLE(macosx(10.11))
 {
     auto drawable = metalLayer->getNextDrawable();
     if(drawable)
