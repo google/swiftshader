@@ -222,7 +222,7 @@ namespace sw
 		}
 	}
 
-	Float4 PixelRoutine::interpolateCentroid(Float4 &x, Float4 &y, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
+	Float4 PixelRoutine::interpolateCentroid(const Float4 &x, const Float4 &y, const Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
 	{
 		Float4 interpolant = *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation,C), 16);
 
@@ -240,7 +240,7 @@ namespace sw
 		return interpolant;
 	}
 
-	void PixelRoutine::stencilTest(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &cMask)
+	void PixelRoutine::stencilTest(const Pointer<Byte> &sBuffer, int q, const Int &x, Int &sMask, const Int &cMask)
 	{
 		if(!state.stencilActive)
 		{
@@ -326,7 +326,7 @@ namespace sw
 		}
 	}
 
-	Bool PixelRoutine::depthTest32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
+	Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
 	{
 		Float4 Z = z;
 
@@ -422,7 +422,7 @@ namespace sw
 		return zMask != 0;
 	}
 
-	Bool PixelRoutine::depthTest16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
+	Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
 	{
 		Short4 Z = convertFixed16(z, true);
 
@@ -522,7 +522,7 @@ namespace sw
 		return zMask != 0;
 	}
 
-	Bool PixelRoutine::depthTest(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
+	Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask)
 	{
 		if(!state.depthTestActive)
 		{
@@ -535,7 +535,7 @@ namespace sw
 			return depthTest32F(zBuffer, q, x, z, sMask, zMask, cMask);
 	}
 
-	void PixelRoutine::alphaToCoverage(Int cMask[4], Float4 &alpha)
+	void PixelRoutine::alphaToCoverage(Int cMask[4], const Float4 &alpha)
 	{
 		Int4 coverage0 = CmpNLT(alpha, *Pointer<Float4>(data + OFFSET(DrawData,a2c0)));
 		Int4 coverage1 = CmpNLT(alpha, *Pointer<Float4>(data + OFFSET(DrawData,a2c1)));
@@ -553,7 +553,7 @@ namespace sw
 		cMask[3] &= aMask3;
 	}
 
-	void PixelRoutine::writeDepth32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
+	void PixelRoutine::writeDepth32F(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
 	{
 		Float4 Z = z;
 
@@ -612,7 +612,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
+	void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
 	{
 		Short4 Z = As<Short4>(convertFixed16(z, true));
 
@@ -673,7 +673,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
+	void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
 	{
 		if(!state.depthWriteEnable)
 		{
@@ -686,7 +686,7 @@ namespace sw
 			writeDepth32F(zBuffer, q, x, z, zMask);
 	}
 
-	void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &zMask, Int &cMask)
+	void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, int q, const Int &x, const Int &sMask, const Int &zMask, const Int &cMask)
 	{
 		if(!state.stencilActive)
 		{
@@ -749,7 +749,7 @@ namespace sw
 		*Pointer<Byte4>(buffer) = Byte4(newValue);
 	}
 
-	void PixelRoutine::stencilOperation(Byte8 &newValue, Byte8 &bufferValue, PixelProcessor::States::StencilOpState const &ops, bool isBack, Int &zMask, Int &sMask)
+	void PixelRoutine::stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask)
 	{
 		Byte8 &pass = newValue;
 		Byte8 fail;
@@ -782,7 +782,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::stencilOperation(Byte8 &output, Byte8 &bufferValue, VkStencilOp operation, bool isBack)
+	void PixelRoutine::stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkStencilOp operation, bool isBack)
 	{
 		switch(operation)
 		{
@@ -951,7 +951,7 @@ namespace sw
 		return vk::Format(state.targetFormat[index]).isSRGBformat();
 	}
 
-	void PixelRoutine::readPixel(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel)
+	void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &pixel)
 	{
 		Short4 c01;
 		Short4 c23;
@@ -1104,7 +1104,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::alphaBlend(int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x)
+	void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s &current, const Int &x)
 	{
 		if(!state.blendState[index].alphaBlendEnable)
 		{
@@ -1223,7 +1223,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::writeColor(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &current, Int &sMask, Int &zMask, Int &cMask)
+	void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &current, const Int &sMask, const Int &zMask, const Int &cMask)
 	{
 		if(isSRGB(index))
 		{
@@ -1830,7 +1830,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::alphaBlend(int index, Pointer<Byte> &cBuffer, Vector4f &oC, Int &x)
+	void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f &oC, const Int &x)
 	{
 		if(!state.blendState[index].alphaBlendEnable)
 		{
@@ -2042,7 +2042,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::writeColor(int index, Pointer<Byte> &cBuffer, Int &x, Vector4f &oC, Int &sMask, Int &zMask, Int &cMask)
+	void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4f &oC, const Int &sMask, const Int &zMask, const Int &cMask)
 	{
 		switch(state.targetFormat[index])
 		{
@@ -2607,7 +2607,7 @@ namespace sw
 		}
 	}
 
-	UShort4 PixelRoutine::convertFixed16(Float4 &cf, bool saturate)
+	UShort4 PixelRoutine::convertFixed16(const Float4 &cf, bool saturate)
 	{
 		return UShort4(cf * Float4(0xFFFF), saturate);
 	}

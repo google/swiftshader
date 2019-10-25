@@ -50,45 +50,45 @@ namespace sw
 
 		void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) override;
 
-		void alphaTest(Int &aMask, Short4 &alpha);
-		void alphaToCoverage(Int cMask[4], Float4 &alpha);
+		void alphaTest(Int &aMask, const Short4 &alpha);
+		void alphaToCoverage(Int cMask[4], const Float4 &alpha);
 
 		// Raster operations
-		void alphaBlend(int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x);
-		void writeColor(int index, Pointer<Byte> &cBuffer, Int &i, Vector4s &current, Int &sMask, Int &zMask, Int &cMask);
-		void alphaBlend(int index, Pointer<Byte> &cBuffer, Vector4f &oC, Int &x);
-		void writeColor(int index, Pointer<Byte> &cBuffer, Int &i, Vector4f &oC, Int &sMask, Int &zMask, Int &cMask);
+		void alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s &current, const Int &x);
+		void writeColor(int index, const Pointer<Byte> &cBuffer, const Int& x, Vector4f& oC, const Int& sMask, const Int& zMask, const Int& cMask);
+		void alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f &oC, const Int &x);
+		void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &current, const Int &sMask, const Int &zMask, const Int &cMask);
 
 		bool isSRGB(int index) const;
-		UShort4 convertFixed16(Float4 &cf, bool saturate = true);
+		UShort4 convertFixed16(const Float4 &cf, bool saturate = true);
 		void linearToSRGB12_16(Vector4s &c);
 
 	private:
-		Float4 interpolateCentroid(Float4 &x, Float4 &y, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
-		void stencilTest(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &cMask);
+		Float4 interpolateCentroid(const Float4 &x, const Float4 &y, const Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
+		void stencilTest(const Pointer<Byte> &sBuffer, int q, const Int &x, Int &sMask, const Int &cMask);
 		void stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, bool isBack);
-		void stencilOperation(Byte8 &newValue, Byte8 &bufferValue, PixelProcessor::States::StencilOpState const &ops, bool isBack, Int &zMask, Int &sMask);
-		void stencilOperation(Byte8 &output, Byte8 &bufferValue, VkStencilOp operation, bool isBack);
-		Bool depthTest(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
+		void stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask);
+		void stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkStencilOp operation, bool isBack);
+		Bool depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask);
 
 		// Raster operations
 		void blendFactor(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, VkBlendFactor blendFactorActive);
 		void blendFactorAlpha(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, VkBlendFactor blendFactorAlphaActive);
-		void readPixel(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel);
+		void readPixel(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &pixel);
 		void blendFactor(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, VkBlendFactor blendFactorActive);
 		void blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, VkBlendFactor blendFactorAlphaActive);
-		void writeStencil(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &zMask, Int &cMask);
-		void writeDepth(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
+		void writeStencil(Pointer<Byte> &sBuffer, int q, const Int &x, const Int &sMask, const Int &zMask, const Int &cMask);
+		void writeDepth(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);
 
 		void sRGBtoLinear16_12_16(Vector4s &c);
 		void linearToSRGB16_12_16(Vector4s &c);
 		Float4 sRGBtoLinear(const Float4 &x);
 
-		Bool depthTest32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
-		Bool depthTest16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
+		Bool depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask);
+		Bool depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &sMask, Int &zMask, const Int &cMask);
 
-		void writeDepth32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
-		void writeDepth16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
+		void writeDepth32F(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);
+		void writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask);
 	};
 }
 
