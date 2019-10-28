@@ -1136,11 +1136,13 @@ EGLBoolean EGLAPIENTRY SwapBuffers(EGLDisplay dpy, EGLSurface surface)
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = (egl::Surface*)surface;
 
-	RecursiveLockGuard lock(egl::getDisplayLock(display));
-
-	if(!validateSurface(display, eglSurface))
 	{
-		return EGL_FALSE;
+		RecursiveLockGuard lock(egl::getDisplayLock(display));
+
+		if(!validateSurface(display, eglSurface))
+		{
+			return EGL_FALSE;
+		}
 	}
 
 	if(surface == EGL_NO_SURFACE)
