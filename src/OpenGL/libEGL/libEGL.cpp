@@ -37,6 +37,11 @@ namespace egl
 {
 namespace
 {
+sw::RecursiveLock *getDisplayLock(egl::Display *display) {
+	if (!display) return nullptr;
+	return display->getLock();
+}
+
 bool validateDisplay(egl::Display *display)
 {
 	if(display == EGL_NO_DISPLAY)
@@ -167,6 +172,8 @@ EGLBoolean EGLAPIENTRY Initialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!display)
 	{
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
@@ -194,6 +201,8 @@ EGLBoolean EGLAPIENTRY Terminate(EGLDisplay dpy)
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	display->terminate();
 
 	return success(EGL_TRUE);
@@ -218,6 +227,8 @@ const char *EGLAPIENTRY QueryString(EGLDisplay dpy, EGLint name)
 	}
 
 	egl::Display *display = egl::Display::get(dpy);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateDisplay(display))
 	{
@@ -257,6 +268,8 @@ EGLBoolean EGLAPIENTRY GetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint con
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateDisplay(display))
 	{
 		return EGL_FALSE;
@@ -284,6 +297,8 @@ EGLBoolean EGLAPIENTRY ChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, E
 	      dpy, attrib_list, configs, config_size, num_config);
 
 	egl::Display *display = egl::Display::get(dpy);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateDisplay(display))
 	{
@@ -317,6 +332,8 @@ EGLBoolean EGLAPIENTRY GetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint 
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateConfig(display, config))
 	{
 		return EGL_FALSE;
@@ -336,6 +353,8 @@ EGLSurface EGLAPIENTRY CreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig con
 	      "const EGLint *attrib_list = %p)", dpy, config, native_window, attrib_list);
 
 	egl::Display *display = egl::Display::get(dpy);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateConfig(display, config))
 	{
@@ -375,6 +394,8 @@ EGLSurface EGLAPIENTRY CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, co
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateConfig(display, config))
 	{
 		return EGL_NO_SURFACE;
@@ -389,6 +410,8 @@ EGLSurface EGLAPIENTRY CreatePlatformPixmapSurface(EGLDisplay dpy, EGLConfig con
 	      "const EGLint *attrib_list = %p)", dpy, config, native_pixmap, attrib_list);
 
 	egl::Display *display = egl::Display::get(dpy);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateConfig(display, config))
 	{
@@ -425,6 +448,8 @@ EGLBoolean EGLAPIENTRY DestroySurface(EGLDisplay dpy, EGLSurface surface)
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = static_cast<egl::Surface*>(surface);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateSurface(display, eglSurface))
 	{
 		return EGL_FALSE;
@@ -447,6 +472,8 @@ EGLBoolean EGLAPIENTRY QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint a
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = (egl::Surface*)surface;
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateSurface(display, eglSurface))
 	{
@@ -595,6 +622,8 @@ EGLSurface EGLAPIENTRY CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buf
 	{
 		egl::Display *display = egl::Display::get(dpy);
 
+		RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 		if(!validateConfig(display, config))
 		{
 			return EGL_NO_SURFACE;
@@ -617,6 +646,8 @@ EGLBoolean EGLAPIENTRY SurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint 
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = static_cast<egl::Surface*>(surface);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateSurface(display, eglSurface))
 	{
@@ -674,6 +705,8 @@ EGLBoolean EGLAPIENTRY BindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint b
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = static_cast<egl::Surface*>(surface);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateSurface(display, eglSurface))
 	{
 		return EGL_FALSE;
@@ -716,6 +749,8 @@ EGLBoolean EGLAPIENTRY ReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLin
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = static_cast<egl::Surface*>(surface);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateSurface(display, eglSurface))
 	{
 		return EGL_FALSE;
@@ -752,6 +787,8 @@ EGLBoolean EGLAPIENTRY SwapInterval(EGLDisplay dpy, EGLint interval)
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *context = egl::getCurrentContext();
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateContext(display, context))
 	{
@@ -860,6 +897,8 @@ EGLContext EGLAPIENTRY CreateContext(EGLDisplay dpy, EGLConfig config, EGLContex
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *shareContext = static_cast<egl::Context*>(share_context);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateConfig(display, config))
 	{
 		return EGL_NO_CONTEXT;
@@ -882,6 +921,8 @@ EGLBoolean EGLAPIENTRY DestroyContext(EGLDisplay dpy, EGLContext ctx)
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *context = static_cast<egl::Context*>(ctx);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateContext(display, context))
 	{
@@ -907,6 +948,8 @@ EGLBoolean EGLAPIENTRY MakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface r
 	egl::Context *context = static_cast<egl::Context*>(ctx);
 	egl::Surface *drawSurface = static_cast<egl::Surface*>(draw);
 	egl::Surface *readSurface = static_cast<egl::Surface*>(read);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(ctx != EGL_NO_CONTEXT || draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE)
 	{
@@ -1012,6 +1055,8 @@ EGLBoolean EGLAPIENTRY QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attri
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *context = static_cast<egl::Context*>(ctx);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateContext(display, context))
 	{
 		return EGL_FALSE;
@@ -1091,6 +1136,8 @@ EGLBoolean EGLAPIENTRY SwapBuffers(EGLDisplay dpy, EGLSurface surface)
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = (egl::Surface*)surface;
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateSurface(display, eglSurface))
 	{
 		return EGL_FALSE;
@@ -1113,6 +1160,8 @@ EGLBoolean EGLAPIENTRY CopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNative
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = static_cast<egl::Surface*>(surface);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateSurface(display, eglSurface))
 	{
 		return EGL_FALSE;
@@ -1129,6 +1178,8 @@ EGLImage EGLAPIENTRY CreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target,
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *context = static_cast<egl::Context*>(ctx);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateDisplay(display))
 	{
@@ -1226,6 +1277,8 @@ EGLBoolean EGLAPIENTRY DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateDisplay(display))
 	{
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
@@ -1308,6 +1361,8 @@ EGLSync EGLAPIENTRY CreateSync(EGLDisplay dpy, EGLenum type, const EGLAttrib *at
 
 	egl::Display *display = egl::Display::get(dpy);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateDisplay(display))
 	{
 		return error(EGL_BAD_DISPLAY, EGL_NO_SYNC_KHR);
@@ -1350,6 +1405,8 @@ EGLBoolean EGLAPIENTRY DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
 	egl::Display *display = egl::Display::get(dpy);
 	FenceSync *eglSync = static_cast<FenceSync*>(sync);
 
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
+
 	if(!validateDisplay(display))
 	{
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
@@ -1371,6 +1428,8 @@ EGLint EGLAPIENTRY ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint fla
 
 	egl::Display *display = egl::Display::get(dpy);
 	FenceSync *eglSync = static_cast<FenceSync*>(sync);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateDisplay(display))
 	{
@@ -1399,6 +1458,8 @@ EGLBoolean EGLAPIENTRY GetSyncAttrib(EGLDisplay dpy, EGLSyncKHR sync, EGLint att
 
 	egl::Display *display = egl::Display::get(dpy);
 	FenceSync *eglSync = static_cast<FenceSync*>(sync);
+
+	RecursiveLockGuard lock(egl::getDisplayLock(display));
 
 	if(!validateDisplay(display))
 	{
