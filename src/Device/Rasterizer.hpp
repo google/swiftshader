@@ -21,7 +21,7 @@
 
 namespace sw
 {
-	class Rasterizer : public Function<Void(Pointer<Byte>, Int, Int, Int, Pointer<Byte>)>
+	class Rasterizer : public RasterizerFunction
 	{
 	public:
 		Rasterizer() : primitive(Arg<0>()), count(Arg<1>()), cluster(Arg<2>()), clusterCount(Arg<3>()), data(Arg<4>()) {}

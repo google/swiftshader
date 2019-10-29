@@ -270,7 +270,6 @@ namespace sw
 		draw->setupRoutine = setupRoutine;
 		draw->pixelRoutine = pixelRoutine;
 		draw->setupPointer = (SetupProcessor::RoutinePointer)setupRoutine->getEntry();
-		draw->pixelPointer = (PixelProcessor::RoutinePointer)pixelRoutine->getEntry();
 		draw->setupPrimitives = setupPrimitives;
 		draw->setupState = setupState;
 
@@ -434,7 +433,7 @@ namespace sw
 
 		vertexRoutine = {};
 		setupRoutine.reset();
-		pixelRoutine.reset();
+		pixelRoutine = {};
 	}
 
 	void DrawCall::run(const marl::Loan<DrawCall>& draw, marl::Ticket::Queue* tickets, marl::Ticket::Queue clusterQueues[MaxClusterCount])
@@ -543,7 +542,7 @@ namespace sw
 				auto& draw = data->draw;
 				auto& batch = data->batch;
 				MARL_SCOPED_EVENT("PIXEL draw %d, batch %d, cluster %d", draw->id, batch->id, cluster);
-				draw->pixelPointer(&batch->primitives.front(), batch->numVisible, cluster, MaxClusterCount, draw->data);
+				draw->pixelRoutine(&batch->primitives.front(), batch->numVisible, cluster, MaxClusterCount, draw->data);
 				batch->clusterTickets[cluster].done();
 			});
 		}
