@@ -2424,14 +2424,10 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
 			{
-				const VkPhysicalDeviceProvokingVertexFeaturesEXT* provokingVertexFeatures = reinterpret_cast<const VkPhysicalDeviceProvokingVertexFeaturesEXT*>(extensionFeatures);
-
-				// Provoking vertex is supported.
-				// provokingVertexFeatures->provokingVertexLast can be VK_TRUE or VK_FALSE.
-				// No action needs to be taken on our end in either case; it's the apps responsibility to check
-				// that the provokingVertexLast feature is enabled before using the provoking vertex convention.
-				(void)provokingVertexFeatures->provokingVertexLast;
+				auto& features = *reinterpret_cast<VkPhysicalDeviceProvokingVertexFeaturesEXT*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(&features);
 			}
+			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
 			ASSERT(!HasExtensionProperty(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME, deviceExtensionProperties,
 										 sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));

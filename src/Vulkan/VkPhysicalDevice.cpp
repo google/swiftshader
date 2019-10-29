@@ -144,6 +144,11 @@ void PhysicalDevice::getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT* f
     features->stippledSmoothLines = VK_FALSE;
 }
 
+void PhysicalDevice::getFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT* features) const
+{
+	features->provokingVertexLast = VK_TRUE;
+}
+
 VkSampleCountFlags PhysicalDevice::getSampleCounts() const
 {
 	return VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT;
