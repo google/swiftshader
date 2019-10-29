@@ -27,7 +27,7 @@ namespace vk
 
 namespace sw
 {
-	class VertexRoutinePrototype : public Function<Void(Pointer<Byte>, Pointer<UInt>, Pointer<Byte>, Pointer<Byte>)>
+	class VertexRoutinePrototype : public VertexRoutineFunction
 	{
 	public:
 		VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}

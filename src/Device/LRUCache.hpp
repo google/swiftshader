@@ -147,7 +147,7 @@ namespace sw
 			}
 		}
 
-		return nullptr;   // Not found
+		return {};   // Not found
 	}
 
 	template<class Key, class Data>

@@ -25,6 +25,9 @@ namespace sw
 
 	template<class State>
 	using RoutineCache = LRUCache<State, std::shared_ptr<Routine>>;
+
+	template<class State, class FunctionType>
+	using RoutineCacheT = LRUCache<State, RoutineT<FunctionType>>;
 }
 
 #endif   // sw_RoutineCache_hpp
