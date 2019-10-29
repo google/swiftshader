@@ -611,6 +611,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				// that the provokingVertexLast feature is enabled before using the provoking vertex convention.
 				(void)provokingVertexFeatures->provokingVertexLast;
 			}
+			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionCreateInfo->sType %d", int(extensionCreateInfo->sType));   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
@@ -2371,7 +2372,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 	VkBaseOutStructure* extensionFeatures = reinterpret_cast<VkBaseOutStructure*>(pFeatures->pNext);
 	while(extensionFeatures)
 	{
-		switch(extensionFeatures->sType)
+		switch((long)(extensionFeatures->sType))
 		{
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES:
 			{
@@ -2421,6 +2422,16 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 				vk::Cast(physicalDevice)->getFeatures(&features);
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
+			{
+				const VkPhysicalDeviceProvokingVertexFeaturesEXT* provokingVertexFeatures = reinterpret_cast<const VkPhysicalDeviceProvokingVertexFeaturesEXT*>(extensionFeatures);
+
+				// Provoking vertex is supported.
+				// provokingVertexFeatures->provokingVertexLast can be VK_TRUE or VK_FALSE.
+				// No action needs to be taken on our end in either case; it's the apps responsibility to check
+				// that the provokingVertexLast feature is enabled before using the provoking vertex convention.
+				(void)provokingVertexFeatures->provokingVertexLast;
+			}
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
 			ASSERT(!HasExtensionProperty(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME, deviceExtensionProperties,
 										 sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
