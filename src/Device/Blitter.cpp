@@ -75,8 +75,6 @@ namespace sw
 			return;
 		}
 
-		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
-
 		VkImageSubresourceLayers subresLayers =
 		{
 			subresourceRange.aspectMask,
@@ -129,7 +127,7 @@ namespace sw
 				for (uint32_t depth = subresourceRange.baseArrayLayer; depth <= lastLayer; depth++)
 				{
 					data.dest = dest->getTexelPointer({0, 0, static_cast<int32_t>(depth)}, subresLayers);
-					blitFunction(&data);
+					blitRoutine(&data);
 				}
 			}
 			else
@@ -140,7 +138,7 @@ namespace sw
 					{
 						data.dest = dest->getTexelPointer({ 0, 0, static_cast<int32_t>(depth) }, subresLayers);
 
-						blitFunction(&data);
+						blitRoutine(&data);
 					}
 				}
 			}
@@ -1389,9 +1387,9 @@ namespace sw
 		return s;
 	}
 
-	std::shared_ptr<Routine> Blitter::generate(const State &state)
+	Blitter::BlitRoutineType Blitter::generate(const State &state)
 	{
-		Function<Void(Pointer<Byte>)> function;
+		BlitFunction function;
 		{
 			Pointer<Byte> blit(function.Arg<0>());
 
@@ -1600,7 +1598,7 @@ namespace sw
 		return function("BlitRoutine");
 	}
 
-	std::shared_ptr<Routine> Blitter::getBlitRoutine(const State &state)
+	Blitter::BlitRoutineType Blitter::getBlitRoutine(const State &state)
 	{
 		std::unique_lock<std::mutex> lock(blitMutex);
 		auto blitRoutine = blitCache.query(state);
@@ -1614,7 +1612,7 @@ namespace sw
 		return blitRoutine;
 	}
 
-	std::shared_ptr<Routine> Blitter::getCornerUpdateRoutine(const State &state)
+	Blitter::CornerUpdateRoutineType Blitter::getCornerUpdateRoutine(const State &state)
 	{
 		std::unique_lock<std::mutex> lock(cornerUpdateMutex);
 		auto cornerUpdateRoutine = cornerUpdateCache.query(state);
@@ -1640,8 +1638,6 @@ namespace sw
 		{
 			return;
 		}
-
-		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
 
 		BlitData data =
 		{
@@ -1687,7 +1683,7 @@ namespace sw
 			{
 				data.source = src->getTexelPointer(srcOffset, srcSubresLayers);
 				ASSERT(data.source < src->end());
-				blitFunction(&data);
+				blitRoutine(&data);
 				srcOffset.z++;
 				data.dest = (dst += bufferSlicePitch);
 			}
@@ -1706,8 +1702,6 @@ namespace sw
 		{
 			return;
 		}
-
-		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
 
 		BlitData data =
 		{
@@ -1756,7 +1750,7 @@ namespace sw
 			{
 				data.dest = dst->getTexelPointer(dstOffset, dstSubresLayers);
 				ASSERT(data.dest < dst->end());
-				blitFunction(&data);
+				blitRoutine(&data);
 				dstOffset.z++;
 				data.source = (src += bufferSlicePitch);
 			}
@@ -1825,8 +1819,6 @@ namespace sw
 			return;
 		}
 
-		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
-
 		BlitData data =
 		{
 			nullptr, // source
@@ -1893,7 +1885,7 @@ namespace sw
 				ASSERT(data.source < src->end());
 				ASSERT(data.dest < dst->end());
 
-				blitFunction(&data);
+				blitRoutine(&data);
 				srcOffset.z++;
 				dstOffset.z++;
 			}
@@ -1914,7 +1906,7 @@ namespace sw
 		write(c, layer + ComputeOffset(x0, y0, pitchB, bytes, quadLayout), state);
 	}
 
-	std::shared_ptr<Routine> Blitter::generateCornerUpdate(const State& state)
+	Blitter::CornerUpdateRoutineType Blitter::generateCornerUpdate(const State& state)
 	{
 		// Reading and writing from/to the same image
 		ASSERT(state.sourceFormat == state.destFormat);
@@ -1925,7 +1917,7 @@ namespace sw
 			UNIMPLEMENTED("state.srcSamples %d", state.srcSamples);
 		}
 
-		Function<Void(Pointer<Byte>)> function;
+		CornerUpdateFunction function;
 		{
 			Pointer<Byte> blit(function.Arg<0>());
 
@@ -2021,8 +2013,6 @@ namespace sw
 			return;
 		}
 
-		void(*cornerUpdateFunction)(const CubeBorderData *data) = (void(*)(const CubeBorderData*))cornerUpdateRoutine->getEntry();
-
 		VkExtent3D extent = image->getMipLevelExtent(aspect, subresourceLayers.mipLevel);
 		CubeBorderData data =
 		{
@@ -2031,7 +2021,7 @@ namespace sw
 			static_cast<uint32_t>(image->getLayerSize(aspect)),
 			extent.width
 		};
-		cornerUpdateFunction(&data);
+		cornerUpdateRoutine(&data);
 	}
 
 	void Blitter::copyCubeEdge(vk::Image* image,

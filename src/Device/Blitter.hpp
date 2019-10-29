@@ -135,10 +135,16 @@ namespace sw
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
-		std::shared_ptr<Routine> getBlitRoutine(const State &state);
-		std::shared_ptr<Routine> generate(const State &state);
-		std::shared_ptr<Routine> getCornerUpdateRoutine(const State &state);
-		std::shared_ptr<Routine> generateCornerUpdate(const State& state);
+
+		using BlitFunction = FunctionT<void(const BlitData*)>;
+		using BlitRoutineType = BlitFunction::RoutineType;
+		BlitRoutineType getBlitRoutine(const State &state);
+		BlitRoutineType generate(const State &state);
+
+		using CornerUpdateFunction = FunctionT<void(const CubeBorderData*)>;
+		using CornerUpdateRoutineType = CornerUpdateFunction::RoutineType;
+		CornerUpdateRoutineType getCornerUpdateRoutine(const State &state);
+		CornerUpdateRoutineType generateCornerUpdate(const State& state);
 		void computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state);
 
 		void copyCubeEdge(vk::Image* image,
@@ -146,9 +152,9 @@ namespace sw
 	                      const VkImageSubresourceLayers& srcSubresourceLayers, Edge srcEdge);
 
 		std::mutex blitMutex;
-		RoutineCache<State> blitCache; // guarded by blitMutex
+		RoutineCacheT<State, BlitFunction::CFunctionType> blitCache; // guarded by blitMutex
 		std::mutex cornerUpdateMutex;
-		RoutineCache<State> cornerUpdateCache; // guarded by cornerUpdateMutex
+		RoutineCacheT<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache; // guarded by cornerUpdateMutex
 	};
 }
 
