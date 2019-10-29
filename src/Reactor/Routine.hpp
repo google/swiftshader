@@ -15,6 +15,8 @@
 #ifndef rr_Routine_hpp
 #define rr_Routine_hpp
 
+#include <memory>
+
 namespace rr
 {
 	class Routine
@@ -24,6 +26,47 @@ namespace rr
 		virtual ~Routine() = default;
 
 		virtual const void *getEntry(int index = 0) = 0;
+	};
+
+	// RoutineT is a type-safe wrapper around a Routine and its callable entry, returned by FunctionT
+	template<typename FunctionType>
+	class RoutineT;
+
+	template<typename Return, typename... Arguments>
+	class RoutineT<Return(Arguments...)>
+	{
+	public:
+		RoutineT() = default;
+
+		explicit RoutineT(const std::shared_ptr<Routine>& routine)
+			: routine(routine)
+		{
+			if (routine)
+			{
+				callable = reinterpret_cast<CallableType>(const_cast<void*>(routine->getEntry(0)));
+			}
+		}
+
+		operator bool() const
+		{
+			return callable != nullptr;
+		}
+
+		template <typename... Args>
+		Return operator()(Args&&... args) const
+		{
+			return callable(std::forward<Args>(args)...);
+		}
+
+		const void* getEntry() const
+		{
+			return reinterpret_cast<void*>(callable);
+		}
+
+	private:
+		std::shared_ptr<Routine> routine;
+		using CallableType = Return(*)(Arguments...);
+		CallableType callable = nullptr;
 	};
 }
 

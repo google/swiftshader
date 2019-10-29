@@ -2522,6 +2522,39 @@ namespace rr
 	{
 	};
 
+	// FunctionT accepts a C-style function type template argument, allowing it to return a type-safe RoutineT wrapper
+	template<typename FunctionType>
+	class FunctionT;
+
+	template<typename Return, typename... Arguments>
+	class FunctionT<Return(Arguments...)> : public Function<CToReactor<Return>(CToReactor<Arguments>...)>
+	{
+	public:
+		// Type of base class
+		using BaseType = Function<CToReactor<Return>(CToReactor<Arguments>...)>;
+
+		// Function type, e.g. void(int,float)
+		using CFunctionType = Return(Arguments...);
+
+		// Reactor function type, e.g. Void(Int, Float)
+		using ReactorFunctionType = CToReactor<Return>(CToReactor<Arguments>...);
+
+		// Returned RoutineT type
+		using RoutineType = RoutineT<CFunctionType>;
+
+		// Hide base implementations of operator()
+
+		RoutineType operator()(const char* name, ...)
+		{
+			return RoutineType(BaseType::operator()(name));
+		}
+
+		RoutineType operator()(const Config::Edit& cfg, const char* name, ...)
+		{
+			return RoutineType(BaseType::operator()(cfg, name));
+		}
+	};
+
 	RValue<Long> Ticks();
 }
 
