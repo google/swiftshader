@@ -38,10 +38,8 @@ int reference(int *p, int y)
 
 TEST(ReactorUnitTests, Sample)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Int>, Int)> function;
+		FunctionT<int(int*, int)> function;
 		{
 			Pointer<Int> p = function.Arg<0>();
 			Int x = p[-1];
@@ -62,13 +60,12 @@ TEST(ReactorUnitTests, Sample)
 			Return(sum);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
-			int (*callable)(int*, int) = (int(*)(int*,int))routine->getEntry();
 			int one[2] = {1, 0};
-			int result = callable(&one[1], 2);
+			int result = routine(&one[1], 2);
 			EXPECT_EQ(result, reference(&one[1], 2));
 		}
 	}
@@ -77,10 +74,8 @@ TEST(ReactorUnitTests, Sample)
 
 TEST(ReactorUnitTests, Uninitialized)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int()> function;
+		FunctionT<int()> function;
 		{
 			Int a;
 			Int z = 4;
@@ -99,12 +94,11 @@ TEST(ReactorUnitTests, Uninitialized)
 			Return(a + z + q + c);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
-			int (*callable)() = (int(*)())routine->getEntry();
-			int result = callable();
+			int result = routine();
 			EXPECT_EQ(result, result);   // Anything is fine, just don't crash
 		}
 	}
@@ -113,10 +107,8 @@ TEST(ReactorUnitTests, Uninitialized)
 
 TEST(ReactorUnitTests, Unreachable)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Int)> function;
+		FunctionT<int(int)> function;
 		{
 			Int a = function.Arg<0>();
 			Int z = 4;
@@ -129,12 +121,11 @@ TEST(ReactorUnitTests, Unreachable)
 			z += a;
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
-			int (*callable)(int) = (int(*)(int))routine->getEntry();
-			int result = callable(16);
+			int result = routine(16);
 			EXPECT_EQ(result, 20);
 		}
 	}
@@ -143,10 +134,8 @@ TEST(ReactorUnitTests, Unreachable)
 
 TEST(ReactorUnitTests, VariableAddress)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Int)> function;
+		FunctionT<int(int)> function;
 		{
 			Int a = function.Arg<0>();
 			Int z = 0;
@@ -156,12 +145,11 @@ TEST(ReactorUnitTests, VariableAddress)
 			Return(a + z);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
-			int (*callable)(int) = (int(*)(int))routine->getEntry();
-			int result = callable(16);
+			int result = routine(16);
 			EXPECT_EQ(result, 20);
 		}
 	}
@@ -170,10 +158,8 @@ TEST(ReactorUnitTests, VariableAddress)
 
 TEST(ReactorUnitTests, SubVectorLoadStore)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>, Pointer<Byte>)> function;
+		FunctionT<int(void*, void*)> function;
 		{
 			Pointer<Byte> in = function.Arg<0>();
 			Pointer<Byte> out = function.Arg<1>();
@@ -187,7 +173,7 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -203,8 +189,7 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-			int (*callable)(void*, void*) = (int(*)(void*,void*))routine->getEntry();
-			callable(in, out);
+			routine(in, out);
 
 			for(int row = 0; row < 5; row++)
 			{
@@ -229,10 +214,8 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 
 TEST(ReactorUnitTests, VectorConstant)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -244,7 +227,7 @@ TEST(ReactorUnitTests, VectorConstant)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -258,8 +241,7 @@ TEST(ReactorUnitTests, VectorConstant)
 			                      25, 26, 27, 28, 29, 30, 31, 32, -1, -1, -1, -1, -1, -1, -1, -1,
 			                      33, 34, 35, 36, 37, 38, 39, 40, -1, -1, -1, -1, -1, -1, -1, -1};
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(out);
+			routine(out);
 
 			for(int row = 0; row < 4; row++)
 			{
@@ -277,10 +259,8 @@ TEST(ReactorUnitTests, VectorConstant)
 
 TEST(ReactorUnitTests, Concatenate)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -290,7 +270,7 @@ TEST(ReactorUnitTests, Concatenate)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -300,8 +280,7 @@ TEST(ReactorUnitTests, Concatenate)
 			int8_t out[16 * 5] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-			int (*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(out);
+			routine(out);
 
 			for(int row = 0; row < 2; row++)
 			{
@@ -319,10 +298,8 @@ TEST(ReactorUnitTests, Concatenate)
 
 TEST(ReactorUnitTests, Swizzle)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -358,7 +335,7 @@ TEST(ReactorUnitTests, Swizzle)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -370,8 +347,7 @@ TEST(ReactorUnitTests, Swizzle)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			for(int i = 0; i < 256; i++)
 			{
@@ -445,10 +421,8 @@ TEST(ReactorUnitTests, Swizzle)
 
 TEST(ReactorUnitTests, Branching)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Void)> function;
+		FunctionT<int()> function;
 		{
 			Int x = 0;
 
@@ -494,12 +468,11 @@ TEST(ReactorUnitTests, Branching)
 			Return(x);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
-			int(*callable)() = (int(*)())routine->getEntry();
-			int result = callable();
+			int result = routine();
 
 			EXPECT_EQ(result, 1000402222);
 		}
@@ -509,10 +482,8 @@ TEST(ReactorUnitTests, Branching)
 
 TEST(ReactorUnitTests, MinMax)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -532,7 +503,7 @@ TEST(ReactorUnitTests, MinMax)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -540,8 +511,7 @@ TEST(ReactorUnitTests, MinMax)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0x00000000u);
 			EXPECT_EQ(out[0][1], 0x00000000u);
@@ -599,10 +569,8 @@ TEST(ReactorUnitTests, MinMax)
 
 TEST(ReactorUnitTests, NotNeg)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -621,7 +589,7 @@ TEST(ReactorUnitTests, NotNeg)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -629,8 +597,7 @@ TEST(ReactorUnitTests, NotNeg)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0xAAAAAAAAu);
 			EXPECT_EQ(out[0][1], 0x00000000u);
@@ -683,10 +650,8 @@ TEST(ReactorUnitTests, NotNeg)
 
 TEST(ReactorUnitTests, VectorCompare)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -701,7 +666,7 @@ TEST(ReactorUnitTests, VectorCompare)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -709,8 +674,7 @@ TEST(ReactorUnitTests, VectorCompare)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0x00000000u);
 			EXPECT_EQ(out[0][1], 0xFFFFFFFFu);
@@ -744,10 +708,8 @@ TEST(ReactorUnitTests, VectorCompare)
 
 TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -797,7 +759,7 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -805,8 +767,7 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0x08080808u);
 			EXPECT_EQ(out[0][1], 0x08080808u);
@@ -856,10 +817,8 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 
 TEST(ReactorUnitTests, Unpack)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>,Pointer<Byte>)> function;
+		FunctionT<int(void*, void*)> function;
 		{
 			Pointer<Byte> in = function.Arg<0>();
 			Pointer<Byte> out = function.Arg<1>();
@@ -875,7 +834,7 @@ TEST(ReactorUnitTests, Unpack)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -887,8 +846,7 @@ TEST(ReactorUnitTests, Unpack)
 			in[0][0] = 0xABCDEF12u;
 			in[0][1] = 0x34567890u;
 
-			int(*callable)(void*,void*) = (int(*)(void*,void*))routine->getEntry();
-			callable(&in, &out);
+			routine(&in, &out);
 
 			EXPECT_EQ(out[0][0], 0x78EF9012u);
 			EXPECT_EQ(out[0][1], 0x34AB56CDu);
@@ -902,10 +860,8 @@ TEST(ReactorUnitTests, Unpack)
 
 TEST(ReactorUnitTests, Pack)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -928,7 +884,7 @@ TEST(ReactorUnitTests, Pack)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -936,8 +892,7 @@ TEST(ReactorUnitTests, Pack)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0x0201FEFFu);
 			EXPECT_EQ(out[0][1], 0xFCFD0403u);
@@ -963,10 +918,8 @@ TEST(ReactorUnitTests, Pack)
 
 TEST(ReactorUnitTests, MulHigh)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -996,7 +949,7 @@ TEST(ReactorUnitTests, MulHigh)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -1004,8 +957,7 @@ TEST(ReactorUnitTests, MulHigh)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0x00080002u);
 			EXPECT_EQ(out[0][1], 0x008D000Fu);
@@ -1039,10 +991,8 @@ TEST(ReactorUnitTests, MulHigh)
 
 TEST(ReactorUnitTests, MulAdd)
 {
-	std::shared_ptr<Routine> routine;
-
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -1054,7 +1004,7 @@ TEST(ReactorUnitTests, MulAdd)
 			Return(0);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
@@ -1062,8 +1012,7 @@ TEST(ReactorUnitTests, MulAdd)
 
 			memset(&out, 0, sizeof(out));
 
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(&out);
+			routine(&out);
 
 			EXPECT_EQ(out[0][0], 0x000AE34Au);
 			EXPECT_EQ(out[0][1], 0x009D5254u);
@@ -1074,7 +1023,7 @@ TEST(ReactorUnitTests, MulAdd)
 
 TEST(ReactorUnitTests, PointersEqual)
 {
-	Function<Int(Pointer<Byte>, Pointer<Byte>)> function;
+	FunctionT<int(void*, void*)> function;
 	{
 		Pointer<Byte> ptrA = function.Arg<0>();
 		Pointer<Byte> ptrB = function.Arg<1>();
@@ -1089,26 +1038,25 @@ TEST(ReactorUnitTests, PointersEqual)
 	}
 
 	auto routine = function("one");
-	auto equal = (int(*)(void*, void*))routine->getEntry();
 	int* a = reinterpret_cast<int*>(uintptr_t(0x0000000000000000));
 	int* b = reinterpret_cast<int*>(uintptr_t(0x00000000F0000000));
 	int* c = reinterpret_cast<int*>(uintptr_t(0xF000000000000000));
-	EXPECT_EQ(equal(&a, &a), 1);
-	EXPECT_EQ(equal(&b, &b), 1);
-	EXPECT_EQ(equal(&c, &c), 1);
+	EXPECT_EQ(routine(&a, &a), 1);
+	EXPECT_EQ(routine(&b, &b), 1);
+	EXPECT_EQ(routine(&c, &c), 1);
 
-	EXPECT_EQ(equal(&a, &b), 0);
-	EXPECT_EQ(equal(&b, &a), 0);
-	EXPECT_EQ(equal(&b, &c), 0);
-	EXPECT_EQ(equal(&c, &b), 0);
-	EXPECT_EQ(equal(&c, &a), 0);
-	EXPECT_EQ(equal(&a, &c), 0);
+	EXPECT_EQ(routine(&a, &b), 0);
+	EXPECT_EQ(routine(&b, &a), 0);
+	EXPECT_EQ(routine(&b, &c), 0);
+	EXPECT_EQ(routine(&c, &b), 0);
+	EXPECT_EQ(routine(&c, &a), 0);
+	EXPECT_EQ(routine(&a, &c), 0);
 }
 
 TEST(ReactorUnitTests, Args_2Mixed)
 {
 	// 2 mixed type args
-	Function<Float(Int, Float)> function;
+	FunctionT<float(int, float)> function;
 	{
 		Int a = function.Arg<0>();
 		Float b = function.Arg<1>();
@@ -1117,8 +1065,7 @@ TEST(ReactorUnitTests, Args_2Mixed)
 
 	if (auto routine = function("one"))
 	{
-		auto callable = (float(*)(int, float))routine->getEntry();
-		float result = callable(1, 2.f);
+		float result = routine(1, 2.f);
 		EXPECT_EQ(result, 3.f);
 	}
 }
@@ -1126,7 +1073,7 @@ TEST(ReactorUnitTests, Args_2Mixed)
 TEST(ReactorUnitTests, Args_4Mixed)
 {
 	// 4 mixed type args (max register allocation on Windows)
-	Function<Float(Int, Float, Int, Float)> function;
+	FunctionT<float(int, float, int, float)> function;
 	{
 		Int a = function.Arg<0>();
 		Float b = function.Arg<1>();
@@ -1137,8 +1084,7 @@ TEST(ReactorUnitTests, Args_4Mixed)
 
 	if (auto routine = function("one"))
 	{
-		auto callable = (float(*)(int, float, int, float))routine->getEntry();
-		float result = callable(1, 2.f, 3, 4.f);
+		float result = routine(1, 2.f, 3, 4.f);
 		EXPECT_EQ(result, 10.f);
 	}
 }
@@ -1146,7 +1092,7 @@ TEST(ReactorUnitTests, Args_4Mixed)
 TEST(ReactorUnitTests, Args_5Mixed)
 {
 	// 5 mixed type args (5th spills over to stack on Windows)
-	Function<Float(Int, Float, Int, Float, Int)> function;
+	FunctionT<float(int, float, int, float, int)> function;
 	{
 		Int a = function.Arg<0>();
 		Float b = function.Arg<1>();
@@ -1158,8 +1104,7 @@ TEST(ReactorUnitTests, Args_5Mixed)
 
 	if (auto routine = function("one"))
 	{
-		auto callable = (float(*)(int, float, int, float, int))routine->getEntry();
-		float result = callable(1, 2.f, 3, 4.f, 5);
+		float result = routine(1, 2.f, 3, 4.f, 5);
 		EXPECT_EQ(result, 15.f);
 	}
 }
@@ -1167,7 +1112,7 @@ TEST(ReactorUnitTests, Args_5Mixed)
 TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 {
 	// >5 mixed type args
-	Function<Float(Int, Float, Int, Float, Int, Float, Int, Float, Int, Float)> function;
+	FunctionT<float(int, float, int, float, int, float, int, float, int, float)> function;
 	{
 		Int a = function.Arg<0>();
 		Float b = function.Arg<1>();
@@ -1184,8 +1129,7 @@ TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 
 	if (auto routine = function("one"))
 	{
-		auto callable = (float(*)(int, float, int, float, int, float, int, float, int, float))routine->getEntry();
-		float result = callable(1, 2.f, 3, 4.f, 5, 6.f, 7, 8.f, 9, 10.f);
+		float result = routine(1, 2.f, 3, 4.f, 5, 6.f, 7, 8.f, 9, 10.f);
 		EXPECT_EQ(result, 55.f);
 	}
 }
@@ -1197,8 +1141,6 @@ TEST(ReactorUnitTests, Call)
 		SUCCEED() << "rr::Call() not supported";
 		return;
 	}
-
-	std::shared_ptr<Routine> routine;
 
 	struct Class
 	{
@@ -1215,22 +1157,20 @@ TEST(ReactorUnitTests, Call)
 	};
 
 	{
-		Function<Int(Pointer<Byte>)> function;
+		FunctionT<int(void*)> function;
 		{
 			Pointer<Byte> c = function.Arg<0>();
 			auto res = Call(Class::Callback, c, 10, 20.0f);
 			Return(res);
 		}
 
-		routine = function("one");
+		auto routine = function("one");
 
 		if(routine)
 		{
-			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-
 			Class c;
 
-			int res = callable(&c);
+			int res = routine(&c);
 
 			EXPECT_EQ(res, 30);
 			EXPECT_EQ(c.i, 10);
@@ -1250,7 +1190,7 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 	// routine1 calls Class::Func, passing it a pointer to routine2, and Class::Func calls routine2
 
 	auto routine2 = [] {
-		Function<Float(Float, Int)> function;
+		FunctionT<float(float, int)> function;
 		{
 			Float a = function.Arg<0>();
 			Int b = function.Arg<1>();
@@ -1269,7 +1209,7 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 	};
 
 	auto routine1 = [] {
-		Function<Float(Pointer<Byte>, Float, Int)> function;
+		FunctionT<float(void*, float, int)> function;
 		{
 			Pointer<Byte> funcToCall = function.Arg<0>();
 			Float a = function.Arg<1>();
@@ -1280,10 +1220,7 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 		return function("one");
 	}();
 
-	auto callable2 = (float(*)(float, int))routine2->getEntry();
-	auto callable1 = (float(*)(void*, float, int))routine1->getEntry();
-
-	float result = callable1((void*)callable2, 12.f, 13);
+	float result = routine1((void*)routine2.getEntry(), 12.f, 13);
 	EXPECT_EQ(result, 25.f);
 }
 
@@ -1295,10 +1232,8 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 // It's necessary to inspect the registers in a debugger to actually verify.)
 TEST(ReactorUnitTests, PreserveXMMRegisters)
 {
-    std::shared_ptr<Routine> routine;
-
     {
-        Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
+        FunctionT<void(void*, void*)> function;
         {
             Pointer<Byte> in = function.Arg<0>();
             Pointer<Byte> out = function.Arg<1>();
@@ -1341,7 +1276,7 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
             Return();
         }
 
-        routine = function("one");
+        auto routine = function("one");
         assert(routine);
 
         float input[64] = { 1.0f,  0.0f,   0.0f, 0.0f,
@@ -1362,9 +1297,8 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
                            -1.0f, 15.0f, -15.0f, 0.0f };
 
         float result[4];
-        void (*callable)(float*, float*) = (void(*)(float*,float*))routine->getEntry();
 
-        callable(input, result);
+        routine(input, result);
 
         EXPECT_EQ(result[0], 0.0f);
         EXPECT_EQ(result[1], 120.0f);
