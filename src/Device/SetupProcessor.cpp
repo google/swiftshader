@@ -94,7 +94,7 @@ namespace sw
 		return state;
 	}
 
-	std::shared_ptr<Routine> SetupProcessor::routine(const State &state)
+	SetupProcessor::RoutineType SetupProcessor::routine(const State &state)
 	{
 		auto routine = routineCache->query(state);
 
@@ -114,6 +114,6 @@ namespace sw
 	void SetupProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
-		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536));
+		routineCache = new RoutineCacheType(clamp(cacheSize, 1, 65536));
 	}
 }

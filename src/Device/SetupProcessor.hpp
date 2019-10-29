@@ -30,6 +30,8 @@ namespace sw
 	struct DrawCall;
 	struct DrawData;
 
+	using SetupFunction = FunctionT<int(Primitive* primitive, const Triangle* triangle, const Polygon* polygon, const DrawData* draw)>;
+
 	class SetupProcessor
 	{
 	public:
@@ -60,7 +62,7 @@ namespace sw
 			uint32_t hash;
 		};
 
-		typedef bool (*RoutinePointer)(Primitive *primitive, const Triangle *triangle, const Polygon *polygon, const DrawData *draw);
+		using RoutineType = SetupFunction::RoutineType;
 
 		SetupProcessor();
 
@@ -68,12 +70,13 @@ namespace sw
 
 	protected:
 		State update(const sw::Context* context) const;
-		std::shared_ptr<Routine> routine(const State &state);
+		RoutineType routine(const State &state);
 
 		void setRoutineCacheSize(int cacheSize);
 
 	private:
-		RoutineCache<State> *routineCache;
+		using RoutineCacheType = RoutineCacheT<State, SetupFunction::CFunctionType>;
+		RoutineCacheType *routineCache;
 	};
 }
 

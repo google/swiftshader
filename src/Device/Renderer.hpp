@@ -155,10 +155,8 @@ namespace sw
 		VkLineRasterizationModeEXT lineRasterizationMode;
 
 		VertexProcessor::RoutineType vertexRoutine;
-		std::shared_ptr<Routine> setupRoutine;
+		SetupProcessor::RoutineType setupRoutine;
 		PixelProcessor::RoutineType pixelRoutine;
-
-		SetupProcessor::RoutinePointer setupPointer;
 
 		SetupFunction setupPrimitives;
 		SetupProcessor::State setupState;
@@ -236,7 +234,7 @@ namespace sw
 		PixelProcessor::State pixelState;
 
 		VertexProcessor::RoutineType vertexRoutine;
-		std::shared_ptr<Routine> setupRoutine;
+		SetupProcessor::RoutineType setupRoutine;
 		PixelProcessor::RoutineType pixelRoutine;
 
 		vk::Device* device;

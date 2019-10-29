@@ -25,7 +25,6 @@ namespace sw
 {
 	SetupRoutine::SetupRoutine(const SetupProcessor::State &state) : state(state)
 	{
-		routine = 0;
 	}
 
 	SetupRoutine::~SetupRoutine()
@@ -34,7 +33,7 @@ namespace sw
 
 	void SetupRoutine::generate()
 	{
-		Function<Int(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
+		SetupFunction function;
 		{
 			Pointer<Byte> primitive(function.Arg<0>());
 			Pointer<Byte> tri(function.Arg<1>());
@@ -610,7 +609,7 @@ namespace sw
 		#endif
 	}
 
-	std::shared_ptr<Routine> SetupRoutine::getRoutine()
+	SetupFunction::RoutineType SetupRoutine::getRoutine()
 	{
 		return routine;
 	}

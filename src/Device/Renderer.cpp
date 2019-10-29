@@ -269,7 +269,6 @@ namespace sw
 		draw->vertexRoutine = vertexRoutine;
 		draw->setupRoutine = setupRoutine;
 		draw->pixelRoutine = pixelRoutine;
-		draw->setupPointer = (SetupProcessor::RoutinePointer)setupRoutine->getEntry();
 		draw->setupPrimitives = setupPrimitives;
 		draw->setupState = setupState;
 
@@ -432,7 +431,7 @@ namespace sw
 		}
 
 		vertexRoutine = {};
-		setupRoutine.reset();
+		setupRoutine = {};
 		pixelRoutine = {};
 	}
 
@@ -614,7 +613,6 @@ namespace sw
 	int DrawCall::setupSolidTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count)
 	{
 		auto &state = drawCall->setupState;
-		auto setupRoutine = drawCall->setupPointer;
 
 		int ms = state.multiSample;
 		const DrawData *data = drawCall->data;
@@ -640,7 +638,7 @@ namespace sw
 					}
 				}
 
-				if(setupRoutine(primitives, triangles, &polygon, data))
+				if(drawCall->setupRoutine(primitives, triangles, &polygon, data))
 				{
 					primitives += ms;
 					visible++;
@@ -788,7 +786,6 @@ namespace sw
 
 	bool DrawCall::setupLine(Primitive &primitive, Triangle &triangle, const DrawCall &draw)
 	{
-		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 		const DrawData &data = *draw.data;
 
 		float lineWidth = data.lineWidth;
@@ -876,7 +873,7 @@ namespace sw
 					}
 				}
 
-				return setupRoutine(&primitive, &triangle, &polygon, &data);
+				return draw.setupRoutine(&primitive, &triangle, &polygon, &data);
 			}
 		}
 		else   // Diamond test convention
@@ -982,7 +979,7 @@ namespace sw
 					}
 				}
 
-				return setupRoutine(&primitive, &triangle, &polygon, &data);
+				return draw.setupRoutine(&primitive, &triangle, &polygon, &data);
 			}
 		}
 
@@ -991,7 +988,6 @@ namespace sw
 
 	bool DrawCall::setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw)
 	{
-		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 		const DrawData &data = *draw.data;
 
 		Vertex &v = triangle.v0;
@@ -1048,7 +1044,7 @@ namespace sw
 
 			triangle.v1.projected.x += iround(subPixF * 0.5f * pSize);
 			triangle.v2.projected.y -= iround(subPixF * 0.5f * pSize) * (data.HxF[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
-			return setupRoutine(&primitive, &triangle, &polygon, &data);
+			return draw.setupRoutine(&primitive, &triangle, &polygon, &data);
 		}
 
 		return false;
