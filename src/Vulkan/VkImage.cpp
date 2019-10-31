@@ -20,6 +20,10 @@
 #include "Device/ETC_Decoder.hpp"
 #include <cstring>
 
+#ifdef __ANDROID__
+#include "System/GrallocAndroid.hpp"
+#endif
+
 namespace
 {
 	ETC_Decoder::InputType GetInputType(const vk::Format& format)
@@ -106,6 +110,47 @@ void Image::bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset)
 		decompressedImage->memoryOffset = memoryOffset + getStorageSize(format.getAspects());
 	}
 }
+
+#ifdef __ANDROID__
+VkResult Image::prepareForExternalUseANDROID() const
+{
+	void* nativeBuffer = nullptr;
+	VkExtent3D extent = getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+
+	if(GrallocModule::getInstance()->lock(backingMemory.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer) != 0)
+	{
+		return VK_ERROR_OUT_OF_DATE_KHR;
+	}
+
+	if(!nativeBuffer)
+	{
+		return VK_ERROR_OUT_OF_DATE_KHR;
+	}
+
+	int imageRowBytes = rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	int bufferRowBytes = backingMemory.stride * getFormat().bytes();
+	ASSERT(imageRowBytes <= bufferRowBytes);
+
+	uint8_t* srcBuffer = static_cast<uint8_t*>(deviceMemory->getOffsetPointer(0));
+	uint8_t* dstBuffer = static_cast<uint8_t*>(nativeBuffer);
+	for(uint32_t i = 0; i < extent.height; i++)
+	{
+		memcpy(dstBuffer + (i * bufferRowBytes), srcBuffer + (i * imageRowBytes), imageRowBytes);
+	}
+
+	if(GrallocModule::getInstance()->unlock(backingMemory.nativeHandle) != 0)
+	{
+		return VK_ERROR_OUT_OF_DATE_KHR;
+	}
+
+	return VK_SUCCESS;
+}
+
+VkDeviceMemory Image::getExternalMemory() const
+{
+	return backingMemory.externalMemory ? *deviceMemory : VkDeviceMemory{ VK_NULL_HANDLE };
+}
+#endif
 
 void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const
 {

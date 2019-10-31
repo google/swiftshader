@@ -59,7 +59,6 @@
 #endif
 
 #ifdef __ANDROID__
-#include <vulkan/vk_android_native_buffer.h>
 #include "System/GrallocAndroid.hpp"
 #include <sync/sync.h>
 #endif
@@ -1181,17 +1180,6 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyBufferView(VkDevice device, VkBufferView buf
 	vk::destroy(bufferView, pAllocator);
 }
 
-#ifdef __ANDROID__
-struct BackingMemory {
-	buffer_handle_t nativeHandle;
-	int stride;
-	vk::DeviceMemory* imageMemory;
-	VkSwapchainImageUsageFlagsANDROID androidUsage;
-};
-
-static std::map<VkImage, BackingMemory> androidSwapchainMap;
-#endif
-
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage)
 {
 	TRACE("(VkDevice device = %p, const VkImageCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkImage* pImage = %p)",
@@ -1200,7 +1188,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 
 #ifdef __ANDROID__
-	BackingMemory backmem;
+	vk::BackingMemory backmem;
 	bool swapchainImage = false;
 #endif
 
@@ -1246,7 +1234,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 			return result;
 		}
 
-		VkMemoryRequirements memRequirements = vk::Cast(*pImage)->getMemoryRequirements();
+		vk::Image* image = vk::Cast(*pImage);
+		VkMemoryRequirements memRequirements = image->getMemoryRequirements();
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -1254,16 +1243,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		allocInfo.memoryTypeIndex = 0;
 
 		VkDeviceMemory devmem = { VK_NULL_HANDLE };
-		result = vkAllocateMemory(device, &allocInfo, nullptr, &devmem);
+		result = vkAllocateMemory(device, &allocInfo, pAllocator, &devmem);
 		if(result != VK_SUCCESS)
 		{
 			return result;
 		}
 
-		backmem.imageMemory = vk::Cast(devmem);
 		vkBindImageMemory(device, *pImage, devmem, 0);
+		backmem.externalMemory = true;
 
-		androidSwapchainMap[*pImage] = backmem;
+		image->setBackingMemory(backmem);
 	}
 #endif
 
@@ -1278,12 +1267,10 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 	vk::destroy(image, pAllocator);
 
 #ifdef __ANDROID__
-	auto it = androidSwapchainMap.find(image);
-
-	if (it != androidSwapchainMap.end())
+	vk::Image* img = vk::Cast(image);
+	if(img && img->hasExternalMemory())
 	{
-		vk::destroy(static_cast<VkDeviceMemory>(*((it->second).imageMemory)), nullptr);
-		androidSwapchainMap.erase(it);
+		vk::destroy(img->getExternalMemory(), pAllocator);
 	}
 #endif
 }
@@ -3153,29 +3140,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueueSignalReleaseImageANDROID(VkQueue queue, u
 	// to get rid of it. b/132458423
 	vkQueueWaitIdle(queue);
 
-	GrallocModule* grallocMod = GrallocModule::getInstance();
-	void* nativeBuffer;
+	*pNativeFenceFd = -1;
 
-	auto it = androidSwapchainMap.find(image);
-
-	if (it == androidSwapchainMap.end())
-		ABORT("ANDROID: Swapchain image not found");
-
-	BackingMemory backmem = it->second;
-
-	VkExtent3D extent = vk::Cast(image)->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-	grallocMod->lock(backmem.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer);
-
-	char* buffer = static_cast<char*>(backmem.imageMemory->getOffsetPointer(0));
-	int imageRowBytes = vk::Cast(image)->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-	int colorBytes = vk::Cast(image)->getFormat().bytes();
-
-	for(int i = 0; i < extent.height; i++)
-	{
-		memcpy((void*)((char*)nativeBuffer + (i * backmem.stride * colorBytes)), buffer + (i * imageRowBytes), imageRowBytes);
-	}
-
-	return VK_SUCCESS;
+	return vk::Cast(image)->prepareForExternalUseANDROID();
 }
 #endif // __ANDROID__
 

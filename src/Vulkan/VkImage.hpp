@@ -18,6 +18,10 @@
 #include "VkObject.hpp"
 #include "VkFormat.h"
 
+#ifdef __ANDROID__
+#include <vulkan/vk_android_native_buffer.h> // For VkSwapchainImageUsageFlagsANDROID and buffer_handle_t
+#endif
+
 namespace vk
 {
 
@@ -25,11 +29,24 @@ class Buffer;
 class Device;
 class DeviceMemory;
 
+#ifdef __ANDROID__
+struct BackingMemory {
+	int stride = 0;
+	bool externalMemory = false;
+	buffer_handle_t nativeHandle = nullptr;
+	VkSwapchainImageUsageFlagsANDROID androidUsage = 0;
+};
+#endif
+
 class Image : public Object<Image, VkImage>
 {
 public:
 	Image(const VkImageCreateInfo* pCreateInfo, void* mem, Device *device);
 	void destroy(const VkAllocationCallbacks* pAllocator);
+
+#ifdef __ANDROID__
+	VkResult prepareForExternalUseANDROID() const;
+#endif
 
 	static size_t ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo);
 
@@ -68,6 +85,12 @@ public:
 	void                     prepareForSampling(const VkImageSubresourceRange& subresourceRange);
 	const Image*             getSampledImage(const vk::Format& imageViewFormat) const;
 
+#ifdef __ANDROID__
+	void                     setBackingMemory(BackingMemory& bm) { backingMemory = bm; }
+	bool                     hasExternalMemory() const { return backingMemory.externalMemory; }
+	VkDeviceMemory           getExternalMemory() const;
+#endif
+
 private:
 	void copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsSource);
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
@@ -99,6 +122,9 @@ private:
 	VkImageTiling            tiling = VK_IMAGE_TILING_OPTIMAL;
 	VkImageUsageFlags        usage = (VkImageUsageFlags)0;
 	Image*                   decompressedImage = nullptr;
+#ifdef __ANDROID__
+	BackingMemory            backingMemory = {};
+#endif
 };
 
 static inline Image* Cast(VkImage object)
