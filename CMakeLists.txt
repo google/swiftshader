@@ -1846,8 +1846,8 @@ elseif(APPLE)
     )
 
     list(APPEND VULKAN_LIST
-        ${SOURCE_DIR}/WSI/MacOSSurfaceMVK.mm
-        ${SOURCE_DIR}/WSI/MacOSSurfaceMVK.h
+        ${SOURCE_DIR}/WSI/MetalSurface.mm
+        ${SOURCE_DIR}/WSI/MetalSurface.h
     )
 elseif(ANDROID)
     list(APPEND SWIFTSHADER_LIST

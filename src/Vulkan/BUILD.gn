@@ -36,6 +36,7 @@ config("swiftshader_libvulkan_private_config") {
   } else if (is_mac) {
     defines = [
       "VK_USE_PLATFORM_MACOS_MVK=1",
+      "VK_USE_PLATFORM_METAL_EXT=1",
       "VK_EXPORT=__attribute__((visibility(\"default\")))",
     ]
   } else {

@@ -12,24 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SWIFTSHADER_MACOSSURFACEMVK_HPP
-#define SWIFTSHADER_MACOSSURFACEMVK_HPP
+#ifndef SWIFTSHADER_METALSURFACE_HPP
+#define SWIFTSHADER_METALSURFACE_HPP
 
 #include "Vulkan/VkObject.hpp"
 #include "VkSurfaceKHR.hpp"
-#include "vulkan/vulkan_macos.h"
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+#	include "vulkan/vulkan_macos.h"
+#endif
+#ifdef VK_USE_PLATFORM_METAL_EXT
+#	include "vulkan/vulkan_metal.h"
+#endif
 
 namespace vk {
 
 class MetalLayer;
 
-class MacOSSurfaceMVK : public SurfaceKHR, public ObjectBase<MacOSSurfaceMVK, VkSurfaceKHR> {
+class MetalSurface : public SurfaceKHR, public ObjectBase<MetalSurface, VkSurfaceKHR> {
 public:
-    MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem);
+    MetalSurface(const void *pCreateInfo, void *mem);
 
     void destroySurface(const VkAllocationCallbacks *pAllocator) override;
 
-    static size_t ComputeRequiredAllocationSize(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo);
+    static size_t ComputeRequiredAllocationSize(const void *pCreateInfo);
 
     void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
@@ -37,9 +42,21 @@ public:
     virtual void detachImage(PresentImage* image) override {}
     VkResult present(PresentImage* image) override;
 
-private:
+protected:
     MetalLayer* metalLayer = nullptr;
 };
 
+#ifdef VK_USE_PLATFORM_METAL_EXT
+class MetalSurfaceEXT : public MetalSurface {
+    MetalSurfaceEXT(const VkMetalSurfaceCreateInfoEXT *pCreateInfo, void *mem);
+};
+#endif
+
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+class MacOSSurfaceMVK : public MetalSurface {
+    MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem);
+};
+#endif
+
 }
-#endif //SWIFTSHADER_MACOSSURFACEMVK_HPP
+#endif //SWIFTSHADER_METALSURFACE_HPP

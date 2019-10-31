@@ -42,8 +42,8 @@
 #include "VkShaderModule.hpp"
 #include "VkRenderPass.hpp"
 
-#ifdef VK_USE_PLATFORM_MACOS_MVK
-#include "WSI/MacOSSurfaceMVK.h"
+#if defined(VK_USE_PLATFORM_METAL_EXT) || defined(VK_USE_PLATFORM_MACOS_MVK)
+#include "WSI/MetalSurface.h"
 #endif
 
 #ifdef VK_USE_PLATFORM_XCB_KHR
@@ -186,6 +186,9 @@ static const VkExtensionProperties instanceExtensionProperties[] =
 #endif
 #ifdef VK_USE_PLATFORM_MACOS_MVK
     { VK_MVK_MACOS_SURFACE_EXTENSION_NAME, VK_MVK_MACOS_SURFACE_SPEC_VERSION },
+#endif
+#ifdef VK_USE_PLATFORM_METAL_EXT
+    { VK_EXT_METAL_SURFACE_EXTENSION_NAME, VK_EXT_METAL_SURFACE_SPEC_VERSION },
 #endif
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	{ VK_KHR_WIN32_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_SPEC_VERSION },
@@ -2889,6 +2892,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateMacOSSurfaceMVK(VkInstance instance, cons
           instance, pCreateInfo, pAllocator, pSurface);
 
     return vk::MacOSSurfaceMVK::Create(pAllocator, pCreateInfo, pSurface);
+}
+#endif
+
+#ifdef VK_USE_PLATFORM_METAL_EXT
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateMetalSurfaceEXT(VkInstance instance, const VkMetalSurfaceCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface)
+{
+    TRACE("(VkInstance instance = %p, VkMetalSurfaceCreateInfoEXT* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
+          instance, pCreateInfo, pAllocator, pSurface);
+
+    return vk::MetalSurfaceEXT::Create(pAllocator, pCreateInfo, pSurface);
 }
 #endif
 
