@@ -139,15 +139,19 @@ void MetalSurface::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapa
 
 VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))
 {
-    auto drawable = metalLayer->getNextDrawable();
-    if(drawable)
+    @autoreleasepool
     {
-        VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-        [drawable.texture replaceRegion:MTLRegionMake2D(0, 0, extent.width, extent.height)
-                          mipmapLevel:0
-                          withBytes:image->getImageMemory()->getOffsetPointer(0)
-                          bytesPerRow:image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0)];
-        [drawable present];
+        auto drawable = metalLayer->getNextDrawable();
+        if(drawable)
+        {
+            VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+            [drawable.texture replaceRegion:MTLRegionMake2D(0, 0, extent.width, extent.height)
+                              mipmapLevel:0
+                              withBytes:image->getImageMemory()->getOffsetPointer(0)
+                              bytesPerRow:image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0)];
+            [drawable present];
+
+        }
     }
     return VK_SUCCESS;
 }

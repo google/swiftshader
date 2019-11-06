@@ -28,7 +28,7 @@ namespace vk {
 
 class MetalLayer;
 
-class MetalSurface : public SurfaceKHR, public ObjectBase<MetalSurface, VkSurfaceKHR> {
+class MetalSurface : public SurfaceKHR {
 public:
     MetalSurface(const void *pCreateInfo, void *mem);
 
@@ -47,13 +47,15 @@ protected:
 };
 
 #ifdef VK_USE_PLATFORM_METAL_EXT
-class MetalSurfaceEXT : public MetalSurface {
+class MetalSurfaceEXT : public MetalSurface, public ObjectBase<MetalSurfaceEXT, VkSurfaceKHR> {
+public:
     MetalSurfaceEXT(const VkMetalSurfaceCreateInfoEXT *pCreateInfo, void *mem);
 };
 #endif
 
 #ifdef VK_USE_PLATFORM_MACOS_MVK
-class MacOSSurfaceMVK : public MetalSurface {
+class MacOSSurfaceMVK : public MetalSurface, public ObjectBase<MacOSSurfaceMVK, VkSurfaceKHR> {
+public:
     MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem);
 };
 #endif

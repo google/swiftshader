@@ -61,4 +61,6 @@ swiftshader_source_set("WSI") {
     "../../third_party/marl:Marl_headers",
     "../Vulkan:swiftshader_libvulkan_headers",
   ]
+
+  configs = [ "../Vulkan:swiftshader_libvulkan_private_config", ]
 }
