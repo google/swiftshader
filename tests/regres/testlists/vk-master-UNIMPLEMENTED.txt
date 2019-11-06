@@ -1,1 +1,2 @@
+dEQP-VK.api.info.get_physical_device_properties2.features
 dEQP-VK.api.smoke.triangle_ext_structs

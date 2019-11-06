@@ -1,3 +1,0 @@
-dEQP-VK.spirv_assembly.instruction.compute.ptr_access_chain.workgroup
-dEQP-VK.spirv_assembly.instruction.compute.ptr_access_chain.workgroup_bad_stride
-dEQP-VK.spirv_assembly.instruction.compute.ptr_access_chain.workgroup_no_stride
