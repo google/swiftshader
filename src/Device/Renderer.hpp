@@ -202,7 +202,7 @@ namespace sw
 		bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 
 		void draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex,
-				TaskEvents *events, int instanceID, int viewID, void *indexBuffer,
+				TaskEvents *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D& framebufferExtent,
 				PushConstantStorage const & pushConstants, bool update = true);
 
 		// Viewport & Clipper

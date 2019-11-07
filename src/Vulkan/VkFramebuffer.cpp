@@ -23,7 +23,8 @@ namespace vk
 
 Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) :
 	attachmentCount(pCreateInfo->attachmentCount),
-	attachments(reinterpret_cast<ImageView**>(mem))
+	attachments(reinterpret_cast<ImageView**>(mem)),
+	extent{pCreateInfo->width, pCreateInfo->height, pCreateInfo->layers}
 {
 	for(uint32_t i = 0; i < attachmentCount; i++)
 	{

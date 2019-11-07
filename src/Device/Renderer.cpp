@@ -178,7 +178,7 @@ namespace sw
 	}
 
 	void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex,
-			TaskEvents *events, int instanceID, int viewID, void *indexBuffer,
+			TaskEvents *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D& framebufferExtent,
 			PushConstantStorage const & pushConstants, bool update)
 	{
 		if(count == 0) { return; }
@@ -384,10 +384,10 @@ namespace sw
 
 		// Scissor
 		{
-			data->scissorX0 = scissor.offset.x;
-			data->scissorX1 = scissor.offset.x + scissor.extent.width;
-			data->scissorY0 = scissor.offset.y;
-			data->scissorY1 = scissor.offset.y + scissor.extent.height;
+			data->scissorX0 = clamp<int>(scissor.offset.x, 0, framebufferExtent.width);
+			data->scissorX1 = clamp<int>(scissor.offset.x + scissor.extent.width, 0, framebufferExtent.width);
+			data->scissorY0 = clamp<int>(scissor.offset.y, 0, framebufferExtent.height);
+			data->scissorY1 = clamp<int>(scissor.offset.y + scissor.extent.height, 0, framebufferExtent.height);
 		}
 
 		// Push constants

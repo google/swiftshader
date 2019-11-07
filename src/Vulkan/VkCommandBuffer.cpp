@@ -617,6 +617,7 @@ struct DrawBase : public CommandBuffer::Command
 				{
 					executionState.renderer->draw(&context, executionState.indexType, indexBuffer.first, vertexOffset,
 												  executionState.events, instance, viewID, indexBuffer.second,
+												  executionState.renderPassFramebuffer->getExtent(),
 												  executionState.pushConstants);
 				}
 			}
