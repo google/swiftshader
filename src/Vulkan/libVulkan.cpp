@@ -59,8 +59,10 @@
 #endif
 
 #ifdef __ANDROID__
+#include <android/log.h>
 #include "System/GrallocAndroid.hpp"
 #include <sync/sync.h>
+#include "commit.h"
 #endif
 
 #include "WSI/VkSwapchainKHR.hpp"
@@ -79,6 +81,16 @@
 
 namespace
 {
+
+// Enable commit_id.py and #include commit.h for other platforms.
+#if defined(__ANDROID__) && defined(ENABLE_BUILD_VERSION_OUTPUT)
+void logBuildVersionInformation()
+{
+	// TODO(b/144093703): Don't call __android_log_print() directly
+	__android_log_print(ANDROID_LOG_INFO, "SwiftShader", "SwiftShader Version: %s", SWIFTSHADER_VERSION_STRING);
+}
+#endif  // __ANDROID__ && ENABLE_BUILD_VERSION_OUTPUT
+
 
 bool HasExtensionProperty(const char* extensionName, const VkExtensionProperties* extensionProperties, uint32_t extensionPropertiesCount)
 {
@@ -143,6 +155,9 @@ std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 void initializeLibrary()
 {
 	static bool doOnce = [] {
+#if defined(__ANDROID__) && defined(ENABLE_BUILD_VERSION_OUTPUT)
+		logBuildVersionInformation();
+#endif  // __ANDROID__ && ENABLE_BUILD_VERSION_OUTPUT
 		setReactorDefaultConfig();
 		setCPUDefaults();
 		return true;

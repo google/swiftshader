@@ -501,6 +501,13 @@ cc_library_shared {
 
 // Vulkan
 
+genrule {
+    name: "commit_header",
+    out: ["commit.h"],
+    tool_files: ["commit_id.py"],
+    cmd: "$(location commit_id.py) gen $(genDir)/commit.h",
+}
+
 cc_defaults {
     name: "libvk_swiftshader_defaults",
     vendor: true,
@@ -520,6 +527,8 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-local-typedef",
         "-Wno-missing-field-initializers",
+        // Enable to output commit hash when SwiftShader is initialized
+        //"-DENABLE_BUILD_VERSION_OUTPUT",
     ],
 
     cppflags: [
@@ -530,6 +539,8 @@ cc_defaults {
     local_include_dirs: [ "Vulkan" ],
 
     version_script: "Vulkan/vk_swiftshader.lds",
+
+    generated_headers: [ "commit_header" ],
 
     target: {
         android: {
