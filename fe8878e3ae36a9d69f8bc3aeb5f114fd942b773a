@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9f0dcbaa_41db10df",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-07T19:31:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bd93640_3bb379b0",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 44
+      },
+      "revId": "fe8878e3ae36a9d69f8bc3aeb5f114fd942b773a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f38ee419_d9971011",
         "filename": "src/Vulkan/VkImage.hpp",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "fe8878e3ae36a9d69f8bc3aeb5f114fd942b773a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "040d5cc7_6326d275",
+        "filename": "src/Vulkan/VkImage.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-07T19:31:55Z",
+      "side": 1,
+      "message": "I had very little testing done for this Android specific change, so I\u0027d rather keep this as is for this cl and just refactor the map out of existence and nothing else for now, if that\u0027s ok.",
+      "parentUuid": "f38ee419_d9971011",
+      "range": {
+        "startLine": 32,
+        "startChar": 7,
+        "endLine": 32,
+        "endChar": 20
+      },
+      "revId": "fe8878e3ae36a9d69f8bc3aeb5f114fd942b773a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
