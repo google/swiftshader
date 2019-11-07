@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13bcb3ed_991aa935",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-11-07T21:20:43Z",
+      "side": 1,
+      "message": "nit: I think it would have been useful to mention the version number and origin here. That way git blame can reveal useful information more quickly, and we can verify if there are any local changes or an unofficial release was used. See for example https://swiftshader-review.googlesource.com/c/SwiftShader/+/32968 Note that \"ToT\" quickly loses meaning and figuring out the exact revision from the date can be non-trivial.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 28
+      },
+      "revId": "a68a80a4dbf9dc7fab42a2734c854a41d23136cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
