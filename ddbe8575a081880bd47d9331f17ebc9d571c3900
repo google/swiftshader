@@ -106,6 +106,24 @@
       "revId": "ddbe8575a081880bd47d9331f17ebc9d571c3900",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff2f2fa4_7507a224",
+        "filename": "src/Device/PixelProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-11-07T22:20:34Z",
+      "side": 1,
+      "message": "Great discussion. If SwiftShader was following GPU design a little more closely, then we\u0027d have a separate ROP stage, for which it would be reasonable to consider the stencil reference value a state that gets baked into the routine, instead of externally loaded data. Note that it could still end up as constant data somewhere as part of the routine\u0027s code or data portion, but it may also give the JIT compiler an opportunity to optimize it in some way instead of being an unknown value.\n\nBut since making the ROP code part of our pixel routine is much more likely to be a valuable optimization than whatever would be gained from knowing the reference value, if any, I do believe the best course of action is to remove it from the state we use for pixel routine generation.\n\nI think compareMask and writeMask should be removed for the same reasons... ?",
+      "parentUuid": "6438e494_20ee3f38",
+      "revId": "ddbe8575a081880bd47d9331f17ebc9d571c3900",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
