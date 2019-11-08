@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "510aa8cf_42d5aee5",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1191,
+      "author": {
+        "id": 33445
+      },
+      "writtenOn": "2019-11-08T15:56:36Z",
+      "side": 1,
+      "message": "This now needs to be:\n\n\tvk::BackingMemory backmem;\n\nAt least it did for me to be able to compile this for Android:-)",
+      "revId": "84bd2b0eb6b68a37d6c522d632de734fef250fdb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
