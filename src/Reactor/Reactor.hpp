@@ -2472,7 +2472,7 @@ namespace rr
 	template <typename T>
 	inline Value* ValueOf(const T &v)
 	{
-		return ReactorType<T>(v).loadValue();
+		return ReactorType<T>::cast(v).loadValue();
 	}
 
 	void Return();
@@ -2480,7 +2480,7 @@ namespace rr
 	template<class T>
 	void Return(const T &ret)
 	{
-		static_assert(CanBeUsedAsReturn< ReactorType<T> >::value, "Unsupported type for Return()");
+		static_assert(CanBeUsedAsReturn< ReactorTypeT<T> >::value, "Unsupported type for Return()");
 		Nucleus::createRet(ValueOf<T>(ret));
 		// Place any unreachable instructions in an unreferenced block.
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
@@ -2527,17 +2527,17 @@ namespace rr
 	class FunctionT;
 
 	template<typename Return, typename... Arguments>
-	class FunctionT<Return(Arguments...)> : public Function<CToReactor<Return>(CToReactor<Arguments>...)>
+	class FunctionT<Return(Arguments...)> : public Function<CToReactorT<Return>(CToReactorT<Arguments>...)>
 	{
 	public:
 		// Type of base class
-		using BaseType = Function<CToReactor<Return>(CToReactor<Arguments>...)>;
+		using BaseType = Function<CToReactorT<Return>(CToReactorT<Arguments>...)>;
 
 		// Function type, e.g. void(int,float)
 		using CFunctionType = Return(Arguments...);
 
 		// Reactor function type, e.g. Void(Int, Float)
-		using ReactorFunctionType = CToReactor<Return>(CToReactor<Arguments>...);
+		using ReactorFunctionType = CToReactorT<Return>(CToReactorT<Arguments>...);
 
 		// Returned RoutineT type
 		using RoutineType = RoutineT<CFunctionType>;
@@ -3209,24 +3209,24 @@ namespace rr
 	class CallHelper<Return(Arguments...)>
 	{
 	public:
-		using RReturn = CToReactor<Return>;
+		using RReturn = CToReactorT<Return>;
 
-		static inline RReturn Call(Return(fptr)(Arguments...), CToReactor<Arguments>... args)
+		static inline RReturn Call(Return(fptr)(Arguments...), CToReactorT<Arguments>... args)
 		{
 			return RValue<RReturn>(rr::Call(
 				ConstantPointer(reinterpret_cast<void*>(fptr)),
 				RReturn::getType(),
 				{ ValueOf(args) ... },
-				{ CToReactor<Arguments>::getType() ... }));
+				{ CToReactorT<Arguments>::getType() ... }));
 		}
 
-		static inline RReturn Call(Pointer<Byte> fptr, CToReactor<Arguments>... args)
+		static inline RReturn Call(Pointer<Byte> fptr, CToReactorT<Arguments>... args)
 		{
 			return RValue<RReturn>(rr::Call(
 				fptr,
 				RReturn::getType(),
 				{ ValueOf(args) ... },
-				{ CToReactor<Arguments>::getType() ... }));
+				{ CToReactorT<Arguments>::getType() ... }));
 		}
 	};
 
@@ -3234,44 +3234,47 @@ namespace rr
 	class CallHelper<void(Arguments...)>
 	{
 	public:
-		static inline void Call(void(fptr)(Arguments...), CToReactor<Arguments>... args)
+		static inline void Call(void(fptr)(Arguments...), CToReactorT<Arguments>... args)
 		{
 			rr::Call(ConstantPointer(reinterpret_cast<void*>(fptr)),
 				Void::getType(),
 				{ ValueOf(args) ... },
-				{ CToReactor<Arguments>::getType() ... });
+				{ CToReactorT<Arguments>::getType() ... });
 		}
 
-		static inline void Call(Pointer<Byte> fptr, CToReactor<Arguments>... args)
+		static inline void Call(Pointer<Byte> fptr, CToReactorT<Arguments>... args)
 		{
 			rr::Call(fptr,
 				Void::getType(),
 				{ ValueOf(args) ... },
-				{ CToReactor<Arguments>::getType() ... });
+				{ CToReactorT<Arguments>::getType() ... });
 		}
 	};
 
+	template <typename T>
+	inline ReactorTypeT<T> CastToReactor(const T& v) { return ReactorType<T>::cast(v); }
+
 	// Calls the function pointer fptr with the given arguments args.
-	template<typename Return, typename ... Arguments>
-	inline CToReactor<Return> Call(Return(fptr)(Arguments...), CToReactor<Arguments>... args)
+	template<typename Return, typename ... CArgs, typename ... RArgs>
+	inline CToReactorT<Return> Call(Return(fptr)(CArgs...), RArgs&&... args)
 	{
-		return CallHelper<Return(Arguments...)>::Call(fptr, args...);
+		return CallHelper<Return(CArgs...)>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 	}
 
 	// Calls the function pointer fptr with the given arguments args.
 	// Overload for calling functions with void return type.
-	template<typename ... Arguments>
-	inline void Call(void(fptr)(Arguments...), CToReactor<Arguments>... args)
+	template<typename ... CArgs, typename ... RArgs>
+	inline void Call(void(fptr)(CArgs...), RArgs&&... args)
 	{
-		CallHelper<void(Arguments...)>::Call(fptr, args...);
+		CallHelper<void(CArgs...)>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 	}
 
 	// Calls the function pointer fptr with the signature FUNCTION_SIGNATURE and
 	// arguments.
-	template<typename FUNCTION_SIGNATURE, typename ... Arguments>
-	inline void Call(Pointer<Byte> fptr, Arguments ... args)
+	template<typename FUNCTION_SIGNATURE, typename ... RArgs>
+	inline void Call(Pointer<Byte> fptr, RArgs&& ... args)
 	{
-		CallHelper<FUNCTION_SIGNATURE>::Call(fptr, args...);
+		CallHelper<FUNCTION_SIGNATURE>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 	}
 
 	// Breakpoint emits an instruction that will cause the application to trap.

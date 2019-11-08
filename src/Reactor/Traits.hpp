@@ -62,22 +62,24 @@ namespace rr
 		static constexpr bool value = true;
 	};
 
-	// CToReactor<T> resolves to the corresponding Reactor type for the given C
+	// CToReactorT<T> resolves to the corresponding Reactor type for the given C
 	// template type T.
-	template<typename T, typename ENABLE = void> struct CToReactorT;
-	template<typename T> using CToReactor = typename CToReactorT<T>::type;
+	template<typename T, typename ENABLE = void> struct CToReactor;
+	template<typename T> using CToReactorT = typename CToReactor<T>::type;
 
-	// CToReactorT specializations for POD types.
-	template<> struct CToReactorT<void>    	{ using type = Void; };
-	template<> struct CToReactorT<bool>    	{ using type = Bool; };
-	template<> struct CToReactorT<uint8_t> 	{ using type = Byte; };
-	template<> struct CToReactorT<int8_t>  	{ using type = SByte; };
-	template<> struct CToReactorT<int16_t> 	{ using type = Short; };
-	template<> struct CToReactorT<uint16_t>	{ using type = UShort; };
-	template<> struct CToReactorT<int32_t> 	{ using type = Int; };
-	template<> struct CToReactorT<uint64_t>	{ using type = Long; };
-	template<> struct CToReactorT<uint32_t>	{ using type = UInt; };
-	template<> struct CToReactorT<float>   	{ using type = Float; };
+	// CToReactor specializations for POD types.
+	template<> struct CToReactor<void>    	{ using type = Void; };
+	template<> struct CToReactor<bool>    	{ using type = Bool;   static Bool   cast(bool);     };
+	template<> struct CToReactor<uint8_t> 	{ using type = Byte;   static Byte   cast(uint8_t);  };
+	template<> struct CToReactor<int8_t>  	{ using type = SByte;  static SByte  cast(int8_t);   };
+	template<> struct CToReactor<int16_t> 	{ using type = Short;  static Short  cast(int16_t);  };
+	template<> struct CToReactor<uint16_t>	{ using type = UShort; static UShort cast(uint16_t); };
+	template<> struct CToReactor<int32_t> 	{ using type = Int;    static Int    cast(int32_t);  };
+	template<> struct CToReactor<uint32_t>	{ using type = UInt;   static UInt   cast(uint32_t); };
+	template<> struct CToReactor<float>   	{ using type = Float;  static Float  cast(float);    };
+
+	// TODO: Long has no constructor that takes a uint64_t
+	template<> struct CToReactor<uint64_t>	{ using type = Long;  /* static Long   cast(uint64_t); */ };
 
 	// CToReactorPtrT<T>::type resolves to the corresponding Reactor Pointer<>
 	// type for T*.
@@ -86,32 +88,47 @@ namespace rr
 	// CToReactorPtrT<T>::type resolves to Pointer<Byte>.
 	template<typename T, typename ENABLE = void> struct CToReactorPtrT { using type = Pointer<Byte>; };
 	template<typename T> using CToReactorPtr = typename CToReactorPtrT<T>::type;
-	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< IsDefined< typename CToReactorT<T>::type >::value>::type >
+	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< IsDefined< CToReactorT<T> >::value>::type >
 	{
-		using type = Pointer< typename CToReactorT<T>::type >;
+		using type = Pointer< CToReactorT<T> >;
+		static type cast(T v) { return type(v); }
 	};
 
-	// CToReactorT specialization for pointer types.
+	// CToReactor specialization for pointer types.
 	// For T types that have a CToReactorT<> specialization,
 	// CToReactorT<T*>::type resolves to Pointer< CToReactorT<T> >, otherwise
 	// CToReactorT<T*>::type resolves to Pointer<Byte>.
 	template<typename T>
-	struct CToReactorT<T, typename std::enable_if<std::is_pointer<T>::value>::type>
+	struct CToReactor<T, typename std::enable_if<std::is_pointer<T>::value>::type>
 	{
 		using elem = typename std::remove_pointer<T>::type;
 		using type = CToReactorPtr<elem>;
+		static type cast(T v) { return type(v); }
 	};
 
-	// CToReactorT specialization for void*.
+	// CToReactor specialization for void*.
 	// Maps to Pointer<Byte> instead of Pointer<Void>.
-	template<> struct CToReactorT<void*> { using type = Pointer<Byte>; };
+	template<> struct CToReactor<void*>
+	{
+		using type = Pointer<Byte>;
+		static type cast(void* v);
+	};
 
-	// CToReactorT specialization for enum types.
+	// CToReactor specialization for void*.
+	// Maps to Pointer<Byte> instead of Pointer<Void>.
+	template<> struct CToReactor<const char*>
+	{
+		using type = Pointer<Byte>;
+		static type cast(const char* v);
+	};
+
+	// CToReactor specialization for enum types.
 	template<typename T>
-	struct CToReactorT<T, typename std::enable_if<std::is_enum<T>::value>::type>
+	struct CToReactor<T, typename std::enable_if<std::is_enum<T>::value>::type>
 	{
 		using underlying = typename std::underlying_type<T>::type;
-		using type = typename CToReactorT<underlying>::type;
+		using type = CToReactorT<underlying>;
+		static type cast(T v) { return type(v); }
 	};
 
 	// IsRValue::value is true if T is of type RValue<X>, where X is any type.
@@ -125,14 +142,30 @@ namespace rr
 	template <typename T, typename Enable = void> struct IsReference { static constexpr bool value = false; };
 	template <typename T> struct IsReference<T, typename std::enable_if<IsDefined<typename T::reference_underlying_type>::value>::type> { static constexpr bool value = true; };
 
-	// ReactorType<T> returns the LValue Reactor type for T.
+	// ReactorTypeT<T> returns the LValue Reactor type for T.
 	// T can be a C-type, RValue or LValue.
-	template<typename T, typename ENABLE = void> struct ReactorTypeT;
-	template<typename T> using ReactorType = typename ReactorTypeT<T>::type;
-	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsDefined<CToReactor<T>>::value>::type> { using type = CToReactor<T>; };
-	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsRValue<T>::value>::type> { using type = typename T::rvalue_underlying_type; };
-	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsLValue<T>::value>::type> { using type = T; };
-	template<typename T> struct ReactorTypeT<T, typename std::enable_if<IsReference<T>::value>::type> { using type = T; };
+	template<typename T, typename ENABLE = void> struct ReactorType;
+	template<typename T> using ReactorTypeT = typename ReactorType<T>::type;
+	template<typename T> struct ReactorType<T, typename std::enable_if<IsDefined<CToReactorT<T>>::value>::type>
+	{
+		using type = CToReactorT<T>;
+		static type cast(T v) { return CToReactor<T>::cast(v); }
+	};
+	template<typename T> struct ReactorType<T, typename std::enable_if<IsRValue<T>::value>::type>
+	{
+		using type = typename T::rvalue_underlying_type;
+		static type cast(T v) { return type(v); }
+	};
+	template<typename T> struct ReactorType<T, typename std::enable_if<IsLValue<T>::value>::type>
+	{
+		using type = T;
+		static type cast(T v) { return type(v); }
+	};
+	template<typename T> struct ReactorType<T, typename std::enable_if<IsReference<T>::value>::type>
+	{
+		using type = T;
+		static type cast(T v) { return type(v); }
+	};
 
 
 	// Reactor types that can be used as a return type for a function.

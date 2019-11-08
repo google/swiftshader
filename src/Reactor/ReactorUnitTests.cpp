@@ -1144,11 +1144,10 @@ TEST(ReactorUnitTests, Call)
 
 	struct Class
 	{
-		static int Callback(uint8_t *p, int i, float f)
+		static int Callback(Class *p, int i, float f)
 		{
-			auto c = reinterpret_cast<Class*>(p);
-			c->i = i;
-			c->f = f;
+			p->i = i;
+			p->f = f;
 			return i + int(f);
 		}
 
@@ -1156,27 +1155,51 @@ TEST(ReactorUnitTests, Call)
 		float f = 0.0f;
 	};
 
+	FunctionT<int(void*)> function;
 	{
-		FunctionT<int(void*)> function;
-		{
-			Pointer<Byte> c = function.Arg<0>();
-			auto res = Call(Class::Callback, c, 10, 20.0f);
-			Return(res);
-		}
-
-		auto routine = function("one");
-
-		if(routine)
-		{
-			Class c;
-
-			int res = routine(&c);
-
-			EXPECT_EQ(res, 30);
-			EXPECT_EQ(c.i, 10);
-			EXPECT_EQ(c.f, 20.0f);
-		}
+		Pointer<Byte> c = function.Arg<0>();
+		auto res = Call(Class::Callback, c, 10, 20.0f);
+		Return(res);
 	}
+
+	auto routine = function("one");
+
+	Class c;
+	int res = routine(&c);
+	EXPECT_EQ(res, 30);
+	EXPECT_EQ(c.i, 10);
+	EXPECT_EQ(c.f, 20.0f);
+}
+
+TEST(ReactorUnitTests, CallImplicitCast)
+{
+	if (!rr::Caps.CallSupported)
+	{
+		SUCCEED() << "rr::Call() not supported";
+		return;
+	}
+
+	struct Class
+	{
+		static void Callback(Class *c, const char* s)
+		{
+			c->str = s;
+		}
+		std::string str;
+	};
+
+	FunctionT<void(Class *c, const char *s)> function;
+	{
+		Pointer<Byte> c = function.Arg<0>();
+		Pointer<Byte> s = function.Arg<1>();
+		Call(Class::Callback, c, s);
+	}
+
+	auto routine = function("one");
+
+	Class c;
+	routine(&c, "hello world");
+	EXPECT_EQ(c.str, "hello world");
 }
 
 TEST(ReactorUnitTests, CallExternalCallRoutine)
@@ -1309,14 +1332,14 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
 }
 
 template <typename T>
-class CToReactorCastTest : public ::testing::Test
+class CToReactorTCastTest : public ::testing::Test
 {
 public:
 	using CType = typename std::tuple_element<0, T>::type;
 	using ReactorType = typename std::tuple_element<1, T>::type;
 };
 
-using CToReactorCastTestTypes = ::testing::Types
+using CToReactorTCastTestTypes = ::testing::Types
 	< // Subset of types that can be used as arguments.
 	//	std::pair<bool,         Bool>,    FIXME(capn): Not supported as argument type by Subzero.
 	//	std::pair<uint8_t,      Byte>,    FIXME(capn): Not supported as argument type by Subzero.
@@ -1328,9 +1351,9 @@ using CToReactorCastTestTypes = ::testing::Types
 		std::pair<float,        Float>
 	>;
 
-TYPED_TEST_SUITE(CToReactorCastTest, CToReactorCastTestTypes);
+TYPED_TEST_SUITE(CToReactorTCastTest, CToReactorTCastTestTypes);
 
-TYPED_TEST(CToReactorCastTest, Casts)
+TYPED_TEST(CToReactorTCastTest, Casts)
 {
 	using CType = typename TestFixture::CType;
 	using ReactorType = typename TestFixture::ReactorType;
@@ -1534,37 +1557,37 @@ int main(int argc, char **argv)
 // Trait compile time checks. //
 ////////////////////////////////
 
-// Assert CToReactor resolves to expected types.
-static_assert(std::is_same<CToReactor<void>,     Void>::value, "");
-static_assert(std::is_same<CToReactor<bool>,     Bool>::value, "");
-static_assert(std::is_same<CToReactor<uint8_t>,  Byte>::value, "");
-static_assert(std::is_same<CToReactor<int8_t>,   SByte>::value, "");
-static_assert(std::is_same<CToReactor<int16_t>,  Short>::value, "");
-static_assert(std::is_same<CToReactor<uint16_t>, UShort>::value, "");
-static_assert(std::is_same<CToReactor<int32_t>,  Int>::value, "");
-static_assert(std::is_same<CToReactor<uint64_t>, Long>::value, "");
-static_assert(std::is_same<CToReactor<uint32_t>, UInt>::value, "");
-static_assert(std::is_same<CToReactor<float>,    Float>::value, "");
+// Assert CToReactorT resolves to expected types.
+static_assert(std::is_same<CToReactorT<void>,     Void>::value, "");
+static_assert(std::is_same<CToReactorT<bool>,     Bool>::value, "");
+static_assert(std::is_same<CToReactorT<uint8_t>,  Byte>::value, "");
+static_assert(std::is_same<CToReactorT<int8_t>,   SByte>::value, "");
+static_assert(std::is_same<CToReactorT<int16_t>,  Short>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t>, UShort>::value, "");
+static_assert(std::is_same<CToReactorT<int32_t>,  Int>::value, "");
+static_assert(std::is_same<CToReactorT<uint64_t>, Long>::value, "");
+static_assert(std::is_same<CToReactorT<uint32_t>, UInt>::value, "");
+static_assert(std::is_same<CToReactorT<float>,    Float>::value, "");
 
-// Assert CToReactor for known pointer types resolves to expected types.
-static_assert(std::is_same<CToReactor<void*>,     Pointer<Byte>>::value, "");
-static_assert(std::is_same<CToReactor<bool*>,     Pointer<Bool>>::value, "");
-static_assert(std::is_same<CToReactor<uint8_t*>,  Pointer<Byte>>::value, "");
-static_assert(std::is_same<CToReactor<int8_t*>,   Pointer<SByte>>::value, "");
-static_assert(std::is_same<CToReactor<int16_t*>,  Pointer<Short>>::value, "");
-static_assert(std::is_same<CToReactor<uint16_t*>, Pointer<UShort>>::value, "");
-static_assert(std::is_same<CToReactor<int32_t*>,  Pointer<Int>>::value, "");
-static_assert(std::is_same<CToReactor<uint64_t*>, Pointer<Long>>::value, "");
-static_assert(std::is_same<CToReactor<uint32_t*>, Pointer<UInt>>::value, "");
-static_assert(std::is_same<CToReactor<float*>,    Pointer<Float>>::value, "");
-static_assert(std::is_same<CToReactor<uint16_t**>, Pointer<Pointer<UShort>>>::value, "");
-static_assert(std::is_same<CToReactor<uint16_t***>, Pointer<Pointer<Pointer<UShort>>>>::value, "");
+// Assert CToReactorT for known pointer types resolves to expected types.
+static_assert(std::is_same<CToReactorT<void*>,     Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactorT<bool*>,     Pointer<Bool>>::value, "");
+static_assert(std::is_same<CToReactorT<uint8_t*>,  Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactorT<int8_t*>,   Pointer<SByte>>::value, "");
+static_assert(std::is_same<CToReactorT<int16_t*>,  Pointer<Short>>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t*>, Pointer<UShort>>::value, "");
+static_assert(std::is_same<CToReactorT<int32_t*>,  Pointer<Int>>::value, "");
+static_assert(std::is_same<CToReactorT<uint64_t*>, Pointer<Long>>::value, "");
+static_assert(std::is_same<CToReactorT<uint32_t*>, Pointer<UInt>>::value, "");
+static_assert(std::is_same<CToReactorT<float*>,    Pointer<Float>>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t**>, Pointer<Pointer<UShort>>>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t***>, Pointer<Pointer<Pointer<UShort>>>>::value, "");
 
-// Assert CToReactor for unknown pointer types resolves to Pointer<Byte>.
+// Assert CToReactorT for unknown pointer types resolves to Pointer<Byte>.
 struct S{};
-static_assert(std::is_same<CToReactor<S*>, Pointer<Byte>>::value, "");
-static_assert(std::is_same<CToReactor<S**>, Pointer<Pointer<Byte>>>::value, "");
-static_assert(std::is_same<CToReactor<S***>, Pointer<Pointer<Pointer<Byte>>>>::value, "");
+static_assert(std::is_same<CToReactorT<S*>, Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactorT<S**>, Pointer<Pointer<Byte>>>::value, "");
+static_assert(std::is_same<CToReactorT<S***>, Pointer<Pointer<Pointer<Byte>>>>::value, "");
 
 // Assert IsRValue<> resolves true for RValue<> types.
 static_assert(IsRValue<RValue<Void>>::value, "");

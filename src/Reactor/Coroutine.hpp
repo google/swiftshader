@@ -118,7 +118,7 @@ private:
 		using CArgumentType = typename std::tuple_element<index, std::tuple<Arguments...>>::type;
 
 		template<int index>
-		using RArgumentType = CToReactor<CArgumentType<index>>;
+		using RArgumentType = CToReactorT<CArgumentType<index>>;
 
 		// Return the argument value with the given index.
 		template<int index>
@@ -151,7 +151,7 @@ private:
 	{
 		core.reset(new Nucleus());
 
-		std::vector<Type*> types = {CToReactor<Arguments>::getType()...};
+		std::vector<Type*> types = {CToReactorT<Arguments>::getType()...};
 		for(auto type : types)
 		{
 			if(type != Void::getType())
@@ -160,7 +160,7 @@ private:
 			}
 		}
 
-		Nucleus::createCoroutine(CToReactor<Return>::getType(), arguments);
+		Nucleus::createCoroutine(CToReactorT<Return>::getType(), arguments);
 	}
 
 	template<typename Return, typename... Arguments>
