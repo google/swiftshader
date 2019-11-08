@@ -1790,8 +1790,10 @@ namespace sw
 			return false;
 		}
 
-		if(state.multiSample > 1)   // Rectangle
+		if(state.multiSample > 1)
 		{
+			// Rectangle centered on the line segment
+
 			float4 P[4];
 			int C[4];
 
@@ -1844,8 +1846,13 @@ namespace sw
 				return setupRoutine(&primitive, &triangle, &polygon, &data);
 			}
 		}
-		else   // Diamond test convention
+		else if(true)
 		{
+			// Connecting diamonds polygon
+			// This shape satisfies the diamond test convention, except for the exit rule part.
+			// Line segments with overlapping endpoints have duplicate fragments.
+			// The ideal algorithm requires half-open line rasterization (b/80135519).
+
 			float4 P[8];
 			int C[8];
 
@@ -1938,6 +1945,97 @@ namespace sw
 				Polygon polygon(L, 6);
 
 				int clipFlagsOr = C[0] | C[1] | C[2] | C[3] | C[4] | C[5] | C[6] | C[7] | draw.clipFlags;
+
+				if(clipFlagsOr != Clipper::CLIP_FINITE)
+				{
+					if(!clipper->clip(polygon, clipFlagsOr, draw))
+					{
+						return false;
+					}
+				}
+
+				return setupRoutine(&primitive, &triangle, &polygon, &data);
+			}
+		}
+		else
+		{
+			// Parallelogram approximating Bresenham line
+			// This algorithm does not satisfy the ideal diamond-exit rule, but does avoid the
+			// duplicate fragment rasterization problem and satisfies all of Vulkan's minimum
+			// requirements for Bresenham line segment rasterization.
+
+			float4 P[8];
+			P[0] = P0;
+			P[1] = P0;
+			P[2] = P0;
+			P[3] = P0;
+			P[4] = P1;
+			P[5] = P1;
+			P[6] = P1;
+			P[7] = P1;
+
+			float dx0 = lineWidth * 0.5f * P0.w / W;
+			float dy0 = lineWidth * 0.5f * P0.w / H;
+
+			float dx1 = lineWidth * 0.5f * P1.w / W;
+			float dy1 = lineWidth * 0.5f * P1.w / H;
+
+			P[0].x += -dx0;
+			P[1].y += +dy0;
+			P[2].x += +dx0;
+			P[3].y += -dy0;
+			P[4].x += -dx1;
+			P[5].y += +dy1;
+			P[6].x += +dx1;
+			P[7].y += -dy1;
+
+			float4 L[4];
+
+			if(dx > -dy)
+			{
+				if(dx > dy)   // Right
+				{
+					L[0] = P[1];
+					L[1] = P[5];
+					L[2] = P[7];
+					L[3] = P[3];
+				}
+				else   // Down
+				{
+					L[0] = P[0];
+					L[1] = P[4];
+					L[2] = P[6];
+					L[3] = P[2];
+				}
+			}
+			else
+			{
+				if(dx > dy)   // Up
+				{
+					L[0] = P[0];
+					L[1] = P[2];
+					L[2] = P[6];
+					L[3] = P[4];
+				}
+				else   // Left
+				{
+					L[0] = P[1];
+					L[1] = P[3];
+					L[2] = P[7];
+					L[3] = P[5];
+				}
+			}
+
+			int C0 = clipper->computeClipFlags(L[0]);
+			int C1 = clipper->computeClipFlags(L[1]);
+			int C2 = clipper->computeClipFlags(L[2]);
+			int C3 = clipper->computeClipFlags(L[3]);
+
+			if((C0 & C1 & C2 & C3) == Clipper::CLIP_FINITE)
+			{
+				Polygon polygon(L, 4);
+
+				int clipFlagsOr = C0 | C1 | C2 | C3;
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
