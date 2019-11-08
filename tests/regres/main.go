@@ -298,13 +298,13 @@ func (r *regres) test(change *changeInfo) (string, error) {
 	latest := r.newTest(change.latest)
 	defer latest.cleanup()
 
+	if err := latest.checkout(); err != nil {
+		return "", cause.Wrap(err, "Failed to checkout '%s'", change.latest)
+	}
+
 	deqp, err := r.getOrBuildDEQP(latest)
 	if err != nil {
 		return "", cause.Wrap(err, "Failed to build dEQP '%v' for change", change.id)
-	}
-
-	if err := latest.checkout(); err != nil {
-		return "", cause.Wrap(err, "Failed to checkout '%s'", change.latest)
 	}
 
 	log.Printf("Testing latest patchset for change '%s'\n", change.id)
@@ -332,9 +332,11 @@ type deqp struct {
 
 func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 	srcDir := test.srcDir
-	if !isFile(path.Join(srcDir, deqpConfigRelPath)) {
+	if p := path.Join(srcDir, deqpConfigRelPath); !isFile(p) {
 		srcDir, _ = os.Getwd()
-		log.Println("Couldn't open dEQP config file from change, falling back to internal version")
+		log.Printf("Couldn't open dEQP config file from change (%v), falling back to internal version\n", p)
+	} else {
+		log.Println("Using dEQP config file from change")
 	}
 	file, err := os.Open(path.Join(srcDir, deqpConfigRelPath))
 	if err != nil {
