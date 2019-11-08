@@ -16,6 +16,24 @@
       "revId": "84bd2b0eb6b68a37d6c522d632de734fef250fdb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbd0724d_ecf90637",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1191,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-08T16:19:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "510aa8cf_42d5aee5",
+      "revId": "84bd2b0eb6b68a37d6c522d632de734fef250fdb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
