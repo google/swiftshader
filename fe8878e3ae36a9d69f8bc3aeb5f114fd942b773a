@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "28515ff8_513d5a13",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-08T13:37:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d39ffe7c_249c6d9e",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 44
+      },
+      "revId": "fe8878e3ae36a9d69f8bc3aeb5f114fd942b773a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f38ee419_d9971011",
         "filename": "src/Vulkan/VkImage.hpp",
         "patchSetId": 4
