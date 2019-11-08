@@ -176,7 +176,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		MAX_BOUND_DESCRIPTOR_SETS, // maxBoundDescriptorSets
 		16, // maxPerStageDescriptorSamplers
 		14, // maxPerStageDescriptorUniformBuffers
-		4, // maxPerStageDescriptorStorageBuffers
+		16, // maxPerStageDescriptorStorageBuffers
 		16, // maxPerStageDescriptorSampledImages
 		4, // maxPerStageDescriptorStorageImages
 		4, // maxPerStageDescriptorInputAttachments
