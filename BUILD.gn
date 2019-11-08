@@ -57,13 +57,6 @@ config("swiftshader_config") {
       cflags += [
         "/wd4309", # Truncation of constant value. See PixelRoutine.cpp casts of signed shorts.
       ]
-
-      if (target_cpu == "x86") {
-        cflags += [
-          # TODO(b/140575360): Fix when posssible.
-          "/wd4316", # object allocated on the heap may not be aligned. See Renderer and Pool.
-        ]
-      }
     }
   } else {
     cflags = [
