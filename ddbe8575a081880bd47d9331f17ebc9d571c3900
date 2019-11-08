@@ -142,6 +142,24 @@
       "revId": "ddbe8575a081880bd47d9331f17ebc9d571c3900",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f24f7e9_dbf4d410",
+        "filename": "src/Device/PixelProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-11-08T15:02:26Z",
+      "side": 1,
+      "message": "b/143288278#comment5",
+      "parentUuid": "e192630f_032647c9",
+      "revId": "ddbe8575a081880bd47d9331f17ebc9d571c3900",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
