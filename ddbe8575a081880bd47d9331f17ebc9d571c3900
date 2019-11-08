@@ -124,6 +124,24 @@
       "revId": "ddbe8575a081880bd47d9331f17ebc9d571c3900",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e192630f_032647c9",
+        "filename": "src/Device/PixelProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-08T13:33:01Z",
+      "side": 1,
+      "message": "compareMask:\nhttps://cs.chromium.org/chromium/src/third_party/swiftshader/src/Pipeline/PixelRoutine.cpp?l\u003d262\nand writeMask:\nhttps://cs.chromium.org/chromium/src/third_party/swiftshader/src/Pipeline/PixelRoutine.cpp?l\u003d721\n\nactually affect the generated routine, currently.",
+      "parentUuid": "ff2f2fa4_7507a224",
+      "revId": "ddbe8575a081880bd47d9331f17ebc9d571c3900",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
