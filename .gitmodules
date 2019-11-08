@@ -1,3 +1,7 @@
+[submodule "third_party/cppdap"]
+	path = third_party/cppdap
+	url = https://github.com/google/cppdap
+
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest.git
