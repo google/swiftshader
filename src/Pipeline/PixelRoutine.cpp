@@ -968,7 +968,15 @@ namespace sw
 			pixel.x = (c01 & Short4(0x7C00u)) << 1;
 			pixel.y = (c01 & Short4(0x03E0u)) << 6;
 			pixel.z = (c01 & Short4(0x001Fu)) << 11;
-			pixel.w = (c01 & Short4(0x8000u));
+			pixel.w = (c01 & Short4(0x8000u)) >> 15;
+
+			// Expand to 16 bit range
+			pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 5);
+			pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 10);
+			pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 5);
+			pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 10);
+			pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 5);
+			pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 10);
 			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			buffer = cBuffer + 2 * x;
@@ -979,6 +987,14 @@ namespace sw
 			pixel.y = (c01 & Short4(0x07E0u)) << 5;
 			pixel.z = (c01 & Short4(0x001Fu)) << 11;
 			pixel.w = Short4(0xFFFFu);
+
+			// Expand to 16 bit range
+			pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 5);
+			pixel.x |= As<Short4>(As<UShort4>(pixel.x) >> 10);
+			pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 6);
+			pixel.y |= As<Short4>(As<UShort4>(pixel.y) >> 12);
+			pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 5);
+			pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 10);
 			break;
 		case VK_FORMAT_B8G8R8A8_UNORM:
 		case VK_FORMAT_B8G8R8A8_SRGB:
@@ -1216,16 +1232,6 @@ namespace sw
 
 		switch(state.targetFormat[index])
 		{
-		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-			current.x = AddSat(As<UShort4>(current.x), UShort4(0x0400));
-			current.y = AddSat(As<UShort4>(current.y), UShort4(0x0400));
-			current.z = AddSat(As<UShort4>(current.z), UShort4(0x0400));
-			break;
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-			current.x = AddSat(As<UShort4>(current.x), UShort4(0x0400));
-			current.y = AddSat(As<UShort4>(current.y), UShort4(0x0200));
-			current.z = AddSat(As<UShort4>(current.z), UShort4(0x0400));
-			break;
 		case VK_FORMAT_B8G8R8A8_UNORM:
 		case VK_FORMAT_B8G8R8A8_SRGB:
 		case VK_FORMAT_R8G8B8A8_UNORM:
