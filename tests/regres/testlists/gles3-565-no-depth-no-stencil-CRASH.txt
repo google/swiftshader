@@ -1,0 +1,1 @@
+dEQP-GLES3.functional.fragment_ops.interaction.basic_shader.80
