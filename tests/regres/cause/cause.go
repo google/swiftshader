@@ -19,15 +19,8 @@ import (
 	"fmt"
 )
 
-// errWithCause is an error that wrap an inner error with additional info.
-type errWithCause struct {
-	cause error
-	msg   string
-}
-
-func (e errWithCause) Error() string { return fmt.Sprintf("%s. Cause: %v", e.msg, e.cause) }
-
 // Wrap returns a new error wrapping cause with the additional message.
 func Wrap(cause error, msg string, args ...interface{}) error {
-	return errWithCause{cause, fmt.Sprintf(msg, args...)}
+	s := fmt.Sprintf(msg, args...)
+	return fmt.Errorf("%v. Cause: %w", s, cause)
 }
