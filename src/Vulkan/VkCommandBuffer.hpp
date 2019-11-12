@@ -180,7 +180,7 @@ public:
 		uint32_t subpassIndex = 0;
 
 		void bindAttachments(sw::Context& context);
-		void bindVertexInputs(sw::Context& context, int firstVertex, int firstInstance);
+		void bindVertexInputs(sw::Context& context, int firstInstance);
 	};
 
 	void submit(CommandBuffer::ExecutionState& executionState);

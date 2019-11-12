@@ -94,13 +94,14 @@ namespace sw
 			{
 				Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void*) * (i / 4));
 				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(uint32_t) * (i / 4));
+				Int baseVertex = *Pointer<Int>(data + OFFSET(DrawData, baseVertex));
 				UInt robustnessSize(0);
 				if(state.robustBufferAccess)
 				{
 					robustnessSize = *Pointer<UInt>(data + OFFSET(DrawData, robustnessSize) + sizeof(uint32_t) * (i / 4));
 				}
 
-				auto value = readStream(input, stride, state.input[i / 4], batch, state.robustBufferAccess, robustnessSize);
+				auto value = readStream(input, stride, state.input[i / 4], batch, state.robustBufferAccess, robustnessSize, baseVertex);
 				routine.inputs[i + 0] = value.x;
 				routine.inputs[i + 1] = value.y;
 				routine.inputs[i + 2] = value.z;
@@ -143,10 +144,15 @@ namespace sw
 	}
 
 	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
-	                                   bool robustBufferAccess, UInt & robustnessSize)
+	                                   bool robustBufferAccess, UInt & robustnessSize, Int baseVertex)
 	{
 		Vector4f v;
-		UInt4 offsets = *Pointer<UInt4>(As<Pointer<UInt4>>(batch)) * UInt4(stride);
+		// Because of the following rule in the Vulkan spec, we do not care if a very large negative
+		// baseVertex would overflow all the way back into a valid region of the index buffer:
+		// "Out-of-bounds buffer loads will return any of the following values :
+		//  - Values from anywhere within the memory range(s) bound to the buffer (possibly including
+		//    bytes of memory past the end of the buffer, up to the end of the bound range)."
+		UInt4 offsets = (*Pointer<UInt4>(As<Pointer<UInt4>>(batch)) + As<UInt4>(Int4(baseVertex))) * UInt4(stride);
 
 		Pointer<Byte> source0 = buffer + offsets.x;
 		Pointer<Byte> source1 = buffer + offsets.y;

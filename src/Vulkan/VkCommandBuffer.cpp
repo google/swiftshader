@@ -411,7 +411,7 @@ private:
 	uint32_t reference;
 };
 
-void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int firstVertex, int firstInstance)
+void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int firstInstance)
 {
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
@@ -420,7 +420,6 @@ void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int f
 		{
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
 			VkDeviceSize offset = attrib.offset + vertexInput.offset +
-			                      attrib.vertexStride * firstVertex +
 			                      attrib.instanceStride * firstInstance;
 			attrib.buffer = vertexInput.buffer ? vertexInput.buffer->getOffsetPointer(offset) : nullptr;
 
@@ -524,7 +523,7 @@ struct DrawBase : public CommandBuffer::Command
 
 		sw::Context context = pipeline->getContext();
 
-		executionState.bindVertexInputs(context, vertexOffset, firstInstance);
+		executionState.bindVertexInputs(context, firstInstance);
 
 		context.descriptorSets = pipelineState.descriptorSets;
 		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
