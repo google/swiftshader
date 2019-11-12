@@ -194,3 +194,5 @@ dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r32g32b32a32_sfloat.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r8g8b8a8_unorm.samples_4
 dEQP-VK.rasterization.primitives_multisample_4_bit.no_stipple.bresenham_line_strip
 dEQP-VK.rasterization.primitives_multisample_4_bit.no_stipple.bresenham_lines
+dEQP-VK.synchronization.basic.fence.empty_submit
+dEQP-VK.synchronization.basic.fence.one
