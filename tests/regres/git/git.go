@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	gitTimeout = time.Minute * 5 // timeout for a git operation
+	gitTimeout = time.Minute * 15 // timeout for a git operation
 )
 
 var exe string
@@ -111,8 +111,31 @@ func Push(project, remote, localBranch, remoteBranch string, flags PushFlags) er
 	return shell.Shell(gitTimeout, exe, project, args...)
 }
 
-// Checkout performs a git checkout of the given commit into path.
-func Checkout(path, url string, commit Hash) error {
+// CheckoutRemoteBranch performs a git fetch and checkout of the given branch into path.
+func CheckoutRemoteBranch(path, url string, branch string) error {
+	if err := os.MkdirAll(path, 0777); err != nil {
+		return cause.Wrap(err, "mkdir '"+path+"' failed")
+	}
+
+	for _, cmds := range [][]string{
+		{"init"},
+		{"remote", "add", "origin", url},
+		// Note: this depth is here to prevent massive dEQP checkouts that can
+		// take all day. If the commit cannot be found in the checked out branch
+		// then this limit may need to be increased.
+		{"fetch", "origin", "--depth=99", branch},
+	} {
+		if err := shell.Shell(gitTimeout, exe, path, cmds...); err != nil {
+			os.RemoveAll(path)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// CheckoutRemoteCommit performs a git fetch and checkout of the given commit into path.
+func CheckoutRemoteCommit(path, url string, commit Hash) error {
 	if err := os.MkdirAll(path, 0777); err != nil {
 		return cause.Wrap(err, "mkdir '"+path+"' failed")
 	}
@@ -130,6 +153,11 @@ func Checkout(path, url string, commit Hash) error {
 	}
 
 	return nil
+}
+
+// CheckoutCommit performs a git checkout of the given commit.
+func CheckoutCommit(path string, commit Hash) error {
+	return shell.Shell(gitTimeout, exe, path, "checkout", commit.String())
 }
 
 // Apply applys the patch file to the git repo at dir.

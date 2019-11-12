@@ -346,6 +346,7 @@ func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 
 	cfg := struct {
 		Remote  string   `json:"remote"`
+		Branch  string   `json:"branch"`
 		SHA     string   `json:"sha"`
 		Patches []string `json:"patches"`
 	}{}
@@ -372,38 +373,52 @@ func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 			}
 		}()
 
-		log.Printf("Checking out deqp %s @ %s into %s\n", cfg.Remote, cfg.SHA, cacheDir)
-		if err := git.Checkout(cacheDir, cfg.Remote, git.ParseHash(cfg.SHA)); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't build deqp %s @ %s", cfg.Remote, cfg.SHA)
+		if cfg.Branch != "" {
+			// If a branch is specified, then fetch the branch then checkout the
+			// commit by SHA. This is a workaround for git repos that error when
+			// attempting to directly checkout a remote commit.
+			log.Printf("Checking out deqp %v branch %v into %v\n", cfg.Remote, cfg.Branch, cacheDir)
+			if err := git.CheckoutRemoteBranch(cacheDir, cfg.Remote, cfg.Branch); err != nil {
+				return deqp{}, cause.Wrap(err, "Couldn't checkout deqp branch %v @ %v", cfg.Remote, cfg.Branch)
+			}
+			log.Printf("Checking out deqp %v commit %v \n", cfg.Remote, cfg.SHA)
+			if err := git.CheckoutCommit(cacheDir, git.ParseHash(cfg.SHA)); err != nil {
+				return deqp{}, cause.Wrap(err, "Couldn't checkout deqp commit %v @ %v", cfg.Remote, cfg.SHA)
+			}
+		} else {
+			log.Printf("Checking out deqp %v @ %v into %v\n", cfg.Remote, cfg.SHA, cacheDir)
+			if err := git.CheckoutRemoteCommit(cacheDir, cfg.Remote, git.ParseHash(cfg.SHA)); err != nil {
+				return deqp{}, cause.Wrap(err, "Couldn't checkout deqp commit %v @ %v", cfg.Remote, cfg.SHA)
+			}
 		}
 
 		log.Println("Fetching deqp dependencies")
 		if err := shell.Shell(buildTimeout, r.python, cacheDir, "external/fetch_sources.py"); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't fetch deqp sources %s @ %s", cfg.Remote, cfg.SHA)
+			return deqp{}, cause.Wrap(err, "Couldn't fetch deqp sources %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
 		log.Println("Applying deqp patches")
 		for _, patch := range cfg.Patches {
 			fullPath := path.Join(srcDir, patch)
 			if err := git.Apply(cacheDir, fullPath); err != nil {
-				return deqp{}, cause.Wrap(err, "Couldn't apply deqp patch %s for %s @ %s", patch, cfg.Remote, cfg.SHA)
+				return deqp{}, cause.Wrap(err, "Couldn't apply deqp patch %v for %v @ %v", patch, cfg.Remote, cfg.SHA)
 			}
 		}
 
-		log.Printf("Building deqp into %s\n", buildDir)
+		log.Printf("Building deqp into %v\n", buildDir)
 		if err := os.MkdirAll(buildDir, 0777); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't make deqp cache directory '%s'", cacheDir)
+			return deqp{}, cause.Wrap(err, "Couldn't make deqp build directory '%v'", buildDir)
 		}
 
 		if err := shell.Shell(buildTimeout, r.cmake, buildDir,
 			"-DDEQP_TARGET=x11_egl",
 			"-DCMAKE_BUILD_TYPE=Release",
 			".."); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't generate build rules for deqp %s @ %s", cfg.Remote, cfg.SHA)
+			return deqp{}, cause.Wrap(err, "Couldn't generate build rules for deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
 		if err := shell.Shell(buildTimeout, r.make, buildDir, fmt.Sprintf("-j%d", runtime.NumCPU())); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't build deqp %s @ %s", cfg.Remote, cfg.SHA)
+			return deqp{}, cause.Wrap(err, "Couldn't build deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
 		success = true
@@ -801,7 +816,7 @@ func (t *test) checkout() error {
 	}
 	log.Printf("Checking out '%s'\n", t.commit)
 	os.RemoveAll(t.srcDir)
-	if err := git.Checkout(t.srcDir, gitURL, t.commit); err != nil {
+	if err := git.CheckoutRemoteCommit(t.srcDir, gitURL, t.commit); err != nil {
 		return cause.Wrap(err, "Checking out commit '%s'", t.commit)
 	}
 	log.Printf("Checked out commit '%s'\n", t.commit)
