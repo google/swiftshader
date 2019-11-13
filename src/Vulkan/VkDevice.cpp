@@ -177,37 +177,27 @@ VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBo
 	}
 	else // At least one fence must be signaled
 	{
-		// Start by quickly checking the status of all fences, as only one is required
+		marl::containers::vector<marl::Event, 8> events;
 		for(uint32_t i = 0; i < fenceCount; i++)
 		{
-			if(Cast(pFences[i])->getStatus() == VK_SUCCESS) // At least one fence is signaled
-			{
-				return VK_SUCCESS;
-			}
+			events.push_back(Cast(pFences[i])->getEvent());
 		}
 
-		if(timeout > 0)
+		auto any = marl::Event::any(events.begin(), events.end());
+
+		if(timeout == 0)
 		{
-			for(uint32_t i = 0; i < fenceCount; i++)
-			{
-				if(infiniteTimeout)
-				{
-					if(Cast(pFences[i])->wait() == VK_SUCCESS) // At least one fence is signaled
-					{
-						return VK_SUCCESS;
-					}
-				}
-				else
-				{
-					if(Cast(pFences[i])->wait(end_ns) == VK_SUCCESS) // At least one fence is signaled
-					{
-						return VK_SUCCESS;
-					}
-				}
-			}
+			return any.isSignalled() ? VK_SUCCESS : VK_TIMEOUT;
 		}
-
-		return VK_TIMEOUT;
+		else if (infiniteTimeout)
+		{
+			any.wait();
+			return VK_SUCCESS;
+		}
+		else
+		{
+			return any.wait_until(end_ns) ? VK_SUCCESS : VK_TIMEOUT;
+		}
 	}
 }
 

@@ -58,6 +58,8 @@ public:
 		return event.wait_until(timeout) ? VK_SUCCESS : VK_TIMEOUT;
 	}
 
+	const marl::Event& getEvent() const { return event; }
+
 	// TaskEvents compliance
 	void start() override
 	{
