@@ -1,2 +1,0 @@
-dEQP-VK.graphicsfuzz.discard-continue-return
-dEQP-VK.spirv_assembly.instruction.compute.hlsl_cases.cbuffer_packing
