@@ -249,14 +249,16 @@ namespace sw
 
 		// (StencilRef & StencilMask) CompFunc (StencilBufferValue & StencilMask)
 
-		Pointer<Byte> buffer = sBuffer + 2 * x;
+		Pointer<Byte> buffer = sBuffer + x;
 
 		if(q > 0)
 		{
 			buffer += q * *Pointer<Int>(data + OFFSET(DrawData,stencilSliceB));
 		}
 
-		Byte8 value = *Pointer<Byte8>(buffer);
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
+		Byte8 value = *Pointer<Byte8>(buffer) & Byte8(-1, -1, 0, 0, 0, 0, 0, 0);
+		value = value | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
 		Byte8 valueBack = value;
 
 		if(state.frontStencil.compareMask != 0xff)
@@ -624,15 +626,16 @@ namespace sw
 			return;
 		}
 
-		Pointer<Byte> buffer = sBuffer + 2 * x;
+		Pointer<Byte> buffer = sBuffer + x;
 
 		if(q > 0)
 		{
 			buffer += q * *Pointer<Int>(data + OFFSET(DrawData,stencilSliceB));
 		}
 
-		Byte8 bufferValue = *Pointer<Byte8>(buffer);
-
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
+		Byte8 bufferValue = *Pointer<Byte8>(buffer) & Byte8(-1, -1, 0, 0, 0, 0, 0, 0);
+		bufferValue = bufferValue | (*Pointer<Byte8>(buffer + pitch - 2) & Byte8(0, 0, -1, -1, 0, 0, 0, 0));
 		Byte8 newValue;
 		stencilOperation(newValue, bufferValue, state.frontStencil, false, zMask, sMask);
 
@@ -664,7 +667,8 @@ namespace sw
 		bufferValue &= *Pointer<Byte8>(constants + OFFSET(Constants,invMaskB4Q) + 8 * cMask);
 		newValue |= bufferValue;
 
-		*Pointer<Byte4>(buffer) = Byte4(newValue);
+		*Pointer<Short>(buffer) = Extract(As<Short4>(newValue), 0);
+		*Pointer<Short>(buffer + pitch) = Extract(As<Short4>(newValue), 1);
 	}
 
 	void PixelRoutine::stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, const PixelProcessor::States::StencilOpState &ops, bool isBack, const Int &zMask, const Int &sMask)

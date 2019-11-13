@@ -219,10 +219,9 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& pRegion) const
 	Format srcFormat = getFormat(srcAspect);
 	Format dstFormat = dstImage->getFormat(dstAspect);
 
-	if(((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger()) ||
-		srcFormat.hasQuadLayout() || dstFormat.hasQuadLayout())
+	if((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger())
 	{
-		// Requires multisampling resolve, or quadlayout awareness
+		// Requires multisampling resolve
 		VkImageBlit region;
 		region.srcSubresource = pRegion.srcSubresource;
 		region.srcOffsets[0] = pRegion.srcOffset;
@@ -354,23 +353,6 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
 
 	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
-
-	if (copyFormat.hasQuadLayout())
-	{
-		if (bufferIsSource)
-		{
-			return device->getBlitter()->blitFromBuffer(this, region.imageSubresource, region.imageOffset,
-														region.imageExtent, bufferMemory, bufferRowPitchBytes,
-														bufferSlicePitchBytes);
-		}
-		else
-		{
-			return device->getBlitter()->blitToBuffer(this, region.imageSubresource, region.imageOffset,
-													  region.imageExtent, bufferMemory, bufferRowPitchBytes,
-													  bufferSlicePitchBytes);
-		}
-	}
-
 	uint8_t* imageMemory = static_cast<uint8_t*>(getTexelPointer(region.imageOffset, region.imageSubresource));
 	uint8_t* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
 	uint8_t* dstMemory = bufferIsSource ? imageMemory : bufferMemory;

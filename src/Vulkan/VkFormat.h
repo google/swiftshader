@@ -42,8 +42,6 @@ public:
 	Format getAspectFormat(VkImageAspectFlags aspect) const;
 	bool isStencil() const;
 	bool isDepth() const;
-	bool hasQuadLayout() const;
-	VkFormat getNonQuadLayoutFormat() const;
 	bool isSRGBformat() const;
 	bool isFloatFormat() const;
 	bool isYcbcrFormat() const;

@@ -1345,18 +1345,9 @@ namespace sw
 		}
 	}
 
-	Int Blitter::ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout)
+	Int Blitter::ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes)
 	{
-		if(!quadLayout)
-		{
-			return y * pitchB + x * bytes;
-		}
-		else
-		{
-			// (x & ~1) * 2 + (x & 1) == (x - (x & 1)) * 2 + (x & 1) == x * 2 - (x & 1) * 2 + (x & 1) == x * 2 - (x & 1)
-			return (y & Int(~1)) * pitchB +
-			       ((((y & Int(1)) + x) << 1) - (x & Int(1))) * bytes;
-		}
+		return y * pitchB + x * bytes;
 	}
 
 	Float4 Blitter::LinearToSRGB(Float4 &c)
@@ -1410,8 +1401,6 @@ namespace sw
 			bool intSrc = state.sourceFormat.isNonNormalizedInteger();
 			bool intDst = state.destFormat.isNonNormalizedInteger();
 			bool intBoth = intSrc && intDst;
-			bool srcQuadLayout = state.sourceFormat.hasQuadLayout();
-			bool dstQuadLayout = state.destFormat.hasQuadLayout();
 			int srcBytes = state.sourceFormat.bytes();
 			int dstBytes = state.destFormat.bytes();
 
@@ -1438,12 +1427,12 @@ namespace sw
 			For(Int j = y0d, j < y1d, j++)
 			{
 				Float y = state.clearOperation ? RValue<Float>(y0) : y0 + Float(j) * h;
-				Pointer<Byte> destLine = dest + (dstQuadLayout ? j & Int(~1) : RValue<Int>(j)) * dPitchB;
+				Pointer<Byte> destLine = dest + j * dPitchB;
 
 				For(Int i = x0d, i < x1d, i++)
 				{
 					Float x = state.clearOperation ? RValue<Float>(x0) : x0 + Float(i) * w;
-					Pointer<Byte> d = destLine + (dstQuadLayout ? (((j & Int(1)) << 1) + (i * 2) - (i & Int(1))) : RValue<Int>(i)) * dstBytes;
+					Pointer<Byte> d = destLine + i * dstBytes;
 
 					if(hasConstantColorI)
 					{
@@ -1474,7 +1463,7 @@ namespace sw
 							Y = Clamp(Y, 0, sHeight - 1);
 						}
 
-						Pointer<Byte> s = source + ComputeOffset(X, Y, sPitchB, srcBytes, srcQuadLayout);
+						Pointer<Byte> s = source + ComputeOffset(X, Y, sPitchB, srcBytes);
 
 						// When both formats are true integer types, we don't go to float to avoid losing precision
 						Int4 color = readInt4(s, state);
@@ -1501,7 +1490,7 @@ namespace sw
 								Y = Clamp(Y, 0, sHeight - 1);
 							}
 
-							Pointer<Byte> s = source + ComputeOffset(X, Y, sPitchB, srcBytes, srcQuadLayout);
+							Pointer<Byte> s = source + ComputeOffset(X, Y, sPitchB, srcBytes);
 
 							color = readFloat4(s, state);
 
@@ -1550,10 +1539,10 @@ namespace sw
 							X1 = IfThenElse(X1 >= sWidth, X0, X1);
 							Y1 = IfThenElse(Y1 >= sHeight, Y0, Y1);
 
-							Pointer<Byte> s00 = source + ComputeOffset(X0, Y0, sPitchB, srcBytes, srcQuadLayout);
-							Pointer<Byte> s01 = source + ComputeOffset(X1, Y0, sPitchB, srcBytes, srcQuadLayout);
-							Pointer<Byte> s10 = source + ComputeOffset(X0, Y1, sPitchB, srcBytes, srcQuadLayout);
-							Pointer<Byte> s11 = source + ComputeOffset(X1, Y1, sPitchB, srcBytes, srcQuadLayout);
+							Pointer<Byte> s00 = source + ComputeOffset(X0, Y0, sPitchB, srcBytes);
+							Pointer<Byte> s01 = source + ComputeOffset(X1, Y0, sPitchB, srcBytes);
+							Pointer<Byte> s10 = source + ComputeOffset(X0, Y1, sPitchB, srcBytes);
+							Pointer<Byte> s11 = source + ComputeOffset(X1, Y1, sPitchB, srcBytes);
 
 							Float4 c00 = readFloat4(s00, state);
 							Float4 c01 = readFloat4(s01, state);
@@ -1626,8 +1615,7 @@ namespace sw
 	{
 		auto aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 		auto format = src->getFormat(aspect);
-		State state(format, format.getNonQuadLayoutFormat(), VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
-					Options{false, false});
+		State state(format, format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT, Options{false, false});
 
 		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
@@ -1690,8 +1678,7 @@ namespace sw
 	{
 		auto aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 		auto format = dst->getFormat(aspect);
-		State state(format.getNonQuadLayoutFormat(), format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT,
-					Options{false, false});
+		State state(format, format, VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_1_BIT, Options{false, false});
 
 		auto blitRoutine = getBlitRoutine(state);
 		if(!blitRoutine)
@@ -1891,15 +1878,14 @@ namespace sw
 	void Blitter::computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state)
 	{
 		int bytes = state.sourceFormat.bytes();
-		bool quadLayout = state.sourceFormat.hasQuadLayout();
 
-		Float4 c = readFloat4(layer + ComputeOffset(x0, y1, pitchB, bytes, quadLayout), state) +
-		           readFloat4(layer + ComputeOffset(x1, y0, pitchB, bytes, quadLayout), state) +
-		           readFloat4(layer + ComputeOffset(x1, y1, pitchB, bytes, quadLayout), state);
+		Float4 c = readFloat4(layer + ComputeOffset(x0, y1, pitchB, bytes), state) +
+		           readFloat4(layer + ComputeOffset(x1, y0, pitchB, bytes), state) +
+		           readFloat4(layer + ComputeOffset(x1, y1, pitchB, bytes), state);
 
 		c *= Float4(1.0f / 3.0f);
 
-		write(c, layer + ComputeOffset(x0, y0, pitchB, bytes, quadLayout), state);
+		write(c, layer + ComputeOffset(x0, y0, pitchB, bytes), state);
 	}
 
 	Blitter::CornerUpdateRoutineType Blitter::generateCornerUpdate(const State& state)

@@ -5379,14 +5379,6 @@ namespace sw
 			v += routine->windowSpacePosition[1];
 		}
 
-		if (useStencilAspect)
-		{
-			// Adjust addressing for quad layout. Pitches are already correct for the stencil aspect.
-			// In the quad-layout block, pixel order is [x0,y0   x1,y0   x0,y1   x1,y1]
-			u = ((v & SIMD::Int(1)) << 1) | ((u << 1) - (u & SIMD::Int(1)));
-			v &= SIMD::Int(~1);
-		}
-
 		auto rowPitch = SIMD::Int(*Pointer<Int>(descriptor + (useStencilAspect
 															  ? OFFSET(vk::StorageImageDescriptor, stencilRowPitchBytes)
 															  : OFFSET(vk::StorageImageDescriptor, rowPitchBytes))));
