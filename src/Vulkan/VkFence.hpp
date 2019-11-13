@@ -18,6 +18,10 @@
 #include "VkObject.hpp"
 #include "System/Synchronization.hpp"
 
+#include "marl/containers.h"
+#include "marl/event.h"
+#include "marl/waitgroup.h"
+
 namespace vk
 {
 
@@ -25,7 +29,7 @@ class Fence : public Object<Fence, VkFence>, public sw::TaskEvents
 {
 public:
 	Fence(const VkFenceCreateInfo* pCreateInfo, void* mem) :
-		signaled(sw::Event::ClearMode::Manual, (pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) != 0) {}
+		event(marl::Event::Mode::Manual, (pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) != 0) {}
 
 	static size_t ComputeRequiredAllocationSize(const VkFenceCreateInfo* pCreateInfo)
 	{
@@ -34,48 +38,47 @@ public:
 
 	void reset()
 	{
-		ASSERT_MSG(wg.count() == 0, "Fence::reset() called when work is in flight");
-		signaled.clear();
+		event.clear();
 	}
 
 	VkResult getStatus()
 	{
-		return signaled ? VK_SUCCESS : VK_NOT_READY;
+		return event.isSignalled() ? VK_SUCCESS : VK_NOT_READY;
 	}
 
 	VkResult wait()
 	{
-		signaled.wait();
+		event.wait();
 		return VK_SUCCESS;
 	}
 
     template <class CLOCK, class DURATION>
 	VkResult wait(const std::chrono::time_point<CLOCK, DURATION>& timeout)
 	{
-		return signaled.wait(timeout) ? VK_SUCCESS : VK_TIMEOUT;
+		return event.wait_until(timeout) ? VK_SUCCESS : VK_TIMEOUT;
 	}
 
 	// TaskEvents compliance
 	void start() override
 	{
-		ASSERT(!signaled);
+		ASSERT(!event.isSignalled());
 		wg.add();
 	}
 
 	void finish() override
 	{
-		ASSERT(!signaled);
+		ASSERT(!event.isSignalled());
 		if (wg.done())
 		{
-			signaled.signal();
+			event.signal();
 		}
 	}
 
 private:
 	Fence(const Fence&) = delete;
 
-	sw::WaitGroup wg;
-	sw::Event signaled;
+	marl::WaitGroup wg;
+	const marl::Event event;
 };
 
 static inline Fence* Cast(VkFence object)
