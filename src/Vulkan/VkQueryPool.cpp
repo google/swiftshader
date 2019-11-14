@@ -20,11 +20,10 @@
 
 namespace vk
 {
-	Query::Query() : finished(sw::Event::ClearMode::Manual), state(UNAVAILABLE), type(INVALID_TYPE), value(0) {}
+	Query::Query() : finished(marl::Event::Mode::Manual), state(UNAVAILABLE), type(INVALID_TYPE), value(0) {}
 
 	void Query::reset()
 	{
-		ASSERT(wg.count() == 0);
 		finished.clear();
 		auto prevState = state.exchange(UNAVAILABLE);
 		ASSERT(prevState != ACTIVE);

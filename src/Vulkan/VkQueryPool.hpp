@@ -15,9 +15,11 @@
 #ifndef VK_QUERY_POOL_HPP_
 #define VK_QUERY_POOL_HPP_
 
-#include "System/Synchronization.hpp"
-
 #include "VkObject.hpp"
+
+#include "marl/event.h"
+#include "marl/waitgroup.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -81,8 +83,8 @@ public:
 	void add(int64_t val);
 
 private:
-	sw::WaitGroup wg;
-	sw::Event finished;
+	marl::WaitGroup wg;
+	marl::Event finished;
 	std::atomic<State> state;
 	std::atomic<VkQueryType> type;
 	std::atomic<int64_t> value;
