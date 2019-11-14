@@ -1,7 +1,7 @@
 {
     "remote": "git@gitlab.khronos.org:Tracker/vk-gl-cts.git",
     "branch": "vulkan-cts-1.1.6",
-    "sha": "a7d268a6a3ee9655298d61cdb8b5c42306a4e335",
+    "sha": "b64acc6c3371607583b3aa6d12c7290b4aaae747",
     "patches": [
         "tests/regres/deqp-patches/deqp-x11.patch"
     ]
