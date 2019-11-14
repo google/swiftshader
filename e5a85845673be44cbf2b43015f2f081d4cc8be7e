@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56380808_92bfd8ff",
+        "filename": "src/Vulkan/VkFence.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-14T15:48:34Z",
+      "side": 1,
+      "message": "Why is this public? Can\u0027t we have a \"const marl::Event\u0026 getEvent() const { return event; }\" function?",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 25
+      },
+      "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
