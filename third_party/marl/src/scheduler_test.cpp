@@ -150,7 +150,7 @@ TEST_F(WithoutBoundScheduler, TasksOnlyScheduledOnWorkerThreads) {
   }
   wg.wait();
 
-  ASSERT_EQ(threads.size(), 8U);
+  ASSERT_LE(threads.size(), 8U);
   ASSERT_EQ(threads.count(std::this_thread::get_id()), 0U);
 
   scheduler->unbind();
