@@ -70,6 +70,30 @@
       "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f1074dd_17a92c30",
+        "filename": "src/Vulkan/VkFence.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-11-15T16:55:42Z",
+      "side": 1,
+      "message": "While my personal opinion is strongly towards removing pointless guff, I respect the consistency argument.\nMoved the getter to the next change up, as that\u0027s where it is actually used.\nDone.",
+      "parentUuid": "d470e966_867f0357",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 25
+      },
+      "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
