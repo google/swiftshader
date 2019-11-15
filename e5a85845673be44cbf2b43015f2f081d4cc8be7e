@@ -22,6 +22,30 @@
       "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "095792c6_9c71f011",
+        "filename": "src/Vulkan/VkFence.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-11-15T10:14:22Z",
+      "side": 1,
+      "message": "I could do, but why?\n\nYou\u0027re suggesting a getter that returns a const-ref to the field, exposing exactly the same thing as this const-immutable field.\nAll that this getter would be doing is forcing the compiler to parse and inline away more code, and adding a \u0027()\u0027 suffix to each use site.",
+      "parentUuid": "56380808_92bfd8ff",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 25
+      },
+      "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
