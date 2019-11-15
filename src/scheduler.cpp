@@ -43,6 +43,14 @@ inline T take(std::queue<T>& queue) {
   return out;
 }
 
+template <typename T>
+inline T take(std::unordered_set<T>& set) {
+  auto it = set.begin();
+  auto out = std::move(*it);
+  set.erase(it);
+  return out;
+}
+
 inline void nop() {
 #if defined(_WIN32)
   __nop();
@@ -216,7 +224,12 @@ void Scheduler::Fiber::schedule() {
 
 void Scheduler::Fiber::yield() {
   MARL_SCOPED_EVENT("YIELD");
-  worker->yield(this);
+  worker->yield(this, nullptr);
+}
+
+void Scheduler::Fiber::yield_until_sc(const TimePoint& timeout) {
+  MARL_SCOPED_EVENT("YIELD_UNTIL");
+  worker->yield(this, &timeout);
 }
 
 void Scheduler::Fiber::switchTo(Fiber* to) {
@@ -238,6 +251,60 @@ Allocator::unique_ptr<Scheduler::Fiber>
 Scheduler::Fiber::createFromCurrentThread(Allocator* allocator, uint32_t id) {
   return allocator->make_unique<Fiber>(
       OSFiber::createFiberFromCurrentThread(allocator), id);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Scheduler::WaitingFibers
+////////////////////////////////////////////////////////////////////////////////
+Scheduler::WaitingFibers::operator bool() const {
+  return fibers.size() > 0;
+}
+
+Scheduler::Fiber* Scheduler::WaitingFibers::take(const TimePoint& timepoint) {
+  if (!*this) {
+    return nullptr;
+  }
+  auto it = timeouts.begin();
+  if (timepoint < it->timepoint) {
+    return nullptr;
+  }
+  auto fiber = it->fiber;
+  timeouts.erase(it);
+  auto deleted = fibers.erase(fiber) != 0;
+  (void)deleted;
+  MARL_ASSERT(deleted, "WaitingFibers::take() maps out of sync");
+  return fiber;
+}
+
+Scheduler::TimePoint Scheduler::WaitingFibers::next() const {
+  MARL_ASSERT(*this,
+              "WaitingFibers::next() called when there' no waiting fibers");
+  return timeouts.begin()->timepoint;
+}
+
+void Scheduler::WaitingFibers::add(const TimePoint& timepoint, Fiber* fiber) {
+  timeouts.emplace(Timeout{timepoint, fiber});
+  bool added = fibers.emplace(fiber, timepoint).second;
+  (void)added;
+  MARL_ASSERT(added, "WaitingFibers::add() fiber already waiting");
+}
+
+void Scheduler::WaitingFibers::erase(Fiber* fiber) {
+  auto it = fibers.find(fiber);
+  if (it != fibers.end()) {
+    auto timeout = it->second;
+    auto erased = timeouts.erase(Timeout{timeout, fiber}) != 0;
+    (void)erased;
+    MARL_ASSERT(erased, "WaitingFibers::erase() maps out of sync");
+    fibers.erase(it);
+  }
+}
+
+bool Scheduler::WaitingFibers::Timeout::operator<(const Timeout& o) const {
+  if (timepoint != o.timepoint) {
+    return timepoint < o.timepoint;
+  }
+  return fiber < o.fiber;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -296,15 +363,20 @@ void Scheduler::Worker::stop() {
   }
 }
 
-void Scheduler::Worker::yield(Fiber* from) {
-  (void)from;  // unreferenced parameter
+void Scheduler::Worker::yield(
+    Fiber* from,
+    const std::chrono::system_clock::time_point* timeout) {
   MARL_ASSERT(currentFiber == from,
               "Attempting to call yield from a non-current fiber");
 
   // Current fiber is yielding as it is blocked.
 
-  // First wait until there's something else this worker can do.
   std::unique_lock<std::mutex> lock(work.mutex);
+  if (timeout != nullptr) {
+    work.waiting.add(*timeout, from);
+  }
+
+  // First wait until there's something else this worker can do.
   waitForWork(lock);
 
   if (work.fibers.size() > 0) {
@@ -332,6 +404,7 @@ bool Scheduler::Worker::tryLock() {
 void Scheduler::Worker::enqueue(Fiber* fiber) {
   std::unique_lock<std::mutex> lock(work.mutex);
   auto wasIdle = work.num == 0;
+  work.waiting.erase(fiber);
   work.fibers.push(std::move(fiber));
   work.num++;
   lock.unlock();
@@ -385,7 +458,8 @@ void Scheduler::Worker::run() {
                        Fiber::current()->id);
       {
         std::unique_lock<std::mutex> lock(work.mutex);
-        work.added.wait(lock, [this] { return work.num > 0 || shutdown; });
+        work.added.wait(
+            lock, [this] { return work.num > 0 || work.waiting || shutdown; });
         while (!shutdown || work.num > 0 || numBlockedFibers() > 0U) {
           waitForWork(lock);
           runUntilIdle(lock);
@@ -418,9 +492,25 @@ _Requires_lock_held_(lock) void Scheduler::Worker::waitForWork(
     spinForWork();
     lock.lock();
   }
-  work.added.wait(lock, [this] {
-    return work.num > 0 || (shutdown && numBlockedFibers() == 0U);
-  });
+
+  if (work.waiting) {
+    work.added.wait_until(lock, work.waiting.next(), [this] {
+      return work.num > 0 || (shutdown && numBlockedFibers() == 0U);
+    });
+    enqueueFiberTimeouts();
+  } else {
+    work.added.wait(lock, [this] {
+      return work.num > 0 || (shutdown && numBlockedFibers() == 0U);
+    });
+  }
+}
+
+_Requires_lock_held_(lock) void Scheduler::Worker::enqueueFiberTimeouts() {
+  auto now = std::chrono::system_clock::now();
+  while (auto fiber = work.waiting.take(now)) {
+    work.fibers.push(fiber);
+    work.num++;
+  }
 }
 
 void Scheduler::Worker::spinForWork() {
@@ -467,7 +557,11 @@ _Requires_lock_held_(lock) void Scheduler::Worker::runUntilIdle(
       work.num--;
       auto fiber = take(work.fibers);
       lock.unlock();
-      idleFibers.push(currentFiber);
+
+      auto added = idleFibers.emplace(currentFiber).second;
+      (void)added;
+      MARL_ASSERT(added, "fiber already idle");
+
       switchToFiber(fiber);
       lock.lock();
     }
@@ -499,6 +593,8 @@ Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
 }
 
 void Scheduler::Worker::switchToFiber(Fiber* to) {
+  MARL_ASSERT(to == mainFiber.get() || idleFibers.count(to) == 0,
+              "switching to idle fiber");
   auto from = currentFiber;
   currentFiber = to;
   from->switchTo(to);

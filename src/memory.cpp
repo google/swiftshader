@@ -50,6 +50,48 @@ inline void protectPage(void* addr) {
   MARL_ASSERT(res == 0, "Failed to protect page at %p", addr);
 }
 }  // anonymous namespace
+#elif defined(__Fuchsia__)
+#include <unistd.h>
+#include <zircon/process.h>
+#include <zircon/syscalls.h>
+namespace {
+// This was a static in pageSize(), but due to the following TSAN false-positive
+// bug, this has been moved out to a global.
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68338
+const size_t kPageSize = sysconf(_SC_PAGESIZE);
+inline size_t pageSize() {
+  return kPageSize;
+}
+inline void* allocatePages(size_t count) {
+  auto length = count * kPageSize;
+  zx_handle_t vmo;
+  if (zx_vmo_create(length, 0, &vmo) != ZX_OK) {
+    return nullptr;
+  }
+  zx_vaddr_t reservation;
+  zx_status_t status =
+      zx_vmar_map(zx_vmar_root_self(), ZX_VM_PERM_READ | ZX_VM_PERM_WRITE, 0,
+                  vmo, 0, length, &reservation);
+  zx_handle_close(vmo);
+  (void)status;
+  MARL_ASSERT(status == ZX_OK, "Failed to allocate %d pages", int(count));
+  return reinterpret_cast<void*>(reservation);
+}
+inline void freePages(void* ptr, size_t count) {
+  auto length = count * kPageSize;
+  zx_status_t status = zx_vmar_unmap(zx_vmar_root_self(),
+                                     reinterpret_cast<zx_vaddr_t>(ptr), length);
+  (void)status;
+  MARL_ASSERT(status == ZX_OK, "Failed to free %d pages at %p", int(count),
+              ptr);
+}
+inline void protectPage(void* addr) {
+  zx_status_t status = zx_vmar_protect(
+      zx_vmar_root_self(), 0, reinterpret_cast<zx_vaddr_t>(addr), kPageSize);
+  (void)status;
+  MARL_ASSERT(status == ZX_OK, "Failed to protect page at %p", addr);
+}
+}  // anonymous namespace
 #elif defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN 1
 #include <Windows.h>
@@ -82,7 +124,6 @@ inline void protectPage(void* addr) {
 }
 }  // anonymous namespace
 #else
-// TODO: Fuchsia support
 #error "Page based allocation not implemented for this platform"
 #endif
 
