@@ -172,6 +172,7 @@ if(MARL_BUILD_TESTS)
         ${MARL_SRC_DIR}/conditionvariable_test.cpp
         ${MARL_SRC_DIR}/containers_test.cpp
         ${MARL_SRC_DIR}/defer_test.cpp
+        ${MARL_SRC_DIR}/event_test.cpp
         ${MARL_SRC_DIR}/marl_test.cpp
         ${MARL_SRC_DIR}/marl_test.h
         ${MARL_SRC_DIR}/memory_test.cpp
