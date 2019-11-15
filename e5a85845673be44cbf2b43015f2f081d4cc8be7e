@@ -46,6 +46,30 @@
       "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d470e966_867f0357",
+        "filename": "src/Vulkan/VkFence.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-15T13:33:01Z",
+      "side": 1,
+      "message": "I understand it works the same way, but I feel like it\u0027s clearer when you read the code if you have a getter function. It\u0027s only a style/readability preference. I don\u0027t think we usually make const members public in the SwiftShader codebase, even if we could. If everyone else is ok with const members being public, I have no objections to it, but I just don\u0027t remember this being part of the general code style.\n\nIf people feel we should do it this way, we can change the style and do it this way from now on, I\u0027m not  against it, I just like consistency.",
+      "parentUuid": "095792c6_9c71f011",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 25
+      },
+      "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
