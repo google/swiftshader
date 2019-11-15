@@ -94,6 +94,30 @@
       "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "149e03a4_03bb27f1",
+        "filename": "src/Vulkan/VkFence.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-11-15T18:09:34Z",
+      "side": 1,
+      "message": "The potential advantage of a getter method is that if a future change made it so that if the event could be dynamically changed, you wouldn\u0027t have to change all the call sites.\n\nI don\u0027t think that justifies putting getters on everything; POD classes and such would just become bloated and field accesses become less readable for no reason.\n\nAdding getters should be the go-to default though when there\u0027s any doubt that the implementation will remain fixed.\n\nFor this particular case I think it\u0027s worth looking into how we\u0027d implement the external fence extensions and whether that makes event retrieval dynamic...",
+      "parentUuid": "d470e966_867f0357",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 25
+      },
+      "revId": "e5a85845673be44cbf2b43015f2f081d4cc8be7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
