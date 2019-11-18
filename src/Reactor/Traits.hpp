@@ -81,28 +81,28 @@ namespace rr
 	// TODO: Long has no constructor that takes a uint64_t
 	template<> struct CToReactor<uint64_t>	{ using type = Long;  /* static Long   cast(uint64_t); */ };
 
-	// CToReactorPtrT<T>::type resolves to the corresponding Reactor Pointer<>
+	// CToReactorPtr<T>::type resolves to the corresponding Reactor Pointer<>
 	// type for T*.
 	// For T types that have a CToReactorT<> specialization,
-	// CToReactorPtrT<T>::type resolves to Pointer< CToReactorT<T> >, otherwise
-	// CToReactorPtrT<T>::type resolves to Pointer<Byte>.
-	template<typename T, typename ENABLE = void> struct CToReactorPtrT
+	// CToReactorPtr<T>::type resolves to Pointer< CToReactorT<T> >, otherwise
+	// CToReactorPtr<T>::type resolves to Pointer<Byte>.
+	template<typename T, typename ENABLE = void> struct CToReactorPtr
 	{
 		using type = Pointer<Byte>;
 		static inline type cast(const T* v); // implemented in Traits.inl
 	};
 
-	// CToReactorPtrT specialization for T types that have a CToReactorT<>
+	// CToReactorPtr specialization for T types that have a CToReactorT<>
 	// specialization.
-	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< IsDefined< CToReactorT<T> >::value>::type >
+	template<typename T> struct CToReactorPtr<T, typename std::enable_if< IsDefined< CToReactorT<T> >::value>::type >
 	{
 		using type = Pointer< CToReactorT<T> >;
 		static inline type cast(const T* v); // implemented in Traits.inl
 	};
 
-	// CToReactorPtrT specialization for void*.
+	// CToReactorPtr specialization for void*.
 	// Maps to Pointer<Byte> instead of Pointer<Void>.
-	template<> struct CToReactorPtrT<void, void>
+	template<> struct CToReactorPtr<void, void>
 	{
 		using type = Pointer<Byte>;
 		static inline type cast(const void* v); // implemented in Traits.inl
@@ -112,13 +112,13 @@ namespace rr
 	// Maps to Pointer<Byte>.
 	// Drops the 'const' qualifier from the cast() method to avoid warnings
 	// about const having no meaning for function types.
-	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< std::is_function<T>::value >::type >
+	template<typename T> struct CToReactorPtr<T, typename std::enable_if< std::is_function<T>::value >::type >
 	{
 		using type = Pointer<Byte>;
 		static inline type cast(T* v); // implemented in Traits.inl
 	};
 
-	template<typename T> using CToReactorPtr = typename CToReactorPtrT<T>::type;
+	template<typename T> using CToReactorPtrT = typename CToReactorPtr<T>::type;
 
 	// CToReactor specialization for pointer types.
 	// For T types that have a CToReactorT<> specialization,
@@ -128,7 +128,7 @@ namespace rr
 	struct CToReactor<T, typename std::enable_if<std::is_pointer<T>::value>::type>
 	{
 		using elem = typename std::remove_pointer<T>::type;
-		using type = CToReactorPtr<elem>;
+		using type = CToReactorPtrT<elem>;
 		static inline type cast(T v); // implemented in Traits.inl
 	};
 
