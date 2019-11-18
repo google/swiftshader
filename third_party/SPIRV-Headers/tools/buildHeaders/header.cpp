@@ -69,7 +69,7 @@ namespace {
         TPrinter();
 
         static const int         DocMagicNumber = 0x07230203;
-        static const int         DocVersion     = 0x00010400;
+        static const int         DocVersion     = 0x00010500;
         static const int         DocRevision    = 1;
         #define DocRevisionString                "1"
         static const std::string DocCopyright;

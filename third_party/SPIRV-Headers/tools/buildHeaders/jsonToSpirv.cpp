@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <fstream>
 
@@ -39,6 +40,10 @@ namespace spv {
 // The set of objects that hold all the instruction/operand
 // parameterization information.
 InstructionValues InstructionDesc;
+
+// The ordered list (in printing order) of printing classes
+// (specification subsections).
+PrintingClasses InstructionPrintingClasses;
 
 // Note: There is no entry for OperandOpcode. Use InstructionDesc instead.
 EnumDefinition OperandClassParams[OperandOpcode];
@@ -229,20 +234,6 @@ unsigned int NumberStringToBit(const std::string& str)
     return bit;
 }
 
-bool ExcludeInstruction(unsigned op, bool buildingHeaders)
-{
-    // Some instructions in the grammar don't need to be reflected
-    // in the specification.
-
-    if (buildingHeaders)
-        return false;
-
-    if (op >= 5699 /* OpVmeImageINTEL */ && op <= 5816 /* OpSubgroupAvcSicGetInterRawSadsINTEL */)
-        return true;
-
-    return false;
-}
-
 void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
 {
     // only do this once.
@@ -298,11 +289,36 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
         return result;
     };
 
+    // set up the printing classes
+    std::unordered_set<std::string> tags;  // short-lived local for error checking below
+    const Json::Value printingClasses = root["instruction_printing_class"];
+    for (const auto& printingClass : printingClasses) {
+        if (printingClass["tag"].asString().size() > 0)
+            tags.insert(printingClass["tag"].asString()); // just for error checking
+        else
+            std::cerr << "Error: each instruction_printing_class requires a non-empty \"tag\"" << std::endl;
+        if (buildingHeaders || printingClass["tag"].asString() != "@exclude") {
+            InstructionPrintingClasses.push_back({printingClass["tag"].asString(),
+                                                  printingClass["heading"].asString()});
+        }
+    }
+
+    // process the instructions
     const Json::Value insts = root["instructions"];
     for (const auto& inst : insts) {
-        const unsigned int opcode = inst["opcode"].asUInt();
-        if (ExcludeInstruction(opcode, buildingHeaders))
+        const auto printingClass = inst["class"].asString();
+        if (printingClass.size() == 0) {
+            std::cerr << "Error: " << inst["opname"].asString()
+                      << " requires a non-empty printing \"class\" tag" << std::endl;
+        }
+        if (!buildingHeaders && printingClass == "@exclude")
             continue;
+        if (tags.find(printingClass) == tags.end()) {
+            std::cerr << "Error: " << inst["opname"].asString()
+                      << " requires a \"class\" declared as a \"tag\" in \"instruction printing_class\""
+                      << std::endl;
+        }
+        const auto opcode = inst["opcode"].asUInt();
         const std::string name = inst["opname"].asString();
         EnumCaps caps = getCaps(inst);
         std::string version = inst["version"].asString();
@@ -324,7 +340,7 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
             std::move(EnumValue(opcode, name,
                                 std::move(caps), std::move(version), std::move(lastVersion), std::move(exts),
                                 std::move(operands))),
-            defTypeId, defResultId);
+             printingClass, defTypeId, defResultId);
     }
 
     // Specific additional context-dependent operands
