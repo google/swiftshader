@@ -219,7 +219,7 @@ VkResult Queue::present(const VkPresentInfoKHR* presentInfo)
 	// Need to correctly implement threading using VkSemaphore
 	// to get rid of it. b/132458423
 	waitIdle();
-
+	VkResult result = VK_SUCCESS;
 	for(uint32_t i = 0; i < presentInfo->waitSemaphoreCount; i++)
 	{
 		vk::Cast(presentInfo->pWaitSemaphores[i])->wait();
@@ -227,12 +227,16 @@ VkResult Queue::present(const VkPresentInfoKHR* presentInfo)
 
 	for(uint32_t i = 0; i < presentInfo->swapchainCount; i++)
 	{
-		VkResult result = vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
-		if (result != VK_SUCCESS)
-			return result;
+		VkResult res = vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
+		if (presentInfo->pResults != nullptr)
+		{
+			presentInfo->pResults[i] = res;
+		}
+		if (res != VK_SUCCESS)
+			result = res;
 	}
 
-	return VK_SUCCESS;
+	return result;
 }
 #endif
 
