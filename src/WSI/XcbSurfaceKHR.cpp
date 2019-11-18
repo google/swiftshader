@@ -72,7 +72,7 @@ private:
 				return std::unique_ptr<LibXcbExports>(new LibXcbExports(RTLD_DEFAULT));
 			}
 
-			if (auto lib = loadLibrary("libXcb.so"))
+			if (auto lib = loadLibrary("libxcb.so.1"))
 			{
 				return std::unique_ptr<LibXcbExports>(new LibXcbExports(lib));
 			}
