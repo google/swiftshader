@@ -3761,4 +3761,6 @@ namespace rr
 	else   // ELSE_BLOCK__
 }
 
+#include "Traits.inl"
+
 #endif   // rr_Reactor_hpp

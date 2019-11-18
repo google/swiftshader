@@ -91,7 +91,7 @@ namespace rr
 	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< IsDefined< CToReactorT<T> >::value>::type >
 	{
 		using type = Pointer< CToReactorT<T> >;
-		static type cast(T v) { return type(v); }
+		static inline type cast(T v); // implemented in Traits.inl
 	};
 
 	// CToReactor specialization for pointer types.
@@ -103,7 +103,7 @@ namespace rr
 	{
 		using elem = typename std::remove_pointer<T>::type;
 		using type = CToReactorPtr<elem>;
-		static type cast(T v) { return type(v); }
+		static inline type cast(T v); // implemented in Traits.inl
 	};
 
 	// CToReactor specialization for void*.
@@ -111,7 +111,7 @@ namespace rr
 	template<> struct CToReactor<void*>
 	{
 		using type = Pointer<Byte>;
-		static type cast(void* v);
+		static type cast(void* v); // implemented in Reactor.cpp
 	};
 
 	// CToReactor specialization for void*.
@@ -119,7 +119,7 @@ namespace rr
 	template<> struct CToReactor<const char*>
 	{
 		using type = Pointer<Byte>;
-		static type cast(const char* v);
+		static type cast(const char* v); // implemented in Reactor.cpp
 	};
 
 	// CToReactor specialization for enum types.
@@ -128,7 +128,7 @@ namespace rr
 	{
 		using underlying = typename std::underlying_type<T>::type;
 		using type = CToReactorT<underlying>;
-		static type cast(T v) { return type(v); }
+		static type cast(T v); // implemented in Traits.inl
 	};
 
 	// IsRValue::value is true if T is of type RValue<X>, where X is any type.
