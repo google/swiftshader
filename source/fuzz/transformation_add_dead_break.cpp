@@ -138,6 +138,13 @@ bool TransformationAddDeadBreak::IsApplicable(
     return false;
   }
 
+  if (!fuzzerutil::BlockIsReachableInItsFunction(context, bb_to)) {
+    // If the target of the break is unreachable, we conservatively do not
+    // allow adding a dead break, to avoid the compilations that arise due to
+    // the lack of sensible dominance information for unreachable blocks.
+    return false;
+  }
+
   // Check that |message_.from_block| ends with an unconditional branch.
   if (bb_from->terminator()->opcode() != SpvOpBranch) {
     // The block associated with the id does not end with an unconditional
@@ -162,9 +169,15 @@ bool TransformationAddDeadBreak::IsApplicable(
     return false;
   }
 
-  // Finally, check that adding the break would respect the rules of structured
+  // Check that adding the break would respect the rules of structured
   // control flow.
-  return AddingBreakRespectsStructuredControlFlow(context, bb_from);
+  if (!AddingBreakRespectsStructuredControlFlow(context, bb_from)) {
+    return false;
+  }
+
+  // Check that adding the break would not violate the property that a
+  // definition must dominate all of its uses.
+  return fuzzerutil::NewEdgeRespectsUseDefDominance(context, bb_from, bb_to);
 }
 
 void TransformationAddDeadBreak::Apply(opt::IRContext* context,

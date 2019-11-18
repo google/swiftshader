@@ -59,7 +59,7 @@ std::string GetListOfPassesAsString(const spvtools::Optimizer& optimizer) {
   return ss.str();
 }
 
-const auto kDefaultEnvironment = SPV_ENV_UNIVERSAL_1_4;
+const auto kDefaultEnvironment = SPV_ENV_UNIVERSAL_1_5;
 
 std::string GetLegalizationPasses() {
   spvtools::Optimizer optimizer(kDefaultEnvironment);
@@ -80,13 +80,13 @@ std::string GetSizePasses() {
 }
 
 std::string GetVulkanToWebGPUPasses() {
-  spvtools::Optimizer optimizer(SPV_ENV_WEBGPU_0);
+  spvtools::Optimizer optimizer(SPV_ENV_VULKAN_1_1);
   optimizer.RegisterVulkanToWebGPUPasses();
   return GetListOfPassesAsString(optimizer);
 }
 
 std::string GetWebGPUToVulkanPasses() {
-  spvtools::Optimizer optimizer(SPV_ENV_VULKAN_1_1);
+  spvtools::Optimizer optimizer(SPV_ENV_WEBGPU_0);
   optimizer.RegisterWebGPUToVulkanPasses();
   return GetListOfPassesAsString(optimizer);
 }
@@ -140,6 +140,16 @@ Options (in lexicographical order):)",
                on function scope variables referenced only with load, store,
                and constant index access chains in entry point call tree
                functions.)");
+  printf(R"(
+  --convert-relaxed-to-half
+               Convert all RelaxedPrecision arithmetic operations to half
+               precision, inserting conversion operations where needed.
+               Run after function scope variable load and store elimination
+               for better results. Simplify-instructions, redundancy-elimination
+               and DCE should be run after this pass to eliminate excess
+               conversions. This conversion is useful when the target platform
+               does not support RelaxedPrecision or ignores it. This pass also
+               removes all RelaxedPrecision decorations.)");
   printf(R"(
   --copy-propagate-arrays
                Does propagation of memory references when an array is a copy of
@@ -393,6 +403,10 @@ Options (in lexicographical order):)",
                Looks for instructions in the same function that compute the
                same value, and deletes the redundant ones.)");
   printf(R"(
+  --relax-float-ops
+               Decorate all float operations with RelaxedPrecision if not already
+               so decorated. This does not decorate types or variables.)");
+  printf(R"(
   --relax-struct-store
                Allow store from one struct type to a different type with
                compatible layout and members. This option is forwarded to the
@@ -511,6 +525,13 @@ Options (in lexicographical order):)",
                Rewrites instructions for which there are known driver bugs to
                avoid triggering those bugs.
                Current workarounds: Avoid OpUnreachable in loops.)");
+  printf(R"(
+  --wrap-opkill
+               Replaces all OpKill instructions in functions that can be called
+               from a continue construct with a function call to a function
+               whose only instruction is an OpKill.  This is done to enable
+               inlining on these functions.
+               )");
   printf(R"(
   --unify-const
                Remove the duplicated constants.)");
@@ -778,7 +799,7 @@ OptStatus ParseFlags(int argc, const char** argv,
           return {OPT_STOP, 1};
         }
 
-        optimizer->SetTargetEnv(SPV_ENV_WEBGPU_0);
+        optimizer->SetTargetEnv(SPV_ENV_VULKAN_1_1);
         optimizer->RegisterVulkanToWebGPUPasses();
       } else if (0 == strcmp(cur_arg, "--webgpu-to-vulkan")) {
         webgpu_to_vulkan_set = true;
@@ -796,7 +817,7 @@ OptStatus ParseFlags(int argc, const char** argv,
           return {OPT_STOP, 1};
         }
 
-        optimizer->SetTargetEnv(SPV_ENV_VULKAN_1_1);
+        optimizer->SetTargetEnv(SPV_ENV_WEBGPU_0);
         optimizer->RegisterWebGPUToVulkanPasses();
       } else if (0 == strcmp(cur_arg, "--validate-after-all")) {
         optimizer->SetValidateAfterAll(true);

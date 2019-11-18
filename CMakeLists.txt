@@ -39,12 +39,16 @@ option(SPIRV_ALLOW_TIMERS "Allow timers via clock_gettime on supported platforms
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
   add_definitions(-DSPIRV_LINUX)
   set(SPIRV_TIMER_ENABLED ${SPIRV_ALLOW_TIMERS})
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
+    add_definitions(-DSPIRV_EMSCRIPTEN)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
   add_definitions(-DSPIRV_WINDOWS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "CYGWIN")
   add_definitions(-DSPIRV_WINDOWS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   add_definitions(-DSPIRV_MAC)
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
+  add_definitions(-DSPIRV_IOS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
   add_definitions(-DSPIRV_ANDROID)
   set(SPIRV_TIMER_ENABLED ${SPIRV_ALLOW_TIMERS})
@@ -201,6 +205,27 @@ else()
     if (NOT "${SPIRV_SKIP_TESTS}")
       message("Skipping symbol exports test for ${TARGET}")
     endif()
+  endmacro()
+endif()
+
+if(ENABLE_SPIRV_TOOLS_INSTALL)
+  if(WIN32)
+    macro(spvtools_config_package_dir TARGET PATH)
+      set(${PATH} ${TARGET}/cmake)
+    endmacro()
+  else()
+    macro(spvtools_config_package_dir TARGET PATH)
+      set(${PATH} lib/cmake/${TARGET})
+    endmacro()
+  endif()
+
+  macro(spvtools_generate_config_file TARGET)
+    file(WRITE ${CMAKE_BINARY_DIR}/${TARGET}Config.cmake
+      "include(CMakeFindDependencyMacro)\n"
+      "find_dependency(${SPIRV_TOOLS})\n"
+      "include(\${CMAKE_CURRENT_LIST_DIR}/${TARGET}Targets.cmake)\n"
+      "set(${TARGET}_LIBRARIES ${TARGET})\n"
+      "get_target_property(${TARGET}_INCLUDE_DIRS ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
   endmacro()
 endif()
 
