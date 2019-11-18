@@ -21,12 +21,12 @@
 #include <utility>
 #include <vector>
 
-#include <source/spirv_optimizer_options.h>
 #include "source/opt/build_module.h"
 #include "source/opt/graphics_robust_access_pass.h"
 #include "source/opt/log.h"
 #include "source/opt/pass_manager.h"
 #include "source/opt/passes.h"
+#include "source/spirv_optimizer_options.h"
 #include "source/util/make_unique.h"
 #include "source/util/string_utils.h"
 
@@ -415,6 +415,10 @@ bool Optimizer::RegisterPassFromFlag(const std::string& flag) {
   } else if (pass_name == "inst-buff-addr-check") {
     RegisterPass(CreateInstBuffAddrCheckPass(7, 23, 2));
     RegisterPass(CreateAggressiveDCEPass());
+  } else if (pass_name == "convert-relaxed-to-half") {
+    RegisterPass(CreateConvertRelaxedToHalfPass());
+  } else if (pass_name == "relax-float-ops") {
+    RegisterPass(CreateRelaxFloatOpsPass());
   } else if (pass_name == "simplify-instructions") {
     RegisterPass(CreateSimplificationPass());
   } else if (pass_name == "ssa-rewrite") {
@@ -556,19 +560,25 @@ bool Optimizer::Run(const uint32_t* original_binary,
     return false;
   }
 
-  optimized_binary->clear();
-  context->module()->ToBinary(optimized_binary, /* skip_nop = */ true);
-
 #ifndef NDEBUG
   if (status == opt::Pass::Status::SuccessWithoutChange) {
-    auto changed = optimized_binary->size() != original_binary_size ||
-                   memcmp(optimized_binary->data(), original_binary,
-                          original_binary_size) != 0;
-    assert(!changed &&
-           "Binary unexpectedly changed despite optimizer saying there was no "
-           "change");
+    std::vector<uint32_t> optimized_binary_with_nop;
+    context->module()->ToBinary(&optimized_binary_with_nop,
+                                /* skip_nop = */ false);
+    assert(optimized_binary_with_nop.size() == original_binary_size &&
+           "Binary size unexpectedly changed despite the optimizer saying "
+           "there was no change");
+    assert(memcmp(optimized_binary_with_nop.data(), original_binary,
+                  original_binary_size) == 0 &&
+           "Binary content unexpectedly changed despite the optimizer saying "
+           "there was no change");
   }
 #endif  // !NDEBUG
+
+  // Note that |original_binary| and |optimized_binary| may share the same
+  // buffer and the below will invalidate |original_binary|.
+  optimized_binary->clear();
+  context->module()->ToBinary(optimized_binary, /* skip_nop = */ true);
 
   return true;
 }
@@ -711,7 +721,7 @@ Optimizer::PassToken CreateDeadBranchElimPass() {
 
 Optimizer::PassToken CreateLocalMultiStoreElimPass() {
   return MakeUnique<Optimizer::PassToken::Impl>(
-      MakeUnique<opt::LocalMultiStoreElimPass>());
+      MakeUnique<opt::SSARewritePass>());
 }
 
 Optimizer::PassToken CreateAggressiveDCEPass() {
@@ -875,6 +885,16 @@ Optimizer::PassToken CreateInstBuffAddrCheckPass(uint32_t desc_set,
                                                  uint32_t version) {
   return MakeUnique<Optimizer::PassToken::Impl>(
       MakeUnique<opt::InstBuffAddrCheckPass>(desc_set, shader_id, version));
+}
+
+Optimizer::PassToken CreateConvertRelaxedToHalfPass() {
+  return MakeUnique<Optimizer::PassToken::Impl>(
+      MakeUnique<opt::ConvertToHalfPass>());
+}
+
+Optimizer::PassToken CreateRelaxFloatOpsPass() {
+  return MakeUnique<Optimizer::PassToken::Impl>(
+      MakeUnique<opt::RelaxFloatOpsPass>());
 }
 
 Optimizer::PassToken CreateCodeSinkingPass() {

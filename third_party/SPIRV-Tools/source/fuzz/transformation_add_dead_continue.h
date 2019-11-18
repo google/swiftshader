@@ -36,6 +36,8 @@ class TransformationAddDeadContinue : public Transformation {
 
   // - |message_.from_block| must be the id of a block a in the given module.
   // - a must be contained in a loop with continue target b
+  // - The continue target b must be dominated by the head of the loop in which
+  //   it is contained
   // - b must not be the merge block of a selection construct
   // - if |message_.continue_condition_value| holds (does not hold) then
   //   OpConstantTrue (OpConstantFalse) must be present in the module
@@ -47,6 +49,9 @@ class TransformationAddDeadContinue : public Transformation {
   //   as the condition, and the ids in |message_.phi_ids| used to extend any
   //   OpPhi instructions at b as a result of the edge from a, must maintain
   //   validity of the module.
+  //   In particular, adding an edge from somewhere in the loop to the continue
+  //   target must not prevent uses of ids in the continue target from being
+  //   dominated by the definitions of those ids.
   bool IsApplicable(opt::IRContext* context,
                     const FactManager& fact_manager) const override;
 
