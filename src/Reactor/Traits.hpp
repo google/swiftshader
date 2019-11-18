@@ -86,13 +86,39 @@ namespace rr
 	// For T types that have a CToReactorT<> specialization,
 	// CToReactorPtrT<T>::type resolves to Pointer< CToReactorT<T> >, otherwise
 	// CToReactorPtrT<T>::type resolves to Pointer<Byte>.
-	template<typename T, typename ENABLE = void> struct CToReactorPtrT { using type = Pointer<Byte>; };
-	template<typename T> using CToReactorPtr = typename CToReactorPtrT<T>::type;
+	template<typename T, typename ENABLE = void> struct CToReactorPtrT
+	{
+		using type = Pointer<Byte>;
+		static inline type cast(const T* v); // implemented in Traits.inl
+	};
+
+	// CToReactorPtrT specialization for T types that have a CToReactorT<>
+	// specialization.
 	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< IsDefined< CToReactorT<T> >::value>::type >
 	{
 		using type = Pointer< CToReactorT<T> >;
-		static inline type cast(T v); // implemented in Traits.inl
+		static inline type cast(const T* v); // implemented in Traits.inl
 	};
+
+	// CToReactorPtrT specialization for void*.
+	// Maps to Pointer<Byte> instead of Pointer<Void>.
+	template<> struct CToReactorPtrT<void, void>
+	{
+		using type = Pointer<Byte>;
+		static inline type cast(const void* v); // implemented in Traits.inl
+	};
+
+	// CToReactorPtr specialization for function pointer types.
+	// Maps to Pointer<Byte>.
+	// Drops the 'const' qualifier from the cast() method to avoid warnings
+	// about const having no meaning for function types.
+	template<typename T> struct CToReactorPtrT<T, typename std::enable_if< std::is_function<T>::value >::type >
+	{
+		using type = Pointer<Byte>;
+		static inline type cast(T* v); // implemented in Traits.inl
+	};
+
+	template<typename T> using CToReactorPtr = typename CToReactorPtrT<T>::type;
 
 	// CToReactor specialization for pointer types.
 	// For T types that have a CToReactorT<> specialization,
@@ -104,22 +130,6 @@ namespace rr
 		using elem = typename std::remove_pointer<T>::type;
 		using type = CToReactorPtr<elem>;
 		static inline type cast(T v); // implemented in Traits.inl
-	};
-
-	// CToReactor specialization for void*.
-	// Maps to Pointer<Byte> instead of Pointer<Void>.
-	template<> struct CToReactor<void*>
-	{
-		using type = Pointer<Byte>;
-		static type cast(void* v); // implemented in Reactor.cpp
-	};
-
-	// CToReactor specialization for void*.
-	// Maps to Pointer<Byte> instead of Pointer<Void>.
-	template<> struct CToReactor<const char*>
-	{
-		using type = Pointer<Byte>;
-		static type cast(const char* v); // implemented in Reactor.cpp
 	};
 
 	// CToReactor specialization for enum types.
