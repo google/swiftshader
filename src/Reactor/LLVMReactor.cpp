@@ -879,7 +879,6 @@ namespace rr
 {
 	const Capabilities Caps =
 	{
-		true, // CallSupported
 		true, // CoroutinesSupported
 	};
 

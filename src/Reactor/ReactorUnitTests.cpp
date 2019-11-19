@@ -1136,12 +1136,6 @@ TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 
 TEST(ReactorUnitTests, Call)
 {
-	if (!rr::Caps.CallSupported)
-	{
-		SUCCEED() << "rr::Call() not supported";
-		return;
-	}
-
 	struct Class
 	{
 		static int Callback(Class *p, int i, float f)
@@ -1173,12 +1167,6 @@ TEST(ReactorUnitTests, Call)
 
 TEST(ReactorUnitTests, CallMemberFunction)
 {
-	if (!rr::Caps.CallSupported)
-	{
-		SUCCEED() << "rr::Call() not supported";
-		return;
-	}
-
 	struct Class
 	{
 		int Callback(int argI, float argF)
@@ -1210,12 +1198,6 @@ TEST(ReactorUnitTests, CallMemberFunction)
 
 TEST(ReactorUnitTests, CallMemberFunctionIndirect)
 {
-	if (!rr::Caps.CallSupported)
-	{
-		SUCCEED() << "rr::Call() not supported";
-		return;
-	}
-
 	struct Class
 	{
 		int Callback(int argI, float argF)
@@ -1247,12 +1229,6 @@ TEST(ReactorUnitTests, CallMemberFunctionIndirect)
 
 TEST(ReactorUnitTests, CallImplicitCast)
 {
-	if (!rr::Caps.CallSupported)
-	{
-		SUCCEED() << "rr::Call() not supported";
-		return;
-	}
-
 	struct Class
 	{
 		static void Callback(Class *c, const char* s)
@@ -1278,12 +1254,6 @@ TEST(ReactorUnitTests, CallImplicitCast)
 
 TEST(ReactorUnitTests, CallExternalCallRoutine)
 {
-	if (!rr::Caps.CallSupported)
-	{
-		SUCCEED() << "rr::Call() not supported";
-		return;
-	}
-
 	// routine1 calls Class::Func, passing it a pointer to routine2, and Class::Func calls routine2
 
 	auto routine2 = [] {
