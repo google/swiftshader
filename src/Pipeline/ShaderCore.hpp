@@ -15,6 +15,7 @@
 #ifndef sw_ShaderCore_hpp
 #define sw_ShaderCore_hpp
 
+#include "Reactor/Print.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Vulkan/VkDebug.hpp"
 

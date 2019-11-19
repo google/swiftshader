@@ -300,6 +300,7 @@
     <ClInclude Include="ExecutableMemory.hpp" />
     <ClInclude Include="MutexLock.hpp" />
     <ClInclude Include="Nucleus.hpp" />
+    <ClInclude Include="Print.hpp" />
     <ClInclude Include="Reactor.hpp" />
     <ClInclude Include="Routine.hpp" />
     <ClInclude Include="Thread.hpp" />

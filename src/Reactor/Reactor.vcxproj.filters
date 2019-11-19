@@ -41,6 +41,9 @@
     <ClInclude Include="Nucleus.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Print.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Reactor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -17,6 +17,7 @@
 
 #include "ShaderCore.hpp"
 #include "Device/Sampler.hpp"
+#include "Reactor/Print.hpp"
 #include "Reactor/Reactor.hpp"
 
 #ifdef None

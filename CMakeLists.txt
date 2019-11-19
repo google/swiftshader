@@ -1538,16 +1538,17 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
     )
 
     set(SUBZERO_REACTOR_LIST
-        ${SOURCE_DIR}/Reactor/Reactor.cpp
-        ${SOURCE_DIR}/Reactor/Reactor.hpp
-        ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
-        ${SOURCE_DIR}/Reactor/Optimizer.cpp
-        ${SOURCE_DIR}/Reactor/Nucleus.hpp
-        ${SOURCE_DIR}/Reactor/Routine.hpp
         ${SOURCE_DIR}/Reactor/Debug.cpp
         ${SOURCE_DIR}/Reactor/Debug.hpp
         ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
         ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
+        ${SOURCE_DIR}/Reactor/Nucleus.hpp
+        ${SOURCE_DIR}/Reactor/Optimizer.cpp
+        ${SOURCE_DIR}/Reactor/Print.hpp
+        ${SOURCE_DIR}/Reactor/Reactor.cpp
+        ${SOURCE_DIR}/Reactor/Reactor.hpp
+        ${SOURCE_DIR}/Reactor/Routine.hpp
+        ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
     )
 
     set(SUBZERO_INCLUDE_DIR
@@ -1670,20 +1671,21 @@ if(REACTOR_EMIT_DEBUG_INFO)
 endif(REACTOR_EMIT_DEBUG_INFO)
 
 set(REACTOR_LLVM_LIST
-    ${SOURCE_DIR}/Reactor/Reactor.cpp
-    ${SOURCE_DIR}/Reactor/Reactor.hpp
-    ${SOURCE_DIR}/Reactor/LLVMReactor.cpp
-    ${SOURCE_DIR}/Reactor/LLVMReactor.hpp
-    ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.cpp
-    ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.hpp
-    ${SOURCE_DIR}/Reactor/Nucleus.hpp
-    ${SOURCE_DIR}/Reactor/Routine.hpp
     ${SOURCE_DIR}/Reactor/CPUID.cpp
     ${SOURCE_DIR}/Reactor/CPUID.hpp
     ${SOURCE_DIR}/Reactor/Debug.cpp
     ${SOURCE_DIR}/Reactor/Debug.hpp
     ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
     ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
+    ${SOURCE_DIR}/Reactor/LLVMReactor.cpp
+    ${SOURCE_DIR}/Reactor/LLVMReactor.hpp
+    ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.cpp
+    ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.hpp
+    ${SOURCE_DIR}/Reactor/Nucleus.hpp
+    ${SOURCE_DIR}/Reactor/Print.hpp
+    ${SOURCE_DIR}/Reactor/Reactor.cpp
+    ${SOURCE_DIR}/Reactor/Reactor.hpp
+    ${SOURCE_DIR}/Reactor/Routine.hpp
 )
 
 file(GLOB_RECURSE EGL_LIST
