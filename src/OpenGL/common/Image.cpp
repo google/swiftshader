@@ -940,7 +940,10 @@ namespace egl
 
 		for(int x = 0; x < width; x++)
 		{
-			destF[x] = (float)sourceD32[x] / 0xFFFFFFFF;
+			// NOTE: Second (float) cast is required to avoid compiler warning:
+			// error: implicit conversion from 'unsigned int' to 'float' changes value from
+			// 4294967295 to 4294967296 [-Werror,-Wimplicit-int-float-conversion]
+			destF[x] = (float)sourceD32[x] / (float)0xFFFFFFFF;
 		}
 	}
 
