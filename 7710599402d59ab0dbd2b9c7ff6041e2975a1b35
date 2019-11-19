@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "b8aa46df_e2d4c633",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 26487
+      },
+      "writtenOn": "2019-11-19T16:25:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ccbfd42e_94d81a94",
+      "revId": "7710599402d59ab0dbd2b9c7ff6041e2975a1b35",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "784a1f96_cf92022d",
         "filename": "src/WSI/XcbSurfaceKHR.cpp",
         "patchSetId": 1
@@ -48,6 +66,30 @@
       "writtenOn": "2019-11-19T07:15:07Z",
       "side": 1,
       "message": "libxcb.so.1\n\nSee http://b/139491466#comment3 and http://b/139491466#comment4",
+      "range": {
+        "startLine": 75,
+        "startChar": 31,
+        "endLine": 75,
+        "endChar": 40
+      },
+      "revId": "7710599402d59ab0dbd2b9c7ff6041e2975a1b35",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70fcc308_3325feaf",
+        "filename": "src/WSI/XcbSurfaceKHR.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 26487
+      },
+      "writtenOn": "2019-11-19T16:25:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "784a1f96_cf92022d",
       "range": {
         "startLine": 75,
         "startChar": 31,
