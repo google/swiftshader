@@ -39,6 +39,10 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
     set(CMAKE_CXX_FLAGS "-DANDROID_NDK_BUILD")
 elseif(WIN32)
 elseif(APPLE)
+elseif(FUCHSIA)
+    # NOTE: Building for Fuchsia requires a Fuchsia CMake-based SDK.
+    # See https://fuchsia-review.googlesource.com/c/fuchsia/+/379673
+    find_package(FuchsiaSdk)
 else()
     message(FATAL_ERROR "Platform is not supported")
 endif()
@@ -266,7 +270,7 @@ macro(set_shared_library_export_map TARGET DIR)
         if(NOT SWIFTSHADER_MSAN AND NOT SWIFTSHADER_ASAN AND NOT SWIFTSHADER_TSAN AND NOT SWIFTSHADER_UBSAN)
             set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
         endif()
-    elseif(LINUX)
+    elseif(LINUX OR FUCHSIA)
         # The version script only exports the API functions and
         # hides all the others.
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--version-script=${DIR}/${TARGET}.lds")
@@ -279,7 +283,7 @@ macro(set_shared_library_export_map TARGET DIR)
         if(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
           # MIPS supports sysv hash-style only.
           set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=sysv")
-        else()
+        elseif(LINUX)
           # Both hash-style are needed, because we want both gold and
           # GNU ld to be able to read our libraries.
           set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=both")
@@ -737,6 +741,8 @@ if(WIN32)
     set(OS_LIBS odbc32 odbccp32 WS2_32 dxguid)
 elseif(LINUX)
     set(OS_LIBS dl pthread)
+elseif(FUCHSIA)
+    set(OS_LIBS zircon)
 elseif(APPLE)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(QUARTZ_FRAMEWORK Quartz)
@@ -824,14 +830,22 @@ if(SWIFTSHADER_BUILD_VULKAN)
     list(APPEND VULKAN_INCLUDE_DIR "${SPIRV_TOOLS_EXT_INC_DIR}")
     add_dependencies(vk_swiftshader spirv_tools_ext_includes)
 
+    set(VULKAN_COMPILE_OPTIONS ${SWIFTSHADER_COMPILE_OPTIONS})
+    if(FUCHSIA)
+        # At the moment, the Fuchsia build uses unofficial VK_STRUCTURE_TYPE_XX
+        # constants that are defined as macros in <vulkan/fuchsia_extras.h>. When
+        # these appear in switch() cases, the compiler complains that the values
+        # are not part of the VkStructureType enum. Silence this warning, until
+        # the constants are upstreamed to the official Vulkan headers.
+        list(APPEND VULKAN_COMPILE_OPTIONS "-Wno-switch")
+    endif()
     set_target_properties(vk_swiftshader PROPERTIES
         INCLUDE_DIRECTORIES "${VULKAN_INCLUDE_DIR}"
         FOLDER "Vulkan"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+        COMPILE_OPTIONS "${VULKAN_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "VK_EXPORT=;NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
         LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     )
-
     if(WIN32)
         set(VULKAN_API_LIBRARY_NAME "vulkan-1.dll")
         set_property(TARGET vk_swiftshader APPEND
@@ -850,6 +864,14 @@ if(SWIFTSHADER_BUILD_VULKAN)
         set(VULKAN_API_LIBRARY_NAME "libvulkan.dylib")
         set_property(TARGET vk_swiftshader APPEND
                      PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_MACOS_MVK")
+    elseif(FUCHSIA)
+        set(VULKAN_API_LIBRARY_NAME "libvulkan.so")
+        set_property(TARGET vk_swiftshader APPEND
+                     PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_FUCHSIA")
+        # On Fuchsia, the Vulkan ICD is loaded into a process sandbox that doesn't
+        # have system libraries available, so ensure it does not depend on libc++.so.
+        set_property(TARGET vk_swiftshader APPEND
+                     PROPERTY LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS} -static-libstdc++")
     else()
         message(FATAL_ERROR "Platform does not support Vulkan yet")
     endif()
