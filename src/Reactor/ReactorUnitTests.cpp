@@ -1171,6 +1171,80 @@ TEST(ReactorUnitTests, Call)
 	EXPECT_EQ(c.f, 20.0f);
 }
 
+TEST(ReactorUnitTests, CallMemberFunction)
+{
+	if (!rr::Caps.CallSupported)
+	{
+		SUCCEED() << "rr::Call() not supported";
+		return;
+	}
+
+	struct Class
+	{
+		int Callback(int argI, float argF)
+		{
+			i = argI;
+			f = argF;
+			return i + int(f);
+		}
+
+		int i = 0;
+		float f = 0.0f;
+	};
+
+	Class c;
+
+	FunctionT<int()> function;
+	{
+		auto res = Call(&Class::Callback, &c, 10, 20.0f);
+		Return(res);
+	}
+
+	auto routine = function("one");
+
+	int res = routine();
+	EXPECT_EQ(res, 30);
+	EXPECT_EQ(c.i, 10);
+	EXPECT_EQ(c.f, 20.0f);
+}
+
+TEST(ReactorUnitTests, CallMemberFunctionIndirect)
+{
+	if (!rr::Caps.CallSupported)
+	{
+		SUCCEED() << "rr::Call() not supported";
+		return;
+	}
+
+	struct Class
+	{
+		int Callback(int argI, float argF)
+		{
+			i = argI;
+			f = argF;
+			return i + int(f);
+		}
+
+		int i = 0;
+		float f = 0.0f;
+	};
+
+	FunctionT<int(void*)> function;
+	{
+		Pointer<Byte> c = function.Arg<0>();
+		auto res = Call(&Class::Callback, c, 10, 20.0f);
+		Return(res);
+	}
+
+	auto routine = function("one");
+
+	Class c;
+	int res = routine(&c);
+	EXPECT_EQ(res, 30);
+	EXPECT_EQ(c.i, 10);
+	EXPECT_EQ(c.f, 20.0f);
+}
+
 TEST(ReactorUnitTests, CallImplicitCast)
 {
 	if (!rr::Caps.CallSupported)

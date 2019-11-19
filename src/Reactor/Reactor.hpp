@@ -2880,6 +2880,12 @@ namespace rr
 		return *this = rhs.operator RValue<Float4>();
 	}
 
+	// Returns a reactor pointer to the fixed-address ptr.
+	RValue<Pointer<Byte>> ConstantPointer(void const * ptr);
+
+	// Returns a reactor pointer to an immutable copy of the data of size bytes.
+	RValue<Pointer<Byte>> ConstantData(void const * data, size_t size);
+
 	template<class T>
 	Pointer<T>::Pointer(Argument<Pointer<T>> argument) : alignment(1)
 	{
@@ -3194,9 +3200,6 @@ namespace rr
 		return ReinterpretCast<T>(val);
 	}
 
-	// Returns a reactor pointer to the fixed-address ptr.
-	RValue<Pointer<Byte>> ConstantPointer(void const * ptr);
-
 	// Calls the function pointer fptr with the given arguments, return type
 	// and parameter types. Returns the call's return value if the function has
 	// a non-void return type.
@@ -3254,14 +3257,14 @@ namespace rr
 	template <typename T>
 	inline ReactorTypeT<T> CastToReactor(const T& v) { return ReactorType<T>::cast(v); }
 
-	// Calls the function pointer fptr with the given arguments args.
+	// Calls the static function pointer fptr with the given arguments args.
 	template<typename Return, typename ... CArgs, typename ... RArgs>
 	inline CToReactorT<Return> Call(Return(fptr)(CArgs...), RArgs&&... args)
 	{
 		return CallHelper<Return(CArgs...)>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 	}
 
-	// Calls the function pointer fptr with the given arguments args.
+	// Calls the static function pointer fptr with the given arguments args.
 	// Overload for calling functions with void return type.
 	template<typename ... CArgs, typename ... RArgs>
 	inline void Call(void(fptr)(CArgs...), RArgs&&... args)
@@ -3269,8 +3272,49 @@ namespace rr
 		CallHelper<void(CArgs...)>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 	}
 
-	// Calls the function pointer fptr with the signature FUNCTION_SIGNATURE and
-	// arguments.
+	// Calls the member function pointer fptr with the given arguments args.
+	// object can be a Class*, or a Pointer<Byte>.
+	template<typename Return, typename Class, typename C, typename ... CArgs, typename ... RArgs>
+	inline CToReactorT<Return> Call(Return(Class::* fptr)(CArgs...), C&& object, RArgs&&... args)
+	{
+		using Helper = CallHelper<Return(Class*, void*, CArgs...)>;
+		using fptrTy = decltype(fptr);
+		struct Static {
+			static inline Return Call(Class* object, void* fptrptr, CArgs... args)
+			{
+				auto fptr = *reinterpret_cast<fptrTy*>(fptrptr);
+				return (object->*fptr)(std::forward<CArgs>(args)...);
+			}
+		};
+		return Helper::Call(&Static::Call,
+		                    CastToReactor(object),
+		                    ConstantData(&fptr, sizeof(fptr)),
+		                    CastToReactor(std::forward<RArgs>(args))...);
+	}
+
+	// Calls the member function pointer fptr with the given arguments args.
+	// Overload for calling functions with void return type.
+	// object can be a Class*, or a Pointer<Byte>.
+	template<typename Class, typename C, typename ... CArgs, typename ... RArgs>
+	inline void Call(void(Class::* fptr)(CArgs...), C&& object, RArgs&&... args)
+	{
+		using Helper = CallHelper<void(Class*, void*, CArgs...)>;
+		using fptrTy = decltype(fptr);
+		struct Static {
+			static inline void Call(Class* object, void* fptrptr, CArgs... args)
+			{
+				auto fptr = *reinterpret_cast<fptrTy*>(fptrptr);
+				(object->*fptr)(std::forward<CArgs>(args)...);
+			}
+		};
+		Helper::Call(&Static::Call,
+		             CastToReactor(object),
+		             ConstantData(&fptr, sizeof(fptr)),
+		             CastToReactor(std::forward<RArgs>(args))...);
+	}
+
+	// Calls the Reactor function pointer fptr with the signature
+	// FUNCTION_SIGNATURE and arguments.
 	template<typename FUNCTION_SIGNATURE, typename ... RArgs>
 	inline void Call(Pointer<Byte> fptr, RArgs&& ... args)
 	{

@@ -3981,6 +3981,13 @@ namespace rr
 		return RValue<Pointer<Byte>>(V(jit->builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::getType()))));
 	}
 
+	RValue<Pointer<Byte>> ConstantData(void const * data, size_t size)
+	{
+		auto str = ::llvm::StringRef(reinterpret_cast<const char*>(data), size);
+		auto ptr = jit->builder->CreateGlobalStringPtr(str);
+		return RValue<Pointer<Byte>>(V(ptr));
+	}
+
 	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
 	{
 		::llvm::SmallVector<::llvm::Type*, 8> paramTys;

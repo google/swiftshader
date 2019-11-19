@@ -53,6 +53,11 @@
 #include <limits>
 #include <iostream>
 
+namespace rr
+{
+	class ELFMemoryStreamer;
+}
+
 namespace
 {
 	// Default configuration settings. Must be accessed under mutex lock.
@@ -71,7 +76,7 @@ namespace
 	Ice::Cfg *function = nullptr;
 	Ice::CfgNode *basicBlock = nullptr;
 	Ice::CfgLocalAllocatorScope *allocator = nullptr;
-	rr::Routine *routine = nullptr;
+	rr::ELFMemoryStreamer *routine = nullptr;
 
 	std::mutex codegenMutex;
 
@@ -543,10 +548,20 @@ namespace rr
 			return entry;
 		}
 
+		const void* addConstantData(const void* data, size_t size)
+		{
+			auto buf = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
+			memcpy(buf.get(), data, size);
+			auto ptr = buf.get();
+			constantData.emplace_back(std::move(buf));
+			return ptr;
+		}
+
 	private:
 		void *entry;
 		std::vector<uint8_t, ExecutableAllocator<uint8_t>> buffer;
 		std::size_t position;
+		std::vector<std::unique_ptr<uint8_t[]>> constantData;
 
 		#if defined(_WIN32)
 		DWORD oldProtection;
@@ -3495,6 +3510,13 @@ namespace rr
 		{
 			return RValue<Pointer<Byte>>(V(::context->getConstantInt32(reinterpret_cast<intptr_t>(ptr))));
 		}
+	}
+
+	RValue<Pointer<Byte>> ConstantData(void const * data, size_t size)
+	{
+		// TODO: Try to use Ice::VariableDeclaration::DataInitializer and
+		// getConstantSym instead of tagging data on the routine.
+		return ConstantPointer(::routine->addConstantData(data, size));
 	}
 
 	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
