@@ -450,12 +450,10 @@ namespace sw
 		case VK_FORMAT_D16_UNORM:
 			c.x = Float(Int((*Pointer<UShort>(element))));
 			break;
-		case VK_FORMAT_D24_UNORM_S8_UINT:
 		case VK_FORMAT_X8_D24_UNORM_PACK32:
 			c.x = Float(Int((*Pointer<UInt>(element) & UInt(0xFFFFFF00)) >> 8));
 			break;
 		case VK_FORMAT_D32_SFLOAT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			c.x = *Pointer<Float>(element);
 			break;
 		case VK_FORMAT_S8_UINT:
@@ -985,12 +983,10 @@ namespace sw
 		case VK_FORMAT_D16_UNORM:
 			*Pointer<UShort>(element) = UShort(RoundInt(Float(c.x)));
 			break;
-		case VK_FORMAT_D24_UNORM_S8_UINT:
 		case VK_FORMAT_X8_D24_UNORM_PACK32:
 			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)) << 8);
 			break;
 		case VK_FORMAT_D32_SFLOAT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			*Pointer<Float>(element) = c.x;
 			break;
 		case VK_FORMAT_S8_UINT:
