@@ -194,40 +194,7 @@ std::vector<uint32_t> preprocessSpirv(
 	}
 
 	// Full optimization list taken from spirv-opt.
-	opt.RegisterPass(spvtools::CreateWrapOpKillPass())
-		.RegisterPass(spvtools::CreateDeadBranchElimPass())
-		.RegisterPass(spvtools::CreateMergeReturnPass())
-		.RegisterPass(spvtools::CreateInlineExhaustivePass())
-		.RegisterPass(spvtools::CreateAggressiveDCEPass())
-		.RegisterPass(spvtools::CreatePrivateToLocalPass())
-		.RegisterPass(spvtools::CreateLocalSingleBlockLoadStoreElimPass())
-		.RegisterPass(spvtools::CreateLocalSingleStoreElimPass())
-		.RegisterPass(spvtools::CreateAggressiveDCEPass())
-		.RegisterPass(spvtools::CreateScalarReplacementPass())
-		.RegisterPass(spvtools::CreateLocalAccessChainConvertPass())
-		.RegisterPass(spvtools::CreateLocalSingleBlockLoadStoreElimPass())
-		.RegisterPass(spvtools::CreateLocalSingleStoreElimPass())
-		.RegisterPass(spvtools::CreateAggressiveDCEPass())
-		.RegisterPass(spvtools::CreateLocalMultiStoreElimPass())
-		.RegisterPass(spvtools::CreateAggressiveDCEPass())
-		.RegisterPass(spvtools::CreateCCPPass())
-		.RegisterPass(spvtools::CreateAggressiveDCEPass())
-		.RegisterPass(spvtools::CreateRedundancyEliminationPass())
-		.RegisterPass(spvtools::CreateCombineAccessChainsPass())
-		.RegisterPass(spvtools::CreateSimplificationPass())
-		.RegisterPass(spvtools::CreateVectorDCEPass())
-		.RegisterPass(spvtools::CreateDeadInsertElimPass())
-		.RegisterPass(spvtools::CreateDeadBranchElimPass())
-		.RegisterPass(spvtools::CreateSimplificationPass())
-		.RegisterPass(spvtools::CreateIfConversionPass())
-		.RegisterPass(spvtools::CreateCopyPropagateArraysPass())
-		.RegisterPass(spvtools::CreateReduceLoadSizePass())
-		.RegisterPass(spvtools::CreateAggressiveDCEPass())
-		.RegisterPass(spvtools::CreateBlockMergePass())
-		.RegisterPass(spvtools::CreateRedundancyEliminationPass())
-		.RegisterPass(spvtools::CreateDeadBranchElimPass())
-		.RegisterPass(spvtools::CreateBlockMergePass())
-		.RegisterPass(spvtools::CreateSimplificationPass());
+	opt.RegisterPerformancePasses();
 
 	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized);
