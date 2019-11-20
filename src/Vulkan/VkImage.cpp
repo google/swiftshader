@@ -314,13 +314,15 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& pRegion) const
 	{
 		size_t copySize = copyExtent.width * srcBytesPerBlock;
 
-		for(uint32_t z = 0; z < copyExtent.depth; z++)
+		for(uint32_t z = 0; z < copyExtent.depth; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
 		{
-			for(uint32_t y = 0; y < copyExtent.height; y++, dstMem += dstRowPitchBytes, srcMem += srcRowPitchBytes)
+			const uint8_t* srcSlice = srcMem;
+			uint8_t* dstSlice = dstMem;
+			for(uint32_t y = 0; y < copyExtent.height; y++, dstSlice += dstRowPitchBytes, srcSlice += srcRowPitchBytes)
 			{
-				ASSERT((srcMem + copySize) < end());
-				ASSERT((dstMem + copySize) < dstImage->end());
-				memcpy(dstMem, srcMem, copySize);
+				ASSERT((srcSlice + copySize) < end());
+				ASSERT((dstSlice + copySize) < dstImage->end());
+				memcpy(dstSlice, srcSlice, copySize);
 			}
 		}
 	}
