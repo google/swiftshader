@@ -98,8 +98,9 @@ namespace
 	{
 		switch (level)
 		{
-			case rr::Optimization::Level::None:       return Ice::Opt_0;
-			case rr::Optimization::Level::Less:       return Ice::Opt_1;
+			// Note that Opt_0 and Opt_1 are not implemented by Subzero
+			case rr::Optimization::Level::None:       return Ice::Opt_m1;
+			case rr::Optimization::Level::Less:       return Ice::Opt_m1;
 			case rr::Optimization::Level::Default:    return Ice::Opt_2;
 			case rr::Optimization::Level::Aggressive: return Ice::Opt_2;
 			default: UNREACHABLE("Unknown Optimization Level %d", int(level));
