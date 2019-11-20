@@ -65,7 +65,6 @@ namespace sw
 
 			VkCompareOp depthCompareMode;
 			bool depthWriteEnable;
-			bool quadLayoutDepthBuffer;
 
 			bool stencilActive;
 			StencilOpState frontStencil;

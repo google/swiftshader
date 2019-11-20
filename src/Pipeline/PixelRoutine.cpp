@@ -335,18 +335,8 @@ namespace sw
 			Z = oDepth;
 		}
 
-		Pointer<Byte> buffer;
-		Int pitch;
-
-		if(!state.quadLayoutDepthBuffer)
-		{
-			buffer = zBuffer + 4 * x;
-			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
-		}
-		else
-		{
-			buffer = zBuffer + 8 * x;
-		}
+		Pointer<Byte> buffer = zBuffer + 4 * x;
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
 
 		if(q > 0)
 		{
@@ -357,16 +347,9 @@ namespace sw
 
 		if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 		{
-			if(!state.quadLayoutDepthBuffer)
-			{
-				// FIXME: Properly optimizes?
-				zValue.xy = *Pointer<Float4>(buffer);
-				zValue.zw = *Pointer<Float4>(buffer + pitch - 8);
-			}
-			else
-			{
-				zValue = *Pointer<Float4>(buffer, 16);
-			}
+			// FIXME: Properly optimizes?
+			zValue.xy = *Pointer<Float4>(buffer);
+			zValue.zw = *Pointer<Float4>(buffer + pitch - 8);
 		}
 
 		Int4 zTest;
@@ -431,18 +414,8 @@ namespace sw
 			Z = convertFixed16(oDepth, true);
 		}
 
-		Pointer<Byte> buffer;
-		Int pitch;
-
-		if(!state.quadLayoutDepthBuffer)
-		{
-			buffer = zBuffer + 2 * x;
-			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
-		}
-		else
-		{
-			buffer = zBuffer + 4 * x;
-		}
+		Pointer<Byte> buffer = zBuffer + 2 * x;
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
 
 		if(q > 0)
 		{
@@ -453,16 +426,9 @@ namespace sw
 
 		if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 		{
-			if(!state.quadLayoutDepthBuffer)
-			{
-				// FIXME: Properly optimizes?
-				zValue = *Pointer<Short4>(buffer) & Short4(-1, -1, 0, 0);
-				zValue = zValue | (*Pointer<Short4>(buffer + pitch - 4) & Short4(0, 0, -1, -1));
-			}
-			else
-			{
-				zValue = *Pointer<Short4>(buffer, 8);
-			}
+			// FIXME: Properly optimizes?
+			zValue = *Pointer<Short4>(buffer) & Short4(-1, -1, 0, 0);
+			zValue = zValue | (*Pointer<Short4>(buffer + pitch - 4) & Short4(0, 0, -1, -1));
 		}
 
 		Int4 zTest;
@@ -562,18 +528,8 @@ namespace sw
 			Z = oDepth;
 		}
 
-		Pointer<Byte> buffer;
-		Int pitch;
-
-		if(!state.quadLayoutDepthBuffer)
-		{
-			buffer = zBuffer + 4 * x;
-			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
-		}
-		else
-		{
-			buffer = zBuffer + 8 * x;
-		}
+		Pointer<Byte> buffer = zBuffer + 4 * x;
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
 
 		if(q > 0)
 		{
@@ -584,32 +540,18 @@ namespace sw
 
 		if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 		{
-			if(!state.quadLayoutDepthBuffer)
-			{
-				// FIXME: Properly optimizes?
-				zValue.xy = *Pointer<Float4>(buffer);
-				zValue.zw = *Pointer<Float4>(buffer + pitch - 8);
-			}
-			else
-			{
-				zValue = *Pointer<Float4>(buffer, 16);
-			}
+			// FIXME: Properly optimizes?
+			zValue.xy = *Pointer<Float4>(buffer);
+			zValue.zw = *Pointer<Float4>(buffer + pitch - 8);
 		}
 
 		Z = As<Float4>(As<Int4>(Z) & *Pointer<Int4>(constants + OFFSET(Constants,maskD4X) + zMask * 16, 16));
 		zValue = As<Float4>(As<Int4>(zValue) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskD4X) + zMask * 16, 16));
 		Z = As<Float4>(As<Int4>(Z) | As<Int4>(zValue));
 
-		if(!state.quadLayoutDepthBuffer)
-		{
-			// FIXME: Properly optimizes?
-			*Pointer<Float2>(buffer) = Float2(Z.xy);
-			*Pointer<Float2>(buffer + pitch) = Float2(Z.zw);
-		}
-		else
-		{
-			*Pointer<Float4>(buffer, 16) = Z;
-		}
+		// FIXME: Properly optimizes?
+		*Pointer<Float2>(buffer) = Float2(Z.xy);
+		*Pointer<Float2>(buffer + pitch) = Float2(Z.zw);
 	}
 
 	void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)
@@ -621,18 +563,8 @@ namespace sw
 			Z = As<Short4>(convertFixed16(oDepth, true));
 		}
 
-		Pointer<Byte> buffer;
-		Int pitch;
-
-		if(!state.quadLayoutDepthBuffer)
-		{
-			buffer = zBuffer + 2 * x;
-			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
-		}
-		else
-		{
-			buffer = zBuffer + 4 * x;
-		}
+		Pointer<Byte> buffer = zBuffer + 2 * x;
+		Int pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
 
 		if(q > 0)
 		{
@@ -643,34 +575,20 @@ namespace sw
 
 		if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
 		{
-			if(!state.quadLayoutDepthBuffer)
-			{
-				// FIXME: Properly optimizes?
-				zValue = *Pointer<Short4>(buffer) & Short4(-1, -1, 0, 0);
-				zValue = zValue | (*Pointer<Short4>(buffer + pitch - 4) & Short4(0, 0, -1, -1));
-			}
-			else
-			{
-				zValue = *Pointer<Short4>(buffer, 8);
-			}
+			// FIXME: Properly optimizes?
+			zValue = *Pointer<Short4>(buffer) & Short4(-1, -1, 0, 0);
+			zValue = zValue | (*Pointer<Short4>(buffer + pitch - 4) & Short4(0, 0, -1, -1));
 		}
 
 		Z = Z & *Pointer<Short4>(constants + OFFSET(Constants,maskW4Q) + zMask * 8, 8);
 		zValue = zValue & *Pointer<Short4>(constants + OFFSET(Constants,invMaskW4Q) + zMask * 8, 8);
 		Z = Z | zValue;
 
-		if(!state.quadLayoutDepthBuffer)
-		{
-			// FIXME: Properly optimizes?
-			*Pointer<Short>(buffer) = Extract(Z, 0);
-			*Pointer<Short>(buffer+2) = Extract(Z, 1);
-			*Pointer<Short>(buffer+pitch) = Extract(Z, 2);
-			*Pointer<Short>(buffer+pitch+2) = Extract(Z, 3);
-		}
-		else
-		{
-			*Pointer<Short4>(buffer, 8) = Z;
-		}
+		// FIXME: Properly optimizes?
+		*Pointer<Short>(buffer) = Extract(Z, 0);
+		*Pointer<Short>(buffer+2) = Extract(Z, 1);
+		*Pointer<Short>(buffer+pitch) = Extract(Z, 2);
+		*Pointer<Short>(buffer+pitch+2) = Extract(Z, 3);
 	}
 
 	void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, const Int &x, const Float4 &z, const Int &zMask)

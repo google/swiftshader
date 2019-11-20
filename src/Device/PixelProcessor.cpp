@@ -177,7 +177,6 @@ namespace sw
 		{
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
-			state.quadLayoutDepthBuffer = context->depthBuffer->getFormat().hasQuadLayout();
 			state.depthFormat = context->depthBuffer->getFormat();
 		}
 
