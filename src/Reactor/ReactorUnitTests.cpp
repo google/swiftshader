@@ -1732,6 +1732,44 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 	EXPECT_EQ(out, 99);
 }
 
+TEST(ReactorUnitTests, ExtractFromRValue)
+{
+	Function<Void(Pointer<Int4> values, Pointer<Int4> result)> function;
+	{
+		Pointer<Int4> vIn = function.Arg<0>();
+		Pointer<Int4> resultIn = function.Arg<1>();
+
+		RValue<Int4> v = *vIn;
+
+		Int4 result(678);
+
+		If(Extract(v, 0) == 42)
+		{
+			result = Insert(result, 1, 0);
+		}
+
+		If(Extract(v, 1) == 42)
+		{
+			result = Insert(result, 1, 1);
+		}
+
+		*resultIn = result;
+
+		Return();
+	}
+
+	auto routine = function("one");
+	auto entry = (void(*)(int*, int*))routine->getEntry();
+
+	int v[4] = { 42, 42, 42, 42 };
+	int result[4] = { 99, 99, 99, 99 };
+	entry(v, result);
+	EXPECT_EQ(result[0], 1);
+	EXPECT_EQ(result[1], 1);
+	EXPECT_EQ(result[2], 678);
+	EXPECT_EQ(result[3], 678);
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

@@ -652,6 +652,9 @@ namespace rr
 
 		rr::optimize(::function);
 
+		::function->computeInOutEdges();
+		ASSERT(!::function->hasError());
+
 		::function->translate();
 		ASSERT(!::function->hasError());
 
