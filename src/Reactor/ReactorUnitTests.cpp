@@ -1252,6 +1252,147 @@ TEST(ReactorUnitTests, CallImplicitCast)
 	EXPECT_EQ(c.str, "hello world");
 }
 
+TEST(ReactorUnitTests, Call_Args4)
+{
+	struct Class
+	{
+		static int Func(int a, int b, int c, int d)
+		{
+			return a + b + c + d;
+		}
+	};
+
+	{
+		FunctionT<int()> function;
+		{
+			auto res = Call(Class::Func, 1, 2, 3, 4);
+			Return(res);
+		}
+
+		auto routine = function("one");
+
+		if(routine)
+		{
+			int res = routine();
+			EXPECT_EQ(res, 1 + 2 + 3 + 4);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Call_Args5)
+{
+	struct Class
+	{
+		static int Func(int a, int b, int c, int d, int e)
+		{
+			return a + b + c + d + e;
+		}
+	};
+
+	{
+		FunctionT<int()> function;
+		{
+			auto res = Call(Class::Func, 1, 2, 3, 4, 5);
+			Return(res);
+		}
+
+		auto routine = function("one");
+
+		if(routine)
+		{
+			int res = routine();
+			EXPECT_EQ(res, 1 + 2 + 3 + 4 + 5);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Call_ArgsMany)
+{
+	struct Class
+	{
+		static int Func(int a, int b, int c, int d, int e, int f, int g, int h)
+		{
+			return a + b + c + d + e + f + g + h;
+		}
+	};
+
+	{
+		FunctionT<int()> function;
+		{
+			auto res = Call(Class::Func, 1, 2, 3, 4, 5, 6, 7, 8);
+			Return(res);
+		}
+
+		auto routine = function("one");
+
+		if(routine)
+		{
+			int res = routine();
+			EXPECT_EQ(res, 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Call_ArgsMixed)
+{
+	struct Class
+	{
+		static int Func(int a, float b, int* c, float* d, int e, float f, int* g, float* h)
+		{
+			return a + b + *c + *d + e + f + *g + *h;
+		}
+	};
+
+	{
+		FunctionT<int()> function;
+		{
+			Int c(3);
+			Float d(4);
+			Int g(7);
+			Float h(8);
+			auto res = Call(Class::Func, 1, 2.f, &c, &d, 5, 6.f, &g, &h);
+			Return(res);
+		}
+
+		auto routine = function("one");
+
+		if(routine)
+		{
+			int res = routine();
+			EXPECT_EQ(res, 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Call_ArgsPointer)
+{
+	struct Class
+	{
+		static int Func(int *a)
+		{
+			return *a;
+		}
+	};
+
+	{
+		FunctionT<int()> function;
+		{
+			Int a(12345);
+			auto res = Call(Class::Func, &a);
+			Return(res);
+		}
+
+		auto routine = function("one");
+
+		if(routine)
+		{
+			int res = routine();
+			EXPECT_EQ(res, 12345);
+		}
+	}
+}
+
+
 TEST(ReactorUnitTests, CallExternalCallRoutine)
 {
 	// routine1 calls Class::Func, passing it a pointer to routine2, and Class::Func calls routine2

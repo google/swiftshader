@@ -89,6 +89,19 @@ template <> struct PoolTypeConverter<uint8_t> {
 
 namespace X86NAMESPACE {
 
+// The Microsoft x64 ABI requires the caller to allocate a minimum 32 byte
+// "shadow store" (aka "home space") so that the callee may copy the 4
+// register args to it.
+template <typename Traits> SizeT getShadowStoreSize() {
+#if defined(SUBZERO_USE_MICROSOFT_ABI)
+  static const SizeT ShadowStoreSize =
+      Traits::Is64Bit ? 4 * typeWidthInBytes(Traits::WordType) : 0;
+  return ShadowStoreSize;
+#else
+  return 0;
+#endif
+}
+
 using Utils::BoolFlagSaver;
 
 template <typename Traits> class BoolFoldingEntry {
@@ -1051,14 +1064,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // space on the frame for globals (variables with multi-block lifetime), and
   // one block to share for locals (single-block lifetime).
 
-  // The Microsoft x64 ABI requires the caller to allocate a minimum 32 byte
-  // "shadow store" (aka "home space") so that the callee may copy the 4
-  // register args to it.
-#if defined(SUBZERO_USE_MICROSOFT_ABI)
-	const SizeT ShadowStoreSize = Traits::Is64Bit ? 4 * typeWidthInBytes(Traits::WordType) : 0;
-#else
-	const SizeT ShadowStoreSize = 0;
-#endif
+  const SizeT ShadowStoreSize = getShadowStoreSize<Traits>();
 
   // StackPointer: points just past return address of calling function
 
@@ -2672,6 +2678,8 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   CfgVector<SizeT> GprArgIndices;
   OperandList StackArgs, StackArgLocations;
   uint32_t ParameterAreaSizeBytes = 0;
+
+  ParameterAreaSizeBytes += getShadowStoreSize<Traits>();
 
   // Classify each argument operand according to the location where the argument
   // is passed.
@@ -7656,16 +7664,23 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
   uint32_t OutArgumentsSizeBytes = 0;
   uint32_t XmmArgCount = 0;
   uint32_t GprArgCount = 0;
-  for (Type Ty : ArgTypes) {
+  for (SizeT i = 0, NumArgTypes = ArgTypes.size(); i < NumArgTypes; ++i) {
+    Type Ty = ArgTypes[i];
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
-    if (isVectorType(Ty) && XmmArgCount < Traits::X86_MAX_XMM_ARGS) {
+    if (isVectorType(Ty) &&
+        Traits::getRegisterForXmmArgNum(Traits::getArgIndex(i, XmmArgCount))
+            .hasValue()) {
       ++XmmArgCount;
     } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               XmmArgCount < Traits::X86_MAX_XMM_ARGS) {
+               Traits::getRegisterForXmmArgNum(
+                   Traits::getArgIndex(i, XmmArgCount))
+                   .hasValue()) {
       ++XmmArgCount;
     } else if (isScalarIntegerType(Ty) &&
-               GprArgCount < Traits::X86_MAX_GPR_ARGS) {
+               Traits::getRegisterForGprArgNum(
+                   Ty, Traits::getArgIndex(i, GprArgCount))
+                   .hasValue()) {
       // The 64 bit ABI allows some integers to be passed in GPRs.
       ++GprArgCount;
     } else {
@@ -7704,7 +7719,7 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
   Variable *Dest = Instr->getDest();
   if (Dest != nullptr)
     ReturnType = Dest->getType();
-  return getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
+  return getShadowStoreSize<Traits>() + getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
 }
 
 template <typename TraitsType>
