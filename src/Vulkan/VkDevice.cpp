@@ -232,6 +232,12 @@ void Device::updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDe
 	}
 }
 
+void Device::getRequirements(VkMemoryDedicatedRequirements* requirements) const
+{
+	requirements->prefersDedicatedAllocation = VK_FALSE;
+	requirements->requiresDedicatedAllocation = VK_FALSE;
+}
+
 Device::SamplingRoutineCache* Device::getSamplingRoutineCache() const
 {
 	return samplingRoutineCache.get();

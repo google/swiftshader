@@ -2448,9 +2448,8 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 		{
 		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
 		{
-			auto& requirements = *reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
-			requirements.prefersDedicatedAllocation = VK_FALSE;
-			requirements.requiresDedicatedAllocation = VK_FALSE;
+			auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
+			vk::Cast(device)->getRequirements(requirements);
 		}
 		break;
 		default:
@@ -2481,9 +2480,8 @@ VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const
 		{
 		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
 			{
-				auto& requirements = *reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
-				requirements.prefersDedicatedAllocation = VK_FALSE;
-				requirements.requiresDedicatedAllocation = VK_FALSE;
+				auto requirements = reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
+				vk::Cast(device)->getRequirements(requirements);
 			}
 			break;
 		default:
@@ -2523,56 +2521,56 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 		{
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceSamplerYcbcrConversionFeatures*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceSamplerYcbcrConversionFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDevice16BitStorageFeatures*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDevice16BitStorageFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceVariablePointerFeatures*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceVariablePointerFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceMultiviewFeatures*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceMultiviewFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceProtectedMemoryFeatures*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceProtectedMemoryFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
 			{
-				auto& features = *reinterpret_cast<VkPhysicalDeviceProvokingVertexFeaturesEXT*>(extensionFeatures);
-				vk::Cast(physicalDevice)->getFeatures(&features);
+				auto features = reinterpret_cast<VkPhysicalDeviceProvokingVertexFeaturesEXT*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
@@ -2610,38 +2608,38 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 		{
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceIDProperties*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceIDProperties*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceMaintenance3Properties*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceMaintenance3Properties*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceMultiviewProperties*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceMultiviewProperties*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_POINT_CLIPPING_PROPERTIES:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDevicePointClippingProperties*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDevicePointClippingProperties*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_PROPERTIES:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceProtectedMemoryProperties*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceProtectedMemoryProperties*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceSubgroupProperties*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceSubgroupProperties*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT:
@@ -2655,28 +2653,28 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceDriverPropertiesKHR*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceDriverPropertiesKHR*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 #ifdef __ANDROID__
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_ANDROID:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDevicePresentationPropertiesANDROID*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDevicePresentationPropertiesANDROID*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 #endif
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT:
 			{
-				auto& properties = *reinterpret_cast<VkPhysicalDeviceProvokingVertexPropertiesEXT*>(extensionProperties);
-				vk::Cast(physicalDevice)->getProperties(&properties);
+				auto properties = reinterpret_cast<VkPhysicalDeviceProvokingVertexPropertiesEXT*>(extensionProperties);
+				vk::Cast(physicalDevice)->getProperties(properties);
 			}
 			break;
 		default:
@@ -2759,14 +2757,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 		{
 		case VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES:
 		{
-			auto& properties = *reinterpret_cast<VkExternalImageFormatProperties*>(extensionProperties);
-			vk::Cast(physicalDevice)->getProperties(handleType, &properties);
+			auto properties = reinterpret_cast<VkExternalImageFormatProperties*>(extensionProperties);
+			vk::Cast(physicalDevice)->getProperties(handleType, properties);
 		}
 		break;
 		case VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES:
 		{
-			auto& properties = *reinterpret_cast<VkSamplerYcbcrConversionImageFormatProperties*>(extensionProperties);
-			vk::Cast(physicalDevice)->getProperties(&properties);
+			auto properties = reinterpret_cast<VkSamplerYcbcrConversionImageFormatProperties*>(extensionProperties);
+			vk::Cast(physicalDevice)->getProperties(properties);
 		}
 		break;
 		case VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD:

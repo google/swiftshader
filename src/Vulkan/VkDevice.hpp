@@ -56,6 +56,7 @@ public:
 	PhysicalDevice *getPhysicalDevice() const { return physicalDevice; }
 	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
 	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies);
+	void getRequirements(VkMemoryDedicatedRequirements* requirements) const;
 	const VkPhysicalDeviceFeatures &getEnabledFeatures() const { return enabledFeatures; }
 	sw::Blitter* getBlitter() const { return blitter.get(); }
 
