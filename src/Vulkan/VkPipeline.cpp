@@ -18,6 +18,7 @@
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
 #include "VkShaderModule.hpp"
+#include "VkStringify.hpp"
 #include "VkRenderPass.hpp"
 #include "Pipeline/ComputeProgram.hpp"
 #include "Pipeline/SpirvShader.hpp"
@@ -419,7 +420,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		}
 		break;
 		default:
-			UNIMPLEMENTED("extensionCreateInfo->sType");
+			WARN("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
 			break;
 		}
 

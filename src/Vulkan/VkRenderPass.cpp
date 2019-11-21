@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkRenderPass.hpp"
+#include "VkStringify.hpp"
 #include <cstring>
 
 namespace vk
@@ -76,7 +77,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			break;
 		}
 		default:
-			/* Unknown structure in pNext chain must be ignored */
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
 			break;
 		}
 
