@@ -18,7 +18,7 @@
 #include "VkConfig.h"
 #include "VkObject.hpp"
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#if VK_USE_PLATFORM_FUCHSIA
 #include <zircon/types.h>
 #endif
 
@@ -43,12 +43,12 @@ public:
 
 	void signal();
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	VkResult importFd(int fd, bool temporaryImport);
 	VkResult exportFd(int* pFd) const;
 #endif
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#if VK_USE_PLATFORM_FUCHSIA
 	VkResult importHandle(zx_handle_t handle, bool temporaryImport);
 	VkResult exportHandle(zx_handle_t *pHandle) const;
 #endif

@@ -347,7 +347,7 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 	},
 #endif
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	// VK_KHR_external_semaphore_fd
 	{
 		VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
@@ -358,7 +358,7 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 	},
 #endif
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#if VK_USE_PLATFORM_FUCHSIA
 	// VK_FUCHSIA_external_semaphore
 	{
 		VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
@@ -369,7 +369,7 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 	},
 #endif
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	// VK_KHR_external_memory_fd
 	{
 		VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,

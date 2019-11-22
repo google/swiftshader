@@ -16,9 +16,13 @@
 
 #include "VkConfig.h"
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
-#include "VkSemaphoreExternalLinux.hpp"
-#elif SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
+#  if defined(__linux__) || defined(__ANDROID__)
+#    include "VkSemaphoreExternalLinux.hpp"
+#  else
+#    error "Missing VK_KHR_external_semaphore_fd implementation for this platform!"
+#  endif
+#elif VK_USE_PLATFORM_FUCHSIA
 #include "VkSemaphoreExternalFuchsia.hpp"
 #else
 #include "VkSemaphoreExternalNone.hpp"
@@ -196,7 +200,7 @@ void Semaphore::signal()
 	impl->signal();
 }
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 VkResult Semaphore::importFd(int fd, bool temporaryImport)
 {
 	std::unique_lock<std::mutex> lock(impl->mutex);
@@ -226,9 +230,9 @@ VkResult Semaphore::exportFd(int* pFd) const
 	}
 	return impl->external->exportFd(pFd);
 }
-#endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+#endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#if VK_USE_PLATFORM_FUCHSIA
 VkResult Semaphore::importHandle(zx_handle_t handle, bool temporaryImport)
 {
 	std::unique_lock<std::mutex> lock(impl->mutex);
@@ -252,6 +256,6 @@ VkResult Semaphore::exportHandle(zx_handle_t *pHandle) const
 	}
 	return impl->external->exportHandle(pHandle);
 }
-#endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#endif  // VK_USE_PLATFORM_FUCHSIA
 
 }  // namespace vk

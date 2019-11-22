@@ -36,7 +36,7 @@ public:
     // A value of 0 corresponds to non-external memory.
 	virtual VkExternalMemoryHandleTypeFlagBits getFlagBit() const = 0;
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	virtual VkResult exportFd(int* pFd) const
 	{
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -121,8 +121,12 @@ public:
 
 }  // namespace vk
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
-#include "VkDeviceMemoryExternalLinux.hpp"
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
+#  if defined(__linux__) || defined(__ANDROID__)
+#    include "VkDeviceMemoryExternalLinux.hpp"
+#  else
+#    error "Missing VK_KHR_external_memory_fd implementation for this platform!"
+#  endif
 #endif
 
 namespace vk
@@ -131,8 +135,8 @@ namespace vk
 static void findTraits(const VkMemoryAllocateInfo* pAllocateInfo,
 					   ExternalMemoryTraits*       pTraits)
 {
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
-	if (parseCreateInfo<LinuxMemfdExternalMemory>(pAllocateInfo, pTraits))
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
+	if (parseCreateInfo<OpaqueFdExternalMemory>(pAllocateInfo, pTraits))
 	{
 		return;
 	}
@@ -220,7 +224,7 @@ bool DeviceMemory::checkExternalMemoryHandleType(
 	return (supportedHandleTypes & handle_type_bit) != 0;
 }
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 VkResult DeviceMemory::exportFd(int* pFd) const
 {
 	return external->exportFd(pFd);

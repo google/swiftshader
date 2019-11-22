@@ -28,7 +28,7 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkMemoryAllocateInfo* pCreateInfo);
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	VkResult exportFd(int* pFd) const;
 #endif
 

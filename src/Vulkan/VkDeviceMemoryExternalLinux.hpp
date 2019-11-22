@@ -19,7 +19,7 @@
 #include <string.h>
 #include <sys/mman.h>
 
-class LinuxMemfdExternalMemory : public vk::DeviceMemory::ExternalBase
+class OpaqueFdExternalMemory : public vk::DeviceMemory::ExternalBase
 {
 public:
 	// Helper struct to parse the VkMemoryAllocateInfo.pNext chain and
@@ -81,12 +81,12 @@ public:
 		return info.importFd || info.exportFd;
 	}
 
-	explicit LinuxMemfdExternalMemory(const VkMemoryAllocateInfo* pAllocateInfo)
+	explicit OpaqueFdExternalMemory(const VkMemoryAllocateInfo* pAllocateInfo)
 			: allocateInfo(pAllocateInfo)
 	{
 	}
 
-	~LinuxMemfdExternalMemory()
+	~OpaqueFdExternalMemory()
 	{
 		memfd.close();
 	}

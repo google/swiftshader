@@ -25,7 +25,7 @@ namespace vk
 
 static void setExternalMemoryProperties(VkExternalMemoryHandleTypeFlagBits handleType, VkExternalMemoryProperties* properties)
 {
-#if SWIFTSHADER_EXTERNAL_MEMORY_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	if (handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
 		properties->compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
@@ -384,7 +384,7 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalFenceInfo* pExt
 
 void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const
 {
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_LINUX_MEMFD
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	if (pExternalSemaphoreInfo->handleType == VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
 		pExternalSemaphoreProperties->compatibleHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
@@ -393,7 +393,7 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* 
 		return;
 	}
 #endif
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_ZIRCON_EVENT
+#if VK_USE_PLATFORM_FUCHSIA
 	if (pExternalSemaphoreInfo->handleType == VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
 		pExternalSemaphoreProperties->compatibleHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
