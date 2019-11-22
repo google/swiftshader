@@ -1,19 +1,3 @@
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.general_general
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.general_optimal
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.optimal_general
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.optimal_optimal
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.general_general
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.general_optimal
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.optimal_general
-dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.optimal_optimal
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.general_general
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.general_optimal
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.optimal_general
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d16_unorm_d16_unorm.optimal_optimal
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.general_general
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.general_optimal
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.optimal_general
-dEQP-VK.api.copy_and_blit.dedicated_allocation.image_to_image.all_formats.depth_stencil.3d_d32_sfloat_d32_sfloat.optimal_optimal
 dEQP-VK.api.info.get_physical_device_properties2.features
 dEQP-VK.api.maintenance3_check.descriptor_set
 dEQP-VK.api.smoke.triangle_ext_structs
@@ -38,5 +22,3 @@ dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r32g32b32a32_sfloat.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.79x31_4.r8g8b8a8_unorm.samples_4
 dEQP-VK.rasterization.primitives_multisample_4_bit.no_stipple.bresenham_line_strip
 dEQP-VK.rasterization.primitives_multisample_4_bit.no_stipple.bresenham_lines
-dEQP-VK.spirv_assembly.instruction.compute.hlsl_cases.cbuffer_packing
-dEQP-VK.synchronization.basic.fence.one
