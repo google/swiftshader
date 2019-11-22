@@ -33,229 +33,197 @@
 
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <utility>
 
 namespace vk {
 
-// An implementation of VkSemaphore based on Marl primitives.
-class Semaphore::Impl
+namespace {
+
+struct SemaphoreCreateInfo
 {
-public:
+	bool exportSemaphore = false;
+
 	// Create a new instance. The external instance will be allocated only
 	// the pCreateInfo->pNext chain indicates it needs to be exported.
-	Impl(const VkSemaphoreCreateInfo *pCreateInfo)
+	SemaphoreCreateInfo(const VkSemaphoreCreateInfo *pCreateInfo)
 	{
-		bool exportSemaphore = false;
 		for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 		    nextInfo != nullptr; nextInfo = nextInfo->pNext)
 		{
 			if(nextInfo->sType == VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO)
 			{
 				const auto *exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
-				if(exportInfo->handleTypes != External::kExternalSemaphoreHandleType)
+				exportSemaphore = true;
+				if(exportInfo->handleTypes != Semaphore::External::kExternalSemaphoreHandleType)
 				{
 					UNIMPLEMENTED("exportInfo->handleTypes");
 				}
-				exportSemaphore = true;
 				break;
 			}
 		}
-
-		if(exportSemaphore)
-		{
-			allocateExternalNoInit();
-			external->init();
-		}
 	}
-
-	~Impl()
-	{
-		deallocateExternal();
-	}
-
-	// Deallocate the External semaphore if any.
-	void deallocateExternal()
-	{
-		if(external)
-		{
-			external->~External();
-			external = nullptr;
-		}
-	}
-
-	// Allocate the external semaphore.
-	// Note that this does not allocate the internal resource, which must be
-	// performed by calling external->init(), or importing one using
-	// a platform-specific external->importXXX(...) method.
-	void allocateExternalNoInit()
-	{
-		external = new(externalStorage) External();
-	}
-
-	void wait()
-	{
-		if(external)
-		{
-			if(!external->tryWait())
-			{
-				// Dispatch the external wait to a background thread.
-				// Even if this creates a new thread on each
-				// call, it is assumed that this is negligible
-				// compared with the actual semaphore wait()
-				// operation.
-				marl::blocking_call([this]() {
-					external->wait();
-				});
-			}
-
-			// If the import was temporary, reset the semaphore to its
-			// permanent state by getting rid of |external|.
-			// See "6.4.5. Importing Semaphore Payloads" in Vulkan 1.1 spec.
-			if(temporaryImport)
-			{
-				deallocateExternal();
-				temporaryImport = false;
-			}
-		}
-		else
-		{
-			waitInternal();
-		}
-	}
-
-	void signal()
-	{
-		if(external)
-		{
-			// Assumes that signalling an external semaphore is non-blocking,
-			// so it can be performed directly either from a fiber or thread.
-			external->signal();
-		}
-		else
-		{
-			signalInternal();
-		}
-	}
-
-private:
-	// Necessary to make ::importXXX() and ::exportXXX() simpler.
-	friend Semaphore;
-
-	void waitInternal()
-	{
-		// Wait on the marl condition variable only.
-		std::unique_lock<std::mutex> lock(mutex);
-		condition.wait(lock, [this] { return this->signaled; });
-		signaled = false;  // Vulkan requires resetting after waiting.
-	}
-
-	void signalInternal()
-	{
-		// Signal the marl condition variable only.
-		std::unique_lock<std::mutex> lock(mutex);
-		if(!signaled)
-		{
-			signaled = true;
-			condition.notify_one();
-		}
-	}
-
-	// Implementation of a non-external semaphore based on Marl.
-	std::mutex mutex;
-	marl::ConditionVariable condition;
-	bool signaled = false;
-
-	// Optional external semaphore data might be referenced and stored here.
-	External *external = nullptr;
-
-	// Set to true if |external| comes from a temporary import.
-	bool temporaryImport = false;
-
-	alignas(External) char externalStorage[sizeof(External)];
 };
 
-Semaphore::Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem)
-{
-	impl = new(mem) Impl(pCreateInfo);
-}
-
-void Semaphore::destroy(const VkAllocationCallbacks *pAllocator)
-{
-	impl->~Impl();
-	vk::deallocate(impl, pAllocator);
-}
-
-size_t Semaphore::ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo)
-{
-	return sizeof(Semaphore::Impl);
-}
+}  // namespace
 
 void Semaphore::wait()
 {
-	impl->wait();
+	if(external)
+	{
+		if(!external->tryWait())
+		{
+			// Dispatch the external wait to a background thread.
+			// Even if this creates a new thread on each
+			// call, it is assumed that this is negligible
+			// compared with the actual semaphore wait()
+			// operation.
+			marl::blocking_call([this]() {
+				external->wait();
+			});
+		}
+
+		// If the import was temporary, reset the semaphore to its
+		// permanent state by getting rid of |external|.
+		// See "6.4.5. Importing Semaphore Payloads" in Vulkan 1.1 spec.
+		if(temporaryImport)
+		{
+			deallocateExternal();
+			temporaryImport = false;
+		}
+	}
+	else
+	{
+		waitInternal();
+	}
 }
 
 void Semaphore::signal()
 {
-	impl->signal();
-}
-
-#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
-VkResult Semaphore::importFd(int fd, bool temporaryImport)
-{
-	std::unique_lock<std::mutex> lock(impl->mutex);
-	if(!impl->external)
+	if(external)
 	{
-		impl->allocateExternalNoInit();
-	}
-	VkResult result = impl->external->importFd(fd);
-	if(result != VK_SUCCESS)
-	{
-		impl->deallocateExternal();
+		// Assumes that signalling an external semaphore is non-blocking,
+		// so it can be performed directly either from a fiber or thread.
+		external->signal();
 	}
 	else
 	{
-		impl->temporaryImport = temporaryImport;
+		signalInternal();
+	}
+}
+
+void Semaphore::waitInternal()
+{
+	// Wait on the marl condition variable only.
+	std::unique_lock<std::mutex> lock(mutex);
+	condition.wait(lock, [this] { return this->signaled; });
+	signaled = false;  // Vulkan requires resetting after waiting.
+}
+
+void Semaphore::signalInternal()
+{
+	// Signal the marl condition variable only.
+	std::unique_lock<std::mutex> lock(mutex);
+	if(!signaled)
+	{
+		signaled = true;
+		condition.notify_one();
+	}
+}
+
+Semaphore::Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const VkAllocationCallbacks *pAllocator)
+    : allocator(pAllocator)
+{
+	SemaphoreCreateInfo info(pCreateInfo);
+	if(info.exportSemaphore)
+	{
+		allocateExternal();
+		external->init();
+	}
+}
+
+void Semaphore::destroy(const VkAllocationCallbacks *pAllocator)
+{
+	deallocateExternal();
+}
+
+size_t Semaphore::ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo)
+{
+	// Semaphore::External instance is created and destroyed on demand so return 0 here.
+	return 0;
+}
+
+void Semaphore::allocateExternal()
+{
+	ASSERT(external == nullptr);
+	external = reinterpret_cast<Semaphore::External *>(
+	    vk::allocate(sizeof(Semaphore::External), vk::REQUIRED_MEMORY_ALIGNMENT, allocator));
+	new(external) Semaphore::External();
+}
+
+void Semaphore::deallocateExternal()
+{
+	if(external)
+	{
+		vk::deallocate(external, allocator);
+		external = nullptr;
+	}
+}
+
+#if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
+VkResult Semaphore::importFd(int fd, bool tempImport)
+{
+	std::unique_lock<std::mutex> lock(mutex);
+	if(!external)
+	{
+		allocateExternal();
+	}
+	VkResult result = external->importFd(fd);
+	if(result != VK_SUCCESS)
+	{
+		deallocateExternal();
+	}
+	else
+	{
+		temporaryImport = tempImport;
 	}
 	return result;
 }
 
-VkResult Semaphore::exportFd(int *pFd) const
+VkResult Semaphore::exportFd(int *pFd)
 {
-	std::unique_lock<std::mutex> lock(impl->mutex);
-	if(!impl->external)
+	std::unique_lock<std::mutex> lock(mutex);
+	if(!external)
 	{
 		TRACE("Cannot export non-external semaphore");
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
-	return impl->external->exportFd(pFd);
+	return external->exportFd(pFd);
 }
 #endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 
 #if VK_USE_PLATFORM_FUCHSIA
-VkResult Semaphore::importHandle(zx_handle_t handle, bool temporaryImport)
+VkResult Semaphore::importHandle(zx_handle_t handle, bool tempImport)
 {
-	std::unique_lock<std::mutex> lock(impl->mutex);
-	if(!impl->external)
+	std::unique_lock<std::mutex> lock(mutex);
+	if(!external)
 	{
-		impl->allocateExternalNoInit();
+		allocateExternal();
 	}
 	// NOTE: Imports are just moving a handle so cannot fail.
-	impl->external->importHandle(handle);
-	impl->temporaryImport = temporaryImport;
+	external->importHandle(handle);
+	temporaryImport = tempImport;
 	return VK_SUCCESS;
 }
 
-VkResult Semaphore::exportHandle(zx_handle_t *pHandle) const
+VkResult Semaphore::exportHandle(zx_handle_t *pHandle)
 {
-	std::unique_lock<std::mutex> lock(impl->mutex);
-	if(!impl->external)
+	std::unique_lock<std::mutex> lock(mutex);
+	if(!external)
 	{
 		TRACE("Cannot export non-external semaphore");
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
-	return impl->external->exportHandle(pHandle);
+	return external->exportHandle(pHandle);
 }
 #endif  // VK_USE_PLATFORM_FUCHSIA
 

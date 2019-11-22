@@ -1082,7 +1082,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSemaphore(VkDevice device, const VkSemaph
 		UNIMPLEMENTED("pCreateInfo->flags");
 	}
 
-	return vk::Semaphore::Create(pAllocator, pCreateInfo, pSemaphore);
+	return vk::Semaphore::Create(pAllocator, pCreateInfo, pSemaphore, pAllocator);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroySemaphore(VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator)

@@ -18,6 +18,9 @@
 #include "VkConfig.h"
 #include "VkObject.hpp"
 
+#include "marl/conditionvariable.h"
+#include <mutex>
+
 #if VK_USE_PLATFORM_FUCHSIA
 #	include <zircon/types.h>
 #endif
@@ -27,7 +30,7 @@ namespace vk {
 class Semaphore : public Object<Semaphore, VkSemaphore>
 {
 public:
-	Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem);
+	Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const VkAllocationCallbacks *pAllocator);
 	void destroy(const VkAllocationCallbacks *pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo);
@@ -44,18 +47,30 @@ public:
 
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	VkResult importFd(int fd, bool temporaryImport);
-	VkResult exportFd(int *pFd) const;
+	VkResult exportFd(int *pFd);
 #endif
 
 #if VK_USE_PLATFORM_FUCHSIA
 	VkResult importHandle(zx_handle_t handle, bool temporaryImport);
-	VkResult exportHandle(zx_handle_t *pHandle) const;
+	VkResult exportHandle(zx_handle_t *pHandle);
 #endif
 
-private:
 	class External;
-	class Impl;
-	Impl *impl = nullptr;
+
+private:
+	void waitInternal();
+	void signalInternal();
+
+	void allocateExternal();
+	void deallocateExternal();
+
+	const VkAllocationCallbacks *allocator = nullptr;
+	std::mutex mutex;
+	marl::ConditionVariable condition;
+	bool signaled = false;
+
+	External *external = nullptr;
+	bool temporaryImport = false;
 };
 
 static inline Semaphore *Cast(VkSemaphore object)
