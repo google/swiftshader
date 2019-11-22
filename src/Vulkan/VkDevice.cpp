@@ -214,8 +214,13 @@ VkResult Device::waitIdle()
 void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                            VkDescriptorSetLayoutSupport* pSupport) const
 {
-	// Mark everything as unsupported
-	pSupport->supported = VK_FALSE;
+	// From Vulkan Spec 13.2.1 Descriptor Set Layout, in description of vkGetDescriptorSetLayoutSupport:
+	// "This command does not consider other limits such as maxPerStageDescriptor*, and so a descriptor
+	// set layout that is supported according to this command must still satisfy the pipeline layout limits
+	// such as maxPerStageDescriptor* in order to be used in a pipeline layout."
+
+	// We have no "strange" limitations to enforce beyond the device limits, so we can safely always claim support.
+	pSupport->supported = VK_TRUE;
 }
 
 void Device::updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
