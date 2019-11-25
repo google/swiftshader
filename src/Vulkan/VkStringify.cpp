@@ -464,10 +464,10 @@ const char *Stringify(VkStructureType value)
 	else
 	{
 		WARN("Stringify(VkStructureType v) is out of date. Please update it to match vulkan/vulkan_core.h");
-		return std::to_string(value).c_str();
+		return "";
 	}
 #else // if not debug:
-	return std::to_string(value).c_str();
+	return "";
 #endif
 }
 
