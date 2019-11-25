@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f51ca04_e7759a45",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-25T04:18:20Z",
+      "side": 1,
+      "message": "There\u0027s a tab here, which broke the build",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 1
+      },
+      "revId": "e823bb0c8762a2ff222532b477bf37fe79bee590",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29b38cdb_e6f21b5b",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-25T04:18:20Z",
+      "side": 1,
+      "message": "Also here",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 1
+      },
+      "revId": "e823bb0c8762a2ff222532b477bf37fe79bee590",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
