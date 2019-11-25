@@ -22,6 +22,30 @@
       "revId": "d44d615147496ebb9564104ac3cb01070f0dc1f6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0e75731_b01a8c12",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-11-25T07:16:33Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "165ffc35_c315dfe1",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 1
+      },
+      "revId": "d44d615147496ebb9564104ac3cb01070f0dc1f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
