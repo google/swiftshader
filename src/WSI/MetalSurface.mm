@@ -144,7 +144,14 @@ VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))
         auto drawable = metalLayer->getNextDrawable();
         if(drawable)
         {
+            VkExtent2D windowExtent = metalLayer->getExtent();
             VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+
+            if (windowExtent.width != extent.width || windowExtent.height != extent.height)
+            {
+                return VK_ERROR_OUT_OF_DATE_KHR;
+            }
+
             [drawable.texture replaceRegion:MTLRegionMake2D(0, 0, extent.width, extent.height)
                               mipmapLevel:0
                               withBytes:image->getImageMemory()->getOffsetPointer(0)
