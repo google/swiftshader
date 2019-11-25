@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "165ffc35_c315dfe1",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-11-25T04:16:32Z",
+      "side": 1,
+      "message": "There\u0027s another tab here!",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 1
+      },
+      "revId": "d44d615147496ebb9564104ac3cb01070f0dc1f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
