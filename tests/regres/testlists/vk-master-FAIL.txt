@@ -1,5 +1,3 @@
-dEQP-VK.api.info.get_physical_device_properties2.features
-dEQP-VK.api.maintenance3_check.descriptor_set
 dEQP-VK.api.smoke.triangle_ext_structs
 dEQP-VK.api.version_check.entry_points
 dEQP-VK.graphicsfuzz.discard-continue-return
