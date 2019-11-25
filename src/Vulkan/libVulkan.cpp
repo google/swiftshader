@@ -3072,6 +3072,14 @@ VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, cons
 	vk::Cast(device)->getDescriptorSetLayoutSupport(pCreateInfo, pSupport);
 }
 
+VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t lineStippleFactor = %u, uint16_t lineStipplePattern = %u",
+			commandBuffer, lineStippleFactor, lineStipplePattern);
+
+	UNIMPLEMENTED("Line stipple not supported");
+}
+
 #ifdef VK_USE_PLATFORM_XCB_KHR
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateXcbSurfaceKHR(VkInstance instance, const VkXcbSurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface)
 {

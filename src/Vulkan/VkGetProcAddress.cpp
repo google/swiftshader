@@ -323,6 +323,13 @@ static const std::vector<std::pair<const char*, std::unordered_map<std::string, 
 			MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
 		}
 	},
+	// VK_EXT_line_rasterization
+	{
+		VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
+		{
+			MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLineStippleEXT),
+		}
+	},
 #ifndef __ANDROID__
 	// VK_KHR_swapchain
 	{
