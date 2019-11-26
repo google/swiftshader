@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e51fdb5_9c170f72",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-11-26T06:09:11Z",
+      "side": 1,
+      "message": "For future reverts, please clarify what\u0027s being reverted in the first line of the commit message. This helps when reading through the commit logs. This commit followed \"Vulkan header update\", which can be confused to be the one that was reverted.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "698235cee42de41e03fe21a5cbebffc94947855e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
