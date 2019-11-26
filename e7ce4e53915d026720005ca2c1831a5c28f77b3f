@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "62ee400a_6cc7fd2d",
+        "filename": "src/Vulkan/BUILD.gn",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 29190
+      },
+      "writtenOn": "2019-11-26T22:17:38Z",
+      "side": 1,
+      "message": "having issues integrating this change into ANGLE + Chromium.\n\nThis should be root_out_dir I think. That fixes the duplicate outputs error I\u0027m getting when trying to land the ANGLE change.",
+      "range": {
+        "startLine": 192,
+        "startChar": 23,
+        "endLine": 192,
+        "endChar": 37
+      },
+      "revId": "e7ce4e53915d026720005ca2c1831a5c28f77b3f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
