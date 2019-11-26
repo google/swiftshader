@@ -29,7 +29,7 @@ namespace rr
 	// specialization.
 	template<typename T>
 	Pointer<CToReactorT<T>>
-	CToReactorPtr<T, typename std::enable_if< IsDefined< CToReactorT<T> >::value>::type >::cast(const T* v)
+	CToReactorPtr<T, enable_if_t< HasReactorType<T>::value > >::cast(const T* v)
 	{
 		return type(v);
 	}
@@ -43,7 +43,7 @@ namespace rr
 	// CToReactorPtrT specialization for function pointer types.
 	template<typename T>
 	Pointer<Byte>
-	CToReactorPtr<T, typename std::enable_if< std::is_function<T>::value >::type>::cast(T* v)
+	CToReactorPtr<T, enable_if_t< std::is_function<T>::value > >::cast(T* v)
 	{
 		return ConstantPointer(v);
 	}
@@ -51,7 +51,7 @@ namespace rr
 	// CToReactor specialization for pointer types.
 	template<typename T>
 	CToReactorPtrT<typename std::remove_pointer<T>::type>
-	CToReactor<T, typename std::enable_if<std::is_pointer<T>::value>::type>::cast(T v)
+	CToReactor<T, enable_if_t<std::is_pointer<T>::value> >::cast(T v)
 	{
 		return CToReactorPtr<elem>::cast(v);
 	}
@@ -59,7 +59,7 @@ namespace rr
 	// CToReactor specialization for enum types.
 	template<typename T>
 	CToReactorT<typename std::underlying_type<T>::type>
-	CToReactor<T, typename std::enable_if<std::is_enum<T>::value>::type>::cast(T v)
+	CToReactor<T, enable_if_t<std::is_enum<T>::value> >::cast(T v)
 	{
 		return CToReactor<underlying>::cast(v);
 	}
