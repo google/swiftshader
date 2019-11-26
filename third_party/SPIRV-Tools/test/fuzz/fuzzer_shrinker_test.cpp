@@ -125,7 +125,7 @@ void RunAndCheckShrinker(
     const std::vector<uint32_t>& expected_binary_out,
     uint32_t expected_transformations_out_size, uint32_t step_limit) {
   // Run the shrinker.
-  Shrinker shrinker(target_env, step_limit);
+  Shrinker shrinker(target_env, step_limit, false);
   shrinker.SetMessageConsumer(kSilentConsumer);
 
   std::vector<uint32_t> binary_out;
@@ -154,10 +154,11 @@ void RunAndCheckShrinker(
 void RunFuzzerAndShrinker(const std::string& shader,
                           const protobufs::FactSequence& initial_facts,
                           uint32_t seed) {
-  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
 
   std::vector<uint32_t> binary_in;
   SpirvTools t(env);
+  t.SetMessageConsumer(kConsoleMessageConsumer);
   ASSERT_TRUE(t.Assemble(shader, &binary_in, kFuzzAssembleOption));
   ASSERT_TRUE(t.Validate(binary_in));
 
@@ -433,7 +434,7 @@ TEST(FuzzerShrinkerTest, Miscellaneous2) {
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
-               OpEntryPoint Fragment %4 "main" %16 %139
+               OpEntryPoint Fragment %4 "main" %16 %139 %25 %68
                OpExecutionMode %4 OriginUpperLeft
                OpSource ESSL 310
                OpName %4 "main"
@@ -731,7 +732,7 @@ TEST(FuzzerShrinkerTest, Miscellaneous3) {
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
-               OpEntryPoint Fragment %4 "main" %68 %100
+               OpEntryPoint Fragment %4 "main" %68 %100 %24
                OpExecutionMode %4 OriginUpperLeft
                OpSource ESSL 310
                OpName %4 "main"

@@ -499,9 +499,8 @@ TEST_F(ValidateAtomics, AtomicLoadWrongScopeType) {
 
   CompileSuccessfully(GenerateKernelCode(body));
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
-  EXPECT_THAT(
-      getDiagnosticString(),
-      HasSubstr("AtomicLoad: expected Memory Scope to be a 32-bit int"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("AtomicLoad: expected scope to be a 32-bit int"));
 }
 
 TEST_F(ValidateAtomics, AtomicLoadWrongMemorySemanticsType) {
@@ -674,10 +673,9 @@ OpAtomicStore %f32_var %f32_1 %relaxed %f32_1
 
   CompileSuccessfully(GenerateKernelCode(body));
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
-  EXPECT_THAT(
-      getDiagnosticString(),
-      HasSubstr("AtomicStore: expected Memory Scope to be a 32-bit int\n  "
-                "OpAtomicStore %28 %float_1 %uint_0_1 %float_1\n"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("AtomicStore: expected scope to be a 32-bit int\n  "
+                        "OpAtomicStore %28 %float_1 %uint_0_1 %float_1\n"));
 }
 
 TEST_F(ValidateAtomics, AtomicStoreWrongMemorySemanticsType) {
@@ -708,7 +706,7 @@ OpAtomicStore %f32_var %device %relaxed %u32_1
 
 TEST_F(ValidateAtomics, AtomicExchangeShaderSuccess) {
   const std::string body = R"(
-%val1 = OpAtomicStore %u32_var %device %relaxed %u32_1
+OpAtomicStore %u32_var %device %relaxed %u32_1
 %val2 = OpAtomicExchange %u32 %u32_var %device %relaxed %u32_0
 )";
 
@@ -720,7 +718,7 @@ TEST_F(ValidateAtomics, AtomicExchangeKernelSuccess) {
   const std::string body = R"(
 OpAtomicStore %f32_var %device %relaxed %f32_1
 %val2 = OpAtomicExchange %f32 %f32_var %device %relaxed %f32_0
-%val3 = OpAtomicStore %u32_var %device %relaxed %u32_1
+OpAtomicStore %u32_var %device %relaxed %u32_1
 %val4 = OpAtomicExchange %u32 %u32_var %device %relaxed %u32_0
 )";
 
@@ -743,7 +741,7 @@ OpAtomicStore %f32_var %device %relaxed %f32_1
 
 TEST_F(ValidateAtomics, AtomicExchangeWrongResultType) {
   const std::string body = R"(
-%val1 = OpStore %f32vec4_var %f32vec4_0000
+OpStore %f32vec4_var %f32vec4_0000
 %val2 = OpAtomicExchange %f32vec4 %f32vec4_var %device %relaxed %f32vec4_0000
 )";
 
@@ -768,7 +766,7 @@ TEST_F(ValidateAtomics, AtomicExchangeWrongPointerType) {
 
 TEST_F(ValidateAtomics, AtomicExchangeWrongPointerDataType) {
   const std::string body = R"(
-%val1 = OpStore %f32vec4_var %f32vec4_0000
+OpStore %f32vec4_var %f32vec4_0000
 %val2 = OpAtomicExchange %f32 %f32vec4_var %device %relaxed %f32vec4_0000
 )";
 
@@ -788,9 +786,8 @@ OpAtomicStore %f32_var %device %relaxed %f32_1
 
   CompileSuccessfully(GenerateKernelCode(body));
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
-  EXPECT_THAT(
-      getDiagnosticString(),
-      HasSubstr("AtomicExchange: expected Memory Scope to be a 32-bit int"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("AtomicExchange: expected scope to be a 32-bit int"));
 }
 
 TEST_F(ValidateAtomics, AtomicExchangeWrongMemorySemanticsType) {
@@ -822,7 +819,7 @@ OpAtomicStore %f32_var %device %relaxed %f32_1
 
 TEST_F(ValidateAtomics, AtomicCompareExchangeShaderSuccess) {
   const std::string body = R"(
-%val1 = OpAtomicStore %u32_var %device %relaxed %u32_1
+OpAtomicStore %u32_var %device %relaxed %u32_1
 %val2 = OpAtomicCompareExchange %u32 %u32_var %device %relaxed %relaxed %u32_0 %u32_0
 )";
 
@@ -834,7 +831,7 @@ TEST_F(ValidateAtomics, AtomicCompareExchangeKernelSuccess) {
   const std::string body = R"(
 OpAtomicStore %f32_var %device %relaxed %f32_1
 %val2 = OpAtomicCompareExchange %f32 %f32_var %device %relaxed %relaxed %f32_0 %f32_1
-%val3 = OpAtomicStore %u32_var %device %relaxed %u32_1
+OpAtomicStore %u32_var %device %relaxed %u32_1
 %val4 = OpAtomicCompareExchange %u32 %u32_var %device %relaxed %relaxed %u32_0 %u32_0
 )";
 
@@ -857,7 +854,7 @@ OpAtomicStore %f32_var %device %relaxed %f32_1
 
 TEST_F(ValidateAtomics, AtomicCompareExchangeWrongResultType) {
   const std::string body = R"(
-%val1 = OpStore %f32vec4_var %f32vec4_0000
+OpStore %f32vec4_var %f32vec4_0000
 %val2 = OpAtomicCompareExchange %f32vec4 %f32vec4_var %device %relaxed %relaxed %f32vec4_0000 %f32vec4_0000
 )";
 
@@ -882,7 +879,7 @@ TEST_F(ValidateAtomics, AtomicCompareExchangeWrongPointerType) {
 
 TEST_F(ValidateAtomics, AtomicCompareExchangeWrongPointerDataType) {
   const std::string body = R"(
-%val1 = OpStore %f32vec4_var %f32vec4_0000
+OpStore %f32vec4_var %f32vec4_0000
 %val2 = OpAtomicCompareExchange %f32 %f32vec4_var %device %relaxed %relaxed %f32_0 %f32_1
 )";
 
@@ -902,10 +899,9 @@ OpAtomicStore %f32_var %device %relaxed %f32_1
 
   CompileSuccessfully(GenerateKernelCode(body));
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
-  EXPECT_THAT(
-      getDiagnosticString(),
-      HasSubstr("AtomicCompareExchange: expected Memory Scope to be a 32-bit "
-                "int"));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("AtomicCompareExchange: expected scope to be a 32-bit "
+                        "int"));
 }
 
 TEST_F(ValidateAtomics, AtomicCompareExchangeWrongMemorySemanticsType1) {
@@ -975,7 +971,7 @@ OpAtomicStore %f32_var %device %relaxed %f32_1
 
 TEST_F(ValidateAtomics, AtomicCompareExchangeWeakSuccess) {
   const std::string body = R"(
-%val3 = OpAtomicStore %u32_var %device %relaxed %u32_1
+OpAtomicStore %u32_var %device %relaxed %u32_1
 %val4 = OpAtomicCompareExchangeWeak %u32 %u32_var %device %relaxed %relaxed %u32_0 %u32_0
 )";
 
@@ -1085,8 +1081,7 @@ TEST_F(ValidateAtomics, AtomicFlagTestAndSetWrongScopeType) {
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
   EXPECT_THAT(
       getDiagnosticString(),
-      HasSubstr(
-          "AtomicFlagTestAndSet: expected Memory Scope to be a 32-bit int"));
+      HasSubstr("AtomicFlagTestAndSet: expected scope to be a 32-bit int"));
 }
 
 TEST_F(ValidateAtomics, AtomicFlagTestAndSetWrongMemorySemanticsType) {
@@ -1159,7 +1154,7 @@ OpAtomicFlagClear %u32_var %u64_1 %relaxed
   CompileSuccessfully(GenerateKernelCode(body));
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("AtomicFlagClear: expected Memory Scope to be a 32-bit "
+              HasSubstr("AtomicFlagClear: expected scope to be a 32-bit "
                         "int\n  OpAtomicFlagClear %30 %ulong_1 %uint_0_1\n"));
 }
 

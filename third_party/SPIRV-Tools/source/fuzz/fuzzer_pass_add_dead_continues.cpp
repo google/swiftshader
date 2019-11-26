@@ -36,18 +36,17 @@ void FuzzerPassAddDeadContinues::Apply() {
       // node turns out to be inappropriate (e.g. by not being in a loop) the
       // precondition for the transformation will fail and it will be ignored.
       //
-      // TODO(afd): right now we completely ignore OpPhi instructions at
-      //  merge blocks.  This will lead to interesting opportunities being
-      //  missed.
+      // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/2856): right
+      //  now we completely ignore OpPhi instructions at continue targets.
+      //  This will lead to interesting opportunities being missed.
       auto candidate_transformation = TransformationAddDeadContinue(
-          block.id(), GetFuzzerContext()->GetRandomGenerator()->RandomBool(),
-          {});
+          block.id(), GetFuzzerContext()->ChooseEven(), {});
       // Probabilistically decide whether to apply the transformation in the
       // case that it is applicable.
       if (candidate_transformation.IsApplicable(GetIRContext(),
                                                 *GetFactManager()) &&
-          GetFuzzerContext()->GetRandomGenerator()->RandomPercentage() >
-              GetFuzzerContext()->GetChanceOfAddingDeadContinue()) {
+          GetFuzzerContext()->ChoosePercentage(
+              GetFuzzerContext()->GetChanceOfAddingDeadContinue())) {
         candidate_transformation.Apply(GetIRContext(), GetFactManager());
         *GetTransformations()->add_transformation() =
             candidate_transformation.ToMessage();
