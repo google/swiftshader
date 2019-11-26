@@ -22,6 +22,30 @@
       "revId": "698235cee42de41e03fe21a5cbebffc94947855e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c8fde4e_f224cea9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-11-26T06:34:25Z",
+      "side": 1,
+      "message": "I see Gerrit has a new \u0027Revert submission\u0027 button next to the regular \u0027Revert\u0027, which doesn\u0027t make a lot of sense in this case and caused the unhelpful commit message. Filed a Gerrit UI issue: b/145170104",
+      "parentUuid": "3e51fdb5_9c170f72",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "698235cee42de41e03fe21a5cbebffc94947855e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
