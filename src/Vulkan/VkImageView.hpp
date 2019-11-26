@@ -51,6 +51,7 @@ public:
 	Format getFormat(VkImageAspectFlagBits aspect) const { return image->getFormat(aspect); }
 	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
+	int getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
 	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const;
 

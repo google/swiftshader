@@ -40,6 +40,8 @@ namespace sw
 		short4 onePitchP;
 		int4 pitchP;
 		int4 sliceP;
+		int4 samplePitchP;
+		int4 sampleMax;
 	};
 
 	struct Texture

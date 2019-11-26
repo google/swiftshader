@@ -267,6 +267,11 @@ int ImageView::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, 
 	return getImage(usage)->slicePitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel);
 }
 
+int ImageView::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
+{
+	return getImage(usage)->getMipLevelSize(aspect, subresourceRange.baseMipLevel + mipLevel);
+}
+
 int ImageView::layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage) const
 {
 	return static_cast<int>(getImage(usage)->getLayerSize(aspect));

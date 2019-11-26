@@ -5169,7 +5169,7 @@ namespace sw
 		if(sample)
 		{
 			auto sampleValue = GenericValue(this, state, sampleId);
-			in[i] = sampleValue.Float(0);
+			in[i] = As<SIMD::Float>(sampleValue.Int(0));
 		}
 
 		auto cacheIt = state->routine->samplerCache.find(resultId);
