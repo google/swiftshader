@@ -192,6 +192,8 @@ namespace sw
 
 		state.multiSample = static_cast<unsigned int>(context->sampleCount);
 		state.multiSampleMask = context->multiSampleMask;
+		state.multiSampledBresenham = (state.multiSample > 1) && context->isDrawLine(true) &&
+		                              (context->lineRasterizationMode == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT);
 
 		if(state.multiSample > 1 && context->pixelShader)
 		{

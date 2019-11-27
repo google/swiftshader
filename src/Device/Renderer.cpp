@@ -814,14 +814,7 @@ namespace sw
 			return false;
 		}
 
-		// We use rectangular lines for non-Bresenham lines (cf. 'strictLines'),
-		// and for Bresenham lines when multiSampling is enabled.
-		// FIXME(b/142965928): Bresenham lines should render the same with or without
-		//                     multisampling, which will require a special case in the
-		//                     code when multisampling is on. For now, we just use
-		//                     rectangular lines when multisampling is enabled.
-		if((draw.setupState.multiSample > 1) ||
-		   (draw.lineRasterizationMode != VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT))
+		if(draw.lineRasterizationMode != VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT)
 		{
 			// Rectangle centered on the line segment
 

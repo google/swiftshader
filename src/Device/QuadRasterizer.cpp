@@ -180,7 +180,8 @@ namespace sw
 					{
 						if (state.multiSampleMask & (1<<q))
 						{
-							Short4 mask = CmpGT(xxxx, xLeft[q]) & CmpGT(xRight[q], xxxx);
+							unsigned int i = state.multiSampledBresenham ? 0 : q;
+							Short4 mask = CmpGT(xxxx, xLeft[i]) & CmpGT(xRight[i], xxxx);
 							cMask[q] = SignMask(PackSigned(mask, mask)) & 0x0000000F;
 						}
 						else

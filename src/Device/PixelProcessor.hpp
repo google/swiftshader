@@ -81,6 +81,7 @@ namespace sw
 			VkFormat targetFormat[RENDERTARGETS];
 			unsigned int multiSample;
 			unsigned int multiSampleMask;
+			bool multiSampledBresenham;
 			bool alphaToCoverage;
 			bool centroid;
 			VkFrontFace frontFace;
