@@ -15,6 +15,6 @@
 # File containing GN "constants" for Swiftshader Vulkan so that GN-based
 # projects depending on Swiftshader don't need to hardcode them.
 
-# The name of the Swiftshader Vulkan ICD file in the $root_build_dir that's
+# The name of the Swiftshader Vulkan ICD file in the $root_out_dir that's
 # produced by ${swiftshader_dir}/src/Vulkan:icd_file
 swiftshader_icd_file_name = "vk_swiftshader_icd.json"

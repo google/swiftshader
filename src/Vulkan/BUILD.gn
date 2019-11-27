@@ -189,7 +189,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
 # Generates an ICD JSON file that can be used by all targets in this GN build
 # (ANGLE, Dawn, Chromium).
 action("icd_file") {
-  output_icd_file = "${root_build_dir}/${swiftshader_icd_file_name}"
+  output_icd_file = "${root_out_dir}/${swiftshader_icd_file_name}"
   input_file = swiftshader_icd_file_name
 
   if (is_win) {
@@ -203,9 +203,9 @@ action("icd_file") {
   script = "write_icd_json.py"
   args = [
     "--input",
-    rebase_path(input_file, root_build_dir),
+    rebase_path(input_file, root_out_dir),
     "--output",
-    rebase_path(output_icd_file, root_build_dir),
+    rebase_path(output_icd_file, root_out_dir),
     "--library_path",
     library_path,
   ]
