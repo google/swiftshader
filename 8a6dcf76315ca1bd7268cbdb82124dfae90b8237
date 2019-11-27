@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "83111072_56c045cb",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1339,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2019-11-27T18:27:05Z",
+      "side": 1,
+      "message": "Since you\u0027re casting sampleId to UInt4, why not just make sampleId a UInt4 to begin with?",
+      "revId": "8a6dcf76315ca1bd7268cbdb82124dfae90b8237",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "137dc0f0_b6865288",
+        "filename": "src/Pipeline/SamplerCore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2019-11-27T18:27:05Z",
+      "side": 1,
+      "message": "Should this be \u0027const\u0027 Int4\u0026 sampleId?",
+      "revId": "8a6dcf76315ca1bd7268cbdb82124dfae90b8237",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
