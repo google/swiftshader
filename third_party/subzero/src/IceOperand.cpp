@@ -617,7 +617,7 @@ void ConstantRelocatable::dump(const Cfg *, Ostream &Str) const {
     Str << EmitString;
     return;
   }
-  Str << "@" << Name;
+  Str << "@" << (Name.hasStdString() ? Name.toString() : "<Unnamed>") ;
   const RelocOffsetT Offset = getOffset();
   if (Offset) {
     if (Offset >= 0) {
