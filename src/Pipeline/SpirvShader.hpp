@@ -731,17 +731,17 @@ namespace sw
 		// Output storage buffers and images should not be affected by helper invocations
 		static bool StoresInHelperInvocation(spv::StorageClass storageClass);
 
-		template<typename F>
-		int VisitInterfaceInner(Type::ID id, Decorations d, F f) const;
+		using InterfaceVisitor = std::function<void(Decorations const, AttribType)>;
 
-		template<typename F>
-		void VisitInterface(Object::ID id, F f) const;
+		void VisitInterface(Object::ID id, const InterfaceVisitor& v) const;
 
-		template<typename F>
-		void VisitMemoryObject(Object::ID id, F f) const;
+		int VisitInterfaceInner(Type::ID id, Decorations d, const InterfaceVisitor& v) const;
 
-		template<typename F>
-		void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, F f) const;
+		using MemoryVisitor = std::function<void(uint32_t index, uint32_t offset)>;
+
+		void VisitMemoryObject(Object::ID id, const MemoryVisitor& v) const;
+
+		void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, const MemoryVisitor& v) const;
 
 		Object& CreateConstant(InsnIterator it);
 
