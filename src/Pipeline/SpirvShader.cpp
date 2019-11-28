@@ -35,247 +35,6 @@ namespace
 {
 	constexpr float PI = 3.141592653589793f;
 
-	rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints)
-	{
-		return rr::SignMask(ints) != 0;
-	}
-
-	rr::RValue<rr::Bool> AnyFalse(rr::RValue<sw::SIMD::Int> const &ints)
-	{
-		return rr::SignMask(~ints) != 0;
-	}
-
-	template <typename T>
-	rr::RValue<T> AndAll(rr::RValue<T> const &mask)
-	{
-		T v1 = mask;              // [x]    [y]    [z]    [w]
-		T v2 = v1.xzxz & v1.ywyw; // [xy]   [zw]   [xy]   [zw]
-		return v2.xxxx & v2.yyyy; // [xyzw] [xyzw] [xyzw] [xyzw]
-	}
-
-	template <typename T>
-	rr::RValue<T> OrAll(rr::RValue<T> const &mask)
-	{
-		T v1 = mask;              // [x]    [y]    [z]    [w]
-		T v2 = v1.xzxz | v1.ywyw; // [xy]   [zw]   [xy]   [zw]
-		return v2.xxxx | v2.yyyy; // [xyzw] [xyzw] [xyzw] [xyzw]
-	}
-
-	rr::RValue<sw::SIMD::Float> Sign(rr::RValue<sw::SIMD::Float> const &val)
-	{
-		return rr::As<sw::SIMD::Float>((rr::As<sw::SIMD::UInt>(val) & sw::SIMD::UInt(0x80000000)) | sw::SIMD::UInt(0x3f800000));
-	}
-
-	// Returns the <whole, frac> of val.
-	// Both whole and frac will have the same sign as val.
-	std::pair<rr::RValue<sw::SIMD::Float>, rr::RValue<sw::SIMD::Float>>
-	Modf(rr::RValue<sw::SIMD::Float> const &val)
-	{
-		auto abs = Abs(val);
-		auto sign = Sign(val);
-		auto whole = Floor(abs) * sign;
-		auto frac = Frac(abs) * sign;
-		return std::make_pair(whole, frac);
-	}
-
-	// Returns the number of 1s in bits, per lane.
-	sw::SIMD::UInt CountBits(rr::RValue<sw::SIMD::UInt> const &bits)
-	{
-		// TODO: Add an intrinsic to reactor. Even if there isn't a
-		// single vector instruction, there may be target-dependent
-		// ways to make this faster.
-		// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-		sw::SIMD::UInt c = bits - ((bits >> 1) & sw::SIMD::UInt(0x55555555));
-		c = ((c >> 2) & sw::SIMD::UInt(0x33333333)) + (c & sw::SIMD::UInt(0x33333333));
-		c = ((c >> 4) + c) & sw::SIMD::UInt(0x0F0F0F0F);
-		c = ((c >> 8) + c) & sw::SIMD::UInt(0x00FF00FF);
-		c = ((c >> 16) + c) & sw::SIMD::UInt(0x0000FFFF);
-		return c;
-	}
-
-	// Returns 1 << bits.
-	// If the resulting bit overflows a 32 bit integer, 0 is returned.
-	rr::RValue<sw::SIMD::UInt> NthBit32(rr::RValue<sw::SIMD::UInt> const &bits)
-	{
-		return ((sw::SIMD::UInt(1) << bits) & rr::CmpLT(bits, sw::SIMD::UInt(32)));
-	}
-
-	// Returns bitCount number of of 1's starting from the LSB.
-	rr::RValue<sw::SIMD::UInt> Bitmask32(rr::RValue<sw::SIMD::UInt> const &bitCount)
-	{
-		return NthBit32(bitCount) - sw::SIMD::UInt(1);
-	}
-
-	// Performs a fused-multiply add, returning a * b + c.
-	rr::RValue<sw::SIMD::Float> FMA(
-			rr::RValue<sw::SIMD::Float> const &a,
-			rr::RValue<sw::SIMD::Float> const &b,
-			rr::RValue<sw::SIMD::Float> const &c)
-	{
-		return a * b + c;
-	}
-
-	// Returns the exponent of the floating point number f.
-	// Assumes IEEE 754
-	rr::RValue<sw::SIMD::Int> Exponent(rr::RValue<sw::SIMD::Float> f)
-	{
-		auto v = rr::As<sw::SIMD::UInt>(f);
-		return (sw::SIMD::Int((v >> sw::SIMD::UInt(23)) & sw::SIMD::UInt(0xFF)) - sw::SIMD::Int(126));
-	}
-
-	// Returns y if y < x; otherwise result is x.
-	// If one operand is a NaN, the other operand is the result.
-	// If both operands are NaN, the result is a NaN.
-	rr::RValue<sw::SIMD::Float> NMin(rr::RValue<sw::SIMD::Float> const &x, rr::RValue<sw::SIMD::Float> const &y)
-	{
-		using namespace rr;
-		auto xIsNan = IsNan(x);
-		auto yIsNan = IsNan(y);
-		return As<sw::SIMD::Float>(
-			// If neither are NaN, return min
-			((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Min(x, y))) |
-			// If one operand is a NaN, the other operand is the result
-			// If both operands are NaN, the result is a NaN.
-			((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
-			(( xIsNan          ) & As<sw::SIMD::Int>(y)));
-	}
-
-	// Returns y if y > x; otherwise result is x.
-	// If one operand is a NaN, the other operand is the result.
-	// If both operands are NaN, the result is a NaN.
-	rr::RValue<sw::SIMD::Float> NMax(rr::RValue<sw::SIMD::Float> const &x, rr::RValue<sw::SIMD::Float> const &y)
-	{
-		using namespace rr;
-		auto xIsNan = IsNan(x);
-		auto yIsNan = IsNan(y);
-		return As<sw::SIMD::Float>(
-			// If neither are NaN, return max
-			((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Max(x, y))) |
-			// If one operand is a NaN, the other operand is the result
-			// If both operands are NaN, the result is a NaN.
-			((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
-			(( xIsNan          ) & As<sw::SIMD::Int>(y)));
-	}
-
-	// Returns the determinant of a 2x2 matrix.
-	rr::RValue<sw::SIMD::Float> Determinant(
-		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
-		rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
-	{
-		return a*d - b*c;
-	}
-
-	// Returns the determinant of a 3x3 matrix.
-	rr::RValue<sw::SIMD::Float> Determinant(
-		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
-		rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
-		rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
-	{
-		return a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h;
-	}
-
-	// Returns the determinant of a 4x4 matrix.
-	rr::RValue<sw::SIMD::Float> Determinant(
-		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
-		rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
-		rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
-		rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
-	{
-		return a * Determinant(f, g, h,
-		                       j, k, l,
-		                       n, o, p) -
-		       b * Determinant(e, g, h,
-		                       i, k, l,
-		                       m, o, p) +
-		       c * Determinant(e, f, h,
-		                       i, j, l,
-		                       m, n, p) -
-		       d * Determinant(e, f, g,
-		                       i, j, k,
-		                       m, n, o);
-	}
-
-	// Returns the inverse of a 2x2 matrix.
-	std::array<rr::RValue<sw::SIMD::Float>, 4> MatrixInverse(
-		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
-		rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
-	{
-		auto s = sw::SIMD::Float(1.0f) / Determinant(a, b, c, d);
-		return {{s*d, -s*b, -s*c, s*a}};
-	}
-
-	// Returns the inverse of a 3x3 matrix.
-	std::array<rr::RValue<sw::SIMD::Float>, 9> MatrixInverse(
-		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
-		rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
-		rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
-	{
-		auto s = sw::SIMD::Float(1.0f) / Determinant(
-				a, b, c,
-				d, e, f,
-				g, h, i); // TODO: duplicate arithmetic calculating the det and below.
-
-		return {{
-			s * (e*i - f*h), s * (c*h - b*i), s * (b*f - c*e),
-			s * (f*g - d*i), s * (a*i - c*g), s * (c*d - a*f),
-			s * (d*h - e*g), s * (b*g - a*h), s * (a*e - b*d),
-		}};
-	}
-
-	// Returns the inverse of a 4x4 matrix.
-	std::array<rr::RValue<sw::SIMD::Float>, 16> MatrixInverse(
-		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
-		rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
-		rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
-		rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
-	{
-		auto s = sw::SIMD::Float(1.0f) / Determinant(
-				a, b, c, d,
-				e, f, g, h,
-				i, j, k, l,
-				m, n, o, p); // TODO: duplicate arithmetic calculating the det and below.
-
-		auto kplo = k*p - l*o, jpln = j*p - l*n, jokn = j*o - k*n;
-		auto gpho = g*p - h*o, fphn = f*p - h*n, fogn = f*o - g*n;
-		auto glhk = g*l - h*k, flhj = f*l - h*j, fkgj = f*k - g*j;
-		auto iplm = i*p - l*m, iokm = i*o - k*m, ephm = e*p - h*m;
-		auto eogm = e*o - g*m, elhi = e*l - h*i, ekgi = e*k - g*i;
-		auto injm = i*n - j*m, enfm = e*n - f*m, ejfi = e*j - f*i;
-
-		return {{
-			s * ( f * kplo - g * jpln + h * jokn),
-			s * (-b * kplo + c * jpln - d * jokn),
-			s * ( b * gpho - c * fphn + d * fogn),
-			s * (-b * glhk + c * flhj - d * fkgj),
-
-			s * (-e * kplo + g * iplm - h * iokm),
-			s * ( a * kplo - c * iplm + d * iokm),
-			s * (-a * gpho + c * ephm - d * eogm),
-			s * ( a * glhk - c * elhi + d * ekgi),
-
-			s * ( e * jpln - f * iplm + h * injm),
-			s * (-a * jpln + b * iplm - d * injm),
-			s * ( a * fphn - b * ephm + d * enfm),
-			s * (-a * flhj + b * elhi - d * ejfi),
-
-			s * (-e * jokn + f * iokm - g * injm),
-			s * ( a * jokn - b * iokm + c * injm),
-			s * (-a * fogn + b * eogm - c * enfm),
-			s * ( a * fkgj - b * ekgi + c * ejfi),
-		}};
-	}
-
-
-	sw::SIMD::Pointer interleaveByLane(sw::SIMD::Pointer p)
-	{
-		p *= sw::SIMD::Width;
-		p.staticOffsets[0] += 0 * sizeof(float);
-		p.staticOffsets[1] += 1 * sizeof(float);
-		p.staticOffsets[2] += 2 * sizeof(float);
-		p.staticOffsets[3] += 3 * sizeof(float);
-		return p;
-	}
-
 	VkFormat SpirvFormatToVulkanFormat(spv::ImageFormat format)
 	{
 		switch (format)
@@ -317,198 +76,6 @@ namespace
 
 namespace sw
 {
-	namespace SIMD
-	{
-
-		template<typename T>
-		T Load(Pointer ptr, OutOfBoundsBehavior robustness, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */, int alignment /* = sizeof(float) */)
-		{
-			using EL = typename Element<T>::type;
-
-			if (ptr.isStaticallyInBounds(sizeof(float), robustness))
-			{
-				// All elements are statically known to be in-bounds.
-				// We can avoid costly conditional on masks.
-
-				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
-				{
-					// Offsets are sequential. Perform regular load.
-					return rr::Load(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), alignment, atomic, order);
-				}
-				if (ptr.hasStaticEqualOffsets())
-				{
-					// Load one, replicate.
-					return T(*rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], alignment));
-				}
-			}
-			else
-			{
-				switch(robustness)
-				{
-				case OutOfBoundsBehavior::Nullify:
-				case OutOfBoundsBehavior::RobustBufferAccess:
-				case OutOfBoundsBehavior::UndefinedValue:
-					mask &= ptr.isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
-					break;
-				case OutOfBoundsBehavior::UndefinedBehavior:
-					// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
-					break;
-				}
-			}
-
-			auto offsets = ptr.offsets();
-
-			if (!atomic && order == std::memory_order_relaxed)
-			{
-				if (ptr.hasStaticEqualOffsets())
-				{
-					// Load one, replicate.
-					// Be careful of the case where the post-bounds-check mask
-					// is 0, in which case we must not load.
-					T out = T(0);
-					If(AnyTrue(mask))
-					{
-						EL el = *rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], alignment);
-						out = T(el);
-					}
-					return out;
-				}
-
-				bool zeroMaskedLanes = true;
-				switch(robustness)
-				{
-				case OutOfBoundsBehavior::Nullify:
-				case OutOfBoundsBehavior::RobustBufferAccess:  // Must either return an in-bounds value, or zero.
-					zeroMaskedLanes = true;
-					break;
-				case OutOfBoundsBehavior::UndefinedValue:
-				case OutOfBoundsBehavior::UndefinedBehavior:
-					zeroMaskedLanes = false;
-					break;
-				}
-
-				if (ptr.hasStaticSequentialOffsets(sizeof(float)))
-				{
-					return rr::MaskedLoad(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), mask, alignment, zeroMaskedLanes);
-				}
-
-				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, alignment, zeroMaskedLanes);
-			}
-			else
-			{
-				T out;
-				auto anyLanesDisabled = AnyFalse(mask);
-				If(ptr.hasEqualOffsets() && !anyLanesDisabled)
-				{
-					// Load one, replicate.
-					auto offset = Extract(offsets, 0);
-					out = T(rr::Load(rr::Pointer<EL>(&ptr.base[offset]), alignment, atomic, order));
-				}
-				Else If(ptr.hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
-				{
-					// Load all elements in a single SIMD instruction.
-					auto offset = Extract(offsets, 0);
-					out = rr::Load(rr::Pointer<T>(&ptr.base[offset]), alignment, atomic, order);
-				}
-				Else
-				{
-					// Divergent offsets or masked lanes.
-					out = T(0);
-					for (int i = 0; i < SIMD::Width; i++)
-					{
-						If(Extract(mask, i) != 0)
-						{
-							auto offset = Extract(offsets, i);
-							auto el = rr::Load(rr::Pointer<EL>(&ptr.base[offset]), alignment, atomic, order);
-							out = Insert(out, el, i);
-						}
-					}
-				}
-				return out;
-			}
-		}
-
-		template<typename T>
-		void Store(Pointer ptr, T val, OutOfBoundsBehavior robustness, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
-		{
-			using EL = typename Element<T>::type;
-			constexpr size_t alignment = sizeof(float);
-			auto offsets = ptr.offsets();
-
-			switch(robustness)
-			{
-			case OutOfBoundsBehavior::Nullify:
-			case OutOfBoundsBehavior::RobustBufferAccess:  // TODO: Allows writing anywhere within bounds. Could be faster than masking.
-			case OutOfBoundsBehavior::UndefinedValue:  // Should not be used for store operations. Treat as robust buffer access.
-				mask &= ptr.isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
-				break;
-			case OutOfBoundsBehavior::UndefinedBehavior:
-				// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
-				break;
-			}
-
-			if (!atomic && order == std::memory_order_relaxed)
-			{
-				if (ptr.hasStaticEqualOffsets())
-				{
-					If (AnyTrue(mask))
-					{
-						// All equal. One of these writes will win -- elect the winning lane.
-						auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-						auto elect = mask & ~(v0111 & (mask.xxyz | mask.xxxy | mask.xxxx));
-						auto maskedVal = As<SIMD::Int>(val) & elect;
-						auto scalarVal = Extract(maskedVal, 0) |
-							Extract(maskedVal, 1) |
-							Extract(maskedVal, 2) |
-							Extract(maskedVal, 3);
-						*rr::Pointer<EL>(ptr.base + ptr.staticOffsets[0], alignment) = As<EL>(scalarVal);
-					}
-				}
-				else if (ptr.hasStaticSequentialOffsets(sizeof(float)))
-				{
-					if (ptr.isStaticallyInBounds(sizeof(float), robustness))
-					{
-						// Pointer has no elements OOB, and the store is not atomic.
-						// Perform a RMW.
-						auto p = rr::Pointer<SIMD::Int>(ptr.base + ptr.staticOffsets[0], alignment);
-						auto prev = *p;
-						*p = (prev & ~mask) | (As<SIMD::Int>(val) & mask);
-					}
-					else
-					{
-						rr::MaskedStore(rr::Pointer<T>(ptr.base + ptr.staticOffsets[0]), val, mask, alignment);
-					}
-				}
-				else
-				{
-					rr::Scatter(rr::Pointer<EL>(ptr.base), val, offsets, mask, alignment);
-				}
-			}
-			else
-			{
-				auto anyLanesDisabled = AnyFalse(mask);
-				If(ptr.hasSequentialOffsets(sizeof(float)) && !anyLanesDisabled)
-				{
-					// Store all elements in a single SIMD instruction.
-					auto offset = Extract(offsets, 0);
-					Store(val, rr::Pointer<T>(&ptr.base[offset]), alignment, atomic, order);
-				}
-				Else
-				{
-					// Divergent offsets or masked lanes.
-					for (int i = 0; i < SIMD::Width; i++)
-					{
-						If(Extract(mask, i) != 0)
-						{
-							auto offset = Extract(offsets, i);
-							rr::Store(Extract(val, i), rr::Pointer<EL>(&ptr.base[offset]), alignment, atomic, order);
-						}
-					}
-				}
-			}
-		}
-
-	} // namespace SIMD
 
 	SpirvShader::SpirvShader(
 			uint32_t codeSerialID,
@@ -1396,6 +963,16 @@ namespace sw
 		default:
 			return false;
 		}
+	}
+
+	sw::SIMD::Pointer SpirvShader::InterleaveByLane(sw::SIMD::Pointer p)
+	{
+		p *= sw::SIMD::Width;
+		p.staticOffsets[0] += 0 * sizeof(float);
+		p.staticOffsets[1] += 1 * sizeof(float);
+		p.staticOffsets[2] += 2 * sizeof(float);
+		p.staticOffsets[3] += 3 * sizeof(float);
+		return p;
 	}
 
 	bool SpirvShader::IsStorageInterleavedByLane(spv::StorageClass storageClass)
@@ -2923,9 +2500,9 @@ namespace sw
 				VisitMemoryObject(resultId, [&](uint32_t i, uint32_t offset)
 				{
 					auto p = ptr + offset;
-					if (interleavedByLane) { p = interleaveByLane(p); }
+					if (interleavedByLane) { p = InterleaveByLane(p); }
 					auto robustness = OutOfBoundsBehavior::UndefinedBehavior;  // Local variables are always within bounds.
-					SIMD::Store(p, initialValue.Float(i), robustness, state->activeLaneMask());
+					p.Store(initialValue.Float(i), robustness, state->activeLaneMask());
 				});
 				break;
 			}
@@ -2975,8 +2552,8 @@ namespace sw
 		VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 		{
 			auto p = ptr + offset;
-			if (interleavedByLane) { p = interleaveByLane(p); }  // TODO: Interleave once, then add offset?
-			dst.move(i, SIMD::Load<SIMD::Float>(p, robustness, state->activeLaneMask(), atomic, memoryOrder));
+			if (interleavedByLane) { p = InterleaveByLane(p); }  // TODO: Interleave once, then add offset?
+			dst.move(i, p.Load<SIMD::Float>(robustness, state->activeLaneMask(), atomic, memoryOrder));
 		});
 
 		return EmitResult::Continue;
@@ -3019,8 +2596,8 @@ namespace sw
 			VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 			{
 				auto p = ptr + offset;
-				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, SIMD::Int(src[i]), robustness, mask, atomic, memoryOrder);
+				if (interleavedByLane) { p = InterleaveByLane(p); }
+				p.Store(SIMD::Int(src[i]), robustness, mask, atomic, memoryOrder);
 			});
 		}
 		else
@@ -3030,8 +2607,8 @@ namespace sw
 			VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 			{
 				auto p = ptr + offset;
-				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, src.Float(i), robustness, mask, atomic, memoryOrder);
+				if (interleavedByLane) { p = InterleaveByLane(p); }
+				p.Store(src.Float(i), robustness, mask, atomic, memoryOrder);
 			});
 		}
 
@@ -4079,8 +3656,8 @@ namespace sw
 				std::tie(whole, frac) = Modf(val.Float(i));
 				dst.move(i, frac);
 				auto p = ptr + (i * sizeof(float));
-				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, whole, robustness, state->activeLaneMask());
+				if (interleavedByLane) { p = InterleaveByLane(p); }
+				p.Store(whole, robustness, state->activeLaneMask());
 			}
 			break;
 		}
@@ -4220,8 +3797,8 @@ namespace sw
 				dst.move(i, significand);
 
 				auto p = ptr + (i * sizeof(float));
-				if (interleavedByLane) { p = interleaveByLane(p); }
-				SIMD::Store(p, exponent, robustness, state->activeLaneMask());
+				if (interleavedByLane) { p = InterleaveByLane(p); }
+				p.Store(exponent, robustness, state->activeLaneMask());
 			}
 			break;
 		}
@@ -5496,7 +5073,7 @@ namespace sw
 		// TODO: specialize for small formats?
 		for (auto i = 0; i < (texelSize + 3)/4; i++)
 		{
-			packed[i] = SIMD::Load<SIMD::Int>(texelPtr, robustness, state->activeLaneMask(), false, std::memory_order_relaxed, std::min(texelSize, 4));
+			packed[i] = texelPtr.Load<SIMD::Int>(robustness, state->activeLaneMask(), false, std::memory_order_relaxed, std::min(texelSize, 4));
 			texelPtr += sizeof(float);
 		}
 
@@ -5849,7 +5426,7 @@ namespace sw
 
 		for (auto i = 0u; i < numPackedElements; i++)
 		{
-			SIMD::Store(texelPtr, packed[i], robustness, state->activeLaneMask());
+			texelPtr.Store(packed[i], robustness, state->activeLaneMask());
 			texelPtr += sizeof(float);
 		}
 
@@ -6037,14 +5614,14 @@ namespace sw
 
 			auto dst = dstPtr + dstOffset;
 			auto src = srcPtr + srcOffset;
-			if (dstInterleavedByLane) { dst = interleaveByLane(dst); }
-			if (srcInterleavedByLane) { src = interleaveByLane(src); }
+			if (dstInterleavedByLane) { dst = InterleaveByLane(dst); }
+			if (srcInterleavedByLane) { src = InterleaveByLane(src); }
 
 			// TODO(b/131224163): Optimize based on src/dst storage classes.
 			auto robustness = OutOfBoundsBehavior::RobustBufferAccess;
 
-			auto value = SIMD::Load<SIMD::Float>(src, robustness, state->activeLaneMask());
-			SIMD::Store(dst, value, robustness, state->activeLaneMask());
+			auto value = src.Load<SIMD::Float>(robustness, state->activeLaneMask());
+			dst.Store(value, robustness, state->activeLaneMask());
 		});
 		return EmitResult::Continue;
 	}
