@@ -24,7 +24,6 @@
 #include "Device/Config.hpp"
 
 #include <spirv/unified1/spirv.hpp>
-#include <spirv/unified1/GLSL.std.450.h>
 
 #include <climits>
 #include <mutex>

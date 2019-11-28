@@ -14,21 +14,11 @@
 
 #include "SpirvShader.hpp"
 
-#include "SamplerCore.hpp"
-#include "System/Math.hpp"
-#include "Vulkan/VkBuffer.hpp"
-#include "Vulkan/VkBufferView.hpp"
 #include "Vulkan/VkDebug.hpp"
-#include "Vulkan/VkDescriptorSet.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
-#include "Vulkan/VkDescriptorSetLayout.hpp"
 #include "Vulkan/VkRenderPass.hpp"
-#include "Device/Config.hpp"
 
 #include <spirv/unified1/spirv.hpp>
-#include <spirv/unified1/GLSL.std.450.h>
-
-#include <queue>
 
 namespace sw
 {
