@@ -1,6 +1,5 @@
 {
-    "remote": "git@gitlab.khronos.org:Tracker/vk-gl-cts.git",
-    "branch": "vulkan-cts-1.1.6",
+    "remote": "https://android.googlesource.com/platform/external/deqp",
     "sha": "3ca6f6fe2e4e023cb9d4ea763990336d762b49e2",
     "patches": [
         "tests/regres/deqp-patches/deqp-x11.patch"
