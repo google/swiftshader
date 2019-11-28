@@ -167,6 +167,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\Release"
     <ClCompile Include="..\Pipeline\SpirvShader.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShaderControlFlow.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShaderGLSLstd450.cpp" />
+    <ClCompile Include="..\Pipeline\SpirvShaderGroup.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShaderMemory.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShaderSampling.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShader_dbg.cpp" />
