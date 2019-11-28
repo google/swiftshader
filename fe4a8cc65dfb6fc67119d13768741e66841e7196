@@ -52,6 +52,24 @@
       "revId": "fe4a8cc65dfb6fc67119d13768741e66841e7196",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1b96e5b_3e9d554f",
+        "filename": "tests/regres/deqp.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-11-28T16:06:55Z",
+      "side": 1,
+      "message": "FWIW, the \u0027branch\u0027 was only there to work around an issue with Khronos\u0027 gitlab.\nRequesting by SHA only works if it is within N changes of a branch HEAD.\nThis work around fetched the branch, then locally checked out the particular SHA.\n\nThis was _really_ slow, consumed gigs of HDD, and I can sleep better at night knowing that this isn\u0027t happening anymore.",
+      "parentUuid": "d6aea527_1ec734cb",
+      "revId": "fe4a8cc65dfb6fc67119d13768741e66841e7196",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
