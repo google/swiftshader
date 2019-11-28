@@ -34,7 +34,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path"
@@ -43,15 +42,15 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"./cause"
 	"./consts"
+	"./deqp"
 	"./git"
 	"./shell"
 	"./testlist"
-
+	"./util"
 	gerrit "github.com/andygrunwald/go-gerrit"
 )
 
@@ -59,7 +58,6 @@ const (
 	gitURL                  = "https://swiftshader.googlesource.com/SwiftShader"
 	gerritURL               = "https://swiftshader-review.googlesource.com/"
 	reportHeader            = "Regres report:"
-	dataVersion             = 1
 	changeUpdateFrequency   = time.Minute * 5
 	changeQueryFrequency    = time.Minute * 5
 	testTimeout             = time.Minute * 2  // timeout for a single test
@@ -302,19 +300,19 @@ func (r *regres) test(change *changeInfo) (string, error) {
 		return "", cause.Wrap(err, "Failed to checkout '%s'", change.latest)
 	}
 
-	deqp, err := r.getOrBuildDEQP(latest)
+	deqpBuild, err := r.getOrBuildDEQP(latest)
 	if err != nil {
 		return "", cause.Wrap(err, "Failed to build dEQP '%v' for change", change.id)
 	}
 
 	log.Printf("Testing latest patchset for change '%s'\n", change.id)
-	latestResults, testlists, err := r.testLatest(change, latest, deqp)
+	latestResults, testlists, err := r.testLatest(change, latest, deqpBuild)
 	if err != nil {
 		return "", cause.Wrap(err, "Failed to test latest change of '%v'", change.id)
 	}
 
 	log.Printf("Testing parent of change '%s'\n", change.id)
-	parentResults, err := r.testParent(change, testlists, deqp)
+	parentResults, err := r.testParent(change, testlists, deqpBuild)
 	if err != nil {
 		return "", cause.Wrap(err, "Failed to test parent change of '%v'", change.id)
 	}
@@ -325,14 +323,14 @@ func (r *regres) test(change *changeInfo) (string, error) {
 	return msg, nil
 }
 
-type deqp struct {
+type deqpBuild struct {
 	path string // path to deqp directory
 	hash string // hash of the deqp config
 }
 
-func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
+func (r *regres) getOrBuildDEQP(test *test) (deqpBuild, error) {
 	srcDir := test.srcDir
-	if p := path.Join(srcDir, deqpConfigRelPath); !isFile(p) {
+	if p := path.Join(srcDir, deqpConfigRelPath); !util.IsFile(p) {
 		srcDir, _ = os.Getwd()
 		log.Printf("Couldn't open dEQP config file from change (%v), falling back to internal version\n", p)
 	} else {
@@ -340,7 +338,7 @@ func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 	}
 	file, err := os.Open(path.Join(srcDir, deqpConfigRelPath))
 	if err != nil {
-		return deqp{}, cause.Wrap(err, "Couldn't open dEQP config file")
+		return deqpBuild{}, cause.Wrap(err, "Couldn't open dEQP config file")
 	}
 	defer file.Close()
 
@@ -351,19 +349,19 @@ func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 		Patches []string `json:"patches"`
 	}{}
 	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
-		return deqp{}, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
+		return deqpBuild{}, cause.Wrap(err, "Couldn't parse %s", deqpConfigRelPath)
 	}
 
 	hasher := sha1.New()
 	if err := json.NewEncoder(hasher).Encode(&cfg); err != nil {
-		return deqp{}, cause.Wrap(err, "Couldn't re-encode %s", deqpConfigRelPath)
+		return deqpBuild{}, cause.Wrap(err, "Couldn't re-encode %s", deqpConfigRelPath)
 	}
 	hash := hex.EncodeToString(hasher.Sum(nil))
 	cacheDir := path.Join(r.cacheRoot, "deqp", hash)
 	buildDir := path.Join(cacheDir, "build")
-	if !isDir(cacheDir) {
+	if !util.IsDir(cacheDir) {
 		if err := os.MkdirAll(cacheDir, 0777); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't make deqp cache directory '%s'", cacheDir)
+			return deqpBuild{}, cause.Wrap(err, "Couldn't make deqp cache directory '%s'", cacheDir)
 		}
 
 		success := false
@@ -379,52 +377,52 @@ func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 			// attempting to directly checkout a remote commit.
 			log.Printf("Checking out deqp %v branch %v into %v\n", cfg.Remote, cfg.Branch, cacheDir)
 			if err := git.CheckoutRemoteBranch(cacheDir, cfg.Remote, cfg.Branch); err != nil {
-				return deqp{}, cause.Wrap(err, "Couldn't checkout deqp branch %v @ %v", cfg.Remote, cfg.Branch)
+				return deqpBuild{}, cause.Wrap(err, "Couldn't checkout deqp branch %v @ %v", cfg.Remote, cfg.Branch)
 			}
 			log.Printf("Checking out deqp %v commit %v \n", cfg.Remote, cfg.SHA)
 			if err := git.CheckoutCommit(cacheDir, git.ParseHash(cfg.SHA)); err != nil {
-				return deqp{}, cause.Wrap(err, "Couldn't checkout deqp commit %v @ %v", cfg.Remote, cfg.SHA)
+				return deqpBuild{}, cause.Wrap(err, "Couldn't checkout deqp commit %v @ %v", cfg.Remote, cfg.SHA)
 			}
 		} else {
 			log.Printf("Checking out deqp %v @ %v into %v\n", cfg.Remote, cfg.SHA, cacheDir)
 			if err := git.CheckoutRemoteCommit(cacheDir, cfg.Remote, git.ParseHash(cfg.SHA)); err != nil {
-				return deqp{}, cause.Wrap(err, "Couldn't checkout deqp commit %v @ %v", cfg.Remote, cfg.SHA)
+				return deqpBuild{}, cause.Wrap(err, "Couldn't checkout deqp commit %v @ %v", cfg.Remote, cfg.SHA)
 			}
 		}
 
 		log.Println("Fetching deqp dependencies")
 		if err := shell.Shell(buildTimeout, r.python, cacheDir, "external/fetch_sources.py"); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't fetch deqp sources %v @ %v", cfg.Remote, cfg.SHA)
+			return deqpBuild{}, cause.Wrap(err, "Couldn't fetch deqp sources %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
 		log.Println("Applying deqp patches")
 		for _, patch := range cfg.Patches {
 			fullPath := path.Join(srcDir, patch)
 			if err := git.Apply(cacheDir, fullPath); err != nil {
-				return deqp{}, cause.Wrap(err, "Couldn't apply deqp patch %v for %v @ %v", patch, cfg.Remote, cfg.SHA)
+				return deqpBuild{}, cause.Wrap(err, "Couldn't apply deqp patch %v for %v @ %v", patch, cfg.Remote, cfg.SHA)
 			}
 		}
 
 		log.Printf("Building deqp into %v\n", buildDir)
 		if err := os.MkdirAll(buildDir, 0777); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't make deqp build directory '%v'", buildDir)
+			return deqpBuild{}, cause.Wrap(err, "Couldn't make deqp build directory '%v'", buildDir)
 		}
 
 		if err := shell.Shell(buildTimeout, r.cmake, buildDir,
 			"-DDEQP_TARGET=x11_egl",
 			"-DCMAKE_BUILD_TYPE=Release",
 			".."); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't generate build rules for deqp %v @ %v", cfg.Remote, cfg.SHA)
+			return deqpBuild{}, cause.Wrap(err, "Couldn't generate build rules for deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
 		if err := shell.Shell(buildTimeout, r.make, buildDir, fmt.Sprintf("-j%d", runtime.NumCPU())); err != nil {
-			return deqp{}, cause.Wrap(err, "Couldn't build deqp %v @ %v", cfg.Remote, cfg.SHA)
+			return deqpBuild{}, cause.Wrap(err, "Couldn't build deqp %v @ %v", cfg.Remote, cfg.SHA)
 		}
 
 		success = true
 	}
 
-	return deqp{
+	return deqpBuild{
 		path: cacheDir,
 		hash: hash,
 	}, nil
@@ -432,7 +430,7 @@ func (r *regres) getOrBuildDEQP(test *test) (deqp, error) {
 
 var additionalTestsRE = regexp.MustCompile(`\n\s*Test[s]?:\s*([^\s]+)[^\n]*`)
 
-func (r *regres) testLatest(change *changeInfo, test *test, d deqp) (*CommitTestResults, testlist.Lists, error) {
+func (r *regres) testLatest(change *changeInfo, test *test, d deqpBuild) (*deqp.Results, testlist.Lists, error) {
 	// Get the test results for the latest patchset in the change.
 	testlists, err := test.loadTestLists(ciTestListRelPath)
 	if err != nil {
@@ -464,7 +462,7 @@ func (r *regres) testLatest(change *changeInfo, test *test, d deqp) (*CommitTest
 
 	cachePath := test.resultsCachePath(testlists, d)
 
-	if results, err := loadCommitTestResults(cachePath); err == nil {
+	if results, err := deqp.LoadResults(cachePath); err == nil {
 		return results, testlists, nil // Use cached results
 	}
 
@@ -472,21 +470,21 @@ func (r *regres) testLatest(change *changeInfo, test *test, d deqp) (*CommitTest
 	results := test.buildAndRun(testlists, d)
 
 	// Cache the results for future tests
-	if err := results.save(cachePath); err != nil {
+	if err := results.Save(cachePath); err != nil {
 		log.Printf("Warning: Couldn't save results of test to '%v'\n", cachePath)
 	}
 
 	return results, testlists, nil
 }
 
-func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp) (*CommitTestResults, error) {
+func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqpBuild) (*deqp.Results, error) {
 	// Get the test results for the changes's parent changelist.
 	test := r.newTest(change.parent)
 	defer test.cleanup()
 
 	cachePath := test.resultsCachePath(testlists, d)
 
-	if results, err := loadCommitTestResults(cachePath); err == nil {
+	if results, err := deqp.LoadResults(cachePath); err == nil {
 		return results, nil // Use cached results
 	}
 
@@ -499,7 +497,7 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp
 	results := test.buildAndRun(testlists, d)
 
 	// Store the results of the parent change to the cache.
-	if err := results.save(cachePath); err != nil {
+	if err := results.Save(cachePath); err != nil {
 		log.Printf("Warning: Couldn't save results of test to '%v'\n", cachePath)
 	}
 
@@ -554,7 +552,9 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 	// Stage all the updated test files.
 	for _, path := range filePaths {
 		log.Println("Staging", path)
-		git.Add(test.srcDir, path)
+		if err := git.Add(test.srcDir, path); err != nil {
+			return err
+		}
 	}
 
 	log.Println("Checking for existing test list")
@@ -605,10 +605,10 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 
 // postMostCommonFailures posts the most common failure cases as a review
 // comment on the given change.
-func (r *regres) postMostCommonFailures(client *gerrit.Client, change *gerrit.ChangeInfo, results *CommitTestResults) error {
+func (r *regres) postMostCommonFailures(client *gerrit.Client, change *gerrit.ChangeInfo, results *deqp.Results) error {
 	const limit = 25
 
-	failures := results.commonFailures()
+	failures := commonFailures(results)
 	if len(failures) > limit {
 		failures = failures[:limit]
 	}
@@ -810,7 +810,7 @@ func (t *test) cleanup() {
 
 // checkout clones the test's source commit into t.src.
 func (t *test) checkout() error {
-	if isDir(t.srcDir) && t.keepCheckouts {
+	if util.IsDir(t.srcDir) && t.keepCheckouts {
 		log.Printf("Reusing source cache for commit '%s'\n", t.commit)
 		return nil
 	}
@@ -824,13 +824,13 @@ func (t *test) checkout() error {
 }
 
 // buildAndRun calls t.build() followed by t.run(). Errors are logged and
-// reported in the returned CommitTestResults.Error field.
-func (t *test) buildAndRun(testLists testlist.Lists, d deqp) *CommitTestResults {
+// reported in the returned deqprun.Results.Error field.
+func (t *test) buildAndRun(testLists testlist.Lists, d deqpBuild) *deqp.Results {
 	// Build the parent change.
 	if err := t.build(); err != nil {
 		msg := fmt.Sprintf("Failed to build '%s'", t.commit)
 		log.Println(cause.Wrap(err, msg))
-		return &CommitTestResults{Error: msg}
+		return &deqp.Results{Error: msg}
 	}
 
 	// Run the tests on the parent change.
@@ -838,7 +838,7 @@ func (t *test) buildAndRun(testLists testlist.Lists, d deqp) *CommitTestResults 
 	if err != nil {
 		msg := fmt.Sprintf("Failed to test change '%s'", t.commit)
 		log.Println(cause.Wrap(err, msg))
-		return &CommitTestResults{Error: msg}
+		return &deqp.Results{Error: msg}
 	}
 
 	return results
@@ -868,113 +868,41 @@ func (t *test) build() error {
 	return nil
 }
 
-// run runs all the tests.
-func (t *test) run(testLists testlist.Lists, d deqp) (*CommitTestResults, error) {
+func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error) {
 	log.Printf("Running tests for '%s'\n", t.commit)
 
 	outDir := filepath.Join(t.srcDir, "out")
-	if !isDir(outDir) { // https://swiftshader-review.googlesource.com/c/SwiftShader/+/27188
+	if !util.IsDir(outDir) { // https://swiftshader-review.googlesource.com/c/SwiftShader/+/27188
 		outDir = t.buildDir
 	}
-	if !isDir(outDir) {
+	if !util.IsDir(outDir) {
 		return nil, fmt.Errorf("Couldn't find output directory")
 	}
 	log.Println("outDir:", outDir)
 
-	start := time.Now()
-
-	// Wait group that completes once all the tests have finished.
-	wg := sync.WaitGroup{}
-	results := make(chan TestResult, 256)
-
-	numTests := 0
-
-	// For each API that we are testing
-	for _, list := range testLists {
-		// Resolve the test runner
-		var exe string
-		switch list.API {
-		case testlist.EGL:
-			exe = filepath.Join(d.path, "build", "modules", "egl", "deqp-egl")
-		case testlist.GLES2:
-			exe = filepath.Join(d.path, "build", "modules", "gles2", "deqp-gles2")
-		case testlist.GLES3:
-			exe = filepath.Join(d.path, "build", "modules", "gles3", "deqp-gles3")
-		case testlist.Vulkan:
-			exe = filepath.Join(d.path, "build", "external", "vulkancts", "modules", "vulkan", "deqp-vk")
-		default:
-			return nil, fmt.Errorf("Unknown API '%v'", list.API)
-		}
-		if !isFile(exe) {
-			return nil, fmt.Errorf("Couldn't find dEQP executable at '%s'", exe)
-		}
-
-		// Build a chan for the test names to be run.
-		tests := make(chan string, len(list.Tests))
-
-		// Start a number of go routines to run the tests.
-		wg.Add(numParallelTests)
-		for i := 0; i < numParallelTests; i++ {
-			go func() {
-				t.deqpTestRoutine(exe, outDir, tests, results)
-				wg.Done()
-			}()
-		}
-
-		// Shuffle the test list.
-		// This attempts to mix heavy-load tests with lighter ones.
-		shuffled := make([]string, len(list.Tests))
-		for i, j := range rand.New(rand.NewSource(42)).Perm(len(list.Tests)) {
-			shuffled[i] = list.Tests[j]
-		}
-
-		// Hand the tests to the deqpTestRoutines.
-		for _, t := range shuffled {
-			tests <- t
-		}
-
-		// Close the tests chan to indicate that there are no more tests to run.
-		// The deqpTestRoutine functions will return once all tests have been
-		// run.
-		close(tests)
-
-		numTests += len(list.Tests)
+	config := deqp.Config{
+		ExeEgl:    filepath.Join(d.path, "build", "modules", "egl", "deqp-egl"),
+		ExeGles2:  filepath.Join(d.path, "build", "modules", "gles2", "deqp-gles2"),
+		ExeGles3:  filepath.Join(d.path, "build", "modules", "gles3", "deqp-gles3"),
+		ExeVulkan: filepath.Join(d.path, "build", "external", "vulkancts", "modules", "vulkan", "deqp-vk"),
+		TestLists: testLists,
+		Env: []string{
+			"LD_LIBRARY_PATH=" + t.buildDir + ":" + os.Getenv("LD_LIBRARY_PATH"),
+			"VK_ICD_FILENAMES=" + filepath.Join(outDir, "Linux", "vk_swiftshader_icd.json"),
+			"DISPLAY=" + os.Getenv("DISPLAY"),
+			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
+		},
+		LogReplacements: map[string]string{
+			t.srcDir: "<SwiftShader>",
+		},
+		NumParallelTests: numParallelTests,
+		TestTimeout:      testTimeout,
 	}
 
-	out := CommitTestResults{
-		Version: dataVersion,
-		Tests:   map[string]TestResult{},
-	}
-
-	// Collect the results.
-	finished := make(chan struct{})
-	lastUpdate := time.Now()
-	go func() {
-		start, i := time.Now(), 0
-		for r := range results {
-			i++
-			out.Tests[r.Test] = r
-			if time.Since(lastUpdate) > time.Minute {
-				lastUpdate = time.Now()
-				remaining := numTests - i
-				log.Printf("Ran %d/%d tests (%v%%). Estimated completion in %v.\n",
-					i, numTests, percent(i, numTests),
-					(time.Since(start)/time.Duration(i))*time.Duration(remaining))
-			}
-		}
-		close(finished)
-	}()
-
-	wg.Wait()      // Block until all the deqpTestRoutines have finished.
-	close(results) // Signal no more results.
-	<-finished     // And wait for the result collecting go-routine to finish.
-
-	out.Duration = time.Since(start)
-
-	return &out, nil
+	return config.Run()
 }
 
-func (t *test) writeTestListsByStatus(testLists testlist.Lists, results *CommitTestResults) ([]string, error) {
+func (t *test) writeTestListsByStatus(testLists testlist.Lists, results *deqp.Results) ([]string, error) {
 	out := []string{}
 
 	for _, list := range testLists {
@@ -1004,54 +932,9 @@ func (t *test) writeTestListsByStatus(testLists testlist.Lists, results *CommitT
 }
 
 // resultsCachePath returns the path to the cache results file for the given
-// test, testlists and path to deqp.
-func (t *test) resultsCachePath(testLists testlist.Lists, d deqp) string {
+// test, testlists and deqpBuild.
+func (t *test) resultsCachePath(testLists testlist.Lists, d deqpBuild) string {
 	return filepath.Join(t.resDir, testLists.Hash(), d.hash)
-}
-
-// CommitTestResults holds the results the tests across all APIs for a given
-// commit. The CommitTestResults structure may be serialized to cache the
-// results.
-type CommitTestResults struct {
-	Version  int
-	Error    string
-	Tests    map[string]TestResult
-	Duration time.Duration
-}
-
-func loadCommitTestResults(path string) (*CommitTestResults, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't open '%s' for loading test results", path)
-	}
-	defer f.Close()
-
-	var out CommitTestResults
-	if err := json.NewDecoder(f).Decode(&out); err != nil {
-		return nil, err
-	}
-	if out.Version != dataVersion {
-		return nil, errors.New("Data is from an old version")
-	}
-	return &out, nil
-}
-
-func (r *CommitTestResults) save(path string) error {
-	os.MkdirAll(filepath.Dir(path), 0777)
-
-	f, err := os.Create(path)
-	if err != nil {
-		return cause.Wrap(err, "Couldn't open '%s' for saving test results", path)
-	}
-	defer f.Close()
-
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(r); err != nil {
-		return cause.Wrap(err, "Couldn't encode test results")
-	}
-
-	return nil
 }
 
 type testStatusAndError struct {
@@ -1065,10 +948,10 @@ type commonFailure struct {
 	exampleTest string
 }
 
-func (r *CommitTestResults) commonFailures() []commonFailure {
+func commonFailures(results *deqp.Results) []commonFailure {
 	failures := map[testStatusAndError]int{}
 	examples := map[testStatusAndError]string{}
-	for name, test := range r.Tests {
+	for name, test := range results.Tests {
 		if !test.Status.Failing() {
 			continue
 		}
@@ -1089,9 +972,9 @@ func (r *CommitTestResults) commonFailures() []commonFailure {
 }
 
 // compare returns a string describing all differences between two
-// CommitTestResults. This string is used as the report message posted to the
+// deqprun.Results. This string is used as the report message posted to the
 // gerrit code review.
-func compare(old, new *CommitTestResults) string {
+func compare(old, new *deqp.Results) string {
 	if old.Error != "" {
 		return old.Error
 	}
@@ -1185,7 +1068,7 @@ func compare(old, new *CommitTestResults) string {
 		if old == 0 && new == 0 {
 			continue
 		}
-		change := percent64(int64(new-old), int64(old))
+		change := util.Percent64(int64(new-old), int64(old))
 		switch {
 		case old == new:
 			sb.WriteString(fmt.Sprintf("%s: %v\n", s.label, new))
@@ -1198,7 +1081,7 @@ func compare(old, new *CommitTestResults) string {
 
 	if old, new := old.Duration, new.Duration; old != 0 && new != 0 {
 		label := "           Time taken"
-		change := percent64(int64(new-old), int64(old))
+		change := util.Percent64(int64(new-old), int64(old))
 		switch {
 		case old == new:
 			sb.WriteString(fmt.Sprintf("%s: %v\n", label, new))
@@ -1267,147 +1150,12 @@ func compare(old, new *CommitTestResults) string {
 		}
 		sort.Slice(timingDiffs, func(i, j int) bool { return timingDiffs[i].relDelta < timingDiffs[j].relDelta })
 		for _, d := range timingDiffs {
-			percent := percent64(int64(d.new-d.old), int64(d.old))
+			percent := util.Percent64(int64(d.new-d.old), int64(d.old))
 			sb.WriteString(fmt.Sprintf("  > %v: %v -> %v (%+d%%)\n", d.name, d.old, d.new, percent))
 		}
 	}
 
 	return sb.String()
-}
-
-// TestResult holds the results of a single API test.
-type TestResult struct {
-	Test      string
-	Status    testlist.Status
-	TimeTaken time.Duration
-	Err       string `json:",omitempty"`
-}
-
-func (r TestResult) String() string {
-	if r.Err != "" {
-		return fmt.Sprintf("%s: %s (%s)", r.Test, r.Status, r.Err)
-	}
-	return fmt.Sprintf("%s: %s", r.Test, r.Status)
-}
-
-var (
-	// Regular expression to parse the output of a dEQP test.
-	deqpRE = regexp.MustCompile(`(Fail|Pass|NotSupported|CompatibilityWarning|QualityWarning) \(([^\)]*)\)`)
-	// Regular expression to parse a test that failed due to UNIMPLEMENTED()
-	unimplementedRE = regexp.MustCompile(`[^\n]*UNIMPLEMENTED:[^\n]*`)
-	// Regular expression to parse a test that failed due to UNSUPPORTED()
-	unsupportedRE = regexp.MustCompile(`[^\n]*UNSUPPORTED:[^\n]*`)
-	// Regular expression to parse a test that failed due to UNREACHABLE()
-	unreachableRE = regexp.MustCompile(`[^\n]*UNREACHABLE:[^\n]*`)
-	// Regular expression to parse a test that failed due to ASSERT()
-	assertRE = regexp.MustCompile(`[^\n]*ASSERT\([^\)]*\)[^\n]*`)
-	// Regular expression to parse a test that failed due to ABORT()
-	abortRE = regexp.MustCompile(`[^\n]*ABORT:[^\n]*`)
-)
-
-// deqpTestRoutine repeatedly runs the dEQP test executable exe with the tests
-// taken from tests. The output of the dEQP test is parsed, and the test result
-// is written to results.
-// deqpTestRoutine only returns once the tests chan has been closed.
-// deqpTestRoutine does not close the results chan.
-func (t *test) deqpTestRoutine(exe, outDir string, tests <-chan string, results chan<- TestResult) {
-nextTest:
-	for name := range tests {
-		// log.Printf("Running test '%s'\n", name)
-		env := []string{
-			"LD_LIBRARY_PATH=" + t.buildDir + ":" + os.Getenv("LD_LIBRARY_PATH"),
-			"VK_ICD_FILENAMES=" + filepath.Join(outDir, "Linux", "vk_swiftshader_icd.json"),
-			"DISPLAY=" + os.Getenv("DISPLAY"),
-			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
-		}
-
-		start := time.Now()
-		outRaw, err := shell.Exec(testTimeout, exe, filepath.Dir(exe), env,
-			"--deqp-surface-type=pbuffer",
-			"--deqp-shadercache=disable",
-			"--deqp-log-images=disable",
-			"--deqp-log-shader-sources=disable",
-			"--deqp-log-flush=disable",
-			"-n="+name)
-		duration := time.Since(start)
-		out := string(outRaw)
-		out = strings.ReplaceAll(out, t.srcDir, "<SwiftShader>")
-		out = strings.ReplaceAll(out, exe, "<dEQP>")
-
-		// Don't treat non-zero error codes as crashes.
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			if exitErr.ExitCode() != -1 {
-				out += fmt.Sprintf("\nProcess terminated with code %d", exitErr.ExitCode())
-				err = nil
-			}
-		}
-
-		switch err.(type) {
-		default:
-			for _, test := range []struct {
-				re *regexp.Regexp
-				s  testlist.Status
-			}{
-				{unimplementedRE, testlist.Unimplemented},
-				{unsupportedRE, testlist.Unsupported},
-				{unreachableRE, testlist.Unreachable},
-				{assertRE, testlist.Assert},
-				{abortRE, testlist.Abort},
-			} {
-				if s := test.re.FindString(out); s != "" {
-					results <- TestResult{
-						Test:      name,
-						Status:    test.s,
-						TimeTaken: duration,
-						Err:       s,
-					}
-					continue nextTest
-				}
-			}
-			results <- TestResult{
-				Test:      name,
-				Status:    testlist.Crash,
-				TimeTaken: duration,
-				Err:       out,
-			}
-		case shell.ErrTimeout:
-			log.Printf("Timeout for test '%v'\n", name)
-			results <- TestResult{
-				Test:      name,
-				Status:    testlist.Timeout,
-				TimeTaken: duration,
-			}
-		case nil:
-			toks := deqpRE.FindStringSubmatch(out)
-			if len(toks) < 3 {
-				err := fmt.Sprintf("Couldn't parse test '%v' output:\n%s", name, out)
-				log.Println("Warning: ", err)
-				results <- TestResult{Test: name, Status: testlist.Fail, Err: err}
-				continue
-			}
-			switch toks[1] {
-			case "Pass":
-				results <- TestResult{Test: name, Status: testlist.Pass, TimeTaken: duration}
-			case "NotSupported":
-				results <- TestResult{Test: name, Status: testlist.NotSupported, TimeTaken: duration}
-			case "CompatibilityWarning":
-				results <- TestResult{Test: name, Status: testlist.CompatibilityWarning, TimeTaken: duration}
-			case "QualityWarning":
-				results <- TestResult{Test: name, Status: testlist.QualityWarning, TimeTaken: duration}
-			case "Fail":
-				var err string
-				if toks[2] != "Fail" {
-					err = toks[2]
-				}
-				results <- TestResult{Test: name, Status: testlist.Fail, Err: err, TimeTaken: duration}
-			default:
-				err := fmt.Sprintf("Couldn't parse test output:\n%s", out)
-				log.Println("Warning: ", err)
-				results <- TestResult{Test: name, Status: testlist.Fail, Err: err, TimeTaken: duration}
-			}
-		}
-	}
 }
 
 // loadTestLists loads the full test lists from the json file.
@@ -1418,7 +1166,7 @@ nextTest:
 // a default set.
 func (t *test) loadTestLists(relPath string) (testlist.Lists, error) {
 	// Seach for the test.json file in the checked out source directory.
-	if path := filepath.Join(t.srcDir, relPath); isFile(path) {
+	if path := filepath.Join(t.srcDir, relPath); util.IsFile(path) {
 		log.Printf("Loading test list '%v' from commit\n", relPath)
 		return testlist.Load(t.srcDir, path)
 	}
@@ -1428,43 +1176,12 @@ func (t *test) loadTestLists(relPath string) (testlist.Lists, error) {
 	if err != nil {
 		return testlist.Lists{}, cause.Wrap(err, "Couldn't get current working directory")
 	}
-	if path := filepath.Join(wd, relPath); isFile(path) {
+	if path := filepath.Join(wd, relPath); util.IsFile(path) {
 		log.Printf("Loading test list '%v' from regres\n", relPath)
 		return testlist.Load(wd, relPath)
 	}
 
 	return nil, errors.New("Couldn't find a test list file")
-}
-
-// isDir returns true if path is a file.
-func isFile(path string) bool {
-	s, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return !s.IsDir()
-}
-
-// isDir returns true if path is a directory.
-func isDir(path string) bool {
-	s, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return s.IsDir()
-}
-
-// percent returns the percentage completion of i items out of n.
-func percent(i, n int) int {
-	return int(percent64(int64(i), int64(n)))
-}
-
-// percent64 returns the percentage completion of i items out of n.
-func percent64(i, n int64) int64 {
-	if n == 0 {
-		return 0
-	}
-	return (100 * i) / n
 }
 
 type date struct {
