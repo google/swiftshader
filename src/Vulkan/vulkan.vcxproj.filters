@@ -246,6 +246,9 @@
     <ClCompile Include="..\Pipeline\SpirvShader.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="..\Pipeline\SpirvShaderArithmetic.cpp">
+      <Filter>Source Files\Pipeline</Filter>
+    </ClCompile>
     <ClCompile Include="..\Pipeline\SpirvShaderControlFlow.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>

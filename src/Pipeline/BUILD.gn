@@ -40,6 +40,7 @@ swiftshader_source_set("Pipeline") {
     "ShaderCore.cpp",
     "SpirvShader_dbg.cpp",
     "SpirvShader.cpp",
+    "SpirvShaderArithmetic.cpp",
     "SpirvShaderControlFlow.cpp",
     "SpirvShaderGLSLstd450.cpp",
     "SpirvShaderGroup.cpp",
