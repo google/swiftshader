@@ -255,6 +255,9 @@
     <ClCompile Include="..\Pipeline\SpirvShaderGroup.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="..\Pipeline\SpirvShaderImage.cpp">
+      <Filter>Source Files\Pipeline</Filter>
+    </ClCompile>
     <ClCompile Include="..\Pipeline\SpirvShaderMemory.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
