@@ -203,9 +203,9 @@ action("icd_file") {
   script = "write_icd_json.py"
   args = [
     "--input",
-    rebase_path(input_file, root_out_dir),
+    rebase_path(input_file, root_build_dir),
     "--output",
-    rebase_path(output_icd_file, root_out_dir),
+    rebase_path(output_icd_file, root_build_dir),
     "--library_path",
     library_path,
   ]
