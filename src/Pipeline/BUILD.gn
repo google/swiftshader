@@ -45,6 +45,7 @@ swiftshader_source_set("Pipeline") {
     "SpirvShaderGroup.cpp",
     "SpirvShaderMemory.cpp",
     "SpirvShaderSampling.cpp",
+    "SpirvShaderSpec.cpp",
     "VertexProgram.cpp",
     "VertexRoutine.cpp",
   ]
