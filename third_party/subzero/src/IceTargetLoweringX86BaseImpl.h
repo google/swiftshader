@@ -4439,7 +4439,11 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     Variable *Dest = Instr->getDest();
     Variable *T = makeReg(Dest->getType());
     _sqrt(T, Src);
-    _mov(Dest, T);
+    if (isVectorType(Dest->getType())) {
+      _movp(Dest, T);
+    } else {
+      _mov(Dest, T);
+    }
     return;
   }
   case Intrinsics::Stacksave: {
