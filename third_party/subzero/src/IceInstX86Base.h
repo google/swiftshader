@@ -1249,6 +1249,10 @@ template <typename TraitsType> struct InstImpl {
   class InstX86Movd : public InstX86BaseUnaryopXmm<InstX86Base::Movd> {
   public:
     static InstX86Movd *create(Cfg *Func, Variable *Dest, Operand *Src) {
+      // TODO(amaiorano): This fixes assert(Dest->hasReg()) in emitIAS when
+      // there are no more registers left to allocate. Revisit this and fix it
+      // the right way. See b/145529686.
+      Dest->setMustHaveReg();
       return new (Func->allocate<InstX86Movd>()) InstX86Movd(Func, Dest, Src);
     }
 
