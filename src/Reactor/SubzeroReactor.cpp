@@ -716,7 +716,7 @@ namespace rr
 		int typeSize = Ice::typeWidthInBytes(type);
 		int totalSize = typeSize * (arraySize ? arraySize : 1);
 
-		auto bytes = Ice::ConstantInteger32::create(::context, type, totalSize);
+		auto bytes = Ice::ConstantInteger32::create(::context, Ice::IceType_i32, totalSize);
 		auto address = ::function->makeVariable(T(getPointerType(t)));
 		auto alloca = Ice::InstAlloca::create(::function, address, bytes, typeSize);
 		::function->getEntryNode()->getInsts().push_front(alloca);
