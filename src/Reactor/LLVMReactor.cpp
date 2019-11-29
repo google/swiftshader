@@ -405,7 +405,7 @@ namespace
 			}
 		}
 
-		const void *getEntry(int index) override
+		const void *getEntry(int index) const override
 		{
 			return addresses[index];
 		}

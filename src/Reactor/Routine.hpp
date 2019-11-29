@@ -25,7 +25,7 @@ namespace rr
 		Routine() = default;
 		virtual ~Routine() = default;
 
-		virtual const void *getEntry(int index = 0) = 0;
+		virtual const void *getEntry(int index = 0) const = 0;
 	};
 
 	// RoutineT is a type-safe wrapper around a Routine and its callable entry, returned by FunctionT

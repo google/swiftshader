@@ -490,7 +490,7 @@ namespace rr
 		ELFMemoryStreamer &operator=(const ELFMemoryStreamer &) = delete;
 
 	public:
-		ELFMemoryStreamer() : Routine(), entry(nullptr)
+		ELFMemoryStreamer() : Routine()
 		{
 			position = 0;
 			buffer.reserve(0x1000);
@@ -534,26 +534,33 @@ namespace rr
 
 		void seek(uint64_t Off) override { position = Off; }
 
-		const void *getEntry(int index) override
+		const void* finalizeEntryBegin()
 		{
-			ASSERT(index == 0); // Subzero does not support multiple entry points per routine yet.
-			if(!entry)
-			{
-				position = std::numeric_limits<std::size_t>::max();   // Can't stream more data after this
+			position = std::numeric_limits<std::size_t>::max();   // Can't stream more data after this
 
-				size_t codeSize = 0;
-				entry = loadImage(&buffer[0], codeSize);
+			size_t codeSize = 0;
+			const void *entry = loadImage(&buffer[0], codeSize);
 
-				#if defined(_WIN32)
-					VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READ, &oldProtection);
-					FlushInstructionCache(GetCurrentProcess(), NULL, 0);
-				#else
-					mprotect(&buffer[0], buffer.size(), PROT_READ | PROT_EXEC);
-					__builtin___clear_cache((char*)entry, (char*)entry + codeSize);
-				#endif
-			}
-
+#if defined(_WIN32)
+			VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READ, &oldProtection);
+			FlushInstructionCache(GetCurrentProcess(), NULL, 0);
+#else
+			mprotect(&buffer[0], buffer.size(), PROT_READ | PROT_EXEC);
+			__builtin___clear_cache((char*)entry, (char*)entry + codeSize);
+#endif
 			return entry;
+		}
+
+		void setEntry(int index, const void* func)
+		{
+			ASSERT(func);
+			funcs[index] = func;
+		}
+
+		const void *getEntry(int index) const override
+		{
+			ASSERT(funcs[index]);
+			return funcs[index];
 		}
 
 		const void* addConstantData(const void* data, size_t size)
@@ -566,7 +573,7 @@ namespace rr
 		}
 
 	private:
-		void *entry;
+		std::array<const void*, Nucleus::CoroutineEntryCount> funcs = {};
 		std::vector<uint8_t, ExecutableAllocator<uint8_t>> buffer;
 		std::size_t position;
 		std::vector<std::unique_ptr<uint8_t[]>> constantData;
@@ -703,6 +710,9 @@ namespace rr
 		::context->lowerJumpTables();
 		objectWriter->setUndefinedSyms(::context->getConstantExternSyms());
 		objectWriter->writeNonUserSections();
+
+		const void* entryBegin = ::routine->finalizeEntryBegin();
+		::routine->setEntry(Nucleus::CoroutineEntryBegin, entryBegin);
 
 		Routine *handoffRoutine = ::routine;
 		::routine = nullptr;
@@ -3609,8 +3619,28 @@ namespace rr
 	void EmitDebugVariable(Value* value) {}
 	void FlushDebug() {}
 
-	void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params) { UNIMPLEMENTED("createCoroutine"); }
-	std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */) { UNIMPLEMENTED("acquireCoroutine"); return nullptr; }
+	void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
+	{
+		// Subzero currently only supports coroutines as functions (i.e. that do not yield)
+		createFunction(YieldType, Params);
+	}
+
+	static bool coroutineEntryAwaitStub(Nucleus::CoroutineHandle, void* yieldValue) { return false; }
+	static void coroutineEntryDestroyStub(Nucleus::CoroutineHandle) {}
+
+	std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
+	{
+		// acquireRoutine sets the CoroutineEntryBegin entry
+		auto coroutineEntry = acquireRoutine(name, cfgEdit);
+
+		// For now, set the await and destroy entries to stubs, until we add proper coroutine support to the Subzero backend
+		auto routine = std::static_pointer_cast<ELFMemoryStreamer>(coroutineEntry);
+		routine->setEntry(Nucleus::CoroutineEntryAwait, reinterpret_cast<const void*>(&coroutineEntryAwaitStub));
+		routine->setEntry(Nucleus::CoroutineEntryDestroy, reinterpret_cast<const void*>(&coroutineEntryDestroyStub));
+
+		return coroutineEntry;
+	}
+
 	void Nucleus::yield(Value* val) { UNIMPLEMENTED("Yield"); }
 
 }
