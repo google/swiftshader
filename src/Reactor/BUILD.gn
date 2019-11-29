@@ -47,6 +47,7 @@ config("swiftshader_reactor_private_config") {
 swiftshader_source_set("swiftshader_reactor_base") {
   sources = [
     "Debug.cpp",
+    "EmulatedReactor.cpp",
     "ExecutableMemory.cpp",
     "Reactor.cpp",
   ]

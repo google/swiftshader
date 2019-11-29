@@ -14,6 +14,7 @@
 
 #include "Reactor.hpp"
 #include "Debug.hpp"
+#include "EmulatedReactor.hpp"
 
 #include "Optimizer.hpp"
 #include "ExecutableMemory.hpp"
@@ -3560,7 +3561,6 @@ namespace rr
 
 	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
 	{
-		// FIXME: This does not currently work on Windows.
 		Ice::Variable *ret = nullptr;
 		if (retTy != nullptr)
 		{
@@ -3583,37 +3583,203 @@ namespace rr
 		::basicBlock->appendInst(trap);
 	}
 
-	// Below are functions currently unimplemented for the Subzero backend.
-	// They are stubbed to satisfy the linker.
 	void Nucleus::createFence(std::memory_order memoryOrder) { UNIMPLEMENTED("Subzero createFence()"); }
 	Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned int alignment, bool zeroMaskedLanes) { UNIMPLEMENTED("Subzero createMaskedLoad()"); return nullptr; }
 	void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned int alignment) { UNIMPLEMENTED("Subzero createMaskedStore()"); }
-	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment, bool zeroMaskedLanes) { UNIMPLEMENTED("Subzero createGather()"); return nullptr; }
-	void Nucleus::createScatter(Value *base, Value *val, Value *offsets, Value *mask, unsigned int alignment) { UNIMPLEMENTED("Subzero createScatter()"); }
-	RValue<Float> Exp2(RValue<Float> x) { UNIMPLEMENTED("Subzero Exp2()"); return Float(0); }
-	RValue<Float> Log2(RValue<Float> x) { UNIMPLEMENTED("Subzero Log2()"); return Float(0); }
-	RValue<Float4> Sin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sin()"); return Float4(0); }
-	RValue<Float4> Cos(RValue<Float4> x) { UNIMPLEMENTED("Subzero Cos()"); return Float4(0); }
-	RValue<Float4> Tan(RValue<Float4> x) { UNIMPLEMENTED("Subzero Tan()"); return Float4(0); }
-	RValue<Float4> Asin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Asin()"); return Float4(0); }
-	RValue<Float4> Acos(RValue<Float4> x) { UNIMPLEMENTED("Subzero Acos()"); return Float4(0); }
-	RValue<Float4> Atan(RValue<Float4> x) { UNIMPLEMENTED("Subzero Atan()"); return Float4(0); }
-	RValue<Float4> Sinh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sinh()"); return Float4(0); }
-	RValue<Float4> Cosh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Cosh()"); return Float4(0); }
-	RValue<Float4> Tanh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Tanh()"); return Float4(0); }
-	RValue<Float4> Asinh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Asinh()"); return Float4(0); }
-	RValue<Float4> Acosh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Acosh()"); return Float4(0); }
-	RValue<Float4> Atanh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Atanh()"); return Float4(0); }
-	RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y) { UNIMPLEMENTED("Subzero Atan2()"); return Float4(0); }
-	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y) { UNIMPLEMENTED("Subzero Pow()"); return Float4(0); }
-	RValue<Float4> Exp(RValue<Float4> x) { UNIMPLEMENTED("Subzero Exp()"); return Float4(0); }
-	RValue<Float4> Log(RValue<Float4> x) { UNIMPLEMENTED("Subzero Log()"); return Float4(0); }
-	RValue<Float4> Exp2(RValue<Float4> x) { UNIMPLEMENTED("Subzero Exp2()"); return Float4(0); }
-	RValue<Float4> Log2(RValue<Float4> x) { UNIMPLEMENTED("Subzero Log2()"); return Float4(0); }
-	RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef) { UNIMPLEMENTED("Subzero Ctlz()"); return UInt(0); }
-	RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef) { UNIMPLEMENTED("Subzero Ctlz()"); return UInt4(0); }
-	RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef) { UNIMPLEMENTED("Subzero Cttz()"); return UInt(0); }
-	RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef) { UNIMPLEMENTED("Subzero Cttz()"); return UInt4(0); }
+
+	RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
+	{
+		return emulated::Gather(base, offsets, mask, alignment, zeroMaskedLanes);
+	}
+
+	RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
+	{
+		return emulated::Gather(base, offsets, mask, alignment, zeroMaskedLanes);
+	}
+
+	void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		return emulated::Scatter(base, val, offsets, mask, alignment);
+	}
+
+	void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		return emulated::Scatter(base, val, offsets, mask, alignment);
+	}
+
+	RValue<Float> Exp2(RValue<Float> x)
+	{
+		return emulated::Exp2(x);
+	}
+
+	RValue<Float> Log2(RValue<Float> x)
+	{
+		return emulated::Log2(x);
+	}
+
+	RValue<Float4> Sin(RValue<Float4> x)
+	{
+		return emulated::Sin(x);
+	}
+
+	RValue<Float4> Cos(RValue<Float4> x)
+	{
+		return emulated::Cos(x);
+	}
+
+	RValue<Float4> Tan(RValue<Float4> x)
+	{
+		return emulated::Tan(x);
+	}
+
+	RValue<Float4> Asin(RValue<Float4> x)
+	{
+		return emulated::Asin(x);
+	}
+
+	RValue<Float4> Acos(RValue<Float4> x)
+	{
+		return emulated::Acos(x);
+	}
+
+	RValue<Float4> Atan(RValue<Float4> x)
+	{
+		return emulated::Atan(x);
+	}
+
+	RValue<Float4> Sinh(RValue<Float4> x)
+	{
+		return emulated::Sinh(x);
+	}
+
+	RValue<Float4> Cosh(RValue<Float4> x)
+	{
+		return emulated::Cosh(x);
+	}
+
+	RValue<Float4> Tanh(RValue<Float4> x)
+	{
+		return emulated::Tanh(x);
+	}
+
+	RValue<Float4> Asinh(RValue<Float4> x)
+	{
+		return emulated::Asinh(x);
+	}
+
+	RValue<Float4> Acosh(RValue<Float4> x)
+	{
+		return emulated::Acosh(x);
+	}
+
+	RValue<Float4> Atanh(RValue<Float4> x)
+	{
+		return emulated::Atanh(x);
+	}
+
+	RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
+	{
+		return emulated::Atan2(x, y);
+	}
+
+	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
+	{
+		return emulated::Pow(x, y);
+	}
+
+	RValue<Float4> Exp(RValue<Float4> x)
+	{
+		return emulated::Exp(x);
+	}
+
+	RValue<Float4> Log(RValue<Float4> x)
+	{
+		return emulated::Log(x);
+	}
+
+	RValue<Float4> Exp2(RValue<Float4> x)
+	{
+		return emulated::Exp2(x);
+	}
+
+	RValue<Float4> Log2(RValue<Float4> x)
+	{
+		return emulated::Log2(x);
+	}
+
+	RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
+	{
+		if (emulateIntrinsics)
+		{
+			UNIMPLEMENTED("Subzero Ctlz()"); return UInt(0);
+		}
+		else
+		{
+			Ice::Variable* result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Ctlz, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto ctlz = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			ctlz->addArg(x.value);
+			::basicBlock->appendInst(ctlz);
+
+			return RValue<UInt>(V(result));
+		}
+	}
+
+	RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef)
+	{
+		if (emulateIntrinsics)
+		{
+			UNIMPLEMENTED("Subzero Ctlz()"); return UInt4(0);
+		}
+		else
+		{
+			// TODO: implement vectorized version in Subzero
+			UInt4 result;
+			result = Insert(result, Ctlz(Extract(x, 0), isZeroUndef), 0);
+			result = Insert(result, Ctlz(Extract(x, 1), isZeroUndef), 1);
+			result = Insert(result, Ctlz(Extract(x, 2), isZeroUndef), 2);
+			result = Insert(result, Ctlz(Extract(x, 3), isZeroUndef), 3);
+			return result;
+		}
+	}
+
+	RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef)
+	{
+		if (emulateIntrinsics)
+		{
+			UNIMPLEMENTED("Subzero Cttz()"); return UInt(0);
+		}
+		else
+		{
+			Ice::Variable* result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Cttz, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto ctlz = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			ctlz->addArg(x.value);
+			::basicBlock->appendInst(ctlz);
+
+			return RValue<UInt>(V(result));
+		}
+	}
+
+	RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef)
+	{
+		if (emulateIntrinsics)
+		{
+			UNIMPLEMENTED("Subzero Cttz()"); return UInt4(0);
+		}
+		else
+		{
+			// TODO: implement vectorized version in Subzero
+			UInt4 result;
+			result = Insert(result, Cttz(Extract(x, 0), isZeroUndef), 0);
+			result = Insert(result, Cttz(Extract(x, 1), isZeroUndef), 1);
+			result = Insert(result, Cttz(Extract(x, 2), isZeroUndef), 2);
+			result = Insert(result, Cttz(Extract(x, 3), isZeroUndef), 3);
+			return result;
+		}
+	}
 
 	void EmitDebugLocation() {}
 	void EmitDebugVariable(Value* value) {}

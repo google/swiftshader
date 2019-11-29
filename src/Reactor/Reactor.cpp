@@ -4327,26 +4327,6 @@ namespace rr
 		Nucleus::createMaskedStore(base.value, val.value, mask.value, alignment);
 	}
 
-	RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
-	{
-		return RValue<Float4>(Nucleus::createGather(base.value, Float::getType(), offsets.value, mask.value, alignment, zeroMaskedLanes));
-	}
-
-	RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
-	{
-		return RValue<Int4>(Nucleus::createGather(base.value, Int::getType(), offsets.value, mask.value, alignment, zeroMaskedLanes));
-	}
-
-	void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
-	{
-		Nucleus::createScatter(base.value, val.value, offsets.value, mask.value, alignment);
-	}
-
-	void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
-	{
-		Nucleus::createScatter(base.value, val.value, offsets.value, mask.value, alignment);
-	}
-
 	void Fence(std::memory_order memoryOrder)
 	{
 		ASSERT_MSG(memoryOrder == std::memory_order_acquire ||

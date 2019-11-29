@@ -873,6 +873,55 @@ namespace
 		llvm::Value *mulh = jit->builder->CreateAShr(mult, intTy->getBitWidth());
 		return jit->builder->CreateTrunc(mulh, ty);
 	}
+
+	llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Value *offsets, llvm::Value *mask, unsigned int alignment, bool zeroMaskedLanes)
+	{
+		ASSERT(base->getType()->isPointerTy());
+		ASSERT(offsets->getType()->isVectorTy());
+		ASSERT(mask->getType()->isVectorTy());
+
+		auto numEls = mask->getType()->getVectorNumElements();
+		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
+		auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
+		auto i8PtrTy = i8Ty->getPointerTo();
+		auto elPtrTy = elTy->getPointerTo();
+		auto elVecTy = ::llvm::VectorType::get(elTy, numEls);
+		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
+		auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
+		auto i8Ptrs = jit->builder->CreateGEP(i8Base, offsets);
+		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
+		auto i8Mask = jit->builder->CreateIntCast(mask, ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto passthrough = zeroMaskedLanes ? ::llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
+		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
+		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy } );
+		return jit->builder->CreateCall(func, { elPtrs, align, i8Mask, passthrough });
+	}
+
+	void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, llvm::Value *mask, unsigned int alignment)
+	{
+		ASSERT(base->getType()->isPointerTy());
+		ASSERT(val->getType()->isVectorTy());
+		ASSERT(offsets->getType()->isVectorTy());
+		ASSERT(mask->getType()->isVectorTy());
+
+		auto numEls = mask->getType()->getVectorNumElements();
+		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
+		auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
+		auto i8PtrTy = i8Ty->getPointerTo();
+		auto elVecTy = val->getType();
+		auto elTy = elVecTy->getVectorElementType();
+		auto elPtrTy = elTy->getPointerTo();
+		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
+		auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
+		auto i8Ptrs = jit->builder->CreateGEP(i8Base, offsets);
+		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
+		auto i8Mask = jit->builder->CreateIntCast(mask, ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
+		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_scatter, { elVecTy, elPtrVecTy } );
+		jit->builder->CreateCall(func, { val, elPtrs, align, i8Mask });
+	}
 }
 
 namespace rr
@@ -1751,53 +1800,24 @@ namespace rr
 		jit->builder->CreateCall(func, { V(val), V(ptr), align, i8Mask });
 	}
 
-	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment, bool zeroMaskedLanes)
+	RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 	{
-		ASSERT(V(base)->getType()->isPointerTy());
-		ASSERT(V(offsets)->getType()->isVectorTy());
-		ASSERT(V(mask)->getType()->isVectorTy());
-
-		auto numEls = V(mask)->getType()->getVectorNumElements();
-		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
-		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
-		auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
-		auto i8PtrTy = i8Ty->getPointerTo();
-		auto elPtrTy = T(elTy)->getPointerTo();
-		auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
-		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
-		auto i8Base = jit->builder->CreatePointerCast(V(base), i8PtrTy);
-		auto i8Ptrs = jit->builder->CreateGEP(i8Base, V(offsets));
-		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
-		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
-		auto passthrough = zeroMaskedLanes ? ::llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
-		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
-		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy } );
-		return V(jit->builder->CreateCall(func, { elPtrs, align, i8Mask, passthrough }));
+		return As<Float4>(V(createGather(V(base.value), T(Float::getType()), V(offsets.value), V(mask.value), alignment, zeroMaskedLanes)));
 	}
 
-	void Nucleus::createScatter(Value *base, Value *val, Value *offsets, Value *mask, unsigned int alignment)
+	RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 	{
-		ASSERT(V(base)->getType()->isPointerTy());
-		ASSERT(V(val)->getType()->isVectorTy());
-		ASSERT(V(offsets)->getType()->isVectorTy());
-		ASSERT(V(mask)->getType()->isVectorTy());
+		return As<Int4>(V(createGather(V(base.value), T(Float::getType()), V(offsets.value), V(mask.value), alignment, zeroMaskedLanes)));
+	}
 
-		auto numEls = V(mask)->getType()->getVectorNumElements();
-		auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
-		auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
-		auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
-		auto i8PtrTy = i8Ty->getPointerTo();
-		auto elVecTy = V(val)->getType();
-		auto elTy = elVecTy->getVectorElementType();
-		auto elPtrTy = elTy->getPointerTo();
-		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
-		auto i8Base = jit->builder->CreatePointerCast(V(base), i8PtrTy);
-		auto i8Ptrs = jit->builder->CreateGEP(i8Base, V(offsets));
-		auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
-		auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
-		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
-		auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_scatter, { elVecTy, elPtrVecTy } );
-		jit->builder->CreateCall(func, { V(val), elPtrs, align, i8Mask });
+	void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		return createScatter(V(base.value), V(val.value), V(offsets.value), V(mask.value), alignment);
+	}
+
+	void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		return createScatter(V(base.value), V(val.value), V(offsets.value), V(mask.value), alignment);
 	}
 
 	void Nucleus::createFence(std::memory_order memoryOrder)

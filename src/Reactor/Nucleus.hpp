@@ -199,10 +199,6 @@ namespace rr
 		static Value *createMaskedLoad(Value *base, Type *elementType, Value *mask, unsigned int alignment, bool zeroMaskedLanes);
 		static void createMaskedStore(Value *base, Value *value, Value *mask, unsigned int alignment);
 
-		// Scatter / Gather instructions
-		static Value *createGather(Value *base, Type *elementType, Value *offsets, Value *mask, unsigned int alignment, bool zeroMaskedLanes);
-		static void createScatter(Value *base, Value *value, Value *offsets, Value *mask, unsigned int alignment);
-
 		// Barrier instructions
 		static void createFence(std::memory_order memoryOrder);
 
