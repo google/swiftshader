@@ -22,7 +22,7 @@ namespace sw
 {
 	// SpirvID is a strongly-typed identifier backed by a uint32_t.
 	// The template parameter T is not actually used by the implementation of
-	// ID; instead it is used to prevent implicit casts between idenfitifers of
+	// ID; instead it is used to prevent implicit casts between identifiers of
 	// different T types.
 	// IDs are typically used as a map key to value of type T.
 	template <typename T>
