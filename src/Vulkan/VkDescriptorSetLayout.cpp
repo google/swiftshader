@@ -401,7 +401,8 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 					VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(imageView->getSubresourceRange().aspectMask);
 					sw::Mipmap &mipmap = texture->mipmap[mipmapLevel];
 
-					if(imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE)
+					if((imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE) ||
+					   (imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY))
 					{
 						// Obtain the pointer to the corner of the level including the border, for seamless sampling.
 						// This is taken into account in the sampling routine, which can't handle negative texel coordinates.

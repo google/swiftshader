@@ -63,6 +63,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
 	samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
 	samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
+	samplerState.addressingModeY = convertAddressingMode(3, sampler, type);
 
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
 	samplerState.swizzle = imageDescriptor->swizzle;
@@ -202,7 +203,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 					dPdy.y = Float(0.0f);
 				}
 
-				Vector4f sample = s.sampleTexture(texture, sampler, uvw[0], uvw[1], uvw[2], q, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
+				Vector4f sample = s.sampleTexture(texture, sampler, uvw, q, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
 
 				Pointer<Float> rgba = out;
 				rgba[0 * SIMD::Width + i] = Pointer<Float>(&sample.x)[i];
@@ -213,7 +214,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 		}
 		else
 		{
-			Vector4f sample = s.sampleTexture(texture, sampler, uvw[0], uvw[1], uvw[2], q, lodOrBias.x, (dsx.x), (dsy.x), offset, sampleId, samplerFunction);
+			Vector4f sample = s.sampleTexture(texture, sampler, uvw, q, lodOrBias.x, (dsx.x), (dsy.x), offset, sampleId, samplerFunction);
 
 			Pointer<SIMD::Float> rgba = out;
 			rgba[0] = sample.x;
@@ -285,7 +286,6 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 	switch(imageViewType)
 	{
 	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-		UNSUPPORTED("SPIR-V ImageCubeArray Capability (imageViewType: %d)", int(imageViewType));
 		if(coordinateIndex == 3)
 		{
 			return ADDRESSING_LAYER;

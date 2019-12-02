@@ -99,6 +99,7 @@ namespace sw
 		AddressingMode addressingModeU;
 		AddressingMode addressingModeV;
 		AddressingMode addressingModeW;
+		AddressingMode addressingModeY;
 		MipmapType mipmapFilter;
 		VkComponentMapping swizzle;
 		int gatherComponent;
