@@ -294,7 +294,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 			//  Vulkan structures in this Specification."
 			break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(createInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(createInfo->sType).c_str());
 			break;
 		}
 	}
@@ -640,7 +640,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -670,7 +670,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		auto extInfo = reinterpret_cast<VkBaseInStructure const*>(queueCreateInfo.pNext);
 		while(extInfo)
 		{
-			WARN("pCreateInfo->pQueueCreateInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType));
+			WARN("pCreateInfo->pQueueCreateInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
 			extInfo = extInfo->pNext;
 		}
 
@@ -832,7 +832,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 		}
 #endif
 		default:
-			WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(allocationInfo->sType));
+			WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(allocationInfo->sType).c_str());
 			break;
 		}
 
@@ -1034,7 +1034,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateFence(VkDevice device, const VkFenceCreat
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -1176,7 +1176,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreat
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -1229,7 +1229,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateQueryPool(VkDevice device, const VkQueryP
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -1266,7 +1266,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBuffer(VkDevice device, const VkBufferCre
 			// Do nothing. Should be handled by vk::Buffer::Create().
 			break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 			break;
 		}
 		nextInfo = nextInfo->pNext;
@@ -1296,7 +1296,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBuffe
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -1351,7 +1351,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -1455,7 +1455,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 		}
 		break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -1486,7 +1486,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkSha
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -1514,7 +1514,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPi
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -1630,7 +1630,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineLayout(VkDevice device, const VkP
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -1669,7 +1669,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 			}
 			break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -1702,7 +1702,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorSetLayout(VkDevice device, cons
 			ASSERT(!vk::Cast(device)->hasExtension(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME));
 			break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -1728,7 +1728,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorPool(VkDevice device, const VkD
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -1764,7 +1764,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateDescriptorSets(VkDevice device, const V
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pAllocateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -1803,7 +1803,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateFramebuffer(VkDevice device, const VkFram
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -1903,7 +1903,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 		}
 		break;
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 
@@ -1937,7 +1937,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateCommandPool(VkDevice device, const VkComm
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -1968,7 +1968,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateCommandBuffers(VkDevice device, const V
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pAllocateInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -1992,7 +1992,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBeginCommandBuffer(VkCommandBuffer commandBuffe
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pBeginInfo->pNext);
 	while(nextInfo)
 	{
-		WARN("pBeginInfo->pNext sType = %s", vk::Stringify(nextInfo->sType));
+		WARN("pBeginInfo->pNext sType = %s", vk::Stringify(nextInfo->sType).c_str());
 		nextInfo = nextInfo->pNext;
 	}
 
@@ -2352,7 +2352,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, c
 			// SwiftShader only has a single physical device, so this extension does nothing in this case.
 			break;
 		default:
-			WARN("pRenderPassBegin->pNext sType = %s", vk::Stringify(renderPassBeginInfo->sType));
+			WARN("pRenderPassBegin->pNext sType = %s", vk::Stringify(renderPassBeginInfo->sType).c_str());
 			break;
 		}
 
@@ -2404,7 +2404,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory2(VkDevice device, uint32_t bin
 		auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pBindInfos[i].pNext);
 		while(extInfo)
 		{
-			WARN("pBindInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType));
+			WARN("pBindInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
 			extInfo = extInfo->pNext;
 		}
 
@@ -2462,7 +2462,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 #endif
 
 			default:
-				WARN("pBindInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType));
+				WARN("pBindInfos[%d].pNext sType = %s", i, vk::Stringify(extInfo->sType).c_str());
 				break;
 			}
 			extInfo = extInfo->pNext;
@@ -2514,7 +2514,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -2530,7 +2530,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 		}
 		break;
 		default:
-			WARN("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType));
+			WARN("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
 			break;
 		}
 
@@ -2548,7 +2548,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -2564,7 +2564,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const
 			}
 			break;
 		default:
-			WARN("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType));
+			WARN("pMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
 			break;
 		}
 
@@ -2582,14 +2582,14 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements2(VkDevice device, 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
 	auto extensionRequirements = reinterpret_cast<VkBaseInStructure const*>(pSparseMemoryRequirements->pNext);
 	while(extensionRequirements)
 	{
-		WARN("pSparseMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType));
+		WARN("pSparseMemoryRequirements->pNext sType = %s", vk::Stringify(extensionRequirements->sType).c_str());
 		extensionRequirements = extensionRequirements->pNext;
 	}
 
@@ -2678,7 +2678,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 										 sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
 			break;
 		default:
-			WARN("pFeatures->pNext sType = %s", vk::Stringify(extensionFeatures->sType));
+			WARN("pFeatures->pNext sType = %s", vk::Stringify(extensionFeatures->sType).c_str());
 			break;
 		}
 
@@ -2774,7 +2774,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
-			WARN("pProperties->pNext sType = %s", vk::Stringify(extensionProperties->sType));
+			WARN("pProperties->pNext sType = %s", vk::Stringify(extensionProperties->sType).c_str());
 			break;
 		}
 
@@ -2792,7 +2792,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pFormatProperties->pNext);
 	while(extInfo)
 	{
-		WARN("pFormatProperties->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pFormatProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -2839,7 +2839,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 		}
 		break;
 		default:
-			WARN("pImageFormatInfo->pNext sType = %s", vk::Stringify(extensionFormatInfo->sType));
+			WARN("pImageFormatInfo->pNext sType = %s", vk::Stringify(extensionFormatInfo->sType).c_str());
 			break;
 		}
 
@@ -2872,7 +2872,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 		}
 		break;
 		default:
-			WARN("pImageFormatProperties->pNext sType = %s", vk::Stringify(extensionProperties->sType));
+			WARN("pImageFormatProperties->pNext sType = %s", vk::Stringify(extensionProperties->sType).c_str());
 			break;
 		}
 
@@ -2898,7 +2898,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalD
 		auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pQueueFamilyProperties->pNext);
 		while(extInfo)
 		{
-			WARN("pQueueFamilyProperties->pNext sType = %s", vk::Stringify(extInfo->sType));
+			WARN("pQueueFamilyProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 			extInfo = extInfo->pNext;
 		}
 	}
@@ -2920,7 +2920,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties2(VkPhysicalDevice
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pMemoryProperties->pNext);
 	while(extInfo)
 	{
-		WARN("pMemoryProperties->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pMemoryProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -2937,7 +2937,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties2(VkPhy
 		auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pProperties->pNext);
 		while(extInfo)
 		{
-			WARN("pProperties->pNext sType = %s", vk::Stringify(extInfo->sType));
+			WARN("pProperties->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 			extInfo = extInfo->pNext;
 		}
 	}
@@ -2962,7 +2962,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueu
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pQueueInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pQueueInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pQueueInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -2989,7 +2989,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(VkDevice device, c
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 
@@ -3017,7 +3017,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(VkDevice device,
 	auto extInfo = reinterpret_cast<VkBaseInStructure const*>(pCreateInfo->pNext);
 	while(extInfo)
 	{
-		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType));
+		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
 

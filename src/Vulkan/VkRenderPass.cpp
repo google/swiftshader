@@ -77,7 +77,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 			break;
 		}
 		default:
-			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType));
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
 			break;
 		}
 

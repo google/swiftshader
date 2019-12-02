@@ -21,7 +21,7 @@
 
 namespace vk {
 
-const char *Stringify(VkStructureType value)
+std::string Stringify(VkStructureType value)
 {
 #ifndef NDEBUG
 	// Since C++ hasn't given us introspection on enums, we can't just "get" an
@@ -459,15 +459,15 @@ const char *Stringify(VkStructureType value)
 	auto it = strings.find(value);
 	if (it != strings.end())
 	{
-		return it->second;
+		return std::string(it->second);
 	}
 	else
 	{
 		WARN("Stringify(VkStructureType v) is out of date. Please update it to match vulkan/vulkan_core.h");
-		return "";
+		return std::to_string(value);
 	}
 #else // if not debug:
-	return "";
+	return std::to_string(value);
 #endif
 }
 

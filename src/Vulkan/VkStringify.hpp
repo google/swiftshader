@@ -22,7 +22,7 @@
 
 namespace vk {
 
-const char *Stringify(VkStructureType value);
+std::string Stringify(VkStructureType value);
 
 }
 
