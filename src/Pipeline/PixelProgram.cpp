@@ -60,17 +60,33 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 {
 	routine.setImmutableInputBuiltins(spirvShader);
 
+	// TODO(b/146486064): Consider only assigning these to the SpirvRoutine iff
+	// they are ever going to be read.
+	routine.fragCoord[0] = SIMD::Float(Float(x)) + SIMD::Float(0.5f, 1.5f, 0.5f, 1.5f);
+	routine.fragCoord[1] = SIMD::Float(Float(y)) + SIMD::Float(0.5f, 0.5f, 1.5f, 1.5f);
+	routine.fragCoord[2] = z[0];  // sample 0
+	routine.fragCoord[3] = w;
+	routine.pointCoord[0] = SIMD::Float(0.5f) +
+	                        SIMD::Float(Float(x) - (*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordX))));
+	routine.pointCoord[1] = SIMD::Float(0.5f) +
+	                        SIMD::Float(Float(y) - (*Pointer<Float>(primitive + OFFSET(Primitive, pointCoordY))));
+	routine.invocationsPerSubgroup = SIMD::Width;
+	routine.helperInvocation = ~maskAny(cMask);
+	routine.windowSpacePosition[0] = x + SIMD::Int(0, 1, 0, 1);
+	routine.windowSpacePosition[1] = y + SIMD::Int(0, 0, 1, 1);
+	routine.viewID = *Pointer<Int>(data + OFFSET(DrawData, viewID));
+
 	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
-		value[builtin.FirstComponent] = As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, viewID)))));
+		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(routine.viewID));
 	});
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInFragCoord, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 4);
-		value[builtin.FirstComponent + 0] = SIMD::Float(Float(x)) + SIMD::Float(0.5f, 1.5f, 0.5f, 1.5f);
-		value[builtin.FirstComponent + 1] = SIMD::Float(Float(y)) + SIMD::Float(0.5f, 0.5f, 1.5f, 1.5f);
-		value[builtin.FirstComponent + 2] = z[0];  // sample 0
-		value[builtin.FirstComponent + 3] = w;
+		value[builtin.FirstComponent + 0] = routine.fragCoord[0];
+		value[builtin.FirstComponent + 1] = routine.fragCoord[1];
+		value[builtin.FirstComponent + 2] = routine.fragCoord[2];
+		value[builtin.FirstComponent + 3] = routine.fragCoord[3];
 	});
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInPointCoord, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
@@ -88,12 +104,8 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInHelperInvocation, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
-		value[builtin.FirstComponent] = As<SIMD::Float>(~maskAny(cMask));
+		value[builtin.FirstComponent] = As<SIMD::Float>(routine.helperInvocation);
 	});
-
-	routine.windowSpacePosition[0] = x + SIMD::Int(0, 1, 0, 1);
-	routine.windowSpacePosition[1] = y + SIMD::Int(0, 0, 1, 1);
-	routine.viewID = *Pointer<Int>(data + OFFSET(DrawData, viewID));
 }
 
 void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])

@@ -34,15 +34,20 @@ VertexProgram::VertexProgram(
 {
 	routine.setImmutableInputBuiltins(spirvShader);
 
+	// TODO(b/146486064): Consider only assigning these to the SpirvRoutine iff
+	// they are ever going to be read.
+	routine.viewID = *Pointer<Int>(data + OFFSET(DrawData, viewID));
+	routine.instanceID = *Pointer<Int>(data + OFFSET(DrawData, instanceID));
+
 	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
-		value[builtin.FirstComponent] = As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, viewID)))));
+		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(routine.viewID));
 	});
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInInstanceIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		// TODO: we could do better here; we know InstanceIndex is uniform across all lanes
 		assert(builtin.SizeInComponents == 1);
-		value[builtin.FirstComponent] = As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, instanceID)))));
+		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(routine.instanceID));
 	});
 
 	routine.setInputBuiltin(spirvShader, spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
@@ -62,14 +67,15 @@ VertexProgram::~VertexProgram()
 
 void VertexProgram::program(Pointer<UInt> &batch, UInt &vertexCount)
 {
+	routine.vertexIndex = *Pointer<SIMD::Int>(As<Pointer<SIMD::Int>>(batch)) +
+	                      SIMD::Int(*Pointer<Int>(data + OFFSET(DrawData, baseVertex)));
+
 	auto it = spirvShader->inputBuiltins.find(spv::BuiltInVertexIndex);
 	if(it != spirvShader->inputBuiltins.end())
 	{
 		assert(it->second.SizeInComponents == 1);
-
 		routine.getVariable(it->second.Id)[it->second.FirstComponent] =
-		    As<Float4>(*Pointer<Int4>(As<Pointer<Int4>>(batch)) +
-		               Int4(*Pointer<Int>(data + OFFSET(DrawData, baseVertex))));
+		    As<SIMD::Float>(routine.vertexIndex);
 	}
 
 	auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
