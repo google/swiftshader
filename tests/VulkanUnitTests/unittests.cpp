@@ -524,7 +524,7 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, Memcpy)
         "%19 = OpAccessChain %16 %2 %13\n"      // &gl_GlobalInvocationId.x
         "%20 = OpLoad %10 %19\n"                // gl_GlobalInvocationId.x
         "%21 = OpAccessChain %17 %6 %12 %20\n"  // &in.arr[gl_GlobalInvocationId.x]
-        "%22 = OpLoad %9 %21\n"                 // out.arr[gl_GlobalInvocationId.x]
+        "%22 = OpLoad %9 %21\n"                 // in.arr[gl_GlobalInvocationId.x]
         "%23 = OpAccessChain %17 %5 %12 %20\n"  // &out.arr[gl_GlobalInvocationId.x]
               "OpStore %23 %22\n"               // out.arr[gl_GlobalInvocationId.x] = in[gl_GlobalInvocationId.x]
               "OpReturn\n"
