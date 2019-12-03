@@ -11,9 +11,11 @@
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/SPIRV-Tools/include",
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/linux/include"
+                "${workspaceFolder}/third_party/llvm-7.0/configs/linux/include",
+                "${workspaceFolder}/third_party/cppdap/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++11"
@@ -29,9 +31,11 @@
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/SPIRV-Tools/include",
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/darwin/include"
+                "${workspaceFolder}/third_party/llvm-7.0/configs/darwin/include",
+                "${workspaceFolder}/third_party/cppdap/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++11"
@@ -47,9 +51,11 @@
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/SPIRV-Tools/include",
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include"
+                "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include",
+                "${workspaceFolder}/third_party/cppdap/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++11"
