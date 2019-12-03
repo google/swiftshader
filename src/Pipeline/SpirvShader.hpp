@@ -769,10 +769,23 @@ namespace sw
 
 		int VisitInterfaceInner(Type::ID id, Decorations d, const InterfaceVisitor& v) const;
 
-		using MemoryVisitor = std::function<void(uint32_t index, uint32_t offset)>;
+		// MemoryElement describes a scalar element within a structure, and is
+		// used by the callback function of VisitMemoryObject().
+		struct MemoryElement
+		{
+			uint32_t index;   // index of the scalar element
+			uint32_t offset;  // offset (in bytes) from the base of the object
+			const Type& type; // element type
+		};
 
+		using MemoryVisitor = std::function<void(const MemoryElement&)>;
+
+		// VisitMemoryObject() walks a type tree in an explicitly laid out
+		// storage class, calling the MemoryVisitor for each scalar element
+		// within the
 		void VisitMemoryObject(Object::ID id, const MemoryVisitor& v) const;
 
+		// VisitMemoryObjectInner() is internally called by VisitMemoryObject()
 		void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, const MemoryVisitor& v) const;
 
 		Object& CreateConstant(InsnIterator it);
