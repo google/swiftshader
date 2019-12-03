@@ -15,13 +15,13 @@
 #ifndef VK_DEBUG_VALUE_HPP_
 #define VK_DEBUG_VALUE_HPP_
 
+#include "Type.hpp"
+
 #include <memory>
 #include <string>
 
 namespace vk {
 namespace dbg {
-
-class Type;
 
 // FormatFlags holds settings used to serialize a Value to a string.
 struct FormatFlags

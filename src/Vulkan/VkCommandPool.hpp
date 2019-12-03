@@ -16,9 +16,12 @@
 #define VK_COMMAND_POOL_HPP_
 
 #include "VkObject.hpp"
+
 #include <set>
 
 namespace vk {
+
+class Device;
 
 class CommandPool : public Object<CommandPool, VkCommandPool>
 {
@@ -28,7 +31,7 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkCommandPoolCreateInfo *pCreateInfo);
 
-	VkResult allocateCommandBuffers(VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer *pCommandBuffers);
+	VkResult allocateCommandBuffers(Device *device, VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer *pCommandBuffers);
 	void freeCommandBuffers(uint32_t commandBufferCount, const VkCommandBuffer *pCommandBuffers);
 	VkResult reset(VkCommandPoolResetFlags flags);
 	void trim(VkCommandPoolTrimFlags flags);

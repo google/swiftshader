@@ -20,6 +20,7 @@
 #include "VkObject.hpp"
 #include "Device/Color.hpp"
 #include "Device/Context.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -33,6 +34,11 @@ class TaskEvents;
 
 namespace vk {
 
+namespace dbg {
+class File;
+}  // namespace dbg
+
+class Device;
 class Buffer;
 class Event;
 class Framebuffer;
@@ -47,7 +53,7 @@ class CommandBuffer
 public:
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_OBJECT; }
 
-	CommandBuffer(VkCommandBufferLevel pLevel);
+	CommandBuffer(Device *device, VkCommandBufferLevel pLevel);
 
 	static inline CommandBuffer *Cast(VkCommandBuffer object)
 	{
@@ -201,11 +207,17 @@ private:
 		PENDING,
 		INVALID
 	};
+
+	Device *const device;
 	State state = INITIAL;
 	VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
 	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
 	std::vector<std::unique_ptr<Command>> *commands;
+
+#ifdef ENABLE_VK_DEBUGGER
+	std::shared_ptr<vk::dbg::File> debuggerFile;
+#endif  // ENABLE_VK_DEBUGGER
 };
 
 using DispatchableCommandBuffer = DispatchableObject<CommandBuffer, VkCommandBuffer>;

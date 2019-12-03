@@ -33,6 +33,11 @@ namespace vk {
 class PhysicalDevice;
 class Queue;
 
+namespace dbg {
+class Context;
+class Server;
+}  // namespace dbg
+
 class Device
 {
 public:
@@ -93,6 +98,13 @@ public:
 	rr::Routine *findInConstCache(const SamplingRoutineCache::Key &key) const;
 	void updateSamplingRoutineConstCache();
 
+#ifdef ENABLE_VK_DEBUGGER
+	std::shared_ptr<vk::dbg::Context> getDebuggerContext() const
+	{
+		return debugger.context;
+	}
+#endif  // ENABLE_VK_DEBUGGER
+
 private:
 	PhysicalDevice *const physicalDevice = nullptr;
 	Queue *const queues = nullptr;
@@ -105,6 +117,14 @@ private:
 	ExtensionName *extensions = nullptr;
 	const VkPhysicalDeviceFeatures enabledFeatures = {};
 	std::shared_ptr<marl::Scheduler> scheduler;
+
+#ifdef ENABLE_VK_DEBUGGER
+	struct
+	{
+		std::shared_ptr<vk::dbg::Context> context;
+		std::shared_ptr<vk::dbg::Server> server;
+	} debugger;
+#endif  // ENABLE_VK_DEBUGGER
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;

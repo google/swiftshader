@@ -1964,7 +1964,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateCommandBuffers(VkDevice device, const V
 		nextInfo = nextInfo->pNext;
 	}
 
-	return vk::Cast(pAllocateInfo->commandPool)->allocateCommandBuffers(pAllocateInfo->level, pAllocateInfo->commandBufferCount, pCommandBuffers);
+	return vk::Cast(pAllocateInfo->commandPool)->allocateCommandBuffers(vk::Cast(device), pAllocateInfo->level, pAllocateInfo->commandBufferCount, pCommandBuffers);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer *pCommandBuffers)

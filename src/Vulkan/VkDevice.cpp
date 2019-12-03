@@ -19,6 +19,8 @@
 #include "VkDescriptorSetLayout.hpp"
 #include "VkFence.hpp"
 #include "VkQueue.hpp"
+#include "Debug/Context.hpp"
+#include "Debug/Server.hpp"
 #include "Device/Blitter.hpp"
 
 #include <chrono>
@@ -97,6 +99,18 @@ Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice 
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	blitter.reset(new sw::Blitter());
 	samplingRoutineCache.reset(new SamplingRoutineCache());
+
+#ifdef ENABLE_VK_DEBUGGER
+	static auto port = getenv("VK_DEBUGGER_PORT");
+	if(port)
+	{
+		// Construct the debugger context and server - this may block for a
+		// debugger connection, allowing breakpoints to be set before they're
+		// executed.
+		debugger.context = vk::dbg::Context::create();
+		debugger.server = vk::dbg::Server::create(debugger.context, atoi(port));
+	}
+#endif  // ENABLE_VK_DEBUGGER
 }
 
 void Device::destroy(const VkAllocationCallbacks *pAllocator)
