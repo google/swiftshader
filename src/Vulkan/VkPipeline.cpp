@@ -212,7 +212,11 @@ std::vector<uint32_t> preprocessSpirv(
 	return optimized;
 }
 
-std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShaderKey &key, const vk::ShaderModule *module, bool robustBufferAccess)
+std::shared_ptr<sw::SpirvShader> createShader(
+    const vk::PipelineCache::SpirvShaderKey &key,
+    const vk::ShaderModule *module,
+    bool robustBufferAccess,
+    const std::shared_ptr<vk::dbg::Context> &dbgctx)
 {
 	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo());
 	ASSERT(code.size() > 0);
@@ -223,7 +227,7 @@ std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShad
 
 	// TODO(b/119409619): use allocator.
 	return std::make_shared<sw::SpirvShader>(codeSerialID, key.getPipelineStage(), key.getEntryPointName().c_str(),
-	                                         code, key.getRenderPass(), key.getSubpassIndex(), robustBufferAccess);
+	                                         code, key.getRenderPass(), key.getSubpassIndex(), robustBufferAccess, dbgctx);
 }
 
 std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey &key)
@@ -244,6 +248,7 @@ namespace vk {
 
 Pipeline::Pipeline(PipelineLayout const *layout, const Device *device)
     : layout(layout)
+    , device(device)
     , robustBufferAccess(device->getEnabledFeatures().robustBufferAccess)
 {
 }
@@ -550,7 +555,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 				const std::shared_ptr<sw::SpirvShader> *spirvShader = pipelineCache[key];
 				if(!spirvShader)
 				{
-					auto shader = createShader(key, module, robustBufferAccess);
+					auto shader = createShader(key, module, robustBufferAccess, device->getDebuggerContext());
 					setShader(pipelineStage, shader);
 					pipelineCache.insert(key, getShader(pipelineStage));
 				}
@@ -562,7 +567,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 		}
 		else
 		{
-			auto shader = createShader(key, module, robustBufferAccess);
+			auto shader = createShader(key, module, robustBufferAccess, device->getDebuggerContext());
 			setShader(pipelineStage, shader);
 		}
 	}
@@ -650,7 +655,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 			const std::shared_ptr<sw::SpirvShader> *spirvShader = pipelineCache[shaderKey];
 			if(!spirvShader)
 			{
-				shader = createShader(shaderKey, module, robustBufferAccess);
+				shader = createShader(shaderKey, module, robustBufferAccess, device->getDebuggerContext());
 				pipelineCache.insert(shaderKey, shader);
 			}
 			else
@@ -676,7 +681,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 	}
 	else
 	{
-		shader = createShader(shaderKey, module, robustBufferAccess);
+		shader = createShader(shaderKey, module, robustBufferAccess, device->getDebuggerContext());
 		const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
 		program = createProgram(programKey);
 	}

@@ -98,12 +98,14 @@ public:
 	rr::Routine *findInConstCache(const SamplingRoutineCache::Key &key) const;
 	void updateSamplingRoutineConstCache();
 
-#ifdef ENABLE_VK_DEBUGGER
 	std::shared_ptr<vk::dbg::Context> getDebuggerContext() const
 	{
+#ifdef ENABLE_VK_DEBUGGER
 		return debugger.context;
-	}
+#else
+		return nullptr;
 #endif  // ENABLE_VK_DEBUGGER
+	}
 
 private:
 	PhysicalDevice *const physicalDevice = nullptr;

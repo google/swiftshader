@@ -30,6 +30,10 @@ class SpirvShader;
 
 namespace vk {
 
+namespace dbg {
+class Context;
+}  // namespace dbg
+
 class PipelineCache;
 class PipelineLayout;
 class ShaderModule;
@@ -68,6 +72,7 @@ public:
 
 protected:
 	PipelineLayout const *layout = nullptr;
+	Device const *const device;
 
 	const bool robustBufferAccess = true;
 };
@@ -75,7 +80,9 @@ protected:
 class GraphicsPipeline : public Pipeline, public ObjectBase<GraphicsPipeline, VkPipeline>
 {
 public:
-	GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, const Device *device);
+	GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo,
+	                 void *mem,
+	                 const Device *device);
 	virtual ~GraphicsPipeline() = default;
 
 	void destroyPipeline(const VkAllocationCallbacks *pAllocator) override;
