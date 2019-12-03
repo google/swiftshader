@@ -17,9 +17,60 @@
 
 #include "gtest/gtest.h"
 
+#include <cmath>
 #include <tuple>
 
 using namespace rr;
+
+constexpr float PI = 3.141592653589793f;
+
+using float4 = float[4];
+
+// Value type wrapper around a float4
+struct float4_value
+{
+	float4_value() = default;
+	explicit float4_value(float rep) : v{ rep, rep, rep, rep } {}
+	float4_value(float x, float y, float z, float w) : v{ x, y, z, w } {}
+
+	bool operator==(const float4_value &rhs) const
+	{
+		return std::equal(std::begin(v), std::end(v), rhs.v);
+	}
+
+	// For gtest printing
+	friend std::ostream& operator<<(std::ostream& os, const float4_value& value) {
+		return os << "[" << value.v[0] << ", " << value.v[1] << ", " << value.v[2] << ", " << value.v[3] << "]";
+	}
+
+	float4 v;
+};
+
+// For gtest printing of pairs
+namespace std
+{
+	template <typename T, typename U>
+	std::ostream& operator<<(std::ostream& os, const std::pair<T, U>& value) {
+		return os << "{ " << value.first << ", " << value.second << " }";
+	}
+}
+
+
+// Invoke a void(float4*) routine on &v.v, returning wrapped result in v
+template <typename RoutineType>
+float4_value invokeRoutine(RoutineType& routine, float4_value v)
+{
+	routine(&v.v);
+	return v;
+}
+
+// Invoke a void(float4*, float4*) routine on &v1.v, &v2.v returning wrapped result in v1
+template <typename RoutineType>
+float4_value invokeRoutine(RoutineType& routine, float4_value v1, float4_value v2)
+{
+	routine(&v1.v, &v2.v);
+	return v1;
+}
 
 int reference(int *p, int y)
 {
@@ -309,7 +360,7 @@ TEST(ReactorUnitTests, Swizzle)
 			}
 
 			for(int i = 0; i < 256; i++)
-			{
+			{	
 				*Pointer<Float4>(out + 16 * (256 + i)) = ShuffleLowHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f), i);
 			}
 
@@ -1730,6 +1781,322 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 	EXPECT_EQ(out, 99);
 	EXPECT_EQ(coroutine->await(out), false);
 	EXPECT_EQ(out, 99);
+}
+
+
+template <typename TestFuncType, typename RefFuncType, typename TestValueType>
+struct IntrinsicTestParams
+{
+	std::function<TestFuncType> testFunc;  // Function we're testing (Reactor)
+	std::function<RefFuncType> refFunc;    // Reference function to test against (C)
+	std::vector<TestValueType> testValues; // Values to input to functions
+};
+
+using IntrinsicTestParams_Float = IntrinsicTestParams<RValue<Float>(RValue<Float>), float(float), float>;
+using IntrinsicTestParams_Float4 = IntrinsicTestParams<RValue<Float4>(RValue<Float4>), float(float), float>;
+using IntrinsicTestParams_Float4_Float4 = IntrinsicTestParams<RValue<Float4>(RValue<Float4>, RValue<Float4>), float(float, float), std::pair<float, float>>;
+
+struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_Float>
+{
+	void test()
+	{
+		FunctionT<float(float)> function;
+		{
+			Return(GetParam().testFunc((Float(function.Arg<0>()))));
+		}
+
+		auto routine = function("one");
+
+		for (auto&& v : GetParam().testValues)
+		{
+			SCOPED_TRACE(v);
+			EXPECT_FLOAT_EQ(routine(v), GetParam().refFunc(v));
+		}
+	}
+};
+
+struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_Float4>
+{
+	void test()
+	{
+		FunctionT<void(float4*)> function;
+		{
+			Pointer<Float4> a = function.Arg<0>();
+			*a = GetParam().testFunc(*a);
+			Return();
+		}
+
+		auto routine = function("one");
+
+		for (auto&& v : GetParam().testValues)
+		{
+			SCOPED_TRACE(v);
+			float4_value result = invokeRoutine(routine, float4_value{ v });
+			float4_value expected = float4_value{ GetParam().refFunc(v) };
+			EXPECT_FLOAT_EQ(result.v[0], expected.v[0]);
+			EXPECT_FLOAT_EQ(result.v[1], expected.v[1]);
+			EXPECT_FLOAT_EQ(result.v[2], expected.v[2]);
+			EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
+		}
+	}
+};
+
+struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTestParams_Float4_Float4>
+{
+	void test()
+	{
+		FunctionT<void(float4*, float4*)> function;
+		{
+			Pointer<Float4> a = function.Arg<0>();
+			Pointer<Float4> b = function.Arg<1>();
+			*a = GetParam().testFunc(*a, *b);
+			Return();
+		}
+
+		auto routine = function("one");
+
+		for (auto&& v : GetParam().testValues)
+		{
+			SCOPED_TRACE(v);
+			float4_value result = invokeRoutine(routine, float4_value{ v.first }, float4_value{ v.second });
+			float4_value expected = float4_value{ GetParam().refFunc(v.first, v.second) };
+			EXPECT_FLOAT_EQ(result.v[0], expected.v[0]);
+			EXPECT_FLOAT_EQ(result.v[1], expected.v[1]);
+			EXPECT_FLOAT_EQ(result.v[2], expected.v[2]);
+			EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
+		}
+	}
+};
+
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float, IntrinsicTest_Float, testing::Values(
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, {0.f, 1.f, 12345.f} },
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, {0.f, 1.f, 12345.f} },
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, {0.f, 1.f, 12345.f} }
+));
+
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); },   sinf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); },   cosf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); },   tanf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v); },  asinf,  {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v); },  acosf,  {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); },  atanf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); },  sinhf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); },  coshf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); },  tanhf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); }, asinhf, {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); }, acoshf, {     1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); }, atanhf, {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); },   expf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); },   logf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); },  exp2f,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); },  log2f,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); },  sqrtf,  {0.f, 1.f, PI, 12345.f}  }
+));
+
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4_Float4, IntrinsicTest_Float4_Float4, testing::Values(
+	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } },
+	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); },   powf,   { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } }
+));
+
+TEST_P(IntrinsicTest_Float, Test) { test(); }
+TEST_P(IntrinsicTest_Float4, Test) { test(); }
+TEST_P(IntrinsicTest_Float4_Float4, Test) { test(); }
+
+TEST(ReactorUnitTests, Intrinsics_Ctlz)
+{
+	// ctlz: counts number of leading zeros
+
+	{
+		Function<UInt(UInt x)> function;
+		{
+			UInt x = function.Arg<0>();
+			Return(rr::Ctlz(x, false));
+		}
+		auto routine = function("one");
+		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
+
+
+		for (uint32_t i = 0; i < 31; ++i) {
+			uint32_t result = callable(1 << i);
+			EXPECT_EQ(result, 31 - i);
+		}
+
+		// Input 0 should return 32 for isZeroUndef == false
+		{
+			uint32_t result = callable(0);
+			EXPECT_EQ(result, 32u);
+		}
+	}
+
+	{
+		Function<Void(Pointer<UInt4>, UInt x)> function;
+		{
+			Pointer<UInt4> out = function.Arg<0>();
+			UInt x = function.Arg<1>();
+			*out = rr::Ctlz(UInt4(x), false);
+		}
+		auto routine = function("one");
+		auto callable = (void(*)(uint32_t*, uint32_t))routine->getEntry();
+
+		uint32_t x[4];
+
+		for (uint32_t i = 0; i < 31; ++i) {
+			callable(x, 1 << i);
+			EXPECT_EQ(x[0], 31 - i);
+			EXPECT_EQ(x[1], 31 - i);
+			EXPECT_EQ(x[2], 31 - i);
+			EXPECT_EQ(x[3], 31 - i);
+		}
+
+		// Input 0 should return 32 for isZeroUndef == false
+		{
+			callable(x, 0);
+			EXPECT_EQ(x[0], 32u);
+			EXPECT_EQ(x[1], 32u);
+			EXPECT_EQ(x[2], 32u);
+			EXPECT_EQ(x[3], 32u);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Intrinsics_Cttz)
+{
+	// cttz: counts number of trailing zeros
+
+	{
+		Function<UInt(UInt x)> function;
+		{
+			UInt x = function.Arg<0>();
+			Return(rr::Cttz(x, false));
+		}
+		auto routine = function("one");
+		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
+
+
+		for (uint32_t i = 0; i < 31; ++i) {
+			uint32_t result = callable(1 << i);
+			EXPECT_EQ(result, i);
+		}
+
+		// Input 0 should return 32 for isZeroUndef == false
+		{
+			uint32_t result = callable(0);
+			EXPECT_EQ(result, 32u);
+		}
+	}
+
+	{
+		Function<Void(Pointer<UInt4>, UInt x)> function;
+		{
+			Pointer<UInt4> out = function.Arg<0>();
+			UInt x = function.Arg<1>();
+			*out = rr::Cttz(UInt4(x), false);
+		}
+		auto routine = function("one");
+		auto callable = (void(*)(uint32_t*, uint32_t))routine->getEntry();
+
+		uint32_t x[4];
+
+		for (uint32_t i = 0; i < 31; ++i) {
+			callable(x, 1 << i);
+			EXPECT_EQ(x[0], i);
+			EXPECT_EQ(x[1], i);
+			EXPECT_EQ(x[2], i);
+			EXPECT_EQ(x[3], i);
+		}
+
+		// Input 0 should return 32 for isZeroUndef == false
+		{
+			callable(x, 0);
+			EXPECT_EQ(x[0], 32u);
+			EXPECT_EQ(x[1], 32u);
+			EXPECT_EQ(x[2], 32u);
+			EXPECT_EQ(x[3], 32u);
+		}
+	}
+}
+
+TEST(ReactorUnitTests, Intrinsics_Scatter)
+{
+	Function<Void(Pointer<Float> base, Pointer<Float4> val, Pointer<Int4> offsets)> function;
+	{
+		Pointer<Float> base = function.Arg<0>();
+		Pointer<Float4> val = function.Arg<1>();
+		Pointer<Int4> offsets = function.Arg<2>();
+
+		auto mask = Int4(~0, ~0, ~0, ~0);
+		unsigned int alignment = 1;
+		Scatter(base, *val, *offsets, mask, alignment);
+	}
+
+	float buffer[16] = {0};
+
+	constexpr auto elemSize = sizeof(buffer[0]);
+
+	int offsets[] =
+	{
+		1 *elemSize,
+		6 *elemSize,
+		11 *elemSize,
+		13 *elemSize
+	};
+
+	float val[4] = {10, 60, 110, 130};
+
+	auto routine = function("one");
+	auto entry = (void(*)(float*, float*, int*))routine->getEntry();
+
+	entry(buffer, val, offsets);
+
+	EXPECT_EQ(buffer[offsets[0] / sizeof(buffer[0])], 10);
+	EXPECT_EQ(buffer[offsets[1] / sizeof(buffer[0])], 60);
+	EXPECT_EQ(buffer[offsets[2] / sizeof(buffer[0])], 110);
+	EXPECT_EQ(buffer[offsets[3] / sizeof(buffer[0])], 130);
+}
+
+TEST(ReactorUnitTests, Intrinsics_Gather)
+{
+	Function<Void(Pointer<Float> base, Pointer<Int4> offsets, Pointer<Float4> result)> function;
+	{
+		Pointer<Float> base = function.Arg<0>();
+		Pointer<Int4> offsets = function.Arg<1>();
+		Pointer<Float4> result = function.Arg<2>();
+
+		auto mask = Int4(~0, ~0, ~0, ~0);
+		unsigned int alignment = 1;
+		bool zeroMaskedLanes = true;
+		*result = Gather(base, *offsets, mask, alignment, zeroMaskedLanes);
+	}
+
+	float buffer[] =
+	{
+		0, 10, 20, 30,
+		40, 50, 60, 70,
+		80, 90, 100, 110,
+		120, 130, 140, 150
+	};
+
+	constexpr auto elemSize = sizeof(buffer[0]);
+
+	int offsets[] =
+	{
+		1 *elemSize,
+		6 *elemSize,
+		11 *elemSize,
+		13 *elemSize
+	};
+
+	auto routine = function("one");
+	auto entry = (void(*)(float*, int*, float*))routine->getEntry();
+
+	float result[4] = {};
+	entry(buffer, offsets, result);
+
+	EXPECT_EQ(result[0], 10);
+	EXPECT_EQ(result[1], 60);
+	EXPECT_EQ(result[2], 110);
+	EXPECT_EQ(result[3], 130);
 }
 
 TEST(ReactorUnitTests, ExtractFromRValue)

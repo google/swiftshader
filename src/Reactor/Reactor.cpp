@@ -4345,6 +4345,7 @@ namespace rr
 	Int           CToReactor<int32_t>::cast(int32_t v)         { return type(v); }
 	UInt          CToReactor<uint32_t>::cast(uint32_t v)       { return type(v); }
 	Float         CToReactor<float>::cast(float v)             { return type(v); }
+	Float4        CToReactor<float[4]>::cast(float v[4])       { return type(v[0], v[1], v[2], v[3]); }
 
 	// TODO: Long has no constructor that takes a uint64_t
 	// Long          CToReactor<uint64_t>::cast(uint64_t v)       { return type(v); }

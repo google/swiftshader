@@ -38,6 +38,7 @@ namespace rr
 	class Long;
 	class Half;
 	class Float;
+	class Float4;
 
 	template<class T> class Pointer;
 	template<class T> class LValue;
@@ -83,6 +84,7 @@ namespace rr
 	template<> struct CToReactor<int32_t> 	{ using type = Int;    static Int    cast(int32_t);  };
 	template<> struct CToReactor<uint32_t>	{ using type = UInt;   static UInt   cast(uint32_t); };
 	template<> struct CToReactor<float>   	{ using type = Float;  static Float  cast(float);    };
+	template<> struct CToReactor<float[4]>	{ using type = Float4; static Float4 cast(float[4]); };
 
 	// TODO: Long has no constructor that takes a uint64_t
 	template<> struct CToReactor<uint64_t>	{ using type = Long;  /* static Long   cast(uint64_t); */ };
