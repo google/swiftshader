@@ -26,38 +26,44 @@
 
 namespace vk {
 
-class Semaphore::External
+class ZirconEventExternalSemaphore : public Semaphore::External
 {
 public:
-	// The type of external semaphore handle types supported by this implementation.
-	static const VkExternalSemaphoreHandleTypeFlags kExternalSemaphoreHandleType =
-	    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
-
-	// Default constructor. Note that one should call either init() or
-	// importFd() before any call to wait() or signal().
-	External() = default;
-
-	~External()
+	~ZirconEventExternalSemaphore()
 	{
 		zx_handle_close(handle);
 	}
 
-	void init()
+	VkResult init(bool initialValue) override
 	{
 		zx_status_t status = zx_event_create(0, &handle);
 		if(status != ZX_OK)
 		{
-			ABORT("zx_event_create() returned %d", status);
+			TRACE("zx_event_create() returned %d", status);
+			return VK_ERROR_INITIALIZATION_FAILED;
 		}
+		if(initialValue)
+		{
+			status = zx_object_signal(handle, 0, ZX_EVENT_SIGNALED);
+			if(status != ZX_OK)
+			{
+				TRACE("zx_object_signal() returned %d", status);
+				zx_handle_close(handle);
+				handle = ZX_HANDLE_INVALID;
+				return VK_ERROR_INITIALIZATION_FAILED;
+			}
+		}
+		return VK_SUCCESS;
 	}
 
-	void importHandle(zx_handle_t new_handle)
+	VkResult importHandle(zx_handle_t new_handle) override
 	{
 		zx_handle_close(handle);
 		handle = new_handle;
+		return VK_SUCCESS;
 	}
 
-	VkResult exportHandle(zx_handle_t *pHandle) const
+	VkResult exportHandle(zx_handle_t *pHandle) override
 	{
 		zx_handle_t new_handle = ZX_HANDLE_INVALID;
 		zx_status_t status = zx_handle_duplicate(handle, ZX_RIGHT_SAME_RIGHTS, &new_handle);
@@ -70,7 +76,7 @@ public:
 		return VK_SUCCESS;
 	}
 
-	void wait()
+	void wait() override
 	{
 		zx_signals_t observed = 0;
 		zx_status_t status = zx_object_wait_one(
@@ -91,7 +97,7 @@ public:
 		}
 	}
 
-	bool tryWait()
+	bool tryWait() override
 	{
 		zx_signals_t observed = 0;
 		zx_status_t status = zx_object_wait_one(
@@ -113,7 +119,7 @@ public:
 		return true;
 	}
 
-	void signal()
+	void signal() override
 	{
 		zx_status_t status = zx_object_signal(handle, 0, ZX_EVENT_SIGNALED);
 		if(status != ZX_OK)

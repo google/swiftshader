@@ -101,8 +101,6 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     ]
   } else if (is_fuchsia) {
     sources += [ "VkSemaphoreExternalFuchsia.hpp" ]
-  } else {
-    sources += [ "VkSemaphoreExternalNone.hpp" ]
   }
 }
 
