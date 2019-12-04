@@ -1570,7 +1570,7 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Instr) {
   // Add enough to the returned address to account for the out args area.
   uint32_t OutArgsSize = maxOutArgsSizeBytes();
   if (OutArgsSize > 0) {
-    Variable *T = makeReg(IceType_i32);
+    Variable *T = makeReg(Dest->getType());
     auto *CalculateOperand = X86OperandMem::create(
         Func, IceType_void, esp, Ctx->getConstantInt(IceType_i32, OutArgsSize));
     _lea(T, CalculateOperand);
