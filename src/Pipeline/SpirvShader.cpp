@@ -363,6 +363,7 @@ namespace sw
 				case spv::CapabilityDerivativeControl: capabilities.DerivativeControl = true; break;
 				case spv::CapabilityGroupNonUniform: capabilities.GroupNonUniform = true; break;
 				case spv::CapabilityGroupNonUniformVote: capabilities.GroupNonUniformVote = true; break;
+				case spv::CapabilityGroupNonUniformArithmetic: capabilities.GroupNonUniformArithmetic = true; break;
 				case spv::CapabilityGroupNonUniformBallot: capabilities.GroupNonUniformBallot = true; break;
 				case spv::CapabilityGroupNonUniformShuffle: capabilities.GroupNonUniformShuffle = true; break;
 				case spv::CapabilityGroupNonUniformShuffleRelative: capabilities.GroupNonUniformShuffleRelative = true; break;
@@ -627,6 +628,22 @@ namespace sw
 			case spv::OpGroupNonUniformShuffleXor:
 			case spv::OpGroupNonUniformShuffleUp:
 			case spv::OpGroupNonUniformShuffleDown:
+			case spv::OpGroupNonUniformIAdd:
+			case spv::OpGroupNonUniformFAdd:
+			case spv::OpGroupNonUniformIMul:
+			case spv::OpGroupNonUniformFMul:
+			case spv::OpGroupNonUniformSMin:
+			case spv::OpGroupNonUniformUMin:
+			case spv::OpGroupNonUniformFMin:
+			case spv::OpGroupNonUniformSMax:
+			case spv::OpGroupNonUniformUMax:
+			case spv::OpGroupNonUniformFMax:
+			case spv::OpGroupNonUniformBitwiseAnd:
+			case spv::OpGroupNonUniformBitwiseOr:
+			case spv::OpGroupNonUniformBitwiseXor:
+			case spv::OpGroupNonUniformLogicalAnd:
+			case spv::OpGroupNonUniformLogicalOr:
+			case spv::OpGroupNonUniformLogicalXor:
 			case spv::OpCopyObject:
 			case spv::OpArrayLength:
 				// Instructions that yield an intermediate value or divergent pointer
@@ -1865,6 +1882,22 @@ namespace sw
 		case spv::OpGroupNonUniformShuffleXor:
 		case spv::OpGroupNonUniformShuffleUp:
 		case spv::OpGroupNonUniformShuffleDown:
+		case spv::OpGroupNonUniformIAdd:
+		case spv::OpGroupNonUniformFAdd:
+		case spv::OpGroupNonUniformIMul:
+		case spv::OpGroupNonUniformFMul:
+		case spv::OpGroupNonUniformSMin:
+		case spv::OpGroupNonUniformUMin:
+		case spv::OpGroupNonUniformFMin:
+		case spv::OpGroupNonUniformSMax:
+		case spv::OpGroupNonUniformUMax:
+		case spv::OpGroupNonUniformFMax:
+		case spv::OpGroupNonUniformBitwiseAnd:
+		case spv::OpGroupNonUniformBitwiseOr:
+		case spv::OpGroupNonUniformBitwiseXor:
+		case spv::OpGroupNonUniformLogicalAnd:
+		case spv::OpGroupNonUniformLogicalOr:
+		case spv::OpGroupNonUniformLogicalXor:
 			return EmitGroupNonUniform(insn, state);
 
 		case spv::OpArrayLength:

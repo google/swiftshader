@@ -470,6 +470,106 @@ TEST(ReactorUnitTests, Swizzle)
 
 }
 
+TEST(ReactorUnitTests, Blend)
+{
+	{
+		// |select| is [0aaa:0bbb:0ccc:0ddd] where |aaa|, |bbb|, |ccc|
+		// and |ddd| are 7-bit selection indices. For a total (1 << 12)
+		// possibilities.
+		const int kSelectRange = 1 << 12;
+
+		// Unfortunately, testing the whole kSelectRange results in a test
+		// that is far too slow to run, because LLVM spends exponentially more
+		// time optimizing the function below as the number of test cases
+		// increases.
+		//
+		// To work-around the problem, only test a subset of the range by
+		// skipping every kRangeIncrement value.
+		//
+		// Set this value to 1 if you want to test the whole implementation,
+		// which will take a little less than 2 minutes on a fast workstation.
+		//
+		// The default value here takes about 1390ms, which is a little more than
+		// what the Swizzle test takes (993 ms) on my machine. A non-power-of-2
+		// value ensures a better spread over possible values.
+		const int kRangeIncrement = 11;
+
+		auto rangeIndexToSelect = [](int i) {
+			return static_cast<unsigned short>(
+				(((i >> 9) & 7) << 0) |
+				(((i >> 6) & 7) << 4) |
+				(((i >> 3) & 7) << 8) |
+				(((i >> 0) & 7) << 12)
+			);
+		};
+
+		FunctionT<int(void*)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			for(int i = 0; i < kSelectRange; i += kRangeIncrement)
+			{
+				unsigned short select = rangeIndexToSelect(i);
+
+				*Pointer<Float4>(out + 16 * i) = Blend(Float4(1.0f, 2.0f, 3.0f, 4.0f),
+													   Float4(5.0f, 6.0f, 7.0f, 8.0f),
+													   select);
+
+				*Pointer<Int4>(out + (kSelectRange + i) * 16) = Blend(Int4(10, 11, 12, 13),
+																	  Int4(14, 15, 16, 17),
+																	  select);
+
+				*Pointer<UInt4>(out + (2 * kSelectRange + i) * 16) = Blend(UInt4(100, 101, 102, 103),
+																		   UInt4(104, 105, 106, 107),
+																		   select);
+			}
+
+			Return(0);
+		}
+
+		auto routine = function("one");
+
+		if(routine)
+		{
+			struct
+			{
+				float f[kSelectRange][4];
+				int i[kSelectRange][4];
+				unsigned u[kSelectRange][4];
+			} out;
+
+			memset(&out, 0, sizeof(out));
+
+			routine(&out);
+
+			for(int i = 0; i < kSelectRange; i += kRangeIncrement)
+			{
+				EXPECT_EQ(out.f[i][0], float(1.0f + (i & 7)));
+				EXPECT_EQ(out.f[i][1], float(1.0f + ((i >> 3) & 7)));
+				EXPECT_EQ(out.f[i][2], float(1.0f + ((i >> 6) & 7)));
+				EXPECT_EQ(out.f[i][3], float(1.0f + ((i >> 9) & 7)));
+			}
+
+			for(int i = 0; i < kSelectRange; i += kRangeIncrement)
+			{
+				EXPECT_EQ(out.i[i][0], int(10 + (i & 7)));
+				EXPECT_EQ(out.i[i][1], int(10 + ((i >> 3) & 7)));
+				EXPECT_EQ(out.i[i][2], int(10 + ((i >> 6) & 7)));
+				EXPECT_EQ(out.i[i][3], int(10 + ((i >> 9) & 7)));
+			}
+
+			for(int i = 0; i < kSelectRange; i += kRangeIncrement)
+			{
+				EXPECT_EQ(out.u[i][0], unsigned(100 + (i & 7)));
+				EXPECT_EQ(out.u[i][1], unsigned(100 + ((i >> 3) & 7)));
+				EXPECT_EQ(out.u[i][2], unsigned(100 + ((i >> 6) & 7)));
+				EXPECT_EQ(out.u[i][3], unsigned(100 + ((i >> 9) & 7)));
+			}
+		}
+	}
+
+}
+
 TEST(ReactorUnitTests, Branching)
 {
 	{

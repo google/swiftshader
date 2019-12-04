@@ -1946,6 +1946,7 @@ namespace rr
 	RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
 	RValue<Int> SignMask(RValue<Int4> x);
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select);
+	RValue<Int4> Blend(RValue<Int4> x, RValue<Int4> y, unsigned short select);
 	RValue<Int4> MulHigh(RValue<Int4> x, RValue<Int4> y);
 
 	class UInt4 : public LValue<UInt4>, public XYZW<UInt4>
@@ -2030,6 +2031,7 @@ namespace rr
 	RValue<UInt4> Insert(RValue<UInt4> val, RValue<UInt> element, int i);
 //	RValue<UInt4> RoundInt(RValue<Float4> cast);
 	RValue<UInt4> Swizzle(RValue<UInt4> x, unsigned char select);
+	RValue<UInt4> Blend(RValue<UInt4> x, RValue<UInt4> y, unsigned short select);
 
 	class Half : public LValue<Half>
 	{
@@ -2227,9 +2229,11 @@ namespace rr
 		RValue<Float4> operator=(const Swizzle4<Float4, T> &rhs);
 
 		static Type *getType();
-
+		static Float4 negative_inf();
+		static Float4 positive_inf();
 	private:
 		void constant(float x, float y, float z, float w);
+		void infinity_constant(bool negative);
 	};
 
 	RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs);
@@ -2254,6 +2258,7 @@ namespace rr
 	RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i);
 	RValue<Float> Extract(RValue<Float4> x, int i);
 	RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select);
+	RValue<Float4> Blend(RValue<Float4> x, RValue<Float4> y, unsigned short select);
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm);
 	RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y);
 	RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y);

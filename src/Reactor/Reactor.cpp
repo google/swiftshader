@@ -108,6 +108,35 @@ namespace rr
 		unmaterializedVariables.clear();
 	}
 
+	// NOTE: Only 12 bits out of 16 of the |select| value are used.
+	// More specifically, the value should look like:
+	//
+	//    msb               lsb
+	//     v                 v
+	//    [.aaa|.bbb|.ccc|.ddd]    where '.' means an ignored bit
+	//
+	// This format makes it easy to write calls with hexadecimal select values,
+	// since each hex digit is a separate swizzle index. Note that the order
+	// of indices is reversed compared to createSwizzle4() below!
+	//
+	// For example:
+	//      createBlend4( [a,b,c,d], [e,f,g,h], 0x0123 ) -> [a,b,c,d]
+	//      createBlend4( [a,b,c,d], [e,f,g,h], 0x4567 ) -> [e,f,g,h]
+	//      createBlend4( [a,b,c,d], [e,f,g,h], 0x4012 ) -> [e,a,b,c]
+	//
+	static Value *createBlend4(Value *lhs, Value *rhs, unsigned short select)
+	{
+		int swizzle[4] =
+		{
+			(select >> 12) & 0x07,
+			(select >> 8)  & 0x07,
+			(select >> 4)  & 0x07,
+			(select >> 0)  & 0x07,
+		};
+
+		return Nucleus::createShuffleVector(lhs, rhs, swizzle);
+	}
+
 	static Value *createSwizzle4(Value *val, unsigned char select)
 	{
 		int swizzle[4] =
@@ -3481,6 +3510,11 @@ namespace rr
 		return RValue<Int4>(createSwizzle4(x.value, select));
 	}
 
+	RValue<Int4> Blend(RValue<Int4> x, RValue<Int4> y, unsigned short select)
+	{
+		return RValue<Int4>(createBlend4(x.value, y.value, select));
+	}
+
 	UInt4::UInt4() : XYZW(this)
 	{
 	}
@@ -3716,6 +3750,11 @@ namespace rr
 		return RValue<UInt4>(createSwizzle4(x.value, select));
 	}
 
+	RValue<UInt4> Blend(RValue<UInt4> x, RValue<UInt4> y, unsigned short select)
+	{
+		return RValue<UInt4>(createBlend4(x.value, y.value, select));
+	}
+
 	Half::Half(RValue<Float> cast)
 	{
 		UInt fp32i = As<UInt>(cast);
@@ -3805,7 +3844,7 @@ namespace rr
 		// being reinterpreted as float and then bitcast to integer again,
 		// which does not guarantee preserving the integer value.
 		//
-		// Should inifinty and NaN constants be required, methods like
+		// Should infinity and NaN constants be required, methods like
 		// infinity(), quiet_NaN(), and signaling_NaN() should be added
 		// to the Float class.
 		ASSERT(std::isfinite(x));
@@ -4026,6 +4065,27 @@ namespace rr
 		constant(x, y, z, w);
 	}
 
+	Float4 Float4::positive_inf()
+	{
+		Float4 result;
+		result.infinity_constant(false);
+		return result;
+	}
+
+	Float4 Float4::negative_inf()
+	{
+		Float4 result;
+		result.infinity_constant(true);
+		return result;
+	}
+
+	void Float4::infinity_constant(bool negative)
+	{
+		double inf = negative ? -INFINITY : INFINITY;
+		double constantVector[4] = {inf, inf, inf, inf};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	}
+
 	void Float4::constant(float x, float y, float z, float w)
 	{
 		// See Float(float) constructor for the rationale behind this assert.
@@ -4188,6 +4248,11 @@ namespace rr
 	RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select)
 	{
 		return RValue<Float4>(createSwizzle4(x.value, select));
+	}
+
+	RValue<Float4> Blend(RValue<Float4> x, RValue<Float4> y, unsigned short select)
+	{
+		return RValue<Float4>(createBlend4(x.value, y.value, select));
 	}
 
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm)

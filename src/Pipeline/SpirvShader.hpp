@@ -499,6 +499,7 @@ namespace sw
 			bool GroupNonUniformBallot : 1;
 			bool GroupNonUniformShuffle : 1;
 			bool GroupNonUniformShuffleRelative : 1;
+			bool GroupNonUniformArithmetic : 1;
 			bool DeviceGroup : 1;
 			bool MultiView : 1;
 		};
@@ -1088,6 +1089,8 @@ namespace sw
 
 		// Returns 0 when invalid.
 		static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);
+
+		struct GroupOps;
 	};
 
 	class SpirvRoutine

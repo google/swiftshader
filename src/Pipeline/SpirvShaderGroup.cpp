@@ -18,6 +18,64 @@
 
 namespace sw {
 
+struct SpirvShader::GroupOps {
+
+	// Template function to perform a binary operation.
+	// |TYPE| should be the type of the identity value (as an SIMD::<Type>).
+	// |APPLY| should be a callable object that takes two RValue<TYPE> parameters
+	// and returns a new RValue<TYPE> corresponding to the operation's result.
+	template <typename TYPE, typename APPLY>
+	static void BinaryOperation(
+		const SpirvShader*               shader,
+		const SpirvShader::InsnIterator& insn,
+		const SpirvShader::EmitState*    state,
+		Intermediate&                    dst,
+		const TYPE&                      identity,
+		APPLY&&                          apply)
+	{
+		SpirvShader::GenericValue value(shader, state, insn.word(5));
+		auto &type = shader->getType(SpirvShader::Type::ID(insn.word(1)));
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			auto mask = As<SIMD::UInt>(state->activeLaneMask());
+			SIMD::UInt v_uint = (value.UInt(i) & mask) | (As<SIMD::UInt>(identity) & ~mask);
+			TYPE v = As<TYPE>(v_uint);
+			switch (spv::GroupOperation(insn.word(4)))
+			{
+			case spv::GroupOperationReduce:
+			{
+				// NOTE: floating-point add and multiply are not really commutative so
+				//       ensure that all values in the final lanes are identical
+				TYPE v2 = apply(v.xxzz,  v.yyww);   // [xy]   [xy]   [zw]   [zw]
+				TYPE v3 = apply(v2.xxxx, v2.zzzz);  // [xyzw] [xyzw] [xyzw] [xyzw]
+				dst.move(i, v3);
+				break;
+			}
+			case spv::GroupOperationInclusiveScan:
+			{
+				TYPE v2 = apply(v,  Blend(v, identity, 0x4012) /* [id, v.y, v.z, v.w] */);    // [x] [xy] [yz]  [zw]
+				TYPE v3 = apply(v2, Blend(v2, identity, 0x4401) /* [id,  id, v2.x, v2.y] */); // [x] [xy] [xyz] [xyzw]
+				dst.move(i, v3);
+				break;
+			}
+			case spv::GroupOperationExclusiveScan:
+			{
+				TYPE v2 = apply(v,  Blend(v, identity, 0x4012) /* [id, v.y, v.z, v.w] */);    // [x] [xy] [yz]  [zw]
+				TYPE v3 = apply(v2, Blend(v2, identity, 0x4401) /* [id,  id, v2.x, v2.y] */); // [x] [xy] [xyz] [xyzw]
+				auto v4 = Blend(v3, identity, 0x4012 /* [id, v3.x, v3.y, v3.z] */);           // [i] [x]  [xy]  [xyz]
+				dst.move(i, v4);
+				break;
+			}
+			default:
+				UNIMPLEMENTED("EmitGroupNonUniform op: %s Group operation: %d",
+								SpirvShader::OpcodeName(type.opcode()).c_str(), insn.word(4));
+			}
+		}
+	}
+
+};
+
+
 SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, EmitState *state) const
 {
 	static_assert(SIMD::Width == 4, "EmitGroupNonUniform makes many assumptions that the SIMD vector width is 4");
@@ -255,6 +313,191 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 			SIMD::Int v = value.Int(i);
 			dst.move(i, (d0 & v.xyzw) | (d1 & v.yzww) | (d2 & v.zwww) | (d3 & v.wwww));
 		}
+		break;
+	}
+
+	case spv::OpGroupNonUniformIAdd:
+	{
+		using Type = SIMD::Int;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0),
+				[](RValue<Type>a, RValue<Type>b){ return a + b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformFAdd:
+	{
+		using Type = SIMD::Float;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0.),
+				[](RValue<Type>a, RValue<Type>b){ return a + b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformIMul:
+	{
+		using Type = SIMD::Int;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(1),
+				[](RValue<Type>a, RValue<Type>b){ return a * b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformFMul:
+	{
+		using Type = SIMD::Float;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(1.),
+				[](RValue<Type>a, RValue<Type>b){ return a * b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformBitwiseAnd:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(~0u),
+				[](RValue<Type>a, RValue<Type>b){ return a & b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformBitwiseOr:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0),
+				[](RValue<Type>a, RValue<Type>b){ return a | b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformBitwiseXor:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0),
+				[](RValue<Type>a, RValue<Type>b){ return a ^ b; }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformSMin:
+	{
+		using Type = SIMD::Int;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(INT32_MAX),
+				[](RValue<Type>a, RValue<Type>b){ return Min(a, b); }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformUMin:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(~0u),
+				[](RValue<Type>a, RValue<Type>b){ return Min(a, b); }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformFMin:
+	{
+		using Type = SIMD::Float;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type::positive_inf(),
+				[](RValue<Type>a, RValue<Type>b){ return NMin(a, b); }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformSMax:
+	{
+		using Type = SIMD::Int;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(INT32_MIN),
+				[](RValue<Type>a, RValue<Type>b){ return Max(a, b); }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformUMax:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0),
+				[](RValue<Type>a, RValue<Type>b){ return Max(a, b); }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformFMax:
+	{
+		using Type = SIMD::Float;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type::negative_inf(),
+				[](RValue<Type>a, RValue<Type>b){ return NMax(a, b); }
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformLogicalAnd:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(~0u),
+				[](RValue<Type>a, RValue<Type>b){
+					SIMD::UInt zero = SIMD::UInt(0);
+					return CmpNEQ(a, zero) & CmpNEQ(b, zero);
+				}
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformLogicalOr:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0),
+				[](RValue<Type>a, RValue<Type>b){
+					SIMD::UInt zero = SIMD::UInt(0);
+					return CmpNEQ(a, zero) | CmpNEQ(b, zero);
+				}
+		);
+		break;
+	}
+
+	case spv::OpGroupNonUniformLogicalXor:
+	{
+		using Type = SIMD::UInt;
+		SpirvShader::GroupOps::BinaryOperation(
+				this, insn, state, dst,
+				Type(0),
+				[](RValue<Type>a, RValue<Type>b){
+					SIMD::UInt zero = SIMD::UInt(0);
+					return CmpNEQ(a, zero) ^ CmpNEQ(b, zero);
+				}
+		);
 		break;
 	}
 
