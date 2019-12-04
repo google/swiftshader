@@ -252,7 +252,7 @@ nextTest:
 		// Don't treat non-zero error codes as crashes.
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
-			if exitErr.ExitCode() != -1 {
+			if exitErr.ExitCode() != 255 {
 				out += fmt.Sprintf("\nProcess terminated with code %d", exitErr.ExitCode())
 				err = nil
 			}
