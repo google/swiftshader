@@ -1,2 +1,0 @@
-dEQP-VK.graphicsfuzz.discard-continue-return
-dEQP-VK.graphicsfuzz.unreachable-continue-statement
