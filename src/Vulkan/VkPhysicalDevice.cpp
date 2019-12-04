@@ -48,7 +48,7 @@ const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
 	static const VkPhysicalDeviceFeatures features
 	{
 		VK_TRUE,   // robustBufferAccess
-		VK_FALSE,  // fullDrawIndexUint32
+		VK_TRUE,   // fullDrawIndexUint32
 		VK_FALSE,  // imageCubeArray
 		VK_TRUE,   // independentBlend
 		VK_FALSE,  // geometryShader
