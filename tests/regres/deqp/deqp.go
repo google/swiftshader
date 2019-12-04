@@ -25,6 +25,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -139,6 +140,8 @@ func (c *Config) Run() (*Results, error) {
 
 	numTests := 0
 
+	goroutineIndex := 0
+
 	// For each API that we are testing
 	for _, list := range c.TestLists {
 		// Resolve the test runner
@@ -165,10 +168,11 @@ func (c *Config) Run() (*Results, error) {
 		// Start a number of go routines to run the tests.
 		wg.Add(c.NumParallelTests)
 		for i := 0; i < c.NumParallelTests; i++ {
-			go func() {
-				c.TestRoutine(exe, tests, results)
+			go func(index int) {
+				c.TestRoutine(exe, tests, results, index)
 				wg.Done()
-			}()
+			}(goroutineIndex)
+			goroutineIndex++
 		}
 
 		// Shuffle the test list.
@@ -229,13 +233,42 @@ func (c *Config) Run() (*Results, error) {
 // is written to results.
 // TestRoutine only returns once the tests chan has been closed.
 // TestRoutine does not close the results chan.
-func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- TestResult) {
+func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- TestResult, goroutineIndex int) {
+	// Context for the GCOV_PREFIX environment variable:
+	// If you compile SwiftShader with gcc and the --coverage flag, the build will contain coverage instrumentation.
+	// We can use this to get the code coverage of SwiftShader from running dEQP.
+	// The coverage instrumentation reads the existing coverage files on start-up (at a hardcoded path alongside the
+	// SwiftShader build), updates coverage info as the programs runs, then (over)writes the coverage files on exit.
+	// Thus, multiple parallel processes will race when updating coverage information. The GCOV_PREFIX environment
+	// variable adds a prefix to the hardcoded paths.
+	// E.g. Given GCOV_PREFIX=/tmp/coverage, the hardcoded path /ss/build/a.gcno becomes /tmp/coverage/ss/build/a.gcno.
+	// This is mainly intended for running the target program on a different machine where the hardcoded paths don't
+	// make sense. It can also be used to avoid races. It would be trivial to avoid races if the GCOV_PREFIX variable
+	// supported macro variables like the Clang code coverage "%p" variable that expands to the process ID; in this
+	// case, we could use GCOV_PREFIX=/tmp/coverage/%p to avoid races. Unfortunately, gcc does not support this.
+	// Furthermore, processing coverage information from many directories can be slow; we start a lot of dEQP child
+	// processes, each of which will likely get a unique process ID. In practice, we only need one directory per go
+	// routine.
+
+	// If GCOV_PREFIX is in Env, replace occurrences of "PROC_ID" in GCOV_PREFIX with goroutineIndex.
+	// This avoids races between parallel child processes reading and writing coverage output files.
+	// For example, GCOV_PREFIX="/tmp/gcov_output/PROC_ID" becomes GCOV_PREFIX="/tmp/gcov_output/1" in the first go routine.
+	// You might expect PROC_ID to be the process ID of some process, but the only real requirement is that
+	// it is a unique ID between the *parallel* child processes.
+	env := make([]string, len(c.Env))
+	for _, v := range c.Env {
+		if strings.HasPrefix(v, "GCOV_PREFIX=") {
+			v = strings.ReplaceAll(v, "PROC_ID", strconv.Itoa(goroutineIndex))
+		}
+		env = append(env, v)
+	}
+
 nextTest:
 	for name := range tests {
 		// log.Printf("Running test '%s'\n", name)
 
 		start := time.Now()
-		outRaw, err := shell.Exec(c.TestTimeout, exe, filepath.Dir(exe), c.Env,
+		outRaw, err := shell.Exec(c.TestTimeout, exe, filepath.Dir(exe), env,
 			"--deqp-surface-type=pbuffer",
 			"--deqp-shadercache=disable",
 			"--deqp-log-images=disable",
