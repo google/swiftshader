@@ -179,8 +179,8 @@ namespace sw
 					xLeft[q] = *Pointer<Short4>(primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline) + y * sizeof(Primitive::Span));
 					xRight[q] = xLeft[q];
 
-					xLeft[q] = Swizzle(xLeft[q], 0xA0) - Short4(1, 2, 1, 2);
-					xRight[q] = Swizzle(xRight[q], 0xF5) - Short4(0, 1, 0, 1);
+					xLeft[q] = Swizzle(xLeft[q], 0x0022) - Short4(1, 2, 1, 2);
+					xRight[q] = Swizzle(xRight[q], 0x1133) - Short4(0, 1, 0, 1);
 				}
 
 				For(Int x = x0, x < x1, x += 2)

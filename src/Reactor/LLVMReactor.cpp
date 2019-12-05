@@ -2604,7 +2604,7 @@ namespace rr
 #else
 		auto result = V(lowerPack(V(x.value), V(y.value), true));
 #endif
-		return As<SByte8>(Swizzle(As<Int4>(result), 0x88));
+		return As<SByte8>(Swizzle(As<Int4>(result), 0x0202));
 	}
 
 	RValue<Byte8> PackUnsigned(RValue<Short4> x, RValue<Short4> y)
@@ -2615,7 +2615,7 @@ namespace rr
 #else
 		auto result = V(lowerPack(V(x.value), V(y.value), false));
 #endif
-		return As<Byte8>(Swizzle(As<Int4>(result), 0x88));
+		return As<Byte8>(Swizzle(As<Int4>(result), 0x0202));
 	}
 
 	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)

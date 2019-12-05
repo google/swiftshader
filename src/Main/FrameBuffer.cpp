@@ -217,8 +217,8 @@ namespace sw
 						case FORMAT_A16B16G16R16:
 							For(, x < width - 1, x += 2)
 							{
-								Short4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
-								Short4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
+								Short4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0x2103)) >> 8;
+								Short4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0x2103)) >> 8;
 
 								*Pointer<Int2>(d) = As<Int2>(PackUnsigned(c0, c1));
 
@@ -264,7 +264,7 @@ namespace sw
 								break;
 							case FORMAT_A16B16G16R16:
 								{
-									Short4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
+									Short4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0x2103)) >> 8;
 
 									*Pointer<Int>(d) = Int(As<Int2>(PackUnsigned(c, c)));
 								}
@@ -545,10 +545,10 @@ namespace sw
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
-			c2 = Swizzle(Unpack(*Pointer<Byte4>(s)), 0xC6);
+			c2 = Swizzle(Unpack(*Pointer<Byte4>(s)), 0x2103);
 			break;
 		case FORMAT_A16B16G16R16:
-			c2 = Swizzle(*Pointer<Short4>(s), 0xC6);
+			c2 = Swizzle(*Pointer<Short4>(s), 0x2103);
 			break;
 		case FORMAT_R5G6B5:
 			{
@@ -568,7 +568,7 @@ namespace sw
 		c1 = As<Short4>(As<UShort4>(c1) >> 9);
 		c2 = As<Short4>(As<UShort4>(c2) >> 9);
 
-		Short4 alpha = Swizzle(c1, 0xFF) & Short4(0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000);
+		Short4 alpha = Swizzle(c1, 0x3333) & Short4(0xFFFFu, 0xFFFFu, 0xFFFFu, 0x0000);
 
 		c1 = (c1 - c2) * alpha;
 		c1 = c1 >> 7;
@@ -586,7 +586,7 @@ namespace sw
 		case FORMAT_SRGB8_X8:
 		case FORMAT_SRGB8_A8:
 			{
-				c1 = Swizzle(c1, 0xC6);
+				c1 = Swizzle(c1, 0x2103);
 
 				*Pointer<Byte4>(d) = Byte4(PackUnsigned(c1, c1));
 			}

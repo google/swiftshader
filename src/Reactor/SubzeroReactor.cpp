@@ -2202,7 +2202,7 @@ namespace rr
 			pack->addArg(y.value);
 			::basicBlock->appendInst(pack);
 
-			return As<SByte8>(Swizzle(As<Int4>(V(result)), 0x88));
+			return As<SByte8>(Swizzle(As<Int4>(V(result)), 0x0202));
 		}
 	}
 
@@ -2232,7 +2232,7 @@ namespace rr
 			pack->addArg(y.value);
 			::basicBlock->appendInst(pack);
 
-			return As<Byte8>(Swizzle(As<Int4>(V(result)), 0x88));
+			return As<Byte8>(Swizzle(As<Int4>(V(result)), 0x0202));
 		}
 	}
 

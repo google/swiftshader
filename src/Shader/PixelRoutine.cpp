@@ -2081,8 +2081,8 @@ namespace sw
 			buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
 			pixel.y = *Pointer<Float4>(buffer + 8 * x, 16);
 			pixel.z = pixel.x;
-			pixel.x = ShuffleLowHigh(pixel.x, pixel.y, 0x88);
-			pixel.z = ShuffleLowHigh(pixel.z, pixel.y, 0xDD);
+			pixel.x = ShuffleLowHigh(pixel.x, pixel.y, 0x0202);
+			pixel.z = ShuffleLowHigh(pixel.z, pixel.y, 0x1313);
 			pixel.y = pixel.z;
 			pixel.z = pixel.w = one;
 			break;
