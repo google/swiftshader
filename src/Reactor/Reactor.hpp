@@ -1946,7 +1946,7 @@ namespace rr
 	RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
 	RValue<Int> SignMask(RValue<Int4> x);
 	RValue<Int4> Swizzle(RValue<Int4> x, uint16_t select);
-	RValue<Int4> Blend(RValue<Int4> x, RValue<Int4> y, uint16_t select);
+	RValue<Int4> Shuffle(RValue<Int4> x, RValue<Int4> y, uint16_t select);
 	RValue<Int4> MulHigh(RValue<Int4> x, RValue<Int4> y);
 
 	class UInt4 : public LValue<UInt4>, public XYZW<UInt4>
@@ -2031,7 +2031,7 @@ namespace rr
 	RValue<UInt4> Insert(RValue<UInt4> val, RValue<UInt> element, int i);
 //	RValue<UInt4> RoundInt(RValue<Float4> cast);
 	RValue<UInt4> Swizzle(RValue<UInt4> x, uint16_t select);
-	RValue<UInt4> Blend(RValue<UInt4> x, RValue<UInt4> y, uint16_t select);
+	RValue<UInt4> Shuffle(RValue<UInt4> x, RValue<UInt4> y, uint16_t select);
 
 	class Half : public LValue<Half>
 	{
@@ -2258,7 +2258,7 @@ namespace rr
 	RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i);
 	RValue<Float> Extract(RValue<Float4> x, int i);
 	RValue<Float4> Swizzle(RValue<Float4> x, uint16_t select);
-	RValue<Float4> Blend(RValue<Float4> x, RValue<Float4> y, uint16_t select);
+	RValue<Float4> Shuffle(RValue<Float4> x, RValue<Float4> y, uint16_t select);
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm);
 	RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y);
 	RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y);

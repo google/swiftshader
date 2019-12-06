@@ -520,17 +520,17 @@ TEST(ReactorUnitTests, Blend)
 			{
 				unsigned short select = rangeIndexToSelect(i);
 
-				*Pointer<Float4>(out + 16 * i) = Blend(Float4(1.0f, 2.0f, 3.0f, 4.0f),
-													   Float4(5.0f, 6.0f, 7.0f, 8.0f),
-													   select);
+				*Pointer<Float4>(out + 16 * i) = Shuffle(Float4(1.0f, 2.0f, 3.0f, 4.0f),
+				                                         Float4(5.0f, 6.0f, 7.0f, 8.0f),
+				                                         select);
 
-				*Pointer<Int4>(out + (kSelectRange + i) * 16) = Blend(Int4(10, 11, 12, 13),
-																	  Int4(14, 15, 16, 17),
-																	  select);
+				*Pointer<Int4>(out + (kSelectRange + i) * 16) = Shuffle(Int4(10, 11, 12, 13),
+				                                                        Int4(14, 15, 16, 17),
+				                                                        select);
 
-				*Pointer<UInt4>(out + (2 * kSelectRange + i) * 16) = Blend(UInt4(100, 101, 102, 103),
-																		   UInt4(104, 105, 106, 107),
-																		   select);
+				*Pointer<UInt4>(out + (2 * kSelectRange + i) * 16) = Shuffle(UInt4(100, 101, 102, 103),
+				                                                             UInt4(104, 105, 106, 107),
+				                                                             select);
 			}
 
 			Return(0);

@@ -3523,7 +3523,7 @@ namespace rr
 		return RValue<Int4>(createSwizzle4(x.value, select));
 	}
 
-	RValue<Int4> Blend(RValue<Int4> x, RValue<Int4> y, unsigned short select)
+	RValue<Int4> Shuffle(RValue<Int4> x, RValue<Int4> y, unsigned short select)
 	{
 		return RValue<Int4>(createBlend4(x.value, y.value, select));
 	}
@@ -3763,7 +3763,7 @@ namespace rr
 		return RValue<UInt4>(createSwizzle4(x.value, select));
 	}
 
-	RValue<UInt4> Blend(RValue<UInt4> x, RValue<UInt4> y, unsigned short select)
+	RValue<UInt4> Shuffle(RValue<UInt4> x, RValue<UInt4> y, unsigned short select)
 	{
 		return RValue<UInt4>(createBlend4(x.value, y.value, select));
 	}
@@ -4263,7 +4263,7 @@ namespace rr
 		return RValue<Float4>(createSwizzle4(x.value, select));
 	}
 
-	RValue<Float4> Blend(RValue<Float4> x, RValue<Float4> y, uint16_t select)
+	RValue<Float4> Shuffle(RValue<Float4> x, RValue<Float4> y, uint16_t select)
 	{
 		return RValue<Float4>(createBlend4(x.value, y.value, select));
 	}

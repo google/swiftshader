@@ -53,16 +53,16 @@ struct SpirvShader::GroupOps {
 			}
 			case spv::GroupOperationInclusiveScan:
 			{
-				TYPE v2 = apply(v,  Blend(v, identity, 0x4012) /* [id, v.y, v.z, v.w] */);    // [x] [xy] [yz]  [zw]
-				TYPE v3 = apply(v2, Blend(v2, identity, 0x4401) /* [id,  id, v2.x, v2.y] */); // [x] [xy] [xyz] [xyzw]
+				TYPE v2 = apply(v,  Shuffle(v, identity, 0x4012) /* [id, v.y, v.z, v.w] */);    // [x] [xy] [yz]  [zw]
+				TYPE v3 = apply(v2, Shuffle(v2, identity, 0x4401) /* [id,  id, v2.x, v2.y] */); // [x] [xy] [xyz] [xyzw]
 				dst.move(i, v3);
 				break;
 			}
 			case spv::GroupOperationExclusiveScan:
 			{
-				TYPE v2 = apply(v,  Blend(v, identity, 0x4012) /* [id, v.y, v.z, v.w] */);    // [x] [xy] [yz]  [zw]
-				TYPE v3 = apply(v2, Blend(v2, identity, 0x4401) /* [id,  id, v2.x, v2.y] */); // [x] [xy] [xyz] [xyzw]
-				auto v4 = Blend(v3, identity, 0x4012 /* [id, v3.x, v3.y, v3.z] */);           // [i] [x]  [xy]  [xyz]
+				TYPE v2 = apply(v,  Shuffle(v, identity, 0x4012) /* [id, v.y, v.z, v.w] */);    // [x] [xy] [yz]  [zw]
+				TYPE v3 = apply(v2, Shuffle(v2, identity, 0x4401) /* [id,  id, v2.x, v2.y] */); // [x] [xy] [xyz] [xyzw]
+				auto v4 = Shuffle(v3, identity, 0x4012 /* [id, v3.x, v3.y, v3.z] */);           // [i] [x]  [xy]  [xyz]
 				dst.move(i, v4);
 				break;
 			}
