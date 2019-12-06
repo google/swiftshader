@@ -2314,6 +2314,12 @@ void InstImpl<TraitsType>::InstX86Mov::emitIAS(const Cfg *Func) const {
       Assembler *Asm = Func->getAssembler<Assembler>();
       Asm->movss(SrcTy, StackAddr, Traits::getEncodedXmm(SrcVar->getRegNum()));
       return;
+    } else if (isVectorType(SrcTy)) {
+      // Src must be a register
+      const auto *SrcVar = llvm::cast<Variable>(Src);
+      assert(SrcVar->hasReg());
+      Assembler *Asm = Func->getAssembler<Assembler>();
+      Asm->movups(StackAddr, Traits::getEncodedXmm(SrcVar->getRegNum()));
     } else {
       // Src can be a register or immediate.
       assert(isScalarIntegerType(SrcTy));

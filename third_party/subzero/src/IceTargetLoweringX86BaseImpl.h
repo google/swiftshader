@@ -3292,7 +3292,10 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
         // use v16i8 vectors.
         assert(getFlags().getApplicationBinaryInterface() != ABI_PNaCl &&
                "PNaCl only supports real 128-bit vectors");
-        _movd(Dest, legalize(Src0, Legal_Reg | Legal_Mem));
+        Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+        Variable *T = makeReg(DestTy);
+        _movd(T, Src0RM);
+        _mov(Dest, T);
       } else {
         _movp(Dest, legalizeToReg(Src0));
       }
