@@ -6487,8 +6487,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       }
       break;
       CASE_SRCS_IN(0, 0, 0, 1) : {
-        assert(false && "Following code is untested but likely correct; test "
-                        "and remove assert.");
         auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index2,
                                                                   Src1, Index3);
         T = lowerShuffleVector_TwoFromSameSrc(Src0, Index0, Index1, Unified,
