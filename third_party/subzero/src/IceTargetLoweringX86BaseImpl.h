@@ -6521,8 +6521,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
           _movp(T, Src0R);
           _punpckl(T, Src1RM);
         } else if (Index0 == Index2 && Index1 == Index3) {
-          assert(false && "Following code is untested but likely correct; test "
-                          "and remove assert.");
           auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(
               Src0, Index0, Src1, Index1);
           T = lowerShuffleVector_AllFromSameSrc(
@@ -6558,8 +6556,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       }
       break;
       CASE_SRCS_IN(0, 1, 1, 1) : {
-        assert(false && "Following code is untested but likely correct; test "
-                        "and remove assert.");
         auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index0,
                                                                   Src1, Index1);
         T = lowerShuffleVector_TwoFromSameSrc(
@@ -6575,16 +6571,12 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       break;
       CASE_SRCS_IN(1, 0, 0, 1) : {
         if (Index0 == Index3 && Index1 == Index2) {
-          assert(false && "Following code is untested but likely correct; test "
-                          "and remove assert.");
           auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(
               Src1, Index0, Src0, Index1);
           T = lowerShuffleVector_AllFromSameSrc(
               Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, UNIFIED_INDEX_1,
               UNIFIED_INDEX_0);
         } else {
-          assert(false && "Following code is untested but likely correct; test "
-                          "and remove assert.");
           auto *Unified0 = lowerShuffleVector_UnifyFromDifferentSrcs(
               Src1, Index0, Src0, Index1);
           auto *Unified1 = lowerShuffleVector_UnifyFromDifferentSrcs(
@@ -6621,8 +6613,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       }
       break;
       CASE_SRCS_IN(1, 0, 1, 1) : {
-        assert(false && "Following code is untested but likely correct; test "
-                        "and remove assert.");
         auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src1, Index0,
                                                                   Src0, Index1);
         T = lowerShuffleVector_TwoFromSameSrc(
@@ -6635,8 +6625,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       }
       break;
       CASE_SRCS_IN(1, 1, 0, 1) : {
-        assert(false && "Following code is untested but likely correct; test "
-                        "and remove assert.");
         auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index2,
                                                                   Src1, Index3);
         T = lowerShuffleVector_TwoFromSameSrc(Src1, Index0, Index1, Unified,
@@ -6651,8 +6639,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       }
       break;
       CASE_SRCS_IN(1, 1, 1, 1) : {
-        assert(false && "Following code is untested but likely correct; test "
-                        "and remove assert.");
         T = lowerShuffleVector_AllFromSameSrc(Src1, Index0, Index1, Index2,
                                               Index3);
       }
