@@ -68,8 +68,15 @@ namespace rr
 
 		using Passes = std::vector<Pass>;
 
-		Optimization() = default;
-		Optimization(Level level, const Passes & passes) : level(level), passes(passes) {}
+		Optimization(Level level = Level::Default, const Passes& passes = {})
+			: level(level), passes(passes)
+		{
+			#if defined(REACTOR_DEFAULT_OPT_LEVEL)
+			{
+				level = Level::REACTOR_DEFAULT_OPT_LEVEL;
+			}
+			#endif
+		}
 
 		Level getLevel() const { return level; }
 		const Passes & getPasses() const { return passes; }

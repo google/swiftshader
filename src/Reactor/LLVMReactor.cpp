@@ -121,7 +121,6 @@ namespace
 		// This uses a static in a function to avoid the cost of a global static
 		// initializer. See http://neugierig.org/software/chromium/notes/2011/08/static-initializers.html
 		static rr::Config config = rr::Config::Edit()
-			.set(rr::Optimization::Level::Default)
 			.add(rr::Optimization::Pass::ScalarReplAggregates)
 			.add(rr::Optimization::Pass::InstructionCombining)
 			.apply({});
