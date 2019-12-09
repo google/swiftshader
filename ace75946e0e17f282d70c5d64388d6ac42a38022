@@ -234,6 +234,30 @@
       "revId": "ace75946e0e17f282d70c5d64388d6ac42a38022",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d1556550_412d9a19",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2034,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-12-09T16:46:10Z",
+      "side": 1,
+      "message": "\u003ccstddef\u003e wasn\u0027t universally supported when Reactor was conceived. Nowadays I too would recommend using sized types, where it really helps clarify the expectation.\n\nNote that lots of other code depends on short being 16-bit and int being 32-bit, and I don\u0027t think it would be constructive to use int16_t and int32_t everywhere instead. However, we should at least make the assumption explicit: https://swiftshader-review.googlesource.com/c/SwiftShader/+/39129",
+      "parentUuid": "799a05f6_1a6ba764",
+      "range": {
+        "startLine": 2034,
+        "startChar": 55,
+        "endLine": 2034,
+        "endChar": 69
+      },
+      "revId": "ace75946e0e17f282d70c5d64388d6ac42a38022",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
