@@ -70,6 +70,30 @@
       "revId": "ecab1aa8040c1ba0dc0108e0b5583700d6a2457a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a59b0f3_22b08a9c",
+        "filename": "src/Pipeline/SamplerCore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-12-09T22:24:15Z",
+      "side": 1,
+      "message": "FYI b/145941184 for the future follow-up work.",
+      "parentUuid": "e0b6838f_1a79de95",
+      "range": {
+        "startLine": 86,
+        "startChar": 111,
+        "endLine": 86,
+        "endChar": 122
+      },
+      "revId": "ecab1aa8040c1ba0dc0108e0b5583700d6a2457a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
