@@ -28,6 +28,9 @@ cd %SRC%
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 SET SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1
 
+build\Debug\ReactorUnitTests.exe
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
+
 build\Debug\gles-unittests.exe
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
