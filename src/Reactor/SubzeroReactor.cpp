@@ -1221,6 +1221,11 @@ namespace rr
 		return createCast(Ice::InstCast::Sext, v, destType);
 	}
 
+	Value *Nucleus::createFPToUI(Value *v, Type *destType)
+	{
+		return createCast(Ice::InstCast::Fptoui, v, destType);
+	}
+
 	Value *Nucleus::createFPToSI(Value *v, Type *destType)
 	{
 		return createCast(Ice::InstCast::Fptosi, v, destType);

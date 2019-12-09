@@ -229,6 +229,7 @@ namespace rr
 		static Value *createTrunc(Value *V, Type *destType);
 		static Value *createZExt(Value *V, Type *destType);
 		static Value *createSExt(Value *V, Type *destType);
+		static Value *createFPToUI(Value *V, Type *destType);
 		static Value *createFPToSI(Value *V, Type *destType);
 		static Value *createSIToFP(Value *V, Type *destType);
 		static Value *createFPTrunc(Value *V, Type *destType);
