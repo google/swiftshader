@@ -808,6 +808,44 @@ TEST(ReactorUnitTests, NotNeg)
 
 }
 
+TEST(ReactorUnitTests, FPtoUI)
+{
+	FunctionT<int(void*)> function;
+	{
+		Pointer<Byte> out = function.Arg<0>();
+
+		*Pointer<UInt>(out + 0)  = UInt(Float(0xF0000000u));
+		*Pointer<UInt>(out + 4)  = UInt(Float(0xC0000000u));
+		*Pointer<UInt>(out + 8)  = UInt(Float(0x00000001u));
+		*Pointer<UInt>(out + 12) = UInt(Float(0xF000F000u));
+
+		*Pointer<UInt4>(out + 16) = UInt4(Float4(0xF0000000u, 0x80000000u, 0x00000000u, 0xCCCC0000u));
+
+		Return(0);
+	}
+
+	auto routine = function("one");
+
+	if(routine)
+	{
+		unsigned int out[2][4];
+
+		memset(&out, 0, sizeof(out));
+
+		routine(&out);
+
+		EXPECT_EQ(out[0][0], 0xF0000000u);
+		EXPECT_EQ(out[0][1], 0xC0000000u);
+		EXPECT_EQ(out[0][2], 0x00000001u);
+		EXPECT_EQ(out[0][3], 0xF000F000u);
+
+		EXPECT_EQ(out[1][0], 0xF0000000u);
+		EXPECT_EQ(out[1][1], 0x80000000u);
+		EXPECT_EQ(out[1][2], 0x00000000u);
+		EXPECT_EQ(out[1][3], 0xCCCC0000u);
+	}
+}
+
 TEST(ReactorUnitTests, VectorCompare)
 {
 	{
