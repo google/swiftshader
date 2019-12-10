@@ -29,7 +29,13 @@ static const VkSurfaceFormatKHR surfaceFormats[] =
 
 static const VkPresentModeKHR presentModes[] =
 {
+	// FIXME(b/124265819): Make present modes behave correctly. Currently we use XPutImage
+	// with no synchronization, which behaves more like VK_PRESENT_MODE_IMMEDIATE_KHR. We
+	// should convert to using the Present extension, which allows us to request presentation
+	// at particular msc values. Will need a similar solution on Windows - possibly interact
+	// with DXGI directly.
 	VK_PRESENT_MODE_FIFO_KHR,
+	VK_PRESENT_MODE_MAILBOX_KHR,
 };
 
 }
