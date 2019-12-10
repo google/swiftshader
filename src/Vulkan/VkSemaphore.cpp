@@ -93,7 +93,7 @@ void Semaphore::wait()
 	}
 	else
 	{
-		waitInternal();
+		internal.wait();
 	}
 }
 
@@ -107,26 +107,7 @@ void Semaphore::signal()
 	}
 	else
 	{
-		signalInternal();
-	}
-}
-
-void Semaphore::waitInternal()
-{
-	// Wait on the marl condition variable only.
-	std::unique_lock<std::mutex> lock(mutex);
-	condition.wait(lock, [this] { return this->signaled; });
-	signaled = false;  // Vulkan requires resetting after waiting.
-}
-
-void Semaphore::signalInternal()
-{
-	// Signal the marl condition variable only.
-	std::unique_lock<std::mutex> lock(mutex);
-	if(!signaled)
-	{
-		signaled = true;
-		condition.notify_one();
+		internal.signal();
 	}
 }
 
