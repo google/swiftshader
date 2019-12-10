@@ -73,7 +73,7 @@ namespace rr
 		{
 			#if defined(REACTOR_DEFAULT_OPT_LEVEL)
 			{
-				level = Level::REACTOR_DEFAULT_OPT_LEVEL;
+				this->level = Level::REACTOR_DEFAULT_OPT_LEVEL;
 			}
 			#endif
 		}
