@@ -16,10 +16,8 @@
 #include "Value.hpp"
 #include "Variable.hpp"
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 const FormatFlags FormatFlags::Default = {
 	"[",                   // listPrefix

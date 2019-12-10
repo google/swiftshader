@@ -24,38 +24,38 @@
 #include "System/GrallocAndroid.hpp"
 #endif
 
-namespace
+namespace {
+
+ETC_Decoder::InputType GetInputType(const vk::Format& format)
 {
-	ETC_Decoder::InputType GetInputType(const vk::Format& format)
+	switch(format)
 	{
-		switch(format)
-		{
-		case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-			return ETC_Decoder::ETC_R_UNSIGNED;
-		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-			return ETC_Decoder::ETC_R_SIGNED;
-		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-			return ETC_Decoder::ETC_RG_UNSIGNED;
-		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-			return ETC_Decoder::ETC_RG_SIGNED;
-		case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-			return ETC_Decoder::ETC_RGB;
-		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-			return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
-		case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-			return ETC_Decoder::ETC_RGBA;
-		default:
-			UNIMPLEMENTED("format: %d", int(format));
-			return ETC_Decoder::ETC_RGBA;
-		}
+	case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+		return ETC_Decoder::ETC_R_UNSIGNED;
+	case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+		return ETC_Decoder::ETC_R_SIGNED;
+	case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+		return ETC_Decoder::ETC_RG_UNSIGNED;
+	case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+		return ETC_Decoder::ETC_RG_SIGNED;
+	case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+		return ETC_Decoder::ETC_RGB;
+	case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+		return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
+	case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+		return ETC_Decoder::ETC_RGBA;
+	default:
+		UNIMPLEMENTED("format: %d", int(format));
+		return ETC_Decoder::ETC_RGBA;
 	}
 }
 
-namespace vk
-{
+}  // anonymous namespace
+
+namespace vk {
 
 Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem, Device *device) :
 	device(device),
@@ -992,4 +992,4 @@ void Image::decodeETC2(const VkImageSubresourceRange& subresourceRange) const
 	}
 }
 
-} // namespace vk
+}  // namespace vk

@@ -17,21 +17,22 @@
 
 #include "Types.hpp"
 
-namespace sw
+namespace sw {
+
+class Timer
 {
-	class Timer
-	{
-	public:
-		Timer();
+public:
+	Timer();
 
-		~Timer();
+	~Timer();
 
-		static double seconds();
-		static int64_t ticks();
+	static double seconds();
+	static int64_t ticks();
 
-		static int64_t counter();
-		static int64_t frequency();
-	};
-}
+	static int64_t counter();
+	static int64_t frequency();
+};
+
+}  // namespace sw
 
 #endif   // sw_Timer_hpp

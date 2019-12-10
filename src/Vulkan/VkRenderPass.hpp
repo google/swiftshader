@@ -19,8 +19,7 @@
 
 #include <vector>
 
-namespace vk
-{
+namespace vk {
 
 class RenderPass : public Object<RenderPass, VkRenderPass>
 {
@@ -101,6 +100,6 @@ static inline RenderPass* Cast(VkRenderPass object)
 	return RenderPass::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_RENDER_PASS_HPP_

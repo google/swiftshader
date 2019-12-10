@@ -22,28 +22,29 @@
 	typedef int SOCKET;
 #endif
 
-namespace sw
+namespace sw {
+
+class Socket
 {
-	class Socket
-	{
-	public:
-		Socket(SOCKET socket);
-		Socket(const char *address, const char *port);
-		~Socket();
+public:
+	Socket(SOCKET socket);
+	Socket(const char *address, const char *port);
+	~Socket();
 
-		void listen(int backlog = 1);
-		bool select(int us);
-		Socket *accept();
-		
-		int receive(char *buffer, int length);
-		void send(const char *buffer, int length);
+	void listen(int backlog = 1);
+	bool select(int us);
+	Socket *accept();
 
-		static void startup();
-		static void cleanup();
+	int receive(char *buffer, int length);
+	void send(const char *buffer, int length);
 
-	private:
-		SOCKET socket;
-	};
+	static void startup();
+	static void cleanup();
+
+private:
+	SOCKET socket;
+};
+
 }
 
 #endif   // sw_Socket_hpp

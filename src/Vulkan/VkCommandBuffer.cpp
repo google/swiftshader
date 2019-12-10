@@ -1737,4 +1737,4 @@ void CommandBuffer::ExecutionState::bindAttachments(sw::Context& context)
 	}
 }
 
-} // namespace vk
+}  // namespace vk

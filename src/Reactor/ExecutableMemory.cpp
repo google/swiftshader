@@ -42,10 +42,9 @@
 #define __x86__
 #endif
 
-namespace rr
-{
-namespace
-{
+namespace rr {
+namespace {
+
 struct Allocation
 {
 //	size_t bytes;
@@ -301,4 +300,5 @@ void deallocateExecutable(void *memory, size_t bytes)
 		deallocate(memory);
 	#endif
 }
-}
+
+}  // namespace rr

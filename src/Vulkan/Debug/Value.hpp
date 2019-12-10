@@ -18,10 +18,8 @@
 #include <memory>
 #include <string>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class Type;
 

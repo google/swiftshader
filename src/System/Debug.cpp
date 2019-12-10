@@ -17,8 +17,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-namespace sw
-{
+namespace sw {
+
 void trace(const char *format, ...)
 {
 	if(false)
@@ -36,4 +36,5 @@ void trace(const char *format, ...)
 		}
 	}
 }
-}
+
+}  // namespace sw

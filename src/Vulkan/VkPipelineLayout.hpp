@@ -17,8 +17,7 @@
 
 #include "VkDescriptorSetLayout.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class PipelineLayout : public Object<PipelineLayout, VkPipelineLayout>
 {
@@ -48,6 +47,6 @@ static inline PipelineLayout* Cast(VkPipelineLayout object)
 	return PipelineLayout::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_PIPELINE_LAYOUT_HPP_

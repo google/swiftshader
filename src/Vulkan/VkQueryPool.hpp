@@ -24,8 +24,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace vk
-{
+namespace vk {
 
 class Query
 {
@@ -119,6 +118,6 @@ static inline QueryPool* Cast(VkQueryPool object)
 	return QueryPool::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_QUERY_POOL_HPP_

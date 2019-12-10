@@ -28,8 +28,7 @@
 #include <mutex>
 #include <queue>
 
-namespace sw
-{
+namespace sw {
 
 // TaskEvents is an interface for notifying when tasks begin and end.
 // Tasks can be nested and/or overlapping.
@@ -191,6 +190,6 @@ size_t Chan<T>::count()
 	return queue.size();
 }
 
-} // namespace sw
+}  // namespace sw
 
 #endif // sw_Synchronization_hpp

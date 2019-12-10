@@ -20,148 +20,149 @@
 #include "Memset.hpp"
 #include "RoutineCache.hpp"
 
-namespace sw
+namespace sw {
+
+class PixelShader;
+class Rasterizer;
+struct Texture;
+struct DrawData;
+struct Primitive;
+
+using RasterizerFunction = FunctionT<void(const Primitive* primitive, int count, int cluster, int clusterCount, DrawData* draw)>;
+
+class PixelProcessor
 {
-	class PixelShader;
-	class Rasterizer;
-	struct Texture;
-	struct DrawData;
-	struct Primitive;
-
-	using RasterizerFunction = FunctionT<void(const Primitive* primitive, int count, int cluster, int clusterCount, DrawData* draw)>;
-
-	class PixelProcessor
+public:
+	struct States : Memset<States>
 	{
-	public:
-		struct States : Memset<States>
+		// Same as VkStencilOpState, but with no reference, as it's not part of the state
+		// (it doesn't require a different program to be generated)
+		struct StencilOpState
 		{
-			// Same as VkStencilOpState, but with no reference, as it's not part of the state
-			// (it doesn't require a different program to be generated)
-			struct StencilOpState
+			VkStencilOp    failOp;
+			VkStencilOp    passOp;
+			VkStencilOp    depthFailOp;
+			VkCompareOp    compareOp;
+			uint32_t       compareMask;
+			uint32_t       writeMask;
+
+			void operator=(const VkStencilOpState &rhs)
 			{
-				VkStencilOp    failOp;
-				VkStencilOp    passOp;
-				VkStencilOp    depthFailOp;
-				VkCompareOp    compareOp;
-				uint32_t       compareMask;
-				uint32_t       writeMask;
-
-				void operator=(const VkStencilOpState &rhs)
-				{
-					failOp = rhs.failOp;
-					passOp = rhs.passOp;
-					depthFailOp = rhs.depthFailOp;
-					compareOp = rhs.compareOp;
-					compareMask = rhs.compareMask;
-					writeMask = rhs.writeMask;
-				}
-			};
-
-			States() : Memset(this, 0) {}
-
-			uint32_t computeHash();
-
-			uint64_t shaderID;
-
-			unsigned int numClipDistances;
-			unsigned int numCullDistances;
-
-			VkCompareOp depthCompareMode;
-			bool depthWriteEnable;
-
-			bool stencilActive;
-			StencilOpState frontStencil;
-			StencilOpState backStencil;
-
-			bool depthTestActive;
-			bool occlusionEnabled;
-			bool perspective;
-			bool depthClamp;
-
-			BlendState blendState[RENDERTARGETS];
-
-			unsigned int colorWriteMask;
-			VkFormat targetFormat[RENDERTARGETS];
-			unsigned int multiSample;
-			unsigned int multiSampleMask;
-			bool multiSampledBresenham;
-			bool alphaToCoverage;
-			bool centroid;
-			VkFrontFace frontFace;
-			VkFormat depthFormat;
-		};
-
-		struct State : States
-		{
-			bool operator==(const State &state) const;
-
-			int colorWriteActive(int index) const
-			{
-				return (colorWriteMask >> (index * 4)) & 0xF;
-			}
-
-			uint32_t hash;
-		};
-
-		struct Stencil
-		{
-			int64_t testMaskQ;
-			int64_t referenceMaskedQ;
-			int64_t referenceMaskedSignedQ;
-			int64_t writeMaskQ;
-			int64_t invWriteMaskQ;
-			int64_t referenceQ;
-
-			void set(int reference, int testMask, int writeMask)
-			{
-				referenceQ = replicate(reference);
-				testMaskQ = replicate(testMask);
-				writeMaskQ = replicate(writeMask);
-				invWriteMaskQ = ~writeMaskQ;
-				referenceMaskedQ = referenceQ & testMaskQ;
-				referenceMaskedSignedQ = replicate(((reference & testMask) + 0x80) & 0xFF);
-			}
-
-			static int64_t replicate(int b)
-			{
-				int64_t w = b & 0xFF;
-
-				return (w << 0) | (w << 8) | (w << 16) | (w << 24) | (w << 32) | (w << 40) | (w << 48) | (w << 56);
+				failOp = rhs.failOp;
+				passOp = rhs.passOp;
+				depthFailOp = rhs.depthFailOp;
+				compareOp = rhs.compareOp;
+				compareMask = rhs.compareMask;
+				writeMask = rhs.writeMask;
 			}
 		};
 
-		struct Factor
-		{
-			word4 alphaReference4;
+		States() : Memset(this, 0) {}
 
-			word4 blendConstant4W[4];
-			float4 blendConstant4F[4];
-			word4 invBlendConstant4W[4];
-			float4 invBlendConstant4F[4];
-		};
+		uint32_t computeHash();
 
-	public:
-		using RoutineType = RasterizerFunction::RoutineType;
+		uint64_t shaderID;
 
-		PixelProcessor();
+		unsigned int numClipDistances;
+		unsigned int numCullDistances;
 
-		virtual ~PixelProcessor();
+		VkCompareOp depthCompareMode;
+		bool depthWriteEnable;
 
-		void setBlendConstant(const Color<float> &blendConstant);
+		bool stencilActive;
+		StencilOpState frontStencil;
+		StencilOpState backStencil;
 
-	protected:
-		const State update(const Context* context) const;
-		RoutineType routine(const State &state, vk::PipelineLayout const *pipelineLayout,
-		                                 SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);
-		void setRoutineCacheSize(int routineCacheSize);
+		bool depthTestActive;
+		bool occlusionEnabled;
+		bool perspective;
+		bool depthClamp;
 
-		// Other semi-constants
-		Factor factor;
+		BlendState blendState[RENDERTARGETS];
 
-	private:
-		using RoutineCacheType = RoutineCacheT<State, RasterizerFunction::CFunctionType>;
-		RoutineCacheType *routineCache;
+		unsigned int colorWriteMask;
+		VkFormat targetFormat[RENDERTARGETS];
+		unsigned int multiSample;
+		unsigned int multiSampleMask;
+		bool multiSampledBresenham;
+		bool alphaToCoverage;
+		bool centroid;
+		VkFrontFace frontFace;
+		VkFormat depthFormat;
 	};
-}
+
+	struct State : States
+	{
+		bool operator==(const State &state) const;
+
+		int colorWriteActive(int index) const
+		{
+			return (colorWriteMask >> (index * 4)) & 0xF;
+		}
+
+		uint32_t hash;
+	};
+
+	struct Stencil
+	{
+		int64_t testMaskQ;
+		int64_t referenceMaskedQ;
+		int64_t referenceMaskedSignedQ;
+		int64_t writeMaskQ;
+		int64_t invWriteMaskQ;
+		int64_t referenceQ;
+
+		void set(int reference, int testMask, int writeMask)
+		{
+			referenceQ = replicate(reference);
+			testMaskQ = replicate(testMask);
+			writeMaskQ = replicate(writeMask);
+			invWriteMaskQ = ~writeMaskQ;
+			referenceMaskedQ = referenceQ & testMaskQ;
+			referenceMaskedSignedQ = replicate(((reference & testMask) + 0x80) & 0xFF);
+		}
+
+		static int64_t replicate(int b)
+		{
+			int64_t w = b & 0xFF;
+
+			return (w << 0) | (w << 8) | (w << 16) | (w << 24) | (w << 32) | (w << 40) | (w << 48) | (w << 56);
+		}
+	};
+
+	struct Factor
+	{
+		word4 alphaReference4;
+
+		word4 blendConstant4W[4];
+		float4 blendConstant4F[4];
+		word4 invBlendConstant4W[4];
+		float4 invBlendConstant4F[4];
+	};
+
+public:
+	using RoutineType = RasterizerFunction::RoutineType;
+
+	PixelProcessor();
+
+	virtual ~PixelProcessor();
+
+	void setBlendConstant(const Color<float> &blendConstant);
+
+protected:
+	const State update(const Context* context) const;
+	RoutineType routine(const State &state, vk::PipelineLayout const *pipelineLayout,
+	                    SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);
+	void setRoutineCacheSize(int routineCacheSize);
+
+	// Other semi-constants
+	Factor factor;
+
+private:
+	using RoutineCacheType = RoutineCacheT<State, RasterizerFunction::CFunctionType>;
+	RoutineCacheType *routineCache;
+};
+
+}  // namespace sw
 
 #endif   // sw_PixelProcessor_hpp

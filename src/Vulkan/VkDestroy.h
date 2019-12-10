@@ -39,8 +39,7 @@
 
 #include <type_traits>
 
-namespace vk
-{
+namespace vk {
 
 // Because Vulkan uses optional allocation callbacks, we use them in a custom
 // placement new operator in the VkObjectBase class for simplicity.
@@ -66,4 +65,4 @@ inline void destroy(VkT vkObject, const VkAllocationCallbacks* pAllocator)
 	}
 }
 
-}
+}  // namespace vk

@@ -20,10 +20,8 @@
 #include <cstdint>
 #include <string>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class VariableContainer;
 class Value;

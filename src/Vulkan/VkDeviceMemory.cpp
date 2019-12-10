@@ -16,8 +16,7 @@
 
 #include "VkConfig.h"
 
-namespace vk
-{
+namespace vk {
 
 // Base abstract interface for a device memory implementation.
 class DeviceMemory::ExternalBase
@@ -86,7 +85,6 @@ static bool parseCreateInfo(const VkMemoryAllocateInfo* pAllocateInfo,
 class DeviceMemoryHostExternalBase : public DeviceMemory::ExternalBase
 {
 public:
-
     // Does not support any external memory type at all.
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = (VkExternalMemoryHandleTypeFlagBits)0;
 
@@ -129,8 +127,7 @@ public:
 #  endif
 #endif
 
-namespace vk
-{
+namespace vk {
 
 static void findTraits(const VkMemoryAllocateInfo* pAllocateInfo,
 					   ExternalMemoryTraits*       pTraits)
@@ -231,4 +228,4 @@ VkResult DeviceMemory::exportFd(int* pFd) const
 }
 #endif
 
-} // namespace vk
+}  // namespace vk

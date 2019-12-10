@@ -32,22 +32,23 @@
 #define CHECK_PRINTF_ARGS
 #endif
 
-namespace vk
-{
-	// Outputs text to the debugging log
-	void trace(const char *format, ...) CHECK_PRINTF_ARGS;
-	inline void trace() {}
+namespace vk {
 
-	// Outputs text to the debugging log and prints to stderr.
-	void warn(const char *format, ...) CHECK_PRINTF_ARGS;
-	inline void warn() {}
+// Outputs text to the debugging log
+void trace(const char *format, ...) CHECK_PRINTF_ARGS;
+inline void trace() {}
 
-	// Outputs the message to the debugging log and stderr, and calls abort().
-	void abort(const char *format, ...) CHECK_PRINTF_ARGS;
+// Outputs text to the debugging log and prints to stderr.
+void warn(const char *format, ...) CHECK_PRINTF_ARGS;
+inline void warn() {}
 
-	// Outputs text to the debugging log, and asserts once if a debugger is attached.
-	void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
-}
+// Outputs the message to the debugging log and stderr, and calls abort().
+void abort(const char *format, ...) CHECK_PRINTF_ARGS;
+
+// Outputs text to the debugging log, and asserts once if a debugger is attached.
+void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
+
+}  // namespace vk
 
 // A macro to output a trace of a function call and its arguments to the
 // debugging log. Disabled if SWIFTSHADER_DISABLE_TRACE is defined.

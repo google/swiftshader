@@ -15,8 +15,7 @@
 #include "VkInstance.hpp"
 #include "VkDestroy.h"
 
-namespace vk
-{
+namespace vk {
 
 Instance::Instance(const VkInstanceCreateInfo* pCreateInfo, void* mem, VkPhysicalDevice physicalDevice)
 	: physicalDevice(physicalDevice)
@@ -69,4 +68,4 @@ VkResult Instance::getPhysicalDeviceGroups(uint32_t *pPhysicalDeviceGroupCount,
 	return VK_SUCCESS;
 }
 
-} // namespace vk
+}  // namespace vk

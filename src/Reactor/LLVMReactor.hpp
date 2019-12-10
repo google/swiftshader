@@ -15,38 +15,40 @@
 #ifndef rr_LLVMReactor_hpp
 #define rr_LLVMReactor_hpp
 
-namespace llvm
+namespace llvm {
+
+class Type;
+class Value;
+
+}  // namespace llvm
+
+namespace rr {
+
+class Type;
+class Value;
+
+llvm::Type *T(Type *t);
+
+inline Type *T(llvm::Type *t)
 {
-	class Type;
-	class Value;
+	return reinterpret_cast<Type*>(t);
 }
 
-namespace rr
+inline llvm::Value *V(Value *t)
 {
-	class Type;
-	class Value;
-
-	llvm::Type *T(Type *t);
-
-	inline Type *T(llvm::Type *t)
-	{
-		return reinterpret_cast<Type*>(t);
-	}
-
-	inline llvm::Value *V(Value *t)
-	{
-		return reinterpret_cast<llvm::Value*>(t);
-	}
-
-	inline Value *V(llvm::Value *t)
-	{
-		return reinterpret_cast<Value*>(t);
-	}
-
-	// Emits a no-op instruction that will not be optimized away.
-	// Useful for emitting something that can have a source location without
-	// effect.
-	void Nop();
+	return reinterpret_cast<llvm::Value*>(t);
 }
+
+inline Value *V(llvm::Value *t)
+{
+	return reinterpret_cast<Value*>(t);
+}
+
+// Emits a no-op instruction that will not be optimized away.
+// Useful for emitting something that can have a source location without
+// effect.
+void Nop();
+
+}  // namespace rr
 
 #endif // rr_LLVMReactor_hpp

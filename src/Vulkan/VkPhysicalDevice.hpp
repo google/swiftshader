@@ -22,8 +22,7 @@
 #include <vulkan/vk_android_native_buffer.h>
 #endif
 
-namespace vk
-{
+namespace vk {
 
 class PhysicalDevice
 {
@@ -89,6 +88,6 @@ static inline PhysicalDevice* Cast(VkPhysicalDevice object)
 	return DispatchablePhysicalDevice::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_PHYSICAL_DEVICE_HPP_

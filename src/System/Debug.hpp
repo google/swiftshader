@@ -25,10 +25,11 @@
 #undef min
 #undef max
 
-namespace sw
-{
+namespace sw {
+
 void trace(const char *format, ...);
 inline void trace() {}
+
 }
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)

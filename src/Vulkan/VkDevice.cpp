@@ -25,16 +25,16 @@
 #include <climits>
 #include <new> // Must #include this to use "placement new"
 
-namespace
+namespace {
+
+std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> now()
 {
-	std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> now()
-	{
-		return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now());
-	}
+	return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now());
 }
 
-namespace vk
-{
+}  // anonymous namespace
+
+namespace vk {
 
 std::shared_ptr<rr::Routine> Device::SamplingRoutineCache::query(const vk::Device::SamplingRoutineCache::Key& key) const
 {
@@ -264,4 +264,4 @@ std::mutex& Device::getSamplingRoutineCacheMutex()
 	return samplingRoutineCacheMutex;
 }
 
-} // namespace vk
+}  // namespace vk

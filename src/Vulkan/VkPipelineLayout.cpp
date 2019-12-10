@@ -15,8 +15,7 @@
 #include "VkPipelineLayout.hpp"
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, void* mem)
 	: setLayoutCount(pCreateInfo->setLayoutCount), pushConstantRangeCount(pCreateInfo->pushConstantRangeCount)
@@ -76,4 +75,4 @@ uint32_t PipelineLayout::getDynamicOffsetBase(size_t descriptorSet) const
 	return dynamicOffsetBases[descriptorSet];
 }
 
-} // namespace vk
+}  // namespace vk

@@ -19,127 +19,128 @@
 #include "System/Math.hpp"
 #include "Vulkan/VkConfig.h"
 
-namespace sw
+namespace sw {
+
+struct Constants
 {
-	struct Constants
-	{
-		Constants();
+	Constants();
 
-		unsigned int transposeBit0[16];
-		unsigned int transposeBit1[16];
-		unsigned int transposeBit2[16];
+	unsigned int transposeBit0[16];
+	unsigned int transposeBit1[16];
+	unsigned int transposeBit2[16];
 
-		ushort4 cWeight[17];
-		float4 uvWeight[17];
-		float4 uvStart[17];
+	ushort4 cWeight[17];
+	float4 uvWeight[17];
+	float4 uvStart[17];
 
-		unsigned int occlusionCount[16];
+	unsigned int occlusionCount[16];
 
-		byte8 maskB4Q[16];
-		byte8 invMaskB4Q[16];
-		word4 maskW4Q[16];
-		word4 invMaskW4Q[16];
-		dword4 maskD4X[16];
-		dword4 invMaskD4X[16];
-		qword maskQ0Q[16];
-		qword maskQ1Q[16];
-		qword maskQ2Q[16];
-		qword maskQ3Q[16];
-		qword invMaskQ0Q[16];
-		qword invMaskQ1Q[16];
-		qword invMaskQ2Q[16];
-		qword invMaskQ3Q[16];
-		dword4 maskX0X[16];
-		dword4 maskX1X[16];
-		dword4 maskX2X[16];
-		dword4 maskX3X[16];
-		dword4 invMaskX0X[16];
-		dword4 invMaskX1X[16];
-		dword4 invMaskX2X[16];
-		dword4 invMaskX3X[16];
-		dword2 maskD01Q[16];
-		dword2 maskD23Q[16];
-		dword2 invMaskD01Q[16];
-		dword2 invMaskD23Q[16];
-		qword2 maskQ01X[16];
-		qword2 maskQ23X[16];
-		qword2 invMaskQ01X[16];
-		qword2 invMaskQ23X[16];
-		word4 maskW01Q[4];
-		dword4 maskD01X[4];
-		word4 mask565Q[8];
-		dword2 mask10Q[16];		// 4 bit writemask -> A2B10G10R10 bit patterns, replicated 2x
-		word4 mask5551Q[16];	// 4 bit writemask -> A1R5G5B5 bit patterns, replicated 4x
+	byte8 maskB4Q[16];
+	byte8 invMaskB4Q[16];
+	word4 maskW4Q[16];
+	word4 invMaskW4Q[16];
+	dword4 maskD4X[16];
+	dword4 invMaskD4X[16];
+	qword maskQ0Q[16];
+	qword maskQ1Q[16];
+	qword maskQ2Q[16];
+	qword maskQ3Q[16];
+	qword invMaskQ0Q[16];
+	qword invMaskQ1Q[16];
+	qword invMaskQ2Q[16];
+	qword invMaskQ3Q[16];
+	dword4 maskX0X[16];
+	dword4 maskX1X[16];
+	dword4 maskX2X[16];
+	dword4 maskX3X[16];
+	dword4 invMaskX0X[16];
+	dword4 invMaskX1X[16];
+	dword4 invMaskX2X[16];
+	dword4 invMaskX3X[16];
+	dword2 maskD01Q[16];
+	dword2 maskD23Q[16];
+	dword2 invMaskD01Q[16];
+	dword2 invMaskD23Q[16];
+	qword2 maskQ01X[16];
+	qword2 maskQ23X[16];
+	qword2 invMaskQ01X[16];
+	qword2 invMaskQ23X[16];
+	word4 maskW01Q[4];
+	dword4 maskD01X[4];
+	word4 mask565Q[8];
+	dword2 mask10Q[16];		// 4 bit writemask -> A2B10G10R10 bit patterns, replicated 2x
+	word4 mask5551Q[16];	// 4 bit writemask -> A1R5G5B5 bit patterns, replicated 4x
 
-		unsigned short sRGBtoLinear8_16[256];
+	unsigned short sRGBtoLinear8_16[256];
 
-		unsigned short linearToSRGB12_16[4096];
-		unsigned short sRGBtoLinear12_16[4096];
+	unsigned short linearToSRGB12_16[4096];
+	unsigned short sRGBtoLinear12_16[4096];
 
-		// Centroid parameters
-		float4 sampleX[4][16];
-		float4 sampleY[4][16];
-		float4 weight[16];
+	// Centroid parameters
+	float4 sampleX[4][16];
+	float4 sampleY[4][16];
+	float4 weight[16];
 
-		// Fragment offsets
-		int Xf[4];
-		int Yf[4];
+	// Fragment offsets
+	int Xf[4];
+	int Yf[4];
 
-		float4 X[4];
-		float4 Y[4];
+	float4 X[4];
+	float4 Y[4];
 
-		// VK_SAMPLE_COUNT_4_BIT
-		// https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#primsrast-multisampling
-		static constexpr float VkSampleLocations4[][2] = {
-			{0.375, 0.125},
-			{0.875, 0.375},
-			{0.125, 0.625},
-			{0.625, 0.875},
-		};
-
-		// Vulkan spec sample positions are relative to 0,0 in top left corner, with Y+ going down.
-		// Convert to our space, with 0,0 in center, and Y+ going up.
-		static constexpr float SampleLocationsX[4] = {
-			VkSampleLocations4[0][0] - 0.5f,
-			VkSampleLocations4[1][0] - 0.5f,
-			VkSampleLocations4[2][0] - 0.5f,
-			VkSampleLocations4[3][0] - 0.5f,
-		};
-
-		static constexpr float SampleLocationsY[4] = {
-			-(VkSampleLocations4[0][1] - 0.5f),
-			-(VkSampleLocations4[1][1] - 0.5f),
-			-(VkSampleLocations4[2][1] - 0.5f),
-			-(VkSampleLocations4[3][1] - 0.5f),
-		};
-
-		// Compute the yMin and yMax multisample offsets so that they are just
-		// large enough (+/- max range - epsilon) to include sample points
-		static constexpr int yMinMultiSampleOffset = sw::toFixedPoint(1, vk::SUBPIXEL_PRECISION_BITS) - sw::toFixedPoint(sw::max(SampleLocationsY[0], SampleLocationsY[1], SampleLocationsY[2], SampleLocationsY[3]), vk::SUBPIXEL_PRECISION_BITS) - 1;
-		static constexpr int yMaxMultiSampleOffset = sw::toFixedPoint(1, vk::SUBPIXEL_PRECISION_BITS) + sw::toFixedPoint(sw::max(SampleLocationsY[0], SampleLocationsY[1], SampleLocationsY[2], SampleLocationsY[3]), vk::SUBPIXEL_PRECISION_BITS) - 1;
-
-		dword maxX[16];
-		dword maxY[16];
-		dword maxZ[16];
-		dword minX[16];
-		dword minY[16];
-		dword minZ[16];
-		dword fini[16];
-
-		dword4 maxPos;
-
-		float4 unscaleByte;
-		float4 unscaleSByte;
-		float4 unscaleShort;
-		float4 unscaleUShort;
-		float4 unscaleInt;
-		float4 unscaleUInt;
-		float4 unscaleFixed;
-
-		float half2float[65536];
+	// VK_SAMPLE_COUNT_4_BIT
+	// https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#primsrast-multisampling
+	static constexpr float VkSampleLocations4[][2] = {
+		{0.375, 0.125},
+		{0.875, 0.375},
+		{0.125, 0.625},
+		{0.625, 0.875},
 	};
 
-	extern Constants constants;
-}
+	// Vulkan spec sample positions are relative to 0,0 in top left corner, with Y+ going down.
+	// Convert to our space, with 0,0 in center, and Y+ going up.
+	static constexpr float SampleLocationsX[4] = {
+		VkSampleLocations4[0][0] - 0.5f,
+		VkSampleLocations4[1][0] - 0.5f,
+		VkSampleLocations4[2][0] - 0.5f,
+		VkSampleLocations4[3][0] - 0.5f,
+	};
+
+	static constexpr float SampleLocationsY[4] = {
+		-(VkSampleLocations4[0][1] - 0.5f),
+		-(VkSampleLocations4[1][1] - 0.5f),
+		-(VkSampleLocations4[2][1] - 0.5f),
+		-(VkSampleLocations4[3][1] - 0.5f),
+	};
+
+	// Compute the yMin and yMax multisample offsets so that they are just
+	// large enough (+/- max range - epsilon) to include sample points
+	static constexpr int yMinMultiSampleOffset = sw::toFixedPoint(1, vk::SUBPIXEL_PRECISION_BITS) - sw::toFixedPoint(sw::max(SampleLocationsY[0], SampleLocationsY[1], SampleLocationsY[2], SampleLocationsY[3]), vk::SUBPIXEL_PRECISION_BITS) - 1;
+	static constexpr int yMaxMultiSampleOffset = sw::toFixedPoint(1, vk::SUBPIXEL_PRECISION_BITS) + sw::toFixedPoint(sw::max(SampleLocationsY[0], SampleLocationsY[1], SampleLocationsY[2], SampleLocationsY[3]), vk::SUBPIXEL_PRECISION_BITS) - 1;
+
+	dword maxX[16];
+	dword maxY[16];
+	dword maxZ[16];
+	dword minX[16];
+	dword minY[16];
+	dword minZ[16];
+	dword fini[16];
+
+	dword4 maxPos;
+
+	float4 unscaleByte;
+	float4 unscaleSByte;
+	float4 unscaleShort;
+	float4 unscaleUShort;
+	float4 unscaleInt;
+	float4 unscaleUInt;
+	float4 unscaleFixed;
+
+	float half2float[65536];
+};
+
+extern Constants constants;
+
+}  // namepsace sw
 
 #endif   // sw_Constants_hpp

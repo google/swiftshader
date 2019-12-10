@@ -16,8 +16,7 @@
 
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 std::atomic<uint32_t> ShaderModule::serialCounter(1);    // Start at 1, 0 is invalid shader.
 
@@ -38,4 +37,4 @@ size_t ShaderModule::ComputeRequiredAllocationSize(const VkShaderModuleCreateInf
 	return pCreateInfo->codeSize;
 }
 
-} // namespace vk
+}  // namespace vk

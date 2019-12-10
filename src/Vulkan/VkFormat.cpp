@@ -16,8 +16,7 @@
 #include "VkDebug.hpp"
 #include "System/Math.hpp"
 
-namespace vk
-{
+namespace vk {
 
 bool Format::isUnsignedNormalized() const
 {
@@ -2231,4 +2230,4 @@ bool Format::isRGBComponent(int component) const
 	return false;
 }
 
-} // namespace vk
+}  // namespace vk

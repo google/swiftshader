@@ -16,43 +16,43 @@
 #include "VkImage.hpp"
 #include <System/Math.hpp>
 
-namespace
+namespace {
+
+VkComponentMapping ResolveComponentMapping(VkComponentMapping m, vk::Format format)
 {
-	VkComponentMapping ResolveComponentMapping(VkComponentMapping m, vk::Format format)
-	{
-		m = vk::ResolveIdentityMapping(m);
+	m = vk::ResolveIdentityMapping(m);
 
-		// Replace non-present components with zero/one swizzles so that the sampler
-		// will give us correct interactions between channel replacement and texel replacement,
-		// where we've had to invent new channels behind the app's back (eg transparent decompression
-		// of ETC2 RGB -> BGRA8)
-		VkComponentSwizzle table[] = {
-			VK_COMPONENT_SWIZZLE_IDENTITY,
-			VK_COMPONENT_SWIZZLE_ZERO,
-			VK_COMPONENT_SWIZZLE_ONE,
-			VK_COMPONENT_SWIZZLE_R,
-			format.componentCount() < 2 ? VK_COMPONENT_SWIZZLE_ZERO : VK_COMPONENT_SWIZZLE_G,
-			format.componentCount() < 3 ? VK_COMPONENT_SWIZZLE_ZERO : VK_COMPONENT_SWIZZLE_B,
-			format.componentCount() < 4 ? VK_COMPONENT_SWIZZLE_ONE : VK_COMPONENT_SWIZZLE_A,
-		};
+	// Replace non-present components with zero/one swizzles so that the sampler
+	// will give us correct interactions between channel replacement and texel replacement,
+	// where we've had to invent new channels behind the app's back (eg transparent decompression
+	// of ETC2 RGB -> BGRA8)
+	VkComponentSwizzle table[] = {
+		VK_COMPONENT_SWIZZLE_IDENTITY,
+		VK_COMPONENT_SWIZZLE_ZERO,
+		VK_COMPONENT_SWIZZLE_ONE,
+		VK_COMPONENT_SWIZZLE_R,
+		format.componentCount() < 2 ? VK_COMPONENT_SWIZZLE_ZERO : VK_COMPONENT_SWIZZLE_G,
+		format.componentCount() < 3 ? VK_COMPONENT_SWIZZLE_ZERO : VK_COMPONENT_SWIZZLE_B,
+		format.componentCount() < 4 ? VK_COMPONENT_SWIZZLE_ONE : VK_COMPONENT_SWIZZLE_A,
+	};
 
-		return {table[m.r], table[m.g], table[m.b], table[m.a]};
-	}
-
-	VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange range, const vk::Image *image)
-	{
-		return {
-			range.aspectMask,
-			range.baseMipLevel,
-			(range.levelCount == VK_REMAINING_MIP_LEVELS) ? (image->getMipLevels() - range.baseMipLevel) : range.levelCount,
-			range.baseArrayLayer,
-			(range.layerCount == VK_REMAINING_ARRAY_LAYERS) ? (image->getArrayLayers() - range.baseArrayLayer) : range.layerCount,
-		};
-	}
+	return {table[m.r], table[m.g], table[m.b], table[m.a]};
 }
 
-namespace vk
+VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange range, const vk::Image *image)
 {
+	return {
+		range.aspectMask,
+		range.baseMipLevel,
+		(range.levelCount == VK_REMAINING_MIP_LEVELS) ? (image->getMipLevels() - range.baseMipLevel) : range.levelCount,
+		range.baseArrayLayer,
+		(range.layerCount == VK_REMAINING_ARRAY_LAYERS) ? (image->getArrayLayers() - range.baseArrayLayer) : range.layerCount,
+	};
+}
+
+}  // anonymous namespace
+
+namespace vk {
 
 std::atomic<uint32_t> ImageView::nextID(1);
 
@@ -298,4 +298,4 @@ void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBit
 	return getImage(usage)->getTexelPointer(offset, imageSubresourceLayers);
 }
 
-}
+}  // namespace vk

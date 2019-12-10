@@ -15,32 +15,33 @@
 #ifndef sw_Clipper_hpp
 #define sw_Clipper_hpp
 
-namespace sw
+namespace sw {
+
+struct DrawCall;
+struct Polygon;
+struct float4;
+
+struct Clipper
 {
-	struct DrawCall;
-	struct Polygon;
-	struct float4;
-
-	struct Clipper
+	enum ClipFlags
 	{
-		enum ClipFlags
-		{
-			// Indicates the vertex is outside the respective frustum plane
-			CLIP_RIGHT  = 1 << 0,
-			CLIP_TOP    = 1 << 1,
-			CLIP_FAR    = 1 << 2,
-			CLIP_LEFT   = 1 << 3,
-			CLIP_BOTTOM = 1 << 4,
-			CLIP_NEAR   = 1 << 5,
+		// Indicates the vertex is outside the respective frustum plane
+		CLIP_RIGHT  = 1 << 0,
+		CLIP_TOP    = 1 << 1,
+		CLIP_FAR    = 1 << 2,
+		CLIP_LEFT   = 1 << 3,
+		CLIP_BOTTOM = 1 << 4,
+		CLIP_NEAR   = 1 << 5,
 
-			CLIP_FRUSTUM = 0x003F,
+		CLIP_FRUSTUM = 0x003F,
 
-			CLIP_FINITE = 1 << 7,   // All position coordinates are finite
-		};
-
-		static unsigned int ComputeClipFlags(const float4 &v);
-		static bool Clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw);
+		CLIP_FINITE = 1 << 7,   // All position coordinates are finite
 	};
-}
+
+	static unsigned int ComputeClipFlags(const float4 &v);
+	static bool Clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw);
+};
+
+}  // namespace sw
 
 #endif   // sw_Clipper_hpp

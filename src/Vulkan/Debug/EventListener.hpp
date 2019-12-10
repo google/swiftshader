@@ -15,10 +15,8 @@
 #ifndef VK_DEBUG_EVENT_LISTENER_HPP_
 #define VK_DEBUG_EVENT_LISTENER_HPP_
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class Thread;
 

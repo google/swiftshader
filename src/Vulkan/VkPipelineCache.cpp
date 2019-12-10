@@ -15,8 +15,7 @@
 #include "VkPipelineCache.hpp"
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 PipelineCache::SpirvShaderKey::SpecializationInfo::SpecializationInfo(const VkSpecializationInfo* specializationInfo)
 {
@@ -250,4 +249,4 @@ void PipelineCache::insert(const PipelineCache::ComputeProgramKey& key, const st
 	computePrograms[key] = computeProgram;
 }
 
-} // namespace vk
+}  // namespace vk

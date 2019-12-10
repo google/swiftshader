@@ -22,8 +22,7 @@
 #include <zircon/types.h>
 #endif
 
-namespace vk
-{
+namespace vk {
 
 class Semaphore : public Object<Semaphore, VkSemaphore>
 {
@@ -64,6 +63,6 @@ static inline Semaphore* Cast(VkSemaphore object)
 	return Semaphore::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_SEMAPHORE_HPP_

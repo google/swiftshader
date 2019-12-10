@@ -20,70 +20,71 @@
 #include "Device/Config.hpp"
 #include "System/Build.hpp"
 
-namespace sw
+namespace sw {
+
+struct Triangle MEMORY_SANITIZER_ONLY(: Memset<Triangle>)
 {
-	struct Triangle MEMORY_SANITIZER_ONLY(: Memset<Triangle>)
-	{
 #if MEMORY_SANITIZER_ENABLED
-		// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
-		// false-positives when read. By clearing the struct in the constructor,
-		// we can avoid triggering these false-positives.
-		inline Triangle() : Memset<Triangle>(this, 0) {}
+	// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
+	// false-positives when read. By clearing the struct in the constructor,
+	// we can avoid triggering these false-positives.
+	inline Triangle() : Memset<Triangle>(this, 0) {}
 #endif // MEMORY_SANITIZER_ENABLED
 
-		Vertex v0;
-		Vertex v1;
-		Vertex v2;
-	};
+	Vertex v0;
+	Vertex v1;
+	Vertex v2;
+};
 
-	struct PlaneEquation   // z = A * x + B * y + C
-	{
-		float4 A;
-		float4 B;
-		float4 C;
-	};
+struct PlaneEquation   // z = A * x + B * y + C
+{
+	float4 A;
+	float4 B;
+	float4 C;
+};
 
-	struct Primitive MEMORY_SANITIZER_ONLY(: Memset<Primitive>)
-	{
+struct Primitive MEMORY_SANITIZER_ONLY(: Memset<Primitive>)
+{
 #if MEMORY_SANITIZER_ENABLED
-		// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
-		// false-positives when read. By clearing the struct in the constructor,
-		// we can avoid triggering these false-positives.
-		inline Primitive() : Memset<Primitive>(this, 0) {}
+	// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
+	// false-positives when read. By clearing the struct in the constructor,
+	// we can avoid triggering these false-positives.
+	inline Primitive() : Memset<Primitive>(this, 0) {}
 #endif // MEMORY_SANITIZER_ENABLED
 
-		int yMin;
-		int yMax;
+	int yMin;
+	int yMax;
 
-		float4 xQuad;
-		float4 yQuad;
+	float4 xQuad;
+	float4 yQuad;
 
-		float pointCoordX;
-		float pointCoordY;
+	float pointCoordX;
+	float pointCoordY;
 
-		PlaneEquation z;
-		PlaneEquation w;
-		PlaneEquation V[MAX_INTERFACE_COMPONENTS];
+	PlaneEquation z;
+	PlaneEquation w;
+	PlaneEquation V[MAX_INTERFACE_COMPONENTS];
 
-		PlaneEquation clipDistance[MAX_CLIP_DISTANCES];
-		PlaneEquation cullDistance[MAX_CULL_DISTANCES];
+	PlaneEquation clipDistance[MAX_CLIP_DISTANCES];
+	PlaneEquation cullDistance[MAX_CULL_DISTANCES];
 
-		// Masks for two-sided stencil
-		int64_t clockwiseMask;
-		int64_t invClockwiseMask;
+	// Masks for two-sided stencil
+	int64_t clockwiseMask;
+	int64_t invClockwiseMask;
 
-		struct Span
-		{
-			unsigned short left;
-			unsigned short right;
-		};
-
-		// The rasterizer adds a zero length span to the top and bottom of the polygon to allow
-		// for 2x2 pixel processing. We need an even number of spans to keep accesses aligned.
-		Span outlineUnderflow[2];
-		Span outline[OUTLINE_RESOLUTION];
-		Span outlineOverflow[2];
+	struct Span
+	{
+		unsigned short left;
+		unsigned short right;
 	};
-}
+
+	// The rasterizer adds a zero length span to the top and bottom of the polygon to allow
+	// for 2x2 pixel processing. We need an even number of spans to keep accesses aligned.
+	Span outlineUnderflow[2];
+	Span outline[OUTLINE_RESOLUTION];
+	Span outlineOverflow[2];
+};
+
+}  // namespace sw
 
 #endif   // sw_Primitive_hpp

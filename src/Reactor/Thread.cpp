@@ -14,78 +14,79 @@
 
 #include "Thread.hpp"
 
-namespace rr
+namespace rr {
+
+Thread::Thread(void (*threadFunction)(void *parameters), void *parameters)
 {
-	Thread::Thread(void (*threadFunction)(void *parameters), void *parameters)
-	{
-		Event init;
-		Entry entry = {threadFunction, parameters, &init};
-
-		#if defined(_WIN32)
-			handle = CreateThread(NULL, 1024 * 1024, startFunction, &entry, 0, NULL);
-		#else
-			pthread_create(&handle, NULL, startFunction, &entry);
-		#endif
-
-		init.wait();
-	}
-
-	Thread::~Thread()
-	{
-		join();   // Make threads exit before deleting them to not block here
-	}
-
-	void Thread::join()
-	{
-		if(!hasJoined)
-		{
-			#if defined(_WIN32)
-				WaitForSingleObject(handle, INFINITE);
-				CloseHandle(handle);
-			#else
-				pthread_join(handle, NULL);
-			#endif
-
-			hasJoined = true;
-		}
-	}
+	Event init;
+	Entry entry = {threadFunction, parameters, &init};
 
 	#if defined(_WIN32)
-		unsigned long __stdcall Thread::startFunction(void *parameters)
-		{
-			Entry entry = *(Entry*)parameters;
-			entry.init->signal();
-			entry.threadFunction(entry.threadParameters);
-			return 0;
-		}
+		handle = CreateThread(NULL, 1024 * 1024, startFunction, &entry, 0, NULL);
 	#else
-		void *Thread::startFunction(void *parameters)
-		{
-			Entry entry = *(Entry*)parameters;
-			entry.init->signal();
-			entry.threadFunction(entry.threadParameters);
-			return nullptr;
-		}
+		pthread_create(&handle, NULL, startFunction, &entry);
 	#endif
 
-	Event::Event()
-	{
-		#if defined(_WIN32)
-			handle = CreateEvent(NULL, FALSE, FALSE, NULL);
-		#else
-			pthread_cond_init(&handle, NULL);
-			pthread_mutex_init(&mutex, NULL);
-			signaled = false;
-		#endif
-	}
+	init.wait();
+}
 
-	Event::~Event()
+Thread::~Thread()
+{
+	join();   // Make threads exit before deleting them to not block here
+}
+
+void Thread::join()
+{
+	if(!hasJoined)
 	{
 		#if defined(_WIN32)
+			WaitForSingleObject(handle, INFINITE);
 			CloseHandle(handle);
 		#else
-			pthread_cond_destroy(&handle);
-			pthread_mutex_destroy(&mutex);
+			pthread_join(handle, NULL);
 		#endif
+
+		hasJoined = true;
 	}
 }
+
+#if defined(_WIN32)
+	unsigned long __stdcall Thread::startFunction(void *parameters)
+	{
+		Entry entry = *(Entry*)parameters;
+		entry.init->signal();
+		entry.threadFunction(entry.threadParameters);
+		return 0;
+	}
+#else
+	void *Thread::startFunction(void *parameters)
+	{
+		Entry entry = *(Entry*)parameters;
+		entry.init->signal();
+		entry.threadFunction(entry.threadParameters);
+		return nullptr;
+	}
+#endif
+
+Event::Event()
+{
+	#if defined(_WIN32)
+		handle = CreateEvent(NULL, FALSE, FALSE, NULL);
+	#else
+		pthread_cond_init(&handle, NULL);
+		pthread_mutex_init(&mutex, NULL);
+		signaled = false;
+	#endif
+}
+
+Event::~Event()
+{
+	#if defined(_WIN32)
+		CloseHandle(handle);
+	#else
+		pthread_cond_destroy(&handle);
+		pthread_mutex_destroy(&mutex);
+	#endif
+}
+
+}  // namespace rr

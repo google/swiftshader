@@ -18,8 +18,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace sw
-{
+namespace sw {
+
 size_t memoryPageSize();
 
 void *allocate(size_t bytes, size_t alignment = 16);
@@ -27,6 +27,7 @@ void deallocate(void *memory);
 
 void clear(uint16_t *memory, uint16_t element, size_t count);
 void clear(uint32_t *memory, uint32_t element, size_t count);
-}
+
+}  // namespace sw
 
 #endif   // Memory_hpp

@@ -17,10 +17,8 @@
 
 #include <memory>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class File;
 

@@ -17,8 +17,7 @@
 
 #include "VkObject.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class Instance
 {
@@ -45,6 +44,6 @@ static inline Instance* Cast(VkInstance object)
 	return DispatchableInstance::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_INSTANCE_HPP_

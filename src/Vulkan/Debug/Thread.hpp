@@ -25,10 +25,8 @@
 #include <string>
 #include <vector>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class File;
 class VariableContainer;

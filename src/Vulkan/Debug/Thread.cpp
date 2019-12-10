@@ -18,10 +18,8 @@
 #include "EventListener.hpp"
 #include "File.hpp"
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 Thread::Thread(ID id, Context* ctx) :
     id(id),

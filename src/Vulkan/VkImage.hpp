@@ -22,8 +22,7 @@
 #include <vulkan/vk_android_native_buffer.h> // For VkSwapchainImageUsageFlagsANDROID and buffer_handle_t
 #endif
 
-namespace vk
-{
+namespace vk {
 
 class Buffer;
 class Device;
@@ -135,6 +134,6 @@ static inline Image* Cast(VkImage object)
 	return Image::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_IMAGE_HPP_

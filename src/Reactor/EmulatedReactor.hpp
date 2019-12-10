@@ -21,33 +21,33 @@
 // starting point for implementing a new backend, or for when adding
 // functionality to an existing backend is non-trivial.
 
-namespace rr
-{
-	namespace emulated
-	{
-		RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
-		RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
-		void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
-		void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
-		RValue<Float> Exp2(RValue<Float> x);
-		RValue<Float> Log2(RValue<Float> x);
-		RValue<Float4> Sin(RValue<Float4> x);
-		RValue<Float4> Cos(RValue<Float4> x);
-		RValue<Float4> Tan(RValue<Float4> x);
-		RValue<Float4> Asin(RValue<Float4> x);
-		RValue<Float4> Acos(RValue<Float4> x);
-		RValue<Float4> Atan(RValue<Float4> x);
-		RValue<Float4> Sinh(RValue<Float4> x);
-		RValue<Float4> Cosh(RValue<Float4> x);
-		RValue<Float4> Tanh(RValue<Float4> x);
-		RValue<Float4> Asinh(RValue<Float4> x);
-		RValue<Float4> Acosh(RValue<Float4> x);
-		RValue<Float4> Atanh(RValue<Float4> x);
-		RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> Exp(RValue<Float4> x);
-		RValue<Float4> Log(RValue<Float4> x);
-		RValue<Float4> Exp2(RValue<Float4> x);
-		RValue<Float4> Log2(RValue<Float4> x);
-	}
-}
+namespace rr {
+namespace emulated {
+
+RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
+RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes = false);
+void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+RValue<Float> Exp2(RValue<Float> x);
+RValue<Float> Log2(RValue<Float> x);
+RValue<Float4> Sin(RValue<Float4> x);
+RValue<Float4> Cos(RValue<Float4> x);
+RValue<Float4> Tan(RValue<Float4> x);
+RValue<Float4> Asin(RValue<Float4> x);
+RValue<Float4> Acos(RValue<Float4> x);
+RValue<Float4> Atan(RValue<Float4> x);
+RValue<Float4> Sinh(RValue<Float4> x);
+RValue<Float4> Cosh(RValue<Float4> x);
+RValue<Float4> Tanh(RValue<Float4> x);
+RValue<Float4> Asinh(RValue<Float4> x);
+RValue<Float4> Acosh(RValue<Float4> x);
+RValue<Float4> Atanh(RValue<Float4> x);
+RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y);
+RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y);
+RValue<Float4> Exp(RValue<Float4> x);
+RValue<Float4> Log(RValue<Float4> x);
+RValue<Float4> Exp2(RValue<Float4> x);
+RValue<Float4> Log2(RValue<Float4> x);
+
+}  // namespace emulated
+}  // namespace rr

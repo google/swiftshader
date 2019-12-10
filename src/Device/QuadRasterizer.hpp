@@ -20,40 +20,41 @@
 #include "Pipeline/SpirvShader.hpp"
 #include "System/Types.hpp"
 
-namespace sw
+namespace sw {
+
+class QuadRasterizer : public Rasterizer
 {
-	class QuadRasterizer : public Rasterizer
-	{
-	public:
-		QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader);
-		virtual ~QuadRasterizer();
+public:
+	QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader);
+	virtual ~QuadRasterizer();
 
-		void generate();
+	void generate();
 
-	protected:
-		Pointer<Byte> constants;
+protected:
+	Pointer<Byte> constants;
 
-		Float4 Dz[4];
-		Float4 Dw;
-		Float4 Dv[MAX_INTERFACE_COMPONENTS];
-		Float4 Df;
-		Float4 DclipDistance[MAX_CLIP_DISTANCES];
-		Float4 DcullDistance[MAX_CULL_DISTANCES];
+	Float4 Dz[4];
+	Float4 Dw;
+	Float4 Dv[MAX_INTERFACE_COMPONENTS];
+	Float4 Df;
+	Float4 DclipDistance[MAX_CLIP_DISTANCES];
+	Float4 DcullDistance[MAX_CULL_DISTANCES];
 
-		UInt occlusion;
+	UInt occlusion;
 
-		virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
+	virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
 
-		bool interpolateZ() const;
-		bool interpolateW() const;
-		Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective, bool clamp);
+	bool interpolateZ() const;
+	bool interpolateW() const;
+	Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective, bool clamp);
 
-		const PixelProcessor::State &state;
-		const SpirvShader *const spirvShader;
+	const PixelProcessor::State &state;
+	const SpirvShader *const spirvShader;
 
-	private:
-		void rasterize(Int &yMin, Int &yMax);
-	};
-}
+private:
+	void rasterize(Int &yMin, Int &yMax);
+};
+
+}  // namespace sw
 
 #endif   // sw_QuadRasterizer_hpp

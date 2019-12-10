@@ -16,37 +16,38 @@
 
 #include "System/Timer.hpp"
 
-namespace sw
+namespace sw {
+
+Profiler profiler;
+
+Profiler::Profiler()
 {
-	Profiler profiler;
+	reset();
+}
 
-	Profiler::Profiler()
-	{
-		reset();
-	}
+void Profiler::reset()
+{
+	framesSec = 0;
+	framesTotal = 0;
+	FPS = 0;
+}
 
-	void Profiler::reset()
+void Profiler::nextFrame()
+{
+	static double fpsTime = sw::Timer::seconds();
+
+	double time = sw::Timer::seconds();
+	double delta = time - fpsTime;
+	framesSec++;
+
+	if(delta > 1.0)
 	{
+		FPS = framesSec / delta;
+
+		fpsTime = time;
+		framesTotal += framesSec;
 		framesSec = 0;
-		framesTotal = 0;
-		FPS = 0;
-	}
-
-	void Profiler::nextFrame()
-	{
-		static double fpsTime = sw::Timer::seconds();
-
-		double time = sw::Timer::seconds();
-		double delta = time - fpsTime;
-		framesSec++;
-
-		if(delta > 1.0)
-		{
-			FPS = framesSec / delta;
-
-			fpsTime = time;
-			framesTotal += framesSec;
-			framesSec = 0;
-		}
 	}
 }
+
+}  // namespace sw

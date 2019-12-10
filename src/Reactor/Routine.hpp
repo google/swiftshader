@@ -17,57 +17,58 @@
 
 #include <memory>
 
-namespace rr
+namespace rr {
+
+class Routine
 {
-	class Routine
+public:
+	Routine() = default;
+	virtual ~Routine() = default;
+
+	virtual const void *getEntry(int index = 0) const = 0;
+};
+
+// RoutineT is a type-safe wrapper around a Routine and its callable entry, returned by FunctionT
+template<typename FunctionType>
+class RoutineT;
+
+template<typename Return, typename... Arguments>
+class RoutineT<Return(Arguments...)>
+{
+public:
+	RoutineT() = default;
+
+	explicit RoutineT(const std::shared_ptr<Routine>& routine)
+		: routine(routine)
 	{
-	public:
-		Routine() = default;
-		virtual ~Routine() = default;
+		if (routine)
+		{
+			callable = reinterpret_cast<CallableType>(const_cast<void*>(routine->getEntry(0)));
+		}
+	}
 
-		virtual const void *getEntry(int index = 0) const = 0;
-	};
-
-	// RoutineT is a type-safe wrapper around a Routine and its callable entry, returned by FunctionT
-	template<typename FunctionType>
-	class RoutineT;
-
-	template<typename Return, typename... Arguments>
-	class RoutineT<Return(Arguments...)>
+	operator bool() const
 	{
-	public:
-		RoutineT() = default;
+		return callable != nullptr;
+	}
 
-		explicit RoutineT(const std::shared_ptr<Routine>& routine)
-			: routine(routine)
-		{
-			if (routine)
-			{
-				callable = reinterpret_cast<CallableType>(const_cast<void*>(routine->getEntry(0)));
-			}
-		}
+	template <typename... Args>
+	Return operator()(Args&&... args) const
+	{
+		return callable(std::forward<Args>(args)...);
+	}
 
-		operator bool() const
-		{
-			return callable != nullptr;
-		}
+	const void* getEntry() const
+	{
+		return reinterpret_cast<void*>(callable);
+	}
 
-		template <typename... Args>
-		Return operator()(Args&&... args) const
-		{
-			return callable(std::forward<Args>(args)...);
-		}
+private:
+	std::shared_ptr<Routine> routine;
+	using CallableType = Return(*)(Arguments...);
+	CallableType callable = nullptr;
+};
 
-		const void* getEntry() const
-		{
-			return reinterpret_cast<void*>(callable);
-		}
-
-	private:
-		std::shared_ptr<Routine> routine;
-		using CallableType = Return(*)(Arguments...);
-		CallableType callable = nullptr;
-	};
-}
+}  // namespace rr
 
 #endif   // rr_Routine_hpp

@@ -18,45 +18,46 @@
 #include <unordered_map>
 #include <cstdint>
 
-namespace sw
+namespace sw {
+
+// SpirvID is a strongly-typed identifier backed by a uint32_t.
+// The template parameter T is not actually used by the implementation of
+// ID; instead it is used to prevent implicit casts between identifiers of
+// different T types.
+// IDs are typically used as a map key to value of type T.
+template <typename T>
+class SpirvID
 {
-	// SpirvID is a strongly-typed identifier backed by a uint32_t.
-	// The template parameter T is not actually used by the implementation of
-	// ID; instead it is used to prevent implicit casts between identifiers of
-	// different T types.
-	// IDs are typically used as a map key to value of type T.
-	template <typename T>
-	class SpirvID
-	{
-	public:
-		SpirvID() : id(0) {}
-		SpirvID(uint32_t id) : id(id) {}
-		bool operator == (const SpirvID<T>& rhs) const { return id == rhs.id; }
-		bool operator != (const SpirvID<T>& rhs) const { return id != rhs.id; }
-		bool operator < (const SpirvID<T>& rhs) const { return id < rhs.id; }
+public:
+	SpirvID() : id(0) {}
+	SpirvID(uint32_t id) : id(id) {}
+	bool operator == (const SpirvID<T>& rhs) const { return id == rhs.id; }
+	bool operator != (const SpirvID<T>& rhs) const { return id != rhs.id; }
+	bool operator < (const SpirvID<T>& rhs) const { return id < rhs.id; }
 
-		// value returns the numerical value of the identifier.
-		uint32_t value() const { return id; }
-	private:
-		uint32_t id;
-	};
+	// value returns the numerical value of the identifier.
+	uint32_t value() const { return id; }
+private:
+	uint32_t id;
+};
 
-	// HandleMap<T> is an unordered map of SpirvID<T> to T.
-	template <typename T>
-	using HandleMap = std::unordered_map<SpirvID<T>, T>;
+// HandleMap<T> is an unordered map of SpirvID<T> to T.
+template <typename T>
+using HandleMap = std::unordered_map<SpirvID<T>, T>;
 }
 
 namespace std
 {
-	// std::hash implementation for sw::SpirvID<T>
-	template<typename T>
-	struct hash< sw::SpirvID<T> >
+// std::hash implementation for sw::SpirvID<T>
+template<typename T>
+struct hash< sw::SpirvID<T> >
+{
+	std::size_t operator()(const sw::SpirvID<T>& id) const noexcept
 	{
-		std::size_t operator()(const sw::SpirvID<T>& id) const noexcept
-		{
-			return std::hash<uint32_t>()(id.value());
-		}
-	};
-}
+		return std::hash<uint32_t>()(id.value());
+	}
+};
+
+}  // namespace sw
 
 #endif  // sw_ID_hpp

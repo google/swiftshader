@@ -17,9 +17,10 @@
 
 #include "src/IceCfg.h"
 
-namespace rr
-{
-	void optimize(Ice::Cfg *function);
-}
+namespace rr {
+
+void optimize(Ice::Cfg *function);
+
+}  // namespace rr
 
 #endif   // rr_Optimizer_hpp

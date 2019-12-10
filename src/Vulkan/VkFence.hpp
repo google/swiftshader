@@ -22,8 +22,7 @@
 #include "marl/event.h"
 #include "marl/waitgroup.h"
 
-namespace vk
-{
+namespace vk {
 
 class Fence : public Object<Fence, VkFence>, public sw::TaskEvents
 {
@@ -88,6 +87,6 @@ static inline Fence* Cast(VkFence object)
 	return Fence::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_FENCE_HPP_

@@ -18,10 +18,8 @@
 #include <map>
 #include <memory>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 // WeakMap is an associative container of keys of type K to values of type
 // std::weak_ptr<V>.

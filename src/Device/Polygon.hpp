@@ -17,40 +17,41 @@
 
 #include "Vertex.hpp"
 
-namespace sw
+namespace sw {
+
+struct Polygon
 {
-	struct Polygon
+	Polygon(const float4 *P0, const float4 *P1, const float4 *P2)
 	{
-		Polygon(const float4 *P0, const float4 *P1, const float4 *P2)
-		{
-			P[0][0] = P0;
-			P[0][1] = P1;
-			P[0][2] = P2;
+		P[0][0] = P0;
+		P[0][1] = P1;
+		P[0][2] = P2;
 
-			n = 3;
-			i = 0;
-			b = 0;
+		n = 3;
+		i = 0;
+		b = 0;
+	}
+
+	Polygon(const float4 *P, int n)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			this->P[0][i] = &P[i];
 		}
 
-		Polygon(const float4 *P, int n)
-		{
-			for(int i = 0; i < n; i++)
-			{
-				this->P[0][i] = &P[i];
-			}
+		this->n = n;
+		this->i = 0;
+		this->b = 0;
+	}
 
-			this->n = n;
-			this->i = 0;
-			this->b = 0;
-		}
+	float4 B[16];              // Buffer for clipped vertices
+	const float4 *P[16][16];   // Pointers to clipped polygon's vertices
 
-		float4 B[16];              // Buffer for clipped vertices
-		const float4 *P[16][16];   // Pointers to clipped polygon's vertices
+	int n;   // Number of vertices
+	int i;   // Level of P to use
+	int b;   // Next available new vertex
+};
 
-		int n;   // Number of vertices
-		int i;   // Level of P to use
-		int b;   // Next available new vertex
-	};
-}
+}  // namespace sw
 
 #endif   // sw_Polygon_hpp

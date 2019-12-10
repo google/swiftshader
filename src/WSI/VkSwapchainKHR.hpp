@@ -22,8 +22,7 @@
 
 #include <vector>
 
-namespace vk
-{
+namespace vk {
 
 class Fence;
 class Semaphore;
@@ -63,6 +62,6 @@ static inline SwapchainKHR* Cast(VkSwapchainKHR object)
 	return SwapchainKHR::Cast(object);
 }
 
-}
+}  // namespace vk
 
 #endif //SWIFTSHADER_VKSWAPCHAINKHR_HPP

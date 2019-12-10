@@ -17,8 +17,7 @@
 
 #include "VkObject.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class DeviceMemory;
 
@@ -59,6 +58,6 @@ static inline Buffer* Cast(VkBuffer object)
 	return Buffer::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_BUFFER_HPP_

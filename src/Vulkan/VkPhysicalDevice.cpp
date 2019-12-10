@@ -20,8 +20,7 @@
 #include <limits>
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 static void setExternalMemoryProperties(VkExternalMemoryHandleTypeFlagBits handleType, VkExternalMemoryProperties* properties)
 {
@@ -873,4 +872,4 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() co
 	return properties;
 }
 
-} // namespace vk
+}  // namespace vk

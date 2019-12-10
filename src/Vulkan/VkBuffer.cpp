@@ -18,8 +18,7 @@
 
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 Buffer::Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem) :
 	flags(pCreateInfo->flags), size(pCreateInfo->size), usage(pCreateInfo->usage),
@@ -140,4 +139,4 @@ uint8_t* Buffer::end() const
 	return reinterpret_cast<uint8_t*>(getOffsetPointer(size + 1));
 }
 
-} // namespace vk
+}  // namespace vk

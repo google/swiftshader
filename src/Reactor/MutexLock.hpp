@@ -22,155 +22,157 @@
 // at the same time it's best to just have the scheduler overhead.
 #include <pthread.h>
 
-namespace rr
+namespace rr {
+
+class MutexLock
 {
-	class MutexLock
+public:
+	MutexLock()
 	{
-	public:
-		MutexLock()
-		{
-			pthread_mutex_init(&mutex, NULL);
-		}
+		pthread_mutex_init(&mutex, NULL);
+	}
 
-		~MutexLock()
-		{
-			pthread_mutex_destroy(&mutex);
-		}
+	~MutexLock()
+	{
+		pthread_mutex_destroy(&mutex);
+	}
 
-		bool attemptLock()
-		{
-			return pthread_mutex_trylock(&mutex) == 0;
-		}
+	bool attemptLock()
+	{
+		return pthread_mutex_trylock(&mutex) == 0;
+	}
 
-		void lock()
-		{
-			pthread_mutex_lock(&mutex);
-		}
+	void lock()
+	{
+		pthread_mutex_lock(&mutex);
+	}
 
-		void unlock()
-		{
-			pthread_mutex_unlock(&mutex);
-		}
+	void unlock()
+	{
+		pthread_mutex_unlock(&mutex);
+	}
 
-	private:
-		pthread_mutex_t mutex;
-	};
-}
+private:
+	pthread_mutex_t mutex;
+};
+
+}  // namespace rr
 
 #else   // !__linux__
 
 #include <atomic>
 
-namespace rr
+namespace rr {
+
+class BackoffLock
 {
-	class BackoffLock
+public:
+	BackoffLock()
 	{
-	public:
-		BackoffLock()
-		{
-			mutex = 0;
-		}
+		mutex = 0;
+	}
 
-		bool attemptLock()
+	bool attemptLock()
+	{
+		if(!isLocked())
 		{
-			if(!isLocked())
+			if(mutex.exchange(true) == false)
 			{
-				if(mutex.exchange(true) == false)
-				{
-					return true;
-				}
+				return true;
 			}
-
-			return false;
 		}
 
-		void lock()
-		{
-			int backoff = 1;
+		return false;
+	}
 
-			while(!attemptLock())
+	void lock()
+	{
+		int backoff = 1;
+
+		while(!attemptLock())
+		{
+			if(backoff <= 64)
 			{
-				if(backoff <= 64)
+				for(int i = 0; i < backoff; i++)
 				{
-					for(int i = 0; i < backoff; i++)
-					{
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 
-						nop();
-						nop();
-						nop();
-						nop();
-						nop();
-					}
-
-					backoff *= 2;
+					nop();
+					nop();
+					nop();
+					nop();
+					nop();
 				}
-				else
-				{
-					Thread::yield();
 
-					backoff = 1;
-				}
-			};
-		}
+				backoff *= 2;
+			}
+			else
+			{
+				Thread::yield();
 
-		void unlock()
-		{
-			mutex.store(false, std::memory_order_release);
-		}
-
-		bool isLocked()
-		{
-			return mutex.load(std::memory_order_acquire);
-		}
-
-	private:
-		struct
-		{
-			// Ensure that the mutex variable is on its own 64-byte cache line to avoid false sharing
-			// Padding must be public to avoid compiler warnings
-			volatile int padding1[16];
-			std::atomic<bool> mutex;
-			volatile int padding2[15];
+				backoff = 1;
+			}
 		};
-	};
+	}
 
-	using MutexLock = BackoffLock;
-}
+	void unlock()
+	{
+		mutex.store(false, std::memory_order_release);
+	}
+
+	bool isLocked()
+	{
+		return mutex.load(std::memory_order_acquire);
+	}
+
+private:
+	struct
+	{
+		// Ensure that the mutex variable is on its own 64-byte cache line to avoid false sharing
+		// Padding must be public to avoid compiler warnings
+		volatile int padding1[16];
+		std::atomic<bool> mutex;
+		volatile int padding2[15];
+	};
+};
+
+using MutexLock = BackoffLock;
+
+}  // namespace rr
 
 #endif   // !__linux__
 

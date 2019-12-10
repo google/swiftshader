@@ -20,100 +20,98 @@
 #include "System/Types.hpp"
 #include "Vulkan/VkFormat.h"
 
-namespace vk
+namespace vk { class Image; }
+
+namespace sw {
+
+struct Mipmap
 {
-	class Image;
-}
+	const void *buffer;
 
-namespace sw
+	short4 uHalf;
+	short4 vHalf;
+	short4 wHalf;
+	int4 width;
+	int4 height;
+	int4 depth;
+	short4 onePitchP;
+	int4 pitchP;
+	int4 sliceP;
+	int4 samplePitchP;
+	int4 sampleMax;
+};
+
+struct Texture
 {
-	struct Mipmap
-	{
-		const void *buffer;
+	Mipmap mipmap[MIPMAP_LEVELS];
 
-		short4 uHalf;
-		short4 vHalf;
-		short4 wHalf;
-		int4 width;
-		int4 height;
-		int4 depth;
-		short4 onePitchP;
-		int4 pitchP;
-		int4 sliceP;
-		int4 samplePitchP;
-		int4 sampleMax;
-	};
+	float4 widthWidthHeightHeight;
+	float4 width;
+	float4 height;
+	float4 depth;
+};
 
-	struct Texture
-	{
-		Mipmap mipmap[MIPMAP_LEVELS];
+enum FilterType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
+{
+	FILTER_POINT,
+	FILTER_GATHER,
+	FILTER_MIN_POINT_MAG_LINEAR,
+	FILTER_MIN_LINEAR_MAG_POINT,
+	FILTER_LINEAR,
+	FILTER_ANISOTROPIC,
 
-		float4 widthWidthHeightHeight;
-		float4 width;
-		float4 height;
-		float4 depth;
-	};
+	FILTER_LAST = FILTER_ANISOTROPIC
+};
 
-	enum FilterType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		FILTER_POINT,
-		FILTER_GATHER,
-		FILTER_MIN_POINT_MAG_LINEAR,
-		FILTER_MIN_LINEAR_MAG_POINT,
-		FILTER_LINEAR,
-		FILTER_ANISOTROPIC,
+enum MipmapType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
+{
+	MIPMAP_NONE,
+	MIPMAP_POINT,
+	MIPMAP_LINEAR,
 
-		FILTER_LAST = FILTER_ANISOTROPIC
-	};
+	MIPMAP_LAST = MIPMAP_LINEAR
+};
 
-	enum MipmapType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		MIPMAP_NONE,
-		MIPMAP_POINT,
-		MIPMAP_LINEAR,
+enum AddressingMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
+{
+	ADDRESSING_UNUSED,
+	ADDRESSING_WRAP,
+	ADDRESSING_CLAMP,
+	ADDRESSING_MIRROR,
+	ADDRESSING_MIRRORONCE,
+	ADDRESSING_BORDER,     // Single color
+	ADDRESSING_SEAMLESS,   // Border of pixels
+	ADDRESSING_CUBEFACE,   // Cube face layer
+	ADDRESSING_LAYER,      // Array layer
+	ADDRESSING_TEXELFETCH,
 
-		MIPMAP_LAST = MIPMAP_LINEAR
-	};
+	ADDRESSING_LAST = ADDRESSING_TEXELFETCH
+};
 
-	enum AddressingMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		ADDRESSING_UNUSED,
-		ADDRESSING_WRAP,
-		ADDRESSING_CLAMP,
-		ADDRESSING_MIRROR,
-		ADDRESSING_MIRRORONCE,
-		ADDRESSING_BORDER,     // Single color
-		ADDRESSING_SEAMLESS,   // Border of pixels
-		ADDRESSING_CUBEFACE,   // Cube face layer
-		ADDRESSING_LAYER,      // Array layer
-		ADDRESSING_TEXELFETCH,
+struct Sampler
+{
+	VkImageViewType textureType;
+	vk::Format textureFormat;
+	FilterType textureFilter;
+	AddressingMode addressingModeU;
+	AddressingMode addressingModeV;
+	AddressingMode addressingModeW;
+	AddressingMode addressingModeY;
+	MipmapType mipmapFilter;
+	VkComponentMapping swizzle;
+	int gatherComponent;
+	bool highPrecisionFiltering;
+	bool compareEnable;
+	VkCompareOp compareOp;
+	VkBorderColor border;
+	bool unnormalizedCoordinates;
+	bool largeTexture;
 
-		ADDRESSING_LAST = ADDRESSING_TEXELFETCH
-	};
+	VkSamplerYcbcrModelConversion ycbcrModel;
+	bool studioSwing;    // Narrow range
+	bool swappedChroma;  // Cb/Cr components in reverse order
+};
 
-	struct Sampler
-	{
-		VkImageViewType textureType;
-		vk::Format textureFormat;
-		FilterType textureFilter;
-		AddressingMode addressingModeU;
-		AddressingMode addressingModeV;
-		AddressingMode addressingModeW;
-		AddressingMode addressingModeY;
-		MipmapType mipmapFilter;
-		VkComponentMapping swizzle;
-		int gatherComponent;
-		bool highPrecisionFiltering;
-		bool compareEnable;
-		VkCompareOp compareOp;
-		VkBorderColor border;
-		bool unnormalizedCoordinates;
-		bool largeTexture;
-
-		VkSamplerYcbcrModelConversion ycbcrModel;
-		bool studioSwing;    // Narrow range
-		bool swappedChroma;  // Cb/Cr components in reverse order
-	};
-}
+}  // namespace sw
 
 #endif   // sw_Sampler_hpp

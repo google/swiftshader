@@ -22,19 +22,16 @@
 
 #include "System/Synchronization.hpp"
 
-namespace marl
-{
-	class Scheduler;
-}
+namespace marl { class Scheduler; }
 
-namespace sw
-{
-	class Context;
-	class Renderer;
-}
+namespace sw {
 
-namespace vk
-{
+class Context;
+class Renderer;
+
+}  // namespace sw
+
+namespace vk {
 
 class Device;
 class Fence;
@@ -85,6 +82,6 @@ static inline Queue* Cast(VkQueue object)
 	return reinterpret_cast<Queue*>(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_QUEUE_HPP_

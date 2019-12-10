@@ -29,8 +29,7 @@
 
 #include <iostream>
 
-namespace
-{
+namespace {
 
 sw::StreamType getStreamType(VkFormat format)
 {
@@ -240,8 +239,7 @@ std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::Compu
 
 } // anonymous namespace
 
-namespace vk
-{
+namespace vk {
 
 Pipeline::Pipeline(PipelineLayout const *layout, const Device *device)
 	: layout(layout),
@@ -696,4 +694,4 @@ void ComputePipeline::run(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t bas
 		groupCountX, groupCountY, groupCountZ);
 }
 
-} // namespace vk
+}  // namespace vk

@@ -40,10 +40,10 @@
 #define __x86__
 #endif
 
-namespace sw
-{
-namespace
-{
+namespace sw {
+
+namespace {
+
 struct Allocation
 {
 //	size_t bytes;
@@ -86,6 +86,7 @@ void *allocateRaw(size_t bytes, size_t alignment)
 		return aligned;
 	#endif
 }
+
 }  // anonymous namespace
 
 size_t memoryPageSize()
@@ -160,4 +161,5 @@ void clear(uint32_t *memory, uint32_t element, size_t count)
 		}
 	#endif
 }
-}
+
+}  // namespace sw

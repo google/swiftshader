@@ -20,61 +20,59 @@
 #include "Device/Color.hpp"
 #include "Device/VertexProcessor.hpp"
 
-namespace vk
+namespace vk { class PipelineLayout; }
+
+namespace sw {
+
+class VertexRoutinePrototype : public VertexRoutineFunction
 {
-	class PipelineLayout;
-} // namespace vk
+public:
+	VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}
+	virtual ~VertexRoutinePrototype() {}
 
-namespace sw
+protected:
+	Pointer<Byte> vertex;
+	Pointer<UInt> batch;
+	Pointer<Byte> task;
+	Pointer<Byte> data;
+};
+
+class VertexRoutine : public VertexRoutinePrototype
 {
-	class VertexRoutinePrototype : public VertexRoutineFunction
-	{
-	public:
-		VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}
-		virtual ~VertexRoutinePrototype() {}
+public:
+	VertexRoutine(
+		const VertexProcessor::State &state,
+		vk::PipelineLayout const *pipelineLayout,
+		SpirvShader const *spirvShader);
+	virtual ~VertexRoutine();
 
-	protected:
-		Pointer<Byte> vertex;
-		Pointer<UInt> batch;
-		Pointer<Byte> task;
-		Pointer<Byte> data;
-	};
+	void generate();
 
-	class VertexRoutine : public VertexRoutinePrototype
-	{
-	public:
-		VertexRoutine(
-			const VertexProcessor::State &state,
-			vk::PipelineLayout const *pipelineLayout,
-			SpirvShader const *spirvShader);
-		virtual ~VertexRoutine();
+protected:
+	Pointer<Byte> constants;
 
-		void generate();
+	Int clipFlags;
+	Int cullMask;
 
-	protected:
-		Pointer<Byte> constants;
+	SpirvRoutine routine;
 
-		Int clipFlags;
-		Int cullMask;
+	const VertexProcessor::State &state;
+	SpirvShader const * const spirvShader;
 
-		SpirvRoutine routine;
+private:
+	virtual void program(Pointer<UInt> &batch, UInt& vertexCount) = 0;
 
-		const VertexProcessor::State &state;
-		SpirvShader const * const spirvShader;
+	typedef VertexProcessor::State::Input Stream;
 
-	private:
-		virtual void program(Pointer<UInt> &batch, UInt& vertexCount) = 0;
+	Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
+	                    bool robustBufferAccess, UInt& robustnessSize, Int baseVertex);
+	void readInput(Pointer<UInt> &batch);
+	void computeClipFlags();
+	void computeCullMask();
+	void writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCache, Pointer<UInt> &batch);
+	void writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheEntry);
+};
 
-		typedef VertexProcessor::State::Input Stream;
-
-		Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
-		                    bool robustBufferAccess, UInt& robustnessSize, Int baseVertex);
-		void readInput(Pointer<UInt> &batch);
-		void computeClipFlags();
-		void computeCullMask();
-		void writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCache, Pointer<UInt> &batch);
-		void writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheEntry);
-	};
-}
+}  // namespace sw
 
 #endif   // sw_VertexRoutine_hpp

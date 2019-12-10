@@ -40,8 +40,7 @@ static const VkPresentModeKHR presentModes[] =
 
 }
 
-namespace vk
-{
+namespace vk {
 
 VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo& createInfo)
 {
@@ -218,4 +217,4 @@ VkResult SurfaceKHR::getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects
 	return VK_SUCCESS;
 }
 
-}
+}  // namespace vk

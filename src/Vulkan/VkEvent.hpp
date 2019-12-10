@@ -19,8 +19,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace vk
-{
+namespace vk {
 
 class Event : public Object<Event, VkEvent>
 {
@@ -73,6 +72,6 @@ static inline Event* Cast(VkEvent object)
 	return Event::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_EVENT_HPP_

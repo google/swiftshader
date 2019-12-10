@@ -17,8 +17,7 @@
 #include <mutex>
 #include <unordered_set>
 
-namespace
-{
+namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 // FileBase
@@ -104,10 +103,8 @@ bool PhysicalFile::isVirtual() const
 
 }  // anonymous namespace
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 std::shared_ptr<File> File::createVirtual(ID id, std::string name, std::string source)
 {

@@ -18,8 +18,7 @@
 #include <algorithm>
 #include <new>
 
-namespace vk
-{
+namespace vk {
 
 CommandPool::CommandPool(const VkCommandPoolCreateInfo* pCreateInfo, void* mem)
 {
@@ -112,4 +111,4 @@ void CommandPool::trim(VkCommandPoolTrimFlags flags)
 	// TODO (b/119827933): Optimize memory usage here
 }
 
-} // namespace vk
+}  // namespace vk

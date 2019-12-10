@@ -18,30 +18,31 @@
 #include "Device/SetupProcessor.hpp"
 #include "Reactor/Reactor.hpp"
 
-namespace sw
+namespace sw {
+
+class Context;
+
+class SetupRoutine
 {
-	class Context;
+public:
+	SetupRoutine(const SetupProcessor::State &state);
 
-	class SetupRoutine
-	{
-	public:
-		SetupRoutine(const SetupProcessor::State &state);
+	virtual ~SetupRoutine();
 
-		virtual ~SetupRoutine();
+	void generate();
+	SetupFunction::RoutineType getRoutine();
 
-		void generate();
-		SetupFunction::RoutineType getRoutine();
+private:
+	void setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flatShading, bool perspective);
+	void edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int &Xa, const Int &Ya, const Int &Xb, const Int &Yb, Int &q);
+	void conditionalRotate1(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
+	void conditionalRotate2(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
 
-	private:
-		void setupGradient(Pointer<Byte> &primitive, Pointer<Byte> &triangle, Float4 &w012, Float4 (&m)[3], Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2, int attribute, int planeEquation, bool flatShading, bool perspective);
-		void edge(Pointer<Byte> &primitive, Pointer<Byte> &data, const Int &Xa, const Int &Ya, const Int &Xb, const Int &Yb, Int &q);
-		void conditionalRotate1(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
-		void conditionalRotate2(Bool condition, Pointer<Byte> &v0, Pointer<Byte> &v1, Pointer<Byte> &v2);
+	const SetupProcessor::State &state;
 
-		const SetupProcessor::State &state;
+	SetupFunction::RoutineType routine;
+};
 
-		SetupFunction::RoutineType routine;
-	};
-}
+}  // namespace sw
 
 #endif   // sw_SetupRoutine_hpp

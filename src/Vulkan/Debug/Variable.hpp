@@ -25,10 +25,8 @@
 #include <unordered_map>
 #include <vector>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 // Variable is a named value.
 struct Variable

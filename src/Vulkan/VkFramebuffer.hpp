@@ -17,8 +17,7 @@
 
 #include "VkObject.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class ImageView;
 class RenderPass;
@@ -49,6 +48,6 @@ static inline Framebuffer* Cast(VkFramebuffer object)
 	return Framebuffer::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_FRAMEBUFFER_HPP_

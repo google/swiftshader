@@ -17,278 +17,280 @@
 #include "Polygon.hpp"
 #include "Renderer.hpp"
 
-namespace
+namespace {
+
+inline void clipEdge(sw::float4 &Vo, const sw::float4 &Vi, const sw::float4 &Vj, float di, float dj)
 {
-	inline void clipEdge(sw::float4 &Vo, const sw::float4 &Vi, const sw::float4 &Vj, float di, float dj)
-	{
-		float D = 1.0f / (dj - di);
+	float D = 1.0f / (dj - di);
 
-		Vo.x = (dj * Vi.x - di * Vj.x) * D;
-		Vo.y = (dj * Vi.y - di * Vj.y) * D;
-		Vo.z = (dj * Vi.z - di * Vj.z) * D;
-		Vo.w = (dj * Vi.w - di * Vj.w) * D;
-	}
-
-	void clipNear(sw::Polygon &polygon)
-	{
-		const sw::float4 **V = polygon.P[polygon.i];
-		const sw::float4 **T = polygon.P[polygon.i + 1];
-
-		int t = 0;
-
-		for(int i = 0; i < polygon.n; i++)
-		{
-			int j = i == polygon.n - 1 ? 0 : i + 1;
-
-			float di = V[i]->z;
-			float dj = V[j]->z;
-
-			if(di >= 0)
-			{
-				T[t++] = V[i];
-
-				if(dj < 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-			else
-			{
-				if(dj > 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-		}
-
-		polygon.n = t;
-		polygon.i += 1;
-	}
-
-	void clipFar(sw::Polygon &polygon)
-	{
-		const sw::float4 **V = polygon.P[polygon.i];
-		const sw::float4 **T = polygon.P[polygon.i + 1];
-
-		int t = 0;
-
-		for(int i = 0; i < polygon.n; i++)
-		{
-			int j = i == polygon.n - 1 ? 0 : i + 1;
-
-			float di = V[i]->w - V[i]->z;
-			float dj = V[j]->w - V[j]->z;
-
-			if(di >= 0)
-			{
-				T[t++] = V[i];
-
-				if(dj < 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-			else
-			{
-				if(dj > 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-		}
-
-		polygon.n = t;
-		polygon.i += 1;
-	}
-
-	void clipLeft(sw::Polygon &polygon)
-	{
-		const sw::float4 **V = polygon.P[polygon.i];
-		const sw::float4 **T = polygon.P[polygon.i + 1];
-
-		int t = 0;
-
-		for(int i = 0; i < polygon.n; i++)
-		{
-			int j = i == polygon.n - 1 ? 0 : i + 1;
-
-			float di = V[i]->w + V[i]->x;
-			float dj = V[j]->w + V[j]->x;
-
-			if(di >= 0)
-			{
-				T[t++] = V[i];
-
-				if(dj < 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-			else
-			{
-				if(dj > 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-		}
-
-		polygon.n = t;
-		polygon.i += 1;
-	}
-
-	void clipRight(sw::Polygon &polygon)
-	{
-		const sw::float4 **V = polygon.P[polygon.i];
-		const sw::float4 **T = polygon.P[polygon.i + 1];
-
-		int t = 0;
-
-		for(int i = 0; i < polygon.n; i++)
-		{
-			int j = i == polygon.n - 1 ? 0 : i + 1;
-
-			float di = V[i]->w - V[i]->x;
-			float dj = V[j]->w - V[j]->x;
-
-			if(di >= 0)
-			{
-				T[t++] = V[i];
-
-				if(dj < 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-			else
-			{
-				if(dj > 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-		}
-
-		polygon.n = t;
-		polygon.i += 1;
-	}
-
-	void clipTop(sw::Polygon &polygon)
-	{
-		const sw::float4 **V = polygon.P[polygon.i];
-		const sw::float4 **T = polygon.P[polygon.i + 1];
-
-		int t = 0;
-
-		for(int i = 0; i < polygon.n; i++)
-		{
-			int j = i == polygon.n - 1 ? 0 : i + 1;
-
-			float di = V[i]->w - V[i]->y;
-			float dj = V[j]->w - V[j]->y;
-
-			if(di >= 0)
-			{
-				T[t++] = V[i];
-
-				if(dj < 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-			else
-			{
-				if(dj > 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-		}
-
-		polygon.n = t;
-		polygon.i += 1;
-	}
-
-	void clipBottom(sw::Polygon &polygon)
-	{
-		const sw::float4 **V = polygon.P[polygon.i];
-		const sw::float4 **T = polygon.P[polygon.i + 1];
-
-		int t = 0;
-
-		for(int i = 0; i < polygon.n; i++)
-		{
-			int j = i == polygon.n - 1 ? 0 : i + 1;
-
-			float di = V[i]->w + V[i]->y;
-			float dj = V[j]->w + V[j]->y;
-
-			if(di >= 0)
-			{
-				T[t++] = V[i];
-
-				if(dj < 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-			else
-			{
-				if(dj > 0)
-				{
-					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					T[t++] = &polygon.B[polygon.b++];
-				}
-			}
-		}
-
-		polygon.n = t;
-		polygon.i += 1;
-	}
+	Vo.x = (dj * Vi.x - di * Vj.x) * D;
+	Vo.y = (dj * Vi.y - di * Vj.y) * D;
+	Vo.z = (dj * Vi.z - di * Vj.z) * D;
+	Vo.w = (dj * Vi.w - di * Vj.w) * D;
 }
 
-namespace sw
+void clipNear(sw::Polygon &polygon)
 {
-	unsigned int Clipper::ComputeClipFlags(const float4 &v)
-	{
-		return ((v.x > v.w)     ? CLIP_RIGHT  : 0) |
-		       ((v.y > v.w)     ? CLIP_TOP    : 0) |
-		       ((v.z > v.w)     ? CLIP_FAR    : 0) |
-		       ((v.x < -v.w)    ? CLIP_LEFT   : 0) |
-		       ((v.y < -v.w)    ? CLIP_BOTTOM : 0) |
-		       ((v.z < 0)       ? CLIP_NEAR   : 0) |
-		       Clipper::CLIP_FINITE;   // FIXME: xyz finite
-	}
+	const sw::float4 **V = polygon.P[polygon.i];
+	const sw::float4 **T = polygon.P[polygon.i + 1];
 
-	bool Clipper::Clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw)
+	int t = 0;
+
+	for(int i = 0; i < polygon.n; i++)
 	{
-		if(clipFlagsOr & CLIP_FRUSTUM)
+		int j = i == polygon.n - 1 ? 0 : i + 1;
+
+		float di = V[i]->z;
+		float dj = V[j]->z;
+
+		if(di >= 0)
 		{
-			if(clipFlagsOr & CLIP_NEAR)   clipNear(polygon);
-			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_FAR)    clipFar(polygon);
-			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_LEFT)   clipLeft(polygon);
-			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_RIGHT)  clipRight(polygon);
-			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_TOP)    clipTop(polygon);
-			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_BOTTOM) clipBottom(polygon);
-			}}}}}
-		}
+			T[t++] = V[i];
 
-		return polygon.n >= 3;
+			if(dj < 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+		else
+		{
+			if(dj > 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
 	}
+
+	polygon.n = t;
+	polygon.i += 1;
 }
+
+void clipFar(sw::Polygon &polygon)
+{
+	const sw::float4 **V = polygon.P[polygon.i];
+	const sw::float4 **T = polygon.P[polygon.i + 1];
+
+	int t = 0;
+
+	for(int i = 0; i < polygon.n; i++)
+	{
+		int j = i == polygon.n - 1 ? 0 : i + 1;
+
+		float di = V[i]->w - V[i]->z;
+		float dj = V[j]->w - V[j]->z;
+
+		if(di >= 0)
+		{
+			T[t++] = V[i];
+
+			if(dj < 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+		else
+		{
+			if(dj > 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+	}
+
+	polygon.n = t;
+	polygon.i += 1;
+}
+
+void clipLeft(sw::Polygon &polygon)
+{
+	const sw::float4 **V = polygon.P[polygon.i];
+	const sw::float4 **T = polygon.P[polygon.i + 1];
+
+	int t = 0;
+
+	for(int i = 0; i < polygon.n; i++)
+	{
+		int j = i == polygon.n - 1 ? 0 : i + 1;
+
+		float di = V[i]->w + V[i]->x;
+		float dj = V[j]->w + V[j]->x;
+
+		if(di >= 0)
+		{
+			T[t++] = V[i];
+
+			if(dj < 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+		else
+		{
+			if(dj > 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+	}
+
+	polygon.n = t;
+	polygon.i += 1;
+}
+
+void clipRight(sw::Polygon &polygon)
+{
+	const sw::float4 **V = polygon.P[polygon.i];
+	const sw::float4 **T = polygon.P[polygon.i + 1];
+
+	int t = 0;
+
+	for(int i = 0; i < polygon.n; i++)
+	{
+		int j = i == polygon.n - 1 ? 0 : i + 1;
+
+		float di = V[i]->w - V[i]->x;
+		float dj = V[j]->w - V[j]->x;
+
+		if(di >= 0)
+		{
+			T[t++] = V[i];
+
+			if(dj < 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+		else
+		{
+			if(dj > 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+	}
+
+	polygon.n = t;
+	polygon.i += 1;
+}
+
+void clipTop(sw::Polygon &polygon)
+{
+	const sw::float4 **V = polygon.P[polygon.i];
+	const sw::float4 **T = polygon.P[polygon.i + 1];
+
+	int t = 0;
+
+	for(int i = 0; i < polygon.n; i++)
+	{
+		int j = i == polygon.n - 1 ? 0 : i + 1;
+
+		float di = V[i]->w - V[i]->y;
+		float dj = V[j]->w - V[j]->y;
+
+		if(di >= 0)
+		{
+			T[t++] = V[i];
+
+			if(dj < 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+		else
+		{
+			if(dj > 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+	}
+
+	polygon.n = t;
+	polygon.i += 1;
+}
+
+void clipBottom(sw::Polygon &polygon)
+{
+	const sw::float4 **V = polygon.P[polygon.i];
+	const sw::float4 **T = polygon.P[polygon.i + 1];
+
+	int t = 0;
+
+	for(int i = 0; i < polygon.n; i++)
+	{
+		int j = i == polygon.n - 1 ? 0 : i + 1;
+
+		float di = V[i]->w + V[i]->y;
+		float dj = V[j]->w + V[j]->y;
+
+		if(di >= 0)
+		{
+			T[t++] = V[i];
+
+			if(dj < 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+		else
+		{
+			if(dj > 0)
+			{
+				clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
+				T[t++] = &polygon.B[polygon.b++];
+			}
+		}
+	}
+
+	polygon.n = t;
+	polygon.i += 1;
+}
+
+}  // anonymous namespace
+
+namespace sw {
+
+unsigned int Clipper::ComputeClipFlags(const float4 &v)
+{
+	return ((v.x > v.w)     ? CLIP_RIGHT  : 0) |
+	       ((v.y > v.w)     ? CLIP_TOP    : 0) |
+	       ((v.z > v.w)     ? CLIP_FAR    : 0) |
+	       ((v.x < -v.w)    ? CLIP_LEFT   : 0) |
+	       ((v.y < -v.w)    ? CLIP_BOTTOM : 0) |
+	       ((v.z < 0)       ? CLIP_NEAR   : 0) |
+	       Clipper::CLIP_FINITE;   // FIXME: xyz finite
+}
+
+bool Clipper::Clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw)
+{
+	if(clipFlagsOr & CLIP_FRUSTUM)
+	{
+		if(clipFlagsOr & CLIP_NEAR)   clipNear(polygon);
+		if(polygon.n >= 3) {
+		if(clipFlagsOr & CLIP_FAR)    clipFar(polygon);
+		if(polygon.n >= 3) {
+		if(clipFlagsOr & CLIP_LEFT)   clipLeft(polygon);
+		if(polygon.n >= 3) {
+		if(clipFlagsOr & CLIP_RIGHT)  clipRight(polygon);
+		if(polygon.n >= 3) {
+		if(clipFlagsOr & CLIP_TOP)    clipTop(polygon);
+		if(polygon.n >= 3) {
+		if(clipFlagsOr & CLIP_BOTTOM) clipBottom(polygon);
+		}}}}}
+	}
+
+	return polygon.n >= 3;
+}
+
+}  // namespace sw

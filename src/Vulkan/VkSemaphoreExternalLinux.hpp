@@ -127,8 +127,7 @@ private:
 	bool signaled = false;
 };
 
-namespace vk
-{
+namespace vk {
 
 class Semaphore::External {
 public:

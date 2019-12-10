@@ -25,187 +25,188 @@
 #include <memory>
 
 // Forward declarations
-namespace llvm
+namespace llvm {
+
+class BasicBlock;
+class ConstantFolder;
+class DIBuilder;
+class DICompileUnit;
+class DIFile;
+class DILocation;
+class DIScope;
+class DISubprogram;
+class DIType;
+class Function;
+class Instruction;
+class IRBuilderDefaultInserter;
+class JITEventListener;
+class LLVMContext;
+class LoadedObjectInfo;
+class Module;
+class Type;
+class Value;
+
+namespace object
 {
-	class BasicBlock;
-	class ConstantFolder;
-	class DIBuilder;
-	class DICompileUnit;
-	class DIFile;
-	class DILocation;
-	class DIScope;
-	class DISubprogram;
-	class DIType;
-	class Function;
-	class Instruction;
-	class IRBuilderDefaultInserter;
-	class JITEventListener;
-	class LLVMContext;
-	class LoadedObjectInfo;
-	class Module;
-	class Type;
-	class Value;
+	class ObjectFile;
+}
 
-	namespace object
-	{
-		class ObjectFile;
-	}
+template <typename T, typename Inserter> class IRBuilder;
 
-	template <typename T, typename Inserter> class IRBuilder;
-} // namespace llvm
+}  // namespace llvm
 
-namespace rr
+namespace rr {
+
+class Type;
+class Value;
+
+// DebugInfo generates LLVM DebugInfo IR from the C++ source that calls
+// into Reactor functions. See docs/ReactorDebugInfo.mk for more information.
+class DebugInfo
 {
-	class Type;
-	class Value;
+public:
+	using IRBuilder = llvm::IRBuilder<llvm::ConstantFolder, llvm::IRBuilderDefaultInserter>;
 
-	// DebugInfo generates LLVM DebugInfo IR from the C++ source that calls
-	// into Reactor functions. See docs/ReactorDebugInfo.mk for more information.
-	class DebugInfo
+	DebugInfo(IRBuilder *builder,
+			llvm::LLVMContext *context,
+			llvm::Module *module,
+			llvm::Function *function);
+
+	~DebugInfo();
+
+	// Finalize debug info generation. Must be called before the LLVM module
+	// is built.
+	void Finalize();
+
+	// Updates the current source location.
+	void EmitLocation();
+
+	// Binds the value to its symbol in the source file.
+	// See docs/ReactorDebugInfo.mk for more information.
+	void EmitVariable(Value *value);
+
+	// Forcefully flush the binding of the last variable name.
+	// Used for binding the initializer of `For` loops.
+	void Flush();
+
+	// NotifyObjectEmitted informs any attached debuggers of the JIT'd
+	// object.
+	static void NotifyObjectEmitted(const llvm::object::ObjectFile &Obj, const llvm::LoadedObjectInfo &L);
+
+	// NotifyFreeingObject informs any attached debuggers that the JIT'd
+	// object is now invalid.
+	static void NotifyFreeingObject(const llvm::object::ObjectFile &Obj);
+
+private:
+	struct Token
 	{
-	public:
-		using IRBuilder = llvm::IRBuilder<llvm::ConstantFolder, llvm::IRBuilderDefaultInserter>;
-
-		DebugInfo(IRBuilder *builder,
-				llvm::LLVMContext *context,
-				llvm::Module *module,
-				llvm::Function *function);
-
-		~DebugInfo();
-
-		// Finalize debug info generation. Must be called before the LLVM module
-		// is built.
-		void Finalize();
-
-		// Updates the current source location.
-		void EmitLocation();
-
-		// Binds the value to its symbol in the source file.
-		// See docs/ReactorDebugInfo.mk for more information.
-		void EmitVariable(Value *value);
-
-		// Forcefully flush the binding of the last variable name.
-		// Used for binding the initializer of `For` loops.
-		void Flush();
-
-		// NotifyObjectEmitted informs any attached debuggers of the JIT'd
-		// object.
-		static void NotifyObjectEmitted(const llvm::object::ObjectFile &Obj, const llvm::LoadedObjectInfo &L);
-
-		// NotifyFreeingObject informs any attached debuggers that the JIT'd
-		// object is now invalid.
-		static void NotifyFreeingObject(const llvm::object::ObjectFile &Obj);
-
-	private:
-		struct Token
+		enum Kind
 		{
-			enum Kind
-			{
-				Identifier,
-				Return
-			};
-			Kind kind;
-			std::string identifier;
+			Identifier,
+			Return
 		};
-
-		using LineTokens = std::unordered_map<unsigned int, Token>;
-
-		struct FunctionLocation
-		{
-			std::string name;
-			std::string file;
-
-			bool operator == (const FunctionLocation &rhs) const { return name == rhs.name && file == rhs.file; }
-			bool operator != (const FunctionLocation &rhs) const { return !(*this == rhs); }
-
-			struct Hash
-			{
-				std::size_t operator()(const FunctionLocation &l) const noexcept
-				{
-					return std::hash<std::string>()(l.file) * 31 +
-							std::hash<std::string>()(l.name);
-				}
-			};
-		};
-
-		struct Location
-		{
-			FunctionLocation function;
-			unsigned int line = 0;
-
-			bool operator == (const Location &rhs) const { return function == rhs.function && line == rhs.line; }
-			bool operator != (const Location &rhs) const { return !(*this == rhs); }
-
-			struct Hash
-			{
-				std::size_t operator()(const Location &l) const noexcept
-				{
-					return FunctionLocation::Hash()(l.function) * 31 +
-							std::hash<unsigned int>()(l.line);
-				}
-			};
-		};
-
-		using Backtrace = std::vector<Location>;
-
-		struct Pending
-		{
-			std::string name;
-			Location location;
-			llvm::DILocation *diLocation = nullptr;
-			llvm::Value *value = nullptr;
-			llvm::Instruction *insertAfter = nullptr;
-			llvm::BasicBlock *block = nullptr;
-			llvm::DIScope *scope = nullptr;
-			bool addNopOnNextLine = false;
-		};
-
-		struct Scope
-		{
-			Location location;
-			llvm::DIScope *di;
-			std::unordered_set<std::string> symbols;
-			Pending pending;
-		};
-
-		void registerBasicTypes();
-
-		void emitPending(Scope &scope, IRBuilder *builder);
-
-		// Returns the source location of the non-Reactor calling function.
-		Location getCallerLocation() const;
-
-		// Returns the backtrace for the callstack, starting at the first
-		// non-Reactor file. If limit is non-zero, then a maximum of limit
-		// frames will be returned.
-		Backtrace getCallerBacktrace(size_t limit = 0) const;
-
-		llvm::DILocation* getLocation(const Backtrace &backtrace, size_t i);
-
-		llvm::DIType *getOrCreateType(llvm::Type* type);
-		llvm::DIFile *getOrCreateFile(const char* path);
-		LineTokens const *getOrParseFileTokens(const char* path);
-
-		// Synchronizes diScope with the current backtrace.
-		void syncScope(Backtrace const& backtrace);
-
-		IRBuilder *builder;
-		llvm::LLVMContext *context;
-		llvm::Module *module;
-		llvm::Function *function;
-
-		std::unique_ptr<llvm::DIBuilder> diBuilder;
-		llvm::DICompileUnit *diCU;
-		llvm::DISubprogram *diSubprogram;
-		llvm::DILocation *diRootLocation;
-		std::vector<Scope> diScope;
-		std::unordered_map<std::string, llvm::DIFile*> diFiles;
-		std::unordered_map<llvm::Type*, llvm::DIType*> diTypes;
-		std::unordered_map<std::string, std::unique_ptr<LineTokens>> fileTokens;
-		std::vector<void const*> pushed;
+		Kind kind;
+		std::string identifier;
 	};
 
-} // namespace rr
+	using LineTokens = std::unordered_map<unsigned int, Token>;
+
+	struct FunctionLocation
+	{
+		std::string name;
+		std::string file;
+
+		bool operator == (const FunctionLocation &rhs) const { return name == rhs.name && file == rhs.file; }
+		bool operator != (const FunctionLocation &rhs) const { return !(*this == rhs); }
+
+		struct Hash
+		{
+			std::size_t operator()(const FunctionLocation &l) const noexcept
+			{
+				return std::hash<std::string>()(l.file) * 31 +
+						std::hash<std::string>()(l.name);
+			}
+		};
+	};
+
+	struct Location
+	{
+		FunctionLocation function;
+		unsigned int line = 0;
+
+		bool operator == (const Location &rhs) const { return function == rhs.function && line == rhs.line; }
+		bool operator != (const Location &rhs) const { return !(*this == rhs); }
+
+		struct Hash
+		{
+			std::size_t operator()(const Location &l) const noexcept
+			{
+				return FunctionLocation::Hash()(l.function) * 31 +
+						std::hash<unsigned int>()(l.line);
+			}
+		};
+	};
+
+	using Backtrace = std::vector<Location>;
+
+	struct Pending
+	{
+		std::string name;
+		Location location;
+		llvm::DILocation *diLocation = nullptr;
+		llvm::Value *value = nullptr;
+		llvm::Instruction *insertAfter = nullptr;
+		llvm::BasicBlock *block = nullptr;
+		llvm::DIScope *scope = nullptr;
+		bool addNopOnNextLine = false;
+	};
+
+	struct Scope
+	{
+		Location location;
+		llvm::DIScope *di;
+		std::unordered_set<std::string> symbols;
+		Pending pending;
+	};
+
+	void registerBasicTypes();
+
+	void emitPending(Scope &scope, IRBuilder *builder);
+
+	// Returns the source location of the non-Reactor calling function.
+	Location getCallerLocation() const;
+
+	// Returns the backtrace for the callstack, starting at the first
+	// non-Reactor file. If limit is non-zero, then a maximum of limit
+	// frames will be returned.
+	Backtrace getCallerBacktrace(size_t limit = 0) const;
+
+	llvm::DILocation* getLocation(const Backtrace &backtrace, size_t i);
+
+	llvm::DIType *getOrCreateType(llvm::Type* type);
+	llvm::DIFile *getOrCreateFile(const char* path);
+	LineTokens const *getOrParseFileTokens(const char* path);
+
+	// Synchronizes diScope with the current backtrace.
+	void syncScope(Backtrace const& backtrace);
+
+	IRBuilder *builder;
+	llvm::LLVMContext *context;
+	llvm::Module *module;
+	llvm::Function *function;
+
+	std::unique_ptr<llvm::DIBuilder> diBuilder;
+	llvm::DICompileUnit *diCU;
+	llvm::DISubprogram *diSubprogram;
+	llvm::DILocation *diRootLocation;
+	std::vector<Scope> diScope;
+	std::unordered_map<std::string, llvm::DIFile*> diFiles;
+	std::unordered_map<llvm::Type*, llvm::DIType*> diTypes;
+	std::unordered_map<std::string, std::unique_ptr<LineTokens>> fileTokens;
+	std::vector<void const*> pushed;
+};
+
+}  // namespace rr
 
 #endif // ENABLE_RR_DEBUG_INFO
 

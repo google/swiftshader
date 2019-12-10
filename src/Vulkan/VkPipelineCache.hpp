@@ -25,14 +25,14 @@
 #include <string>
 #include <vector>
 
-namespace sw
-{
-	class ComputeProgram;
-	class SpirvShader;
-}
+namespace sw {
 
-namespace vk
-{
+class ComputeProgram;
+class SpirvShader;
+
+}  // namespace sw
+
+namespace vk {
 
 class PipelineLayout;
 class RenderPass;
@@ -145,6 +145,6 @@ static inline PipelineCache* Cast(VkPipelineCache object)
 	return PipelineCache::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_PIPELINE_CACHE_HPP_

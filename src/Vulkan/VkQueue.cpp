@@ -26,8 +26,7 @@
 
 #include <cstring>
 
-namespace
-{
+namespace {
 
 VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubmits)
 {
@@ -74,10 +73,9 @@ VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubm
 	return submits;
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
-namespace vk
-{
+namespace vk {
 
 Queue::Queue(Device* device, marl::Scheduler *scheduler) : device(device)
 {
@@ -240,4 +238,4 @@ VkResult Queue::present(const VkPresentInfoKHR* presentInfo)
 }
 #endif
 
-} // namespace vk
+}  // namespace vk

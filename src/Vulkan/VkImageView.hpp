@@ -22,8 +22,8 @@
 
 #include <atomic>
 
-namespace vk
-{
+namespace vk {
+
 class SamplerYcbcrConversion;
 
 class ImageView : public Object<ImageView, VkImageView>
@@ -111,6 +111,6 @@ static inline ImageView* Cast(VkImageView object)
 	return ImageView::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_IMAGE_VIEW_HPP_

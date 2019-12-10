@@ -15,8 +15,7 @@
 #ifndef VK_SEMAPHORE_EXTERNAL_NONE_H_
 #define VK_SEMAPHORE_EXTERNAL_NONE_H_
 
-namespace vk
-{
+namespace vk {
 
 // Empty external sempahore implementation.
 class Semaphore::External {

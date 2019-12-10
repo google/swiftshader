@@ -83,10 +83,9 @@ bool IsUnderDebugger()
 #endif
 }
 
-}
+}  // anonymous namespace
 
-namespace vk
-{
+namespace vk {
 
 void tracev(const char *format, va_list args)
 {
@@ -164,4 +163,4 @@ void trace_assert(const char *format, ...)
 	}
 }
 
-}
+}  // namespace vk

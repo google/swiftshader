@@ -23,8 +23,7 @@
 #include <Vulkan/VulkanPlatform.h>
 #include <vulkan/vk_icd.h>
 
-namespace vk
-{
+namespace vk {
 
 template<typename T, typename VkT>
 static inline T* VkTtoT(VkT vkObject)
@@ -166,6 +165,6 @@ public:
 	}
 };
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_OBJECT_HPP_

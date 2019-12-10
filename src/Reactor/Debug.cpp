@@ -17,8 +17,7 @@
 #include <string>
 #include <stdarg.h>
 
-namespace rr
-{
+namespace rr {
 
 void tracev(const char *format, va_list args)
 {
@@ -71,4 +70,4 @@ void abort(const char *format, ...)
 	::abort();
 }
 
-} // namespace rr
+}  // namespace rr

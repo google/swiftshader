@@ -24,8 +24,7 @@
 // VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA
 // which is not official yet but used by Fuchsia at the moment.
 
-namespace vk
-{
+namespace vk {
 
 class Semaphore::External {
 public:

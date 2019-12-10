@@ -23,15 +23,15 @@
 #include <memory>
 #include <vector>
 
-namespace sw
-{
-	class Context;
-	class Renderer;
-	class TaskEvents;
-}
+namespace sw {
 
-namespace vk
-{
+class Context;
+class Renderer;
+class TaskEvents;
+
+}  // namespace sw
+
+namespace vk {
 
 class Buffer;
 class Event;
@@ -206,6 +206,6 @@ static inline CommandBuffer* Cast(VkCommandBuffer object)
 	return DispatchableCommandBuffer::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_COMMAND_BUFFER_HPP_

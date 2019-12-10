@@ -21,8 +21,7 @@
 
 #include <vector>
 
-namespace vk
-{
+namespace vk {
 
 enum PresentImageStatus
 {
@@ -105,6 +104,6 @@ static inline SurfaceKHR* Cast(VkSurfaceKHR object)
 	return SurfaceKHR::Cast(object);
 }
 
-}
+}  // namespace vk
 
 #endif //SWIFTSHADER_VKSURFACEKHR_HPP_

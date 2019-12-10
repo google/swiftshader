@@ -16,8 +16,7 @@
 #include "VkStringify.hpp"
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 RenderPass::RenderPass(const VkRenderPassCreateInfo* pCreateInfo, void* mem) :
 	attachmentCount(pCreateInfo->attachmentCount),
@@ -221,4 +220,4 @@ void RenderPass::MarkFirstUse(int attachment, int subpass)
 		attachmentViewMasks[attachment] |= viewMasks[subpass];
 }
 
-} // namespace vk
+}  // namespace vk

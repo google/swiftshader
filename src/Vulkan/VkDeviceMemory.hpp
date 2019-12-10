@@ -18,8 +18,7 @@
 #include "VkConfig.h"
 #include "VkObject.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class DeviceMemory : public Object<DeviceMemory, VkDeviceMemory>
 {
@@ -61,6 +60,6 @@ static inline DeviceMemory* Cast(VkDeviceMemory object)
 }
 
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_DEVICE_MEMORY_HPP_

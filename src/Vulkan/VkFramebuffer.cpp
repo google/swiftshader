@@ -18,8 +18,7 @@
 #include <algorithm>
 #include <memory.h>
 
-namespace vk
-{
+namespace vk {
 
 Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) :
 	attachmentCount(pCreateInfo->attachmentCount),
@@ -151,4 +150,4 @@ size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo*
 	return pCreateInfo->attachmentCount * sizeof(void*);
 }
 
-} // namespace vk
+}  // namespace vk

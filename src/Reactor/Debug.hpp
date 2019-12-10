@@ -31,19 +31,20 @@
 #define CHECK_PRINTF_ARGS
 #endif
 
-namespace rr
-{
-	// Outputs text to the debugging log
-	void trace(const char *format, ...) CHECK_PRINTF_ARGS;
-	inline void trace() {}
+namespace rr {
 
-	// Outputs text to the debugging log and prints to stderr.
-	void warn(const char *format, ...) CHECK_PRINTF_ARGS;
-	inline void warn() {}
+// Outputs text to the debugging log
+void trace(const char *format, ...) CHECK_PRINTF_ARGS;
+inline void trace() {}
 
-	// Outputs the message to the debugging log and stderr, and calls abort().
-	void abort(const char *format, ...) CHECK_PRINTF_ARGS;
-}
+// Outputs text to the debugging log and prints to stderr.
+void warn(const char *format, ...) CHECK_PRINTF_ARGS;
+inline void warn() {}
+
+// Outputs the message to the debugging log and stderr, and calls abort().
+void abort(const char *format, ...) CHECK_PRINTF_ARGS;
+
+}  // namespace rr
 
 // A macro to output a trace of a function call and its arguments to the
 // debugging log. Disabled if RR_DISABLE_TRACE is defined.

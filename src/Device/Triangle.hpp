@@ -17,14 +17,15 @@
 
 #include "Vertex.hpp"
 
-namespace sw
+namespace sw {
+
+struct Triangle
 {
-	struct Triangle
-	{
-		Vertex V0;
-		Vertex V1;
-		Vertex V2;
-	};
-}
+	Vertex V0;
+	Vertex V1;
+	Vertex V2;
+};
+
+}  // namespace sw
 
 #endif   // sw_Triangle_hpp

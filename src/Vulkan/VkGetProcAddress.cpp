@@ -25,8 +25,7 @@
 #include <vulkan/vk_android_native_buffer.h>
 #endif
 
-namespace vk
-{
+namespace vk {
 
 #define MAKE_VULKAN_GLOBAL_ENTRY(aFunction) { #aFunction, reinterpret_cast<PFN_vkVoidFunction>(aFunction) }
 static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionPointers =
@@ -441,7 +440,7 @@ PFN_vkVoidFunction GetDeviceProcAddr(Device* device, const char* pName)
 	return nullptr;
 }
 
-}
+}  // namespace vk
 
 #ifdef __ANDROID__
 

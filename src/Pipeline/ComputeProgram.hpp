@@ -23,68 +23,64 @@
 
 #include <functional>
 
-namespace vk
+namespace vk { class PipelineLayout; }
+
+namespace sw {
+
+using namespace rr;
+
+class DescriptorSetsLayout;
+struct Constants;
+
+// ComputeProgram builds a SPIR-V compute shader.
+class ComputeProgram : public Coroutine<SpirvShader::YieldResult(
+		void* data,
+		int32_t workgroupX,
+		int32_t workgroupY,
+		int32_t workgroupZ,
+		void* workgroupMemory,
+		int32_t firstSubgroup,
+		int32_t subgroupCount)>
 {
-	class PipelineLayout;
-} // namespace vk
+public:
+	ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
 
-namespace sw
-{
+	virtual ~ComputeProgram();
 
-	using namespace rr;
+	// generate builds the shader program.
+	void generate();
 
-	class DescriptorSetsLayout;
-	struct Constants;
+	// run executes the compute shader routine for all workgroups.
+	void run(
+		vk::DescriptorSet::Bindings const &descriptorSetBindings,
+		vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
+		PushConstantStorage const &pushConstants,
+		uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
+		uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
-	// ComputeProgram builds a SPIR-V compute shader.
-	class ComputeProgram : public Coroutine<SpirvShader::YieldResult(
-			void* data,
-			int32_t workgroupX,
-			int32_t workgroupY,
-			int32_t workgroupZ,
-			void* workgroupMemory,
-			int32_t firstSubgroup,
-			int32_t subgroupCount)>
+protected:
+	void emit(SpirvRoutine* routine);
+	void setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3]);
+	void setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex);
+
+	struct Data
 	{
-	public:
-		ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
-
-		virtual ~ComputeProgram();
-
-		// generate builds the shader program.
-		void generate();
-
-		// run executes the compute shader routine for all workgroups.
-		void run(
-			vk::DescriptorSet::Bindings const &descriptorSetBindings,
-			vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
-			PushConstantStorage const &pushConstants,
-			uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
-			uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
-
-	protected:
-		void emit(SpirvRoutine* routine);
-		void setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3]);
-		void setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex);
-
-		struct Data
-		{
-			vk::DescriptorSet::Bindings descriptorSets;
-			vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets;
-			uint4 numWorkgroups; // [x, y, z, 0]
-			uint4 workgroupSize; // [x, y, z, 0]
-			uint32_t invocationsPerSubgroup; // SPIR-V: "SubgroupSize"
-			uint32_t subgroupsPerWorkgroup; // SPIR-V: "NumSubgroups"
-			uint32_t invocationsPerWorkgroup; // Total number of invocations per workgroup.
-			PushConstantStorage pushConstants;
-			const Constants *constants;
-		};
-
-		SpirvShader const * const shader;
-		vk::PipelineLayout const * const pipelineLayout;
-		const vk::DescriptorSet::Bindings &descriptorSets;
+		vk::DescriptorSet::Bindings descriptorSets;
+		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets;
+		uint4 numWorkgroups; // [x, y, z, 0]
+		uint4 workgroupSize; // [x, y, z, 0]
+		uint32_t invocationsPerSubgroup; // SPIR-V: "SubgroupSize"
+		uint32_t subgroupsPerWorkgroup; // SPIR-V: "NumSubgroups"
+		uint32_t invocationsPerWorkgroup; // Total number of invocations per workgroup.
+		PushConstantStorage pushConstants;
+		const Constants *constants;
 	};
 
-} // namespace sw
+	SpirvShader const * const shader;
+	vk::PipelineLayout const * const pipelineLayout;
+	const vk::DescriptorSet::Bindings &descriptorSets;
+};
+
+}  // namespace sw
 
 #endif   // sw_ComputeProgram_hpp

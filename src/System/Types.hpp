@@ -42,102 +42,103 @@ namespace {enum E {}; static_assert(!std::numeric_limits<std::underlying_type<E>
 	#define ALIGN(bytes, type) type __attribute__((aligned(bytes)))
 #endif
 
-namespace sw
+namespace sw {
+
+typedef ALIGN(1, uint8_t) byte;
+typedef ALIGN(2, uint16_t) word;
+typedef ALIGN(4, uint32_t) dword;
+typedef ALIGN(8, uint64_t) qword;
+typedef ALIGN(16, uint64_t) qword2[2];
+typedef ALIGN(4, uint8_t) byte4[4];
+typedef ALIGN(8, uint8_t) byte8[8];
+typedef ALIGN(16, uint8_t) byte16[16];
+typedef ALIGN(8, uint16_t) word4[4];
+typedef ALIGN(8, uint32_t) dword2[2];
+typedef ALIGN(16, uint32_t) dword4[4];
+typedef ALIGN(16, uint64_t) xword[2];
+
+typedef ALIGN(1, int8_t) sbyte;
+typedef ALIGN(4, int8_t) sbyte4[4];
+typedef ALIGN(8, int8_t) sbyte8[8];
+typedef ALIGN(16, int8_t) sbyte16[16];
+typedef ALIGN(8, short) short4[4];
+typedef ALIGN(8, unsigned short) ushort4[4];
+typedef ALIGN(16, short) short8[8];
+typedef ALIGN(16, unsigned short) ushort8[8];
+typedef ALIGN(8, int) int2[2];
+typedef ALIGN(8, unsigned int) uint2[2];
+typedef ALIGN(16, unsigned int) uint4[4];
+
+typedef ALIGN(8, float) float2[2];
+
+ALIGN(16, struct int4
 {
-	typedef ALIGN(1, uint8_t) byte;
-	typedef ALIGN(2, uint16_t) word;
-	typedef ALIGN(4, uint32_t) dword;
-	typedef ALIGN(8, uint64_t) qword;
-	typedef ALIGN(16, uint64_t) qword2[2];
-	typedef ALIGN(4, uint8_t) byte4[4];
-	typedef ALIGN(8, uint8_t) byte8[8];
-	typedef ALIGN(16, uint8_t) byte16[16];
-	typedef ALIGN(8, uint16_t) word4[4];
-	typedef ALIGN(8, uint32_t) dword2[2];
-	typedef ALIGN(16, uint32_t) dword4[4];
-	typedef ALIGN(16, uint64_t) xword[2];
+	int x;
+	int y;
+	int z;
+	int w;
 
-	typedef ALIGN(1, int8_t) sbyte;
-	typedef ALIGN(4, int8_t) sbyte4[4];
-	typedef ALIGN(8, int8_t) sbyte8[8];
-	typedef ALIGN(16, int8_t) sbyte16[16];
-	typedef ALIGN(8, short) short4[4];
-	typedef ALIGN(8, unsigned short) ushort4[4];
-	typedef ALIGN(16, short) short8[8];
-	typedef ALIGN(16, unsigned short) ushort8[8];
-	typedef ALIGN(8, int) int2[2];
-	typedef ALIGN(8, unsigned int) uint2[2];
-	typedef ALIGN(16, unsigned int) uint4[4];
-
-	typedef ALIGN(8, float) float2[2];
-
-	ALIGN(16, struct int4
+	int &operator[](int i)
 	{
-		int x;
-		int y;
-		int z;
-		int w;
-
-		int &operator[](int i)
-		{
-			return (&x)[i];
-		}
-
-		const int &operator[](int i) const
-		{
-			return (&x)[i];
-		}
-
-		bool operator!=(const int4 &rhs)
-		{
-			return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w;
-		}
-
-		bool operator==(const int4 &rhs)
-		{
-			return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
-		}
-	});
-
-	ALIGN(16, struct float4
-	{
-		float x;
-		float y;
-		float z;
-		float w;
-
-		float &operator[](int i)
-		{
-			return (&x)[i];
-		}
-
-		const float &operator[](int i) const
-		{
-			return (&x)[i];
-		}
-
-		bool operator!=(const float4 &rhs)
-		{
-			return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w;
-		}
-
-		bool operator==(const float4 &rhs)
-		{
-			return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
-		}
-	});
-
-	inline constexpr float4 vector(float x, float y, float z, float w)
-	{
-		return { x, y, z, w };
+		return (&x)[i];
 	}
 
-	inline constexpr float4 replicate(float f)
+	const int &operator[](int i) const
 	{
-		return vector(f, f, f, f);
+		return (&x)[i];
 	}
 
-	#define OFFSET(s,m) (int)(size_t)&reinterpret_cast<const volatile char&>((((s*)0)->m))
+	bool operator!=(const int4 &rhs)
+	{
+		return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w;
+	}
+
+	bool operator==(const int4 &rhs)
+	{
+		return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
+	}
+});
+
+ALIGN(16, struct float4
+{
+	float x;
+	float y;
+	float z;
+	float w;
+
+	float &operator[](int i)
+	{
+		return (&x)[i];
+	}
+
+	const float &operator[](int i) const
+	{
+		return (&x)[i];
+	}
+
+	bool operator!=(const float4 &rhs)
+	{
+		return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w;
+	}
+
+	bool operator==(const float4 &rhs)
+	{
+		return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
+	}
+});
+
+inline constexpr float4 vector(float x, float y, float z, float w)
+{
+	return { x, y, z, w };
 }
+
+inline constexpr float4 replicate(float f)
+{
+	return vector(f, f, f, f);
+}
+
+#define OFFSET(s,m) (int)(size_t)&reinterpret_cast<const volatile char&>((((s*)0)->m))
+
+}  // namespace sw
 
 #endif   // sw_Types_hpp

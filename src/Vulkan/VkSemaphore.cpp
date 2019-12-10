@@ -36,8 +36,7 @@
 #include <mutex>
 #include <utility>
 
-namespace vk
-{
+namespace vk {
 
 // An implementation of VkSemaphore based on Marl primitives.
 class Semaphore::Impl

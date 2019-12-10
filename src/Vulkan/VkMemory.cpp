@@ -19,8 +19,7 @@
 #include "VkMemory.h"
 #include "System/Memory.hpp"
 
-namespace vk
-{
+namespace vk {
 
 void* allocate(size_t count, size_t alignment, const VkAllocationCallbacks* pAllocator, VkSystemAllocationScope allocationScope)
 {
@@ -34,6 +33,6 @@ void deallocate(void* ptr, const VkAllocationCallbacks* pAllocator)
 	pAllocator ? pAllocator->pfnFree(pAllocator->pUserData, ptr) : sw::deallocate(ptr);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_OBJECT_HPP_

@@ -19,8 +19,7 @@
 #include "VkFormat.h"
 #include "VkImageView.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class Buffer;
 
@@ -52,6 +51,6 @@ static inline BufferView* Cast(VkBufferView object)
 	return BufferView::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_BUFFER_VIEW_HPP_

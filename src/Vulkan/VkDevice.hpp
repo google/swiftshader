@@ -21,18 +21,10 @@
 #include <memory>
 #include <mutex>
 
-namespace marl
-{
-	class Scheduler;
-}
+namespace marl { class Scheduler; }
+namespace sw { class Blitter; }
 
-namespace sw
-{
-	class Blitter;
-}
-
-namespace vk
-{
+namespace vk {
 
 class PhysicalDevice;
 class Queue;
@@ -131,6 +123,6 @@ inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (cons
 	return static_cast<std::size_t>(hash);  // Truncates to 32-bits on 32-bit platforms.
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_DEVICE_HPP_

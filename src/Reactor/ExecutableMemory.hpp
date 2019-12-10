@@ -19,8 +19,8 @@
 #include <cstdint>
 #include <cstring>
 
-namespace rr
-{
+namespace rr {
+
 size_t memoryPageSize();
 
 void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()
@@ -87,6 +87,7 @@ public:
 private:
 	void *ptr;
 };
-}
+
+}  // namespace rr
 
 #endif   // rr_ExecutableMemory_hpp

@@ -17,8 +17,7 @@
 
 #include <Vulkan/VulkanPlatform.h>
 
-namespace vk
-{
+namespace vk {
 
 void* allocate(size_t count, size_t alignment, const VkAllocationCallbacks* pAllocator,
                VkSystemAllocationScope allocationScope = VK_SYSTEM_ALLOCATION_SCOPE_OBJECT);
@@ -30,6 +29,6 @@ T* allocate(size_t count, const VkAllocationCallbacks* pAllocator)
 	return static_cast<T*>(allocate(count, alignof(T), pAllocator, T::GetAllocationScope()));
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_MEMORY_HPP_

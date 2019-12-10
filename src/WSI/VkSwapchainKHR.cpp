@@ -22,8 +22,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace vk
-{
+namespace vk {
 
 SwapchainKHR::SwapchainKHR(const VkSwapchainCreateInfoKHR *pCreateInfo, void *mem) :
 	surface(vk::Cast(pCreateInfo->surface)),
@@ -214,4 +213,4 @@ VkResult SwapchainKHR::present(uint32_t index)
 	return result;
 }
 
-}
+}  // namespace vk

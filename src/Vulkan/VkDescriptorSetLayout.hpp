@@ -21,8 +21,7 @@
 #include "Vulkan/VkImageView.hpp"
 #include "Device/Sampler.hpp"
 
-namespace vk
-{
+namespace vk {
 
 class DescriptorSet;
 class Device;
@@ -146,6 +145,6 @@ static inline DescriptorSetLayout* Cast(VkDescriptorSetLayout object)
 	return DescriptorSetLayout::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_DESCRIPTOR_SET_LAYOUT_HPP_

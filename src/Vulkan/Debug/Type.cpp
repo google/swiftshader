@@ -14,10 +14,8 @@
 
 #include "Type.hpp"
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 // clang-format off
 std::shared_ptr<Type> TypeOf<bool>::get()              { static auto ty = std::make_shared<Type>(Kind::Bool); return ty; }

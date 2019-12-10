@@ -17,24 +17,25 @@
 
 #include "Vector.hpp"
 
-namespace sw
+namespace sw {
+
+struct Matrix;
+
+struct Plane
 {
-	struct Matrix;
+	float A;
+	float B;
+	float C;
+	float D;
 
-	struct Plane
-	{
-		float A;
-		float B;
-		float C;
-		float D;
+	Plane();
+	Plane(float A, float B, float C, float D);   // Plane equation 
+	Plane(const float ABCD[4]);
 
-		Plane();
-		Plane(float A, float B, float C, float D);   // Plane equation 
-		Plane(const float ABCD[4]);
+	friend Plane operator*(const Plane &p, const Matrix &A);   // Transform plane by matrix (post-multiply)
+	friend Plane operator*(const Matrix &A, const Plane &p);   // Transform plane by matrix (pre-multiply)
+};
 
-		friend Plane operator*(const Plane &p, const Matrix &A);   // Transform plane by matrix (post-multiply)
-		friend Plane operator*(const Matrix &A, const Plane &p);   // Transform plane by matrix (pre-multiply)
-	};
-}
+}  // namespace sw
 
 #endif   // Plane_hpp

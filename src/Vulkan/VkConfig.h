@@ -19,8 +19,7 @@
 
 #include <Vulkan/VulkanPlatform.h>
 
-namespace vk
-{
+namespace vk {
 
 // Note: Constant array initialization requires a string literal.
 //       constexpr char* or char[] does not work for that purpose.
@@ -82,7 +81,7 @@ constexpr int SUBPIXEL_PRECISION_BITS = 4;
 constexpr float SUBPIXEL_PRECISION_FACTOR = static_cast<float>(1 << SUBPIXEL_PRECISION_BITS);
 constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_BITS);
 
-}
+}  // namespace vk
 
 #if defined(__linux__) || defined(__ANDROID__)
 #define SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD        1

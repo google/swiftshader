@@ -22,8 +22,7 @@
 
 #include <atomic>
 
-namespace vk
-{
+namespace vk {
 
 class Sampler : public Object<Sampler, VkSampler>
 {
@@ -124,6 +123,6 @@ static inline SamplerYcbcrConversion* Cast(VkSamplerYcbcrConversion object)
 	return SamplerYcbcrConversion::Cast(object);
 }
 
-} // namespace vk
+}  // namespace vk
 
 #endif // VK_SAMPLER_HPP_
