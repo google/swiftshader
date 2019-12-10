@@ -34,8 +34,5 @@ if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 build\Debug\gles-unittests.exe
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
-IF NOT "%REACTOR_BACKEND%"=="Subzero" (
-    REM Currently vulkan does not work with Subzero.
-    build\Debug\vk-unittests.exe
-    if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
-)
+build\Debug\vk-unittests.exe
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!

@@ -24,7 +24,4 @@ cd .. # Some tests must be run from project root
 
 build/ReactorUnitTests
 build/gles-unittests
-
-if [ "${REACTOR_BACKEND}" != "Subzero" ]; then
-  build/vk-unittests # Currently vulkan does not work with Subzero.
-fi
+build/vk-unittests
