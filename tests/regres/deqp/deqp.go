@@ -282,6 +282,27 @@ nextTest:
 			out = strings.ReplaceAll(out, k, v)
 		}
 
+		for _, test := range []struct {
+			re *regexp.Regexp
+			s  testlist.Status
+		}{
+			{unimplementedRE, testlist.Unimplemented},
+			{unsupportedRE, testlist.Unsupported},
+			{unreachableRE, testlist.Unreachable},
+			{assertRE, testlist.Assert},
+			{abortRE, testlist.Abort},
+		} {
+			if s := test.re.FindString(out); s != "" {
+				results <- TestResult{
+					Test:      name,
+					Status:    test.s,
+					TimeTaken: duration,
+					Err:       s,
+				}
+				continue nextTest
+			}
+		}
+
 		// Don't treat non-zero error codes as crashes.
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
@@ -293,26 +314,6 @@ nextTest:
 
 		switch err.(type) {
 		default:
-			for _, test := range []struct {
-				re *regexp.Regexp
-				s  testlist.Status
-			}{
-				{unimplementedRE, testlist.Unimplemented},
-				{unsupportedRE, testlist.Unsupported},
-				{unreachableRE, testlist.Unreachable},
-				{assertRE, testlist.Assert},
-				{abortRE, testlist.Abort},
-			} {
-				if s := test.re.FindString(out); s != "" {
-					results <- TestResult{
-						Test:      name,
-						Status:    test.s,
-						TimeTaken: duration,
-						Err:       s,
-					}
-					continue nextTest
-				}
-			}
 			results <- TestResult{
 				Test:      name,
 				Status:    testlist.Crash,
