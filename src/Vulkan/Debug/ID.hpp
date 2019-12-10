@@ -29,24 +29,62 @@ template<typename T>
 class ID
 {
 public:
-	inline ID()
-	    : id(0)
-	{}
-	inline ID(int id)
-	    : id(id)
-	{}
-	inline bool operator==(const ID<T> &rhs) const { return id == rhs.id; }
-	inline bool operator!=(const ID<T> &rhs) const { return id != rhs.id; }
-	inline bool operator<(const ID<T> &rhs) const { return id < rhs.id; }
-	inline ID operator++() { return ID(++id); }
-	inline ID operator++(int) { return ID(id++); }
+	ID() = default;
+
+	inline ID(int id);
+	inline bool operator==(const ID<T> &rhs) const;
+	inline bool operator!=(const ID<T> &rhs) const;
+	inline bool operator<(const ID<T> &rhs) const;
+	inline ID operator++();
+	inline ID operator++(int);
 
 	// value returns the numerical value of the identifier.
-	inline int value() const { return id; }
+	inline int value() const;
 
 private:
-	int id;
+	int id = 0;
 };
+
+template<typename T>
+ID<T>::ID(int id)
+    : id(id)
+{}
+
+template<typename T>
+bool ID<T>::operator==(const ID<T> &rhs) const
+{
+	return id == rhs.id;
+}
+
+template<typename T>
+bool ID<T>::operator!=(const ID<T> &rhs) const
+{
+	return id != rhs.id;
+}
+
+template<typename T>
+bool ID<T>::operator<(const ID<T> &rhs) const
+{
+	return id < rhs.id;
+}
+
+template<typename T>
+ID<T> ID<T>::operator++()
+{
+	return ID(++id);
+}
+
+template<typename T>
+ID<T> ID<T>::operator++(int)
+{
+	return ID(id++);
+}
+
+template<typename T>
+int ID<T>::value() const
+{
+	return id;
+}
 
 }  // namespace dbg
 }  // namespace vk
