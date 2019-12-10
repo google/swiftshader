@@ -489,6 +489,7 @@ namespace sw
 			bool InputAttachment : 1;
 			bool Sampled1D : 1;
 			bool Image1D : 1;
+			bool ImageCubeArray : 1;
 			bool SampledBuffer : 1;
 			bool SampledCubeArray : 1;
 			bool ImageBuffer : 1;
