@@ -109,7 +109,12 @@ option(LESS_DEBUG_INFO "Generate less debug info to reduce file size" 0)
 option(ENABLE_VULKAN_DEBUGGER "Enable vulkan debugger support" 0)
 
 set(BUILD_MARL ${BUILD_VULKAN})
-set(BUILD_CPPDAP ${BUILD_VULKAN} AND ${ENABLE_VULKAN_DEBUGGER})
+
+if(${BUILD_VULKAN} AND ${ENABLE_VULKAN_DEBUGGER})
+    set(BUILD_CPPDAP 1)
+else()
+    set(BUILD_CPPDAP 0)
+endif()
 
 set(DEFAULT_REACTOR_BACKEND "LLVM")
 
