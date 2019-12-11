@@ -16,6 +16,7 @@ import("../swiftshader.gni")
 
 swiftshader_source_set("Device_headers") {
   sources = [
+    "BC_Decoder.hpp",
     "Blitter.hpp",
     "Clipper.hpp",
     "Color.hpp",
@@ -37,6 +38,7 @@ swiftshader_source_set("Device_headers") {
 
 swiftshader_source_set("Device") {
   sources = [
+    "BC_Decoder.cpp",
     "Blitter.cpp",
     "Clipper.cpp",
     "Color.cpp",
