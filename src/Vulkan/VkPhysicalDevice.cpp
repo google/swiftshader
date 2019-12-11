@@ -229,7 +229,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		16384, // maxComputeSharedMemorySize
 		{ 65535, 65535, 65535 }, // maxComputeWorkGroupCount[3]
 		128, // maxComputeWorkGroupInvocations
-		{ 128, 128, 64, }, // maxComputeWorkGroupSize[3]
+		{ 128, 128, 64 }, // maxComputeWorkGroupSize[3]
 		vk::SUBPIXEL_PRECISION_BITS, // subPixelPrecisionBits
 		4, // subTexelPrecisionBits
 		4, // mipmapPrecisionBits
@@ -853,10 +853,10 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() co
 		{
 			// vk::MEMORY_TYPE_GENERIC_BIT
 			{
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
-				VK_MEMORY_PROPERTY_HOST_CACHED_BIT, // propertyFlags
+				(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+				 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+				 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+				 VK_MEMORY_PROPERTY_HOST_CACHED_BIT), // propertyFlags
 				0 // heapIndex
 			},
 		},

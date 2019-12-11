@@ -388,10 +388,10 @@ namespace rr {
 	{
 		static std::string fmt(const sw::Vector4f& v)
 		{
-			return "[x: " + PrintValue::fmt(v.x) + ","
-			       " y: " + PrintValue::fmt(v.y) + ","
-			       " z: " + PrintValue::fmt(v.z) + ","
-			       " w: " + PrintValue::fmt(v.w) + "]";
+			return "[x: " + PrintValue::fmt(v.x) +
+			       ", y: " + PrintValue::fmt(v.y) +
+			       ", z: " + PrintValue::fmt(v.z) +
+			       ", w: " + PrintValue::fmt(v.w) + "]";
 		}
 
 		static std::vector<rr::Value*> val(const sw::Vector4f& v)
@@ -403,10 +403,10 @@ namespace rr {
 	{
 		static std::string fmt(const sw::Vector4s& v)
 		{
-			return "[x: " + PrintValue::fmt(v.x) + ","
-			       " y: " + PrintValue::fmt(v.y) + ","
-			       " z: " + PrintValue::fmt(v.z) + ","
-			       " w: " + PrintValue::fmt(v.w) + "]";
+			return "[x: " + PrintValue::fmt(v.x) +
+			       ", y: " + PrintValue::fmt(v.y) +
+			       ", z: " + PrintValue::fmt(v.z) +
+			       ", w: " + PrintValue::fmt(v.w) + "]";
 		}
 
 		static std::vector<rr::Value*> val(const sw::Vector4s& v)

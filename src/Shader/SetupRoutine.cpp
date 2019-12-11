@@ -160,7 +160,7 @@ namespace sw
 
 					i++;
 				}
-				Until(i >= n)
+				Until(i >= n);
 			}
 
 			// Vertical range
@@ -176,7 +176,7 @@ namespace sw
 
 				i++;
 			}
-			Until(i >= n)
+			Until(i >= n);
 
 			if(state.multiSample > 1)
 			{
@@ -220,7 +220,7 @@ namespace sw
 
 					i++;
 				}
-				Until(i >= n)
+				Until(i >= n);
 
 				Pointer<Byte> leftEdge = Pointer<Byte>(primitive + OFFSET(Primitive,outline->left)) + q * sizeof(Primitive);
 				Pointer<Byte> rightEdge = Pointer<Byte>(primitive + OFFSET(Primitive,outline->right)) + q * sizeof(Primitive);
@@ -251,7 +251,7 @@ namespace sw
 
 						i++;
 					}
-					Until(i >= n)
+					Until(i >= n);
 				}
 
 				if(state.multiSample == 1)
@@ -620,7 +620,7 @@ namespace sw
 
 					y++;
 				}
-				Until(y >= y2)
+				Until(y >= y2);
 			}
 		}
 	}

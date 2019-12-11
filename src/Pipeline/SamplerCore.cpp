@@ -435,7 +435,7 @@ Vector4s SamplerCore::sampleAniso(Pointer<Byte> &texture, Float4 &u, Float4 &v, 
 
 			i++;
 		}
-		Until(i >= a)
+		Until(i >= a);
 
 		if(hasUnsignedTextureComponent(0)) c.x = cSum.x; else c.x = AddSat(cSum.x, cSum.x);
 		if(hasUnsignedTextureComponent(1)) c.y = cSum.y; else c.y = AddSat(cSum.y, cSum.y);
@@ -868,7 +868,7 @@ Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4
 
 			i++;
 		}
-		Until(i >= a)
+		Until(i >= a);
 
 		c.x = cSum.x;
 		c.y = cSum.y;

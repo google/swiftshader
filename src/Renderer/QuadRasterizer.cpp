@@ -69,7 +69,7 @@ namespace sw
 			primitive += sizeof(Primitive) * state.multiSample;
 			count--;
 		}
-		Until(count == 0)
+		Until(count == 0);
 
 		if(state.occlusionEnabled)
 		{
@@ -313,7 +313,7 @@ namespace sw
 
 			y += 2 * clusterCount;
 		}
-		Until(y >= yMax)
+		Until(y >= yMax);
 	}
 
 	Float4 QuadRasterizer::interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective, bool clamp)

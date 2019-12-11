@@ -90,7 +90,7 @@ namespace sw
 			batch += sizeof(unsigned int);
 			vertexCount--;
 		}
-		Until(vertexCount == 0)
+		Until(vertexCount == 0);
 
 		Return();
 	}

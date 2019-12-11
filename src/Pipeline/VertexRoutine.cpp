@@ -79,7 +79,7 @@ void VertexRoutine::generate()
 		batch = Pointer<UInt>(Pointer<Byte>(batch) + sizeof(uint32_t));
 		vertexCount--;
 	}
-	Until(vertexCount == 0)
+	Until(vertexCount == 0);
 
 	Return();
 }

@@ -714,7 +714,7 @@ namespace sw
 
 				i++;
 			}
-			Until(i >= a)
+			Until(i >= a);
 
 			if(hasUnsignedTextureComponent(0)) c.x = cSum.x; else c.x = AddSat(cSum.x, cSum.x);
 			if(hasUnsignedTextureComponent(1)) c.y = cSum.y; else c.y = AddSat(cSum.y, cSum.y);
@@ -1184,7 +1184,7 @@ namespace sw
 
 				i++;
 			}
-			Until(i >= a)
+			Until(i >= a);
 
 			c.x = cSum.x;
 			c.y = cSum.y;

@@ -53,7 +53,7 @@ void QuadRasterizer::generate()
 		primitive += sizeof(Primitive) * state.multiSample;
 		count--;
 	}
-	Until(count == 0)
+	Until(count == 0);
 
 	if(state.occlusionEnabled)
 	{
@@ -226,7 +226,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 		y += 2 * clusterCount;
 	}
-	Until(y >= yMax)
+	Until(y >= yMax);
 }
 
 Float4 QuadRasterizer::interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective, bool clamp)
