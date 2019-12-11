@@ -227,6 +227,7 @@
     <ClCompile Include="$(SolutionDir)third_party\subzero\src\IceVariableSplitting.cpp" />
     <ClCompile Include="CPUID.cpp" />
     <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="EmulatedReactor.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
     <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="Reactor.cpp" />
@@ -291,6 +292,7 @@
     <ClInclude Include="$(SolutionDir)third_party\subzero\src\IceRegistersX8664.h" />
     <ClInclude Include="CPUID.hpp" />
     <ClInclude Include="Debug.hpp" />
+    <ClInclude Include="EmulatedReactor.hpp" />
     <ClInclude Include="Optimizer.hpp" />
   </ItemGroup>
   <ItemGroup>
