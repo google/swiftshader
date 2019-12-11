@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10690fac_b277da95",
+        "filename": "src/Reactor/ExecutableMemory.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-12-11T21:05:39Z",
+      "side": 1,
+      "message": "This is expanding what used to be a simple API which matches the names of the functions, to one that covers almost all functionality of mmap() and makes the name confusing. Perhaps it should be renamed to allocateMemoryPages() or similar? Likewise the functions below seem due for a renaming.",
+      "range": {
+        "startLine": 34,
+        "startChar": 39,
+        "endLine": 34,
+        "endChar": 70
+      },
+      "revId": "692faacecbecdc5590a35c49342189642afeaa25",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0faed8d_74945e59",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-12-11T21:05:39Z",
+      "side": 1,
+      "message": "nearBlock ?",
+      "range": {
+        "startLine": 324,
+        "startChar": 56,
+        "endLine": 324,
+        "endChar": 65
+      },
+      "revId": "692faacecbecdc5590a35c49342189642afeaa25",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
