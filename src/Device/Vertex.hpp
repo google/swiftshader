@@ -21,7 +21,7 @@
 
 namespace sw {
 
-ALIGN(16, struct Vertex
+struct alignas(16) Vertex
 {
 	union
 	{
@@ -52,7 +52,7 @@ ALIGN(16, struct Vertex
 	} projected;
 
 	alignas(16) float v[MAX_INTERFACE_COMPONENTS];
-});
+};
 
 static_assert((sizeof(Vertex) & 0x0000000F) == 0, "Vertex size not a multiple of 16 bytes (alignment requirement)");
 

@@ -71,7 +71,7 @@ typedef ALIGN(16, unsigned int) uint4[4];
 
 typedef ALIGN(8, float) float2[2];
 
-ALIGN(16, struct int4
+struct alignas(16) int4
 {
 	int x;
 	int y;
@@ -97,9 +97,9 @@ ALIGN(16, struct int4
 	{
 		return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
 	}
-});
+};
 
-ALIGN(16, struct float4
+struct alignas(16) float4
 {
 	float x;
 	float y;
@@ -125,7 +125,7 @@ ALIGN(16, struct float4
 	{
 		return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
 	}
-});
+};
 
 inline constexpr float4 vector(float x, float y, float z, float w)
 {
