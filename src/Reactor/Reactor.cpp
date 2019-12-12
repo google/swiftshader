@@ -3778,7 +3778,7 @@ Half::Half(RValue<Float> cast)
 		{
 			Int mantissa = (abs & 0x007FFFFF) | 0x00800000;
 			Int e = 113 - (abs >> 23);
-			abs = IfThenElse(e < 24, mantissa >> e, Int(0));
+			abs = IfThenElse(e < 24, (mantissa >> e), Int(0));
 			fp16i |= UShort((abs + 0x00000FFF + ((abs >> 13) & 1)) >> 13);
 		}
 		Else
