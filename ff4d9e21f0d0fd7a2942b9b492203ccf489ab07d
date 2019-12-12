@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa2677ed_c837cd7a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-12-12T15:57:41Z",
+      "side": 1,
+      "message": "It does look like b/145348318 would be addressed by this as well, or at least be closely related, so please add a \"Bug: b/145348318\" line as well.",
+      "revId": "ff4d9e21f0d0fd7a2942b9b492203ccf489ab07d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
