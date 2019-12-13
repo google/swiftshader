@@ -62,86 +62,26 @@ PixelProcessor::~PixelProcessor()
 
 void PixelProcessor::setBlendConstant(const Color<float> &blendConstant)
 {
-	// TODO(b/140935644): Compact into generic function, cheack if clamp is required
-	factor.blendConstant4W[0][0] =
-	factor.blendConstant4W[0][1] =
-	factor.blendConstant4W[0][2] =
-	factor.blendConstant4W[0][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.r));
+	// TODO(b/140935644): Check if clamp is required
+	factor.blendConstant4W[0] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.r)));
+	factor.blendConstant4W[1] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.g)));
+	factor.blendConstant4W[2] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.b)));
+	factor.blendConstant4W[3] = word4(static_cast<uint16_t>(iround(0xFFFFu * blendConstant.a)));
 
-	factor.blendConstant4W[1][0] =
-	factor.blendConstant4W[1][1] =
-	factor.blendConstant4W[1][2] =
-	factor.blendConstant4W[1][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.g));
+	factor.invBlendConstant4W[0] = word4(0xFFFFu - factor.blendConstant4W[0][0]);
+	factor.invBlendConstant4W[1] = word4(0xFFFFu - factor.blendConstant4W[1][0]);
+	factor.invBlendConstant4W[2] = word4(0xFFFFu - factor.blendConstant4W[2][0]);
+	factor.invBlendConstant4W[3] = word4(0xFFFFu - factor.blendConstant4W[3][0]);
 
-	factor.blendConstant4W[2][0] =
-	factor.blendConstant4W[2][1] =
-	factor.blendConstant4W[2][2] =
-	factor.blendConstant4W[2][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.b));
+	factor.blendConstant4F[0] = float4(blendConstant.r);
+	factor.blendConstant4F[1] = float4(blendConstant.g);
+	factor.blendConstant4F[2] = float4(blendConstant.b);
+	factor.blendConstant4F[3] = float4(blendConstant.a);
 
-	factor.blendConstant4W[3][0] =
-	factor.blendConstant4W[3][1] =
-	factor.blendConstant4W[3][2] =
-	factor.blendConstant4W[3][3] = static_cast<uint16_t>(iround(65535.0f * blendConstant.a));
-
-	factor.invBlendConstant4W[0][0] =
-	factor.invBlendConstant4W[0][1] =
-	factor.invBlendConstant4W[0][2] =
-	factor.invBlendConstant4W[0][3] = 0xFFFFu - factor.blendConstant4W[0][0];
-
-	factor.invBlendConstant4W[1][0] =
-	factor.invBlendConstant4W[1][1] =
-	factor.invBlendConstant4W[1][2] =
-	factor.invBlendConstant4W[1][3] = 0xFFFFu - factor.blendConstant4W[1][0];
-
-	factor.invBlendConstant4W[2][0] =
-	factor.invBlendConstant4W[2][1] =
-	factor.invBlendConstant4W[2][2] =
-	factor.invBlendConstant4W[2][3] = 0xFFFFu - factor.blendConstant4W[2][0];
-
-	factor.invBlendConstant4W[3][0] =
-	factor.invBlendConstant4W[3][1] =
-	factor.invBlendConstant4W[3][2] =
-	factor.invBlendConstant4W[3][3] = 0xFFFFu - factor.blendConstant4W[3][0];
-
-	factor.blendConstant4F[0][0] =
-	factor.blendConstant4F[0][1] =
-	factor.blendConstant4F[0][2] =
-	factor.blendConstant4F[0][3] = blendConstant.r;
-
-	factor.blendConstant4F[1][0] =
-	factor.blendConstant4F[1][1] =
-	factor.blendConstant4F[1][2] =
-	factor.blendConstant4F[1][3] = blendConstant.g;
-
-	factor.blendConstant4F[2][0] =
-	factor.blendConstant4F[2][1] =
-	factor.blendConstant4F[2][2] =
-	factor.blendConstant4F[2][3] = blendConstant.b;
-
-	factor.blendConstant4F[3][0] =
-	factor.blendConstant4F[3][1] =
-	factor.blendConstant4F[3][2] =
-	factor.blendConstant4F[3][3] = blendConstant.a;
-
-	factor.invBlendConstant4F[0][0] =
-	factor.invBlendConstant4F[0][1] =
-	factor.invBlendConstant4F[0][2] =
-	factor.invBlendConstant4F[0][3] = 1 - blendConstant.r;
-
-	factor.invBlendConstant4F[1][0] =
-	factor.invBlendConstant4F[1][1] =
-	factor.invBlendConstant4F[1][2] =
-	factor.invBlendConstant4F[1][3] = 1 - blendConstant.g;
-
-	factor.invBlendConstant4F[2][0] =
-	factor.invBlendConstant4F[2][1] =
-	factor.invBlendConstant4F[2][2] =
-	factor.invBlendConstant4F[2][3] = 1 - blendConstant.b;
-
-	factor.invBlendConstant4F[3][0] =
-	factor.invBlendConstant4F[3][1] =
-	factor.invBlendConstant4F[3][2] =
-	factor.invBlendConstant4F[3][3] = 1 - blendConstant.a;
+	factor.invBlendConstant4F[0] = float4(1 - blendConstant.r);
+	factor.invBlendConstant4F[1] = float4(1 - blendConstant.g);
+	factor.invBlendConstant4F[2] = float4(1 - blendConstant.b);
+	factor.invBlendConstant4F[3] = float4(1 - blendConstant.a);
 }
 
 void PixelProcessor::setRoutineCacheSize(int cacheSize)

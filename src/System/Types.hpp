@@ -55,7 +55,7 @@ struct alignas(sizeof(T)* N) vec
 {
 	vec() = default;
 
-	vec(T replicate)
+	explicit vec(T replicate)
 	{
 		for(int i = 0; i < N; i++)
 		{
@@ -68,6 +68,9 @@ struct alignas(sizeof(T)* N) vec
 		: v{ arg0, args... }
 	{
 	}
+
+	// Require explicit use of replicate constructor.
+	vec &operator=(T) = delete;
 
 	T &operator[](int i)
 	{
@@ -87,7 +90,7 @@ struct alignas(sizeof(T) * 4) vec<T, 4>
 {
 	vec() = default;
 
-	constexpr vec(T replicate)
+	constexpr explicit vec(T replicate)
 		: x(replicate), y(replicate), z(replicate), w(replicate)
 	{
 	}
@@ -96,6 +99,9 @@ struct alignas(sizeof(T) * 4) vec<T, 4>
 		: x(x), y(y), z(z), w(w)
 	{
 	}
+
+	// Require explicit use of replicate constructor.
+	vec &operator=(T) = delete;
 
 	T &operator[](int i)
 	{
