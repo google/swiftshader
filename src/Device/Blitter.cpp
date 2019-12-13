@@ -398,19 +398,7 @@ Float4 Blitter::readFloat4(Pointer<Byte> element, const State &state)
 		c.x = Float(*Pointer<Half>(element));
 		break;
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-		// 10 (or 11) bit float formats are unsigned formats with a 5 bit exponent and a 5 (or 6) bit mantissa.
-		// Since the Half float format also has a 5 bit exponent, we can convert these formats to half by
-		// copy/pasting the bits so the the exponent bits and top mantissa bits are aligned to the half format.
-		// In this case, we have:
-		//              B B B B B B B B B B G G G G G G G G G G G R R R R R R R R R R R
-		// 1st Short:                                  |xxxxxxxxxx---------------------|
-		// 2nd Short:                  |xxxx---------------------xxxxxx|
-		// 3rd Short: |--------------------xxxxxxxxxxxx|
-		// These memory reads overlap, but each of them contains an entire channel, so we can read this without
-		// any int -> short conversion.
-		c.x = Float(As<Half>((*Pointer<UShort>(element + 0) & UShort(0x07FF)) << UShort(4)));
-		c.y = Float(As<Half>((*Pointer<UShort>(element + 1) & UShort(0x3FF8)) << UShort(1)));
-		c.z = Float(As<Half>((*Pointer<UShort>(element + 2) & UShort(0xFFC0)) >> UShort(1)));
+		c = r11g11b10Unpack(*Pointer<UInt>(element));
 		break;
 	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		// This type contains a common 5 bit exponent (E) and a 9 bit the mantissa for R, G and B.
@@ -621,16 +609,7 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 		break;
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		{
-			// 10 (or 11) bit float formats are unsigned formats with a 5 bit exponent and a 5 (or 6) bit mantissa.
-			// Since the 16-bit half-precision float format also has a 5 bit exponent, we can extract these minifloats from them.
-
-			// FIXME(b/138944025): Handle negative values, Inf, and NaN.
-			// FIXME(b/138944025): Perform rounding before truncating the mantissa.
-			UInt r = (UInt(As<UShort>(Half(c.x))) & 0x00007FF0) >> 4;
-			UInt g = (UInt(As<UShort>(Half(c.y))) & 0x00007FF0) << 7;
-			UInt b = (UInt(As<UShort>(Half(c.z))) & 0x00007FE0) << 17;
-
-			UInt rgb = r | g | b;
+			UInt rgb = r11g11b10Pack(c);
 
 			UInt old = *Pointer<UInt>(element);
 

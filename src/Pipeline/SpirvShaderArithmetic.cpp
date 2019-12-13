@@ -544,30 +544,6 @@ SIMD::Float SpirvShader::Dot(unsigned numComponents, GenericValue const & x, Gen
 	return d;
 }
 
-SIMD::UInt SpirvShader::FloatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits) const
-{
-	static const uint32_t mask_sign = 0x80000000u;
-	static const uint32_t mask_round = ~0xfffu;
-	static const uint32_t c_f32infty = 255 << 23;
-	static const uint32_t c_magic = 15 << 23;
-	static const uint32_t c_nanbit = 0x200;
-	static const uint32_t c_infty_as_fp16 = 0x7c00;
-	static const uint32_t c_clamp = (31 << 23) - 0x1000;
-
-	SIMD::UInt justsign = SIMD::UInt(mask_sign) & floatBits;
-	SIMD::UInt absf = floatBits ^ justsign;
-	SIMD::UInt b_isnormal = CmpNLE(SIMD::UInt(c_f32infty), absf);
-
-	// Note: this version doesn't round to the nearest even in case of a tie as defined by IEEE 754-2008, it rounds to +inf
-	//       instead of nearest even, since that's fine for GLSL ES 3.0's needs (see section 2.1.1 Floating-Point Computation)
-	SIMD::UInt joined = ((((As<SIMD::UInt>(Min(As<SIMD::Float>(absf & SIMD::UInt(mask_round)) * As<SIMD::Float>(SIMD::UInt(c_magic)),
-										As<SIMD::Float>(SIMD::UInt(c_clamp))))) - SIMD::UInt(mask_round)) >> 13) & b_isnormal) |
-					((b_isnormal ^ SIMD::UInt(0xFFFFFFFF)) & ((CmpNLE(absf, SIMD::UInt(c_f32infty)) & SIMD::UInt(c_nanbit)) |
-														SIMD::UInt(c_infty_as_fp16)));
-
-	return storeInUpperBits ? ((joined << 16) | justsign) : joined | (justsign >> 16);
-}
-
 std::pair<SIMD::Float, SIMD::Int> SpirvShader::Frexp(RValue<SIMD::Float> val) const
 {
 	// Assumes IEEE 754

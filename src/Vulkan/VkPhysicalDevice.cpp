@@ -630,6 +630,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties* pFor
 	case VK_FORMAT_R32G32B32A32_UINT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
+	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		pFormatProperties->optimalTilingFeatures |=
 			VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |
 			VK_FORMAT_FEATURE_BLIT_DST_BIT;

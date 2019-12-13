@@ -1087,8 +1087,6 @@ private:
 	// Helper as we often need to take dot products as part of doing other things.
 	SIMD::Float Dot(unsigned numComponents, GenericValue const & x, GenericValue const & y) const;
 
-	SIMD::UInt FloatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits) const;
-
 	// Splits x into a floating-point significand in the range [0.5, 1.0)
 	// and an integral exponent of two, such that:
 	//   x = significand * 2^exponent

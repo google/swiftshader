@@ -431,7 +431,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtendedInstruction(InsnIterator insn, 
 	case GLSLstd450PackHalf2x16:
 	{
 		auto val = GenericValue(this, state, insn.word(5));
-		dst.move(0, FloatToHalfBits(val.UInt(0), false) | FloatToHalfBits(val.UInt(1), true));
+		dst.move(0, floatToHalfBits(val.UInt(0), false) | floatToHalfBits(val.UInt(1), true));
 		break;
 	}
 	case GLSLstd450UnpackSnorm4x8:

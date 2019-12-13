@@ -546,27 +546,72 @@ void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N)
 	}
 }
 
-UInt4 halfToFloatBits(UInt4 halfBits)
+SIMD::UInt halfToFloatBits(SIMD::UInt halfBits)
 {
-	auto magic = UInt4(126 << 23);
+	auto magic = SIMD::UInt(126 << 23);
 
-	auto sign16 = halfBits & UInt4(0x8000);
-	auto man16  = halfBits & UInt4(0x3FF);
-	auto exp16  = halfBits & UInt4(0x7C00);
+	auto sign16 = halfBits & SIMD::UInt(0x8000);
+	auto man16  = halfBits & SIMD::UInt(0x03FF);
+	auto exp16  = halfBits & SIMD::UInt(0x7C00);
 
-	auto isDnormOrZero = CmpEQ(exp16, UInt4(0));
-	auto isInfOrNaN = CmpEQ(exp16, UInt4(0x7C00));
+	auto isDnormOrZero = CmpEQ(exp16, SIMD::UInt(0));
+	auto isInfOrNaN = CmpEQ(exp16, SIMD::UInt(0x7C00));
 
 	auto sign32 = sign16 << 16;
 	auto man32  = man16 << 13;
-	auto exp32  = (exp16 + UInt4(0x1C000)) << 13;
-	auto norm32 = (man32 | exp32) | (isInfOrNaN & UInt4(0x7F800000));
+	auto exp32  = (exp16 + SIMD::UInt(0x1C000)) << 13;
+	auto norm32 = (man32 | exp32) | (isInfOrNaN & SIMD::UInt(0x7F800000));
 
-	auto denorm32 = As<UInt4>(As<Float4>(magic + man16) - As<Float4>(magic));
+	auto denorm32 = As<SIMD::UInt>(As<SIMD::Float>(magic + man16) - As<SIMD::Float>(magic));
 
 	return sign32 | (norm32 & ~isDnormOrZero) | (denorm32 & isDnormOrZero);
 }
 
+SIMD::UInt floatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits)
+{
+	static const uint32_t mask_sign = 0x80000000u;
+	static const uint32_t mask_round = ~0xfffu;
+	static const uint32_t c_f32infty = 255 << 23;
+	static const uint32_t c_magic = 15 << 23;
+	static const uint32_t c_nanbit = 0x200;
+	static const uint32_t c_infty_as_fp16 = 0x7c00;
+	static const uint32_t c_clamp = (31 << 23) - 0x1000;
+
+	SIMD::UInt justsign = SIMD::UInt(mask_sign) & floatBits;
+	SIMD::UInt absf = floatBits ^ justsign;
+	SIMD::UInt b_isnormal = CmpNLE(SIMD::UInt(c_f32infty), absf);
+
+	// Note: this version doesn't round to the nearest even in case of a tie as defined by IEEE 754-2008, it rounds to +inf
+	//       instead of nearest even, since that's fine for GLSL ES 3.0's needs (see section 2.1.1 Floating-Point Computation)
+	SIMD::UInt joined = ((((As<SIMD::UInt>(Min(As<SIMD::Float>(absf & SIMD::UInt(mask_round)) * As<SIMD::Float>(SIMD::UInt(c_magic)),
+	                                           As<SIMD::Float>(SIMD::UInt(c_clamp))))) - SIMD::UInt(mask_round)) >> 13) & b_isnormal) |
+	                    ((b_isnormal ^ SIMD::UInt(0xFFFFFFFF)) &
+	                     ((CmpNLE(absf, SIMD::UInt(c_f32infty)) & SIMD::UInt(c_nanbit)) | SIMD::UInt(c_infty_as_fp16)));
+
+	return storeInUpperBits ? ((joined << 16) | justsign) : joined | (justsign >> 16);
+}
+
+sw::SIMD::Float r11g11b10Unpack(UInt r11g11b10bits)
+{
+	// 10 (or 11) bit float formats are unsigned formats with a 5 bit exponent and a 5 (or 6) bit mantissa.
+	// Since the Half float format also has a 5 bit exponent, we can convert these formats to half by
+	// copy/pasting the bits so the the exponent bits and top mantissa bits are aligned to the half format.
+	// In this case, we have:
+	// MSB | B B B B B B B B B B G G G G G G G G G G G R R R R R R R R R R R | LSB
+	SIMD::UInt halfBits;
+	halfBits = Insert(halfBits, (r11g11b10bits & UInt(0x000007FFu)) << 4, 0);
+	halfBits = Insert(halfBits, (r11g11b10bits & UInt(0x003FF800u)) >> 7, 1);
+	halfBits = Insert(halfBits, (r11g11b10bits & UInt(0xFFC00000u)) >> 17, 2);
+	halfBits = Insert(halfBits, UInt(0x00003C00u), 3);
+	return As<sw::SIMD::Float>(halfToFloatBits(halfBits));
+}
+
+UInt r11g11b10Pack(sw::SIMD::Float &value)
+{
+	SIMD::UInt halfBits = floatToHalfBits(As<SIMD::UInt>(value), true) &
+	                      SIMD::UInt(0x7FF00000, 0x7FF00000, 0x7FE00000, 0);
+	return (UInt(halfBits.x) >> 20)  | (UInt(halfBits.y) >> 9) | (UInt(halfBits.z) << 1);
+}
 
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints)
 {

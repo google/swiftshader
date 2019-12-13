@@ -924,13 +924,13 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 {
 	Short4 c01;
 	Short4 c23;
-	Pointer<Byte> buffer;
+	Pointer<Byte> buffer = cBuffer;
 	Pointer<Byte> buffer2;
 
 	switch(state.targetFormat[index])
 	{
 	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-		buffer = cBuffer + 2 * x;
+		buffer += 2 * x;
 		buffer2 = buffer + *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		c01 = As<Short4>(Int2(*Pointer<Int>(buffer), *Pointer<Int>(buffer2)));
 
@@ -948,7 +948,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		pixel.z |= As<Short4>(As<UShort4>(pixel.z) >> 10);
 		break;
 	case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		buffer = cBuffer + 2 * x;
+		buffer += 2 * x;
 		buffer2 = buffer + *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		c01 = As<Short4>(Int2(*Pointer<Int>(buffer), *Pointer<Int>(buffer2)));
 
@@ -967,7 +967,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		break;
 	case VK_FORMAT_B8G8R8A8_UNORM:
 	case VK_FORMAT_B8G8R8A8_SRGB:
-		buffer = cBuffer + 4 * x;
+		buffer += 4 * x;
 		c01 = *Pointer<Short4>(buffer);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		c23 = *Pointer<Short4>(buffer);
@@ -987,7 +987,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		break;
 	case VK_FORMAT_R8G8B8A8_UNORM:
 	case VK_FORMAT_R8G8B8A8_SRGB:
-		buffer = cBuffer + 4 * x;
+		buffer += 4 * x;
 		c01 = *Pointer<Short4>(buffer);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		c23 = *Pointer<Short4>(buffer);
@@ -1006,7 +1006,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		pixel.w = UnpackHigh(As<Byte8>(pixel.w), As<Byte8>(pixel.w));
 		break;
 	case VK_FORMAT_R8_UNORM:
-		buffer = cBuffer + 1 * x;
+		buffer += 1 * x;
 		pixel.x = Insert(pixel.x, *Pointer<Short>(buffer), 0);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		pixel.x = Insert(pixel.x, *Pointer<Short>(buffer), 1);
@@ -1016,7 +1016,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		pixel.w = Short4(0xFFFFu);
 		break;
 	case VK_FORMAT_R8G8_UNORM:
-		buffer = cBuffer + 2 * x;
+		buffer += 2 * x;
 		c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 0));
 		buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 1));
@@ -1026,7 +1026,6 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		pixel.w = Short4(0xFFFFu);
 		break;
 	case VK_FORMAT_R16G16B16A16_UNORM:
-		buffer = cBuffer;
 		pixel.x = *Pointer<Short4>(buffer + 8 * x);
 		pixel.y = *Pointer<Short4>(buffer + 8 * x + 8);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1035,7 +1034,6 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		transpose4x4(pixel.x, pixel.y, pixel.z, pixel.w);
 		break;
 	case VK_FORMAT_R16G16_UNORM:
-		buffer = cBuffer;
 		pixel.x = *Pointer<Short4>(buffer + 4 * x);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		pixel.y = *Pointer<Short4>(buffer + 4 * x);
@@ -1050,7 +1048,6 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		break;
 	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	{
-		buffer = cBuffer;
 		Int4 v = Int4(0);
 		v = Insert(v, *Pointer<Int>(buffer + 4 * x), 0);
 		v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 1);
@@ -1372,11 +1369,13 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		xMask &= sMask;
 	}
 
+	Pointer<Byte> buffer = cBuffer;
+
 	switch(state.targetFormat[index])
 	{
 	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 		{
-			Pointer<Byte> buffer = cBuffer + 2 * x;
+			buffer += 2 * x;
 			Int value = *Pointer<Int>(buffer);
 
 			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants,mask5551Q[bgraWriteMask & 0xF][0]));
@@ -1403,7 +1402,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_R5G6B5_UNORM_PACK16:
 		{
-			Pointer<Byte> buffer = cBuffer + 2 * x;
+			buffer += 2 * x;
 			Int value = *Pointer<Int>(buffer);
 
 			Int channelMask = *Pointer<Int>(constants + OFFSET(Constants,mask565Q[bgraWriteMask & 0x7][0]));
@@ -1431,7 +1430,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_B8G8R8A8_UNORM:
 	case VK_FORMAT_B8G8R8A8_SRGB:
 		{
-			Pointer<Byte> buffer = cBuffer + x * 4;
+			buffer += x * 4;
 			Short4 value = *Pointer<Short4>(buffer);
 			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants,maskB4Q[bgraWriteMask][0]));
 
@@ -1458,7 +1457,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		{
-			Pointer<Byte> buffer = cBuffer + x * 4;
+			buffer += x * 4;
 			Short4 value = *Pointer<Short4>(buffer);
 			Short4 channelMask = *Pointer<Short4>(constants + OFFSET(Constants,maskB4Q[rgbaWriteMask][0]));
 
@@ -1483,7 +1482,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R8G8_UNORM:
 		if((rgbaWriteMask & 0x00000003) != 0x0)
 		{
-			Pointer<Byte> buffer = cBuffer + 2 * x;
+			buffer += 2 * x;
 			Int2 value;
 			value = Insert(value, *Pointer<Int>(buffer), 0);
 			Int pitch = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1508,7 +1507,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R8_UNORM:
 		if(rgbaWriteMask & 0x00000001)
 		{
-			Pointer<Byte> buffer = cBuffer + 1 * x;
+			buffer += 1 * x;
 			Short4 value;
 			value = Insert(value, *Pointer<Short>(buffer), 0);
 			Int pitch = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1524,7 +1523,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_R16G16_UNORM:
 		{
-			Pointer<Byte> buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 
 			Short4 value = *Pointer<Short4>(buffer);
 
@@ -1561,7 +1560,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 	case VK_FORMAT_R16G16B16A16_UNORM:
 		{
-			Pointer<Byte> buffer = cBuffer + 8 * x;
+			buffer += 8 * x;
 
 			{
 				Short4 value = *Pointer<Short4>(buffer);
@@ -1636,9 +1635,8 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		break;
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		{
-			Pointer<Byte> buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 
-			buffer = cBuffer + 4 * x;
 			Int2 value = *Pointer<Int2>(buffer, 16);
 			Int2 mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if (rgbaWriteMask != 0xF)
@@ -1806,7 +1804,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 		return;
 	}
 
-	Pointer<Byte> buffer;
+	Pointer<Byte> buffer = cBuffer;
 
 	// pixel holds four texel color values.
 	// Note: Despite the type being Vector4f, the colors may be stored as
@@ -1834,7 +1832,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 	case VK_FORMAT_R32_SINT:
 	case VK_FORMAT_R32_UINT:
 	case VK_FORMAT_R32_SFLOAT:
-		buffer = cBuffer;
 		// FIXME: movlps
 		pixel.x.x = *Pointer<Float>(buffer + 4 * x + 0);
 		pixel.x.y = *Pointer<Float>(buffer + 4 * x + 4);
@@ -1847,7 +1844,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 	case VK_FORMAT_R32G32_SINT:
 	case VK_FORMAT_R32G32_UINT:
 	case VK_FORMAT_R32G32_SFLOAT:
-		buffer = cBuffer;
 		pixel.x = *Pointer<Float4>(buffer + 8 * x, 16);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
 		pixel.y = *Pointer<Float4>(buffer + 8 * x, 16);
@@ -1860,7 +1856,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_UINT:
-		buffer = cBuffer;
 		pixel.x = *Pointer<Float4>(buffer + 16 * x, 16);
 		pixel.y = *Pointer<Float4>(buffer + 16 * x + 16, 16);
 		buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
@@ -1869,7 +1864,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 		transpose4x4(pixel.x, pixel.y, pixel.z, pixel.w);
 		break;
 	case VK_FORMAT_R16_SFLOAT:
-		buffer = cBuffer;
 		pixel.x.x = Float(*Pointer<Half>(buffer + 2 * x + 0));
 		pixel.x.y = Float(*Pointer<Half>(buffer + 2 * x + 2));
 		buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
@@ -1878,7 +1872,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 		pixel.y = pixel.z = pixel.w = one;
 		break;
 	case VK_FORMAT_R16G16_SFLOAT:
-		buffer = cBuffer;
 		pixel.x.x = Float(*Pointer<Half>(buffer + 4 * x + 0));
 		pixel.y.x = Float(*Pointer<Half>(buffer + 4 * x + 2));
 		pixel.x.y = Float(*Pointer<Half>(buffer + 4 * x + 4));
@@ -1891,7 +1884,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 		pixel.z = pixel.w = one;
 		break;
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
-		buffer = cBuffer;
 		pixel.x.x = Float(*Pointer<Half>(buffer + 8 * x + 0x0));
 		pixel.y.x = Float(*Pointer<Half>(buffer + 8 * x + 0x2));
 		pixel.z.x = Float(*Pointer<Half>(buffer + 8 * x + 0x4));
@@ -1909,6 +1901,14 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 		pixel.y.w = Float(*Pointer<Half>(buffer + 8 * x + 0xa));
 		pixel.z.w = Float(*Pointer<Half>(buffer + 8 * x + 0xc));
 		pixel.w.w = Float(*Pointer<Half>(buffer + 8 * x + 0xe));
+		break;
+	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+		pixel.x = r11g11b10Unpack(*Pointer<UInt>(buffer + 4 * x + 0));
+		pixel.y = r11g11b10Unpack(*Pointer<UInt>(buffer + 4 * x + 4));
+		buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
+		pixel.z = r11g11b10Unpack(*Pointer<UInt>(buffer + 4 * x + 0));
+		pixel.w = r11g11b10Unpack(*Pointer<UInt>(buffer + 4 * x + 4));
+		transpose4x4(pixel.x, pixel.y, pixel.z, pixel.w);
 		break;
 	default:
 		UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
@@ -2039,6 +2039,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		oC.y = oC.z;
 		break;
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
+	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_UINT:
@@ -2074,7 +2075,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 	auto targetFormat = state.targetFormat[index];
 
-	Pointer<Byte> buffer;
+	Pointer<Byte> buffer = cBuffer;
 	Float4 value;
 
 	switch(targetFormat)
@@ -2084,7 +2085,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R32_UINT:
 		if(rgbaWriteMask & 0x00000001)
 		{
-			buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 
 			// FIXME: movlps
 			value.x = *Pointer<Float>(buffer + 0);
@@ -2114,7 +2115,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16_SFLOAT:
 		if(rgbaWriteMask & 0x00000001)
 		{
-			buffer = cBuffer + 2 * x;
+			buffer += 2 * x;
 
 			value = Insert(value, Float(*Pointer<Half>(buffer + 0)), 0);
 			value = Insert(value, Float(*Pointer<Half>(buffer + 2)), 1);
@@ -2141,7 +2142,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16_UINT:
 		if(rgbaWriteMask & 0x00000001)
 		{
-			buffer = cBuffer + 2 * x;
+			buffer += 2 * x;
 
 			UShort4 xyzw;
 			xyzw = As<UShort4>(Insert(As<Int2>(xyzw), *Pointer<Int>(buffer), 0));
@@ -2189,7 +2190,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R8_UINT:
 		if(rgbaWriteMask & 0x00000001)
 		{
-			buffer = cBuffer + x;
+			buffer += x;
 
 			UInt xyzw, packedCol;
 
@@ -2219,7 +2220,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R32G32_SFLOAT:
 	case VK_FORMAT_R32G32_SINT:
 	case VK_FORMAT_R32G32_UINT:
-		buffer = cBuffer + 8 * x;
+		buffer += 8 * x;
 
 		value = *Pointer<Float4>(buffer);
 
@@ -2258,7 +2259,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16G16_SFLOAT:
 		if((rgbaWriteMask & 0x00000003) != 0x0)
 		{
-			buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 
 			UInt2 rgbaMask;
 			UInt2 packedCol;
@@ -2292,7 +2293,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16G16_UINT:
 		if((rgbaWriteMask & 0x00000003) != 0x0)
 		{
-			buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 
 			UInt2 rgbaMask;
 			UShort4 packedCol = UShort4(As<Int4>(oC.x));
@@ -2322,7 +2323,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R8G8_UINT:
 		if((rgbaWriteMask & 0x00000003) != 0x0)
 		{
-			buffer = cBuffer + 2 * x;
+			buffer += 2 * x;
 
 			Int2 xyzw, packedCol;
 
@@ -2357,7 +2358,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_UINT:
-		buffer = cBuffer + 16 * x;
+		buffer += 16 * x;
 
 		{
 			value = *Pointer<Float4>(buffer, 16);
@@ -2432,7 +2433,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
 		if((rgbaWriteMask & 0x0000000F) != 0x0)
 		{
-			buffer = cBuffer + 8 * x;
+			buffer += 8 * x;
 
 			UInt4 rgbaMask;
 			UInt4 value = *Pointer<UInt4>(buffer);
@@ -2465,11 +2466,31 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			*Pointer<UInt4>(buffer) = (packedCol & mergedMask) | (As<UInt4>(value) & ~mergedMask);
 		}
 		break;
+	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+		if((rgbaWriteMask & 0x7) != 0x0)
+		{
+			buffer += 4 * x;
+
+			unsigned int mask = ((rgbaWriteMask & 0x1) ? 0x000007FF : 0) |
+								((rgbaWriteMask & 0x2) ? 0x003FF800 : 0) |
+								((rgbaWriteMask & 0x4) ? 0xFFC00000 : 0);
+			UInt2 mergedMask(mask, mask);
+
+			UInt2 value;
+			value = Insert(value, r11g11b10Pack(oC.x), 0);
+			value = Insert(value, r11g11b10Pack(oC.y), 1);
+			*Pointer<UInt2>(buffer) = (value & mergedMask) | ((*Pointer<UInt2>(buffer)) & ~mergedMask);
+			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+			value = Insert(value, r11g11b10Pack(oC.z), 0);
+			value = Insert(value, r11g11b10Pack(oC.w), 1);
+			*Pointer<UInt2>(buffer) = (value & mergedMask) | ((*Pointer<UInt2>(buffer)) & ~mergedMask);
+		}
+		break;
 	case VK_FORMAT_R16G16B16A16_SINT:
 	case VK_FORMAT_R16G16B16A16_UINT:
 		if((rgbaWriteMask & 0x0000000F) != 0x0)
 		{
-			buffer = cBuffer + 8 * x;
+			buffer += 8 * x;
 
 			UInt4 rgbaMask;
 			UShort8 value = *Pointer<UShort8>(buffer);
@@ -2503,7 +2524,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		{
 			UInt2 value, packedCol, mergedMask;
 
-			buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 
 			bool isSigned = targetFormat == VK_FORMAT_R8G8B8A8_SINT || targetFormat == VK_FORMAT_A8B8G8R8_SINT_PACK32;
 
@@ -2551,7 +2572,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 					((As<Int4>(oC.y) & Int4(0x3ff)) << 10) |
 					((As<Int4>(oC.x) & Int4(0x3ff)));
 
-			buffer = cBuffer + 4 * x;
+			buffer += 4 * x;
 			value = *Pointer<Int2>(buffer, 16);
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
 			if (rgbaWriteMask != 0xF)

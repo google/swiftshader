@@ -190,7 +190,10 @@ void transpose4x1(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose2x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N);
 
-UInt4 halfToFloatBits(UInt4 halfBits);
+sw::SIMD::UInt halfToFloatBits(sw::SIMD::UInt halfBits);
+sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
+sw::SIMD::Float r11g11b10Unpack(UInt r11g11b10bits);
+UInt r11g11b10Pack(sw::SIMD::Float &value);
 
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints);
 
