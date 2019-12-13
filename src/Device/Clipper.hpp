@@ -15,11 +15,12 @@
 #ifndef sw_Clipper_hpp
 #define sw_Clipper_hpp
 
+#include "System/Types.hpp"
+
 namespace sw {
 
 struct DrawCall;
 struct Polygon;
-struct float4;
 
 struct Clipper
 {

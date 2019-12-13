@@ -15,9 +15,9 @@
 #ifndef VK_FORMAT_UTILS_HPP_
 #define VK_FORMAT_UTILS_HPP_
 
-#include <Vulkan/VulkanPlatform.h>
+#include "System/Types.hpp"
 
-namespace sw { struct float4; }
+#include <Vulkan/VulkanPlatform.h>
 
 namespace vk {
 

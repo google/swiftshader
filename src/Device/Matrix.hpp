@@ -15,11 +15,12 @@
 #ifndef Matrix_hpp
 #define Matrix_hpp
 
+#include "System/Types.hpp"
+
 namespace sw {
 
 struct Vector;
 struct Point;
-struct float4;
 
 struct Matrix
 {
