@@ -14,8 +14,9 @@
 
 #include "VkDebug.hpp"
 
-#include <stdarg.h>
 #include <atomic>
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 
 #if defined(__unix__)
@@ -90,7 +91,21 @@ namespace vk {
 void tracev(const char *format, va_list args)
 {
 #ifndef SWIFTSHADER_DISABLE_TRACE
-	if(false)
+	const bool traceToDebugOut = false;
+	const bool traceToFile = false;
+
+	if(traceToDebugOut)
+	{
+		char buffer[2048];
+		vsnprintf(buffer, sizeof(buffer), format, args);
+#	if defined(_WIN32)
+		::OutputDebugString(buffer);
+#	else
+		printf("%s", buffer);
+#	endif
+	}
+
+	if(traceToFile)
 	{
 		FILE *file = fopen(TRACE_OUTPUT_FILE, "a");
 
@@ -100,7 +115,7 @@ void tracev(const char *format, va_list args)
 			fclose(file);
 		}
 	}
-#endif
+#endif  // SWIFTSHADER_DISABLE_TRACE
 }
 
 void trace(const char *format, ...)
