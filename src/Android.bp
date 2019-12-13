@@ -182,6 +182,7 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Debug.cpp",
         "Reactor/CPUID.cpp",
+        "Reactor/ExecutableMemory.cpp",
     ],
 
     cflags: [
@@ -202,6 +203,7 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Debug.cpp",
         "Reactor/CPUID.cpp",
+        "Reactor/ExecutableMemory.cpp",
     ],
 
     cflags: [
