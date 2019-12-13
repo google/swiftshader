@@ -37,26 +37,26 @@ ETC_Decoder::InputType GetInputType(const vk::Format &format)
 {
 	switch(format)
 	{
-		case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-			return ETC_Decoder::ETC_R_UNSIGNED;
-		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-			return ETC_Decoder::ETC_R_SIGNED;
-		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-			return ETC_Decoder::ETC_RG_UNSIGNED;
-		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-			return ETC_Decoder::ETC_RG_SIGNED;
-		case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-			return ETC_Decoder::ETC_RGB;
-		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-			return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
-		case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-			return ETC_Decoder::ETC_RGBA;
-		default:
-			UNSUPPORTED("format: %d", int(format));
-			return ETC_Decoder::ETC_RGBA;
+	case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+		return ETC_Decoder::ETC_R_UNSIGNED;
+	case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+		return ETC_Decoder::ETC_R_SIGNED;
+	case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+		return ETC_Decoder::ETC_RG_UNSIGNED;
+	case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+		return ETC_Decoder::ETC_RG_SIGNED;
+	case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+		return ETC_Decoder::ETC_RGB;
+	case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+		return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
+	case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+		return ETC_Decoder::ETC_RGBA;
+	default:
+		UNSUPPORTED("format: %d", int(format));
+		return ETC_Decoder::ETC_RGBA;
 	}
 }
 
@@ -64,32 +64,32 @@ int GetBCn(const vk::Format &format)
 {
 	switch(format)
 	{
-		case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-			return 1;
-		case VK_FORMAT_BC2_UNORM_BLOCK:
-		case VK_FORMAT_BC2_SRGB_BLOCK:
-			return 2;
-		case VK_FORMAT_BC3_UNORM_BLOCK:
-		case VK_FORMAT_BC3_SRGB_BLOCK:
-			return 3;
-		case VK_FORMAT_BC4_UNORM_BLOCK:
-		case VK_FORMAT_BC4_SNORM_BLOCK:
-			return 4;
-		case VK_FORMAT_BC5_UNORM_BLOCK:
-		case VK_FORMAT_BC5_SNORM_BLOCK:
-			return 5;
-		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-			return 6;
-		case VK_FORMAT_BC7_UNORM_BLOCK:
-		case VK_FORMAT_BC7_SRGB_BLOCK:
-			return 7;
-		default:
-			UNSUPPORTED("format: %d", int(format));
-			return 0;
+	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+		return 1;
+	case VK_FORMAT_BC2_UNORM_BLOCK:
+	case VK_FORMAT_BC2_SRGB_BLOCK:
+		return 2;
+	case VK_FORMAT_BC3_UNORM_BLOCK:
+	case VK_FORMAT_BC3_SRGB_BLOCK:
+		return 3;
+	case VK_FORMAT_BC4_UNORM_BLOCK:
+	case VK_FORMAT_BC4_SNORM_BLOCK:
+		return 4;
+	case VK_FORMAT_BC5_UNORM_BLOCK:
+	case VK_FORMAT_BC5_SNORM_BLOCK:
+		return 5;
+	case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+	case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+		return 6;
+	case VK_FORMAT_BC7_UNORM_BLOCK:
+	case VK_FORMAT_BC7_SRGB_BLOCK:
+		return 7;
+	default:
+		UNSUPPORTED("format: %d", int(format));
+		return 0;
 	}
 }
 
@@ -100,27 +100,27 @@ bool GetNoAlphaOrUnsigned(const vk::Format &format)
 {
 	switch(format)
 	{
-		case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-		case VK_FORMAT_BC4_UNORM_BLOCK:
-		case VK_FORMAT_BC5_UNORM_BLOCK:
-		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-			return true;
-		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-		case VK_FORMAT_BC2_UNORM_BLOCK:
-		case VK_FORMAT_BC2_SRGB_BLOCK:
-		case VK_FORMAT_BC3_UNORM_BLOCK:
-		case VK_FORMAT_BC3_SRGB_BLOCK:
-		case VK_FORMAT_BC4_SNORM_BLOCK:
-		case VK_FORMAT_BC5_SNORM_BLOCK:
-		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-		case VK_FORMAT_BC7_SRGB_BLOCK:
-		case VK_FORMAT_BC7_UNORM_BLOCK:
-			return false;
-		default:
-			UNSUPPORTED("format: %d", int(format));
-			return false;
+	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+	case VK_FORMAT_BC4_UNORM_BLOCK:
+	case VK_FORMAT_BC5_UNORM_BLOCK:
+	case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+		return true;
+	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+	case VK_FORMAT_BC2_UNORM_BLOCK:
+	case VK_FORMAT_BC2_SRGB_BLOCK:
+	case VK_FORMAT_BC3_UNORM_BLOCK:
+	case VK_FORMAT_BC3_SRGB_BLOCK:
+	case VK_FORMAT_BC4_SNORM_BLOCK:
+	case VK_FORMAT_BC5_SNORM_BLOCK:
+	case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+	case VK_FORMAT_BC7_SRGB_BLOCK:
+	case VK_FORMAT_BC7_UNORM_BLOCK:
+		return false;
+	default:
+		UNSUPPORTED("format: %d", int(format));
+		return false;
 	}
 }
 
@@ -132,7 +132,7 @@ VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 		switch(nextInfo->sType)
 		{
 #ifdef __ANDROID__
-			case VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID:
+		case VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID:
 			{
 				const VkExternalFormatANDROID *externalFormatAndroid = reinterpret_cast<const VkExternalFormatANDROID *>(nextInfo);
 
@@ -148,9 +148,9 @@ VkFormat GetImageFormat(const VkImageCreateInfo *pCreateInfo)
 			}
 			break;
 #endif
-			default:
-				LOG_TRAP("pCreateInfo->pNext->sType = %s", vk::Stringify(nextInfo->sType).c_str());
-				break;
+		default:
+			LOG_TRAP("pCreateInfo->pNext->sType = %s", vk::Stringify(nextInfo->sType).c_str());
+			break;
 		}
 
 		nextInfo = nextInfo->pNext;
@@ -519,16 +519,16 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsS
 {
 	switch(region.imageSubresource.aspectMask)
 	{
-		case VK_IMAGE_ASPECT_COLOR_BIT:
-		case VK_IMAGE_ASPECT_DEPTH_BIT:
-		case VK_IMAGE_ASPECT_STENCIL_BIT:
-		case VK_IMAGE_ASPECT_PLANE_0_BIT:
-		case VK_IMAGE_ASPECT_PLANE_1_BIT:
-		case VK_IMAGE_ASPECT_PLANE_2_BIT:
-			break;
-		default:
-			UNSUPPORTED("aspectMask %x", int(region.imageSubresource.aspectMask));
-			break;
+	case VK_IMAGE_ASPECT_COLOR_BIT:
+	case VK_IMAGE_ASPECT_DEPTH_BIT:
+	case VK_IMAGE_ASPECT_STENCIL_BIT:
+	case VK_IMAGE_ASPECT_PLANE_0_BIT:
+	case VK_IMAGE_ASPECT_PLANE_1_BIT:
+	case VK_IMAGE_ASPECT_PLANE_2_BIT:
+		break;
+	default:
+		UNSUPPORTED("aspectMask %x", int(region.imageSubresource.aspectMask));
+		break;
 	}
 
 	auto aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
@@ -760,29 +760,29 @@ VkExtent3D Image::getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLe
 
 	switch(aspect)
 	{
-		case VK_IMAGE_ASPECT_COLOR_BIT:
-		case VK_IMAGE_ASPECT_DEPTH_BIT:
-		case VK_IMAGE_ASPECT_STENCIL_BIT:
-		case VK_IMAGE_ASPECT_PLANE_0_BIT:  // Vulkan 1.1 Table 31. Plane Format Compatibility Table: plane 0 of all defined formats is full resolution.
-			break;
-		case VK_IMAGE_ASPECT_PLANE_1_BIT:
-		case VK_IMAGE_ASPECT_PLANE_2_BIT:
-			switch(format)
-			{
-				case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
-				case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-					ASSERT(mipLevelExtent.width % 2 == 0 && mipLevelExtent.height % 2 == 0);  // Vulkan 1.1: "Images in this format must be defined with a width and height that is a multiple of two."
-					// Vulkan 1.1 Table 31. Plane Format Compatibility Table:
-					// Half-resolution U and V planes.
-					mipLevelExtent.width /= 2;
-					mipLevelExtent.height /= 2;
-					break;
-				default:
-					UNSUPPORTED("format %d", int(format));
-			}
+	case VK_IMAGE_ASPECT_COLOR_BIT:
+	case VK_IMAGE_ASPECT_DEPTH_BIT:
+	case VK_IMAGE_ASPECT_STENCIL_BIT:
+	case VK_IMAGE_ASPECT_PLANE_0_BIT:  // Vulkan 1.1 Table 31. Plane Format Compatibility Table: plane 0 of all defined formats is full resolution.
+		break;
+	case VK_IMAGE_ASPECT_PLANE_1_BIT:
+	case VK_IMAGE_ASPECT_PLANE_2_BIT:
+		switch(format)
+		{
+		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+			ASSERT(mipLevelExtent.width % 2 == 0 && mipLevelExtent.height % 2 == 0);  // Vulkan 1.1: "Images in this format must be defined with a width and height that is a multiple of two."
+			// Vulkan 1.1 Table 31. Plane Format Compatibility Table:
+			// Half-resolution U and V planes.
+			mipLevelExtent.width /= 2;
+			mipLevelExtent.height /= 2;
 			break;
 		default:
-			UNSUPPORTED("aspect %x", int(aspect));
+			UNSUPPORTED("format %d", int(format));
+		}
+		break;
+	default:
+		UNSUPPORTED("aspect %x", int(aspect));
 	}
 
 	return mipLevelExtent;
@@ -851,37 +851,37 @@ VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 
 	switch(format)
 	{
-		case VK_FORMAT_D16_UNORM_S8_UINT:
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-			if(aspect == VK_IMAGE_ASPECT_STENCIL_BIT)
-			{
-				// Offset by depth buffer to get to stencil buffer
-				return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
-			}
-			break;
+	case VK_FORMAT_D16_UNORM_S8_UINT:
+	case VK_FORMAT_D24_UNORM_S8_UINT:
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+		if(aspect == VK_IMAGE_ASPECT_STENCIL_BIT)
+		{
+			// Offset by depth buffer to get to stencil buffer
+			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
+		}
+		break;
 
-		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
-			if(aspect == VK_IMAGE_ASPECT_PLANE_2_BIT)
-			{
-				return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_1_BIT) + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
-			}
-			// Fall through to 2PLANE case:
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
-			{
-				return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
-			}
-			else
-			{
-				ASSERT(aspect == VK_IMAGE_ASPECT_PLANE_0_BIT);
+	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+		if(aspect == VK_IMAGE_ASPECT_PLANE_2_BIT)
+		{
+			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_1_BIT) + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
+		}
+		// Fall through to 2PLANE case:
+	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+		if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
+		{
+			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
+		}
+		else
+		{
+			ASSERT(aspect == VK_IMAGE_ASPECT_PLANE_0_BIT);
 
-				return memoryOffset;
-			}
-			break;
+			return memoryOffset;
+		}
+		break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 
 	return memoryOffset;
@@ -1231,68 +1231,68 @@ void Image::decompress(const VkImageSubresource &subresource)
 	{
 		switch(format)
 		{
-			case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-			case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-			case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-			case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-			case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-			case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-			case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-			case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-			case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-			case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-				decodeETC2(subresource);
-				break;
-			case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-			case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-			case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-			case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-			case VK_FORMAT_BC2_UNORM_BLOCK:
-			case VK_FORMAT_BC2_SRGB_BLOCK:
-			case VK_FORMAT_BC3_UNORM_BLOCK:
-			case VK_FORMAT_BC3_SRGB_BLOCK:
-			case VK_FORMAT_BC4_UNORM_BLOCK:
-			case VK_FORMAT_BC4_SNORM_BLOCK:
-			case VK_FORMAT_BC5_UNORM_BLOCK:
-			case VK_FORMAT_BC5_SNORM_BLOCK:
-			case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-			case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-			case VK_FORMAT_BC7_UNORM_BLOCK:
-			case VK_FORMAT_BC7_SRGB_BLOCK:
-				decodeBC(subresource);
-				break;
-			case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-			case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-			case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-				decodeASTC(subresource);
-				break;
-			default:
-				break;
+		case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+			decodeETC2(subresource);
+			break;
+		case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+		case VK_FORMAT_BC2_UNORM_BLOCK:
+		case VK_FORMAT_BC2_SRGB_BLOCK:
+		case VK_FORMAT_BC3_UNORM_BLOCK:
+		case VK_FORMAT_BC3_SRGB_BLOCK:
+		case VK_FORMAT_BC4_UNORM_BLOCK:
+		case VK_FORMAT_BC4_SNORM_BLOCK:
+		case VK_FORMAT_BC5_UNORM_BLOCK:
+		case VK_FORMAT_BC5_SNORM_BLOCK:
+		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+		case VK_FORMAT_BC7_UNORM_BLOCK:
+		case VK_FORMAT_BC7_SRGB_BLOCK:
+			decodeBC(subresource);
+			break;
+		case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
+		case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+		case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+			decodeASTC(subresource);
+			break;
+		default:
+			break;
 		}
 	}
 }

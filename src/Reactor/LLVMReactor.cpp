@@ -409,16 +409,16 @@ llvm::Type *T(Type *t)
 	// Use 128-bit vectors to implement logically shorter ones.
 	switch(asInternalType(t))
 	{
-		case Type_v2i32: return T(Int4::type());
-		case Type_v4i16: return T(Short8::type());
-		case Type_v2i16: return T(Short8::type());
-		case Type_v8i8: return T(Byte16::type());
-		case Type_v4i8: return T(Byte16::type());
-		case Type_v2f32: return T(Float4::type());
-		case Type_LLVM: return reinterpret_cast<llvm::Type *>(t);
-		default:
-			UNREACHABLE("asInternalType(t): %d", int(asInternalType(t)));
-			return nullptr;
+	case Type_v2i32: return T(Int4::type());
+	case Type_v4i16: return T(Short8::type());
+	case Type_v2i16: return T(Short8::type());
+	case Type_v8i8: return T(Byte16::type());
+	case Type_v4i8: return T(Byte16::type());
+	case Type_v2f32: return T(Float4::type());
+	case Type_LLVM: return reinterpret_cast<llvm::Type *>(t);
+	default:
+		UNREACHABLE("asInternalType(t): %d", int(asInternalType(t)));
+		return nullptr;
 	}
 }
 
@@ -446,13 +446,13 @@ static size_t typeSize(Type *type)
 {
 	switch(asInternalType(type))
 	{
-		case Type_v2i32: return 8;
-		case Type_v4i16: return 8;
-		case Type_v2i16: return 4;
-		case Type_v8i8: return 8;
-		case Type_v4i8: return 4;
-		case Type_v2f32: return 8;
-		case Type_LLVM:
+	case Type_v2i32: return 8;
+	case Type_v4i16: return 8;
+	case Type_v2i16: return 4;
+	case Type_v8i8: return 8;
+	case Type_v4i8: return 4;
+	case Type_v2f32: return 8;
+	case Type_LLVM:
 		{
 			llvm::Type *t = T(type);
 
@@ -471,9 +471,9 @@ static size_t typeSize(Type *type)
 			return (bits + 7) / 8;
 		}
 		break;
-		default:
-			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
-			return 0;
+	default:
+		UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+		return 0;
 	}
 }
 
@@ -481,16 +481,16 @@ static unsigned int elementCount(Type *type)
 {
 	switch(asInternalType(type))
 	{
-		case Type_v2i32: return 2;
-		case Type_v4i16: return 4;
-		case Type_v2i16: return 2;
-		case Type_v8i8: return 8;
-		case Type_v4i8: return 4;
-		case Type_v2f32: return 2;
-		case Type_LLVM: return llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();
-		default:
-			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
-			return 0;
+	case Type_v2i32: return 2;
+	case Type_v4i16: return 4;
+	case Type_v2i16: return 2;
+	case Type_v8i8: return 8;
+	case Type_v4i8: return 4;
+	case Type_v2f32: return 2;
+	case Type_LLVM: return llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();
+	default:
+		UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+		return 0;
 	}
 }
 
@@ -873,28 +873,28 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 	RR_DEBUG_INFO_UPDATE_LOC();
 	switch(asInternalType(type))
 	{
-		case Type_v2i32:
-		case Type_v4i16:
-		case Type_v8i8:
-		case Type_v2f32:
-			return createBitCast(
-			    createInsertElement(
-			        V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2, false))),
-			        createLoad(createBitCast(ptr, Pointer<Long>::type()), Long::type(), isVolatile, alignment, atomic, memoryOrder),
-			        0),
-			    type);
-		case Type_v2i16:
-		case Type_v4i8:
-			if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
-			{
-				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2, false)));
-				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::type()), Int::type(), isVolatile, alignment, atomic, memoryOrder);
-				i = createZExt(i, Long::type());
-				Value *v = createInsertElement(u, i, 0);
-				return createBitCast(v, type);
-			}
-			// Fallthrough to non-emulated case.
-		case Type_LLVM:
+	case Type_v2i32:
+	case Type_v4i16:
+	case Type_v8i8:
+	case Type_v2f32:
+		return createBitCast(
+		    createInsertElement(
+		        V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2, false))),
+		        createLoad(createBitCast(ptr, Pointer<Long>::type()), Long::type(), isVolatile, alignment, atomic, memoryOrder),
+		        0),
+		    type);
+	case Type_v2i16:
+	case Type_v4i8:
+		if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
+		{
+			Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2, false)));
+			Value *i = createLoad(createBitCast(ptr, Pointer<Int>::type()), Int::type(), isVolatile, alignment, atomic, memoryOrder);
+			i = createZExt(i, Long::type());
+			Value *v = createInsertElement(u, i, 0);
+			return createBitCast(v, type);
+		}
+		// Fallthrough to non-emulated case.
+	case Type_LLVM:
 		{
 			auto elTy = T(type);
 			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
@@ -946,9 +946,9 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				return V(jit->builder->CreateLoad(V(out)));
 			}
 		}
-		default:
-			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
-			return nullptr;
+	default:
+		UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+		return nullptr;
 	}
 }
 
@@ -957,28 +957,28 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 	RR_DEBUG_INFO_UPDATE_LOC();
 	switch(asInternalType(type))
 	{
-		case Type_v2i32:
-		case Type_v4i16:
-		case Type_v8i8:
-		case Type_v2f32:
+	case Type_v2i32:
+	case Type_v4i16:
+	case Type_v8i8:
+	case Type_v2f32:
+		createStore(
+		    createExtractElement(
+		        createBitCast(value, T(llvm::VectorType::get(T(Long::type()), 2, false))), Long::type(), 0),
+		    createBitCast(ptr, Pointer<Long>::type()),
+		    Long::type(), isVolatile, alignment, atomic, memoryOrder);
+		return value;
+	case Type_v2i16:
+	case Type_v4i8:
+		if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
+		{
 			createStore(
-			    createExtractElement(
-			        createBitCast(value, T(llvm::VectorType::get(T(Long::type()), 2, false))), Long::type(), 0),
-			    createBitCast(ptr, Pointer<Long>::type()),
-			    Long::type(), isVolatile, alignment, atomic, memoryOrder);
+			    createExtractElement(createBitCast(value, Int4::type()), Int::type(), 0),
+			    createBitCast(ptr, Pointer<Int>::type()),
+			    Int::type(), isVolatile, alignment, atomic, memoryOrder);
 			return value;
-		case Type_v2i16:
-		case Type_v4i8:
-			if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
-			{
-				createStore(
-				    createExtractElement(createBitCast(value, Int4::type()), Int::type(), 0),
-				    createBitCast(ptr, Pointer<Int>::type()),
-				    Int::type(), isVolatile, alignment, atomic, memoryOrder);
-				return value;
-			}
-			// Fallthrough to non-emulated case.
-		case Type_LLVM:
+		}
+		// Fallthrough to non-emulated case.
+	case Type_LLVM:
 		{
 			auto elTy = T(type);
 			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
@@ -1046,9 +1046,9 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 
 			return value;
 		}
-		default:
-			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
-			return nullptr;
+	default:
+		UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+		return nullptr;
 	}
 }
 

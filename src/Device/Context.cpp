@@ -25,20 +25,20 @@ uint32_t ComputePrimitiveCount(VkPrimitiveTopology topology, uint32_t vertexCoun
 {
 	switch(topology)
 	{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-			return vertexCount;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-			return vertexCount / 2;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			return std::max<uint32_t>(vertexCount, 1) - 1;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-			return vertexCount / 3;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-			return std::max<uint32_t>(vertexCount, 2) - 2;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			return std::max<uint32_t>(vertexCount, 2) - 2;
-		default:
-			UNSUPPORTED("VkPrimitiveTopology %d", int(topology));
+	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		return vertexCount;
+	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+		return vertexCount / 2;
+	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+		return std::max<uint32_t>(vertexCount, 1) - 1;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+		return vertexCount / 3;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+		return std::max<uint32_t>(vertexCount, 2) - 2;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+		return std::max<uint32_t>(vertexCount, 2) - 2;
+	default:
+		UNSUPPORTED("VkPrimitiveTopology %d", int(topology));
 	}
 
 	return 0;
@@ -114,14 +114,14 @@ void IndexBuffer::getIndexBuffers(VkPrimitiveTopology topology, uint32_t count, 
 		{
 			switch(indexType)
 			{
-				case VK_INDEX_TYPE_UINT16:
-					ProcessPrimitiveRestart(static_cast<uint16_t *>(indexBuffer), topology, count, indexBuffers);
-					break;
-				case VK_INDEX_TYPE_UINT32:
-					ProcessPrimitiveRestart(static_cast<uint32_t *>(indexBuffer), topology, count, indexBuffers);
-					break;
-				default:
-					UNSUPPORTED("VkIndexType %d", int(indexType));
+			case VK_INDEX_TYPE_UINT16:
+				ProcessPrimitiveRestart(static_cast<uint16_t *>(indexBuffer), topology, count, indexBuffers);
+				break;
+			case VK_INDEX_TYPE_UINT32:
+				ProcessPrimitiveRestart(static_cast<uint32_t *>(indexBuffer), topology, count, indexBuffers);
+				break;
+			default:
+				UNSUPPORTED("VkIndexType %d", int(indexType));
 			}
 		}
 		else
@@ -266,20 +266,20 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			VkDynamicState dynamicState = pCreateInfo->pDynamicState->pDynamicStates[i];
 			switch(dynamicState)
 			{
-				case VK_DYNAMIC_STATE_VIEWPORT:
-				case VK_DYNAMIC_STATE_SCISSOR:
-				case VK_DYNAMIC_STATE_LINE_WIDTH:
-				case VK_DYNAMIC_STATE_DEPTH_BIAS:
-				case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
-				case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
-				case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
-				case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
-				case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
-					ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
-					dynamicStateFlags |= (1 << dynamicState);
-					break;
-				default:
-					UNSUPPORTED("VkDynamicState %d", int(dynamicState));
+			case VK_DYNAMIC_STATE_VIEWPORT:
+			case VK_DYNAMIC_STATE_SCISSOR:
+			case VK_DYNAMIC_STATE_LINE_WIDTH:
+			case VK_DYNAMIC_STATE_DEPTH_BIAS:
+			case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
+			case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
+			case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
+			case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
+			case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
+				ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
+				dynamicStateFlags |= (1 << dynamicState);
+				break;
+			default:
+				UNSUPPORTED("VkDynamicState %d", int(dynamicState));
 			}
 		}
 	}
@@ -348,22 +348,22 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 		// are not enumerated in the official Vulkan header
 		switch((long)(extensionCreateInfo->sType))
 		{
-			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
+		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
 			{
 				const VkPipelineRasterizationLineStateCreateInfoEXT *lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT *>(extensionCreateInfo);
 				lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
 			}
 			break;
-			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
+		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
 			{
 				const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *provokingVertexModeCreateInfo =
 				    reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *>(extensionCreateInfo);
 				provokingVertexMode = provokingVertexModeCreateInfo->provokingVertexMode;
 			}
 			break;
-			default:
-				WARN("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
-				break;
+		default:
+			WARN("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+			break;
 		}
 
 		extensionCreateInfo = extensionCreateInfo->pNext;
@@ -422,14 +422,14 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 
 		switch(multisampleState->rasterizationSamples)
 		{
-			case VK_SAMPLE_COUNT_1_BIT:
-				sampleCount = 1;
-				break;
-			case VK_SAMPLE_COUNT_4_BIT:
-				sampleCount = 4;
-				break;
-			default:
-				UNSUPPORTED("Unsupported sample count");
+		case VK_SAMPLE_COUNT_1_BIT:
+			sampleCount = 1;
+			break;
+		case VK_SAMPLE_COUNT_4_BIT:
+			sampleCount = 4;
+			break;
+		default:
+			UNSUPPORTED("Unsupported sample count");
 		}
 
 		VkSampleMask sampleMask;
@@ -522,17 +522,17 @@ bool GraphicsState::isDrawPoint(bool polygonModeAware) const
 {
 	switch(topology)
 	{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-			return true;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			return false;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_POINT) : false;
-		default:
-			UNSUPPORTED("topology %d", int(topology));
+	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		return true;
+	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+		return false;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+		return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_POINT) : false;
+	default:
+		UNSUPPORTED("topology %d", int(topology));
 	}
 	return false;
 }
@@ -541,17 +541,17 @@ bool GraphicsState::isDrawLine(bool polygonModeAware) const
 {
 	switch(topology)
 	{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-			return false;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			return true;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_LINE) : false;
-		default:
-			UNSUPPORTED("topology %d", int(topology));
+	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		return false;
+	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+		return true;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+		return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_LINE) : false;
+	default:
+		UNSUPPORTED("topology %d", int(topology));
 	}
 	return false;
 }
@@ -560,16 +560,16 @@ bool GraphicsState::isDrawTriangle(bool polygonModeAware) const
 {
 	switch(topology)
 	{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			return false;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_FILL) : true;
-		default:
-			UNSUPPORTED("topology %d", int(topology));
+	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+		return false;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+		return polygonModeAware ? (polygonMode == VK_POLYGON_MODE_FILL) : true;
+	default:
+		UNSUPPORTED("topology %d", int(topology));
 	}
 	return false;
 }
@@ -700,16 +700,16 @@ VkBlendFactor GraphicsState::sourceBlendFactor(int index) const
 
 	switch(blendState[index].blendOperation)
 	{
-		case VK_BLEND_OP_ADD:
-		case VK_BLEND_OP_SUBTRACT:
-		case VK_BLEND_OP_REVERSE_SUBTRACT:
-			return blendState[index].sourceBlendFactor;
-		case VK_BLEND_OP_MIN:
-			return VK_BLEND_FACTOR_ONE;
-		case VK_BLEND_OP_MAX:
-			return VK_BLEND_FACTOR_ONE;
-		default:
-			ASSERT(false);
+	case VK_BLEND_OP_ADD:
+	case VK_BLEND_OP_SUBTRACT:
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		return blendState[index].sourceBlendFactor;
+	case VK_BLEND_OP_MIN:
+		return VK_BLEND_FACTOR_ONE;
+	case VK_BLEND_OP_MAX:
+		return VK_BLEND_FACTOR_ONE;
+	default:
+		ASSERT(false);
 	}
 
 	return blendState[index].sourceBlendFactor;
@@ -723,16 +723,16 @@ VkBlendFactor GraphicsState::destBlendFactor(int index) const
 
 	switch(blendState[index].blendOperation)
 	{
-		case VK_BLEND_OP_ADD:
-		case VK_BLEND_OP_SUBTRACT:
-		case VK_BLEND_OP_REVERSE_SUBTRACT:
-			return blendState[index].destBlendFactor;
-		case VK_BLEND_OP_MIN:
-			return VK_BLEND_FACTOR_ONE;
-		case VK_BLEND_OP_MAX:
-			return VK_BLEND_FACTOR_ONE;
-		default:
-			ASSERT(false);
+	case VK_BLEND_OP_ADD:
+	case VK_BLEND_OP_SUBTRACT:
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		return blendState[index].destBlendFactor;
+	case VK_BLEND_OP_MIN:
+		return VK_BLEND_FACTOR_ONE;
+	case VK_BLEND_OP_MAX:
+		return VK_BLEND_FACTOR_ONE;
+	default:
+		ASSERT(false);
 	}
 
 	return blendState[index].destBlendFactor;
@@ -746,107 +746,107 @@ VkBlendOp GraphicsState::blendOperation(int index, const Attachments &attachment
 
 	switch(blendState[index].blendOperation)
 	{
-		case VK_BLEND_OP_ADD:
-			if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+	case VK_BLEND_OP_ADD:
+		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
 			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_ZERO_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_DST_EXT;
-				}
-			}
-			else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_ADD;
-				}
+				return VK_BLEND_OP_ZERO_EXT;
 			}
 			else
 			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_ADD;
-				}
+				return VK_BLEND_OP_DST_EXT;
 			}
-		case VK_BLEND_OP_SUBTRACT:
-			if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+		}
+		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_ADD;
+			}
+		}
+		else
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_ADD;
+			}
+		}
+	case VK_BLEND_OP_SUBTRACT:
+		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+		{
+			return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
+		}
+		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_SUBTRACT;
+			}
+		}
+		else
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_SUBTRACT;
+			}
+		}
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_ZERO_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_DST_EXT;
+			}
+		}
+		else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
 			{
 				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
-			else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
+			else
 			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_SUBTRACT;
-				}
+				return VK_BLEND_OP_REVERSE_SUBTRACT;
+			}
+		}
+		else
+		{
+			if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+			{
+				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
 			else
 			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_SUBTRACT;
-				}
+				return VK_BLEND_OP_REVERSE_SUBTRACT;
 			}
-		case VK_BLEND_OP_REVERSE_SUBTRACT:
-			if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_ZERO_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_DST_EXT;
-				}
-			}
-			else if(sourceBlendFactor(index) == VK_BLEND_FACTOR_ONE)
-			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
-				{
-					return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-				}
-				else
-				{
-					return VK_BLEND_OP_REVERSE_SUBTRACT;
-				}
-			}
-			else
-			{
-				if(destBlendFactor(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
-				{
-					return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-				}
-				else
-				{
-					return VK_BLEND_OP_REVERSE_SUBTRACT;
-				}
-			}
-		case VK_BLEND_OP_MIN:
-			return VK_BLEND_OP_MIN;
-		case VK_BLEND_OP_MAX:
-			return VK_BLEND_OP_MAX;
-		default:
-			ASSERT(false);
+		}
+	case VK_BLEND_OP_MIN:
+		return VK_BLEND_OP_MIN;
+	case VK_BLEND_OP_MAX:
+		return VK_BLEND_OP_MAX;
+	default:
+		ASSERT(false);
 	}
 
 	return blendState[index].blendOperation;
@@ -858,16 +858,16 @@ VkBlendFactor GraphicsState::sourceBlendFactorAlpha(int index) const
 
 	switch(blendState[index].blendOperationAlpha)
 	{
-		case VK_BLEND_OP_ADD:
-		case VK_BLEND_OP_SUBTRACT:
-		case VK_BLEND_OP_REVERSE_SUBTRACT:
-			return blendState[index].sourceBlendFactorAlpha;
-		case VK_BLEND_OP_MIN:
-			return VK_BLEND_FACTOR_ONE;
-		case VK_BLEND_OP_MAX:
-			return VK_BLEND_FACTOR_ONE;
-		default:
-			ASSERT(false);
+	case VK_BLEND_OP_ADD:
+	case VK_BLEND_OP_SUBTRACT:
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		return blendState[index].sourceBlendFactorAlpha;
+	case VK_BLEND_OP_MIN:
+		return VK_BLEND_FACTOR_ONE;
+	case VK_BLEND_OP_MAX:
+		return VK_BLEND_FACTOR_ONE;
+	default:
+		ASSERT(false);
 	}
 
 	return blendState[index].sourceBlendFactorAlpha;
@@ -879,16 +879,16 @@ VkBlendFactor GraphicsState::destBlendFactorAlpha(int index) const
 
 	switch(blendState[index].blendOperationAlpha)
 	{
-		case VK_BLEND_OP_ADD:
-		case VK_BLEND_OP_SUBTRACT:
-		case VK_BLEND_OP_REVERSE_SUBTRACT:
-			return blendState[index].destBlendFactorAlpha;
-		case VK_BLEND_OP_MIN:
-			return VK_BLEND_FACTOR_ONE;
-		case VK_BLEND_OP_MAX:
-			return VK_BLEND_FACTOR_ONE;
-		default:
-			ASSERT(false);
+	case VK_BLEND_OP_ADD:
+	case VK_BLEND_OP_SUBTRACT:
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		return blendState[index].destBlendFactorAlpha;
+	case VK_BLEND_OP_MIN:
+		return VK_BLEND_FACTOR_ONE;
+	case VK_BLEND_OP_MAX:
+		return VK_BLEND_FACTOR_ONE;
+	default:
+		ASSERT(false);
 	}
 
 	return blendState[index].destBlendFactorAlpha;
@@ -900,107 +900,107 @@ VkBlendOp GraphicsState::blendOperationAlpha(int index, const Attachments &attac
 
 	switch(blendState[index].blendOperationAlpha)
 	{
-		case VK_BLEND_OP_ADD:
-			if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+	case VK_BLEND_OP_ADD:
+		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_ZERO_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_DST_EXT;
-				}
-			}
-			else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
-			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_ADD;
-				}
+				return VK_BLEND_OP_ZERO_EXT;
 			}
 			else
 			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_ADD;
-				}
+				return VK_BLEND_OP_DST_EXT;
 			}
-		case VK_BLEND_OP_SUBTRACT:
-			if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+		}
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_ADD;
+			}
+		}
+		else
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_ADD;
+			}
+		}
+	case VK_BLEND_OP_SUBTRACT:
+		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+		{
+			return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
+		}
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_SUBTRACT;
+			}
+		}
+		else
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_SRC_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_SUBTRACT;
+			}
+		}
+	case VK_BLEND_OP_REVERSE_SUBTRACT:
+		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			{
+				return VK_BLEND_OP_ZERO_EXT;
+			}
+			else
+			{
+				return VK_BLEND_OP_DST_EXT;
+			}
+		}
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
 			{
 				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
-			else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+			else
 			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_SUBTRACT;
-				}
+				return VK_BLEND_OP_REVERSE_SUBTRACT;
+			}
+		}
+		else
+		{
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
+			{
+				return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
 			}
 			else
 			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_SRC_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_SUBTRACT;
-				}
+				return VK_BLEND_OP_REVERSE_SUBTRACT;
 			}
-		case VK_BLEND_OP_REVERSE_SUBTRACT:
-			if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
-				{
-					return VK_BLEND_OP_ZERO_EXT;
-				}
-				else
-				{
-					return VK_BLEND_OP_DST_EXT;
-				}
-			}
-			else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
-			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
-				{
-					return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-				}
-				else
-				{
-					return VK_BLEND_OP_REVERSE_SUBTRACT;
-				}
-			}
-			else
-			{
-				if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && attachments.isColorClamped(index))
-				{
-					return VK_BLEND_OP_ZERO_EXT;  // Negative, clamped to zero
-				}
-				else
-				{
-					return VK_BLEND_OP_REVERSE_SUBTRACT;
-				}
-			}
-		case VK_BLEND_OP_MIN:
-			return VK_BLEND_OP_MIN;
-		case VK_BLEND_OP_MAX:
-			return VK_BLEND_OP_MAX;
-		default:
-			ASSERT(false);
+		}
+	case VK_BLEND_OP_MIN:
+		return VK_BLEND_OP_MIN;
+	case VK_BLEND_OP_MAX:
+		return VK_BLEND_OP_MAX;
+	default:
+		ASSERT(false);
 	}
 
 	return blendState[index].blendOperationAlpha;

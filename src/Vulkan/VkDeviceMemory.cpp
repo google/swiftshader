@@ -127,7 +127,7 @@ public:
 			{
 				switch(createInfo->sType)
 				{
-					case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT:
+				case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT:
 					{
 						const auto *importInfo = reinterpret_cast<const VkImportMemoryHostPointerInfoEXT *>(createInfo);
 
@@ -137,10 +137,10 @@ public:
 						}
 						hostPointer = importInfo->pHostPointer;
 						supported = true;
-						break;
 					}
-					default:
-						break;
+					break;
+				default:
+					break;
 				}
 				createInfo = createInfo->pNext;
 			}
@@ -203,7 +203,7 @@ struct OpaqueFdAllocateInfo
 		{
 			switch(createInfo->sType)
 			{
-				case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
+			case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
 				{
 					const auto *importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR *>(createInfo);
 
@@ -215,7 +215,7 @@ struct OpaqueFdAllocateInfo
 					fd = importInfo->fd;
 				}
 				break;
-				case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
+			case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
 				{
 					const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(createInfo);
 
@@ -226,13 +226,13 @@ struct OpaqueFdAllocateInfo
 					exportFd = true;
 				}
 				break;
-				case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
-					// This can safely be ignored, as the Vulkan spec mentions:
-					// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
-					//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
-					break;
-				default:
-					WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(createInfo->sType).c_str());
+			case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
+				// This can safely be ignored, as the Vulkan spec mentions:
+				// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
+				//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
+				break;
+			default:
+				WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(createInfo->sType).c_str());
 			}
 			createInfo = createInfo->pNext;
 		}

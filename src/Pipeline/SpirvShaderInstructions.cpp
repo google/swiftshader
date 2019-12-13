@@ -39,7 +39,7 @@ constexpr void checkForNoMissingOps(spv::Op op)
 		return;
 #include "SpirvShaderInstructions.inl"
 #undef DECORATE_OP
-		case spv::OpMax: return;
+	case spv::OpMax: return;
 	}
 }
 
@@ -67,8 +67,8 @@ bool SpirvShader::IsStatement(spv::Op op)
 #undef DECORATE_OP
 		return true;
 
-		default:
-			return false;
+	default:
+		return false;
 	}
 }
 

@@ -43,13 +43,13 @@ std::vector<uint32_t> preprocessSpirv(
 	opt.SetMessageConsumer([](spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
 		switch(level)
 		{
-			case SPV_MSG_FATAL: sw::warn("SPIR-V FATAL: %d:%d %s\n", int(position.line), int(position.column), message);
-			case SPV_MSG_INTERNAL_ERROR: sw::warn("SPIR-V INTERNAL_ERROR: %d:%d %s\n", int(position.line), int(position.column), message);
-			case SPV_MSG_ERROR: sw::warn("SPIR-V ERROR: %d:%d %s\n", int(position.line), int(position.column), message);
-			case SPV_MSG_WARNING: sw::warn("SPIR-V WARNING: %d:%d %s\n", int(position.line), int(position.column), message);
-			case SPV_MSG_INFO: sw::trace("SPIR-V INFO: %d:%d %s\n", int(position.line), int(position.column), message);
-			case SPV_MSG_DEBUG: sw::trace("SPIR-V DEBUG: %d:%d %s\n", int(position.line), int(position.column), message);
-			default: sw::trace("SPIR-V MESSAGE: %d:%d %s\n", int(position.line), int(position.column), message);
+		case SPV_MSG_FATAL: sw::warn("SPIR-V FATAL: %d:%d %s\n", int(position.line), int(position.column), message);
+		case SPV_MSG_INTERNAL_ERROR: sw::warn("SPIR-V INTERNAL_ERROR: %d:%d %s\n", int(position.line), int(position.column), message);
+		case SPV_MSG_ERROR: sw::warn("SPIR-V ERROR: %d:%d %s\n", int(position.line), int(position.column), message);
+		case SPV_MSG_WARNING: sw::warn("SPIR-V WARNING: %d:%d %s\n", int(position.line), int(position.column), message);
+		case SPV_MSG_INFO: sw::trace("SPIR-V INFO: %d:%d %s\n", int(position.line), int(position.column), message);
+		case SPV_MSG_DEBUG: sw::trace("SPIR-V DEBUG: %d:%d %s\n", int(position.line), int(position.column), message);
+		default: sw::trace("SPIR-V MESSAGE: %d:%d %s\n", int(position.line), int(position.column), message);
 		}
 	});
 
@@ -189,19 +189,19 @@ void GraphicsPipeline::setShader(const VkShaderStageFlagBits &stage, const std::
 {
 	switch(stage)
 	{
-		case VK_SHADER_STAGE_VERTEX_BIT:
-			ASSERT(vertexShader.get() == nullptr);
-			vertexShader = spirvShader;
-			break;
+	case VK_SHADER_STAGE_VERTEX_BIT:
+		ASSERT(vertexShader.get() == nullptr);
+		vertexShader = spirvShader;
+		break;
 
-		case VK_SHADER_STAGE_FRAGMENT_BIT:
-			ASSERT(fragmentShader.get() == nullptr);
-			fragmentShader = spirvShader;
-			break;
+	case VK_SHADER_STAGE_FRAGMENT_BIT:
+		ASSERT(fragmentShader.get() == nullptr);
+		fragmentShader = spirvShader;
+		break;
 
-		default:
-			UNSUPPORTED("Unsupported stage");
-			break;
+	default:
+		UNSUPPORTED("Unsupported stage");
+		break;
 	}
 }
 
@@ -209,13 +209,13 @@ const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShade
 {
 	switch(stage)
 	{
-		case VK_SHADER_STAGE_VERTEX_BIT:
-			return vertexShader;
-		case VK_SHADER_STAGE_FRAGMENT_BIT:
-			return fragmentShader;
-		default:
-			UNSUPPORTED("Unsupported stage");
-			return fragmentShader;
+	case VK_SHADER_STAGE_VERTEX_BIT:
+		return vertexShader;
+	case VK_SHADER_STAGE_FRAGMENT_BIT:
+		return fragmentShader;
+	default:
+		UNSUPPORTED("Unsupported stage");
+		return fragmentShader;
 	}
 }
 

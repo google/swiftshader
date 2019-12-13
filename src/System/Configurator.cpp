@@ -77,7 +77,7 @@ bool Configurator::readFile()
 			{
 				switch(line[pLeft])
 				{
-					case '[':
+				case '[':
 					{
 						string::size_type pRight = line.find_last_of("]");
 
@@ -88,17 +88,17 @@ bool Configurator::readFile()
 						}
 					}
 					break;
-					case '=':
+				case '=':
 					{
 						string valueName = line.substr(0, pLeft);
 						string value = line.substr(pLeft + 1);
 						addValue(keyName, valueName, value);
 					}
 					break;
-					case ';':
-					case '#':
-						// Ignore comments
-						break;
+				case ';':
+				case '#':
+					// Ignore comments
+					break;
 				}
 			}
 		}

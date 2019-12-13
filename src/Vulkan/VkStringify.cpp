@@ -30,21 +30,21 @@ std::string Stringify(VkStructureType value)
 	std::string ret = "";
 	switch(static_cast<int>(value))
 	{
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
-			ret = "PhysicalDeviceProvokingVertexFeaturesEXT";
-			break;
-		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
-			ret = "PipelineRasterizationProvokingVertexStateCreateInfoEXT";
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT:
-			ret = "PhysicalDeviceProvokingVertexPropertiesEXT";
-			break;
-		case VK_STRUCTURE_TYPE_SAMPLER_FILTERING_PRECISION_GOOGLE:
-			ret = "SamplerFilteringPrecisionGOOGLE";
-			break;
-		default:
-			ret = vkhpp::to_string(static_cast<vkhpp::StructureType>(value));
-			break;
+	case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
+		ret = "PhysicalDeviceProvokingVertexFeaturesEXT";
+		break;
+	case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
+		ret = "PipelineRasterizationProvokingVertexStateCreateInfoEXT";
+		break;
+	case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT:
+		ret = "PhysicalDeviceProvokingVertexPropertiesEXT";
+		break;
+	case VK_STRUCTURE_TYPE_SAMPLER_FILTERING_PRECISION_GOOGLE:
+		ret = "SamplerFilteringPrecisionGOOGLE";
+		break;
+	default:
+		ret = vkhpp::to_string(static_cast<vkhpp::StructureType>(value));
+		break;
 	}
 
 	return ret;

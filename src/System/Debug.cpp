@@ -112,23 +112,23 @@ void logv_android(Level level, const char *msg)
 {
 	switch(level)
 	{
-		case Level::Debug:
-			__android_log_write(ANDROID_LOG_DEBUG, "SwiftShader", msg);
-			break;
-		case Level::Info:
-			__android_log_write(ANDROID_LOG_INFO, "SwiftShader", msg);
-			break;
-		case Level::Warn:
-			__android_log_write(ANDROID_LOG_WARN, "SwiftShader", msg);
-			break;
-		case Level::Error:
-			__android_log_write(ANDROID_LOG_ERROR, "SwiftShader", msg);
-			break;
-		case Level::Fatal:
-			__android_log_write(ANDROID_LOG_FATAL, "SwiftShader", msg);
-			break;
-		default:
-			break;
+	case Level::Debug:
+		__android_log_write(ANDROID_LOG_DEBUG, "SwiftShader", msg);
+		break;
+	case Level::Info:
+		__android_log_write(ANDROID_LOG_INFO, "SwiftShader", msg);
+		break;
+	case Level::Warn:
+		__android_log_write(ANDROID_LOG_WARN, "SwiftShader", msg);
+		break;
+	case Level::Error:
+		__android_log_write(ANDROID_LOG_ERROR, "SwiftShader", msg);
+		break;
+	case Level::Fatal:
+		__android_log_write(ANDROID_LOG_FATAL, "SwiftShader", msg);
+		break;
+	default:
+		break;
 	}
 }
 #else
@@ -136,17 +136,17 @@ void logv_std(Level level, const char *msg)
 {
 	switch(level)
 	{
-		case Level::Debug:
-		case Level::Info:
-			fprintf(stdout, "%s", msg);
-			break;
-		case Level::Warn:
-		case Level::Error:
-		case Level::Fatal:
-			fprintf(stderr, "%s", msg);
-			break;
-		default:
-			break;
+	case Level::Debug:
+	case Level::Info:
+		fprintf(stdout, "%s", msg);
+		break;
+	case Level::Warn:
+	case Level::Error:
+	case Level::Fatal:
+		fprintf(stderr, "%s", msg);
+		break;
+	default:
+		break;
 	}
 }
 #endif

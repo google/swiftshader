@@ -222,28 +222,28 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImag
 
 	switch(sampler->magFilter)
 	{
-		case VK_FILTER_NEAREST:
-			switch(sampler->minFilter)
-			{
-				case VK_FILTER_NEAREST: return FILTER_POINT;
-				case VK_FILTER_LINEAR: return FILTER_MIN_LINEAR_MAG_POINT;
-				default:
-					UNSUPPORTED("minFilter %d", sampler->minFilter);
-					return FILTER_POINT;
-			}
-			break;
-		case VK_FILTER_LINEAR:
-			switch(sampler->minFilter)
-			{
-				case VK_FILTER_NEAREST: return FILTER_MIN_POINT_MAG_LINEAR;
-				case VK_FILTER_LINEAR: return FILTER_LINEAR;
-				default:
-					UNSUPPORTED("minFilter %d", sampler->minFilter);
-					return FILTER_POINT;
-			}
-			break;
+	case VK_FILTER_NEAREST:
+		switch(sampler->minFilter)
+		{
+		case VK_FILTER_NEAREST: return FILTER_POINT;
+		case VK_FILTER_LINEAR: return FILTER_MIN_LINEAR_MAG_POINT;
 		default:
-			break;
+			UNSUPPORTED("minFilter %d", sampler->minFilter);
+			return FILTER_POINT;
+		}
+		break;
+	case VK_FILTER_LINEAR:
+		switch(sampler->minFilter)
+		{
+		case VK_FILTER_NEAREST: return FILTER_MIN_POINT_MAG_LINEAR;
+		case VK_FILTER_LINEAR: return FILTER_LINEAR;
+		default:
+			UNSUPPORTED("minFilter %d", sampler->minFilter);
+			return FILTER_POINT;
+		}
+		break;
+	default:
+		break;
 	}
 
 	UNSUPPORTED("magFilter %d", sampler->magFilter);
@@ -265,11 +265,11 @@ sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
 
 	switch(sampler->mipmapMode)
 	{
-		case VK_SAMPLER_MIPMAP_MODE_NEAREST: return MIPMAP_POINT;
-		case VK_SAMPLER_MIPMAP_MODE_LINEAR: return MIPMAP_LINEAR;
-		default:
-			UNSUPPORTED("mipmapMode %d", sampler->mipmapMode);
-			return MIPMAP_POINT;
+	case VK_SAMPLER_MIPMAP_MODE_NEAREST: return MIPMAP_POINT;
+	case VK_SAMPLER_MIPMAP_MODE_LINEAR: return MIPMAP_LINEAR;
+	default:
+		UNSUPPORTED("mipmapMode %d", sampler->mipmapMode);
+		return MIPMAP_POINT;
 	}
 }
 
@@ -277,45 +277,45 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 {
 	switch(imageViewType)
 	{
-		case VK_IMAGE_VIEW_TYPE_1D:
-		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-			if(coordinateIndex >= 1)
-			{
-				return ADDRESSING_UNUSED;
-			}
-			break;
-		case VK_IMAGE_VIEW_TYPE_2D:
-		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
-			if(coordinateIndex == 2)
-			{
-				return ADDRESSING_UNUSED;
-			}
-			break;
+	case VK_IMAGE_VIEW_TYPE_1D:
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+		if(coordinateIndex >= 1)
+		{
+			return ADDRESSING_UNUSED;
+		}
+		break;
+	case VK_IMAGE_VIEW_TYPE_2D:
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+		if(coordinateIndex == 2)
+		{
+			return ADDRESSING_UNUSED;
+		}
+		break;
 
-		case VK_IMAGE_VIEW_TYPE_3D:
-			break;
+	case VK_IMAGE_VIEW_TYPE_3D:
+		break;
 
-		case VK_IMAGE_VIEW_TYPE_CUBE:
-		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-			if(coordinateIndex <= 1)  // Cube faces themselves are addressed as 2D images.
-			{
-				// Vulkan 1.1 spec:
-				// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
-				//  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE is used, and if VK_FILTER_LINEAR is used within a mip level then sampling at the edges
-				//  is performed as described earlier in the Cube map edge handling section."
-				// This corresponds with our 'SEAMLESS' addressing mode.
-				return ADDRESSING_SEAMLESS;
-			}
-			else  // coordinateIndex == 2
-			{
-				// The cube face is an index into 2D array layers.
-				return ADDRESSING_CUBEFACE;
-			}
-			break;
+	case VK_IMAGE_VIEW_TYPE_CUBE:
+	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		if(coordinateIndex <= 1)  // Cube faces themselves are addressed as 2D images.
+		{
+			// Vulkan 1.1 spec:
+			// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
+			//  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE is used, and if VK_FILTER_LINEAR is used within a mip level then sampling at the edges
+			//  is performed as described earlier in the Cube map edge handling section."
+			// This corresponds with our 'SEAMLESS' addressing mode.
+			return ADDRESSING_SEAMLESS;
+		}
+		else  // coordinateIndex == 2
+		{
+			// The cube face is an index into 2D array layers.
+			return ADDRESSING_CUBEFACE;
+		}
+		break;
 
-		default:
-			UNSUPPORTED("imageViewType %d", imageViewType);
-			return ADDRESSING_WRAP;
+	default:
+		UNSUPPORTED("imageViewType %d", imageViewType);
+		return ADDRESSING_WRAP;
 	}
 
 	if(!sampler)
@@ -336,22 +336,22 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 	VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	switch(coordinateIndex)
 	{
-		case 0: addressMode = sampler->addressModeU; break;
-		case 1: addressMode = sampler->addressModeV; break;
-		case 2: addressMode = sampler->addressModeW; break;
-		default: UNSUPPORTED("coordinateIndex: %d", coordinateIndex);
+	case 0: addressMode = sampler->addressModeU; break;
+	case 1: addressMode = sampler->addressModeV; break;
+	case 2: addressMode = sampler->addressModeW; break;
+	default: UNSUPPORTED("coordinateIndex: %d", coordinateIndex);
 	}
 
 	switch(addressMode)
 	{
-		case VK_SAMPLER_ADDRESS_MODE_REPEAT: return ADDRESSING_WRAP;
-		case VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT: return ADDRESSING_MIRROR;
-		case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE: return ADDRESSING_CLAMP;
-		case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER: return ADDRESSING_BORDER;
-		case VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE: return ADDRESSING_MIRRORONCE;
-		default:
-			UNSUPPORTED("addressMode %d", addressMode);
-			return ADDRESSING_WRAP;
+	case VK_SAMPLER_ADDRESS_MODE_REPEAT: return ADDRESSING_WRAP;
+	case VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT: return ADDRESSING_MIRROR;
+	case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE: return ADDRESSING_CLAMP;
+	case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER: return ADDRESSING_BORDER;
+	case VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE: return ADDRESSING_MIRRORONCE;
+	default:
+		UNSUPPORTED("addressMode %d", addressMode);
+		return ADDRESSING_WRAP;
 	}
 }
 

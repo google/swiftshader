@@ -155,7 +155,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
 		{
 			switch(extension->sType)
 			{
-				case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
+			case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
 				{
 					const auto *ext = reinterpret_cast<const VkSubpassDescriptionDepthStencilResolve *>(extension);
 					// If any subpass includes depthStencilResolve, allocate a DSR struct for each subpass
@@ -192,10 +192,10 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
 					}
 				}
 				break;
-				default:
-					LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
-					         i, vk::Stringify(extension->sType).c_str());
-					break;
+			default:
+				LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
+				         i, vk::Stringify(extension->sType).c_str());
+				break;
 			}
 
 			extension = extension->pNext;
@@ -243,7 +243,7 @@ void RenderPass::init(const T *pCreateInfo, void **mem)
 	{
 		switch(extensionCreateInfo->sType)
 		{
-			case VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO:
+		case VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO:
 			{
 				// Renderpass uses multiview if this structure is present AND some subpass specifies
 				// a nonzero view mask
@@ -257,12 +257,11 @@ void RenderPass::init(const T *pCreateInfo, void **mem)
 						viewMasks = masks;
 					}
 				}
-
-				break;
 			}
-			default:
-				WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
-				break;
+			break;
+		default:
+			WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+			break;
 		}
 
 		extensionCreateInfo = extensionCreateInfo->pNext;
@@ -387,7 +386,7 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo2KH
 		{
 			switch(extension->sType)
 			{
-				case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
+			case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
 				{
 					const auto *ext = reinterpret_cast<const VkSubpassDescriptionDepthStencilResolve *>(extension);
 					if(ext->pDepthStencilResolveAttachment != nullptr && ext->pDepthStencilResolveAttachment->attachment != VK_ATTACHMENT_UNUSED)
@@ -404,10 +403,10 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo2KH
 					}
 				}
 				break;
-				default:
-					LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
-					         i, vk::Stringify(extension->sType).c_str());
-					break;
+			default:
+				LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
+				         i, vk::Stringify(extension->sType).c_str());
+				break;
 			}
 
 			extension = extension->pNext;

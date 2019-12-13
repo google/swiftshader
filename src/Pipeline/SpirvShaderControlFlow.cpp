@@ -45,75 +45,75 @@ SpirvShader::Block::Block(InsnIterator begin, InsnIterator end)
 
 	switch(insns[1].opcode())
 	{
-		case spv::OpBranch:
-			branchInstruction = insns[1];
-			outs.emplace(Block::ID(branchInstruction.word(1)));
+	case spv::OpBranch:
+		branchInstruction = insns[1];
+		outs.emplace(Block::ID(branchInstruction.word(1)));
 
-			switch(insns[0].opcode())
-			{
-				case spv::OpLoopMerge:
-					kind = Loop;
-					mergeInstruction = insns[0];
-					mergeBlock = Block::ID(mergeInstruction.word(1));
-					continueTarget = Block::ID(mergeInstruction.word(2));
-					break;
-
-				default:
-					kind = Block::Simple;
-					break;
-			}
-			break;
-
-		case spv::OpBranchConditional:
-			branchInstruction = insns[1];
-			outs.emplace(Block::ID(branchInstruction.word(2)));
-			outs.emplace(Block::ID(branchInstruction.word(3)));
-
-			switch(insns[0].opcode())
-			{
-				case spv::OpSelectionMerge:
-					kind = StructuredBranchConditional;
-					mergeInstruction = insns[0];
-					mergeBlock = Block::ID(mergeInstruction.word(1));
-					break;
-
-				case spv::OpLoopMerge:
-					kind = Loop;
-					mergeInstruction = insns[0];
-					mergeBlock = Block::ID(mergeInstruction.word(1));
-					continueTarget = Block::ID(mergeInstruction.word(2));
-					break;
-
-				default:
-					kind = UnstructuredBranchConditional;
-					break;
-			}
-			break;
-
-		case spv::OpSwitch:
-			branchInstruction = insns[1];
-			outs.emplace(Block::ID(branchInstruction.word(2)));
-			for(uint32_t w = 4; w < branchInstruction.wordCount(); w += 2)
-			{
-				outs.emplace(Block::ID(branchInstruction.word(w)));
-			}
-
-			switch(insns[0].opcode())
-			{
-				case spv::OpSelectionMerge:
-					kind = StructuredSwitch;
-					mergeInstruction = insns[0];
-					mergeBlock = Block::ID(mergeInstruction.word(1));
-					break;
-
-				default:
-					kind = UnstructuredSwitch;
-					break;
-			}
+		switch(insns[0].opcode())
+		{
+		case spv::OpLoopMerge:
+			kind = Loop;
+			mergeInstruction = insns[0];
+			mergeBlock = Block::ID(mergeInstruction.word(1));
+			continueTarget = Block::ID(mergeInstruction.word(2));
 			break;
 
 		default:
+			kind = Block::Simple;
 			break;
+		}
+		break;
+
+	case spv::OpBranchConditional:
+		branchInstruction = insns[1];
+		outs.emplace(Block::ID(branchInstruction.word(2)));
+		outs.emplace(Block::ID(branchInstruction.word(3)));
+
+		switch(insns[0].opcode())
+		{
+		case spv::OpSelectionMerge:
+			kind = StructuredBranchConditional;
+			mergeInstruction = insns[0];
+			mergeBlock = Block::ID(mergeInstruction.word(1));
+			break;
+
+		case spv::OpLoopMerge:
+			kind = Loop;
+			mergeInstruction = insns[0];
+			mergeBlock = Block::ID(mergeInstruction.word(1));
+			continueTarget = Block::ID(mergeInstruction.word(2));
+			break;
+
+		default:
+			kind = UnstructuredBranchConditional;
+			break;
+		}
+		break;
+
+	case spv::OpSwitch:
+		branchInstruction = insns[1];
+		outs.emplace(Block::ID(branchInstruction.word(2)));
+		for(uint32_t w = 4; w < branchInstruction.wordCount(); w += 2)
+		{
+			outs.emplace(Block::ID(branchInstruction.word(w)));
+		}
+
+		switch(insns[0].opcode())
+		{
+		case spv::OpSelectionMerge:
+			kind = StructuredSwitch;
+			mergeInstruction = insns[0];
+			mergeBlock = Block::ID(mergeInstruction.word(1));
+			break;
+
+		default:
+			kind = UnstructuredSwitch;
+			break;
+		}
+		break;
+
+	default:
+		break;
 	}
 }
 
@@ -264,20 +264,20 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 
 		switch(block.kind)
 		{
-			case Block::Simple:
-			case Block::StructuredBranchConditional:
-			case Block::UnstructuredBranchConditional:
-			case Block::StructuredSwitch:
-			case Block::UnstructuredSwitch:
-				EmitNonLoop(state);
-				break;
+		case Block::Simple:
+		case Block::StructuredBranchConditional:
+		case Block::UnstructuredBranchConditional:
+		case Block::StructuredSwitch:
+		case Block::UnstructuredSwitch:
+			EmitNonLoop(state);
+			break;
 
-			case Block::Loop:
-				EmitLoop(state);
-				break;
+		case Block::Loop:
+			EmitLoop(state);
+			break;
 
-			default:
-				UNREACHABLE("Unexpected Block Kind: %d", int(block.kind));
+		default:
+			UNREACHABLE("Unexpected Block Kind: %d", int(block.kind));
 		}
 	}
 
@@ -629,15 +629,15 @@ SpirvShader::EmitResult SpirvShader::EmitControlBarrier(InsnIterator insn, EmitS
 
 	switch(executionScope)
 	{
-		case spv::ScopeWorkgroup:
-			Yield(YieldResult::ControlBarrier);
-			break;
-		case spv::ScopeSubgroup:
-			break;
-		default:
-			// See Vulkan 1.1 spec, Appendix A, Validation Rules within a Module.
-			UNREACHABLE("Scope for execution must be limited to Workgroup or Subgroup");
-			break;
+	case spv::ScopeWorkgroup:
+		Yield(YieldResult::ControlBarrier);
+		break;
+	case spv::ScopeSubgroup:
+		break;
+	default:
+		// See Vulkan 1.1 spec, Appendix A, Validation Rules within a Module.
+		UNREACHABLE("Scope for execution must be limited to Workgroup or Subgroup");
+		break;
 	}
 
 	return EmitResult::Continue;

@@ -53,13 +53,11 @@ void Thread::onLocationUpdate(marl::lock &lock)
 
 	switch(state_)
 	{
-		case State::Paused:
-		{
-			lock.wait(stateCV, [this]() REQUIRES(mutex) { return state_ != State::Paused; });
-			break;
-		}
+	case State::Paused:
+		lock.wait(stateCV, [this]() REQUIRES(mutex) { return state_ != State::Paused; });
+		break;
 
-		case State::Stepping:
+	case State::Stepping:
 		{
 			bool pause = false;
 
@@ -79,11 +77,11 @@ void Thread::onLocationUpdate(marl::lock &lock)
 				state_ = State::Paused;
 				lock.wait(stateCV, [this]() REQUIRES(mutex) { return state_ != State::Paused; });
 			}
-			break;
 		}
+		break;
 
-		case State::Running:
-			break;
+	case State::Running:
+		break;
 	}
 }
 

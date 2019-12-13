@@ -115,23 +115,23 @@ uint32_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 {
 	switch(type)
 	{
-		case VK_DESCRIPTOR_TYPE_SAMPLER:
-		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-			return static_cast<uint32_t>(sizeof(SampledImageDescriptor));
-		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-		case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-		case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-			return static_cast<uint32_t>(sizeof(StorageImageDescriptor));
-		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-			return static_cast<uint32_t>(sizeof(BufferDescriptor));
-		default:
-			UNSUPPORTED("Unsupported Descriptor Type: %d", int(type));
-			return 0;
+	case VK_DESCRIPTOR_TYPE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+		return static_cast<uint32_t>(sizeof(SampledImageDescriptor));
+	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+		return static_cast<uint32_t>(sizeof(StorageImageDescriptor));
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+		return static_cast<uint32_t>(sizeof(BufferDescriptor));
+	default:
+		UNSUPPORTED("Unsupported Descriptor Type: %d", int(type));
+		return 0;
 	}
 }
 
@@ -549,31 +549,31 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, const VkWriteDescri
 	void const *ptr = nullptr;
 	switch(writeDescriptorSet.descriptorType)
 	{
-		case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-			ptr = writeDescriptorSet.pTexelBufferView;
-			e.stride = sizeof(VkBufferView);
-			break;
+	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+		ptr = writeDescriptorSet.pTexelBufferView;
+		e.stride = sizeof(VkBufferView);
+		break;
 
-		case VK_DESCRIPTOR_TYPE_SAMPLER:
-		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-		case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-			ptr = writeDescriptorSet.pImageInfo;
-			e.stride = sizeof(VkDescriptorImageInfo);
-			break;
+	case VK_DESCRIPTOR_TYPE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		ptr = writeDescriptorSet.pImageInfo;
+		e.stride = sizeof(VkDescriptorImageInfo);
+		break;
 
-		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-			ptr = writeDescriptorSet.pBufferInfo;
-			e.stride = sizeof(VkDescriptorBufferInfo);
-			break;
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+		ptr = writeDescriptorSet.pBufferInfo;
+		e.stride = sizeof(VkDescriptorBufferInfo);
+		break;
 
-		default:
-			UNSUPPORTED("descriptor type %u", writeDescriptorSet.descriptorType);
+	default:
+		UNSUPPORTED("descriptor type %u", writeDescriptorSet.descriptorType);
 	}
 
 	WriteDescriptorSet(device, dstSet, e, reinterpret_cast<char const *>(ptr));

@@ -97,13 +97,13 @@ static void *getTLSAddress(void *control)
 	switch(tlsIndex)
 	{
 
-		case MSanTLS::param: return reinterpret_cast<void *>(&__msan_param_tls);
-		case MSanTLS::retval: return reinterpret_cast<void *>(&__msan_retval_tls);
-		case MSanTLS::va_arg: return reinterpret_cast<void *>(&__msan_va_arg_tls);
-		case MSanTLS::va_arg_overflow_size: return reinterpret_cast<void *>(&__msan_va_arg_overflow_size_tls);
-		default:
-			UNSUPPORTED("MemorySanitizer used an unrecognized TLS variable: %d", tlsIndex);
-			return nullptr;
+	case MSanTLS::param: return reinterpret_cast<void *>(&__msan_param_tls);
+	case MSanTLS::retval: return reinterpret_cast<void *>(&__msan_retval_tls);
+	case MSanTLS::va_arg: return reinterpret_cast<void *>(&__msan_va_arg_tls);
+	case MSanTLS::va_arg_overflow_size: return reinterpret_cast<void *>(&__msan_va_arg_overflow_size_tls);
+	default:
+		UNSUPPORTED("MemorySanitizer used an unrecognized TLS variable: %d", tlsIndex);
+		return nullptr;
 	}
 }
 
@@ -236,11 +236,11 @@ llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 
 	switch(level)
 	{
-		case rr::Optimization::Level::None: return llvm::CodeGenOpt::None;
-		case rr::Optimization::Level::Less: return llvm::CodeGenOpt::Less;
-		case rr::Optimization::Level::Default: return llvm::CodeGenOpt::Default;
-		case rr::Optimization::Level::Aggressive: return llvm::CodeGenOpt::Aggressive;
-		default: UNREACHABLE("Unknown Optimization Level %d", int(level));
+	case rr::Optimization::Level::None: return llvm::CodeGenOpt::None;
+	case rr::Optimization::Level::Less: return llvm::CodeGenOpt::Less;
+	case rr::Optimization::Level::Default: return llvm::CodeGenOpt::Default;
+	case rr::Optimization::Level::Aggressive: return llvm::CodeGenOpt::Aggressive;
+	default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
 
 	return llvm::CodeGenOpt::Default;
@@ -385,24 +385,24 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 		{
 			switch(size)
 			{
-				case 1: atomicLoad<uint8_t>(ptr, ret, ordering); break;
-				case 2: atomicLoad<uint16_t>(ptr, ret, ordering); break;
-				case 4: atomicLoad<uint32_t>(ptr, ret, ordering); break;
-				case 8: atomicLoad<uint64_t>(ptr, ret, ordering); break;
-				default:
-					UNIMPLEMENTED_NO_BUG("Atomic::load(size: %d)", int(size));
+			case 1: atomicLoad<uint8_t>(ptr, ret, ordering); break;
+			case 2: atomicLoad<uint16_t>(ptr, ret, ordering); break;
+			case 4: atomicLoad<uint32_t>(ptr, ret, ordering); break;
+			case 8: atomicLoad<uint64_t>(ptr, ret, ordering); break;
+			default:
+				UNIMPLEMENTED_NO_BUG("Atomic::load(size: %d)", int(size));
 			}
 		}
 		static void store(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
 		{
 			switch(size)
 			{
-				case 1: atomicStore<uint8_t>(ptr, ret, ordering); break;
-				case 2: atomicStore<uint16_t>(ptr, ret, ordering); break;
-				case 4: atomicStore<uint32_t>(ptr, ret, ordering); break;
-				case 8: atomicStore<uint64_t>(ptr, ret, ordering); break;
-				default:
-					UNIMPLEMENTED_NO_BUG("Atomic::store(size: %d)", int(size));
+			case 1: atomicStore<uint8_t>(ptr, ret, ordering); break;
+			case 2: atomicStore<uint16_t>(ptr, ret, ordering); break;
+			case 4: atomicStore<uint32_t>(ptr, ret, ordering); break;
+			case 8: atomicStore<uint64_t>(ptr, ret, ordering); break;
+			default:
+				UNIMPLEMENTED_NO_BUG("Atomic::store(size: %d)", int(size));
 			}
 		}
 	};
@@ -659,21 +659,21 @@ struct FatalDiagnosticsHandler : public llvm::DiagnosticHandler
 	{
 		switch(info.getSeverity())
 		{
-			case llvm::DS_Error:
-				ASSERT_MSG(false, "LLVM JIT compilation failure");
+		case llvm::DS_Error:
+			ASSERT_MSG(false, "LLVM JIT compilation failure");
+			*fatal = true;
+			break;
+		case llvm::DS_Warning:
+			if(info.getKind() == llvm::DK_StackSize)
+			{
+				// Stack size limit exceeded
 				*fatal = true;
-				break;
-			case llvm::DS_Warning:
-				if(info.getKind() == llvm::DK_StackSize)
-				{
-					// Stack size limit exceeded
-					*fatal = true;
-				}
-				break;
-			case llvm::DS_Remark:
-				break;
-			case llvm::DS_Note:
-				break;
+			}
+			break;
+		case llvm::DS_Remark:
+			break;
+		case llvm::DS_Note:
+			break;
 		}
 
 		return true;  // Diagnostic handled, don't let LLVM print it.
@@ -842,19 +842,19 @@ void JITBuilder::optimize(const rr::Config &cfg)
 	{
 		switch(pass)
 		{
-			case rr::Optimization::Pass::Disabled: break;
-			case rr::Optimization::Pass::CFGSimplification: passManager.add(llvm::createCFGSimplificationPass()); break;
-			case rr::Optimization::Pass::LICM: passManager.add(llvm::createLICMPass()); break;
-			case rr::Optimization::Pass::AggressiveDCE: passManager.add(llvm::createAggressiveDCEPass()); break;
-			case rr::Optimization::Pass::GVN: passManager.add(llvm::createGVNPass()); break;
-			case rr::Optimization::Pass::InstructionCombining: passManager.add(llvm::createInstructionCombiningPass()); break;
-			case rr::Optimization::Pass::Reassociate: passManager.add(llvm::createReassociatePass()); break;
-			case rr::Optimization::Pass::DeadStoreElimination: passManager.add(llvm::createDeadStoreEliminationPass()); break;
-			case rr::Optimization::Pass::SCCP: passManager.add(llvm::createSCCPPass()); break;
-			case rr::Optimization::Pass::ScalarReplAggregates: passManager.add(llvm::createSROAPass()); break;
-			case rr::Optimization::Pass::EarlyCSEPass: passManager.add(llvm::createEarlyCSEPass()); break;
-			default:
-				UNREACHABLE("pass: %d", int(pass));
+		case rr::Optimization::Pass::Disabled: break;
+		case rr::Optimization::Pass::CFGSimplification: passManager.add(llvm::createCFGSimplificationPass()); break;
+		case rr::Optimization::Pass::LICM: passManager.add(llvm::createLICMPass()); break;
+		case rr::Optimization::Pass::AggressiveDCE: passManager.add(llvm::createAggressiveDCEPass()); break;
+		case rr::Optimization::Pass::GVN: passManager.add(llvm::createGVNPass()); break;
+		case rr::Optimization::Pass::InstructionCombining: passManager.add(llvm::createInstructionCombiningPass()); break;
+		case rr::Optimization::Pass::Reassociate: passManager.add(llvm::createReassociatePass()); break;
+		case rr::Optimization::Pass::DeadStoreElimination: passManager.add(llvm::createDeadStoreEliminationPass()); break;
+		case rr::Optimization::Pass::SCCP: passManager.add(llvm::createSCCPPass()); break;
+		case rr::Optimization::Pass::ScalarReplAggregates: passManager.add(llvm::createSROAPass()); break;
+		case rr::Optimization::Pass::EarlyCSEPass: passManager.add(llvm::createEarlyCSEPass()); break;
+		default:
+			UNREACHABLE("pass: %d", int(pass));
 		}
 	}
 

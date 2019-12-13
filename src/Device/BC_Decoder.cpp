@@ -950,35 +950,35 @@ struct Block
 		{
 			switch(desc.type)
 			{
-				case Mode:
-					modeDesc = desc.modeDesc;
-					ASSERT(modeDesc.number == mode);
+			case Mode:
+				modeDesc = desc.modeDesc;
+				ASSERT(modeDesc.number == mode);
 
-					e[0].size[0] = e[0].size[1] = e[0].size[2] = modeDesc.endpointBits;
-					for(int i = 0; i < RGBfChannels; i++)
+				e[0].size[0] = e[0].size[1] = e[0].size[2] = modeDesc.endpointBits;
+				for(int i = 0; i < RGBfChannels; i++)
+				{
+					if(modeDesc.hasDelta)
 					{
-						if(modeDesc.hasDelta)
-						{
-							e[1].size[i] = e[2].size[i] = e[3].size[i] = modeDesc.deltaBits.channel[i];
-						}
-						else
-						{
-							e[1].size[i] = e[2].size[i] = e[3].size[i] = modeDesc.endpointBits;
-						}
+						e[1].size[i] = e[2].size[i] = e[3].size[i] = modeDesc.deltaBits.channel[i];
 					}
-					break;
-				case Partition:
-					partition |= data.consumeBits(desc.MSB, desc.LSB);
-					break;
-				case EP0:
-				case EP1:
-				case EP2:
-				case EP3:
-					e[desc.type].channel[desc.channel] |= data.consumeBits(desc.MSB, desc.LSB);
-					break;
-				default:
-					ASSERT_MSG(false, "Unexpected enum value: %d", (int)desc.type);
-					return;
+					else
+					{
+						e[1].size[i] = e[2].size[i] = e[3].size[i] = modeDesc.endpointBits;
+					}
+				}
+				break;
+			case Partition:
+				partition |= data.consumeBits(desc.MSB, desc.LSB);
+				break;
+			case EP0:
+			case EP1:
+			case EP2:
+			case EP3:
+				e[desc.type].channel[desc.channel] |= data.consumeBits(desc.MSB, desc.LSB);
+				break;
+			default:
+				ASSERT_MSG(false, "Unexpected enum value: %d", (int)desc.type);
+				return;
 			}
 		}
 
@@ -1532,17 +1532,17 @@ struct Block
 
 				switch(Get(mode.Rotation()))
 				{
-					default:
-						break;
-					case 1:
-						std::swap(output.a, output.rgb.r);
-						break;
-					case 2:
-						std::swap(output.a, output.rgb.g);
-						break;
-					case 3:
-						std::swap(output.a, output.rgb.b);
-						break;
+				default:
+					break;
+				case 1:
+					std::swap(output.a, output.rgb.r);
+					break;
+				case 2:
+					std::swap(output.a, output.rgb.g);
+					break;
+				case 3:
+					std::swap(output.a, output.rgb.b);
+					break;
 				}
 
 				auto out = reinterpret_cast<Color *>(dst + sizeof(Color) * x + dstPitch * y);
@@ -1555,12 +1555,12 @@ struct Block
 	{
 		switch(mode.NS)
 		{
-			default:
-				return 0;
-			case 2:
-				return PartitionTable2[partitionIdx][texelIndex];
-			case 3:
-				return PartitionTable3[partitionIdx][texelIndex];
+		default:
+			return 0;
+		case 2:
+			return PartitionTable2[partitionIdx][texelIndex];
+		case 3:
+			return PartitionTable3[partitionIdx][texelIndex];
 		}
 	}
 
@@ -1574,12 +1574,12 @@ struct Block
 		// of partition here.
 		switch(subsetIdx)
 		{
-			default:
-				return 0;
-			case 1:
-				return mode.NS == 2 ? AnchorTable2[partitionIdx] : AnchorTable3a[partitionIdx];
-			case 2:
-				return AnchorTable3b[partitionIdx];
+		default:
+			return 0;
+		case 1:
+			return mode.NS == 2 ? AnchorTable2[partitionIdx] : AnchorTable3a[partitionIdx];
+		case 2:
+			return AnchorTable3b[partitionIdx];
 		}
 	}
 
@@ -1643,7 +1643,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 
 	switch(n)
 	{
-		case 1:  // BC1
+	case 1:  // BC1
 		{
 			const BC_color *color = reinterpret_cast<const BC_color *>(src);
 			for(int y = 0; y < h; y += BlockHeight, dst += dy)
@@ -1656,7 +1656,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		case 2:  // BC2
+	case 2:  // BC2
 		{
 			const BC_alpha *alpha = reinterpret_cast<const BC_alpha *>(src);
 			const BC_color *color = reinterpret_cast<const BC_color *>(src + 8);
@@ -1671,7 +1671,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		case 3:  // BC3
+	case 3:  // BC3
 		{
 			const BC_channel *alpha = reinterpret_cast<const BC_channel *>(src);
 			const BC_color *color = reinterpret_cast<const BC_color *>(src + 8);
@@ -1686,7 +1686,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		case 4:  // BC4
+	case 4:  // BC4
 		{
 			const BC_channel *red = reinterpret_cast<const BC_channel *>(src);
 			for(int y = 0; y < h; y += BlockHeight, dst += dy)
@@ -1699,7 +1699,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		case 5:  // BC5
+	case 5:  // BC5
 		{
 			const BC_channel *red = reinterpret_cast<const BC_channel *>(src);
 			const BC_channel *green = reinterpret_cast<const BC_channel *>(src + 8);
@@ -1714,7 +1714,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		case 6:  // BC6H
+	case 6:  // BC6H
 		{
 			const BC6H::Block *block = reinterpret_cast<const BC6H::Block *>(src);
 			for(int y = 0; y < h; y += BlockHeight, dst += dy)
@@ -1727,7 +1727,7 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		case 7:  // BC7
+	case 7:  // BC7
 		{
 			const BC7::Block *block = reinterpret_cast<const BC7::Block *>(src);
 			for(int y = 0; y < h; y += BlockHeight, dst += dy)
@@ -1740,8 +1740,8 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 			}
 		}
 		break;
-		default:
-			return false;
+	default:
+		return false;
 	}
 
 	return true;

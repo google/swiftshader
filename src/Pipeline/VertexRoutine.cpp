@@ -201,10 +201,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 	switch(stream.format)
 	{
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
+	case VK_FORMAT_R32_SFLOAT:
+	case VK_FORMAT_R32G32_SFLOAT:
+	case VK_FORMAT_R32G32B32_SFLOAT:
+	case VK_FORMAT_R32G32B32A32_SFLOAT:
 		{
 			if(componentCount == 0)
 			{
@@ -231,138 +231,138 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			}
 		}
 		break;
-		case VK_FORMAT_B8G8R8A8_UNORM:
-			bgra = true;
-			// [[fallthrough]]
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-			v.x = Float4(*Pointer<Byte4>(source0));
-			v.y = Float4(*Pointer<Byte4>(source1));
-			v.z = Float4(*Pointer<Byte4>(source2));
-			v.w = Float4(*Pointer<Byte4>(source3));
+	case VK_FORMAT_B8G8R8A8_UNORM:
+		bgra = true;
+		// [[fallthrough]]
+	case VK_FORMAT_R8_UNORM:
+	case VK_FORMAT_R8G8_UNORM:
+	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		v.x = Float4(*Pointer<Byte4>(source0));
+		v.y = Float4(*Pointer<Byte4>(source1));
+		v.z = Float4(*Pointer<Byte4>(source2));
+		v.w = Float4(*Pointer<Byte4>(source3));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-			if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			break;
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-			v.x = As<Float4>(Int4(*Pointer<Byte4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<Byte4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<Byte4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<Byte4>(source3)));
+		if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+		if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+		if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+		if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+		break;
+	case VK_FORMAT_R8_UINT:
+	case VK_FORMAT_R8G8_UINT:
+	case VK_FORMAT_R8G8B8A8_UINT:
+	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		v.x = As<Float4>(Int4(*Pointer<Byte4>(source0)));
+		v.y = As<Float4>(Int4(*Pointer<Byte4>(source1)));
+		v.z = As<Float4>(Int4(*Pointer<Byte4>(source2)));
+		v.w = As<Float4>(Int4(*Pointer<Byte4>(source3)));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
-			break;
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-			v.x = Float4(*Pointer<SByte4>(source0));
-			v.y = Float4(*Pointer<SByte4>(source1));
-			v.z = Float4(*Pointer<SByte4>(source2));
-			v.w = Float4(*Pointer<SByte4>(source3));
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		break;
+	case VK_FORMAT_R8_SNORM:
+	case VK_FORMAT_R8G8_SNORM:
+	case VK_FORMAT_R8G8B8A8_SNORM:
+	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+		v.x = Float4(*Pointer<SByte4>(source0));
+		v.y = Float4(*Pointer<SByte4>(source1));
+		v.z = Float4(*Pointer<SByte4>(source2));
+		v.w = Float4(*Pointer<SByte4>(source3));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-			if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-			if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-			if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-			if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
-			break;
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-			v.x = As<Float4>(Int4(*Pointer<SByte4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<SByte4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<SByte4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<SByte4>(source3)));
+		if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+		if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+		if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+		if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+		break;
+	case VK_FORMAT_R8_SINT:
+	case VK_FORMAT_R8G8_SINT:
+	case VK_FORMAT_R8G8B8A8_SINT:
+	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+		v.x = As<Float4>(Int4(*Pointer<SByte4>(source0)));
+		v.y = As<Float4>(Int4(*Pointer<SByte4>(source1)));
+		v.z = As<Float4>(Int4(*Pointer<SByte4>(source2)));
+		v.w = As<Float4>(Int4(*Pointer<SByte4>(source3)));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
-			break;
-		case VK_FORMAT_R16_SNORM:
-		case VK_FORMAT_R16G16_SNORM:
-		case VK_FORMAT_R16G16B16A16_SNORM:
-			v.x = Float4(*Pointer<Short4>(source0));
-			v.y = Float4(*Pointer<Short4>(source1));
-			v.z = Float4(*Pointer<Short4>(source2));
-			v.w = Float4(*Pointer<Short4>(source3));
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		break;
+	case VK_FORMAT_R16_SNORM:
+	case VK_FORMAT_R16G16_SNORM:
+	case VK_FORMAT_R16G16B16A16_SNORM:
+		v.x = Float4(*Pointer<Short4>(source0));
+		v.y = Float4(*Pointer<Short4>(source1));
+		v.z = Float4(*Pointer<Short4>(source2));
+		v.w = Float4(*Pointer<Short4>(source3));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-			if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-			if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-			if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-			if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
-			break;
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-			v.x = As<Float4>(Int4(*Pointer<Short4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<Short4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<Short4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<Short4>(source3)));
+		if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+		if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+		if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+		if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+		break;
+	case VK_FORMAT_R16_SINT:
+	case VK_FORMAT_R16G16_SINT:
+	case VK_FORMAT_R16G16B16A16_SINT:
+		v.x = As<Float4>(Int4(*Pointer<Short4>(source0)));
+		v.y = As<Float4>(Int4(*Pointer<Short4>(source1)));
+		v.z = As<Float4>(Int4(*Pointer<Short4>(source2)));
+		v.w = As<Float4>(Int4(*Pointer<Short4>(source3)));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
-			break;
-		case VK_FORMAT_R16_UNORM:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-			v.x = Float4(*Pointer<UShort4>(source0));
-			v.y = Float4(*Pointer<UShort4>(source1));
-			v.z = Float4(*Pointer<UShort4>(source2));
-			v.w = Float4(*Pointer<UShort4>(source3));
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		break;
+	case VK_FORMAT_R16_UNORM:
+	case VK_FORMAT_R16G16_UNORM:
+	case VK_FORMAT_R16G16B16A16_UNORM:
+		v.x = Float4(*Pointer<UShort4>(source0));
+		v.y = Float4(*Pointer<UShort4>(source1));
+		v.z = Float4(*Pointer<UShort4>(source2));
+		v.w = Float4(*Pointer<UShort4>(source3));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-			if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-			if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-			if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-			if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-			break;
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-			v.x = As<Float4>(Int4(*Pointer<UShort4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<UShort4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<UShort4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<UShort4>(source3)));
+		if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+		if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+		if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+		if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+		break;
+	case VK_FORMAT_R16_UINT:
+	case VK_FORMAT_R16G16_UINT:
+	case VK_FORMAT_R16G16B16A16_UINT:
+		v.x = As<Float4>(Int4(*Pointer<UShort4>(source0)));
+		v.y = As<Float4>(Int4(*Pointer<UShort4>(source1)));
+		v.z = As<Float4>(Int4(*Pointer<UShort4>(source2)));
+		v.w = As<Float4>(Int4(*Pointer<UShort4>(source3)));
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
-			break;
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32B32_SINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-			v.x = *Pointer<Float4>(source0);
-			v.y = *Pointer<Float4>(source1);
-			v.z = *Pointer<Float4>(source2);
-			v.w = *Pointer<Float4>(source3);
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		break;
+	case VK_FORMAT_R32_SINT:
+	case VK_FORMAT_R32G32_SINT:
+	case VK_FORMAT_R32G32B32_SINT:
+	case VK_FORMAT_R32G32B32A32_SINT:
+		v.x = *Pointer<Float4>(source0);
+		v.y = *Pointer<Float4>(source1);
+		v.z = *Pointer<Float4>(source2);
+		v.w = *Pointer<Float4>(source3);
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
-			break;
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32_UINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-			v.x = *Pointer<Float4>(source0);
-			v.y = *Pointer<Float4>(source1);
-			v.z = *Pointer<Float4>(source2);
-			v.w = *Pointer<Float4>(source3);
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		break;
+	case VK_FORMAT_R32_UINT:
+	case VK_FORMAT_R32G32_UINT:
+	case VK_FORMAT_R32G32B32_UINT:
+	case VK_FORMAT_R32G32B32A32_UINT:
+		v.x = *Pointer<Float4>(source0);
+		v.y = *Pointer<Float4>(source1);
+		v.z = *Pointer<Float4>(source2);
+		v.w = *Pointer<Float4>(source3);
 
-			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
-			break;
-		case VK_FORMAT_R16_SFLOAT:
-		case VK_FORMAT_R16G16_SFLOAT:
-		case VK_FORMAT_R16G16B16A16_SFLOAT:
+		transpose4xN(v.x, v.y, v.z, v.w, componentCount);
+		break;
+	case VK_FORMAT_R16_SFLOAT:
+	case VK_FORMAT_R16G16_SFLOAT:
+	case VK_FORMAT_R16G16B16A16_SFLOAT:
 		{
 			if(componentCount >= 1)
 			{
@@ -417,10 +417,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			}
 		}
 		break;
-		case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
-			bgra = true;
-			// [[fallthrough]]
-		case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+		bgra = true;
+		// [[fallthrough]]
+	case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -438,10 +438,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			v.w = Max(v.w, Float4(-1.0f));
 		}
 		break;
-		case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-			bgra = true;
-			// [[fallthrough]]
-		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+	case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+		bgra = true;
+		// [[fallthrough]]
+	case VK_FORMAT_A2B10G10R10_SINT_PACK32:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -454,10 +454,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			v.w = As<Float4>(src >> 30);
 		}
 		break;
-		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-			bgra = true;
-			// [[fallthrough]]
-		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		bgra = true;
+		// [[fallthrough]]
+	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -476,10 +476,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			v.w *= Float4(1.0f / 0x3);
 		}
 		break;
-		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-			bgra = true;
-			// [[fallthrough]]
-		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+		bgra = true;
+		// [[fallthrough]]
+	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -493,8 +493,8 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			v.w = As<Float4>((src >> 30) & Int4(0x3));
 		}
 		break;
-		default:
-			UNSUPPORTED("stream.format %d", int(stream.format));
+	default:
+		UNSUPPORTED("stream.format %d", int(stream.format));
 	}
 
 	if(bgra)

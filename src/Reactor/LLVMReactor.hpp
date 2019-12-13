@@ -124,14 +124,14 @@ inline std::memory_order atomicOrdering(llvm::AtomicOrdering memoryOrder)
 {
 	switch(memoryOrder)
 	{
-		case llvm::AtomicOrdering::Monotonic: return std::memory_order_relaxed;  // https://llvm.org/docs/Atomics.html#monotonic
-		case llvm::AtomicOrdering::Acquire: return std::memory_order_acquire;
-		case llvm::AtomicOrdering::Release: return std::memory_order_release;
-		case llvm::AtomicOrdering::AcquireRelease: return std::memory_order_acq_rel;
-		case llvm::AtomicOrdering::SequentiallyConsistent: return std::memory_order_seq_cst;
-		default:
-			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
-			return std::memory_order_acq_rel;
+	case llvm::AtomicOrdering::Monotonic: return std::memory_order_relaxed;  // https://llvm.org/docs/Atomics.html#monotonic
+	case llvm::AtomicOrdering::Acquire: return std::memory_order_acquire;
+	case llvm::AtomicOrdering::Release: return std::memory_order_release;
+	case llvm::AtomicOrdering::AcquireRelease: return std::memory_order_acq_rel;
+	case llvm::AtomicOrdering::SequentiallyConsistent: return std::memory_order_seq_cst;
+	default:
+		UNREACHABLE("memoryOrder: %d", int(memoryOrder));
+		return std::memory_order_acq_rel;
 	}
 }
 
@@ -144,15 +144,15 @@ inline llvm::AtomicOrdering atomicOrdering(bool atomic, std::memory_order memory
 
 	switch(memoryOrder)
 	{
-		case std::memory_order_relaxed: return llvm::AtomicOrdering::Monotonic;  // https://llvm.org/docs/Atomics.html#monotonic
-		case std::memory_order_consume: return llvm::AtomicOrdering::Acquire;    // https://llvm.org/docs/Atomics.html#acquire: "It should also be used for C++11/C11 memory_order_consume."
-		case std::memory_order_acquire: return llvm::AtomicOrdering::Acquire;
-		case std::memory_order_release: return llvm::AtomicOrdering::Release;
-		case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
-		case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
-		default:
-			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
-			return llvm::AtomicOrdering::AcquireRelease;
+	case std::memory_order_relaxed: return llvm::AtomicOrdering::Monotonic;  // https://llvm.org/docs/Atomics.html#monotonic
+	case std::memory_order_consume: return llvm::AtomicOrdering::Acquire;    // https://llvm.org/docs/Atomics.html#acquire: "It should also be used for C++11/C11 memory_order_consume."
+	case std::memory_order_acquire: return llvm::AtomicOrdering::Acquire;
+	case std::memory_order_release: return llvm::AtomicOrdering::Release;
+	case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
+	case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
+	default:
+		UNREACHABLE("memoryOrder: %d", int(memoryOrder));
+		return llvm::AtomicOrdering::AcquireRelease;
 	}
 }
 

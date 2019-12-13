@@ -43,7 +43,7 @@ public:
 			{
 				switch(extInfo->sType)
 				{
-					case VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
+				case VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA:
 					{
 						const auto *importInfo = reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA *>(extInfo);
 
@@ -53,9 +53,9 @@ public:
 						}
 						importHandle = true;
 						handle = importInfo->handle;
-						break;
 					}
-					case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
+					break;
+				case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
 					{
 						const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(extInfo);
 
@@ -64,16 +64,16 @@ public:
 							UNSUPPORTED("exportInfo->handleTypes");
 						}
 						exportHandle = true;
-						break;
 					}
-					case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
-						// This can safely be ignored, as the Vulkan spec mentions:
-						// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
-						//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
-						break;
+					break;
+				case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
+					// This can safely be ignored, as the Vulkan spec mentions:
+					// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
+					//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
+					break;
 
-					default:
-						WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
+				default:
+					WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 				}
 				extInfo = extInfo->pNext;
 			}

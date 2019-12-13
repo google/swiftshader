@@ -54,7 +54,7 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 	switch(topology)
 	{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
 		{
 			auto index = start;
 			auto pointBatch = &(batch[0][0]);
@@ -69,9 +69,9 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 			{
 				*pointBatch++ = indices[index];
 			}
-			break;
 		}
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+		break;
+	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		{
 			auto index = 2 * start;
 			for(unsigned int i = 0; i < triangleCount; i++)
@@ -82,9 +82,9 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 				index += 2;
 			}
-			break;
 		}
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+		break;
+	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
 		{
 			auto index = start;
 			for(unsigned int i = 0; i < triangleCount; i++)
@@ -95,9 +95,9 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 				index += 1;
 			}
-			break;
 		}
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+		break;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
 		{
 			auto index = 3 * start;
 			for(unsigned int i = 0; i < triangleCount; i++)
@@ -108,9 +108,9 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 				index += 3;
 			}
-			break;
 		}
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+		break;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
 		{
 			auto index = start;
 			for(unsigned int i = 0; i < triangleCount; i++)
@@ -121,9 +121,9 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 				index += 1;
 			}
-			break;
 		}
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+		break;
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
 		{
 			auto index = start + 1;
 			for(unsigned int i = 0; i < triangleCount; i++)
@@ -134,11 +134,11 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 
 				index += 1;
 			}
-			break;
 		}
-		default:
-			ASSERT(false);
-			return false;
+		break;
+	default:
+		ASSERT(false);
+		return false;
 	}
 
 	return true;
@@ -229,20 +229,20 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 	{
 		switch(pipelineState.getPolygonMode())
 		{
-			case VK_POLYGON_MODE_FILL:
-				setupPrimitives = &DrawCall::setupSolidTriangles;
-				break;
-			case VK_POLYGON_MODE_LINE:
-				setupPrimitives = &DrawCall::setupWireframeTriangles;
-				numPrimitivesPerBatch /= 3;
-				break;
-			case VK_POLYGON_MODE_POINT:
-				setupPrimitives = &DrawCall::setupPointTriangles;
-				numPrimitivesPerBatch /= 3;
-				break;
-			default:
-				UNSUPPORTED("polygon mode: %d", int(pipelineState.getPolygonMode()));
-				return;
+		case VK_POLYGON_MODE_FILL:
+			setupPrimitives = &DrawCall::setupSolidTriangles;
+			break;
+		case VK_POLYGON_MODE_LINE:
+			setupPrimitives = &DrawCall::setupWireframeTriangles;
+			numPrimitivesPerBatch /= 3;
+			break;
+		case VK_POLYGON_MODE_POINT:
+			setupPrimitives = &DrawCall::setupPointTriangles;
+			numPrimitivesPerBatch /= 3;
+			break;
+		default:
+			UNSUPPORTED("polygon mode: %d", int(pipelineState.getPolygonMode()));
+			return;
 		}
 	}
 	else if(pipelineState.isDrawLine(false))
@@ -361,15 +361,15 @@ void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState
 		{
 			switch(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
 			{
-				case VK_FORMAT_D16_UNORM:
-					data->minimumResolvableDepthDifference = 1.0f / 0xFFFF;
-					break;
-				case VK_FORMAT_D32_SFLOAT:
-					// The minimum resolvable depth difference is determined per-polygon for floating-point depth
-					// buffers. DrawData::minimumResolvableDepthDifference is unused.
-					break;
-				default:
-					UNSUPPORTED("Depth format: %d", int(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
+			case VK_FORMAT_D16_UNORM:
+				data->minimumResolvableDepthDifference = 1.0f / 0xFFFF;
+				break;
+			case VK_FORMAT_D32_SFLOAT:
+				// The minimum resolvable depth difference is determined per-polygon for floating-point depth
+				// buffers. DrawData::minimumResolvableDepthDifference is unused.
+				break;
+			default:
+				UNSUPPORTED("Depth format: %d", int(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
 			}
 		}
 	}
@@ -625,22 +625,22 @@ void DrawCall::processPrimitiveVertices(
 	{
 		switch(indexType)
 		{
-			case VK_INDEX_TYPE_UINT16:
-				if(!setBatchIndices(triangleIndicesOut, topology, provokingVertexMode, static_cast<const uint16_t *>(primitiveIndices), start, triangleCount))
-				{
-					return;
-				}
-				break;
-			case VK_INDEX_TYPE_UINT32:
-				if(!setBatchIndices(triangleIndicesOut, topology, provokingVertexMode, static_cast<const uint32_t *>(primitiveIndices), start, triangleCount))
-				{
-					return;
-				}
-				break;
-				break;
-			default:
-				ASSERT(false);
+		case VK_INDEX_TYPE_UINT16:
+			if(!setBatchIndices(triangleIndicesOut, topology, provokingVertexMode, static_cast<const uint16_t *>(primitiveIndices), start, triangleCount))
+			{
 				return;
+			}
+			break;
+		case VK_INDEX_TYPE_UINT32:
+			if(!setBatchIndices(triangleIndicesOut, topology, provokingVertexMode, static_cast<const uint32_t *>(primitiveIndices), start, triangleCount))
+			{
+				return;
+			}
+			break;
+			break;
+		default:
+			ASSERT(false);
+			return;
 		}
 	}
 

@@ -48,16 +48,16 @@ void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const Pipeline
 					ImageView *memoryOwner = nullptr;
 					switch(type)
 					{
-						case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-						case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-							memoryOwner = reinterpret_cast<SampledImageDescriptor *>(descriptorMemory)->memoryOwner;
-							break;
-						case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-						case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-							memoryOwner = reinterpret_cast<StorageImageDescriptor *>(descriptorMemory)->memoryOwner;
-							break;
-						default:
-							break;
+					case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+					case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+						memoryOwner = reinterpret_cast<SampledImageDescriptor *>(descriptorMemory)->memoryOwner;
+						break;
+					case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+					case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+						memoryOwner = reinterpret_cast<StorageImageDescriptor *>(descriptorMemory)->memoryOwner;
+						break;
+					default:
+						break;
 					}
 					if(memoryOwner)
 					{

@@ -36,10 +36,10 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	Float4 a;  // Array layer coordinate
 	switch(state.textureType)
 	{
-		case VK_IMAGE_VIEW_TYPE_1D_ARRAY: a = uvwa[1]; break;
-		case VK_IMAGE_VIEW_TYPE_2D_ARRAY: a = uvwa[2]; break;
-		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: a = uvwa[3]; break;
-		default: break;
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY: a = uvwa[1]; break;
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY: a = uvwa[2]; break;
+	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: a = uvwa[3]; break;
+	default: break;
 	}
 
 	Float lod;
@@ -138,93 +138,31 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 		{
 			switch(state.textureFormat)
 			{
-				case VK_FORMAT_R5G6B5_UNORM_PACK16:
-					c.x *= Float4(1.0f / 0xF800);
-					c.y *= Float4(1.0f / 0xFC00);
-					c.z *= Float4(1.0f / 0xF800);
-					break;
-				case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-					c.x *= Float4(1.0f / 0xF000);
-					c.y *= Float4(1.0f / 0xF000);
-					c.z *= Float4(1.0f / 0xF000);
-					c.w *= Float4(1.0f / 0xF000);
-					break;
-				case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-					c.x *= Float4(1.0f / 0xF800);
-					c.y *= Float4(1.0f / 0xF800);
-					c.z *= Float4(1.0f / 0xF800);
-					c.w *= Float4(1.0f / 0x8000);
-					break;
-				case VK_FORMAT_R8_SNORM:
-				case VK_FORMAT_R8G8_SNORM:
-				case VK_FORMAT_R8G8B8A8_SNORM:
-				case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-					c.x = Max(c.x * Float4(1.0f / 0x7F00), Float4(-1.0f));
-					c.y = Max(c.y * Float4(1.0f / 0x7F00), Float4(-1.0f));
-					c.z = Max(c.z * Float4(1.0f / 0x7F00), Float4(-1.0f));
-					c.w = Max(c.w * Float4(1.0f / 0x7F00), Float4(-1.0f));
-					break;
-				case VK_FORMAT_R8_UNORM:
-				case VK_FORMAT_R8G8_UNORM:
-				case VK_FORMAT_R8G8B8A8_UNORM:
-				case VK_FORMAT_B8G8R8A8_UNORM:
-				case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-				case VK_FORMAT_B8G8R8A8_SRGB:
-				case VK_FORMAT_R8G8B8A8_SRGB:
-				case VK_FORMAT_R8_SRGB:
-				case VK_FORMAT_R8G8_SRGB:
-					c.x *= Float4(1.0f / 0xFF00u);
-					c.y *= Float4(1.0f / 0xFF00u);
-					c.z *= Float4(1.0f / 0xFF00u);
-					c.w *= Float4(1.0f / 0xFF00u);
-					break;
-				case VK_FORMAT_R16_SNORM:
-				case VK_FORMAT_R16G16_SNORM:
-				case VK_FORMAT_R16G16B16A16_SNORM:
-					c.x = Max(c.x * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-					c.y = Max(c.y * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-					c.z = Max(c.z * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-					c.w = Max(c.w * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-					break;
-				default:
-					for(int component = 0; component < textureComponentCount(); component++)
-					{
-						c[component] *= Float4(hasUnsignedTextureComponent(component) ? 1.0f / 0xFFFF : 1.0f / 0x7FFF);
-					}
-			}
-		}
-	}
-	else  // 16-bit filtering.
-	{
-		Vector4s cs = sampleFilter(texture, u, v, w, a, offset, sample, lod, anisotropy, uDelta, vDelta, function);
-
-		switch(state.textureFormat)
-		{
 			case VK_FORMAT_R5G6B5_UNORM_PACK16:
-				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
-				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
-				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
+				c.x *= Float4(1.0f / 0xF800);
+				c.y *= Float4(1.0f / 0xFC00);
+				c.z *= Float4(1.0f / 0xF800);
 				break;
 			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF000);
-				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF000);
-				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF000);
-				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xF000);
+				c.x *= Float4(1.0f / 0xF000);
+				c.y *= Float4(1.0f / 0xF000);
+				c.z *= Float4(1.0f / 0xF000);
+				c.w *= Float4(1.0f / 0xF000);
 				break;
 			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
-				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF800);
-				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
-				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0x8000);
+				c.x *= Float4(1.0f / 0xF800);
+				c.y *= Float4(1.0f / 0xF800);
+				c.z *= Float4(1.0f / 0xF800);
+				c.w *= Float4(1.0f / 0x8000);
 				break;
 			case VK_FORMAT_R8_SNORM:
 			case VK_FORMAT_R8G8_SNORM:
 			case VK_FORMAT_R8G8B8A8_SNORM:
 			case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-				c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7F00), Float4(-1.0f));
-				c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.x = Max(c.x * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.y = Max(c.y * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.z = Max(c.z * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.w = Max(c.w * Float4(1.0f / 0x7F00), Float4(-1.0f));
 				break;
 			case VK_FORMAT_R8_UNORM:
 			case VK_FORMAT_R8G8_UNORM:
@@ -235,31 +173,93 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 			case VK_FORMAT_R8G8B8A8_SRGB:
 			case VK_FORMAT_R8_SRGB:
 			case VK_FORMAT_R8G8_SRGB:
-				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xFF00u);
-				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFF00u);
-				c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xFF00u);
-				c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xFF00u);
+				c.x *= Float4(1.0f / 0xFF00u);
+				c.y *= Float4(1.0f / 0xFF00u);
+				c.z *= Float4(1.0f / 0xFF00u);
+				c.w *= Float4(1.0f / 0xFF00u);
 				break;
 			case VK_FORMAT_R16_SNORM:
 			case VK_FORMAT_R16G16_SNORM:
 			case VK_FORMAT_R16G16B16A16_SNORM:
-				c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
-				c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+				c.x = Max(c.x * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+				c.y = Max(c.y * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+				c.z = Max(c.z * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+				c.w = Max(c.w * Float4(1.0f / 0x7FFF), Float4(-1.0f));
 				break;
 			default:
 				for(int component = 0; component < textureComponentCount(); component++)
 				{
-					if(hasUnsignedTextureComponent(component))
-					{
-						convertUnsigned16(c[component], cs[component]);
-					}
-					else
-					{
-						convertSigned15(c[component], cs[component]);
-					}
+					c[component] *= Float4(hasUnsignedTextureComponent(component) ? 1.0f / 0xFFFF : 1.0f / 0x7FFF);
 				}
+			}
+		}
+	}
+	else  // 16-bit filtering.
+	{
+		Vector4s cs = sampleFilter(texture, u, v, w, a, offset, sample, lod, anisotropy, uDelta, vDelta, function);
+
+		switch(state.textureFormat)
+		{
+		case VK_FORMAT_R5G6B5_UNORM_PACK16:
+			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
+			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
+			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
+			break;
+		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF000);
+			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF000);
+			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF000);
+			c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xF000);
+			break;
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
+			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xF800);
+			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
+			c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0x8000);
+			break;
+		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+			c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+			c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+			c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+			c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+			break;
+		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_B8G8R8A8_UNORM:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		case VK_FORMAT_B8G8R8A8_SRGB:
+		case VK_FORMAT_R8G8B8A8_SRGB:
+		case VK_FORMAT_R8_SRGB:
+		case VK_FORMAT_R8G8_SRGB:
+			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xFF00u);
+			c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFF00u);
+			c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xFF00u);
+			c.w = Float4(As<UShort4>(cs.w)) * Float4(1.0f / 0xFF00u);
+			break;
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+			c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+			c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+			c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+			c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7FFF), Float4(-1.0f));
+			break;
+		default:
+			for(int component = 0; component < textureComponentCount(); component++)
+			{
+				if(hasUnsignedTextureComponent(component))
+				{
+					convertUnsigned16(c[component], cs[component]);
+				}
+				else
+				{
+					convertSigned15(c[component], cs[component]);
+				}
+			}
 		}
 	}
 
@@ -303,22 +303,22 @@ Float4 SamplerCore::applySwizzle(const Vector4f &c, VkComponentSwizzle swizzle, 
 {
 	switch(swizzle)
 	{
-		default: UNSUPPORTED("VkComponentSwizzle %d", (int)swizzle);
-		case VK_COMPONENT_SWIZZLE_R: return c.x;
-		case VK_COMPONENT_SWIZZLE_G: return c.y;
-		case VK_COMPONENT_SWIZZLE_B: return c.z;
-		case VK_COMPONENT_SWIZZLE_A: return c.w;
-		case VK_COMPONENT_SWIZZLE_ZERO: return Float4(0.0f, 0.0f, 0.0f, 0.0f);
-		case VK_COMPONENT_SWIZZLE_ONE:
-			if(integer)
-			{
-				return Float4(As<Float4>(sw::Int4(1, 1, 1, 1)));
-			}
-			else
-			{
-				return Float4(1.0f, 1.0f, 1.0f, 1.0f);
-			}
-			break;
+	default: UNSUPPORTED("VkComponentSwizzle %d", (int)swizzle);
+	case VK_COMPONENT_SWIZZLE_R: return c.x;
+	case VK_COMPONENT_SWIZZLE_G: return c.y;
+	case VK_COMPONENT_SWIZZLE_B: return c.z;
+	case VK_COMPONENT_SWIZZLE_A: return c.w;
+	case VK_COMPONENT_SWIZZLE_ZERO: return Float4(0.0f, 0.0f, 0.0f, 0.0f);
+	case VK_COMPONENT_SWIZZLE_ONE:
+		if(integer)
+		{
+			return Float4(As<Float4>(sw::Int4(1, 1, 1, 1)));
+		}
+		else
+		{
+			return Float4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		break;
 	}
 };
 
@@ -339,20 +339,20 @@ Short4 SamplerCore::offsetSample(Short4 &uvw, Pointer<Byte> &mipmap, int halfOff
 	{
 		switch(count)
 		{
-			case -1: return uvw - offset;
-			case 0: return uvw;
-			case +1: return uvw + offset;
-			case 2: return uvw + offset + offset;
+		case -1: return uvw - offset;
+		case 0: return uvw;
+		case +1: return uvw + offset;
+		case 2: return uvw + offset + offset;
 		}
 	}
 	else  // Clamp or mirror
 	{
 		switch(count)
 		{
-			case -1: return SubSat(As<UShort4>(uvw), As<UShort4>(offset));
-			case 0: return uvw;
-			case +1: return AddSat(As<UShort4>(uvw), As<UShort4>(offset));
-			case 2: return AddSat(AddSat(As<UShort4>(uvw), As<UShort4>(offset)), As<UShort4>(offset));
+		case -1: return SubSat(As<UShort4>(uvw), As<UShort4>(offset));
+		case 0: return uvw;
+		case +1: return AddSat(As<UShort4>(uvw), As<UShort4>(offset));
+		case 2: return AddSat(AddSat(As<UShort4>(uvw), As<UShort4>(offset)), As<UShort4>(offset));
 		}
 	}
 
@@ -710,16 +710,16 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 			VkComponentSwizzle swizzle = gatherSwizzle();
 			switch(swizzle)
 			{
-				case VK_COMPONENT_SWIZZLE_ZERO:
-				case VK_COMPONENT_SWIZZLE_ONE:
-					// Handled at the final component swizzle.
-					break;
-				default:
-					c.x = c01[swizzle - VK_COMPONENT_SWIZZLE_R];
-					c.y = c11[swizzle - VK_COMPONENT_SWIZZLE_R];
-					c.z = c10[swizzle - VK_COMPONENT_SWIZZLE_R];
-					c.w = c00[swizzle - VK_COMPONENT_SWIZZLE_R];
-					break;
+			case VK_COMPONENT_SWIZZLE_ZERO:
+			case VK_COMPONENT_SWIZZLE_ONE:
+				// Handled at the final component swizzle.
+				break;
+			default:
+				c.x = c01[swizzle - VK_COMPONENT_SWIZZLE_R];
+				c.y = c11[swizzle - VK_COMPONENT_SWIZZLE_R];
+				c.z = c10[swizzle - VK_COMPONENT_SWIZZLE_R];
+				c.w = c00[swizzle - VK_COMPONENT_SWIZZLE_R];
+				break;
 			}
 		}
 	}
@@ -1047,16 +1047,16 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 			VkComponentSwizzle swizzle = gatherSwizzle();
 			switch(swizzle)
 			{
-				case VK_COMPONENT_SWIZZLE_ZERO:
-				case VK_COMPONENT_SWIZZLE_ONE:
-					// Handled at the final component swizzle.
-					break;
-				default:
-					c.x = c01[swizzle - VK_COMPONENT_SWIZZLE_R];
-					c.y = c11[swizzle - VK_COMPONENT_SWIZZLE_R];
-					c.z = c10[swizzle - VK_COMPONENT_SWIZZLE_R];
-					c.w = c00[swizzle - VK_COMPONENT_SWIZZLE_R];
-					break;
+			case VK_COMPONENT_SWIZZLE_ZERO:
+			case VK_COMPONENT_SWIZZLE_ONE:
+				// Handled at the final component swizzle.
+				break;
+			default:
+				c.x = c01[swizzle - VK_COMPONENT_SWIZZLE_R];
+				c.y = c11[swizzle - VK_COMPONENT_SWIZZLE_R];
+				c.z = c10[swizzle - VK_COMPONENT_SWIZZLE_R];
+				c.w = c00[swizzle - VK_COMPONENT_SWIZZLE_R];
+				break;
 			}
 		}
 	}
@@ -1375,19 +1375,19 @@ Short4 SamplerCore::applyOffset(Short4 &uvw, Int4 &offset, const Int4 &whd, Addr
 
 	switch(mode)
 	{
-		case AddressingMode::ADDRESSING_WRAP:
-			tmp = (tmp + whd * Int4(-MIN_TEXEL_OFFSET)) % whd;
-			break;
-		case AddressingMode::ADDRESSING_CLAMP:
-		case AddressingMode::ADDRESSING_MIRROR:
-		case AddressingMode::ADDRESSING_MIRRORONCE:
-		case AddressingMode::ADDRESSING_BORDER:  // FIXME: Implement and test ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE, ADDRESSING_BORDER
-			tmp = Min(Max(tmp, Int4(0)), whd - Int4(1));
-			break;
-		case AddressingMode::ADDRESSING_SEAMLESS:
-			ASSERT(false);  // Cube sampling doesn't support offset.
-		default:
-			ASSERT(false);
+	case AddressingMode::ADDRESSING_WRAP:
+		tmp = (tmp + whd * Int4(-MIN_TEXEL_OFFSET)) % whd;
+		break;
+	case AddressingMode::ADDRESSING_CLAMP:
+	case AddressingMode::ADDRESSING_MIRROR:
+	case AddressingMode::ADDRESSING_MIRRORONCE:
+	case AddressingMode::ADDRESSING_BORDER:  // FIXME: Implement and test ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE, ADDRESSING_BORDER
+		tmp = Min(Max(tmp, Int4(0)), whd - Int4(1));
+		break;
+	case AddressingMode::ADDRESSING_SEAMLESS:
+		ASSERT(false);  // Cube sampling doesn't support offset.
+	default:
+		ASSERT(false);
 	}
 
 	return As<Short4>(UShort4(tmp));
@@ -1506,32 +1506,32 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 
 		switch(state.textureFormat)
 		{
-			case VK_FORMAT_R5G6B5_UNORM_PACK16:
-				c.z = (c.x & Short4(0x001Fu)) << 11;
-				c.y = (c.x & Short4(0x07E0u)) << 5;
-				c.x = (c.x & Short4(0xF800u));
-				break;
-			case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-				c.w = (c.x << 12) & Short4(0xF000u);
-				c.z = (c.x) & Short4(0xF000u);
-				c.y = (c.x << 4) & Short4(0xF000u);
-				c.x = (c.x << 8) & Short4(0xF000u);
-				break;
-			case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-				c.w = (c.x) & Short4(0x8000u);
-				c.z = (c.x << 11) & Short4(0xF800u);
-				c.y = (c.x << 6) & Short4(0xF800u);
-				c.x = (c.x << 1) & Short4(0xF800u);
-				break;
-			default:
-				ASSERT(false);
+		case VK_FORMAT_R5G6B5_UNORM_PACK16:
+			c.z = (c.x & Short4(0x001Fu)) << 11;
+			c.y = (c.x & Short4(0x07E0u)) << 5;
+			c.x = (c.x & Short4(0xF800u));
+			break;
+		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+			c.w = (c.x << 12) & Short4(0xF000u);
+			c.z = (c.x) & Short4(0xF000u);
+			c.y = (c.x << 4) & Short4(0xF000u);
+			c.x = (c.x << 8) & Short4(0xF000u);
+			break;
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			c.w = (c.x) & Short4(0x8000u);
+			c.z = (c.x << 11) & Short4(0xF800u);
+			c.y = (c.x << 6) & Short4(0xF800u);
+			c.x = (c.x << 1) & Short4(0xF800u);
+			break;
+		default:
+			ASSERT(false);
 		}
 	}
 	else if(has8bitTextureComponents())
 	{
 		switch(textureComponentCount())
 		{
-			case 4:
+		case 4:
 			{
 				Byte4 c0 = Pointer<Byte4>(buffer)[index[0]];
 				Byte4 c1 = Pointer<Byte4>(buffer)[index[1]];
@@ -1542,86 +1542,86 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 
 				switch(state.textureFormat)
 				{
-					case VK_FORMAT_B8G8R8A8_UNORM:
-					case VK_FORMAT_B8G8R8A8_SRGB:
-						c.z = As<Short4>(UnpackLow(c.x, c.y));
-						c.x = As<Short4>(UnpackHigh(c.x, c.y));
-						c.y = c.z;
-						c.w = c.x;
-						c.z = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.z));
-						c.y = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.y));
-						c.x = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.x));
-						c.w = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.w));
-						break;
-					case VK_FORMAT_R8G8B8A8_UNORM:
-					case VK_FORMAT_R8G8B8A8_SNORM:
-					case VK_FORMAT_R8G8B8A8_SINT:
-					case VK_FORMAT_R8G8B8A8_SRGB:
-					case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-					case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-					case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-					case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-						c.z = As<Short4>(UnpackHigh(c.x, c.y));
-						c.x = As<Short4>(UnpackLow(c.x, c.y));
-						c.y = c.x;
-						c.w = c.z;
-						c.x = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.x));
-						c.y = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.y));
-						c.z = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.z));
-						c.w = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.w));
-						// Propagate sign bit
-						if(state.textureFormat == VK_FORMAT_R8G8B8A8_SINT ||
-						   state.textureFormat == VK_FORMAT_A8B8G8R8_SINT_PACK32)
-						{
-							c.x >>= 8;
-							c.y >>= 8;
-							c.z >>= 8;
-							c.w >>= 8;
-						}
-						break;
-					case VK_FORMAT_R8G8B8A8_UINT:
-					case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-						c.z = As<Short4>(UnpackHigh(c.x, c.y));
-						c.x = As<Short4>(UnpackLow(c.x, c.y));
-						c.y = c.x;
-						c.w = c.z;
-						c.x = UnpackLow(As<Byte8>(c.x), As<Byte8>(Short4(0)));
-						c.y = UnpackHigh(As<Byte8>(c.y), As<Byte8>(Short4(0)));
-						c.z = UnpackLow(As<Byte8>(c.z), As<Byte8>(Short4(0)));
-						c.w = UnpackHigh(As<Byte8>(c.w), As<Byte8>(Short4(0)));
-						break;
-					default:
-						ASSERT(false);
+				case VK_FORMAT_B8G8R8A8_UNORM:
+				case VK_FORMAT_B8G8R8A8_SRGB:
+					c.z = As<Short4>(UnpackLow(c.x, c.y));
+					c.x = As<Short4>(UnpackHigh(c.x, c.y));
+					c.y = c.z;
+					c.w = c.x;
+					c.z = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.z));
+					c.y = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.y));
+					c.x = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.x));
+					c.w = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.w));
+					break;
+				case VK_FORMAT_R8G8B8A8_UNORM:
+				case VK_FORMAT_R8G8B8A8_SNORM:
+				case VK_FORMAT_R8G8B8A8_SINT:
+				case VK_FORMAT_R8G8B8A8_SRGB:
+				case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+				case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+				case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+				case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+					c.z = As<Short4>(UnpackHigh(c.x, c.y));
+					c.x = As<Short4>(UnpackLow(c.x, c.y));
+					c.y = c.x;
+					c.w = c.z;
+					c.x = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.x));
+					c.y = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.y));
+					c.z = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.z));
+					c.w = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.w));
+					// Propagate sign bit
+					if(state.textureFormat == VK_FORMAT_R8G8B8A8_SINT ||
+					   state.textureFormat == VK_FORMAT_A8B8G8R8_SINT_PACK32)
+					{
+						c.x >>= 8;
+						c.y >>= 8;
+						c.z >>= 8;
+						c.w >>= 8;
+					}
+					break;
+				case VK_FORMAT_R8G8B8A8_UINT:
+				case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+					c.z = As<Short4>(UnpackHigh(c.x, c.y));
+					c.x = As<Short4>(UnpackLow(c.x, c.y));
+					c.y = c.x;
+					c.w = c.z;
+					c.x = UnpackLow(As<Byte8>(c.x), As<Byte8>(Short4(0)));
+					c.y = UnpackHigh(As<Byte8>(c.y), As<Byte8>(Short4(0)));
+					c.z = UnpackLow(As<Byte8>(c.z), As<Byte8>(Short4(0)));
+					c.w = UnpackHigh(As<Byte8>(c.w), As<Byte8>(Short4(0)));
+					break;
+				default:
+					ASSERT(false);
 				}
 			}
 			break;
-			case 2:
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[0]], 0);
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[1]], 1);
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[2]], 2);
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[3]], 3);
+		case 2:
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[0]], 0);
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[1]], 1);
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[2]], 2);
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[3]], 3);
 
-				switch(state.textureFormat)
-				{
-					case VK_FORMAT_R8G8_UNORM:
-					case VK_FORMAT_R8G8_SNORM:
-					case VK_FORMAT_R8G8_SRGB:
-						c.y = (c.x & Short4(0xFF00u));
-						c.x = (c.x << 8);
-						break;
-					case VK_FORMAT_R8G8_SINT:
-						c.y = c.x >> 8;
-						c.x = (c.x << 8) >> 8;  // Propagate sign bit
-						break;
-					case VK_FORMAT_R8G8_UINT:
-						c.y = As<Short4>(As<UShort4>(c.x) >> 8);
-						c.x &= Short4(0x00FFu);
-						break;
-					default:
-						ASSERT(false);
-				}
+			switch(state.textureFormat)
+			{
+			case VK_FORMAT_R8G8_UNORM:
+			case VK_FORMAT_R8G8_SNORM:
+			case VK_FORMAT_R8G8_SRGB:
+				c.y = (c.x & Short4(0xFF00u));
+				c.x = (c.x << 8);
 				break;
-			case 1:
+			case VK_FORMAT_R8G8_SINT:
+				c.y = c.x >> 8;
+				c.x = (c.x << 8) >> 8;  // Propagate sign bit
+				break;
+			case VK_FORMAT_R8G8_UINT:
+				c.y = As<Short4>(As<UShort4>(c.x) >> 8);
+				c.x &= Short4(0x00FFu);
+				break;
+			default:
+				ASSERT(false);
+			}
+			break;
+		case 1:
 			{
 				Int c0 = Int(*Pointer<Byte>(buffer + index[0]));
 				Int c1 = Int(*Pointer<Byte>(buffer + index[1]));
@@ -1631,9 +1631,9 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 
 				switch(state.textureFormat)
 				{
-					case VK_FORMAT_R8_SINT:
-					case VK_FORMAT_R8_UINT:
-					case VK_FORMAT_S8_UINT:
+				case VK_FORMAT_R8_SINT:
+				case VK_FORMAT_R8_UINT:
+				case VK_FORMAT_S8_UINT:
 					{
 						Int zero(0);
 						c.x = Unpack(As<Byte4>(c0), As<Byte4>(zero));
@@ -1644,51 +1644,51 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 						}
 					}
 					break;
-					case VK_FORMAT_R8_SNORM:
-					case VK_FORMAT_R8_UNORM:
-					case VK_FORMAT_R8_SRGB:
-						// TODO: avoid populating the low bits at all.
-						c.x = Unpack(As<Byte4>(c0));
-						c.x &= Short4(0xFF00u);
-						break;
-					default:
-						c.x = Unpack(As<Byte4>(c0));
-						break;
+				case VK_FORMAT_R8_SNORM:
+				case VK_FORMAT_R8_UNORM:
+				case VK_FORMAT_R8_SRGB:
+					// TODO: avoid populating the low bits at all.
+					c.x = Unpack(As<Byte4>(c0));
+					c.x &= Short4(0xFF00u);
+					break;
+				default:
+					c.x = Unpack(As<Byte4>(c0));
+					break;
 				}
 			}
 			break;
-			default:
-				ASSERT(false);
+		default:
+			ASSERT(false);
 		}
 	}
 	else if(has16bitTextureComponents())
 	{
 		switch(textureComponentCount())
 		{
-			case 4:
-				c.x = Pointer<Short4>(buffer)[index[0]];
-				c.y = Pointer<Short4>(buffer)[index[1]];
-				c.z = Pointer<Short4>(buffer)[index[2]];
-				c.w = Pointer<Short4>(buffer)[index[3]];
-				transpose4x4(c.x, c.y, c.z, c.w);
-				break;
-			case 2:
-				c.x = *Pointer<Short4>(buffer + 4 * index[0]);
-				c.x = As<Short4>(UnpackLow(c.x, *Pointer<Short4>(buffer + 4 * index[1])));
-				c.z = *Pointer<Short4>(buffer + 4 * index[2]);
-				c.z = As<Short4>(UnpackLow(c.z, *Pointer<Short4>(buffer + 4 * index[3])));
-				c.y = c.x;
-				c.x = UnpackLow(As<Int2>(c.x), As<Int2>(c.z));
-				c.y = UnpackHigh(As<Int2>(c.y), As<Int2>(c.z));
-				break;
-			case 1:
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[0]], 0);
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[1]], 1);
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[2]], 2);
-				c.x = Insert(c.x, Pointer<Short>(buffer)[index[3]], 3);
-				break;
-			default:
-				ASSERT(false);
+		case 4:
+			c.x = Pointer<Short4>(buffer)[index[0]];
+			c.y = Pointer<Short4>(buffer)[index[1]];
+			c.z = Pointer<Short4>(buffer)[index[2]];
+			c.w = Pointer<Short4>(buffer)[index[3]];
+			transpose4x4(c.x, c.y, c.z, c.w);
+			break;
+		case 2:
+			c.x = *Pointer<Short4>(buffer + 4 * index[0]);
+			c.x = As<Short4>(UnpackLow(c.x, *Pointer<Short4>(buffer + 4 * index[1])));
+			c.z = *Pointer<Short4>(buffer + 4 * index[2]);
+			c.z = As<Short4>(UnpackLow(c.z, *Pointer<Short4>(buffer + 4 * index[3])));
+			c.y = c.x;
+			c.x = UnpackLow(As<Int2>(c.x), As<Int2>(c.z));
+			c.y = UnpackHigh(As<Int2>(c.y), As<Int2>(c.z));
+			break;
+		case 1:
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[0]], 0);
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[1]], 1);
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[2]], 2);
+			c.x = Insert(c.x, Pointer<Short>(buffer)[index[3]], 3);
+			break;
+		default:
+			ASSERT(false);
 		}
 	}
 	else if(state.textureFormat == VK_FORMAT_A2B10G10R10_UNORM_PACK32)
@@ -1865,20 +1865,20 @@ Vector4s SamplerCore::sampleTexel(Short4 &uuuu, Short4 &vvvv, Short4 &wwww, cons
 
 				switch(state.ycbcrModel)
 				{
-					case VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709:
-						Kb = 0.0722f;
-						Kr = 0.2126f;
-						break;
-					case VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601:
-						Kb = 0.114f;
-						Kr = 0.299f;
-						break;
-					case VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_2020:
-						Kb = 0.0593f;
-						Kr = 0.2627f;
-						break;
-					default:
-						UNSUPPORTED("ycbcrModel %d", int(state.ycbcrModel));
+				case VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709:
+					Kb = 0.0722f;
+					Kr = 0.2126f;
+					break;
+				case VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601:
+					Kb = 0.114f;
+					Kr = 0.299f;
+					break;
+				case VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_2020:
+					Kb = 0.0593f;
+					Kr = 0.2627f;
+					break;
+				default:
+					UNSUPPORTED("ycbcrModel %d", int(state.ycbcrModel));
 				}
 
 				const float Kg = 1.0f - Kr - Kb;
@@ -1930,74 +1930,74 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 
 		switch(state.textureFormat)
 		{
-			case VK_FORMAT_R16_SFLOAT:
-				t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 2));
-				t1 = Int4(*Pointer<UShort4>(buffer + index[1] * 2));
-				t2 = Int4(*Pointer<UShort4>(buffer + index[2] * 2));
-				t3 = Int4(*Pointer<UShort4>(buffer + index[3] * 2));
+		case VK_FORMAT_R16_SFLOAT:
+			t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 2));
+			t1 = Int4(*Pointer<UShort4>(buffer + index[1] * 2));
+			t2 = Int4(*Pointer<UShort4>(buffer + index[2] * 2));
+			t3 = Int4(*Pointer<UShort4>(buffer + index[3] * 2));
 
-				c.x.x = Extract(As<Float4>(halfToFloatBits(t0)), 0);
-				c.x.y = Extract(As<Float4>(halfToFloatBits(t1)), 0);
-				c.x.z = Extract(As<Float4>(halfToFloatBits(t2)), 0);
-				c.x.w = Extract(As<Float4>(halfToFloatBits(t3)), 0);
-				break;
-			case VK_FORMAT_R16G16_SFLOAT:
-				t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 4));
-				t1 = Int4(*Pointer<UShort4>(buffer + index[1] * 4));
-				t2 = Int4(*Pointer<UShort4>(buffer + index[2] * 4));
-				t3 = Int4(*Pointer<UShort4>(buffer + index[3] * 4));
+			c.x.x = Extract(As<Float4>(halfToFloatBits(t0)), 0);
+			c.x.y = Extract(As<Float4>(halfToFloatBits(t1)), 0);
+			c.x.z = Extract(As<Float4>(halfToFloatBits(t2)), 0);
+			c.x.w = Extract(As<Float4>(halfToFloatBits(t3)), 0);
+			break;
+		case VK_FORMAT_R16G16_SFLOAT:
+			t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 4));
+			t1 = Int4(*Pointer<UShort4>(buffer + index[1] * 4));
+			t2 = Int4(*Pointer<UShort4>(buffer + index[2] * 4));
+			t3 = Int4(*Pointer<UShort4>(buffer + index[3] * 4));
 
-				// FIXME: shuffles
-				c.x = As<Float4>(halfToFloatBits(t0));
-				c.y = As<Float4>(halfToFloatBits(t1));
-				c.z = As<Float4>(halfToFloatBits(t2));
-				c.w = As<Float4>(halfToFloatBits(t3));
-				transpose4x4(c.x, c.y, c.z, c.w);
-				break;
-			case VK_FORMAT_R16G16B16A16_SFLOAT:
-				t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 8));
-				t1 = Int4(*Pointer<UShort4>(buffer + index[1] * 8));
-				t2 = Int4(*Pointer<UShort4>(buffer + index[2] * 8));
-				t3 = Int4(*Pointer<UShort4>(buffer + index[3] * 8));
+			// FIXME: shuffles
+			c.x = As<Float4>(halfToFloatBits(t0));
+			c.y = As<Float4>(halfToFloatBits(t1));
+			c.z = As<Float4>(halfToFloatBits(t2));
+			c.w = As<Float4>(halfToFloatBits(t3));
+			transpose4x4(c.x, c.y, c.z, c.w);
+			break;
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+			t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 8));
+			t1 = Int4(*Pointer<UShort4>(buffer + index[1] * 8));
+			t2 = Int4(*Pointer<UShort4>(buffer + index[2] * 8));
+			t3 = Int4(*Pointer<UShort4>(buffer + index[3] * 8));
 
-				c.x = As<Float4>(halfToFloatBits(t0));
-				c.y = As<Float4>(halfToFloatBits(t1));
-				c.z = As<Float4>(halfToFloatBits(t2));
-				c.w = As<Float4>(halfToFloatBits(t3));
-				transpose4x4(c.x, c.y, c.z, c.w);
-				break;
-			case VK_FORMAT_R32_SFLOAT:
-			case VK_FORMAT_R32_SINT:
-			case VK_FORMAT_R32_UINT:
-			case VK_FORMAT_D32_SFLOAT:
-				// FIXME: Optimal shuffling?
-				c.x.x = *Pointer<Float>(buffer + index[0] * 4);
-				c.x.y = *Pointer<Float>(buffer + index[1] * 4);
-				c.x.z = *Pointer<Float>(buffer + index[2] * 4);
-				c.x.w = *Pointer<Float>(buffer + index[3] * 4);
-				break;
-			case VK_FORMAT_R32G32_SFLOAT:
-			case VK_FORMAT_R32G32_SINT:
-			case VK_FORMAT_R32G32_UINT:
-				// FIXME: Optimal shuffling?
-				c.x.xy = *Pointer<Float4>(buffer + index[0] * 8);
-				c.x.zw = *Pointer<Float4>(buffer + index[1] * 8 - 8);
-				c.z.xy = *Pointer<Float4>(buffer + index[2] * 8);
-				c.z.zw = *Pointer<Float4>(buffer + index[3] * 8 - 8);
-				c.y = c.x;
-				c.x = Float4(c.x.xz, c.z.xz);
-				c.y = Float4(c.y.yw, c.z.yw);
-				break;
-			case VK_FORMAT_R32G32B32A32_SFLOAT:
-			case VK_FORMAT_R32G32B32A32_SINT:
-			case VK_FORMAT_R32G32B32A32_UINT:
-				c.x = *Pointer<Float4>(buffer + index[0] * 16, 16);
-				c.y = *Pointer<Float4>(buffer + index[1] * 16, 16);
-				c.z = *Pointer<Float4>(buffer + index[2] * 16, 16);
-				c.w = *Pointer<Float4>(buffer + index[3] * 16, 16);
-				transpose4x4(c.x, c.y, c.z, c.w);
-				break;
-			case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			c.x = As<Float4>(halfToFloatBits(t0));
+			c.y = As<Float4>(halfToFloatBits(t1));
+			c.z = As<Float4>(halfToFloatBits(t2));
+			c.w = As<Float4>(halfToFloatBits(t3));
+			transpose4x4(c.x, c.y, c.z, c.w);
+			break;
+		case VK_FORMAT_R32_SFLOAT:
+		case VK_FORMAT_R32_SINT:
+		case VK_FORMAT_R32_UINT:
+		case VK_FORMAT_D32_SFLOAT:
+			// FIXME: Optimal shuffling?
+			c.x.x = *Pointer<Float>(buffer + index[0] * 4);
+			c.x.y = *Pointer<Float>(buffer + index[1] * 4);
+			c.x.z = *Pointer<Float>(buffer + index[2] * 4);
+			c.x.w = *Pointer<Float>(buffer + index[3] * 4);
+			break;
+		case VK_FORMAT_R32G32_SFLOAT:
+		case VK_FORMAT_R32G32_SINT:
+		case VK_FORMAT_R32G32_UINT:
+			// FIXME: Optimal shuffling?
+			c.x.xy = *Pointer<Float4>(buffer + index[0] * 8);
+			c.x.zw = *Pointer<Float4>(buffer + index[1] * 8 - 8);
+			c.z.xy = *Pointer<Float4>(buffer + index[2] * 8);
+			c.z.zw = *Pointer<Float4>(buffer + index[3] * 8 - 8);
+			c.y = c.x;
+			c.x = Float4(c.x.xz, c.z.xz);
+			c.y = Float4(c.y.yw, c.z.yw);
+			break;
+		case VK_FORMAT_R32G32B32A32_SFLOAT:
+		case VK_FORMAT_R32G32B32A32_SINT:
+		case VK_FORMAT_R32G32B32A32_UINT:
+			c.x = *Pointer<Float4>(buffer + index[0] * 16, 16);
+			c.y = *Pointer<Float4>(buffer + index[1] * 16, 16);
+			c.z = *Pointer<Float4>(buffer + index[2] * 16, 16);
+			c.w = *Pointer<Float4>(buffer + index[3] * 16, 16);
+			transpose4x4(c.x, c.y, c.z, c.w);
+			break;
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 			{
 				Float4 t;  // TODO: add Insert(UInt4, RValue<UInt>)
 				t.x = *Pointer<Float>(buffer + index[0] * 4);
@@ -2009,9 +2009,9 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 				c.x = Float4(t0 & UInt4(0x1FF)) * c.w;
 				c.y = Float4((t0 >> 9) & UInt4(0x1FF)) * c.w;
 				c.z = Float4((t0 >> 18) & UInt4(0x1FF)) * c.w;
-				break;
 			}
-			case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+			break;
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 			{
 				Float4 t;  // TODO: add Insert(UInt4, RValue<UInt>)
 				t.x = *Pointer<Float>(buffer + index[0] * 4);
@@ -2022,10 +2022,10 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 				c.x = As<Float4>(halfToFloatBits((t0 << 4) & UInt4(0x7FF0)));
 				c.y = As<Float4>(halfToFloatBits((t0 >> 7) & UInt4(0x7FF0)));
 				c.z = As<Float4>(halfToFloatBits((t0 >> 17) & UInt4(0x7FE0)));
-				break;
 			}
-			default:
-				UNSUPPORTED("Format %d", VkFormat(state.textureFormat));
+			break;
+		default:
+			UNSUPPORTED("Format %d", VkFormat(state.textureFormat));
 		}
 	}
 	else
@@ -2078,15 +2078,15 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 
 		switch(state.compareOp)
 		{
-			case VK_COMPARE_OP_LESS_OR_EQUAL: boolean = CmpLE(ref, c.x); break;
-			case VK_COMPARE_OP_GREATER_OR_EQUAL: boolean = CmpNLT(ref, c.x); break;
-			case VK_COMPARE_OP_LESS: boolean = CmpLT(ref, c.x); break;
-			case VK_COMPARE_OP_GREATER: boolean = CmpNLE(ref, c.x); break;
-			case VK_COMPARE_OP_EQUAL: boolean = CmpEQ(ref, c.x); break;
-			case VK_COMPARE_OP_NOT_EQUAL: boolean = CmpNEQ(ref, c.x); break;
-			case VK_COMPARE_OP_ALWAYS: boolean = Int4(-1); break;
-			case VK_COMPARE_OP_NEVER: boolean = Int4(0); break;
-			default: ASSERT(false);
+		case VK_COMPARE_OP_LESS_OR_EQUAL: boolean = CmpLE(ref, c.x); break;
+		case VK_COMPARE_OP_GREATER_OR_EQUAL: boolean = CmpNLT(ref, c.x); break;
+		case VK_COMPARE_OP_LESS: boolean = CmpLT(ref, c.x); break;
+		case VK_COMPARE_OP_GREATER: boolean = CmpNLE(ref, c.x); break;
+		case VK_COMPARE_OP_EQUAL: boolean = CmpEQ(ref, c.x); break;
+		case VK_COMPARE_OP_NOT_EQUAL: boolean = CmpNEQ(ref, c.x); break;
+		case VK_COMPARE_OP_ALWAYS: boolean = Int4(-1); break;
+		case VK_COMPARE_OP_NEVER: boolean = Int4(0); break;
+		default: ASSERT(false);
 		}
 
 		c.x = As<Float4>(boolean & As<Int4>(Float4(1.0f)));
@@ -2114,29 +2114,29 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 
 	switch(state.border)
 	{
-		case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
-		case VK_BORDER_COLOR_INT_TRANSPARENT_BLACK:
-			borderRGB = Int4(0);
-			borderA = Int4(0);
-			break;
-		case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
-			borderRGB = Int4(0);
-			borderA = float_one;
-			break;
-		case VK_BORDER_COLOR_INT_OPAQUE_BLACK:
-			borderRGB = Int4(0);
-			borderA = Int4(1);
-			break;
-		case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
-			borderRGB = float_one;
-			borderA = float_one;
-			break;
-		case VK_BORDER_COLOR_INT_OPAQUE_WHITE:
-			borderRGB = Int4(1);
-			borderA = Int4(1);
-			break;
-		default:
-			UNSUPPORTED("sint/uint/sfloat border: %u", state.border);
+	case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
+	case VK_BORDER_COLOR_INT_TRANSPARENT_BLACK:
+		borderRGB = Int4(0);
+		borderA = Int4(0);
+		break;
+	case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
+		borderRGB = Int4(0);
+		borderA = float_one;
+		break;
+	case VK_BORDER_COLOR_INT_OPAQUE_BLACK:
+		borderRGB = Int4(0);
+		borderA = Int4(1);
+		break;
+	case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
+		borderRGB = float_one;
+		borderA = float_one;
+		break;
+	case VK_BORDER_COLOR_INT_OPAQUE_WHITE:
+		borderRGB = Int4(1);
+		borderA = Int4(1);
+		break;
+	default:
+		UNSUPPORTED("sint/uint/sfloat border: %u", state.border);
 	}
 
 	Vector4f out;
@@ -2297,17 +2297,17 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 		{
 			switch(addressingMode)
 			{
-				case ADDRESSING_CLAMP:
-					coord = Min(Max(coord, Float4(0.0f)), Float4(dim) * As<Float4>(Int4(oneBits)));
-					break;
-				case ADDRESSING_BORDER:
-					// Don't map to a valid range here.
-					break;
-				default:
-					// "If unnormalizedCoordinates is VK_TRUE, addressModeU and addressModeV must each be
-					//  either VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE or VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER"
-					UNREACHABLE("addressingMode %d", int(addressingMode));
-					break;
+			case ADDRESSING_CLAMP:
+				coord = Min(Max(coord, Float4(0.0f)), Float4(dim) * As<Float4>(Int4(oneBits)));
+				break;
+			case ADDRESSING_BORDER:
+				// Don't map to a valid range here.
+				break;
+			default:
+				// "If unnormalizedCoordinates is VK_TRUE, addressModeU and addressModeV must each be
+				//  either VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE or VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER"
+				UNREACHABLE("addressingMode %d", int(addressingMode));
+				break;
 			}
 		}
 		else if(state.textureFilter == FILTER_GATHER && addressingMode == ADDRESSING_MIRROR)
@@ -2340,18 +2340,18 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 			{
 				switch(addressingMode)
 				{
-					case ADDRESSING_CLAMP:
-					case ADDRESSING_SEAMLESS:
-						// While cube face coordinates are nominally already in the [0.0, 1.0] range
-						// due to the projection, and numerical imprecision is tolerated due to the
-						// border of pixels for seamless filtering, the projection doesn't cause
-						// range normalization for Inf and NaN values. So we always clamp.
-						{
-							Float4 one = As<Float4>(Int4(oneBits));
-							coord = Min(Max(coord, Float4(0.0f)), one);
-						}
-						break;
-					case ADDRESSING_MIRROR:
+				case ADDRESSING_CLAMP:
+				case ADDRESSING_SEAMLESS:
+					// While cube face coordinates are nominally already in the [0.0, 1.0] range
+					// due to the projection, and numerical imprecision is tolerated due to the
+					// border of pixels for seamless filtering, the projection doesn't cause
+					// range normalization for Inf and NaN values. So we always clamp.
+					{
+						Float4 one = As<Float4>(Int4(oneBits));
+						coord = Min(Max(coord, Float4(0.0f)), one);
+					}
+					break;
+				case ADDRESSING_MIRROR:
 					{
 						Float4 half = As<Float4>(Int4(halfBits));
 						Float4 one = As<Float4>(Int4(oneBits));
@@ -2359,7 +2359,7 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 						coord = one - Abs(two * Frac(coord * half) - one);
 					}
 					break;
-					case ADDRESSING_MIRRORONCE:
+				case ADDRESSING_MIRRORONCE:
 					{
 						Float4 half = As<Float4>(Int4(halfBits));
 						Float4 one = As<Float4>(Int4(oneBits));
@@ -2367,12 +2367,12 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 						coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
 					}
 					break;
-					case ADDRESSING_BORDER:
-						// Don't map to a valid range here.
-						break;
-					default:  // Wrap
-						coord = Frac(coord);
-						break;
+				case ADDRESSING_BORDER:
+					// Don't map to a valid range here.
+					break;
+				default:  // Wrap
+					coord = Frac(coord);
+					break;
 				}
 			}
 
@@ -2431,35 +2431,35 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 		{
 			switch(addressingMode)
 			{
-				case ADDRESSING_SEAMLESS:
-					UNREACHABLE("addressingMode %d", int(addressingMode));  // Cube sampling doesn't support offset.
-				case ADDRESSING_MIRROR:
-				case ADDRESSING_MIRRORONCE:
-					// TODO: Implement ADDRESSING_MIRROR and ADDRESSING_MIRRORONCE.
-					// Fall through to Clamp.
-				case ADDRESSING_CLAMP:
-					xyz0 = Min(Max(xyz0, Int4(0)), maxXYZ);
-					xyz1 = Min(Max(xyz1, Int4(0)), maxXYZ);
-					break;
-				default:  // Wrap
-					xyz0 = mod(xyz0, dim);
-					xyz1 = mod(xyz1, dim);
-					break;
+			case ADDRESSING_SEAMLESS:
+				UNREACHABLE("addressingMode %d", int(addressingMode));  // Cube sampling doesn't support offset.
+			case ADDRESSING_MIRROR:
+			case ADDRESSING_MIRRORONCE:
+				// TODO: Implement ADDRESSING_MIRROR and ADDRESSING_MIRRORONCE.
+				// Fall through to Clamp.
+			case ADDRESSING_CLAMP:
+				xyz0 = Min(Max(xyz0, Int4(0)), maxXYZ);
+				xyz1 = Min(Max(xyz1, Int4(0)), maxXYZ);
+				break;
+			default:  // Wrap
+				xyz0 = mod(xyz0, dim);
+				xyz1 = mod(xyz1, dim);
+				break;
 			}
 		}
 		else if(state.textureFilter != FILTER_POINT)
 		{
 			switch(addressingMode)
 			{
-				case ADDRESSING_SEAMLESS:
-					break;
-				case ADDRESSING_MIRROR:
-				case ADDRESSING_MIRRORONCE:
-				case ADDRESSING_CLAMP:
-					xyz0 = Max(xyz0, Int4(0));
-					xyz1 = Min(xyz1, maxXYZ);
-					break;
-				default:  // Wrap
+			case ADDRESSING_SEAMLESS:
+				break;
+			case ADDRESSING_MIRROR:
+			case ADDRESSING_MIRRORONCE:
+			case ADDRESSING_CLAMP:
+				xyz0 = Max(xyz0, Int4(0));
+				xyz1 = Min(xyz1, maxXYZ);
+				break;
+			default:  // Wrap
 				{
 					Int4 under = CmpLT(xyz0, Int4(0));
 					xyz0 = (under & maxXYZ) | (~under & xyz0);  // xyz < 0 ? dim - 1 : xyz   // TODO: IfThenElse()
@@ -2586,13 +2586,13 @@ VkComponentSwizzle SamplerCore::gatherSwizzle() const
 {
 	switch(state.gatherComponent)
 	{
-		case 0: return state.swizzle.r;
-		case 1: return state.swizzle.g;
-		case 2: return state.swizzle.b;
-		case 3: return state.swizzle.a;
-		default:
-			UNREACHABLE("Invalid component");
-			return VK_COMPONENT_SWIZZLE_R;
+	case 0: return state.swizzle.r;
+	case 1: return state.swizzle.g;
+	case 2: return state.swizzle.b;
+	case 3: return state.swizzle.a;
+	default:
+		UNREACHABLE("Invalid component");
+		return VK_COMPONENT_SWIZZLE_R;
 	}
 }
 

@@ -122,34 +122,34 @@ bool ImageView::imageTypesMatch(VkImageType imageType) const
 
 	switch(viewType)
 	{
-		case VK_IMAGE_VIEW_TYPE_1D:
-			return (imageType == VK_IMAGE_TYPE_1D) &&
-			       (subresourceRange.layerCount == 1);
-		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-			return imageType == VK_IMAGE_TYPE_1D;
-		case VK_IMAGE_VIEW_TYPE_2D:
-			return ((imageType == VK_IMAGE_TYPE_2D) ||
-			        ((imageType == VK_IMAGE_TYPE_3D) &&
-			         (imageArrayLayers == 1))) &&
-			       (subresourceRange.layerCount == 1);
-		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
-			return (imageType == VK_IMAGE_TYPE_2D) ||
-			       ((imageType == VK_IMAGE_TYPE_3D) &&
-			        (imageArrayLayers == 1));
-		case VK_IMAGE_VIEW_TYPE_CUBE:
-			return image->isCube() &&
-			       (imageArrayLayers >= subresourceRange.layerCount) &&
-			       (subresourceRange.layerCount == 6);
-		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-			return image->isCube() &&
-			       (imageArrayLayers >= subresourceRange.layerCount) &&
-			       (subresourceRange.layerCount >= 6);
-		case VK_IMAGE_VIEW_TYPE_3D:
-			return (imageType == VK_IMAGE_TYPE_3D) &&
-			       (imageArrayLayers == 1) &&
-			       (subresourceRange.layerCount == 1);
-		default:
-			UNREACHABLE("Unexpected viewType %d", (int)viewType);
+	case VK_IMAGE_VIEW_TYPE_1D:
+		return (imageType == VK_IMAGE_TYPE_1D) &&
+		       (subresourceRange.layerCount == 1);
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+		return imageType == VK_IMAGE_TYPE_1D;
+	case VK_IMAGE_VIEW_TYPE_2D:
+		return ((imageType == VK_IMAGE_TYPE_2D) ||
+		        ((imageType == VK_IMAGE_TYPE_3D) &&
+		         (imageArrayLayers == 1))) &&
+		       (subresourceRange.layerCount == 1);
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+		return (imageType == VK_IMAGE_TYPE_2D) ||
+		       ((imageType == VK_IMAGE_TYPE_3D) &&
+		        (imageArrayLayers == 1));
+	case VK_IMAGE_VIEW_TYPE_CUBE:
+		return image->isCube() &&
+		       (imageArrayLayers >= subresourceRange.layerCount) &&
+		       (subresourceRange.layerCount == 6);
+	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		return image->isCube() &&
+		       (imageArrayLayers >= subresourceRange.layerCount) &&
+		       (subresourceRange.layerCount >= 6);
+	case VK_IMAGE_VIEW_TYPE_3D:
+		return (imageType == VK_IMAGE_TYPE_3D) &&
+		       (imageArrayLayers == 1) &&
+		       (subresourceRange.layerCount == 1);
+	default:
+		UNREACHABLE("Unexpected viewType %d", (int)viewType);
 	}
 
 	return false;
@@ -277,13 +277,13 @@ const Image *ImageView::getImage(Usage usage) const
 {
 	switch(usage)
 	{
-		case RAW:
-			return image;
-		case SAMPLING:
-			return image->getSampledImage(format);
-		default:
-			UNREACHABLE("usage %d", int(usage));
-			return nullptr;
+	case RAW:
+		return image;
+	case SAMPLING:
+		return image->getSampledImage(format);
+	default:
+		UNREACHABLE("usage %d", int(usage));
+		return nullptr;
 	}
 }
 

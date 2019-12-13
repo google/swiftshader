@@ -1364,12 +1364,12 @@ void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, Pipeline
 {
 	switch(pipelineBindPoint)
 	{
-		case VK_PIPELINE_BIND_POINT_COMPUTE:
-		case VK_PIPELINE_BIND_POINT_GRAPHICS:
-			addCommand<::CmdPipelineBind>(pipelineBindPoint, pipeline);
-			break;
-		default:
-			UNSUPPORTED("VkPipelineBindPoint %d", int(pipelineBindPoint));
+	case VK_PIPELINE_BIND_POINT_COMPUTE:
+	case VK_PIPELINE_BIND_POINT_GRAPHICS:
+		addCommand<::CmdPipelineBind>(pipelineBindPoint, pipeline);
+		break;
+	default:
+		UNSUPPORTED("VkPipelineBindPoint %d", int(pipelineBindPoint));
 	}
 }
 

@@ -623,22 +623,22 @@ private:
 	{
 		switch(x * 4 + y)
 		{
-			case 0: return ma;
-			case 1: return mb;
-			case 2: return mc1 << 1 | mc2;
-			case 3: return md;
-			case 4: return me;
-			case 5: return mf1 << 2 | mf2;
-			case 6: return mg;
-			case 7: return mh;
-			case 8: return mi;
-			case 9: return mj;
-			case 10: return mk1 << 1 | mk2;
-			case 11: return ml;
-			case 12: return mm;
-			case 13: return mn1 << 2 | mn2;
-			case 14: return mo;
-			default: return mp;  // 15
+		case 0: return ma;
+		case 1: return mb;
+		case 2: return mc1 << 1 | mc2;
+		case 3: return md;
+		case 4: return me;
+		case 5: return mf1 << 2 | mf2;
+		case 6: return mg;
+		case 7: return mh;
+		case 8: return mi;
+		case 9: return mj;
+		case 10: return mk1 << 1 | mk2;
+		case 11: return ml;
+		case 12: return mm;
+		case 13: return mn1 << 2 | mn2;
+		case 14: return mo;
+		default: return mp;  // 15
 		}
 	}
 
@@ -676,58 +676,58 @@ bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, in
 
 	switch(inputType)
 	{
-		case ETC_R_SIGNED:
-		case ETC_R_UNSIGNED:
-			for(int y = 0; y < h; y += 4)
+	case ETC_R_SIGNED:
+	case ETC_R_UNSIGNED:
+		for(int y = 0; y < h; y += 4)
+		{
+			unsigned char *dstRow = dst + (y * dstPitch);
+			for(int x = 0; x < w; x += 4, sources[0]++)
 			{
-				unsigned char *dstRow = dst + (y * dstPitch);
-				for(int x = 0; x < w; x += 4, sources[0]++)
-				{
-					ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 1, x, y, w, h, dstPitch, inputType == ETC_R_SIGNED, true);
-				}
+				ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 1, x, y, w, h, dstPitch, inputType == ETC_R_SIGNED, true);
 			}
-			break;
-		case ETC_RG_SIGNED:
-		case ETC_RG_UNSIGNED:
-			sources[1] = sources[0] + 1;
-			for(int y = 0; y < h; y += 4)
+		}
+		break;
+	case ETC_RG_SIGNED:
+	case ETC_RG_UNSIGNED:
+		sources[1] = sources[0] + 1;
+		for(int y = 0; y < h; y += 4)
+		{
+			unsigned char *dstRow = dst + (y * dstPitch);
+			for(int x = 0; x < w; x += 4, sources[0] += 2, sources[1] += 2)
 			{
-				unsigned char *dstRow = dst + (y * dstPitch);
-				for(int x = 0; x < w; x += 4, sources[0] += 2, sources[1] += 2)
-				{
-					ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 2, x, y, w, h, dstPitch, inputType == ETC_RG_SIGNED, true);
-				}
+				ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 2, x, y, w, h, dstPitch, inputType == ETC_RG_SIGNED, true);
 			}
-			break;
-		case ETC_RGB:
-		case ETC_RGB_PUNCHTHROUGH_ALPHA:
-			for(int y = 0; y < h; y += 4)
+		}
+		break;
+	case ETC_RGB:
+	case ETC_RGB_PUNCHTHROUGH_ALPHA:
+		for(int y = 0; y < h; y += 4)
+		{
+			unsigned char *dstRow = dst + (y * dstPitch);
+			for(int x = 0; x < w; x += 4, sources[0]++)
 			{
-				unsigned char *dstRow = dst + (y * dstPitch);
-				for(int x = 0; x < w; x += 4, sources[0]++)
-				{
-					sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, w, h, dstPitch, alphaValues, inputType == ETC_RGB_PUNCHTHROUGH_ALPHA);
-				}
+				sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, w, h, dstPitch, alphaValues, inputType == ETC_RGB_PUNCHTHROUGH_ALPHA);
 			}
-			break;
-		case ETC_RGBA:
-			for(int y = 0; y < h; y += 4)
+		}
+		break;
+	case ETC_RGBA:
+		for(int y = 0; y < h; y += 4)
+		{
+			unsigned char *dstRow = dst + (y * dstPitch);
+			for(int x = 0; x < w; x += 4)
 			{
-				unsigned char *dstRow = dst + (y * dstPitch);
-				for(int x = 0; x < w; x += 4)
-				{
-					// Decode Alpha
-					ETC2::DecodeBlock(&sources[0], &(alphaValues[0][0]), 1, x, y, w, h, 4, false, false);
-					sources[0]++;  // RGBA packets are 128 bits, so move on to the next 64 bit packet to decode the RGB color
+				// Decode Alpha
+				ETC2::DecodeBlock(&sources[0], &(alphaValues[0][0]), 1, x, y, w, h, 4, false, false);
+				sources[0]++;  // RGBA packets are 128 bits, so move on to the next 64 bit packet to decode the RGB color
 
-					// Decode RGB
-					sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, w, h, dstPitch, alphaValues, false);
-					sources[0]++;
-				}
+				// Decode RGB
+				sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, w, h, dstPitch, alphaValues, false);
+				sources[0]++;
 			}
-			break;
-		default:
-			return false;
+		}
+		break;
+	default:
+		return false;
 	}
 
 	return true;

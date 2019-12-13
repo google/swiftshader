@@ -339,14 +339,14 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 	{
 		switch(robustness)
 		{
-			case OutOfBoundsBehavior::Nullify:
-			case OutOfBoundsBehavior::RobustBufferAccess:
-			case OutOfBoundsBehavior::UndefinedValue:
-				mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
-				break;
-			case OutOfBoundsBehavior::UndefinedBehavior:
-				// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
-				break;
+		case OutOfBoundsBehavior::Nullify:
+		case OutOfBoundsBehavior::RobustBufferAccess:
+		case OutOfBoundsBehavior::UndefinedValue:
+			mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
+			break;
+		case OutOfBoundsBehavior::UndefinedBehavior:
+			// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
+			break;
 		}
 	}
 
@@ -371,14 +371,14 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 		bool zeroMaskedLanes = true;
 		switch(robustness)
 		{
-			case OutOfBoundsBehavior::Nullify:
-			case OutOfBoundsBehavior::RobustBufferAccess:  // Must either return an in-bounds value, or zero.
-				zeroMaskedLanes = true;
-				break;
-			case OutOfBoundsBehavior::UndefinedValue:
-			case OutOfBoundsBehavior::UndefinedBehavior:
-				zeroMaskedLanes = false;
-				break;
+		case OutOfBoundsBehavior::Nullify:
+		case OutOfBoundsBehavior::RobustBufferAccess:  // Must either return an in-bounds value, or zero.
+			zeroMaskedLanes = true;
+			break;
+		case OutOfBoundsBehavior::UndefinedValue:
+		case OutOfBoundsBehavior::UndefinedBehavior:
+			zeroMaskedLanes = false;
+			break;
 		}
 
 		if(hasStaticSequentialOffsets(sizeof(float)))
@@ -431,14 +431,14 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 
 	switch(robustness)
 	{
-		case OutOfBoundsBehavior::Nullify:
-		case OutOfBoundsBehavior::RobustBufferAccess:       // TODO: Allows writing anywhere within bounds. Could be faster than masking.
-		case OutOfBoundsBehavior::UndefinedValue:           // Should not be used for store operations. Treat as robust buffer access.
-			mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
-			break;
-		case OutOfBoundsBehavior::UndefinedBehavior:
-			// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
-			break;
+	case OutOfBoundsBehavior::Nullify:
+	case OutOfBoundsBehavior::RobustBufferAccess:       // TODO: Allows writing anywhere within bounds. Could be faster than masking.
+	case OutOfBoundsBehavior::UndefinedValue:           // Should not be used for store operations. Treat as robust buffer access.
+		mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
+		break;
+	case OutOfBoundsBehavior::UndefinedBehavior:
+		// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
+		break;
 	}
 
 	if(!atomic && order == std::memory_order_relaxed)

@@ -46,7 +46,7 @@ VkSubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubm
 		{
 			switch(extension->sType)
 			{
-				case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
+			case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
 				{
 					const auto *tlsSubmitInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(extension);
 					totalSize += sizeof(VkTimelineSemaphoreSubmitInfo);
@@ -54,9 +54,9 @@ VkSubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubm
 					totalSize += tlsSubmitInfo->signalSemaphoreValueCount * sizeof(uint64_t);
 				}
 				break;
-				default:
-					WARN("submitInfo[%d]->pNext sType: %s", i, vk::Stringify(extension->sType).c_str());
-					break;
+			default:
+				WARN("submitInfo[%d]->pNext sType: %s", i, vk::Stringify(extension->sType).c_str());
+				break;
 			}
 		}
 	}
@@ -95,7 +95,7 @@ VkSubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubm
 		{
 			switch(extension->sType)
 			{
-				case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
+			case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
 				{
 					const VkTimelineSemaphoreSubmitInfo *tlsSubmitInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(extension);
 
@@ -119,9 +119,9 @@ VkSubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubm
 					submits[i].pNext = tlsSubmitInfoCopy;
 				}
 				break;
-				default:
-					WARN("submitInfo[%d]->pNext sType: %s", i, vk::Stringify(extension->sType).c_str());
-					break;
+			default:
+				WARN("submitInfo[%d]->pNext sType: %s", i, vk::Stringify(extension->sType).c_str());
+				break;
 			}
 		}
 	}
@@ -185,12 +185,12 @@ void Queue::submitQueue(const Task &task)
 		{
 			switch(nextInfo->sType)
 			{
-				case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
-					timelineInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(submitInfo.pNext);
-					break;
-				default:
-					WARN("submitInfo.pNext->sType = %s", vk::Stringify(nextInfo->sType).c_str());
-					break;
+			case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
+				timelineInfo = reinterpret_cast<const VkTimelineSemaphoreSubmitInfo *>(submitInfo.pNext);
+				break;
+			default:
+				WARN("submitInfo.pNext->sType = %s", vk::Stringify(nextInfo->sType).c_str());
+				break;
 			}
 		}
 
@@ -267,15 +267,15 @@ void Queue::taskLoop(marl::Scheduler *scheduler)
 
 		switch(task.type)
 		{
-			case Task::KILL_THREAD:
-				ASSERT_MSG(pending.count() == 0, "queue has remaining work!");
-				return;
-			case Task::SUBMIT_QUEUE:
-				submitQueue(task);
-				break;
-			default:
-				UNREACHABLE("task.type %d", static_cast<int>(task.type));
-				break;
+		case Task::KILL_THREAD:
+			ASSERT_MSG(pending.count() == 0, "queue has remaining work!");
+			return;
+		case Task::SUBMIT_QUEUE:
+			submitQueue(task);
+			break;
+		default:
+			UNREACHABLE("task.type %d", static_cast<int>(task.type));
+			break;
 		}
 	}
 }
