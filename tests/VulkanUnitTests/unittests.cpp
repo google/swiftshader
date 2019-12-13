@@ -102,7 +102,7 @@ TEST_F(SwiftShaderVulkanTest, Version)
     EXPECT_EQ(physicalDeviceProperties.deviceID, 0xC0DEU);
     EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
 
-    EXPECT_EQ(strncmp(physicalDeviceProperties.deviceName, "SwiftShader Device", VK_MAX_PHYSICAL_DEVICE_NAME_SIZE), 0);
+    EXPECT_NE(strstr(physicalDeviceProperties.deviceName, "SwiftShader Device"), nullptr);
 
 	VkPhysicalDeviceProperties2 physicalDeviceProperties2;
 	VkPhysicalDeviceDriverPropertiesKHR physicalDeviceDriverProperties;

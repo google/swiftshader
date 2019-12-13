@@ -1000,6 +1000,11 @@ void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, ll
 
 namespace rr {
 
+std::string BackendName()
+{
+	return std::string("LLVM ") + LLVM_VERSION_STRING;
+}
+
 const Capabilities Caps = {
 	true,  // CoroutinesSupported
 };

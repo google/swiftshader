@@ -170,6 +170,11 @@ static_assert(!subzeroEmitTextAsm, "Compile Subzero with ALLOW_DUMP=1 for subzer
 
 namespace rr {
 
+std::string BackendName()
+{
+	return "Subzero";
+}
+
 const Capabilities Caps = {
 	false,  // CoroutinesSupported
 };
