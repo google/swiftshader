@@ -49,7 +49,7 @@
 void AndroidEnterDebugger();
 
 #define ASSERT(E) do { \
-		if (!(E)) { \
+		if(!(E)) { \
 			ALOGE("badness: assertion_failed %s in %s at %s:%d", #E,	\
 				  __FUNCTION__, __FILE__, __LINE__);					\
 			AndroidEnterDebugger();										\

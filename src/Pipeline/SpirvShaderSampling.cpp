@@ -129,7 +129,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 			uvw[i] = in[i];
 		}
 
-		if (instruction.isDref())
+		if(instruction.isDref())
 		{
 			q = in[i];
 			i++;

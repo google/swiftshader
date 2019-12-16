@@ -144,8 +144,8 @@ VkImageAspectFlags Format::getAspects() const
 	// isDepth / isStencil etc to check for their aspect
 
 	VkImageAspectFlags aspects = 0;
-	if (isDepth()) aspects |= VK_IMAGE_ASPECT_DEPTH_BIT;
-	if (isStencil()) aspects |= VK_IMAGE_ASPECT_STENCIL_BIT;
+	if(isDepth()) aspects |= VK_IMAGE_ASPECT_DEPTH_BIT;
+	if(isStencil()) aspects |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
 	// YCbCr formats
 	switch(format)
@@ -162,7 +162,7 @@ VkImageAspectFlags Format::getAspects() const
 	}
 
 	// Anything else is "color".
-	if (!aspects) aspects |= VK_IMAGE_ASPECT_COLOR_BIT;
+	if(!aspects) aspects |= VK_IMAGE_ASPECT_COLOR_BIT;
 	return aspects;
 }
 

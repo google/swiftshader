@@ -37,7 +37,7 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, vo
 
 	dynamicOffsetBases = reinterpret_cast<uint32_t*>(hostMem);
 	uint32_t dynamicOffsetBase = 0;
-	for (uint32_t i = 0; i < setLayoutCount; i++)
+	for(uint32_t i = 0; i < setLayoutCount; i++)
 	{
 		uint32_t dynamicDescriptorCount = setLayouts[i]->getDynamicDescriptorCount();
 		ASSERT_OR_RETURN((dynamicOffsetBase + dynamicDescriptorCount) <= MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);

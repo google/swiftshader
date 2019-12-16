@@ -56,7 +56,7 @@ class PrintValue
 	static std::vector<Value*> val(const T* list, int count) {
 		std::vector<Value*> values;
 		values.reserve(count);
-		for (int i = 0; i < count; i++)
+		for(int i = 0; i < count; i++)
 		{
 			auto v = val(list[i]);
 			values.insert(values.end(), v.begin(), v.end());
@@ -70,9 +70,9 @@ class PrintValue
 	static std::string fmt(const T* list, int count)
 	{
 		std::string out = "[";
-		for (int i = 0; i < count; i++)
+		for(int i = 0; i < count; i++)
 		{
-			if (i > 0) { out += ", "; }
+			if(i > 0) { out += ", "; }
 			out += fmt(list[i]);
 		}
 		return out + "]";
@@ -149,7 +149,7 @@ public:
 	{
 		std::vector< std::vector<Value*> > lists = {val(v)...};
 		std::vector<Value*> joined;
-		for (const auto& list : lists)
+		for(const auto& list : lists)
 		{
 			joined.insert(joined.end(), list.begin(), list.end());
 		}

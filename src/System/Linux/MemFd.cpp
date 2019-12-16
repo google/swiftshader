@@ -50,7 +50,7 @@ void LinuxMemFd::importFd(int fd)
 
 int LinuxMemFd::exportFd() const
 {
-	if (fd_ < 0)
+	if(fd_ < 0)
 	{
 		return fd_;
 	}
@@ -70,13 +70,13 @@ bool LinuxMemFd::allocate(const char* name, size_t size)
 	// In the event of no system call this returns -1 with errno set
 	// as ENOSYS.
 	fd_ = syscall(__NR_memfd_create, name, MFD_CLOEXEC);
-	if (fd_ < 0)
+	if(fd_ < 0)
 	{
 		TRACE("memfd_create() returned %d: %s", errno, strerror(errno));
 		return false;
 	}
 	// Ensure there is enough space.
-	if (size > 0 && ::ftruncate(fd_, size) < 0)
+	if(size > 0 && ::ftruncate(fd_, size) < 0)
 	{
 		TRACE("ftruncate() %lld returned %d: %s", (long long)size, errno, strerror(errno));
 		close();
@@ -88,12 +88,12 @@ bool LinuxMemFd::allocate(const char* name, size_t size)
 
 void LinuxMemFd::close()
 {
-	if (fd_ >= 0)
+	if(fd_ >= 0)
 	{
 		// WARNING: Never retry on close() failure, even with EINTR, see
 		// https://lwn.net/Articles/576478/ for example.
 		int ret = ::close(fd_);
-		if (ret < 0) {
+		if(ret < 0) {
 			TRACE("LinuxMemFd::close() failed with: %s", strerror(errno));
 			assert(false);
 		}

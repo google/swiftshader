@@ -66,7 +66,7 @@ VertexProgram::~VertexProgram()
 void VertexProgram::program(Pointer<UInt> &batch, UInt& vertexCount)
 {
 	auto it = spirvShader->inputBuiltins.find(spv::BuiltInVertexIndex);
-	if (it != spirvShader->inputBuiltins.end())
+	if(it != spirvShader->inputBuiltins.end())
 	{
 		assert(it->second.SizeInComponents == 1);
 

@@ -157,7 +157,7 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 
 void ImageView::clearWithLayerMask(const VkClearValue &clearValue, VkImageAspectFlags aspectMask, const VkRect2D &renderArea, uint32_t layerMask)
 {
-	while (layerMask)
+	while(layerMask)
 	{
 		uint32_t layer = sw::log2i(layerMask);
 		layerMask &= ~(1 << layer);
@@ -229,7 +229,7 @@ void ImageView::resolve(ImageView* resolveAttachment)
 
 void ImageView::resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask)
 {
-	while (layerMask)
+	while(layerMask)
 	{
 		int layer = sw::log2i(layerMask);
 		layerMask &= ~(1 << layer);

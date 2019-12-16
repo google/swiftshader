@@ -49,7 +49,7 @@ void gather(T& out, RValue<Pointer<EL>> base, RValue<Int4> offsets, RValue<Int4>
 	Pointer<Byte> baseBytePtr = base;
 
 	out = T(0);
-	for (int i = 0; i < 4; i++)
+	for(int i = 0; i < 4; i++)
 	{
 		If(Extract(mask, i) != 0)
 		{
@@ -72,7 +72,7 @@ void scatter(RValue<Pointer<EL>> base, RValue<T> val, RValue<Int4> offsets, RVal
 
 	Pointer<Byte> baseBytePtr = base;
 
-	for (int i = 0; i < 4; i++)
+	for(int i = 0; i < 4; i++)
 	{
 		If(Extract(mask, i) != 0)
 		{

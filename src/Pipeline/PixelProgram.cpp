@@ -109,7 +109,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	routine.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, constants));
 
 	auto it = spirvShader->inputBuiltins.find(spv::BuiltInFrontFacing);
-	if (it != spirvShader->inputBuiltins.end())
+	if(it != spirvShader->inputBuiltins.end())
 	{
 		ASSERT(it->second.SizeInComponents == 1);
 		auto frontFacing = Int4(*Pointer<Int>(primitive + OFFSET(Primitive, clockwiseMask)));
@@ -117,13 +117,13 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	}
 
 	it = spirvShader->inputBuiltins.find(spv::BuiltInSampleMask);
-	if (it != spirvShader->inputBuiltins.end())
+	if(it != spirvShader->inputBuiltins.end())
 	{
 		static_assert(SIMD::Width == 4, "Expects SIMD width to be 4");
 		Int4 laneBits = Int4(1, 2, 4, 8);
 
 		Int4 inputSampleMask = Int4(1) & CmpNEQ(Int4(cMask[0]) & laneBits, Int4(0));
-		for (auto i = 1u; i < state.multiSample; i++)
+		for(auto i = 1u; i < state.multiSample; i++)
 		{
 			inputSampleMask |= Int4(1 << i) & CmpNEQ(Int4(cMask[i]) & laneBits, Int4(0));
 		}
@@ -131,7 +131,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 		routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(inputSampleMask);
 		// Sample mask input is an array, as the spec contemplates MSAA levels higher than 32.
 		// Fill any non-zero indices with 0.
-		for (auto i = 1u; i < it->second.SizeInComponents; i++)
+		for(auto i = 1u; i < it->second.SizeInComponents; i++)
 			routine.getVariable(it->second.Id)[it->second.FirstComponent + i] = Float4(0);
 	}
 
@@ -156,25 +156,25 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 
 	if(spirvShader->getModes().ContainsKill)
 	{
-		for (auto i = 0u; i < state.multiSample; i++)
+		for(auto i = 0u; i < state.multiSample; i++)
 		{
 			cMask[i] &= ~routine.killMask;
 		}
 	}
 
 	it = spirvShader->outputBuiltins.find(spv::BuiltInSampleMask);
-	if (it != spirvShader->outputBuiltins.end())
+	if(it != spirvShader->outputBuiltins.end())
 	{
 		auto outputSampleMask = As<SIMD::Int>(routine.getVariable(it->second.Id)[it->second.FirstComponent]);
 
-		for (auto i = 0u; i < state.multiSample; i++)
+		for(auto i = 0u; i < state.multiSample; i++)
 		{
 			cMask[i] &= SignMask(CmpNEQ(outputSampleMask & SIMD::Int(1<<i), SIMD::Int(0)));
 		}
 	}
 
 	it = spirvShader->outputBuiltins.find(spv::BuiltInFragDepth);
-	if (it != spirvShader->outputBuiltins.end())
+	if(it != spirvShader->outputBuiltins.end())
 	{
 		oDepth = Min(Max(routine.getVariable(it->second.Id)[it->second.FirstComponent], Float4(0.0f)), Float4(1.0f));
 	}

@@ -33,7 +33,7 @@ void applySwizzle(VkComponentSwizzle swizzle, sw::Float4& f, const sw::Vector4f&
 	case VK_COMPONENT_SWIZZLE_A:    f = c.w; break;
 	case VK_COMPONENT_SWIZZLE_ZERO: f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
 	case VK_COMPONENT_SWIZZLE_ONE:
-		if (integer)
+		if(integer)
 		{
 			f = rr::As<sw::Float4>(sw::Int4(1, 1, 1, 1));
 		}
@@ -155,9 +155,9 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 	{
 		c = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, cubeArrayCoord, sampleId, lod, anisotropy, uDelta, vDelta, function);
 
-		if (!hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable)
+		if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture() && !state.compareEnable)
 		{
-			switch (state.textureFormat)
+			switch(state.textureFormat)
 			{
 			case VK_FORMAT_R5G6B5_UNORM_PACK16:
 				c.x *= Float4(1.0f / 0xF800);
@@ -200,7 +200,7 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 				c.w *= Float4(1.0f / 0xFF00u);
 				break;
 			default:
-				for (int component = 0; component < textureComponentCount(); component++)
+				for(int component = 0; component < textureComponentCount(); component++)
 				{
 					c[component] *= Float4(hasUnsignedTextureComponent(component) ? 1.0f / 0xFFFF : 1.0f / 0x7FFF);
 				}
@@ -211,7 +211,7 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 	{
 		Vector4s cs = sampleFilter(texture, uuuu, vvvv, wwww, offset, cubeArrayCoord, sampleId, lod, anisotropy, uDelta, vDelta, function);
 
-		switch (state.textureFormat)
+		switch(state.textureFormat)
 		{
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
@@ -1646,7 +1646,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 	}
 	else ASSERT(false);
 
-	if (state.textureFormat.isSRGBformat())
+	if(state.textureFormat.isSRGBformat())
 	{
 		for(int i = 0; i < textureComponentCount(); i++)
 		{
@@ -1830,7 +1830,7 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z,
 
 	if(hasFloatTexture() || has32bitIntegerTextureComponents())
 	{
-		switch (state.textureFormat)
+		switch(state.textureFormat)
 		{
 		case VK_FORMAT_R16_SFLOAT:
 			t0 = Int4(*Pointer<UShort4>(buffer + index[0] * 2));

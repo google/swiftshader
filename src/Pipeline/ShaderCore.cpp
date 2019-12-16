@@ -873,14 +873,14 @@ Pointer Pointer::operator * (SIMD::Int i) { Pointer p = *this; p *= i; return p;
 
 Pointer& Pointer::operator += (int i)
 {
-	for (int el = 0; el < SIMD::Width; el++) { staticOffsets[el] += i; }
+	for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] += i; }
 	return *this;
 }
 
 Pointer& Pointer::operator *= (int i)
 {
-	for (int el = 0; el < SIMD::Width; el++) { staticOffsets[el] *= i; }
-	if (hasDynamicOffsets)
+	for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] *= i; }
+	if(hasDynamicOffsets)
 	{
 		dynamicOffsets *= SIMD::Int(i);
 	}
@@ -900,12 +900,12 @@ SIMD::Int Pointer::isInBounds(unsigned int accessSize, OutOfBoundsBehavior robus
 {
 	ASSERT(accessSize > 0);
 
-	if (isStaticallyInBounds(accessSize, robustness))
+	if(isStaticallyInBounds(accessSize, robustness))
 	{
 		return SIMD::Int(0xffffffff);
 	}
 
-	if (!hasDynamicOffsets && !hasDynamicLimit)
+	if(!hasDynamicOffsets && !hasDynamicLimit)
 	{
 		// Common fast paths.
 		static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
@@ -921,14 +921,14 @@ SIMD::Int Pointer::isInBounds(unsigned int accessSize, OutOfBoundsBehavior robus
 
 bool Pointer::isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const
 {
-	if (hasDynamicOffsets)
+	if(hasDynamicOffsets)
 	{
 		return false;
 	}
 
-	if (hasDynamicLimit)
+	if(hasDynamicLimit)
 	{
-		if (hasStaticEqualOffsets() || hasStaticSequentialOffsets(accessSize))
+		if(hasStaticEqualOffsets() || hasStaticSequentialOffsets(accessSize))
 		{
 			switch(robustness)
 			{
@@ -944,9 +944,9 @@ bool Pointer::isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior 
 		}
 	}
 
-	for (int i = 0; i < SIMD::Width; i++)
+	for(int i = 0; i < SIMD::Width; i++)
 	{
-		if (staticOffsets[i] + accessSize - 1 >= staticLimit)
+		if(staticOffsets[i] + accessSize - 1 >= staticLimit)
 		{
 			return false;
 		}
@@ -964,7 +964,7 @@ Int Pointer::limit() const
 // (N+0*step, N+1*step, N+2*step, N+3*step)
 rr::Bool Pointer::hasSequentialOffsets(unsigned int step) const
 {
-	if (hasDynamicOffsets)
+	if(hasDynamicOffsets)
 	{
 		auto o = offsets();
 		static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
@@ -977,13 +977,13 @@ rr::Bool Pointer::hasSequentialOffsets(unsigned int step) const
 // sequential (N+0*step, N+1*step, N+2*step, N+3*step)
 bool Pointer::hasStaticSequentialOffsets(unsigned int step) const
 {
-	if (hasDynamicOffsets)
+	if(hasDynamicOffsets)
 	{
 		return false;
 	}
-	for (int i = 1; i < SIMD::Width; i++)
+	for(int i = 1; i < SIMD::Width; i++)
 	{
-		if (staticOffsets[i-1] + int32_t(step) != staticOffsets[i]) { return false; }
+		if(staticOffsets[i-1] + int32_t(step) != staticOffsets[i]) { return false; }
 	}
 	return true;
 }
@@ -991,7 +991,7 @@ bool Pointer::hasStaticSequentialOffsets(unsigned int step) const
 // Returns true if all offsets are equal (N, N, N, N)
 rr::Bool Pointer::hasEqualOffsets() const
 {
-	if (hasDynamicOffsets)
+	if(hasDynamicOffsets)
 	{
 		auto o = offsets();
 		static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
@@ -1004,13 +1004,13 @@ rr::Bool Pointer::hasEqualOffsets() const
 // (N, N, N, N)
 bool Pointer::hasStaticEqualOffsets() const
 {
-	if (hasDynamicOffsets)
+	if(hasDynamicOffsets)
 	{
 		return false;
 	}
-	for (int i = 1; i < SIMD::Width; i++)
+	for(int i = 1; i < SIMD::Width; i++)
 	{
-		if (staticOffsets[i-1] != staticOffsets[i]) { return false; }
+		if(staticOffsets[i-1] != staticOffsets[i]) { return false; }
 	}
 	return true;
 }

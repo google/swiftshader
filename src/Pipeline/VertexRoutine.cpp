@@ -149,10 +149,10 @@ void VertexRoutine::computeCullMask()
 	cullMask = Int(15);
 
 	auto it = spirvShader->outputBuiltins.find(spv::BuiltInCullDistance);
-	if (it != spirvShader->outputBuiltins.end())
+	if(it != spirvShader->outputBuiltins.end())
 	{
 		auto count = spirvShader->getNumOutputCullDistances();
-		for (uint32_t i = 0; i < count; i++)
+		for(uint32_t i = 0; i < count; i++)
 		{
 			auto const &distance = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
 			auto mask = SignMask(CmpGE(distance, SIMD::Float(0)));
@@ -178,7 +178,7 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 	Pointer<Byte> source3 = buffer + offsets.w;
 
 	UInt4 zero(0);
-	if (robustBufferAccess)
+	if(robustBufferAccess)
 	{
 		// TODO(b/141124876): Optimize for wide-vector gather operations.
 		UInt4 limits = offsets + UInt4(stream.bytesPerAttrib());

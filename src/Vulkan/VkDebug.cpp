@@ -37,12 +37,12 @@ bool IsUnderDebugger()
 	static bool checked = false;
 	static bool res = false;
 
-	if (!checked)
+	if(!checked)
 	{
 		// If a debugger is attached then we're already being ptraced and ptrace
 		// will return a non-zero value.
 		checked = true;
-		if (ptrace(PTRACE_TRACEME, 0, 1, 0) != 0)
+		if(ptrace(PTRACE_TRACEME, 0, 1, 0) != 0)
 		{
 			res = true;
 		}
@@ -144,7 +144,7 @@ void trace_assert(const char *format, ...)
 	va_list vararg;
 	va_start(vararg, format);
 
-	if (IsUnderDebugger() && !asserted.exchange(true))
+	if(IsUnderDebugger() && !asserted.exchange(true))
 	{
 		// Abort after tracing and printing to stderr
 		tracev(format, vararg);
@@ -156,7 +156,7 @@ void trace_assert(const char *format, ...)
 
 		::abort();
 	}
-	else if (!asserted)
+	else if(!asserted)
 	{
 		tracev(format, vararg);
 		va_end(vararg);

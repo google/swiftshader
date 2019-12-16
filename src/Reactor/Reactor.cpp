@@ -31,8 +31,8 @@ ForwardIterator remove_if(ForwardIterator first, ForwardIterator last,
 							UnaryPredicate pred)
 {
 	ForwardIterator result = first;
-	while (first!=last) {
-		if (!pred(*first)) {
+	while(first!=last) {
+		if(!pred(*first)) {
 			*result = std::move(*first);
 			++result;
 		}
@@ -49,7 +49,7 @@ const Config::Edit Config::Edit::None = {};
 
 Config Config::Edit::apply(const Config &cfg) const
 {
-	if (this == &None) { return cfg; }
+	if(this == &None) { return cfg; }
 
 	auto level = optLevelChanged ? optLevel : cfg.optimization.getLevel();
 	auto passes = cfg.optimization.getPasses();
@@ -60,9 +60,9 @@ Config Config::Edit::apply(const Config &cfg) const
 template <typename T>
 void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> & edits, std::vector<T>& list) const
 {
-	for (auto & edit : edits)
+	for(auto & edit : edits)
 	{
-		switch (edit.first)
+		switch(edit.first)
 		{
 		case ListEdit::Add:
 			list.push_back(edit.second);

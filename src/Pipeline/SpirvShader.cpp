@@ -37,12 +37,12 @@ SpirvShader::SpirvShader(
 {
 	ASSERT(insns.size() > 0);
 
-	if (renderPass)
+	if(renderPass)
 	{
 		// capture formats of any input attachments present
 		auto subpass = renderPass->getSubpass(subpassIndex);
 		inputAttachmentFormats.reserve(subpass.inputAttachmentCount);
-		for (auto i = 0u; i < subpass.inputAttachmentCount; i++)
+		for(auto i = 0u; i < subpass.inputAttachmentCount; i++)
 		{
 			auto attachmentIndex = subpass.pInputAttachments[i].attachment;
 			inputAttachmentFormats.push_back(attachmentIndex != VK_ATTACHMENT_UNUSED
@@ -57,11 +57,11 @@ SpirvShader::SpirvShader(
 	Block::ID currentBlock;
 	InsnIterator blockStart;
 
-	for (auto insn : *this)
+	for(auto insn : *this)
 	{
 		spv::Op opcode = insn.opcode();
 
-		switch (opcode)
+		switch(opcode)
 		{
 		case spv::OpEntryPoint:
 		{
@@ -69,7 +69,7 @@ SpirvShader::SpirvShader(
 			auto id = Function::ID(insn.word(2));
 			auto name = insn.string(3);
 			auto stage = executionModelToStage(executionModel);
-			if (stage == pipelineStage && strcmp(name, entryPointName) == 0)
+			if(stage == pipelineStage && strcmp(name, entryPointName) == 0)
 			{
 				ASSERT_MSG(entryPoint == 0, "Duplicate entry point with name '%s' and stage %d", name, int(stage));
 				entryPoint = id;
@@ -105,7 +105,7 @@ SpirvShader::SpirvShader(
 				break;
 			}
 
-			if (decoration == spv::DecorationCentroid)
+			if(decoration == spv::DecorationCentroid)
 				modes.NeedsCentroid = true;
 			break;
 		}
@@ -118,12 +118,12 @@ SpirvShader::SpirvShader(
 			uint32_t value = insn.wordCount() > 4 ? insn.word(4) : 0;
 
 			auto &d = memberDecorations[targetId];
-			if (memberIndex >= d.size())
+			if(memberIndex >= d.size())
 				d.resize(memberIndex + 1);    // on demand; exact size would require another pass...
 
 			d[memberIndex].Apply(decoration, value);
 
-			if (decoration == spv::DecorationCentroid)
+			if(decoration == spv::DecorationCentroid)
 				modes.NeedsCentroid = true;
 			break;
 		}
@@ -139,7 +139,7 @@ SpirvShader::SpirvShader(
 			uint32_t group = insn.word(1);
 			auto const &groupDecorations = decorations[group];
 			auto const &descriptorGroupDecorations = descriptorDecorations[group];
-			for (auto i = 2u; i < insn.wordCount(); i++)
+			for(auto i = 2u; i < insn.wordCount(); i++)
 			{
 				// Remaining operands are targets to apply the group to.
 				uint32_t target = insn.word(i);
@@ -153,12 +153,12 @@ SpirvShader::SpirvShader(
 		case spv::OpGroupMemberDecorate:
 		{
 			auto const &srcDecorations = decorations[insn.word(1)];
-			for (auto i = 2u; i < insn.wordCount(); i += 2)
+			for(auto i = 2u; i < insn.wordCount(); i += 2)
 			{
 				// remaining operands are pairs of <id>, literal for members to apply to.
 				auto &d = memberDecorations[insn.word(i)];
 				auto memberIndex = insn.word(i + 1);
-				if (memberIndex >= d.size())
+				if(memberIndex >= d.size())
 					d.resize(memberIndex + 1);    // on demand resize, see above...
 				d[memberIndex].Apply(srcDecorations);
 			}
@@ -191,7 +191,7 @@ SpirvShader::SpirvShader(
 			functions[currentFunction].blocks[currentBlock] = Block(blockStart, blockEnd);
 			currentBlock = Block::ID(0);
 
-			if (opcode == spv::OpKill)
+			if(opcode == spv::OpKill)
 			{
 				modes.ContainsKill = true;
 			}
@@ -233,7 +233,7 @@ SpirvShader::SpirvShader(
 			ASSERT(getType(typeId).definition.opcode() == spv::OpTypePointer);
 			ASSERT(getType(typeId).storageClass == storageClass);
 
-			switch (storageClass)
+			switch(storageClass)
 			{
 			case spv::StorageClassInput:
 			case spv::StorageClassOutput:
@@ -298,7 +298,7 @@ SpirvShader::SpirvShader(
 			// OpConstantNull forms a constant of arbitrary type, all zeros.
 			auto &object = CreateConstant(insn);
 			auto &objectTy = getType(object.type);
-			for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+			for(auto i = 0u; i < objectTy.sizeInComponents; i++)
 			{
 				object.constantValue[i] = 0;
 			}
@@ -309,11 +309,11 @@ SpirvShader::SpirvShader(
 		{
 			auto &object = CreateConstant(insn);
 			auto offset = 0u;
-			for (auto i = 0u; i < insn.wordCount() - 3; i++)
+			for(auto i = 0u; i < insn.wordCount() - 3; i++)
 			{
 				auto &constituent = getObject(insn.word(i + 3));
 				auto &constituentTy = getType(constituent.type);
-				for (auto j = 0u; j < constituentTy.sizeInComponents; j++)
+				for(auto j = 0u; j < constituentTy.sizeInComponents; j++)
 				{
 					object.constantValue[offset++] = constituent.constantValue[j];
 				}
@@ -321,7 +321,7 @@ SpirvShader::SpirvShader(
 
 			auto objectId = Object::ID(insn.word(2));
 			auto decorationsIt = decorations.find(objectId);
-			if (decorationsIt != decorations.end() &&
+			if(decorationsIt != decorations.end() &&
 				decorationsIt->second.BuiltIn == spv::BuiltInWorkgroupSize)
 			{
 				// https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#interfaces-builtin-variables :
@@ -346,7 +346,7 @@ SpirvShader::SpirvShader(
 		case spv::OpCapability:
 		{
 			auto capability = static_cast<spv::Capability>(insn.word(1));
-			switch (capability)
+			switch(capability)
 			{
 			case spv::CapabilityMatrix: capabilities.Matrix = true; break;
 			case spv::CapabilityShader: capabilities.Shader = true; break;
@@ -388,9 +388,9 @@ SpirvShader::SpirvShader(
 			function.result = Type::ID(insn.word(1));
 			function.type = Type::ID(insn.word(4));
 			// Scan forward to find the function's label.
-			for (auto it = insn; it != end() && function.entry == 0; it++)
+			for(auto it = insn; it != end() && function.entry == 0; it++)
 			{
-				switch (it.opcode())
+				switch(it.opcode())
 				{
 				case spv::OpFunction:
 				case spv::OpFunctionParameter:
@@ -415,7 +415,7 @@ SpirvShader::SpirvShader(
 			// We will only support the GLSL 450 extended instruction set, so no point in tracking the ID we assign it.
 			// Valid shaders will not attempt to import any other instruction sets.
 			auto ext = insn.string(2);
-			if (0 != strcmp("GLSL.std.450", ext))
+			if(0 != strcmp("GLSL.std.450", ext))
 			{
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 			}
@@ -473,7 +473,7 @@ SpirvShader::SpirvShader(
 
 				DefineResult(insn);
 
-				if (opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain)
+				if(opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain)
 				{
 					Decorations dd{};
 					ApplyDecorationsForAccessChain(&dd, &descriptorDecorations[resultId], pointerId, insn.wordCount() - 4, insn.wordPointer(4));
@@ -668,12 +668,12 @@ SpirvShader::SpirvShader(
 			auto ext = insn.string(1);
 			// Part of core SPIR-V 1.3. Vulkan 1.1 implementations must also accept the pre-1.3
 			// extension per Appendix A, `Vulkan Environment for SPIR-V`.
-			if (!strcmp(ext, "SPV_KHR_storage_buffer_storage_class")) break;
-			if (!strcmp(ext, "SPV_KHR_shader_draw_parameters")) break;
-			if (!strcmp(ext, "SPV_KHR_16bit_storage")) break;
-			if (!strcmp(ext, "SPV_KHR_variable_pointers")) break;
-			if (!strcmp(ext, "SPV_KHR_device_group")) break;
-			if (!strcmp(ext, "SPV_KHR_multiview")) break;
+			if(!strcmp(ext, "SPV_KHR_storage_buffer_storage_class")) break;
+			if(!strcmp(ext, "SPV_KHR_shader_draw_parameters")) break;
+			if(!strcmp(ext, "SPV_KHR_16bit_storage")) break;
+			if(!strcmp(ext, "SPV_KHR_variable_pointers")) break;
+			if(!strcmp(ext, "SPV_KHR_device_group")) break;
+			if(!strcmp(ext, "SPV_KHR_multiview")) break;
 			UNSUPPORTED("SPIR-V Extension: %s", ext);
 			break;
 		}
@@ -684,7 +684,7 @@ SpirvShader::SpirvShader(
 	}
 
 	ASSERT_MSG(entryPoint != 0, "Entry point '%s' not found", entryPointName);
-	for (auto &it : functions)
+	for(auto &it : functions)
 	{
 		it.second.AssignBlockFields();
 	}
@@ -700,16 +700,16 @@ void SpirvShader::DeclareType(InsnIterator insn)
 
 	// A structure is a builtin block if it has a builtin
 	// member. All members of such a structure are builtins.
-	switch (insn.opcode())
+	switch(insn.opcode())
 	{
 	case spv::OpTypeStruct:
 	{
 		auto d = memberDecorations.find(resultId);
-		if (d != memberDecorations.end())
+		if(d != memberDecorations.end())
 		{
-			for (auto &m : d->second)
+			for(auto &m : d->second)
 			{
-				if (m.HasBuiltIn)
+				if(m.HasBuiltIn)
 				{
 					type.isBuiltInBlock = true;
 					break;
@@ -767,7 +767,7 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 	ASSERT(object.opcode() == spv::OpVariable);
 	Object::ID resultId = object.definition.word(2);
 
-	if (objectTy.isBuiltInBlock)
+	if(objectTy.isBuiltInBlock)
 	{
 		// walk the builtin block, registering each of its members separately.
 		auto m = memberDecorations.find(objectTy.element);
@@ -775,11 +775,11 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 		auto &structType = pointeeTy.definition;
 		auto offset = 0u;
 		auto word = 2u;
-		for (auto &member : m->second)
+		for(auto &member : m->second)
 		{
 			auto &memberType = getType(structType.word(word));
 
-			if (member.HasBuiltIn)
+			if(member.HasBuiltIn)
 			{
 				builtinInterface[member.BuiltIn] = {resultId, offset, memberType.sizeInComponents};
 			}
@@ -791,7 +791,7 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 	}
 
 	auto d = decorations.find(resultId);
-	if (d != decorations.end() && d->second.HasBuiltIn)
+	if(d != decorations.end() && d->second.HasBuiltIn)
 	{
 		builtinInterface[d->second.BuiltIn] = {resultId, 0, pointeeTy.sizeInComponents};
 	}
@@ -817,7 +817,7 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 {
 	auto mode = static_cast<spv::ExecutionMode>(insn.word(2));
-	switch (mode)
+	switch(mode)
 	{
 	case spv::ExecutionModeEarlyFragmentTests:
 		modes.EarlyFragmentTests = true;
@@ -852,7 +852,7 @@ uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 	// Types are always built from the bottom up (with the exception of forward ptrs, which
 	// don't appear in Vulkan shaders. Therefore, we can always assume our component parts have
 	// already been described (and so their sizes determined)
-	switch (insn.opcode())
+	switch(insn.opcode())
 	{
 	case spv::OpTypeVoid:
 	case spv::OpTypeSampler:
@@ -887,7 +887,7 @@ uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 	case spv::OpTypeStruct:
 	{
 		uint32_t size = 0;
-		for (uint32_t i = 2u; i < insn.wordCount(); i++)
+		for(uint32_t i = 2u; i < insn.wordCount(); i++)
 		{
 			size += getType(insn.word(i)).sizeInComponents;
 		}
@@ -927,14 +927,14 @@ int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, const Interface
 	case spv::OpTypePointer:
 		return VisitInterfaceInner(obj.definition.word(3), d, f);
 	case spv::OpTypeMatrix:
-		for (auto i = 0u; i < obj.definition.word(3); i++, d.Location++)
+		for(auto i = 0u; i < obj.definition.word(3); i++, d.Location++)
 		{
 			// consumes same components of N consecutive locations
 			VisitInterfaceInner(obj.definition.word(2), d, f);
 		}
 		return d.Location;
 	case spv::OpTypeVector:
-		for (auto i = 0u; i < obj.definition.word(3); i++, d.Component++)
+		for(auto i = 0u; i < obj.definition.word(3); i++, d.Component++)
 		{
 			// consumes N consecutive components in the same location
 			VisitInterfaceInner(obj.definition.word(2), d, f);
@@ -952,7 +952,7 @@ int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, const Interface
 	case spv::OpTypeStruct:
 	{
 		// iterate over members, which may themselves have Location/Component decorations
-		for (auto i = 0u; i < obj.definition.wordCount() - 2; i++)
+		for(auto i = 0u; i < obj.definition.wordCount() - 2; i++)
 		{
 			ApplyDecorationsForIdMember(&d, id, i);
 			d.Location = VisitInterfaceInner(obj.definition.word(i + 2), d, f);
@@ -963,7 +963,7 @@ int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, const Interface
 	case spv::OpTypeArray:
 	{
 		auto arraySize = GetConstScalarInt(obj.definition.word(3));
-		for (auto i = 0u; i < arraySize; i++)
+		for(auto i = 0u; i < arraySize; i++)
 		{
 			d.Location = VisitInterfaceInner(obj.definition.word(2), d, f);
 		}
@@ -993,11 +993,11 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 	ApplyDecorationsForId(d, baseObject.type);
 	auto typeId = getType(baseObject.type).element;
 
-	for (auto i = 0u; i < numIndexes; i++)
+	for(auto i = 0u; i < numIndexes; i++)
 	{
 		ApplyDecorationsForId(d, typeId);
 		auto & type = getType(typeId);
-		switch (type.opcode())
+		switch(type.opcode())
 		{
 		case spv::OpTypeStruct:
 		{
@@ -1008,7 +1008,7 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 		}
 		case spv::OpTypeArray:
 		case spv::OpTypeRuntimeArray:
-			if (dd->InputAttachmentIndex >= 0)
+			if(dd->InputAttachmentIndex >= 0)
 			{
 				dd->InputAttachmentIndex += GetConstScalarInt(indexIds[i]);
 			}
@@ -1037,10 +1037,10 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 	ApplyDecorationsForId(&d, baseObject.type);
 
 	uint32_t arrayIndex = 0;
-	if (baseObject.kind == Object::Kind::DescriptorSet)
+	if(baseObject.kind == Object::Kind::DescriptorSet)
 	{
 		auto type = getType(typeId).definition.opcode();
-		if (type == spv::OpTypeArray || type == spv::OpTypeRuntimeArray)
+		if(type == spv::OpTypeArray || type == spv::OpTypeRuntimeArray)
 		{
 			ASSERT(getObject(indexIds[0]).kind == Object::Kind::Constant);
 			arrayIndex = GetConstScalarInt(indexIds[0]);
@@ -1055,12 +1055,12 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 
 	int constantOffset = 0;
 
-	for (auto i = 0u; i < numIndexes; i++)
+	for(auto i = 0u; i < numIndexes; i++)
 	{
 		auto & type = getType(typeId);
 		ApplyDecorationsForId(&d, typeId);
 
-		switch (type.definition.opcode())
+		switch(type.definition.opcode())
 		{
 		case spv::OpTypeStruct:
 		{
@@ -1077,7 +1077,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 			// TODO: b/127950082: Check bounds.
 			ASSERT(d.HasArrayStride);
 			auto & obj = getObject(indexIds[i]);
-			if (obj.kind == Object::Kind::Constant)
+			if(obj.kind == Object::Kind::Constant)
 			{
 				constantOffset += d.ArrayStride * GetConstScalarInt(indexIds[i]);
 			}
@@ -1095,7 +1095,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 			d.InsideMatrix = true;
 			auto columnStride = (d.HasRowMajor && d.RowMajor) ? static_cast<int32_t>(sizeof(float)) : d.MatrixStride;
 			auto & obj = getObject(indexIds[i]);
-			if (obj.kind == Object::Kind::Constant)
+			if(obj.kind == Object::Kind::Constant)
 			{
 				constantOffset += columnStride * GetConstScalarInt(indexIds[i]);
 			}
@@ -1110,7 +1110,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 		{
 			auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : static_cast<int32_t>(sizeof(float));
 			auto & obj = getObject(indexIds[i]);
-			if (obj.kind == Object::Kind::Constant)
+			if(obj.kind == Object::Kind::Constant)
 			{
 				constantOffset += elemStride * GetConstScalarInt(indexIds[i]);
 			}
@@ -1141,7 +1141,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 
 	int constantOffset = 0;
 
-	for (auto i = 0u; i < numIndexes; i++)
+	for(auto i = 0u; i < numIndexes; i++)
 	{
 		auto & type = getType(typeId);
 		switch(type.opcode())
@@ -1150,7 +1150,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 		{
 			int memberIndex = GetConstScalarInt(indexIds[i]);
 			int offsetIntoStruct = 0;
-			for (auto j = 0; j < memberIndex; j++) {
+			for(auto j = 0; j < memberIndex; j++) {
 				auto memberType = type.definition.word(2u + j);
 				offsetIntoStruct += getType(memberType).sizeInComponents * sizeof(float);
 			}
@@ -1165,11 +1165,11 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 		case spv::OpTypeRuntimeArray:
 		{
 			// TODO: b/127950082: Check bounds.
-			if (getType(baseObject.type).storageClass == spv::StorageClassUniformConstant)
+			if(getType(baseObject.type).storageClass == spv::StorageClassUniformConstant)
 			{
 				// indexing into an array of descriptors.
 				auto &obj = getObject(indexIds[i]);
-				if (obj.kind != Object::Kind::Constant)
+				if(obj.kind != Object::Kind::Constant)
 				{
 					UNSUPPORTED("SPIR-V SampledImageArrayDynamicIndexing Capability");
 				}
@@ -1185,7 +1185,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 			{
 				auto stride = getType(type.element).sizeInComponents * static_cast<uint32_t>(sizeof(float));
 				auto & obj = getObject(indexIds[i]);
-				if (obj.kind == Object::Kind::Constant)
+				if(obj.kind == Object::Kind::Constant)
 				{
 					ptr += stride * GetConstScalarInt(indexIds[i]);
 				}
@@ -1203,7 +1203,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 		}
 	}
 
-	if (constantOffset != 0)
+	if(constantOffset != 0)
 	{
 		ptr += constantOffset;
 	}
@@ -1214,7 +1214,7 @@ uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexe
 {
 	uint32_t componentOffset = 0;
 
-	for (auto i = 0u; i < numIndexes; i++)
+	for(auto i = 0u; i < numIndexes; i++)
 	{
 		auto & type = getType(typeId);
 		switch(type.opcode())
@@ -1223,7 +1223,7 @@ uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexe
 		{
 			int memberIndex = indexes[i];
 			int offsetIntoStruct = 0;
-			for (auto j = 0; j < memberIndex; j++) {
+			for(auto j = 0; j < memberIndex; j++) {
 				auto memberType = type.definition.word(2u + j);
 				offsetIntoStruct += getType(memberType).sizeInComponents;
 			}
@@ -1253,7 +1253,7 @@ uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexe
 
 void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
 {
-	switch (decoration)
+	switch(decoration)
 	{
 	case spv::DecorationLocation:
 		HasLocation = true;
@@ -1313,43 +1313,43 @@ void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
 void SpirvShader::Decorations::Apply(const sw::SpirvShader::Decorations &src)
 {
 	// Apply a decoration group to this set of decorations
-	if (src.HasBuiltIn)
+	if(src.HasBuiltIn)
 	{
 		HasBuiltIn = true;
 		BuiltIn = src.BuiltIn;
 	}
 
-	if (src.HasLocation)
+	if(src.HasLocation)
 	{
 		HasLocation = true;
 		Location = src.Location;
 	}
 
-	if (src.HasComponent)
+	if(src.HasComponent)
 	{
 		HasComponent = true;
 		Component = src.Component;
 	}
 
-	if (src.HasOffset)
+	if(src.HasOffset)
 	{
 		HasOffset = true;
 		Offset = src.Offset;
 	}
 
-	if (src.HasArrayStride)
+	if(src.HasArrayStride)
 	{
 		HasArrayStride = true;
 		ArrayStride = src.ArrayStride;
 	}
 
-	if (src.HasMatrixStride)
+	if(src.HasMatrixStride)
 	{
 		HasMatrixStride = true;
 		MatrixStride = src.MatrixStride;
 	}
 
-	if (src.HasRowMajor)
+	if(src.HasRowMajor)
 	{
 		HasRowMajor = true;
 		RowMajor = src.RowMajor;
@@ -1376,7 +1376,7 @@ void SpirvShader::DescriptorDecorations::Apply(const sw::SpirvShader::Descriptor
 		Binding = src.Binding;
 	}
 
-	if (src.InputAttachmentIndex >= 0)
+	if(src.InputAttachmentIndex >= 0)
 	{
 		InputAttachmentIndex = src.InputAttachmentIndex;
 	}
@@ -1385,14 +1385,14 @@ void SpirvShader::DescriptorDecorations::Apply(const sw::SpirvShader::Descriptor
 void SpirvShader::ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const
 {
 	auto it = decorations.find(id);
-	if (it != decorations.end())
+	if(it != decorations.end())
 		d->Apply(it->second);
 }
 
 void SpirvShader::ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const
 {
 	auto it = memberDecorations.find(id);
-	if (it != memberDecorations.end() && member < it->second.size())
+	if(it != memberDecorations.end() && member < it->second.size())
 	{
 		d->Apply(it->second[member]);
 	}
@@ -1405,7 +1405,7 @@ void SpirvShader::DefineResult(const InsnIterator &insn)
 	auto &object = defs[resultId];
 	object.type = typeId;
 
-	switch (getType(typeId).opcode())
+	switch(getType(typeId).opcode())
 	{
 	case spv::OpTypePointer:
 	case spv::OpTypeImage:
@@ -1455,9 +1455,9 @@ OutOfBoundsBehavior SpirvShader::EmitState::getOutOfBoundsBehavior(spv::StorageC
 
 void SpirvShader::emitProlog(SpirvRoutine *routine) const
 {
-	for (auto insn : *this)
+	for(auto insn : *this)
 	{
-		switch (insn.opcode())
+		switch(insn.opcode())
 		{
 		case spv::OpVariable:
 		{
@@ -1511,9 +1511,9 @@ void SpirvShader::emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLan
 
 	// Emit everything up to the first label
 	// TODO: Separate out dispatch of block from non-block instructions?
-	for (auto insn : *this)
+	for(auto insn : *this)
 	{
-		if (insn.opcode() == spv::OpLabel)
+		if(insn.opcode() == spv::OpLabel)
 		{
 			break;
 		}
@@ -1526,10 +1526,10 @@ void SpirvShader::emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLan
 
 void SpirvShader::EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const
 {
-	for (auto insn = begin; insn != end; insn++)
+	for(auto insn = begin; insn != end; insn++)
 	{
 		auto res = EmitInstruction(insn, state);
-		switch (res)
+		switch(res)
 		{
 		case EmitResult::Continue:
 			continue;
@@ -1546,7 +1546,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 {
 	auto opcode = insn.opcode();
 
-	switch (opcode)
+	switch(opcode)
 	{
 	case spv::OpTypeVoid:
 	case spv::OpTypeInt:
@@ -1945,14 +1945,14 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeConstruct(InsnIterator insn, E
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto offset = 0u;
 
-	for (auto i = 0u; i < insn.wordCount() - 3; i++)
+	for(auto i = 0u; i < insn.wordCount() - 3; i++)
 	{
 		Object::ID srcObjectId = insn.word(3u + i);
 		auto & srcObject = getObject(srcObjectId);
 		auto & srcObjectTy = getType(srcObject.type);
 		GenericValue srcObjectAccess(this, state, srcObjectId);
 
-		for (auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
+		for(auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
 		{
 			dst.move(offset++, srcObjectAccess.Float(j));
 		}
@@ -1974,17 +1974,17 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeInsert(InsnIterator insn, Emit
 	GenericValue newPartObjectAccess(this, state, insn.word(3));
 
 	// old components before
-	for (auto i = 0u; i < firstNewComponent; i++)
+	for(auto i = 0u; i < firstNewComponent; i++)
 	{
 		dst.move(i, srcObjectAccess.Float(i));
 	}
 	// new part
-	for (auto i = 0u; i < newPartObjectTy.sizeInComponents; i++)
+	for(auto i = 0u; i < newPartObjectTy.sizeInComponents; i++)
 	{
 		dst.move(firstNewComponent + i, newPartObjectAccess.Float(i));
 	}
 	// old components after
-	for (auto i = firstNewComponent + newPartObjectTy.sizeInComponents; i < type.sizeInComponents; i++)
+	for(auto i = firstNewComponent + newPartObjectTy.sizeInComponents; i < type.sizeInComponents; i++)
 	{
 		dst.move(i, srcObjectAccess.Float(i));
 	}
@@ -2001,7 +2001,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeExtract(InsnIterator insn, Emi
 	auto firstComponent = WalkLiteralAccessChain(compositeTypeId, insn.wordCount() - 4, insn.wordPointer(4));
 
 	GenericValue compositeObjectAccess(this, state, insn.word(3));
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		dst.move(i, compositeObjectAccess.Float(firstComponent + i));
 	}
@@ -2021,16 +2021,16 @@ SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitSt
 	GenericValue firstHalfAccess(this, state, insn.word(3));
 	GenericValue secondHalfAccess(this, state, insn.word(4));
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		auto selector = insn.word(5 + i);
-		if (selector == static_cast<uint32_t>(-1))
+		if(selector == static_cast<uint32_t>(-1))
 		{
 			// Undefined value. Until we decide to do real undef values, zero is as good
 			// a value as any
 			dst.move(i, RValue<SIMD::Float>(0.0f));
 		}
-		else if (selector < firstHalfType.sizeInComponents)
+		else if(selector < firstHalfType.sizeInComponents)
 		{
 			dst.move(i, firstHalfAccess.Float(selector));
 		}
@@ -2054,7 +2054,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorExtractDynamic(InsnIterator insn,
 
 	SIMD::UInt v = SIMD::UInt(0);
 
-	for (auto i = 0u; i < srcType.sizeInComponents; i++)
+	for(auto i = 0u; i < srcType.sizeInComponents; i++)
 	{
 		v |= CmpEQ(index.UInt(0), SIMD::UInt(i)) & src.UInt(i);
 	}
@@ -2072,7 +2072,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorInsertDynamic(InsnIterator insn, 
 	GenericValue component(this, state, insn.word(4));
 	GenericValue index(this, state, insn.word(5));
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		SIMD::UInt mask = CmpEQ(SIMD::UInt(i), index.UInt(0));
 		dst.move(i, (src.UInt(i) & ~mask) | (component.UInt(0) & mask));
@@ -2089,7 +2089,7 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 	auto lhs = GenericValue(this, state, insn.word(4));
 	auto rhs = GenericValue(this, state, insn.word(5));
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		auto sel = cond.Int(condIsScalar ? 0 : i);
 		dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));   // TODO: IfThenElse()
@@ -2108,7 +2108,7 @@ SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state
 
 	SIMD::UInt result = src.UInt(0);
 
-	for (auto i = 1u; i < srcType.sizeInComponents; i++)
+	for(auto i = 1u; i < srcType.sizeInComponents; i++)
 	{
 		result |= src.UInt(i);
 	}
@@ -2127,7 +2127,7 @@ SpirvShader::EmitResult SpirvShader::EmitAll(InsnIterator insn, EmitState *state
 
 	SIMD::UInt result = src.UInt(0);
 
-	for (auto i = 1u; i < srcType.sizeInComponents; i++)
+	for(auto i = 1u; i < srcType.sizeInComponents; i++)
 	{
 		result &= src.UInt(i);
 	}
@@ -2151,14 +2151,14 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicOp(InsnIterator insn, EmitState *
 
 	SIMD::UInt x(0);
 	auto mask = state->activeLaneMask() & state->storesAndAtomicsMask();
-	for (int j = 0; j < SIMD::Width; j++)
+	for(int j = 0; j < SIMD::Width; j++)
 	{
 		If(Extract(mask, j) != 0)
 		{
 			auto offset = Extract(ptrOffsets, j);
 			auto laneValue = Extract(value, j);
 			UInt v;
-			switch (insn.opcode())
+			switch(insn.opcode())
 			{
 			case spv::OpAtomicIAdd:
 			case spv::OpAtomicIIncrement:
@@ -2223,7 +2223,7 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicCompareExchange(InsnIterator insn
 
 	SIMD::UInt x(0);
 	auto mask = state->activeLaneMask() & state->storesAndAtomicsMask();
-	for (int j = 0; j < SIMD::Width; j++)
+	for(int j = 0; j < SIMD::Width; j++)
 	{
 		If(Extract(mask, j) != 0)
 		{
@@ -2244,7 +2244,7 @@ SpirvShader::EmitResult SpirvShader::EmitCopyObject(InsnIterator insn, EmitState
 	auto ty = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), ty.sizeInComponents);
 	auto src = GenericValue(this, state, insn.word(3));
-	for (uint32_t i = 0; i < ty.sizeInComponents; i++)
+	for(uint32_t i = 0; i < ty.sizeInComponents; i++)
 	{
 		dst.move(i, src.Int(i));
 	}
@@ -2294,16 +2294,16 @@ uint32_t SpirvShader::GetConstScalarInt(Object::ID id) const
 
 void SpirvShader::emitEpilog(SpirvRoutine *routine) const
 {
-	for (auto insn : *this)
+	for(auto insn : *this)
 	{
-		switch (insn.opcode())
+		switch(insn.opcode())
 		{
 		case spv::OpVariable:
 		{
 			Object::ID resultId = insn.word(2);
 			auto &object = getObject(resultId);
 			auto &objectTy = getType(object.type);
-			if (object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassOutput)
+			if(object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassOutput)
 			{
 				auto &dst = routine->getVariable(resultId);
 				int offset = 0;
@@ -2329,7 +2329,7 @@ void SpirvShader::emitEpilog(SpirvRoutine *routine) const
 
 VkShaderStageFlagBits SpirvShader::executionModelToStage(spv::ExecutionModel model)
 {
-	switch (model)
+	switch(model)
 	{
 	case spv::ExecutionModelVertex:                 return VK_SHADER_STAGE_VERTEX_BIT;
 	// case spv::ExecutionModelTessellationControl:    return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;

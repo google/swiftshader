@@ -21,7 +21,7 @@ namespace vk {
 BufferView::BufferView(const VkBufferViewCreateInfo* pCreateInfo, void* mem) :
     buffer(vk::Cast(pCreateInfo->buffer)), format(pCreateInfo->format), offset(pCreateInfo->offset)
 {
-    if (pCreateInfo->range == VK_WHOLE_SIZE)
+    if(pCreateInfo->range == VK_WHOLE_SIZE)
     {
         range = buffer->getSize() - offset;
     }

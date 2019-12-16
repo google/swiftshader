@@ -242,9 +242,9 @@ VkBlendFactor Context::destBlendFactor(int index) const
 bool Context::allTargetsColorClamp() const
 {
 	// TODO: remove all of this and support VkPhysicalDeviceFeatures::independentBlend instead
-	for (int i = 0; i < RENDERTARGETS; i++)
+	for(int i = 0; i < RENDERTARGETS; i++)
 	{
-		if (renderTarget[i] && renderTarget[i]->getFormat().isFloatFormat())
+		if(renderTarget[i] && renderTarget[i]->getFormat().isFloatFormat())
 		{
 			return false;
 		}
@@ -371,7 +371,7 @@ VkBlendFactor Context::sourceBlendFactorAlpha(int index) const
 {
 	ASSERT((index >= 0) && (index < RENDERTARGETS));
 
-	switch (blendState[index].blendOperationAlpha)
+	switch(blendState[index].blendOperationAlpha)
 	{
 	case VK_BLEND_OP_ADD:
 	case VK_BLEND_OP_SUBTRACT:
@@ -392,7 +392,7 @@ VkBlendFactor Context::destBlendFactorAlpha(int index) const
 {
 	ASSERT((index >= 0) && (index < RENDERTARGETS));
 
-	switch (blendState[index].blendOperationAlpha)
+	switch(blendState[index].blendOperationAlpha)
 	{
 	case VK_BLEND_OP_ADD:
 	case VK_BLEND_OP_SUBTRACT:
@@ -413,12 +413,12 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 {
 	ASSERT((index >= 0) && (index < RENDERTARGETS));
 
-	switch (blendState[index].blendOperationAlpha)
+	switch(blendState[index].blendOperationAlpha)
 	{
 	case VK_BLEND_OP_ADD:
-		if (sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
@@ -427,9 +427,9 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 				return VK_BLEND_OP_DST_EXT;
 			}
 		}
-		else if (sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
@@ -440,7 +440,7 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 		}
 		else
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
@@ -450,13 +450,13 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 			}
 		}
 	case VK_BLEND_OP_SUBTRACT:
-		if (sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
+		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 		{
 			return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 		}
-		else if (sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
@@ -467,7 +467,7 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 		}
 		else
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_SRC_EXT;
 			}
@@ -477,9 +477,9 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 			}
 		}
 	case VK_BLEND_OP_REVERSE_SUBTRACT:
-		if (sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+		if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO)
 			{
 				return VK_BLEND_OP_ZERO_EXT;
 			}
@@ -488,9 +488,9 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 				return VK_BLEND_OP_DST_EXT;
 			}
 		}
-		else if (sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
+		else if(sourceBlendFactorAlpha(index) == VK_BLEND_FACTOR_ONE)
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 			{
 				return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 			}
@@ -501,7 +501,7 @@ VkBlendOp Context::blendOperationAlpha(int index) const
 		}
 		else
 		{
-			if (destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
+			if(destBlendFactorAlpha(index) == VK_BLEND_FACTOR_ZERO && allTargetsColorClamp())
 			{
 				return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 			}
@@ -537,9 +537,9 @@ VkFormat Context::renderTargetInternalFormat(int index) const
 
 bool Context::colorWriteActive() const
 {
-	for (int i = 0; i < RENDERTARGETS; i++)
+	for(int i = 0; i < RENDERTARGETS; i++)
 	{
-		if (colorWriteActive(i))
+		if(colorWriteActive(i))
 		{
 			return true;
 		}

@@ -91,7 +91,7 @@ VkResult Win32SurfaceKHR::present(PresentImage* image)
 
 	VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-	if (windowExtent.width != extent.width || windowExtent.height != extent.height)
+	if(windowExtent.width != extent.width || windowExtent.height != extent.height)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
@@ -110,19 +110,19 @@ VkResult Win32SurfaceKHR::present(PresentImage* image)
 void Win32SurfaceKHR::lazyCreateFrameBuffer()
 {
 	auto currWindowExtent = getWindowSize(hwnd);
-	if (currWindowExtent.width == windowExtent.width && currWindowExtent.height == windowExtent.height)
+	if(currWindowExtent.width == windowExtent.width && currWindowExtent.height == windowExtent.height)
 	{
 		return;
 	}
 
 	windowExtent = currWindowExtent;
 
-	if (framebuffer)
+	if(framebuffer)
 	{
 		destroyFrameBuffer();
 	}
 
-	if (windowExtent.width == 0 || windowExtent.height == 0)
+	if(windowExtent.width == 0 || windowExtent.height == 0)
 	{
 		return;
 	}

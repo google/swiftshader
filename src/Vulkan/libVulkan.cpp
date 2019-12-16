@@ -138,7 +138,7 @@ std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 	static std::weak_ptr<marl::Scheduler> schedulerWeak;
 	std::unique_lock<std::mutex> lock(mutex);
 	auto scheduler = schedulerWeak.lock();
-	if (!scheduler)
+	if(!scheduler)
 	{
 		scheduler = std::make_shared<marl::Scheduler>();
 		scheduler->setThreadInitializer([] {
@@ -273,9 +273,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
-	for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
+	for(uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		if (!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], instanceExtensionProperties, extensionPropertiesCount))
+		if(!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], instanceExtensionProperties, extensionPropertiesCount))
 		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
@@ -362,7 +362,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 	vk::Cast(physicalDevice)->getFormatProperties(format, &properties);
 
 	VkFormatFeatureFlags features;
-	switch (tiling)
+	switch(tiling)
 	{
 	case VK_IMAGE_TILING_LINEAR:
 		features = properties.linearTilingFeatures;
@@ -377,43 +377,43 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 		features = 0;
 	}
 
-	if (features == 0)
+	if(features == 0)
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
 	// Check for usage conflict with features
-	if ((usage & VK_IMAGE_USAGE_SAMPLED_BIT) && !(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+	if((usage & VK_IMAGE_USAGE_SAMPLED_BIT) && !(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
-	if ((usage & VK_IMAGE_USAGE_STORAGE_BIT) && !(features & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
+	if((usage & VK_IMAGE_USAGE_STORAGE_BIT) && !(features & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
-	if ((usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT))
+	if((usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
-	if ((usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT))
+	if((usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
-	if ((usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) && !(features & (VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)))
+	if((usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) && !(features & (VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
-	if ((usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT))
+	if((usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
 
-	if ((usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_DST_BIT))
+	if((usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_DST_BIT))
 	{
 		return VK_ERROR_FORMAT_NOT_SUPPORTED;
 	}
@@ -513,9 +513,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
-	for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
+	for(uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		if (!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], deviceExtensionProperties, extensionPropertiesCount))
+		if(!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], deviceExtensionProperties, extensionPropertiesCount))
 		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
@@ -598,7 +598,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const VkPhysicalDeviceMultiviewFeatures* multiviewFeatures = reinterpret_cast<const VkPhysicalDeviceMultiviewFeatures*>(extensionCreateInfo);
 
-				if (multiviewFeatures->multiviewGeometryShader ||
+				if(multiviewFeatures->multiviewGeometryShader ||
 				    multiviewFeatures->multiviewTessellationShader)
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
@@ -609,7 +609,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const VkPhysicalDeviceShaderDrawParametersFeatures* shaderDrawParametersFeatures = reinterpret_cast<const VkPhysicalDeviceShaderDrawParametersFeatures*>(extensionCreateInfo);
 
-				if (shaderDrawParametersFeatures->shaderDrawParameters)
+				if(shaderDrawParametersFeatures->shaderDrawParameters)
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}
@@ -813,7 +813,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 		case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
 		{
 			auto* importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR *>(allocationInfo);
-			if (importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+			if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 			{
 				UNSUPPORTED("importInfo->handleType %u", importInfo->handleType);
 				return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -823,7 +823,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 		case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
 		{
 			auto* exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(allocationInfo);
-			if (exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+			if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 			{
 				UNSUPPORTED("exportInfo->handleTypes %u", exportInfo->handleTypes);
 				return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -870,7 +870,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryFdKHR(VkDevice device, const VkMemoryG
 	TRACE("(VkDevice device = %p, const VkMemoryGetFdInfoKHR* getFdInfo = %p, int* pFd = %p",
 		  device, getFdInfo, pFd);
 
-	if (getFdInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+	if(getFdInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
 		UNSUPPORTED("pGetFdInfo->handleType %u", getFdInfo->handleType);
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -883,13 +883,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryFdPropertiesKHR(VkDevice device, VkExt
 	TRACE("(VkDevice device = %p, VkExternalMemoryHandleTypeFlagBits handleType = %x, int fd = %d, VkMemoryFdPropertiesKHR* pMemoryFdProperties = %p)",
 		  device, handleType, fd, pMemoryFdProperties);
 
-	if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+	if(handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
 		UNSUPPORTED("handleType %u", handleType);
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
 
-	if (fd < 0)
+	if(fd < 0)
 	{
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
@@ -961,7 +961,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory(VkDevice device, VkBuffer buff
 	TRACE("(VkDevice device = %p, VkBuffer buffer = %p, VkDeviceMemory memory = %p, VkDeviceSize memoryOffset = %d)",
 		    device, static_cast<void*>(buffer), static_cast<void*>(memory), int(memoryOffset));
 
-	if (!vk::Cast(buffer)->canBindToMemory(vk::Cast(memory)))
+	if(!vk::Cast(buffer)->canBindToMemory(vk::Cast(memory)))
 	{
 		UNSUPPORTED("vkBindBufferMemory with invalid external memory");
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -975,7 +975,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory(VkDevice device, VkImage image,
 	TRACE("(VkDevice device = %p, VkImage image = %p, VkDeviceMemory memory = %p, VkDeviceSize memoryOffset = %d)",
 		    device, static_cast<void*>(image), static_cast<void*>(memory), int(memoryOffset));
 
-	if (!vk::Cast(image)->canBindToMemory(vk::Cast(memory)))
+	if(!vk::Cast(image)->canBindToMemory(vk::Cast(memory)))
 	{
 		UNSUPPORTED("vkBindImageMemory with invalid external memory");
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
@@ -1104,7 +1104,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreFdKHR(VkDevice device, const VkSema
 	TRACE("(VkDevice device = %p, const VkSemaphoreGetFdInfoKHR* pGetFdInfo = %p, int* pFd = %p)",
 	      device, static_cast<const void*>(pGetFdInfo), static_cast<void*>(pFd));
 
-	if (pGetFdInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
+	if(pGetFdInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
 		UNIMPLEMENTED("pGetFdInfo->handleType");
 	}
@@ -1117,7 +1117,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreFdKHR(VkDevice device, const VkI
 	TRACE("(VkDevice device = %p, const VkImportSemaphoreFdInfoKHR* pImportSemaphoreInfo = %p",
 	      device, static_cast<const void*>(pImportSemaphoreInfo));
 
-	if (pImportSemaphoreInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
+	if(pImportSemaphoreInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
 		UNIMPLEMENTED("pImportSemaphoreInfo->handleType");
 	}
@@ -1135,7 +1135,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
 	TRACE("(VkDevice device = %p, const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo = %p)",
 	      device, pImportSemaphoreZirconHandleInfo);
 
-	if (pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	if(pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
 		UNIMPLEMENTED("pImportSemaphoreZirconHandleInfo->handleType");
 	}
@@ -1154,7 +1154,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
 	TRACE("(VkDevice device = %p, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo = %p, zx_handle_t* pZirconHandle = %p)",
 	      device, static_cast<const void*>(pGetZirconHandleInfo), static_cast<void*>(pZirconHandle));
 
-	if (pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
+	if(pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
 		UNIMPLEMENTED("pGetZirconHandleInfo->handleType");
 	}
@@ -1258,9 +1258,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBuffer(VkDevice device, const VkBufferCre
 		    device, pCreateInfo, pAllocator, pBuffer);
 
 	auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
-	while (nextInfo)
+	while(nextInfo)
 	{
-		switch (nextInfo->sType)
+		switch(nextInfo->sType)
 		{
 		case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO:
 			// Do nothing. Should be handled by vk::Buffer::Create().
@@ -1361,9 +1361,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 	VkResult result = vk::Image::Create(pAllocator, pCreateInfo, pImage, vk::Cast(device));
 
 #ifdef __ANDROID__
-	if (swapchainImage)
+	if(swapchainImage)
 	{
-		if (result != VK_SUCCESS)
+		if(result != VK_SUCCESS)
 		{
 			return result;
 		}
@@ -2408,14 +2408,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory2(VkDevice device, uint32_t bin
 			extInfo = extInfo->pNext;
 		}
 
-		if (!vk::Cast(pBindInfos[i].buffer)->canBindToMemory(vk::Cast(pBindInfos[i].memory)))
+		if(!vk::Cast(pBindInfos[i].buffer)->canBindToMemory(vk::Cast(pBindInfos[i].memory)))
 		{
 			UNSUPPORTED("vkBindBufferMemory2 with invalid external memory");
 			return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 		}
 	}
 
-	for (uint32_t i = 0; i < bindInfoCount; i++)
+	for(uint32_t i = 0; i < bindInfoCount; i++)
 	{
 		vk::Cast(pBindInfos[i].buffer)->bind(vk::Cast(pBindInfos[i].memory), pBindInfos[i].memoryOffset);
 	}
@@ -2430,7 +2430,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 
 	for(uint32_t i = 0; i < bindInfoCount; i++)
 	{
-		if (!vk::Cast(pBindInfos[i].image)->canBindToMemory(vk::Cast(pBindInfos[i].memory)))
+		if(!vk::Cast(pBindInfos[i].image)->canBindToMemory(vk::Cast(pBindInfos[i].memory)))
 		{
 			UNSUPPORTED("vkBindImageMemory2 with invalid external memory");
 			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -2443,9 +2443,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 		VkDeviceSize offset = pBindInfos[i].memoryOffset;
 
 		auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pBindInfos[i].pNext);
-		while (extInfo)
+		while(extInfo)
 		{
-			switch (extInfo->sType)
+			switch(extInfo->sType)
 			{
 			case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO:
 				/* Do nothing */
@@ -3295,7 +3295,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(VkDevice d
 	TRACE("(VkDevice device = %p, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities = %p)",
 			device, pDeviceGroupPresentCapabilities);
 
-	for (int i = 0; i < VK_MAX_DEVICE_GROUP_SIZE; i++)
+	for(int i = 0; i < VK_MAX_DEVICE_GROUP_SIZE; i++)
 	{
 		// The only real physical device in the presentation group is device 0,
 		// and it can present to itself.

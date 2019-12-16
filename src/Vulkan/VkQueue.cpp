@@ -115,7 +115,7 @@ VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence
 
 void Queue::submitQueue(const Task& task)
 {
-	if (renderer == nullptr)
+	if(renderer == nullptr)
 	{
 		renderer.reset(new sw::Renderer(device));
 	}
@@ -144,7 +144,7 @@ void Queue::submitQueue(const Task& task)
 		}
 	}
 
-	if (task.pSubmits)
+	if(task.pSubmits)
 	{
 		toDelete.put(task.pSubmits);
 	}
@@ -202,10 +202,10 @@ VkResult Queue::waitIdle()
 
 void Queue::garbageCollect()
 {
-	while (true)
+	while(true)
 	{
 		auto v = toDelete.tryTake();
-		if (!v.second) { break; }
+		if(!v.second) { break; }
 		vk::deallocate(v.first, DEVICE_MEMORY);
 	}
 }
@@ -226,11 +226,11 @@ VkResult Queue::present(const VkPresentInfoKHR* presentInfo)
 	for(uint32_t i = 0; i < presentInfo->swapchainCount; i++)
 	{
 		VkResult res = vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
-		if (presentInfo->pResults != nullptr)
+		if(presentInfo->pResults != nullptr)
 		{
 			presentInfo->pResults[i] = res;
 		}
-		if (res != VK_SUCCESS)
+		if(res != VK_SUCCESS)
 			result = res;
 	}
 

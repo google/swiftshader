@@ -1177,7 +1177,7 @@ TEST(ReactorUnitTests, PointersEqual)
 	{
 		Pointer<Byte> ptrA = function.Arg<0>();
 		Pointer<Byte> ptrB = function.Arg<1>();
-		If (ptrA == ptrB)
+		If(ptrA == ptrB)
 		{
 			Return(1);
 		}
@@ -1213,7 +1213,7 @@ TEST(ReactorUnitTests, Args_2Mixed)
 		Return(Float(a) + b);
 	}
 
-	if (auto routine = function("one"))
+	if(auto routine = function("one"))
 	{
 		float result = routine(1, 2.f);
 		EXPECT_EQ(result, 3.f);
@@ -1232,7 +1232,7 @@ TEST(ReactorUnitTests, Args_4Mixed)
 		Return(Float(a) + b + Float(c) + d);
 	}
 
-	if (auto routine = function("one"))
+	if(auto routine = function("one"))
 	{
 		float result = routine(1, 2.f, 3, 4.f);
 		EXPECT_EQ(result, 10.f);
@@ -1252,7 +1252,7 @@ TEST(ReactorUnitTests, Args_5Mixed)
 		Return(Float(a) + b + Float(c) + d + Float(e));
 	}
 
-	if (auto routine = function("one"))
+	if(auto routine = function("one"))
 	{
 		float result = routine(1, 2.f, 3, 4.f, 5);
 		EXPECT_EQ(result, 15.f);
@@ -1277,7 +1277,7 @@ TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 		Return(Float(a) + b + Float(c) + d + Float(e) + f + Float(g) + h + Float(i) + j);
 	}
 
-	if (auto routine = function("one"))
+	if(auto routine = function("one"))
 	{
 		float result = routine(1, 2.f, 3, 4.f, 5, 6.f, 7, 8.f, 9, 10.f);
 		EXPECT_EQ(result, 55.f);
@@ -1785,7 +1785,7 @@ TYPED_TEST(GEPTest, PtrOffsets)
 			PtrInt base;
 			base.i = 0x10000;
 
-			for (int i = 0; i < 5; i++)
+			for(int i = 0; i < 5; i++)
 			{
 				PtrInt reference;
 				reference.p = &base.p[i];
@@ -1805,7 +1805,7 @@ TYPED_TEST(GEPTest, PtrOffsets)
 
 TEST(ReactorUnitTests, Coroutines_Fibonacci)
 {
-	if (!rr::Caps.CoroutinesSupported)
+	if(!rr::Caps.CoroutinesSupported)
 	{
 		SUCCEED() << "Coroutines not supported";
 		return;
@@ -1817,7 +1817,7 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 		Yield(Int(1));
 		Int current = 1;
 		Int next = 1;
-		While (true) {
+		While(true) {
 			Yield(next);
 			auto tmp = current + next;
 			current = next;
@@ -1836,7 +1836,7 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 
 	auto count = sizeof(expected) / sizeof(expected[0]);
 
-	for (size_t i = 0; i < count; i++)
+	for(size_t i = 0; i < count; i++)
 	{
 		int out = 0;
 		EXPECT_EQ(coroutine->await(out), true);
@@ -1846,7 +1846,7 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 
 TEST(ReactorUnitTests, Coroutines_Parameters)
 {
-	if (!rr::Caps.CoroutinesSupported)
+	if(!rr::Caps.CoroutinesSupported)
 	{
 		SUCCEED() << "Coroutines not supported";
 		return;
@@ -1903,7 +1903,7 @@ struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_F
 
 		auto routine = function("one");
 
-		for (auto&& v : GetParam().testValues)
+		for(auto&& v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
 			EXPECT_FLOAT_EQ(routine(v), GetParam().refFunc(v));
@@ -1924,7 +1924,7 @@ struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_
 
 		auto routine = function("one");
 
-		for (auto&& v : GetParam().testValues)
+		for(auto&& v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
 			float4_value result = invokeRoutine(routine, float4_value{ v });
@@ -1951,7 +1951,7 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 
 		auto routine = function("one");
 
-		for (auto&& v : GetParam().testValues)
+		for(auto&& v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
 			float4_value result = invokeRoutine(routine, float4_value{ v.first }, float4_value{ v.second });
@@ -2013,7 +2013,7 @@ TEST(ReactorUnitTests, Intrinsics_Ctlz)
 		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
 
 
-		for (uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i) {
 			uint32_t result = callable(1 << i);
 			EXPECT_EQ(result, 31 - i);
 		}
@@ -2037,7 +2037,7 @@ TEST(ReactorUnitTests, Intrinsics_Ctlz)
 
 		uint32_t x[4];
 
-		for (uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i) {
 			callable(x, 1 << i);
 			EXPECT_EQ(x[0], 31 - i);
 			EXPECT_EQ(x[1], 31 - i);
@@ -2070,7 +2070,7 @@ TEST(ReactorUnitTests, Intrinsics_Cttz)
 		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
 
 
-		for (uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i) {
 			uint32_t result = callable(1 << i);
 			EXPECT_EQ(result, i);
 		}
@@ -2094,7 +2094,7 @@ TEST(ReactorUnitTests, Intrinsics_Cttz)
 
 		uint32_t x[4];
 
-		for (uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i) {
 			callable(x, 1 << i);
 			EXPECT_EQ(x[0], i);
 			EXPECT_EQ(x[1], i);

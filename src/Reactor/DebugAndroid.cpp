@@ -31,7 +31,7 @@ void AndroidEnterDebugger()
 	{
 		ALOGE("Waiting for debugger: gdbserver :${PORT} --attach %u. Look for thread %u", getpid(), gettid());
 		volatile int waiting = 1;
-		while (waiting) {
+		while(waiting) {
 			sleep(1);
 		}
 	}

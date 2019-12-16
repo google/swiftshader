@@ -104,7 +104,7 @@ DebugInfo::~DebugInfo() = default;
 
 void DebugInfo::Finalize()
 {
-	while (diScope.size() > 0)
+	while(diScope.size() > 0)
 	{
 		emitPending(diScope.back(), builder);
 		diScope.pop_back();
@@ -120,12 +120,12 @@ void DebugInfo::EmitLocation()
 
 #ifdef ENABLE_RR_EMIT_PRINT_LOCATION
 	static Location lastLocation;
-	if (backtrace.size() == 0)
+	if(backtrace.size() == 0)
 	{
 		return;
 	}
 	Location currLocation = backtrace[backtrace.size() - 1];
-	if (currLocation != lastLocation)
+	if(currLocation != lastLocation)
 	{
 		rr::Print("rr> {0} [{1}:{2}]\n", currLocation.function.name.c_str(), currLocation.function.file.c_str(), currLocation.line);
 		lastLocation = std::move(currLocation);
@@ -142,7 +142,7 @@ void DebugInfo::syncScope(Backtrace const& backtrace)
 {
 	auto shrink = [this](size_t newsize)
 	{
-		while (diScope.size() > newsize)
+		while(diScope.size() > newsize)
 		{
 			auto &scope = diScope.back();
 			LOG("- STACK(%d): di: %p, location: %s:%d",
@@ -154,18 +154,18 @@ void DebugInfo::syncScope(Backtrace const& backtrace)
 		}
 	};
 
-	if (backtrace.size() < diScope.size())
+	if(backtrace.size() < diScope.size())
 	{
 		shrink(backtrace.size());
 	}
 
-	for (size_t i = 0; i < diScope.size(); i++)
+	for(size_t i = 0; i < diScope.size(); i++)
 	{
 		auto &scope = diScope[i];
 		auto const &oldLocation = scope.location;
 		auto const &newLocation = backtrace[i];
 
-		if (oldLocation.function != newLocation.function)
+		if(oldLocation.function != newLocation.function)
 		{
 			LOG("  STACK(%d): Changed function %s -> %s", int(i),
 				oldLocation.function.name.c_str(), newLocation.function.name.c_str());
@@ -173,7 +173,7 @@ void DebugInfo::syncScope(Backtrace const& backtrace)
 			break;
 		}
 
-		if (oldLocation.line > newLocation.line)
+		if(oldLocation.line > newLocation.line)
 		{
 			// Create a new di block to shadow all the variables in the loop.
 			auto file = getOrCreateFile(newLocation.function.file.c_str());
@@ -189,7 +189,7 @@ void DebugInfo::syncScope(Backtrace const& backtrace)
 		scope.location = newLocation;
 	}
 
-	while (backtrace.size() > diScope.size())
+	while(backtrace.size() > diScope.size())
 	{
 		auto i = diScope.size();
 		auto location = backtrace[i];
@@ -223,7 +223,7 @@ void DebugInfo::syncScope(Backtrace const& backtrace)
 
 llvm::DILocation* DebugInfo::getLocation(const Backtrace &backtrace, size_t i)
 {
-	if (backtrace.size() == 0) { return nullptr; }
+	if(backtrace.size() == 0) { return nullptr; }
 	assert(backtrace.size() == diScope.size());
 	return llvm::DILocation::get(
 		*context,
@@ -239,18 +239,18 @@ void DebugInfo::EmitVariable(Value *variable)
 	auto const& backtrace = getCallerBacktrace();
 	syncScope(backtrace);
 
-	for (int i = backtrace.size() - 1; i >= 0; i--)
+	for(int i = backtrace.size() - 1; i >= 0; i--)
 	{
 		auto const &location = backtrace[i];
 		auto tokens = getOrParseFileTokens(location.function.file.c_str());
 		auto tokIt = tokens->find(location.line);
-		if (tokIt == tokens->end())
+		if(tokIt == tokens->end())
 		{
 			break;
 		}
 		auto token = tokIt->second;
 		auto name = token.identifier;
-		if (token.kind == Token::Return)
+		if(token.kind == Token::Return)
 		{
 			// This is a:
 			//
@@ -269,7 +269,7 @@ void DebugInfo::EmitVariable(Value *variable)
 		}
 
 		auto &scope = diScope[i];
-		if (scope.pending.location != location)
+		if(scope.pending.location != location)
 		{
 			emitPending(scope, builder);
 		}
@@ -278,7 +278,7 @@ void DebugInfo::EmitVariable(Value *variable)
 		auto block = builder->GetInsertBlock();
 
 		auto insertAfter = block->size() > 0 ? &block->back() : nullptr;
-		while (insertAfter != nullptr && insertAfter->isTerminator())
+		while(insertAfter != nullptr && insertAfter->isTerminator())
 		{
 			insertAfter = insertAfter->getPrevNode();
 		}
@@ -292,7 +292,7 @@ void DebugInfo::EmitVariable(Value *variable)
 		scope.pending.insertAfter = insertAfter;
 		scope.pending.scope = scope.di;
 
-		if (token.kind == Token::Return)
+		if(token.kind == Token::Return)
 		{
 			// Insert a noop instruction so the debugger can inspect the
 			// return value before the function scope closes.
@@ -308,12 +308,12 @@ void DebugInfo::EmitVariable(Value *variable)
 void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 {
 	auto const &pending = scope.pending;
-	if (pending.value == nullptr)
+	if(pending.value == nullptr)
 	{
 		return;
 	}
 
-	if (!scope.symbols.emplace(pending.name).second)
+	if(!scope.symbols.emplace(pending.name).second)
 	{
 		return;
 	}
@@ -326,7 +326,7 @@ void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 	auto value = pending.value;
 
 	IRBuilder::InsertPointGuard guard(*builder);
-	if (pending.insertAfter != nullptr)
+	if(pending.insertAfter != nullptr)
 	{
 		builder->SetInsertPoint(pending.block, ++pending.insertAfter->getIterator());
 	}
@@ -336,7 +336,7 @@ void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 	}
 	builder->SetCurrentDebugLocation(pending.diLocation);
 
-	if (!isAlloca)
+	if(!isAlloca)
 	{
 		// While insertDbgValueIntrinsic should be enough to declare a
 		// variable with no storage, variables of RValues can share the same
@@ -362,9 +362,9 @@ void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 	auto diVar = diBuilder->createAutoVariable(scope.di, pending.name, diFile, pending.location.line, diType);
 
 	auto di = diBuilder->insertDeclare(value, diVar, diBuilder->createExpression(), pending.diLocation, pending.block);
-	if (pending.insertAfter != nullptr) { di->moveAfter(pending.insertAfter); }
+	if(pending.insertAfter != nullptr) { di->moveAfter(pending.insertAfter); }
 
-	if (pending.addNopOnNextLine)
+	if(pending.addNopOnNextLine)
 	{
 		builder->SetCurrentDebugLocation(llvm::DILocation::get(
 			*context,
@@ -451,9 +451,9 @@ DebugInfo::Backtrace DebugInfo::getCallerBacktrace(size_t limit /* = 0 */) const
 	// Note that bs::stacktrace() effectively returns a vector of addresses; bs::frame construction is where
 	// the heavy lifting is done: resolving the function name, file and line number.
 	namespace bs = boost::stacktrace;
-	for (bs::frame frame : bs::stacktrace())
+	for(bs::frame frame : bs::stacktrace())
 	{
-		if (shouldSkipFile(frame.source_file()))
+		if(shouldSkipFile(frame.source_file()))
 		{
 			continue;
 		}
@@ -464,7 +464,7 @@ DebugInfo::Backtrace DebugInfo::getCallerBacktrace(size_t limit /* = 0 */) const
 		location.line = frame.source_line();
 		locations.push_back(location);
 
-		if (limit > 0 && locations.size() >= limit)
+		if(limit > 0 && locations.size() >= limit)
 		{
 			break;
 		}
@@ -478,7 +478,7 @@ DebugInfo::Backtrace DebugInfo::getCallerBacktrace(size_t limit /* = 0 */) const
 llvm::DIType *DebugInfo::getOrCreateType(llvm::Type* type)
 {
 	auto it = diTypes.find(type);
-	if (it != diTypes.end()) { return it->second; }
+	if(it != diTypes.end()) { return it->second; }
 
 	if(type->isPointerTy())
 	{
@@ -496,7 +496,7 @@ llvm::DIType *DebugInfo::getOrCreateType(llvm::Type* type)
 llvm::DIFile *DebugInfo::getOrCreateFile(const char* path)
 {
 	auto it = diFiles.find(path);
-	if (it != diFiles.end()) { return it->second; }
+	if(it != diFiles.end()) { return it->second; }
 	auto dirAndName = splitPath(path);
 	auto file = diBuilder->createFile(dirAndName.second, dirAndName.first);
 	diFiles.emplace(path, file);
@@ -508,7 +508,7 @@ DebugInfo::LineTokens const *DebugInfo::getOrParseFileTokens(const char* path)
 	static std::regex reLocalDecl(
 		"^" // line start
 		"\\s*" // initial whitespace
-		"(?:For\\s*\\(\\s*)?" // optional 'For ('
+		"(?:For\\s*\\(\\s*)?" // optional 'For('
 		"((?:\\w+(?:<[^>]+>)?)(?:::\\w+(?:<[^>]+>)?)*)" // type (match group 1)
 		"\\s+" // whitespace between type and name
 		"(\\w+)" // identifier (match group 2)
@@ -516,7 +516,7 @@ DebugInfo::LineTokens const *DebugInfo::getOrParseFileTokens(const char* path)
 		"(\\[.*\\])?"); // optional array suffix (match group 3)
 
 	auto it = fileTokens.find(path);
-	if (it != fileTokens.end())
+	if(it != fileTokens.end())
 	{
 		return it->second.get();
 	}
@@ -526,16 +526,16 @@ DebugInfo::LineTokens const *DebugInfo::getOrParseFileTokens(const char* path)
 	std::ifstream file(path);
 	std::string line;
 	int lineCount = 0;
-	while (std::getline(file, line))
+	while(std::getline(file, line))
 	{
 		lineCount++;
 		std::smatch match;
-		if (std::regex_search(line, match, reLocalDecl) && match.size() > 3)
+		if(std::regex_search(line, match, reLocalDecl) && match.size() > 3)
 		{
 			bool isArray = match.str(3) != "";
-			if (!isArray) // Cannot deal with C-arrays of values.
+			if(!isArray) // Cannot deal with C-arrays of values.
 			{
-				if (match.str(1) == "return")
+				if(match.str(1) == "return")
 				{
 					(*tokens)[lineCount] = Token{Token::Return};
 				}

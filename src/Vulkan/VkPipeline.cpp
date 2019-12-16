@@ -165,7 +165,7 @@ std::vector<uint32_t> preprocessSpirv(
 	spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
 
 	opt.SetMessageConsumer([](spv_message_level_t level, const char*, const spv_position_t& p, const char* m) {
-		switch (level)
+		switch(level)
 		{
 		case SPV_MSG_FATAL:          vk::warn("SPIR-V FATAL: %d:%d %s\n", int(p.line), int(p.column), m);
 		case SPV_MSG_INTERNAL_ERROR: vk::warn("SPIR-V INTERNAL_ERROR: %d:%d %s\n", int(p.line), int(p.column), m);
@@ -178,10 +178,10 @@ std::vector<uint32_t> preprocessSpirv(
 	});
 
 	// If the pipeline uses specialization, apply the specializations before freezing
-	if (specializationInfo)
+	if(specializationInfo)
 	{
 		std::unordered_map<uint32_t, std::vector<uint32_t>> specializations;
-		for (auto i = 0u; i < specializationInfo->mapEntryCount; ++i)
+		for(auto i = 0u; i < specializationInfo->mapEntryCount; ++i)
 		{
 			auto const &e = specializationInfo->pMapEntries[i];
 			auto value_ptr =
@@ -198,7 +198,7 @@ std::vector<uint32_t> preprocessSpirv(
 	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized);
 
-	if (false) {
+	if(false) {
 		spvtools::SpirvTools core(SPV_ENV_VULKAN_1_1);
 		std::string preOpt;
 		core.Disassemble(code, &preOpt, SPV_BINARY_TO_TEXT_OPTION_NONE);
@@ -395,7 +395,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
 	{
-		switch (multisampleState->rasterizationSamples)
+		switch(multisampleState->rasterizationSamples)
 		{
 		case VK_SAMPLE_COUNT_1_BIT:
 			context.sampleCount = 1;
@@ -407,7 +407,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED("Unsupported sample count");
 		}
 
-		if (multisampleState->pSampleMask)
+		if(multisampleState->pSampleMask)
 		{
 			context.sampleMask = multisampleState->pSampleMask[0];
 		}
@@ -465,7 +465,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			blendConstants.a = colorBlendState->blendConstants[3];
 		}
 
-		for (auto i = 0u; i < colorBlendState->attachmentCount; i++)
+		for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
 		{
 			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[i];
 			context.colorWriteMask[i] = attachment.colorWriteMask;
@@ -528,9 +528,9 @@ const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShade
 
 void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo, PipelineCache* pPipelineCache)
 {
-	for (auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++)
+	for(auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++)
 	{
-		if (pStage->flags != 0)
+		if(pStage->flags != 0)
 		{
 			UNIMPLEMENTED("pStage->flags");
 		}

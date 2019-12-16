@@ -444,9 +444,9 @@ void SetupRoutine::generate()
 			*Pointer<Float4>(primitive + OFFSET(Primitive,z.C), 16) = C;
 		}
 
-		for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+		for(int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 		{
-			if (state.gradient[interpolant].Type != SpirvShader::ATTRIBTYPE_UNUSED)
+			if(state.gradient[interpolant].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
 				setupGradient(primitive, tri, w012, M, v0, v1, v2,
 						OFFSET(Vertex, v[interpolant]),
@@ -456,7 +456,7 @@ void SetupRoutine::generate()
 			}
 		}
 
-		for (unsigned int i = 0; i < state.numClipDistances; i++)
+		for(unsigned int i = 0; i < state.numClipDistances; i++)
 		{
 			setupGradient(primitive, tri, w012, M, v0, v1, v2,
 					OFFSET(Vertex, clipDistance[i]),
@@ -464,7 +464,7 @@ void SetupRoutine::generate()
 					false, true);
 		}
 
-		for (unsigned int i = 0; i < state.numCullDistances; i++)
+		for(unsigned int i = 0; i < state.numCullDistances; i++)
 		{
 			setupGradient(primitive, tri, w012, M, v0, v1, v2,
 					OFFSET(Vertex, cullDistance[i]),

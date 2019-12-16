@@ -381,7 +381,7 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 			Ice::Operand *storeValue = nullptr;
 			bool unmatchedLoads = false;
 
-			for (auto& loadStoreInst : getLoadStoreInsts(singleBasicBlock))
+			for(auto& loadStoreInst : getLoadStoreInsts(singleBasicBlock))
 			{
 				Ice::Inst* inst = loadStoreInst.inst;
 

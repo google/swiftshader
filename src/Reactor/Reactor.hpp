@@ -3458,7 +3458,7 @@ for(init; for__.setup() && for__.test(cond); inc, for__.end())
 	BasicBlock *end__ = Nucleus::createBasicBlock();    \
 	Nucleus::createCondBr((cond).value, end__, body__); \
 	Nucleus::setInsertBlock(end__);                     \
-} do {} while (false) // Require a semi-colon at the end of the Until()
+} do {} while(false) // Require a semi-colon at the end of the Until()
 
 enum {IF_BLOCK__, ELSE_CLAUSE__, ELSE_BLOCK__, IFELSE_NUM__};
 

@@ -33,7 +33,7 @@ PixelRoutine::PixelRoutine(
 	  routine(pipelineLayout),
 	  descriptorSets(descriptorSets)
 {
-	if (spirvShader)
+	if(spirvShader)
 	{
 		spirvShader->emitProlog(&routine);
 
@@ -137,14 +137,14 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 			}
 		}
 
-		if (spirvShader)
+		if(spirvShader)
 		{
-			for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+			for(int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 			{
 				auto const &input = spirvShader->inputs[interpolant];
-				if (input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
+				if(input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 				{
-					if (input.Centroid && state.multiSample > 1)
+					if(input.Centroid && state.multiSample > 1)
 					{
 						routine.inputs[interpolant] =
 								interpolateCentroid(XXXX, YYYY, rhwCentroid,
@@ -163,14 +163,14 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			setBuiltins(x, y, z, w, cMask);
 
-			for (uint32_t i = 0; i < state.numClipDistances; i++)
+			for(uint32_t i = 0; i < state.numClipDistances; i++)
 			{
 				auto distance = interpolate(xxxx, DclipDistance[i], rhw,
 											primitive + OFFSET(Primitive, clipDistance[i]),
 											false, true, false);
 
 				auto clipMask = SignMask(CmpGE(distance, SIMD::Float(0)));
-				for (auto ms = 0u; ms < state.multiSample; ms++)
+				for(auto ms = 0u; ms < state.multiSample; ms++)
 				{
 					// TODO: Fragments discarded by clipping do not exist at
 					// all -- they should not be counted in queries or have
@@ -179,12 +179,12 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 					cMask[ms] &= clipMask;
 				}
 
-				if (spirvShader->getUsedCapabilities().ClipDistance)
+				if(spirvShader->getUsedCapabilities().ClipDistance)
 				{
 					auto it = spirvShader->inputBuiltins.find(spv::BuiltInClipDistance);
 					if(it != spirvShader->inputBuiltins.end())
 					{
-						if (i < it->second.SizeInComponents)
+						if(i < it->second.SizeInComponents)
 						{
 							routine.getVariable(it->second.Id)[it->second.FirstComponent + i] = distance;
 						}
@@ -192,14 +192,14 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 				}
 			}
 
-			if (spirvShader->getUsedCapabilities().CullDistance)
+			if(spirvShader->getUsedCapabilities().CullDistance)
 			{
 				auto it = spirvShader->inputBuiltins.find(spv::BuiltInCullDistance);
 				if(it != spirvShader->inputBuiltins.end())
 				{
-					for (uint32_t i = 0; i < state.numCullDistances; i++)
+					for(uint32_t i = 0; i < state.numCullDistances; i++)
 					{
-						if (i < it->second.SizeInComponents)
+						if(i < it->second.SizeInComponents)
 						{
 							routine.getVariable(it->second.Id)[it->second.FirstComponent + i] =
 									interpolate(xxxx, DcullDistance[i], rhw,
@@ -213,7 +213,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 		Bool alphaPass = true;
 
-		if (spirvShader)
+		if(spirvShader)
 		{
 			bool earlyFragTests = (spirvShader && spirvShader->getModes().EarlyFragmentTests);
 			applyShader(cMask, earlyFragTests ? sMask : cMask, earlyDepthTest ? zMask : cMask);
@@ -544,7 +544,7 @@ Bool PixelRoutine::depthTest(const Pointer<Byte> &zBuffer, int q, const Int &x, 
 		return true;
 	}
 
-	if (state.depthFormat == VK_FORMAT_D16_UNORM)
+	if(state.depthFormat == VK_FORMAT_D16_UNORM)
 		return depthTest16(zBuffer, q, x, z, sMask, zMask, cMask);
 	else
 		return depthTest32F(zBuffer, q, x, z, sMask, zMask, cMask);
@@ -647,7 +647,7 @@ void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, const Int &x, const
 		return;
 	}
 
-	if (state.depthFormat == VK_FORMAT_D16_UNORM)
+	if(state.depthFormat == VK_FORMAT_D16_UNORM)
 		writeDepth16(zBuffer, q, x, z, zMask);
 	else
 		writeDepth32F(zBuffer, q, x, z, zMask);
@@ -1639,7 +1639,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 			Int2 value = *Pointer<Int2>(buffer, 16);
 			Int2 mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
-			if (rgbaWriteMask != 0xF)
+			if(rgbaWriteMask != 0xF)
 			{
 				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
 			}
@@ -1649,7 +1649,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 			value = *Pointer<Int2>(buffer, 16);
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
-			if (rgbaWriteMask != 0xF)
+			if(rgbaWriteMask != 0xF)
 			{
 				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
 			}
@@ -2564,7 +2564,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		}
 		break;
 	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-		if ((rgbaWriteMask & 0x0000000F) != 0x0)
+		if((rgbaWriteMask & 0x0000000F) != 0x0)
 		{
 			Int2 mergedMask, packedCol, value;
 			Int4 packed = ((As<Int4>(oC.w) & Int4(0x3)) << 30) |
@@ -2575,7 +2575,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			buffer += 4 * x;
 			value = *Pointer<Int2>(buffer, 16);
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
-			if (rgbaWriteMask != 0xF)
+			if(rgbaWriteMask != 0xF)
 			{
 				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
 			}
@@ -2585,7 +2585,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 
 			value = *Pointer<Int2>(buffer, 16);
 			mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
-			if (rgbaWriteMask != 0xF)
+			if(rgbaWriteMask != 0xF)
 			{
 				mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
 			}

@@ -46,7 +46,7 @@ void Query::start()
 
 void Query::finish()
 {
-	if (wg.done())
+	if(wg.done())
 	{
 		auto prevState = state.exchange(FINISHED);
 		ASSERT(prevState == ACTIVE);

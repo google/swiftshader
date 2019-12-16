@@ -69,7 +69,7 @@ public:
 	void finish() override
 	{
 		ASSERT(!event.isSignalled());
-		if (wg.done())
+		if(wg.done())
 		{
 			event.signal();
 		}

@@ -22,7 +22,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 {
 	auto opcode = static_cast<spv::Op>(insn.word(3));
 
-	switch (opcode)
+	switch(opcode)
 	{
 	case spv::OpIAdd:
 	case spv::OpISub:
@@ -73,7 +73,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 		auto const &left = getObject(insn.word(5));
 		auto const &right = getObject(insn.word(6));
 
-		for (auto i = 0u; i < getType(result.type).sizeInComponents; i++)
+		for(auto i = 0u; i < getType(result.type).sizeInComponents; i++)
 		{
 			auto sel = cond.constantValue[condIsScalar ? 0 : i];
 			result.constantValue[i] = sel ? left.constantValue[i] : right.constantValue[i];
@@ -87,7 +87,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 		auto const &compositeObject = getObject(insn.word(4));
 		auto firstComponent = WalkLiteralAccessChain(compositeObject.type, insn.wordCount() - 5, insn.wordPointer(5));
 
-		for (auto i = 0u; i < getType(result.type).sizeInComponents; i++)
+		for(auto i = 0u; i < getType(result.type).sizeInComponents; i++)
 		{
 			result.constantValue[i] = compositeObject.constantValue[firstComponent + i];
 		}
@@ -102,17 +102,17 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 		auto firstNewComponent = WalkLiteralAccessChain(result.type, insn.wordCount() - 6, insn.wordPointer(6));
 
 		// old components before
-		for (auto i = 0u; i < firstNewComponent; i++)
+		for(auto i = 0u; i < firstNewComponent; i++)
 		{
 			result.constantValue[i] = oldObject.constantValue[i];
 		}
 		// new part
-		for (auto i = 0u; i < getType(newPart.type).sizeInComponents; i++)
+		for(auto i = 0u; i < getType(newPart.type).sizeInComponents; i++)
 		{
 			result.constantValue[firstNewComponent + i] = newPart.constantValue[i];
 		}
 		// old components after
-		for (auto i = firstNewComponent + getType(newPart.type).sizeInComponents; i < getType(result.type).sizeInComponents; i++)
+		for(auto i = firstNewComponent + getType(newPart.type).sizeInComponents; i < getType(result.type).sizeInComponents; i++)
 		{
 			result.constantValue[i] = oldObject.constantValue[i];
 		}
@@ -125,15 +125,15 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 		auto const &firstHalf = getObject(insn.word(4));
 		auto const &secondHalf = getObject(insn.word(5));
 
-		for (auto i = 0u; i < getType(result.type).sizeInComponents; i++)
+		for(auto i = 0u; i < getType(result.type).sizeInComponents; i++)
 		{
 			auto selector = insn.word(6 + i);
-			if (selector == static_cast<uint32_t>(-1))
+			if(selector == static_cast<uint32_t>(-1))
 			{
 				// Undefined value, we'll use zero
 				result.constantValue[i] = 0;
 			}
-			else if (selector < getType(firstHalf.type).sizeInComponents)
+			else if(selector < getType(firstHalf.type).sizeInComponents)
 			{
 				result.constantValue[i] = firstHalf.constantValue[selector];
 			}
@@ -161,12 +161,12 @@ void SpirvShader::EvalSpecConstantUnaryOp(InsnIterator insn)
 	auto const &lhs = getObject(insn.word(4));
 	auto size = getType(lhs.type).sizeInComponents;
 
-	for (auto i = 0u; i < size; i++)
+	for(auto i = 0u; i < size; i++)
 	{
 		auto &v = result.constantValue[i];
 		auto l = lhs.constantValue[i];
 
-		switch (opcode)
+		switch(opcode)
 		{
 		case spv::OpSConvert:
 		case spv::OpFConvert:
@@ -212,13 +212,13 @@ void SpirvShader::EvalSpecConstantBinaryOp(InsnIterator insn)
 	auto const &rhs = getObject(insn.word(5));
 	auto size = getType(lhs.type).sizeInComponents;
 
-	for (auto i = 0u; i < size; i++)
+	for(auto i = 0u; i < size; i++)
 	{
 		auto &v = result.constantValue[i];
 		auto l = lhs.constantValue[i];
 		auto r = rhs.constantValue[i];
 
-		switch (opcode)
+		switch(opcode)
 		{
 		case spv::OpIAdd:
 			v = l + r;
@@ -236,21 +236,21 @@ void SpirvShader::EvalSpecConstantBinaryOp(InsnIterator insn)
 			v = (r == 0) ? 0 : l % r;
 			break;
 		case spv::OpSDiv:
-			if (r == 0) r = UINT32_MAX;
-			if (l == static_cast<uint32_t>(INT32_MIN)) l = UINT32_MAX;
+			if(r == 0) r = UINT32_MAX;
+			if(l == static_cast<uint32_t>(INT32_MIN)) l = UINT32_MAX;
 			v = static_cast<int32_t>(l) / static_cast<int32_t>(r);
 			break;
 		case spv::OpSRem:
-			if (r == 0) r = UINT32_MAX;
-			if (l == static_cast<uint32_t>(INT32_MIN)) l = UINT32_MAX;
+			if(r == 0) r = UINT32_MAX;
+			if(l == static_cast<uint32_t>(INT32_MIN)) l = UINT32_MAX;
 			v = static_cast<int32_t>(l) % static_cast<int32_t>(r);
 			break;
 		case spv::OpSMod:
-			if (r == 0) r = UINT32_MAX;
-			if (l == static_cast<uint32_t>(INT32_MIN)) l = UINT32_MAX;
+			if(r == 0) r = UINT32_MAX;
+			if(l == static_cast<uint32_t>(INT32_MIN)) l = UINT32_MAX;
 			// Test if a signed-multiply would be negative.
 			v = static_cast<int32_t>(l) % static_cast<int32_t>(r);
-			if ((v & 0x80000000) != (r & 0x80000000))
+			if((v & 0x80000000) != (r & 0x80000000))
 				v += r;
 			break;
 		case spv::OpShiftRightLogical:

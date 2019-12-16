@@ -35,12 +35,12 @@ struct SpirvShader::GroupOps {
 	{
 		SpirvShader::GenericValue value(shader, state, insn.word(5));
 		auto &type = shader->getType(SpirvShader::Type::ID(insn.word(1)));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			auto mask = As<SIMD::UInt>(state->activeLaneMask());
 			SIMD::UInt v_uint = (value.UInt(i) & mask) | (As<SIMD::UInt>(identity) & ~mask);
 			TYPE v = As<TYPE>(v_uint);
-			switch (spv::GroupOperation(insn.word(4)))
+			switch(spv::GroupOperation(insn.word(4)))
 			{
 			case spv::GroupOperationReduce:
 			{
@@ -87,7 +87,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 
 	auto &dst = state->createIntermediate(resultId, type.sizeInComponents);
 
-	switch (insn.opcode())
+	switch(insn.opcode())
 	{
 	case spv::OpGroupNonUniformElect:
 	{
@@ -122,11 +122,11 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		auto res = SIMD::UInt(0xffffffff);
 		SIMD::UInt active = As<SIMD::UInt>(state->activeLaneMask());
 		SIMD::UInt inactive = ~active;
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			SIMD::UInt v = value.UInt(i) & active;
 			SIMD::UInt filled = v;
-			for (int j = 0; j < SIMD::Width - 1; j++)
+			for(int j = 0; j < SIMD::Width - 1; j++)
 			{
 				filled |= filled.yzwx & inactive; // Populate inactive 'holes' with a live value
 			}
@@ -142,7 +142,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		auto id = SIMD::Int(GetConstScalarInt(insn.word(5)));
 		GenericValue value(this, state, valueId);
 		auto mask = CmpEQ(id, SIMD::Int(0, 1, 2, 3));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			dst.move(i, OrAll(value.Int(i) & mask));
 		}
@@ -160,7 +160,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		//   elect = active & ~(active.Oxyz | active.OOxy | active.OOOx)
 		auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 		auto elect = active & ~(v0111 & (active.xxyz | active.xxxy | active.xxxx));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			dst.move(i, OrAll(value.Int(i) & elect));
 		}
@@ -215,7 +215,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		ASSERT(type.sizeInComponents == 1);
 		ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
 		GenericValue value(this, state, valueId);
-		switch (operation)
+		switch(operation)
 		{
 		case spv::GroupOperationReduce:
 			dst.move(0, CountBits(value.UInt(0) & SIMD::UInt(15)));
@@ -260,7 +260,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		auto y = CmpEQ(SIMD::Int(1), id.Int(0));
 		auto z = CmpEQ(SIMD::Int(2), id.Int(0));
 		auto w = CmpEQ(SIMD::Int(3), id.Int(0));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			SIMD::Int v = value.Int(i);
 			dst.move(i, (x & v.xxxx) | (y & v.yyyy) | (z & v.zzzz) | (w & v.wwww));
@@ -276,7 +276,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		auto y = CmpEQ(SIMD::Int(1), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
 		auto z = CmpEQ(SIMD::Int(2), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
 		auto w = CmpEQ(SIMD::Int(3), SIMD::Int(0, 1, 2, 3) ^ mask.Int(0));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			SIMD::Int v = value.Int(i);
 			dst.move(i, (x & v.xxxx) | (y & v.yyyy) | (z & v.zzzz) | (w & v.wwww));
@@ -292,7 +292,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		auto d1 = CmpEQ(SIMD::Int(1), delta.Int(0));
 		auto d2 = CmpEQ(SIMD::Int(2), delta.Int(0));
 		auto d3 = CmpEQ(SIMD::Int(3), delta.Int(0));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			SIMD::Int v = value.Int(i);
 			dst.move(i, (d0 & v.xyzw) | (d1 & v.xxyz) | (d2 & v.xxxy) | (d3 & v.xxxx));
@@ -308,7 +308,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		auto d1 = CmpEQ(SIMD::Int(1), delta.Int(0));
 		auto d2 = CmpEQ(SIMD::Int(2), delta.Int(0));
 		auto d3 = CmpEQ(SIMD::Int(3), delta.Int(0));
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			SIMD::Int v = value.Int(i);
 			dst.move(i, (d0 & v.xyzw) | (d1 & v.yzww) | (d2 & v.zwww) | (d3 & v.wwww));

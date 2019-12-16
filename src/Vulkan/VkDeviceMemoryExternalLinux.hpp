@@ -37,15 +37,15 @@ public:
 		AllocateInfo(const VkMemoryAllocateInfo* pAllocateInfo)
 		{
 			const auto* createInfo = reinterpret_cast<const VkBaseInStructure*>(pAllocateInfo->pNext);
-			while (createInfo)
+			while(createInfo)
 			{
-				switch (createInfo->sType)
+				switch(createInfo->sType)
 				{
 				case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
 					{
 						const auto* importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR*>(createInfo);
 
-						if (importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 						{
 							UNIMPLEMENTED("importInfo->handleType");
 						}
@@ -57,7 +57,7 @@ public:
 					{
 						const auto* exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo*>(createInfo);
 
-						if (exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 						{
 							UNIMPLEMENTED("exportInfo->handleTypes");
 						}
@@ -93,10 +93,10 @@ public:
 
 	VkResult allocate(size_t size, void** pBuffer) override
 	{
-		if (allocateInfo.importFd)
+		if(allocateInfo.importFd)
 		{
 			memfd.importFd(allocateInfo.fd);
-			if (!memfd.isValid())
+			if(!memfd.isValid())
 			{
 				return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 			}
@@ -107,14 +107,14 @@ public:
 			static int counter = 0;
 			char name[40];
 			snprintf(name, sizeof(name), "SwiftShader.Memory.%d", ++counter);
-			if (!memfd.allocate(name, size))
+			if(!memfd.allocate(name, size))
 			{
 				TRACE("memfd.allocate() returned %s", strerror(errno));
 				return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 			}
 		}
 		void* addr = memfd.mapReadWrite(0, size);
-		if (!addr)
+		if(!addr)
 		{
 			return VK_ERROR_MEMORY_MAP_FAILED;
 		}
@@ -135,7 +135,7 @@ public:
 	VkResult exportFd(int* pFd) const override
 	{
 		int fd = memfd.exportFd();
-		if (fd < 0)
+		if(fd < 0)
 		{
 			return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 		}

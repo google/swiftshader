@@ -166,7 +166,7 @@ template <typename T>
 std::pair<T, bool> Chan<T>::tryTake()
 {
 	std::unique_lock<std::mutex> lock(mutex);
-	if (queue.size() == 0)
+	if(queue.size() == 0)
 	{
 		return std::make_pair(T{}, false);
 	}

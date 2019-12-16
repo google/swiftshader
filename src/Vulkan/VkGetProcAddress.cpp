@@ -464,7 +464,7 @@ namespace {
 
 	int OpenDevice(const hw_module_t *module, const char *id, hw_device_t **device)
 	{
-		if (strcmp(id, HWVULKAN_DEVICE_0) != 0) return -ENOENT;
+		if(strcmp(id, HWVULKAN_DEVICE_0) != 0) return -ENOENT;
 		*device = &hal_device.common;
 		return 0;
 	}

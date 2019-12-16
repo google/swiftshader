@@ -32,9 +32,9 @@ Buffer::Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem) :
 	}
 
 	const auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
-	for (; nextInfo != nullptr; nextInfo = nextInfo->pNext)
+	for(; nextInfo != nullptr; nextInfo = nextInfo->pNext)
 	{
-		if (nextInfo->sType == VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO)
+		if(nextInfo->sType == VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO)
 		{
 			const auto* externalInfo = reinterpret_cast<const VkExternalMemoryBufferCreateInfo*>(nextInfo);
 			supportedExternalMemoryHandleTypes = externalInfo->handleTypes;

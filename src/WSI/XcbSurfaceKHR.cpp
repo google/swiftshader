@@ -67,12 +67,12 @@ private:
 	{
 		static auto exports = []
 		{
-			if (getProcAddress(RTLD_DEFAULT, "xcb_create_gc"))
+			if(getProcAddress(RTLD_DEFAULT, "xcb_create_gc"))
 			{
 				return std::unique_ptr<LibXcbExports>(new LibXcbExports(RTLD_DEFAULT));
 			}
 
-			if (auto lib = loadLibrary("libxcb.so.1"))
+			if(auto lib = loadLibrary("libxcb.so.1"))
 			{
 				return std::unique_ptr<LibXcbExports>(new LibXcbExports(lib));
 			}
@@ -149,7 +149,7 @@ VkResult XcbSurfaceKHR::present(PresentImage* image)
 		free(geom);
 		VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-		if (windowExtent.width != extent.width || windowExtent.height != extent.height)
+		if(windowExtent.width != extent.width || windowExtent.height != extent.height)
 		{
 			return VK_ERROR_OUT_OF_DATE_KHR;
 		}

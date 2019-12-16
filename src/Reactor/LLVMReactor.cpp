@@ -153,7 +153,7 @@ VALUE Cache<KEY, VALUE>::getOrCreate(KEY key, std::function<VALUE()> create)
 {
 	std::unique_lock<std::mutex> lock(mutex);
 	auto it = map.find(key);
-	if (it != map.end())
+	if(it != map.end())
 	{
 		return it->second;
 	}
@@ -244,9 +244,9 @@ JITGlobals JITGlobals::create()
 #endif
 
 	std::vector<std::string> mattrs;
-	for (auto &feature : features)
+	for(auto &feature : features)
 	{
-		if (feature.second) { mattrs.push_back(feature.first()); }
+		if(feature.second) { mattrs.push_back(feature.first()); }
 	}
 
 	const char* march = nullptr;
@@ -289,7 +289,7 @@ JITGlobals JITGlobals::create()
 
 llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 {
-	switch (level)
+	switch(level)
 	{
 		case rr::Optimization::Level::None:       return ::llvm::CodeGenOpt::None;
 		case rr::Optimization::Level::Less:       return ::llvm::CodeGenOpt::Less;
@@ -333,7 +333,7 @@ public:
 			purpose == llvm::SectionMemoryManager::AllocationPurpose::Code;
 		void* addr = rr::allocateMemoryPages(
 			numBytes, flagsToPermissions(flags), need_exec);
-		if (!addr)
+		if(!addr)
 			return llvm::sys::MemoryBlock();
 		return llvm::sys::MemoryBlock(addr, numBytes);
 	}
@@ -362,15 +362,15 @@ public:
 private:
 	int flagsToPermissions(unsigned flags) {
 		int result = 0;
-		if (flags & llvm::sys::Memory::MF_READ)
+		if(flags & llvm::sys::Memory::MF_READ)
 		{
 			result |= rr::PERMISSION_READ;
 		}
-		if (flags & llvm::sys::Memory::MF_WRITE)
+		if(flags & llvm::sys::Memory::MF_WRITE)
 		{
 			result |= rr::PERMISSION_WRITE;
 		}
-		if (flags & llvm::sys::Memory::MF_EXEC)
+		if(flags & llvm::sys::Memory::MF_EXEC)
 		{
 			result |= rr::PERMISSION_EXECUTE;
 		}
@@ -402,7 +402,7 @@ public:
 			session,
 			[&](const std::string &name) {
 				void *func = rr::resolveExternalSymbol(name.c_str());
-				if (func != nullptr)
+				if(func != nullptr)
 				{
 					return llvm::JITSymbol(
 						reinterpret_cast<uintptr_t>(func), llvm::JITSymbolFlags::Absolute);
@@ -410,7 +410,7 @@ public:
 				return objLayer.findSymbol(name, true);
 			},
 			[](llvm::Error err) {
-				if (err)
+				if(err)
 				{
 					// TODO: Log the symbol resolution errors.
 					return;
@@ -438,7 +438,7 @@ public:
 		addresses(count)
 	{
 		std::vector<std::string> mangledNames(count);
-		for (size_t i = 0; i < count; i++)
+		for(size_t i = 0; i < count; i++)
 		{
 			auto func = funcs[i];
 			static size_t numEmittedFunctions = 0;
@@ -461,7 +461,7 @@ public:
 		llvm::cantFail(compileLayer.addModule(moduleKey, std::move(module)));
 
 		// Resolve the function addresses.
-		for (size_t i = 0; i < count; i++)
+		for(size_t i = 0; i < count; i++)
 		{
 			auto symbol = compileLayer.findSymbolIn(moduleKey, mangledNames[i], false);
 			if(auto address = symbol.getAddress())
@@ -502,7 +502,7 @@ public:
 	{
 
 #ifdef ENABLE_RR_DEBUG_INFO
-		if (debugInfo != nullptr)
+		if(debugInfo != nullptr)
 		{
 			return; // Don't optimize if we're generating debug info.
 		}
@@ -702,7 +702,7 @@ llvm::Value *lowerPSAT(llvm::Value *x, llvm::Value *y, bool isAdd, bool isSigned
 	unsigned numBits = ty->getScalarSizeInBits();
 
 	llvm::Value *max, *min, *extX, *extY;
-	if (isSigned)
+	if(isSigned)
 	{
 		max = llvm::ConstantInt::get(extTy, (1LL << (numBits - 1)) - 1, true);
 		min = llvm::ConstantInt::get(extTy, (-1LL << (numBits - 1)), true);
@@ -739,7 +739,7 @@ llvm::Value *lowerRCP(llvm::Value *x)
 {
 	llvm::Type *ty = x->getType();
 	llvm::Constant *one;
-	if (llvm::VectorType *vectorTy = llvm::dyn_cast<llvm::VectorType>(ty))
+	if(llvm::VectorType *vectorTy = llvm::dyn_cast<llvm::VectorType>(ty))
 	{
 		one = llvm::ConstantVector::getSplat(
 			vectorTy->getNumElements(),
@@ -797,7 +797,7 @@ llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
 
 	llvm::SmallVector<uint32_t, 16> evenIdx;
 	llvm::SmallVector<uint32_t, 16> oddIdx;
-	for (uint64_t i = 0, n = ty->getNumElements(); i < n; i += 2)
+	for(uint64_t i = 0, n = ty->getNumElements(); i < n; i += 2)
 	{
 		evenIdx.push_back(i);
 		oddIdx.push_back(i + 1);
@@ -819,7 +819,7 @@ llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 	uint64_t truncNumBits = dstElemTy->getIntegerBitWidth();
 	ASSERT_MSG(truncNumBits < 64, "shift 64 must be handled separately. truncNumBits: %d", int(truncNumBits));
 	llvm::Constant *max, *min;
-	if (isSigned)
+	if(isSigned)
 	{
 		max = llvm::ConstantInt::get(srcTy, (1LL << (truncNumBits - 1)) - 1, true);
 		min = llvm::ConstantInt::get(srcTy, (-1LL << (truncNumBits - 1)), true);
@@ -852,7 +852,7 @@ llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
 
 	llvm::Value *ret = jit->builder->CreateZExt(
 		jit->builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
-	for (uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
+	for(uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
 	{
 		llvm::Value *elem = jit->builder->CreateZExt(
 			jit->builder->CreateExtractElement(cmp, i), retTy);
@@ -869,7 +869,7 @@ llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
 
 	llvm::Value *ret = jit->builder->CreateZExt(
 		jit->builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
-	for (uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
+	for(uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
 	{
 		llvm::Value *elem = jit->builder->CreateZExt(
 			jit->builder->CreateExtractElement(cmp, i), retTy);
@@ -879,7 +879,7 @@ llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
 }
 #endif  // !defined(__i386__) && !defined(__x86_64__)
 
-#if (LLVM_VERSION_MAJOR >= 8) || (!defined(__i386__) && !defined(__x86_64__))
+#if(LLVM_VERSION_MAJOR >= 8) || (!defined(__i386__) && !defined(__x86_64__))
 llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
 {
 	#if LLVM_VERSION_MAJOR >= 8
@@ -923,7 +923,7 @@ llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 	llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
 
 	llvm::Value *extX, *extY;
-	if (sext)
+	if(sext)
 	{
 		extX = jit->builder->CreateSExt(x, extTy);
 		extY = jit->builder->CreateSExt(y, extTy);
@@ -1051,12 +1051,12 @@ template<typename F>
 static uint32_t sync_fetch_and_op(uint32_t volatile *ptr, uint32_t val, F f)
 {
 	// Build an arbitrary op out of looped CAS
-	for (;;)
+	for(;;)
 	{
 		uint32_t expected = *ptr;
 		uint32_t desired = f(expected, val);
 
-		if (expected == __sync_val_compare_and_swap_4(ptr, expected, desired))
+		if(expected == __sync_val_compare_and_swap_4(ptr, expected, desired))
 			return expected;
 	}
 }
@@ -1068,7 +1068,7 @@ void* resolveExternalSymbol(const char* name)
 	{
 		static void load(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
 		{
-			switch (size)
+			switch(size)
 			{
 				case 1: atomicLoad<uint8_t>(ptr, ret, ordering); break;
 				case 2: atomicLoad<uint16_t>(ptr, ret, ordering); break;
@@ -1080,7 +1080,7 @@ void* resolveExternalSymbol(const char* name)
 		}
 		static void store(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
 		{
-			switch (size)
+			switch(size)
 			{
 				case 1: atomicStore<uint8_t>(ptr, ret, ordering); break;
 				case 2: atomicStore<uint16_t>(ptr, ret, ordering); break;
@@ -1211,7 +1211,7 @@ void* resolveExternalSymbol(const char* name)
 	// Trim off any underscores from the start of the symbol. LLVM likes
 	// to append these on macOS.
 	const char* trimmed = name;
-	while (trimmed[0] == '_') { trimmed++; }
+	while(trimmed[0] == '_') { trimmed++; }
 
 	auto it = resolver.functions.find(trimmed);
 	// Missing functions will likely make the module fail in exciting non-obvious ways.
@@ -1396,7 +1396,7 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 	}
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	if (jit->debugInfo != nullptr)
+	if(jit->debugInfo != nullptr)
 	{
 		jit->debugInfo->Finalize();
 	}
@@ -1696,11 +1696,11 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 			auto elTy = T(type);
 			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
 
-			if (!atomic)
+			if(!atomic)
 			{
 				return V(jit->builder->CreateAlignedLoad(V(ptr), alignment, isVolatile));
 			}
-			else if (elTy->isIntegerTy() || elTy->isPointerTy())
+			else if(elTy->isIntegerTy() || elTy->isPointerTy())
 			{
 				// Integers and pointers can be atomically loaded by setting
 				// the ordering constraint on the load instruction.
@@ -1708,7 +1708,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
 				return V(load);
 			}
-			else if (elTy->isFloatTy() || elTy->isDoubleTy())
+			else if(elTy->isFloatTy() || elTy->isDoubleTy())
 			{
 				// LLVM claims to support atomic loads of float types as
 				// above, but certain backends cannot deal with this.
@@ -1780,18 +1780,18 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 			auto elTy = T(type);
 			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
 
-			if (!atomic)
+			if(!atomic)
 			{
 				jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
 			}
-			else if (elTy->isIntegerTy() || elTy->isPointerTy())
+			else if(elTy->isIntegerTy() || elTy->isPointerTy())
 			{
 				// Integers and pointers can be atomically stored by setting
 				// the ordering constraint on the store instruction.
 				auto store = jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
 				store->setAtomic(atomicOrdering(atomic, memoryOrder));
 			}
-			else if (elTy->isFloatTy() || elTy->isDoubleTy())
+			else if(elTy->isFloatTy() || elTy->isDoubleTy())
 			{
 				// LLVM claims to support atomic stores of float types as
 				// above, but certain backends cannot deal with this.
@@ -3888,7 +3888,7 @@ static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char* na
 	auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), ::llvm::ArrayRef<llvm::Type*>(T(Float::getType())), false);
 	auto func = jit->module->getOrInsertFunction(name, funcTy);
 	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
-	for (uint64_t i = 0; i < 4; i++)
+	for(uint64_t i = 0; i < 4; i++)
 	{
 		auto el = jit->builder->CreateCall(func, V(Nucleus::createExtractElement(v.value, Float::getType(), i)));
 		out = V(Nucleus::createInsertElement(V(out), V(el), i));
@@ -3949,7 +3949,7 @@ RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 	auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), paramTys, false);
 	auto func = jit->module->getOrInsertFunction("atan2f", funcTy);
 	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
-	for (uint64_t i = 0; i < 4; i++)
+	for(uint64_t i = 0; i < 4; i++)
 	{
 		auto el = jit->builder->CreateCall2(func, ARGS(
 				V(Nucleus::createExtractElement(x.value, Float::getType(), i)),
@@ -4057,14 +4057,14 @@ RValue<Pointer<Byte>> ConstantData(void const * data, size_t size)
 Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
 {
 	::llvm::SmallVector<::llvm::Type*, 8> paramTys;
-	for (auto ty : argTys) { paramTys.push_back(T(ty)); }
+	for(auto ty : argTys) { paramTys.push_back(T(ty)); }
 	auto funcTy = ::llvm::FunctionType::get(T(retTy), paramTys, false);
 
 	auto funcPtrTy = funcTy->getPointerTo();
 	auto funcPtr = jit->builder->CreatePointerCast(V(fptr.value), funcPtrTy);
 
 	::llvm::SmallVector<::llvm::Value*, 8> arguments;
-	for (auto arg : args) { arguments.push_back(V(arg)); }
+	for(auto arg : args) { arguments.push_back(V(arg)); }
 	return V(jit->builder->CreateCall(funcPtr, arguments));
 }
 
@@ -4558,7 +4558,7 @@ static std::vector<Value*> extractAll(Value* vec, int n)
 {
 	std::vector<Value*> elements;
 	elements.reserve(n);
-	for (int i = 0; i < n; i++)
+	for(int i = 0; i < n; i++)
 	{
 		auto el = V(jit->builder->CreateExtractElement(V(vec), i));
 		elements.push_back(el);
@@ -4573,9 +4573,9 @@ static std::vector<Value*> toInt(const std::vector<Value*>& vals, bool isSigned)
 	auto intTy = ::llvm::Type::getIntNTy(jit->context, sizeof(int) * 8); // Natural integer width.
 	std::vector<Value*> elements;
 	elements.reserve(vals.size());
-	for (auto v : vals)
+	for(auto v : vals)
 	{
-		if (isSigned)
+		if(isSigned)
 		{
 			elements.push_back(V(jit->builder->CreateSExt(V(v), intTy)));
 		}
@@ -4593,7 +4593,7 @@ static std::vector<Value*> toDouble(const std::vector<Value*>& vals)
 	auto doubleTy = ::llvm::Type::getDoubleTy(jit->context);
 	std::vector<Value*> elements;
 	elements.reserve(vals.size());
-	for (auto v : vals)
+	for(auto v : vals)
 	{
 		elements.push_back(V(jit->builder->CreateFPExt(V(v), doubleTy)));
 	}
@@ -4628,14 +4628,14 @@ void Printv(const char* function, const char* file, int line, const char* fmt, s
 
 	// Build the printf format message string.
 	std::string str;
-	if (file != nullptr) { str += (line > 0) ? "%s:%d " : "%s "; }
-	if (function != nullptr) { str += "%s "; }
+	if(file != nullptr) { str += (line > 0) ? "%s:%d " : "%s "; }
+	if(function != nullptr) { str += "%s "; }
 	str += fmt;
 
 	// Perform subsitution on all '{n}' bracketed indices in the format
 	// message.
 	int i = 0;
-	for (const PrintValue& arg : args)
+	for(const PrintValue& arg : args)
 	{
 		str = replace(str, "{" + std::to_string(i++) + "}", arg.format);
 	}
@@ -4646,23 +4646,23 @@ void Printv(const char* function, const char* file, int line, const char* fmt, s
 	vals.push_back(jit->builder->CreateGlobalStringPtr(str));
 
 	// Add optional file, line and function info if provided.
-	if (file != nullptr)
+	if(file != nullptr)
 	{
 		vals.push_back(jit->builder->CreateGlobalStringPtr(file));
-		if (line > 0)
+		if(line > 0)
 		{
 			vals.push_back(::llvm::ConstantInt::get(intTy, line));
 		}
 	}
-	if (function != nullptr)
+	if(function != nullptr)
 	{
 		vals.push_back(jit->builder->CreateGlobalStringPtr(function));
 	}
 
 	// Add all format arguments.
-	for (const PrintValue& arg : args)
+	for(const PrintValue& arg : args)
 	{
-		for (auto val : arg.values)
+		for(auto val : arg.values)
 		{
 			vals.push_back(V(val));
 		}
@@ -4683,7 +4683,7 @@ void Nop()
 void EmitDebugLocation()
 {
 #ifdef ENABLE_RR_DEBUG_INFO
-	if (jit->debugInfo != nullptr)
+	if(jit->debugInfo != nullptr)
 	{
 		jit->debugInfo->EmitLocation();
 	}
@@ -4693,7 +4693,7 @@ void EmitDebugLocation()
 void EmitDebugVariable(Value* value)
 {
 #ifdef ENABLE_RR_DEBUG_INFO
-	if (jit->debugInfo != nullptr)
+	if(jit->debugInfo != nullptr)
 	{
 		jit->debugInfo->EmitVariable(value);
 	}
@@ -4703,7 +4703,7 @@ void EmitDebugVariable(Value* value)
 void FlushDebug()
 {
 #ifdef ENABLE_RR_DEBUG_INFO
-	if (jit->debugInfo != nullptr)
+	if(jit->debugInfo != nullptr)
 	{
 		jit->debugInfo->Flush();
 	}
@@ -4761,7 +4761,7 @@ void promoteFunctionToCoroutine()
 	//
 	//    bool coroutine_await(CoroutineHandle* handle, YieldType* out)
 	//    {
-	//        if (llvm.coro.done(handle))
+	//        if(llvm.coro.done(handle))
 	//        {
 	//            return false;
 	//        }
@@ -4823,7 +4823,7 @@ void promoteFunctionToCoroutine()
 	//
 	//    end:
 	//        SuspendAction action = llvm.coro.suspend(none, true /* final */);  // <-- RESUME POINT
-	//        switch (action)
+	//        switch(action)
 	//        {
 	//        case SuspendActionResume:
 	//            UNREACHABLE(); // Illegal to resume after final suspend.
@@ -4916,7 +4916,7 @@ void Nucleus::createCoroutine(Type *YieldType, std::vector<Type*> &Params)
 
 void Nucleus::yield(Value* val)
 {
-	if (jit->coroutine.id == nullptr)
+	if(jit->coroutine.id == nullptr)
 	{
 		// First call to yield().
 		// Promote the function to a full coroutine.
@@ -4927,7 +4927,7 @@ void Nucleus::yield(Value* val)
 	//      promise = val;
 	//
 	//      auto action = llvm.coro.suspend(none, false /* final */); // <-- RESUME POINT
-	//      switch (action)
+	//      switch(action)
 	//      {
 	//      case SuspendActionResume:
 	//          goto resume;
@@ -4969,7 +4969,7 @@ void Nucleus::yield(Value* val)
 std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
 {
 	bool isCoroutine = jit->coroutine.id != nullptr;
-	if (isCoroutine)
+	if(isCoroutine)
 	{
 		jit->builder->CreateBr(jit->coroutine.endBlock);
 	}
@@ -4988,7 +4988,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	}
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	if (jit->debugInfo != nullptr)
+	if(jit->debugInfo != nullptr)
 	{
 		jit->debugInfo->Finalize();
 	}
@@ -5001,7 +5001,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		jit->module->print(file, 0);
 	}
 
-	if (isCoroutine)
+	if(isCoroutine)
 	{
 		// Run manadory coroutine transforms.
 		llvm::legacy::PassManager pm;

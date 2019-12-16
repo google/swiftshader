@@ -48,14 +48,14 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 	}
 
 	float *pPixel = static_cast<float *>(pixel);
-	if (viewFormat.isUnsignedNormalized())
+	if(viewFormat.isUnsignedNormalized())
 	{
 		pPixel[0] = sw::clamp(pPixel[0], 0.0f, 1.0f);
 		pPixel[1] = sw::clamp(pPixel[1], 0.0f, 1.0f);
 		pPixel[2] = sw::clamp(pPixel[2], 0.0f, 1.0f);
 		pPixel[3] = sw::clamp(pPixel[3], 0.0f, 1.0f);
 	}
-	else if (viewFormat.isSignedNormalized())
+	else if(viewFormat.isSignedNormalized())
 	{
 		pPixel[0] = sw::clamp(pPixel[0], -1.0f, 1.0f);
 		pPixel[1] = sw::clamp(pPixel[1], -1.0f, 1.0f);
@@ -119,12 +119,12 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 			0, 0, // sWidth, sHeight
 		};
 
-		if (renderArea && dest->is3DSlice())
+		if(renderArea && dest->is3DSlice())
 		{
 			// Reinterpret layers as depth slices
 			subresLayers.baseArrayLayer = 0;
 			subresLayers.layerCount = 1;
-			for (uint32_t depth = subresourceRange.baseArrayLayer; depth <= lastLayer; depth++)
+			for(uint32_t depth = subresourceRange.baseArrayLayer; depth <= lastLayer; depth++)
 			{
 				data.dest = dest->getTexelPointer({0, 0, static_cast<int32_t>(depth)}, subresLayers);
 				blitRoutine(&data);

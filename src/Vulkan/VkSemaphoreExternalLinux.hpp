@@ -85,7 +85,7 @@ public:
 	void wait()
 	{
 		pthread_mutex_lock(&mutex);
-		while (!signaled)
+		while(!signaled)
 		{
 			pthread_cond_wait(&cond, &mutex);
 		}
@@ -104,7 +104,7 @@ public:
 	{
 		pthread_mutex_lock(&mutex);
 		bool result = signaled;
-		if (result)
+		if(result)
 		{
 			signaled = false;
 		}
@@ -150,7 +150,7 @@ public:
 		static int counter = 0;
 		char name[40];
 		snprintf(name, sizeof(name), "SwiftShader.Semaphore.%d", ++counter);
-		if (!memfd.allocate(name, size))
+		if(!memfd.allocate(name, size))
 		{
 			ABORT("memfd.allocate() returned %s", strerror(errno));
 		}
@@ -172,7 +172,7 @@ public:
 	VkResult exportFd(int* pFd) const
 	{
 		int fd = memfd.exportFd();
-		if (fd < 0)
+		if(fd < 0)
 		{
 			return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 		}
@@ -199,9 +199,9 @@ private:
 	// Unmap the semaphore if needed and close its file descriptor.
 	void close()
 	{
-		if (semaphore)
+		if(semaphore)
 		{
-			if (semaphore->deref())
+			if(semaphore->deref())
 			{
 				semaphore->~SharedSemaphore();
 			}
@@ -216,12 +216,12 @@ private:
 	{
 		// Map the region into memory and point the semaphore to it.
 		void* addr = memfd.mapReadWrite(0, size);
-		if (!addr)
+		if(!addr)
 		{
 			ABORT("mmap() failed: %s", strerror(errno));
 		}
 		semaphore = reinterpret_cast<SharedSemaphore *>(addr);
-		if (needInitialization)
+		if(needInitialization)
 		{
 			new (semaphore) SharedSemaphore();
 		}

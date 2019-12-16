@@ -41,7 +41,7 @@ public:
 	explicit RoutineT(const std::shared_ptr<Routine>& routine)
 		: routine(routine)
 	{
-		if (routine)
+		if(routine)
 		{
 			callable = reinterpret_cast<CallableType>(const_cast<void*>(routine->getEntry(0)));
 		}

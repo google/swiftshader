@@ -100,7 +100,7 @@ template <typename F>
 void Broadcaster::modify(F&& f)
 {
 	std::unique_lock<std::recursive_mutex> lock(mutex);
-	if (listenersInUse > 0)
+	if(listenersInUse > 0)
 	{
 		// The listeners map is current being iterated over.
 		// Make a copy before making the edit.

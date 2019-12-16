@@ -189,7 +189,7 @@ VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBo
 		{
 			return any.isSignalled() ? VK_SUCCESS : VK_TIMEOUT;
 		}
-		else if (infiniteTimeout)
+		else if(infiniteTimeout)
 		{
 			any.wait();
 			return VK_SUCCESS;

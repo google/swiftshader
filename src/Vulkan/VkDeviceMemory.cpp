@@ -67,7 +67,7 @@ template <typename  T>
 static bool parseCreateInfo(const VkMemoryAllocateInfo* pAllocateInfo,
 							ExternalMemoryTraits* pTraits)
 {
-	if (T::supportsAllocateInfo(pAllocateInfo))
+	if(T::supportsAllocateInfo(pAllocateInfo))
 	{
 		pTraits->typeFlagBit = T::typeFlagBit;
 		pTraits->instanceSize = sizeof(T);
@@ -99,7 +99,7 @@ public:
 	VkResult allocate(size_t size, void** pBuffer) override
 	{
 		void* buffer = vk::allocate(size, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
-		if (!buffer)
+		if(!buffer)
 			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
 		*pBuffer = buffer;
@@ -133,7 +133,7 @@ static void findTraits(const VkMemoryAllocateInfo* pAllocateInfo,
 					   ExternalMemoryTraits*       pTraits)
 {
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
-	if (parseCreateInfo<OpaqueFdExternalMemory>(pAllocateInfo, pTraits))
+	if(parseCreateInfo<OpaqueFdExternalMemory>(pAllocateInfo, pTraits))
 	{
 		return;
 	}
@@ -154,7 +154,7 @@ DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo* pAllocateInfo, void* mem)
 
 void DeviceMemory::destroy(const VkAllocationCallbacks* pAllocator)
 {
-	if (buffer)
+	if(buffer)
 	{
 		external->deallocate(buffer, size);
 		buffer = nullptr;
@@ -173,7 +173,7 @@ size_t DeviceMemory::ComputeRequiredAllocationSize(const VkMemoryAllocateInfo* p
 VkResult DeviceMemory::allocate()
 {
 	VkResult result = VK_SUCCESS;
-	if (!buffer)
+	if(!buffer)
 	{
 		result = external->allocate(size, &buffer);
 	}
@@ -202,14 +202,14 @@ void* DeviceMemory::getOffsetPointer(VkDeviceSize pOffset) const
 bool DeviceMemory::checkExternalMemoryHandleType(
 		VkExternalMemoryHandleTypeFlags supportedHandleTypes) const
 {
-	if (!supportedHandleTypes)
+	if(!supportedHandleTypes)
 	{
 		// This image or buffer does not need to be stored on external
 		// memory, so this check should always pass.
 		return true;
 	}
 	VkExternalMemoryHandleTypeFlagBits handle_type_bit = external->getFlagBit();
-	if (!handle_type_bit)
+	if(!handle_type_bit)
 	{
 		// This device memory is not external and can accomodate
 		// any image or buffer as well.

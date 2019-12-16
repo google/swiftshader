@@ -421,7 +421,7 @@ void DrawCall::teardown()
 		events = nullptr;
 	}
 
-	if (occlusionQuery != nullptr)
+	if(occlusionQuery != nullptr)
 	{
 		for(int cluster = 0; cluster < MaxClusterCount; cluster++)
 		{
@@ -450,14 +450,14 @@ void DrawCall::run(const marl::Loan<DrawCall>& draw, marl::Ticket::Queue* ticket
 		ticket.done();
 	});
 
-	for (unsigned int batchId = 0; batchId < numBatches; batchId++)
+	for(unsigned int batchId = 0; batchId < numBatches; batchId++)
 	{
 		auto batch = draw->batchDataPool->borrow();
 		batch->id = batchId;
 		batch->firstPrimitive = batch->id * numPrimitivesPerBatch;
 		batch->numPrimitives = std::min(batch->firstPrimitive + numPrimitivesPerBatch, numPrimitives) - batch->firstPrimitive;
 
-		for (int cluster = 0; cluster < MaxClusterCount; cluster++)
+		for(int cluster = 0; cluster < MaxClusterCount; cluster++)
 		{
 			batch->clusterTickets[cluster] = std::move(clusterQueues[cluster].take());
 		}
@@ -466,18 +466,18 @@ void DrawCall::run(const marl::Loan<DrawCall>& draw, marl::Ticket::Queue* ticket
 
 			processVertices(draw.get(), batch.get());
 
-			if (!draw->setupState.rasterizerDiscard)
+			if(!draw->setupState.rasterizerDiscard)
 			{
 				processPrimitives(draw.get(), batch.get());
 
-				if (batch->numVisible > 0)
+				if(batch->numVisible > 0)
 				{
 					processPixels(draw, batch, finally);
 					return;
 				}
 			}
 
-			for (int cluster = 0; cluster < MaxClusterCount; cluster++)
+			for(int cluster = 0; cluster < MaxClusterCount; cluster++)
 			{
 				batch->clusterTickets[cluster].done();
 			}
@@ -506,7 +506,7 @@ void DrawCall::processVertices(DrawCall* draw, BatchData* batch)
 	vertexTask.primitiveStart = batch->firstPrimitive;
 	// We're only using batch compaction for points, not lines
 	vertexTask.vertexCount = batch->numPrimitives * ((draw->topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST) ? 1 : 3);
-	if (vertexTask.vertexCache.drawCall != draw->id)
+	if(vertexTask.vertexCache.drawCall != draw->id)
 	{
 		vertexTask.vertexCache.clear();
 		vertexTask.vertexCache.drawCall = draw->id;
@@ -534,7 +534,7 @@ void DrawCall::processPixels(const marl::Loan<DrawCall>& draw, const marl::Loan<
 		std::shared_ptr<marl::Finally> finally;
 	};
 	auto data = std::make_shared<Data>(draw, batch, finally);
-	for (int cluster = 0; cluster < MaxClusterCount; cluster++)
+	for(int cluster = 0; cluster < MaxClusterCount; cluster++)
 	{
 		batch->clusterTickets[cluster].onCall([data, cluster]
 		{
@@ -601,7 +601,7 @@ void DrawCall::processPrimitiveVertices(
 	}
 
 	// setBatchIndices() takes care of the point case, since it's different due to the compaction
-	if (topology != VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
+	if(topology != VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
 	{
 		// Repeat the last index to allow for SIMD width overrun.
 		triangleIndicesOut[triangleCount][0] = triangleIndicesOut[triangleCount - 1][2];
@@ -1178,7 +1178,7 @@ void Renderer::advanceInstanceAttributes(Stream* inputs)
 	for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
 		auto &attrib = inputs[i];
-		if (attrib.count && attrib.instanceStride && (attrib.instanceStride < attrib.robustnessSize))
+		if(attrib.count && attrib.instanceStride && (attrib.instanceStride < attrib.robustnessSize))
 		{
 			// Under the casts: attrib.buffer += attrib.instanceStride
 			attrib.buffer = (void const *)((uintptr_t)attrib.buffer + attrib.instanceStride);

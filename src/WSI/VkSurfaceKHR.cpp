@@ -196,13 +196,13 @@ bool SurfaceKHR::hasAssociatedSwapchain()
 
 VkResult SurfaceKHR::getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects) const
 {
-	if (!pRects)
+	if(!pRects)
 	{
 		*pRectCount = 1;
 		return VK_SUCCESS;
 	}
 
-	if (*pRectCount < 1)
+	if(*pRectCount < 1)
 	{
 		return VK_INCOMPLETE;
 	}

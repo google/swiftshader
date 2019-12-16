@@ -38,7 +38,7 @@
 #undef allocate
 #undef deallocate
 
-#if (defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined (_M_X64)) && !defined(__x86__)
+#if(defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined (_M_X64)) && !defined(__x86__)
 #define __x86__
 #endif
 
@@ -91,7 +91,7 @@ void *allocateRaw(size_t bytes, size_t alignment)
 #if defined(_WIN32)
 DWORD permissionsToProtectMode(int permissions)
 {
-	switch (permissions) {
+	switch(permissions) {
 		case PERMISSION_READ:
 		  return PAGE_READONLY;
 		case PERMISSION_EXECUTE:
@@ -111,15 +111,15 @@ DWORD permissionsToProtectMode(int permissions)
 int permissionsToMmapProt(int permissions)
 {
 	int result = 0;
-	if (permissions & PERMISSION_READ)
+	if(permissions & PERMISSION_READ)
 	{
 		result |= PROT_READ;
 	}
-	if (permissions & PERMISSION_WRITE)
+	if(permissions & PERMISSION_WRITE)
 	{
 		result |= PROT_WRITE;
 	}
-	if (permissions & PERMISSION_EXECUTE)
+	if(permissions & PERMISSION_EXECUTE)
 	{
 		result |= PROT_EXEC;
 	}
@@ -177,15 +177,15 @@ void ensureAnonFileSize(int anonFd, size_t length)
 #if defined(__Fuchsia__)
 zx_vm_option_t permissionsToZxVmOptions(int permissions) {
 	zx_vm_option_t result = 0;
-	if (permissions & PERMISSION_READ)
+	if(permissions & PERMISSION_READ)
 	{
 		result |= ZX_VM_PERM_READ;
 	}
-	if (permissions & PERMISSION_WRITE)
+	if(permissions & PERMISSION_WRITE)
 	{
 		result |= ZX_VM_PERM_WRITE;
 	}
-	if (permissions & PERMISSION_EXECUTE)
+	if(permissions & PERMISSION_EXECUTE)
 	{
 		result |= ZX_VM_PERM_EXECUTE;
 	}
@@ -277,10 +277,10 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 		}
 	#elif defined(__Fuchsia__)
 		zx_handle_t vmo;
-		if (zx_vmo_create(length, 0, &vmo) != ZX_OK) {
+		if(zx_vmo_create(length, 0, &vmo) != ZX_OK) {
 			return nullptr;
 		}
-		if (need_exec &&
+		if(need_exec &&
 		    zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo) != ZX_OK)
 		{
 			return nullptr;
@@ -290,7 +290,7 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 			zx_vmar_root_self(), permissionsToZxVmOptions(permissions), 0, vmo,
 			0, length, &reservation);
 		zx_handle_close(vmo);
-		if (status != ZX_OK) {
+		if(status != ZX_OK) {
 			return nullptr;
 		}
 
@@ -327,7 +327,7 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 
 void protectMemoryPages(void *memory, size_t bytes, int permissions)
 {
-	if (bytes == 0)
+	if(bytes == 0)
 		return;
 	bytes = roundUp(bytes, memoryPageSize());
 

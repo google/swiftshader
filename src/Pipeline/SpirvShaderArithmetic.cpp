@@ -27,7 +27,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesScalar(InsnIterator insn, Em
 	auto lhs = GenericValue(this, state, insn.word(3));
 	auto rhs = GenericValue(this, state, insn.word(4));
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		dst.move(i, lhs.Float(i) * rhs.Float(0));
 	}
@@ -43,10 +43,10 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, Em
 	auto rhs = GenericValue(this, state, insn.word(4));
 	auto rhsType = getType(rhs.type);
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		SIMD::Float v = lhs.Float(i) * rhs.Float(0);
-		for (auto j = 1u; j < rhsType.sizeInComponents; j++)
+		for(auto j = 1u; j < rhsType.sizeInComponents; j++)
 		{
 			v += lhs.Float(i + type.sizeInComponents * j) * rhs.Float(j);
 		}
@@ -64,10 +64,10 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, Em
 	auto rhs = GenericValue(this, state, insn.word(4));
 	auto lhsType = getType(lhs.type);
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
 		SIMD::Float v = lhs.Float(0) * rhs.Float(i * lhsType.sizeInComponents);
-		for (auto j = 1u; j < lhsType.sizeInComponents; j++)
+		for(auto j = 1u; j < lhsType.sizeInComponents; j++)
 		{
 			v += lhs.Float(j) * rhs.Float(i * lhsType.sizeInComponents + j);
 		}
@@ -88,12 +88,12 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, Em
 	auto numRows = getType(type.definition.word(2)).definition.word(3);
 	auto numAdds = getType(getObject(insn.word(3)).type).definition.word(3);
 
-	for (auto row = 0u; row < numRows; row++)
+	for(auto row = 0u; row < numRows; row++)
 	{
-		for (auto col = 0u; col < numColumns; col++)
+		for(auto col = 0u; col < numColumns; col++)
 		{
 			SIMD::Float v = SIMD::Float(0);
-			for (auto i = 0u; i < numAdds; i++)
+			for(auto i = 0u; i < numAdds; i++)
 			{
 				v += lhs.Float(i * numRows + row) * rhs.Float(col * numAdds + i);
 			}
@@ -122,9 +122,9 @@ SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitSta
 	auto numRows = lhsType.definition.word(3);
 	auto numCols = rhsType.definition.word(3);
 
-	for (auto col = 0u; col < numCols; col++)
+	for(auto col = 0u; col < numCols; col++)
 	{
-		for (auto row = 0u; row < numRows; row++)
+		for(auto row = 0u; row < numRows; row++)
 		{
 			dst.move(col * numRows + row, lhs.Float(row) * rhs.Float(col));
 		}
@@ -142,9 +142,9 @@ SpirvShader::EmitResult SpirvShader::EmitTranspose(InsnIterator insn, EmitState 
 	auto numCols = type.definition.word(3);
 	auto numRows = getType(type.definition.word(2)).sizeInComponents;
 
-	for (auto col = 0u; col < numCols; col++)
+	for(auto col = 0u; col < numCols; col++)
 	{
-		for (auto row = 0u; row < numRows; row++)
+		for(auto row = 0u; row < numRows; row++)
 		{
 			dst.move(col * numRows + row, mat.Float(row * numCols + col));
 		}
@@ -159,9 +159,9 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto src = GenericValue(this, state, insn.word(3));
 
-	for (auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
-		switch (insn.opcode())
+		switch(insn.opcode())
 		{
 		case spv::OpNot:
 		case spv::OpLogicalNot:		// logical not == bitwise not due to all-bits boolean representation
@@ -186,7 +186,7 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 			auto one = SIMD::UInt(1);
 			auto v = src.UInt(i);
 			SIMD::UInt out = (v >> offset) & Bitmask32(count);
-			if (insn.opcode() == spv::OpBitFieldSExtract)
+			if(insn.opcode() == spv::OpBitFieldSExtract)
 			{
 				auto sign = out & NthBit32(count - one);
 				auto sext = ~(sign - one);
@@ -324,9 +324,9 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 	auto lhs = GenericValue(this, state, insn.word(3));
 	auto rhs = GenericValue(this, state, insn.word(4));
 
-	for (auto i = 0u; i < lhsType.sizeInComponents; i++)
+	for(auto i = 0u; i < lhsType.sizeInComponents; i++)
 	{
-		switch (insn.opcode())
+		switch(insn.opcode())
 		{
 		case spv::OpIAdd:
 			dst.move(i, lhs.Int(i) + rhs.Int(i));
@@ -536,7 +536,7 @@ SIMD::Float SpirvShader::Dot(unsigned numComponents, GenericValue const & x, Gen
 {
 	SIMD::Float d = x.Float(0) * y.Float(0);
 
-	for (auto i = 1u; i < numComponents; i++)
+	for(auto i = 1u; i < numComponents; i++)
 	{
 		d += x.Float(i) * y.Float(i);
 	}

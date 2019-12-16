@@ -516,7 +516,7 @@ public:
 	// outputted by this shader.
 	unsigned int getNumOutputClipDistances() const
 	{
-		if (getUsedCapabilities().ClipDistance)
+		if(getUsedCapabilities().ClipDistance)
 		{
 			auto it = outputBuiltins.find(spv::BuiltInClipDistance);
 			if(it != outputBuiltins.end())
@@ -531,7 +531,7 @@ public:
 	// outputted by this shader.
 	unsigned int getNumOutputCullDistances() const
 	{
-		if (getUsedCapabilities().CullDistance)
+		if(getUsedCapabilities().CullDistance)
 		{
 			auto it = outputBuiltins.find(spv::BuiltInCullDistance);
 			if(it != outputBuiltins.end())
@@ -916,7 +916,7 @@ private:
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
-			if (intermediate)
+			if(intermediate)
 			{
 				return intermediate->Float(i);
 			}
@@ -930,7 +930,7 @@ private:
 
 		RValue<SIMD::Int> Int(uint32_t i) const
 		{
-			if (intermediate)
+			if(intermediate)
 			{
 				return intermediate->Int(i);
 			}
@@ -940,7 +940,7 @@ private:
 
 		RValue<SIMD::UInt> UInt(uint32_t i) const
 		{
-			if (intermediate)
+			if(intermediate)
 			{
 				return intermediate->UInt(i);
 			}
@@ -1162,7 +1162,7 @@ public:
 	inline void setInputBuiltin(SpirvShader const *shader, spv::BuiltIn id, F&& f)
 	{
 		auto it = shader->inputBuiltins.find(id);
-		if (it != shader->inputBuiltins.end())
+		if(it != shader->inputBuiltins.end())
 		{
 			const auto& builtin = it->second;
 			f(builtin, getVariable(builtin.Id));

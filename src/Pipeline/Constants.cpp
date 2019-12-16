@@ -246,7 +246,7 @@ Constants::Constants()
 		mask565Q[i] = word4((i & 0x1 ? 0x001F : 0) | (i & 0x2 ? 0x07E0 : 0) | (i & 0x4 ? 0xF800 : 0));
 	}
 
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		mask5551Q[i] = word4((i & 0x1 ? 0x001F : 0) | (i & 0x2 ? 0x03E0 : 0) | (i & 0x4 ? 0x7C00 : 0) | (i & 8 ? 0x8000 : 0));
 	}
@@ -264,7 +264,7 @@ Constants::Constants()
 		maskD01X[i][3] =  -(i >> 1 & 1);
 	}
 
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		mask10Q[i][0] = mask10Q[i][1] =
 				(i & 0x1 ? 0x3FF : 0) |

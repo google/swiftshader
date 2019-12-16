@@ -36,7 +36,7 @@ public:
         {
             UNREACHABLE("MetalLayer::init(): not called from main thread");
         }
-        if ([obj isKindOfClass: [CAMetalLayer class]])
+        if([obj isKindOfClass: [CAMetalLayer class]])
         {
             layer = (CAMetalLayer*)[obj retain];
             layer.framebufferOnly = false;
@@ -147,7 +147,7 @@ VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))
             VkExtent2D windowExtent = metalLayer->getExtent();
             VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-            if (windowExtent.width != extent.width || windowExtent.height != extent.height)
+            if(windowExtent.width != extent.width || windowExtent.height != extent.height)
             {
                 return VK_ERROR_OUT_OF_DATE_KHR;
             }

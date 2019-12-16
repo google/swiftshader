@@ -25,7 +25,7 @@ namespace {
 
 VkFormat SpirvFormatToVulkanFormat(spv::ImageFormat format)
 {
-	switch (format)
+	switch(format)
 	{
 	case spv::ImageFormatRgba32f: return VK_FORMAT_R32G32B32A32_SFLOAT;
 	case spv::ImageFormatRgba32i: return VK_FORMAT_R32G32B32A32_SINT;
@@ -259,7 +259,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 			in[i] = dyValue.Float(j);
 		}
 	}
-	else if (instruction.samplerMethod == Fetch)
+	else if(instruction.samplerMethod == Fetch)
 	{
 		// The instruction didn't provide a lod operand, but the sampler's Fetch
 		// function requires one to be present. If no lod is supplied, the default
@@ -302,7 +302,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	Array<SIMD::Float> out(4);
 	Call<ImageSampler>(cache.function, texture, sampler, &in[0], &out[0], state->routine->constants);
 
-	for (auto i = 0u; i < resultType.sizeInComponents; i++) { result.move(i, out[i]); }
+	for(auto i = 0u; i < resultType.sizeInComponents; i++) { result.move(i, out[i]); }
 
 	return EmitResult::Continue;
 }
@@ -357,7 +357,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 	Pointer<Int> extent;
 	Int arrayLayers;
 
-	switch (bindingLayout.descriptorType)
+	switch(bindingLayout.descriptorType)
 	{
 	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
@@ -380,26 +380,26 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 
 	auto dimensions = resultTy.sizeInComponents - (isArrayed ? 1 : 0);
 	std::vector<Int> out;
-	if (lodId != 0)
+	if(lodId != 0)
 	{
 		auto lodVal = GenericValue(this, state, lodId);
 		ASSERT(getType(lodVal.type).sizeInComponents == 1);
 		auto lod = lodVal.Int(0);
 		auto one = SIMD::Int(1);
-		for (uint32_t i = 0; i < dimensions; i++)
+		for(uint32_t i = 0; i < dimensions; i++)
 		{
 			dst.move(i, Max(SIMD::Int(extent[i]) >> lod, one));
 		}
 	}
 	else
 	{
-		for (uint32_t i = 0; i < dimensions; i++)
+		for(uint32_t i = 0; i < dimensions; i++)
 		{
 			dst.move(i, SIMD::Int(extent[i]));
 		}
 	}
 
-	if (isArrayed)
+	if(isArrayed)
 	{
 		auto numElements = isCubeMap ? (arrayLayers / 6) : RValue<Int>(arrayLayers);
 		dst.move(dimensions, SIMD::Int(numElements));
@@ -419,7 +419,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 	Int mipLevels = 0;
-	switch (bindingLayout.descriptorType)
+	switch(bindingLayout.descriptorType)
 	{
 	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
@@ -453,7 +453,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 	Int sampleCount = 0;
-	switch (bindingLayout.descriptorType)
+	switch(bindingLayout.descriptorType)
 	{
 	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 		sampleCount = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount)); // uint32_t
@@ -483,12 +483,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 	SIMD::Int u = coordinate.Int(0);
 	SIMD::Int v = SIMD::Int(0);
 
-	if (getType(coordinate.type).sizeInComponents > 1)
+	if(getType(coordinate.type).sizeInComponents > 1)
 	{
 		v = coordinate.Int(1);
 	}
 
-	if (dim == spv::DimSubpassData)
+	if(dim == spv::DimSubpassData)
 	{
 		u += routine->windowSpacePosition[0];
 		v += routine->windowSpacePosition[1];
@@ -507,26 +507,26 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 										: OFFSET(vk::StorageImageDescriptor, samplePitchBytes))));
 
 	ptr += u * SIMD::Int(texelSize);
-	if (dims > 1)
+	if(dims > 1)
 	{
 		ptr += v * rowPitch;
 	}
-	if (dims > 2)
+	if(dims > 2)
 	{
 		ptr += coordinate.Int(2) * slicePitch;
 	}
-	if (isArrayed)
+	if(isArrayed)
 	{
 		ptr += coordinate.Int(dims) * slicePitch;
 	}
 
-	if (dim == spv::DimSubpassData)
+	if(dim == spv::DimSubpassData)
 	{
 		// Multiview input attachment access is to the layer corresponding to the current view
 		ptr += SIMD::Int(routine->viewID) * slicePitch;
 	}
 
-	if (sampleId.value())
+	if(sampleId.value())
 	{
 		GenericValue sample(this, state, sampleId);
 		ptr += sample.Int(0) * samplePitch;
@@ -545,11 +545,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 
 	Object::ID sampleId = 0;
 
-	if (insn.wordCount() > 5)
+	if(insn.wordCount() > 5)
 	{
 		int operand = 6;
 		auto imageOperands = insn.word(5);
-		if (imageOperands & spv::ImageOperandsSampleMask)
+		if(imageOperands & spv::ImageOperandsSampleMask)
 		{
 			sampleId = insn.word(operand++);
 			imageOperands &= ~spv::ImageOperandsSampleMask;
@@ -576,7 +576,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	auto useStencilAspect = (vkFormat == VK_FORMAT_D32_SFLOAT_S8_UINT &&
 			getType(imageType.definition.word(2)).opcode() == spv::OpTypeInt);
 
-	if (useStencilAspect)
+	if(useStencilAspect)
 	{
 		vkFormat = VK_FORMAT_S8_UINT;
 	}
@@ -604,7 +604,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	// Round up texel size: for formats smaller than 32 bits per texel, we will emit a bunch
 	// of (overlapping) 32b loads here, and each lane will pick out what it needs from the low bits.
 	// TODO: specialize for small formats?
-	for (auto i = 0; i < (texelSize + 3)/4; i++)
+	for(auto i = 0; i < (texelSize + 3)/4; i++)
 	{
 		packed[i] = texelPtr.Load<SIMD::Int>(robustness, state->activeLaneMask(), false, std::memory_order_relaxed, std::min(texelSize, 4));
 		texelPtr += sizeof(float);
@@ -850,7 +850,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	auto numPackedElements = 0u;
 	int texelSize = 0;
 	auto format = static_cast<spv::ImageFormat>(imageType.definition.word(8));
-	switch (format)
+	switch(format)
 	{
 	case spv::ImageFormatRgba32f:
 	case spv::ImageFormatRgba32i:
@@ -957,7 +957,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	// SPIR-V 1.4: "If the coordinates are outside the image, the memory location that is accessed is undefined."
 	auto robustness = OutOfBoundsBehavior::UndefinedValue;
 
-	for (auto i = 0u; i < numPackedElements; i++)
+	for(auto i = 0u; i < numPackedElements; i++)
 	{
 		texelPtr.Store(packed[i], robustness, state->activeLaneMask());
 		texelPtr += sizeof(float);

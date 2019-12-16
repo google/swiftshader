@@ -143,28 +143,28 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 				Dw = *Pointer<Float4>(primitive + OFFSET(Primitive,w.C), 16) + yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive,w.B), 16);
 			}
 
-			if (spirvShader)
+			if(spirvShader)
 			{
-				for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+				for(int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 				{
-					if (spirvShader->inputs[interpolant].Type == SpirvShader::ATTRIBTYPE_UNUSED)
+					if(spirvShader->inputs[interpolant].Type == SpirvShader::ATTRIBTYPE_UNUSED)
 						continue;
 
 					Dv[interpolant] = *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].C), 16);
-					if (!spirvShader->inputs[interpolant].Flat)
+					if(!spirvShader->inputs[interpolant].Flat)
 					{
 						Dv[interpolant] +=
 								yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].B), 16);
 					}
 				}
 
-				for (unsigned int i = 0; i < state.numClipDistances; i++)
+				for(unsigned int i = 0; i < state.numClipDistances; i++)
 				{
 					DclipDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].C), 16) +
 								yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].B), 16);
 				}
 
-				for (unsigned int i = 0; i < state.numCullDistances; i++)
+				for(unsigned int i = 0; i < state.numCullDistances; i++)
 				{
 					DcullDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].C), 16) +
 								yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].B), 16);
@@ -190,7 +190,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
-					if (state.multiSampleMask & (1<<q))
+					if(state.multiSampleMask & (1<<q))
 					{
 						unsigned int i = state.multiSampledBresenham ? 0 : q;
 						Short4 mask = CmpGT(xxxx, xLeft[i]) & CmpGT(xRight[i], xxxx);

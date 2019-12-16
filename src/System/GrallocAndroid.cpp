@@ -89,7 +89,7 @@ int GrallocModule::unlock(buffer_handle_t handle)
 		{
 			int32_t fenceFd = -1;
 			int error = m_gralloc1_unlock(m_gralloc1_device, handle, &fenceFd);
-			if (!error)
+			if(!error)
 			{
 				sync_wait(fenceFd, -1);
 				close(fenceFd);

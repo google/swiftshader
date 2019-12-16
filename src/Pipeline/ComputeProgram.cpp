@@ -58,7 +58,7 @@ void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* rout
 	routine->setInputBuiltin(shader, spv::BuiltInNumWorkgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 	{
 		auto numWorkgroups = *Pointer<Int4>(data + OFFSET(Data, numWorkgroups));
-		for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
+		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
 				As<SIMD::Float>(SIMD::Int(Extract(numWorkgroups, component)));
@@ -67,7 +67,7 @@ void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* rout
 
 	routine->setInputBuiltin(shader, spv::BuiltInWorkgroupId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 	{
-		for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
+		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
 				As<SIMD::Float>(SIMD::Int(workgroupID[component]));
@@ -77,7 +77,7 @@ void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* rout
 	routine->setInputBuiltin(shader, spv::BuiltInWorkgroupSize, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 	{
 		auto workgroupSize = *Pointer<Int4>(data + OFFSET(Data, workgroupSize));
-		for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
+		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
 				As<SIMD::Float>(SIMD::Int(Extract(workgroupSize, component)));
@@ -134,7 +134,7 @@ void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routi
 
 	routine->setInputBuiltin(shader, spv::BuiltInLocalInvocationId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 	{
-		for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
+		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
 				As<SIMD::Float>(localInvocationID[component]);
@@ -148,7 +148,7 @@ void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routi
 		wgID = Insert(wgID, workgroupID[Y], Y);
 		wgID = Insert(wgID, workgroupID[Z], Z);
 		auto localBase = workgroupSize * wgID;
-		for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
+		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			auto globalInvocationID = SIMD::Int(Extract(localBase, component)) + localInvocationID[component];
 			value[builtin.FirstComponent + component] = As<SIMD::Float>(globalInvocationID);
@@ -228,7 +228,7 @@ void ComputeProgram::run(
 
 	auto groupCount = groupCountX * groupCountY * groupCountZ;
 
-	for (uint32_t batchID = 0; batchID < batchCount && batchID < groupCount; batchID++)
+	for(uint32_t batchID = 0; batchID < batchCount && batchID < groupCount; batchID++)
 	{
 		wg.add(1);
 		marl::schedule([=, &data]
@@ -236,7 +236,7 @@ void ComputeProgram::run(
 			defer(wg.done());
 			std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
 
-			for (uint32_t groupIndex = batchID; groupIndex < groupCount; groupIndex += batchCount)
+			for(uint32_t groupIndex = batchID; groupIndex < groupCount; groupIndex += batchCount)
 			{
 				auto modulo = groupIndex;
 				auto groupOffsetZ = modulo / (groupCountX * groupCountY);
@@ -253,7 +253,7 @@ void ComputeProgram::run(
 				using Coroutine = std::unique_ptr<rr::Stream<SpirvShader::YieldResult>>;
 				std::queue<Coroutine> coroutines;
 
-				if (modes.ContainsControlBarriers)
+				if(modes.ContainsControlBarriers)
 				{
 					// Make a function call per subgroup so each subgroup
 					// can yield, bringing all subgroups to the barrier
@@ -270,13 +270,13 @@ void ComputeProgram::run(
 					coroutines.push(std::move(coroutine));
 				}
 
-				while (coroutines.size() > 0)
+				while(coroutines.size() > 0)
 				{
 					auto coroutine = std::move(coroutines.front());
 					coroutines.pop();
 
 					SpirvShader::YieldResult result;
-					if (coroutine->await(result))
+					if(coroutine->await(result))
 					{
 						// TODO: Consider result (when the enum is more than 1 entry).
 						coroutines.push(std::move(coroutine));

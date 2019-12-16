@@ -84,9 +84,9 @@ SetupProcessor::State SetupProcessor::update(const sw::Context* context) const
 	state.numClipDistances = context->vertexShader->getNumOutputClipDistances();
 	state.numCullDistances = context->vertexShader->getNumOutputCullDistances();
 
-	if (context->pixelShader)
+	if(context->pixelShader)
 	{
-		for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
+		for(int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 		{
 			state.gradient[interpolant] = context->pixelShader->inputs[interpolant];
 		}

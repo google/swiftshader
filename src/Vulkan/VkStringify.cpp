@@ -457,7 +457,7 @@ std::string Stringify(VkStructureType value)
 #undef INSERT_ELEMENT
 	};
 	auto it = strings.find(value);
-	if (it != strings.end())
+	if(it != strings.end())
 	{
 		return std::string(it->second);
 	}

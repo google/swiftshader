@@ -515,7 +515,7 @@ public:
 		executionState.renderer->setBlendConstant(pipeline->hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS) ?
 		                                          executionState.dynamicState.blendConstants : pipeline->getBlendConstants());
 
-		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
 		{
 			// If the depth bias clamping feature is not enabled, depthBiasClamp must be 0.0
 			ASSERT(executionState.dynamicState.depthBiasClamp == 0.0f);
@@ -523,7 +523,7 @@ public:
 			context.depthBias = executionState.dynamicState.depthBiasConstantFactor;
 			context.slopeDepthBias = executionState.dynamicState.depthBiasSlopeFactor;
 		}
-		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)
 		{
 			// Unless the VK_EXT_depth_range_unrestricted extension is enabled minDepthBounds and maxDepthBounds must be between 0.0 and 1.0, inclusive
 			ASSERT(executionState.dynamicState.minDepthBounds >= 0.0f &&
@@ -533,17 +533,17 @@ public:
 
 			UNIMPLEMENTED("depthBoundsTestEnable");
 		}
-		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && context.stencilEnable)
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && context.stencilEnable)
 		{
 			context.frontStencil.compareMask = executionState.dynamicState.compareMask[0];
 			context.backStencil.compareMask = executionState.dynamicState.compareMask[1];
 		}
-		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && context.stencilEnable)
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && context.stencilEnable)
 		{
 			context.frontStencil.writeMask = executionState.dynamicState.writeMask[0];
 			context.backStencil.writeMask = executionState.dynamicState.writeMask[1];
 		}
-		if (pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && context.stencilEnable)
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && context.stencilEnable)
 		{
 			context.frontStencil.reference = executionState.dynamicState.reference[0];
 			context.backStencil.reference = executionState.dynamicState.reference[1];
@@ -554,13 +554,13 @@ public:
 		context.occlusionEnabled = executionState.renderer->hasOcclusionQuery();
 
 		std::vector<std::pair<uint32_t, void *>> indexBuffers;
-		if (indexed)
+		if(indexed)
 		{
 			void *indexBuffer = executionState.indexBufferBinding.buffer->getOffsetPointer(
 					executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
-			if (pipeline->hasPrimitiveRestartEnable())
+			if(pipeline->hasPrimitiveRestartEnable())
 			{
-				switch (executionState.indexType)
+				switch(executionState.indexType)
 				{
 				case VK_INDEX_TYPE_UINT16:
 					processPrimitiveRestart(static_cast<uint16_t *>(indexBuffer), count, pipeline, indexBuffers);
@@ -582,16 +582,16 @@ public:
 			indexBuffers.push_back({pipeline->computePrimitiveCount(count), nullptr});
 		}
 
-		for (uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
+		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			// FIXME: reconsider instances/views nesting.
 			auto viewMask = executionState.renderPass->getViewMask(executionState.subpassIndex);
-			while (viewMask)
+			while(viewMask)
 			{
 				int viewID = sw::log2i(viewMask);
 				viewMask &= ~(1 << viewID);
 
-				for (auto indexBuffer : indexBuffers)
+				for(auto indexBuffer : indexBuffers)
 				{
 					executionState.renderer->draw(&context, executionState.indexType, indexBuffer.first, vertexOffset,
 												  executionState.events, instance, viewID, indexBuffer.second,
@@ -660,7 +660,7 @@ public:
 
 	void play(vk::CommandBuffer::ExecutionState& executionState) override
 	{
-		for (auto drawId = 0u; drawId < drawCount; drawId++)
+		for(auto drawId = 0u; drawId < drawCount; drawId++)
 		{
 			auto cmd = reinterpret_cast<VkDrawIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
 			draw(executionState, false, cmd->vertexCount, cmd->instanceCount, 0, cmd->firstVertex, cmd->firstInstance);
@@ -686,7 +686,7 @@ public:
 
 	void play(vk::CommandBuffer::ExecutionState& executionState) override
 	{
-		for (auto drawId = 0u; drawId < drawCount; drawId++)
+		for(auto drawId = 0u; drawId < drawCount; drawId++)
 		{
 			auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand const *>(buffer->getOffsetPointer(offset + drawId * stride));
 			draw(executionState, true, cmd->indexCount, cmd->instanceCount, cmd->firstIndex, cmd->vertexOffset, cmd->firstInstance);
@@ -1022,7 +1022,7 @@ public:
 		: pipelineBindPoint(pipelineBindPoint), pipelineLayout(pipelineLayout), set(set), descriptorSet(descriptorSet),
 		  dynamicOffsetCount(dynamicOffsetCount)
 	{
-		for (uint32_t i = 0; i < dynamicOffsetCount; i++)
+		for(uint32_t i = 0; i < dynamicOffsetCount; i++)
 		{
 			this->dynamicOffsets[i] = dynamicOffsets[i];
 		}
@@ -1036,7 +1036,7 @@ public:
 		ASSERT_OR_RETURN(dynamicOffsetBase + dynamicOffsetCount <= vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
 
 		pipelineState.descriptorSets[set] = descriptorSet;
-		for (uint32_t i = 0; i < dynamicOffsetCount; i++)
+		for(uint32_t i = 0; i < dynamicOffsetCount; i++)
 		{
 			pipelineState.descriptorDynamicOffsets[dynamicOffsetBase + i] = dynamicOffsets[i];
 		}
@@ -1152,7 +1152,7 @@ public:
 
 	void play(vk::CommandBuffer::ExecutionState& executionState) override
 	{
-		if (stage & ~(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT))
+		if(stage & ~(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT))
 		{
 			// The `top of pipe` and `draw indirect` stages are handled in command buffer processing so a timestamp write
 			// done in those stages can just be done here without any additional synchronization.
@@ -1691,7 +1691,7 @@ void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int f
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
 		auto &attrib = context.input[i];
-		if (attrib.count)
+		if(attrib.count)
 		{
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
 			VkDeviceSize offset = attrib.offset + vertexInput.offset +
@@ -1713,24 +1713,24 @@ void CommandBuffer::ExecutionState::bindAttachments(sw::Context& context)
 
 	auto const & subpass = renderPass->getSubpass(subpassIndex);
 
-	for (auto i = 0u; i < subpass.colorAttachmentCount; i++)
+	for(auto i = 0u; i < subpass.colorAttachmentCount; i++)
 	{
 		auto attachmentReference = subpass.pColorAttachments[i];
-		if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+		if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 		{
 			context.renderTarget[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
 		}
 	}
 
 	auto attachmentReference = subpass.pDepthStencilAttachment;
-	if (attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
+	if(attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
 	{
 		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
-		if (attachment->hasDepthAspect())
+		if(attachment->hasDepthAspect())
 		{
 			context.depthBuffer = attachment;
 		}
-		if (attachment->hasStencilAspect())
+		if(attachment->hasStencilAspect())
 		{
 			context.stencilBuffer = attachment;
 		}

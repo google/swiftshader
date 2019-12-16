@@ -287,17 +287,17 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 {
 	using EL = typename Element<T>::type;
 
-	if (isStaticallyInBounds(sizeof(float), robustness))
+	if(isStaticallyInBounds(sizeof(float), robustness))
 	{
 		// All elements are statically known to be in-bounds.
 		// We can avoid costly conditional on masks.
 
-		if (hasStaticSequentialOffsets(sizeof(float)))
+		if(hasStaticSequentialOffsets(sizeof(float)))
 		{
 			// Offsets are sequential. Perform regular load.
 			return rr::Load(rr::Pointer<T>(base + staticOffsets[0]), alignment, atomic, order);
 		}
-		if (hasStaticEqualOffsets())
+		if(hasStaticEqualOffsets())
 		{
 			// Load one, replicate.
 			return T(*rr::Pointer<EL>(base + staticOffsets[0], alignment));
@@ -320,9 +320,9 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 
 	auto offs = offsets();
 
-	if (!atomic && order == std::memory_order_relaxed)
+	if(!atomic && order == std::memory_order_relaxed)
 	{
-		if (hasStaticEqualOffsets())
+		if(hasStaticEqualOffsets())
 		{
 			// Load one, replicate.
 			// Be careful of the case where the post-bounds-check mask
@@ -349,7 +349,7 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 			break;
 		}
 
-		if (hasStaticSequentialOffsets(sizeof(float)))
+		if(hasStaticSequentialOffsets(sizeof(float)))
 		{
 			return rr::MaskedLoad(rr::Pointer<T>(base + staticOffsets[0]), mask, alignment, zeroMaskedLanes);
 		}
@@ -376,7 +376,7 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 		{
 			// Divergent offsets or masked lanes.
 			out = T(0);
-			for (int i = 0; i < SIMD::Width; i++)
+			for(int i = 0; i < SIMD::Width; i++)
 			{
 				If(Extract(mask, i) != 0)
 				{
@@ -409,11 +409,11 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 		break;
 	}
 
-	if (!atomic && order == std::memory_order_relaxed)
+	if(!atomic && order == std::memory_order_relaxed)
 	{
-		if (hasStaticEqualOffsets())
+		if(hasStaticEqualOffsets())
 		{
-			If (AnyTrue(mask))
+			If(AnyTrue(mask))
 			{
 				// All equal. One of these writes will win -- elect the winning lane.
 				auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
@@ -426,9 +426,9 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 				*rr::Pointer<EL>(base + staticOffsets[0], alignment) = As<EL>(scalarVal);
 			}
 		}
-		else if (hasStaticSequentialOffsets(sizeof(float)))
+		else if(hasStaticSequentialOffsets(sizeof(float)))
 		{
-			if (isStaticallyInBounds(sizeof(float), robustness))
+			if(isStaticallyInBounds(sizeof(float), robustness))
 			{
 				// Pointer has no elements OOB, and the store is not atomic.
 				// Perform a RMW.
@@ -458,7 +458,7 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 		Else
 		{
 			// Divergent offsets or masked lanes.
-			for (int i = 0; i < SIMD::Width; i++)
+			for(int i = 0; i < SIMD::Width; i++)
 			{
 				If(Extract(mask, i) != 0)
 				{

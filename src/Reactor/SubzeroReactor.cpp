@@ -89,7 +89,7 @@ namespace {
 
 static Ice::OptLevel toIce(rr::Optimization::Level level)
 {
-	switch (level)
+	switch(level)
 	{
 		// Note that Opt_0 and Opt_1 are not implemented by Subzero
 		case rr::Optimization::Level::None:       return Ice::Opt_m1;
@@ -592,7 +592,7 @@ Nucleus::Nucleus()
 	static llvm::raw_os_ostream cout(std::cout);
 	static llvm::raw_os_ostream cerr(std::cerr);
 
-	if (subzeroEmitTextAsm)
+	if(subzeroEmitTextAsm)
 	{
 		// Decorate text asm with liveness info
 		Flags.setDecorateAsm(true);
@@ -648,7 +648,7 @@ Config Nucleus::getDefaultConfig()
 
 std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
 {
-	if (subzeroDumpEnabled)
+	if(subzeroDumpEnabled)
 	{
 		// Output dump strings immediately, rather than once buffer is full. Useful for debugging.
 		context->getStrDump().SetUnbuffered();
@@ -678,7 +678,7 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 
 	::context->emitFileHeader();
 
-	if (subzeroEmitTextAsm)
+	if(subzeroEmitTextAsm)
 	{
 		::function->emit();
 	}
@@ -3529,7 +3529,7 @@ RValue<Long> Ticks()
 
 RValue<Pointer<Byte>> ConstantPointer(void const * ptr)
 {
-	if (sizeof(void*) == 8)
+	if(sizeof(void*) == 8)
 	{
 		return RValue<Pointer<Byte>>(V(::context->getConstantInt64(reinterpret_cast<intptr_t>(ptr))));
 	}
@@ -3549,12 +3549,12 @@ RValue<Pointer<Byte>> ConstantData(void const * data, size_t size)
 Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
 {
 	Ice::Variable *ret = nullptr;
-	if (retTy != nullptr)
+	if(retTy != nullptr)
 	{
 		ret = ::function->makeVariable(T(retTy));
 	}
 	auto call = Ice::InstCall::create(::function, args.size(), ret, V(fptr.value), false);
-	for (auto arg : args)
+	for(auto arg : args)
 	{
 		call->addArg(V(arg));
 	}
@@ -3696,7 +3696,7 @@ RValue<Float4> Log2(RValue<Float4> x)
 
 RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
 {
-	if (emulateIntrinsics)
+	if(emulateIntrinsics)
 	{
 		UNIMPLEMENTED("Subzero Ctlz()"); return UInt(0);
 	}
@@ -3715,7 +3715,7 @@ RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
 
 RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef)
 {
-	if (emulateIntrinsics)
+	if(emulateIntrinsics)
 	{
 		UNIMPLEMENTED("Subzero Ctlz()"); return UInt4(0);
 	}
@@ -3733,7 +3733,7 @@ RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef)
 
 RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef)
 {
-	if (emulateIntrinsics)
+	if(emulateIntrinsics)
 	{
 		UNIMPLEMENTED("Subzero Cttz()"); return UInt(0);
 	}
@@ -3752,7 +3752,7 @@ RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef)
 
 RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef)
 {
-	if (emulateIntrinsics)
+	if(emulateIntrinsics)
 	{
 		UNIMPLEMENTED("Subzero Cttz()"); return UInt4(0);
 	}

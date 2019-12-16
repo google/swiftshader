@@ -96,7 +96,7 @@ VkResult XlibSurfaceKHR::present(PresentImage* image)
 			VkExtent2D windowExtent = {static_cast<uint32_t>(attr.width), static_cast<uint32_t>(attr.height)};
 			VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-			if (windowExtent.width != extent.width || windowExtent.height != extent.height)
+			if(windowExtent.width != extent.width || windowExtent.height != extent.height)
 			{
 				return VK_ERROR_OUT_OF_DATE_KHR;
 			}

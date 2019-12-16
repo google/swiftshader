@@ -212,9 +212,9 @@ bool DescriptorSetLayout::isBindingDynamic(uint32_t binding) const
 uint32_t DescriptorSetLayout::getDynamicDescriptorCount() const
 {
 	uint32_t count = 0;
-	for (size_t i = 0; i < bindingCount; i++)
+	for(size_t i = 0; i < bindingCount; i++)
 	{
-		if (isDynamic(bindings[i].descriptorType))
+		if(isDynamic(bindings[i].descriptorType))
 		{
 			count += bindings[i].descriptorCount;
 		}
@@ -228,9 +228,9 @@ uint32_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
 	ASSERT(isDynamic(bindings[n].descriptorType));
 
 	uint32_t index = 0;
-	for (uint32_t i = 0; i < n; i++)
+	for(uint32_t i = 0; i < n; i++)
 	{
-		if (isDynamic(bindings[i].descriptorType))
+		if(isDynamic(bindings[i].descriptorType))
 		{
 			index += bindings[i].descriptorCount;
 		}
@@ -270,7 +270,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 
 	ASSERT(reinterpret_cast<intptr_t>(memToWrite) % 16 == 0);  // Each descriptor must be 16-byte aligned.
 
-	if (entry.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER)
+	if(entry.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER)
 	{
 		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor*>(memToWrite);
 
@@ -279,18 +279,18 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
 			// "All consecutive bindings updated via a single VkWriteDescriptorSet structure, except those with a
 			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
-			if (!binding.pImmutableSamplers)
+			if(!binding.pImmutableSamplers)
 			{
 				imageSampler[i].updateSampler(update->sampler);
 			}
 			imageSampler[i].device = device;
 		}
 	}
-	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER)
+	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER)
 	{
 		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor*>(memToWrite);
 
-		for (uint32_t i = 0; i < entry.descriptorCount; i++)
+		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
 			auto bufferView = vk::Cast(*update);
@@ -322,7 +322,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			mipmap.onePitchP[1] = mipmap.onePitchP[3] = static_cast<short>(numElements);
 		}
 	}
-	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
+	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
 	         entry.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
 	{
 		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor*>(memToWrite);
@@ -430,7 +430,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			}
 		}
 	}
-	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
+	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
 	         entry.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
 	{
 		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
@@ -449,7 +449,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			descriptor[i].sampleCount = imageView->getSampleCount();
 			descriptor[i].sizeInBytes = static_cast<int>(imageView->getImageSizeInBytes());
 
-			if (imageView->getFormat().isStencil())
+			if(imageView->getFormat().isStencil())
 			{
 				descriptor[i].stencilPtr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_STENCIL_BIT, 0, 0);
 				descriptor[i].stencilRowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
@@ -460,10 +460,10 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			}
 		}
 	}
-	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER)
+	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER)
 	{
 		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
-		for (uint32_t i = 0; i < entry.descriptorCount; i++)
+		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
 			auto bufferView = vk::Cast(*update);
@@ -477,13 +477,13 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			descriptor[i].sizeInBytes = bufferView->getRangeInBytes();
 		}
 	}
-	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
 	         entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ||
 	         entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
 	         entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC)
 	{
 		auto descriptor = reinterpret_cast<BufferDescriptor *>(memToWrite);
-		for (uint32_t i = 0; i < entry.descriptorCount; i++)
+		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkDescriptorBufferInfo const *>(src + entry.offset + entry.stride * i);
 			auto buffer = vk::Cast(update->buffer);
@@ -591,7 +591,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, const VkWriteDescri
 	e.descriptorCount = writeDescriptorSet.descriptorCount;
 	e.offset = 0;
 	void const *ptr = nullptr;
-	switch (writeDescriptorSet.descriptorType)
+	switch(writeDescriptorSet.descriptorType)
 	{
 	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
 	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:

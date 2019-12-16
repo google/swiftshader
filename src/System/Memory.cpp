@@ -36,7 +36,7 @@
 #undef allocate
 #undef deallocate
 
-#if (defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined (_M_X64)) && !defined(__x86__)
+#if(defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined (_M_X64)) && !defined(__x86__)
 #define __x86__
 #endif
 
