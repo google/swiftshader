@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0951b94_19b00594",
+        "filename": "src/Pipeline/ShaderCore.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-12-17T14:27:57Z",
+      "side": 1,
+      "message": "Must be Float4 instead, since this won\u0027t scale to wider SIMD (unless the input is SIMD::UInt and the output is SIMD::Float4, but we don\u0027t have that ready at Reactor level yet).",
+      "range": {
+        "startLine": 594,
+        "startChar": 0,
+        "endLine": 594,
+        "endChar": 15
+      },
+      "revId": "24c49ddde89ca50ad656e672973575a528c8ba48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
