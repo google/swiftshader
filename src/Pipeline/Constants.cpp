@@ -238,6 +238,7 @@ Constants::Constants()
 	for(int i = 0; i < 8; i++)
 	{
 		mask565Q[i] = word4((i & 0x1 ? 0x001F : 0) | (i & 0x2 ? 0x07E0 : 0) | (i & 0x4 ? 0xF800 : 0));
+		mask11X[i] = dword4((i & 0x1 ? 0x000007FFu : 0) | (i & 0x2 ? 0x003FF800u : 0) | (i & 0x4 ? 0xFFC00000u : 0));
 	}
 
 	for(int i = 0; i < 16; i++)

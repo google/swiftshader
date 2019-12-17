@@ -594,7 +594,7 @@ SIMD::UInt floatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits)
 	return storeInUpperBits ? ((joined << 16) | justsign) : joined | (justsign >> 16);
 }
 
-sw::SIMD::Float r11g11b10Unpack(UInt r11g11b10bits)
+Float4 r11g11b10Unpack(UInt r11g11b10bits)
 {
 	// 10 (or 11) bit float formats are unsigned formats with a 5 bit exponent and a 5 (or 6) bit mantissa.
 	// Since the Half float format also has a 5 bit exponent, we can convert these formats to half by
@@ -606,7 +606,7 @@ sw::SIMD::Float r11g11b10Unpack(UInt r11g11b10bits)
 	halfBits = Insert(halfBits, (r11g11b10bits & UInt(0x003FF800u)) >> 7, 1);
 	halfBits = Insert(halfBits, (r11g11b10bits & UInt(0xFFC00000u)) >> 17, 2);
 	halfBits = Insert(halfBits, UInt(0x00003C00u), 3);
-	return As<sw::SIMD::Float>(halfToFloatBits(halfBits));
+	return As<Float4>(halfToFloatBits(halfBits));
 }
 
 UInt r11g11b10Pack(sw::SIMD::Float &value)
