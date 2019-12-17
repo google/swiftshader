@@ -14,30 +14,29 @@
 
 #include "Win32SurfaceKHR.hpp"
 
-#include "Vulkan/VkDeviceMemory.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkDeviceMemory.hpp"
 
 #include <string.h>
 
-namespace
+namespace {
+VkExtent2D getWindowSize(HWND hwnd)
 {
-	VkExtent2D getWindowSize(HWND hwnd)
-	{
-		RECT clientRect = {};
-		BOOL status = GetClientRect(hwnd, &clientRect);
-		ASSERT(status != 0);
+	RECT clientRect = {};
+	BOOL status = GetClientRect(hwnd, &clientRect);
+	ASSERT(status != 0);
 
-		int windowWidth = clientRect.right - clientRect.left;
-		int windowHeight = clientRect.bottom - clientRect.top;
+	int windowWidth = clientRect.right - clientRect.left;
+	int windowHeight = clientRect.bottom - clientRect.top;
 
-		return { static_cast<uint32_t>(windowWidth), static_cast<uint32_t>(windowHeight) };
-	}
+	return { static_cast<uint32_t>(windowWidth), static_cast<uint32_t>(windowHeight) };
 }
+}  // namespace
 
 namespace vk {
 
-Win32SurfaceKHR::Win32SurfaceKHR(const VkWin32SurfaceCreateInfoKHR *pCreateInfo, void *mem) :
-		hwnd(pCreateInfo->hwnd)
+Win32SurfaceKHR::Win32SurfaceKHR(const VkWin32SurfaceCreateInfoKHR *pCreateInfo, void *mem)
+    : hwnd(pCreateInfo->hwnd)
 {
 	ASSERT(IsWindow(hwnd) == TRUE);
 	windowContext = GetDC(hwnd);
@@ -66,19 +65,19 @@ void Win32SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceC
 	pSurfaceCapabilities->maxImageExtent = extent;
 }
 
-void Win32SurfaceKHR::attachImage(PresentImage* image)
+void Win32SurfaceKHR::attachImage(PresentImage *image)
 {
 	// Nothing to do here, the current implementation based on GDI blits on
 	// present instead of associating the image with the surface.
 }
 
-void Win32SurfaceKHR::detachImage(PresentImage* image)
+void Win32SurfaceKHR::detachImage(PresentImage *image)
 {
 	// Nothing to do here, the current implementation based on GDI blits on
 	// present instead of associating the image with the surface.
 }
 
-VkResult Win32SurfaceKHR::present(PresentImage* image)
+VkResult Win32SurfaceKHR::present(PresentImage *image)
 {
 	// Recreate frame buffer in case window size has changed
 	lazyCreateFrameBuffer();
@@ -100,7 +99,7 @@ VkResult Win32SurfaceKHR::present(PresentImage* image)
 	subresourceLayers.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	subresourceLayers.layerCount = 1;
 
-	image->getImage()->blitToBuffer(subresourceLayers, VkOffset3D{}, extent, reinterpret_cast<uint8_t*>(framebuffer), bitmapRowPitch, 0);
+	image->getImage()->blitToBuffer(subresourceLayers, VkOffset3D{}, extent, reinterpret_cast<uint8_t *>(framebuffer), bitmapRowPitch, 0);
 
 	StretchBlt(windowContext, 0, 0, extent.width, extent.height, bitmapContext, 0, 0, extent.width, extent.height, SRCCOPY);
 
@@ -131,7 +130,7 @@ void Win32SurfaceKHR::lazyCreateFrameBuffer()
 	bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFO);
 	bitmapInfo.bmiHeader.biBitCount = 32;
 	bitmapInfo.bmiHeader.biPlanes = 1;
-	bitmapInfo.bmiHeader.biHeight = -static_cast<LONG>(windowExtent.height); // Negative for top-down DIB, origin in upper-left corner
+	bitmapInfo.bmiHeader.biHeight = -static_cast<LONG>(windowExtent.height);  // Negative for top-down DIB, origin in upper-left corner
 	bitmapInfo.bmiHeader.biWidth = windowExtent.width;
 	bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
@@ -154,4 +153,4 @@ void Win32SurfaceKHR::destroyFrameBuffer()
 	framebuffer = nullptr;
 }
 
-}
+}  // namespace vk

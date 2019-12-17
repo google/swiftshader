@@ -15,8 +15,8 @@
 #ifndef SWIFTSHADER_VKSURFACEKHR_HPP_
 #define SWIFTSHADER_VKSURFACEKHR_HPP_
 
-#include "Vulkan/VkObject.hpp"
 #include "Vulkan/VkImage.hpp"
+#include "Vulkan/VkObject.hpp"
 #include <Vulkan/VulkanPlatform.h>
 
 #include <vector>
@@ -38,20 +38,20 @@ class SwapchainKHR;
 class PresentImage
 {
 public:
-	VkResult allocateImage(VkDevice device, const VkImageCreateInfo& createInfo);
-	VkResult allocateAndBindImageMemory(VkDevice device, const VkMemoryAllocateInfo& allocateInfo);
+	VkResult allocateImage(VkDevice device, const VkImageCreateInfo &createInfo);
+	VkResult allocateAndBindImageMemory(VkDevice device, const VkMemoryAllocateInfo &allocateInfo);
 	void clear();
 	VkImage asVkImage() const;
 
-	const Image* getImage() const { return image; }
-	DeviceMemory* getImageMemory() const { return imageMemory; }
+	const Image *getImage() const { return image; }
+	DeviceMemory *getImageMemory() const { return imageMemory; }
 	bool isAvailable() const { return (imageStatus == AVAILABLE); }
 	bool exists() const { return (imageStatus != NONEXISTENT); }
 	void setStatus(PresentImageStatus status) { imageStatus = status; }
 
 private:
-	Image* image = nullptr;
-	DeviceMemory* imageMemory = nullptr;
+	Image *image = nullptr;
+	DeviceMemory *imageMemory = nullptr;
 	PresentImageStatus imageStatus = NONEXISTENT;
 };
 
@@ -65,45 +65,45 @@ public:
 		return vk::TtoVkT<SurfaceKHR, VkSurfaceKHR>(this);
 	}
 
-	static inline SurfaceKHR* Cast(VkSurfaceKHR object)
+	static inline SurfaceKHR *Cast(VkSurfaceKHR object)
 	{
 		return vk::VkTtoT<SurfaceKHR, VkSurfaceKHR>(object);
 	}
 
-	void destroy(const VkAllocationCallbacks* pAllocator)
+	void destroy(const VkAllocationCallbacks *pAllocator)
 	{
 		destroySurface(pAllocator);
 	}
 
-	virtual void destroySurface(const VkAllocationCallbacks* pAllocator) = 0;
+	virtual void destroySurface(const VkAllocationCallbacks *pAllocator) = 0;
 
-	virtual void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR* pSurfaceCapabilities) const;
+	virtual void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const;
 
 	uint32_t getSurfaceFormatsCount() const;
-	VkResult getSurfaceFormats(uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats) const;
+	VkResult getSurfaceFormats(uint32_t *pSurfaceFormatCount, VkSurfaceFormatKHR *pSurfaceFormats) const;
 
 	uint32_t getPresentModeCount() const;
-	VkResult getPresentModes(uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes) const;
+	VkResult getPresentModes(uint32_t *pPresentModeCount, VkPresentModeKHR *pPresentModes) const;
 
 	VkResult getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects) const;
 
-	virtual void attachImage(PresentImage* image) = 0;
-	virtual void detachImage(PresentImage* image) = 0;
-	virtual VkResult present(PresentImage* image) = 0;
+	virtual void attachImage(PresentImage *image) = 0;
+	virtual void detachImage(PresentImage *image) = 0;
+	virtual VkResult present(PresentImage *image) = 0;
 
-	void associateSwapchain(SwapchainKHR* swapchain);
+	void associateSwapchain(SwapchainKHR *swapchain);
 	void disassociateSwapchain();
 	bool hasAssociatedSwapchain();
 
 private:
-	SwapchainKHR* associatedSwapchain = nullptr;
+	SwapchainKHR *associatedSwapchain = nullptr;
 };
 
-static inline SurfaceKHR* Cast(VkSurfaceKHR object)
+static inline SurfaceKHR *Cast(VkSurfaceKHR object)
 {
 	return SurfaceKHR::Cast(object);
 }
 
 }  // namespace vk
 
-#endif //SWIFTSHADER_VKSURFACEKHR_HPP_
+#endif  //SWIFTSHADER_VKSURFACEKHR_HPP_

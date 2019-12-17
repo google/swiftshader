@@ -20,13 +20,13 @@
 
 namespace {
 
-template <typename FPTR>
+template<typename FPTR>
 void getFuncAddress(void *lib, const char *name, FPTR *out)
 {
 	*out = reinterpret_cast<FPTR>(getProcAddress(lib, name));
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
 LibX11exports::LibX11exports(void *libX11, void *libXext)
 {
@@ -67,10 +67,10 @@ LibX11exports *LibX11::loadExports()
 
 	if(!libX11)
 	{
-		if(getProcAddress(RTLD_DEFAULT, "XOpenDisplay"))   // Search the global scope for pre-loaded X11 library.
+		if(getProcAddress(RTLD_DEFAULT, "XOpenDisplay"))  // Search the global scope for pre-loaded X11 library.
 		{
 			libX11exports = new LibX11exports(RTLD_DEFAULT, RTLD_DEFAULT);
-			libX11 = (void*)-1;   // No need to load it.
+			libX11 = (void *)-1;  // No need to load it.
 		}
 		else
 		{
@@ -83,7 +83,7 @@ LibX11exports *LibX11::loadExports()
 			}
 			else
 			{
-				libX11 = (void*)-1;   // Don't attempt loading more than once.
+				libX11 = (void *)-1;  // Don't attempt loading more than once.
 			}
 		}
 	}

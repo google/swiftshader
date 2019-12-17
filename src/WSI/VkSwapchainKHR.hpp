@@ -15,10 +15,9 @@
 #ifndef SWIFTSHADER_VKSWAPCHAINKHR_HPP
 #define SWIFTSHADER_VKSWAPCHAINKHR_HPP
 
-
-#include "Vulkan/VkObject.hpp"
-#include "Vulkan/VkImage.hpp"
 #include "VkSurfaceKHR.hpp"
+#include "Vulkan/VkImage.hpp"
+#include "Vulkan/VkObject.hpp"
 
 #include <vector>
 
@@ -30,38 +29,38 @@ class Semaphore;
 class SwapchainKHR : public Object<SwapchainKHR, VkSwapchainKHR>
 {
 public:
-	SwapchainKHR(const VkSwapchainCreateInfoKHR* pCreateInfo, void* mem);
+	SwapchainKHR(const VkSwapchainCreateInfoKHR *pCreateInfo, void *mem);
 
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkSwapchainCreateInfoKHR* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkSwapchainCreateInfoKHR *pCreateInfo);
 
 	void retire();
 
-	VkResult createImages(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo);
+	VkResult createImages(VkDevice device, const VkSwapchainCreateInfoKHR *pCreateInfo);
 
 	uint32_t getImageCount() const;
 	VkResult getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapchainImages) const;
 
-	VkResult getNextImage(uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* pImageIndex);
+	VkResult getNextImage(uint64_t timeout, Semaphore *semaphore, Fence *fence, uint32_t *pImageIndex);
 
 	VkResult present(uint32_t index);
 	PresentImage const &getImage(uint32_t imageIndex) { return images[imageIndex]; }
 
 private:
-	SurfaceKHR* surface = nullptr;
-	PresentImage* images = nullptr;
+	SurfaceKHR *surface = nullptr;
+	PresentImage *images = nullptr;
 	uint32_t imageCount = 0;
 	bool retired = false;
 
 	void resetImages();
 };
 
-static inline SwapchainKHR* Cast(VkSwapchainKHR object)
+static inline SwapchainKHR *Cast(VkSwapchainKHR object)
 {
 	return SwapchainKHR::Cast(object);
 }
 
 }  // namespace vk
 
-#endif //SWIFTSHADER_VKSWAPCHAINKHR_HPP
+#endif  //SWIFTSHADER_VKSWAPCHAINKHR_HPP

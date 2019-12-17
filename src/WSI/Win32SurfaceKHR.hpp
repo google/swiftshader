@@ -15,21 +15,22 @@
 #ifndef SWIFTSHADER_WIN32SURFACEKHR_HPP
 #define SWIFTSHADER_WIN32SURFACEKHR_HPP
 
-#include "Vulkan/VkObject.hpp"
-#include "Vulkan/VkImage.hpp"
 #include "VkSurfaceKHR.hpp"
+#include "Vulkan/VkImage.hpp"
+#include "Vulkan/VkObject.hpp"
 
 #if !defined(WIN32_LEAN_AND_MEAN)
-#define WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
 #endif  // !defined(WIN32_LEAN_AND_MEAN)
-#include <Windows.h>
 #include "vulkan/vulkan_win32.h"
+#include <Windows.h>
 
 #include <map>
 
 namespace vk {
 
-class Win32SurfaceKHR : public SurfaceKHR, public ObjectBase<Win32SurfaceKHR, VkSurfaceKHR> {
+class Win32SurfaceKHR : public SurfaceKHR, public ObjectBase<Win32SurfaceKHR, VkSurfaceKHR>
+{
 public:
 	Win32SurfaceKHR(const VkWin32SurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
@@ -39,9 +40,9 @@ public:
 
 	void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
-	virtual void attachImage(PresentImage* image) override;
-	virtual void detachImage(PresentImage* image) override;
-	VkResult present(PresentImage* image) override;
+	virtual void attachImage(PresentImage *image) override;
+	virtual void detachImage(PresentImage *image) override;
+	VkResult present(PresentImage *image) override;
 
 private:
 	void lazyCreateFrameBuffer();
@@ -58,5 +59,5 @@ private:
 	void *framebuffer = nullptr;
 };
 
-}
-#endif //SWIFTSHADER_WIN32SURFACEKHR_HPP
+}  // namespace vk
+#endif  //SWIFTSHADER_WIN32SURFACEKHR_HPP

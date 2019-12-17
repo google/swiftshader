@@ -18,17 +18,14 @@
 
 #include <algorithm>
 
-namespace
-{
+namespace {
 
-static const VkSurfaceFormatKHR surfaceFormats[] =
-{
-	{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
-	{VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
+static const VkSurfaceFormatKHR surfaceFormats[] = {
+	{ VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR },
+	{ VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR },
 };
 
-static const VkPresentModeKHR presentModes[] =
-{
+static const VkPresentModeKHR presentModes[] = {
 	// FIXME(b/124265819): Make present modes behave correctly. Currently we use XPutImage
 	// with no synchronization, which behaves more like VK_PRESENT_MODE_IMMEDIATE_KHR. We
 	// should convert to using the Present extension, which allows us to request presentation
@@ -38,13 +35,13 @@ static const VkPresentModeKHR presentModes[] =
 	VK_PRESENT_MODE_MAILBOX_KHR,
 };
 
-}
+}  // namespace
 
 namespace vk {
 
-VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo& createInfo)
+VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo &createInfo)
 {
-	VkImage* vkImagePtr = reinterpret_cast<VkImage*>(allocate(sizeof(VkImage), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
+	VkImage *vkImagePtr = reinterpret_cast<VkImage *>(allocate(sizeof(VkImage), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
 	if(!vkImagePtr)
 	{
 		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -63,12 +60,12 @@ VkResult PresentImage::allocateImage(VkDevice device, const VkImageCreateInfo& c
 	return status;
 }
 
-VkResult PresentImage::allocateAndBindImageMemory(VkDevice device, const VkMemoryAllocateInfo& allocateInfo)
+VkResult PresentImage::allocateAndBindImageMemory(VkDevice device, const VkMemoryAllocateInfo &allocateInfo)
 {
 	ASSERT(image);
 
-	VkDeviceMemory* vkDeviceMemoryPtr = reinterpret_cast<VkDeviceMemory*>(
-		allocate(sizeof(VkDeviceMemory), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
+	VkDeviceMemory *vkDeviceMemoryPtr = reinterpret_cast<VkDeviceMemory *>(
+	    allocate(sizeof(VkDeviceMemory), REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY));
 	if(!vkDeviceMemoryPtr)
 	{
 		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -123,10 +120,10 @@ void SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabi
 	pSurfaceCapabilities->currentTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 	pSurfaceCapabilities->supportedCompositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	pSurfaceCapabilities->supportedUsageFlags =
-		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-		VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-		VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-		VK_IMAGE_USAGE_SAMPLED_BIT;
+	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+	    VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+	    VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+	    VK_IMAGE_USAGE_SAMPLED_BIT;
 }
 
 uint32_t SurfaceKHR::getSurfaceFormatsCount() const
@@ -179,7 +176,7 @@ VkResult SurfaceKHR::getPresentModes(uint32_t *pPresentModeCount, VkPresentModeK
 	return VK_SUCCESS;
 }
 
-void SurfaceKHR::associateSwapchain(SwapchainKHR* swapchain)
+void SurfaceKHR::associateSwapchain(SwapchainKHR *swapchain)
 {
 	associatedSwapchain = swapchain;
 }
@@ -210,7 +207,7 @@ VkResult SurfaceKHR::getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects
 	VkSurfaceCapabilitiesKHR capabilities;
 	getSurfaceCapabilities(&capabilities);
 
-	pRects[0].offset = {0,0};
+	pRects[0].offset = { 0, 0 };
 	pRects[0].extent = capabilities.currentExtent;
 	*pRectCount = 1;
 

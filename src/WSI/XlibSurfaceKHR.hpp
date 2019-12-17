@@ -15,16 +15,17 @@
 #ifndef SWIFTSHADER_XLIBSURFACEKHR_HPP
 #define SWIFTSHADER_XLIBSURFACEKHR_HPP
 
-#include "Vulkan/VkObject.hpp"
-#include "libX11.hpp"
 #include "VkSurfaceKHR.hpp"
+#include "libX11.hpp"
+#include "Vulkan/VkObject.hpp"
 #include "vulkan/vulkan_xlib.h"
 
 #include <unordered_map>
 
 namespace vk {
 
-class XlibSurfaceKHR : public SurfaceKHR, public ObjectBase<XlibSurfaceKHR, VkSurfaceKHR> {
+class XlibSurfaceKHR : public SurfaceKHR, public ObjectBase<XlibSurfaceKHR, VkSurfaceKHR>
+{
 public:
 	XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, void *mem);
 
@@ -34,17 +35,17 @@ public:
 
 	void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
-	virtual void attachImage(PresentImage* image) override;
-	virtual void detachImage(PresentImage* image) override;
-	VkResult present(PresentImage* image) override;
+	virtual void attachImage(PresentImage *image) override;
+	virtual void detachImage(PresentImage *image) override;
+	VkResult present(PresentImage *image) override;
 
 private:
 	Display *const pDisplay;
 	const Window window;
 	GC gc;
 	Visual *visual = nullptr;
-	std::unordered_map<PresentImage*, XImage*> imageMap;
+	std::unordered_map<PresentImage *, XImage *> imageMap;
 };
 
-}
-#endif //SWIFTSHADER_XLIBSURFACEKHR_HPP
+}  // namespace vk
+#endif  //SWIFTSHADER_XLIBSURFACEKHR_HPP
