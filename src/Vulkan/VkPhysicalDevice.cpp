@@ -98,7 +98,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_FALSE,  // sparseResidency8Samples
 		VK_FALSE,  // sparseResidency16Samples
 		VK_FALSE,  // sparseResidencyAliased
-		VK_FALSE,  // variableMultisampleRate
+		VK_TRUE,   // variableMultisampleRate
 		VK_FALSE,  // inheritedQueries
 	};
 
