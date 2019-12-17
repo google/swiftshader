@@ -23,4 +23,4 @@ void optimize(Ice::Cfg *function);
 
 }  // namespace rr
 
-#endif   // rr_Optimizer_hpp
+#endif  // rr_Optimizer_hpp

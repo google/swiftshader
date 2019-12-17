@@ -14,8 +14,8 @@
 
 #include "Debug.hpp"
 
-#include <string>
 #include <stdarg.h>
+#include <string>
 
 namespace rr {
 

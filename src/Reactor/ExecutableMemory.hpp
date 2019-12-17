@@ -23,7 +23,8 @@ namespace rr {
 
 size_t memoryPageSize();
 
-enum MemoryPermission  {
+enum MemoryPermission
+{
 	PERMISSION_READ = 1,
 	PERMISSION_WRITE = 2,
 	PERMISSION_EXECUTE = 4,
@@ -31,7 +32,7 @@ enum MemoryPermission  {
 
 // Allocates memory with the specified permissions. If |need_exec| is true then
 // the allocate memory can be made marked executable using protectMemoryPages().
-void* allocateMemoryPages(size_t bytes, int permissions, bool need_exec);
+void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec);
 
 // Sets permissions for memory allocated with allocateMemoryPages().
 void protectMemoryPages(void *memory, size_t bytes, int permissions);
@@ -58,7 +59,9 @@ template<typename P>
 class unaligned_ref
 {
 public:
-	explicit unaligned_ref(void *ptr) : ptr((P*)ptr) {}
+	explicit unaligned_ref(void *ptr)
+	    : ptr((P *)ptr)
+	{}
 
 	template<typename V>
 	P operator=(V value)
@@ -69,7 +72,7 @@ public:
 
 	operator P()
 	{
-		return unaligned_read((P*)ptr);
+		return unaligned_read((P *)ptr);
 	}
 
 private:
@@ -83,7 +86,9 @@ class unaligned_ptr
 	friend class unaligned_ptr;
 
 public:
-	unaligned_ptr(P *ptr) : ptr(ptr) {}
+	unaligned_ptr(P *ptr)
+	    : ptr(ptr)
+	{}
 
 	unaligned_ref<P> operator*()
 	{
@@ -102,4 +107,4 @@ private:
 
 }  // namespace rr
 
-#endif   // rr_ExecutableMemory_hpp
+#endif  // rr_ExecutableMemory_hpp

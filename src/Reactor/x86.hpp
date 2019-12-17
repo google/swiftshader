@@ -106,4 +106,4 @@ RValue<Int4> pmovsxwd(RValue<Short8> x);
 }  // namespace x86
 }  // namespace rr
 
-#endif   // rr_x86_hpp
+#endif  // rr_x86_hpp

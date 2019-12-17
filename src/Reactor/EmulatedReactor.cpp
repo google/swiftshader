@@ -7,18 +7,18 @@
 namespace rr {
 namespace {
 
-template <typename T>
+template<typename T>
 struct UnderlyingType
 {
 	using Type = typename decltype(rr::Extract(std::declval<RValue<T>>(), 0))::rvalue_underlying_type;
 };
 
-template <typename T>
+template<typename T>
 using UnderlyingTypeT = typename UnderlyingType<T>::Type;
 
 // Call single arg function on a vector type
-template <typename Func, typename T>
-RValue<T> call4(Func func, const RValue<T>& x)
+template<typename Func, typename T>
+RValue<T> call4(Func func, const RValue<T> &x)
 {
 	T result;
 	result = Insert(result, Call(func, Extract(x, 0)), 0);
@@ -29,8 +29,8 @@ RValue<T> call4(Func func, const RValue<T>& x)
 }
 
 // Call two arg function on a vector type
-template <typename Func, typename T>
-RValue<T> call4(Func func, const RValue<T>& x, const RValue<T>& y)
+template<typename Func, typename T>
+RValue<T> call4(Func func, const RValue<T> &x, const RValue<T> &y)
 {
 	T result;
 	result = Insert(result, Call(func, Extract(x, 0), Extract(y, 0)), 0);
@@ -40,8 +40,8 @@ RValue<T> call4(Func func, const RValue<T>& x, const RValue<T>& y)
 	return result;
 }
 
-template <typename T, typename EL = UnderlyingTypeT<T>>
-void gather(T& out, RValue<Pointer<EL>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes)
+template<typename T, typename EL = UnderlyingTypeT<T>>
+void gather(T &out, RValue<Pointer<EL>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes)
 {
 	constexpr bool atomic = false;
 	constexpr std::memory_order order = std::memory_order_relaxed;
@@ -64,7 +64,7 @@ void gather(T& out, RValue<Pointer<EL>> base, RValue<Int4> offsets, RValue<Int4>
 	}
 }
 
-template <typename T, typename EL = UnderlyingTypeT<T>>
+template<typename T, typename EL = UnderlyingTypeT<T>>
 void scatter(RValue<Pointer<EL>> base, RValue<T> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
 {
 	constexpr bool atomic = false;

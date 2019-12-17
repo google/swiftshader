@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Reactor.hpp"
 #include "Coroutine.hpp"
+#include "Reactor.hpp"
 
 #include "gtest/gtest.h"
 
@@ -30,8 +30,12 @@ using float4 = float[4];
 struct float4_value
 {
 	float4_value() = default;
-	explicit float4_value(float rep) : v{ rep, rep, rep, rep } {}
-	float4_value(float x, float y, float z, float w) : v{ x, y, z, w } {}
+	explicit float4_value(float rep)
+	    : v{ rep, rep, rep, rep }
+	{}
+	float4_value(float x, float y, float z, float w)
+	    : v{ x, y, z, w }
+	{}
 
 	bool operator==(const float4_value &rhs) const
 	{
@@ -39,7 +43,8 @@ struct float4_value
 	}
 
 	// For gtest printing
-	friend std::ostream& operator<<(std::ostream& os, const float4_value& value) {
+	friend std::ostream &operator<<(std::ostream &os, const float4_value &value)
+	{
 		return os << "[" << value.v[0] << ", " << value.v[1] << ", " << value.v[2] << ", " << value.v[3] << "]";
 	}
 
@@ -47,26 +52,25 @@ struct float4_value
 };
 
 // For gtest printing of pairs
-namespace std
+namespace std {
+template<typename T, typename U>
+std::ostream &operator<<(std::ostream &os, const std::pair<T, U> &value)
 {
-	template <typename T, typename U>
-	std::ostream& operator<<(std::ostream& os, const std::pair<T, U>& value) {
-		return os << "{ " << value.first << ", " << value.second << " }";
-	}
+	return os << "{ " << value.first << ", " << value.second << " }";
 }
-
+}  // namespace std
 
 // Invoke a void(float4*) routine on &v.v, returning wrapped result in v
-template <typename RoutineType>
-float4_value invokeRoutine(RoutineType& routine, float4_value v)
+template<typename RoutineType>
+float4_value invokeRoutine(RoutineType &routine, float4_value v)
 {
 	routine(&v.v);
 	return v;
 }
 
 // Invoke a void(float4*, float4*) routine on &v1.v, &v2.v returning wrapped result in v1
-template <typename RoutineType>
-float4_value invokeRoutine(RoutineType& routine, float4_value v1, float4_value v2)
+template<typename RoutineType>
+float4_value invokeRoutine(RoutineType &routine, float4_value v1, float4_value v2)
 {
 	routine(&v1.v, &v2.v);
 	return v1;
@@ -89,7 +93,7 @@ int reference(int *p, int y)
 
 TEST(ReactorUnitTests, Sample)
 {
-	FunctionT<int(int*, int)> function;
+	FunctionT<int(int *, int)> function;
 	{
 		Pointer<Int> p = function.Arg<0>();
 		Int x = p[-1];
@@ -114,7 +118,7 @@ TEST(ReactorUnitTests, Sample)
 
 	if(routine)
 	{
-		int one[2] = {1, 0};
+		int one[2] = { 1, 0 };
 		int result = routine(&one[1], 2);
 		EXPECT_EQ(result, reference(&one[1], 2));
 	}
@@ -146,7 +150,7 @@ TEST(ReactorUnitTests, Uninitialized)
 	if(routine)
 	{
 		int result = routine();
-		EXPECT_EQ(result, result);   // Anything is fine, just don't crash
+		EXPECT_EQ(result, result);  // Anything is fine, just don't crash
 	}
 }
 
@@ -197,15 +201,15 @@ TEST(ReactorUnitTests, VariableAddress)
 
 TEST(ReactorUnitTests, SubVectorLoadStore)
 {
-	FunctionT<int(void*, void*)> function;
+	FunctionT<int(void *, void *)> function;
 	{
 		Pointer<Byte> in = function.Arg<0>();
 		Pointer<Byte> out = function.Arg<1>();
 
-		*Pointer<Int4>(out + 16 * 0)   = *Pointer<Int4>(in + 16 * 0);
+		*Pointer<Int4>(out + 16 * 0) = *Pointer<Int4>(in + 16 * 0);
 		*Pointer<Short4>(out + 16 * 1) = *Pointer<Short4>(in + 16 * 1);
-		*Pointer<Byte8>(out + 16 * 2)  = *Pointer<Byte8>(in + 16 * 2);
-		*Pointer<Byte4>(out + 16 * 3)  = *Pointer<Byte4>(in + 16 * 3);
+		*Pointer<Byte8>(out + 16 * 2) = *Pointer<Byte8>(in + 16 * 2);
+		*Pointer<Byte4>(out + 16 * 3) = *Pointer<Byte4>(in + 16 * 3);
 		*Pointer<Short2>(out + 16 * 4) = *Pointer<Short2>(in + 16 * 4);
 
 		Return(0);
@@ -215,17 +219,17 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 
 	if(routine)
 	{
-		int8_t in[16 * 5] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
-			                    17, 18, 19, 20, 21, 22, 23, 24,  0,  0,  0,  0,  0,  0,  0,  0,
-			                    25, 26, 27, 28, 29, 30, 31, 32,  0,  0,  0,  0,  0,  0,  0,  0,
-			                    33, 34, 35, 36,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-			                    37, 38, 39, 40,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+		int8_t in[16 * 5] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+			                  17, 18, 19, 20, 21, 22, 23, 24, 0, 0, 0, 0, 0, 0, 0, 0,
+			                  25, 26, 27, 28, 29, 30, 31, 32, 0, 0, 0, 0, 0, 0, 0, 0,
+			                  33, 34, 35, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			                  37, 38, 39, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-		int8_t out[16 * 5] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+		int8_t out[16 * 5] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 		routine(in, out);
 
@@ -235,9 +239,9 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 			{
 				int i = row * 16 + col;
 
-				if(in[i] ==  0)
+				if(in[i] == 0)
 				{
-					EXPECT_EQ(out[i], -1) << "Row " << row << " column " << col <<  " not left untouched.";
+					EXPECT_EQ(out[i], -1) << "Row " << row << " column " << col << " not left untouched.";
 				}
 				else
 				{
@@ -250,7 +254,7 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 
 TEST(ReactorUnitTests, VectorConstant)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
@@ -266,15 +270,15 @@ TEST(ReactorUnitTests, VectorConstant)
 
 	if(routine)
 	{
-		int8_t out[16 * 4] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+		int8_t out[16 * 4] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
-		int8_t exp[16 * 4] = {1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
-			                    17, 18, 19, 20, 21, 22, 23, 24, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    25, 26, 27, 28, 29, 30, 31, 32, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    33, 34, 35, 36, 37, 38, 39, 40, -1, -1, -1, -1, -1, -1, -1, -1};
+		int8_t exp[16 * 4] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+			                   17, 18, 19, 20, 21, 22, 23, 24, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   25, 26, 27, 28, 29, 30, 31, 32, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   33, 34, 35, 36, 37, 38, 39, 40, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 		routine(out);
 
@@ -292,11 +296,11 @@ TEST(ReactorUnitTests, VectorConstant)
 
 TEST(ReactorUnitTests, Concatenate)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
-		*Pointer<Int4>(out + 16 * 0)   = Int4(Int2(0x04030201, 0x08070605), Int2(0x0C0B0A09, 0x100F0E0D));
+		*Pointer<Int4>(out + 16 * 0) = Int4(Int2(0x04030201, 0x08070605), Int2(0x0C0B0A09, 0x100F0E0D));
 		*Pointer<Short8>(out + 16 * 1) = Short8(Short4(0x0201, 0x0403, 0x0605, 0x0807), Short4(0x0A09, 0x0C0B, 0x0E0D, 0x100F));
 
 		Return(0);
@@ -306,11 +310,11 @@ TEST(ReactorUnitTests, Concatenate)
 
 	if(routine)
 	{
-		int8_t ref[16 * 5] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
-			                    1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16};
+		int8_t ref[16 * 5] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+			                   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-		int8_t out[16 * 5] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			                    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+		int8_t out[16 * 5] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 		routine(out);
 
@@ -328,8 +332,7 @@ TEST(ReactorUnitTests, Concatenate)
 
 TEST(ReactorUnitTests, Swizzle)
 {
-	auto swizzleCode = [](int i) -> uint16_t
-	{
+	auto swizzleCode = [](int i) -> uint16_t {
 		auto x = (i >> 0) & 0x03;
 		auto y = (i >> 2) & 0x03;
 		auto z = (i >> 4) & 0x03;
@@ -338,7 +341,7 @@ TEST(ReactorUnitTests, Swizzle)
 	};
 
 	{
-		FunctionT<int(void*)> function;
+		FunctionT<int(void *)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -362,13 +365,13 @@ TEST(ReactorUnitTests, Swizzle)
 			for(int i = 0; i < 256; i++)
 			{
 				*Pointer<Short4>(out + 16 * (512 + 6) + (8 * i)) =
-                                    Swizzle(Short4(1, 2, 3, 4), swizzleCode(i));
+				    Swizzle(Short4(1, 2, 3, 4), swizzleCode(i));
 			}
 
 			for(int i = 0; i < 256; i++)
 			{
 				*Pointer<Int4>(out + 16 * (512 + 6 + i) + (8 * 256)) =
-                                    Swizzle(Int4(1, 2, 3, 4), swizzleCode(i));
+				    Swizzle(Int4(1, 2, 3, 4), swizzleCode(i));
 			}
 
 			Return(0);
@@ -436,14 +439,14 @@ TEST(ReactorUnitTests, Swizzle)
 
 			for(int i = 0; i < 256; i++)
 			{
-				EXPECT_EQ(out.i[4 + i/2][0 + (i%2) * 2] & 0xFFFF,
-                                          ((i >> 0) & 0x03) + 1);
-				EXPECT_EQ(out.i[4 + i/2][0 + (i%2) * 2] >> 16,
-                                          ((i >> 2) & 0x03) + 1);
-				EXPECT_EQ(out.i[4 + i/2][1 + (i%2) * 2] & 0xFFFF,
-                                          ((i >> 4) & 0x03) + 1);
-				EXPECT_EQ(out.i[4 + i/2][1 + (i%2) * 2] >> 16,
-                                          ((i >> 6) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i / 2][0 + (i % 2) * 2] & 0xFFFF,
+				          ((i >> 0) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i / 2][0 + (i % 2) * 2] >> 16,
+				          ((i >> 2) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i / 2][1 + (i % 2) * 2] & 0xFFFF,
+				          ((i >> 4) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i / 2][1 + (i % 2) * 2] >> 16,
+				          ((i >> 6) & 0x03) + 1);
 			}
 
 			for(int i = 0; i < 256; i++)
@@ -483,14 +486,13 @@ TEST(ReactorUnitTests, Blend)
 
 		auto rangeIndexToSelect = [](int i) {
 			return static_cast<unsigned short>(
-				(((i >> 9) & 7) << 0) |
-				(((i >> 6) & 7) << 4) |
-				(((i >> 3) & 7) << 8) |
-				(((i >> 0) & 7) << 12)
-			);
+			    (((i >> 9) & 7) << 0) |
+			    (((i >> 6) & 7) << 4) |
+			    (((i >> 3) & 7) << 8) |
+			    (((i >> 0) & 7) << 12));
 		};
 
-		FunctionT<int(void*)> function;
+		FunctionT<int(void *)> function;
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
@@ -554,7 +556,6 @@ TEST(ReactorUnitTests, Blend)
 			}
 		}
 	}
-
 }
 
 TEST(ReactorUnitTests, Branching)
@@ -583,24 +584,23 @@ TEST(ReactorUnitTests, Branching)
 			}
 
 			For(Int i = 0, i < 5, i++)
-				x += 10000;
+			    x += 10000;
 		}
 
-		For(Int i = 0, i < 10, i++)
-			for(int i = 0; i < 10; i++)
-				For(Int i = 0, i < 10, i++)
-				{
-					x += 1000000;
-				}
+		For(Int i = 0, i < 10, i++) for(int i = 0; i < 10; i++)
+		    For(Int i = 0, i < 10, i++)
+		{
+			x += 1000000;
+		}
 
 		For(Int i = 0, i < 2, i++)
-			If(x == 1000402222)
-			{
-				If(x != 1000402222)
-					x += 1000000000;
-			}
-			Else
-				x = -5;
+		    If(x == 1000402222)
+		{
+			If(x != 1000402222)
+			    x += 1000000000;
+		}
+		Else
+		    x = -5;
 
 		Return(x);
 	}
@@ -613,12 +613,11 @@ TEST(ReactorUnitTests, Branching)
 
 		EXPECT_EQ(result, 1000402222);
 	}
-
 }
 
 TEST(ReactorUnitTests, MinMax)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
@@ -702,7 +701,7 @@ TEST(ReactorUnitTests, MinMax)
 
 TEST(ReactorUnitTests, NotNeg)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
@@ -780,13 +779,13 @@ TEST(ReactorUnitTests, NotNeg)
 
 TEST(ReactorUnitTests, FPtoUI)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
-		*Pointer<UInt>(out + 0)  = UInt(Float(0xF0000000u));
-		*Pointer<UInt>(out + 4)  = UInt(Float(0xC0000000u));
-		*Pointer<UInt>(out + 8)  = UInt(Float(0x00000001u));
+		*Pointer<UInt>(out + 0) = UInt(Float(0xF0000000u));
+		*Pointer<UInt>(out + 4) = UInt(Float(0xC0000000u));
+		*Pointer<UInt>(out + 8) = UInt(Float(0x00000001u));
 		*Pointer<UInt>(out + 12) = UInt(Float(0xF000F000u));
 
 		*Pointer<UInt4>(out + 16) = UInt4(Float4(0xF0000000u, 0x80000000u, 0x00000000u, 0xCCCC0000u));
@@ -818,7 +817,7 @@ TEST(ReactorUnitTests, FPtoUI)
 
 TEST(ReactorUnitTests, VectorCompare)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
@@ -873,52 +872,52 @@ TEST(ReactorUnitTests, VectorCompare)
 
 TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
 		*Pointer<Byte8>(out + 8 * 0) =
-			AddSat(Byte8(1, 2, 3, 4, 5, 6, 7, 8),
-				    Byte8(7, 6, 5, 4, 3, 2, 1, 0));
+		    AddSat(Byte8(1, 2, 3, 4, 5, 6, 7, 8),
+		           Byte8(7, 6, 5, 4, 3, 2, 1, 0));
 		*Pointer<Byte8>(out + 8 * 1) =
-			AddSat(Byte8(0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE),
-				    Byte8(7, 6, 5, 4, 3, 2, 1, 0));
+		    AddSat(Byte8(0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE),
+		           Byte8(7, 6, 5, 4, 3, 2, 1, 0));
 		*Pointer<Byte8>(out + 8 * 2) =
-			SubSat(Byte8(1, 2, 3, 4, 5, 6, 7, 8),
-				    Byte8(7, 6, 5, 4, 3, 2, 1, 0));
+		    SubSat(Byte8(1, 2, 3, 4, 5, 6, 7, 8),
+		           Byte8(7, 6, 5, 4, 3, 2, 1, 0));
 
 		*Pointer<SByte8>(out + 8 * 3) =
-			AddSat(SByte8(1, 2, 3, 4, 5, 6, 7, 8),
-				    SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+		    AddSat(SByte8(1, 2, 3, 4, 5, 6, 7, 8),
+		           SByte8(7, 6, 5, 4, 3, 2, 1, 0));
 		*Pointer<SByte8>(out + 8 * 4) =
-			AddSat(SByte8(0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E),
-				    SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+		    AddSat(SByte8(0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E),
+		           SByte8(7, 6, 5, 4, 3, 2, 1, 0));
 		*Pointer<SByte8>(out + 8 * 5) =
-			AddSat(SByte8(0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88),
-				    SByte8(-7, -6, -5, -4, -3, -2, -1, -0));
+		    AddSat(SByte8(0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88),
+		           SByte8(-7, -6, -5, -4, -3, -2, -1, -0));
 		*Pointer<SByte8>(out + 8 * 6) =
-			SubSat(SByte8(0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88),
-				    SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+		    SubSat(SByte8(0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88),
+		           SByte8(7, 6, 5, 4, 3, 2, 1, 0));
 
 		*Pointer<Short4>(out + 8 * 7) =
-			AddSat(Short4(1, 2, 3, 4), Short4(3, 2, 1, 0));
+		    AddSat(Short4(1, 2, 3, 4), Short4(3, 2, 1, 0));
 		*Pointer<Short4>(out + 8 * 8) =
-			AddSat(Short4(0x7FFE, 0x7FFE, 0x7FFE, 0x7FFE),
-				    Short4(3, 2, 1, 0));
+		    AddSat(Short4(0x7FFE, 0x7FFE, 0x7FFE, 0x7FFE),
+		           Short4(3, 2, 1, 0));
 		*Pointer<Short4>(out + 8 * 9) =
-			AddSat(Short4(0x8001, 0x8002, 0x8003, 0x8004),
-				    Short4(-3, -2, -1, -0));
+		    AddSat(Short4(0x8001, 0x8002, 0x8003, 0x8004),
+		           Short4(-3, -2, -1, -0));
 		*Pointer<Short4>(out + 8 * 10) =
-			SubSat(Short4(0x8001, 0x8002, 0x8003, 0x8004),
-				    Short4(3, 2, 1, 0));
+		    SubSat(Short4(0x8001, 0x8002, 0x8003, 0x8004),
+		           Short4(3, 2, 1, 0));
 
 		*Pointer<UShort4>(out + 8 * 11) =
-			AddSat(UShort4(1, 2, 3, 4), UShort4(3, 2, 1, 0));
+		    AddSat(UShort4(1, 2, 3, 4), UShort4(3, 2, 1, 0));
 		*Pointer<UShort4>(out + 8 * 12) =
-			AddSat(UShort4(0xFFFE, 0xFFFE, 0xFFFE, 0xFFFE),
-				    UShort4(3, 2, 1, 0));
+		    AddSat(UShort4(0xFFFE, 0xFFFE, 0xFFFE, 0xFFFE),
+		           UShort4(3, 2, 1, 0));
 		*Pointer<UShort4>(out + 8 * 13) =
-			SubSat(UShort4(1, 2, 3, 4), UShort4(3, 2, 1, 0));
+		    SubSat(UShort4(1, 2, 3, 4), UShort4(3, 2, 1, 0));
 
 		Return(0);
 	}
@@ -979,7 +978,7 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 
 TEST(ReactorUnitTests, Unpack)
 {
-	FunctionT<int(void*, void*)> function;
+	FunctionT<int(void *, void *)> function;
 	{
 		Pointer<Byte> in = function.Arg<0>();
 		Pointer<Byte> out = function.Arg<1>();
@@ -988,7 +987,7 @@ TEST(ReactorUnitTests, Unpack)
 		Byte4 test_byte_b = *Pointer<Byte4>(in + 4 * 1);
 
 		*Pointer<Short4>(out + 8 * 0) =
-			Unpack(test_byte_a, test_byte_b);
+		    Unpack(test_byte_a, test_byte_b);
 
 		*Pointer<Short4>(out + 8 * 1) = Unpack(test_byte_a);
 
@@ -1019,25 +1018,25 @@ TEST(ReactorUnitTests, Unpack)
 
 TEST(ReactorUnitTests, Pack)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
 		*Pointer<SByte8>(out + 8 * 0) =
-			PackSigned(Short4(-1, -2, 1, 2),
-					Short4(3, 4, -3, -4));
+		    PackSigned(Short4(-1, -2, 1, 2),
+		               Short4(3, 4, -3, -4));
 
 		*Pointer<Byte8>(out + 8 * 1) =
-			PackUnsigned(Short4(-1, -2, 1, 2),
-					    Short4(3, 4, -3, -4));
+		    PackUnsigned(Short4(-1, -2, 1, 2),
+		                 Short4(3, 4, -3, -4));
 
 		*Pointer<Short8>(out + 8 * 2) =
-			PackSigned(Int4(-1, -2, 1, 2),
-					Int4(3, 4, -3, -4));
+		    PackSigned(Int4(-1, -2, 1, 2),
+		               Int4(3, 4, -3, -4));
 
 		*Pointer<UShort8>(out + 8 * 4) =
-			PackUnsigned(Int4(-1, -2, 1, 2),
-					    Int4(3, 4, -3, -4));
+		    PackUnsigned(Int4(-1, -2, 1, 2),
+		                 Int4(3, 4, -3, -4));
 
 		Return(0);
 	}
@@ -1074,30 +1073,30 @@ TEST(ReactorUnitTests, Pack)
 
 TEST(ReactorUnitTests, MulHigh)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
 		*Pointer<Short4>(out + 16 * 0) =
-			MulHigh(Short4(0x01AA, 0x02DD, 0x03EE, 0xF422),
-				    Short4(0x01BB, 0x02CC, 0x03FF, 0xF411));
+		    MulHigh(Short4(0x01AA, 0x02DD, 0x03EE, 0xF422),
+		            Short4(0x01BB, 0x02CC, 0x03FF, 0xF411));
 		*Pointer<UShort4>(out + 16 * 1) =
-			MulHigh(UShort4(0x01AA, 0x02DD, 0x03EE, 0xF422),
-				    UShort4(0x01BB, 0x02CC, 0x03FF, 0xF411));
+		    MulHigh(UShort4(0x01AA, 0x02DD, 0x03EE, 0xF422),
+		            UShort4(0x01BB, 0x02CC, 0x03FF, 0xF411));
 
 		*Pointer<Int4>(out + 16 * 2) =
-			MulHigh(Int4(0x000001AA, 0x000002DD, 0xC8000000, 0xF8000000),
-				    Int4(0x000001BB, 0x84000000, 0x000003EE, 0xD7000000));
+		    MulHigh(Int4(0x000001AA, 0x000002DD, 0xC8000000, 0xF8000000),
+		            Int4(0x000001BB, 0x84000000, 0x000003EE, 0xD7000000));
 		*Pointer<UInt4>(out + 16 * 3) =
-			MulHigh(UInt4(0x000001AAu, 0x000002DDu, 0xC8000000u, 0xD8000000u),
-				    UInt4(0x000001BBu, 0x84000000u, 0x000003EEu, 0xD7000000u));
+		    MulHigh(UInt4(0x000001AAu, 0x000002DDu, 0xC8000000u, 0xD8000000u),
+		            UInt4(0x000001BBu, 0x84000000u, 0x000003EEu, 0xD7000000u));
 
 		*Pointer<Int4>(out + 16 * 4) =
-			MulHigh(Int4(0x7FFFFFFF, 0x7FFFFFFF, 0x80008000, 0xFFFFFFFF),
-				    Int4(0x7FFFFFFF, 0x80000000, 0x80008000, 0xFFFFFFFF));
+		    MulHigh(Int4(0x7FFFFFFF, 0x7FFFFFFF, 0x80008000, 0xFFFFFFFF),
+		            Int4(0x7FFFFFFF, 0x80000000, 0x80008000, 0xFFFFFFFF));
 		*Pointer<UInt4>(out + 16 * 5) =
-			MulHigh(UInt4(0x7FFFFFFFu, 0x7FFFFFFFu, 0x80008000u, 0xFFFFFFFFu),
-				    UInt4(0x7FFFFFFFu, 0x80000000u, 0x80008000u, 0xFFFFFFFFu));
+		    MulHigh(UInt4(0x7FFFFFFFu, 0x7FFFFFFFu, 0x80008000u, 0xFFFFFFFFu),
+		            UInt4(0x7FFFFFFFu, 0x80000000u, 0x80008000u, 0xFFFFFFFFu));
 
 		// (U)Short8 variants currently unimplemented.
 
@@ -1144,13 +1143,13 @@ TEST(ReactorUnitTests, MulHigh)
 
 TEST(ReactorUnitTests, MulAdd)
 {
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> out = function.Arg<0>();
 
 		*Pointer<Int2>(out + 8 * 0) =
-			MulAdd(Short4(0x1aa, 0x2dd, 0x3ee, 0xF422),
-				    Short4(0x1bb, 0x2cc, 0x3ff, 0xF411));
+		    MulAdd(Short4(0x1aa, 0x2dd, 0x3ee, 0xF422),
+		           Short4(0x1bb, 0x2cc, 0x3ff, 0xF411));
 
 		// (U)Short8 variant is mentioned but unimplemented
 		Return(0);
@@ -1173,7 +1172,7 @@ TEST(ReactorUnitTests, MulAdd)
 
 TEST(ReactorUnitTests, PointersEqual)
 {
-	FunctionT<int(void*, void*)> function;
+	FunctionT<int(void *, void *)> function;
 	{
 		Pointer<Byte> ptrA = function.Arg<0>();
 		Pointer<Byte> ptrB = function.Arg<1>();
@@ -1188,9 +1187,9 @@ TEST(ReactorUnitTests, PointersEqual)
 	}
 
 	auto routine = function("one");
-	int* a = reinterpret_cast<int*>(uintptr_t(0x0000000000000000));
-	int* b = reinterpret_cast<int*>(uintptr_t(0x00000000F0000000));
-	int* c = reinterpret_cast<int*>(uintptr_t(0xF000000000000000));
+	int *a = reinterpret_cast<int *>(uintptr_t(0x0000000000000000));
+	int *b = reinterpret_cast<int *>(uintptr_t(0x00000000F0000000));
+	int *c = reinterpret_cast<int *>(uintptr_t(0xF000000000000000));
 	EXPECT_EQ(routine(&a, &a), 1);
 	EXPECT_EQ(routine(&b, &b), 1);
 	EXPECT_EQ(routine(&c, &c), 1);
@@ -1299,7 +1298,7 @@ TEST(ReactorUnitTests, Call)
 		float f = 0.0f;
 	};
 
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> c = function.Arg<0>();
 		auto res = Call(Class::Callback, c, 10, 20.0f);
@@ -1361,7 +1360,7 @@ TEST(ReactorUnitTests, CallMemberFunctionIndirect)
 		float f = 0.0f;
 	};
 
-	FunctionT<int(void*)> function;
+	FunctionT<int(void *)> function;
 	{
 		Pointer<Byte> c = function.Arg<0>();
 		auto res = Call(&Class::Callback, c, 10, 20.0f);
@@ -1381,14 +1380,14 @@ TEST(ReactorUnitTests, CallImplicitCast)
 {
 	struct Class
 	{
-		static void Callback(Class *c, const char* s)
+		static void Callback(Class *c, const char *s)
 		{
 			c->str = s;
 		}
 		std::string str;
 	};
 
-	FunctionT<void(Class *c, const char *s)> function;
+	FunctionT<void(Class * c, const char *s)> function;
 	{
 		Pointer<Byte> c = function.Arg<0>();
 		Pointer<Byte> s = function.Arg<1>();
@@ -1487,7 +1486,7 @@ TEST(ReactorUnitTests, Call_ArgsMixed)
 {
 	struct Class
 	{
-		static int Func(int a, float b, int* c, float* d, int e, float f, int* g, float* h)
+		static int Func(int a, float b, int *c, float *d, int e, float f, int *g, float *h)
 		{
 			return a + b + *c + *d + e + f + *g + *h;
 		}
@@ -1542,7 +1541,6 @@ TEST(ReactorUnitTests, Call_ArgsPointer)
 	}
 }
 
-
 TEST(ReactorUnitTests, CallExternalCallRoutine)
 {
 	// routine1 calls Class::Func, passing it a pointer to routine2, and Class::Func calls routine2
@@ -1559,15 +1557,15 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 
 	struct Class
 	{
-		static float Func(void* p, float a, int b)
+		static float Func(void *p, float a, int b)
 		{
-			auto funcToCall = reinterpret_cast<float(*)(float, int)>(p);
+			auto funcToCall = reinterpret_cast<float (*)(float, int)>(p);
 			return funcToCall(a, b);
 		}
 	};
 
 	auto routine1 = [] {
-		FunctionT<float(void*, float, int)> function;
+		FunctionT<float(void *, float, int)> function;
 		{
 			Pointer<Byte> funcToCall = function.Arg<0>();
 			Float a = function.Arg<1>();
@@ -1578,7 +1576,7 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 		return function("one");
 	}();
 
-	float result = routine1((void*)routine2.getEntry(), 12.f, 13);
+	float result = routine1((void *)routine2.getEntry(), 12.f, 13);
 	EXPECT_EQ(result, 25.f);
 }
 
@@ -1590,80 +1588,80 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 // It's necessary to inspect the registers in a debugger to actually verify.)
 TEST(ReactorUnitTests, PreserveXMMRegisters)
 {
-    FunctionT<void(void*, void*)> function;
-    {
-        Pointer<Byte> in = function.Arg<0>();
-        Pointer<Byte> out = function.Arg<1>();
+	FunctionT<void(void *, void *)> function;
+	{
+		Pointer<Byte> in = function.Arg<0>();
+		Pointer<Byte> out = function.Arg<1>();
 
-        Float4 a = *Pointer<Float4>(in + 16 * 0);
-        Float4 b = *Pointer<Float4>(in + 16 * 1);
-        Float4 c = *Pointer<Float4>(in + 16 * 2);
-        Float4 d = *Pointer<Float4>(in + 16 * 3);
-        Float4 e = *Pointer<Float4>(in + 16 * 4);
-        Float4 f = *Pointer<Float4>(in + 16 * 5);
-        Float4 g = *Pointer<Float4>(in + 16 * 6);
-        Float4 h = *Pointer<Float4>(in + 16 * 7);
-        Float4 i = *Pointer<Float4>(in + 16 * 8);
-        Float4 j = *Pointer<Float4>(in + 16 * 9);
-        Float4 k = *Pointer<Float4>(in + 16 * 10);
-        Float4 l = *Pointer<Float4>(in + 16 * 11);
-        Float4 m = *Pointer<Float4>(in + 16 * 12);
-        Float4 n = *Pointer<Float4>(in + 16 * 13);
-        Float4 o = *Pointer<Float4>(in + 16 * 14);
-        Float4 p = *Pointer<Float4>(in + 16 * 15);
+		Float4 a = *Pointer<Float4>(in + 16 * 0);
+		Float4 b = *Pointer<Float4>(in + 16 * 1);
+		Float4 c = *Pointer<Float4>(in + 16 * 2);
+		Float4 d = *Pointer<Float4>(in + 16 * 3);
+		Float4 e = *Pointer<Float4>(in + 16 * 4);
+		Float4 f = *Pointer<Float4>(in + 16 * 5);
+		Float4 g = *Pointer<Float4>(in + 16 * 6);
+		Float4 h = *Pointer<Float4>(in + 16 * 7);
+		Float4 i = *Pointer<Float4>(in + 16 * 8);
+		Float4 j = *Pointer<Float4>(in + 16 * 9);
+		Float4 k = *Pointer<Float4>(in + 16 * 10);
+		Float4 l = *Pointer<Float4>(in + 16 * 11);
+		Float4 m = *Pointer<Float4>(in + 16 * 12);
+		Float4 n = *Pointer<Float4>(in + 16 * 13);
+		Float4 o = *Pointer<Float4>(in + 16 * 14);
+		Float4 p = *Pointer<Float4>(in + 16 * 15);
 
-        Float4 ab = a + b;
-        Float4 cd = c + d;
-        Float4 ef = e + f;
-        Float4 gh = g + h;
-        Float4 ij = i + j;
-        Float4 kl = k + l;
-        Float4 mn = m + n;
-        Float4 op = o + p;
+		Float4 ab = a + b;
+		Float4 cd = c + d;
+		Float4 ef = e + f;
+		Float4 gh = g + h;
+		Float4 ij = i + j;
+		Float4 kl = k + l;
+		Float4 mn = m + n;
+		Float4 op = o + p;
 
-        Float4 abcd = ab + cd;
-        Float4 efgh = ef + gh;
-        Float4 ijkl = ij + kl;
-        Float4 mnop = mn + op;
+		Float4 abcd = ab + cd;
+		Float4 efgh = ef + gh;
+		Float4 ijkl = ij + kl;
+		Float4 mnop = mn + op;
 
-        Float4 abcdefgh = abcd + efgh;
-        Float4 ijklmnop = ijkl + mnop;
-        Float4 sum = abcdefgh + ijklmnop;
-        *Pointer<Float4>(out) = sum;
-        Return();
-    }
+		Float4 abcdefgh = abcd + efgh;
+		Float4 ijklmnop = ijkl + mnop;
+		Float4 sum = abcdefgh + ijklmnop;
+		*Pointer<Float4>(out) = sum;
+		Return();
+	}
 
-    auto routine = function("one");
-    assert(routine);
+	auto routine = function("one");
+	assert(routine);
 
-    float input[64] = { 1.0f,  0.0f,   0.0f, 0.0f,
-                        -1.0f,  1.0f,  -1.0f, 0.0f,
-                        1.0f,  2.0f,  -2.0f, 0.0f,
-                        -1.0f,  3.0f,  -3.0f, 0.0f,
-                        1.0f,  4.0f,  -4.0f, 0.0f,
-                        -1.0f,  5.0f,  -5.0f, 0.0f,
-                        1.0f,  6.0f,  -6.0f, 0.0f,
-                        -1.0f,  7.0f,  -7.0f, 0.0f,
-                        1.0f,  8.0f,  -8.0f, 0.0f,
-                        -1.0f,  9.0f,  -9.0f, 0.0f,
-                        1.0f, 10.0f, -10.0f, 0.0f,
-                        -1.0f, 11.0f, -11.0f, 0.0f,
-                        1.0f, 12.0f, -12.0f, 0.0f,
-                        -1.0f, 13.0f, -13.0f, 0.0f,
-                        1.0f, 14.0f, -14.0f, 0.0f,
-                        -1.0f, 15.0f, -15.0f, 0.0f };
+	float input[64] = { 1.0f, 0.0f, 0.0f, 0.0f,
+		                -1.0f, 1.0f, -1.0f, 0.0f,
+		                1.0f, 2.0f, -2.0f, 0.0f,
+		                -1.0f, 3.0f, -3.0f, 0.0f,
+		                1.0f, 4.0f, -4.0f, 0.0f,
+		                -1.0f, 5.0f, -5.0f, 0.0f,
+		                1.0f, 6.0f, -6.0f, 0.0f,
+		                -1.0f, 7.0f, -7.0f, 0.0f,
+		                1.0f, 8.0f, -8.0f, 0.0f,
+		                -1.0f, 9.0f, -9.0f, 0.0f,
+		                1.0f, 10.0f, -10.0f, 0.0f,
+		                -1.0f, 11.0f, -11.0f, 0.0f,
+		                1.0f, 12.0f, -12.0f, 0.0f,
+		                -1.0f, 13.0f, -13.0f, 0.0f,
+		                1.0f, 14.0f, -14.0f, 0.0f,
+		                -1.0f, 15.0f, -15.0f, 0.0f };
 
-    float result[4];
+	float result[4];
 
-    routine(input, result);
+	routine(input, result);
 
-    EXPECT_EQ(result[0], 0.0f);
-    EXPECT_EQ(result[1], 120.0f);
-    EXPECT_EQ(result[2], -120.0f);
-    EXPECT_EQ(result[3], 0.0f);
+	EXPECT_EQ(result[0], 0.0f);
+	EXPECT_EQ(result[1], 120.0f);
+	EXPECT_EQ(result[2], -120.0f);
+	EXPECT_EQ(result[3], 0.0f);
 }
 
-template <typename T>
+template<typename T>
 class CToReactorTCastTest : public ::testing::Test
 {
 public:
@@ -1671,17 +1669,15 @@ public:
 	using ReactorType = typename std::tuple_element<1, T>::type;
 };
 
-using CToReactorTCastTestTypes = ::testing::Types
-	< // Subset of types that can be used as arguments.
-	//	std::pair<bool,         Bool>,    FIXME(capn): Not supported as argument type by Subzero.
-	//	std::pair<uint8_t,      Byte>,    FIXME(capn): Not supported as argument type by Subzero.
-	//	std::pair<int8_t,       SByte>,   FIXME(capn): Not supported as argument type by Subzero.
-	//	std::pair<int16_t,      Short>,   FIXME(capn): Not supported as argument type by Subzero.
-	//	std::pair<uint16_t,     UShort>,  FIXME(capn): Not supported as argument type by Subzero.
-		std::pair<int,          Int>,
-		std::pair<unsigned int, UInt>,
-		std::pair<float,        Float>
-	>;
+using CToReactorTCastTestTypes = ::testing::Types<  // Subset of types that can be used as arguments.
+                                                    //	std::pair<bool,         Bool>,    FIXME(capn): Not supported as argument type by Subzero.
+                                                    //	std::pair<uint8_t,      Byte>,    FIXME(capn): Not supported as argument type by Subzero.
+                                                    //	std::pair<int8_t,       SByte>,   FIXME(capn): Not supported as argument type by Subzero.
+                                                    //	std::pair<int16_t,      Short>,   FIXME(capn): Not supported as argument type by Subzero.
+                                                    //	std::pair<uint16_t,     UShort>,  FIXME(capn): Not supported as argument type by Subzero.
+    std::pair<int, Int>,
+    std::pair<unsigned int, UInt>,
+    std::pair<float, Float>>;
 
 TYPED_TEST_SUITE(CToReactorTCastTest, CToReactorTCastTestTypes);
 
@@ -1693,28 +1689,27 @@ TYPED_TEST(CToReactorTCastTest, Casts)
 	std::shared_ptr<Routine> routine;
 
 	{
-		Function< Int(ReactorType) > function;
+		Function<Int(ReactorType)> function;
 		{
 			ReactorType a = function.template Arg<0>();
 			ReactorType b = CType{};
 			RValue<ReactorType> c = RValue<ReactorType>(CType{});
 			Bool same = (a == b) && (a == c);
-			Return(IfThenElse(same, Int(1), Int(0))); // TODO: Ability to use Bools as return values.
+			Return(IfThenElse(same, Int(1), Int(0)));  // TODO: Ability to use Bools as return values.
 		}
 
 		routine = function("one");
 
 		if(routine)
 		{
-			auto callable = (int(*)(CType))routine->getEntry();
+			auto callable = (int (*)(CType))routine->getEntry();
 			CType in = {};
 			EXPECT_EQ(callable(in), 1);
 		}
 	}
-
 }
 
-template <typename T>
+template<typename T>
 class GEPTest : public ::testing::Test
 {
 public:
@@ -1722,37 +1717,35 @@ public:
 	using ReactorType = typename std::tuple_element<1, T>::type;
 };
 
-using GEPTestTypes = ::testing::Types
-	<
-		std::pair<bool,        Bool>,
-		std::pair<int8_t,      Byte>,
-		std::pair<int8_t,      SByte>,
-		std::pair<int8_t[4],   Byte4>,
-		std::pair<int8_t[4],   SByte4>,
-		std::pair<int8_t[8],   Byte8>,
-		std::pair<int8_t[8],   SByte8>,
-		std::pair<int8_t[16],  Byte16>,
-		std::pair<int8_t[16],  SByte16>,
-		std::pair<int16_t,     Short>,
-		std::pair<int16_t,     UShort>,
-		std::pair<int16_t[2],  Short2>,
-		std::pair<int16_t[2],  UShort2>,
-		std::pair<int16_t[4],  Short4>,
-		std::pair<int16_t[4],  UShort4>,
-		std::pair<int16_t[8],  Short8>,
-		std::pair<int16_t[8],  UShort8>,
-		std::pair<int,         Int>,
-		std::pair<int,         UInt>,
-		std::pair<int[2],      Int2>,
-		std::pair<int[2],      UInt2>,
-		std::pair<int[4],      Int4>,
-		std::pair<int[4],      UInt4>,
-		std::pair<int64_t,     Long>,
-		std::pair<int16_t,     Half>,
-		std::pair<float,       Float>,
-		std::pair<float[2],    Float2>,
-		std::pair<float[4],    Float4>
-	>;
+using GEPTestTypes = ::testing::Types<
+    std::pair<bool, Bool>,
+    std::pair<int8_t, Byte>,
+    std::pair<int8_t, SByte>,
+    std::pair<int8_t[4], Byte4>,
+    std::pair<int8_t[4], SByte4>,
+    std::pair<int8_t[8], Byte8>,
+    std::pair<int8_t[8], SByte8>,
+    std::pair<int8_t[16], Byte16>,
+    std::pair<int8_t[16], SByte16>,
+    std::pair<int16_t, Short>,
+    std::pair<int16_t, UShort>,
+    std::pair<int16_t[2], Short2>,
+    std::pair<int16_t[2], UShort2>,
+    std::pair<int16_t[4], Short4>,
+    std::pair<int16_t[4], UShort4>,
+    std::pair<int16_t[8], Short8>,
+    std::pair<int16_t[8], UShort8>,
+    std::pair<int, Int>,
+    std::pair<int, UInt>,
+    std::pair<int[2], Int2>,
+    std::pair<int[2], UInt2>,
+    std::pair<int[4], Int4>,
+    std::pair<int[4], UInt4>,
+    std::pair<int64_t, Long>,
+    std::pair<int16_t, Half>,
+    std::pair<float, Float>,
+    std::pair<float[2], Float2>,
+    std::pair<float[4], Float4>>;
 
 TYPED_TEST_SUITE(GEPTest, GEPTestTypes);
 
@@ -1764,7 +1757,7 @@ TYPED_TEST(GEPTest, PtrOffsets)
 	std::shared_ptr<Routine> routine;
 
 	{
-		Function< Pointer<ReactorType>(Pointer<ReactorType>, Int) > function;
+		Function<Pointer<ReactorType>(Pointer<ReactorType>, Int)> function;
 		{
 			Pointer<ReactorType> pointer = function.template Arg<0>();
 			Int index = function.template Arg<1>();
@@ -1775,10 +1768,11 @@ TYPED_TEST(GEPTest, PtrOffsets)
 
 		if(routine)
 		{
-			auto callable = (CType*(*)(CType*, unsigned int))routine->getEntry();
+			auto callable = (CType * (*)(CType *, unsigned int)) routine->getEntry();
 
-			union PtrInt {
-				CType* p;
+			union PtrInt
+			{
+				CType *p;
 				size_t i;
 			};
 
@@ -1800,7 +1794,6 @@ TYPED_TEST(GEPTest, PtrOffsets)
 			}
 		}
 	}
-
 }
 
 TEST(ReactorUnitTests, Coroutines_Fibonacci)
@@ -1817,7 +1810,8 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 		Yield(Int(1));
 		Int current = 1;
 		Int next = 1;
-		While(true) {
+		While(true)
+		{
 			Yield(next);
 			auto tmp = current + next;
 			current = next;
@@ -1827,10 +1821,35 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 
 	auto coroutine = function();
 
-	int32_t expected[] =
-	{
-		0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
-		2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418,
+	int32_t expected[] = {
+		0,
+		1,
+		1,
+		2,
+		3,
+		5,
+		8,
+		13,
+		21,
+		34,
+		55,
+		89,
+		144,
+		233,
+		377,
+		610,
+		987,
+		1597,
+		2584,
+		4181,
+		6765,
+		10946,
+		17711,
+		28657,
+		46368,
+		75025,
+		121393,
+		196418,
 		317811,
 	};
 
@@ -1852,7 +1871,7 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 		return;
 	}
 
-	Coroutine<uint8_t(uint8_t* data, int count)> function;
+	Coroutine<uint8_t(uint8_t * data, int count)> function;
 	{
 		Pointer<Byte> data = function.Arg<0>();
 		Int count = function.Arg<1>();
@@ -1863,29 +1882,31 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 		}
 	}
 
-	uint8_t data[] = {10, 20, 30};
+	uint8_t data[] = { 10, 20, 30 };
 	auto coroutine = function(&data[0], 3);
 
 	uint8_t out = 0;
 	EXPECT_EQ(coroutine->await(out), true);
-	EXPECT_EQ(out, 10); out = 0;
+	EXPECT_EQ(out, 10);
+	out = 0;
 	EXPECT_EQ(coroutine->await(out), true);
-	EXPECT_EQ(out, 20); out = 0;
+	EXPECT_EQ(out, 20);
+	out = 0;
 	EXPECT_EQ(coroutine->await(out), true);
-	EXPECT_EQ(out, 30); out = 99;
+	EXPECT_EQ(out, 30);
+	out = 99;
 	EXPECT_EQ(coroutine->await(out), false);
 	EXPECT_EQ(out, 99);
 	EXPECT_EQ(coroutine->await(out), false);
 	EXPECT_EQ(out, 99);
 }
 
-
-template <typename TestFuncType, typename RefFuncType, typename TestValueType>
+template<typename TestFuncType, typename RefFuncType, typename TestValueType>
 struct IntrinsicTestParams
 {
-	std::function<TestFuncType> testFunc;  // Function we're testing (Reactor)
-	std::function<RefFuncType> refFunc;    // Reference function to test against (C)
-	std::vector<TestValueType> testValues; // Values to input to functions
+	std::function<TestFuncType> testFunc;   // Function we're testing (Reactor)
+	std::function<RefFuncType> refFunc;     // Reference function to test against (C)
+	std::vector<TestValueType> testValues;  // Values to input to functions
 };
 
 using IntrinsicTestParams_Float = IntrinsicTestParams<RValue<Float>(RValue<Float>), float(float), float>;
@@ -1903,7 +1924,7 @@ struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_F
 
 		auto routine = function("one");
 
-		for(auto&& v : GetParam().testValues)
+		for(auto &&v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
 			EXPECT_FLOAT_EQ(routine(v), GetParam().refFunc(v));
@@ -1915,7 +1936,7 @@ struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_
 {
 	void test()
 	{
-		FunctionT<void(float4*)> function;
+		FunctionT<void(float4 *)> function;
 		{
 			Pointer<Float4> a = function.Arg<0>();
 			*a = GetParam().testFunc(*a);
@@ -1924,7 +1945,7 @@ struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_
 
 		auto routine = function("one");
 
-		for(auto&& v : GetParam().testValues)
+		for(auto &&v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
 			float4_value result = invokeRoutine(routine, float4_value{ v });
@@ -1941,7 +1962,7 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 {
 	void test()
 	{
-		FunctionT<void(float4*, float4*)> function;
+		FunctionT<void(float4 *, float4 *)> function;
 		{
 			Pointer<Float4> a = function.Arg<0>();
 			Pointer<Float4> b = function.Arg<1>();
@@ -1951,7 +1972,7 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 
 		auto routine = function("one");
 
-		for(auto&& v : GetParam().testValues)
+		for(auto &&v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
 			float4_value result = invokeRoutine(routine, float4_value{ v.first }, float4_value{ v.second });
@@ -1964,40 +1985,24 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 	}
 };
 
-INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float, IntrinsicTest_Float, testing::Values(
-	IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, {0.f, 1.f, 12345.f} },
-	IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, {0.f, 1.f, 12345.f} },
-	IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, {0.f, 1.f, 12345.f} }
-));
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float, IntrinsicTest_Float, testing::Values(IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, { 0.f, 1.f, 12345.f } }, IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, { 0.f, 1.f, 12345.f } }, IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, { 0.f, 1.f, 12345.f } }));
 
-INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); },   sinf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); },   cosf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); },   tanf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v); },  asinf,  {0.f, 1.f, -1.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v); },  acosf,  {0.f, 1.f, -1.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); },  atanf,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); },  sinhf,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); },  coshf,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); },  tanhf,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); }, asinhf, {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); }, acoshf, {     1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); }, atanhf, {0.f, 1.f, -1.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); },   expf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); },   logf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); },  exp2f,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); },  log2f,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); },  sqrtf,  {0.f, 1.f, PI, 12345.f}  }
-));
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); }, sinf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); }, cosf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); }, tanf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v); }, asinf, { 0.f, 1.f, -1.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v); }, acosf, { 0.f, 1.f, -1.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); }, atanf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); }, sinhf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); }, coshf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); }, tanhf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); }, asinhf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); }, acoshf, { 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); }, atanhf, { 0.f, 1.f, -1.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); }, expf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); }, logf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); }, exp2f, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); }, log2f, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); }, sqrtf, { 0.f, 1.f, PI, 12345.f } }));
 
-INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4_Float4, IntrinsicTest_Float4_Float4, testing::Values(
-	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } },
-	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); },   powf,   { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } }
-));
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4_Float4, IntrinsicTest_Float4_Float4, testing::Values(IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { { 0.f, 0.f }, { 0.f, -1.f }, { -1.f, 0.f }, { 12345.f, 12345.f } } }, IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); }, powf, { { 0.f, 0.f }, { 0.f, -1.f }, { -1.f, 0.f }, { 12345.f, 12345.f } } }));
 
-TEST_P(IntrinsicTest_Float, Test) { test(); }
-TEST_P(IntrinsicTest_Float4, Test) { test(); }
-TEST_P(IntrinsicTest_Float4_Float4, Test) { test(); }
+TEST_P(IntrinsicTest_Float, Test)
+{
+	test();
+}
+TEST_P(IntrinsicTest_Float4, Test)
+{
+	test();
+}
+TEST_P(IntrinsicTest_Float4_Float4, Test)
+{
+	test();
+}
 
 TEST(ReactorUnitTests, Intrinsics_Ctlz)
 {
@@ -2012,8 +2017,8 @@ TEST(ReactorUnitTests, Intrinsics_Ctlz)
 		auto routine = function("one");
 		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
 
-
-		for(uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i)
+		{
 			uint32_t result = callable(1 << i);
 			EXPECT_EQ(result, 31 - i);
 		}
@@ -2033,11 +2038,12 @@ TEST(ReactorUnitTests, Intrinsics_Ctlz)
 			*out = rr::Ctlz(UInt4(x), false);
 		}
 		auto routine = function("one");
-		auto callable = (void(*)(uint32_t*, uint32_t))routine->getEntry();
+		auto callable = (void (*)(uint32_t *, uint32_t))routine->getEntry();
 
 		uint32_t x[4];
 
-		for(uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i)
+		{
 			callable(x, 1 << i);
 			EXPECT_EQ(x[0], 31 - i);
 			EXPECT_EQ(x[1], 31 - i);
@@ -2069,8 +2075,8 @@ TEST(ReactorUnitTests, Intrinsics_Cttz)
 		auto routine = function("one");
 		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
 
-
-		for(uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i)
+		{
 			uint32_t result = callable(1 << i);
 			EXPECT_EQ(result, i);
 		}
@@ -2090,11 +2096,12 @@ TEST(ReactorUnitTests, Intrinsics_Cttz)
 			*out = rr::Cttz(UInt4(x), false);
 		}
 		auto routine = function("one");
-		auto callable = (void(*)(uint32_t*, uint32_t))routine->getEntry();
+		auto callable = (void (*)(uint32_t *, uint32_t))routine->getEntry();
 
 		uint32_t x[4];
 
-		for(uint32_t i = 0; i < 31; ++i) {
+		for(uint32_t i = 0; i < 31; ++i)
+		{
 			callable(x, 1 << i);
 			EXPECT_EQ(x[0], i);
 			EXPECT_EQ(x[1], i);
@@ -2126,22 +2133,21 @@ TEST(ReactorUnitTests, Intrinsics_Scatter)
 		Scatter(base, *val, *offsets, mask, alignment);
 	}
 
-	float buffer[16] = {0};
+	float buffer[16] = { 0 };
 
 	constexpr auto elemSize = sizeof(buffer[0]);
 
-	int offsets[] =
-	{
-		1 *elemSize,
-		6 *elemSize,
-		11 *elemSize,
-		13 *elemSize
+	int offsets[] = {
+		1 * elemSize,
+		6 * elemSize,
+		11 * elemSize,
+		13 * elemSize
 	};
 
-	float val[4] = {10, 60, 110, 130};
+	float val[4] = { 10, 60, 110, 130 };
 
 	auto routine = function("one");
-	auto entry = (void(*)(float*, float*, int*))routine->getEntry();
+	auto entry = (void (*)(float *, float *, int *))routine->getEntry();
 
 	entry(buffer, val, offsets);
 
@@ -2165,8 +2171,7 @@ TEST(ReactorUnitTests, Intrinsics_Gather)
 		*result = Gather(base, *offsets, mask, alignment, zeroMaskedLanes);
 	}
 
-	float buffer[] =
-	{
+	float buffer[] = {
 		0, 10, 20, 30,
 		40, 50, 60, 70,
 		80, 90, 100, 110,
@@ -2175,16 +2180,15 @@ TEST(ReactorUnitTests, Intrinsics_Gather)
 
 	constexpr auto elemSize = sizeof(buffer[0]);
 
-	int offsets[] =
-	{
-		1 *elemSize,
-		6 *elemSize,
-		11 *elemSize,
-		13 *elemSize
+	int offsets[] = {
+		1 * elemSize,
+		6 * elemSize,
+		11 * elemSize,
+		13 * elemSize
 	};
 
 	auto routine = function("one");
-	auto entry = (void(*)(float*, int*, float*))routine->getEntry();
+	auto entry = (void (*)(float *, int *, float *))routine->getEntry();
 
 	float result[4] = {};
 	entry(buffer, offsets, result);
@@ -2222,7 +2226,7 @@ TEST(ReactorUnitTests, ExtractFromRValue)
 	}
 
 	auto routine = function("one");
-	auto entry = (void(*)(int*, int*))routine->getEntry();
+	auto entry = (void (*)(int *, int *))routine->getEntry();
 
 	int v[4] = { 42, 42, 42, 42 };
 	int result[4] = { 99, 99, 99, 99 };
@@ -2244,36 +2248,37 @@ int main(int argc, char **argv)
 ////////////////////////////////
 
 // Assert CToReactorT resolves to expected types.
-static_assert(std::is_same<CToReactorT<void>,     Void>::value, "");
-static_assert(std::is_same<CToReactorT<bool>,     Bool>::value, "");
-static_assert(std::is_same<CToReactorT<uint8_t>,  Byte>::value, "");
-static_assert(std::is_same<CToReactorT<int8_t>,   SByte>::value, "");
-static_assert(std::is_same<CToReactorT<int16_t>,  Short>::value, "");
+static_assert(std::is_same<CToReactorT<void>, Void>::value, "");
+static_assert(std::is_same<CToReactorT<bool>, Bool>::value, "");
+static_assert(std::is_same<CToReactorT<uint8_t>, Byte>::value, "");
+static_assert(std::is_same<CToReactorT<int8_t>, SByte>::value, "");
+static_assert(std::is_same<CToReactorT<int16_t>, Short>::value, "");
 static_assert(std::is_same<CToReactorT<uint16_t>, UShort>::value, "");
-static_assert(std::is_same<CToReactorT<int32_t>,  Int>::value, "");
+static_assert(std::is_same<CToReactorT<int32_t>, Int>::value, "");
 static_assert(std::is_same<CToReactorT<uint64_t>, Long>::value, "");
 static_assert(std::is_same<CToReactorT<uint32_t>, UInt>::value, "");
-static_assert(std::is_same<CToReactorT<float>,    Float>::value, "");
+static_assert(std::is_same<CToReactorT<float>, Float>::value, "");
 
 // Assert CToReactorT for known pointer types resolves to expected types.
-static_assert(std::is_same<CToReactorT<void*>,     Pointer<Byte>>::value, "");
-static_assert(std::is_same<CToReactorT<bool*>,     Pointer<Bool>>::value, "");
-static_assert(std::is_same<CToReactorT<uint8_t*>,  Pointer<Byte>>::value, "");
-static_assert(std::is_same<CToReactorT<int8_t*>,   Pointer<SByte>>::value, "");
-static_assert(std::is_same<CToReactorT<int16_t*>,  Pointer<Short>>::value, "");
-static_assert(std::is_same<CToReactorT<uint16_t*>, Pointer<UShort>>::value, "");
-static_assert(std::is_same<CToReactorT<int32_t*>,  Pointer<Int>>::value, "");
-static_assert(std::is_same<CToReactorT<uint64_t*>, Pointer<Long>>::value, "");
-static_assert(std::is_same<CToReactorT<uint32_t*>, Pointer<UInt>>::value, "");
-static_assert(std::is_same<CToReactorT<float*>,    Pointer<Float>>::value, "");
-static_assert(std::is_same<CToReactorT<uint16_t**>, Pointer<Pointer<UShort>>>::value, "");
-static_assert(std::is_same<CToReactorT<uint16_t***>, Pointer<Pointer<Pointer<UShort>>>>::value, "");
+static_assert(std::is_same<CToReactorT<void *>, Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactorT<bool *>, Pointer<Bool>>::value, "");
+static_assert(std::is_same<CToReactorT<uint8_t *>, Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactorT<int8_t *>, Pointer<SByte>>::value, "");
+static_assert(std::is_same<CToReactorT<int16_t *>, Pointer<Short>>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t *>, Pointer<UShort>>::value, "");
+static_assert(std::is_same<CToReactorT<int32_t *>, Pointer<Int>>::value, "");
+static_assert(std::is_same<CToReactorT<uint64_t *>, Pointer<Long>>::value, "");
+static_assert(std::is_same<CToReactorT<uint32_t *>, Pointer<UInt>>::value, "");
+static_assert(std::is_same<CToReactorT<float *>, Pointer<Float>>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t **>, Pointer<Pointer<UShort>>>::value, "");
+static_assert(std::is_same<CToReactorT<uint16_t ***>, Pointer<Pointer<Pointer<UShort>>>>::value, "");
 
 // Assert CToReactorT for unknown pointer types resolves to Pointer<Byte>.
-struct S{};
-static_assert(std::is_same<CToReactorT<S*>, Pointer<Byte>>::value, "");
-static_assert(std::is_same<CToReactorT<S**>, Pointer<Pointer<Byte>>>::value, "");
-static_assert(std::is_same<CToReactorT<S***>, Pointer<Pointer<Pointer<Byte>>>>::value, "");
+struct S
+{};
+static_assert(std::is_same<CToReactorT<S *>, Pointer<Byte>>::value, "");
+static_assert(std::is_same<CToReactorT<S **>, Pointer<Pointer<Byte>>>::value, "");
+static_assert(std::is_same<CToReactorT<S ***>, Pointer<Pointer<Pointer<Byte>>>>::value, "");
 
 // Assert IsRValue<> resolves true for RValue<> types.
 static_assert(IsRValue<RValue<Void>>::value, "");

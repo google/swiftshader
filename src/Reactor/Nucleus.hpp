@@ -23,7 +23,7 @@
 #include <vector>
 
 #ifdef None
-#undef None  // TODO(b/127920555)
+#	undef None  // TODO(b/127920555)
 #endif
 
 static_assert(sizeof(short) == 2, "Reactor's 'Short' type is 16-bit, and requires the C++ 'short' to match that.");
@@ -68,18 +68,19 @@ public:
 
 	using Passes = std::vector<Pass>;
 
-	Optimization(Level level = Level::Default, const Passes& passes = {})
-		: level(level), passes(passes)
+	Optimization(Level level = Level::Default, const Passes &passes = {})
+	    : level(level)
+	    , passes(passes)
 	{
-		#if defined(REACTOR_DEFAULT_OPT_LEVEL)
+#if defined(REACTOR_DEFAULT_OPT_LEVEL)
 		{
 			this->level = Level::REACTOR_DEFAULT_OPT_LEVEL;
 		}
-		#endif
+#endif
 	}
 
 	Level getLevel() const { return level; }
-	const Passes & getPasses() const { return passes; }
+	const Passes &getPasses() const { return passes; }
 
 private:
 	Level level = Level::Default;
@@ -98,19 +99,41 @@ public:
 	public:
 		static const Edit None;
 
-		Edit & set(Optimization::Level level) { optLevel = level; optLevelChanged = true; return *this; }
-		Edit & add(Optimization::Pass pass) { optPassEdits.push_back({ListEdit::Add, pass}); return *this; }
-		Edit & remove(Optimization::Pass pass) { optPassEdits.push_back({ListEdit::Remove, pass}); return *this; }
-		Edit & clearOptimizationPasses() { optPassEdits.push_back({ListEdit::Clear, Optimization::Pass::Disabled}); return *this; }
+		Edit &set(Optimization::Level level)
+		{
+			optLevel = level;
+			optLevelChanged = true;
+			return *this;
+		}
+		Edit &add(Optimization::Pass pass)
+		{
+			optPassEdits.push_back({ ListEdit::Add, pass });
+			return *this;
+		}
+		Edit &remove(Optimization::Pass pass)
+		{
+			optPassEdits.push_back({ ListEdit::Remove, pass });
+			return *this;
+		}
+		Edit &clearOptimizationPasses()
+		{
+			optPassEdits.push_back({ ListEdit::Clear, Optimization::Pass::Disabled });
+			return *this;
+		}
 
 		Config apply(const Config &cfg) const;
 
 	private:
-		enum class ListEdit { Add, Remove, Clear };
+		enum class ListEdit
+		{
+			Add,
+			Remove,
+			Clear
+		};
 		using OptPassesEdit = std::pair<ListEdit, Optimization::Pass>;
 
-		template <typename T>
-		void apply(const std::vector<std::pair<ListEdit, T>> & edits, std::vector<T>& list) const;
+		template<typename T>
+		void apply(const std::vector<std::pair<ListEdit, T>> &edits, std::vector<T> &list) const;
 
 		Optimization::Level optLevel;
 		bool optLevelChanged = false;
@@ -118,9 +141,11 @@ public:
 	};
 
 	Config() = default;
-	Config(const Optimization & optimization) : optimization(optimization) {}
+	Config(const Optimization &optimization)
+	    : optimization(optimization)
+	{}
 
-	const Optimization & getOptimization() const { return optimization; }
+	const Optimization &getOptimization() const { return optimization; }
 
 private:
 	Optimization optimization;
@@ -146,15 +171,15 @@ public:
 	static BasicBlock *getInsertBlock();
 	static void setInsertBlock(BasicBlock *basicBlock);
 
-	static void createFunction(Type *ReturnType, std::vector<Type*> &Params);
+	static void createFunction(Type *ReturnType, std::vector<Type *> &Params);
 	static Value *getArgument(unsigned int index);
 
 	// Coroutines
-	using CoroutineHandle = void*;
+	using CoroutineHandle = void *;
 
-	template <typename... ARGS>
+	template<typename... ARGS>
 	using CoroutineBegin = CoroutineHandle(ARGS...);
-	using CoroutineAwait = bool(CoroutineHandle, void* yieldValue);
+	using CoroutineAwait = bool(CoroutineHandle, void *yieldValue);
 	using CoroutineDestroy = void(CoroutineHandle);
 
 	enum CoroutineEntries
@@ -165,9 +190,9 @@ public:
 		CoroutineEntryCount
 	};
 
-	static void createCoroutine(Type *ReturnType, std::vector<Type*> &Params);
+	static void createCoroutine(Type *ReturnType, std::vector<Type *> &Params);
 	std::shared_ptr<Routine> acquireCoroutine(const char *name, const Config::Edit &cfg = Config::Edit::None);
-	static void yield(Value*);
+	static void yield(Value *);
 
 	// Terminators
 	static void createRetVoid();
@@ -201,7 +226,7 @@ public:
 	static Value *createNot(Value *V);
 
 	// Memory instructions
-	static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int alignment = 0, bool atomic = false , std::memory_order memoryOrder = std::memory_order_relaxed);
+	static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int alignment = 0, bool atomic = false, std::memory_order memoryOrder = std::memory_order_relaxed);
 	static Value *createStore(Value *value, Value *ptr, Type *type, bool isVolatile = false, unsigned int aligment = 0, bool atomic = false, std::memory_order memoryOrder = std::memory_order_relaxed);
 	static Value *createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex);
 
@@ -294,4 +319,4 @@ public:
 
 }  // namespace rr
 
-#endif   // rr_Nucleus_hpp
+#endif  // rr_Nucleus_hpp

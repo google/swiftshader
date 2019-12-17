@@ -50,45 +50,45 @@ private:
 	Ice::Cfg *function;
 	Ice::GlobalContext *context;
 
-	struct Uses : std::vector<Ice::Inst*>
+	struct Uses : std::vector<Ice::Inst *>
 	{
 		bool areOnlyLoadStore() const;
 		void insert(Ice::Operand *value, Ice::Inst *instruction);
 		void erase(Ice::Inst *instruction);
 
-		std::vector<Ice::Inst*> loads;
-		std::vector<Ice::Inst*> stores;
+		std::vector<Ice::Inst *> loads;
+		std::vector<Ice::Inst *> stores;
 	};
 
 	struct LoadStoreInst
 	{
-		LoadStoreInst(Ice::Inst* inst, bool isStore)
-		  : inst(inst),
-		    address(isStore ? storeAddress(inst) : loadAddress(inst)),
-		    isStore(isStore)
+		LoadStoreInst(Ice::Inst *inst, bool isStore)
+		    : inst(inst)
+		    , address(isStore ? storeAddress(inst) : loadAddress(inst))
+		    , isStore(isStore)
 		{
 		}
 
-		Ice::Inst* inst;
+		Ice::Inst *inst;
 		Ice::Operand *address;
 		bool isStore;
 	};
 
-	Optimizer::Uses* getUses(Ice::Operand*);
-	void setUses(Ice::Operand*, Optimizer::Uses*);
-	bool hasUses(Ice::Operand*) const;
+	Optimizer::Uses *getUses(Ice::Operand *);
+	void setUses(Ice::Operand *, Optimizer::Uses *);
+	bool hasUses(Ice::Operand *) const;
 
-	Ice::CfgNode* getNode(Ice::Inst*);
-	void setNode(Ice::Inst*, Ice::CfgNode*);
+	Ice::CfgNode *getNode(Ice::Inst *);
+	void setNode(Ice::Inst *, Ice::CfgNode *);
 
-	Ice::Inst* getDefinition(Ice::Variable*);
-	void setDefinition(Ice::Variable*, Ice::Inst*);
+	Ice::Inst *getDefinition(Ice::Variable *);
+	void setDefinition(Ice::Variable *, Ice::Inst *);
 
-	const std::vector<LoadStoreInst>& getLoadStoreInsts(Ice::CfgNode*);
-	void setLoadStoreInsts(Ice::CfgNode*, std::vector<LoadStoreInst>*);
-	bool hasLoadStoreInsts(Ice::CfgNode* node) const;
+	const std::vector<LoadStoreInst> &getLoadStoreInsts(Ice::CfgNode *);
+	void setLoadStoreInsts(Ice::CfgNode *, std::vector<LoadStoreInst> *);
+	bool hasLoadStoreInsts(Ice::CfgNode *node) const;
 
-	std::vector<Optimizer::Uses*> allocatedUses;
+	std::vector<Optimizer::Uses *> allocatedUses;
 };
 
 void Optimizer::run(Ice::Cfg *function)
@@ -133,8 +133,7 @@ void Optimizer::eliminateDeadCode()
 				}
 			}
 		}
-	}
-	while(modified);
+	} while(modified);
 }
 
 void Optimizer::eliminateUnitializedLoads()
@@ -150,7 +149,7 @@ void Optimizer::eliminateUnitializedLoads()
 
 		if(!llvm::isa<Ice::InstAlloca>(alloca))
 		{
-			break;   // Allocas are all at the top
+			break;  // Allocas are all at the top
 		}
 
 		Ice::Operand *address = alloca.getDest();
@@ -213,7 +212,7 @@ void Optimizer::eliminateLoadsFollowingSingleStore()
 
 		if(!llvm::isa<Ice::InstAlloca>(alloca))
 		{
-			break;   // Allocas are all at the top
+			break;  // Allocas are all at the top
 		}
 
 		Ice::Operand *address = alloca.getDest();
@@ -313,7 +312,7 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 {
 	Ice::CfgNode *entryBlock = function->getEntryNode();
 
-	std::vector<std::vector<LoadStoreInst>* > allocatedVectors;
+	std::vector<std::vector<LoadStoreInst> *> allocatedVectors;
 
 	for(Ice::Inst &alloca : entryBlock->getInsts())
 	{
@@ -324,7 +323,7 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 
 		if(!llvm::isa<Ice::InstAlloca>(alloca))
 		{
-			break;   // Allocas are all at the top
+			break;  // Allocas are all at the top
 		}
 
 		Ice::Operand *address = alloca.getDest();
@@ -357,7 +356,7 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 		{
 			if(!hasLoadStoreInsts(singleBasicBlock))
 			{
-				std::vector<LoadStoreInst>* loadStoreInstVector = new std::vector<LoadStoreInst>();
+				std::vector<LoadStoreInst> *loadStoreInstVector = new std::vector<LoadStoreInst>();
 				setLoadStoreInsts(singleBasicBlock, loadStoreInstVector);
 				allocatedVectors.push_back(loadStoreInstVector);
 				for(Ice::Inst &inst : singleBasicBlock->getInsts())
@@ -381,9 +380,9 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 			Ice::Operand *storeValue = nullptr;
 			bool unmatchedLoads = false;
 
-			for(auto& loadStoreInst : getLoadStoreInsts(singleBasicBlock))
+			for(auto &loadStoreInst : getLoadStoreInsts(singleBasicBlock))
 			{
-				Ice::Inst* inst = loadStoreInst.inst;
+				Ice::Inst *inst = loadStoreInst.inst;
 
 				if((loadStoreInst.address != address) || inst->isDeleted())
 				{
@@ -478,7 +477,7 @@ void Optimizer::replace(Ice::Inst *instruction, Ice::Operand *newValue)
 	{
 		for(Ice::Inst *use : *getUses(oldValue))
 		{
-			assert(!use->isDeleted());   // Should have been removed from uses already
+			assert(!use->isDeleted());  // Should have been removed from uses already
 
 			for(Ice::SizeT i = 0; i < use->getSrcSize(); i++)
 			{
@@ -547,12 +546,12 @@ bool Optimizer::isDead(Ice::Inst *instruction)
 			{
 				if(hasUses(address))
 				{
-					Optimizer::Uses* uses = getUses(address);
-					return uses->size() == uses->stores.size();   // Dead if all uses are stores
+					Optimizer::Uses *uses = getUses(address);
+					return uses->size() == uses->stores.size();  // Dead if all uses are stores
 				}
 				else
 				{
-					return true; // No uses
+					return true;  // No uses
 				}
 			}
 		}
@@ -700,16 +699,16 @@ bool Optimizer::loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *sto
 			// Check for matching type and sub-vector width.
 			return storeSubVector->getSrc(1)->getType() == loadSubVector->getDest()->getType() &&
 			       llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(3))->getValue() ==
-			       llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(2))->getValue();
+			           llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(2))->getValue();
 		}
 	}
 
 	return false;
 }
 
-Optimizer::Uses* Optimizer::getUses(Ice::Operand* operand)
+Optimizer::Uses *Optimizer::getUses(Ice::Operand *operand)
 {
-	Optimizer::Uses* uses = (Optimizer::Uses*)operand->Ice::Operand::getExternalData();
+	Optimizer::Uses *uses = (Optimizer::Uses *)operand->Ice::Operand::getExternalData();
 	if(!uses)
 	{
 		uses = new Optimizer::Uses;
@@ -719,47 +718,47 @@ Optimizer::Uses* Optimizer::getUses(Ice::Operand* operand)
 	return uses;
 }
 
-void Optimizer::setUses(Ice::Operand* operand, Optimizer::Uses* uses)
+void Optimizer::setUses(Ice::Operand *operand, Optimizer::Uses *uses)
 {
 	operand->Ice::Operand::setExternalData(uses);
 }
 
-bool Optimizer::hasUses(Ice::Operand* operand) const
+bool Optimizer::hasUses(Ice::Operand *operand) const
 {
 	return operand->Ice::Operand::getExternalData() != nullptr;
 }
 
-Ice::CfgNode* Optimizer::getNode(Ice::Inst* inst)
+Ice::CfgNode *Optimizer::getNode(Ice::Inst *inst)
 {
-	return (Ice::CfgNode*)inst->Ice::Inst::getExternalData();
+	return (Ice::CfgNode *)inst->Ice::Inst::getExternalData();
 }
 
-void Optimizer::setNode(Ice::Inst* inst, Ice::CfgNode* node)
+void Optimizer::setNode(Ice::Inst *inst, Ice::CfgNode *node)
 {
 	inst->Ice::Inst::setExternalData(node);
 }
 
-Ice::Inst* Optimizer::getDefinition(Ice::Variable* var)
+Ice::Inst *Optimizer::getDefinition(Ice::Variable *var)
 {
-	return (Ice::Inst*)var->Ice::Variable::getExternalData();
+	return (Ice::Inst *)var->Ice::Variable::getExternalData();
 }
 
-void Optimizer::setDefinition(Ice::Variable* var, Ice::Inst* inst)
+void Optimizer::setDefinition(Ice::Variable *var, Ice::Inst *inst)
 {
 	var->Ice::Variable::setExternalData(inst);
 }
 
-const std::vector<Optimizer::LoadStoreInst>& Optimizer::getLoadStoreInsts(Ice::CfgNode* node)
+const std::vector<Optimizer::LoadStoreInst> &Optimizer::getLoadStoreInsts(Ice::CfgNode *node)
 {
-	return *((const std::vector<LoadStoreInst>*)node->Ice::CfgNode::getExternalData());
+	return *((const std::vector<LoadStoreInst> *)node->Ice::CfgNode::getExternalData());
 }
 
-void Optimizer::setLoadStoreInsts(Ice::CfgNode* node, std::vector<LoadStoreInst>* insts)
+void Optimizer::setLoadStoreInsts(Ice::CfgNode *node, std::vector<LoadStoreInst> *insts)
 {
 	node->Ice::CfgNode::setExternalData(insts);
 }
 
-bool Optimizer::hasLoadStoreInsts(Ice::CfgNode* node) const
+bool Optimizer::hasLoadStoreInsts(Ice::CfgNode *node) const
 {
 	return node->Ice::CfgNode::getExternalData() != nullptr;
 }
@@ -825,7 +824,7 @@ void Optimizer::Uses::erase(Ice::Inst *instruction)
 	}
 }
 
-}  // anonymous namespace 
+}  // anonymous namespace
 
 namespace rr {
 

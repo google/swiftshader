@@ -17,18 +17,18 @@
 #ifndef rr_DEBUG_H_
 #define rr_DEBUG_H_
 
-#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if !defined(TRACE_OUTPUT_FILE)
-#define TRACE_OUTPUT_FILE "debug.txt"
+#	define TRACE_OUTPUT_FILE "debug.txt"
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-#define CHECK_PRINTF_ARGS __attribute__((format(printf, 1, 2)))
+#	define CHECK_PRINTF_ARGS __attribute__((format(printf, 1, 2)))
 #else
-#define CHECK_PRINTF_ARGS
+#	define CHECK_PRINTF_ARGS
 #endif
 
 namespace rr {
@@ -49,9 +49,9 @@ void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 // A macro to output a trace of a function call and its arguments to the
 // debugging log. Disabled if RR_DISABLE_TRACE is defined.
 #if defined(RR_DISABLE_TRACE)
-#define TRACE(message, ...) (void(0))
+#	define TRACE(message, ...) (void(0))
 #else
-#define TRACE(message, ...) rr::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#	define TRACE(message, ...) rr::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 
 // A macro to print a warning message to the debugging log and stderr to denote
@@ -75,26 +75,34 @@ void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 //   WARN() in release builds (NDEBUG && !DCHECK_ALWAYS_ON)
 #undef DABORT
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-#define DABORT(message, ...) ABORT(message, ##__VA_ARGS__)
+#	define DABORT(message, ...) ABORT(message, ##__VA_ARGS__)
 #else
-#define DABORT(message, ...) WARN(message, ##__VA_ARGS__)
+#	define DABORT(message, ...) WARN(message, ##__VA_ARGS__)
 #endif
 
 // A macro asserting a condition.
 // If the condition fails, the condition and message is passed to DABORT().
 #undef ASSERT_MSG
-#define ASSERT_MSG(expression, format, ...) do { \
-	if(!(expression)) { \
-		DABORT("ASSERT(%s): " format "\n", #expression, ##__VA_ARGS__); \
-	} } while(0)
+#define ASSERT_MSG(expression, format, ...)                                 \
+	do                                                                      \
+	{                                                                       \
+		if(!(expression))                                                   \
+		{                                                                   \
+			DABORT("ASSERT(%s): " format "\n", #expression, ##__VA_ARGS__); \
+		}                                                                   \
+	} while(0)
 
 // A macro asserting a condition.
 // If the condition fails, the condition is passed to DABORT().
 #undef ASSERT
-#define ASSERT(expression) do { \
-	if(!(expression)) { \
-		DABORT("ASSERT(%s)\n", #expression); \
-	} } while(0)
+#define ASSERT(expression)                       \
+	do                                           \
+	{                                            \
+		if(!(expression))                        \
+		{                                        \
+			DABORT("ASSERT(%s)\n", #expression); \
+		}                                        \
+	} while(0)
 
 // A macro to indicate unimplemented functionality.
 #undef UNIMPLEMENTED
@@ -107,12 +115,16 @@ void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 // A macro asserting a condition and performing a return.
 #undef ASSERT_OR_RETURN
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-#define ASSERT_OR_RETURN(expression) ASSERT(expression)
+#	define ASSERT_OR_RETURN(expression) ASSERT(expression)
 #else
-#define ASSERT_OR_RETURN(expression) do { \
-	if(!(expression)) { \
-		return; \
-	} } while(0)
+#	define ASSERT_OR_RETURN(expression) \
+		do                               \
+		{                                \
+			if(!(expression))            \
+			{                            \
+				return;                  \
+			}                            \
+		} while(0)
 #endif
 
-#endif   // rr_DEBUG_H_
+#endif  // rr_DEBUG_H_

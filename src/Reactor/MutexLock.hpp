@@ -20,7 +20,7 @@
 #if defined(__linux__)
 // Use a pthread mutex on Linux. Since many processes may use Reactor
 // at the same time it's best to just have the scheduler overhead.
-#include <pthread.h>
+#	include <pthread.h>
 
 namespace rr {
 
@@ -58,9 +58,9 @@ private:
 
 }  // namespace rr
 
-#else   // !__linux__
+#else  // !__linux__
 
-#include <atomic>
+#	include <atomic>
 
 namespace rr {
 
@@ -174,6 +174,6 @@ using MutexLock = BackoffLock;
 
 }  // namespace rr
 
-#endif   // !__linux__
+#endif  // !__linux__
 
-#endif   // rr_MutexLock_hpp
+#endif  // rr_MutexLock_hpp

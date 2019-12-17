@@ -26,34 +26,33 @@
 #include <tuple>
 #include <unordered_set>
 
-#undef Bool // b/127920555
+#undef Bool  // b/127920555
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	// Functions used for generating JIT debug info.
-	// See docs/ReactorDebugInfo.md for more information.
-	namespace rr
-	{
-		// Update the current source location for debug.
-		void EmitDebugLocation();
-		// Bind value to its symbolic name taken from the backtrace.
-		void EmitDebugVariable(class Value* value);
-		// Flush any pending variable bindings before the line ends.
-		void FlushDebug();
-	}
-	#define RR_DEBUG_INFO_UPDATE_LOC()    rr::EmitDebugLocation()
-	#define RR_DEBUG_INFO_EMIT_VAR(value) rr::EmitDebugVariable(value)
-	#define RR_DEBUG_INFO_FLUSH()         rr::FlushDebug()
+// Functions used for generating JIT debug info.
+// See docs/ReactorDebugInfo.md for more information.
+namespace rr {
+// Update the current source location for debug.
+void EmitDebugLocation();
+// Bind value to its symbolic name taken from the backtrace.
+void EmitDebugVariable(class Value *value);
+// Flush any pending variable bindings before the line ends.
+void FlushDebug();
+}  // namespace rr
+#	define RR_DEBUG_INFO_UPDATE_LOC() rr::EmitDebugLocation()
+#	define RR_DEBUG_INFO_EMIT_VAR(value) rr::EmitDebugVariable(value)
+#	define RR_DEBUG_INFO_FLUSH() rr::FlushDebug()
 #else
-	#define RR_DEBUG_INFO_UPDATE_LOC()
-	#define RR_DEBUG_INFO_EMIT_VAR(value)
-	#define RR_DEBUG_INFO_FLUSH()
-#endif // ENABLE_RR_DEBUG_INFO
+#	define RR_DEBUG_INFO_UPDATE_LOC()
+#	define RR_DEBUG_INFO_EMIT_VAR(value)
+#	define RR_DEBUG_INFO_FLUSH()
+#endif  // ENABLE_RR_DEBUG_INFO
 
 namespace rr {
 
 struct Capabilities
 {
-	bool CoroutinesSupported; // Support for rr::Coroutine<F>
+	bool CoroutinesSupported;  // Support for rr::Coroutine<F>
 };
 extern const Capabilities Caps;
 
@@ -109,7 +108,7 @@ class Variable
 	friend class PrintValue;
 
 	Variable() = delete;
-	Variable &operator=(const Variable&) = delete;
+	Variable &operator=(const Variable &) = delete;
 
 public:
 	void materialize() const;
@@ -122,7 +121,7 @@ public:
 
 protected:
 	Variable(Type *type, int arraySize);
-	Variable(const Variable&) = default;
+	Variable(const Variable &) = default;
 
 	~Variable();
 
@@ -132,7 +131,7 @@ private:
 	static void materializeAll();
 	static void killUnmaterialized();
 
-	static std::unordered_set<Variable*> unmaterializedVariables;
+	static std::unordered_set<Variable *> unmaterializedVariables;
 
 	Type *const type;
 	mutable Value *rvalue = nullptr;
@@ -154,7 +153,7 @@ public:
 
 	// self() returns the this pointer to this LValue<T> object.
 	// This function exists because operator&() is overloaded.
-	inline LValue<T>* self() { return this; }
+	inline LValue<T> *self() { return this; }
 };
 
 template<class T>
@@ -239,7 +238,7 @@ public:
 
 #ifdef ENABLE_RR_DEBUG_INFO
 	RValue(const RValue<T> &rvalue);
-#endif // ENABLE_RR_DEBUG_INFO
+#endif  // ENABLE_RR_DEBUG_INFO
 
 	RValue(const T &lvalue);
 	RValue(typename BoolLiteral<T>::type i);
@@ -247,15 +246,17 @@ public:
 	RValue(typename FloatLiteral<T>::type f);
 	RValue(const Reference<T> &rhs);
 
-	RValue<T> &operator=(const RValue<T>&) = delete;
+	RValue<T> &operator=(const RValue<T> &) = delete;
 
-	Value *value;   // FIXME: Make private
+	Value *value;  // FIXME: Make private
 };
 
 template<typename T>
 struct Argument
 {
-	explicit Argument(Value *value) : value(value) {}
+	explicit Argument(Value *value)
+	    : value(value)
+	{}
 
 	Value *value;
 };
@@ -271,7 +272,7 @@ public:
 	Bool(const Bool &rhs);
 	Bool(const Reference<Bool> &rhs);
 
-//	RValue<Bool> operator=(bool rhs);   // FIXME: Implement
+	//	RValue<Bool> operator=(bool rhs);   // FIXME: Implement
 	RValue<Bool> operator=(RValue<Bool> rhs);
 	RValue<Bool> operator=(const Bool &rhs);
 	RValue<Bool> operator=(const Reference<Bool> &rhs);
@@ -301,7 +302,7 @@ public:
 	Byte(const Byte &rhs);
 	Byte(const Reference<Byte> &rhs);
 
-//	RValue<Byte> operator=(unsigned char rhs);   // FIXME: Implement
+	//	RValue<Byte> operator=(unsigned char rhs);   // FIXME: Implement
 	RValue<Byte> operator=(RValue<Byte> rhs);
 	RValue<Byte> operator=(const Byte &rhs);
 	RValue<Byte> operator=(const Reference<Byte> &rhs);
@@ -332,10 +333,10 @@ RValue<Byte> operator>>=(Byte &lhs, RValue<Byte> rhs);
 RValue<Byte> operator+(RValue<Byte> val);
 RValue<Byte> operator-(RValue<Byte> val);
 RValue<Byte> operator~(RValue<Byte> val);
-RValue<Byte> operator++(Byte &val, int);   // Post-increment
-const Byte &operator++(Byte &val);   // Pre-increment
-RValue<Byte> operator--(Byte &val, int);   // Post-decrement
-const Byte &operator--(Byte &val);   // Pre-decrement
+RValue<Byte> operator++(Byte &val, int);  // Post-increment
+const Byte &operator++(Byte &val);        // Pre-increment
+RValue<Byte> operator--(Byte &val, int);  // Post-decrement
+const Byte &operator--(Byte &val);        // Pre-decrement
 RValue<Bool> operator<(RValue<Byte> lhs, RValue<Byte> rhs);
 RValue<Bool> operator<=(RValue<Byte> lhs, RValue<Byte> rhs);
 RValue<Bool> operator>(RValue<Byte> lhs, RValue<Byte> rhs);
@@ -357,7 +358,7 @@ public:
 	SByte(const SByte &rhs);
 	SByte(const Reference<SByte> &rhs);
 
-//	RValue<SByte> operator=(signed char rhs);   // FIXME: Implement
+	//	RValue<SByte> operator=(signed char rhs);   // FIXME: Implement
 	RValue<SByte> operator=(RValue<SByte> rhs);
 	RValue<SByte> operator=(const SByte &rhs);
 	RValue<SByte> operator=(const Reference<SByte> &rhs);
@@ -388,10 +389,10 @@ RValue<SByte> operator>>=(SByte &lhs, RValue<SByte> rhs);
 RValue<SByte> operator+(RValue<SByte> val);
 RValue<SByte> operator-(RValue<SByte> val);
 RValue<SByte> operator~(RValue<SByte> val);
-RValue<SByte> operator++(SByte &val, int);   // Post-increment
-const SByte &operator++(SByte &val);   // Pre-increment
-RValue<SByte> operator--(SByte &val, int);   // Post-decrement
-const SByte &operator--(SByte &val);   // Pre-decrement
+RValue<SByte> operator++(SByte &val, int);  // Post-increment
+const SByte &operator++(SByte &val);        // Pre-increment
+RValue<SByte> operator--(SByte &val, int);  // Post-decrement
+const SByte &operator--(SByte &val);        // Pre-decrement
 RValue<Bool> operator<(RValue<SByte> lhs, RValue<SByte> rhs);
 RValue<Bool> operator<=(RValue<SByte> lhs, RValue<SByte> rhs);
 RValue<Bool> operator>(RValue<SByte> lhs, RValue<SByte> rhs);
@@ -412,7 +413,7 @@ public:
 	Short(const Short &rhs);
 	Short(const Reference<Short> &rhs);
 
-//	RValue<Short> operator=(short rhs);   // FIXME: Implement
+	//	RValue<Short> operator=(short rhs);   // FIXME: Implement
 	RValue<Short> operator=(RValue<Short> rhs);
 	RValue<Short> operator=(const Short &rhs);
 	RValue<Short> operator=(const Reference<Short> &rhs);
@@ -443,10 +444,10 @@ RValue<Short> operator>>=(Short &lhs, RValue<Short> rhs);
 RValue<Short> operator+(RValue<Short> val);
 RValue<Short> operator-(RValue<Short> val);
 RValue<Short> operator~(RValue<Short> val);
-RValue<Short> operator++(Short &val, int);   // Post-increment
-const Short &operator++(Short &val);   // Pre-increment
-RValue<Short> operator--(Short &val, int);   // Post-decrement
-const Short &operator--(Short &val);   // Pre-decrement
+RValue<Short> operator++(Short &val, int);  // Post-increment
+const Short &operator++(Short &val);        // Pre-increment
+RValue<Short> operator--(Short &val, int);  // Post-decrement
+const Short &operator--(Short &val);        // Pre-decrement
 RValue<Bool> operator<(RValue<Short> lhs, RValue<Short> rhs);
 RValue<Bool> operator<=(RValue<Short> lhs, RValue<Short> rhs);
 RValue<Bool> operator>(RValue<Short> lhs, RValue<Short> rhs);
@@ -468,7 +469,7 @@ public:
 	UShort(const UShort &rhs);
 	UShort(const Reference<UShort> &rhs);
 
-//	RValue<UShort> operator=(unsigned short rhs);   // FIXME: Implement
+	//	RValue<UShort> operator=(unsigned short rhs);   // FIXME: Implement
 	RValue<UShort> operator=(RValue<UShort> rhs);
 	RValue<UShort> operator=(const UShort &rhs);
 	RValue<UShort> operator=(const Reference<UShort> &rhs);
@@ -499,10 +500,10 @@ RValue<UShort> operator>>=(UShort &lhs, RValue<UShort> rhs);
 RValue<UShort> operator+(RValue<UShort> val);
 RValue<UShort> operator-(RValue<UShort> val);
 RValue<UShort> operator~(RValue<UShort> val);
-RValue<UShort> operator++(UShort &val, int);   // Post-increment
-const UShort &operator++(UShort &val);   // Pre-increment
-RValue<UShort> operator--(UShort &val, int);   // Post-decrement
-const UShort &operator--(UShort &val);   // Pre-decrement
+RValue<UShort> operator++(UShort &val, int);  // Post-increment
+const UShort &operator++(UShort &val);        // Pre-increment
+RValue<UShort> operator--(UShort &val, int);  // Post-decrement
+const UShort &operator--(UShort &val);        // Pre-decrement
 RValue<Bool> operator<(RValue<UShort> lhs, RValue<UShort> rhs);
 RValue<Bool> operator<=(RValue<UShort> lhs, RValue<UShort> rhs);
 RValue<Bool> operator>(RValue<UShort> lhs, RValue<UShort> rhs);
@@ -516,14 +517,14 @@ public:
 	explicit Byte4(RValue<Byte8> cast);
 
 	Byte4() = default;
-//	Byte4(int x, int y, int z, int w);
-//	Byte4(RValue<Byte4> rhs);
-//	Byte4(const Byte4 &rhs);
+	//	Byte4(int x, int y, int z, int w);
+	//	Byte4(RValue<Byte4> rhs);
+	//	Byte4(const Byte4 &rhs);
 	Byte4(const Reference<Byte4> &rhs);
 
-//	RValue<Byte4> operator=(RValue<Byte4> rhs);
-//	RValue<Byte4> operator=(const Byte4 &rhs);
-//	RValue<Byte4> operator=(const Reference<Byte4> &rhs);
+	//	RValue<Byte4> operator=(RValue<Byte4> rhs);
+	//	RValue<Byte4> operator=(const Byte4 &rhs);
+	//	RValue<Byte4> operator=(const Reference<Byte4> &rhs);
 
 	static Type *getType();
 };
@@ -560,14 +561,14 @@ class SByte4 : public LValue<SByte4>
 {
 public:
 	SByte4() = default;
-//	SByte4(int x, int y, int z, int w);
-//	SByte4(RValue<SByte4> rhs);
-//	SByte4(const SByte4 &rhs);
-//	SByte4(const Reference<SByte4> &rhs);
+	//	SByte4(int x, int y, int z, int w);
+	//	SByte4(RValue<SByte4> rhs);
+	//	SByte4(const SByte4 &rhs);
+	//	SByte4(const Reference<SByte4> &rhs);
 
-//	RValue<SByte4> operator=(RValue<SByte4> rhs);
-//	RValue<SByte4> operator=(const SByte4 &rhs);
-//	RValue<SByte4> operator=(const Reference<SByte4> &rhs);
+	//	RValue<SByte4> operator=(RValue<SByte4> rhs);
+	//	RValue<SByte4> operator=(const SByte4 &rhs);
+	//	RValue<SByte4> operator=(const Reference<SByte4> &rhs);
 
 	static Type *getType();
 };
@@ -710,7 +711,7 @@ class Byte16 : public LValue<Byte16>
 {
 public:
 	Byte16() = default;
-//	Byte16(int x, int y, int z, int w);
+	//	Byte16(int x, int y, int z, int w);
 	Byte16(RValue<Byte16> rhs);
 	Byte16(const Byte16 &rhs);
 	Byte16(const Reference<Byte16> &rhs);
@@ -754,14 +755,14 @@ class SByte16 : public LValue<SByte16>
 {
 public:
 	SByte16() = default;
-//	SByte16(int x, int y, int z, int w);
-//	SByte16(RValue<SByte16> rhs);
-//	SByte16(const SByte16 &rhs);
-//	SByte16(const Reference<SByte16> &rhs);
+	//	SByte16(int x, int y, int z, int w);
+	//	SByte16(RValue<SByte16> rhs);
+	//	SByte16(const SByte16 &rhs);
+	//	SByte16(const Reference<SByte16> &rhs);
 
-//	RValue<SByte16> operator=(RValue<SByte16> rhs);
-//	RValue<SByte16> operator=(const SByte16 &rhs);
-//	RValue<SByte16> operator=(const Reference<SByte16> &rhs);
+	//	RValue<SByte16> operator=(RValue<SByte16> rhs);
+	//	RValue<SByte16> operator=(const SByte16 &rhs);
+	//	RValue<SByte16> operator=(const Reference<SByte16> &rhs);
 
 	static Type *getType();
 };
@@ -815,7 +816,7 @@ class Short4 : public LValue<Short4>
 public:
 	explicit Short4(RValue<Int> cast);
 	explicit Short4(RValue<Int4> cast);
-//	explicit Short4(RValue<Float> cast);
+	//	explicit Short4(RValue<Float> cast);
 	explicit Short4(RValue<Float4> cast);
 
 	Short4() = default;
@@ -957,7 +958,7 @@ public:
 	Short8(short c);
 	Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7);
 	Short8(RValue<Short8> rhs);
-//	Short8(const Short8 &rhs);
+	//	Short8(const Short8 &rhs);
 	Short8(const Reference<Short8> &rhs);
 	Short8(RValue<Short4> lo, RValue<Short4> hi);
 
@@ -1015,7 +1016,7 @@ public:
 	UShort8(unsigned short c);
 	UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7);
 	UShort8(RValue<UShort8> rhs);
-//	UShort8(const UShort8 &rhs);
+	//	UShort8(const UShort8 &rhs);
 	UShort8(const Reference<UShort8> &rhs);
 	UShort8(RValue<UShort4> lo, RValue<UShort4> hi);
 
@@ -1121,10 +1122,10 @@ RValue<Int> operator>>=(Int &lhs, RValue<Int> rhs);
 RValue<Int> operator+(RValue<Int> val);
 RValue<Int> operator-(RValue<Int> val);
 RValue<Int> operator~(RValue<Int> val);
-RValue<Int> operator++(Int &val, int);   // Post-increment
-const Int &operator++(Int &val);   // Pre-increment
-RValue<Int> operator--(Int &val, int);   // Post-decrement
-const Int &operator--(Int &val);   // Pre-decrement
+RValue<Int> operator++(Int &val, int);  // Post-increment
+const Int &operator++(Int &val);        // Pre-increment
+RValue<Int> operator--(Int &val, int);  // Post-decrement
+const Int &operator--(Int &val);        // Pre-decrement
 RValue<Bool> operator<(RValue<Int> lhs, RValue<Int> rhs);
 RValue<Bool> operator<=(RValue<Int> lhs, RValue<Int> rhs);
 RValue<Bool> operator>(RValue<Int> lhs, RValue<Int> rhs);
@@ -1140,30 +1141,30 @@ RValue<Int> RoundInt(RValue<Float> cast);
 class Long : public LValue<Long>
 {
 public:
-//	Long(Argument<Long> argument);
+	//	Long(Argument<Long> argument);
 
-//	explicit Long(RValue<Short> cast);
-//	explicit Long(RValue<UShort> cast);
+	//	explicit Long(RValue<Short> cast);
+	//	explicit Long(RValue<UShort> cast);
 	explicit Long(RValue<Int> cast);
 	explicit Long(RValue<UInt> cast);
-//	explicit Long(RValue<Float> cast);
+	//	explicit Long(RValue<Float> cast);
 
 	Long() = default;
-//	Long(qword x);
+	//	Long(qword x);
 	Long(RValue<Long> rhs);
-//	Long(RValue<ULong> rhs);
-//	Long(const Long &rhs);
-//	Long(const Reference<Long> &rhs);
-//	Long(const ULong &rhs);
-//	Long(const Reference<ULong> &rhs);
+	//	Long(RValue<ULong> rhs);
+	//	Long(const Long &rhs);
+	//	Long(const Reference<Long> &rhs);
+	//	Long(const ULong &rhs);
+	//	Long(const Reference<ULong> &rhs);
 
 	RValue<Long> operator=(int64_t rhs);
 	RValue<Long> operator=(RValue<Long> rhs);
-//	RValue<Long> operator=(RValue<ULong> rhs);
+	//	RValue<Long> operator=(RValue<ULong> rhs);
 	RValue<Long> operator=(const Long &rhs);
 	RValue<Long> operator=(const Reference<Long> &rhs);
-//	RValue<Long> operator=(const ULong &rhs);
-//	RValue<Long> operator=(const Reference<ULong> &rhs);
+	//	RValue<Long> operator=(const ULong &rhs);
+	//	RValue<Long> operator=(const Reference<ULong> &rhs);
 
 	static Type *getType();
 };
@@ -1203,7 +1204,7 @@ RValue<Long> operator-=(Long &lhs, RValue<Long> rhs);
 //	RValue<Bool> operator==(RValue<Long> lhs, RValue<Long> rhs);
 
 //	RValue<Long> RoundLong(RValue<Float> cast);
-RValue<Long> AddAtomic( RValue<Pointer<Long>> x, RValue<Long> y);
+RValue<Long> AddAtomic(RValue<Pointer<Long>> x, RValue<Long> y);
 
 class UInt : public LValue<UInt>
 {
@@ -1258,10 +1259,10 @@ RValue<UInt> operator>>=(UInt &lhs, RValue<UInt> rhs);
 RValue<UInt> operator+(RValue<UInt> val);
 RValue<UInt> operator-(RValue<UInt> val);
 RValue<UInt> operator~(RValue<UInt> val);
-RValue<UInt> operator++(UInt &val, int);   // Post-increment
-const UInt &operator++(UInt &val);   // Pre-increment
-RValue<UInt> operator--(UInt &val, int);   // Post-decrement
-const UInt &operator--(UInt &val);   // Pre-decrement
+RValue<UInt> operator++(UInt &val, int);  // Post-increment
+const UInt &operator++(UInt &val);        // Pre-increment
+RValue<UInt> operator--(UInt &val, int);  // Post-decrement
+const UInt &operator--(UInt &val);        // Pre-decrement
 RValue<Bool> operator<(RValue<UInt> lhs, RValue<UInt> rhs);
 RValue<Bool> operator<=(RValue<UInt> lhs, RValue<UInt> rhs);
 RValue<Bool> operator>(RValue<UInt> lhs, RValue<UInt> rhs);
@@ -1290,7 +1291,7 @@ RValue<UInt> CompareExchangeAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, RVal
 class Int2 : public LValue<Int2>
 {
 public:
-//	explicit Int2(RValue<Int> cast);
+	//	explicit Int2(RValue<Int> cast);
 	explicit Int2(RValue<Int4> cast);
 
 	Int2() = default;
@@ -1509,342 +1510,342 @@ public:
 		SwizzleMask1<Vector4, 0x1111> y;
 		SwizzleMask1<Vector4, 0x2222> z;
 		SwizzleMask1<Vector4, 0x3333> w;
-		Swizzle2<Vector4, 0x0000>     xx;
-		Swizzle2<Vector4, 0x1000>     yx;
-		Swizzle2<Vector4, 0x2000>     zx;
-		Swizzle2<Vector4, 0x3000>     wx;
+		Swizzle2<Vector4, 0x0000> xx;
+		Swizzle2<Vector4, 0x1000> yx;
+		Swizzle2<Vector4, 0x2000> zx;
+		Swizzle2<Vector4, 0x3000> wx;
 		SwizzleMask2<Vector4, 0x0111> xy;
-		Swizzle2<Vector4, 0x1111>     yy;
-		Swizzle2<Vector4, 0x2111>     zy;
-		Swizzle2<Vector4, 0x3111>     wy;
+		Swizzle2<Vector4, 0x1111> yy;
+		Swizzle2<Vector4, 0x2111> zy;
+		Swizzle2<Vector4, 0x3111> wy;
 		SwizzleMask2<Vector4, 0x0222> xz;
 		SwizzleMask2<Vector4, 0x1222> yz;
-		Swizzle2<Vector4, 0x2222>     zz;
-		Swizzle2<Vector4, 0x3222>     wz;
+		Swizzle2<Vector4, 0x2222> zz;
+		Swizzle2<Vector4, 0x3222> wz;
 		SwizzleMask2<Vector4, 0x0333> xw;
 		SwizzleMask2<Vector4, 0x1333> yw;
 		SwizzleMask2<Vector4, 0x2333> zw;
-		Swizzle2<Vector4, 0x3333>     ww;
-		Swizzle4<Vector4, 0x0000>     xxx;
-		Swizzle4<Vector4, 0x1000>     yxx;
-		Swizzle4<Vector4, 0x2000>     zxx;
-		Swizzle4<Vector4, 0x3000>     wxx;
-		Swizzle4<Vector4, 0x0100>     xyx;
-		Swizzle4<Vector4, 0x1100>     yyx;
-		Swizzle4<Vector4, 0x2100>     zyx;
-		Swizzle4<Vector4, 0x3100>     wyx;
-		Swizzle4<Vector4, 0x0200>     xzx;
-		Swizzle4<Vector4, 0x1200>     yzx;
-		Swizzle4<Vector4, 0x2200>     zzx;
-		Swizzle4<Vector4, 0x3200>     wzx;
-		Swizzle4<Vector4, 0x0300>     xwx;
-		Swizzle4<Vector4, 0x1300>     ywx;
-		Swizzle4<Vector4, 0x2300>     zwx;
-		Swizzle4<Vector4, 0x3300>     wwx;
-		Swizzle4<Vector4, 0x0011>     xxy;
-		Swizzle4<Vector4, 0x1011>     yxy;
-		Swizzle4<Vector4, 0x2011>     zxy;
-		Swizzle4<Vector4, 0x3011>     wxy;
-		Swizzle4<Vector4, 0x0111>     xyy;
-		Swizzle4<Vector4, 0x1111>     yyy;
-		Swizzle4<Vector4, 0x2111>     zyy;
-		Swizzle4<Vector4, 0x3111>     wyy;
-		Swizzle4<Vector4, 0x0211>     xzy;
-		Swizzle4<Vector4, 0x1211>     yzy;
-		Swizzle4<Vector4, 0x2211>     zzy;
-		Swizzle4<Vector4, 0x3211>     wzy;
-		Swizzle4<Vector4, 0x0311>     xwy;
-		Swizzle4<Vector4, 0x1311>     ywy;
-		Swizzle4<Vector4, 0x2311>     zwy;
-		Swizzle4<Vector4, 0x3311>     wwy;
-		Swizzle4<Vector4, 0x0022>     xxz;
-		Swizzle4<Vector4, 0x1022>     yxz;
-		Swizzle4<Vector4, 0x2022>     zxz;
-		Swizzle4<Vector4, 0x3022>     wxz;
+		Swizzle2<Vector4, 0x3333> ww;
+		Swizzle4<Vector4, 0x0000> xxx;
+		Swizzle4<Vector4, 0x1000> yxx;
+		Swizzle4<Vector4, 0x2000> zxx;
+		Swizzle4<Vector4, 0x3000> wxx;
+		Swizzle4<Vector4, 0x0100> xyx;
+		Swizzle4<Vector4, 0x1100> yyx;
+		Swizzle4<Vector4, 0x2100> zyx;
+		Swizzle4<Vector4, 0x3100> wyx;
+		Swizzle4<Vector4, 0x0200> xzx;
+		Swizzle4<Vector4, 0x1200> yzx;
+		Swizzle4<Vector4, 0x2200> zzx;
+		Swizzle4<Vector4, 0x3200> wzx;
+		Swizzle4<Vector4, 0x0300> xwx;
+		Swizzle4<Vector4, 0x1300> ywx;
+		Swizzle4<Vector4, 0x2300> zwx;
+		Swizzle4<Vector4, 0x3300> wwx;
+		Swizzle4<Vector4, 0x0011> xxy;
+		Swizzle4<Vector4, 0x1011> yxy;
+		Swizzle4<Vector4, 0x2011> zxy;
+		Swizzle4<Vector4, 0x3011> wxy;
+		Swizzle4<Vector4, 0x0111> xyy;
+		Swizzle4<Vector4, 0x1111> yyy;
+		Swizzle4<Vector4, 0x2111> zyy;
+		Swizzle4<Vector4, 0x3111> wyy;
+		Swizzle4<Vector4, 0x0211> xzy;
+		Swizzle4<Vector4, 0x1211> yzy;
+		Swizzle4<Vector4, 0x2211> zzy;
+		Swizzle4<Vector4, 0x3211> wzy;
+		Swizzle4<Vector4, 0x0311> xwy;
+		Swizzle4<Vector4, 0x1311> ywy;
+		Swizzle4<Vector4, 0x2311> zwy;
+		Swizzle4<Vector4, 0x3311> wwy;
+		Swizzle4<Vector4, 0x0022> xxz;
+		Swizzle4<Vector4, 0x1022> yxz;
+		Swizzle4<Vector4, 0x2022> zxz;
+		Swizzle4<Vector4, 0x3022> wxz;
 		SwizzleMask4<Vector4, 0x0122> xyz;
-		Swizzle4<Vector4, 0x1122>     yyz;
-		Swizzle4<Vector4, 0x2122>     zyz;
-		Swizzle4<Vector4, 0x3122>     wyz;
-		Swizzle4<Vector4, 0x0222>     xzz;
-		Swizzle4<Vector4, 0x1222>     yzz;
-		Swizzle4<Vector4, 0x2222>     zzz;
-		Swizzle4<Vector4, 0x3222>     wzz;
-		Swizzle4<Vector4, 0x0322>     xwz;
-		Swizzle4<Vector4, 0x1322>     ywz;
-		Swizzle4<Vector4, 0x2322>     zwz;
-		Swizzle4<Vector4, 0x3322>     wwz;
-		Swizzle4<Vector4, 0x0033>     xxw;
-		Swizzle4<Vector4, 0x1033>     yxw;
-		Swizzle4<Vector4, 0x2033>     zxw;
-		Swizzle4<Vector4, 0x3033>     wxw;
+		Swizzle4<Vector4, 0x1122> yyz;
+		Swizzle4<Vector4, 0x2122> zyz;
+		Swizzle4<Vector4, 0x3122> wyz;
+		Swizzle4<Vector4, 0x0222> xzz;
+		Swizzle4<Vector4, 0x1222> yzz;
+		Swizzle4<Vector4, 0x2222> zzz;
+		Swizzle4<Vector4, 0x3222> wzz;
+		Swizzle4<Vector4, 0x0322> xwz;
+		Swizzle4<Vector4, 0x1322> ywz;
+		Swizzle4<Vector4, 0x2322> zwz;
+		Swizzle4<Vector4, 0x3322> wwz;
+		Swizzle4<Vector4, 0x0033> xxw;
+		Swizzle4<Vector4, 0x1033> yxw;
+		Swizzle4<Vector4, 0x2033> zxw;
+		Swizzle4<Vector4, 0x3033> wxw;
 		SwizzleMask4<Vector4, 0x0133> xyw;
-		Swizzle4<Vector4, 0x1133>     yyw;
-		Swizzle4<Vector4, 0x2133>     zyw;
-		Swizzle4<Vector4, 0x3133>     wyw;
+		Swizzle4<Vector4, 0x1133> yyw;
+		Swizzle4<Vector4, 0x2133> zyw;
+		Swizzle4<Vector4, 0x3133> wyw;
 		SwizzleMask4<Vector4, 0x0233> xzw;
 		SwizzleMask4<Vector4, 0x1233> yzw;
-		Swizzle4<Vector4, 0x2233>     zzw;
-		Swizzle4<Vector4, 0x3233>     wzw;
-		Swizzle4<Vector4, 0x0333>     xww;
-		Swizzle4<Vector4, 0x1333>     yww;
-		Swizzle4<Vector4, 0x2333>     zww;
-		Swizzle4<Vector4, 0x3333>     www;
-		Swizzle4<Vector4, 0x0000>     xxxx;
-		Swizzle4<Vector4, 0x1000>     yxxx;
-		Swizzle4<Vector4, 0x2000>     zxxx;
-		Swizzle4<Vector4, 0x3000>     wxxx;
-		Swizzle4<Vector4, 0x0100>     xyxx;
-		Swizzle4<Vector4, 0x1100>     yyxx;
-		Swizzle4<Vector4, 0x2100>     zyxx;
-		Swizzle4<Vector4, 0x3100>     wyxx;
-		Swizzle4<Vector4, 0x0200>     xzxx;
-		Swizzle4<Vector4, 0x1200>     yzxx;
-		Swizzle4<Vector4, 0x2200>     zzxx;
-		Swizzle4<Vector4, 0x3200>     wzxx;
-		Swizzle4<Vector4, 0x0300>     xwxx;
-		Swizzle4<Vector4, 0x1300>     ywxx;
-		Swizzle4<Vector4, 0x2300>     zwxx;
-		Swizzle4<Vector4, 0x3300>     wwxx;
-		Swizzle4<Vector4, 0x0010>     xxyx;
-		Swizzle4<Vector4, 0x1010>     yxyx;
-		Swizzle4<Vector4, 0x2010>     zxyx;
-		Swizzle4<Vector4, 0x3010>     wxyx;
-		Swizzle4<Vector4, 0x0110>     xyyx;
-		Swizzle4<Vector4, 0x1110>     yyyx;
-		Swizzle4<Vector4, 0x2110>     zyyx;
-		Swizzle4<Vector4, 0x3110>     wyyx;
-		Swizzle4<Vector4, 0x0210>     xzyx;
-		Swizzle4<Vector4, 0x1210>     yzyx;
-		Swizzle4<Vector4, 0x2210>     zzyx;
-		Swizzle4<Vector4, 0x3210>     wzyx;
-		Swizzle4<Vector4, 0x0310>     xwyx;
-		Swizzle4<Vector4, 0x1310>     ywyx;
-		Swizzle4<Vector4, 0x2310>     zwyx;
-		Swizzle4<Vector4, 0x3310>     wwyx;
-		Swizzle4<Vector4, 0x0020>     xxzx;
-		Swizzle4<Vector4, 0x1020>     yxzx;
-		Swizzle4<Vector4, 0x2020>     zxzx;
-		Swizzle4<Vector4, 0x3020>     wxzx;
-		Swizzle4<Vector4, 0x0120>     xyzx;
-		Swizzle4<Vector4, 0x1120>     yyzx;
-		Swizzle4<Vector4, 0x2120>     zyzx;
-		Swizzle4<Vector4, 0x3120>     wyzx;
-		Swizzle4<Vector4, 0x0220>     xzzx;
-		Swizzle4<Vector4, 0x1220>     yzzx;
-		Swizzle4<Vector4, 0x2220>     zzzx;
-		Swizzle4<Vector4, 0x3220>     wzzx;
-		Swizzle4<Vector4, 0x0320>     xwzx;
-		Swizzle4<Vector4, 0x1320>     ywzx;
-		Swizzle4<Vector4, 0x2320>     zwzx;
-		Swizzle4<Vector4, 0x3320>     wwzx;
-		Swizzle4<Vector4, 0x0030>     xxwx;
-		Swizzle4<Vector4, 0x1030>     yxwx;
-		Swizzle4<Vector4, 0x2030>     zxwx;
-		Swizzle4<Vector4, 0x3030>     wxwx;
-		Swizzle4<Vector4, 0x0130>     xywx;
-		Swizzle4<Vector4, 0x1130>     yywx;
-		Swizzle4<Vector4, 0x2130>     zywx;
-		Swizzle4<Vector4, 0x3130>     wywx;
-		Swizzle4<Vector4, 0x0230>     xzwx;
-		Swizzle4<Vector4, 0x1230>     yzwx;
-		Swizzle4<Vector4, 0x2230>     zzwx;
-		Swizzle4<Vector4, 0x3230>     wzwx;
-		Swizzle4<Vector4, 0x0330>     xwwx;
-		Swizzle4<Vector4, 0x1330>     ywwx;
-		Swizzle4<Vector4, 0x2330>     zwwx;
-		Swizzle4<Vector4, 0x3330>     wwwx;
-		Swizzle4<Vector4, 0x0001>     xxxy;
-		Swizzle4<Vector4, 0x1001>     yxxy;
-		Swizzle4<Vector4, 0x2001>     zxxy;
-		Swizzle4<Vector4, 0x3001>     wxxy;
-		Swizzle4<Vector4, 0x0101>     xyxy;
-		Swizzle4<Vector4, 0x1101>     yyxy;
-		Swizzle4<Vector4, 0x2101>     zyxy;
-		Swizzle4<Vector4, 0x3101>     wyxy;
-		Swizzle4<Vector4, 0x0201>     xzxy;
-		Swizzle4<Vector4, 0x1201>     yzxy;
-		Swizzle4<Vector4, 0x2201>     zzxy;
-		Swizzle4<Vector4, 0x3201>     wzxy;
-		Swizzle4<Vector4, 0x0301>     xwxy;
-		Swizzle4<Vector4, 0x1301>     ywxy;
-		Swizzle4<Vector4, 0x2301>     zwxy;
-		Swizzle4<Vector4, 0x3301>     wwxy;
-		Swizzle4<Vector4, 0x0011>     xxyy;
-		Swizzle4<Vector4, 0x1011>     yxyy;
-		Swizzle4<Vector4, 0x2011>     zxyy;
-		Swizzle4<Vector4, 0x3011>     wxyy;
-		Swizzle4<Vector4, 0x0111>     xyyy;
-		Swizzle4<Vector4, 0x1111>     yyyy;
-		Swizzle4<Vector4, 0x2111>     zyyy;
-		Swizzle4<Vector4, 0x3111>     wyyy;
-		Swizzle4<Vector4, 0x0211>     xzyy;
-		Swizzle4<Vector4, 0x1211>     yzyy;
-		Swizzle4<Vector4, 0x2211>     zzyy;
-		Swizzle4<Vector4, 0x3211>     wzyy;
-		Swizzle4<Vector4, 0x0311>     xwyy;
-		Swizzle4<Vector4, 0x1311>     ywyy;
-		Swizzle4<Vector4, 0x2311>     zwyy;
-		Swizzle4<Vector4, 0x3311>     wwyy;
-		Swizzle4<Vector4, 0x0021>     xxzy;
-		Swizzle4<Vector4, 0x1021>     yxzy;
-		Swizzle4<Vector4, 0x2021>     zxzy;
-		Swizzle4<Vector4, 0x3021>     wxzy;
-		Swizzle4<Vector4, 0x0121>     xyzy;
-		Swizzle4<Vector4, 0x1121>     yyzy;
-		Swizzle4<Vector4, 0x2121>     zyzy;
-		Swizzle4<Vector4, 0x3121>     wyzy;
-		Swizzle4<Vector4, 0x0221>     xzzy;
-		Swizzle4<Vector4, 0x1221>     yzzy;
-		Swizzle4<Vector4, 0x2221>     zzzy;
-		Swizzle4<Vector4, 0x3221>     wzzy;
-		Swizzle4<Vector4, 0x0321>     xwzy;
-		Swizzle4<Vector4, 0x1321>     ywzy;
-		Swizzle4<Vector4, 0x2321>     zwzy;
-		Swizzle4<Vector4, 0x3321>     wwzy;
-		Swizzle4<Vector4, 0x0031>     xxwy;
-		Swizzle4<Vector4, 0x1031>     yxwy;
-		Swizzle4<Vector4, 0x2031>     zxwy;
-		Swizzle4<Vector4, 0x3031>     wxwy;
-		Swizzle4<Vector4, 0x0131>     xywy;
-		Swizzle4<Vector4, 0x1131>     yywy;
-		Swizzle4<Vector4, 0x2131>     zywy;
-		Swizzle4<Vector4, 0x3131>     wywy;
-		Swizzle4<Vector4, 0x0231>     xzwy;
-		Swizzle4<Vector4, 0x1231>     yzwy;
-		Swizzle4<Vector4, 0x2231>     zzwy;
-		Swizzle4<Vector4, 0x3231>     wzwy;
-		Swizzle4<Vector4, 0x0331>     xwwy;
-		Swizzle4<Vector4, 0x1331>     ywwy;
-		Swizzle4<Vector4, 0x2331>     zwwy;
-		Swizzle4<Vector4, 0x3331>     wwwy;
-		Swizzle4<Vector4, 0x0002>     xxxz;
-		Swizzle4<Vector4, 0x1002>     yxxz;
-		Swizzle4<Vector4, 0x2002>     zxxz;
-		Swizzle4<Vector4, 0x3002>     wxxz;
-		Swizzle4<Vector4, 0x0102>     xyxz;
-		Swizzle4<Vector4, 0x1102>     yyxz;
-		Swizzle4<Vector4, 0x2102>     zyxz;
-		Swizzle4<Vector4, 0x3102>     wyxz;
-		Swizzle4<Vector4, 0x0202>     xzxz;
-		Swizzle4<Vector4, 0x1202>     yzxz;
-		Swizzle4<Vector4, 0x2202>     zzxz;
-		Swizzle4<Vector4, 0x3202>     wzxz;
-		Swizzle4<Vector4, 0x0302>     xwxz;
-		Swizzle4<Vector4, 0x1302>     ywxz;
-		Swizzle4<Vector4, 0x2302>     zwxz;
-		Swizzle4<Vector4, 0x3302>     wwxz;
-		Swizzle4<Vector4, 0x0012>     xxyz;
-		Swizzle4<Vector4, 0x1012>     yxyz;
-		Swizzle4<Vector4, 0x2012>     zxyz;
-		Swizzle4<Vector4, 0x3012>     wxyz;
-		Swizzle4<Vector4, 0x0112>     xyyz;
-		Swizzle4<Vector4, 0x1112>     yyyz;
-		Swizzle4<Vector4, 0x2112>     zyyz;
-		Swizzle4<Vector4, 0x3112>     wyyz;
-		Swizzle4<Vector4, 0x0212>     xzyz;
-		Swizzle4<Vector4, 0x1212>     yzyz;
-		Swizzle4<Vector4, 0x2212>     zzyz;
-		Swizzle4<Vector4, 0x3212>     wzyz;
-		Swizzle4<Vector4, 0x0312>     xwyz;
-		Swizzle4<Vector4, 0x1312>     ywyz;
-		Swizzle4<Vector4, 0x2312>     zwyz;
-		Swizzle4<Vector4, 0x3312>     wwyz;
-		Swizzle4<Vector4, 0x0022>     xxzz;
-		Swizzle4<Vector4, 0x1022>     yxzz;
-		Swizzle4<Vector4, 0x2022>     zxzz;
-		Swizzle4<Vector4, 0x3022>     wxzz;
-		Swizzle4<Vector4, 0x0122>     xyzz;
-		Swizzle4<Vector4, 0x1122>     yyzz;
-		Swizzle4<Vector4, 0x2122>     zyzz;
-		Swizzle4<Vector4, 0x3122>     wyzz;
-		Swizzle4<Vector4, 0x0222>     xzzz;
-		Swizzle4<Vector4, 0x1222>     yzzz;
-		Swizzle4<Vector4, 0x2222>     zzzz;
-		Swizzle4<Vector4, 0x3222>     wzzz;
-		Swizzle4<Vector4, 0x0322>     xwzz;
-		Swizzle4<Vector4, 0x1322>     ywzz;
-		Swizzle4<Vector4, 0x2322>     zwzz;
-		Swizzle4<Vector4, 0x3322>     wwzz;
-		Swizzle4<Vector4, 0x0032>     xxwz;
-		Swizzle4<Vector4, 0x1032>     yxwz;
-		Swizzle4<Vector4, 0x2032>     zxwz;
-		Swizzle4<Vector4, 0x3032>     wxwz;
-		Swizzle4<Vector4, 0x0132>     xywz;
-		Swizzle4<Vector4, 0x1132>     yywz;
-		Swizzle4<Vector4, 0x2132>     zywz;
-		Swizzle4<Vector4, 0x3132>     wywz;
-		Swizzle4<Vector4, 0x0232>     xzwz;
-		Swizzle4<Vector4, 0x1232>     yzwz;
-		Swizzle4<Vector4, 0x2232>     zzwz;
-		Swizzle4<Vector4, 0x3232>     wzwz;
-		Swizzle4<Vector4, 0x0332>     xwwz;
-		Swizzle4<Vector4, 0x1332>     ywwz;
-		Swizzle4<Vector4, 0x2332>     zwwz;
-		Swizzle4<Vector4, 0x3332>     wwwz;
-		Swizzle4<Vector4, 0x0003>     xxxw;
-		Swizzle4<Vector4, 0x1003>     yxxw;
-		Swizzle4<Vector4, 0x2003>     zxxw;
-		Swizzle4<Vector4, 0x3003>     wxxw;
-		Swizzle4<Vector4, 0x0103>     xyxw;
-		Swizzle4<Vector4, 0x1103>     yyxw;
-		Swizzle4<Vector4, 0x2103>     zyxw;
-		Swizzle4<Vector4, 0x3103>     wyxw;
-		Swizzle4<Vector4, 0x0203>     xzxw;
-		Swizzle4<Vector4, 0x1203>     yzxw;
-		Swizzle4<Vector4, 0x2203>     zzxw;
-		Swizzle4<Vector4, 0x3203>     wzxw;
-		Swizzle4<Vector4, 0x0303>     xwxw;
-		Swizzle4<Vector4, 0x1303>     ywxw;
-		Swizzle4<Vector4, 0x2303>     zwxw;
-		Swizzle4<Vector4, 0x3303>     wwxw;
-		Swizzle4<Vector4, 0x0013>     xxyw;
-		Swizzle4<Vector4, 0x1013>     yxyw;
-		Swizzle4<Vector4, 0x2013>     zxyw;
-		Swizzle4<Vector4, 0x3013>     wxyw;
-		Swizzle4<Vector4, 0x0113>     xyyw;
-		Swizzle4<Vector4, 0x1113>     yyyw;
-		Swizzle4<Vector4, 0x2113>     zyyw;
-		Swizzle4<Vector4, 0x3113>     wyyw;
-		Swizzle4<Vector4, 0x0213>     xzyw;
-		Swizzle4<Vector4, 0x1213>     yzyw;
-		Swizzle4<Vector4, 0x2213>     zzyw;
-		Swizzle4<Vector4, 0x3213>     wzyw;
-		Swizzle4<Vector4, 0x0313>     xwyw;
-		Swizzle4<Vector4, 0x1313>     ywyw;
-		Swizzle4<Vector4, 0x2313>     zwyw;
-		Swizzle4<Vector4, 0x3313>     wwyw;
-		Swizzle4<Vector4, 0x0023>     xxzw;
-		Swizzle4<Vector4, 0x1023>     yxzw;
-		Swizzle4<Vector4, 0x2023>     zxzw;
-		Swizzle4<Vector4, 0x3023>     wxzw;
+		Swizzle4<Vector4, 0x2233> zzw;
+		Swizzle4<Vector4, 0x3233> wzw;
+		Swizzle4<Vector4, 0x0333> xww;
+		Swizzle4<Vector4, 0x1333> yww;
+		Swizzle4<Vector4, 0x2333> zww;
+		Swizzle4<Vector4, 0x3333> www;
+		Swizzle4<Vector4, 0x0000> xxxx;
+		Swizzle4<Vector4, 0x1000> yxxx;
+		Swizzle4<Vector4, 0x2000> zxxx;
+		Swizzle4<Vector4, 0x3000> wxxx;
+		Swizzle4<Vector4, 0x0100> xyxx;
+		Swizzle4<Vector4, 0x1100> yyxx;
+		Swizzle4<Vector4, 0x2100> zyxx;
+		Swizzle4<Vector4, 0x3100> wyxx;
+		Swizzle4<Vector4, 0x0200> xzxx;
+		Swizzle4<Vector4, 0x1200> yzxx;
+		Swizzle4<Vector4, 0x2200> zzxx;
+		Swizzle4<Vector4, 0x3200> wzxx;
+		Swizzle4<Vector4, 0x0300> xwxx;
+		Swizzle4<Vector4, 0x1300> ywxx;
+		Swizzle4<Vector4, 0x2300> zwxx;
+		Swizzle4<Vector4, 0x3300> wwxx;
+		Swizzle4<Vector4, 0x0010> xxyx;
+		Swizzle4<Vector4, 0x1010> yxyx;
+		Swizzle4<Vector4, 0x2010> zxyx;
+		Swizzle4<Vector4, 0x3010> wxyx;
+		Swizzle4<Vector4, 0x0110> xyyx;
+		Swizzle4<Vector4, 0x1110> yyyx;
+		Swizzle4<Vector4, 0x2110> zyyx;
+		Swizzle4<Vector4, 0x3110> wyyx;
+		Swizzle4<Vector4, 0x0210> xzyx;
+		Swizzle4<Vector4, 0x1210> yzyx;
+		Swizzle4<Vector4, 0x2210> zzyx;
+		Swizzle4<Vector4, 0x3210> wzyx;
+		Swizzle4<Vector4, 0x0310> xwyx;
+		Swizzle4<Vector4, 0x1310> ywyx;
+		Swizzle4<Vector4, 0x2310> zwyx;
+		Swizzle4<Vector4, 0x3310> wwyx;
+		Swizzle4<Vector4, 0x0020> xxzx;
+		Swizzle4<Vector4, 0x1020> yxzx;
+		Swizzle4<Vector4, 0x2020> zxzx;
+		Swizzle4<Vector4, 0x3020> wxzx;
+		Swizzle4<Vector4, 0x0120> xyzx;
+		Swizzle4<Vector4, 0x1120> yyzx;
+		Swizzle4<Vector4, 0x2120> zyzx;
+		Swizzle4<Vector4, 0x3120> wyzx;
+		Swizzle4<Vector4, 0x0220> xzzx;
+		Swizzle4<Vector4, 0x1220> yzzx;
+		Swizzle4<Vector4, 0x2220> zzzx;
+		Swizzle4<Vector4, 0x3220> wzzx;
+		Swizzle4<Vector4, 0x0320> xwzx;
+		Swizzle4<Vector4, 0x1320> ywzx;
+		Swizzle4<Vector4, 0x2320> zwzx;
+		Swizzle4<Vector4, 0x3320> wwzx;
+		Swizzle4<Vector4, 0x0030> xxwx;
+		Swizzle4<Vector4, 0x1030> yxwx;
+		Swizzle4<Vector4, 0x2030> zxwx;
+		Swizzle4<Vector4, 0x3030> wxwx;
+		Swizzle4<Vector4, 0x0130> xywx;
+		Swizzle4<Vector4, 0x1130> yywx;
+		Swizzle4<Vector4, 0x2130> zywx;
+		Swizzle4<Vector4, 0x3130> wywx;
+		Swizzle4<Vector4, 0x0230> xzwx;
+		Swizzle4<Vector4, 0x1230> yzwx;
+		Swizzle4<Vector4, 0x2230> zzwx;
+		Swizzle4<Vector4, 0x3230> wzwx;
+		Swizzle4<Vector4, 0x0330> xwwx;
+		Swizzle4<Vector4, 0x1330> ywwx;
+		Swizzle4<Vector4, 0x2330> zwwx;
+		Swizzle4<Vector4, 0x3330> wwwx;
+		Swizzle4<Vector4, 0x0001> xxxy;
+		Swizzle4<Vector4, 0x1001> yxxy;
+		Swizzle4<Vector4, 0x2001> zxxy;
+		Swizzle4<Vector4, 0x3001> wxxy;
+		Swizzle4<Vector4, 0x0101> xyxy;
+		Swizzle4<Vector4, 0x1101> yyxy;
+		Swizzle4<Vector4, 0x2101> zyxy;
+		Swizzle4<Vector4, 0x3101> wyxy;
+		Swizzle4<Vector4, 0x0201> xzxy;
+		Swizzle4<Vector4, 0x1201> yzxy;
+		Swizzle4<Vector4, 0x2201> zzxy;
+		Swizzle4<Vector4, 0x3201> wzxy;
+		Swizzle4<Vector4, 0x0301> xwxy;
+		Swizzle4<Vector4, 0x1301> ywxy;
+		Swizzle4<Vector4, 0x2301> zwxy;
+		Swizzle4<Vector4, 0x3301> wwxy;
+		Swizzle4<Vector4, 0x0011> xxyy;
+		Swizzle4<Vector4, 0x1011> yxyy;
+		Swizzle4<Vector4, 0x2011> zxyy;
+		Swizzle4<Vector4, 0x3011> wxyy;
+		Swizzle4<Vector4, 0x0111> xyyy;
+		Swizzle4<Vector4, 0x1111> yyyy;
+		Swizzle4<Vector4, 0x2111> zyyy;
+		Swizzle4<Vector4, 0x3111> wyyy;
+		Swizzle4<Vector4, 0x0211> xzyy;
+		Swizzle4<Vector4, 0x1211> yzyy;
+		Swizzle4<Vector4, 0x2211> zzyy;
+		Swizzle4<Vector4, 0x3211> wzyy;
+		Swizzle4<Vector4, 0x0311> xwyy;
+		Swizzle4<Vector4, 0x1311> ywyy;
+		Swizzle4<Vector4, 0x2311> zwyy;
+		Swizzle4<Vector4, 0x3311> wwyy;
+		Swizzle4<Vector4, 0x0021> xxzy;
+		Swizzle4<Vector4, 0x1021> yxzy;
+		Swizzle4<Vector4, 0x2021> zxzy;
+		Swizzle4<Vector4, 0x3021> wxzy;
+		Swizzle4<Vector4, 0x0121> xyzy;
+		Swizzle4<Vector4, 0x1121> yyzy;
+		Swizzle4<Vector4, 0x2121> zyzy;
+		Swizzle4<Vector4, 0x3121> wyzy;
+		Swizzle4<Vector4, 0x0221> xzzy;
+		Swizzle4<Vector4, 0x1221> yzzy;
+		Swizzle4<Vector4, 0x2221> zzzy;
+		Swizzle4<Vector4, 0x3221> wzzy;
+		Swizzle4<Vector4, 0x0321> xwzy;
+		Swizzle4<Vector4, 0x1321> ywzy;
+		Swizzle4<Vector4, 0x2321> zwzy;
+		Swizzle4<Vector4, 0x3321> wwzy;
+		Swizzle4<Vector4, 0x0031> xxwy;
+		Swizzle4<Vector4, 0x1031> yxwy;
+		Swizzle4<Vector4, 0x2031> zxwy;
+		Swizzle4<Vector4, 0x3031> wxwy;
+		Swizzle4<Vector4, 0x0131> xywy;
+		Swizzle4<Vector4, 0x1131> yywy;
+		Swizzle4<Vector4, 0x2131> zywy;
+		Swizzle4<Vector4, 0x3131> wywy;
+		Swizzle4<Vector4, 0x0231> xzwy;
+		Swizzle4<Vector4, 0x1231> yzwy;
+		Swizzle4<Vector4, 0x2231> zzwy;
+		Swizzle4<Vector4, 0x3231> wzwy;
+		Swizzle4<Vector4, 0x0331> xwwy;
+		Swizzle4<Vector4, 0x1331> ywwy;
+		Swizzle4<Vector4, 0x2331> zwwy;
+		Swizzle4<Vector4, 0x3331> wwwy;
+		Swizzle4<Vector4, 0x0002> xxxz;
+		Swizzle4<Vector4, 0x1002> yxxz;
+		Swizzle4<Vector4, 0x2002> zxxz;
+		Swizzle4<Vector4, 0x3002> wxxz;
+		Swizzle4<Vector4, 0x0102> xyxz;
+		Swizzle4<Vector4, 0x1102> yyxz;
+		Swizzle4<Vector4, 0x2102> zyxz;
+		Swizzle4<Vector4, 0x3102> wyxz;
+		Swizzle4<Vector4, 0x0202> xzxz;
+		Swizzle4<Vector4, 0x1202> yzxz;
+		Swizzle4<Vector4, 0x2202> zzxz;
+		Swizzle4<Vector4, 0x3202> wzxz;
+		Swizzle4<Vector4, 0x0302> xwxz;
+		Swizzle4<Vector4, 0x1302> ywxz;
+		Swizzle4<Vector4, 0x2302> zwxz;
+		Swizzle4<Vector4, 0x3302> wwxz;
+		Swizzle4<Vector4, 0x0012> xxyz;
+		Swizzle4<Vector4, 0x1012> yxyz;
+		Swizzle4<Vector4, 0x2012> zxyz;
+		Swizzle4<Vector4, 0x3012> wxyz;
+		Swizzle4<Vector4, 0x0112> xyyz;
+		Swizzle4<Vector4, 0x1112> yyyz;
+		Swizzle4<Vector4, 0x2112> zyyz;
+		Swizzle4<Vector4, 0x3112> wyyz;
+		Swizzle4<Vector4, 0x0212> xzyz;
+		Swizzle4<Vector4, 0x1212> yzyz;
+		Swizzle4<Vector4, 0x2212> zzyz;
+		Swizzle4<Vector4, 0x3212> wzyz;
+		Swizzle4<Vector4, 0x0312> xwyz;
+		Swizzle4<Vector4, 0x1312> ywyz;
+		Swizzle4<Vector4, 0x2312> zwyz;
+		Swizzle4<Vector4, 0x3312> wwyz;
+		Swizzle4<Vector4, 0x0022> xxzz;
+		Swizzle4<Vector4, 0x1022> yxzz;
+		Swizzle4<Vector4, 0x2022> zxzz;
+		Swizzle4<Vector4, 0x3022> wxzz;
+		Swizzle4<Vector4, 0x0122> xyzz;
+		Swizzle4<Vector4, 0x1122> yyzz;
+		Swizzle4<Vector4, 0x2122> zyzz;
+		Swizzle4<Vector4, 0x3122> wyzz;
+		Swizzle4<Vector4, 0x0222> xzzz;
+		Swizzle4<Vector4, 0x1222> yzzz;
+		Swizzle4<Vector4, 0x2222> zzzz;
+		Swizzle4<Vector4, 0x3222> wzzz;
+		Swizzle4<Vector4, 0x0322> xwzz;
+		Swizzle4<Vector4, 0x1322> ywzz;
+		Swizzle4<Vector4, 0x2322> zwzz;
+		Swizzle4<Vector4, 0x3322> wwzz;
+		Swizzle4<Vector4, 0x0032> xxwz;
+		Swizzle4<Vector4, 0x1032> yxwz;
+		Swizzle4<Vector4, 0x2032> zxwz;
+		Swizzle4<Vector4, 0x3032> wxwz;
+		Swizzle4<Vector4, 0x0132> xywz;
+		Swizzle4<Vector4, 0x1132> yywz;
+		Swizzle4<Vector4, 0x2132> zywz;
+		Swizzle4<Vector4, 0x3132> wywz;
+		Swizzle4<Vector4, 0x0232> xzwz;
+		Swizzle4<Vector4, 0x1232> yzwz;
+		Swizzle4<Vector4, 0x2232> zzwz;
+		Swizzle4<Vector4, 0x3232> wzwz;
+		Swizzle4<Vector4, 0x0332> xwwz;
+		Swizzle4<Vector4, 0x1332> ywwz;
+		Swizzle4<Vector4, 0x2332> zwwz;
+		Swizzle4<Vector4, 0x3332> wwwz;
+		Swizzle4<Vector4, 0x0003> xxxw;
+		Swizzle4<Vector4, 0x1003> yxxw;
+		Swizzle4<Vector4, 0x2003> zxxw;
+		Swizzle4<Vector4, 0x3003> wxxw;
+		Swizzle4<Vector4, 0x0103> xyxw;
+		Swizzle4<Vector4, 0x1103> yyxw;
+		Swizzle4<Vector4, 0x2103> zyxw;
+		Swizzle4<Vector4, 0x3103> wyxw;
+		Swizzle4<Vector4, 0x0203> xzxw;
+		Swizzle4<Vector4, 0x1203> yzxw;
+		Swizzle4<Vector4, 0x2203> zzxw;
+		Swizzle4<Vector4, 0x3203> wzxw;
+		Swizzle4<Vector4, 0x0303> xwxw;
+		Swizzle4<Vector4, 0x1303> ywxw;
+		Swizzle4<Vector4, 0x2303> zwxw;
+		Swizzle4<Vector4, 0x3303> wwxw;
+		Swizzle4<Vector4, 0x0013> xxyw;
+		Swizzle4<Vector4, 0x1013> yxyw;
+		Swizzle4<Vector4, 0x2013> zxyw;
+		Swizzle4<Vector4, 0x3013> wxyw;
+		Swizzle4<Vector4, 0x0113> xyyw;
+		Swizzle4<Vector4, 0x1113> yyyw;
+		Swizzle4<Vector4, 0x2113> zyyw;
+		Swizzle4<Vector4, 0x3113> wyyw;
+		Swizzle4<Vector4, 0x0213> xzyw;
+		Swizzle4<Vector4, 0x1213> yzyw;
+		Swizzle4<Vector4, 0x2213> zzyw;
+		Swizzle4<Vector4, 0x3213> wzyw;
+		Swizzle4<Vector4, 0x0313> xwyw;
+		Swizzle4<Vector4, 0x1313> ywyw;
+		Swizzle4<Vector4, 0x2313> zwyw;
+		Swizzle4<Vector4, 0x3313> wwyw;
+		Swizzle4<Vector4, 0x0023> xxzw;
+		Swizzle4<Vector4, 0x1023> yxzw;
+		Swizzle4<Vector4, 0x2023> zxzw;
+		Swizzle4<Vector4, 0x3023> wxzw;
 		SwizzleMask4<Vector4, 0x0123> xyzw;
-		Swizzle4<Vector4, 0x1123>     yyzw;
-		Swizzle4<Vector4, 0x2123>     zyzw;
-		Swizzle4<Vector4, 0x3123>     wyzw;
-		Swizzle4<Vector4, 0x0223>     xzzw;
-		Swizzle4<Vector4, 0x1223>     yzzw;
-		Swizzle4<Vector4, 0x2223>     zzzw;
-		Swizzle4<Vector4, 0x3223>     wzzw;
-		Swizzle4<Vector4, 0x0323>     xwzw;
-		Swizzle4<Vector4, 0x1323>     ywzw;
-		Swizzle4<Vector4, 0x2323>     zwzw;
-		Swizzle4<Vector4, 0x3323>     wwzw;
-		Swizzle4<Vector4, 0x0033>     xxww;
-		Swizzle4<Vector4, 0x1033>     yxww;
-		Swizzle4<Vector4, 0x2033>     zxww;
-		Swizzle4<Vector4, 0x3033>     wxww;
-		Swizzle4<Vector4, 0x0133>     xyww;
-		Swizzle4<Vector4, 0x1133>     yyww;
-		Swizzle4<Vector4, 0x2133>     zyww;
-		Swizzle4<Vector4, 0x3133>     wyww;
-		Swizzle4<Vector4, 0x0233>     xzww;
-		Swizzle4<Vector4, 0x1233>     yzww;
-		Swizzle4<Vector4, 0x2233>     zzww;
-		Swizzle4<Vector4, 0x3233>     wzww;
-		Swizzle4<Vector4, 0x0333>     xwww;
-		Swizzle4<Vector4, 0x1333>     ywww;
-		Swizzle4<Vector4, 0x2333>     zwww;
-		Swizzle4<Vector4, 0x3333>     wwww;
+		Swizzle4<Vector4, 0x1123> yyzw;
+		Swizzle4<Vector4, 0x2123> zyzw;
+		Swizzle4<Vector4, 0x3123> wyzw;
+		Swizzle4<Vector4, 0x0223> xzzw;
+		Swizzle4<Vector4, 0x1223> yzzw;
+		Swizzle4<Vector4, 0x2223> zzzw;
+		Swizzle4<Vector4, 0x3223> wzzw;
+		Swizzle4<Vector4, 0x0323> xwzw;
+		Swizzle4<Vector4, 0x1323> ywzw;
+		Swizzle4<Vector4, 0x2323> zwzw;
+		Swizzle4<Vector4, 0x3323> wwzw;
+		Swizzle4<Vector4, 0x0033> xxww;
+		Swizzle4<Vector4, 0x1033> yxww;
+		Swizzle4<Vector4, 0x2033> zxww;
+		Swizzle4<Vector4, 0x3033> wxww;
+		Swizzle4<Vector4, 0x0133> xyww;
+		Swizzle4<Vector4, 0x1133> yyww;
+		Swizzle4<Vector4, 0x2133> zyww;
+		Swizzle4<Vector4, 0x3133> wyww;
+		Swizzle4<Vector4, 0x0233> xzww;
+		Swizzle4<Vector4, 0x1233> yzww;
+		Swizzle4<Vector4, 0x2233> zzww;
+		Swizzle4<Vector4, 0x3233> wzww;
+		Swizzle4<Vector4, 0x0333> xwww;
+		Swizzle4<Vector4, 0x1333> ywww;
+		Swizzle4<Vector4, 0x2333> zwww;
+		Swizzle4<Vector4, 0x3333> wwww;
 	};
 };
 
@@ -1935,8 +1936,14 @@ RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y);
-inline RValue<Int4> CmpGT(RValue<Int4> x, RValue<Int4> y) { return CmpNLE(x, y); }
-inline RValue<Int4> CmpGE(RValue<Int4> x, RValue<Int4> y) { return CmpNLT(x, y); }
+inline RValue<Int4> CmpGT(RValue<Int4> x, RValue<Int4> y)
+{
+	return CmpNLE(x, y);
+}
+inline RValue<Int4> CmpGE(RValue<Int4> x, RValue<Int4> y)
+{
+	return CmpNLT(x, y);
+}
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> RoundInt(RValue<Float4> cast);
@@ -2022,8 +2029,14 @@ RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y);
 RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y);
 RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y);
 RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y);
-inline RValue<UInt4> CmpGT(RValue<UInt4> x, RValue<UInt4> y) { return CmpNLE(x, y); }
-inline RValue<UInt4> CmpGE(RValue<UInt4> x, RValue<UInt4> y) { return CmpNLT(x, y); }
+inline RValue<UInt4> CmpGT(RValue<UInt4> x, RValue<UInt4> y)
+{
+	return CmpNLE(x, y);
+}
+inline RValue<UInt4> CmpGE(RValue<UInt4> x, RValue<UInt4> y)
+{
+	return CmpNLT(x, y);
+}
 RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y);
 RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
 RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y);
@@ -2058,7 +2071,7 @@ public:
 	template<int T>
 	Float(const SwizzleMask1<Float4, T> &rhs);
 
-//	RValue<Float> operator=(float rhs);   // FIXME: Implement
+	//	RValue<Float> operator=(float rhs);   // FIXME: Implement
 	RValue<Float> operator=(RValue<Float> rhs);
 	RValue<Float> operator=(const Float &rhs);
 	RValue<Float> operator=(const Reference<Float> &rhs);
@@ -2128,35 +2141,35 @@ RValue<Float> Log2(RValue<Float> x);
 class Float2 : public LValue<Float2>
 {
 public:
-//	explicit Float2(RValue<Byte2> cast);
-//	explicit Float2(RValue<Short2> cast);
-//	explicit Float2(RValue<UShort2> cast);
-//	explicit Float2(RValue<Int2> cast);
-//	explicit Float2(RValue<UInt2> cast);
+	//	explicit Float2(RValue<Byte2> cast);
+	//	explicit Float2(RValue<Short2> cast);
+	//	explicit Float2(RValue<UShort2> cast);
+	//	explicit Float2(RValue<Int2> cast);
+	//	explicit Float2(RValue<UInt2> cast);
 	explicit Float2(RValue<Float4> cast);
 
 	Float2() = default;
-//	Float2(float x, float y);
-//	Float2(RValue<Float2> rhs);
-//	Float2(const Float2 &rhs);
-//	Float2(const Reference<Float2> &rhs);
-//	Float2(RValue<Float> rhs);
-//	Float2(const Float &rhs);
-//	Float2(const Reference<Float> &rhs);
+	//	Float2(float x, float y);
+	//	Float2(RValue<Float2> rhs);
+	//	Float2(const Float2 &rhs);
+	//	Float2(const Reference<Float2> &rhs);
+	//	Float2(RValue<Float> rhs);
+	//	Float2(const Float &rhs);
+	//	Float2(const Reference<Float> &rhs);
 
-//	template<int T>
-//	Float2(const SwizzleMask1<T> &rhs);
+	//	template<int T>
+	//	Float2(const SwizzleMask1<T> &rhs);
 
-//	RValue<Float2> operator=(float replicate);
-//	RValue<Float2> operator=(RValue<Float2> rhs);
-//	RValue<Float2> operator=(const Float2 &rhs);
-//	RValue<Float2> operator=(const Reference<Float2> &rhs);
-//	RValue<Float2> operator=(RValue<Float> rhs);
-//	RValue<Float2> operator=(const Float &rhs);
-//	RValue<Float2> operator=(const Reference<Float> &rhs);
+	//	RValue<Float2> operator=(float replicate);
+	//	RValue<Float2> operator=(RValue<Float2> rhs);
+	//	RValue<Float2> operator=(const Float2 &rhs);
+	//	RValue<Float2> operator=(const Reference<Float2> &rhs);
+	//	RValue<Float2> operator=(RValue<Float> rhs);
+	//	RValue<Float2> operator=(const Float &rhs);
+	//	RValue<Float2> operator=(const Reference<Float> &rhs);
 
-//	template<int T>
-//	RValue<Float2> operator=(const SwizzleMask1<T> &rhs);
+	//	template<int T>
+	//	RValue<Float2> operator=(const SwizzleMask1<T> &rhs);
 
 	static Type *getType();
 };
@@ -2231,6 +2244,7 @@ public:
 	static Type *getType();
 	static Float4 negative_inf();
 	static Float4 positive_inf();
+
 private:
 	void constant(float x, float y, float z, float w);
 	void infinity_constant(bool negative);
@@ -2272,8 +2286,14 @@ RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y);
 RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y);
 RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y);
 RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y);
-inline RValue<Int4> CmpGT(RValue<Float4> x, RValue<Float4> y) { return CmpNLE(x, y); }
-inline RValue<Int4> CmpGE(RValue<Float4> x, RValue<Float4> y) { return CmpNLT(x, y); }
+inline RValue<Int4> CmpGT(RValue<Float4> x, RValue<Float4> y)
+{
+	return CmpNLE(x, y);
+}
+inline RValue<Int4> CmpGE(RValue<Float4> x, RValue<Float4> y)
+{
+	return CmpNLT(x, y);
+}
 
 // Unordered comparison functions
 RValue<Int4> CmpUEQ(RValue<Float4> x, RValue<Float4> y);
@@ -2282,8 +2302,14 @@ RValue<Int4> CmpULE(RValue<Float4> x, RValue<Float4> y);
 RValue<Int4> CmpUNEQ(RValue<Float4> x, RValue<Float4> y);
 RValue<Int4> CmpUNLT(RValue<Float4> x, RValue<Float4> y);
 RValue<Int4> CmpUNLE(RValue<Float4> x, RValue<Float4> y);
-inline RValue<Int4> CmpUGT(RValue<Float4> x, RValue<Float4> y) { return CmpUNLE(x, y); }
-inline RValue<Int4> CmpUGE(RValue<Float4> x, RValue<Float4> y) { return CmpUNLT(x, y); }
+inline RValue<Int4> CmpUGT(RValue<Float4> x, RValue<Float4> y)
+{
+	return CmpUNLE(x, y);
+}
+inline RValue<Int4> CmpUGE(RValue<Float4> x, RValue<Float4> y)
+{
+	return CmpUNLT(x, y);
+}
 
 RValue<Int4> IsInf(RValue<Float4> x);
 RValue<Int4> IsNan(RValue<Float4> x);
@@ -2337,14 +2363,16 @@ class Pointer : public LValue<Pointer<T>>
 {
 public:
 	template<class S>
-	Pointer(RValue<Pointer<S>> pointerS, int alignment = 1) : alignment(alignment)
+	Pointer(RValue<Pointer<S>> pointerS, int alignment = 1)
+	    : alignment(alignment)
 	{
 		Value *pointerT = Nucleus::createBitCast(pointerS.value, Nucleus::getPointerType(T::getType()));
 		LValue<Pointer<T>>::storeValue(pointerT);
 	}
 
 	template<class S>
-	Pointer(const Pointer<S> &pointer, int alignment = 1) : alignment(alignment)
+	Pointer(const Pointer<S> &pointer, int alignment = 1)
+	    : alignment(alignment)
 	{
 		Value *pointerS = pointer.loadValue();
 		Value *pointerT = Nucleus::createBitCast(pointerS, Nucleus::getPointerType(T::getType()));
@@ -2390,7 +2418,7 @@ RValue<Pointer<Byte>> operator-=(Pointer<Byte> &lhs, int offset);
 RValue<Pointer<Byte>> operator-=(Pointer<Byte> &lhs, RValue<Int> offset);
 RValue<Pointer<Byte>> operator-=(Pointer<Byte> &lhs, RValue<UInt> offset);
 
-template <typename T>
+template<typename T>
 RValue<Bool> operator==(const Pointer<T> &lhs, const Pointer<T> &rhs)
 {
 	return RValue<Bool>(Nucleus::createPtrEQ(lhs.loadValue(), rhs.loadValue()));
@@ -2456,7 +2484,7 @@ public:
 
 	// self() returns the this pointer to this Array object.
 	// This function exists because operator&() is overloaded by LValue<T>.
-	inline Array* self() { return this; }
+	inline Array *self() { return this; }
 };
 
 //	RValue<Array<T>> operator++(Array<T> &val, int);   // Post-increment
@@ -2468,8 +2496,8 @@ void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 
 // ValueOf returns a rr::Value* for the given C-type, RValue<T>, LValue<T>
 // or Reference<T>.
-template <typename T>
-inline Value* ValueOf(const T &v)
+template<typename T>
+inline Value *ValueOf(const T &v)
 {
 	return ReactorType<T>::cast(v).loadValue();
 }
@@ -2479,7 +2507,7 @@ void Return();
 template<class T>
 void Return(const T &ret)
 {
-	static_assert(CanBeUsedAsReturn< ReactorTypeT<T> >::value, "Unsupported type for Return()");
+	static_assert(CanBeUsedAsReturn<ReactorTypeT<T>>::value, "Unsupported type for Return()");
 	Nucleus::createRet(ValueOf<T>(ret));
 	// Place any unreachable instructions in an unreferenced block.
 	Nucleus::setInsertBlock(Nucleus::createBasicBlock());
@@ -2513,7 +2541,7 @@ public:
 
 protected:
 	Nucleus *core;
-	std::vector<Type*> arguments;
+	std::vector<Type *> arguments;
 };
 
 template<typename Return>
@@ -2543,12 +2571,12 @@ public:
 
 	// Hide base implementations of operator()
 
-	RoutineType operator()(const char* name, ...)
+	RoutineType operator()(const char *name, ...)
 	{
 		return RoutineType(BaseType::operator()(name));
 	}
 
-	RoutineType operator()(const Config::Edit& cfg, const char* name, ...)
+	RoutineType operator()(const Config::Edit &cfg, const char *name, ...)
 	{
 		return RoutineType(BaseType::operator()(cfg, name));
 	}
@@ -2563,11 +2591,12 @@ RValue<Long> Ticks();
 namespace rr {
 
 template<class T>
-LValue<T>::LValue(int arraySize) : Variable(T::getType(), arraySize)
+LValue<T>::LValue(int arraySize)
+    : Variable(T::getType(), arraySize)
 {
 #ifdef ENABLE_RR_DEBUG_INFO
 	materialize();
-#endif // ENABLE_RR_DEBUG_INFO
+#endif  // ENABLE_RR_DEBUG_INFO
 }
 
 inline void Variable::materialize() const
@@ -2632,7 +2661,8 @@ RValue<Pointer<T>> LValue<T>::operator&()
 }
 
 template<class T>
-Reference<T>::Reference(Value *pointer, int alignment) : alignment(alignment)
+Reference<T>::Reference(Value *pointer, int alignment)
+    : alignment(alignment)
 {
 	address = pointer;
 }
@@ -2674,16 +2704,17 @@ int Reference<T>::getAlignment() const
 
 #ifdef ENABLE_RR_DEBUG_INFO
 template<class T>
-RValue<T>::RValue(const RValue<T> &rvalue) : value(rvalue.value)
+RValue<T>::RValue(const RValue<T> &rvalue)
+    : value(rvalue.value)
 {
 	RR_DEBUG_INFO_EMIT_VAR(value);
 }
-#endif // ENABLE_RR_DEBUG_INFO
+#endif  // ENABLE_RR_DEBUG_INFO
 
 template<class T>
 RValue<T>::RValue(Value *rvalue)
 {
-	assert(Nucleus::createBitCast(rvalue, T::getType()) == rvalue);   // Run-time type should match T, so bitcast is no-op.
+	assert(Nucleus::createBitCast(rvalue, T::getType()) == rvalue);  // Run-time type should match T, so bitcast is no-op.
 
 	value = rvalue;
 	RR_DEBUG_INFO_EMIT_VAR(value);
@@ -2766,7 +2797,7 @@ RValue<Vector4> SwizzleMask4<Vector4, T>::operator=(RValue<typename Scalar<Vecto
 }
 
 template<class Vector4, int T>
-SwizzleMask1<Vector4, T>::operator RValue<typename Scalar<Vector4>::Type>() const   // FIXME: Call a non-template function
+SwizzleMask1<Vector4, T>::operator RValue<typename Scalar<Vector4>::Type>() const  // FIXME: Call a non-template function
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return Extract(*parent, T & 0x3);
@@ -2796,7 +2827,7 @@ RValue<Vector4> SwizzleMask1<Vector4, T>::operator=(RValue<Vector4> rhs)
 }
 
 template<class Vector4, int T>
-RValue<Vector4> SwizzleMask1<Vector4, T>::operator=(RValue<typename Scalar<Vector4>::Type> rhs)   // FIXME: Call a non-template function
+RValue<Vector4> SwizzleMask1<Vector4, T>::operator=(RValue<typename Scalar<Vector4>::Type> rhs)  // FIXME: Call a non-template function
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return *parent = Insert(*parent, rhs, T & 0x3);
@@ -2831,40 +2862,46 @@ RValue<Float> Float::operator=(const SwizzleMask1<Float4, T> &rhs)
 }
 
 template<int T>
-Float4::Float4(const SwizzleMask1<Float4, T> &rhs) : XYZW(this)
+Float4::Float4(const SwizzleMask1<Float4, T> &rhs)
+    : XYZW(this)
 {
 	*this = rhs.operator RValue<Float4>();
 }
 
 template<int T>
-Float4::Float4(const Swizzle4<Float4, T> &rhs) : XYZW(this)
+Float4::Float4(const Swizzle4<Float4, T> &rhs)
+    : XYZW(this)
 {
 	*this = rhs.operator RValue<Float4>();
 }
 
 template<int X, int Y>
-Float4::Float4(const Swizzle2<Float4, X> &x, const Swizzle2<Float4, Y> &y) : XYZW(this)
+Float4::Float4(const Swizzle2<Float4, X> &x, const Swizzle2<Float4, Y> &y)
+    : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	*this = ShuffleLowHigh(*x.parent, *y.parent, (uint16_t(X) & 0xFF00u) | (uint16_t(Y >> 8) & 0x00FFu));
 }
 
 template<int X, int Y>
-Float4::Float4(const SwizzleMask2<Float4, X> &x, const Swizzle2<Float4, Y> &y) : XYZW(this)
+Float4::Float4(const SwizzleMask2<Float4, X> &x, const Swizzle2<Float4, Y> &y)
+    : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	*this = ShuffleLowHigh(*x.parent, *y.parent, (uint16_t(X) & 0xFF00u) | (uint16_t(Y >> 8) & 0x00FFu));
 }
 
 template<int X, int Y>
-Float4::Float4(const Swizzle2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y) : XYZW(this)
+Float4::Float4(const Swizzle2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y)
+    : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	*this = ShuffleLowHigh(*x.parent, *y.parent, (uint16_t(X) & 0xFF00u) | (uint16_t(Y >> 8) & 0x00FFu));
 }
 
 template<int X, int Y>
-Float4::Float4(const SwizzleMask2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y) : XYZW(this)
+Float4::Float4(const SwizzleMask2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y)
+    : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	*this = ShuffleLowHigh(*x.parent, *y.parent, (uint16_t(X) & 0xFF00u) | (uint16_t(Y >> 8) & 0x00FFu));
@@ -2883,42 +2920,49 @@ RValue<Float4> Float4::operator=(const Swizzle4<Float4, T> &rhs)
 }
 
 // Returns a reactor pointer to the fixed-address ptr.
-RValue<Pointer<Byte>> ConstantPointer(void const * ptr);
+RValue<Pointer<Byte>> ConstantPointer(void const *ptr);
 
 // Returns a reactor pointer to an immutable copy of the data of size bytes.
-RValue<Pointer<Byte>> ConstantData(void const * data, size_t size);
+RValue<Pointer<Byte>> ConstantData(void const *data, size_t size);
 
 template<class T>
-Pointer<T>::Pointer(Argument<Pointer<T>> argument) : alignment(1)
+Pointer<T>::Pointer(Argument<Pointer<T>> argument)
+    : alignment(1)
 {
 	LValue<Pointer<T>>::storeValue(argument.value);
 }
 
 template<class T>
-Pointer<T>::Pointer() : alignment(1) {}
+Pointer<T>::Pointer()
+    : alignment(1)
+{}
 
 template<class T>
-Pointer<T>::Pointer(RValue<Pointer<T>> rhs) : alignment(1)
+Pointer<T>::Pointer(RValue<Pointer<T>> rhs)
+    : alignment(1)
 {
 	LValue<Pointer<T>>::storeValue(rhs.value);
 }
 
 template<class T>
-Pointer<T>::Pointer(const Pointer<T> &rhs) : alignment(rhs.alignment)
+Pointer<T>::Pointer(const Pointer<T> &rhs)
+    : alignment(rhs.alignment)
 {
 	Value *value = rhs.loadValue();
 	LValue<Pointer<T>>::storeValue(value);
 }
 
 template<class T>
-Pointer<T>::Pointer(const Reference<Pointer<T>> &rhs) : alignment(rhs.getAlignment())
+Pointer<T>::Pointer(const Reference<Pointer<T>> &rhs)
+    : alignment(rhs.getAlignment())
 {
 	Value *value = rhs.loadValue();
 	LValue<Pointer<T>>::storeValue(value);
 }
 
 template<class T>
-Pointer<T>::Pointer(std::nullptr_t) : alignment(1)
+Pointer<T>::Pointer(std::nullptr_t)
+    : alignment(1)
 {
 	Value *value = Nucleus::createNullPointer(T::getType());
 	LValue<Pointer<T>>::storeValue(value);
@@ -3008,7 +3052,8 @@ Type *Pointer<T>::getType()
 }
 
 template<class T, int S>
-Array<T, S>::Array(int size) : LValue<T>(size)
+Array<T, S>::Array(int size)
+    : LValue<T>(size)
 {
 }
 
@@ -3110,7 +3155,7 @@ Function<Return(Arguments...)>::Function()
 {
 	core = new Nucleus();
 
-	Type *types[] = {Arguments::getType()...};
+	Type *types[] = { Arguments::getType()... };
 	for(Type *type : types)
 	{
 		if(type != Void::getType())
@@ -3204,12 +3249,13 @@ RValue<T> As(const Reference<S> &val)
 // Calls the function pointer fptr with the given arguments, return type
 // and parameter types. Returns the call's return value if the function has
 // a non-void return type.
-Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> paramTys);
+Value *Call(RValue<Pointer<Byte>> fptr, Type *retTy, std::initializer_list<Value *> args, std::initializer_list<Type *> paramTys);
 
-template <typename F>
-class CallHelper {};
+template<typename F>
+class CallHelper
+{};
 
-template<typename Return, typename ... Arguments>
+template<typename Return, typename... Arguments>
 class CallHelper<Return(Arguments...)>
 {
 public:
@@ -3218,74 +3264,77 @@ public:
 	static inline RReturn Call(Return(fptr)(Arguments...), CToReactorT<Arguments>... args)
 	{
 		return RValue<RReturn>(rr::Call(
-			ConstantPointer(reinterpret_cast<void*>(fptr)),
-			RReturn::getType(),
-			{ ValueOf(args) ... },
-			{ CToReactorT<Arguments>::getType() ... }));
+		    ConstantPointer(reinterpret_cast<void *>(fptr)),
+		    RReturn::getType(),
+		    { ValueOf(args)... },
+		    { CToReactorT<Arguments>::getType()... }));
 	}
 
 	static inline RReturn Call(Pointer<Byte> fptr, CToReactorT<Arguments>... args)
 	{
 		return RValue<RReturn>(rr::Call(
-			fptr,
-			RReturn::getType(),
-			{ ValueOf(args) ... },
-			{ CToReactorT<Arguments>::getType() ... }));
+		    fptr,
+		    RReturn::getType(),
+		    { ValueOf(args)... },
+		    { CToReactorT<Arguments>::getType()... }));
 	}
 };
 
-template<typename ... Arguments>
+template<typename... Arguments>
 class CallHelper<void(Arguments...)>
 {
 public:
 	static inline void Call(void(fptr)(Arguments...), CToReactorT<Arguments>... args)
 	{
-		rr::Call(ConstantPointer(reinterpret_cast<void*>(fptr)),
-			Void::getType(),
-			{ ValueOf(args) ... },
-			{ CToReactorT<Arguments>::getType() ... });
+		rr::Call(ConstantPointer(reinterpret_cast<void *>(fptr)),
+		         Void::getType(),
+		         { ValueOf(args)... },
+		         { CToReactorT<Arguments>::getType()... });
 	}
 
 	static inline void Call(Pointer<Byte> fptr, CToReactorT<Arguments>... args)
 	{
 		rr::Call(fptr,
-			Void::getType(),
-			{ ValueOf(args) ... },
-			{ CToReactorT<Arguments>::getType() ... });
+		         Void::getType(),
+		         { ValueOf(args)... },
+		         { CToReactorT<Arguments>::getType()... });
 	}
 };
 
-template <typename T>
-inline ReactorTypeT<T> CastToReactor(const T& v) { return ReactorType<T>::cast(v); }
+template<typename T>
+inline ReactorTypeT<T> CastToReactor(const T &v)
+{
+	return ReactorType<T>::cast(v);
+}
 
 // Calls the static function pointer fptr with the given arguments args.
-template<typename Return, typename ... CArgs, typename ... RArgs>
-inline CToReactorT<Return> Call(Return(fptr)(CArgs...), RArgs&&... args)
+template<typename Return, typename... CArgs, typename... RArgs>
+inline CToReactorT<Return> Call(Return(fptr)(CArgs...), RArgs &&... args)
 {
 	return CallHelper<Return(CArgs...)>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 }
 
 // Calls the static function pointer fptr with the given arguments args.
 // Overload for calling functions with void return type.
-template<typename ... CArgs, typename ... RArgs>
-inline void Call(void(fptr)(CArgs...), RArgs&&... args)
+template<typename... CArgs, typename... RArgs>
+inline void Call(void(fptr)(CArgs...), RArgs &&... args)
 {
 	CallHelper<void(CArgs...)>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 }
 
 // Calls the member function pointer fptr with the given arguments args.
 // object can be a Class*, or a Pointer<Byte>.
-template<typename Return, typename Class, typename C, typename ... CArgs, typename ... RArgs>
-inline CToReactorT<Return> Call(Return(Class::* fptr)(CArgs...), C&& object, RArgs&&... args)
+template<typename Return, typename Class, typename C, typename... CArgs, typename... RArgs>
+inline CToReactorT<Return> Call(Return (Class::*fptr)(CArgs...), C &&object, RArgs &&... args)
 {
-	using Helper = CallHelper<Return(Class*, void*, CArgs...)>;
+	using Helper = CallHelper<Return(Class *, void *, CArgs...)>;
 	using fptrTy = decltype(fptr);
 
 	struct Static
 	{
-		static inline Return Call(Class* object, void* fptrptr, CArgs... args)
+		static inline Return Call(Class *object, void *fptrptr, CArgs... args)
 		{
-			auto fptr = *reinterpret_cast<fptrTy*>(fptrptr);
+			auto fptr = *reinterpret_cast<fptrTy *>(fptrptr);
 			return (object->*fptr)(std::forward<CArgs>(args)...);
 		}
 	};
@@ -3299,17 +3348,17 @@ inline CToReactorT<Return> Call(Return(Class::* fptr)(CArgs...), C&& object, RAr
 // Calls the member function pointer fptr with the given arguments args.
 // Overload for calling functions with void return type.
 // object can be a Class*, or a Pointer<Byte>.
-template<typename Class, typename C, typename ... CArgs, typename ... RArgs>
-inline void Call(void(Class::* fptr)(CArgs...), C&& object, RArgs&&... args)
+template<typename Class, typename C, typename... CArgs, typename... RArgs>
+inline void Call(void (Class::*fptr)(CArgs...), C &&object, RArgs &&... args)
 {
-	using Helper = CallHelper<void(Class*, void*, CArgs...)>;
+	using Helper = CallHelper<void(Class *, void *, CArgs...)>;
 	using fptrTy = decltype(fptr);
 
 	struct Static
 	{
-		static inline void Call(Class* object, void* fptrptr, CArgs... args)
+		static inline void Call(Class *object, void *fptrptr, CArgs... args)
 		{
-			auto fptr = *reinterpret_cast<fptrTy*>(fptrptr);
+			auto fptr = *reinterpret_cast<fptrTy *>(fptrptr);
 			(object->*fptr)(std::forward<CArgs>(args)...);
 		}
 	};
@@ -3322,8 +3371,8 @@ inline void Call(void(Class::* fptr)(CArgs...), C&& object, RArgs&&... args)
 
 // Calls the Reactor function pointer fptr with the signature
 // FUNCTION_SIGNATURE and arguments.
-template<typename FUNCTION_SIGNATURE, typename ... RArgs>
-inline void Call(Pointer<Byte> fptr, RArgs&& ... args)
+template<typename FUNCTION_SIGNATURE, typename... RArgs>
+inline void Call(Pointer<Byte> fptr, RArgs &&... args)
 {
 	CallHelper<FUNCTION_SIGNATURE>::Call(fptr, CastToReactor(std::forward<RArgs>(args))...);
 }
@@ -3335,7 +3384,8 @@ void Breakpoint();
 class ForData
 {
 public:
-	ForData(bool init) : loopOnce(init)
+	ForData(bool init)
+	    : loopOnce(init)
 	{
 	}
 
@@ -3391,7 +3441,8 @@ private:
 class IfElseData
 {
 public:
-	IfElseData(RValue<Bool> cmp) : iteration(0)
+	IfElseData(RValue<Bool> cmp)
+	    : iteration(0)
 	{
 		condition = cmp.value;
 
@@ -3442,39 +3493,48 @@ private:
 	int iteration;
 };
 
-#define For(init, cond, inc) \
-for(ForData for__ = true; for__; for__ = false) \
-for(init; for__.setup() && for__.test(cond); inc, for__.end())
+#define For(init, cond, inc)                        \
+	for(ForData for__ = true; for__; for__ = false) \
+		for(init; for__.setup() && for__.test(cond); inc, for__.end())
 
 #define While(cond) For((void)0, cond, (void)0)
 
-#define Do                                            \
-{                                                     \
-	BasicBlock *body__ = Nucleus::createBasicBlock(); \
-	Nucleus::createBr(body__);                        \
-	Nucleus::setInsertBlock(body__);
+#define Do                                                \
+	{                                                     \
+		BasicBlock *body__ = Nucleus::createBasicBlock(); \
+		Nucleus::createBr(body__);                        \
+		Nucleus::setInsertBlock(body__);
 
 #define Until(cond)                                     \
 	BasicBlock *end__ = Nucleus::createBasicBlock();    \
 	Nucleus::createCondBr((cond).value, end__, body__); \
 	Nucleus::setInsertBlock(end__);                     \
-} do {} while(false) // Require a semi-colon at the end of the Until()
+	}                                                   \
+	do                                                  \
+	{                                                   \
+	} while(false)  // Require a semi-colon at the end of the Until()
 
-enum {IF_BLOCK__, ELSE_CLAUSE__, ELSE_BLOCK__, IFELSE_NUM__};
+enum
+{
+	IF_BLOCK__,
+	ELSE_CLAUSE__,
+	ELSE_BLOCK__,
+	IFELSE_NUM__
+};
 
-#define If(cond)                                                    \
-for(IfElseData ifElse__(cond); ifElse__ < IFELSE_NUM__; ++ifElse__) \
-if(ifElse__ == IF_BLOCK__)
+#define If(cond)                                                        \
+	for(IfElseData ifElse__(cond); ifElse__ < IFELSE_NUM__; ++ifElse__) \
+		if(ifElse__ == IF_BLOCK__)
 
-#define Else                       \
-else if(ifElse__ == ELSE_CLAUSE__) \
-{                                  \
-	ifElse__.elseClause();         \
-}                                  \
-else  // ELSE_BLOCK__
+#define Else                           \
+	else if(ifElse__ == ELSE_CLAUSE__) \
+	{                                  \
+		ifElse__.elseClause();         \
+	}                                  \
+	else  // ELSE_BLOCK__
 
 }  // namespace rr
 
 #include "Traits.inl"
 
-#endif   // rr_Reactor_hpp
+#endif  // rr_Reactor_hpp

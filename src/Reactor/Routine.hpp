@@ -38,12 +38,12 @@ class RoutineT<Return(Arguments...)>
 public:
 	RoutineT() = default;
 
-	explicit RoutineT(const std::shared_ptr<Routine>& routine)
-		: routine(routine)
+	explicit RoutineT(const std::shared_ptr<Routine> &routine)
+	    : routine(routine)
 	{
 		if(routine)
 		{
-			callable = reinterpret_cast<CallableType>(const_cast<void*>(routine->getEntry(0)));
+			callable = reinterpret_cast<CallableType>(const_cast<void *>(routine->getEntry(0)));
 		}
 	}
 
@@ -52,23 +52,23 @@ public:
 		return callable != nullptr;
 	}
 
-	template <typename... Args>
-	Return operator()(Args&&... args) const
+	template<typename... Args>
+	Return operator()(Args &&... args) const
 	{
 		return callable(std::forward<Args>(args)...);
 	}
 
-	const void* getEntry() const
+	const void *getEntry() const
 	{
-		return reinterpret_cast<void*>(callable);
+		return reinterpret_cast<void *>(callable);
 	}
 
 private:
 	std::shared_ptr<Routine> routine;
-	using CallableType = Return(*)(Arguments...);
+	using CallableType = Return (*)(Arguments...);
 	CallableType callable = nullptr;
 };
 
 }  // namespace rr
 
-#endif   // rr_Routine_hpp
+#endif  // rr_Routine_hpp

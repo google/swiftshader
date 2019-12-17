@@ -15,16 +15,16 @@
 #include "CPUID.hpp"
 
 #if defined(_WIN32)
-	#ifndef WIN32_LEAN_AND_MEAN
-		#define WIN32_LEAN_AND_MEAN
-	#endif
-	#include <windows.h>
-	#include <intrin.h>
-	#include <float.h>
+#	ifndef WIN32_LEAN_AND_MEAN
+#		define WIN32_LEAN_AND_MEAN
+#	endif
+#	include <windows.h>
+#	include <intrin.h>
+#	include <float.h>
 #else
-	#include <unistd.h>
-	#include <sched.h>
-	#include <sys/types.h>
+#	include <unistd.h>
+#	include <sched.h>
+#	include <sys/types.h>
 #endif
 
 namespace rr {
@@ -162,18 +162,20 @@ void CPUID::setEnableSSE4_1(bool enable)
 
 static void cpuid(int registers[4], int info)
 {
-	#if defined(__i386__) || defined(__x86_64__)
-		#if defined(_WIN32)
-			__cpuid(registers, info);
-		#else
-			__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
-		#endif
-	#else
-		registers[0] = 0;
-		registers[1] = 0;
-		registers[2] = 0;
-		registers[3] = 0;
-	#endif
+#if defined(__i386__) || defined(__x86_64__)
+#	if defined(_WIN32)
+	__cpuid(registers, info);
+#	else
+	__asm volatile("cpuid"
+	               : "=a"(registers[0]), "=b"(registers[1]), "=c"(registers[2]), "=d"(registers[3])
+	               : "a"(info));
+#	endif
+#else
+	registers[0] = 0;
+	registers[1] = 0;
+	registers[2] = 0;
+	registers[3] = 0;
+#endif
 }
 
 bool CPUID::detectMMX()

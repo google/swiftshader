@@ -19,10 +19,10 @@
 
 #ifdef ENABLE_RR_DEBUG_INFO
 
-#include <unordered_set>
-#include <unordered_map>
-#include <vector>
-#include <memory>
+#	include <memory>
+#	include <unordered_map>
+#	include <unordered_set>
+#	include <vector>
 
 // Forward declarations
 namespace llvm {
@@ -46,12 +46,12 @@ class Module;
 class Type;
 class Value;
 
-namespace object
-{
-	class ObjectFile;
+namespace object {
+class ObjectFile;
 }
 
-template <typename T, typename Inserter> class IRBuilder;
+template<typename T, typename Inserter>
+class IRBuilder;
 
 }  // namespace llvm
 
@@ -68,9 +68,9 @@ public:
 	using IRBuilder = llvm::IRBuilder<llvm::ConstantFolder, llvm::IRBuilderDefaultInserter>;
 
 	DebugInfo(IRBuilder *builder,
-			llvm::LLVMContext *context,
-			llvm::Module *module,
-			llvm::Function *function);
+	          llvm::LLVMContext *context,
+	          llvm::Module *module,
+	          llvm::Function *function);
 
 	~DebugInfo();
 
@@ -116,15 +116,15 @@ private:
 		std::string name;
 		std::string file;
 
-		bool operator == (const FunctionLocation &rhs) const { return name == rhs.name && file == rhs.file; }
-		bool operator != (const FunctionLocation &rhs) const { return !(*this == rhs); }
+		bool operator==(const FunctionLocation &rhs) const { return name == rhs.name && file == rhs.file; }
+		bool operator!=(const FunctionLocation &rhs) const { return !(*this == rhs); }
 
 		struct Hash
 		{
 			std::size_t operator()(const FunctionLocation &l) const noexcept
 			{
 				return std::hash<std::string>()(l.file) * 31 +
-						std::hash<std::string>()(l.name);
+				       std::hash<std::string>()(l.name);
 			}
 		};
 	};
@@ -134,15 +134,15 @@ private:
 		FunctionLocation function;
 		unsigned int line = 0;
 
-		bool operator == (const Location &rhs) const { return function == rhs.function && line == rhs.line; }
-		bool operator != (const Location &rhs) const { return !(*this == rhs); }
+		bool operator==(const Location &rhs) const { return function == rhs.function && line == rhs.line; }
+		bool operator!=(const Location &rhs) const { return !(*this == rhs); }
 
 		struct Hash
 		{
 			std::size_t operator()(const Location &l) const noexcept
 			{
 				return FunctionLocation::Hash()(l.function) * 31 +
-						std::hash<unsigned int>()(l.line);
+				       std::hash<unsigned int>()(l.line);
 			}
 		};
 	};
@@ -181,14 +181,14 @@ private:
 	// frames will be returned.
 	Backtrace getCallerBacktrace(size_t limit = 0) const;
 
-	llvm::DILocation* getLocation(const Backtrace &backtrace, size_t i);
+	llvm::DILocation *getLocation(const Backtrace &backtrace, size_t i);
 
-	llvm::DIType *getOrCreateType(llvm::Type* type);
-	llvm::DIFile *getOrCreateFile(const char* path);
-	LineTokens const *getOrParseFileTokens(const char* path);
+	llvm::DIType *getOrCreateType(llvm::Type *type);
+	llvm::DIFile *getOrCreateFile(const char *path);
+	LineTokens const *getOrParseFileTokens(const char *path);
 
 	// Synchronizes diScope with the current backtrace.
-	void syncScope(Backtrace const& backtrace);
+	void syncScope(Backtrace const &backtrace);
 
 	IRBuilder *builder;
 	llvm::LLVMContext *context;
@@ -200,14 +200,14 @@ private:
 	llvm::DISubprogram *diSubprogram;
 	llvm::DILocation *diRootLocation;
 	std::vector<Scope> diScope;
-	std::unordered_map<std::string, llvm::DIFile*> diFiles;
-	std::unordered_map<llvm::Type*, llvm::DIType*> diTypes;
+	std::unordered_map<std::string, llvm::DIFile *> diFiles;
+	std::unordered_map<llvm::Type *, llvm::DIType *> diTypes;
 	std::unordered_map<std::string, std::unique_ptr<LineTokens>> fileTokens;
-	std::vector<void const*> pushed;
+	std::vector<void const *> pushed;
 };
 
 }  // namespace rr
 
-#endif // ENABLE_RR_DEBUG_INFO
+#endif  // ENABLE_RR_DEBUG_INFO
 
-#endif // rr_LLVMReactorDebugInfo_hpp
+#endif  // rr_LLVMReactorDebugInfo_hpp

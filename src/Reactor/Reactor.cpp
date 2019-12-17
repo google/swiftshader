@@ -20,19 +20,21 @@
 // Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
 // variables have a stack location obtained throuch alloca().
 #ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
-#define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
+#	define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
 #endif
 
 namespace {
 
 // Introduced in C++20.
-template <class ForwardIterator, class UnaryPredicate>
+template<class ForwardIterator, class UnaryPredicate>
 ForwardIterator remove_if(ForwardIterator first, ForwardIterator last,
-							UnaryPredicate pred)
+                          UnaryPredicate pred)
 {
 	ForwardIterator result = first;
-	while(first!=last) {
-		if(!pred(*first)) {
+	while(first != last)
+	{
+		if(!pred(*first))
+		{
 			*result = std::move(*first);
 			++result;
 		}
@@ -54,39 +56,41 @@ Config Config::Edit::apply(const Config &cfg) const
 	auto level = optLevelChanged ? optLevel : cfg.optimization.getLevel();
 	auto passes = cfg.optimization.getPasses();
 	apply(optPassEdits, passes);
-	return Config{ Optimization{level, passes} };
+	return Config{ Optimization{ level, passes } };
 }
 
-template <typename T>
-void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> & edits, std::vector<T>& list) const
+template<typename T>
+void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> &edits, std::vector<T> &list) const
 {
-	for(auto & edit : edits)
+	for(auto &edit : edits)
 	{
 		switch(edit.first)
 		{
-		case ListEdit::Add:
-			list.push_back(edit.second);
-			break;
-		case ListEdit::Remove:
-			::remove_if(list.begin(), list.end(), [&](T item) { return item == edit.second; });
-			break;
-		case ListEdit::Clear:
-			list.clear();
-			break;
+			case ListEdit::Add:
+				list.push_back(edit.second);
+				break;
+			case ListEdit::Remove:
+				::remove_if(list.begin(), list.end(), [&](T item) { return item == edit.second; });
+				break;
+			case ListEdit::Clear:
+				list.clear();
+				break;
 		}
 	}
 }
 
 // Set of variables that do not have a stack location yet.
-std::unordered_set<Variable*> Variable::unmaterializedVariables;
+std::unordered_set<Variable *> Variable::unmaterializedVariables;
 
-Variable::Variable(Type *type, int arraySize) : arraySize(arraySize), type(type)
+Variable::Variable(Type *type, int arraySize)
+    : arraySize(arraySize)
+    , type(type)
 {
-	#if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
-		materialize();
-	#else
-		unmaterializedVariables.emplace(this);
-	#endif
+#if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
+	materialize();
+#else
+	unmaterializedVariables.emplace(this);
+#endif
 }
 
 Variable::~Variable()
@@ -126,12 +130,11 @@ void Variable::killUnmaterialized()
 //
 static Value *createBlend4(Value *lhs, Value *rhs, uint16_t select)
 {
-	int swizzle[4] =
-	{
+	int swizzle[4] = {
 		(select >> 12) & 0x07,
-		(select >> 8)  & 0x07,
-		(select >> 4)  & 0x07,
-		(select >> 0)  & 0x07,
+		(select >> 8) & 0x07,
+		(select >> 4) & 0x07,
+		(select >> 0) & 0x07,
 	};
 
 	return Nucleus::createShuffleVector(lhs, rhs, swizzle);
@@ -153,12 +156,11 @@ static Value *createBlend4(Value *lhs, Value *rhs, uint16_t select)
 //
 static Value *createSwizzle4(Value *val, uint16_t select)
 {
-	int swizzle[4] =
-	{
+	int swizzle[4] = {
 		(select >> 12) & 0x03,
-		(select >> 8)  & 0x03,
-		(select >> 4)  & 0x03,
-		(select >> 0)  & 0x03,
+		(select >> 8) & 0x03,
+		(select >> 4) & 0x03,
+		(select >> 0) & 0x03,
 	};
 
 	return Nucleus::createShuffleVector(val, val, swizzle);
@@ -166,15 +168,14 @@ static Value *createSwizzle4(Value *val, uint16_t select)
 
 static Value *createMask4(Value *lhs, Value *rhs, uint16_t select)
 {
-	bool mask[4] = {false, false, false, false};
+	bool mask[4] = { false, false, false, false };
 
 	mask[(select >> 12) & 0x03] = true;
-	mask[(select >> 8)  & 0x03] = true;
-	mask[(select >> 4)  & 0x03] = true;
-	mask[(select >> 0)  & 0x03] = true;
+	mask[(select >> 8) & 0x03] = true;
+	mask[(select >> 4) & 0x03] = true;
+	mask[(select >> 0) & 0x03] = true;
 
-	int swizzle[4] =
-	{
+	int swizzle[4] = {
 		mask[0] ? 4 : 0,
 		mask[1] ? 5 : 1,
 		mask[2] ? 6 : 2,
@@ -450,7 +451,7 @@ RValue<Byte> operator~(RValue<Byte> val)
 	return RValue<Byte>(Nucleus::createNot(val.value));
 }
 
-RValue<Byte> operator++(Byte &val, int)   // Post-increment
+RValue<Byte> operator++(Byte &val, int)  // Post-increment
 {
 	RValue<Byte> res = val;
 
@@ -460,7 +461,7 @@ RValue<Byte> operator++(Byte &val, int)   // Post-increment
 	return res;
 }
 
-const Byte &operator++(Byte &val)   // Pre-increment
+const Byte &operator++(Byte &val)  // Pre-increment
 {
 	Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantByte((unsigned char)1));
 	val.storeValue(inc);
@@ -468,7 +469,7 @@ const Byte &operator++(Byte &val)   // Pre-increment
 	return val;
 }
 
-RValue<Byte> operator--(Byte &val, int)   // Post-decrement
+RValue<Byte> operator--(Byte &val, int)  // Post-decrement
 {
 	RValue<Byte> res = val;
 
@@ -478,7 +479,7 @@ RValue<Byte> operator--(Byte &val, int)   // Post-decrement
 	return res;
 }
 
-const Byte &operator--(Byte &val)   // Pre-decrement
+const Byte &operator--(Byte &val)  // Pre-decrement
 {
 	Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantByte((unsigned char)1));
 	val.storeValue(inc);
@@ -695,7 +696,7 @@ RValue<SByte> operator~(RValue<SByte> val)
 	return RValue<SByte>(Nucleus::createNot(val.value));
 }
 
-RValue<SByte> operator++(SByte &val, int)   // Post-increment
+RValue<SByte> operator++(SByte &val, int)  // Post-increment
 {
 	RValue<SByte> res = val;
 
@@ -705,7 +706,7 @@ RValue<SByte> operator++(SByte &val, int)   // Post-increment
 	return res;
 }
 
-const SByte &operator++(SByte &val)   // Pre-increment
+const SByte &operator++(SByte &val)  // Pre-increment
 {
 	Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantByte((signed char)1));
 	val.storeValue(inc);
@@ -713,7 +714,7 @@ const SByte &operator++(SByte &val)   // Pre-increment
 	return val;
 }
 
-RValue<SByte> operator--(SByte &val, int)   // Post-decrement
+RValue<SByte> operator--(SByte &val, int)  // Post-decrement
 {
 	RValue<SByte> res = val;
 
@@ -723,7 +724,7 @@ RValue<SByte> operator--(SByte &val, int)   // Post-decrement
 	return res;
 }
 
-const SByte &operator--(SByte &val)   // Pre-decrement
+const SByte &operator--(SByte &val)  // Pre-decrement
 {
 	Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantByte((signed char)1));
 	val.storeValue(inc);
@@ -933,7 +934,7 @@ RValue<Short> operator~(RValue<Short> val)
 	return RValue<Short>(Nucleus::createNot(val.value));
 }
 
-RValue<Short> operator++(Short &val, int)   // Post-increment
+RValue<Short> operator++(Short &val, int)  // Post-increment
 {
 	RValue<Short> res = val;
 
@@ -943,7 +944,7 @@ RValue<Short> operator++(Short &val, int)   // Post-increment
 	return res;
 }
 
-const Short &operator++(Short &val)   // Pre-increment
+const Short &operator++(Short &val)  // Pre-increment
 {
 	Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantShort((short)1));
 	val.storeValue(inc);
@@ -951,7 +952,7 @@ const Short &operator++(Short &val)   // Pre-increment
 	return val;
 }
 
-RValue<Short> operator--(Short &val, int)   // Post-decrement
+RValue<Short> operator--(Short &val, int)  // Post-decrement
 {
 	RValue<Short> res = val;
 
@@ -961,7 +962,7 @@ RValue<Short> operator--(Short &val, int)   // Post-decrement
 	return res;
 }
 
-const Short &operator--(Short &val)   // Pre-decrement
+const Short &operator--(Short &val)  // Pre-decrement
 {
 	Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantShort((short)1));
 	val.storeValue(inc);
@@ -1178,7 +1179,7 @@ RValue<UShort> operator~(RValue<UShort> val)
 	return RValue<UShort>(Nucleus::createNot(val.value));
 }
 
-RValue<UShort> operator++(UShort &val, int)   // Post-increment
+RValue<UShort> operator++(UShort &val, int)  // Post-increment
 {
 	RValue<UShort> res = val;
 
@@ -1188,7 +1189,7 @@ RValue<UShort> operator++(UShort &val, int)   // Post-increment
 	return res;
 }
 
-const UShort &operator++(UShort &val)   // Pre-increment
+const UShort &operator++(UShort &val)  // Pre-increment
 {
 	Value *inc = Nucleus::createAdd(val.loadValue(), Nucleus::createConstantShort((unsigned short)1));
 	val.storeValue(inc);
@@ -1196,7 +1197,7 @@ const UShort &operator++(UShort &val)   // Pre-increment
 	return val;
 }
 
-RValue<UShort> operator--(UShort &val, int)   // Post-decrement
+RValue<UShort> operator--(UShort &val, int)  // Post-decrement
 {
 	RValue<UShort> res = val;
 
@@ -1206,7 +1207,7 @@ RValue<UShort> operator--(UShort &val, int)   // Post-decrement
 	return res;
 }
 
-const UShort &operator--(UShort &val)   // Pre-decrement
+const UShort &operator--(UShort &val)  // Pre-decrement
 {
 	Value *inc = Nucleus::createSub(val.loadValue(), Nucleus::createConstantShort((unsigned short)1));
 	val.storeValue(inc);
@@ -1257,7 +1258,7 @@ Byte4::Byte4(const Reference<Byte4> &rhs)
 
 Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 {
-	int64_t constantVector[8] = {x0, x1, x2, x3, x4, x5, x6, x7};
+	int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -1418,7 +1419,7 @@ RValue<Byte8> operator~(RValue<Byte8> val)
 
 RValue<Short4> Unpack(RValue<Byte4> x)
 {
-	int shuffle[16] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};   // Real type is v16i8
+	int shuffle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };  // Real type is v16i8
 	return As<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
 }
 
@@ -1429,20 +1430,20 @@ RValue<Short4> Unpack(RValue<Byte4> x, RValue<Byte4> y)
 
 RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y)
 {
-	int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8
+	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	return As<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y)
 {
-	int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8
+	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	return As<Short4>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
 
 SByte8::SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 {
-	int64_t constantVector[8] = {x0, x1, x2, x3, x4, x5, x6, x7};
+	int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
 	Value *vector = Nucleus::createConstantVector(constantVector, getType());
 
 	storeValue(Nucleus::createBitCast(vector, getType()));
@@ -1605,13 +1606,13 @@ RValue<SByte8> operator~(RValue<SByte8> val)
 
 RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y)
 {
-	int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8
+	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	return As<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y)
 {
-	int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8
+	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
 	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	return As<Short4>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
@@ -1682,13 +1683,13 @@ Short4::Short4(RValue<Int> cast)
 
 Short4::Short4(short xyzw)
 {
-	int64_t constantVector[4] = {xyzw, xyzw, xyzw, xyzw};
+	int64_t constantVector[4] = { xyzw, xyzw, xyzw, xyzw };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
 Short4::Short4(short x, short y, short z, short w)
 {
-	int64_t constantVector[4] = {x, y, z, w};
+	int64_t constantVector[4] = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -1883,13 +1884,13 @@ RValue<Short4> RoundShort4(RValue<Float4> cast)
 
 RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y)
 {
-	int shuffle[8] = {0, 8, 1, 9, 2, 10, 3, 11};   // Real type is v8i16
+	int shuffle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
 	return As<Int2>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 }
 
 RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y)
 {
-	int shuffle[8] = {0, 8, 1, 9, 2, 10, 3, 11};   // Real type is v8i16
+	int shuffle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
 	auto lowHigh = RValue<Short8>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	return As<Int2>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
@@ -1897,16 +1898,15 @@ RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y)
 RValue<Short4> Swizzle(RValue<Short4> x, uint16_t select)
 {
 	// Real type is v8i16
-	int shuffle[8] =
-	{
+	int shuffle[8] = {
 		(select >> 12) & 0x03,
-		(select >>  8) & 0x03,
-		(select >>  4) & 0x03,
-		(select >>  0) & 0x03,
+		(select >> 8) & 0x03,
+		(select >> 4) & 0x03,
+		(select >> 0) & 0x03,
 		(select >> 12) & 0x03,
-		(select >>  8) & 0x03,
-		(select >>  4) & 0x03,
-		(select >>  0) & 0x03,
+		(select >> 8) & 0x03,
+		(select >> 4) & 0x03,
+		(select >> 0) & 0x03,
 	};
 
 	return As<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
@@ -1929,13 +1929,13 @@ UShort4::UShort4(RValue<Int4> cast)
 
 UShort4::UShort4(unsigned short xyzw)
 {
-	int64_t constantVector[4] = {xyzw, xyzw, xyzw, xyzw};
+	int64_t constantVector[4] = { xyzw, xyzw, xyzw, xyzw };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
 UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 {
-	int64_t constantVector[4] = {x, y, z, w};
+	int64_t constantVector[4] = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -2066,13 +2066,13 @@ RValue<UShort4> operator~(RValue<UShort4> val)
 
 Short8::Short8(short c)
 {
-	int64_t constantVector[8] = {c, c, c, c, c, c, c, c};
+	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
 Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 {
-	int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
+	int64_t constantVector[8] = { c0, c1, c2, c3, c4, c5, c6, c7 };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -2089,7 +2089,7 @@ Short8::Short8(const Reference<Short8> &rhs)
 
 Short8::Short8(RValue<Short4> lo, RValue<Short4> hi)
 {
-	int shuffle[8] = {0, 1, 2, 3, 8, 9, 10, 11};   // Real type is v8i16
+	int shuffle[8] = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
 	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
 
 	storeValue(packed);
@@ -2137,13 +2137,13 @@ RValue<Int4> Abs(RValue<Int4> x)
 
 UShort8::UShort8(unsigned short c)
 {
-	int64_t constantVector[8] = {c, c, c, c, c, c, c, c};
+	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
 UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)
 {
-	int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
+	int64_t constantVector[8] = { c0, c1, c2, c3, c4, c5, c6, c7 };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -2160,7 +2160,7 @@ UShort8::UShort8(const Reference<UShort8> &rhs)
 
 UShort8::UShort8(RValue<UShort4> lo, RValue<UShort4> hi)
 {
-	int shuffle[8] = {0, 1, 2, 3, 8, 9, 10, 11};   // Real type is v8i16
+	int shuffle[8] = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
 	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
 
 	storeValue(packed);
@@ -2593,62 +2593,62 @@ RValue<Long> operator-=(Long &lhs, RValue<Long> rhs)
 	return lhs = lhs - rhs;
 }
 
-RValue<Long> AddAtomic(RValue<Pointer<Long> > x, RValue<Long> y)
+RValue<Long> AddAtomic(RValue<Pointer<Long>> x, RValue<Long> y)
 {
 	return RValue<Long>(Nucleus::createAtomicAdd(x.value, y.value));
 }
 
-RValue<UInt> AddAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> AddAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicAdd(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> SubAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> SubAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicSub(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> AndAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> AndAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicAnd(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> OrAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> OrAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicOr(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> XorAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> XorAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicXor(x.value, y.value, memoryOrder));
 }
 
-RValue<Int> MinAtomic(RValue<Pointer<Int> > x, RValue<Int> y, std::memory_order memoryOrder)
+RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
 {
 	return RValue<Int>(Nucleus::createAtomicMin(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> MinAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicUMin(x.value, y.value, memoryOrder));
 }
 
-RValue<Int> MaxAtomic(RValue<Pointer<Int> > x, RValue<Int> y, std::memory_order memoryOrder)
+RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
 {
 	return RValue<Int>(Nucleus::createAtomicMax(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> MaxAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicUMax(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> ExchangeAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+RValue<UInt> ExchangeAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicExchange(x.value, y.value, memoryOrder));
 }
 
-RValue<UInt> CompareExchangeAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, RValue<UInt> compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
+RValue<UInt> CompareExchangeAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, RValue<UInt> compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
 {
 	return RValue<UInt>(Nucleus::createAtomicCompareExchange(x.value, y.value, compare.value, memoryOrderEqual, memoryOrderUnequal));
 }
@@ -2934,7 +2934,7 @@ Int2::Int2(RValue<Int4> cast)
 
 Int2::Int2(int x, int y)
 {
-	int64_t constantVector[2] = {x, y};
+	int64_t constantVector[2] = { x, y };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -2957,7 +2957,7 @@ Int2::Int2(const Reference<Int2> &rhs)
 
 Int2::Int2(RValue<Int> lo, RValue<Int> hi)
 {
-	int shuffle[4] = {0, 4, 1, 5};
+	int shuffle[4] = { 0, 4, 1, 5 };
 	Value *packed = Nucleus::createShuffleVector(Int4(lo).loadValue(), Int4(hi).loadValue(), shuffle);
 
 	storeValue(Nucleus::createBitCast(packed, Int2::getType()));
@@ -3093,13 +3093,13 @@ RValue<Int2> operator~(RValue<Int2> val)
 
 RValue<Short4> UnpackLow(RValue<Int2> x, RValue<Int2> y)
 {
-	int shuffle[4] = {0, 4, 1, 5};   // Real type is v4i32
+	int shuffle[4] = { 0, 4, 1, 5 };  // Real type is v4i32
 	return As<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 {
-	int shuffle[4] = {0, 4, 1, 5};   // Real type is v4i32
+	int shuffle[4] = { 0, 4, 1, 5 };  // Real type is v4i32
 	auto lowHigh = RValue<Int4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	return As<Short4>(Swizzle(lowHigh, 0x2323));
 }
@@ -3116,7 +3116,7 @@ RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
 
 UInt2::UInt2(unsigned int x, unsigned int y)
 {
-	int64_t constantVector[2] = {x, y};
+	int64_t constantVector[2] = { x, y };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -3275,91 +3275,106 @@ RValue<UInt2> Insert(RValue<UInt2> val, RValue<UInt> element, int i)
 	return RValue<UInt2>(Nucleus::createInsertElement(val.value, element.value, i));
 }
 
-Int4::Int4() : XYZW(this)
+Int4::Int4()
+    : XYZW(this)
 {
 }
 
-Int4::Int4(RValue<Float4> cast) : XYZW(this)
+Int4::Int4(RValue<Float4> cast)
+    : XYZW(this)
 {
 	Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::getType());
 
 	storeValue(xyzw);
 }
 
-Int4::Int4(int xyzw) : XYZW(this)
+Int4::Int4(int xyzw)
+    : XYZW(this)
 {
 	constant(xyzw, xyzw, xyzw, xyzw);
 }
 
-Int4::Int4(int x, int yzw) : XYZW(this)
+Int4::Int4(int x, int yzw)
+    : XYZW(this)
 {
 	constant(x, yzw, yzw, yzw);
 }
 
-Int4::Int4(int x, int y, int zw) : XYZW(this)
+Int4::Int4(int x, int y, int zw)
+    : XYZW(this)
 {
 	constant(x, y, zw, zw);
 }
 
-Int4::Int4(int x, int y, int z, int w) : XYZW(this)
+Int4::Int4(int x, int y, int z, int w)
+    : XYZW(this)
 {
 	constant(x, y, z, w);
 }
 
 void Int4::constant(int x, int y, int z, int w)
 {
-	int64_t constantVector[4] = {x, y, z, w};
+	int64_t constantVector[4] = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
-Int4::Int4(RValue<Int4> rhs) : XYZW(this)
+Int4::Int4(RValue<Int4> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value);
 }
 
-Int4::Int4(const Int4 &rhs) : XYZW(this)
+Int4::Int4(const Int4 &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-Int4::Int4(const Reference<Int4> &rhs) : XYZW(this)
+Int4::Int4(const Reference<Int4> &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-Int4::Int4(RValue<UInt4> rhs) : XYZW(this)
+Int4::Int4(RValue<UInt4> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value);
 }
 
-Int4::Int4(const UInt4 &rhs) : XYZW(this)
+Int4::Int4(const UInt4 &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-Int4::Int4(const Reference<UInt4> &rhs) : XYZW(this)
+Int4::Int4(const Reference<UInt4> &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-Int4::Int4(RValue<Int2> lo, RValue<Int2> hi) : XYZW(this)
+Int4::Int4(RValue<Int2> lo, RValue<Int2> hi)
+    : XYZW(this)
 {
-	int shuffle[4] = {0, 1, 4, 5};   // Real type is v4i32
+	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
 	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
 
 	storeValue(packed);
 }
 
-Int4::Int4(const Int &rhs) : XYZW(this)
+Int4::Int4(const Int &rhs)
+    : XYZW(this)
 {
 	*this = RValue<Int>(rhs.loadValue());
 }
 
-Int4::Int4(const Reference<Int> &rhs) : XYZW(this)
+Int4::Int4(const Reference<Int> &rhs)
+    : XYZW(this)
 {
 	*this = RValue<Int>(rhs.loadValue());
 }
@@ -3522,84 +3537,98 @@ RValue<Int4> Shuffle(RValue<Int4> x, RValue<Int4> y, unsigned short select)
 	return RValue<Int4>(createBlend4(x.value, y.value, select));
 }
 
-UInt4::UInt4() : XYZW(this)
+UInt4::UInt4()
+    : XYZW(this)
 {
 }
 
-UInt4::UInt4(int xyzw) : XYZW(this)
+UInt4::UInt4(int xyzw)
+    : XYZW(this)
 {
 	constant(xyzw, xyzw, xyzw, xyzw);
 }
 
-UInt4::UInt4(int x, int yzw) : XYZW(this)
+UInt4::UInt4(int x, int yzw)
+    : XYZW(this)
 {
 	constant(x, yzw, yzw, yzw);
 }
 
-UInt4::UInt4(int x, int y, int zw) : XYZW(this)
+UInt4::UInt4(int x, int y, int zw)
+    : XYZW(this)
 {
 	constant(x, y, zw, zw);
 }
 
-UInt4::UInt4(int x, int y, int z, int w) : XYZW(this)
+UInt4::UInt4(int x, int y, int z, int w)
+    : XYZW(this)
 {
 	constant(x, y, z, w);
 }
 
 void UInt4::constant(int x, int y, int z, int w)
 {
-	int64_t constantVector[4] = {x, y, z, w};
+	int64_t constantVector[4] = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
-UInt4::UInt4(RValue<UInt4> rhs) : XYZW(this)
+UInt4::UInt4(RValue<UInt4> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value);
 }
 
-UInt4::UInt4(const UInt4 &rhs) : XYZW(this)
+UInt4::UInt4(const UInt4 &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-UInt4::UInt4(const Reference<UInt4> &rhs) : XYZW(this)
+UInt4::UInt4(const Reference<UInt4> &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-UInt4::UInt4(RValue<Int4> rhs) : XYZW(this)
+UInt4::UInt4(RValue<Int4> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value);
 }
 
-UInt4::UInt4(const Int4 &rhs) : XYZW(this)
+UInt4::UInt4(const Int4 &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-UInt4::UInt4(const Reference<Int4> &rhs) : XYZW(this)
+UInt4::UInt4(const Reference<Int4> &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi) : XYZW(this)
+UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi)
+    : XYZW(this)
 {
-	int shuffle[4] = {0, 1, 4, 5};   // Real type is v4i32
+	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
 	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
 
 	storeValue(packed);
 }
 
-UInt4::UInt4(const UInt &rhs) : XYZW(this)
+UInt4::UInt4(const UInt &rhs)
+    : XYZW(this)
 {
 	*this = RValue<UInt>(rhs.loadValue());
 }
 
-UInt4::UInt4(const Reference<UInt> &rhs) : XYZW(this)
+UInt4::UInt4(const Reference<UInt> &rhs)
+    : XYZW(this)
 {
 	*this = RValue<UInt>(rhs.loadValue());
 }
@@ -3766,15 +3795,15 @@ Half::Half(RValue<Float> cast)
 {
 	UInt fp32i = As<UInt>(cast);
 	UInt abs = fp32i & 0x7FFFFFFF;
-	UShort fp16i((fp32i & 0x80000000) >> 16); // sign
+	UShort fp16i((fp32i & 0x80000000) >> 16);  // sign
 
-	If(abs > 0x47FFEFFF) // Infinity
+	If(abs > 0x47FFEFFF)  // Infinity
 	{
 		fp16i |= UShort(0x7FFF);
 	}
 	Else
 	{
-		If(abs < 0x38800000) // Denormal
+		If(abs < 0x38800000)  // Denormal
 		{
 			Int mantissa = (abs & 0x007FFFFF) | 0x00800000;
 			Int e = 113 - (abs >> 23);
@@ -4004,7 +4033,8 @@ Float2::Float2(RValue<Float4> cast)
 	storeValue(Nucleus::createBitCast(cast.value, getType()));
 }
 
-Float4::Float4(RValue<Byte4> cast) : XYZW(this)
+Float4::Float4(RValue<Byte4> cast)
+    : XYZW(this)
 {
 	Value *a = Int4(cast).loadValue();
 	Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
@@ -4012,7 +4042,8 @@ Float4::Float4(RValue<Byte4> cast) : XYZW(this)
 	storeValue(xyzw);
 }
 
-Float4::Float4(RValue<SByte4> cast) : XYZW(this)
+Float4::Float4(RValue<SByte4> cast)
+    : XYZW(this)
 {
 	Value *a = Int4(cast).loadValue();
 	Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
@@ -4020,26 +4051,30 @@ Float4::Float4(RValue<SByte4> cast) : XYZW(this)
 	storeValue(xyzw);
 }
 
-Float4::Float4(RValue<Short4> cast) : XYZW(this)
+Float4::Float4(RValue<Short4> cast)
+    : XYZW(this)
 {
 	Int4 c(cast);
 	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 }
 
-Float4::Float4(RValue<UShort4> cast) : XYZW(this)
+Float4::Float4(RValue<UShort4> cast)
+    : XYZW(this)
 {
 	Int4 c(cast);
 	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 }
 
-Float4::Float4(RValue<Int4> cast) : XYZW(this)
+Float4::Float4(RValue<Int4> cast)
+    : XYZW(this)
 {
 	Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());
 
 	storeValue(xyzw);
 }
 
-Float4::Float4(RValue<UInt4> cast) : XYZW(this)
+Float4::Float4(RValue<UInt4> cast)
+    : XYZW(this)
 {
 	RValue<Float4> result = Float4(Int4(cast & UInt4(0x7FFFFFFF))) +
 	                        As<Float4>((As<Int4>(cast) >> 31) & As<Int4>(Float4(0x80000000u)));
@@ -4047,26 +4082,31 @@ Float4::Float4(RValue<UInt4> cast) : XYZW(this)
 	storeValue(result.value);
 }
 
-Float4::Float4() : XYZW(this)
+Float4::Float4()
+    : XYZW(this)
 {
 }
 
-Float4::Float4(float xyzw) : XYZW(this)
+Float4::Float4(float xyzw)
+    : XYZW(this)
 {
 	constant(xyzw, xyzw, xyzw, xyzw);
 }
 
-Float4::Float4(float x, float yzw) : XYZW(this)
+Float4::Float4(float x, float yzw)
+    : XYZW(this)
 {
 	constant(x, yzw, yzw, yzw);
 }
 
-Float4::Float4(float x, float y, float zw) : XYZW(this)
+Float4::Float4(float x, float y, float zw)
+    : XYZW(this)
 {
 	constant(x, y, zw, zw);
 }
 
-Float4::Float4(float x, float y, float z, float w) : XYZW(this)
+Float4::Float4(float x, float y, float z, float w)
+    : XYZW(this)
 {
 	constant(x, y, z, w);
 }
@@ -4088,7 +4128,7 @@ Float4 Float4::negative_inf()
 void Float4::infinity_constant(bool negative)
 {
 	double inf = negative ? -INFINITY : INFINITY;
-	double constantVector[4] = {inf, inf, inf, inf};
+	double constantVector[4] = { inf, inf, inf, inf };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
@@ -4097,33 +4137,38 @@ void Float4::constant(float x, float y, float z, float w)
 	// See Float(float) constructor for the rationale behind this assert.
 	ASSERT(std::isfinite(x) && std::isfinite(y) && std::isfinite(z) && std::isfinite(w));
 
-	double constantVector[4] = {x, y, z, w};
+	double constantVector[4] = { x, y, z, w };
 	storeValue(Nucleus::createConstantVector(constantVector, getType()));
 }
 
-Float4::Float4(RValue<Float4> rhs) : XYZW(this)
+Float4::Float4(RValue<Float4> rhs)
+    : XYZW(this)
 {
 	storeValue(rhs.value);
 }
 
-Float4::Float4(const Float4 &rhs) : XYZW(this)
+Float4::Float4(const Float4 &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-Float4::Float4(const Reference<Float4> &rhs) : XYZW(this)
+Float4::Float4(const Reference<Float4> &rhs)
+    : XYZW(this)
 {
 	Value *value = rhs.loadValue();
 	storeValue(value);
 }
 
-Float4::Float4(const Float &rhs) : XYZW(this)
+Float4::Float4(const Float &rhs)
+    : XYZW(this)
 {
 	*this = RValue<Float>(rhs.loadValue());
 }
 
-Float4::Float4(const Reference<Float> &rhs) : XYZW(this)
+Float4::Float4(const Reference<Float> &rhs)
+    : XYZW(this)
 {
 	*this = RValue<Float>(rhs.loadValue());
 }
@@ -4235,7 +4280,7 @@ RValue<Float4> Abs(RValue<Float4> x)
 {
 	// TODO: Optimize.
 	Value *vector = Nucleus::createBitCast(x.value, Int4::getType());
-	int64_t constantVector[4] = {0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
+	int64_t constantVector[4] = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
 	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::getType()));
 
 	return As<Float4>(result);
@@ -4263,12 +4308,11 @@ RValue<Float4> Shuffle(RValue<Float4> x, RValue<Float4> y, uint16_t select)
 
 RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
 {
-	int shuffle[4] =
-	{
+	int shuffle[4] = {
 		((imm >> 12) & 0x03) + 0,
-		((imm >>  8) & 0x03) + 0,
-		((imm >>  4) & 0x03) + 4,
-		((imm >>  0) & 0x03) + 4,
+		((imm >> 8) & 0x03) + 0,
+		((imm >> 4) & 0x03) + 4,
+		((imm >> 0) & 0x03) + 4,
 	};
 
 	return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
@@ -4276,13 +4320,13 @@ RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
 
 RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y)
 {
-	int shuffle[4] = {0, 4, 1, 5};
+	int shuffle[4] = { 0, 4, 1, 5 };
 	return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 }
 
 RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y)
 {
-	int shuffle[4] = {2, 6, 3, 7};
+	int shuffle[4] = { 2, 6, 3, 7 };
 	return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 }
 
@@ -4401,22 +4445,49 @@ void MaskedStore(RValue<Pointer<Int4>> base, RValue<Int4> val, RValue<Int4> mask
 void Fence(std::memory_order memoryOrder)
 {
 	ASSERT_MSG(memoryOrder == std::memory_order_acquire ||
-		memoryOrder == std::memory_order_release ||
-		memoryOrder == std::memory_order_acq_rel ||
-		memoryOrder == std::memory_order_seq_cst,
-		"Unsupported memoryOrder: %d", int(memoryOrder));
+	               memoryOrder == std::memory_order_release ||
+	               memoryOrder == std::memory_order_acq_rel ||
+	               memoryOrder == std::memory_order_seq_cst,
+	           "Unsupported memoryOrder: %d", int(memoryOrder));
 	Nucleus::createFence(memoryOrder);
 }
 
-Bool          CToReactor<bool>::cast(bool v)               { return type(v); }
-Byte          CToReactor<uint8_t>::cast(uint8_t v)         { return type(v); }
-SByte         CToReactor<int8_t>::cast(int8_t v)           { return type(v); }
-Short         CToReactor<int16_t>::cast(int16_t v)         { return type(v); }
-UShort        CToReactor<uint16_t>::cast(uint16_t v)       { return type(v); }
-Int           CToReactor<int32_t>::cast(int32_t v)         { return type(v); }
-UInt          CToReactor<uint32_t>::cast(uint32_t v)       { return type(v); }
-Float         CToReactor<float>::cast(float v)             { return type(v); }
-Float4        CToReactor<float[4]>::cast(float v[4])       { return type(v[0], v[1], v[2], v[3]); }
+Bool CToReactor<bool>::cast(bool v)
+{
+	return type(v);
+}
+Byte CToReactor<uint8_t>::cast(uint8_t v)
+{
+	return type(v);
+}
+SByte CToReactor<int8_t>::cast(int8_t v)
+{
+	return type(v);
+}
+Short CToReactor<int16_t>::cast(int16_t v)
+{
+	return type(v);
+}
+UShort CToReactor<uint16_t>::cast(uint16_t v)
+{
+	return type(v);
+}
+Int CToReactor<int32_t>::cast(int32_t v)
+{
+	return type(v);
+}
+UInt CToReactor<uint32_t>::cast(uint32_t v)
+{
+	return type(v);
+}
+Float CToReactor<float>::cast(float v)
+{
+	return type(v);
+}
+Float4 CToReactor<float[4]>::cast(float v[4])
+{
+	return type(v[0], v[1], v[2], v[3]);
+}
 
 // TODO: Long has no constructor that takes a uint64_t
 // Long          CToReactor<uint64_t>::cast(uint64_t v)       { return type(v); }
