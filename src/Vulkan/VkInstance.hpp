@@ -24,14 +24,14 @@ class Instance
 public:
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE; }
 
-	Instance(const VkInstanceCreateInfo* pCreateInfo, void* mem, VkPhysicalDevice physicalDevice);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	Instance(const VkInstanceCreateInfo *pCreateInfo, void *mem, VkPhysicalDevice physicalDevice);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkInstanceCreateInfo*) { return 0; }
+	static size_t ComputeRequiredAllocationSize(const VkInstanceCreateInfo *) { return 0; }
 
-	VkResult getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const;
+	VkResult getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysicalDevice *pPhysicalDevices) const;
 	VkResult getPhysicalDeviceGroups(uint32_t *pPhysicalDeviceGroupCount,
-                                 VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) const;
+	                                 VkPhysicalDeviceGroupProperties *pPhysicalDeviceGroupProperties) const;
 
 private:
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -39,11 +39,11 @@ private:
 
 using DispatchableInstance = DispatchableObject<Instance, VkInstance>;
 
-static inline Instance* Cast(VkInstance object)
+static inline Instance *Cast(VkInstance object)
 {
 	return DispatchableInstance::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_INSTANCE_HPP_
+#endif  // VK_INSTANCE_HPP_

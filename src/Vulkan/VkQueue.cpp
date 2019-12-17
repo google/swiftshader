@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "VkQueue.hpp"
 #include "VkCommandBuffer.hpp"
 #include "VkFence.hpp"
-#include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
-#include "WSI/VkSwapchainKHR.hpp"
 #include "Device/Renderer.hpp"
+#include "WSI/VkSwapchainKHR.hpp"
 
 #include "marl/defer.h"
 #include "marl/scheduler.h"
@@ -28,7 +28,7 @@
 
 namespace {
 
-VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubmits)
+VkSubmitInfo *DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo *pSubmits)
 {
 	size_t submitSize = sizeof(VkSubmitInfo) * submitCount;
 	size_t totalSize = submitSize;
@@ -40,32 +40,32 @@ VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubm
 		totalSize += pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
 	}
 
-	uint8_t* mem = static_cast<uint8_t*>(
-		vk::allocate(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::DEVICE_MEMORY, vk::Fence::GetAllocationScope()));
+	uint8_t *mem = static_cast<uint8_t *>(
+	    vk::allocate(totalSize, vk::REQUIRED_MEMORY_ALIGNMENT, vk::DEVICE_MEMORY, vk::Fence::GetAllocationScope()));
 
-	auto submits = new (mem) VkSubmitInfo[submitCount];
+	auto submits = new(mem) VkSubmitInfo[submitCount];
 	memcpy(mem, pSubmits, submitSize);
 	mem += submitSize;
 
 	for(uint32_t i = 0; i < submitCount; i++)
 	{
 		size_t size = pSubmits[i].waitSemaphoreCount * sizeof(VkSemaphore);
-		submits[i].pWaitSemaphores = reinterpret_cast<const VkSemaphore*>(mem);
+		submits[i].pWaitSemaphores = reinterpret_cast<const VkSemaphore *>(mem);
 		memcpy(mem, pSubmits[i].pWaitSemaphores, size);
 		mem += size;
 
 		size = pSubmits[i].waitSemaphoreCount * sizeof(VkPipelineStageFlags);
-		submits[i].pWaitDstStageMask = reinterpret_cast<const VkPipelineStageFlags*>(mem);
+		submits[i].pWaitDstStageMask = reinterpret_cast<const VkPipelineStageFlags *>(mem);
 		memcpy(mem, pSubmits[i].pWaitDstStageMask, size);
 		mem += size;
 
 		size = pSubmits[i].signalSemaphoreCount * sizeof(VkSemaphore);
-		submits[i].pSignalSemaphores = reinterpret_cast<const VkSemaphore*>(mem);
+		submits[i].pSignalSemaphores = reinterpret_cast<const VkSemaphore *>(mem);
 		memcpy(mem, pSubmits[i].pSignalSemaphores, size);
 		mem += size;
 
 		size = pSubmits[i].commandBufferCount * sizeof(VkCommandBuffer);
-		submits[i].pCommandBuffers = reinterpret_cast<const VkCommandBuffer*>(mem);
+		submits[i].pCommandBuffers = reinterpret_cast<const VkCommandBuffer *>(mem);
 		memcpy(mem, pSubmits[i].pCommandBuffers, size);
 		mem += size;
 	}
@@ -77,7 +77,8 @@ VkSubmitInfo* DeepCopySubmitInfo(uint32_t submitCount, const VkSubmitInfo* pSubm
 
 namespace vk {
 
-Queue::Queue(Device* device, marl::Scheduler *scheduler) : device(device)
+Queue::Queue(Device *device, marl::Scheduler *scheduler)
+    : device(device)
 {
 	queueThread = std::thread(&Queue::taskLoop, this, scheduler);
 }
@@ -94,7 +95,7 @@ Queue::~Queue()
 	garbageCollect();
 }
 
-VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence* fence)
+VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo *pSubmits, Fence *fence)
 {
 	garbageCollect();
 
@@ -113,7 +114,7 @@ VkResult Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence
 	return VK_SUCCESS;
 }
 
-void Queue::submitQueue(const Task& task)
+void Queue::submitQueue(const Task &task)
 {
 	if(renderer == nullptr)
 	{
@@ -122,7 +123,7 @@ void Queue::submitQueue(const Task& task)
 
 	for(uint32_t i = 0; i < task.submitCount; i++)
 	{
-		auto& submitInfo = task.pSubmits[i];
+		auto &submitInfo = task.pSubmits[i];
 		for(uint32_t j = 0; j < submitInfo.waitSemaphoreCount; j++)
 		{
 			vk::Cast(submitInfo.pWaitSemaphores[j])->wait(submitInfo.pWaitDstStageMask[j]);
@@ -158,7 +159,7 @@ void Queue::submitQueue(const Task& task)
 	}
 }
 
-void Queue::taskLoop(marl::Scheduler* scheduler)
+void Queue::taskLoop(marl::Scheduler *scheduler)
 {
 	marl::Thread::setName("Queue<%p>", this);
 	scheduler->bind();
@@ -170,15 +171,15 @@ void Queue::taskLoop(marl::Scheduler* scheduler)
 
 		switch(task.type)
 		{
-		case Task::KILL_THREAD:
-			ASSERT_MSG(pending.count() == 0, "queue has remaining work!");
-			return;
-		case Task::SUBMIT_QUEUE:
-			submitQueue(task);
-			break;
-		default:
-			UNIMPLEMENTED("task.type %d", static_cast<int>(task.type));
-			break;
+			case Task::KILL_THREAD:
+				ASSERT_MSG(pending.count() == 0, "queue has remaining work!");
+				return;
+			case Task::SUBMIT_QUEUE:
+				submitQueue(task);
+				break;
+			default:
+				UNIMPLEMENTED("task.type %d", static_cast<int>(task.type));
+				break;
 		}
 	}
 }
@@ -211,7 +212,7 @@ void Queue::garbageCollect()
 }
 
 #ifndef __ANDROID__
-VkResult Queue::present(const VkPresentInfoKHR* presentInfo)
+VkResult Queue::present(const VkPresentInfoKHR *presentInfo)
 {
 	// This is a hack to deal with screen tearing for now.
 	// Need to correctly implement threading using VkSemaphore

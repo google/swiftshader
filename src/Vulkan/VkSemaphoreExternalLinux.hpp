@@ -129,7 +129,8 @@ private:
 
 namespace vk {
 
-class Semaphore::External {
+class Semaphore::External
+{
 public:
 	// The type of external semaphore handle types supported by this implementation.
 	static const VkExternalSemaphoreHandleTypeFlags kExternalSemaphoreHandleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
@@ -169,7 +170,7 @@ public:
 	// Export the current semaphore as a duplicated file descriptor to the same
 	// region. This can be consumed by importFd() running in a different
 	// process.
-	VkResult exportFd(int* pFd) const
+	VkResult exportFd(int *pFd) const
 	{
 		int fd = memfd.exportFd();
 		if(fd < 0)
@@ -215,7 +216,7 @@ private:
 	void mapRegion(size_t size, bool needInitialization)
 	{
 		// Map the region into memory and point the semaphore to it.
-		void* addr = memfd.mapReadWrite(0, size);
+		void *addr = memfd.mapReadWrite(0, size);
 		if(!addr)
 		{
 			ABORT("mmap() failed: %s", strerror(errno));
@@ -223,7 +224,7 @@ private:
 		semaphore = reinterpret_cast<SharedSemaphore *>(addr);
 		if(needInitialization)
 		{
-			new (semaphore) SharedSemaphore();
+			new(semaphore) SharedSemaphore();
 		}
 		else
 		{
@@ -232,7 +233,7 @@ private:
 	}
 
 	LinuxMemFd memfd;
-	SharedSemaphore* semaphore = nullptr;
+	SharedSemaphore *semaphore = nullptr;
 };
 
 }  // namespace vk

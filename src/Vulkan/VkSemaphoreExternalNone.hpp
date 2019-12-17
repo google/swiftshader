@@ -18,7 +18,8 @@
 namespace vk {
 
 // Empty external sempahore implementation.
-class Semaphore::External {
+class Semaphore::External
+{
 public:
 	// The type of external semaphore handle types supported by this implementation.
 	static const VkExternalSemaphoreHandleTypeFlags kExternalSemaphoreHandleType = 0;

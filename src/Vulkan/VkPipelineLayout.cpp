@@ -17,13 +17,14 @@
 
 namespace vk {
 
-PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, void* mem)
-	: setLayoutCount(pCreateInfo->setLayoutCount), pushConstantRangeCount(pCreateInfo->pushConstantRangeCount)
+PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, void *mem)
+    : setLayoutCount(pCreateInfo->setLayoutCount)
+    , pushConstantRangeCount(pCreateInfo->pushConstantRangeCount)
 {
-	char* hostMem = reinterpret_cast<char*>(mem);
+	char *hostMem = reinterpret_cast<char *>(mem);
 
-	size_t setLayoutsSize = pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout*);
-	setLayouts = reinterpret_cast<DescriptorSetLayout**>(hostMem);
+	size_t setLayoutsSize = pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout *);
+	setLayouts = reinterpret_cast<DescriptorSetLayout **>(hostMem);
 	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
 	{
 		setLayouts[i] = vk::Cast(pCreateInfo->pSetLayouts[i]);
@@ -31,11 +32,11 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, vo
 	hostMem += setLayoutsSize;
 
 	size_t pushConstantRangesSize = pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange);
-	pushConstantRanges = reinterpret_cast<VkPushConstantRange*>(hostMem);
+	pushConstantRanges = reinterpret_cast<VkPushConstantRange *>(hostMem);
 	memcpy(pushConstantRanges, pCreateInfo->pPushConstantRanges, pushConstantRangesSize);
 	hostMem += pushConstantRangesSize;
 
-	dynamicOffsetBases = reinterpret_cast<uint32_t*>(hostMem);
+	dynamicOffsetBases = reinterpret_cast<uint32_t *>(hostMem);
 	uint32_t dynamicOffsetBase = 0;
 	for(uint32_t i = 0; i < setLayoutCount; i++)
 	{
@@ -46,16 +47,16 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, vo
 	}
 }
 
-void PipelineLayout::destroy(const VkAllocationCallbacks* pAllocator)
+void PipelineLayout::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(setLayouts, pAllocator); // pushConstantRanges are in the same allocation
+	vk::deallocate(setLayouts, pAllocator);  // pushConstantRanges are in the same allocation
 }
 
-size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo* pCreateInfo)
+size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo)
 {
-	return (pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout*)) +
+	return (pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout *)) +
 	       (pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange)) +
-		   (pCreateInfo->setLayoutCount * sizeof(uint32_t)); // dynamicOffsetBases
+	       (pCreateInfo->setLayoutCount * sizeof(uint32_t));  // dynamicOffsetBases
 }
 
 size_t PipelineLayout::getNumDescriptorSets() const
@@ -63,7 +64,7 @@ size_t PipelineLayout::getNumDescriptorSets() const
 	return setLayoutCount;
 }
 
-DescriptorSetLayout const* PipelineLayout::getDescriptorSetLayout(size_t descriptorSet) const
+DescriptorSetLayout const *PipelineLayout::getDescriptorSetLayout(size_t descriptorSet) const
 {
 	ASSERT(descriptorSet < setLayoutCount);
 	return setLayouts[descriptorSet];

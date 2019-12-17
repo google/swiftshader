@@ -76,11 +76,12 @@ protected:
 	inline File(ID id, std::string dir, std::string name, std::string source);
 };
 
-File::File(ID id, std::string dir, std::string name, std::string source) :
-    id(std::move(id)),
-    dir(std::move(dir)),
-    name(std::move(name)),
-    source(source) {}
+File::File(ID id, std::string dir, std::string name, std::string source)
+    : id(std::move(id))
+    , dir(std::move(dir))
+    , name(std::move(name))
+    , source(source)
+{}
 
 std::string File::path() const
 {

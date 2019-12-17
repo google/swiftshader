@@ -27,7 +27,7 @@ namespace dbg {
 // remaining std::shared_ptr<V> references.
 // WeakMap is not thread-safe and requires the use of an external mutex to be
 // used by multiple threads, concurrently.
-template <typename K, typename V>
+template<typename K, typename V>
 class WeakMap
 {
 	using Map = std::map<K, std::weak_ptr<V>>;
@@ -37,10 +37,10 @@ public:
 	class iterator
 	{
 	public:
-		inline iterator(const MapIterator& it, const MapIterator& end);
+		inline iterator(const MapIterator &it, const MapIterator &end);
 		inline void operator++();
-		inline bool operator==(const iterator&) const;
-		inline bool operator!=(const iterator&) const;
+		inline bool operator==(const iterator &) const;
+		inline bool operator!=(const iterator &) const;
 		inline std::pair<K, std::shared_ptr<V>> operator*() const;
 
 	private:
@@ -65,17 +65,17 @@ public:
 	// get() returns the std::shared_ptr<V> value for the given key, or nullptr
 	// if the map does not contain the key, or the last remaining
 	// std::shared_ptr<V> reference to the value has been dropped.
-	inline std::shared_ptr<V> get(const K& key) const;
+	inline std::shared_ptr<V> get(const K &key) const;
 
 	// add() attempts to insert the key-value pair into the map.
 	// add() returns true if there was no existing entry with the given key,
 	// and the pair was added, otherwise false.
-	inline bool add(const K& key, const std::shared_ptr<V>& val);
+	inline bool add(const K &key, const std::shared_ptr<V> &val);
 
 	// remove() attempts to remove the entry with the given key from the map.
 	// remove() returns true if there was no existing entry with the given key,
 	// and the entry was removed, otherwise false.
-	inline bool remove(const K& key);
+	inline bool remove(const K &key);
 
 private:
 	// reap() removes any entries that have values with no external references.
@@ -85,22 +85,22 @@ private:
 	size_t reapAtSize = 32;
 };
 
-template <typename K, typename V>
-WeakMap<K, V>::iterator::iterator(const MapIterator& it, const MapIterator& end) :
-    it(it),
-    end(end)
+template<typename K, typename V>
+WeakMap<K, V>::iterator::iterator(const MapIterator &it, const MapIterator &end)
+    : it(it)
+    , end(end)
 {
 	skipNull();
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 void WeakMap<K, V>::iterator::operator++()
 {
 	it++;
 	skipNull();
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 void WeakMap<K, V>::iterator::skipNull()
 {
 	for(; it != end; ++it)
@@ -115,51 +115,51 @@ void WeakMap<K, V>::iterator::skipNull()
 	}
 }
 
-template <typename K, typename V>
-bool WeakMap<K, V>::iterator::operator==(const iterator& rhs) const
+template<typename K, typename V>
+bool WeakMap<K, V>::iterator::operator==(const iterator &rhs) const
 {
 	return it == rhs.it;
 }
 
-template <typename K, typename V>
-bool WeakMap<K, V>::iterator::operator!=(const iterator& rhs) const
+template<typename K, typename V>
+bool WeakMap<K, V>::iterator::operator!=(const iterator &rhs) const
 {
 	return it != rhs.it;
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 std::pair<K, std::shared_ptr<V>> WeakMap<K, V>::iterator::operator*() const
 {
 	return { it->first, sptr };
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 typename WeakMap<K, V>::iterator WeakMap<K, V>::begin() const
 {
 	return iterator(map.begin(), map.end());
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 typename WeakMap<K, V>::iterator WeakMap<K, V>::end() const
 {
 	return iterator(map.end(), map.end());
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 size_t WeakMap<K, V>::approx_size() const
 {
 	return map.size();
 }
 
-template <typename K, typename V>
-std::shared_ptr<V> WeakMap<K, V>::get(const K& key) const
+template<typename K, typename V>
+std::shared_ptr<V> WeakMap<K, V>::get(const K &key) const
 {
 	auto it = map.find(key);
 	return (it != map.end()) ? it->second.lock() : nullptr;
 }
 
-template <typename K, typename V>
-bool WeakMap<K, V>::add(const K& key, const std::shared_ptr<V>& val)
+template<typename K, typename V>
+bool WeakMap<K, V>::add(const K &key, const std::shared_ptr<V> &val)
 {
 	if(map.size() > reapAtSize)
 	{
@@ -169,13 +169,13 @@ bool WeakMap<K, V>::add(const K& key, const std::shared_ptr<V>& val)
 	return map.emplace(key, val).second;
 }
 
-template <typename K, typename V>
-bool WeakMap<K, V>::remove(const K& key)
+template<typename K, typename V>
+bool WeakMap<K, V>::remove(const K &key)
 {
 	return map.erase(key) > 0;
 }
 
-template <typename K, typename V>
+template<typename K, typename V>
 void WeakMap<K, V>::reap()
 {
 	for(auto it = map.begin(); it != map.end();)

@@ -15,21 +15,23 @@
 #include "VkGetProcAddress.h"
 #include "VkDevice.hpp"
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #ifdef __ANDROID__
-#include <cerrno>
-#include <hardware/hwvulkan.h>
-#include <vulkan/vk_android_native_buffer.h>
+#	include <hardware/hwvulkan.h>
+#	include <vulkan/vk_android_native_buffer.h>
+#	include <cerrno>
 #endif
 
 namespace vk {
 
-#define MAKE_VULKAN_GLOBAL_ENTRY(aFunction) { #aFunction, reinterpret_cast<PFN_vkVoidFunction>(aFunction) }
-static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionPointers =
-{
+#define MAKE_VULKAN_GLOBAL_ENTRY(aFunction)                           \
+	{                                                                 \
+#		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
+	}
+static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionPointers = {
 	MAKE_VULKAN_GLOBAL_ENTRY(vkCreateInstance),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceExtensionProperties),
 	MAKE_VULKAN_GLOBAL_ENTRY(vkEnumerateInstanceLayerProperties),
@@ -37,9 +39,11 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> globalFunctionP
 };
 #undef MAKE_VULKAN_GLOBAL_ENTRY
 
-#define MAKE_VULKAN_INSTANCE_ENTRY(aFunction) { #aFunction, reinterpret_cast<PFN_vkVoidFunction>(aFunction) }
-static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctionPointers =
-{
+#define MAKE_VULKAN_INSTANCE_ENTRY(aFunction)                         \
+	{                                                                 \
+#		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
+	}
+static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctionPointers = {
 	MAKE_VULKAN_INSTANCE_ENTRY(vkDestroyInstance),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkEnumeratePhysicalDevices),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceFeatures),
@@ -99,12 +103,12 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceXlibPresentationSupportKHR),
 #endif
 #ifdef VK_USE_PLATFORM_MACOS_MVK
-    // VK_MVK_macos_surface
-    MAKE_VULKAN_INSTANCE_ENTRY(vkCreateMacOSSurfaceMVK),
+	// VK_MVK_macos_surface
+	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateMacOSSurfaceMVK),
 #endif
 #ifdef VK_USE_PLATFORM_METAL_EXT
-    // VK_EXT_metal_surface
-    MAKE_VULKAN_INSTANCE_ENTRY(vkCreateMetalSurfaceEXT),
+	// VK_EXT_metal_surface
+	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateMetalSurfaceEXT),
 #endif
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	// VK_KHR_win32_surface
@@ -114,9 +118,11 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 };
 #undef MAKE_VULKAN_INSTANCE_ENTRY
 
-#define MAKE_VULKAN_DEVICE_ENTRY(aFunction) { #aFunction, reinterpret_cast<PFN_vkVoidFunction>(aFunction) }
-static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionPointers =
-{
+#define MAKE_VULKAN_DEVICE_ENTRY(aFunction)                           \
+	{                                                                 \
+#		aFunction, reinterpret_cast < PFN_vkVoidFunction>(aFunction) \
+	}
+static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionPointers = {
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetInstanceProcAddr),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceProcAddr),
 	MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDevice),
@@ -263,126 +269,113 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 #endif
 };
 
-static const std::vector<std::pair<const char*, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers =
-{
+static const std::vector<std::pair<const char *, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers = {
 	// VK_KHR_descriptor_update_template
 	{
-		VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkCreateDescriptorUpdateTemplateKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDescriptorUpdateTemplateKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkUpdateDescriptorSetWithTemplateKHR),
-		}
-	},
+	    VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCreateDescriptorUpdateTemplateKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkDestroyDescriptorUpdateTemplateKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkUpdateDescriptorSetWithTemplateKHR),
+	    } },
 	// VK_KHR_device_group
 	{
-		VK_KHR_DEVICE_GROUP_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPeerMemoryFeaturesKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDeviceMaskKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkCmdDispatchBaseKHR),
-		}
-	},
+	    VK_KHR_DEVICE_GROUP_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPeerMemoryFeaturesKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetDeviceMaskKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdDispatchBaseKHR),
+	    } },
 	// VK_KHR_maintenance1
 	{
-		VK_KHR_MAINTENANCE1_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkTrimCommandPoolKHR),
-		}
-	},
+	    VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkTrimCommandPoolKHR),
+	    } },
 	// VK_KHR_sampler_ycbcr_conversion
 	{
-		VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkCreateSamplerYcbcrConversionKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkDestroySamplerYcbcrConversionKHR),
-		}
-	},
+	    VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCreateSamplerYcbcrConversionKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkDestroySamplerYcbcrConversionKHR),
+	    } },
 	// VK_KHR_bind_memory2
 	{
-		VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkBindBufferMemory2KHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkBindImageMemory2KHR),
-		}
-	},
+	    VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkBindBufferMemory2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkBindImageMemory2KHR),
+	    } },
 	// VK_KHR_get_memory_requirements2
 	{
-		VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetImageMemoryRequirements2KHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferMemoryRequirements2KHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetImageSparseMemoryRequirements2KHR),
-		}
-	},
+	    VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetImageMemoryRequirements2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferMemoryRequirements2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetImageSparseMemoryRequirements2KHR),
+	    } },
 	// VK_KHR_maintenance3
 	{
-		VK_KHR_MAINTENANCE3_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
-		}
-	},
+	    VK_KHR_MAINTENANCE3_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
+	    } },
 	// VK_EXT_line_rasterization
 	{
-		VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLineStippleEXT),
-		}
-	},
+	    VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLineStippleEXT),
+	    } },
 #ifndef __ANDROID__
 	// VK_KHR_swapchain
 	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkCreateSwapchainKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkDestroySwapchainKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainImagesKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImageKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImage2KHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkQueuePresentKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
-		}
-	},
+	    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCreateSwapchainKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkDestroySwapchainKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainImagesKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImageKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImage2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkQueuePresentKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
+	    } },
 #endif
 
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	// VK_KHR_external_semaphore_fd
 	{
-		VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreFdKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkImportSemaphoreFdKHR),
-		}
-	},
+	    VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreFdKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkImportSemaphoreFdKHR),
+	    } },
 #endif
 
 #if VK_USE_PLATFORM_FUCHSIA
 	// VK_FUCHSIA_external_semaphore
 	{
-		VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreZirconHandleFUCHSIA),
-			MAKE_VULKAN_DEVICE_ENTRY(vkImportSemaphoreZirconHandleFUCHSIA),
-		}
-	},
+	    VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreZirconHandleFUCHSIA),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkImportSemaphoreZirconHandleFUCHSIA),
+	    } },
 #endif
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	// VK_KHR_external_memory_fd
 	{
-		VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
-		{
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdKHR),
-			MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdPropertiesKHR),
-		}
-	},
+	    VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdPropertiesKHR),
+	    } },
 #endif
 };
 
 #undef MAKE_VULKAN_DEVICE_ENTRY
 
-PFN_vkVoidFunction GetInstanceProcAddr(Instance* instance, const char* pName)
+PFN_vkVoidFunction GetInstanceProcAddr(Instance *instance, const char *pName)
 {
 	auto globalFunction = globalFunctionPointers.find(std::string(pName));
 	if(globalFunction != globalFunctionPointers.end())
@@ -404,7 +397,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(Instance* instance, const char* pName)
 			return deviceFunction->second;
 		}
 
-		for(const auto& deviceExtensionFunctions : deviceExtensionFunctionPointers)
+		for(const auto &deviceExtensionFunctions : deviceExtensionFunctionPointers)
 		{
 			deviceFunction = deviceExtensionFunctions.second.find(std::string(pName));
 			if(deviceFunction != deviceExtensionFunctions.second.end())
@@ -417,7 +410,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(Instance* instance, const char* pName)
 	return nullptr;
 }
 
-PFN_vkVoidFunction GetDeviceProcAddr(Device* device, const char* pName)
+PFN_vkVoidFunction GetDeviceProcAddr(Device *device, const char *pName)
 {
 	auto deviceFunction = deviceFunctionPointers.find(std::string(pName));
 	if(deviceFunction != deviceFunctionPointers.end())
@@ -425,7 +418,7 @@ PFN_vkVoidFunction GetDeviceProcAddr(Device* device, const char* pName)
 		return deviceFunction->second;
 	}
 
-	for(const auto& deviceExtensionFunctions : deviceExtensionFunctionPointers)
+	for(const auto &deviceExtensionFunctions : deviceExtensionFunctionPointers)
 	{
 		if(device->hasExtension(deviceExtensionFunctions.first))
 		{
@@ -448,42 +441,43 @@ extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM;
 
 namespace {
 
-	int CloseDevice(struct hw_device_t *) { return 0; }
-
-	hwvulkan_device_t hal_device = {
-		.common = {
-			.tag = HARDWARE_DEVICE_TAG,
-			.version = HWVULKAN_DEVICE_API_VERSION_0_1,
-			.module = &HAL_MODULE_INFO_SYM.common,
-			.close = CloseDevice,
-		},
-		.EnumerateInstanceExtensionProperties = vkEnumerateInstanceExtensionProperties,
-		.CreateInstance = vkCreateInstance,
-		.GetInstanceProcAddr = vkGetInstanceProcAddr,
-	};
-
-	int OpenDevice(const hw_module_t *module, const char *id, hw_device_t **device)
-	{
-		if(strcmp(id, HWVULKAN_DEVICE_0) != 0) return -ENOENT;
-		*device = &hal_device.common;
-		return 0;
-	}
-
-	hw_module_methods_t module_methods = { .open = OpenDevice };
-
+int CloseDevice(struct hw_device_t *)
+{
+	return 0;
 }
 
-extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM =
+hwvulkan_device_t hal_device = {
+	.common = {
+	    .tag = HARDWARE_DEVICE_TAG,
+	    .version = HWVULKAN_DEVICE_API_VERSION_0_1,
+	    .module = &HAL_MODULE_INFO_SYM.common,
+	    .close = CloseDevice,
+	},
+	.EnumerateInstanceExtensionProperties = vkEnumerateInstanceExtensionProperties,
+	.CreateInstance = vkCreateInstance,
+	.GetInstanceProcAddr = vkGetInstanceProcAddr,
+};
+
+int OpenDevice(const hw_module_t *module, const char *id, hw_device_t **device)
 {
-	.common =
-	{
-		.tag = HARDWARE_MODULE_TAG,
-		.module_api_version = HWVULKAN_MODULE_API_VERSION_0_1,
-		.hal_api_version = HARDWARE_HAL_API_VERSION,
-		.id = HWVULKAN_HARDWARE_MODULE_ID,
-		.name = "Swiftshader Pastel",
-		.author = "Google",
-		.methods = &module_methods,
+	if(strcmp(id, HWVULKAN_DEVICE_0) != 0) return -ENOENT;
+	*device = &hal_device.common;
+	return 0;
+}
+
+hw_module_methods_t module_methods = { .open = OpenDevice };
+
+}  // namespace
+
+extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM = {
+	.common = {
+	    .tag = HARDWARE_MODULE_TAG,
+	    .module_api_version = HWVULKAN_MODULE_API_VERSION_0_1,
+	    .hal_api_version = HARDWARE_HAL_API_VERSION,
+	    .id = HWVULKAN_HARDWARE_MODULE_ID,
+	    .name = "Swiftshader Pastel",
+	    .author = "Google",
+	    .methods = &module_methods,
 	}
 };
 

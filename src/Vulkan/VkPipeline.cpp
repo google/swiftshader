@@ -17,9 +17,9 @@
 #include "VkDevice.hpp"
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
+#include "VkRenderPass.hpp"
 #include "VkShaderModule.hpp"
 #include "VkStringify.hpp"
-#include "VkRenderPass.hpp"
 #include "Pipeline/ComputeProgram.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
@@ -35,63 +35,63 @@ sw::StreamType getStreamType(VkFormat format)
 {
 	switch(format)
 	{
-	case VK_FORMAT_R8_UNORM:
-	case VK_FORMAT_R8G8_UNORM:
-	case VK_FORMAT_R8G8B8A8_UNORM:
-	case VK_FORMAT_R8_UINT:
-	case VK_FORMAT_R8G8_UINT:
-	case VK_FORMAT_R8G8B8A8_UINT:
-	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		return sw::STREAMTYPE_BYTE;
-	case VK_FORMAT_B8G8R8A8_UNORM:
-		return sw::STREAMTYPE_COLOR;
-	case VK_FORMAT_R8_SNORM:
-	case VK_FORMAT_R8_SINT:
-	case VK_FORMAT_R8G8_SNORM:
-	case VK_FORMAT_R8G8_SINT:
-	case VK_FORMAT_R8G8B8A8_SNORM:
-	case VK_FORMAT_R8G8B8A8_SINT:
-	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-		return sw::STREAMTYPE_SBYTE;
-	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-		return sw::STREAMTYPE_2_10_10_10_UINT;
-	case VK_FORMAT_R16_UNORM:
-	case VK_FORMAT_R16_UINT:
-	case VK_FORMAT_R16G16_UNORM:
-	case VK_FORMAT_R16G16_UINT:
-	case VK_FORMAT_R16G16B16A16_UNORM:
-	case VK_FORMAT_R16G16B16A16_UINT:
-		return sw::STREAMTYPE_USHORT;
-	case VK_FORMAT_R16_SNORM:
-	case VK_FORMAT_R16_SINT:
-	case VK_FORMAT_R16G16_SNORM:
-	case VK_FORMAT_R16G16_SINT:
-	case VK_FORMAT_R16G16B16A16_SNORM:
-	case VK_FORMAT_R16G16B16A16_SINT:
-		return sw::STREAMTYPE_SHORT;
-	case VK_FORMAT_R16_SFLOAT:
-	case VK_FORMAT_R16G16_SFLOAT:
-	case VK_FORMAT_R16G16B16A16_SFLOAT:
-		return sw::STREAMTYPE_HALF;
-	case VK_FORMAT_R32_UINT:
-	case VK_FORMAT_R32G32_UINT:
-	case VK_FORMAT_R32G32B32_UINT:
-	case VK_FORMAT_R32G32B32A32_UINT:
-		return sw::STREAMTYPE_UINT;
-	case VK_FORMAT_R32_SINT:
-	case VK_FORMAT_R32G32_SINT:
-	case VK_FORMAT_R32G32B32_SINT:
-	case VK_FORMAT_R32G32B32A32_SINT:
-		return sw::STREAMTYPE_INT;
-	case VK_FORMAT_R32_SFLOAT:
-	case VK_FORMAT_R32G32_SFLOAT:
-	case VK_FORMAT_R32G32B32_SFLOAT:
-	case VK_FORMAT_R32G32B32A32_SFLOAT:
-		return sw::STREAMTYPE_FLOAT;
-	default:
-		UNIMPLEMENTED("format");
+		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+			return sw::STREAMTYPE_BYTE;
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			return sw::STREAMTYPE_COLOR;
+		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+			return sw::STREAMTYPE_SBYTE;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+			return sw::STREAMTYPE_2_10_10_10_UINT;
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16G16B16A16_UNORM:
+		case VK_FORMAT_R16G16B16A16_UINT:
+			return sw::STREAMTYPE_USHORT;
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+		case VK_FORMAT_R16G16B16A16_SINT:
+			return sw::STREAMTYPE_SHORT;
+		case VK_FORMAT_R16_SFLOAT:
+		case VK_FORMAT_R16G16_SFLOAT:
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+			return sw::STREAMTYPE_HALF;
+		case VK_FORMAT_R32_UINT:
+		case VK_FORMAT_R32G32_UINT:
+		case VK_FORMAT_R32G32B32_UINT:
+		case VK_FORMAT_R32G32B32A32_UINT:
+			return sw::STREAMTYPE_UINT;
+		case VK_FORMAT_R32_SINT:
+		case VK_FORMAT_R32G32_SINT:
+		case VK_FORMAT_R32G32B32_SINT:
+		case VK_FORMAT_R32G32B32A32_SINT:
+			return sw::STREAMTYPE_INT;
+		case VK_FORMAT_R32_SFLOAT:
+		case VK_FORMAT_R32G32_SFLOAT:
+		case VK_FORMAT_R32G32B32_SFLOAT:
+		case VK_FORMAT_R32G32B32A32_SFLOAT:
+			return sw::STREAMTYPE_FLOAT;
+		default:
+			UNIMPLEMENTED("format");
 	}
 
 	return sw::STREAMTYPE_BYTE;
@@ -101,57 +101,57 @@ unsigned char getNumberOfChannels(VkFormat format)
 {
 	switch(format)
 	{
-	case VK_FORMAT_R8_UNORM:
-	case VK_FORMAT_R8_SNORM:
-	case VK_FORMAT_R8_UINT:
-	case VK_FORMAT_R8_SINT:
-	case VK_FORMAT_R16_UNORM:
-	case VK_FORMAT_R16_SNORM:
-	case VK_FORMAT_R16_UINT:
-	case VK_FORMAT_R16_SINT:
-	case VK_FORMAT_R16_SFLOAT:
-	case VK_FORMAT_R32_UINT:
-	case VK_FORMAT_R32_SINT:
-	case VK_FORMAT_R32_SFLOAT:
-		return 1;
-	case VK_FORMAT_R8G8_UNORM:
-	case VK_FORMAT_R8G8_SNORM:
-	case VK_FORMAT_R8G8_UINT:
-	case VK_FORMAT_R8G8_SINT:
-	case VK_FORMAT_R16G16_UNORM:
-	case VK_FORMAT_R16G16_SNORM:
-	case VK_FORMAT_R16G16_UINT:
-	case VK_FORMAT_R16G16_SINT:
-	case VK_FORMAT_R16G16_SFLOAT:
-	case VK_FORMAT_R32G32_UINT:
-	case VK_FORMAT_R32G32_SINT:
-	case VK_FORMAT_R32G32_SFLOAT:
-		return 2;
-	case VK_FORMAT_R32G32B32_UINT:
-	case VK_FORMAT_R32G32B32_SINT:
-	case VK_FORMAT_R32G32B32_SFLOAT:
-		return 3;
-	case VK_FORMAT_R8G8B8A8_UNORM:
-	case VK_FORMAT_R8G8B8A8_SNORM:
-	case VK_FORMAT_R8G8B8A8_UINT:
-	case VK_FORMAT_R8G8B8A8_SINT:
-	case VK_FORMAT_B8G8R8A8_UNORM:
-	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-	case VK_FORMAT_R16G16B16A16_UNORM:
-	case VK_FORMAT_R16G16B16A16_SNORM:
-	case VK_FORMAT_R16G16B16A16_UINT:
-	case VK_FORMAT_R16G16B16A16_SINT:
-	case VK_FORMAT_R16G16B16A16_SFLOAT:
-	case VK_FORMAT_R32G32B32A32_UINT:
-	case VK_FORMAT_R32G32B32A32_SINT:
-	case VK_FORMAT_R32G32B32A32_SFLOAT:
-		return 4;
-	default:
-		UNIMPLEMENTED("format");
+		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16_SFLOAT:
+		case VK_FORMAT_R32_UINT:
+		case VK_FORMAT_R32_SINT:
+		case VK_FORMAT_R32_SFLOAT:
+			return 1;
+		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16_SFLOAT:
+		case VK_FORMAT_R32G32_UINT:
+		case VK_FORMAT_R32G32_SINT:
+		case VK_FORMAT_R32G32_SFLOAT:
+			return 2;
+		case VK_FORMAT_R32G32B32_UINT:
+		case VK_FORMAT_R32G32B32_SINT:
+		case VK_FORMAT_R32G32B32_SFLOAT:
+			return 3;
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_B8G8R8A8_UNORM:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		case VK_FORMAT_R16G16B16A16_UNORM:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+		case VK_FORMAT_R16G16B16A16_UINT:
+		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+		case VK_FORMAT_R32G32B32A32_UINT:
+		case VK_FORMAT_R32G32B32A32_SINT:
+		case VK_FORMAT_R32G32B32A32_SFLOAT:
+			return 4;
+		default:
+			UNIMPLEMENTED("format");
 	}
 
 	return 0;
@@ -159,21 +159,21 @@ unsigned char getNumberOfChannels(VkFormat format)
 
 // preprocessSpirv applies and freezes specializations into constants, and inlines all functions.
 std::vector<uint32_t> preprocessSpirv(
-		std::vector<uint32_t> const &code,
-		VkSpecializationInfo const *specializationInfo)
+    std::vector<uint32_t> const &code,
+    VkSpecializationInfo const *specializationInfo)
 {
-	spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
+	spvtools::Optimizer opt{ SPV_ENV_VULKAN_1_1 };
 
-	opt.SetMessageConsumer([](spv_message_level_t level, const char*, const spv_position_t& p, const char* m) {
+	opt.SetMessageConsumer([](spv_message_level_t level, const char *, const spv_position_t &p, const char *m) {
 		switch(level)
 		{
-		case SPV_MSG_FATAL:          vk::warn("SPIR-V FATAL: %d:%d %s\n", int(p.line), int(p.column), m);
-		case SPV_MSG_INTERNAL_ERROR: vk::warn("SPIR-V INTERNAL_ERROR: %d:%d %s\n", int(p.line), int(p.column), m);
-		case SPV_MSG_ERROR:          vk::warn("SPIR-V ERROR: %d:%d %s\n", int(p.line), int(p.column), m);
-		case SPV_MSG_WARNING:        vk::warn("SPIR-V WARNING: %d:%d %s\n", int(p.line), int(p.column), m);
-		case SPV_MSG_INFO:           vk::trace("SPIR-V INFO: %d:%d %s\n", int(p.line), int(p.column), m);
-		case SPV_MSG_DEBUG:          vk::trace("SPIR-V DEBUG: %d:%d %s\n", int(p.line), int(p.column), m);
-		default:                     vk::trace("SPIR-V MESSAGE: %d:%d %s\n", int(p.line), int(p.column), m);
+			case SPV_MSG_FATAL: vk::warn("SPIR-V FATAL: %d:%d %s\n", int(p.line), int(p.column), m);
+			case SPV_MSG_INTERNAL_ERROR: vk::warn("SPIR-V INTERNAL_ERROR: %d:%d %s\n", int(p.line), int(p.column), m);
+			case SPV_MSG_ERROR: vk::warn("SPIR-V ERROR: %d:%d %s\n", int(p.line), int(p.column), m);
+			case SPV_MSG_WARNING: vk::warn("SPIR-V WARNING: %d:%d %s\n", int(p.line), int(p.column), m);
+			case SPV_MSG_INFO: vk::trace("SPIR-V INFO: %d:%d %s\n", int(p.line), int(p.column), m);
+			case SPV_MSG_DEBUG: vk::trace("SPIR-V DEBUG: %d:%d %s\n", int(p.line), int(p.column), m);
+			default: vk::trace("SPIR-V MESSAGE: %d:%d %s\n", int(p.line), int(p.column), m);
 		}
 	});
 
@@ -185,9 +185,9 @@ std::vector<uint32_t> preprocessSpirv(
 		{
 			auto const &e = specializationInfo->pMapEntries[i];
 			auto value_ptr =
-					static_cast<uint32_t const *>(specializationInfo->pData) + e.offset / sizeof(uint32_t);
+			    static_cast<uint32_t const *>(specializationInfo->pData) + e.offset / sizeof(uint32_t);
 			specializations.emplace(e.constantID,
-									std::vector<uint32_t>{value_ptr, value_ptr + e.size / sizeof(uint32_t)});
+			                        std::vector<uint32_t>{ value_ptr, value_ptr + e.size / sizeof(uint32_t) });
 		}
 		opt.RegisterPass(spvtools::CreateSetSpecConstantDefaultValuePass(specializations));
 	}
@@ -198,20 +198,21 @@ std::vector<uint32_t> preprocessSpirv(
 	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized);
 
-	if(false) {
+	if(false)
+	{
 		spvtools::SpirvTools core(SPV_ENV_VULKAN_1_1);
 		std::string preOpt;
 		core.Disassemble(code, &preOpt, SPV_BINARY_TO_TEXT_OPTION_NONE);
 		std::string postOpt;
 		core.Disassemble(optimized, &postOpt, SPV_BINARY_TO_TEXT_OPTION_NONE);
 		std::cout << "PRE-OPT: " << preOpt << std::endl
-		 		<< "POST-OPT: " << postOpt << std::endl;
+		          << "POST-OPT: " << postOpt << std::endl;
 	}
 
 	return optimized;
 }
 
-std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShaderKey& key, const vk::ShaderModule *module, bool robustBufferAccess)
+std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShaderKey &key, const vk::ShaderModule *module, bool robustBufferAccess)
 {
 	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo());
 	ASSERT(code.size() > 0);
@@ -222,10 +223,10 @@ std::shared_ptr<sw::SpirvShader> createShader(const vk::PipelineCache::SpirvShad
 
 	// TODO(b/119409619): use allocator.
 	return std::make_shared<sw::SpirvShader>(codeSerialID, key.getPipelineStage(), key.getEntryPointName().c_str(),
-		code, key.getRenderPass(), key.getSubpassIndex(), robustBufferAccess);
+	                                         code, key.getRenderPass(), key.getSubpassIndex(), robustBufferAccess);
 }
 
-std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey& key)
+std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey &key)
 {
 	MARL_SCOPED_EVENT("createProgram");
 
@@ -237,25 +238,25 @@ std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::Compu
 	return program;
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
 namespace vk {
 
 Pipeline::Pipeline(PipelineLayout const *layout, const Device *device)
-	: layout(layout),
-	  robustBufferAccess(device->getEnabledFeatures().robustBufferAccess)
+    : layout(layout)
+    , robustBufferAccess(device->getEnabledFeatures().robustBufferAccess)
 {
 }
 
-GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem, const Device *device)
-	: Pipeline(vk::Cast(pCreateInfo->layout), device)
+GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, const Device *device)
+    : Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
 	context.robustBufferAccess = robustBufferAccess;
 
 	if(((pCreateInfo->flags &
-		~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
-	      VK_PIPELINE_CREATE_DERIVATIVE_BIT |
-	      VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0) ||
+	     ~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
+	       VK_PIPELINE_CREATE_DERIVATIVE_BIT |
+	       VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0) ||
 	   (pCreateInfo->pTessellationState != nullptr))
 	{
 		UNIMPLEMENTED("pCreateInfo settings");
@@ -268,25 +269,25 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			VkDynamicState dynamicState = pCreateInfo->pDynamicState->pDynamicStates[i];
 			switch(dynamicState)
 			{
-			case VK_DYNAMIC_STATE_VIEWPORT:
-			case VK_DYNAMIC_STATE_SCISSOR:
-			case VK_DYNAMIC_STATE_LINE_WIDTH:
-			case VK_DYNAMIC_STATE_DEPTH_BIAS:
-			case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
-			case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
-			case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
-			case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
-			case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
-				ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
-				dynamicStateFlags |= (1 << dynamicState);
-				break;
-			default:
-				UNIMPLEMENTED("dynamic state");
+				case VK_DYNAMIC_STATE_VIEWPORT:
+				case VK_DYNAMIC_STATE_SCISSOR:
+				case VK_DYNAMIC_STATE_LINE_WIDTH:
+				case VK_DYNAMIC_STATE_DEPTH_BIAS:
+				case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
+				case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
+				case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
+				case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
+				case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
+					ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
+					dynamicStateFlags |= (1 << dynamicState);
+					break;
+				default:
+					UNIMPLEMENTED("dynamic state");
 			}
 		}
 	}
 
-	const VkPipelineVertexInputStateCreateInfo* vertexInputState = pCreateInfo->pVertexInputState;
+	const VkPipelineVertexInputStateCreateInfo *vertexInputState = pCreateInfo->pVertexInputState;
 	if(vertexInputState->flags != 0)
 	{
 		UNIMPLEMENTED("vertexInputState->flags");
@@ -301,15 +302,15 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	uint32_t instanceStrides[MAX_VERTEX_INPUT_BINDINGS];
 	for(uint32_t i = 0; i < vertexInputState->vertexBindingDescriptionCount; i++)
 	{
-		auto const & desc = vertexInputState->pVertexBindingDescriptions[i];
+		auto const &desc = vertexInputState->pVertexBindingDescriptions[i];
 		vertexStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? desc.stride : 0;
 		instanceStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE ? desc.stride : 0;
 	}
 
 	for(uint32_t i = 0; i < vertexInputState->vertexAttributeDescriptionCount; i++)
 	{
-		auto const & desc = vertexInputState->pVertexAttributeDescriptions[i];
-		sw::Stream& input = context.input[desc.location];
+		auto const &desc = vertexInputState->pVertexAttributeDescriptions[i];
+		sw::Stream &input = context.input[desc.location];
 		input.count = getNumberOfChannels(desc.format);
 		input.type = getStreamType(desc.format);
 		input.normalized = !vk::Format(desc.format).isNonNormalizedInteger();
@@ -319,7 +320,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		input.instanceStride = instanceStrides[desc.binding];
 	}
 
-	const VkPipelineInputAssemblyStateCreateInfo* assemblyState = pCreateInfo->pInputAssemblyState;
+	const VkPipelineInputAssemblyStateCreateInfo *assemblyState = pCreateInfo->pInputAssemblyState;
 	if(assemblyState->flags != 0)
 	{
 		UNIMPLEMENTED("pCreateInfo->pInputAssemblyState settings");
@@ -328,12 +329,12 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	primitiveRestartEnable = (assemblyState->primitiveRestartEnable != VK_FALSE);
 	context.topology = assemblyState->topology;
 
-	const VkPipelineViewportStateCreateInfo* viewportState = pCreateInfo->pViewportState;
+	const VkPipelineViewportStateCreateInfo *viewportState = pCreateInfo->pViewportState;
 	if(viewportState)
 	{
 		if((viewportState->flags != 0) ||
-			(viewportState->viewportCount != 1) ||
-			(viewportState->scissorCount != 1))
+		   (viewportState->viewportCount != 1) ||
+		   (viewportState->scissorCount != 1))
 		{
 			UNIMPLEMENTED("pCreateInfo->pViewportState settings");
 		}
@@ -349,7 +350,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		}
 	}
 
-	const VkPipelineRasterizationStateCreateInfo* rasterizationState = pCreateInfo->pRasterizationState;
+	const VkPipelineRasterizationStateCreateInfo *rasterizationState = pCreateInfo->pRasterizationState;
 	if((rasterizationState->flags != 0) ||
 	   (rasterizationState->depthClampEnable != VK_FALSE))
 	{
@@ -363,7 +364,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	context.depthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
 	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
 
-	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(rasterizationState->pNext);
+	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(rasterizationState->pNext);
 	while(extensionCreateInfo)
 	{
 		// Casting to a long since some structures, such as
@@ -371,40 +372,40 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		// are not enumerated in the official Vulkan header
 		switch((long)(extensionCreateInfo->sType))
 		{
-		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
-		{
-			const VkPipelineRasterizationLineStateCreateInfoEXT* lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT*>(extensionCreateInfo);
-			context.lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
-		}
-		break;
-		case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
-		{
-			const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* provokingVertexModeCreateInfo =
-				reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT*>(extensionCreateInfo);
-			context.provokingVertexMode = provokingVertexModeCreateInfo->provokingVertexMode;
-		}
-		break;
-		default:
-			WARN("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
+			{
+				const VkPipelineRasterizationLineStateCreateInfoEXT *lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT *>(extensionCreateInfo);
+				context.lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
+			}
 			break;
+			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
+			{
+				const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *provokingVertexModeCreateInfo =
+				    reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *>(extensionCreateInfo);
+				context.provokingVertexMode = provokingVertexModeCreateInfo->provokingVertexMode;
+			}
+			break;
+			default:
+				WARN("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+				break;
 		}
 
 		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
-	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
+	const VkPipelineMultisampleStateCreateInfo *multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
 	{
 		switch(multisampleState->rasterizationSamples)
 		{
-		case VK_SAMPLE_COUNT_1_BIT:
-			context.sampleCount = 1;
-			break;
-		case VK_SAMPLE_COUNT_4_BIT:
-			context.sampleCount = 4;
-			break;
-		default:
-			UNIMPLEMENTED("Unsupported sample count");
+			case VK_SAMPLE_COUNT_1_BIT:
+				context.sampleCount = 1;
+				break;
+			case VK_SAMPLE_COUNT_4_BIT:
+				context.sampleCount = 4;
+				break;
+			default:
+				UNIMPLEMENTED("Unsupported sample count");
 		}
 
 		if(multisampleState->pSampleMask)
@@ -415,8 +416,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable == VK_TRUE);
 
 		if((multisampleState->flags != 0) ||
-			(multisampleState->sampleShadingEnable != VK_FALSE) ||
-			(multisampleState->alphaToOneEnable != VK_FALSE))
+		   (multisampleState->sampleShadingEnable != VK_FALSE) ||
+		   (multisampleState->alphaToOneEnable != VK_FALSE))
 		{
 			UNIMPLEMENTED("multisampleState");
 		}
@@ -426,7 +427,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		context.sampleCount = 1;
 	}
 
-	const VkPipelineDepthStencilStateCreateInfo* depthStencilState = pCreateInfo->pDepthStencilState;
+	const VkPipelineDepthStencilStateCreateInfo *depthStencilState = pCreateInfo->pDepthStencilState;
 	if(depthStencilState)
 	{
 		if((depthStencilState->flags != 0) ||
@@ -448,7 +449,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		}
 	}
 
-	const VkPipelineColorBlendStateCreateInfo* colorBlendState = pCreateInfo->pColorBlendState;
+	const VkPipelineColorBlendStateCreateInfo *colorBlendState = pCreateInfo->pColorBlendState;
 	if(colorBlendState)
 	{
 		if((colorBlendState->flags != 0) ||
@@ -467,66 +468,66 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 
 		for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
 		{
-			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[i];
+			const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
 			context.colorWriteMask[i] = attachment.colorWriteMask;
 
 			context.setBlendState(i, { (attachment.blendEnable == VK_TRUE),
-				attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
-				attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp });
+			                           attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
+			                           attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp });
 		}
 	}
 
-	context.multiSampleMask = context.sampleMask & ((unsigned) 0xFFFFFFFF >> (32 - context.sampleCount));
+	context.multiSampleMask = context.sampleMask & ((unsigned)0xFFFFFFFF >> (32 - context.sampleCount));
 }
 
-void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
+void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks *pAllocator)
 {
 	vertexShader.reset();
 	fragmentShader.reset();
 }
 
-size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineCreateInfo* pCreateInfo)
+size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineCreateInfo *pCreateInfo)
 {
 	return 0;
 }
 
-void GraphicsPipeline::setShader(const VkShaderStageFlagBits& stage, const std::shared_ptr<sw::SpirvShader> spirvShader)
+void GraphicsPipeline::setShader(const VkShaderStageFlagBits &stage, const std::shared_ptr<sw::SpirvShader> spirvShader)
 {
 	switch(stage)
 	{
-	case VK_SHADER_STAGE_VERTEX_BIT:
-		ASSERT(vertexShader.get() == nullptr);
-		vertexShader = spirvShader;
-		context.vertexShader = vertexShader.get();
-		break;
+		case VK_SHADER_STAGE_VERTEX_BIT:
+			ASSERT(vertexShader.get() == nullptr);
+			vertexShader = spirvShader;
+			context.vertexShader = vertexShader.get();
+			break;
 
-	case VK_SHADER_STAGE_FRAGMENT_BIT:
-		ASSERT(fragmentShader.get() == nullptr);
-		fragmentShader = spirvShader;
-		context.pixelShader = fragmentShader.get();
-		break;
+		case VK_SHADER_STAGE_FRAGMENT_BIT:
+			ASSERT(fragmentShader.get() == nullptr);
+			fragmentShader = spirvShader;
+			context.pixelShader = fragmentShader.get();
+			break;
 
-	default:
-		UNSUPPORTED("Unsupported stage");
-		break;
+		default:
+			UNSUPPORTED("Unsupported stage");
+			break;
 	}
 }
 
-const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShaderStageFlagBits& stage) const
+const std::shared_ptr<sw::SpirvShader> GraphicsPipeline::getShader(const VkShaderStageFlagBits &stage) const
 {
 	switch(stage)
 	{
-	case VK_SHADER_STAGE_VERTEX_BIT:
-		return vertexShader;
-	case VK_SHADER_STAGE_FRAGMENT_BIT:
-		return fragmentShader;
-	default:
-		UNSUPPORTED("Unsupported stage");
-		return fragmentShader;
+		case VK_SHADER_STAGE_VERTEX_BIT:
+			return vertexShader;
+		case VK_SHADER_STAGE_FRAGMENT_BIT:
+			return fragmentShader;
+		default:
+			UNSUPPORTED("Unsupported stage");
+			return fragmentShader;
 	}
 }
 
-void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo, PipelineCache* pPipelineCache)
+void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, const VkGraphicsPipelineCreateInfo *pCreateInfo, PipelineCache *pPipelineCache)
 {
 	for(auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++)
 	{
@@ -543,10 +544,10 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 
 		if(pPipelineCache)
 		{
-			PipelineCache& pipelineCache = *pPipelineCache;
+			PipelineCache &pipelineCache = *pPipelineCache;
 			{
 				std::unique_lock<std::mutex> lock(pipelineCache.getShaderMutex());
-				const std::shared_ptr<sw::SpirvShader>* spirvShader = pipelineCache[key];
+				const std::shared_ptr<sw::SpirvShader> *spirvShader = pipelineCache[key];
 				if(!spirvShader)
 				{
 					auto shader = createShader(key, module, robustBufferAccess);
@@ -571,41 +572,41 @@ uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
 {
 	switch(context.topology)
 	{
-	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-		return vertexCount;
-	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		return vertexCount / 2;
-	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-		return std::max<uint32_t>(vertexCount, 1) - 1;
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		return vertexCount / 3;
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		return std::max<uint32_t>(vertexCount, 2) - 2;
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-		return std::max<uint32_t>(vertexCount, 2) - 2;
-	default:
-		UNIMPLEMENTED("context.topology %d", int(context.topology));
+		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+			return vertexCount;
+		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+			return vertexCount / 2;
+		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+			return std::max<uint32_t>(vertexCount, 1) - 1;
+		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+			return vertexCount / 3;
+		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+			return std::max<uint32_t>(vertexCount, 2) - 2;
+		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+			return std::max<uint32_t>(vertexCount, 2) - 2;
+		default:
+			UNIMPLEMENTED("context.topology %d", int(context.topology));
 	}
 
 	return 0;
 }
 
-const sw::Context& GraphicsPipeline::getContext() const
+const sw::Context &GraphicsPipeline::getContext() const
 {
 	return context;
 }
 
-const VkRect2D& GraphicsPipeline::getScissor() const
+const VkRect2D &GraphicsPipeline::getScissor() const
 {
 	return scissor;
 }
 
-const VkViewport& GraphicsPipeline::getViewport() const
+const VkViewport &GraphicsPipeline::getViewport() const
 {
 	return viewport;
 }
 
-const sw::Color<float>& GraphicsPipeline::getBlendConstants() const
+const sw::Color<float> &GraphicsPipeline::getBlendConstants() const
 {
 	return blendConstants;
 }
@@ -615,23 +616,23 @@ bool GraphicsPipeline::hasDynamicState(VkDynamicState dynamicState) const
 	return (dynamicStateFlags & (1 << dynamicState)) != 0;
 }
 
-ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem, const Device *device)
-	: Pipeline(vk::Cast(pCreateInfo->layout), device)
+ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo *pCreateInfo, void *mem, const Device *device)
+    : Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
 }
 
-void ComputePipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
+void ComputePipeline::destroyPipeline(const VkAllocationCallbacks *pAllocator)
 {
 	shader.reset();
 	program.reset();
 }
 
-size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCreateInfo* pCreateInfo)
+size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCreateInfo *pCreateInfo)
 {
 	return 0;
 }
 
-void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo, PipelineCache* pPipelineCache)
+void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, const VkComputePipelineCreateInfo *pCreateInfo, PipelineCache *pPipelineCache)
 {
 	auto &stage = pCreateInfo->stage;
 	const ShaderModule *module = vk::Cast(stage.module);
@@ -640,13 +641,13 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 	ASSERT(program.get() == nullptr);
 
 	const PipelineCache::SpirvShaderKey shaderKey(
-		stage.stage, stage.pName, module->getCode(), nullptr, 0, stage.pSpecializationInfo);
+	    stage.stage, stage.pName, module->getCode(), nullptr, 0, stage.pSpecializationInfo);
 	if(pPipelineCache)
 	{
-		PipelineCache& pipelineCache = *pPipelineCache;
+		PipelineCache &pipelineCache = *pPipelineCache;
 		{
 			std::unique_lock<std::mutex> lock(pipelineCache.getShaderMutex());
-			const std::shared_ptr<sw::SpirvShader>* spirvShader = pipelineCache[shaderKey];
+			const std::shared_ptr<sw::SpirvShader> *spirvShader = pipelineCache[shaderKey];
 			if(!spirvShader)
 			{
 				shader = createShader(shaderKey, module, robustBufferAccess);
@@ -661,7 +662,7 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 		{
 			const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
 			std::unique_lock<std::mutex> lock(pipelineCache.getProgramMutex());
-			const std::shared_ptr<sw::ComputeProgram>* computeProgram = pipelineCache[programKey];
+			const std::shared_ptr<sw::ComputeProgram> *computeProgram = pipelineCache[programKey];
 			if(!computeProgram)
 			{
 				program = createProgram(programKey);
@@ -682,16 +683,16 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 }
 
 void ComputePipeline::run(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
-	uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
-	vk::DescriptorSet::Bindings const &descriptorSets,
-	vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
-	sw::PushConstantStorage const &pushConstants)
+                          uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
+                          vk::DescriptorSet::Bindings const &descriptorSets,
+                          vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
+                          sw::PushConstantStorage const &pushConstants)
 {
 	ASSERT_OR_RETURN(program != nullptr);
 	program->run(
-		descriptorSets, descriptorDynamicOffsets, pushConstants,
-		baseGroupX, baseGroupY, baseGroupZ,
-		groupCountX, groupCountY, groupCountZ);
+	    descriptorSets, descriptorDynamicOffsets, pushConstants,
+	    baseGroupX, baseGroupY, baseGroupZ,
+	    groupCountX, groupCountY, groupCountZ);
 }
 
 }  // namespace vk

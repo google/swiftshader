@@ -15,15 +15,15 @@
 #include "VkFramebuffer.hpp"
 #include "VkImageView.hpp"
 #include "VkRenderPass.hpp"
-#include <algorithm>
 #include <memory.h>
+#include <algorithm>
 
 namespace vk {
 
-Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) :
-	attachmentCount(pCreateInfo->attachmentCount),
-	attachments(reinterpret_cast<ImageView**>(mem)),
-	extent{pCreateInfo->width, pCreateInfo->height, pCreateInfo->layers}
+Framebuffer::Framebuffer(const VkFramebufferCreateInfo *pCreateInfo, void *mem)
+    : attachmentCount(pCreateInfo->attachmentCount)
+    , attachments(reinterpret_cast<ImageView **>(mem))
+    , extent{ pCreateInfo->width, pCreateInfo->height, pCreateInfo->layers }
 {
 	for(uint32_t i = 0; i < attachmentCount; i++)
 	{
@@ -31,12 +31,12 @@ Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) 
 	}
 }
 
-void Framebuffer::destroy(const VkAllocationCallbacks* pAllocator)
+void Framebuffer::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	vk::deallocate(attachments, pAllocator);
 }
 
-void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, const VkClearValue* pClearValues, const VkRect2D& renderArea)
+void Framebuffer::clear(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea)
 {
 	ASSERT(attachmentCount == renderPass->getAttachmentCount());
 
@@ -59,7 +59,7 @@ void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, 
 		if(renderPass->isMultiView())
 		{
 			attachments[i]->clearWithLayerMask(pClearValues[i], aspectMask, renderArea,
-											   renderPass->getAttachmentViewMask(i));
+			                                   renderPass->getAttachmentViewMask(i));
 		}
 		else
 		{
@@ -68,7 +68,7 @@ void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, 
 	}
 }
 
-void Framebuffer::clearAttachment(const RenderPass* renderPass, uint32_t subpassIndex, const VkClearAttachment& attachment, const VkClearRect& rect)
+void Framebuffer::clearAttachment(const RenderPass *renderPass, uint32_t subpassIndex, const VkClearAttachment &attachment, const VkClearRect &rect)
 {
 	VkSubpassDescription subpass = renderPass->getSubpass(subpassIndex);
 
@@ -85,7 +85,7 @@ void Framebuffer::clearAttachment(const RenderPass* renderPass, uint32_t subpass
 			if(renderPass->isMultiView())
 			{
 				imageView->clearWithLayerMask(attachment.clearValue, attachment.aspectMask, rect.rect,
-											  renderPass->getViewMask(subpassIndex));
+				                              renderPass->getViewMask(subpassIndex));
 			}
 			else
 			{
@@ -105,7 +105,7 @@ void Framebuffer::clearAttachment(const RenderPass* renderPass, uint32_t subpass
 			if(renderPass->isMultiView())
 			{
 				imageView->clearWithLayerMask(attachment.clearValue, attachment.aspectMask, rect.rect,
-											  renderPass->getViewMask(subpassIndex));
+				                              renderPass->getViewMask(subpassIndex));
 			}
 			else
 			{
@@ -120,9 +120,9 @@ ImageView *Framebuffer::getAttachment(uint32_t index) const
 	return attachments[index];
 }
 
-void Framebuffer::resolve(const RenderPass* renderPass, uint32_t subpassIndex)
+void Framebuffer::resolve(const RenderPass *renderPass, uint32_t subpassIndex)
 {
-	auto const& subpass = renderPass->getSubpass(subpassIndex);
+	auto const &subpass = renderPass->getSubpass(subpassIndex);
 	if(subpass.pResolveAttachments)
 	{
 		for(uint32_t i = 0; i < subpass.colorAttachmentCount; i++)
@@ -134,7 +134,7 @@ void Framebuffer::resolve(const RenderPass* renderPass, uint32_t subpassIndex)
 				if(renderPass->isMultiView())
 				{
 					imageView->resolveWithLayerMask(attachments[resolveAttachment],
-													renderPass->getViewMask(subpassIndex));
+					                                renderPass->getViewMask(subpassIndex));
 				}
 				else
 				{
@@ -145,9 +145,9 @@ void Framebuffer::resolve(const RenderPass* renderPass, uint32_t subpassIndex)
 	}
 }
 
-size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo* pCreateInfo)
+size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo *pCreateInfo)
 {
-	return pCreateInfo->attachmentCount * sizeof(void*);
+	return pCreateInfo->attachmentCount * sizeof(void *);
 }
 
 }  // namespace vk

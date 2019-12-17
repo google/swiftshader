@@ -19,10 +19,10 @@
 
 namespace vk {
 
-DescriptorUpdateTemplate::DescriptorUpdateTemplate(const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo, void* mem) :
-	descriptorUpdateEntryCount(pCreateInfo->descriptorUpdateEntryCount),
-	descriptorUpdateEntries(reinterpret_cast<VkDescriptorUpdateTemplateEntry*>(mem)),
-	descriptorSetLayout(vk::Cast(pCreateInfo->descriptorSetLayout))
+DescriptorUpdateTemplate::DescriptorUpdateTemplate(const VkDescriptorUpdateTemplateCreateInfo *pCreateInfo, void *mem)
+    : descriptorUpdateEntryCount(pCreateInfo->descriptorUpdateEntryCount)
+    , descriptorUpdateEntries(reinterpret_cast<VkDescriptorUpdateTemplateEntry *>(mem))
+    , descriptorSetLayout(vk::Cast(pCreateInfo->descriptorSetLayout))
 {
 	for(uint32_t i = 0; i < descriptorUpdateEntryCount; i++)
 	{
@@ -30,20 +30,20 @@ DescriptorUpdateTemplate::DescriptorUpdateTemplate(const VkDescriptorUpdateTempl
 	}
 }
 
-size_t DescriptorUpdateTemplate::ComputeRequiredAllocationSize(const VkDescriptorUpdateTemplateCreateInfo* info)
+size_t DescriptorUpdateTemplate::ComputeRequiredAllocationSize(const VkDescriptorUpdateTemplateCreateInfo *info)
 {
 	return info->descriptorUpdateEntryCount * sizeof(VkDescriptorUpdateTemplateEntry);
 }
 
-void DescriptorUpdateTemplate::updateDescriptorSet(Device* device, VkDescriptorSet vkDescriptorSet, const void* pData)
+void DescriptorUpdateTemplate::updateDescriptorSet(Device *device, VkDescriptorSet vkDescriptorSet, const void *pData)
 {
 
-	DescriptorSet* descriptorSet = vk::Cast(vkDescriptorSet);
+	DescriptorSet *descriptorSet = vk::Cast(vkDescriptorSet);
 
 	for(uint32_t i = 0; i < descriptorUpdateEntryCount; i++)
 	{
 		DescriptorSetLayout::WriteDescriptorSet(device, descriptorSet, descriptorUpdateEntries[i],
-												reinterpret_cast<char const *>(pData));
+		                                        reinterpret_cast<char const *>(pData));
 	}
 }
 

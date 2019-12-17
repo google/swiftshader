@@ -12,99 +12,99 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkDeviceMemory.hpp"
+#include "VkImage.hpp"
 #include "VkBuffer.hpp"
 #include "VkDevice.hpp"
-#include "VkImage.hpp"
-#include "Device/Blitter.hpp"
+#include "VkDeviceMemory.hpp"
 #include "Device/BC_Decoder.hpp"
+#include "Device/Blitter.hpp"
 #include "Device/ETC_Decoder.hpp"
 #include <cstring>
 
 #ifdef __ANDROID__
-#include "System/GrallocAndroid.hpp"
+#	include "System/GrallocAndroid.hpp"
 #endif
 
 namespace {
 
-ETC_Decoder::InputType GetInputType(const vk::Format& format)
+ETC_Decoder::InputType GetInputType(const vk::Format &format)
 {
 	switch(format)
 	{
-	case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-		return ETC_Decoder::ETC_R_UNSIGNED;
-	case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-		return ETC_Decoder::ETC_R_SIGNED;
-	case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-		return ETC_Decoder::ETC_RG_UNSIGNED;
-	case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-		return ETC_Decoder::ETC_RG_SIGNED;
-	case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-	case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-		return ETC_Decoder::ETC_RGB;
-	case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-	case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-		return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
-	case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-	case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-		return ETC_Decoder::ETC_RGBA;
-	default:
-		UNIMPLEMENTED("format: %d", int(format));
-		return ETC_Decoder::ETC_RGBA;
+		case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+			return ETC_Decoder::ETC_R_UNSIGNED;
+		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+			return ETC_Decoder::ETC_R_SIGNED;
+		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+			return ETC_Decoder::ETC_RG_UNSIGNED;
+		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+			return ETC_Decoder::ETC_RG_SIGNED;
+		case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+			return ETC_Decoder::ETC_RGB;
+		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+			return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
+		case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+			return ETC_Decoder::ETC_RGBA;
+		default:
+			UNIMPLEMENTED("format: %d", int(format));
+			return ETC_Decoder::ETC_RGBA;
 	}
 }
 
-int GetBCn(const vk::Format& format)
+int GetBCn(const vk::Format &format)
 {
 	switch(format)
 	{
-	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-		return 1;
-	case VK_FORMAT_BC2_UNORM_BLOCK:
-	case VK_FORMAT_BC2_SRGB_BLOCK:
-		return 2;
-	case VK_FORMAT_BC3_UNORM_BLOCK:
-	case VK_FORMAT_BC3_SRGB_BLOCK:
-		return 3;
-	case VK_FORMAT_BC4_UNORM_BLOCK:
-	case VK_FORMAT_BC4_SNORM_BLOCK:
-		return 4;
-	case VK_FORMAT_BC5_UNORM_BLOCK:
-	case VK_FORMAT_BC5_SNORM_BLOCK:
-		return 5;
-	default:
-		UNIMPLEMENTED("format: %d", int(format));
-		return 0;
+		case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+			return 1;
+		case VK_FORMAT_BC2_UNORM_BLOCK:
+		case VK_FORMAT_BC2_SRGB_BLOCK:
+			return 2;
+		case VK_FORMAT_BC3_UNORM_BLOCK:
+		case VK_FORMAT_BC3_SRGB_BLOCK:
+			return 3;
+		case VK_FORMAT_BC4_UNORM_BLOCK:
+		case VK_FORMAT_BC4_SNORM_BLOCK:
+			return 4;
+		case VK_FORMAT_BC5_UNORM_BLOCK:
+		case VK_FORMAT_BC5_SNORM_BLOCK:
+			return 5;
+		default:
+			UNIMPLEMENTED("format: %d", int(format));
+			return 0;
 	}
 }
 
 // Returns true for BC1 if we have an RGB format, false for RGBA
 // Returns true for BC4 and BC5 if we have an unsigned format, false for signed
 // Ignored by BC2 and BC3
-bool GetNoAlphaOrUnsigned(const vk::Format& format)
+bool GetNoAlphaOrUnsigned(const vk::Format &format)
 {
 	switch(format)
 	{
-	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-	case VK_FORMAT_BC4_UNORM_BLOCK:
-	case VK_FORMAT_BC5_UNORM_BLOCK:
-		return true;
-	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-	case VK_FORMAT_BC2_UNORM_BLOCK:
-	case VK_FORMAT_BC2_SRGB_BLOCK:
-	case VK_FORMAT_BC3_UNORM_BLOCK:
-	case VK_FORMAT_BC3_SRGB_BLOCK:
-	case VK_FORMAT_BC4_SNORM_BLOCK:
-	case VK_FORMAT_BC5_SNORM_BLOCK:
-		return false;
-	default:
-		UNIMPLEMENTED("format: %d", int(format));
-		return false;
+		case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+		case VK_FORMAT_BC4_UNORM_BLOCK:
+		case VK_FORMAT_BC5_UNORM_BLOCK:
+			return true;
+		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+		case VK_FORMAT_BC2_UNORM_BLOCK:
+		case VK_FORMAT_BC2_SRGB_BLOCK:
+		case VK_FORMAT_BC3_UNORM_BLOCK:
+		case VK_FORMAT_BC3_SRGB_BLOCK:
+		case VK_FORMAT_BC4_SNORM_BLOCK:
+		case VK_FORMAT_BC5_SNORM_BLOCK:
+			return false;
+		default:
+			UNIMPLEMENTED("format: %d", int(format));
+			return false;
 	}
 }
 
@@ -112,37 +112,37 @@ bool GetNoAlphaOrUnsigned(const vk::Format& format)
 
 namespace vk {
 
-Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem, Device *device) :
-	device(device),
-	flags(pCreateInfo->flags),
-	imageType(pCreateInfo->imageType),
-	format(pCreateInfo->format),
-	extent(pCreateInfo->extent),
-	mipLevels(pCreateInfo->mipLevels),
-	arrayLayers(pCreateInfo->arrayLayers),
-	samples(pCreateInfo->samples),
-	tiling(pCreateInfo->tiling),
-	usage(pCreateInfo->usage)
+Image::Image(const VkImageCreateInfo *pCreateInfo, void *mem, Device *device)
+    : device(device)
+    , flags(pCreateInfo->flags)
+    , imageType(pCreateInfo->imageType)
+    , format(pCreateInfo->format)
+    , extent(pCreateInfo->extent)
+    , mipLevels(pCreateInfo->mipLevels)
+    , arrayLayers(pCreateInfo->arrayLayers)
+    , samples(pCreateInfo->samples)
+    , tiling(pCreateInfo->tiling)
+    , usage(pCreateInfo->usage)
 {
 	if(format.isCompressed())
 	{
 		VkImageCreateInfo compressedImageCreateInfo = *pCreateInfo;
 		compressedImageCreateInfo.format = format.getDecompressedFormat();
-		decompressedImage = new (mem) Image(&compressedImageCreateInfo, nullptr, device);
+		decompressedImage = new(mem) Image(&compressedImageCreateInfo, nullptr, device);
 	}
 
-	const auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+	const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 	for(; nextInfo != nullptr; nextInfo = nextInfo->pNext)
 	{
 		if(nextInfo->sType == VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO)
 		{
-			const auto* externalInfo = reinterpret_cast<const VkExternalMemoryImageCreateInfo*>(nextInfo);
+			const auto *externalInfo = reinterpret_cast<const VkExternalMemoryImageCreateInfo *>(nextInfo);
 			supportedExternalMemoryHandleTypes = externalInfo->handleTypes;
 		}
 	}
 }
 
-void Image::destroy(const VkAllocationCallbacks* pAllocator)
+void Image::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	if(decompressedImage)
 	{
@@ -150,7 +150,7 @@ void Image::destroy(const VkAllocationCallbacks* pAllocator)
 	}
 }
 
-size_t Image::ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo)
+size_t Image::ComputeRequiredAllocationSize(const VkImageCreateInfo *pCreateInfo)
 {
 	return Format(pCreateInfo->format).isCompressed() ? sizeof(Image) : 0;
 }
@@ -165,12 +165,12 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	return memoryRequirements;
 }
 
-bool Image::canBindToMemory(DeviceMemory* pDeviceMemory) const
+bool Image::canBindToMemory(DeviceMemory *pDeviceMemory) const
 {
 	return pDeviceMemory->checkExternalMemoryHandleType(supportedExternalMemoryHandleTypes);
 }
 
-void Image::bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset)
+void Image::bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset)
 {
 	deviceMemory = pDeviceMemory;
 	memoryOffset = pMemoryOffset;
@@ -184,7 +184,7 @@ void Image::bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset)
 #ifdef __ANDROID__
 VkResult Image::prepareForExternalUseANDROID() const
 {
-	void* nativeBuffer = nullptr;
+	void *nativeBuffer = nullptr;
 	VkExtent3D extent = getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
 	if(GrallocModule::getInstance()->lock(backingMemory.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer) != 0)
@@ -201,8 +201,8 @@ VkResult Image::prepareForExternalUseANDROID() const
 	int bufferRowBytes = backingMemory.stride * getFormat().bytes();
 	ASSERT(imageRowBytes <= bufferRowBytes);
 
-	uint8_t* srcBuffer = static_cast<uint8_t*>(deviceMemory->getOffsetPointer(0));
-	uint8_t* dstBuffer = static_cast<uint8_t*>(nativeBuffer);
+	uint8_t *srcBuffer = static_cast<uint8_t *>(deviceMemory->getOffsetPointer(0));
+	uint8_t *dstBuffer = static_cast<uint8_t *>(nativeBuffer);
 	for(uint32_t i = 0; i < extent.height; i++)
 	{
 		memcpy(dstBuffer + (i * bufferRowBytes), srcBuffer + (i * imageRowBytes), imageRowBytes);
@@ -222,15 +222,15 @@ VkDeviceMemory Image::getExternalMemory() const
 }
 #endif
 
-void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const
+void Image::getSubresourceLayout(const VkImageSubresource *pSubresource, VkSubresourceLayout *pLayout) const
 {
 	// By spec, aspectMask has a single bit set.
 	if(!((pSubresource->aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
-	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
-	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
-	      (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
+	     (pSubresource->aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	     (pSubresource->aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
+	     (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
+	     (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
+	     (pSubresource->aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
 	{
 		UNSUPPORTED("aspectMask %X", pSubresource->aspectMask);
 	}
@@ -243,27 +243,27 @@ void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubre
 	pLayout->arrayPitch = getLayerSize(aspect);
 }
 
-void Image::copyTo(Image* dstImage, const VkImageCopy& region) const
+void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 {
 	// Image copy does not perform any conversion, it simply copies memory from
 	// an image to another image that has the same number of bytes per pixel.
 
 	if(!((region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-	      (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-	      (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
-	      (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
-	      (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
-	      (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
+	     (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	     (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
+	     (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
+	     (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
+	     (region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
 	{
 		UNSUPPORTED("srcSubresource.aspectMask %X", region.srcSubresource.aspectMask);
 	}
 
 	if(!((region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-	      (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-	      (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
-	      (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
-	      (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
-	      (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
+	     (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	     (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT) ||
+	     (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT) ||
+	     (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT) ||
+	     (region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_PLANE_2_BIT)))
 	{
 		UNSUPPORTED("dstSubresource.aspectMask %X", region.dstSubresource.aspectMask);
 	}
@@ -296,8 +296,8 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& region) const
 	int srcBytesPerBlock = srcFormat.bytesPerBlock();
 	ASSERT(srcBytesPerBlock == dstFormat.bytesPerBlock());
 
-	const uint8_t* srcMem = static_cast<const uint8_t*>(getTexelPointer(region.srcOffset, region.srcSubresource));
-	uint8_t* dstMem = static_cast<uint8_t*>(dstImage->getTexelPointer(region.dstOffset, region.dstSubresource));
+	const uint8_t *srcMem = static_cast<const uint8_t *>(getTexelPointer(region.srcOffset, region.srcSubresource));
+	uint8_t *dstMem = static_cast<uint8_t *>(dstImage->getTexelPointer(region.dstOffset, region.dstSubresource));
 
 	int srcRowPitchBytes = rowPitchBytes(srcAspect, region.srcSubresource.mipLevel);
 	int srcSlicePitchBytes = slicePitchBytes(srcAspect, region.srcSubresource.mipLevel);
@@ -309,21 +309,21 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& region) const
 	VkExtent3D copyExtent = imageExtentInBlocks(region.extent, srcAspect);
 
 	bool isSinglePlane = (copyExtent.depth == 1);
-	bool isSingleLine  = (copyExtent.height == 1) && isSinglePlane;
+	bool isSingleLine = (copyExtent.height == 1) && isSinglePlane;
 	// In order to copy multiple lines using a single memcpy call, we
 	// have to make sure that we need to copy the entire line and that
 	// both source and destination lines have the same length in bytes
-	bool isEntireLine  = (region.extent.width == srcExtent.width) &&
-	                     (region.extent.width == dstExtent.width) &&
-	// For non compressed formats, blockWidth is 1. For compressed
-	// formats, rowPitchBytes returns the number of bytes for a row of
-	// blocks, so we have to divide by the block height, which means:
-	// srcRowPitchBytes / srcBlockWidth == dstRowPitchBytes / dstBlockWidth
-	// And, to avoid potential non exact integer division, for example if a
-	// block has 16 bytes and represents 5 lines, we change the equation to:
-	// srcRowPitchBytes * dstBlockWidth == dstRowPitchBytes * srcBlockWidth
-	                     ((srcRowPitchBytes * dstFormat.blockWidth()) ==
-	                      (dstRowPitchBytes * srcFormat.blockWidth()));
+	bool isEntireLine = (region.extent.width == srcExtent.width) &&
+	                    (region.extent.width == dstExtent.width) &&
+	                    // For non compressed formats, blockWidth is 1. For compressed
+	                    // formats, rowPitchBytes returns the number of bytes for a row of
+	                    // blocks, so we have to divide by the block height, which means:
+	                    // srcRowPitchBytes / srcBlockWidth == dstRowPitchBytes / dstBlockWidth
+	                    // And, to avoid potential non exact integer division, for example if a
+	                    // block has 16 bytes and represents 5 lines, we change the equation to:
+	                    // srcRowPitchBytes * dstBlockWidth == dstRowPitchBytes * srcBlockWidth
+	                    ((srcRowPitchBytes * dstFormat.blockWidth()) ==
+	                     (dstRowPitchBytes * srcFormat.blockWidth()));
 	// In order to copy multiple planes using a single memcpy call, we
 	// have to make sure that we need to copy the entire plane and that
 	// both source and destination planes have the same length in bytes
@@ -332,28 +332,28 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& region) const
 	                     (copyExtent.height == dstExtent.height) &&
 	                     (srcSlicePitchBytes == dstSlicePitchBytes);
 
-	if(isSingleLine) // Copy one line
+	if(isSingleLine)  // Copy one line
 	{
 		size_t copySize = copyExtent.width * srcBytesPerBlock;
 		ASSERT((srcMem + copySize) < end());
 		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
 	}
-	else if(isEntireLine && isSinglePlane) // Copy one plane
+	else if(isEntireLine && isSinglePlane)  // Copy one plane
 	{
 		size_t copySize = copyExtent.height * srcRowPitchBytes;
 		ASSERT((srcMem + copySize) < end());
 		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
 	}
-	else if(isEntirePlane) // Copy multiple planes
+	else if(isEntirePlane)  // Copy multiple planes
 	{
 		size_t copySize = copyExtent.depth * srcSlicePitchBytes;
 		ASSERT((srcMem + copySize) < end());
 		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
 	}
-	else if(isEntireLine) // Copy plane by plane
+	else if(isEntireLine)  // Copy plane by plane
 	{
 		size_t copySize = copyExtent.height * srcRowPitchBytes;
 
@@ -364,14 +364,14 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& region) const
 			memcpy(dstMem, srcMem, copySize);
 		}
 	}
-	else // Copy line by line
+	else  // Copy line by line
 	{
 		size_t copySize = copyExtent.width * srcBytesPerBlock;
 
 		for(uint32_t z = 0; z < copyExtent.depth; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
 		{
-			const uint8_t* srcSlice = srcMem;
-			uint8_t* dstSlice = dstMem;
+			const uint8_t *srcSlice = srcMem;
+			uint8_t *dstSlice = dstMem;
 			for(uint32_t y = 0; y < copyExtent.height; y++, dstSlice += dstRowPitchBytes, srcSlice += srcRowPitchBytes)
 			{
 				ASSERT((srcSlice + copySize) < end());
@@ -385,20 +385,20 @@ void Image::copyTo(Image* dstImage, const VkImageCopy& region) const
 	                               region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount });
 }
 
-void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsSource)
+void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsSource)
 {
 	switch(region.imageSubresource.aspectMask)
 	{
-	case VK_IMAGE_ASPECT_COLOR_BIT:
-	case VK_IMAGE_ASPECT_DEPTH_BIT:
-	case VK_IMAGE_ASPECT_STENCIL_BIT:
-	case VK_IMAGE_ASPECT_PLANE_0_BIT:
-	case VK_IMAGE_ASPECT_PLANE_1_BIT:
-	case VK_IMAGE_ASPECT_PLANE_2_BIT:
-		break;
-	default:
-		UNSUPPORTED("aspectMask %x", int(region.imageSubresource.aspectMask));
-		break;
+		case VK_IMAGE_ASPECT_COLOR_BIT:
+		case VK_IMAGE_ASPECT_DEPTH_BIT:
+		case VK_IMAGE_ASPECT_STENCIL_BIT:
+		case VK_IMAGE_ASPECT_PLANE_0_BIT:
+		case VK_IMAGE_ASPECT_PLANE_1_BIT:
+		case VK_IMAGE_ASPECT_PLANE_2_BIT:
+			break;
+		default:
+			UNSUPPORTED("aspectMask %x", int(region.imageSubresource.aspectMask));
+			break;
 	}
 
 	auto aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
@@ -410,10 +410,10 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
 	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
 
-	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
-	uint8_t* imageMemory = static_cast<uint8_t*>(getTexelPointer(region.imageOffset, region.imageSubresource));
-	uint8_t* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
-	uint8_t* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
+	uint8_t *bufferMemory = static_cast<uint8_t *>(buffer->getOffsetPointer(region.bufferOffset));
+	uint8_t *imageMemory = static_cast<uint8_t *>(getTexelPointer(region.imageOffset, region.imageSubresource));
+	uint8_t *srcMemory = bufferIsSource ? bufferMemory : imageMemory;
+	uint8_t *dstMemory = bufferIsSource ? imageMemory : bufferMemory;
 	int imageRowPitchBytes = rowPitchBytes(aspect, region.imageSubresource.mipLevel);
 	int imageSlicePitchBytes = slicePitchBytes(aspect, region.imageSubresource.mipLevel);
 
@@ -424,11 +424,11 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 
 	VkExtent3D mipLevelExtent = getMipLevelExtent(aspect, region.imageSubresource.mipLevel);
 	bool isSinglePlane = (imageExtent.depth == 1);
-	bool isSingleLine  = (imageExtent.height == 1) && isSinglePlane;
-	bool isEntireLine  = (imageExtent.width == mipLevelExtent.width) &&
-						 (imageRowPitchBytes == bufferRowPitchBytes);
+	bool isSingleLine = (imageExtent.height == 1) && isSinglePlane;
+	bool isEntireLine = (imageExtent.width == mipLevelExtent.width) &&
+	                    (imageRowPitchBytes == bufferRowPitchBytes);
 	bool isEntirePlane = isEntireLine && (imageExtent.height == mipLevelExtent.height) &&
-						 (imageSlicePitchBytes == bufferSlicePitchBytes);
+	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
 
 	VkDeviceSize copySize = 0;
 	VkDeviceSize bufferLayerSize = 0;
@@ -444,15 +444,15 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 	}
 	else if(isEntirePlane)
 	{
-		copySize = imageExtent.depth * imageSlicePitchBytes; // Copy multiple planes
+		copySize = imageExtent.depth * imageSlicePitchBytes;  // Copy multiple planes
 		bufferLayerSize = copySize;
 	}
-	else if(isEntireLine) // Copy plane by plane
+	else if(isEntireLine)  // Copy plane by plane
 	{
 		copySize = imageExtent.height * imageRowPitchBytes;
 		bufferLayerSize = copySize * imageExtent.depth;
 	}
-	else // Copy line by line
+	else  // Copy line by line
 	{
 		copySize = imageExtent.width * bytesPerBlock;
 		bufferLayerSize = copySize * imageExtent.depth * imageExtent.height;
@@ -470,10 +470,10 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 			ASSERT(((bufferIsSource ? srcMemory : dstMemory) + copySize) < buffer->end());
 			memcpy(dstMemory, srcMemory, copySize);
 		}
-		else if(isEntireLine) // Copy plane by plane
+		else if(isEntireLine)  // Copy plane by plane
 		{
-			uint8_t* srcPlaneMemory = srcMemory;
-			uint8_t* dstPlaneMemory = dstMemory;
+			uint8_t *srcPlaneMemory = srcMemory;
+			uint8_t *dstPlaneMemory = dstMemory;
 			for(uint32_t z = 0; z < imageExtent.depth; z++)
 			{
 				ASSERT(((bufferIsSource ? dstPlaneMemory : srcPlaneMemory) + copySize) < end());
@@ -483,14 +483,14 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 				dstPlaneMemory += dstSlicePitchBytes;
 			}
 		}
-		else // Copy line by line
+		else  // Copy line by line
 		{
-			uint8_t* srcLayerMemory = srcMemory;
-			uint8_t* dstLayerMemory = dstMemory;
+			uint8_t *srcLayerMemory = srcMemory;
+			uint8_t *dstLayerMemory = dstMemory;
 			for(uint32_t z = 0; z < imageExtent.depth; z++)
 			{
-				uint8_t* srcPlaneMemory = srcLayerMemory;
-				uint8_t* dstPlaneMemory = dstLayerMemory;
+				uint8_t *srcPlaneMemory = srcLayerMemory;
+				uint8_t *dstPlaneMemory = dstLayerMemory;
 				for(uint32_t y = 0; y < imageExtent.height; y++)
 				{
 					ASSERT(((bufferIsSource ? dstPlaneMemory : srcPlaneMemory) + copySize) < end());
@@ -515,24 +515,24 @@ void Image::copy(Buffer* buffer, const VkBufferImageCopy& region, bool bufferIsS
 	}
 }
 
-void Image::copyTo(Buffer* dstBuffer, const VkBufferImageCopy& region)
+void Image::copyTo(Buffer *dstBuffer, const VkBufferImageCopy &region)
 {
 	copy(dstBuffer, region, false);
 }
 
-void Image::copyFrom(Buffer* srcBuffer, const VkBufferImageCopy& region)
+void Image::copyFrom(Buffer *srcBuffer, const VkBufferImageCopy &region)
 {
 	copy(srcBuffer, region, true);
 }
 
-void* Image::getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const
+void *Image::getTexelPointer(const VkOffset3D &offset, const VkImageSubresourceLayers &subresource) const
 {
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 	return deviceMemory->getOffsetPointer(texelOffsetBytesInStorage(offset, subresource) +
-	       getMemoryOffset(aspect, subresource.mipLevel, subresource.baseArrayLayer));
+	                                      getMemoryOffset(aspect, subresource.mipLevel, subresource.baseArrayLayer));
 }
 
-VkExtent3D Image::imageExtentInBlocks(const VkExtent3D& extent, VkImageAspectFlagBits aspect) const
+VkExtent3D Image::imageExtentInBlocks(const VkExtent3D &extent, VkImageAspectFlagBits aspect) const
 {
 	VkExtent3D adjustedExtent = extent;
 	Format usedFormat = getFormat(aspect);
@@ -549,7 +549,7 @@ VkExtent3D Image::imageExtentInBlocks(const VkExtent3D& extent, VkImageAspectFla
 	return adjustedExtent;
 }
 
-VkOffset3D Image::imageOffsetInBlocks(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const
+VkOffset3D Image::imageOffsetInBlocks(const VkOffset3D &offset, VkImageAspectFlagBits aspect) const
 {
 	VkOffset3D adjustedOffset = offset;
 	Format usedFormat = getFormat(aspect);
@@ -559,7 +559,7 @@ VkOffset3D Image::imageOffsetInBlocks(const VkOffset3D& offset, VkImageAspectFla
 		int blockWidth = usedFormat.blockWidth();
 		int blockHeight = usedFormat.blockHeight();
 
-		ASSERT(((offset.x % blockWidth) == 0) && ((offset.y % blockHeight) == 0)); // We can't offset within a block
+		ASSERT(((offset.x % blockWidth) == 0) && ((offset.y % blockHeight) == 0));  // We can't offset within a block
 
 		adjustedOffset.x /= blockWidth;
 		adjustedOffset.y /= blockHeight;
@@ -567,7 +567,7 @@ VkOffset3D Image::imageOffsetInBlocks(const VkOffset3D& offset, VkImageAspectFla
 	return adjustedOffset;
 }
 
-VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D& extent, const VkBufferImageCopy& region) const
+VkExtent2D Image::bufferExtentInBlocks(const VkExtent2D &extent, const VkBufferImageCopy &region) const
 {
 	VkExtent2D adjustedExtent = extent;
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
@@ -603,7 +603,7 @@ int Image::borderSize() const
 	return (isCube() && !format.isCompressed()) ? 1 : 0;
 }
 
-VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const
+VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D &offset, const VkImageSubresourceLayers &subresource) const
 {
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 	VkOffset3D adjustedOffset = imageOffsetInBlocks(offset, aspect);
@@ -620,35 +620,35 @@ VkExtent3D Image::getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLe
 	mipLevelExtent.height = extent.height >> mipLevel;
 	mipLevelExtent.depth = extent.depth >> mipLevel;
 
-	if(mipLevelExtent.width  == 0) { mipLevelExtent.width  = 1; }
+	if(mipLevelExtent.width == 0) { mipLevelExtent.width = 1; }
 	if(mipLevelExtent.height == 0) { mipLevelExtent.height = 1; }
-	if(mipLevelExtent.depth  == 0) { mipLevelExtent.depth  = 1; }
+	if(mipLevelExtent.depth == 0) { mipLevelExtent.depth = 1; }
 
 	switch(aspect)
 	{
-	case VK_IMAGE_ASPECT_COLOR_BIT:
-	case VK_IMAGE_ASPECT_DEPTH_BIT:
-	case VK_IMAGE_ASPECT_STENCIL_BIT:
-	case VK_IMAGE_ASPECT_PLANE_0_BIT:  // Vulkan 1.1 Table 31. Plane Format Compatibility Table: plane 0 of all defined formats is full resolution.
-		break;
-	case VK_IMAGE_ASPECT_PLANE_1_BIT:
-	case VK_IMAGE_ASPECT_PLANE_2_BIT:
-		switch(format)
-		{
-		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			ASSERT(mipLevelExtent.width % 2 == 0 && mipLevelExtent.height % 2 == 0);  // Vulkan 1.1: "Images in this format must be defined with a width and height that is a multiple of two."
-			// Vulkan 1.1 Table 31. Plane Format Compatibility Table:
-			// Half-resolution U and V planes.
-			mipLevelExtent.width /= 2;
-			mipLevelExtent.height /= 2;
+		case VK_IMAGE_ASPECT_COLOR_BIT:
+		case VK_IMAGE_ASPECT_DEPTH_BIT:
+		case VK_IMAGE_ASPECT_STENCIL_BIT:
+		case VK_IMAGE_ASPECT_PLANE_0_BIT:  // Vulkan 1.1 Table 31. Plane Format Compatibility Table: plane 0 of all defined formats is full resolution.
+			break;
+		case VK_IMAGE_ASPECT_PLANE_1_BIT:
+		case VK_IMAGE_ASPECT_PLANE_2_BIT:
+			switch(format)
+			{
+				case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+				case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+					ASSERT(mipLevelExtent.width % 2 == 0 && mipLevelExtent.height % 2 == 0);  // Vulkan 1.1: "Images in this format must be defined with a width and height that is a multiple of two."
+					// Vulkan 1.1 Table 31. Plane Format Compatibility Table:
+					// Half-resolution U and V planes.
+					mipLevelExtent.width /= 2;
+					mipLevelExtent.height /= 2;
+					break;
+				default:
+					UNSUPPORTED("format %d", int(format));
+			}
 			break;
 		default:
-			UNSUPPORTED("format %d", int(format));
-		}
-		break;
-	default:
-		UNSUPPORTED("aspect %x", int(aspect));
+			UNSUPPORTED("aspect %x", int(aspect));
 	}
 
 	return mipLevelExtent;
@@ -658,7 +658,7 @@ int Image::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
 	// Depth and Stencil pitch should be computed separately
 	ASSERT((aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
-	                 (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
+	       (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
 
 	return getFormat(aspect).pitchB(getMipLevelExtent(aspect, mipLevel).width, borderSize(), true);
 }
@@ -667,7 +667,7 @@ int Image::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) cons
 {
 	// Depth and Stencil slice should be computed separately
 	ASSERT((aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
-	                 (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
+	       (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
 
 	VkExtent3D mipLevelExtent = getMipLevelExtent(aspect, mipLevel);
 	Format usedFormat = getFormat(aspect);
@@ -690,47 +690,46 @@ bool Image::isCube() const
 	return (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D);
 }
 
-uint8_t* Image::end() const
+uint8_t *Image::end() const
 {
-	return reinterpret_cast<uint8_t*>(deviceMemory->getOffsetPointer(deviceMemory->getCommittedMemoryInBytes() + 1));
+	return reinterpret_cast<uint8_t *>(deviceMemory->getOffsetPointer(deviceMemory->getCommittedMemoryInBytes() + 1));
 }
 
 VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 {
 	switch(format)
 	{
-	case VK_FORMAT_D16_UNORM_S8_UINT:
-	case VK_FORMAT_D24_UNORM_S8_UINT:
-	case VK_FORMAT_D32_SFLOAT_S8_UINT:
-		if(aspect == VK_IMAGE_ASPECT_STENCIL_BIT)
-		{
-			// Offset by depth buffer to get to stencil buffer
-			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
-		}
-		break;
+		case VK_FORMAT_D16_UNORM_S8_UINT:
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			if(aspect == VK_IMAGE_ASPECT_STENCIL_BIT)
+			{
+				// Offset by depth buffer to get to stencil buffer
+				return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
+			}
+			break;
 
-	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
-		if(aspect == VK_IMAGE_ASPECT_PLANE_2_BIT)
-		{
-			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_1_BIT)
-			                    + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
-		}
-		// Fall through to 2PLANE case:
-	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-		if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
-		{
-			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
-		}
-		else
-		{
-			ASSERT(aspect == VK_IMAGE_ASPECT_PLANE_0_BIT);
+		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+			if(aspect == VK_IMAGE_ASPECT_PLANE_2_BIT)
+			{
+				return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_1_BIT) + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
+			}
+			// Fall through to 2PLANE case:
+		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+			if(aspect == VK_IMAGE_ASPECT_PLANE_1_BIT)
+			{
+				return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
+			}
+			else
+			{
+				ASSERT(aspect == VK_IMAGE_ASPECT_PLANE_0_BIT);
 
-			return memoryOffset;
-		}
-		break;
+				return memoryOffset;
+			}
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return memoryOffset;
@@ -805,8 +804,8 @@ VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 
 	VkDeviceSize storageSize = 0;
 
-	if(aspectMask & VK_IMAGE_ASPECT_COLOR_BIT)   storageSize += getLayerSize(VK_IMAGE_ASPECT_COLOR_BIT);
-	if(aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)   storageSize += getLayerSize(VK_IMAGE_ASPECT_DEPTH_BIT);
+	if(aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) storageSize += getLayerSize(VK_IMAGE_ASPECT_COLOR_BIT);
+	if(aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) storageSize += getLayerSize(VK_IMAGE_ASPECT_DEPTH_BIT);
 	if(aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) storageSize += getLayerSize(VK_IMAGE_ASPECT_STENCIL_BIT);
 	if(aspectMask & VK_IMAGE_ASPECT_PLANE_0_BIT) storageSize += getLayerSize(VK_IMAGE_ASPECT_PLANE_0_BIT);
 	if(aspectMask & VK_IMAGE_ASPECT_PLANE_1_BIT) storageSize += getLayerSize(VK_IMAGE_ASPECT_PLANE_1_BIT);
@@ -815,7 +814,7 @@ VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 	return arrayLayers * storageSize;
 }
 
-const Image* Image::getSampledImage(const vk::Format& imageViewFormat) const
+const Image *Image::getSampledImage(const vk::Format &imageViewFormat) const
 {
 	bool isImageViewCompressed = imageViewFormat.isCompressed();
 	if(decompressedImage && !isImageViewCompressed)
@@ -830,17 +829,17 @@ const Image* Image::getSampledImage(const vk::Format& imageViewFormat) const
 	return (decompressedImage && isImageViewCompressed) ? decompressedImage : this;
 }
 
-void Image::blit(Image* dstImage, const VkImageBlit& region, VkFilter filter) const
+void Image::blit(Image *dstImage, const VkImageBlit &region, VkFilter filter) const
 {
 	device->getBlitter()->blit(this, dstImage, region, filter);
 }
 
-void Image::blitToBuffer(VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t* dst, int bufferRowPitch, int bufferSlicePitch) const
+void Image::blitToBuffer(VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch) const
 {
 	device->getBlitter()->blitToBuffer(this, subresource, offset, extent, dst, bufferRowPitch, bufferSlicePitch);
 }
 
-void Image::resolve(Image* dstImage, const VkImageResolve& region) const
+void Image::resolve(Image *dstImage, const VkImageResolve &region) const
 {
 	VkImageBlit blitRegion;
 
@@ -876,34 +875,32 @@ VkFormat Image::getClearFormat() const
 	return VK_FORMAT_R32G32B32A32_SFLOAT;
 }
 
-uint32_t Image::getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const
+uint32_t Image::getLastLayerIndex(const VkImageSubresourceRange &subresourceRange) const
 {
-	return ((subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS) ?
-	        arrayLayers : (subresourceRange.baseArrayLayer + subresourceRange.layerCount)) - 1;
+	return ((subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS) ? arrayLayers : (subresourceRange.baseArrayLayer + subresourceRange.layerCount)) - 1;
 }
 
-uint32_t Image::getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const
+uint32_t Image::getLastMipLevel(const VkImageSubresourceRange &subresourceRange) const
 {
-	return ((subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS) ?
-	        mipLevels : (subresourceRange.baseMipLevel + subresourceRange.levelCount)) - 1;
+	return ((subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS) ? mipLevels : (subresourceRange.baseMipLevel + subresourceRange.levelCount)) - 1;
 }
 
-void Image::clear(void* pixelData, VkFormat pixelFormat, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea)
+void Image::clear(void *pixelData, VkFormat pixelFormat, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D &renderArea)
 {
 	device->getBlitter()->clear(pixelData, pixelFormat, this, viewFormat, subresourceRange, &renderArea);
 }
 
-void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange)
+void Image::clear(const VkClearColorValue &color, const VkImageSubresourceRange &subresourceRange)
 {
 	if(!(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT))
 	{
 		UNIMPLEMENTED("aspectMask");
 	}
 
-	device->getBlitter()->clear((void*)color.float32, getClearFormat(), this, format, subresourceRange);
+	device->getBlitter()->clear((void *)color.float32, getClearFormat(), this, format, subresourceRange);
 }
 
-void Image::clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange)
+void Image::clear(const VkClearDepthStencilValue &color, const VkImageSubresourceRange &subresourceRange)
 {
 	if((subresourceRange.aspectMask & ~(VK_IMAGE_ASPECT_DEPTH_BIT |
 	                                    VK_IMAGE_ASPECT_STENCIL_BIT)) != 0)
@@ -915,18 +912,18 @@ void Image::clear(const VkClearDepthStencilValue& color, const VkImageSubresourc
 	{
 		VkImageSubresourceRange depthSubresourceRange = subresourceRange;
 		depthSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		device->getBlitter()->clear((void*)(&color.depth), VK_FORMAT_D32_SFLOAT, this, format, depthSubresourceRange);
+		device->getBlitter()->clear((void *)(&color.depth), VK_FORMAT_D32_SFLOAT, this, format, depthSubresourceRange);
 	}
 
 	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 	{
 		VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
 		stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-		device->getBlitter()->clear((void*)(&color.stencil), VK_FORMAT_S8_UINT, this, format, stencilSubresourceRange);
+		device->getBlitter()->clear((void *)(&color.stencil), VK_FORMAT_S8_UINT, this, format, stencilSubresourceRange);
 	}
 }
 
-void Image::clear(const VkClearValue& clearValue, const vk::Format& viewFormat, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange)
+void Image::clear(const VkClearValue &clearValue, const vk::Format &viewFormat, const VkRect2D &renderArea, const VkImageSubresourceRange &subresourceRange)
 {
 	if(!((subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 	     (subresourceRange.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT |
@@ -937,7 +934,7 @@ void Image::clear(const VkClearValue& clearValue, const vk::Format& viewFormat, 
 
 	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
-		clear((void*)(clearValue.color.float32), getClearFormat(), viewFormat, subresourceRange, renderArea);
+		clear((void *)(clearValue.color.float32), getClearFormat(), viewFormat, subresourceRange, renderArea);
 	}
 	else
 	{
@@ -945,59 +942,58 @@ void Image::clear(const VkClearValue& clearValue, const vk::Format& viewFormat, 
 		{
 			VkImageSubresourceRange depthSubresourceRange = subresourceRange;
 			depthSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			clear((void*)(&clearValue.depthStencil.depth), VK_FORMAT_D32_SFLOAT, viewFormat, depthSubresourceRange, renderArea);
+			clear((void *)(&clearValue.depthStencil.depth), VK_FORMAT_D32_SFLOAT, viewFormat, depthSubresourceRange, renderArea);
 		}
 
 		if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 		{
 			VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
 			stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-			clear((void*)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, viewFormat, stencilSubresourceRange, renderArea);
+			clear((void *)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, viewFormat, stencilSubresourceRange, renderArea);
 		}
 	}
 }
 
-void Image::prepareForSampling(const VkImageSubresourceRange& subresourceRange)
+void Image::prepareForSampling(const VkImageSubresourceRange &subresourceRange)
 {
 	if(decompressedImage)
 	{
 		switch(format)
 		{
-		case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-		case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-			decodeETC2(subresourceRange);
-			break;
-		case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-		case VK_FORMAT_BC2_UNORM_BLOCK:
-		case VK_FORMAT_BC2_SRGB_BLOCK:
-		case VK_FORMAT_BC3_UNORM_BLOCK:
-		case VK_FORMAT_BC3_SRGB_BLOCK:
-		case VK_FORMAT_BC4_UNORM_BLOCK:
-		case VK_FORMAT_BC4_SNORM_BLOCK:
-		case VK_FORMAT_BC5_UNORM_BLOCK:
-		case VK_FORMAT_BC5_SNORM_BLOCK:
-			decodeBC(subresourceRange);
-			break;
-		default:
-			break;
+			case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+			case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+			case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+			case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+			case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+			case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+			case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+			case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+			case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+			case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+				decodeETC2(subresourceRange);
+				break;
+			case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+			case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+			case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+			case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+			case VK_FORMAT_BC2_UNORM_BLOCK:
+			case VK_FORMAT_BC2_SRGB_BLOCK:
+			case VK_FORMAT_BC3_UNORM_BLOCK:
+			case VK_FORMAT_BC3_SRGB_BLOCK:
+			case VK_FORMAT_BC4_UNORM_BLOCK:
+			case VK_FORMAT_BC4_SNORM_BLOCK:
+			case VK_FORMAT_BC5_UNORM_BLOCK:
+			case VK_FORMAT_BC5_SNORM_BLOCK:
+				decodeBC(subresourceRange);
+				break;
+			default:
+				break;
 		}
 	}
 
 	if(isCube() && (arrayLayers >= 6))
 	{
-		VkImageSubresourceLayers subresourceLayers =
-		{
+		VkImageSubresourceLayers subresourceLayers = {
 			subresourceRange.aspectMask,
 			subresourceRange.baseMipLevel,
 			subresourceRange.baseArrayLayer,
@@ -1007,8 +1003,8 @@ void Image::prepareForSampling(const VkImageSubresourceRange& subresourceRange)
 		for(; subresourceLayers.mipLevel <= lastMipLevel; subresourceLayers.mipLevel++)
 		{
 			for(subresourceLayers.baseArrayLayer = 0;
-				subresourceLayers.baseArrayLayer < arrayLayers;
-				subresourceLayers.baseArrayLayer += 6)
+			    subresourceLayers.baseArrayLayer < arrayLayers;
+			    subresourceLayers.baseArrayLayer += 6)
 			{
 				device->getBlitter()->updateBorders(decompressedImage ? decompressedImage : this, subresourceLayers);
 			}
@@ -1016,7 +1012,7 @@ void Image::prepareForSampling(const VkImageSubresourceRange& subresourceRange)
 	}
 }
 
-void Image::decodeETC2(const VkImageSubresourceRange& subresourceRange) const
+void Image::decodeETC2(const VkImageSubresourceRange &subresourceRange) const
 {
 	ASSERT(decompressedImage);
 
@@ -1048,8 +1044,8 @@ void Image::decodeETC2(const VkImageSubresourceRange& subresourceRange) const
 
 			for(int32_t depth = 0; depth < static_cast<int32_t>(mipLevelExtent.depth); depth++)
 			{
-				uint8_t* source = static_cast<uint8_t*>(getTexelPointer({ 0, 0, depth }, subresourceLayers));
-				uint8_t* dest = static_cast<uint8_t*>(decompressedImage->getTexelPointer({ 0, 0, depth }, subresourceLayers));
+				uint8_t *source = static_cast<uint8_t *>(getTexelPointer({ 0, 0, depth }, subresourceLayers));
+				uint8_t *dest = static_cast<uint8_t *>(decompressedImage->getTexelPointer({ 0, 0, depth }, subresourceLayers));
 
 				if(fakeAlpha)
 				{
@@ -1058,13 +1054,13 @@ void Image::decodeETC2(const VkImageSubresourceRange& subresourceRange) const
 				}
 
 				ETC_Decoder::Decode(source, dest, mipLevelExtent.width, mipLevelExtent.height,
-									mipLevelExtent.width, mipLevelExtent.height, pitchB, bytes, inputType);
+				                    mipLevelExtent.width, mipLevelExtent.height, pitchB, bytes, inputType);
 			}
 		}
 	}
 }
 
-void Image::decodeBC(const VkImageSubresourceRange& subresourceRange) const
+void Image::decodeBC(const VkImageSubresourceRange &subresourceRange) const
 {
 	ASSERT(decompressedImage);
 
@@ -1087,8 +1083,8 @@ void Image::decodeBC(const VkImageSubresourceRange& subresourceRange) const
 
 			for(int32_t depth = 0; depth < static_cast<int32_t>(mipLevelExtent.depth); depth++)
 			{
-				uint8_t* source = static_cast<uint8_t*>(getTexelPointer({ 0, 0, depth }, subresourceLayers));
-				uint8_t* dest = static_cast<uint8_t*>(decompressedImage->getTexelPointer({ 0, 0, depth }, subresourceLayers));
+				uint8_t *source = static_cast<uint8_t *>(getTexelPointer({ 0, 0, depth }, subresourceLayers));
+				uint8_t *dest = static_cast<uint8_t *>(decompressedImage->getTexelPointer({ 0, 0, depth }, subresourceLayers));
 
 				BC_Decoder::Decode(source, dest, mipLevelExtent.width, mipLevelExtent.height,
 				                   mipLevelExtent.width, mipLevelExtent.height, pitchB, bytes, n, noAlphaU);
@@ -1097,4 +1093,4 @@ void Image::decodeBC(const VkImageSubresourceRange& subresourceRange) const
 	}
 }
 
-} // namespace vk
+}  // namespace vk

@@ -17,15 +17,15 @@
 #include "VkConfig.h"
 
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
-#  if defined(__linux__) || defined(__ANDROID__)
-#    include "VkSemaphoreExternalLinux.hpp"
-#  else
-#    error "Missing VK_KHR_external_semaphore_fd implementation for this platform!"
-#  endif
+#	if defined(__linux__) || defined(__ANDROID__)
+#		include "VkSemaphoreExternalLinux.hpp"
+#	else
+#		error "Missing VK_KHR_external_semaphore_fd implementation for this platform!"
+#	endif
 #elif VK_USE_PLATFORM_FUCHSIA
-#include "VkSemaphoreExternalFuchsia.hpp"
+#	include "VkSemaphoreExternalFuchsia.hpp"
 #else
-#include "VkSemaphoreExternalNone.hpp"
+#	include "VkSemaphoreExternalNone.hpp"
 #endif
 
 #include "marl/blockingcall.h"
@@ -44,14 +44,15 @@ class Semaphore::Impl
 public:
 	// Create a new instance. The external instance will be allocated only
 	// the pCreateInfo->pNext chain indicates it needs to be exported.
-	Impl(const VkSemaphoreCreateInfo* pCreateInfo) {
+	Impl(const VkSemaphoreCreateInfo *pCreateInfo)
+	{
 		bool exportSemaphore = false;
-		for(const auto* nextInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
-			 nextInfo != nullptr; nextInfo = nextInfo->pNext)
+		for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+		    nextInfo != nullptr; nextInfo = nextInfo->pNext)
 		{
 			if(nextInfo->sType == VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO)
 			{
-				const auto* exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
+				const auto *exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
 				if(exportInfo->handleTypes != External::kExternalSemaphoreHandleType)
 				{
 					UNIMPLEMENTED("exportInfo->handleTypes");
@@ -68,7 +69,8 @@ public:
 		}
 	}
 
-	~Impl() {
+	~Impl()
+	{
 		deallocateExternal();
 	}
 
@@ -88,7 +90,7 @@ public:
 	// a platform-specific external->importXXX(...) method.
 	void allocateExternalNoInit()
 	{
-		external = new (externalStorage) External();
+		external = new(externalStorage) External();
 	}
 
 	void wait()
@@ -102,7 +104,7 @@ public:
 				// call, it is assumed that this is negligible
 				// compared with the actual semaphore wait()
 				// operation.
-				marl::blocking_call([this](){
+				marl::blocking_call([this]() {
 					external->wait();
 				});
 			}
@@ -144,7 +146,7 @@ private:
 	{
 		// Wait on the marl condition variable only.
 		std::unique_lock<std::mutex> lock(mutex);
-		condition.wait(lock, [this]{ return this->signaled; });
+		condition.wait(lock, [this] { return this->signaled; });
 		signaled = false;  // Vulkan requires resetting after waiting.
 	}
 
@@ -165,7 +167,7 @@ private:
 	bool signaled = false;
 
 	// Optional external semaphore data might be referenced and stored here.
-	External* external = nullptr;
+	External *external = nullptr;
 
 	// Set to true if |external| comes from a temporary import.
 	bool temporaryImport = false;
@@ -173,18 +175,18 @@ private:
 	alignas(External) char externalStorage[sizeof(External)];
 };
 
-Semaphore::Semaphore(const VkSemaphoreCreateInfo* pCreateInfo, void* mem)
+Semaphore::Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem)
 {
-	impl = new (mem) Impl(pCreateInfo);
+	impl = new(mem) Impl(pCreateInfo);
 }
 
-void Semaphore::destroy(const VkAllocationCallbacks* pAllocator)
+void Semaphore::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	impl->~Impl();
 	vk::deallocate(impl, pAllocator);
 }
 
-size_t Semaphore::ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo* pCreateInfo)
+size_t Semaphore::ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo)
 {
 	return sizeof(Semaphore::Impl);
 }
@@ -219,7 +221,7 @@ VkResult Semaphore::importFd(int fd, bool temporaryImport)
 	return result;
 }
 
-VkResult Semaphore::exportFd(int* pFd) const
+VkResult Semaphore::exportFd(int *pFd) const
 {
 	std::unique_lock<std::mutex> lock(impl->mutex);
 	if(!impl->external)

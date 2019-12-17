@@ -26,8 +26,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace
-{
+namespace {
 
 class Broadcaster : public vk::dbg::EventListener
 {
@@ -40,17 +39,17 @@ public:
 	void onLineBreakpointHit(Thread::ID) override;
 	void onFunctionBreakpointHit(Thread::ID) override;
 
-	void add(EventListener*);
-	void remove(EventListener*);
+	void add(EventListener *);
+	void remove(EventListener *);
 
 private:
-	template <typename F>
-	inline void foreach(F&&);
+	template<typename F>
+	inline void foreach(F &&);
 
-	template <typename F>
-	inline void modify(F&&);
+	template<typename F>
+	inline void modify(F &&);
 
-	using ListenerSet = std::unordered_set<EventListener*>;
+	using ListenerSet = std::unordered_set<EventListener *>;
 	std::recursive_mutex mutex;
 	std::shared_ptr<ListenerSet> listeners = std::make_shared<ListenerSet>();
 	int listenersInUse = 0;
@@ -58,36 +57,36 @@ private:
 
 void Broadcaster::onThreadStarted(Thread::ID id)
 {
-	foreach([&](EventListener* l) { l->onThreadStarted(id); });
+	foreach([&](EventListener *l) { l->onThreadStarted(id); });
 }
 
 void Broadcaster::onThreadStepped(Thread::ID id)
 {
-	foreach([&](EventListener* l) { l->onThreadStepped(id); });
+	foreach([&](EventListener *l) { l->onThreadStepped(id); });
 }
 
 void Broadcaster::onLineBreakpointHit(Thread::ID id)
 {
-	foreach([&](EventListener* l) { l->onLineBreakpointHit(id); });
+	foreach([&](EventListener *l) { l->onLineBreakpointHit(id); });
 }
 
 void Broadcaster::onFunctionBreakpointHit(Thread::ID id)
 {
-	foreach([&](EventListener* l) { l->onFunctionBreakpointHit(id); });
+	foreach([&](EventListener *l) { l->onFunctionBreakpointHit(id); });
 }
 
-void Broadcaster::add(EventListener* l)
+void Broadcaster::add(EventListener *l)
 {
 	modify([&]() { listeners->emplace(l); });
 }
 
-void Broadcaster::remove(EventListener* l)
+void Broadcaster::remove(EventListener *l)
 {
 	modify([&]() { listeners->erase(l); });
 }
 
-template <typename F>
-void Broadcaster::foreach(F&& f)
+template<typename F>
+void Broadcaster::foreach(F &&f)
 {
 	std::unique_lock<std::recursive_mutex> lock(mutex);
 	++listenersInUse;
@@ -96,8 +95,8 @@ void Broadcaster::foreach(F&& f)
 	--listenersInUse;
 }
 
-template <typename F>
-void Broadcaster::modify(F&& f)
+template<typename F>
+void Broadcaster::modify(F &&f)
 {
 	std::unique_lock<std::recursive_mutex> lock(mutex);
 	if(listenersInUse > 0)
@@ -111,10 +110,8 @@ void Broadcaster::modify(F&& f)
 
 }  // namespace
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Context::Impl
@@ -124,16 +121,16 @@ class Context::Impl : public Context
 public:
 	// Context compliance
 	Lock lock() override;
-	void addListener(EventListener*) override;
-	void removeListener(EventListener*) override;
-	EventListener* broadcast() override;
+	void addListener(EventListener *) override;
+	void removeListener(EventListener *) override;
+	EventListener *broadcast() override;
 
-	void addFile(const std::shared_ptr<File>& file);
+	void addFile(const std::shared_ptr<File> &file);
 
 	Broadcaster broadcaster;
 
 	std::mutex mutex;
-	std::vector<EventListener*> eventListeners;
+	std::vector<EventListener *> eventListeners;
 	std::unordered_map<std::thread::id, std::shared_ptr<Thread>> threadsByStdId;
 	std::unordered_set<std::string> functionBreakpoints;
 	std::unordered_map<std::string, std::vector<int>> pendingBreakpoints;
@@ -154,22 +151,22 @@ Context::Lock Context::Impl::lock()
 	return Lock(this);
 }
 
-void Context::Impl::addListener(EventListener* l)
+void Context::Impl::addListener(EventListener *l)
 {
 	broadcaster.add(l);
 }
 
-void Context::Impl::removeListener(EventListener* l)
+void Context::Impl::removeListener(EventListener *l)
 {
 	broadcaster.remove(l);
 }
 
-EventListener* Context::Impl::broadcast()
+EventListener *Context::Impl::broadcast()
 {
 	return &broadcaster;
 }
 
-void Context::Impl::addFile(const std::shared_ptr<File>& file)
+void Context::Impl::addFile(const std::shared_ptr<File> &file)
 {
 	files.add(file->id, file);
 
@@ -194,14 +191,14 @@ std::shared_ptr<Context> Context::create()
 ////////////////////////////////////////////////////////////////////////////////
 // Context::Lock
 ////////////////////////////////////////////////////////////////////////////////
-Context::Lock::Lock(Impl* ctx) :
-    ctx(ctx)
+Context::Lock::Lock(Impl *ctx)
+    : ctx(ctx)
 {
 	ctx->mutex.lock();
 }
 
-Context::Lock::Lock(Lock&& o) :
-    ctx(o.ctx)
+Context::Lock::Lock(Lock &&o)
+    : ctx(o.ctx)
 {
 	o.ctx = nullptr;
 }
@@ -211,7 +208,7 @@ Context::Lock::~Lock()
 	unlock();
 }
 
-Context::Lock& Context::Lock::operator=(Lock&& o)
+Context::Lock &Context::Lock::operator=(Lock &&o)
 {
 	ctx = o.ctx;
 	o.ctx = nullptr;
@@ -264,15 +261,15 @@ std::vector<std::shared_ptr<Thread>> Context::Lock::threads()
 	return out;
 }
 
-std::shared_ptr<File> Context::Lock::createVirtualFile(const std::string& name,
-                                                       const std::string& source)
+std::shared_ptr<File> Context::Lock::createVirtualFile(const std::string &name,
+                                                       const std::string &source)
 {
 	auto file = File::createVirtual(ctx->nextFileID++, name, source);
 	ctx->addFile(file);
 	return file;
 }
 
-std::shared_ptr<File> Context::Lock::createPhysicalFile(const std::string& path)
+std::shared_ptr<File> Context::Lock::createPhysicalFile(const std::string &path)
 {
 	auto file = File::createPhysical(ctx->nextFileID++, path);
 	ctx->addFile(file);
@@ -296,7 +293,7 @@ std::vector<std::shared_ptr<File>> Context::Lock::files()
 }
 
 std::shared_ptr<Frame> Context::Lock::createFrame(
-    const std::shared_ptr<File>& file)
+    const std::shared_ptr<File> &file)
 {
 	auto frame = std::make_shared<Frame>(ctx->nextFrameID++);
 	ctx->frames.add(frame->id, frame);
@@ -313,7 +310,7 @@ std::shared_ptr<Frame> Context::Lock::get(Frame::ID id)
 }
 
 std::shared_ptr<Scope> Context::Lock::createScope(
-    const std::shared_ptr<File>& file)
+    const std::shared_ptr<File> &file)
 {
 	auto scope = std::make_shared<Scope>(ctx->nextScopeID++, file, createVariableContainer());
 	ctx->scopes.add(scope->id, scope);
@@ -337,17 +334,17 @@ std::shared_ptr<VariableContainer> Context::Lock::get(VariableContainer::ID id)
 	return ctx->variableContainers.get(id);
 }
 
-void Context::Lock::addFunctionBreakpoint(const std::string& name)
+void Context::Lock::addFunctionBreakpoint(const std::string &name)
 {
 	ctx->functionBreakpoints.emplace(name);
 }
 
-void Context::Lock::addPendingBreakpoints(const std::string& filename, const std::vector<int>& lines)
+void Context::Lock::addPendingBreakpoints(const std::string &filename, const std::vector<int> &lines)
 {
 	ctx->pendingBreakpoints.emplace(filename, lines);
 }
 
-bool Context::Lock::isFunctionBreakpoint(const std::string& name)
+bool Context::Lock::isFunctionBreakpoint(const std::string &name)
 {
 	return ctx->functionBreakpoints.count(name) > 0;
 }

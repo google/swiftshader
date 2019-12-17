@@ -37,8 +37,9 @@ private:
 	std::unordered_set<int> breakpoints;  // guarded by breakpointMutex
 };
 
-FileBase::FileBase(ID id, std::string dir, std::string name, std::string source) :
-    File(id, std::move(dir), std::move(name), std::move(source)) {}
+FileBase::FileBase(ID id, std::string dir, std::string name, std::string source)
+    : File(id, std::move(dir), std::move(name), std::move(source))
+{}
 
 void FileBase::clearBreakpoints()
 {
@@ -71,8 +72,9 @@ public:
 private:
 };
 
-VirtualFile::VirtualFile(ID id, std::string name, std::string source) :
-    FileBase(id, "", std::move(name), std::move(source)) {}
+VirtualFile::VirtualFile(ID id, std::string name, std::string source)
+    : FileBase(id, "", std::move(name), std::move(source))
+{}
 
 bool VirtualFile::isVirtual() const
 {
@@ -93,8 +95,9 @@ struct PhysicalFile : public FileBase
 
 PhysicalFile::PhysicalFile(ID id,
                            std::string dir,
-                           std::string name) :
-    FileBase(id, std::move(dir), std::move(name), "") {}
+                           std::string name)
+    : FileBase(id, std::move(dir), std::move(name), "")
+{}
 
 bool PhysicalFile::isVirtual() const
 {

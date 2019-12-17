@@ -17,9 +17,9 @@
 
 #include "VkObject.hpp"
 
-#include "Vulkan/VkSampler.hpp"
-#include "Vulkan/VkImageView.hpp"
 #include "Device/Sampler.hpp"
+#include "Vulkan/VkImageView.hpp"
+#include "Vulkan/VkSampler.hpp"
 
 namespace vk {
 
@@ -35,14 +35,14 @@ struct alignas(16) SampledImageDescriptor
 
 	// TODO(b/129523279): Minimize to the data actually needed.
 	vk::Sampler sampler;
-	vk::Device* device;
+	vk::Device *device;
 
 	uint32_t imageViewId;
 	VkImageViewType type;
 	VkFormat format;
 	VkComponentMapping swizzle;
 	alignas(16) sw::Texture texture;
-	VkExtent3D extent; // Of base mip-level.
+	VkExtent3D extent;  // Of base mip-level.
 	int arrayLayers;
 	int mipLevels;
 	int sampleCount;
@@ -72,26 +72,26 @@ struct alignas(16) BufferDescriptor
 	~BufferDescriptor() = delete;
 
 	void *ptr;
-	int sizeInBytes;		// intended size of the bound region -- slides along with dynamic offsets
-	int robustnessSize;		// total accessible size from static offset -- does not move with dynamic offset
+	int sizeInBytes;     // intended size of the bound region -- slides along with dynamic offsets
+	int robustnessSize;  // total accessible size from static offset -- does not move with dynamic offset
 };
 
 class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLayout>
 {
 public:
-	DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo *pCreateInfo);
 
 	static size_t GetDescriptorSize(VkDescriptorType type);
-	static void WriteDescriptorSet(Device* device, const VkWriteDescriptorSet& descriptorWrites);
-	static void CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies);
+	static void WriteDescriptorSet(Device *device, const VkWriteDescriptorSet &descriptorWrites);
+	static void CopyDescriptorSet(const VkCopyDescriptorSet &descriptorCopies);
 
-	static void WriteDescriptorSet(Device* device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src);
+	static void WriteDescriptorSet(Device *device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src);
 	static void WriteTextureLevelInfo(sw::Texture *texture, int level, int width, int height, int depth, int pitchP, int sliceP, int samplePitchP, int sampleMax);
 
-	void initialize(DescriptorSet* descriptorSet);
+	void initialize(DescriptorSet *descriptorSet);
 
 	// Returns the total size of the descriptor set in bytes.
 	size_t getDescriptorSetAllocationSize() const;
@@ -125,9 +125,9 @@ public:
 	bool isBindingDynamic(uint32_t binding) const;
 
 	// Returns the VkDescriptorSetLayoutBinding for the given binding.
-	VkDescriptorSetLayoutBinding const & getBindingLayout(uint32_t binding) const;
+	VkDescriptorSetLayoutBinding const &getBindingLayout(uint32_t binding) const;
 
-	uint8_t* getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
+	uint8_t *getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t *typeSize) const;
 
 private:
 	size_t getDescriptorSetDataSize() const;
@@ -135,16 +135,16 @@ private:
 	static bool isDynamic(VkDescriptorType type);
 
 	VkDescriptorSetLayoutCreateFlags flags;
-	uint32_t                         bindingCount;
-	VkDescriptorSetLayoutBinding*    bindings;
-	size_t*                          bindingOffsets;
+	uint32_t bindingCount;
+	VkDescriptorSetLayoutBinding *bindings;
+	size_t *bindingOffsets;
 };
 
-static inline DescriptorSetLayout* Cast(VkDescriptorSetLayout object)
+static inline DescriptorSetLayout *Cast(VkDescriptorSetLayout object)
 {
 	return DescriptorSetLayout::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_DESCRIPTOR_SET_LAYOUT_HPP_
+#endif  // VK_DESCRIPTOR_SET_LAYOUT_HPP_

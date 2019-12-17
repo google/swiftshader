@@ -33,7 +33,7 @@ struct FormatFlags
 	std::string listSuffix;         // Suffix to lists.
 	std::string listDelimiter;      // List item delimiter.
 	std::string listIndent;         // List item indententation prefix.
-	const FormatFlags* subListFmt;  // Format used for list sub items.
+	const FormatFlags *subListFmt;  // Format used for list sub items.
 };
 
 // Value holds a value that can be read and possible written to.
@@ -47,51 +47,51 @@ public:
 
 	// string() returns a string representation of the value using the specified
 	// FormatFlags.
-	virtual std::string string(const FormatFlags& = FormatFlags::Default) const;
+	virtual std::string string(const FormatFlags & = FormatFlags::Default) const;
 
 	// get() returns a pointer to the value.
-	virtual const void* get() const = 0;
+	virtual const void *get() const = 0;
 
 	// set() changes the value to a copy of the value at ptr.
 	// set() returns true if the value was changed, or false if the value cannot
 	// be set.
-	virtual bool set(void* ptr) { return false; }
+	virtual bool set(void *ptr) { return false; }
 };
 
 // Constant is an immutable value.
-template <typename T>
+template<typename T>
 class Constant : public Value
 {
 public:
-	inline Constant(const T& value);
+	inline Constant(const T &value);
 	inline std::shared_ptr<Type> type() const override;
-	inline const void* get() const override;
+	inline const void *get() const override;
 
 private:
 	const T value;
 };
 
-template <typename T>
-Constant<T>::Constant(const T& value) :
-    value(value)
+template<typename T>
+Constant<T>::Constant(const T &value)
+    : value(value)
 {
 }
 
-template <typename T>
+template<typename T>
 std::shared_ptr<Type> Constant<T>::type() const
 {
 	return TypeOf<T>::get();
 }
 
-template <typename T>
-const void* Constant<T>::get() const
+template<typename T>
+const void *Constant<T>::get() const
 {
 	return &value;
 }
 
 // make_constant() returns a shared_ptr to a Constant with the given value.
-template <typename T>
-inline std::shared_ptr<Constant<T>> make_constant(const T& value)
+template<typename T>
+inline std::shared_ptr<Constant<T>> make_constant(const T &value)
 {
 	return std::shared_ptr<Constant<T>>(new vk::dbg::Constant<T>(value));
 }

@@ -24,19 +24,19 @@ class DeviceMemory::ExternalBase
 public:
 	virtual ~ExternalBase() = default;
 
-    // Allocate the memory according to |size|. On success return VK_SUCCESS
-    // and sets |*pBuffer|.
-	virtual VkResult allocate(size_t size, void** pBuffer) = 0;
+	// Allocate the memory according to |size|. On success return VK_SUCCESS
+	// and sets |*pBuffer|.
+	virtual VkResult allocate(size_t size, void **pBuffer) = 0;
 
-    // Deallocate previously allocated memory at |buffer|.
-	virtual void deallocate(void* buffer, size_t size) = 0;
+	// Deallocate previously allocated memory at |buffer|.
+	virtual void deallocate(void *buffer, size_t size) = 0;
 
-    // Return the handle type flag bit supported by this implementation.
-    // A value of 0 corresponds to non-external memory.
+	// Return the handle type flag bit supported by this implementation.
+	// A value of 0 corresponds to non-external memory.
 	virtual VkExternalMemoryHandleTypeFlagBits getFlagBit() const = 0;
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
-	virtual VkResult exportFd(int* pFd) const
+	virtual VkResult exportFd(int *pFd) const
 	{
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
@@ -56,24 +56,24 @@ class ExternalMemoryTraits
 public:
 	VkExternalMemoryHandleTypeFlagBits typeFlagBit;
 	size_t instanceSize;
-	void (*instanceInit)(void* external, const VkMemoryAllocateInfo* pAllocateInfo);
+	void (*instanceInit)(void *external, const VkMemoryAllocateInfo *pAllocateInfo);
 };
 
 // Template function that parses a |pAllocateInfo.pNext| chain to verify that
 // it asks for the creation or import of a memory type managed by implementation
 // class T. On success, return true and sets |pTraits| accordingly. Otherwise
 // return false.
-template <typename  T>
-static bool parseCreateInfo(const VkMemoryAllocateInfo* pAllocateInfo,
-							ExternalMemoryTraits* pTraits)
+template<typename T>
+static bool parseCreateInfo(const VkMemoryAllocateInfo *pAllocateInfo,
+                            ExternalMemoryTraits *pTraits)
 {
 	if(T::supportsAllocateInfo(pAllocateInfo))
 	{
 		pTraits->typeFlagBit = T::typeFlagBit;
 		pTraits->instanceSize = sizeof(T);
-		pTraits->instanceInit = [](void* external,
-								   const VkMemoryAllocateInfo* pAllocateInfo) {
-			new (external) T(pAllocateInfo);
+		pTraits->instanceInit = [](void *external,
+		                           const VkMemoryAllocateInfo *pAllocateInfo) {
+			new(external) T(pAllocateInfo);
 		};
 		return true;
 	}
@@ -85,20 +85,20 @@ static bool parseCreateInfo(const VkMemoryAllocateInfo* pAllocateInfo,
 class DeviceMemoryHostExternalBase : public DeviceMemory::ExternalBase
 {
 public:
-    // Does not support any external memory type at all.
+	// Does not support any external memory type at all.
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = (VkExternalMemoryHandleTypeFlagBits)0;
 
-    // Always return true as is used as a fallback in findTraits() below.
-	static bool supportsAllocateInfo(const VkMemoryAllocateInfo* pAllocateInfo)
+	// Always return true as is used as a fallback in findTraits() below.
+	static bool supportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 	{
 		return true;
 	}
 
-	DeviceMemoryHostExternalBase(const VkMemoryAllocateInfo* pAllocateInfo) {}
+	DeviceMemoryHostExternalBase(const VkMemoryAllocateInfo *pAllocateInfo) {}
 
-	VkResult allocate(size_t size, void** pBuffer) override
+	VkResult allocate(size_t size, void **pBuffer) override
 	{
-		void* buffer = vk::allocate(size, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
+		void *buffer = vk::allocate(size, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
 		if(!buffer)
 			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
@@ -106,7 +106,7 @@ public:
 		return VK_SUCCESS;
 	}
 
-	void deallocate(void* buffer, size_t size) override
+	void deallocate(void *buffer, size_t size) override
 	{
 		vk::deallocate(buffer, DEVICE_MEMORY);
 	}
@@ -120,17 +120,17 @@ public:
 }  // namespace vk
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
-#  if defined(__linux__) || defined(__ANDROID__)
-#    include "VkDeviceMemoryExternalLinux.hpp"
-#  else
-#    error "Missing VK_KHR_external_memory_fd implementation for this platform!"
-#  endif
+#	if defined(__linux__) || defined(__ANDROID__)
+#		include "VkDeviceMemoryExternalLinux.hpp"
+#	else
+#		error "Missing VK_KHR_external_memory_fd implementation for this platform!"
+#	endif
 #endif
 
 namespace vk {
 
-static void findTraits(const VkMemoryAllocateInfo* pAllocateInfo,
-					   ExternalMemoryTraits*       pTraits)
+static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
+                       ExternalMemoryTraits *pTraits)
 {
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	if(parseCreateInfo<OpaqueFdExternalMemory>(pAllocateInfo, pTraits))
@@ -141,9 +141,10 @@ static void findTraits(const VkMemoryAllocateInfo* pAllocateInfo,
 	parseCreateInfo<DeviceMemoryHostExternalBase>(pAllocateInfo, pTraits);
 }
 
-DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo* pAllocateInfo, void* mem) :
-	size(pAllocateInfo->allocationSize), memoryTypeIndex(pAllocateInfo->memoryTypeIndex),
-	external(reinterpret_cast<ExternalBase *>(mem))
+DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo *pAllocateInfo, void *mem)
+    : size(pAllocateInfo->allocationSize)
+    , memoryTypeIndex(pAllocateInfo->memoryTypeIndex)
+    , external(reinterpret_cast<ExternalBase *>(mem))
 {
 	ASSERT(size);
 
@@ -152,7 +153,7 @@ DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo* pAllocateInfo, void* mem)
 	traits.instanceInit(external, pAllocateInfo);
 }
 
-void DeviceMemory::destroy(const VkAllocationCallbacks* pAllocator)
+void DeviceMemory::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	if(buffer)
 	{
@@ -163,7 +164,7 @@ void DeviceMemory::destroy(const VkAllocationCallbacks* pAllocator)
 	vk::deallocate(external, pAllocator);
 }
 
-size_t DeviceMemory::ComputeRequiredAllocationSize(const VkMemoryAllocateInfo* pAllocateInfo)
+size_t DeviceMemory::ComputeRequiredAllocationSize(const VkMemoryAllocateInfo *pAllocateInfo)
 {
 	ExternalMemoryTraits traits;
 	findTraits(pAllocateInfo, &traits);
@@ -180,7 +181,7 @@ VkResult DeviceMemory::allocate()
 	return result;
 }
 
-VkResult DeviceMemory::map(VkDeviceSize pOffset, VkDeviceSize pSize, void** ppData)
+VkResult DeviceMemory::map(VkDeviceSize pOffset, VkDeviceSize pSize, void **ppData)
 {
 	*ppData = getOffsetPointer(pOffset);
 
@@ -192,15 +193,15 @@ VkDeviceSize DeviceMemory::getCommittedMemoryInBytes() const
 	return size;
 }
 
-void* DeviceMemory::getOffsetPointer(VkDeviceSize pOffset) const
+void *DeviceMemory::getOffsetPointer(VkDeviceSize pOffset) const
 {
 	ASSERT(buffer);
 
-	return reinterpret_cast<char*>(buffer) + pOffset;
+	return reinterpret_cast<char *>(buffer) + pOffset;
 }
 
 bool DeviceMemory::checkExternalMemoryHandleType(
-		VkExternalMemoryHandleTypeFlags supportedHandleTypes) const
+    VkExternalMemoryHandleTypeFlags supportedHandleTypes) const
 {
 	if(!supportedHandleTypes)
 	{
@@ -222,7 +223,7 @@ bool DeviceMemory::checkExternalMemoryHandleType(
 }
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
-VkResult DeviceMemory::exportFd(int* pFd) const
+VkResult DeviceMemory::exportFd(int *pFd) const
 {
 	return external->exportFd(pFd);
 }

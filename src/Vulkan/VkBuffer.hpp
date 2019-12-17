@@ -24,40 +24,40 @@ class DeviceMemory;
 class Buffer : public Object<Buffer, VkBuffer>
 {
 public:
-	Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	Buffer(const VkBufferCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkBufferCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkBufferCreateInfo *pCreateInfo);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
-	void bind(DeviceMemory* pDeviceMemory, VkDeviceSize pMemoryOffset);
-	void copyFrom(const void* srcMemory, VkDeviceSize size, VkDeviceSize offset);
-	void copyTo(void* dstMemory, VkDeviceSize size, VkDeviceSize offset) const;
-	void copyTo(Buffer* dstBuffer, const VkBufferCopy& pRegion) const;
+	void bind(DeviceMemory *pDeviceMemory, VkDeviceSize pMemoryOffset);
+	void copyFrom(const void *srcMemory, VkDeviceSize size, VkDeviceSize offset);
+	void copyTo(void *dstMemory, VkDeviceSize size, VkDeviceSize offset) const;
+	void copyTo(Buffer *dstBuffer, const VkBufferCopy &pRegion) const;
 	void fill(VkDeviceSize dstOffset, VkDeviceSize fillSize, uint32_t data);
-	void update(VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData);
-	void* getOffsetPointer(VkDeviceSize offset) const;
+	void update(VkDeviceSize dstOffset, VkDeviceSize dataSize, const void *pData);
+	void *getOffsetPointer(VkDeviceSize offset) const;
 	inline VkDeviceSize getSize() const { return size; }
-	uint8_t* end() const;
-	bool canBindToMemory(DeviceMemory* pDeviceMemory) const;
+	uint8_t *end() const;
+	bool canBindToMemory(DeviceMemory *pDeviceMemory) const;
 
 private:
-	void*                 memory = nullptr;
-	VkBufferCreateFlags   flags = 0;
-	VkDeviceSize          size = 0;
-	VkBufferUsageFlags    usage = 0;
-	VkSharingMode         sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	uint32_t              queueFamilyIndexCount = 0;
-	uint32_t*             queueFamilyIndices = nullptr;
+	void *memory = nullptr;
+	VkBufferCreateFlags flags = 0;
+	VkDeviceSize size = 0;
+	VkBufferUsageFlags usage = 0;
+	VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	uint32_t queueFamilyIndexCount = 0;
+	uint32_t *queueFamilyIndices = nullptr;
 
 	VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleTypes = (VkExternalMemoryHandleTypeFlags)0;
 };
 
-static inline Buffer* Cast(VkBuffer object)
+static inline Buffer *Cast(VkBuffer object)
 {
 	return Buffer::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_BUFFER_HPP_
+#endif  // VK_BUFFER_HPP_

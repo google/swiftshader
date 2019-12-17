@@ -13,5 +13,5 @@
 // limitations under the License.
 
 #ifndef ENABLE_VK_DEBUGGER
-#error "Source files in {SwiftShader}/src/Vulkan/Debug should not be built unless ENABLE_VK_DEBUGGER is defined"
-#endif // ENABLE_VK_DEBUGGER
+#	error "Source files in {SwiftShader}/src/Vulkan/Debug should not be built unless ENABLE_VK_DEBUGGER is defined"
+#endif  // ENABLE_VK_DEBUGGER

@@ -40,15 +40,13 @@
 		} while(false)
 #endif
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class Server::Impl : public Server, public EventListener
 {
 public:
-	Impl(const std::shared_ptr<Context>& ctx, int port);
+	Impl(const std::shared_ptr<Context> &ctx, int port);
 	~Impl();
 
 	// EventListener
@@ -57,9 +55,9 @@ public:
 	void onLineBreakpointHit(ID<Thread>) override;
 	void onFunctionBreakpointHit(ID<Thread>) override;
 
-	dap::Scope scope(const char* type, Scope*);
-	dap::Source source(File*);
-	std::shared_ptr<File> file(const dap::Source& source);
+	dap::Scope scope(const char *type, Scope *);
+	dap::Source source(File *);
+	std::shared_ptr<File> file(const dap::Source &source);
 
 	const std::shared_ptr<Context> ctx;
 	const std::unique_ptr<dap::net::Server> server;
@@ -67,17 +65,17 @@ public:
 	std::atomic<bool> clientIsVisualStudio = { false };
 };
 
-Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
-    ctx(context),
-    server(dap::net::Server::create()),
-    session(dap::Session::create())
+Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
+    : ctx(context)
+    , server(dap::net::Server::create())
+    , session(dap::Session::create())
 {
-	session->registerHandler([](const dap::DisconnectRequest& req) {
+	session->registerHandler([](const dap::DisconnectRequest &req) {
 		DAP_LOG("DisconnectRequest receieved");
 		return dap::DisconnectResponse();
 	});
 
-	session->registerHandler([&](const dap::InitializeRequest& req) {
+	session->registerHandler([&](const dap::InitializeRequest &req) {
 		DAP_LOG("InitializeRequest receieved");
 		dap::InitializeResponse response;
 		response.supportsFunctionBreakpoints = true;
@@ -88,23 +86,23 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 	});
 
 	session->registerSentHandler(
-	    [&](const dap::ResponseOrError<dap::InitializeResponse>& response) {
+	    [&](const dap::ResponseOrError<dap::InitializeResponse> &response) {
 		    DAP_LOG("InitializeResponse sent");
 		    session->send(dap::InitializedEvent());
 	    });
 
-	session->registerHandler([](const dap::SetExceptionBreakpointsRequest& req) {
+	session->registerHandler([](const dap::SetExceptionBreakpointsRequest &req) {
 		DAP_LOG("SetExceptionBreakpointsRequest receieved");
 		dap::SetExceptionBreakpointsResponse response;
 		return response;
 	});
 
 	session->registerHandler(
-	    [this](const dap::SetFunctionBreakpointsRequest& req) {
+	    [this](const dap::SetFunctionBreakpointsRequest &req) {
 		    DAP_LOG("SetFunctionBreakpointsRequest receieved");
 		    auto lock = ctx->lock();
 		    dap::SetFunctionBreakpointsResponse response;
-		    for(auto const& bp : req.breakpoints)
+		    for(auto const &bp : req.breakpoints)
 		    {
 			    lock.addFunctionBreakpoint(bp.name.c_str());
 			    response.breakpoints.push_back({});
@@ -113,7 +111,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 	    });
 
 	session->registerHandler(
-	    [this](const dap::SetBreakpointsRequest& req)
+	    [this](const dap::SetBreakpointsRequest &req)
 	        -> dap::ResponseOrError<dap::SetBreakpointsResponse> {
 		    DAP_LOG("SetBreakpointsRequest receieved");
 		    bool verified = false;
@@ -121,12 +119,12 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		    size_t numBreakpoints = 0;
 		    if(req.breakpoints.has_value())
 		    {
-			    auto const& breakpoints = req.breakpoints.value();
+			    auto const &breakpoints = req.breakpoints.value();
 			    numBreakpoints = breakpoints.size();
 			    if(auto file = this->file(req.source))
 			    {
 				    file->clearBreakpoints();
-				    for(auto const& bp : breakpoints)
+				    for(auto const &bp : breakpoints)
 				    {
 					    file->addBreakpoint(bp.line);
 				    }
@@ -136,7 +134,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 			    {
 				    std::vector<int> lines;
 				    lines.reserve(breakpoints.size());
-				    for(auto const& bp : breakpoints)
+				    for(auto const &bp : breakpoints)
 				    {
 					    lines.push_back(bp.line);
 				    }
@@ -156,7 +154,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		    return response;
 	    });
 
-	session->registerHandler([this](const dap::ThreadsRequest& req) {
+	session->registerHandler([this](const dap::ThreadsRequest &req) {
 		DAP_LOG("ThreadsRequest receieved");
 		auto lock = ctx->lock();
 		dap::ThreadsResponse response;
@@ -184,7 +182,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 	});
 
 	session->registerHandler(
-	    [this](const dap::StackTraceRequest& req)
+	    [this](const dap::StackTraceRequest &req)
 	        -> dap::ResponseOrError<dap::StackTraceResponse> {
 		    DAP_LOG("StackTraceRequest receieved");
 
@@ -200,9 +198,9 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		    dap::StackTraceResponse response;
 		    response.totalFrames = stack.size();
 		    response.stackFrames.reserve(stack.size());
-		    for(auto const& frame : stack)
+		    for(auto const &frame : stack)
 		    {
-			    auto const& loc = frame.location;
+			    auto const &loc = frame.location;
 			    dap::StackFrame sf;
 			    sf.column = 0;
 			    sf.id = frame.id.value();
@@ -217,7 +215,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		    return response;
 	    });
 
-	session->registerHandler([this](const dap::ScopesRequest& req)
+	session->registerHandler([this](const dap::ScopesRequest &req)
 	                             -> dap::ResponseOrError<dap::ScopesResponse> {
 		DAP_LOG("ScopesRequest receieved");
 
@@ -237,7 +235,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return response;
 	});
 
-	session->registerHandler([this](const dap::VariablesRequest& req)
+	session->registerHandler([this](const dap::VariablesRequest &req)
 	                             -> dap::ResponseOrError<dap::VariablesResponse> {
 		DAP_LOG("VariablesRequest receieved");
 
@@ -250,7 +248,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		}
 
 		dap::VariablesResponse response;
-		vars->foreach(req.start.value(0), [&](const Variable& v) {
+		vars->foreach(req.start.value(0), [&](const Variable &v) {
 			if(!req.count.has_value() ||
 			   req.count.value() < int(response.variables.size()))
 			{
@@ -261,7 +259,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 				out.value = v.value->string();
 				if(v.value->type()->kind == Kind::VariableContainer)
 				{
-					auto const vc = static_cast<const VariableContainer*>(v.value.get());
+					auto const vc = static_cast<const VariableContainer *>(v.value.get());
 					out.variablesReference = vc->id.value();
 				}
 				response.variables.push_back(out);
@@ -270,7 +268,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return response;
 	});
 
-	session->registerHandler([this](const dap::SourceRequest& req)
+	session->registerHandler([this](const dap::SourceRequest &req)
 	                             -> dap::ResponseOrError<dap::SourceResponse> {
 		DAP_LOG("SourceRequest receieved");
 
@@ -287,7 +285,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return response;
 	});
 
-	session->registerHandler([this](const dap::PauseRequest& req)
+	session->registerHandler([this](const dap::PauseRequest &req)
 	                             -> dap::ResponseOrError<dap::PauseResponse> {
 		DAP_LOG("PauseRequest receieved");
 
@@ -327,7 +325,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return response;
 	});
 
-	session->registerHandler([this](const dap::ContinueRequest& req)
+	session->registerHandler([this](const dap::ContinueRequest &req)
 	                             -> dap::ResponseOrError<dap::ContinueResponse> {
 		DAP_LOG("ContinueRequest receieved");
 
@@ -351,7 +349,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return response;
 	});
 
-	session->registerHandler([this](const dap::NextRequest& req)
+	session->registerHandler([this](const dap::NextRequest &req)
 	                             -> dap::ResponseOrError<dap::NextResponse> {
 		DAP_LOG("NextRequest receieved");
 
@@ -366,7 +364,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return dap::NextResponse();
 	});
 
-	session->registerHandler([this](const dap::StepInRequest& req)
+	session->registerHandler([this](const dap::StepInRequest &req)
 	                             -> dap::ResponseOrError<dap::StepInResponse> {
 		DAP_LOG("StepInRequest receieved");
 
@@ -381,7 +379,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return dap::StepInResponse();
 	});
 
-	session->registerHandler([this](const dap::StepOutRequest& req)
+	session->registerHandler([this](const dap::StepOutRequest &req)
 	                             -> dap::ResponseOrError<dap::StepOutResponse> {
 		DAP_LOG("StepOutRequest receieved");
 
@@ -396,7 +394,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return dap::StepOutResponse();
 	});
 
-	session->registerHandler([this](const dap::EvaluateRequest& req)
+	session->registerHandler([this](const dap::EvaluateRequest &req)
 	                             -> dap::ResponseOrError<dap::EvaluateResponse> {
 		DAP_LOG("EvaluateRequest receieved");
 
@@ -426,7 +424,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 			}
 
 			dap::EvaluateResponse response;
-			auto findHandler = [&](const Variable& var) {
+			auto findHandler = [&](const Variable &var) {
 				response.result = var.value->string(fmt);
 				response.type = var.value->type()->string();
 			};
@@ -438,7 +436,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 				frame->hovers->variables,
 			};
 
-			for(auto const& vars : variables)
+			for(auto const &vars : variables)
 			{
 				if(vars->find(req.expression, findHandler)) { return response; }
 			}
@@ -447,7 +445,7 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 			// TODO: This might be a configuration problem of the SPIRV-Tools
 			// spirv-ls plugin. Investigate.
 			auto withPercent = "%" + req.expression;
-			for(auto const& vars : variables)
+			for(auto const &vars : variables)
 			{
 				if(vars->find(withPercent, findHandler)) { return response; }
 			}
@@ -456,20 +454,20 @@ Server::Impl::Impl(const std::shared_ptr<Context>& context, int port) :
 		return dap::Error("Could not evaluate expression");
 	});
 
-	session->registerHandler([](const dap::LaunchRequest& req) {
+	session->registerHandler([](const dap::LaunchRequest &req) {
 		DAP_LOG("LaunchRequest receieved");
 		return dap::LaunchResponse();
 	});
 
 	marl::WaitGroup configurationDone(1);
-	session->registerHandler([=](const dap::ConfigurationDoneRequest& req) {
+	session->registerHandler([=](const dap::ConfigurationDoneRequest &req) {
 		DAP_LOG("ConfigurationDoneRequest receieved");
 		configurationDone.done();
 		return dap::ConfigurationDoneResponse();
 	});
 
 	DAP_LOG("Waiting for debugger connection...");
-	server->start(port, [&](const std::shared_ptr<dap::ReaderWriter>& rw) {
+	server->start(port, [&](const std::shared_ptr<dap::ReaderWriter> &rw) {
 		session->bind(rw);
 		ctx->addListener(this);
 	});
@@ -514,7 +512,7 @@ void Server::Impl::onFunctionBreakpointHit(ID<Thread> id)
 	session->send(event);
 }
 
-dap::Scope Server::Impl::scope(const char* type, Scope* s)
+dap::Scope Server::Impl::scope(const char *type, Scope *s)
 {
 	dap::Scope out;
 	// out.line = s->startLine;
@@ -526,7 +524,7 @@ dap::Scope Server::Impl::scope(const char* type, Scope* s)
 	return out;
 }
 
-dap::Source Server::Impl::source(File* file)
+dap::Source Server::Impl::source(File *file)
 {
 	dap::Source out;
 	out.name = file->name;
@@ -541,7 +539,7 @@ dap::Source Server::Impl::source(File* file)
 	return out;
 }
 
-std::shared_ptr<File> Server::Impl::file(const dap::Source& source)
+std::shared_ptr<File> Server::Impl::file(const dap::Source &source)
 {
 	auto lock = ctx->lock();
 	if(source.sourceReference.has_value())
@@ -587,7 +585,7 @@ std::shared_ptr<File> Server::Impl::file(const dap::Source& source)
 	return nullptr;
 }
 
-std::shared_ptr<Server> Server::create(const std::shared_ptr<Context>& ctx, int port)
+std::shared_ptr<Server> Server::create(const std::shared_ptr<Context> &ctx, int port)
 {
 	return std::make_shared<Server::Impl>(ctx, port);
 }

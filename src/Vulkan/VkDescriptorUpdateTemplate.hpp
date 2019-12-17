@@ -25,23 +25,23 @@ class Device;
 class DescriptorUpdateTemplate : public Object<DescriptorUpdateTemplate, VkDescriptorUpdateTemplate>
 {
 public:
-	DescriptorUpdateTemplate(const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo, void* mem);
+	DescriptorUpdateTemplate(const VkDescriptorUpdateTemplateCreateInfo *pCreateInfo, void *mem);
 
-	static size_t ComputeRequiredAllocationSize(const VkDescriptorUpdateTemplateCreateInfo* info);
+	static size_t ComputeRequiredAllocationSize(const VkDescriptorUpdateTemplateCreateInfo *info);
 
-	void updateDescriptorSet(Device* device, VkDescriptorSet descriptorSet, const void* pData);
+	void updateDescriptorSet(Device *device, VkDescriptorSet descriptorSet, const void *pData);
 
 private:
-	uint32_t                              descriptorUpdateEntryCount = 0;
-	VkDescriptorUpdateTemplateEntry*      descriptorUpdateEntries = nullptr;
-	DescriptorSetLayout*                  descriptorSetLayout = nullptr;
+	uint32_t descriptorUpdateEntryCount = 0;
+	VkDescriptorUpdateTemplateEntry *descriptorUpdateEntries = nullptr;
+	DescriptorSetLayout *descriptorSetLayout = nullptr;
 };
 
-static inline DescriptorUpdateTemplate* Cast(VkDescriptorUpdateTemplate object)
+static inline DescriptorUpdateTemplate *Cast(VkDescriptorUpdateTemplate object)
 {
 	return DescriptorUpdateTemplate::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_DESCRIPTOR_UPDATE_TEMPLATE_HPP_
+#endif  // VK_DESCRIPTOR_UPDATE_TEMPLATE_HPP_

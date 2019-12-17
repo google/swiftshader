@@ -26,29 +26,29 @@ class DescriptorSetLayout;
 
 struct alignas(16) DescriptorSetHeader
 {
-	DescriptorSetLayout* layout;
+	DescriptorSetLayout *layout;
 };
 
 class alignas(16) DescriptorSet
 {
 public:
-	static inline DescriptorSet* Cast(VkDescriptorSet object)
+	static inline DescriptorSet *Cast(VkDescriptorSet object)
 	{
-		return static_cast<DescriptorSet*>(static_cast<void*>(object));
+		return static_cast<DescriptorSet *>(static_cast<void *>(object));
 	}
 
-	using Bindings = std::array<vk::DescriptorSet*, vk::MAX_BOUND_DESCRIPTOR_SETS>;
+	using Bindings = std::array<vk::DescriptorSet *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;
 
 	DescriptorSetHeader header;
 	alignas(16) uint8_t data[1];
 };
 
-inline DescriptorSet* Cast(VkDescriptorSet object)
+inline DescriptorSet *Cast(VkDescriptorSet object)
 {
 	return DescriptorSet::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_DESCRIPTOR_SET_HPP_
+#endif  // VK_DESCRIPTOR_SET_HPP_

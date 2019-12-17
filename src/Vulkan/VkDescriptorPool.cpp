@@ -20,35 +20,34 @@
 #include <algorithm>
 #include <memory>
 
-namespace
-{
+namespace {
 
-inline VkDescriptorSet asDescriptorSet(uint8_t* memory)
+inline VkDescriptorSet asDescriptorSet(uint8_t *memory)
 {
-	return vk::TtoVkT<vk::DescriptorSet, VkDescriptorSet>(reinterpret_cast<vk::DescriptorSet*>(memory));
+	return vk::TtoVkT<vk::DescriptorSet, VkDescriptorSet>(reinterpret_cast<vk::DescriptorSet *>(memory));
 }
 
-inline uint8_t* asMemory(VkDescriptorSet descriptorSet)
+inline uint8_t *asMemory(VkDescriptorSet descriptorSet)
 {
-	return reinterpret_cast<uint8_t*>(vk::Cast(descriptorSet));
+	return reinterpret_cast<uint8_t *>(vk::Cast(descriptorSet));
 }
 
 }  // anonymous namespace
 
 namespace vk {
 
-DescriptorPool::DescriptorPool(const VkDescriptorPoolCreateInfo* pCreateInfo, void* mem) :
-	pool(static_cast<uint8_t*>(mem)),
-	poolSize(ComputeRequiredAllocationSize(pCreateInfo))
+DescriptorPool::DescriptorPool(const VkDescriptorPoolCreateInfo *pCreateInfo, void *mem)
+    : pool(static_cast<uint8_t *>(mem))
+    , poolSize(ComputeRequiredAllocationSize(pCreateInfo))
 {
 }
 
-void DescriptorPool::destroy(const VkAllocationCallbacks* pAllocator)
+void DescriptorPool::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	vk::deallocate(pool, pAllocator);
 }
 
-size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo* pCreateInfo)
+size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreateInfo *pCreateInfo)
 {
 	size_t size = pCreateInfo->maxSets * sw::align(sizeof(DescriptorSetHeader), 16);
 
@@ -61,7 +60,7 @@ size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreat
 	return size;
 }
 
-VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout* pSetLayouts, VkDescriptorSet* pDescriptorSets)
+VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout *pSetLayouts, VkDescriptorSet *pDescriptorSets)
 {
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	std::unique_ptr<size_t[]> layoutSizes(new size_t[descriptorSetCount]);
@@ -82,7 +81,7 @@ VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescr
 	return result;
 }
 
-uint8_t* DescriptorPool::findAvailableMemory(size_t size)
+uint8_t *DescriptorPool::findAvailableMemory(size_t size)
 {
 	if(nodes.empty())
 	{
@@ -113,7 +112,7 @@ uint8_t* DescriptorPool::findAvailableMemory(size_t size)
 	++nextIt;
 	for(auto it = itBegin; nextIt != itEnd; ++it, ++nextIt)
 	{
-		uint8_t* freeSpaceStart = it->set + it->size;
+		uint8_t *freeSpaceStart = it->set + it->size;
 		freeSpace = nextIt->set - freeSpaceStart;
 		if(freeSpace >= size)
 		{
@@ -124,7 +123,7 @@ uint8_t* DescriptorPool::findAvailableMemory(size_t size)
 	return nullptr;
 }
 
-VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescriptorSet* pDescriptorSets)
+VkResult DescriptorPool::allocateSets(size_t *sizes, uint32_t numAllocs, VkDescriptorSet *pDescriptorSets)
 {
 	size_t totalSize = 0;
 	for(uint32_t i = 0; i < numAllocs; i++)
@@ -139,7 +138,7 @@ VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescr
 
 	// Attempt to allocate single chunk of memory
 	{
-		uint8_t* memory = findAvailableMemory(totalSize);
+		uint8_t *memory = findAvailableMemory(totalSize);
 		if(memory)
 		{
 			for(uint32_t i = 0; i < numAllocs; i++)
@@ -156,7 +155,7 @@ VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescr
 	// Atttempt to allocate each descriptor set separately
 	for(uint32_t i = 0; i < numAllocs; i++)
 	{
-		uint8_t* memory = findAvailableMemory(sizes[i]);
+		uint8_t *memory = findAvailableMemory(sizes[i]);
 		if(memory)
 		{
 			pDescriptorSets[i] = asDescriptorSet(memory);
@@ -180,7 +179,7 @@ VkResult DescriptorPool::allocateSets(size_t* sizes, uint32_t numAllocs, VkDescr
 	return VK_SUCCESS;
 }
 
-void DescriptorPool::freeSets(uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets)
+void DescriptorPool::freeSets(uint32_t descriptorSetCount, const VkDescriptorSet *pDescriptorSets)
 {
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{

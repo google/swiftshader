@@ -23,43 +23,41 @@ namespace vk {
 class DeviceMemory : public Object<DeviceMemory, VkDeviceMemory>
 {
 public:
-	DeviceMemory(const VkMemoryAllocateInfo* pCreateInfo, void* mem);
+	DeviceMemory(const VkMemoryAllocateInfo *pCreateInfo, void *mem);
 
-	static size_t ComputeRequiredAllocationSize(const VkMemoryAllocateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkMemoryAllocateInfo *pCreateInfo);
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
-	VkResult exportFd(int* pFd) const;
+	VkResult exportFd(int *pFd) const;
 #endif
 
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 	VkResult allocate();
-	VkResult map(VkDeviceSize offset, VkDeviceSize size, void** ppData);
+	VkResult map(VkDeviceSize offset, VkDeviceSize size, void **ppData);
 	VkDeviceSize getCommittedMemoryInBytes() const;
-	void* getOffsetPointer(VkDeviceSize pOffset) const;
+	void *getOffsetPointer(VkDeviceSize pOffset) const;
 	uint32_t getMemoryTypeIndex() const { return memoryTypeIndex; }
 
 	// If this is external memory, return true iff its handle type matches the bitmask
 	// provided by |supportedExternalHandleTypes|. Otherwise, always return true.
 	bool checkExternalMemoryHandleType(
-				VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleType) const;
+	    VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleType) const;
 
 	// Internal implementation class for external memory. Platform-specific.
 	class ExternalBase;
 
 private:
-
-	void*         buffer = nullptr;
-	VkDeviceSize  size = 0;
-	uint32_t      memoryTypeIndex = 0;
-	ExternalBase* external = nullptr;
+	void *buffer = nullptr;
+	VkDeviceSize size = 0;
+	uint32_t memoryTypeIndex = 0;
+	ExternalBase *external = nullptr;
 };
 
-static inline DeviceMemory* Cast(VkDeviceMemory object)
+static inline DeviceMemory *Cast(VkDeviceMemory object)
 {
 	return DeviceMemory::Cast(object);
 }
 
-
 }  // namespace vk
 
-#endif // VK_DEVICE_MEMORY_HPP_
+#endif  // VK_DEVICE_MEMORY_HPP_

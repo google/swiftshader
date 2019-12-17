@@ -18,22 +18,24 @@
 
 namespace vk {
 
-BufferView::BufferView(const VkBufferViewCreateInfo* pCreateInfo, void* mem) :
-    buffer(vk::Cast(pCreateInfo->buffer)), format(pCreateInfo->format), offset(pCreateInfo->offset)
+BufferView::BufferView(const VkBufferViewCreateInfo *pCreateInfo, void *mem)
+    : buffer(vk::Cast(pCreateInfo->buffer))
+    , format(pCreateInfo->format)
+    , offset(pCreateInfo->offset)
 {
-    if(pCreateInfo->range == VK_WHOLE_SIZE)
-    {
-        range = buffer->getSize() - offset;
-    }
-    else
-    {
-        range = pCreateInfo->range;
-    }
+	if(pCreateInfo->range == VK_WHOLE_SIZE)
+	{
+		range = buffer->getSize() - offset;
+	}
+	else
+	{
+		range = pCreateInfo->range;
+	}
 }
 
-void * BufferView::getPointer() const
+void *BufferView::getPointer() const
 {
-    return buffer->getOffsetPointer(offset);
+	return buffer->getOffsetPointer(offset);
 }
 
 }  // namespace vk

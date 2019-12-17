@@ -34,16 +34,16 @@ public:
 		AllocateInfo() = default;
 
 		// Parse the VkMemoryAllocateInfo.pNext chain to initialize an AllocateInfo.
-		AllocateInfo(const VkMemoryAllocateInfo* pAllocateInfo)
+		AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 		{
-			const auto* createInfo = reinterpret_cast<const VkBaseInStructure*>(pAllocateInfo->pNext);
+			const auto *createInfo = reinterpret_cast<const VkBaseInStructure *>(pAllocateInfo->pNext);
 			while(createInfo)
 			{
 				switch(createInfo->sType)
 				{
-				case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
+					case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
 					{
-						const auto* importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR*>(createInfo);
+						const auto *importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR *>(createInfo);
 
 						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 						{
@@ -53,9 +53,9 @@ public:
 						fd = importInfo->fd;
 					}
 					break;
-				case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
+					case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
 					{
-						const auto* exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo*>(createInfo);
+						const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(createInfo);
 
 						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 						{
@@ -65,8 +65,7 @@ public:
 					}
 					break;
 
-				default:
-					;
+					default:;
 				}
 				createInfo = createInfo->pNext;
 			}
@@ -75,14 +74,14 @@ public:
 
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 
-	static bool supportsAllocateInfo(const VkMemoryAllocateInfo* pAllocateInfo)
+	static bool supportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 	{
 		AllocateInfo info(pAllocateInfo);
 		return info.importFd || info.exportFd;
 	}
 
-	explicit OpaqueFdExternalMemory(const VkMemoryAllocateInfo* pAllocateInfo)
-			: allocateInfo(pAllocateInfo)
+	explicit OpaqueFdExternalMemory(const VkMemoryAllocateInfo *pAllocateInfo)
+	    : allocateInfo(pAllocateInfo)
 	{
 	}
 
@@ -91,7 +90,7 @@ public:
 		memfd.close();
 	}
 
-	VkResult allocate(size_t size, void** pBuffer) override
+	VkResult allocate(size_t size, void **pBuffer) override
 	{
 		if(allocateInfo.importFd)
 		{
@@ -113,7 +112,7 @@ public:
 				return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 			}
 		}
-		void* addr = memfd.mapReadWrite(0, size);
+		void *addr = memfd.mapReadWrite(0, size);
 		if(!addr)
 		{
 			return VK_ERROR_MEMORY_MAP_FAILED;
@@ -122,7 +121,7 @@ public:
 		return VK_SUCCESS;
 	}
 
-	void deallocate(void* buffer, size_t size) override
+	void deallocate(void *buffer, size_t size) override
 	{
 		memfd.unmap(buffer, size);
 	}
@@ -132,7 +131,7 @@ public:
 		return typeFlagBit;
 	}
 
-	VkResult exportFd(int* pFd) const override
+	VkResult exportFd(int *pFd) const override
 	{
 		int fd = memfd.exportFd();
 		if(fd < 0)
@@ -144,6 +143,6 @@ public:
 	}
 
 private:
-	LinuxMemFd   memfd;
+	LinuxMemFd memfd;
 	AllocateInfo allocateInfo;
 };

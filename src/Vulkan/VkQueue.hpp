@@ -17,12 +17,14 @@
 
 #include "VkObject.hpp"
 #include "Device/Renderer.hpp"
-#include <thread>
 #include <vulkan/vk_icd.h>
+#include <thread>
 
 #include "System/Synchronization.hpp"
 
-namespace marl { class Scheduler; }
+namespace marl {
+class Scheduler;
+}
 
 namespace sw {
 
@@ -41,7 +43,7 @@ class Queue
 	VK_LOADER_DATA loaderData = { ICD_LOADER_MAGIC };
 
 public:
-	Queue(Device* device, marl::Scheduler *scheduler);
+	Queue(Device *device, marl::Scheduler *scheduler);
 	~Queue();
 
 	operator VkQueue()
@@ -49,39 +51,43 @@ public:
 		return reinterpret_cast<VkQueue>(this);
 	}
 
-	VkResult submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, Fence* fence);
+	VkResult submit(uint32_t submitCount, const VkSubmitInfo *pSubmits, Fence *fence);
 	VkResult waitIdle();
 #ifndef __ANDROID__
-	VkResult present(const VkPresentInfoKHR* presentInfo);
+	VkResult present(const VkPresentInfoKHR *presentInfo);
 #endif
 
 private:
 	struct Task
 	{
 		uint32_t submitCount = 0;
-		VkSubmitInfo* pSubmits = nullptr;
-		sw::TaskEvents* events = nullptr;
+		VkSubmitInfo *pSubmits = nullptr;
+		sw::TaskEvents *events = nullptr;
 
-		enum Type { KILL_THREAD, SUBMIT_QUEUE };
+		enum Type
+		{
+			KILL_THREAD,
+			SUBMIT_QUEUE
+		};
 		Type type = SUBMIT_QUEUE;
 	};
 
-	void taskLoop(marl::Scheduler* scheduler);
+	void taskLoop(marl::Scheduler *scheduler);
 	void garbageCollect();
-	void submitQueue(const Task& task);
+	void submitQueue(const Task &task);
 
-	Device* device;
+	Device *device;
 	std::unique_ptr<sw::Renderer> renderer;
 	sw::Chan<Task> pending;
-	sw::Chan<VkSubmitInfo*> toDelete;
+	sw::Chan<VkSubmitInfo *> toDelete;
 	std::thread queueThread;
 };
 
-static inline Queue* Cast(VkQueue object)
+static inline Queue *Cast(VkQueue object)
 {
-	return reinterpret_cast<Queue*>(object);
+	return reinterpret_cast<Queue *>(object);
 }
 
 }  // namespace vk
 
-#endif // VK_QUEUE_HPP_
+#endif  // VK_QUEUE_HPP_

@@ -17,17 +17,17 @@
 
 namespace vk {
 
-Instance::Instance(const VkInstanceCreateInfo* pCreateInfo, void* mem, VkPhysicalDevice physicalDevice)
-	: physicalDevice(physicalDevice)
+Instance::Instance(const VkInstanceCreateInfo *pCreateInfo, void *mem, VkPhysicalDevice physicalDevice)
+    : physicalDevice(physicalDevice)
 {
 }
 
-void Instance::destroy(const VkAllocationCallbacks* pAllocator)
+void Instance::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	vk::destroy(physicalDevice, pAllocator);
 }
 
-VkResult Instance::getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) const
+VkResult Instance::getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysicalDevice *pPhysicalDevices) const
 {
 	if(!pPhysicalDevices)
 	{
@@ -47,7 +47,7 @@ VkResult Instance::getPhysicalDevices(uint32_t *pPhysicalDeviceCount, VkPhysical
 }
 
 VkResult Instance::getPhysicalDeviceGroups(uint32_t *pPhysicalDeviceGroupCount,
-                                           VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) const
+                                           VkPhysicalDeviceGroupProperties *pPhysicalDeviceGroupProperties) const
 {
 	if(!pPhysicalDeviceGroupProperties)
 	{

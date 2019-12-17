@@ -42,8 +42,8 @@ public:
 
 	struct Data
 	{
-		State state;   // The current query state.
-		int64_t value; // The current query value.
+		State state;    // The current query state.
+		int64_t value;  // The current query value.
 	};
 
 	// reset() sets the state of the Query to UNAVAILABLE, sets the type to
@@ -92,32 +92,32 @@ private:
 class QueryPool : public Object<QueryPool, VkQueryPool>
 {
 public:
-	QueryPool(const VkQueryPoolCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	QueryPool(const VkQueryPoolCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo *pCreateInfo);
 
 	VkResult getResults(uint32_t firstQuery, uint32_t queryCount, size_t dataSize,
-		                void* pData, VkDeviceSize stride, VkQueryResultFlags flags) const;
+	                    void *pData, VkDeviceSize stride, VkQueryResultFlags flags) const;
 	void begin(uint32_t query, VkQueryControlFlags flags);
 	void end(uint32_t query);
 	void reset(uint32_t firstQuery, uint32_t queryCount);
 
 	void writeTimestamp(uint32_t query);
 
-	inline Query* getQuery(uint32_t query) const { return &(pool[query]); }
+	inline Query *getQuery(uint32_t query) const { return &(pool[query]); }
 
 private:
-	Query* pool;
+	Query *pool;
 	VkQueryType type;
 	uint32_t count;
 };
 
-static inline QueryPool* Cast(VkQueryPool object)
+static inline QueryPool *Cast(VkQueryPool object)
 {
 	return QueryPool::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_QUERY_POOL_HPP_
+#endif  // VK_QUERY_POOL_HPP_

@@ -25,29 +25,29 @@ class RenderPass;
 class Framebuffer : public Object<Framebuffer, VkFramebuffer>
 {
 public:
-	Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	Framebuffer(const VkFramebufferCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	void clear(const RenderPass* renderPass, uint32_t clearValueCount, const VkClearValue* pClearValues, const VkRect2D& renderArea);
-	void clearAttachment(const RenderPass* renderPass, uint32_t subpassIndex, const VkClearAttachment& attachment, const VkClearRect& rect);
+	void clear(const RenderPass *renderPass, uint32_t clearValueCount, const VkClearValue *pClearValues, const VkRect2D &renderArea);
+	void clearAttachment(const RenderPass *renderPass, uint32_t subpassIndex, const VkClearAttachment &attachment, const VkClearRect &rect);
 
-	static size_t ComputeRequiredAllocationSize(const VkFramebufferCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkFramebufferCreateInfo *pCreateInfo);
 	ImageView *getAttachment(uint32_t index) const;
-	void resolve(const RenderPass* renderPass, uint32_t subpassIndex);
+	void resolve(const RenderPass *renderPass, uint32_t subpassIndex);
 
-	const VkExtent3D& getExtent() const { return extent; }
+	const VkExtent3D &getExtent() const { return extent; }
 
 private:
-	uint32_t         attachmentCount = 0;
-	ImageView**      attachments = nullptr;
+	uint32_t attachmentCount = 0;
+	ImageView **attachments = nullptr;
 	const VkExtent3D extent = {};
 };
 
-static inline Framebuffer* Cast(VkFramebuffer object)
+static inline Framebuffer *Cast(VkFramebuffer object)
 {
 	return Framebuffer::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_FRAMEBUFFER_HPP_
+#endif  // VK_FRAMEBUFFER_HPP_

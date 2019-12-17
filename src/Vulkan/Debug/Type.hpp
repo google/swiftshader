@@ -50,7 +50,7 @@ class Type
 public:
 	Type() = default;
 	inline Type(Kind kind);
-	inline Type(Kind kind, const std::shared_ptr<const Type>& elem);
+	inline Type(Kind kind, const std::shared_ptr<const Type> &elem);
 
 	// string() returns a string representation of the type.
 	std::string string() const;
@@ -59,12 +59,14 @@ public:
 	const std::shared_ptr<const Type> elem;  // Element type of pointer.
 };
 
-Type::Type(Kind kind) :
-    kind(kind) {}
+Type::Type(Kind kind)
+    : kind(kind)
+{}
 
-Type::Type(Kind kind, const std::shared_ptr<const Type>& elem) :
-    kind(kind),
-    elem(elem) {}
+Type::Type(Kind kind, const std::shared_ptr<const Type> &elem)
+    : kind(kind)
+    , elem(elem)
+{}
 
 // clang-format off
 template <typename T> struct TypeOf;

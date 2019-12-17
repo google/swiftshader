@@ -22,31 +22,31 @@ namespace vk {
 class PipelineLayout : public Object<PipelineLayout, VkPipelineLayout>
 {
 public:
-	PipelineLayout(const VkPipelineLayoutCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo);
 
 	size_t getNumDescriptorSets() const;
-	DescriptorSetLayout const* getDescriptorSetLayout(size_t descriptorSet) const;
+	DescriptorSetLayout const *getDescriptorSetLayout(size_t descriptorSet) const;
 
 	// Returns the starting index into the pipeline's dynamic offsets array for
 	// the given descriptor set.
 	uint32_t getDynamicOffsetBase(size_t descriptorSet) const;
 
 private:
-	uint32_t              setLayoutCount = 0;
-	DescriptorSetLayout** setLayouts = nullptr;
-	uint32_t              pushConstantRangeCount = 0;
-	VkPushConstantRange*  pushConstantRanges = nullptr;
-	uint32_t*             dynamicOffsetBases = nullptr; // Base offset per set layout.
+	uint32_t setLayoutCount = 0;
+	DescriptorSetLayout **setLayouts = nullptr;
+	uint32_t pushConstantRangeCount = 0;
+	VkPushConstantRange *pushConstantRanges = nullptr;
+	uint32_t *dynamicOffsetBases = nullptr;  // Base offset per set layout.
 };
 
-static inline PipelineLayout* Cast(VkPipelineLayout object)
+static inline PipelineLayout *Cast(VkPipelineLayout object)
 {
 	return PipelineLayout::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_PIPELINE_LAYOUT_HPP_
+#endif  // VK_PIPELINE_LAYOUT_HPP_

@@ -14,19 +14,19 @@
 
 #include "VkDebug.hpp"
 
-#include <string>
-#include <atomic>
 #include <stdarg.h>
+#include <atomic>
+#include <string>
 
 #if defined(__unix__)
-#define PTRACE
-#include <sys/types.h>
-#include <sys/ptrace.h>
+#	define PTRACE
+#	include <sys/ptrace.h>
+#	include <sys/types.h>
 #elif defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
+#	include <windows.h>
 #elif defined(__APPLE__) || defined(__MACH__)
-#include <unistd.h>
-#include <sys/sysctl.h>
+#	include <sys/sysctl.h>
+#	include <unistd.h>
 #endif
 
 namespace {
@@ -140,7 +140,7 @@ void abort(const char *format, ...)
 
 void trace_assert(const char *format, ...)
 {
-	static std::atomic<bool> asserted = {false};
+	static std::atomic<bool> asserted = { false };
 	va_list vararg;
 	va_start(vararg, format);
 

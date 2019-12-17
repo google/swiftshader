@@ -21,10 +21,8 @@
 #include <string>
 #include <vector>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 // Forward declarations.
 class Thread;
@@ -50,12 +48,12 @@ public:
 	class Lock
 	{
 	public:
-		Lock(Impl*);
-		Lock(Lock&&);
+		Lock(Impl *);
+		Lock(Lock &&);
 		~Lock();
 
 		// move-assignment operator.
-		Lock& operator=(Lock&&);
+		Lock &operator=(Lock &&);
 
 		// unlock() explicitly unlocks before the Lock destructor is called.
 		// It is illegal to call any other methods after calling unlock().
@@ -77,12 +75,12 @@ public:
 		// filesystem.
 		// name is the unique name of the file.
 		// source is the content of the file.
-		std::shared_ptr<File> createVirtualFile(const std::string& name,
-		                                        const std::string& source);
+		std::shared_ptr<File> createVirtualFile(const std::string &name,
+		                                        const std::string &source);
 
 		// createPhysicalFile() returns a new file that is backed by the file
 		// at path.
-		std::shared_ptr<File> createPhysicalFile(const std::string& path);
+		std::shared_ptr<File> createPhysicalFile(const std::string &path);
 
 		// get() returns the file with the given ID, or null if the file
 		// does not exist or no longer has any external shared_ptr references.
@@ -93,7 +91,7 @@ public:
 
 		// createFrame() returns a new frame for the given file.
 		std::shared_ptr<Frame> createFrame(
-		    const std::shared_ptr<File>& file);
+		    const std::shared_ptr<File> &file);
 
 		// get() returns the frame with the given ID, or null if the frame
 		// does not exist or no longer has any external shared_ptr references.
@@ -101,7 +99,7 @@ public:
 
 		// createScope() returns a new scope for the given file.
 		std::shared_ptr<Scope> createScope(
-		    const std::shared_ptr<File>& file);
+		    const std::shared_ptr<File> &file);
 
 		// get() returns the scope with the given ID, or null if the scope
 		// does not exist.
@@ -117,21 +115,21 @@ public:
 
 		// addFunctionBreakpoint() adds a breakpoint to the start of the
 		// function with the given name.
-		void addFunctionBreakpoint(const std::string& name);
+		void addFunctionBreakpoint(const std::string &name);
 
 		// addPendingBreakpoints() adds a number of breakpoints to the file with
 		// the given name which has not yet been created with a call to
 		// createVirtualFile() or createPhysicalFile().
-		void addPendingBreakpoints(const std::string& name, const std::vector<int>& lines);
+		void addPendingBreakpoints(const std::string &name, const std::vector<int> &lines);
 
 		// isFunctionBreakpoint() returns true if the function with the given
 		// name has a function breakpoint set.
-		bool isFunctionBreakpoint(const std::string& name);
+		bool isFunctionBreakpoint(const std::string &name);
 
 	private:
-		Lock(const Lock&) = delete;
-		Lock& operator=(const Lock&) = delete;
-		Impl* ctx;
+		Lock(const Lock &) = delete;
+		Lock &operator=(const Lock &) = delete;
+		Impl *ctx;
 	};
 
 	// create() creates and returns a new Context.
@@ -144,15 +142,15 @@ public:
 	virtual Lock lock() = 0;
 
 	// addListener() registers an EventListener for event notifications.
-	virtual void addListener(EventListener*) = 0;
+	virtual void addListener(EventListener *) = 0;
 
 	// removeListener() unregisters an EventListener that was previously
 	// registered by a call to addListener().
-	virtual void removeListener(EventListener*) = 0;
+	virtual void removeListener(EventListener *) = 0;
 
 	// broadcast() returns an EventListener that will broadcast all methods on
 	// to all registered EventListeners.
-	virtual EventListener* broadcast() = 0;
+	virtual EventListener *broadcast() = 0;
 };
 
 }  // namespace dbg

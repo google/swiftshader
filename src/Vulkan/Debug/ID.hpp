@@ -25,17 +25,19 @@ namespace dbg {
 // ID; instead it is used to prevent implicit casts between identifiers of
 // different T types.
 // IDs are typically used as a map key to value of type T.
-template <typename T>
+template<typename T>
 class ID
 {
 public:
-	inline ID() :
-	    id(0) {}
-	inline ID(int id) :
-	    id(id) {}
-	inline bool operator==(const ID<T>& rhs) const { return id == rhs.id; }
-	inline bool operator!=(const ID<T>& rhs) const { return id != rhs.id; }
-	inline bool operator<(const ID<T>& rhs) const { return id < rhs.id; }
+	inline ID()
+	    : id(0)
+	{}
+	inline ID(int id)
+	    : id(id)
+	{}
+	inline bool operator==(const ID<T> &rhs) const { return id == rhs.id; }
+	inline bool operator!=(const ID<T> &rhs) const { return id != rhs.id; }
+	inline bool operator<(const ID<T> &rhs) const { return id < rhs.id; }
 	inline ID operator++() { return ID(++id); }
 	inline ID operator++(int) { return ID(id++); }
 
@@ -52,10 +54,10 @@ private:
 namespace std {
 
 // std::hash implementation for vk::dbg::ID<T>
-template <typename T>
+template<typename T>
 struct hash<vk::dbg::ID<T> >
 {
-	std::size_t operator()(const vk::dbg::ID<T>& id) const noexcept
+	std::size_t operator()(const vk::dbg::ID<T> &id) const noexcept
 	{
 		return std::hash<int>()(id.value());
 	}

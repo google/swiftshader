@@ -19,7 +19,7 @@
 #include "VkObject.hpp"
 
 #if VK_USE_PLATFORM_FUCHSIA
-#include <zircon/types.h>
+#	include <zircon/types.h>
 #endif
 
 namespace vk {
@@ -27,14 +27,14 @@ namespace vk {
 class Semaphore : public Object<Semaphore, VkSemaphore>
 {
 public:
-	Semaphore(const VkSemaphoreCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo);
 
 	void wait();
 
-	void wait(const VkPipelineStageFlags& flag)
+	void wait(const VkPipelineStageFlags &flag)
 	{
 		// NOTE: not sure what else to do here?
 		wait();
@@ -44,7 +44,7 @@ public:
 
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	VkResult importFd(int fd, bool temporaryImport);
-	VkResult exportFd(int* pFd) const;
+	VkResult exportFd(int *pFd) const;
 #endif
 
 #if VK_USE_PLATFORM_FUCHSIA
@@ -55,14 +55,14 @@ public:
 private:
 	class External;
 	class Impl;
-	Impl* impl = nullptr;
+	Impl *impl = nullptr;
 };
 
-static inline Semaphore* Cast(VkSemaphore object)
+static inline Semaphore *Cast(VkSemaphore object)
 {
 	return Semaphore::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_SEMAPHORE_HPP_
+#endif  // VK_SEMAPHORE_HPP_

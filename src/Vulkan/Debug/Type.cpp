@@ -36,32 +36,32 @@ std::string Type::string() const
 {
 	switch(kind)
 	{
-	case Kind::Bool:
-		return "bool";
-	case Kind::U8:
-		return "uint8_t";
-	case Kind::S8:
-		return "int8_t";
-	case Kind::U16:
-		return "uint16_t";
-	case Kind::S16:
-		return "int16_t";
-	case Kind::F32:
-		return "float";
-	case Kind::U32:
-		return "uint32_t";
-	case Kind::S32:
-		return "int32_t";
-	case Kind::F64:
-		return "double";
-	case Kind::U64:
-		return "uint64_t";
-	case Kind::S64:
-		return "int64_t";
-	case Kind::Ptr:
-		return elem->string() + "*";
-	case Kind::VariableContainer:
-		return "struct";
+		case Kind::Bool:
+			return "bool";
+		case Kind::U8:
+			return "uint8_t";
+		case Kind::S8:
+			return "int8_t";
+		case Kind::U16:
+			return "uint16_t";
+		case Kind::S16:
+			return "int16_t";
+		case Kind::F32:
+			return "float";
+		case Kind::U32:
+			return "uint32_t";
+		case Kind::S32:
+			return "int32_t";
+		case Kind::F64:
+			return "double";
+		case Kind::U64:
+			return "uint64_t";
+		case Kind::S64:
+			return "int64_t";
+		case Kind::Ptr:
+			return elem->string() + "*";
+		case Kind::VariableContainer:
+			return "struct";
 	}
 	return "";
 }

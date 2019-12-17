@@ -23,25 +23,25 @@ namespace vk {
 class CommandPool : public Object<CommandPool, VkCommandPool>
 {
 public:
-	CommandPool(const VkCommandPoolCreateInfo* pCreateInfo, void* mem);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	CommandPool(const VkCommandPoolCreateInfo *pCreateInfo, void *mem);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkCommandPoolCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkCommandPoolCreateInfo *pCreateInfo);
 
-	VkResult allocateCommandBuffers(VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer* pCommandBuffers);
-	void freeCommandBuffers(uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers);
+	VkResult allocateCommandBuffers(VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer *pCommandBuffers);
+	void freeCommandBuffers(uint32_t commandBufferCount, const VkCommandBuffer *pCommandBuffers);
 	VkResult reset(VkCommandPoolResetFlags flags);
 	void trim(VkCommandPoolTrimFlags flags);
 
 private:
-	std::set<VkCommandBuffer>* commandBuffers;
+	std::set<VkCommandBuffer> *commandBuffers;
 };
 
-static inline CommandPool* Cast(VkCommandPool object)
+static inline CommandPool *Cast(VkCommandPool object)
 {
 	return CommandPool::Cast(object);
 }
 
 }  // namespace vk
 
-#endif // VK_COMMAND_POOL_HPP_
+#endif  // VK_COMMAND_POOL_HPP_

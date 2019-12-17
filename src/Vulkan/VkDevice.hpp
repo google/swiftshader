@@ -21,8 +21,12 @@
 #include <memory>
 #include <mutex>
 
-namespace marl { class Scheduler; }
-namespace sw { class Blitter; }
+namespace marl {
+class Scheduler;
+}
+namespace sw {
+class Blitter;
+}
 
 namespace vk {
 
@@ -34,28 +38,30 @@ class Device
 public:
 	static constexpr VkSystemAllocationScope GetAllocationScope() { return VK_SYSTEM_ALLOCATION_SCOPE_DEVICE; }
 
-	Device(const VkDeviceCreateInfo* pCreateInfo, void* mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, const std::shared_ptr<marl::Scheduler>& scheduler);
-	void destroy(const VkAllocationCallbacks* pAllocator);
+	Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, const std::shared_ptr<marl::Scheduler> &scheduler);
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkDeviceCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkDeviceCreateInfo *pCreateInfo);
 
-	bool hasExtension(const char* extensionName) const;
+	bool hasExtension(const char *extensionName) const;
 	VkQueue getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const;
-	VkResult waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
+	VkResult waitForFences(uint32_t fenceCount, const VkFence *pFences, VkBool32 waitAll, uint64_t timeout);
 	VkResult waitIdle();
-	void getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
-	                                   VkDescriptorSetLayoutSupport* pSupport) const;
+	void getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo *pCreateInfo,
+	                                   VkDescriptorSetLayoutSupport *pSupport) const;
 	PhysicalDevice *getPhysicalDevice() const { return physicalDevice; }
-	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
-	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies);
-	void getRequirements(VkMemoryDedicatedRequirements* requirements) const;
+	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet *pDescriptorWrites,
+	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet *pDescriptorCopies);
+	void getRequirements(VkMemoryDedicatedRequirements *requirements) const;
 	const VkPhysicalDeviceFeatures &getEnabledFeatures() const { return enabledFeatures; }
-	sw::Blitter* getBlitter() const { return blitter.get(); }
+	sw::Blitter *getBlitter() const { return blitter.get(); }
 
 	class SamplingRoutineCache
 	{
 	public:
-		SamplingRoutineCache() : cache(1024) {}
+		SamplingRoutineCache()
+		    : cache(1024)
+		{}
 		~SamplingRoutineCache() {}
 
 		struct Key
@@ -64,27 +70,27 @@ public:
 			uint32_t sampler;
 			uint32_t imageView;
 
-			inline bool operator == (const Key& rhs) const;
+			inline bool operator==(const Key &rhs) const;
 
 			struct Hash
 			{
-				inline std::size_t operator()(const Key& key) const noexcept;
+				inline std::size_t operator()(const Key &key) const noexcept;
 			};
 		};
 
-		std::shared_ptr<rr::Routine> query(const Key& key) const;
-		void add(const Key& key, const std::shared_ptr<rr::Routine>& routine);
+		std::shared_ptr<rr::Routine> query(const Key &key) const;
+		void add(const Key &key, const std::shared_ptr<rr::Routine> &routine);
 
-		rr::Routine* queryConst(const Key& key) const;
+		rr::Routine *queryConst(const Key &key) const;
 		void updateConstCache();
 
 	private:
 		sw::LRUConstCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;
 	};
 
-	SamplingRoutineCache* getSamplingRoutineCache() const;
-	std::mutex& getSamplingRoutineCacheMutex();
-	rr::Routine* findInConstCache(const SamplingRoutineCache::Key& key) const;
+	SamplingRoutineCache *getSamplingRoutineCache() const;
+	std::mutex &getSamplingRoutineCacheMutex();
+	rr::Routine *findInConstCache(const SamplingRoutineCache::Key &key) const;
 	void updateSamplingRoutineConstCache();
 
 private:
@@ -96,24 +102,24 @@ private:
 	std::mutex samplingRoutineCacheMutex;
 	uint32_t enabledExtensionCount = 0;
 	typedef char ExtensionName[VK_MAX_EXTENSION_NAME_SIZE];
-	ExtensionName* extensions = nullptr;
+	ExtensionName *extensions = nullptr;
 	const VkPhysicalDeviceFeatures enabledFeatures = {};
 	std::shared_ptr<marl::Scheduler> scheduler;
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;
 
-static inline Device* Cast(VkDevice object)
+static inline Device *Cast(VkDevice object)
 {
 	return DispatchableDevice::Cast(object);
 }
 
-inline bool vk::Device::SamplingRoutineCache::Key::operator == (const Key& rhs) const
+inline bool vk::Device::SamplingRoutineCache::Key::operator==(const Key &rhs) const
 {
 	return instruction == rhs.instruction && sampler == rhs.sampler && imageView == rhs.imageView;
 }
 
-inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (const Key& key) const noexcept
+inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator()(const Key &key) const noexcept
 {
 	// Combine three 32-bit integers into a 64-bit hash.
 	// 2642239 is the largest prime which when cubed is smaller than 2^64.
@@ -125,4 +131,4 @@ inline std::size_t vk::Device::SamplingRoutineCache::Key::Hash::operator() (cons
 
 }  // namespace vk
 
-#endif // VK_DEVICE_HPP_
+#endif  // VK_DEVICE_HPP_

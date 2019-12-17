@@ -17,10 +17,8 @@
 
 #include <memory>
 
-namespace vk
-{
-namespace dbg
-{
+namespace vk {
+namespace dbg {
 
 class Context;
 
@@ -29,7 +27,7 @@ class Context;
 class Server
 {
 public:
-	static std::shared_ptr<Server> create(const std::shared_ptr<Context>&, int port);
+	static std::shared_ptr<Server> create(const std::shared_ptr<Context> &, int port);
 
 	virtual ~Server() = default;
 

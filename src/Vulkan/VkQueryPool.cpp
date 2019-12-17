@@ -20,7 +20,12 @@
 
 namespace vk {
 
-Query::Query() : finished(marl::Event::Mode::Manual), state(UNAVAILABLE), type(INVALID_TYPE), value(0) {}
+Query::Query()
+    : finished(marl::Event::Mode::Manual)
+    , state(UNAVAILABLE)
+    , type(INVALID_TYPE)
+    , value(0)
+{}
 
 void Query::reset()
 {
@@ -82,9 +87,10 @@ void Query::add(int64_t v)
 	value += v;
 }
 
-QueryPool::QueryPool(const VkQueryPoolCreateInfo* pCreateInfo, void* mem) :
-	pool(reinterpret_cast<Query*>(mem)), type(pCreateInfo->queryType),
-	count(pCreateInfo->queryCount)
+QueryPool::QueryPool(const VkQueryPoolCreateInfo *pCreateInfo, void *mem)
+    : pool(reinterpret_cast<Query *>(mem))
+    , type(pCreateInfo->queryType)
+    , count(pCreateInfo->queryCount)
 {
 	// According to the Vulkan spec, section 34.1. Features:
 	// "pipelineStatisticsQuery specifies whether the pipeline statistics
@@ -100,22 +106,22 @@ QueryPool::QueryPool(const VkQueryPoolCreateInfo* pCreateInfo, void* mem) :
 	// Construct all queries
 	for(uint32_t i = 0; i < count; i++)
 	{
-		new (&pool[i]) Query();
+		new(&pool[i]) Query();
 	}
 }
 
-void QueryPool::destroy(const VkAllocationCallbacks* pAllocator)
+void QueryPool::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	vk::deallocate(pool, pAllocator);
 }
 
-size_t QueryPool::ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo* pCreateInfo)
+size_t QueryPool::ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo *pCreateInfo)
 {
 	return sizeof(Query) * pCreateInfo->queryCount;
 }
 
 VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t dataSize,
-                               void* pData, VkDeviceSize stride, VkQueryResultFlags flags) const
+                               void *pData, VkDeviceSize stride, VkQueryResultFlags flags) const
 {
 	// dataSize must be large enough to contain the result of each query
 	ASSERT(static_cast<size_t>(stride * queryCount) <= dataSize);
@@ -124,7 +130,7 @@ VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t 
 	ASSERT((firstQuery + queryCount) <= count);
 
 	VkResult result = VK_SUCCESS;
-	uint8_t* data = static_cast<uint8_t*>(pData);
+	uint8_t *data = static_cast<uint8_t *>(pData);
 	for(uint32_t i = firstQuery; i < (firstQuery + queryCount); i++, data += stride)
 	{
 		// If VK_QUERY_RESULT_WAIT_BIT and VK_QUERY_RESULT_PARTIAL_BIT are both not set
@@ -134,7 +140,7 @@ VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t 
 		// queries if VK_QUERY_RESULT_WITH_AVAILABILITY_BIT is set.
 		auto &query = pool[i];
 
-		if(flags & VK_QUERY_RESULT_WAIT_BIT) // Must wait for query to finish
+		if(flags & VK_QUERY_RESULT_WAIT_BIT)  // Must wait for query to finish
 		{
 			query.wait();
 		}
@@ -145,29 +151,29 @@ VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t 
 		if(current.state == Query::ACTIVE)
 		{
 			result = VK_NOT_READY;
-			writeResult = (flags & VK_QUERY_RESULT_PARTIAL_BIT); // Allow writing partial results
+			writeResult = (flags & VK_QUERY_RESULT_PARTIAL_BIT);  // Allow writing partial results
 		}
 
 		if(flags & VK_QUERY_RESULT_64_BIT)
 		{
-			uint64_t* result64 = reinterpret_cast<uint64_t*>(data);
+			uint64_t *result64 = reinterpret_cast<uint64_t *>(data);
 			if(writeResult)
 			{
 				result64[0] = current.value;
 			}
-			if(flags & VK_QUERY_RESULT_WITH_AVAILABILITY_BIT) // Output query availablity
+			if(flags & VK_QUERY_RESULT_WITH_AVAILABILITY_BIT)  // Output query availablity
 			{
 				result64[1] = current.state;
 			}
 		}
 		else
 		{
-			uint32_t* result32 = reinterpret_cast<uint32_t*>(data);
+			uint32_t *result32 = reinterpret_cast<uint32_t *>(data);
 			if(writeResult)
 			{
 				result32[0] = static_cast<uint32_t>(current.value);
 			}
-			if(flags & VK_QUERY_RESULT_WITH_AVAILABILITY_BIT) // Output query availablity
+			if(flags & VK_QUERY_RESULT_WITH_AVAILABILITY_BIT)  // Output query availablity
 			{
 				result32[1] = current.state;
 			}
@@ -213,7 +219,9 @@ void QueryPool::writeTimestamp(uint32_t query)
 	ASSERT(type == VK_QUERY_TYPE_TIMESTAMP);
 
 	pool[query].set(std::chrono::time_point_cast<std::chrono::nanoseconds>(
-		std::chrono::system_clock::now()).time_since_epoch().count());
+	                    std::chrono::system_clock::now())
+	                    .time_since_epoch()
+	                    .count());
 }
 
 }  // namespace vk
