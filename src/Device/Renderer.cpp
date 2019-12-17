@@ -301,15 +301,15 @@ void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned 
 	{
 		if(ms == 4)
 		{
-			data->a2c0 = replicate(0.2f);
-			data->a2c1 = replicate(0.4f);
-			data->a2c2 = replicate(0.6f);
-			data->a2c3 = replicate(0.8f);
+			data->a2c0 = float4(0.2f);
+			data->a2c1 = float4(0.4f);
+			data->a2c2 = float4(0.6f);
+			data->a2c3 = float4(0.8f);
 		}
 		else if(ms == 2)
 		{
-			data->a2c0 = replicate(0.25f);
-			data->a2c1 = replicate(0.75f);
+			data->a2c0 = float4(0.25f);
+			data->a2c1 = float4(0.75f);
 		}
 		else ASSERT(false);
 	}
@@ -338,12 +338,12 @@ void Renderer::draw(const sw::Context* context, VkIndexType indexType, unsigned 
 			N += context->depthBias;
 		}
 
-		data->WxF = replicate(W * subPixF);
-		data->HxF = replicate(H * subPixF);
-		data->X0xF = replicate(X0 * subPixF - subPixF / 2);
-		data->Y0xF = replicate(Y0 * subPixF - subPixF / 2);
-		data->halfPixelX = replicate(0.5f / W);
-		data->halfPixelY = replicate(0.5f / H);
+		data->WxF = float4(W * subPixF);
+		data->HxF = float4(H * subPixF);
+		data->X0xF = float4(X0 * subPixF - subPixF / 2);
+		data->Y0xF = float4(Y0 * subPixF - subPixF / 2);
+		data->halfPixelX = float4(0.5f / W);
+		data->halfPixelY = float4(0.5f / H);
 		data->viewportHeight = abs(viewport.height);
 		data->slopeDepthBias = context->slopeDepthBias;
 		data->depthRange = Z;

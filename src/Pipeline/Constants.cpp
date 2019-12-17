@@ -281,27 +281,27 @@ Constants::Constants()
 
 	for(int i = 0; i < 256; i++)
 	{
-		sRGBtoLinear8_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0xFFFF + 0.5f);
+		sRGBtoLinear8_16[i] = (unsigned short)(sRGBtoLinear((float)i / 0xFF) * 0xFFFF + 0.5f);
 	}
 
 	for(int i = 0; i < 0x1000; i++)
 	{
-		linearToSRGB12_16[i] = (unsigned short)(clamp(sw::linearToSRGB((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
-		sRGBtoLinear12_16[i] = (unsigned short)(clamp(sw::sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
+		linearToSRGB12_16[i] = (unsigned short)(clamp(linearToSRGB((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
+		sRGBtoLinear12_16[i] = (unsigned short)(clamp(sRGBtoLinear((float)i / 0x0FFF) * 0xFFFF + 0.5f, 0.0f, (float)0xFFFF));
 	}
 
-	constexpr float4 X[4] = {
-		sw::replicate(SampleLocationsX[0]),
-		sw::replicate(SampleLocationsX[1]),
-		sw::replicate(SampleLocationsX[2]),
-		sw::replicate(SampleLocationsX[3]),
+	const float4 X[4] = {
+		float4(SampleLocationsX[0]),
+		float4(SampleLocationsX[1]),
+		float4(SampleLocationsX[2]),
+		float4(SampleLocationsX[3]),
 	};
 
-	constexpr float4 Y[4] = {
-		sw::replicate(SampleLocationsY[0]),
-		sw::replicate(SampleLocationsY[1]),
-		sw::replicate(SampleLocationsY[2]),
-		sw::replicate(SampleLocationsY[3]),
+	const float4 Y[4] = {
+		float4(SampleLocationsY[0]),
+		float4(SampleLocationsY[1]),
+		float4(SampleLocationsY[2]),
+		float4(SampleLocationsY[3]),
 	};
 
 	for(int q = 0; q < 4; q++)

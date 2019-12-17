@@ -305,10 +305,10 @@ void DescriptorSetLayout::WriteDescriptorSet(Device* device, DescriptorSet *dstS
 			imageSampler[i].arrayLayers = 1;
 			imageSampler[i].mipLevels = 1;
 			imageSampler[i].sampleCount = 1;
-			imageSampler[i].texture.widthWidthHeightHeight = sw::vector(static_cast<float>(numElements), static_cast<float>(numElements), 1, 1);
-			imageSampler[i].texture.width = sw::replicate(static_cast<float>(numElements));
-			imageSampler[i].texture.height = sw::replicate(1);
-			imageSampler[i].texture.depth = sw::replicate(1);
+			imageSampler[i].texture.widthWidthHeightHeight = sw::float4(static_cast<float>(numElements), static_cast<float>(numElements), 1, 1);
+			imageSampler[i].texture.width = sw::float4(static_cast<float>(numElements));
+			imageSampler[i].texture.height = sw::float4(1);
+			imageSampler[i].texture.depth = sw::float4(1);
 			imageSampler[i].device = device;
 
 			sw::Mipmap &mipmap = imageSampler[i].texture.mipmap[0];

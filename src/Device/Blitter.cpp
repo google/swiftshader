@@ -1282,10 +1282,10 @@ void Blitter::ApplyScaleAndClamp(Float4 &value, const State &state, bool preScal
 		switch(state.sourceFormat)
 		{
 		case VK_FORMAT_R32G32B32A32_SINT:
-			unscale = replicate(static_cast<float>(0x7FFFFFFF));
+			unscale = float4(static_cast<float>(0x7FFFFFFF));
 			break;
 		case VK_FORMAT_R32G32B32A32_UINT:
-			unscale = replicate(static_cast<float>(0xFFFFFFFF));
+			unscale = float4(static_cast<float>(0xFFFFFFFF));
 			break;
 		default:
 			UNSUPPORTED("Blitter source format %d", (int)state.sourceFormat);
