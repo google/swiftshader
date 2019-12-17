@@ -90,11 +90,6 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 			samplerState.studioSwing = (sampler->ycbcrConversion->ycbcrRange == VK_SAMPLER_YCBCR_RANGE_ITU_NARROW);
 			samplerState.swappedChroma = (sampler->ycbcrConversion->components.r != VK_COMPONENT_SWIZZLE_R);
 		}
-
-		if(sampler->anisotropyEnable != VK_FALSE)
-		{
-			UNSUPPORTED("anisotropyEnable");
-		}
 	}
 
 	routine = emitSamplerRoutine(instruction, samplerState);
@@ -229,6 +224,11 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 
 sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
 {
+	if(sampler->anisotropyEnable == VK_TRUE)
+	{
+		return FILTER_ANISOTROPIC;
+	}
+
 	switch(sampler->magFilter)
 	{
 		case VK_FILTER_NEAREST:

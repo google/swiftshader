@@ -64,7 +64,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_FALSE,  // largePoints
 		VK_FALSE,  // alphaToOne
 		VK_FALSE,  // multiViewport
-		VK_FALSE,  // samplerAnisotropy
+		VK_TRUE,   // samplerAnisotropy
 		VK_TRUE,   // textureCompressionETC2
 		VK_FALSE,  // textureCompressionASTC_LDR
 		VK_FALSE,  // textureCompressionBC
