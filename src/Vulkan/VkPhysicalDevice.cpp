@@ -603,6 +603,9 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties* pFor
 	case VK_FORMAT_R16_SFLOAT:
 	case VK_FORMAT_R16G16_SFLOAT:
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
+	case VK_FORMAT_R32_SFLOAT:
+	case VK_FORMAT_R32G32_SFLOAT:
+	case VK_FORMAT_R32G32B32A32_SFLOAT:
 		pFormatProperties->optimalTilingFeatures |=
 			VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT;
 		// Fall through
@@ -623,13 +626,10 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties* pFor
 	case VK_FORMAT_R16G16B16A16_SINT:
 	case VK_FORMAT_R32_UINT:
 	case VK_FORMAT_R32_SINT:
-	case VK_FORMAT_R32_SFLOAT:
 	case VK_FORMAT_R32G32_UINT:
 	case VK_FORMAT_R32G32_SINT:
-	case VK_FORMAT_R32G32_SFLOAT:
 	case VK_FORMAT_R32G32B32A32_UINT:
 	case VK_FORMAT_R32G32B32A32_SINT:
-	case VK_FORMAT_R32G32B32A32_SFLOAT:
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		pFormatProperties->optimalTilingFeatures |=
 			VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |
