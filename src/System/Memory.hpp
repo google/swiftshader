@@ -30,4 +30,4 @@ void clear(uint32_t *memory, uint32_t element, size_t count);
 
 }  // namespace sw
 
-#endif   // Memory_hpp
+#endif  // Memory_hpp

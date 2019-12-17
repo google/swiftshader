@@ -15,27 +15,28 @@
 #include "Socket.hpp"
 
 #if defined(_WIN32)
-	#include <ws2tcpip.h>
+#	include <ws2tcpip.h>
 #else
-	#include <unistd.h>
-	#include <netdb.h>
-	#include <netinet/in.h>
-	#include <sys/select.h>
+#	include <unistd.h>
+#	include <netdb.h>
+#	include <netinet/in.h>
+#	include <sys/select.h>
 #endif
 
 namespace sw {
 
-Socket::Socket(SOCKET socket) : socket(socket)
+Socket::Socket(SOCKET socket)
+    : socket(socket)
 {
 }
 
 Socket::Socket(const char *address, const char *port)
 {
-	#if defined(_WIN32)
-		socket = INVALID_SOCKET;
-	#else
-		socket = -1;
-	#endif
+#if defined(_WIN32)
+	socket = INVALID_SOCKET;
+#else
+	socket = -1;
+#endif
 
 	addrinfo hints = {};
 	hints.ai_family = AF_INET;
@@ -55,11 +56,11 @@ Socket::Socket(const char *address, const char *port)
 
 Socket::~Socket()
 {
-	#if defined(_WIN32)
-		closesocket(socket);
-	#else
-		close(socket);
-	#endif
+#if defined(_WIN32)
+	closesocket(socket);
+#else
+	close(socket);
+#endif
 }
 
 void Socket::listen(int backlog)
@@ -73,7 +74,7 @@ bool Socket::select(int us)
 	FD_ZERO(&sockets);
 	FD_SET(socket, &sockets);
 
-	timeval timeout = {us / 1000000, us % 1000000};
+	timeval timeout = { us / 1000000, us % 1000000 };
 
 	return ::select(FD_SETSIZE, &sockets, 0, 0, &timeout) >= 1;
 }
@@ -95,17 +96,17 @@ void Socket::send(const char *buffer, int length)
 
 void Socket::startup()
 {
-	#if defined(_WIN32)
-		WSADATA winsockData;
-		WSAStartup(MAKEWORD(2, 2), &winsockData);
-	#endif
+#if defined(_WIN32)
+	WSADATA winsockData;
+	WSAStartup(MAKEWORD(2, 2), &winsockData);
+#endif
 }
 
 void Socket::cleanup()
 {
-	#if defined(_WIN32)
-		WSACleanup();
-	#endif
+#if defined(_WIN32)
+	WSACleanup();
+#endif
 }
 
 }  // namespace sw

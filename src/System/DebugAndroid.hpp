@@ -16,11 +16,11 @@
 #define DebugAndroid_hpp
 
 #if ANDROID_PLATFORM_SDK_VERSION < 27
-#include <cutils/log.h>
+#	include <cutils/log.h>
 #elif ANDROID_PLATFORM_SDK_VERSION >= 27
-#include <log/log.h>
+#	include <log/log.h>
 #else
-#error "ANDROID_PLATFORM_SDK_VERSION is not defined"
+#	error "ANDROID_PLATFORM_SDK_VERSION is not defined"
 #endif
 
 #include <cassert>
@@ -48,52 +48,61 @@
  */
 void AndroidEnterDebugger();
 
-#define ASSERT(E) do { \
-		if(!(E)) { \
-			ALOGE("badness: assertion_failed %s in %s at %s:%d", #E,	\
-				  __FUNCTION__, __FILE__, __LINE__);					\
-			AndroidEnterDebugger();										\
-		}																\
+#define ASSERT(E)                                                    \
+	do                                                               \
+	{                                                                \
+		if(!(E))                                                     \
+		{                                                            \
+			ALOGE("badness: assertion_failed %s in %s at %s:%d", #E, \
+			      __FUNCTION__, __FILE__, __LINE__);                 \
+			AndroidEnterDebugger();                                  \
+		}                                                            \
 	} while(0)
 
 #undef assert
 #define assert(E) ASSERT(E)
 
-#define ERR(format, ...)												\
-	do {																\
+#define ERR(format, ...)                                                    \
+	do                                                                      \
+	{                                                                       \
 		ALOGE("badness: err %s %s:%d (" format ")", __FUNCTION__, __FILE__, \
-			  __LINE__, ##__VA_ARGS__);									\
-		AndroidEnterDebugger();											\
+		      __LINE__, ##__VA_ARGS__);                                     \
+		AndroidEnterDebugger();                                             \
 	} while(0)
 
-#define FIXME(format, ...)												\
-	do {																\
+#define FIXME(format, ...)                                                    \
+	do                                                                        \
+	{                                                                         \
 		ALOGE("badness: fixme %s %s:%d (" format ")", __FUNCTION__, __FILE__, \
-			  __LINE__, ##__VA_ARGS__);									\
-		AndroidEnterDebugger();											\
+		      __LINE__, ##__VA_ARGS__);                                       \
+		AndroidEnterDebugger();                                               \
 	} while(0)
 
 // TODO: Handle __VA_ARGS__ (can be empty)
-#define UNIMPLEMENTED(...) do {						\
-		ALOGE("badness: unimplemented: %s %s:%d",	\
-			  __FUNCTION__, __FILE__, __LINE__);	\
-		AndroidEnterDebugger();						\
+#define UNIMPLEMENTED(...)                        \
+	do                                            \
+	{                                             \
+		ALOGE("badness: unimplemented: %s %s:%d", \
+		      __FUNCTION__, __FILE__, __LINE__);  \
+		AndroidEnterDebugger();                   \
 	} while(0)
 
-#define UNREACHABLE(value) do {                                         \
+#define UNREACHABLE(value)                                           \
+	do                                                               \
+	{                                                                \
 		ALOGE("badness: unreachable case reached: %s %s:%d. %s: %d", \
-			  __FUNCTION__, __FILE__, __LINE__, #value, value);			\
-		AndroidEnterDebugger();                                         \
+		      __FUNCTION__, __FILE__, __LINE__, #value, value);      \
+		AndroidEnterDebugger();                                      \
 	} while(0)
 
 #ifndef NDEBUG
-	#define TRACE(format, ...)								   \
+#	define TRACE(format, ...)                                 \
 		ALOGV("%s %s:%d (" format ")", __FUNCTION__, __FILE__, \
-			  __LINE__, ##__VA_ARGS__)
+		      __LINE__, ##__VA_ARGS__)
 #else
-	#define TRACE(...) ((void)0)
+#	define TRACE(...) ((void)0)
 #endif
 
 void trace(const char *format, ...);
 
-#endif   // DebugAndroid_hpp
+#endif  // DebugAndroid_hpp

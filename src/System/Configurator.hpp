@@ -64,4 +64,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_Configurator_hpp
+#endif  // sw_Configurator_hpp

@@ -15,16 +15,16 @@
 #include "CPUID.hpp"
 
 #if defined(_WIN32)
-	#ifndef WIN32_LEAN_AND_MEAN
-		#define WIN32_LEAN_AND_MEAN
-	#endif
-	#include <windows.h>
-	#include <intrin.h>
-	#include <float.h>
+#	ifndef WIN32_LEAN_AND_MEAN
+#		define WIN32_LEAN_AND_MEAN
+#	endif
+#	include <windows.h>
+#	include <intrin.h>
+#	include <float.h>
 #else
-	#include <unistd.h>
-	#include <sched.h>
-	#include <sys/types.h>
+#	include <unistd.h>
+#	include <sched.h>
+#	include <sys/types.h>
 #endif
 
 namespace sw {
@@ -164,18 +164,20 @@ void CPUID::setEnableSSE4_1(bool enable)
 
 static void cpuid(int registers[4], int info)
 {
-	#if defined(__i386__) || defined(__x86_64__)
-		#if defined(_WIN32)
-			__cpuid(registers, info);
-		#else
-			__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
-		#endif
-	#else
-		registers[0] = 0;
-		registers[1] = 0;
-		registers[2] = 0;
-		registers[3] = 0;
-	#endif
+#if defined(__i386__) || defined(__x86_64__)
+#	if defined(_WIN32)
+	__cpuid(registers, info);
+#	else
+	__asm volatile("cpuid"
+	               : "=a"(registers[0]), "=b"(registers[1]), "=c"(registers[2]), "=d"(registers[3])
+	               : "a"(info));
+#	endif
+#else
+	registers[0] = 0;
+	registers[1] = 0;
+	registers[2] = 0;
+	registers[3] = 0;
+#endif
 }
 
 bool CPUID::detectMMX()
@@ -231,55 +233,55 @@ int CPUID::detectCoreCount()
 {
 	int cores = 0;
 
-	#if defined(_WIN32)
-		DWORD_PTR processAffinityMask = 1;
-		DWORD_PTR systemAffinityMask = 1;
+#if defined(_WIN32)
+	DWORD_PTR processAffinityMask = 1;
+	DWORD_PTR systemAffinityMask = 1;
 
-		GetProcessAffinityMask(GetCurrentProcess(), &processAffinityMask, &systemAffinityMask);
+	GetProcessAffinityMask(GetCurrentProcess(), &processAffinityMask, &systemAffinityMask);
 
-		while(systemAffinityMask)
+	while(systemAffinityMask)
+	{
+		if(systemAffinityMask & 1)
 		{
-			if(systemAffinityMask & 1)
-			{
-				cores++;
-			}
-
-			systemAffinityMask >>= 1;
+			cores++;
 		}
-	#else
-		cores = sysconf(_SC_NPROCESSORS_ONLN);
-	#endif
 
-	if(cores < 1)  cores = 1;
+		systemAffinityMask >>= 1;
+	}
+#else
+	cores = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+
+	if(cores < 1) cores = 1;
 	if(cores > 16) cores = 16;
 
-	return cores;   // FIXME: Number of physical cores
+	return cores;  // FIXME: Number of physical cores
 }
 
 int CPUID::detectAffinity()
 {
 	int cores = 0;
 
-	#if defined(_WIN32)
-		DWORD_PTR processAffinityMask = 1;
-		DWORD_PTR systemAffinityMask = 1;
+#if defined(_WIN32)
+	DWORD_PTR processAffinityMask = 1;
+	DWORD_PTR systemAffinityMask = 1;
 
-		GetProcessAffinityMask(GetCurrentProcess(), &processAffinityMask, &systemAffinityMask);
+	GetProcessAffinityMask(GetCurrentProcess(), &processAffinityMask, &systemAffinityMask);
 
-		while(processAffinityMask)
+	while(processAffinityMask)
+	{
+		if(processAffinityMask & 1)
 		{
-			if(processAffinityMask & 1)
-			{
-				cores++;
-			}
-
-			processAffinityMask >>= 1;
+			cores++;
 		}
-	#else
-		return detectCoreCount();   // FIXME: Assumes no affinity limitation
-	#endif
 
-	if(cores < 1)  cores = 1;
+		processAffinityMask >>= 1;
+	}
+#else
+	return detectCoreCount();  // FIXME: Assumes no affinity limitation
+#endif
+
+	if(cores < 1) cores = 1;
 	if(cores > 16) cores = 16;
 
 	return cores;
@@ -287,11 +289,11 @@ int CPUID::detectAffinity()
 
 void CPUID::setFlushToZero(bool enable)
 {
-	#if defined(_MSC_VER)
-		_controlfp(enable ? _DN_FLUSH : _DN_SAVE, _MCW_DN);
-	#else
-		// Unimplemented
-	#endif
+#if defined(_MSC_VER)
+	_controlfp(enable ? _DN_FLUSH : _DN_SAVE, _MCW_DN);
+#else
+	                           // Unimplemented
+#endif
 }
 
 void CPUID::setDenormalsAreZero(bool enable)

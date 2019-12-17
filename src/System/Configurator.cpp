@@ -14,17 +14,17 @@
 
 #include "Configurator.hpp"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 
-#include <stdio.h>
-#include <stdarg.h>
 #include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #if defined(__unix__)
-#include <unistd.h>
+#	include <unistd.h>
 #endif
 
 namespace sw {
@@ -42,12 +42,12 @@ Configurator::~Configurator()
 
 bool Configurator::readFile()
 {
-	#if defined(__unix__)
-		if(access(path.c_str(), R_OK) != 0)
-		{
-			return false;
-		}
-	#endif
+#if defined(__unix__)
+	if(access(path.c_str(), R_OK) != 0)
+	{
+		return false;
+	}
+#endif
 
 	fstream file(path.c_str(), ios::in);
 	if(file.fail()) return false;
@@ -66,7 +66,7 @@ bool Configurator::readFile()
 
 			if(!isprint(line[0]))
 			{
-			//	printf("Failing on char %d\n", line[0]);
+				//	printf("Failing on char %d\n", line[0]);
 				file.close();
 				return false;
 			}
@@ -77,7 +77,7 @@ bool Configurator::readFile()
 			{
 				switch(line[pLeft])
 				{
-				case '[':
+					case '[':
 					{
 						string::size_type pRight = line.find_last_of("]");
 
@@ -88,17 +88,17 @@ bool Configurator::readFile()
 						}
 					}
 					break;
-				case '=':
+					case '=':
 					{
 						string valueName = line.substr(0, pLeft);
 						string value = line.substr(pLeft + 1);
 						addValue(keyName, valueName, value);
 					}
 					break;
-				case ';':
-				case '#':
-					// Ignore comments
-					break;
+					case ';':
+					case '#':
+						// Ignore comments
+						break;
 				}
 			}
 		}
@@ -116,17 +116,18 @@ bool Configurator::readFile()
 
 void Configurator::writeFile(std::string title)
 {
-	#if defined(__unix__)
-		if(access(path.c_str(), W_OK) != 0)
-		{
-			return;
-		}
-	#endif
+#if defined(__unix__)
+	if(access(path.c_str(), W_OK) != 0)
+	{
+		return;
+	}
+#endif
 
 	fstream file(path.c_str(), ios::out);
 	if(file.fail()) return;
 
-	file << "; " << title << endl << endl;
+	file << "; " << title << endl
+	     << endl;
 
 	for(unsigned int keyID = 0; keyID < sections.size(); keyID++)
 	{
@@ -237,18 +238,18 @@ double Configurator::getFloat(string keyName, string valueName, double defaultVa
 }
 
 unsigned int Configurator::getFormatted(string keyName, string valueName, char *format,
-										void *v1, void *v2, void *v3, void *v4,
-										void *v5, void *v6, void *v7, void *v8,
-										void *v9, void *v10, void *v11, void *v12,
-										void *v13, void *v14, void *v15, void *v16)
+                                        void *v1, void *v2, void *v3, void *v4,
+                                        void *v5, void *v6, void *v7, void *v8,
+                                        void *v9, void *v10, void *v11, void *v12,
+                                        void *v13, void *v14, void *v15, void *v16)
 {
 	string value = getValue(keyName, valueName);
 
 	if(!value.length()) return false;
 
 	unsigned int nVals = sscanf(value.c_str(), format,
-								v1, v2, v3, v4, v5, v6, v7, v8,
-								v9, v10, v11, v12, v13, v14, v15, v16);
+	                            v1, v2, v3, v4, v5, v6, v7, v8,
+	                            v9, v10, v11, v12, v13, v14, v15, v16);
 
 	return nVals;
 }

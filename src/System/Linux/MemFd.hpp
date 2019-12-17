@@ -22,11 +22,14 @@
 // supported by the Linux kernel since 3.17 (good enough for Android and desktop
 // Linux).
 
-class LinuxMemFd {
+class LinuxMemFd
+{
 public:
 	LinuxMemFd() = default;
 
-	LinuxMemFd(const char* name, size_t size) : LinuxMemFd() {
+	LinuxMemFd(const char *name, size_t size)
+	    : LinuxMemFd()
+	{
 		allocate(name, size);
 	}
 
@@ -45,19 +48,19 @@ public:
 	int exportFd() const;
 
 	// Implement memfd_create() through direct syscalls if possible.
-    // On success, return true and sets |fd| accordingly. On failure, return
-    // false and sets errno.
-	bool allocate(const char* name, size_t size);
+	// On success, return true and sets |fd| accordingly. On failure, return
+	// false and sets errno.
+	bool allocate(const char *name, size_t size);
 
-	// Map a segment of |size| bytes from |offset| from the region. 
+	// Map a segment of |size| bytes from |offset| from the region.
 	// Both |offset| and |size| should be page-aligned. Returns nullptr/errno
 	// on failure.
-	void* mapReadWrite(size_t offset, size_t size);
+	void *mapReadWrite(size_t offset, size_t size);
 
 	// Unmap a region segment starting at |addr| of |size| bytes.
 	// Both |addr| and |size| should be page-aligned. Returns true on success
 	// or false/errno on failure.
-	bool unmap(void* addr, size_t size);
+	bool unmap(void *addr, size_t size);
 
 	void close();
 

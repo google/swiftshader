@@ -18,22 +18,22 @@
 // Define MEMORY_SANITIZER_ENABLED to 1 if the project was build with the memory
 // sanitizer enabled (-fsanitize=memory).
 #if defined(__SANITIZE_MEMORY__)
-#define MEMORY_SANITIZER_ENABLED 1
-#else // defined(__SANITIZE_MEMORY__)
-#if defined(__clang__)
-#if __has_feature(memory_sanitizer)
-#define MEMORY_SANITIZER_ENABLED 1
-#endif // __has_feature(memory_sanitizer)
-#endif // defined(__clang__)
-#endif // defined(__SANITIZE_MEMORY__)
+#	define MEMORY_SANITIZER_ENABLED 1
+#else  // defined(__SANITIZE_MEMORY__)
+#	if defined(__clang__)
+#		if __has_feature(memory_sanitizer)
+#			define MEMORY_SANITIZER_ENABLED 1
+#		endif  // __has_feature(memory_sanitizer)
+#	endif      // defined(__clang__)
+#endif          // defined(__SANITIZE_MEMORY__)
 
 // MEMORY_SANITIZER_ONLY(X) resolves to X if MEMORY_SANITIZER_ENABLED is defined
 // to a non-zero value, otherwise MEMORY_SANITIZER_ONLY() is stripped by the
 // preprocessor.
 #if MEMORY_SANITIZER_ENABLED
-#define MEMORY_SANITIZER_ONLY(x) x
+#	define MEMORY_SANITIZER_ONLY(x) x
 #else
-#define MEMORY_SANITIZER_ONLY(x)
-#endif // MEMORY_SANITIZER_ENABLED
+#	define MEMORY_SANITIZER_ONLY(x)
+#endif  // MEMORY_SANITIZER_ENABLED
 
-#endif // Build_hpp
+#endif  // Build_hpp

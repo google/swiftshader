@@ -35,4 +35,4 @@ public:
 
 }  // namespace sw
 
-#endif   // sw_Timer_hpp
+#endif  // sw_Timer_hpp

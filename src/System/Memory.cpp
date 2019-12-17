@@ -14,30 +14,30 @@
 
 #include "Memory.hpp"
 
-#include "Types.hpp"
 #include "Debug.hpp"
+#include "Types.hpp"
 
 #if defined(_WIN32)
-	#ifndef WIN32_LEAN_AND_MEAN
-		#define WIN32_LEAN_AND_MEAN
-	#endif
-	#include <windows.h>
-	#include <intrin.h>
+#	ifndef WIN32_LEAN_AND_MEAN
+#		define WIN32_LEAN_AND_MEAN
+#	endif
+#	include <windows.h>
+#	include <intrin.h>
 #else
-	#include <errno.h>
-	#include <sys/mman.h>
-	#include <stdlib.h>
-	#include <unistd.h>
+#	include <errno.h>
+#	include <sys/mman.h>
+#	include <stdlib.h>
+#	include <unistd.h>
 #endif
 
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 
 #undef allocate
 #undef deallocate
 
-#if(defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined (_M_X64)) && !defined(__x86__)
-#define __x86__
+#if(defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)) && !defined(__x86__)
+#	define __x86__
 #endif
 
 namespace sw {
@@ -46,45 +46,45 @@ namespace {
 
 struct Allocation
 {
-//	size_t bytes;
+	//	size_t bytes;
 	unsigned char *block;
 };
 
 void *allocateRaw(size_t bytes, size_t alignment)
 {
-	ASSERT((alignment & (alignment - 1)) == 0);   // Power of 2 alignment.
+	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
 
-	#if defined(LINUX_ENABLE_NAMED_MMAP)
-		if(alignment < sizeof(void*))
+#if defined(LINUX_ENABLE_NAMED_MMAP)
+	if(alignment < sizeof(void *))
+	{
+		return malloc(bytes);
+	}
+	else
+	{
+		void *allocation;
+		int result = posix_memalign(&allocation, alignment, bytes);
+		if(result != 0)
 		{
-			return malloc(bytes);
+			errno = result;
+			allocation = nullptr;
 		}
-		else
-		{
-			void *allocation;
-			int result = posix_memalign(&allocation, alignment, bytes);
-			if(result != 0)
-			{
-				errno = result;
-				allocation = nullptr;
-			}
-			return allocation;
-		}
-	#else
-		unsigned char *block = (unsigned char*)malloc(bytes + sizeof(Allocation) + alignment);
-		unsigned char *aligned = nullptr;
+		return allocation;
+	}
+#else
+	unsigned char *block = (unsigned char *)malloc(bytes + sizeof(Allocation) + alignment);
+	unsigned char *aligned = nullptr;
 
-		if(block)
-		{
-			aligned = (unsigned char*)((uintptr_t)(block + sizeof(Allocation) + alignment - 1) & -(intptr_t)alignment);
-			Allocation *allocation = (Allocation*)(aligned - sizeof(Allocation));
+	if(block)
+	{
+		aligned = (unsigned char *)((uintptr_t)(block + sizeof(Allocation) + alignment - 1) & -(intptr_t)alignment);
+		Allocation *allocation = (Allocation *)(aligned - sizeof(Allocation));
 
 		//	allocation->bytes = bytes;
-			allocation->block = block;
-		}
+		allocation->block = block;
+	}
 
-		return aligned;
-	#endif
+	return aligned;
+#endif
 }
 
 }  // anonymous namespace
@@ -95,13 +95,13 @@ size_t memoryPageSize()
 
 	if(pageSize == 0)
 	{
-		#if defined(_WIN32)
-			SYSTEM_INFO systemInfo;
-			GetSystemInfo(&systemInfo);
-			pageSize = systemInfo.dwPageSize;
-		#else
-			pageSize = sysconf(_SC_PAGESIZE);
-		#endif
+#if defined(_WIN32)
+		SYSTEM_INFO systemInfo;
+		GetSystemInfo(&systemInfo);
+		pageSize = systemInfo.dwPageSize;
+#else
+		pageSize = sysconf(_SC_PAGESIZE);
+#endif
 	}
 
 	return pageSize;
@@ -121,45 +121,51 @@ void *allocate(size_t bytes, size_t alignment)
 
 void deallocate(void *memory)
 {
-	#if defined(LINUX_ENABLE_NAMED_MMAP)
-		free(memory);
-	#else
-		if(memory)
-		{
-			unsigned char *aligned = (unsigned char*)memory;
-			Allocation *allocation = (Allocation*)(aligned - sizeof(Allocation));
+#if defined(LINUX_ENABLE_NAMED_MMAP)
+	free(memory);
+#else
+	if(memory)
+	{
+		unsigned char *aligned = (unsigned char *)memory;
+		Allocation *allocation = (Allocation *)(aligned - sizeof(Allocation));
 
-			free(allocation->block);
-		}
-	#endif
+		free(allocation->block);
+	}
+#endif
 }
 
 void clear(uint16_t *memory, uint16_t element, size_t count)
 {
-	#if defined(_MSC_VER) && defined(__x86__) && !defined(MEMORY_SANITIZER)
-		__stosw(memory, element, count);
-	#elif defined(__GNUC__) && defined(__x86__) && !defined(MEMORY_SANITIZER)
-		__asm__ __volatile__("rep stosw" : "+D"(memory), "+c"(count) : "a"(element) : "memory");
-	#else
-		for(size_t i = 0; i < count; i++)
-		{
-			memory[i] = element;
-		}
-	#endif
+#if defined(_MSC_VER) && defined(__x86__) && !defined(MEMORY_SANITIZER)
+	__stosw(memory, element, count);
+#elif defined(__GNUC__) && defined(__x86__) && !defined(MEMORY_SANITIZER)
+	__asm__ __volatile__("rep stosw"
+	                     : "+D"(memory), "+c"(count)
+	                     : "a"(element)
+	                     : "memory");
+#else
+	for(size_t i = 0; i < count; i++)
+	{
+		memory[i] = element;
+	}
+#endif
 }
 
 void clear(uint32_t *memory, uint32_t element, size_t count)
 {
-	#if defined(_MSC_VER) && defined(__x86__) && !defined(MEMORY_SANITIZER)
-		__stosd((unsigned long*)memory, element, count);
-	#elif defined(__GNUC__) && defined(__x86__) && !defined(MEMORY_SANITIZER)
-		__asm__ __volatile__("rep stosl" : "+D"(memory), "+c"(count) : "a"(element) : "memory");
-	#else
-		for(size_t i = 0; i < count; i++)
-		{
-			memory[i] = element;
-		}
-	#endif
+#if defined(_MSC_VER) && defined(__x86__) && !defined(MEMORY_SANITIZER)
+	__stosd((unsigned long *)memory, element, count);
+#elif defined(__GNUC__) && defined(__x86__) && !defined(MEMORY_SANITIZER)
+	__asm__ __volatile__("rep stosl"
+	                     : "+D"(memory), "+c"(count)
+	                     : "a"(element)
+	                     : "memory");
+#else
+	for(size_t i = 0; i < count; i++)
+	{
+		memory[i] = element;
+	}
+#endif
 }
 
 }  // namespace sw

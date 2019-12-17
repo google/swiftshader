@@ -18,10 +18,10 @@
 #include <hardware/gralloc.h>
 
 #ifdef HAVE_GRALLOC1
-#include <hardware/gralloc1.h>
+#	include <hardware/gralloc1.h>
 #endif
 
-#include <unistd.h> // for close()
+#include <unistd.h>  // for close()
 
 class GrallocModule
 {

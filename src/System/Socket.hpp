@@ -16,10 +16,10 @@
 #define sw_Socket_hpp
 
 #if defined(_WIN32)
-	#include <winsock2.h>
+#	include <winsock2.h>
 #else
-	#include <sys/socket.h>
-	typedef int SOCKET;
+#	include <sys/socket.h>
+typedef int SOCKET;
 #endif
 
 namespace sw {
@@ -45,6 +45,6 @@ private:
 	SOCKET socket;
 };
 
-}
+}  // namespace sw
 
-#endif   // sw_Socket_hpp
+#endif  // sw_Socket_hpp

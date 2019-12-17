@@ -22,19 +22,19 @@
 #include <unistd.h>
 
 #ifndef MFD_CLOEXEC
-#define MFD_CLOEXEC       0x0001U
+#	define MFD_CLOEXEC 0x0001U
 #endif
 
 #if __aarch64__
-#define __NR_memfd_create 279
+#	define __NR_memfd_create 279
 #elif __arm__
-#define __NR_memfd_create 279
+#	define __NR_memfd_create 279
 #elif __powerpc64__
-#define __NR_memfd_create 360
+#	define __NR_memfd_create 360
 #elif __i386__
-#define __NR_memfd_create 356
+#	define __NR_memfd_create 356
 #elif __x86_64__
-#define __NR_memfd_create 319
+#	define __NR_memfd_create 319
 #endif /* __NR_memfd_create__ */
 
 LinuxMemFd::~LinuxMemFd()
@@ -59,7 +59,7 @@ int LinuxMemFd::exportFd() const
 	return ::fcntl(fd_, F_DUPFD_CLOEXEC, 0);
 }
 
-bool LinuxMemFd::allocate(const char* name, size_t size)
+bool LinuxMemFd::allocate(const char *name, size_t size)
 {
 	close();
 
@@ -93,7 +93,8 @@ void LinuxMemFd::close()
 		// WARNING: Never retry on close() failure, even with EINTR, see
 		// https://lwn.net/Articles/576478/ for example.
 		int ret = ::close(fd_);
-		if(ret < 0) {
+		if(ret < 0)
+		{
 			TRACE("LinuxMemFd::close() failed with: %s", strerror(errno));
 			assert(false);
 		}
@@ -101,14 +102,14 @@ void LinuxMemFd::close()
 	}
 }
 
-void* LinuxMemFd::mapReadWrite(size_t offset, size_t size)
+void *LinuxMemFd::mapReadWrite(size_t offset, size_t size)
 {
-	void* addr = ::mmap(nullptr, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd_,
-						static_cast<off_t>(offset));
+	void *addr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_,
+	                    static_cast<off_t>(offset));
 	return (addr == MAP_FAILED) ? nullptr : addr;
 }
 
-bool LinuxMemFd::unmap(void* addr, size_t size)
+bool LinuxMemFd::unmap(void *addr, size_t size)
 {
 	return ::munmap(addr, size) == 0;
 }

@@ -18,11 +18,11 @@
 namespace sw {
 
 #if !defined(__i386__) && defined(_M_IX86)
-	#define __i386__ 1
+#	define __i386__ 1
 #endif
 
-#if !defined(__x86_64__) && (defined(_M_AMD64) || defined (_M_X64))
-	#define __x86_64__ 1
+#if !defined(__x86_64__) && (defined(_M_AMD64) || defined(_M_X64))
+#	define __x86_64__ 1
 #endif
 
 class CPUID
@@ -30,7 +30,7 @@ class CPUID
 public:
 	static bool supportsMMX();
 	static bool supportsCMOV();
-	static bool supportsMMX2();   // MMX instructions added by SSE: pshufw, pmulhuw, pmovmskb, pavgw/b, pextrw, pinsrw, pmaxsw/ub, etc.
+	static bool supportsMMX2();  // MMX instructions added by SSE: pshufw, pmulhuw, pmovmskb, pavgw/b, pextrw, pinsrw, pmaxsw/ub, etc.
 	static bool supportsSSE();
 	static bool supportsSSE2();
 	static bool supportsSSE3();
@@ -47,8 +47,8 @@ public:
 	static void setEnableSSSE3(bool enable);
 	static void setEnableSSE4_1(bool enable);
 
-	static void setFlushToZero(bool enable);        // Denormal results are written as zero
-	static void setDenormalsAreZero(bool enable);   // Denormal inputs are read as zero
+	static void setFlushToZero(bool enable);       // Denormal results are written as zero
+	static void setDenormalsAreZero(bool enable);  // Denormal inputs are read as zero
 
 private:
 	static bool MMX;
@@ -98,7 +98,7 @@ inline bool CPUID::supportsCMOV()
 
 inline bool CPUID::supportsMMX2()
 {
-	return supportsSSE();   // Coincides with 64-bit integer vector instructions supported by SSE
+	return supportsSSE();  // Coincides with 64-bit integer vector instructions supported by SSE
 }
 
 inline bool CPUID::supportsSSE()
@@ -138,4 +138,4 @@ inline int CPUID::processAffinity()
 
 }  // namespace sw
 
-#endif   // sw_CPUID_hpp
+#endif  // sw_CPUID_hpp

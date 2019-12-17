@@ -21,25 +21,30 @@
 // GCC warns against bitfields not fitting the entire range of an enum with a fixed underlying type of unsigned int, which gets promoted to an error with -Werror and cannot be suppressed.
 // However, GCC already defaults to using unsigned int as the underlying type of an unscoped enum without a fixed underlying type. So we can just omit it.
 #if defined(__GNUC__) && !defined(__clang__)
-namespace {enum E {}; static_assert(!std::numeric_limits<std::underlying_type<E>::type>::is_signed, "expected unscoped enum whose underlying type is not fixed to be unsigned");}
-#define ENUM_UNDERLYING_TYPE_UNSIGNED_INT
+namespace {
+enum E
+{
+};
+static_assert(!std::numeric_limits<std::underlying_type<E>::type>::is_signed, "expected unscoped enum whose underlying type is not fixed to be unsigned");
+}  // namespace
+#	define ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 #else
-#define ENUM_UNDERLYING_TYPE_UNSIGNED_INT : unsigned int
+#	define ENUM_UNDERLYING_TYPE_UNSIGNED_INT : unsigned int
 #endif
 
 #if defined(_MSC_VER)
-	typedef signed __int8 int8_t;
-	typedef signed __int16 int16_t;
-	typedef signed __int32 int32_t;
-	typedef signed __int64 int64_t;
-	typedef unsigned __int8 uint8_t;
-	typedef unsigned __int16 uint16_t;
-	typedef unsigned __int32 uint32_t;
-	typedef unsigned __int64 uint64_t;
-	#define ALIGN(bytes, type) __declspec(align(bytes)) type
+typedef signed __int8 int8_t;
+typedef signed __int16 int16_t;
+typedef signed __int32 int32_t;
+typedef signed __int64 int64_t;
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+#	define ALIGN(bytes, type) __declspec(align(bytes)) type
 #else
-	#include <stdint.h>
-	#define ALIGN(bytes, type) type __attribute__((aligned(bytes)))
+#	include <stdint.h>
+#	define ALIGN(bytes, type) type __attribute__((aligned(bytes)))
 #endif
 
 namespace sw {
@@ -51,7 +56,7 @@ typedef ALIGN(8, uint64_t) qword;
 typedef ALIGN(1, int8_t) sbyte;
 
 template<typename T, int N>
-struct alignas(sizeof(T)* N) vec
+struct alignas(sizeof(T) * N) vec
 {
 	vec() = default;
 
@@ -63,9 +68,9 @@ struct alignas(sizeof(T)* N) vec
 		}
 	}
 
-	template<typename ... ARGS>
-	constexpr vec(T arg0, ARGS ... args)
-		: v{ arg0, args... }
+	template<typename... ARGS>
+	constexpr vec(T arg0, ARGS... args)
+	    : v{ arg0, args... }
 	{
 	}
 
@@ -91,12 +96,18 @@ struct alignas(sizeof(T) * 4) vec<T, 4>
 	vec() = default;
 
 	constexpr explicit vec(T replicate)
-		: x(replicate), y(replicate), z(replicate), w(replicate)
+	    : x(replicate)
+	    , y(replicate)
+	    , z(replicate)
+	    , w(replicate)
 	{
 	}
 
 	constexpr vec(T x, T y, T z, T w)
-		: x(x), y(y), z(z), w(w)
+	    : x(x)
+	    , y(y)
+	    , z(z)
+	    , w(w)
 	{
 	}
 
@@ -128,7 +139,7 @@ struct alignas(sizeof(T) * 4) vec<T, 4>
 };
 
 template<typename T, int N>
-bool operator==(const vec<T, N>& a, const vec<T, N>& b)
+bool operator==(const vec<T, N> &a, const vec<T, N> &b)
 {
 	for(int i = 0; i < N; i++)
 	{
@@ -142,15 +153,19 @@ bool operator==(const vec<T, N>& a, const vec<T, N>& b)
 }
 
 template<typename T, int N>
-bool operator!=(const vec<T, N>& a, const vec<T, N>& b)
+bool operator!=(const vec<T, N> &a, const vec<T, N> &b)
 {
 	return !(a == b);
 }
 
-template<typename T> using vec2 = vec<T, 2>;
-template<typename T> using vec4 = vec<T, 4>;
-template<typename T> using vec8 = vec<T, 8>;
-template<typename T> using vec16 = vec<T, 16>;
+template<typename T>
+using vec2 = vec<T, 2>;
+template<typename T>
+using vec4 = vec<T, 4>;
+template<typename T>
+using vec8 = vec<T, 8>;
+template<typename T>
+using vec16 = vec<T, 16>;
 
 using int2 = vec2<int>;
 using uint2 = vec2<unsigned int>;
@@ -186,8 +201,8 @@ inline constexpr float4 replicate(float f)
 	return vector(f, f, f, f);
 }
 
-#define OFFSET(s,m) (int)(size_t)&reinterpret_cast<const volatile char&>((((s*)0)->m))
+#define OFFSET(s, m) (int)(size_t) & reinterpret_cast<const volatile char &>((((s *)0)->m))
 
 }  // namespace sw
 
-#endif   // sw_Types_hpp
+#endif  // sw_Types_hpp

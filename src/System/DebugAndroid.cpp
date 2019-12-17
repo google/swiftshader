@@ -14,16 +14,16 @@
 
 #include "DebugAndroid.hpp"
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <cutils/properties.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 void AndroidEnterDebugger()
 {
 	ALOGE(__FUNCTION__);
 #ifndef NDEBUG
-	static volatile int * const makefault = nullptr;
+	static volatile int *const makefault = nullptr;
 	char value[PROPERTY_VALUE_MAX];
 	property_get("debug.db.uid", value, "-1");
 	int debug_uid = atoi(value);
@@ -31,7 +31,8 @@ void AndroidEnterDebugger()
 	{
 		ALOGE("Waiting for debugger: gdbserver :${PORT} --attach %u. Look for thread %u", getpid(), gettid());
 		volatile int waiting = 1;
-		while(waiting) {
+		while(waiting)
+		{
 			sleep(1);
 		}
 	}
