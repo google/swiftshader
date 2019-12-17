@@ -26,16 +26,16 @@ class PixelRoutine : public sw::QuadRasterizer
 {
 public:
 	PixelRoutine(const PixelProcessor::State &state,
-		vk::PipelineLayout const *pipelineLayout,
-		SpirvShader const *spirvShader,
-		const vk::DescriptorSet::Bindings &descriptorSets);
+	             vk::PipelineLayout const *pipelineLayout,
+	             SpirvShader const *spirvShader,
+	             const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~PixelRoutine();
 
 protected:
-	Float4 z[4]; // Multisampled z
-	Float4 w;    // Used as is
-	Float4 rhw;  // Reciprocal w
+	Float4 z[4];  // Multisampled z
+	Float4 w;     // Used as is
+	Float4 rhw;   // Reciprocal w
 
 	SpirvRoutine routine;
 	const vk::DescriptorSet::Bindings &descriptorSets;
@@ -43,7 +43,7 @@ protected:
 	// Depth output
 	Float4 oDepth;
 
-	virtual void setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w, Int cMask[4]) = 0;
+	virtual void setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4]) = 0;
 	virtual void applyShader(Int cMask[4], Int sMask[4], Int zMask[4]) = 0;
 	virtual Bool alphaTest(Int cMask[4]) = 0;
 	virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4]) = 0;
@@ -55,7 +55,7 @@ protected:
 
 	// Raster operations
 	void alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s &current, const Int &x);
-	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int& x, Vector4f& oC, const Int& sMask, const Int& zMask, const Int& cMask);
+	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4f &oC, const Int &sMask, const Int &zMask, const Int &cMask);
 	void alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f &oC, const Int &x);
 	void writeColor(int index, const Pointer<Byte> &cBuffer, const Int &x, Vector4s &current, const Int &sMask, const Int &zMask, const Int &cMask);
 
@@ -93,4 +93,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_PixelRoutine_hpp
+#endif  // sw_PixelRoutine_hpp

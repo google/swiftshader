@@ -25,30 +25,27 @@
 namespace sw {
 
 VertexProgram::VertexProgram(
-		const VertexProcessor::State &state,
-		vk::PipelineLayout const *pipelineLayout,
-		SpirvShader const *spirvShader,
-		const vk::DescriptorSet::Bindings &descriptorSets)
-	: VertexRoutine(state, pipelineLayout, spirvShader),
-	  descriptorSets(descriptorSets)
+    const VertexProcessor::State &state,
+    vk::PipelineLayout const *pipelineLayout,
+    SpirvShader const *spirvShader,
+    const vk::DescriptorSet::Bindings &descriptorSets)
+    : VertexRoutine(state, pipelineLayout, spirvShader)
+    , descriptorSets(descriptorSets)
 {
 	routine.setImmutableInputBuiltins(spirvShader);
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine.setInputBuiltin(spirvShader, spv::BuiltInViewIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		assert(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, viewID)))));
 	});
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInInstanceIndex, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine.setInputBuiltin(spirvShader, spv::BuiltInInstanceIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		// TODO: we could do better here; we know InstanceIndex is uniform across all lanes
 		assert(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, instanceID)))));
 	});
 
-	routine.setInputBuiltin(spirvShader, spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine.setInputBuiltin(spirvShader, spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		ASSERT(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(SIMD::Width));
 	});
@@ -63,7 +60,7 @@ VertexProgram::~VertexProgram()
 {
 }
 
-void VertexProgram::program(Pointer<UInt> &batch, UInt& vertexCount)
+void VertexProgram::program(Pointer<UInt> &batch, UInt &vertexCount)
 {
 	auto it = spirvShader->inputBuiltins.find(spv::BuiltInVertexIndex);
 	if(it != spirvShader->inputBuiltins.end())
@@ -71,8 +68,8 @@ void VertexProgram::program(Pointer<UInt> &batch, UInt& vertexCount)
 		assert(it->second.SizeInComponents == 1);
 
 		routine.getVariable(it->second.Id)[it->second.FirstComponent] =
-				As<Float4>(*Pointer<Int4>(As<Pointer<Int4>>(batch)) +
-				           Int4(*Pointer<Int>(data + OFFSET(DrawData, baseVertex))));
+		    As<Float4>(*Pointer<Int4>(As<Pointer<Int4>>(batch)) +
+		               Int4(*Pointer<Int>(data + OFFSET(DrawData, baseVertex))));
 	}
 
 	auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
@@ -82,4 +79,4 @@ void VertexProgram::program(Pointer<UInt> &batch, UInt& vertexCount)
 	spirvShader->emitEpilog(&routine);
 }
 
-}  // namepsace sw
+}  // namespace sw

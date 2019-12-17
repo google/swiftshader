@@ -45,4 +45,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_SetupRoutine_hpp
+#endif  // sw_SetupRoutine_hpp

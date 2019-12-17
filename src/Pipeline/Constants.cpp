@@ -14,8 +14,8 @@
 
 #include "Constants.hpp"
 
-#include "System/Math.hpp"
 #include "System/Half.hpp"
+#include "System/Math.hpp"
 
 #include <cstring>
 
@@ -25,8 +25,7 @@ Constants constants;
 
 Constants::Constants()
 {
-	static const unsigned int transposeBit0[16] =
-	{
+	static const unsigned int transposeBit0[16] = {
 		0x00000000,
 		0x00000001,
 		0x00000010,
@@ -45,8 +44,7 @@ Constants::Constants()
 		0x00001111
 	};
 
-	static const unsigned int transposeBit1[16] =
-	{
+	static const unsigned int transposeBit1[16] = {
 		0x00000000,
 		0x00000002,
 		0x00000020,
@@ -65,8 +63,7 @@ Constants::Constants()
 		0x00002222
 	};
 
-	static const unsigned int transposeBit2[16] =
-	{
+	static const unsigned int transposeBit2[16] = {
 		0x00000000,
 		0x00000004,
 		0x00000040,
@@ -89,74 +86,71 @@ Constants::Constants()
 	memcpy(&this->transposeBit1, transposeBit1, sizeof(transposeBit1));
 	memcpy(&this->transposeBit2, transposeBit2, sizeof(transposeBit2));
 
-	static const ushort4 cWeight[17] =
-	{
-		{0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF},   // 0xFFFF / 1  = 0xFFFF
-		{0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF},   // 0xFFFF / 1  = 0xFFFF
-		{0x8000, 0x8000, 0x8000, 0x8000},   // 0xFFFF / 2  = 0x8000
-		{0x5555, 0x5555, 0x5555, 0x5555},   // 0xFFFF / 3  = 0x5555
-		{0x4000, 0x4000, 0x4000, 0x4000},   // 0xFFFF / 4  = 0x4000
-		{0x3333, 0x3333, 0x3333, 0x3333},   // 0xFFFF / 5  = 0x3333
-		{0x2AAA, 0x2AAA, 0x2AAA, 0x2AAA},   // 0xFFFF / 6  = 0x2AAA
-		{0x2492, 0x2492, 0x2492, 0x2492},   // 0xFFFF / 7  = 0x2492
-		{0x2000, 0x2000, 0x2000, 0x2000},   // 0xFFFF / 8  = 0x2000
-		{0x1C71, 0x1C71, 0x1C71, 0x1C71},   // 0xFFFF / 9  = 0x1C71
-		{0x1999, 0x1999, 0x1999, 0x1999},   // 0xFFFF / 10 = 0x1999
-		{0x1745, 0x1745, 0x1745, 0x1745},   // 0xFFFF / 11 = 0x1745
-		{0x1555, 0x1555, 0x1555, 0x1555},   // 0xFFFF / 12 = 0x1555
-		{0x13B1, 0x13B1, 0x13B1, 0x13B1},   // 0xFFFF / 13 = 0x13B1
-		{0x1249, 0x1249, 0x1249, 0x1249},   // 0xFFFF / 14 = 0x1249
-		{0x1111, 0x1111, 0x1111, 0x1111},   // 0xFFFF / 15 = 0x1111
-		{0x1000, 0x1000, 0x1000, 0x1000},   // 0xFFFF / 16 = 0x1000
+	static const ushort4 cWeight[17] = {
+		{ 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF },  // 0xFFFF / 1  = 0xFFFF
+		{ 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF },  // 0xFFFF / 1  = 0xFFFF
+		{ 0x8000, 0x8000, 0x8000, 0x8000 },  // 0xFFFF / 2  = 0x8000
+		{ 0x5555, 0x5555, 0x5555, 0x5555 },  // 0xFFFF / 3  = 0x5555
+		{ 0x4000, 0x4000, 0x4000, 0x4000 },  // 0xFFFF / 4  = 0x4000
+		{ 0x3333, 0x3333, 0x3333, 0x3333 },  // 0xFFFF / 5  = 0x3333
+		{ 0x2AAA, 0x2AAA, 0x2AAA, 0x2AAA },  // 0xFFFF / 6  = 0x2AAA
+		{ 0x2492, 0x2492, 0x2492, 0x2492 },  // 0xFFFF / 7  = 0x2492
+		{ 0x2000, 0x2000, 0x2000, 0x2000 },  // 0xFFFF / 8  = 0x2000
+		{ 0x1C71, 0x1C71, 0x1C71, 0x1C71 },  // 0xFFFF / 9  = 0x1C71
+		{ 0x1999, 0x1999, 0x1999, 0x1999 },  // 0xFFFF / 10 = 0x1999
+		{ 0x1745, 0x1745, 0x1745, 0x1745 },  // 0xFFFF / 11 = 0x1745
+		{ 0x1555, 0x1555, 0x1555, 0x1555 },  // 0xFFFF / 12 = 0x1555
+		{ 0x13B1, 0x13B1, 0x13B1, 0x13B1 },  // 0xFFFF / 13 = 0x13B1
+		{ 0x1249, 0x1249, 0x1249, 0x1249 },  // 0xFFFF / 14 = 0x1249
+		{ 0x1111, 0x1111, 0x1111, 0x1111 },  // 0xFFFF / 15 = 0x1111
+		{ 0x1000, 0x1000, 0x1000, 0x1000 },  // 0xFFFF / 16 = 0x1000
 	};
 
-	static const float4 uvWeight[17] =
-	{
-		{1.0f / 1.0f,  1.0f / 1.0f,  1.0f / 1.0f,  1.0f / 1.0f},
-		{1.0f / 1.0f,  1.0f / 1.0f,  1.0f / 1.0f,  1.0f / 1.0f},
-		{1.0f / 2.0f,  1.0f / 2.0f,  1.0f / 2.0f,  1.0f / 2.0f},
-		{1.0f / 3.0f,  1.0f / 3.0f,  1.0f / 3.0f,  1.0f / 3.0f},
-		{1.0f / 4.0f,  1.0f / 4.0f,  1.0f / 4.0f,  1.0f / 4.0f},
-		{1.0f / 5.0f,  1.0f / 5.0f,  1.0f / 5.0f,  1.0f / 5.0f},
-		{1.0f / 6.0f,  1.0f / 6.0f,  1.0f / 6.0f,  1.0f / 6.0f},
-		{1.0f / 7.0f,  1.0f / 7.0f,  1.0f / 7.0f,  1.0f / 7.0f},
-		{1.0f / 8.0f,  1.0f / 8.0f,  1.0f / 8.0f,  1.0f / 8.0f},
-		{1.0f / 9.0f,  1.0f / 9.0f,  1.0f / 9.0f,  1.0f / 9.0f},
-		{1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f},
-		{1.0f / 11.0f, 1.0f / 11.0f, 1.0f / 11.0f, 1.0f / 11.0f},
-		{1.0f / 12.0f, 1.0f / 12.0f, 1.0f / 12.0f, 1.0f / 12.0f},
-		{1.0f / 13.0f, 1.0f / 13.0f, 1.0f / 13.0f, 1.0f / 13.0f},
-		{1.0f / 14.0f, 1.0f / 14.0f, 1.0f / 14.0f, 1.0f / 14.0f},
-		{1.0f / 15.0f, 1.0f / 15.0f, 1.0f / 15.0f, 1.0f / 15.0f},
-		{1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f},
+	static const float4 uvWeight[17] = {
+		{ 1.0f / 1.0f, 1.0f / 1.0f, 1.0f / 1.0f, 1.0f / 1.0f },
+		{ 1.0f / 1.0f, 1.0f / 1.0f, 1.0f / 1.0f, 1.0f / 1.0f },
+		{ 1.0f / 2.0f, 1.0f / 2.0f, 1.0f / 2.0f, 1.0f / 2.0f },
+		{ 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f },
+		{ 1.0f / 4.0f, 1.0f / 4.0f, 1.0f / 4.0f, 1.0f / 4.0f },
+		{ 1.0f / 5.0f, 1.0f / 5.0f, 1.0f / 5.0f, 1.0f / 5.0f },
+		{ 1.0f / 6.0f, 1.0f / 6.0f, 1.0f / 6.0f, 1.0f / 6.0f },
+		{ 1.0f / 7.0f, 1.0f / 7.0f, 1.0f / 7.0f, 1.0f / 7.0f },
+		{ 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f },
+		{ 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f },
+		{ 1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f, 1.0f / 10.0f },
+		{ 1.0f / 11.0f, 1.0f / 11.0f, 1.0f / 11.0f, 1.0f / 11.0f },
+		{ 1.0f / 12.0f, 1.0f / 12.0f, 1.0f / 12.0f, 1.0f / 12.0f },
+		{ 1.0f / 13.0f, 1.0f / 13.0f, 1.0f / 13.0f, 1.0f / 13.0f },
+		{ 1.0f / 14.0f, 1.0f / 14.0f, 1.0f / 14.0f, 1.0f / 14.0f },
+		{ 1.0f / 15.0f, 1.0f / 15.0f, 1.0f / 15.0f, 1.0f / 15.0f },
+		{ 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f, 1.0f / 16.0f },
 	};
 
-	static const float4 uvStart[17] =
-	{
-		{-0.0f / 2.0f,   -0.0f / 2.0f,   -0.0f / 2.0f,   -0.0f / 2.0f},
-		{-0.0f / 2.0f,   -0.0f / 2.0f,   -0.0f / 2.0f,   -0.0f / 2.0f},
-		{-1.0f / 4.0f,   -1.0f / 4.0f,   -1.0f / 4.0f,   -1.0f / 4.0f},
-		{-2.0f / 6.0f,   -2.0f / 6.0f,   -2.0f / 6.0f,   -2.0f / 6.0f},
-		{-3.0f / 8.0f,   -3.0f / 8.0f,   -3.0f / 8.0f,   -3.0f / 8.0f},
-		{-4.0f / 10.0f,  -4.0f / 10.0f,  -4.0f / 10.0f,  -4.0f / 10.0f},
-		{-5.0f / 12.0f,  -5.0f / 12.0f,  -5.0f / 12.0f,  -5.0f / 12.0f},
-		{-6.0f / 14.0f,  -6.0f / 14.0f,  -6.0f / 14.0f,  -6.0f / 14.0f},
-		{-7.0f / 16.0f,  -7.0f / 16.0f,  -7.0f / 16.0f,  -7.0f / 16.0f},
-		{-8.0f / 18.0f,  -8.0f / 18.0f,  -8.0f / 18.0f,  -8.0f / 18.0f},
-		{-9.0f / 20.0f,  -9.0f / 20.0f,  -9.0f / 20.0f,  -9.0f / 20.0f},
-		{-10.0f / 22.0f, -10.0f / 22.0f, -10.0f / 22.0f, -10.0f / 22.0f},
-		{-11.0f / 24.0f, -11.0f / 24.0f, -11.0f / 24.0f, -11.0f / 24.0f},
-		{-12.0f / 26.0f, -12.0f / 26.0f, -12.0f / 26.0f, -12.0f / 26.0f},
-		{-13.0f / 28.0f, -13.0f / 28.0f, -13.0f / 28.0f, -13.0f / 28.0f},
-		{-14.0f / 30.0f, -14.0f / 30.0f, -14.0f / 30.0f, -14.0f / 30.0f},
-		{-15.0f / 32.0f, -15.0f / 32.0f, -15.0f / 32.0f, -15.0f / 32.0f},
+	static const float4 uvStart[17] = {
+		{ -0.0f / 2.0f, -0.0f / 2.0f, -0.0f / 2.0f, -0.0f / 2.0f },
+		{ -0.0f / 2.0f, -0.0f / 2.0f, -0.0f / 2.0f, -0.0f / 2.0f },
+		{ -1.0f / 4.0f, -1.0f / 4.0f, -1.0f / 4.0f, -1.0f / 4.0f },
+		{ -2.0f / 6.0f, -2.0f / 6.0f, -2.0f / 6.0f, -2.0f / 6.0f },
+		{ -3.0f / 8.0f, -3.0f / 8.0f, -3.0f / 8.0f, -3.0f / 8.0f },
+		{ -4.0f / 10.0f, -4.0f / 10.0f, -4.0f / 10.0f, -4.0f / 10.0f },
+		{ -5.0f / 12.0f, -5.0f / 12.0f, -5.0f / 12.0f, -5.0f / 12.0f },
+		{ -6.0f / 14.0f, -6.0f / 14.0f, -6.0f / 14.0f, -6.0f / 14.0f },
+		{ -7.0f / 16.0f, -7.0f / 16.0f, -7.0f / 16.0f, -7.0f / 16.0f },
+		{ -8.0f / 18.0f, -8.0f / 18.0f, -8.0f / 18.0f, -8.0f / 18.0f },
+		{ -9.0f / 20.0f, -9.0f / 20.0f, -9.0f / 20.0f, -9.0f / 20.0f },
+		{ -10.0f / 22.0f, -10.0f / 22.0f, -10.0f / 22.0f, -10.0f / 22.0f },
+		{ -11.0f / 24.0f, -11.0f / 24.0f, -11.0f / 24.0f, -11.0f / 24.0f },
+		{ -12.0f / 26.0f, -12.0f / 26.0f, -12.0f / 26.0f, -12.0f / 26.0f },
+		{ -13.0f / 28.0f, -13.0f / 28.0f, -13.0f / 28.0f, -13.0f / 28.0f },
+		{ -14.0f / 30.0f, -14.0f / 30.0f, -14.0f / 30.0f, -14.0f / 30.0f },
+		{ -15.0f / 32.0f, -15.0f / 32.0f, -15.0f / 32.0f, -15.0f / 32.0f },
 	};
 
 	memcpy(&this->cWeight, cWeight, sizeof(cWeight));
 	memcpy(&this->uvWeight, uvWeight, sizeof(uvWeight));
 	memcpy(&this->uvStart, uvStart, sizeof(uvStart));
 
-	static const unsigned int occlusionCount[16] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
+	static const unsigned int occlusionCount[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
 
 	memcpy(&this->occlusionCount, &occlusionCount, sizeof(occlusionCount));
 
@@ -253,24 +247,24 @@ Constants::Constants()
 
 	for(int i = 0; i < 4; i++)
 	{
-		maskW01Q[i][0] =  -(i >> 0 & 1);
-		maskW01Q[i][1] =  -(i >> 1 & 1);
-		maskW01Q[i][2] =  -(i >> 0 & 1);
-		maskW01Q[i][3] =  -(i >> 1 & 1);
+		maskW01Q[i][0] = -(i >> 0 & 1);
+		maskW01Q[i][1] = -(i >> 1 & 1);
+		maskW01Q[i][2] = -(i >> 0 & 1);
+		maskW01Q[i][3] = -(i >> 1 & 1);
 
-		maskD01X[i][0] =  -(i >> 0 & 1);
-		maskD01X[i][1] =  -(i >> 1 & 1);
-		maskD01X[i][2] =  -(i >> 0 & 1);
-		maskD01X[i][3] =  -(i >> 1 & 1);
+		maskD01X[i][0] = -(i >> 0 & 1);
+		maskD01X[i][1] = -(i >> 1 & 1);
+		maskD01X[i][2] = -(i >> 0 & 1);
+		maskD01X[i][3] = -(i >> 1 & 1);
 	}
 
 	for(int i = 0; i < 16; i++)
 	{
 		mask10Q[i][0] = mask10Q[i][1] =
-				(i & 0x1 ? 0x3FF : 0) |
-				(i & 0x2 ? 0xFFC00 : 0) |
-				(i & 0x4 ? 0x3FF00000 : 0) |
-				(i & 0x8 ? 0xC0000000 : 0);
+		    (i & 0x1 ? 0x3FF : 0) |
+		    (i & 0x2 ? 0xFFC00 : 0) |
+		    (i & 0x4 ? 0x3FF00000 : 0) |
+		    (i & 0x8 ? 0xC0000000 : 0);
 	}
 
 	for(int i = 0; i < 256; i++)
@@ -327,13 +321,13 @@ Constants::Constants()
 	memcpy(&this->X, &X, sizeof(X));
 	memcpy(&this->Y, &Y, sizeof(Y));
 
-	const dword maxX[16] = {0x00000000, 0x00000001, 0x00000100, 0x00000101, 0x00010000, 0x00010001, 0x00010100, 0x00010101, 0x01000000, 0x01000001, 0x01000100, 0x01000101, 0x01010000, 0x01010001, 0x01010100, 0x01010101};
-	const dword maxY[16] = {0x00000000, 0x00000002, 0x00000200, 0x00000202, 0x00020000, 0x00020002, 0x00020200, 0x00020202, 0x02000000, 0x02000002, 0x02000200, 0x02000202, 0x02020000, 0x02020002, 0x02020200, 0x02020202};
-	const dword maxZ[16] = {0x00000000, 0x00000004, 0x00000400, 0x00000404, 0x00040000, 0x00040004, 0x00040400, 0x00040404, 0x04000000, 0x04000004, 0x04000400, 0x04000404, 0x04040000, 0x04040004, 0x04040400, 0x04040404};
-	const dword minX[16] = {0x00000000, 0x00000008, 0x00000800, 0x00000808, 0x00080000, 0x00080008, 0x00080800, 0x00080808, 0x08000000, 0x08000008, 0x08000800, 0x08000808, 0x08080000, 0x08080008, 0x08080800, 0x08080808};
-	const dword minY[16] = {0x00000000, 0x00000010, 0x00001000, 0x00001010, 0x00100000, 0x00100010, 0x00101000, 0x00101010, 0x10000000, 0x10000010, 0x10001000, 0x10001010, 0x10100000, 0x10100010, 0x10101000, 0x10101010};
-	const dword minZ[16] = {0x00000000, 0x00000020, 0x00002000, 0x00002020, 0x00200000, 0x00200020, 0x00202000, 0x00202020, 0x20000000, 0x20000020, 0x20002000, 0x20002020, 0x20200000, 0x20200020, 0x20202000, 0x20202020};
-	const dword fini[16] = {0x00000000, 0x00000080, 0x00008000, 0x00008080, 0x00800000, 0x00800080, 0x00808000, 0x00808080, 0x80000000, 0x80000080, 0x80008000, 0x80008080, 0x80800000, 0x80800080, 0x80808000, 0x80808080};
+	const dword maxX[16] = { 0x00000000, 0x00000001, 0x00000100, 0x00000101, 0x00010000, 0x00010001, 0x00010100, 0x00010101, 0x01000000, 0x01000001, 0x01000100, 0x01000101, 0x01010000, 0x01010001, 0x01010100, 0x01010101 };
+	const dword maxY[16] = { 0x00000000, 0x00000002, 0x00000200, 0x00000202, 0x00020000, 0x00020002, 0x00020200, 0x00020202, 0x02000000, 0x02000002, 0x02000200, 0x02000202, 0x02020000, 0x02020002, 0x02020200, 0x02020202 };
+	const dword maxZ[16] = { 0x00000000, 0x00000004, 0x00000400, 0x00000404, 0x00040000, 0x00040004, 0x00040400, 0x00040404, 0x04000000, 0x04000004, 0x04000400, 0x04000404, 0x04040000, 0x04040004, 0x04040400, 0x04040404 };
+	const dword minX[16] = { 0x00000000, 0x00000008, 0x00000800, 0x00000808, 0x00080000, 0x00080008, 0x00080800, 0x00080808, 0x08000000, 0x08000008, 0x08000800, 0x08000808, 0x08080000, 0x08080008, 0x08080800, 0x08080808 };
+	const dword minY[16] = { 0x00000000, 0x00000010, 0x00001000, 0x00001010, 0x00100000, 0x00100010, 0x00101000, 0x00101010, 0x10000000, 0x10000010, 0x10001000, 0x10001010, 0x10100000, 0x10100010, 0x10101000, 0x10101010 };
+	const dword minZ[16] = { 0x00000000, 0x00000020, 0x00002000, 0x00002020, 0x00200000, 0x00200020, 0x00202000, 0x00202020, 0x20000000, 0x20000020, 0x20002000, 0x20002020, 0x20200000, 0x20200020, 0x20202000, 0x20202020 };
+	const dword fini[16] = { 0x00000000, 0x00000080, 0x00008000, 0x00008080, 0x00800000, 0x00800080, 0x00808000, 0x00808080, 0x80000000, 0x80000080, 0x80008000, 0x80008080, 0x80800000, 0x80800080, 0x80808000, 0x80808080 };
 
 	memcpy(&this->maxX, &maxX, sizeof(maxX));
 	memcpy(&this->maxY, &maxY, sizeof(maxY));
@@ -343,17 +337,17 @@ Constants::Constants()
 	memcpy(&this->minZ, &minZ, sizeof(minZ));
 	memcpy(&this->fini, &fini, sizeof(fini));
 
-	static const dword4 maxPos = {0x7F7FFFFF, 0x7F7FFFFF, 0x7F7FFFFF, 0x7F7FFFFE};
+	static const dword4 maxPos = { 0x7F7FFFFF, 0x7F7FFFFF, 0x7F7FFFFF, 0x7F7FFFFE };
 
 	memcpy(&this->maxPos, &maxPos, sizeof(maxPos));
 
-	static const float4 unscaleByte = {1.0f / 0xFF, 1.0f / 0xFF, 1.0f / 0xFF, 1.0f / 0xFF};
-	static const float4 unscaleSByte = {1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F};
-	static const float4 unscaleShort = {1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF};
-	static const float4 unscaleUShort = {1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF};
-	static const float4 unscaleInt = {1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF};
-	static const float4 unscaleUInt = {1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF};
-	static const float4 unscaleFixed = {1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000};
+	static const float4 unscaleByte = { 1.0f / 0xFF, 1.0f / 0xFF, 1.0f / 0xFF, 1.0f / 0xFF };
+	static const float4 unscaleSByte = { 1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F };
+	static const float4 unscaleShort = { 1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF };
+	static const float4 unscaleUShort = { 1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF };
+	static const float4 unscaleInt = { 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF };
+	static const float4 unscaleUInt = { 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF };
+	static const float4 unscaleFixed = { 1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000 };
 
 	memcpy(&this->unscaleByte, &unscaleByte, sizeof(unscaleByte));
 	memcpy(&this->unscaleSByte, &unscaleSByte, sizeof(unscaleSByte));
@@ -365,7 +359,7 @@ Constants::Constants()
 
 	for(int i = 0; i <= 0xFFFF; i++)
 	{
-		half2float[i] = (float)reinterpret_cast<half&>(i);
+		half2float[i] = (float)reinterpret_cast<half &>(i);
 	}
 }
 

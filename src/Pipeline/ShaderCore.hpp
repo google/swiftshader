@@ -19,9 +19,9 @@
 #include "Reactor/Reactor.hpp"
 #include "Vulkan/VkDebug.hpp"
 
-#include <atomic> // std::memory_order
 #include <array>
-#include <utility> // std::pair
+#include <atomic>   // std::memory_order
+#include <utility>  // std::pair
 
 namespace sw {
 
@@ -87,17 +87,17 @@ struct Pointer
 	Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset);
 	Pointer(rr::Pointer<Byte> base, unsigned int limit, SIMD::Int offset);
 
-	Pointer& operator += (Int i);
-	Pointer& operator *= (Int i);
+	Pointer &operator+=(Int i);
+	Pointer &operator*=(Int i);
 
-	Pointer operator + (SIMD::Int i);
-	Pointer operator * (SIMD::Int i);
+	Pointer operator+(SIMD::Int i);
+	Pointer operator*(SIMD::Int i);
 
-	Pointer& operator += (int i);
-	Pointer& operator *= (int i);
+	Pointer &operator+=(int i);
+	Pointer &operator*=(int i);
 
-	Pointer operator + (int i);
-	Pointer operator * (int i);
+	Pointer operator+(int i);
+	Pointer operator*(int i);
 
 	SIMD::Int offsets() const;
 
@@ -135,23 +135,37 @@ struct Pointer
 	rr::Pointer<rr::Byte> base;
 
 	// Upper (non-inclusive) limit for offsets from base.
-	rr::Int dynamicLimit; // If hasDynamicLimit is false, dynamicLimit is zero.
+	rr::Int dynamicLimit;  // If hasDynamicLimit is false, dynamicLimit is zero.
 	unsigned int staticLimit;
 
 	// Per lane offsets from base.
-	SIMD::Int dynamicOffsets; // If hasDynamicOffsets is false, all dynamicOffsets are zero.
+	SIMD::Int dynamicOffsets;  // If hasDynamicOffsets is false, all dynamicOffsets are zero.
 	std::array<int32_t, SIMD::Width> staticOffsets;
 
 	bool hasDynamicLimit;    // True if dynamicLimit is non-zero.
 	bool hasDynamicOffsets;  // True if any dynamicOffsets are non-zero.
 };
 
-template <typename T> struct Element {};
-template <> struct Element<Float> { using type = rr::Float; };
-template <> struct Element<Int>   { using type = rr::Int; };
-template <> struct Element<UInt>  { using type = rr::UInt; };
+template<typename T>
+struct Element
+{};
+template<>
+struct Element<Float>
+{
+	using type = rr::Float;
+};
+template<>
+struct Element<Int>
+{
+	using type = rr::Int;
+};
+template<>
+struct Element<UInt>
+{
+	using type = rr::UInt;
+};
 
-} // namespace SIMD
+}  // namespace SIMD
 
 Float4 exponential2(RValue<Float4> x, bool pp = false);
 Float4 logarithm2(RValue<Float4> x, bool pp = false);
@@ -161,8 +175,8 @@ Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp = false);
 Float4 reciprocal(RValue<Float4> x, bool pp = false, bool finite = false, bool exactAtPow2 = false);
 Float4 reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
 Float4 modulo(RValue<Float4> x, RValue<Float4> y);
-Float4 sine_pi(RValue<Float4> x, bool pp = false);     // limited to [-pi, pi] range
-Float4 cosine_pi(RValue<Float4> x, bool pp = false);   // limited to [-pi, pi] range
+Float4 sine_pi(RValue<Float4> x, bool pp = false);    // limited to [-pi, pi] range
+Float4 cosine_pi(RValue<Float4> x, bool pp = false);  // limited to [-pi, pi] range
 Float4 sine(RValue<Float4> x, bool pp = false);
 Float4 cosine(RValue<Float4> x, bool pp = false);
 Float4 tangent(RValue<Float4> x, bool pp = false);
@@ -199,10 +213,10 @@ rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints);
 
 rr::RValue<rr::Bool> AnyFalse(rr::RValue<sw::SIMD::Int> const &ints);
 
-template <typename T>
+template<typename T>
 inline rr::RValue<T> AndAll(rr::RValue<T> const &mask);
 
-template <typename T>
+template<typename T>
 inline rr::RValue<T> OrAll(rr::RValue<T> const &mask);
 
 rr::RValue<sw::SIMD::Float> Sign(rr::RValue<sw::SIMD::Float> const &val);
@@ -224,9 +238,9 @@ rr::RValue<sw::SIMD::UInt> Bitmask32(rr::RValue<sw::SIMD::UInt> const &bitCount)
 
 // Performs a fused-multiply add, returning a * b + c.
 rr::RValue<sw::SIMD::Float> FMA(
-		rr::RValue<sw::SIMD::Float> const &a,
-		rr::RValue<sw::SIMD::Float> const &b,
-		rr::RValue<sw::SIMD::Float> const &c);
+    rr::RValue<sw::SIMD::Float> const &a,
+    rr::RValue<sw::SIMD::Float> const &b,
+    rr::RValue<sw::SIMD::Float> const &c);
 
 // Returns the exponent of the floating point number f.
 // Assumes IEEE 754
@@ -244,39 +258,39 @@ rr::RValue<sw::SIMD::Float> NMax(rr::RValue<sw::SIMD::Float> const &x, rr::RValu
 
 // Returns the determinant of a 2x2 matrix.
 rr::RValue<sw::SIMD::Float> Determinant(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
-	rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d);
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
+    rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d);
 
 // Returns the determinant of a 3x3 matrix.
 rr::RValue<sw::SIMD::Float> Determinant(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
-	rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
-	rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i);
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
+    rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
+    rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i);
 
 // Returns the determinant of a 4x4 matrix.
 rr::RValue<sw::SIMD::Float> Determinant(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
-	rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
-	rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
-	rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p);
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
+    rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
+    rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
+    rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p);
 
 // Returns the inverse of a 2x2 matrix.
 std::array<rr::RValue<sw::SIMD::Float>, 4> MatrixInverse(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
-	rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d);
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
+    rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d);
 
 // Returns the inverse of a 3x3 matrix.
 std::array<rr::RValue<sw::SIMD::Float>, 9> MatrixInverse(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
-	rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
-	rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i);
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
+    rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
+    rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i);
 
 // Returns the inverse of a 4x4 matrix.
 std::array<rr::RValue<sw::SIMD::Float>, 16> MatrixInverse(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
-	rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
-	rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
-	rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p);
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
+    rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
+    rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
+    rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p);
 
 ////////////////////////////////////////////////////////////////////////////
 // Inline functions
@@ -307,14 +321,14 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 	{
 		switch(robustness)
 		{
-		case OutOfBoundsBehavior::Nullify:
-		case OutOfBoundsBehavior::RobustBufferAccess:
-		case OutOfBoundsBehavior::UndefinedValue:
-			mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
-			break;
-		case OutOfBoundsBehavior::UndefinedBehavior:
-			// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
-			break;
+			case OutOfBoundsBehavior::Nullify:
+			case OutOfBoundsBehavior::RobustBufferAccess:
+			case OutOfBoundsBehavior::UndefinedValue:
+				mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds reads.
+				break;
+			case OutOfBoundsBehavior::UndefinedBehavior:
+				// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
+				break;
 		}
 	}
 
@@ -339,14 +353,14 @@ inline T SIMD::Pointer::Load(OutOfBoundsBehavior robustness, Int mask, bool atom
 		bool zeroMaskedLanes = true;
 		switch(robustness)
 		{
-		case OutOfBoundsBehavior::Nullify:
-		case OutOfBoundsBehavior::RobustBufferAccess:  // Must either return an in-bounds value, or zero.
-			zeroMaskedLanes = true;
-			break;
-		case OutOfBoundsBehavior::UndefinedValue:
-		case OutOfBoundsBehavior::UndefinedBehavior:
-			zeroMaskedLanes = false;
-			break;
+			case OutOfBoundsBehavior::Nullify:
+			case OutOfBoundsBehavior::RobustBufferAccess:  // Must either return an in-bounds value, or zero.
+				zeroMaskedLanes = true;
+				break;
+			case OutOfBoundsBehavior::UndefinedValue:
+			case OutOfBoundsBehavior::UndefinedBehavior:
+				zeroMaskedLanes = false;
+				break;
 		}
 
 		if(hasStaticSequentialOffsets(sizeof(float)))
@@ -399,14 +413,14 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 
 	switch(robustness)
 	{
-	case OutOfBoundsBehavior::Nullify:
-	case OutOfBoundsBehavior::RobustBufferAccess:  // TODO: Allows writing anywhere within bounds. Could be faster than masking.
-	case OutOfBoundsBehavior::UndefinedValue:  // Should not be used for store operations. Treat as robust buffer access.
-		mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
-		break;
-	case OutOfBoundsBehavior::UndefinedBehavior:
-		// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
-		break;
+		case OutOfBoundsBehavior::Nullify:
+		case OutOfBoundsBehavior::RobustBufferAccess:       // TODO: Allows writing anywhere within bounds. Could be faster than masking.
+		case OutOfBoundsBehavior::UndefinedValue:           // Should not be used for store operations. Treat as robust buffer access.
+			mask &= isInBounds(sizeof(float), robustness);  // Disable out-of-bounds writes.
+			break;
+		case OutOfBoundsBehavior::UndefinedBehavior:
+			// Nothing to do. Application/compiler must guarantee no out-of-bounds accesses.
+			break;
 	}
 
 	if(!atomic && order == std::memory_order_relaxed)
@@ -420,9 +434,9 @@ inline void SIMD::Pointer::Store(T val, OutOfBoundsBehavior robustness, Int mask
 				auto elect = mask & ~(v0111 & (mask.xxyz | mask.xxxy | mask.xxxx));
 				auto maskedVal = As<SIMD::Int>(val) & elect;
 				auto scalarVal = Extract(maskedVal, 0) |
-					Extract(maskedVal, 1) |
-					Extract(maskedVal, 2) |
-					Extract(maskedVal, 3);
+				                 Extract(maskedVal, 1) |
+				                 Extract(maskedVal, 2) |
+				                 Extract(maskedVal, 3);
 				*rr::Pointer<EL>(base + staticOffsets[0], alignment) = As<EL>(scalarVal);
 			}
 		}
@@ -476,29 +490,30 @@ inline void SIMD::Pointer::Store(RValue<T> val, OutOfBoundsBehavior robustness, 
 	Store(T(val), robustness, mask, atomic, order);
 }
 
-template <typename T>
+template<typename T>
 inline rr::RValue<T> AndAll(rr::RValue<T> const &mask)
 {
-	T v1 = mask;              // [x]    [y]    [z]    [w]
-	T v2 = v1.xzxz & v1.ywyw; // [xy]   [zw]   [xy]   [zw]
-	return v2.xxxx & v2.yyyy; // [xyzw] [xyzw] [xyzw] [xyzw]
+	T v1 = mask;               // [x]    [y]    [z]    [w]
+	T v2 = v1.xzxz & v1.ywyw;  // [xy]   [zw]   [xy]   [zw]
+	return v2.xxxx & v2.yyyy;  // [xyzw] [xyzw] [xyzw] [xyzw]
 }
 
-template <typename T>
+template<typename T>
 inline rr::RValue<T> OrAll(rr::RValue<T> const &mask)
 {
-	T v1 = mask;              // [x]    [y]    [z]    [w]
-	T v2 = v1.xzxz | v1.ywyw; // [xy]   [zw]   [xy]   [zw]
-	return v2.xxxx | v2.yyyy; // [xyzw] [xyzw] [xyzw] [xyzw]
+	T v1 = mask;               // [x]    [y]    [z]    [w]
+	T v2 = v1.xzxz | v1.ywyw;  // [xy]   [zw]   [xy]   [zw]
+	return v2.xxxx | v2.yyyy;  // [xyzw] [xyzw] [xyzw] [xyzw]
 }
 
-} // namespace sw
+}  // namespace sw
 
 #ifdef ENABLE_RR_PRINT
 namespace rr {
-template <> struct PrintValue::Ty<sw::Vector4f>
+template<>
+struct PrintValue::Ty<sw::Vector4f>
 {
-	static std::string fmt(const sw::Vector4f& v)
+	static std::string fmt(const sw::Vector4f &v)
 	{
 		return "[x: " + PrintValue::fmt(v.x) +
 		       ", y: " + PrintValue::fmt(v.y) +
@@ -506,14 +521,15 @@ template <> struct PrintValue::Ty<sw::Vector4f>
 		       ", w: " + PrintValue::fmt(v.w) + "]";
 	}
 
-	static std::vector<rr::Value*> val(const sw::Vector4f& v)
+	static std::vector<rr::Value *> val(const sw::Vector4f &v)
 	{
 		return PrintValue::vals(v.x, v.y, v.z, v.w);
 	}
 };
-template <> struct PrintValue::Ty<sw::Vector4s>
+template<>
+struct PrintValue::Ty<sw::Vector4s>
 {
-	static std::string fmt(const sw::Vector4s& v)
+	static std::string fmt(const sw::Vector4s &v)
 	{
 		return "[x: " + PrintValue::fmt(v.x) +
 		       ", y: " + PrintValue::fmt(v.y) +
@@ -521,13 +537,13 @@ template <> struct PrintValue::Ty<sw::Vector4s>
 		       ", w: " + PrintValue::fmt(v.w) + "]";
 	}
 
-	static std::vector<rr::Value*> val(const sw::Vector4s& v)
+	static std::vector<rr::Value *> val(const sw::Vector4s &v)
 	{
 		return PrintValue::vals(v.x, v.y, v.z, v.w);
 	}
 };
 
-}  // namespace sw
-#endif // ENABLE_RR_PRINT
+}  // namespace rr
+#endif  // ENABLE_RR_PRINT
 
-#endif   // sw_ShaderCore_hpp
+#endif  // sw_ShaderCore_hpp

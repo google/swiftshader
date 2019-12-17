@@ -26,16 +26,21 @@
 
 namespace {
 
-enum { X, Y, Z };
+enum
+{
+	X,
+	Y,
+	Z
+};
 
 }  // anonymous namespace
 
 namespace sw {
 
 ComputeProgram::ComputeProgram(SpirvShader const *shader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets)
-	: shader(shader),
-	  pipelineLayout(pipelineLayout),
-	  descriptorSets(descriptorSets)
+    : shader(shader)
+    , pipelineLayout(pipelineLayout)
+    , descriptorSets(descriptorSets)
 {
 }
 
@@ -53,46 +58,41 @@ void ComputeProgram::generate()
 	shader->emitEpilog(&routine);
 }
 
-void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3])
+void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine *routine, Int workgroupID[3])
 {
-	routine->setInputBuiltin(shader, spv::BuiltInNumWorkgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInNumWorkgroups, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		auto numWorkgroups = *Pointer<Int4>(data + OFFSET(Data, numWorkgroups));
 		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
-				As<SIMD::Float>(SIMD::Int(Extract(numWorkgroups, component)));
+			    As<SIMD::Float>(SIMD::Int(Extract(numWorkgroups, component)));
 		}
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInWorkgroupId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInWorkgroupId, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
-				As<SIMD::Float>(SIMD::Int(workgroupID[component]));
+			    As<SIMD::Float>(SIMD::Int(workgroupID[component]));
 		}
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInWorkgroupSize, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInWorkgroupSize, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		auto workgroupSize = *Pointer<Int4>(data + OFFSET(Data, workgroupSize));
 		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
-				As<SIMD::Float>(SIMD::Int(Extract(workgroupSize, component)));
+			    As<SIMD::Float>(SIMD::Int(Extract(workgroupSize, component)));
 		}
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInNumSubgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInNumSubgroups, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		ASSERT(builtin.SizeInComponents == 1);
 		auto subgroupsPerWorkgroup = *Pointer<Int>(data + OFFSET(Data, subgroupsPerWorkgroup));
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(subgroupsPerWorkgroup));
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		ASSERT(builtin.SizeInComponents == 1);
 		auto invocationsPerSubgroup = *Pointer<Int>(data + OFFSET(Data, invocationsPerSubgroup));
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(invocationsPerSubgroup));
@@ -101,7 +101,7 @@ void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine* rout
 	routine->setImmutableInputBuiltins(shader);
 }
 
-void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex)
+void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine *routine, Int workgroupID[3], SIMD::Int localInvocationIndex, Int subgroupIndex)
 {
 	Int4 numWorkgroups = *Pointer<Int4>(data + OFFSET(Data, numWorkgroups));
 	Int4 workgroupSize = *Pointer<Int4>(data + OFFSET(Data, workgroupSize));
@@ -114,35 +114,31 @@ void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routi
 	{
 		SIMD::Int idx = localInvocationIndex;
 		localInvocationID[Z] = idx / SIMD::Int(workgroupSizeX * workgroupSizeY);
-		idx -= localInvocationID[Z] * SIMD::Int(workgroupSizeX * workgroupSizeY); // modulo
+		idx -= localInvocationID[Z] * SIMD::Int(workgroupSizeX * workgroupSizeY);  // modulo
 		localInvocationID[Y] = idx / SIMD::Int(workgroupSizeX);
-		idx -= localInvocationID[Y] * SIMD::Int(workgroupSizeX); // modulo
+		idx -= localInvocationID[Y] * SIMD::Int(workgroupSizeX);  // modulo
 		localInvocationID[X] = idx;
 	}
 
-	routine->setInputBuiltin(shader, spv::BuiltInLocalInvocationIndex, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInLocalInvocationIndex, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		ASSERT(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<SIMD::Float>(localInvocationIndex);
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInSubgroupId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInSubgroupId, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		ASSERT(builtin.SizeInComponents == 1);
 		value[builtin.FirstComponent] = As<SIMD::Float>(SIMD::Int(subgroupIndex));
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInLocalInvocationId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInLocalInvocationId, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		for(uint32_t component = 0; component < builtin.SizeInComponents; component++)
 		{
 			value[builtin.FirstComponent + component] =
-				As<SIMD::Float>(localInvocationID[component]);
+			    As<SIMD::Float>(localInvocationID[component]);
 		}
 	});
 
-	routine->setInputBuiltin(shader, spv::BuiltInGlobalInvocationId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	{
+	routine->setInputBuiltin(shader, spv::BuiltInGlobalInvocationId, [&](const SpirvShader::BuiltinMapping &builtin, Array<SIMD::Float> &value) {
 		SIMD::Int wgID = 0;
 		wgID = Insert(wgID, workgroupID[X], X);
 		wgID = Insert(wgID, workgroupID[Y], Y);
@@ -156,7 +152,7 @@ void ComputeProgram::setSubgroupBuiltins(Pointer<Byte> data, SpirvRoutine* routi
 	});
 }
 
-void ComputeProgram::emit(SpirvRoutine* routine)
+void ComputeProgram::emit(SpirvRoutine *routine)
 {
 	Pointer<Byte> data = Arg<0>();
 	Int workgroupX = Arg<1>();
@@ -174,7 +170,7 @@ void ComputeProgram::emit(SpirvRoutine* routine)
 
 	Int invocationsPerWorkgroup = *Pointer<Int>(data + OFFSET(Data, invocationsPerWorkgroup));
 
-	Int workgroupID[3] = {workgroupX, workgroupY, workgroupZ};
+	Int workgroupID[3] = { workgroupX, workgroupY, workgroupZ };
 	setWorkgroupBuiltins(data, routine, workgroupID);
 
 	For(Int i = 0, i < subgroupCount, i++)
@@ -194,11 +190,11 @@ void ComputeProgram::emit(SpirvRoutine* routine)
 }
 
 void ComputeProgram::run(
-	vk::DescriptorSet::Bindings const &descriptorSets,
-	vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
-	PushConstantStorage const &pushConstants,
-	uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
-	uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+    vk::DescriptorSet::Bindings const &descriptorSets,
+    vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
+    PushConstantStorage const &pushConstants,
+    uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
+    uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
 	auto &modes = shader->getModes();
 
@@ -231,8 +227,7 @@ void ComputeProgram::run(
 	for(uint32_t batchID = 0; batchID < batchCount && batchID < groupCount; batchID++)
 	{
 		wg.add(1);
-		marl::schedule([=, &data]
-		{
+		marl::schedule([=, &data] {
 			defer(wg.done());
 			std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
 

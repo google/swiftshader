@@ -14,7 +14,7 @@
 
 #include "SpirvShader.hpp"
 
-#include "Reactor/Coroutine.hpp" // rr::Yield
+#include "Reactor/Coroutine.hpp"  // rr::Yield
 
 #include "ShaderCore.hpp"
 
@@ -24,7 +24,9 @@
 
 namespace sw {
 
-SpirvShader::Block::Block(InsnIterator begin, InsnIterator end) : begin_(begin), end_(end)
+SpirvShader::Block::Block(InsnIterator begin, InsnIterator end)
+    : begin_(begin)
+    , end_(end)
 {
 	// Default to a Simple, this may change later.
 	kind = Block::Simple;
@@ -111,7 +113,7 @@ SpirvShader::Block::Block(InsnIterator begin, InsnIterator end) : begin_(begin),
 	}
 }
 
-void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set& reachable) const
+void SpirvShader::Function::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set &reachable) const
 {
 	if(reachable.count(id) == 0)
 	{
@@ -156,8 +158,8 @@ void SpirvShader::Function::ForeachBlockDependency(Block::ID blockId, std::funct
 	auto block = getBlock(blockId);
 	for(auto dep : block.ins)
 	{
-		if(block.kind != Block::Loop ||                 // if not a loop...
-			!ExistsPath(blockId, dep, block.mergeBlock)) // or a loop and not a loop back edge
+		if(block.kind != Block::Loop ||                  // if not a loop...
+		   !ExistsPath(blockId, dep, block.mergeBlock))  // or a loop and not a loop back edge
 		{
 			f(dep);
 		}
@@ -196,7 +198,7 @@ void SpirvShader::EmitState::addOutputActiveLaneMaskEdge(Block::ID to, RValue<SI
 
 void SpirvShader::EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask)
 {
-	auto edge = Block::Edge{from, to};
+	auto edge = Block::Edge{ from, to };
 	auto it = edgeActiveLaneMasks.find(edge);
 	if(it == edgeActiveLaneMasks.end())
 	{
@@ -212,7 +214,7 @@ void SpirvShader::EmitState::addActiveLaneMaskEdge(Block::ID from, Block::ID to,
 
 RValue<SIMD::Int> SpirvShader::GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const
 {
-	auto edge = Block::Edge{from, to};
+	auto edge = Block::Edge{ from, to };
 	auto it = state->edgeActiveLaneMasks.find(edge);
 	ASSERT_MSG(it != state->edgeActiveLaneMasks.end(), "Could not find edge %d -> %d", from.value(), to.value());
 	return it->second;
@@ -239,8 +241,7 @@ void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /*
 
 		// Ensure all dependency blocks have been generated.
 		auto depsDone = true;
-		function.ForeachBlockDependency(id, [&](Block::ID dep)
-		{
+		function.ForeachBlockDependency(id, [&](Block::ID dep) {
 			if(state->visited.count(dep) == 0)
 			{
 				state->pending->push_front(dep);
@@ -287,7 +288,7 @@ void SpirvShader::EmitNonLoop(EmitState *state) const
 
 	if(!state->visited.emplace(blockId).second)
 	{
-		return; // Already generated this block.
+		return;  // Already generated this block.
 	}
 
 	if(blockId != function.entry)
@@ -323,7 +324,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 
 	if(!state->visited.emplace(blockId).second)
 	{
-		return; // Already emitted this loop.
+		return;  // Already emitted this loop.
 	}
 
 	// Gather all the blocks that make up the loop.
@@ -414,7 +415,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	// Add active lanes to the merge lane mask.
 	for(auto in : function.getBlock(mergeBlockId).ins)
 	{
-		auto edge = Block::Edge{in, mergeBlockId};
+		auto edge = Block::Edge{ in, mergeBlockId };
 		auto it = state->edgeActiveLaneMasks.find(edge);
 		if(it != state->edgeActiveLaneMasks.end())
 		{
@@ -563,9 +564,9 @@ SpirvShader::EmitResult SpirvShader::EmitKill(InsnIterator insn, EmitState *stat
 SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitState *state) const
 {
 	auto functionId = Function::ID(insn.word(3));
-	const auto& functionIt = functions.find(functionId);
+	const auto &functionIt = functions.find(functionId);
 	ASSERT(functionIt != functions.end());
-	auto& function = functionIt->second;
+	auto &function = functionIt->second;
 
 	// TODO(b/141246700): Add full support for spv::OpFunctionCall
 	// The only supported function is a single OpKill wrapped in a
@@ -608,15 +609,15 @@ SpirvShader::EmitResult SpirvShader::EmitControlBarrier(InsnIterator insn, EmitS
 
 	switch(executionScope)
 	{
-	case spv::ScopeWorkgroup:
-		Yield(YieldResult::ControlBarrier);
-		break;
-	case spv::ScopeSubgroup:
-		break;
-	default:
-		// See Vulkan 1.1 spec, Appendix A, Validation Rules within a Module.
-		UNREACHABLE("Scope for execution must be limited to Workgroup or Subgroup");
-		break;
+		case spv::ScopeWorkgroup:
+			Yield(YieldResult::ControlBarrier);
+			break;
+		case spv::ScopeSubgroup:
+			break;
+		default:
+			// See Vulkan 1.1 spec, Appendix A, Validation Rules within a Module.
+			UNREACHABLE("Scope for execution must be limited to Workgroup or Subgroup");
+			break;
 	}
 
 	return EmitResult::Continue;
@@ -654,7 +655,7 @@ void SpirvShader::LoadPhi(InsnIterator insn, EmitState *state) const
 	}
 }
 
-void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const
+void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const &filter) const
 {
 	auto typeId = Type::ID(insn.word(1));
 	auto type = getType(typeId);
@@ -688,7 +689,7 @@ void SpirvShader::Fence(spv::MemorySemanticsMask semantics) const
 {
 	if(semantics == spv::MemorySemanticsMaskNone)
 	{
-		return; //no-op
+		return;  //no-op
 	}
 	rr::Fence(MemoryOrder(semantics));
 }

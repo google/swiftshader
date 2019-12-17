@@ -15,8 +15,8 @@
 #ifndef sw_ID_hpp
 #define sw_ID_hpp
 
-#include <unordered_map>
 #include <cstdint>
+#include <unordered_map>
 
 namespace sw {
 
@@ -25,39 +25,43 @@ namespace sw {
 // ID; instead it is used to prevent implicit casts between identifiers of
 // different T types.
 // IDs are typically used as a map key to value of type T.
-template <typename T>
+template<typename T>
 class SpirvID
 {
 public:
-	SpirvID() : id(0) {}
-	SpirvID(uint32_t id) : id(id) {}
-	bool operator == (const SpirvID<T>& rhs) const { return id == rhs.id; }
-	bool operator != (const SpirvID<T>& rhs) const { return id != rhs.id; }
-	bool operator < (const SpirvID<T>& rhs) const { return id < rhs.id; }
+	SpirvID()
+	    : id(0)
+	{}
+	SpirvID(uint32_t id)
+	    : id(id)
+	{}
+	bool operator==(const SpirvID<T> &rhs) const { return id == rhs.id; }
+	bool operator!=(const SpirvID<T> &rhs) const { return id != rhs.id; }
+	bool operator<(const SpirvID<T> &rhs) const { return id < rhs.id; }
 
 	// value returns the numerical value of the identifier.
 	uint32_t value() const { return id; }
+
 private:
 	uint32_t id;
 };
 
 // HandleMap<T> is an unordered map of SpirvID<T> to T.
-template <typename T>
+template<typename T>
 using HandleMap = std::unordered_map<SpirvID<T>, T>;
-}
+}  // namespace sw
 
-namespace std
-{
+namespace std {
 // std::hash implementation for sw::SpirvID<T>
 template<typename T>
-struct hash< sw::SpirvID<T> >
+struct hash<sw::SpirvID<T> >
 {
-	std::size_t operator()(const sw::SpirvID<T>& id) const noexcept
+	std::size_t operator()(const sw::SpirvID<T> &id) const noexcept
 	{
 		return std::hash<uint32_t>()(id.value());
 	}
 };
 
-}  // namespace sw
+}  // namespace std
 
 #endif  // sw_ID_hpp

@@ -15,15 +15,15 @@
 #ifndef sw_SpirvShader_hpp
 #define sw_SpirvShader_hpp
 
-#include "ShaderCore.hpp"
 #include "SamplerCore.hpp"
+#include "ShaderCore.hpp"
 #include "SpirvID.hpp"
-#include "System/Types.hpp"
-#include "Vulkan/VkDebug.hpp"
-#include "Vulkan/VkConfig.h"
-#include "Vulkan/VkDescriptorSet.hpp"
 #include "Device/Config.hpp"
 #include "Device/Sampler.hpp"
+#include "System/Types.hpp"
+#include "Vulkan/VkConfig.h"
+#include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkDescriptorSet.hpp"
 
 #include <spirv/unified1/spirv.hpp>
 
@@ -31,16 +31,16 @@
 #include <atomic>
 #include <cstdint>
 #include <cstring>
+#include <deque>
 #include <functional>
 #include <memory>
-#include <deque>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#undef Yield // b/127920555
+#undef Yield  // b/127920555
 
 namespace vk {
 
@@ -65,8 +65,11 @@ class SpirvRoutine;
 class Intermediate
 {
 public:
-	Intermediate(uint32_t size) : scalar(new rr::Value*[size]), size(size) {
-		memset(scalar, 0, sizeof(rr::Value*) * size);
+	Intermediate(uint32_t size)
+	    : scalar(new rr::Value *[size])
+	    , size(size)
+	{
+		memset(scalar, 0, sizeof(rr::Value *) * size);
 	}
 
 	~Intermediate()
@@ -75,12 +78,12 @@ public:
 	}
 
 	void move(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value); }
-	void move(uint32_t i, RValue<SIMD::Int> &&scalar)   { emplace(i, scalar.value); }
-	void move(uint32_t i, RValue<SIMD::UInt> &&scalar)  { emplace(i, scalar.value); }
+	void move(uint32_t i, RValue<SIMD::Int> &&scalar) { emplace(i, scalar.value); }
+	void move(uint32_t i, RValue<SIMD::UInt> &&scalar) { emplace(i, scalar.value); }
 
 	void move(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value); }
-	void move(uint32_t i, const RValue<SIMD::Int> &scalar)   { emplace(i, scalar.value); }
-	void move(uint32_t i, const RValue<SIMD::UInt> &scalar)  { emplace(i, scalar.value); }
+	void move(uint32_t i, const RValue<SIMD::Int> &scalar) { emplace(i, scalar.value); }
+	void move(uint32_t i, const RValue<SIMD::UInt> &scalar) { emplace(i, scalar.value); }
 
 	// Value retrieval functions.
 	RValue<SIMD::Float> Float(uint32_t i) const
@@ -107,8 +110,8 @@ public:
 	// No copy/move construction or assignment
 	Intermediate(Intermediate const &) = delete;
 	Intermediate(Intermediate &&) = delete;
-	Intermediate & operator=(Intermediate const &) = delete;
-	Intermediate & operator=(Intermediate &&) = delete;
+	Intermediate &operator=(Intermediate const &) = delete;
+	Intermediate &operator=(Intermediate &&) = delete;
 
 private:
 	void emplace(uint32_t i, rr::Value *value)
@@ -128,7 +131,7 @@ public:
 	using InsnStore = std::vector<uint32_t>;
 	InsnStore insns;
 
-	using ImageSampler = void(void* texture, void *sampler, void* uvsIn, void* texelOut, void* constants);
+	using ImageSampler = void(void *texture, void *sampler, void *uvsIn, void *texelOut, void *constants);
 
 	enum class YieldResult
 	{
@@ -157,15 +160,15 @@ public:
 			return iter[n];
 		}
 
-		uint32_t const * wordPointer(uint32_t n) const
+		uint32_t const *wordPointer(uint32_t n) const
 		{
 			ASSERT(n < wordCount());
 			return &iter[n];
 		}
 
-		const char* string(uint32_t n) const
+		const char *string(uint32_t n) const
 		{
-			return reinterpret_cast<const char*>(wordPointer(n));
+			return reinterpret_cast<const char *>(wordPointer(n));
 		}
 
 		bool operator==(InsnIterator const &other) const
@@ -191,7 +194,7 @@ public:
 
 		InsnIterator const operator++(int)
 		{
-			InsnIterator ret{*this};
+			InsnIterator ret{ *this };
 			iter += wordCount();
 			return ret;
 		}
@@ -200,7 +203,8 @@ public:
 
 		InsnIterator() = default;
 
-		explicit InsnIterator(InsnStore::const_iterator iter) : iter{iter}
+		explicit InsnIterator(InsnStore::const_iterator iter)
+		    : iter{ iter }
 		{
 		}
 	};
@@ -208,12 +212,12 @@ public:
 	/* range-based-for interface */
 	InsnIterator begin() const
 	{
-		return InsnIterator{insns.cbegin() + 5};
+		return InsnIterator{ insns.cbegin() + 5 };
 	}
 
 	InsnIterator end() const
 	{
-		return InsnIterator{insns.cend()};
+		return InsnIterator{ insns.cend() };
 	}
 
 	class Type
@@ -287,11 +291,11 @@ public:
 			ID from;
 			ID to;
 
-			bool operator == (const Edge& other) const { return from == other.from && to == other.to; }
+			bool operator==(const Edge &other) const { return from == other.from && to == other.to; }
 
 			struct Hash
 			{
-				std::size_t operator()(const Edge& edge) const noexcept
+				std::size_t operator()(const Edge &edge) const noexcept
 				{
 					return std::hash<uint32_t>()(edge.from.value() * 31 + edge.to.value());
 				}
@@ -299,7 +303,7 @@ public:
 		};
 
 		Block() = default;
-		Block(const Block& other) = default;
+		Block(const Block &other) = default;
 		explicit Block(InsnIterator begin, InsnIterator end);
 
 		/* range-based-for interface */
@@ -308,22 +312,23 @@ public:
 
 		enum Kind
 		{
-			Simple, // OpBranch or other simple terminator.
-			StructuredBranchConditional, // OpSelectionMerge + OpBranchConditional
-			UnstructuredBranchConditional, // OpBranchConditional
-			StructuredSwitch, // OpSelectionMerge + OpSwitch
-			UnstructuredSwitch, // OpSwitch
-			Loop, // OpLoopMerge + [OpBranchConditional | OpBranch]
+			Simple,                         // OpBranch or other simple terminator.
+			StructuredBranchConditional,    // OpSelectionMerge + OpBranchConditional
+			UnstructuredBranchConditional,  // OpBranchConditional
+			StructuredSwitch,               // OpSelectionMerge + OpSwitch
+			UnstructuredSwitch,             // OpSwitch
+			Loop,                           // OpLoopMerge + [OpBranchConditional | OpBranch]
 		};
 
 		Kind kind = Simple;
-		InsnIterator mergeInstruction; // Structured control flow merge instruction.
-		InsnIterator branchInstruction; // Branch instruction.
-		ID mergeBlock; // Structured flow merge block.
-		ID continueTarget; // Loop continue block.
-		Set ins; // Blocks that branch into this block.
-		Set outs; // Blocks that this block branches to.
+		InsnIterator mergeInstruction;   // Structured control flow merge instruction.
+		InsnIterator branchInstruction;  // Branch instruction.
+		ID mergeBlock;                   // Structured flow merge block.
+		ID continueTarget;               // Loop continue block.
+		Set ins;                         // Blocks that branch into this block.
+		Set outs;                        // Blocks that this block branches to.
 		bool isLoopMerge = false;
+
 	private:
 		InsnIterator begin_;
 		InsnIterator end_;
@@ -336,7 +341,7 @@ public:
 
 		// Walks all reachable the blocks starting from id adding them to
 		// reachable.
-		void TraverseReachableBlocks(Block::ID id, Block::Set& reachable) const;
+		void TraverseReachableBlocks(Block::ID id, Block::Set &reachable) const;
 
 		// AssignBlockFields() performs the following for all reachable blocks:
 		// * Assigns Block::ins with the identifiers of all blocks that contain
@@ -362,13 +367,14 @@ public:
 			return it->second;
 		}
 
-		Block::ID entry; // function entry point block.
-		HandleMap<Block> blocks; // blocks belonging to this function.
-		Type::ID type; // type of the function.
-		Type::ID result; // return type.
+		Block::ID entry;          // function entry point block.
+		HandleMap<Block> blocks;  // blocks belonging to this function.
+		Type::ID type;            // type of the function.
+		Type::ID result;          // return type.
 	};
 
-	struct TypeOrObject {}; // Dummy struct to represent a Type or Object.
+	struct TypeOrObject
+	{};  // Dummy struct to represent a Type or Object.
 
 	// TypeOrObjectID is an identifier that represents a Type or an Object,
 	// and supports implicit casting to and from Type::ID or Object::ID.
@@ -377,9 +383,15 @@ public:
 	public:
 		using Hash = std::hash<SpirvID<TypeOrObject>>;
 
-		inline TypeOrObjectID(uint32_t id) : SpirvID(id) {}
-		inline TypeOrObjectID(Type::ID id) : SpirvID(id.value()) {}
-		inline TypeOrObjectID(Object::ID id) : SpirvID(id.value()) {}
+		inline TypeOrObjectID(uint32_t id)
+		    : SpirvID(id)
+		{}
+		inline TypeOrObjectID(Type::ID id)
+		    : SpirvID(id.value())
+		{}
+		inline TypeOrObjectID(Object::ID id)
+		    : SpirvID(id.value())
+		{}
 		inline operator Type::ID() const { return Type::ID(value()); }
 		inline operator Object::ID() const { return Object::ID(value()); }
 	};
@@ -399,14 +411,16 @@ public:
 	struct ImageInstruction
 	{
 		ImageInstruction(Variant variant, SamplerMethod samplerMethod)
-			: parameters(0)
+		    : parameters(0)
 		{
 			this->variant = variant;
 			this->samplerMethod = samplerMethod;
 		}
 
 		// Unmarshal from raw 32-bit data
-		ImageInstruction(uint32_t parameters) : parameters(parameters) {}
+		ImageInstruction(uint32_t parameters)
+		    : parameters(parameters)
+		{}
 
 		SamplerFunction getSamplerFunction() const
 		{
@@ -432,12 +446,12 @@ public:
 				uint32_t gatherComponent : 2;
 
 				// Parameters are passed to the sampling routine in this order:
-				uint32_t coordinates : 3;       // 1-4 (does not contain projection component)
-			//	uint32_t dref : 1;              // Indicated by Variant::ProjDref|Dref
-			//	uint32_t lodOrBias : 1;         // Indicated by SamplerMethod::Lod|Bias|Fetch
-				uint32_t grad : 2;              // 0-3 components (for each of dx / dy)
-				uint32_t offset : 2;            // 0-3 components
-				uint32_t sample : 1;            // 0-1 scalar integer
+				uint32_t coordinates : 3;  // 1-4 (does not contain projection component)
+				                           //	uint32_t dref : 1;              // Indicated by Variant::ProjDref|Dref
+				                           //	uint32_t lodOrBias : 1;         // Indicated by SamplerMethod::Lod|Bias|Fetch
+				uint32_t grad : 2;         // 0-3 components (for each of dx / dy)
+				uint32_t offset : 2;       // 0-3 components
+				uint32_t sample : 1;       // 0-1 scalar integer
 			};
 
 			uint32_t parameters;
@@ -450,7 +464,7 @@ public:
 	// shader entry point represented by this object.
 	uint64_t getSerialID() const
 	{
-		return  ((uint64_t)entryPoint.value() << 32) | codeSerialID;
+		return ((uint64_t)entryPoint.value() << 32) | codeSerialID;
 	}
 
 	SpirvShader(uint32_t codeSerialID,
@@ -577,7 +591,7 @@ public:
 		bool HasOffset : 1;
 		bool HasArrayStride : 1;
 		bool HasMatrixStride : 1;
-		bool HasRowMajor : 1;		// whether RowMajor bit is valid.
+		bool HasRowMajor : 1;  // whether RowMajor bit is valid.
 
 		bool Flat : 1;
 		bool Centroid : 1;
@@ -585,21 +599,31 @@ public:
 		bool Block : 1;
 		bool BufferBlock : 1;
 		bool RelaxedPrecision : 1;
-		bool RowMajor : 1;			// RowMajor if true; ColMajor if false
-		bool InsideMatrix : 1;		// pseudo-decoration for whether we're inside a matrix.
+		bool RowMajor : 1;      // RowMajor if true; ColMajor if false
+		bool InsideMatrix : 1;  // pseudo-decoration for whether we're inside a matrix.
 
 		Decorations()
-				: Location{-1}, Component{0},
-				  BuiltIn{static_cast<spv::BuiltIn>(-1)},
-				  Offset{-1}, ArrayStride{-1}, MatrixStride{-1},
-				  HasLocation{false}, HasComponent{false},
-				  HasBuiltIn{false}, HasOffset{false},
-				  HasArrayStride{false}, HasMatrixStride{false},
-				  HasRowMajor{false},
-				  Flat{false}, Centroid{false}, NoPerspective{false},
-				  Block{false}, BufferBlock{false},
-				  RelaxedPrecision{false}, RowMajor{false},
-				  InsideMatrix{false}
+		    : Location{ -1 }
+		    , Component{ 0 }
+		    , BuiltIn{ static_cast<spv::BuiltIn>(-1) }
+		    , Offset{ -1 }
+		    , ArrayStride{ -1 }
+		    , MatrixStride{ -1 }
+		    , HasLocation{ false }
+		    , HasComponent{ false }
+		    , HasBuiltIn{ false }
+		    , HasOffset{ false }
+		    , HasArrayStride{ false }
+		    , HasMatrixStride{ false }
+		    , HasRowMajor{ false }
+		    , Flat{ false }
+		    , Centroid{ false }
+		    , NoPerspective{ false }
+		    , Block{ false }
+		    , BufferBlock{ false }
+		    , RelaxedPrecision{ false }
+		    , RowMajor{ false }
+		    , InsideMatrix{ false }
 		{
 		}
 
@@ -642,7 +666,8 @@ public:
 		};
 
 		InterfaceComponent()
-			: Type{ATTRIBTYPE_UNUSED}, DecorationBits{0}
+		    : Type{ ATTRIBTYPE_UNUSED }
+		    , DecorationBits{ 0 }
 		{
 		}
 	};
@@ -673,9 +698,10 @@ public:
 		}
 		// returns the total allocated size in bytes.
 		inline uint32_t size() const { return totalSize; }
+
 	private:
-		uint32_t totalSize = 0; // in bytes
-		std::unordered_map<Object::ID, uint32_t> offsets; // in bytes
+		uint32_t totalSize = 0;                            // in bytes
+		std::unordered_map<Object::ID, uint32_t> offsets;  // in bytes
 	};
 
 	std::vector<InterfaceComponent> inputs;
@@ -700,7 +726,7 @@ private:
 	Function::ID entryPoint;
 
 	const bool robustBufferAccess = true;
-	spv::ExecutionModel executionModel = spv::ExecutionModelMax; // Invalid prior to OpEntryPoint parsing.
+	spv::ExecutionModel executionModel = spv::ExecutionModelMax;  // Invalid prior to OpEntryPoint parsing.
 
 	// DeclareType creates a Type for the given OpTypeX instruction, storing
 	// it into the types map. It is called from the analysis pass (constructor).
@@ -768,30 +794,30 @@ private:
 
 	using InterfaceVisitor = std::function<void(Decorations const, AttribType)>;
 
-	void VisitInterface(Object::ID id, const InterfaceVisitor& v) const;
+	void VisitInterface(Object::ID id, const InterfaceVisitor &v) const;
 
-	int VisitInterfaceInner(Type::ID id, Decorations d, const InterfaceVisitor& v) const;
+	int VisitInterfaceInner(Type::ID id, Decorations d, const InterfaceVisitor &v) const;
 
 	// MemoryElement describes a scalar element within a structure, and is
 	// used by the callback function of VisitMemoryObject().
 	struct MemoryElement
 	{
-		uint32_t index;   // index of the scalar element
-		uint32_t offset;  // offset (in bytes) from the base of the object
-		const Type& type; // element type
+		uint32_t index;    // index of the scalar element
+		uint32_t offset;   // offset (in bytes) from the base of the object
+		const Type &type;  // element type
 	};
 
-	using MemoryVisitor = std::function<void(const MemoryElement&)>;
+	using MemoryVisitor = std::function<void(const MemoryElement &)>;
 
 	// VisitMemoryObject() walks a type tree in an explicitly laid out
 	// storage class, calling the MemoryVisitor for each scalar element
 	// within the
-	void VisitMemoryObject(Object::ID id, const MemoryVisitor& v) const;
+	void VisitMemoryObject(Object::ID id, const MemoryVisitor &v) const;
 
 	// VisitMemoryObjectInner() is internally called by VisitMemoryObject()
-	void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, const MemoryVisitor& v) const;
+	void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, const MemoryVisitor &v) const;
 
-	Object& CreateConstant(InsnIterator it);
+	Object &CreateConstant(InsnIterator it);
 
 	void ProcessInterfaceVariable(Object &object);
 
@@ -800,19 +826,19 @@ private:
 	{
 	public:
 		EmitState(SpirvRoutine *routine,
-				Function::ID function,
-				RValue<SIMD::Int> activeLaneMask,
-				RValue<SIMD::Int> storesAndAtomicsMask,
-				const vk::DescriptorSet::Bindings &descriptorSets,
-				bool robustBufferAccess,
-				spv::ExecutionModel executionModel)
-			: routine(routine),
-			  function(function),
-			  activeLaneMaskValue(activeLaneMask.value),
-			  storesAndAtomicsMaskValue(storesAndAtomicsMask.value),
-			  descriptorSets(descriptorSets),
-			  robustBufferAccess(robustBufferAccess),
-			  executionModel(executionModel)
+		          Function::ID function,
+		          RValue<SIMD::Int> activeLaneMask,
+		          RValue<SIMD::Int> storesAndAtomicsMask,
+		          const vk::DescriptorSet::Bindings &descriptorSets,
+		          bool robustBufferAccess,
+		          spv::ExecutionModel executionModel)
+		    : routine(routine)
+		    , function(function)
+		    , activeLaneMaskValue(activeLaneMask.value)
+		    , storesAndAtomicsMaskValue(storesAndAtomicsMask.value)
+		    , descriptorSets(descriptorSets)
+		    , robustBufferAccess(robustBufferAccess)
+		    , executionModel(executionModel)
 		{
 			ASSERT(executionModelToStage(executionModel) != VkShaderStageFlagBits(0));  // Must parse OpEntryPoint before emitting.
 		}
@@ -845,12 +871,12 @@ private:
 		// they will be ORed together.
 		void addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask);
 
-		SpirvRoutine *routine = nullptr; // The current routine being built.
-		Function::ID function; // The current function being built.
-		Block::ID block; // The current block being built.
-		rr::Value *activeLaneMaskValue = nullptr; // The current active lane mask.
-		rr::Value *storesAndAtomicsMaskValue = nullptr; // The current atomics mask.
-		Block::Set visited; // Blocks already built.
+		SpirvRoutine *routine = nullptr;                 // The current routine being built.
+		Function::ID function;                           // The current function being built.
+		Block::ID block;                                 // The current block being built.
+		rr::Value *activeLaneMaskValue = nullptr;        // The current active lane mask.
+		rr::Value *storesAndAtomicsMaskValue = nullptr;  // The current atomics mask.
+		Block::Set visited;                              // Blocks already built.
 		std::unordered_map<Block::Edge, RValue<SIMD::Int>, Block::Edge::Hash> edgeActiveLaneMasks;
 		std::deque<Block::ID> *pending;
 
@@ -858,16 +884,16 @@ private:
 
 		OutOfBoundsBehavior getOutOfBoundsBehavior(spv::StorageClass storageClass) const;
 
-		Intermediate& createIntermediate(Object::ID id, uint32_t size)
+		Intermediate &createIntermediate(Object::ID id, uint32_t size)
 		{
 			auto it = intermediates.emplace(std::piecewise_construct,
-					std::forward_as_tuple(id),
-					std::forward_as_tuple(size));
+			                                std::forward_as_tuple(id),
+			                                std::forward_as_tuple(size));
 			ASSERT_MSG(it.second, "Intermediate %d created twice", id.value());
 			return it.first->second;
 		}
 
-		Intermediate const& getIntermediate(Object::ID id) const
+		Intermediate const &getIntermediate(Object::ID id) const
 		{
 			auto it = intermediates.find(id);
 			ASSERT_MSG(it != intermediates.end(), "Unknown intermediate %d", id.value());
@@ -880,7 +906,7 @@ private:
 			ASSERT_MSG(added, "Pointer %d created twice", id.value());
 		}
 
-		SIMD::Pointer const& getPointer(Object::ID id) const
+		SIMD::Pointer const &getPointer(Object::ID id) const
 		{
 			auto it = pointers.find(id);
 			ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
@@ -898,8 +924,8 @@ private:
 	// EmitResult is an enumerator of result values from the Emit functions.
 	enum class EmitResult
 	{
-		Continue, // No termination instructions.
-		Terminator, // Reached a termination instruction.
+		Continue,    // No termination instructions.
+		Terminator,  // Reached a termination instruction.
 	};
 
 	// Generic wrapper over either per-lane intermediate value, or a constant.
@@ -1058,7 +1084,7 @@ private:
 	EmitResult EmitArrayLength(InsnIterator insn, EmitState *state) const;
 
 	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
-	SIMD::Pointer GetTexelAddress(EmitState const *state, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
+	SIMD::Pointer GetTexelAddress(EmitState const *state, SIMD::Pointer base, GenericValue const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
 	uint32_t GetConstScalarInt(Object::ID id) const;
 	void EvalSpecConstantOp(InsnIterator insn);
 	void EvalSpecConstantUnaryOp(InsnIterator insn);
@@ -1071,7 +1097,7 @@ private:
 	// StorePhi updates the phi's alloca storage value using the incoming
 	// values from blocks that are both in the OpPhi instruction and in
 	// filter.
-	void StorePhi(Block::ID blockID, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const& filter) const;
+	void StorePhi(Block::ID blockID, InsnIterator insn, EmitState *state, std::unordered_set<SpirvShader::Block::ID> const &filter) const;
 
 	// Emits a rr::Fence for the given MemorySemanticsMask.
 	void Fence(spv::MemorySemanticsMask semantics) const;
@@ -1085,7 +1111,7 @@ private:
 	static std::memory_order MemoryOrder(spv::MemorySemanticsMask memorySemantics);
 
 	// Helper as we often need to take dot products as part of doing other things.
-	SIMD::Float Dot(unsigned numComponents, GenericValue const & x, GenericValue const & y) const;
+	SIMD::Float Dot(unsigned numComponents, GenericValue const &x, GenericValue const &y) const;
 
 	// Splits x into a floating-point significand in the range [0.5, 1.0)
 	// and an integral exponent of two, such that:
@@ -1121,21 +1147,21 @@ public:
 		Pointer<Byte> function;
 	};
 
-	vk::PipelineLayout const * const pipelineLayout;
+	vk::PipelineLayout const *const pipelineLayout;
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 	std::unordered_map<SpirvShader::Object::ID, SamplerCache> samplerCache;
-	Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
-	Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};
+	Variable inputs = Variable{ MAX_INTERFACE_COMPONENTS };
+	Variable outputs = Variable{ MAX_INTERFACE_COMPONENTS };
 
 	Pointer<Byte> workgroupMemory;
 	Pointer<Pointer<Byte>> descriptorSets;
 	Pointer<Int> descriptorDynamicOffsets;
 	Pointer<Byte> pushConstants;
 	Pointer<Byte> constants;
-	Int killMask = Int{0};
+	Int killMask = Int{ 0 };
 	SIMD::Int windowSpacePosition[2];
-	Int viewID;	// slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
+	Int viewID;  // slice offset into input attachments for multiview, even if the shader doesn't use ViewIndex
 
 	void createVariable(SpirvShader::Object::ID id, uint32_t size)
 	{
@@ -1143,7 +1169,7 @@ public:
 		ASSERT_MSG(added, "Variable %d created twice", id.value());
 	}
 
-	Variable& getVariable(SpirvShader::Object::ID id)
+	Variable &getVariable(SpirvShader::Object::ID id)
 	{
 		auto it = variables.find(id);
 		ASSERT_MSG(it != variables.end(), "Unknown variables %d", id.value());
@@ -1158,13 +1184,13 @@ public:
 	// uses the input builtin, otherwise the call is a no-op.
 	// F is a function with the signature:
 	// void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
-	template <typename F>
-	inline void setInputBuiltin(SpirvShader const *shader, spv::BuiltIn id, F&& f)
+	template<typename F>
+	inline void setInputBuiltin(SpirvShader const *shader, spv::BuiltIn id, F &&f)
 	{
 		auto it = shader->inputBuiltins.find(id);
 		if(it != shader->inputBuiltins.end())
 		{
-			const auto& builtin = it->second;
+			const auto &builtin = it->second;
 			f(builtin, getVariable(builtin.Id));
 		}
 	}
@@ -1176,7 +1202,6 @@ private:
 	friend class SpirvShader;
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> phis;
-
 };
 
 }  // namespace sw

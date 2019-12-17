@@ -55,10 +55,10 @@ Short4 &Vector4s::operator[](int i)
 {
 	switch(i)
 	{
-	case 0: return x;
-	case 1: return y;
-	case 2: return z;
-	case 3: return w;
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
 	}
 
 	return x;
@@ -98,10 +98,10 @@ Float4 &Vector4f::operator[](int i)
 {
 	switch(i)
 	{
-	case 0: return x;
-	case 1: return y;
-	case 2: return z;
-	case 3: return w;
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
 	}
 
 	return x;
@@ -116,20 +116,20 @@ Float4 exponential2(RValue<Float4> x, bool pp)
 	// the IEEE-754 floating-point number. Clamp to prevent overflow
 	// past the representation of infinity.
 	Float4 x0 = x;
-	x0 = Min(x0, As<Float4>(Int4(0x43010000)));   // 129.00000e+0f
-	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));   // -126.99999e+0f
+	x0 = Min(x0, As<Float4>(Int4(0x43010000)));  // 129.00000e+0f
+	x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));  // -126.99999e+0f
 
 	Int4 i = RoundInt(x0 - Float4(0.5f));
-	Float4 ii = As<Float4>((i + Int4(127)) << 23);   // Add single-precision bias, and shift into exponent.
+	Float4 ii = As<Float4>((i + Int4(127)) << 23);  // Add single-precision bias, and shift into exponent.
 
 	// For the fractional part use a polynomial
 	// which approximates 2^f in the 0 to 1 range.
 	Float4 f = x0 - Float4(i);
-	Float4 ff = As<Float4>(Int4(0x3AF61905));     // 1.8775767e-3f
-	ff = ff * f + As<Float4>(Int4(0x3C134806));   // 8.9893397e-3f
-	ff = ff * f + As<Float4>(Int4(0x3D64AA23));   // 5.5826318e-2f
-	ff = ff * f + As<Float4>(Int4(0x3E75EAD4));   // 2.4015361e-1f
-	ff = ff * f + As<Float4>(Int4(0x3F31727B));   // 6.9315308e-1f
+	Float4 ff = As<Float4>(Int4(0x3AF61905));    // 1.8775767e-3f
+	ff = ff * f + As<Float4>(Int4(0x3C134806));  // 8.9893397e-3f
+	ff = ff * f + As<Float4>(Int4(0x3D64AA23));  // 5.5826318e-2f
+	ff = ff * f + As<Float4>(Int4(0x3E75EAD4));  // 2.4015361e-1f
+	ff = ff * f + As<Float4>(Int4(0x3F31727B));  // 6.9315308e-1f
 	ff = ff * f + Float4(1.0f);
 
 	return ii * ff;
@@ -147,7 +147,7 @@ Float4 logarithm2(RValue<Float4> x, bool pp)
 	x1 = As<Float4>(As<Int4>(x0) & Int4(0x7F800000));
 	x1 = As<Float4>(As<UInt4>(x1) >> 8);
 	x1 = As<Float4>(As<Int4>(x1) | As<Int4>(Float4(1.0f)));
-	x1 = (x1 - Float4(1.4960938f)) * Float4(256.0f);   // FIXME: (x1 - 1.4960938f) * 256.0f;
+	x1 = (x1 - Float4(1.4960938f)) * Float4(256.0f);  // FIXME: (x1 - 1.4960938f) * 256.0f;
 	x0 = As<Float4>((As<Int4>(x0) & Int4(0x007FFFFF)) | As<Int4>(Float4(1.0f)));
 
 	x2 = (Float4(9.5428179e-2f) * x0 + Float4(4.7779095e-1f)) * x0 + Float4(1.9782813e-1f);
@@ -163,13 +163,13 @@ Float4 logarithm2(RValue<Float4> x, bool pp)
 Float4 exponential(RValue<Float4> x, bool pp)
 {
 	// FIXME: Propagate the constant
-	return exponential2(Float4(1.44269504f) * x, pp);   // 1/ln(2)
+	return exponential2(Float4(1.44269504f) * x, pp);  // 1/ln(2)
 }
 
 Float4 logarithm(RValue<Float4> x, bool pp)
 {
 	// FIXME: Propagate the constant
-	return Float4(6.93147181e-1f) * logarithm2(x, pp);   // ln(2)
+	return Float4(6.93147181e-1f) * logarithm2(x, pp);  // ln(2)
 }
 
 Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp)
@@ -191,7 +191,7 @@ Float4 reciprocal(RValue<Float4> x, bool pp, bool finite, bool exactAtPow2)
 	if(finite)
 	{
 		int big = 0x7F7FFFFF;
-		rcp = Min(rcp, Float4((float&)big));
+		rcp = Min(rcp, Float4((float &)big));
 	}
 
 	return rcp;
@@ -234,8 +234,8 @@ Float4 modulo(RValue<Float4> x, RValue<Float4> y)
 
 Float4 sine_pi(RValue<Float4> x, bool pp)
 {
-	const Float4 A = Float4(-4.05284734e-1f);   // -4/pi^2
-	const Float4 B = Float4(1.27323954e+0f);    // 4/pi
+	const Float4 A = Float4(-4.05284734e-1f);  // -4/pi^2
+	const Float4 B = Float4(1.27323954e+0f);   // 4/pi
 	const Float4 C = Float4(7.75160950e-1f);
 	const Float4 D = Float4(2.24839049e-1f);
 
@@ -265,7 +265,7 @@ Float4 cosine_pi(RValue<Float4> x, bool pp)
 Float4 sine(RValue<Float4> x, bool pp)
 {
 	// Reduce to [-0.5, 0.5] range
-	Float4 y = x * Float4(1.59154943e-1f);   // 1/2pi
+	Float4 y = x * Float4(1.59154943e-1f);  // 1/2pi
 	y = y - Round(y);
 
 	if(!pp)
@@ -320,10 +320,10 @@ Float4 arccos(RValue<Float4> x, bool pp)
 
 Float4 arcsin(RValue<Float4> x, bool pp)
 {
-	if(false) // Simpler implementation fails even lowp precision tests
+	if(false)  // Simpler implementation fails even lowp precision tests
 	{
 		// x*(pi/2-sqrt(1-x*x)*pi/5)
-		return x * (Float4(1.57079632e+0f) - Sqrt(Float4(1.0f) - x*x) * Float4(6.28318531e-1f));
+		return x * (Float4(1.57079632e+0f) - Sqrt(Float4(1.0f) - x * x) * Float4(6.28318531e-1f));
 	}
 	else
 	{
@@ -335,7 +335,7 @@ Float4 arcsin(RValue<Float4> x, bool pp)
 		const Float4 a3(-0.0187293f);
 		Float4 absx = Abs(x);
 		return As<Float4>(As<Int4>(half_pi - Sqrt(Float4(1.0f) - absx) * (a0 + absx * (a1 + absx * (a2 + absx * a3)))) ^
-		       (As<Int4>(x) & Int4(0x80000000)));
+		                  (As<Int4>(x) & Int4(0x80000000)));
 	}
 }
 
@@ -366,20 +366,20 @@ Float4 arctan(RValue<Float4> x, bool pp)
 {
 	Float4 absx = Abs(x);
 	Int4 O = CmpNLT(absx, Float4(1.0f));
-	Float4 y = As<Float4>((O & As<Int4>(Float4(1.0f) / absx)) | (~O & As<Int4>(absx))); // FIXME: Vector select
+	Float4 y = As<Float4>((O & As<Int4>(Float4(1.0f) / absx)) | (~O & As<Int4>(absx)));  // FIXME: Vector select
 
 	const Float4 half_pi(1.57079632f);
 	Float4 theta = arctan_01(y, pp);
-	return As<Float4>(((O & As<Int4>(half_pi - theta)) | (~O & As<Int4>(theta))) ^ // FIXME: Vector select
-	       (As<Int4>(x) & Int4(0x80000000)));
+	return As<Float4>(((O & As<Int4>(half_pi - theta)) | (~O & As<Int4>(theta))) ^  // FIXME: Vector select
+	                  (As<Int4>(x) & Int4(0x80000000)));
 }
 
 Float4 arctan(RValue<Float4> y, RValue<Float4> x, bool pp)
 {
-	const Float4 pi(3.14159265f);            // pi
-	const Float4 minus_pi(-3.14159265f);     // -pi
-	const Float4 half_pi(1.57079632f);       // pi/2
-	const Float4 quarter_pi(7.85398163e-1f); // pi/4
+	const Float4 pi(3.14159265f);             // pi
+	const Float4 minus_pi(-3.14159265f);      // -pi
+	const Float4 half_pi(1.57079632f);        // pi/2
+	const Float4 quarter_pi(7.85398163e-1f);  // pi/4
 
 	// Rotate to upper semicircle when in lower semicircle
 	Int4 S = CmpLT(y, Float4(0.0f));
@@ -390,24 +390,24 @@ Float4 arctan(RValue<Float4> y, RValue<Float4> x, bool pp)
 	// Rotate to right quadrant when in left quadrant
 	Int4 Q = CmpLT(x0, Float4(0.0f));
 	theta += As<Float4>(Q & As<Int4>(half_pi));
-	Float4 x1 = As<Float4>((Q & As<Int4>(y0)) | (~Q & As<Int4>(x0)));  // FIXME: Vector select
-	Float4 y1 = As<Float4>((Q & As<Int4>(-x0)) | (~Q & As<Int4>(y0))); // FIXME: Vector select
+	Float4 x1 = As<Float4>((Q & As<Int4>(y0)) | (~Q & As<Int4>(x0)));   // FIXME: Vector select
+	Float4 y1 = As<Float4>((Q & As<Int4>(-x0)) | (~Q & As<Int4>(y0)));  // FIXME: Vector select
 
 	// Mirror to first octant when in second octant
 	Int4 O = CmpNLT(y1, x1);
-	Float4 x2 = As<Float4>((O & As<Int4>(y1)) | (~O & As<Int4>(x1))); // FIXME: Vector select
-	Float4 y2 = As<Float4>((O & As<Int4>(x1)) | (~O & As<Int4>(y1))); // FIXME: Vector select
+	Float4 x2 = As<Float4>((O & As<Int4>(y1)) | (~O & As<Int4>(x1)));  // FIXME: Vector select
+	Float4 y2 = As<Float4>((O & As<Int4>(x1)) | (~O & As<Int4>(y1)));  // FIXME: Vector select
 
 	// Approximation of atan in [0..1]
 	Int4 zero_x = CmpEQ(x2, Float4(0.0f));
-	Int4 inf_y = IsInf(y2); // Since x2 >= y2, this means x2 == y2 == inf, so we use 45 degrees or pi/4
+	Int4 inf_y = IsInf(y2);  // Since x2 >= y2, this means x2 == y2 == inf, so we use 45 degrees or pi/4
 	Float4 atan2_theta = arctan_01(y2 / x2, pp);
-	theta += As<Float4>((~zero_x & ~inf_y & ((O & As<Int4>(half_pi - atan2_theta)) | (~O & (As<Int4>(atan2_theta))))) | // FIXME: Vector select
+	theta += As<Float4>((~zero_x & ~inf_y & ((O & As<Int4>(half_pi - atan2_theta)) | (~O & (As<Int4>(atan2_theta))))) |  // FIXME: Vector select
 	                    (inf_y & As<Int4>(quarter_pi)));
 
 	// Recover loss of precision for tiny theta angles
-	Int4 precision_loss = S & Q & O & ~inf_y; // This combination results in (-pi + half_pi + half_pi - atan2_theta) which is equivalent to -atan2_theta
-	return As<Float4>((precision_loss & As<Int4>(-atan2_theta)) | (~precision_loss & As<Int4>(theta))); // FIXME: Vector select
+	Int4 precision_loss = S & Q & O & ~inf_y;                                                            // This combination results in (-pi + half_pi + half_pi - atan2_theta) which is equivalent to -atan2_theta
+	return As<Float4>((precision_loss & As<Int4>(-atan2_theta)) | (~precision_loss & As<Int4>(theta)));  // FIXME: Vector select
 }
 
 Float4 sineh(RValue<Float4> x, bool pp)
@@ -539,10 +539,10 @@ void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N)
 {
 	switch(N)
 	{
-	case 1: transpose4x1(row0, row1, row2, row3); break;
-	case 2: transpose4x2(row0, row1, row2, row3); break;
-	case 3: transpose4x3(row0, row1, row2, row3); break;
-	case 4: transpose4x4(row0, row1, row2, row3); break;
+		case 1: transpose4x1(row0, row1, row2, row3); break;
+		case 2: transpose4x2(row0, row1, row2, row3); break;
+		case 3: transpose4x3(row0, row1, row2, row3); break;
+		case 4: transpose4x4(row0, row1, row2, row3); break;
 	}
 }
 
@@ -551,15 +551,15 @@ SIMD::UInt halfToFloatBits(SIMD::UInt halfBits)
 	auto magic = SIMD::UInt(126 << 23);
 
 	auto sign16 = halfBits & SIMD::UInt(0x8000);
-	auto man16  = halfBits & SIMD::UInt(0x03FF);
-	auto exp16  = halfBits & SIMD::UInt(0x7C00);
+	auto man16 = halfBits & SIMD::UInt(0x03FF);
+	auto exp16 = halfBits & SIMD::UInt(0x7C00);
 
 	auto isDnormOrZero = CmpEQ(exp16, SIMD::UInt(0));
 	auto isInfOrNaN = CmpEQ(exp16, SIMD::UInt(0x7C00));
 
 	auto sign32 = sign16 << 16;
-	auto man32  = man16 << 13;
-	auto exp32  = (exp16 + SIMD::UInt(0x1C000)) << 13;
+	auto man32 = man16 << 13;
+	auto exp32 = (exp16 + SIMD::UInt(0x1C000)) << 13;
 	auto norm32 = (man32 | exp32) | (isInfOrNaN & SIMD::UInt(0x7F800000));
 
 	auto denorm32 = As<SIMD::UInt>(As<SIMD::Float>(magic + man16) - As<SIMD::Float>(magic));
@@ -584,7 +584,10 @@ SIMD::UInt floatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits)
 	// Note: this version doesn't round to the nearest even in case of a tie as defined by IEEE 754-2008, it rounds to +inf
 	//       instead of nearest even, since that's fine for GLSL ES 3.0's needs (see section 2.1.1 Floating-Point Computation)
 	SIMD::UInt joined = ((((As<SIMD::UInt>(Min(As<SIMD::Float>(absf & SIMD::UInt(mask_round)) * As<SIMD::Float>(SIMD::UInt(c_magic)),
-	                                           As<SIMD::Float>(SIMD::UInt(c_clamp))))) - SIMD::UInt(mask_round)) >> 13) & b_isnormal) |
+	                                           As<SIMD::Float>(SIMD::UInt(c_clamp))))) -
+	                       SIMD::UInt(mask_round)) >>
+	                      13) &
+	                     b_isnormal) |
 	                    ((b_isnormal ^ SIMD::UInt(0xFFFFFFFF)) &
 	                     ((CmpNLE(absf, SIMD::UInt(c_f32infty)) & SIMD::UInt(c_nanbit)) | SIMD::UInt(c_infty_as_fp16)));
 
@@ -610,7 +613,7 @@ UInt r11g11b10Pack(sw::SIMD::Float &value)
 {
 	SIMD::UInt halfBits = floatToHalfBits(As<SIMD::UInt>(value), true) &
 	                      SIMD::UInt(0x7FF00000, 0x7FF00000, 0x7FE00000, 0);
-	return (UInt(halfBits.x) >> 20)  | (UInt(halfBits.y) >> 9) | (UInt(halfBits.z) << 1);
+	return (UInt(halfBits.x) >> 20) | (UInt(halfBits.y) >> 9) | (UInt(halfBits.z) << 1);
 }
 
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints)
@@ -670,9 +673,9 @@ rr::RValue<sw::SIMD::UInt> Bitmask32(rr::RValue<sw::SIMD::UInt> const &bitCount)
 
 // Performs a fused-multiply add, returning a * b + c.
 rr::RValue<sw::SIMD::Float> FMA(
-		rr::RValue<sw::SIMD::Float> const &a,
-		rr::RValue<sw::SIMD::Float> const &b,
-		rr::RValue<sw::SIMD::Float> const &c)
+    rr::RValue<sw::SIMD::Float> const &a,
+    rr::RValue<sw::SIMD::Float> const &b,
+    rr::RValue<sw::SIMD::Float> const &c)
 {
 	return a * b + c;
 }
@@ -694,12 +697,12 @@ rr::RValue<sw::SIMD::Float> NMin(rr::RValue<sw::SIMD::Float> const &x, rr::RValu
 	auto xIsNan = IsNan(x);
 	auto yIsNan = IsNan(y);
 	return As<sw::SIMD::Float>(
-		// If neither are NaN, return min
-		((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Min(x, y))) |
-		// If one operand is a NaN, the other operand is the result
-		// If both operands are NaN, the result is a NaN.
-		((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
-		(( xIsNan          ) & As<sw::SIMD::Int>(y)));
+	    // If neither are NaN, return min
+	    ((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Min(x, y))) |
+	    // If one operand is a NaN, the other operand is the result
+	    // If both operands are NaN, the result is a NaN.
+	    ((~xIsNan & yIsNan) & As<sw::SIMD::Int>(x)) |
+	    ((xIsNan)&As<sw::SIMD::Int>(y)));
 }
 
 // Returns y if y > x; otherwise result is x.
@@ -711,37 +714,37 @@ rr::RValue<sw::SIMD::Float> NMax(rr::RValue<sw::SIMD::Float> const &x, rr::RValu
 	auto xIsNan = IsNan(x);
 	auto yIsNan = IsNan(y);
 	return As<sw::SIMD::Float>(
-		// If neither are NaN, return max
-		((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Max(x, y))) |
-		// If one operand is a NaN, the other operand is the result
-		// If both operands are NaN, the result is a NaN.
-		((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
-		(( xIsNan          ) & As<sw::SIMD::Int>(y)));
+	    // If neither are NaN, return max
+	    ((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Max(x, y))) |
+	    // If one operand is a NaN, the other operand is the result
+	    // If both operands are NaN, the result is a NaN.
+	    ((~xIsNan & yIsNan) & As<sw::SIMD::Int>(x)) |
+	    ((xIsNan)&As<sw::SIMD::Int>(y)));
 }
 
 // Returns the determinant of a 2x2 matrix.
 rr::RValue<sw::SIMD::Float> Determinant(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
-	rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
+    rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
 {
-	return a*d - b*c;
+	return a * d - b * c;
 }
 
 // Returns the determinant of a 3x3 matrix.
 rr::RValue<sw::SIMD::Float> Determinant(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
-	rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
-	rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
+    rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
+    rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
 {
-	return a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h;
+	return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 }
 
 // Returns the determinant of a 4x4 matrix.
 rr::RValue<sw::SIMD::Float> Determinant(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
-	rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
-	rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
-	rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
+    rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
+    rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
+    rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
 {
 	return a * Determinant(f, g, h,
 	                       j, k, l,
@@ -759,108 +762,130 @@ rr::RValue<sw::SIMD::Float> Determinant(
 
 // Returns the inverse of a 2x2 matrix.
 std::array<rr::RValue<sw::SIMD::Float>, 4> MatrixInverse(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
-	rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
+    rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
 {
 	auto s = sw::SIMD::Float(1.0f) / Determinant(a, b, c, d);
-	return {{s*d, -s*b, -s*c, s*a}};
+	return { { s * d, -s * b, -s * c, s * a } };
 }
 
 // Returns the inverse of a 3x3 matrix.
 std::array<rr::RValue<sw::SIMD::Float>, 9> MatrixInverse(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
-	rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
-	rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
+    rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
+    rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
 {
 	auto s = sw::SIMD::Float(1.0f) / Determinant(
-			a, b, c,
-			d, e, f,
-			g, h, i); // TODO: duplicate arithmetic calculating the det and below.
+	                                     a, b, c,
+	                                     d, e, f,
+	                                     g, h, i);  // TODO: duplicate arithmetic calculating the det and below.
 
-	return {{
-		s * (e*i - f*h), s * (c*h - b*i), s * (b*f - c*e),
-		s * (f*g - d*i), s * (a*i - c*g), s * (c*d - a*f),
-		s * (d*h - e*g), s * (b*g - a*h), s * (a*e - b*d),
-	}};
+	return { {
+		s * (e * i - f * h),
+		s * (c * h - b * i),
+		s * (b * f - c * e),
+		s * (f * g - d * i),
+		s * (a * i - c * g),
+		s * (c * d - a * f),
+		s * (d * h - e * g),
+		s * (b * g - a * h),
+		s * (a * e - b * d),
+	} };
 }
 
 // Returns the inverse of a 4x4 matrix.
 std::array<rr::RValue<sw::SIMD::Float>, 16> MatrixInverse(
-	rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
-	rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
-	rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
-	rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
+    rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
+    rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
+    rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
+    rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
 {
 	auto s = sw::SIMD::Float(1.0f) / Determinant(
-			a, b, c, d,
-			e, f, g, h,
-			i, j, k, l,
-			m, n, o, p); // TODO: duplicate arithmetic calculating the det and below.
+	                                     a, b, c, d,
+	                                     e, f, g, h,
+	                                     i, j, k, l,
+	                                     m, n, o, p);  // TODO: duplicate arithmetic calculating the det and below.
 
-	auto kplo = k*p - l*o, jpln = j*p - l*n, jokn = j*o - k*n;
-	auto gpho = g*p - h*o, fphn = f*p - h*n, fogn = f*o - g*n;
-	auto glhk = g*l - h*k, flhj = f*l - h*j, fkgj = f*k - g*j;
-	auto iplm = i*p - l*m, iokm = i*o - k*m, ephm = e*p - h*m;
-	auto eogm = e*o - g*m, elhi = e*l - h*i, ekgi = e*k - g*i;
-	auto injm = i*n - j*m, enfm = e*n - f*m, ejfi = e*j - f*i;
+	auto kplo = k * p - l * o, jpln = j * p - l * n, jokn = j * o - k * n;
+	auto gpho = g * p - h * o, fphn = f * p - h * n, fogn = f * o - g * n;
+	auto glhk = g * l - h * k, flhj = f * l - h * j, fkgj = f * k - g * j;
+	auto iplm = i * p - l * m, iokm = i * o - k * m, ephm = e * p - h * m;
+	auto eogm = e * o - g * m, elhi = e * l - h * i, ekgi = e * k - g * i;
+	auto injm = i * n - j * m, enfm = e * n - f * m, ejfi = e * j - f * i;
 
-	return {{
-		s * ( f * kplo - g * jpln + h * jokn),
+	return { {
+		s * (f * kplo - g * jpln + h * jokn),
 		s * (-b * kplo + c * jpln - d * jokn),
-		s * ( b * gpho - c * fphn + d * fogn),
+		s * (b * gpho - c * fphn + d * fogn),
 		s * (-b * glhk + c * flhj - d * fkgj),
 
 		s * (-e * kplo + g * iplm - h * iokm),
-		s * ( a * kplo - c * iplm + d * iokm),
+		s * (a * kplo - c * iplm + d * iokm),
 		s * (-a * gpho + c * ephm - d * eogm),
-		s * ( a * glhk - c * elhi + d * ekgi),
+		s * (a * glhk - c * elhi + d * ekgi),
 
-		s * ( e * jpln - f * iplm + h * injm),
+		s * (e * jpln - f * iplm + h * injm),
 		s * (-a * jpln + b * iplm - d * injm),
-		s * ( a * fphn - b * ephm + d * enfm),
+		s * (a * fphn - b * ephm + d * enfm),
 		s * (-a * flhj + b * elhi - d * ejfi),
 
 		s * (-e * jokn + f * iokm - g * injm),
-		s * ( a * jokn - b * iokm + c * injm),
+		s * (a * jokn - b * iokm + c * injm),
 		s * (-a * fogn + b * eogm - c * enfm),
-		s * ( a * fkgj - b * ekgi + c * ejfi),
-	}};
+		s * (a * fkgj - b * ekgi + c * ejfi),
+	} };
 }
 
 namespace SIMD {
 
 Pointer::Pointer(rr::Pointer<Byte> base, rr::Int limit)
-	: base(base),
-		dynamicLimit(limit), staticLimit(0),
-		dynamicOffsets(0), staticOffsets{},
-		hasDynamicLimit(true), hasDynamicOffsets(false) {}
+    : base(base)
+    , dynamicLimit(limit)
+    , staticLimit(0)
+    , dynamicOffsets(0)
+    , staticOffsets{}
+    , hasDynamicLimit(true)
+    , hasDynamicOffsets(false)
+{}
 
 Pointer::Pointer(rr::Pointer<Byte> base, unsigned int limit)
-	: base(base),
-		dynamicLimit(0), staticLimit(limit),
-		dynamicOffsets(0), staticOffsets{},
-		hasDynamicLimit(false), hasDynamicOffsets(false) {}
+    : base(base)
+    , dynamicLimit(0)
+    , staticLimit(limit)
+    , dynamicOffsets(0)
+    , staticOffsets{}
+    , hasDynamicLimit(false)
+    , hasDynamicOffsets(false)
+{}
 
 Pointer::Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset)
-	: base(base),
-		dynamicLimit(limit), staticLimit(0),
-		dynamicOffsets(offset), staticOffsets{},
-		hasDynamicLimit(true), hasDynamicOffsets(true) {}
+    : base(base)
+    , dynamicLimit(limit)
+    , staticLimit(0)
+    , dynamicOffsets(offset)
+    , staticOffsets{}
+    , hasDynamicLimit(true)
+    , hasDynamicOffsets(true)
+{}
 
 Pointer::Pointer(rr::Pointer<Byte> base, unsigned int limit, SIMD::Int offset)
-	: base(base),
-		dynamicLimit(0), staticLimit(limit),
-		dynamicOffsets(offset), staticOffsets{},
-		hasDynamicLimit(false), hasDynamicOffsets(true) {}
+    : base(base)
+    , dynamicLimit(0)
+    , staticLimit(limit)
+    , dynamicOffsets(offset)
+    , staticOffsets{}
+    , hasDynamicLimit(false)
+    , hasDynamicOffsets(true)
+{}
 
-Pointer& Pointer::operator += (Int i)
+Pointer &Pointer::operator+=(Int i)
 {
 	dynamicOffsets += i;
 	hasDynamicOffsets = true;
 	return *this;
 }
 
-Pointer& Pointer::operator *= (Int i)
+Pointer &Pointer::operator*=(Int i)
 {
 	dynamicOffsets = offsets() * i;
 	staticOffsets = {};
@@ -868,16 +893,26 @@ Pointer& Pointer::operator *= (Int i)
 	return *this;
 }
 
-Pointer Pointer::operator + (SIMD::Int i) { Pointer p = *this; p += i; return p; }
-Pointer Pointer::operator * (SIMD::Int i) { Pointer p = *this; p *= i; return p; }
+Pointer Pointer::operator+(SIMD::Int i)
+{
+	Pointer p = *this;
+	p += i;
+	return p;
+}
+Pointer Pointer::operator*(SIMD::Int i)
+{
+	Pointer p = *this;
+	p *= i;
+	return p;
+}
 
-Pointer& Pointer::operator += (int i)
+Pointer &Pointer::operator+=(int i)
 {
 	for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] += i; }
 	return *this;
 }
 
-Pointer& Pointer::operator *= (int i)
+Pointer &Pointer::operator*=(int i)
 {
 	for(int el = 0; el < SIMD::Width; el++) { staticOffsets[el] *= i; }
 	if(hasDynamicOffsets)
@@ -887,8 +922,18 @@ Pointer& Pointer::operator *= (int i)
 	return *this;
 }
 
-Pointer Pointer::operator + (int i) { Pointer p = *this; p += i; return p; }
-Pointer Pointer::operator * (int i) { Pointer p = *this; p *= i; return p; }
+Pointer Pointer::operator+(int i)
+{
+	Pointer p = *this;
+	p += i;
+	return p;
+}
+Pointer Pointer::operator*(int i)
+{
+	Pointer p = *this;
+	p *= i;
+	return p;
+}
 
 SIMD::Int Pointer::offsets() const
 {
@@ -910,10 +955,10 @@ SIMD::Int Pointer::isInBounds(unsigned int accessSize, OutOfBoundsBehavior robus
 		// Common fast paths.
 		static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
 		return SIMD::Int(
-			(staticOffsets[0] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
-			(staticOffsets[1] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
-			(staticOffsets[2] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
-			(staticOffsets[3] + accessSize - 1 < staticLimit) ? 0xffffffff : 0);
+		    (staticOffsets[0] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
+		    (staticOffsets[1] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
+		    (staticOffsets[2] + accessSize - 1 < staticLimit) ? 0xffffffff : 0,
+		    (staticOffsets[3] + accessSize - 1 < staticLimit) ? 0xffffffff : 0);
 	}
 
 	return CmpLT(offsets() + SIMD::Int(accessSize - 1), SIMD::Int(limit()));
@@ -932,14 +977,14 @@ bool Pointer::isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior 
 		{
 			switch(robustness)
 			{
-			case OutOfBoundsBehavior::UndefinedBehavior:
-				// With this robustness setting the application/compiler guarantees in-bounds accesses on active lanes,
-				// but since it can't know in advance which branches are taken this must be true even for inactives lanes.
-				return true;
-			case OutOfBoundsBehavior::Nullify:
-			case OutOfBoundsBehavior::RobustBufferAccess:
-			case OutOfBoundsBehavior::UndefinedValue:
-				return false;
+				case OutOfBoundsBehavior::UndefinedBehavior:
+					// With this robustness setting the application/compiler guarantees in-bounds accesses on active lanes,
+					// but since it can't know in advance which branches are taken this must be true even for inactives lanes.
+					return true;
+				case OutOfBoundsBehavior::Nullify:
+				case OutOfBoundsBehavior::RobustBufferAccess:
+				case OutOfBoundsBehavior::UndefinedValue:
+					return false;
 			}
 		}
 	}
@@ -968,7 +1013,7 @@ rr::Bool Pointer::hasSequentialOffsets(unsigned int step) const
 	{
 		auto o = offsets();
 		static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
-		return rr::SignMask(~CmpEQ(o.yzww, o + SIMD::Int(1*step, 2*step, 3*step, 0))) == 0;
+		return rr::SignMask(~CmpEQ(o.yzww, o + SIMD::Int(1 * step, 2 * step, 3 * step, 0))) == 0;
 	}
 	return hasStaticSequentialOffsets(step);
 }
@@ -983,7 +1028,7 @@ bool Pointer::hasStaticSequentialOffsets(unsigned int step) const
 	}
 	for(int i = 1; i < SIMD::Width; i++)
 	{
-		if(staticOffsets[i-1] + int32_t(step) != staticOffsets[i]) { return false; }
+		if(staticOffsets[i - 1] + int32_t(step) != staticOffsets[i]) { return false; }
 	}
 	return true;
 }
@@ -1010,7 +1055,7 @@ bool Pointer::hasStaticEqualOffsets() const
 	}
 	for(int i = 1; i < SIMD::Width; i++)
 	{
-		if(staticOffsets[i-1] != staticOffsets[i]) { return false; }
+		if(staticOffsets[i - 1] != staticOffsets[i]) { return false; }
 	}
 	return true;
 }

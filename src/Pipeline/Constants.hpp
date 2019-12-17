@@ -15,8 +15,8 @@
 #ifndef sw_Constants_hpp
 #define sw_Constants_hpp
 
-#include "System/Types.hpp"
 #include "System/Math.hpp"
+#include "System/Types.hpp"
 #include "Vulkan/VkConfig.h"
 
 namespace sw {
@@ -68,8 +68,8 @@ struct Constants
 	word4 maskW01Q[4];
 	dword4 maskD01X[4];
 	word4 mask565Q[8];
-	dword2 mask10Q[16];		// 4 bit writemask -> A2B10G10R10 bit patterns, replicated 2x
-	word4 mask5551Q[16];	// 4 bit writemask -> A1R5G5B5 bit patterns, replicated 4x
+	dword2 mask10Q[16];   // 4 bit writemask -> A2B10G10R10 bit patterns, replicated 2x
+	word4 mask5551Q[16];  // 4 bit writemask -> A1R5G5B5 bit patterns, replicated 4x
 
 	unsigned short sRGBtoLinear8_16[256];
 
@@ -91,10 +91,10 @@ struct Constants
 	// VK_SAMPLE_COUNT_4_BIT
 	// https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#primsrast-multisampling
 	static constexpr float VkSampleLocations4[][2] = {
-		{0.375, 0.125},
-		{0.875, 0.375},
-		{0.125, 0.625},
-		{0.625, 0.875},
+		{ 0.375, 0.125 },
+		{ 0.875, 0.375 },
+		{ 0.125, 0.625 },
+		{ 0.625, 0.875 },
 	};
 
 	// Vulkan spec sample positions are relative to 0,0 in top left corner, with Y+ going down.
@@ -141,6 +141,6 @@ struct Constants
 
 extern Constants constants;
 
-}  // namepsace sw
+}  // namespace sw
 
-#endif   // sw_Constants_hpp
+#endif  // sw_Constants_hpp

@@ -15,8 +15,8 @@
 #ifndef sw_VertexProgram_hpp
 #define sw_VertexProgram_hpp
 
-#include "VertexRoutine.hpp"
 #include "ShaderCore.hpp"
+#include "VertexRoutine.hpp"
 
 namespace sw {
 
@@ -26,19 +26,19 @@ class VertexProgram : public VertexRoutine
 {
 public:
 	VertexProgram(
-		const VertexProcessor::State &state,
-		vk::PipelineLayout const *pipelineLayout,
-		SpirvShader const *spirvShader,
-		const vk::DescriptorSet::Bindings &descriptorSets);
+	    const VertexProcessor::State &state,
+	    vk::PipelineLayout const *pipelineLayout,
+	    SpirvShader const *spirvShader,
+	    const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~VertexProgram();
 
 private:
-	void program(Pointer<UInt> &batch, UInt& vertexCount) override;
+	void program(Pointer<UInt> &batch, UInt &vertexCount) override;
 
 	const vk::DescriptorSet::Bindings &descriptorSets;
 };
 
-}  // namepsace sw
+}  // namespace sw
 
-#endif   // sw_VertexProgram_hpp
+#endif  // sw_VertexProgram_hpp

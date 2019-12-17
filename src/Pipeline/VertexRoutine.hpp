@@ -20,14 +20,21 @@
 #include "Device/Color.hpp"
 #include "Device/VertexProcessor.hpp"
 
-namespace vk { class PipelineLayout; }
+namespace vk {
+class PipelineLayout;
+}
 
 namespace sw {
 
 class VertexRoutinePrototype : public VertexRoutineFunction
 {
 public:
-	VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}
+	VertexRoutinePrototype()
+	    : vertex(Arg<0>())
+	    , batch(Arg<1>())
+	    , task(Arg<2>())
+	    , data(Arg<3>())
+	{}
 	virtual ~VertexRoutinePrototype() {}
 
 protected:
@@ -41,9 +48,9 @@ class VertexRoutine : public VertexRoutinePrototype
 {
 public:
 	VertexRoutine(
-		const VertexProcessor::State &state,
-		vk::PipelineLayout const *pipelineLayout,
-		SpirvShader const *spirvShader);
+	    const VertexProcessor::State &state,
+	    vk::PipelineLayout const *pipelineLayout,
+	    SpirvShader const *spirvShader);
 	virtual ~VertexRoutine();
 
 	void generate();
@@ -57,15 +64,15 @@ protected:
 	SpirvRoutine routine;
 
 	const VertexProcessor::State &state;
-	SpirvShader const * const spirvShader;
+	SpirvShader const *const spirvShader;
 
 private:
-	virtual void program(Pointer<UInt> &batch, UInt& vertexCount) = 0;
+	virtual void program(Pointer<UInt> &batch, UInt &vertexCount) = 0;
 
 	typedef VertexProcessor::State::Input Stream;
 
 	Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
-	                    bool robustBufferAccess, UInt& robustnessSize, Int baseVertex);
+	                    bool robustBufferAccess, UInt &robustnessSize, Int baseVertex);
 	void readInput(Pointer<UInt> &batch);
 	void computeClipFlags();
 	void computeCullMask();
@@ -75,4 +82,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_VertexRoutine_hpp
+#endif  // sw_VertexRoutine_hpp

@@ -16,20 +16,20 @@
 
 #include "Constants.hpp"
 #include "SpirvShader.hpp"
-#include "Device/Vertex.hpp"
 #include "Device/Renderer.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "Device/Vertex.hpp"
 #include "System/Half.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 namespace sw {
 
 VertexRoutine::VertexRoutine(
-		const VertexProcessor::State &state,
-		vk::PipelineLayout const *pipelineLayout,
-		SpirvShader const *spirvShader)
-	: routine(pipelineLayout),
-	  state(state),
-	  spirvShader(spirvShader)
+    const VertexProcessor::State &state,
+    vk::PipelineLayout const *pipelineLayout,
+    SpirvShader const *spirvShader)
+    : routine(pipelineLayout)
+    , state(state)
+    , spirvShader(spirvShader)
 {
 	spirvShader->emitProlog(&routine);
 }
@@ -40,13 +40,13 @@ VertexRoutine::~VertexRoutine()
 
 void VertexRoutine::generate()
 {
-	Pointer<Byte> cache = task + OFFSET(VertexTask,vertexCache);
-	Pointer<Byte> vertexCache = cache + OFFSET(VertexCache,vertex);
-	Pointer<UInt> tagCache = Pointer<UInt>(cache + OFFSET(VertexCache,tag));
+	Pointer<Byte> cache = task + OFFSET(VertexTask, vertexCache);
+	Pointer<Byte> vertexCache = cache + OFFSET(VertexCache, vertex);
+	Pointer<UInt> tagCache = Pointer<UInt>(cache + OFFSET(VertexCache, tag));
 
-	UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask,vertexCount));
+	UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask, vertexCount));
 
-	constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
+	constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, constants));
 
 	// Check the cache one vertex index at a time. If a hit occurs, copy from the cache to the 'vertex' output buffer.
 	// On a cache miss, process a SIMD width of consecutive indices from the input batch. They're written to the cache
@@ -93,7 +93,7 @@ void VertexRoutine::readInput(Pointer<UInt> &batch)
 		   spirvShader->inputs[i + 2].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
 		   spirvShader->inputs[i + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 		{
-			Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void*) * (i / 4));
+			Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void *) * (i / 4));
 			UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(uint32_t) * (i / 4));
 			Int baseVertex = *Pointer<Int>(data + OFFSET(DrawData, baseVertex));
 			UInt robustnessSize(0);
@@ -129,19 +129,19 @@ void VertexRoutine::computeClipFlags()
 	Int4 minY = CmpNLE(-posW, posY);
 	Int4 minZ = CmpNLE(Float4(0.0f), posZ);
 
-	clipFlags =  Pointer<Int>(constants + OFFSET(Constants,maxX))[SignMask(maxX)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants,maxY))[SignMask(maxY)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants,maxZ))[SignMask(maxZ)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants,minX))[SignMask(minX)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants,minY))[SignMask(minY)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants,minZ))[SignMask(minZ)];
+	clipFlags = Pointer<Int>(constants + OFFSET(Constants, maxX))[SignMask(maxX)];
+	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxY))[SignMask(maxY)];
+	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
+	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minX))[SignMask(minX)];
+	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
+	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
 
-	Int4 finiteX = CmpLE(Abs(posX), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
-	Int4 finiteY = CmpLE(Abs(posY), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
-	Int4 finiteZ = CmpLE(Abs(posZ), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
+	Int4 finiteX = CmpLE(Abs(posX), *Pointer<Float4>(constants + OFFSET(Constants, maxPos)));
+	Int4 finiteY = CmpLE(Abs(posY), *Pointer<Float4>(constants + OFFSET(Constants, maxPos)));
+	Int4 finiteZ = CmpLE(Abs(posZ), *Pointer<Float4>(constants + OFFSET(Constants, maxPos)));
 
 	Int4 finiteXYZ = finiteX & finiteY & finiteZ;
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants,fini))[SignMask(finiteXYZ)];
+	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, fini))[SignMask(finiteXYZ)];
 }
 
 void VertexRoutine::computeCullMask()
@@ -162,7 +162,7 @@ void VertexRoutine::computeCullMask()
 }
 
 Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, Pointer<UInt> &batch,
-                                   bool robustBufferAccess, UInt & robustnessSize, Int baseVertex)
+                                   bool robustBufferAccess, UInt &robustnessSize, Int baseVertex)
 {
 	Vector4f v;
 	// Because of the following rule in the Vulkan spec, we do not care if a very large negative
@@ -193,7 +193,7 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 	switch(stream.type)
 	{
-	case STREAMTYPE_FLOAT:
+		case STREAMTYPE_FLOAT:
 		{
 			if(stream.count == 0)
 			{
@@ -220,86 +220,86 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 				switch(stream.attribType)
 				{
-				case SpirvShader::ATTRIBTYPE_INT:
-					if(stream.count >= 1) v.x = As<Float4>(Int4(v.x));
-					if(stream.count >= 2) v.x = As<Float4>(Int4(v.y));
-					if(stream.count >= 3) v.x = As<Float4>(Int4(v.z));
-					if(stream.count >= 4) v.x = As<Float4>(Int4(v.w));
-					break;
-				case SpirvShader::ATTRIBTYPE_UINT:
-					if(stream.count >= 1) v.x = As<Float4>(UInt4(v.x));
-					if(stream.count >= 2) v.x = As<Float4>(UInt4(v.y));
-					if(stream.count >= 3) v.x = As<Float4>(UInt4(v.z));
-					if(stream.count >= 4) v.x = As<Float4>(UInt4(v.w));
-					break;
-				default:
-					break;
+					case SpirvShader::ATTRIBTYPE_INT:
+						if(stream.count >= 1) v.x = As<Float4>(Int4(v.x));
+						if(stream.count >= 2) v.x = As<Float4>(Int4(v.y));
+						if(stream.count >= 3) v.x = As<Float4>(Int4(v.z));
+						if(stream.count >= 4) v.x = As<Float4>(Int4(v.w));
+						break;
+					case SpirvShader::ATTRIBTYPE_UINT:
+						if(stream.count >= 1) v.x = As<Float4>(UInt4(v.x));
+						if(stream.count >= 2) v.x = As<Float4>(UInt4(v.y));
+						if(stream.count >= 3) v.x = As<Float4>(UInt4(v.z));
+						if(stream.count >= 4) v.x = As<Float4>(UInt4(v.w));
+						break;
+					default:
+						break;
 				}
 			}
 		}
 		break;
-	case STREAMTYPE_BYTE:
-		if(isNativeFloatAttrib) // Stream: UByte, Shader attrib: Float
-		{
-			v.x = Float4(*Pointer<Byte4>(source0));
-			v.y = Float4(*Pointer<Byte4>(source1));
-			v.z = Float4(*Pointer<Byte4>(source2));
-			v.w = Float4(*Pointer<Byte4>(source3));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
-			if(stream.normalized)
+		case STREAMTYPE_BYTE:
+			if(isNativeFloatAttrib)  // Stream: UByte, Shader attrib: Float
 			{
-				if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
-				if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
-				if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
-				if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
+				v.x = Float4(*Pointer<Byte4>(source0));
+				v.y = Float4(*Pointer<Byte4>(source1));
+				v.z = Float4(*Pointer<Byte4>(source2));
+				v.w = Float4(*Pointer<Byte4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+				if(stream.normalized)
+				{
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+				}
 			}
-		}
-		else // Stream: UByte, Shader attrib: Int / UInt
-		{
-			v.x = As<Float4>(Int4(*Pointer<Byte4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<Byte4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<Byte4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<Byte4>(source3)));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-		}
-		break;
-	case STREAMTYPE_SBYTE:
-		if(isNativeFloatAttrib) // Stream: SByte, Shader attrib: Float
-		{
-			v.x = Float4(*Pointer<SByte4>(source0));
-			v.y = Float4(*Pointer<SByte4>(source1));
-			v.z = Float4(*Pointer<SByte4>(source2));
-			v.w = Float4(*Pointer<SByte4>(source3));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
-			if(stream.normalized)
+			else  // Stream: UByte, Shader attrib: Int / UInt
 			{
-				if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleSByte));
-				if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleSByte));
-				if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleSByte));
-				if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleSByte));
-			}
-		}
-		else // Stream: SByte, Shader attrib: Int / UInt
-		{
-			v.x = As<Float4>(Int4(*Pointer<SByte4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<SByte4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<SByte4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<SByte4>(source3)));
+				v.x = As<Float4>(Int4(*Pointer<Byte4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<Byte4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<Byte4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<Byte4>(source3)));
 
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-		}
-		break;
-	case STREAMTYPE_COLOR:
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
+			break;
+		case STREAMTYPE_SBYTE:
+			if(isNativeFloatAttrib)  // Stream: SByte, Shader attrib: Float
+			{
+				v.x = Float4(*Pointer<SByte4>(source0));
+				v.y = Float4(*Pointer<SByte4>(source1));
+				v.z = Float4(*Pointer<SByte4>(source2));
+				v.w = Float4(*Pointer<SByte4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+				if(stream.normalized)
+				{
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+				}
+			}
+			else  // Stream: SByte, Shader attrib: Int / UInt
+			{
+				v.x = As<Float4>(Int4(*Pointer<SByte4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<SByte4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<SByte4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<SByte4>(source3)));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
+			break;
+		case STREAMTYPE_COLOR:
 		{
-			v.x = Float4(*Pointer<Byte4>(source0)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
-			v.y = Float4(*Pointer<Byte4>(source1)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
-			v.z = Float4(*Pointer<Byte4>(source2)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
-			v.w = Float4(*Pointer<Byte4>(source3)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
+			v.x = Float4(*Pointer<Byte4>(source0)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+			v.y = Float4(*Pointer<Byte4>(source1)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+			v.z = Float4(*Pointer<Byte4>(source2)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+			v.w = Float4(*Pointer<Byte4>(source3)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
 
 			transpose4x4(v.x, v.y, v.z, v.w);
 
@@ -309,119 +309,119 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			v.z = t;
 		}
 		break;
-	case STREAMTYPE_SHORT:
-		if(isNativeFloatAttrib) // Stream: Int, Shader attrib: Float
-		{
-			v.x = Float4(*Pointer<Short4>(source0));
-			v.y = Float4(*Pointer<Short4>(source1));
-			v.z = Float4(*Pointer<Short4>(source2));
-			v.w = Float4(*Pointer<Short4>(source3));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
-			if(stream.normalized)
+		case STREAMTYPE_SHORT:
+			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
-				if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleShort));
-				if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleShort));
-				if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleShort));
-				if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleShort));
+				v.x = Float4(*Pointer<Short4>(source0));
+				v.y = Float4(*Pointer<Short4>(source1));
+				v.z = Float4(*Pointer<Short4>(source2));
+				v.w = Float4(*Pointer<Short4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+				if(stream.normalized)
+				{
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+				}
 			}
-		}
-		else // Stream: Short, Shader attrib: Int/UInt, no type conversion
-		{
-			v.x = As<Float4>(Int4(*Pointer<Short4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<Short4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<Short4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<Short4>(source3)));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-		}
-		break;
-	case STREAMTYPE_USHORT:
-		if(isNativeFloatAttrib) // Stream: Int, Shader attrib: Float
-		{
-			v.x = Float4(*Pointer<UShort4>(source0));
-			v.y = Float4(*Pointer<UShort4>(source1));
-			v.z = Float4(*Pointer<UShort4>(source2));
-			v.w = Float4(*Pointer<UShort4>(source3));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
-			if(stream.normalized)
+			else  // Stream: Short, Shader attrib: Int/UInt, no type conversion
 			{
-				if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleUShort));
-				if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleUShort));
-				if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleUShort));
-				if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleUShort));
+				v.x = As<Float4>(Int4(*Pointer<Short4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<Short4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<Short4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<Short4>(source3)));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 			}
-		}
-		else // Stream: UShort, Shader attrib: Int/UInt, no type conversion
-		{
-			v.x = As<Float4>(Int4(*Pointer<UShort4>(source0)));
-			v.y = As<Float4>(Int4(*Pointer<UShort4>(source1)));
-			v.z = As<Float4>(Int4(*Pointer<UShort4>(source2)));
-			v.w = As<Float4>(Int4(*Pointer<UShort4>(source3)));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-		}
-		break;
-	case STREAMTYPE_INT:
-		if(isNativeFloatAttrib) // Stream: Int, Shader attrib: Float
-		{
-			v.x = Float4(*Pointer<Int4>(source0));
-			v.y = Float4(*Pointer<Int4>(source1));
-			v.z = Float4(*Pointer<Int4>(source2));
-			v.w = Float4(*Pointer<Int4>(source3));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
-			if(stream.normalized)
+			break;
+		case STREAMTYPE_USHORT:
+			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
-				if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
-				if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
-				if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
-				if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+				v.x = Float4(*Pointer<UShort4>(source0));
+				v.y = Float4(*Pointer<UShort4>(source1));
+				v.z = Float4(*Pointer<UShort4>(source2));
+				v.w = Float4(*Pointer<UShort4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+				if(stream.normalized)
+				{
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+				}
 			}
-		}
-		else // Stream: Int, Shader attrib: Int/UInt, no type conversion
-		{
-			v.x = *Pointer<Float4>(source0);
-			v.y = *Pointer<Float4>(source1);
-			v.z = *Pointer<Float4>(source2);
-			v.w = *Pointer<Float4>(source3);
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-		}
-		break;
-	case STREAMTYPE_UINT:
-		if(isNativeFloatAttrib) // Stream: UInt, Shader attrib: Float
-		{
-			v.x = Float4(*Pointer<UInt4>(source0));
-			v.y = Float4(*Pointer<UInt4>(source1));
-			v.z = Float4(*Pointer<UInt4>(source2));
-			v.w = Float4(*Pointer<UInt4>(source3));
-
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
-			if(stream.normalized)
+			else  // Stream: UShort, Shader attrib: Int/UInt, no type conversion
 			{
-				if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-				if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-				if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-				if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-			}
-		}
-		else // Stream: UInt, Shader attrib: Int/UInt, no type conversion
-		{
-			v.x = *Pointer<Float4>(source0);
-			v.y = *Pointer<Float4>(source1);
-			v.z = *Pointer<Float4>(source2);
-			v.w = *Pointer<Float4>(source3);
+				v.x = As<Float4>(Int4(*Pointer<UShort4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<UShort4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<UShort4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<UShort4>(source3)));
 
-			transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-		}
-		break;
-	case STREAMTYPE_HALF:
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
+			break;
+		case STREAMTYPE_INT:
+			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
+			{
+				v.x = Float4(*Pointer<Int4>(source0));
+				v.y = Float4(*Pointer<Int4>(source1));
+				v.z = Float4(*Pointer<Int4>(source2));
+				v.w = Float4(*Pointer<Int4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+				if(stream.normalized)
+				{
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+				}
+			}
+			else  // Stream: Int, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = *Pointer<Float4>(source0);
+				v.y = *Pointer<Float4>(source1);
+				v.z = *Pointer<Float4>(source2);
+				v.w = *Pointer<Float4>(source3);
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
+			break;
+		case STREAMTYPE_UINT:
+			if(isNativeFloatAttrib)  // Stream: UInt, Shader attrib: Float
+			{
+				v.x = Float4(*Pointer<UInt4>(source0));
+				v.y = Float4(*Pointer<UInt4>(source1));
+				v.z = Float4(*Pointer<UInt4>(source2));
+				v.w = Float4(*Pointer<UInt4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+				if(stream.normalized)
+				{
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+				}
+			}
+			else  // Stream: UInt, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = *Pointer<Float4>(source0);
+				v.y = *Pointer<Float4>(source1);
+				v.z = *Pointer<Float4>(source2);
+				v.w = *Pointer<Float4>(source3);
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
+			break;
+		case STREAMTYPE_HALF:
 		{
 			if(stream.count >= 1)
 			{
@@ -430,10 +430,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				UShort x2 = *Pointer<UShort>(source2 + 0);
 				UShort x3 = *Pointer<UShort>(source3 + 0);
 
-				v.x.x = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(x0) * 4);
-				v.x.y = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(x1) * 4);
-				v.x.z = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(x2) * 4);
-				v.x.w = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(x3) * 4);
+				v.x.x = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(x0) * 4);
+				v.x.y = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(x1) * 4);
+				v.x.z = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(x2) * 4);
+				v.x.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(x3) * 4);
 			}
 
 			if(stream.count >= 2)
@@ -443,10 +443,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				UShort y2 = *Pointer<UShort>(source2 + 2);
 				UShort y3 = *Pointer<UShort>(source3 + 2);
 
-				v.y.x = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(y0) * 4);
-				v.y.y = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(y1) * 4);
-				v.y.z = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(y2) * 4);
-				v.y.w = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(y3) * 4);
+				v.y.x = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(y0) * 4);
+				v.y.y = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(y1) * 4);
+				v.y.z = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(y2) * 4);
+				v.y.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(y3) * 4);
 			}
 
 			if(stream.count >= 3)
@@ -456,10 +456,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				UShort z2 = *Pointer<UShort>(source2 + 4);
 				UShort z3 = *Pointer<UShort>(source3 + 4);
 
-				v.z.x = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(z0) * 4);
-				v.z.y = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(z1) * 4);
-				v.z.z = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(z2) * 4);
-				v.z.w = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(z3) * 4);
+				v.z.x = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(z0) * 4);
+				v.z.y = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(z1) * 4);
+				v.z.z = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(z2) * 4);
+				v.z.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(z3) * 4);
 			}
 
 			if(stream.count >= 4)
@@ -469,14 +469,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				UShort w2 = *Pointer<UShort>(source2 + 6);
 				UShort w3 = *Pointer<UShort>(source3 + 6);
 
-				v.w.x = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(w0) * 4);
-				v.w.y = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(w1) * 4);
-				v.w.z = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(w2) * 4);
-				v.w.w = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(w3) * 4);
+				v.w.x = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(w0) * 4);
+				v.w.y = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(w1) * 4);
+				v.w.z = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(w2) * 4);
+				v.w.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(w3) * 4);
 			}
 		}
 		break;
-	case STREAMTYPE_2_10_10_10_INT:
+		case STREAMTYPE_2_10_10_10_INT:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -498,7 +498,7 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			}
 		}
 		break;
-	case STREAMTYPE_2_10_10_10_UINT:
+		case STREAMTYPE_2_10_10_10_UINT:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -520,8 +520,8 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			}
 		}
 		break;
-	default:
-		UNSUPPORTED("stream.type %d", int(stream.type));
+		default:
+			UNSUPPORTED("stream.type %d", int(stream.type));
 	}
 
 	if(stream.count < 1) v.x = Float4(0.0f);
@@ -567,17 +567,17 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 	Float4 rhw = Float4(1.0f) / w;
 
 	Vector4f proj;
-	proj.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData,WxF))));
-	proj.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData,Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData,HxF))));
+	proj.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData, X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData, WxF))));
+	proj.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData, Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData, HxF))));
 	proj.z = pos.z * rhw;
 	proj.w = rhw;
 
 	transpose4x4(pos.x, pos.y, pos.z, pos.w);
 
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,position), 16) = pos.w;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,position), 16) = pos.z;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,position), 16) = pos.y;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,position), 16) = pos.x;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, position), 16) = pos.w;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, position), 16) = pos.z;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, position), 16) = pos.y;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, position), 16) = pos.x;
 
 	it = spirvShader->outputBuiltins.find(spv::BuiltInPointSize);
 	if(it != spirvShader->outputBuiltins.end())
@@ -585,10 +585,10 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		ASSERT(it->second.SizeInComponents == 1);
 		auto psize = routine.getVariable(it->second.Id)[it->second.FirstComponent];
 
-		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,pointSize)) = Extract(psize, 3);
-		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,pointSize)) = Extract(psize, 2);
-		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,pointSize)) = Extract(psize, 1);
-		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,pointSize)) = Extract(psize, 0);
+		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, pointSize)) = Extract(psize, 3);
+		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, pointSize)) = Extract(psize, 2);
+		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, pointSize)) = Extract(psize, 1);
+		*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, pointSize)) = Extract(psize, 0);
 	}
 
 	it = spirvShader->outputBuiltins.find(spv::BuiltInClipDistance);
@@ -598,10 +598,10 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		for(unsigned int i = 0; i < count; i++)
 		{
 			auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 3);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 2);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 1);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipDistance[i])) = Extract(dist, 0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipDistance[i])) = Extract(dist, 3);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipDistance[i])) = Extract(dist, 2);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipDistance[i])) = Extract(dist, 1);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipDistance[i])) = Extract(dist, 0);
 		}
 	}
 
@@ -612,29 +612,29 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		for(unsigned int i = 0; i < count; i++)
 		{
 			auto dist = routine.getVariable(it->second.Id)[it->second.FirstComponent + i];
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 3);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 2);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 1);
-			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullDistance[i])) = Extract(dist, 0);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, cullDistance[i])) = Extract(dist, 3);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, cullDistance[i])) = Extract(dist, 2);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, cullDistance[i])) = Extract(dist, 1);
+			*Pointer<Float>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, cullDistance[i])) = Extract(dist, 0);
 		}
 	}
 
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 8)  & 0x0000000FF;
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,clipFlags)) = (clipFlags >> 0)  & 0x0000000FF;
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 8) & 0x0000000FF;
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 0) & 0x0000000FF;
 
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,cullMask)) = -((cullMask >> 3) & 1);
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,cullMask)) = -((cullMask >> 2) & 1);
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,cullMask)) = -((cullMask >> 1) & 1);
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,cullMask)) = -((cullMask >> 0) & 1);
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, cullMask)) = -((cullMask >> 3) & 1);
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, cullMask)) = -((cullMask >> 2) & 1);
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, cullMask)) = -((cullMask >> 1) & 1);
+	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, cullMask)) = -((cullMask >> 0) & 1);
 
 	transpose4x4(proj.x, proj.y, proj.z, proj.w);
 
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,projected), 16) = proj.w;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,projected), 16) = proj.z;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,projected), 16) = proj.y;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,projected), 16) = proj.x;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, projected), 16) = proj.w;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, projected), 16) = proj.z;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, projected), 16) = proj.y;
+	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, projected), 16) = proj.x;
 
 	for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i += 4)
 	{
@@ -651,22 +651,22 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 
 			transpose4x4(v.x, v.y, v.z, v.w);
 
-			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex,v[i]), 16) = v.w;
-			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex,v[i]), 16) = v.z;
-			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex,v[i]), 16) = v.y;
-			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex,v[i]), 16) = v.x;
+			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, v[i]), 16) = v.w;
+			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, v[i]), 16) = v.z;
+			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, v[i]), 16) = v.y;
+			*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, v[i]), 16) = v.x;
 		}
 	}
 }
 
 void VertexRoutine::writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheEntry)
 {
-	*Pointer<Int4>(vertex + OFFSET(Vertex,position)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex,position));
-	*Pointer<Int>(vertex + OFFSET(Vertex,pointSize)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,pointSize));
+	*Pointer<Int4>(vertex + OFFSET(Vertex, position)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex, position));
+	*Pointer<Int>(vertex + OFFSET(Vertex, pointSize)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex, pointSize));
 
-	*Pointer<Int>(vertex + OFFSET(Vertex,clipFlags)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,clipFlags));
-	*Pointer<Int>(vertex + OFFSET(Vertex,cullMask)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex,cullMask));
-	*Pointer<Int4>(vertex + OFFSET(Vertex,projected)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex,projected));
+	*Pointer<Int>(vertex + OFFSET(Vertex, clipFlags)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex, clipFlags));
+	*Pointer<Int>(vertex + OFFSET(Vertex, cullMask)) = *Pointer<Int>(cacheEntry + OFFSET(Vertex, cullMask));
+	*Pointer<Int4>(vertex + OFFSET(Vertex, projected)) = *Pointer<Int4>(cacheEntry + OFFSET(Vertex, projected));
 
 	for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
 	{
