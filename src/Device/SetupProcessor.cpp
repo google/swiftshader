@@ -14,14 +14,14 @@
 
 #include "SetupProcessor.hpp"
 
-#include "Primitive.hpp"
-#include "Polygon.hpp"
 #include "Context.hpp"
+#include "Polygon.hpp"
+#include "Primitive.hpp"
 #include "Renderer.hpp"
-#include "Pipeline/SetupRoutine.hpp"
 #include "Pipeline/Constants.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "Pipeline/SetupRoutine.hpp"
 #include "Pipeline/SpirvShader.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <cstring>
 
@@ -29,7 +29,7 @@ namespace sw {
 
 uint32_t SetupProcessor::States::computeHash()
 {
-	uint32_t *state = reinterpret_cast<uint32_t*>(this);
+	uint32_t *state = reinterpret_cast<uint32_t *>(this);
 	uint32_t hash = 0;
 
 	for(unsigned int i = 0; i < sizeof(States) / sizeof(uint32_t); i++)
@@ -48,7 +48,7 @@ bool SetupProcessor::State::operator==(const State &state) const
 	}
 
 	static_assert(is_memcmparable<State>::value, "Cannot memcmp States");
-	return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
+	return memcmp(static_cast<const States *>(this), static_cast<const States *>(&state), sizeof(States)) == 0;
 }
 
 SetupProcessor::SetupProcessor()
@@ -63,7 +63,7 @@ SetupProcessor::~SetupProcessor()
 	routineCache = nullptr;
 }
 
-SetupProcessor::State SetupProcessor::update(const sw::Context* context) const
+SetupProcessor::State SetupProcessor::update(const sw::Context *context) const
 {
 	State state;
 

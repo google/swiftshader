@@ -35,7 +35,7 @@ struct Point
 		float p[3];
 
 		struct
-		{	
+		{
 			float x;
 			float y;
 			float z;
@@ -56,15 +56,15 @@ struct Point
 
 	friend Vector operator-(const Point &P, const Point &Q);
 
-	friend Point operator*(const Matrix &M, const Point& P);
+	friend Point operator*(const Matrix &M, const Point &P);
 	friend Point operator*(const Point &P, const Matrix &M);
 	friend Point &operator*=(Point &P, const Matrix &M);
 
 	float d(const Point &P) const;   // Distance between two points
-	float d2(const Point &P) const;   // Squared distance between two points
+	float d2(const Point &P) const;  // Squared distance between two points
 
 	static float d(const Point &P, const Point &Q);   // Distance between two points
-	static float d2(const Point &P, const Point &Q);   // Squared distance between two points
+	static float d2(const Point &P, const Point &Q);  // Squared distance between two points
 };
 
 }  // namespace sw
@@ -138,4 +138,4 @@ inline const float &Point::operator[](int i) const
 
 }  // namespace sw
 
-#endif   // Point_hpp
+#endif  // Point_hpp

@@ -20,7 +20,9 @@
 #include "System/Types.hpp"
 #include "Vulkan/VkFormat.h"
 
-namespace vk { class Image; }
+namespace vk {
+class Image;
+}
 
 namespace sw {
 
@@ -79,10 +81,10 @@ enum AddressingMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	ADDRESSING_CLAMP,
 	ADDRESSING_MIRROR,
 	ADDRESSING_MIRRORONCE,
-	ADDRESSING_BORDER,     // Single color
-	ADDRESSING_SEAMLESS,   // Border of pixels
-	ADDRESSING_CUBEFACE,   // Cube face layer
-	ADDRESSING_LAYER,      // Array layer
+	ADDRESSING_BORDER,    // Single color
+	ADDRESSING_SEAMLESS,  // Border of pixels
+	ADDRESSING_CUBEFACE,  // Cube face layer
+	ADDRESSING_LAYER,     // Array layer
 	ADDRESSING_TEXELFETCH,
 
 	ADDRESSING_LAST = ADDRESSING_TEXELFETCH
@@ -114,4 +116,4 @@ struct Sampler
 
 }  // namespace sw
 
-#endif   // sw_Sampler_hpp
+#endif  // sw_Sampler_hpp

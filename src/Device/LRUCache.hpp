@@ -33,8 +33,8 @@ public:
 	Data query(const Key &key) const;
 	virtual Data add(const Key &key, const Data &data);
 
-	int getSize() {return size;}
-	Key &getKey(int i) {return key[i];}
+	int getSize() { return size; }
+	Key &getKey(int i) { return key[i]; }
 
 protected:
 	int size;
@@ -51,18 +51,21 @@ template<class Key, class Data, class Hasher = std::hash<Key>>
 class LRUConstCache : public LRUCache<Key, Data>
 {
 	using LRUBase = LRUCache<Key, Data>;
+
 public:
-	LRUConstCache(int n) : LRUBase(n) {}
+	LRUConstCache(int n)
+	    : LRUBase(n)
+	{}
 	~LRUConstCache() { clearConstCache(); }
 
-	Data add(const Key &key, const Data& data) override
+	Data add(const Key &key, const Data &data) override
 	{
 		constCacheNeedsUpdate = true;
 		return LRUBase::add(key, data);
 	}
 
 	void updateConstCache();
-	const Data& queryConstCache(const Key &key) const;
+	const Data &queryConstCache(const Key &key) const;
 
 private:
 	void clearConstCache();
@@ -75,15 +78,15 @@ private:
 template<typename T>
 struct is_memcmparable
 {
-	// std::is_trivially_copyable is not available in older GCC versions.
-	#if !defined(__GNUC__) || __GNUC__ > 5
-		static const bool value = std::is_trivially_copyable<T>::value;
-	#else
-		// At least check it doesn't have virtual methods.
-		static const bool value = !std::is_polymorphic<T>::value;
-	#endif
+// std::is_trivially_copyable is not available in older GCC versions.
+#if !defined(__GNUC__) || __GNUC__ > 5
+	static const bool value = std::is_trivially_copyable<T>::value;
+#else
+	// At least check it doesn't have virtual methods.
+	static const bool value = !std::is_polymorphic<T>::value;
+#endif
 };
-}
+}  // namespace sw
 
 namespace sw {
 
@@ -96,7 +99,7 @@ LRUCache<Key, Data>::LRUCache(int n)
 	fill = 0;
 
 	key = new Key[size];
-	ref = new Key*[size];
+	ref = new Key *[size];
 	data = new Data[size];
 
 	for(int i = 0; i < size; i++)
@@ -147,7 +150,7 @@ Data LRUCache<Key, Data>::query(const Key &key) const
 		}
 	}
 
-	return {};   // Not found
+	return {};  // Not found
 }
 
 template<class Key, class Data>
@@ -188,7 +191,7 @@ void LRUConstCache<Key, Data, Hasher>::updateConstCache()
 }
 
 template<class Key, class Data, class Hasher>
-const Data& LRUConstCache<Key, Data, Hasher>::queryConstCache(const Key &key) const
+const Data &LRUConstCache<Key, Data, Hasher>::queryConstCache(const Key &key) const
 {
 	auto it = constCache.find(key);
 	static Data null = {};
@@ -197,4 +200,4 @@ const Data& LRUConstCache<Key, Data, Hasher>::queryConstCache(const Key &key) co
 
 }  // namespace sw
 
-#endif   // sw_LRUCache_hpp
+#endif  // sw_LRUCache_hpp

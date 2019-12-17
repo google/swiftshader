@@ -28,7 +28,7 @@ struct Texture;
 struct DrawData;
 struct Primitive;
 
-using RasterizerFunction = FunctionT<void(const Primitive* primitive, int count, int cluster, int clusterCount, DrawData* draw)>;
+using RasterizerFunction = FunctionT<void(const Primitive *primitive, int count, int cluster, int clusterCount, DrawData *draw)>;
 
 class PixelProcessor
 {
@@ -39,12 +39,12 @@ public:
 		// (it doesn't require a different program to be generated)
 		struct StencilOpState
 		{
-			VkStencilOp    failOp;
-			VkStencilOp    passOp;
-			VkStencilOp    depthFailOp;
-			VkCompareOp    compareOp;
-			uint32_t       compareMask;
-			uint32_t       writeMask;
+			VkStencilOp failOp;
+			VkStencilOp passOp;
+			VkStencilOp depthFailOp;
+			VkCompareOp compareOp;
+			uint32_t compareMask;
+			uint32_t writeMask;
 
 			void operator=(const VkStencilOpState &rhs)
 			{
@@ -57,7 +57,9 @@ public:
 			}
 		};
 
-		States() : Memset(this, 0) {}
+		States()
+		    : Memset(this, 0)
+		{}
 
 		uint32_t computeHash();
 
@@ -150,7 +152,7 @@ public:
 	void setBlendConstant(const Color<float> &blendConstant);
 
 protected:
-	const State update(const Context* context) const;
+	const State update(const Context *context) const;
 	RoutineType routine(const State &state, vk::PipelineLayout const *pipelineLayout,
 	                    SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);
 	void setRoutineCacheSize(int routineCacheSize);
@@ -165,4 +167,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_PixelProcessor_hpp
+#endif  // sw_PixelProcessor_hpp

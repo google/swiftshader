@@ -263,31 +263,40 @@ namespace sw {
 
 unsigned int Clipper::ComputeClipFlags(const float4 &v)
 {
-	return ((v.x > v.w)     ? CLIP_RIGHT  : 0) |
-	       ((v.y > v.w)     ? CLIP_TOP    : 0) |
-	       ((v.z > v.w)     ? CLIP_FAR    : 0) |
-	       ((v.x < -v.w)    ? CLIP_LEFT   : 0) |
-	       ((v.y < -v.w)    ? CLIP_BOTTOM : 0) |
-	       ((v.z < 0)       ? CLIP_NEAR   : 0) |
-	       Clipper::CLIP_FINITE;   // FIXME: xyz finite
+	return ((v.x > v.w) ? CLIP_RIGHT : 0) |
+	       ((v.y > v.w) ? CLIP_TOP : 0) |
+	       ((v.z > v.w) ? CLIP_FAR : 0) |
+	       ((v.x < -v.w) ? CLIP_LEFT : 0) |
+	       ((v.y < -v.w) ? CLIP_BOTTOM : 0) |
+	       ((v.z < 0) ? CLIP_NEAR : 0) |
+	       Clipper::CLIP_FINITE;  // FIXME: xyz finite
 }
 
 bool Clipper::Clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw)
 {
 	if(clipFlagsOr & CLIP_FRUSTUM)
 	{
-		if(clipFlagsOr & CLIP_NEAR)   clipNear(polygon);
-		if(polygon.n >= 3) {
-		if(clipFlagsOr & CLIP_FAR)    clipFar(polygon);
-		if(polygon.n >= 3) {
-		if(clipFlagsOr & CLIP_LEFT)   clipLeft(polygon);
-		if(polygon.n >= 3) {
-		if(clipFlagsOr & CLIP_RIGHT)  clipRight(polygon);
-		if(polygon.n >= 3) {
-		if(clipFlagsOr & CLIP_TOP)    clipTop(polygon);
-		if(polygon.n >= 3) {
-		if(clipFlagsOr & CLIP_BOTTOM) clipBottom(polygon);
-		}}}}}
+		if(clipFlagsOr & CLIP_NEAR) clipNear(polygon);
+		if(polygon.n >= 3)
+		{
+			if(clipFlagsOr & CLIP_FAR) clipFar(polygon);
+			if(polygon.n >= 3)
+			{
+				if(clipFlagsOr & CLIP_LEFT) clipLeft(polygon);
+				if(polygon.n >= 3)
+				{
+					if(clipFlagsOr & CLIP_RIGHT) clipRight(polygon);
+					if(polygon.n >= 3)
+					{
+						if(clipFlagsOr & CLIP_TOP) clipTop(polygon);
+						if(polygon.n >= 3)
+						{
+							if(clipFlagsOr & CLIP_BOTTOM) clipBottom(polygon);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return polygon.n >= 3;

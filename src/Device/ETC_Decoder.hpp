@@ -37,5 +37,5 @@ public:
 	/// @param dstBpp         dst image bytes per pixel
 	/// @param inputType      src's format
 	/// @return               true if the decoding was performed
-	static bool Decode(const unsigned char* src, unsigned char *dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, InputType inputType);
+	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, InputType inputType);
 };

@@ -21,15 +21,15 @@ namespace sw {
 
 enum StreamType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 {
-	STREAMTYPE_COLOR,     // 4 normalized unsigned bytes, ZYXW order
-	STREAMTYPE_FLOAT,     // Normalization ignored
+	STREAMTYPE_COLOR,  // 4 normalized unsigned bytes, ZYXW order
+	STREAMTYPE_FLOAT,  // Normalization ignored
 	STREAMTYPE_BYTE,
 	STREAMTYPE_SBYTE,
 	STREAMTYPE_SHORT,
 	STREAMTYPE_USHORT,
 	STREAMTYPE_INT,
 	STREAMTYPE_UINT,
-	STREAMTYPE_HALF,      // Normalization ignored
+	STREAMTYPE_HALF,  // Normalization ignored
 	STREAMTYPE_2_10_10_10_INT,
 	STREAMTYPE_2_10_10_10_UINT,
 
@@ -51,4 +51,4 @@ struct Stream
 
 }  // namespace sw
 
-#endif   // sw_Stream_hpp
+#endif  // sw_Stream_hpp

@@ -57,4 +57,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_QuadRasterizer_hpp
+#endif  // sw_QuadRasterizer_hpp

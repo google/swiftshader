@@ -21,13 +21,13 @@ namespace sw {
 
 Matrix Matrix::diag(float m11, float m22, float m33, float m44)
 {
-	return Matrix(m11, 0,   0,   0,
-	              0,   m22, 0,   0,
-	              0,   0,   m33, 0,
-	              0,   0,   0,   m44);
+	return Matrix(m11, 0, 0, 0,
+	              0, m22, 0, 0,
+	              0, 0, m33, 0,
+	              0, 0, 0, m44);
 }
 
-Matrix::operator float*()
+Matrix::operator float *()
 {
 	return &(*this)(1, 1);
 }
@@ -41,9 +41,9 @@ Matrix Matrix::operator-() const
 {
 	const Matrix &M = *this;
 
-	return Matrix(-M(1, 1), -M(1, 2), -M(1, 3), -M(1, 4), 
-	              -M(2, 1), -M(2, 2), -M(2, 3), -M(2, 4), 
-	              -M(3, 1), -M(3, 2), -M(3, 3), -M(3, 4), 
+	return Matrix(-M(1, 1), -M(1, 2), -M(1, 3), -M(1, 4),
+	              -M(2, 1), -M(2, 2), -M(2, 3), -M(2, 4),
+	              -M(3, 1), -M(3, 2), -M(3, 3), -M(3, 4),
 	              -M(4, 1), -M(4, 2), -M(4, 3), -M(4, 4));
 }
 
@@ -72,25 +72,25 @@ Matrix Matrix::operator!() const
 	float M1223 = M(1, 2) * M(2, 3) - M(2, 2) * M(1, 3);
 
 	// Adjoint Matrix
-	I(1, 1) =  M(2, 2) * M3344 - M(3, 2) * M2344 + M(4, 2) * M2334;
+	I(1, 1) = M(2, 2) * M3344 - M(3, 2) * M2344 + M(4, 2) * M2334;
 	I(2, 1) = -M(2, 1) * M3344 + M(3, 1) * M2344 - M(4, 1) * M2334;
-	I(3, 1) =  M(2, 1) * M3244 - M(3, 1) * M2244 + M(4, 1) * M2234;
+	I(3, 1) = M(2, 1) * M3244 - M(3, 1) * M2244 + M(4, 1) * M2234;
 	I(4, 1) = -M(2, 1) * M3243 + M(3, 1) * M2243 - M(4, 1) * M2233;
 
 	I(1, 2) = -M(1, 2) * M3344 + M(3, 2) * M1344 - M(4, 2) * M1334;
-	I(2, 2) =  M(1, 1) * M3344 - M(3, 1) * M1344 + M(4, 1) * M1334;
+	I(2, 2) = M(1, 1) * M3344 - M(3, 1) * M1344 + M(4, 1) * M1334;
 	I(3, 2) = -M(1, 1) * M3244 + M(3, 1) * M1244 - M(4, 1) * M1234;
-	I(4, 2) =  M(1, 1) * M3243 - M(3, 1) * M1243 + M(4, 1) * M1233;
+	I(4, 2) = M(1, 1) * M3243 - M(3, 1) * M1243 + M(4, 1) * M1233;
 
-	I(1, 3) =  M(1, 2) * M2344 - M(2, 2) * M1344 + M(4, 2) * M1324;
+	I(1, 3) = M(1, 2) * M2344 - M(2, 2) * M1344 + M(4, 2) * M1324;
 	I(2, 3) = -M(1, 1) * M2344 + M(2, 1) * M1344 - M(4, 1) * M1324;
-	I(3, 3) =  M(1, 1) * M2244 - M(2, 1) * M1244 + M(4, 1) * M1224;
+	I(3, 3) = M(1, 1) * M2244 - M(2, 1) * M1244 + M(4, 1) * M1224;
 	I(4, 3) = -M(1, 1) * M2243 + M(2, 1) * M1243 - M(4, 1) * M1223;
 
 	I(1, 4) = -M(1, 2) * M2334 + M(2, 2) * M1334 - M(3, 2) * M1324;
-	I(2, 4) =  M(1, 1) * M2334 - M(2, 1) * M1334 + M(3, 1) * M1324;
+	I(2, 4) = M(1, 1) * M2334 - M(2, 1) * M1334 + M(3, 1) * M1324;
 	I(3, 4) = -M(1, 1) * M2234 + M(2, 1) * M1234 - M(3, 1) * M1224;
-	I(4, 4) =  M(1, 1) * M2233 - M(2, 1) * M1233 + M(3, 1) * M1223;
+	I(4, 4) = M(1, 1) * M2233 - M(2, 1) * M1233 + M(3, 1) * M1223;
 
 	// Division by determinant
 	I /= M(1, 1) * I(1, 1) +
@@ -105,9 +105,9 @@ Matrix Matrix::operator~() const
 {
 	const Matrix &M = *this;
 
-	return Matrix(M(1, 1), M(2, 1), M(3, 1), M(4, 1), 
-	              M(1, 2), M(2, 2), M(3, 2), M(4, 2), 
-	              M(1, 3), M(2, 3), M(3, 3), M(4, 3), 
+	return Matrix(M(1, 1), M(2, 1), M(3, 1), M(4, 1),
+	              M(1, 2), M(2, 2), M(3, 2), M(4, 2),
+	              M(1, 3), M(2, 3), M(3, 3), M(4, 3),
 	              M(1, 4), M(2, 4), M(3, 4), M(4, 4));
 }
 
@@ -115,10 +115,22 @@ Matrix &Matrix::operator+=(const Matrix &N)
 {
 	Matrix &M = *this;
 
-	M(1, 1) += N(1, 1); M(1, 2) += N(1, 2); M(1, 3) += N(1, 3); M(1, 4) += N(1, 4);
-	M(2, 1) += N(2, 1); M(2, 2) += N(2, 2); M(2, 3) += N(2, 3); M(2, 4) += N(2, 4);
-	M(3, 1) += N(3, 1); M(3, 2) += N(3, 2); M(3, 3) += N(3, 3); M(3, 4) += N(3, 4);
-	M(4, 1) += N(4, 1); M(4, 2) += N(4, 2); M(4, 3) += N(4, 3); M(4, 4) += N(4, 4);
+	M(1, 1) += N(1, 1);
+	M(1, 2) += N(1, 2);
+	M(1, 3) += N(1, 3);
+	M(1, 4) += N(1, 4);
+	M(2, 1) += N(2, 1);
+	M(2, 2) += N(2, 2);
+	M(2, 3) += N(2, 3);
+	M(2, 4) += N(2, 4);
+	M(3, 1) += N(3, 1);
+	M(3, 2) += N(3, 2);
+	M(3, 3) += N(3, 3);
+	M(3, 4) += N(3, 4);
+	M(4, 1) += N(4, 1);
+	M(4, 2) += N(4, 2);
+	M(4, 3) += N(4, 3);
+	M(4, 4) += N(4, 4);
 
 	return M;
 }
@@ -127,10 +139,22 @@ Matrix &Matrix::operator-=(const Matrix &N)
 {
 	Matrix &M = *this;
 
-	M(1, 1) -= N(1, 1); M(1, 2) -= N(1, 2); M(1, 3) -= N(1, 3); M(1, 4) -= N(1, 4);
-	M(2, 1) -= N(2, 1); M(2, 2) -= N(2, 2); M(2, 3) -= N(2, 3); M(2, 4) -= N(2, 4);
-	M(3, 1) -= N(3, 1); M(3, 2) -= N(3, 2); M(3, 3) -= N(3, 3); M(3, 4) -= N(3, 4);
-	M(4, 1) -= N(4, 1); M(4, 2) -= N(4, 2); M(4, 3) -= N(4, 3); M(4, 4) -= N(4, 4);
+	M(1, 1) -= N(1, 1);
+	M(1, 2) -= N(1, 2);
+	M(1, 3) -= N(1, 3);
+	M(1, 4) -= N(1, 4);
+	M(2, 1) -= N(2, 1);
+	M(2, 2) -= N(2, 2);
+	M(2, 3) -= N(2, 3);
+	M(2, 4) -= N(2, 4);
+	M(3, 1) -= N(3, 1);
+	M(3, 2) -= N(3, 2);
+	M(3, 3) -= N(3, 3);
+	M(3, 4) -= N(3, 4);
+	M(4, 1) -= N(4, 1);
+	M(4, 2) -= N(4, 2);
+	M(4, 3) -= N(4, 3);
+	M(4, 4) -= N(4, 4);
 
 	return M;
 }
@@ -139,10 +163,22 @@ Matrix &Matrix::operator*=(float s)
 {
 	Matrix &M = *this;
 
-	M(1, 1) *= s; M(1, 2) *= s; M(1, 3) *= s; M(1, 4) *= s;
-	M(2, 1) *= s; M(2, 2) *= s; M(2, 3) *= s; M(2, 4) *= s;
-	M(3, 1) *= s; M(3, 2) *= s; M(3, 3) *= s; M(3, 4) *= s;
-	M(4, 1) *= s; M(4, 2) *= s; M(4, 3) *= s; M(4, 4) *= s;
+	M(1, 1) *= s;
+	M(1, 2) *= s;
+	M(1, 3) *= s;
+	M(1, 4) *= s;
+	M(2, 1) *= s;
+	M(2, 2) *= s;
+	M(2, 3) *= s;
+	M(2, 4) *= s;
+	M(3, 1) *= s;
+	M(3, 2) *= s;
+	M(3, 3) *= s;
+	M(3, 4) *= s;
+	M(4, 1) *= s;
+	M(4, 2) *= s;
+	M(4, 3) *= s;
+	M(4, 4) *= s;
 
 	return M;
 }
@@ -183,41 +219,41 @@ bool operator!=(const Matrix &M, const Matrix &N)
 
 Matrix operator+(const Matrix &M, const Matrix &N)
 {
-	return Matrix(M(1, 1) + N(1, 1), M(1, 2) + N(1, 2), M(1, 3) + N(1, 3), M(1, 4) + N(1, 4), 
-	              M(2, 1) + N(2, 1), M(2, 2) + N(2, 2), M(2, 3) + N(2, 3), M(2, 4) + N(2, 4), 
-	              M(3, 1) + N(3, 1), M(3, 2) + N(3, 2), M(3, 3) + N(3, 3), M(3, 4) + N(3, 4), 
+	return Matrix(M(1, 1) + N(1, 1), M(1, 2) + N(1, 2), M(1, 3) + N(1, 3), M(1, 4) + N(1, 4),
+	              M(2, 1) + N(2, 1), M(2, 2) + N(2, 2), M(2, 3) + N(2, 3), M(2, 4) + N(2, 4),
+	              M(3, 1) + N(3, 1), M(3, 2) + N(3, 2), M(3, 3) + N(3, 3), M(3, 4) + N(3, 4),
 	              M(4, 1) + N(4, 1), M(4, 2) + N(4, 2), M(4, 3) + N(4, 3), M(4, 4) + N(4, 4));
 }
 
 Matrix operator-(const Matrix &M, const Matrix &N)
 {
-	return Matrix(M(1, 1) - N(1, 1), M(1, 2) - N(1, 2), M(1, 3) - N(1, 3), M(1, 4) - N(1, 4), 
-	              M(2, 1) - N(2, 1), M(2, 2) - N(2, 2), M(2, 3) - N(2, 3), M(2, 4) - N(2, 4), 
-	              M(3, 1) - N(3, 1), M(3, 2) - N(3, 2), M(3, 3) - N(3, 3), M(3, 4) - N(3, 4), 
+	return Matrix(M(1, 1) - N(1, 1), M(1, 2) - N(1, 2), M(1, 3) - N(1, 3), M(1, 4) - N(1, 4),
+	              M(2, 1) - N(2, 1), M(2, 2) - N(2, 2), M(2, 3) - N(2, 3), M(2, 4) - N(2, 4),
+	              M(3, 1) - N(3, 1), M(3, 2) - N(3, 2), M(3, 3) - N(3, 3), M(3, 4) - N(3, 4),
 	              M(4, 1) - N(4, 1), M(4, 2) - N(4, 2), M(4, 3) - N(4, 3), M(4, 4) - N(4, 4));
 }
 
 Matrix operator*(float s, const Matrix &M)
 {
-	return Matrix(s * M(1, 1), s * M(1, 2), s * M(1, 3), s * M(1, 4), 
-	              s * M(2, 1), s * M(2, 2), s * M(2, 3), s * M(2, 4), 
-	              s * M(3, 1), s * M(3, 2), s * M(3, 3), s * M(3, 4), 
+	return Matrix(s * M(1, 1), s * M(1, 2), s * M(1, 3), s * M(1, 4),
+	              s * M(2, 1), s * M(2, 2), s * M(2, 3), s * M(2, 4),
+	              s * M(3, 1), s * M(3, 2), s * M(3, 3), s * M(3, 4),
 	              s * M(4, 1), s * M(4, 2), s * M(4, 3), s * M(4, 4));
 }
 
 Matrix operator*(const Matrix &M, float s)
 {
-	return Matrix(M(1, 1) * s, M(1, 2) * s, M(1, 3) * s, M(1, 4) * s, 
-	              M(2, 1) * s, M(2, 2) * s, M(2, 3) * s, M(2, 4) * s, 
-	              M(3, 1) * s, M(3, 2) * s, M(3, 3) * s, M(3, 4) * s, 
+	return Matrix(M(1, 1) * s, M(1, 2) * s, M(1, 3) * s, M(1, 4) * s,
+	              M(2, 1) * s, M(2, 2) * s, M(2, 3) * s, M(2, 4) * s,
+	              M(3, 1) * s, M(3, 2) * s, M(3, 3) * s, M(3, 4) * s,
 	              M(4, 1) * s, M(4, 2) * s, M(4, 3) * s, M(4, 4) * s);
 }
 
 Matrix operator*(const Matrix &M, const Matrix &N)
 {
-	return Matrix(M(1, 1) * N(1, 1) + M(1, 2) * N(2, 1) + M(1, 3) * N(3, 1) + M(1, 4) * N(4, 1), M(1, 1) * N(1, 2) + M(1, 2) * N(2, 2) + M(1, 3) * N(3, 2) + M(1, 4) * N(4, 2), M(1, 1) * N(1, 3) + M(1, 2) * N(2, 3) + M(1, 3) * N(3, 3) + M(1, 4) * N(4, 3), M(1, 1) * N(1, 4) + M(1, 2) * N(2, 4) + M(1, 3) * N(3, 4) + M(1, 4) * N(4, 4), 
-	              M(2, 1) * N(1, 1) + M(2, 2) * N(2, 1) + M(2, 3) * N(3, 1) + M(2, 4) * N(4, 1), M(2, 1) * N(1, 2) + M(2, 2) * N(2, 2) + M(2, 3) * N(3, 2) + M(2, 4) * N(4, 2), M(2, 1) * N(1, 3) + M(2, 2) * N(2, 3) + M(2, 3) * N(3, 3) + M(2, 4) * N(4, 3), M(2, 1) * N(1, 4) + M(2, 2) * N(2, 4) + M(2, 3) * N(3, 4) + M(2, 4) * N(4, 4), 
-	              M(3, 1) * N(1, 1) + M(3, 2) * N(2, 1) + M(3, 3) * N(3, 1) + M(3, 4) * N(4, 1), M(3, 1) * N(1, 2) + M(3, 2) * N(2, 2) + M(3, 3) * N(3, 2) + M(3, 4) * N(4, 2), M(3, 1) * N(1, 3) + M(3, 2) * N(2, 3) + M(3, 3) * N(3, 3) + M(3, 4) * N(4, 3), M(3, 1) * N(1, 4) + M(3, 2) * N(2, 4) + M(3, 3) * N(3, 4) + M(3, 4) * N(4, 4), 
+	return Matrix(M(1, 1) * N(1, 1) + M(1, 2) * N(2, 1) + M(1, 3) * N(3, 1) + M(1, 4) * N(4, 1), M(1, 1) * N(1, 2) + M(1, 2) * N(2, 2) + M(1, 3) * N(3, 2) + M(1, 4) * N(4, 2), M(1, 1) * N(1, 3) + M(1, 2) * N(2, 3) + M(1, 3) * N(3, 3) + M(1, 4) * N(4, 3), M(1, 1) * N(1, 4) + M(1, 2) * N(2, 4) + M(1, 3) * N(3, 4) + M(1, 4) * N(4, 4),
+	              M(2, 1) * N(1, 1) + M(2, 2) * N(2, 1) + M(2, 3) * N(3, 1) + M(2, 4) * N(4, 1), M(2, 1) * N(1, 2) + M(2, 2) * N(2, 2) + M(2, 3) * N(3, 2) + M(2, 4) * N(4, 2), M(2, 1) * N(1, 3) + M(2, 2) * N(2, 3) + M(2, 3) * N(3, 3) + M(2, 4) * N(4, 3), M(2, 1) * N(1, 4) + M(2, 2) * N(2, 4) + M(2, 3) * N(3, 4) + M(2, 4) * N(4, 4),
+	              M(3, 1) * N(1, 1) + M(3, 2) * N(2, 1) + M(3, 3) * N(3, 1) + M(3, 4) * N(4, 1), M(3, 1) * N(1, 2) + M(3, 2) * N(2, 2) + M(3, 3) * N(3, 2) + M(3, 4) * N(4, 2), M(3, 1) * N(1, 3) + M(3, 2) * N(2, 3) + M(3, 3) * N(3, 3) + M(3, 4) * N(4, 3), M(3, 1) * N(1, 4) + M(3, 2) * N(2, 4) + M(3, 3) * N(3, 4) + M(3, 4) * N(4, 4),
 	              M(4, 1) * N(1, 1) + M(4, 2) * N(2, 1) + M(4, 3) * N(3, 1) + M(4, 4) * N(4, 1), M(4, 1) * N(1, 2) + M(4, 2) * N(2, 2) + M(4, 3) * N(3, 2) + M(4, 4) * N(4, 2), M(4, 1) * N(1, 3) + M(4, 2) * N(2, 3) + M(4, 3) * N(3, 3) + M(4, 4) * N(4, 3), M(4, 1) * N(1, 4) + M(4, 2) * N(2, 4) + M(4, 3) * N(3, 4) + M(4, 4) * N(4, 4));
 }
 
@@ -236,7 +272,7 @@ float4 Matrix::operator*(const float4 &v) const
 	float Mz = M(3, 1) * v.x + M(3, 2) * v.y + M(3, 3) * v.z + M(3, 4) * v.w;
 	float Mw = M(4, 1) * v.x + M(4, 2) * v.y + M(4, 3) * v.z + M(4, 4) * v.w;
 
-	return {Mx, My, Mz, Mw};
+	return { Mx, My, Mz, Mw };
 }
 
 float Matrix::det(const Matrix &M)
@@ -259,14 +295,14 @@ float Matrix::det(float m11)
 	return m11;
 }
 
-float Matrix::det(float m11, float m12, 
+float Matrix::det(float m11, float m12,
                   float m21, float m22)
 {
-	return m11 * m22 - m12 * m21; 
+	return m11 * m22 - m12 * m21;
 }
 
-float Matrix::det(float m11, float m12, float m13, 
-                  float m21, float m22, float m23, 
+float Matrix::det(float m11, float m12, float m13,
+                  float m21, float m22, float m23,
                   float m31, float m32, float m33)
 {
 	return m11 * (m22 * m33 - m32 * m23) -
@@ -274,9 +310,9 @@ float Matrix::det(float m11, float m12, float m13,
 	       m31 * (m12 * m23 - m22 * m13);
 }
 
-float Matrix::det(float m11, float m12, float m13, float m14, 
-                  float m21, float m22, float m23, float m24, 
-                  float m31, float m32, float m33, float m34, 
+float Matrix::det(float m11, float m12, float m13, float m14,
+                  float m21, float m22, float m23, float m24,
+                  float m31, float m32, float m33, float m34,
                   float m41, float m42, float m43, float m44)
 {
 	float M3344 = m33 * m44 - m43 * m34;
@@ -327,9 +363,15 @@ Matrix &Matrix::orthogonalise()
 	v2 /= Vector::N(v2);
 	v3 /= Vector::N(v3);
 
-	M(1, 1) = v1.x;  M(1, 2) = v2.x;  M(1, 3) = v3.x;
-	M(2, 1) = v1.y;  M(2, 2) = v2.y;  M(2, 3) = v3.y;
-	M(3, 1) = v1.z;  M(3, 2) = v2.z;  M(3, 3) = v3.z;
+	M(1, 1) = v1.x;
+	M(1, 2) = v2.x;
+	M(1, 3) = v3.x;
+	M(2, 1) = v1.y;
+	M(2, 2) = v2.y;
+	M(2, 3) = v3.y;
+	M(3, 1) = v1.z;
+	M(3, 2) = v2.z;
+	M(3, 3) = v3.z;
 
 	return *this;
 }
@@ -347,8 +389,8 @@ Matrix Matrix::eulerRotate(const Vector &v)
 	float sxcy = sx * cy;
 
 	return Matrix(cy * cz - sxsy * sz, -cy * sz - sxsy * cz, -sy * cx,
-	              cx * sz,              cx * cz,             -sx,
-	              sy * cz + sxcy * sz, -sy * sz + sxcy * cz,  cy * cx);
+	              cx * sz, cx * cz, -sx,
+	              sy * cz + sxcy * sz, -sy * sz + sxcy * cz, cy * cx);
 }
 
 Matrix Matrix::eulerRotate(float x, float y, float z)
@@ -371,9 +413,9 @@ Matrix Matrix::translate(float x, float y, float z)
 
 Matrix Matrix::scale(const Vector &v)
 {
-	return Matrix(v.x, 0,   0,
-	              0,   v.y, 0,
-	              0,   0,   v.z);
+	return Matrix(v.x, 0, 0,
+	              0, v.y, 0,
+	              0, 0, v.z);
 }
 
 Matrix Matrix::scale(float x, float y, float z)

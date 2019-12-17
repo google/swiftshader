@@ -29,7 +29,7 @@ struct DrawData;
 // Basic direct mapped vertex cache.
 struct VertexCache
 {
-	static constexpr uint32_t SIZE = 64;  // TODO: Variable size?
+	static constexpr uint32_t SIZE = 64;            // TODO: Variable size?
 	static constexpr uint32_t TAG_MASK = SIZE - 1;  // Size must be power of 2.
 
 	void clear();
@@ -50,14 +50,16 @@ struct VertexTask
 	VertexCache vertexCache;
 };
 
-using VertexRoutineFunction = FunctionT<void(Vertex* output, unsigned int* batch, VertexTask* vertextask, DrawData* draw)>;
+using VertexRoutineFunction = FunctionT<void(Vertex *output, unsigned int *batch, VertexTask *vertextask, DrawData *draw)>;
 
 class VertexProcessor
 {
 public:
 	struct States : Memset<States>
 	{
-		States() : Memset(this, 0) {}
+		States()
+		    : Memset(this, 0)
+		{}
 
 		uint32_t computeHash();
 
@@ -65,16 +67,16 @@ public:
 
 		struct Input
 		{
-			operator bool() const   // Returns true if stream contains data
+			operator bool() const  // Returns true if stream contains data
 			{
 				return count != 0;
 			}
 
 			unsigned int bytesPerAttrib() const;
 
-			StreamType type    : BITS(STREAMTYPE_LAST);
+			StreamType type : BITS(STREAMTYPE_LAST);
 			unsigned int count : 3;
-			bool normalized    : 1;
+			bool normalized : 1;
 			unsigned int attribType : BITS(SpirvShader::ATTRIBTYPE_LAST);
 		};
 
@@ -97,7 +99,7 @@ public:
 	virtual ~VertexProcessor();
 
 protected:
-	const State update(const sw::Context* context);
+	const State update(const sw::Context *context);
 	RoutineType routine(const State &state, vk::PipelineLayout const *pipelineLayout,
 	                    SpirvShader const *vertexShader, const vk::DescriptorSet::Bindings &descriptorSets);
 
@@ -110,4 +112,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_VertexProcessor_hpp
+#endif  // sw_VertexProcessor_hpp

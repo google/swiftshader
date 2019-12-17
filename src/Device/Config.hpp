@@ -47,7 +47,7 @@ extern Profiler profiler;
 
 enum
 {
-	OUTLINE_RESOLUTION = 8192,   // Maximum vertical resolution of the render target
+	OUTLINE_RESOLUTION = 8192,  // Maximum vertical resolution of the render target
 	MIPMAP_LEVELS = 14,
 	MAX_UNIFORM_BLOCK_SIZE = 16384,
 	MAX_CLIP_DISTANCES = 8,
@@ -56,11 +56,11 @@ enum
 	MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 64,
 	MIN_TEXEL_OFFSET = -8,
 	MAX_TEXEL_OFFSET = 7,
-	MAX_TEXTURE_LOD = MIPMAP_LEVELS - 2,   // Trilinear accesses lod+1
+	MAX_TEXTURE_LOD = MIPMAP_LEVELS - 2,  // Trilinear accesses lod+1
 	RENDERTARGETS = 8,
 	MAX_INTERFACE_COMPONENTS = 32 * 4,  // Must be multiple of 4 for 16-byte alignment.
 };
 
 }  // namespace sw
 
-#endif   // sw_Config_hpp
+#endif  // sw_Config_hpp

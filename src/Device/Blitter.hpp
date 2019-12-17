@@ -20,8 +20,8 @@
 #include "Reactor/Reactor.hpp"
 #include "Vulkan/VkFormat.h"
 
-#include <mutex>
 #include <cstring>
+#include <mutex>
 
 namespace vk {
 
@@ -38,9 +38,19 @@ class Blitter
 	{
 		explicit Options() = default;
 		explicit Options(bool filter, bool allowSRGBConversion)
-			: writeMask(0xF), clearOperation(false), filter(filter), allowSRGBConversion(allowSRGBConversion), clampToEdge(false) {}
+		    : writeMask(0xF)
+		    , clearOperation(false)
+		    , filter(filter)
+		    , allowSRGBConversion(allowSRGBConversion)
+		    , clampToEdge(false)
+		{}
 		explicit Options(unsigned int writeMask)
-			: writeMask(writeMask), clearOperation(true), filter(false), allowSRGBConversion(true), clampToEdge(false) {}
+		    : writeMask(writeMask)
+		    , clearOperation(true)
+		    , filter(false)
+		    , allowSRGBConversion(true)
+		    , clampToEdge(false)
+		{}
 
 		union
 		{
@@ -63,10 +73,21 @@ class Blitter
 
 	struct State : Memset<State>, Options
 	{
-		State() : Memset(this, 0) {}
-		State(const Options &options) : Memset(this, 0), Options(options) {}
-		State(vk::Format sourceFormat, vk::Format destFormat, int srcSamples, int destSamples, const Options &options) :
-			Memset(this, 0), Options(options), sourceFormat(sourceFormat), destFormat(destFormat), srcSamples(srcSamples), destSamples(destSamples) {}
+		State()
+		    : Memset(this, 0)
+		{}
+		State(const Options &options)
+		    : Memset(this, 0)
+		    , Options(options)
+		{}
+		State(vk::Format sourceFormat, vk::Format destFormat, int srcSamples, int destSamples, const Options &options)
+		    : Memset(this, 0)
+		    , Options(options)
+		    , sourceFormat(sourceFormat)
+		    , destFormat(destFormat)
+		    , srcSamples(srcSamples)
+		    , destSamples(destSamples)
+		{}
 
 		bool operator==(const State &state) const
 		{
@@ -115,18 +136,24 @@ public:
 	Blitter();
 	virtual ~Blitter();
 
-	void clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea = nullptr);
+	void clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea = nullptr);
 
 	void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 	void blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch);
 	void blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *src, int bufferRowPitch, int bufferSlicePitch);
 
-	void updateBorders(vk::Image* image, const VkImageSubresourceLayers& subresourceLayers);
+	void updateBorders(vk::Image *image, const VkImageSubresourceLayers &subresourceLayers);
 
 private:
-	enum Edge { TOP, BOTTOM, RIGHT, LEFT };
+	enum Edge
+	{
+		TOP,
+		BOTTOM,
+		RIGHT,
+		LEFT
+	};
 
-	bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
+	bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea);
 
 	Float4 readFloat4(Pointer<Byte> element, const State &state);
 	void write(Float4 &color, Pointer<Byte> element, const State &state);
@@ -137,27 +164,27 @@ private:
 	static Float4 LinearToSRGB(Float4 &color);
 	static Float4 sRGBtoLinear(Float4 &color);
 
-	using BlitFunction = FunctionT<void(const BlitData*)>;
+	using BlitFunction = FunctionT<void(const BlitData *)>;
 	using BlitRoutineType = BlitFunction::RoutineType;
 	BlitRoutineType getBlitRoutine(const State &state);
 	BlitRoutineType generate(const State &state);
 
-	using CornerUpdateFunction = FunctionT<void(const CubeBorderData*)>;
+	using CornerUpdateFunction = FunctionT<void(const CubeBorderData *)>;
 	using CornerUpdateRoutineType = CornerUpdateFunction::RoutineType;
 	CornerUpdateRoutineType getCornerUpdateRoutine(const State &state);
-	CornerUpdateRoutineType generateCornerUpdate(const State& state);
-	void computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state);
+	CornerUpdateRoutineType generateCornerUpdate(const State &state);
+	void computeCubeCorner(Pointer<Byte> &layer, Int &x0, Int &x1, Int &y0, Int &y1, Int &pitchB, const State &state);
 
-	void copyCubeEdge(vk::Image* image,
-                      const VkImageSubresourceLayers& dstSubresourceLayers, Edge dstEdge,
-                      const VkImageSubresourceLayers& srcSubresourceLayers, Edge srcEdge);
+	void copyCubeEdge(vk::Image *image,
+	                  const VkImageSubresourceLayers &dstSubresourceLayers, Edge dstEdge,
+	                  const VkImageSubresourceLayers &srcSubresourceLayers, Edge srcEdge);
 
 	std::mutex blitMutex;
-	RoutineCacheT<State, BlitFunction::CFunctionType> blitCache; // guarded by blitMutex
+	RoutineCacheT<State, BlitFunction::CFunctionType> blitCache;  // guarded by blitMutex
 	std::mutex cornerUpdateMutex;
-	RoutineCacheT<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache; // guarded by cornerUpdateMutex
+	RoutineCacheT<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache;  // guarded by cornerUpdateMutex
 };
 
 }  // namespace sw
 
-#endif   // sw_Blitter_hpp
+#endif  // sw_Blitter_hpp

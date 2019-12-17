@@ -15,12 +15,12 @@
 #ifndef sw_Context_hpp
 #define sw_Context_hpp
 
-#include "Vulkan/VkConfig.h"
-#include "Vulkan/VkDescriptorSet.hpp"
 #include "Config.hpp"
 #include "Memset.hpp"
 #include "Stream.hpp"
 #include "System/Types.hpp"
+#include "Vulkan/VkConfig.h"
+#include "Vulkan/VkDescriptorSet.hpp"
 
 namespace vk {
 
@@ -40,7 +40,9 @@ struct PushConstantStorage
 
 struct BlendState : Memset<BlendState>
 {
-	BlendState() : Memset(this, 0) {}
+	BlendState()
+	    : Memset(this, 0)
+	{}
 
 	BlendState(bool alphaBlendEnable,
 	           VkBlendFactor sourceBlendFactor,
@@ -48,15 +50,15 @@ struct BlendState : Memset<BlendState>
 	           VkBlendOp blendOperation,
 	           VkBlendFactor sourceBlendFactorAlpha,
 	           VkBlendFactor destBlendFactorAlpha,
-	           VkBlendOp blendOperationAlpha) :
-		Memset(this, 0),
-		alphaBlendEnable(alphaBlendEnable),
-		sourceBlendFactor(sourceBlendFactor),
-		destBlendFactor(destBlendFactor),
-		blendOperation(blendOperation),
-		sourceBlendFactorAlpha(sourceBlendFactorAlpha),
-		destBlendFactorAlpha(destBlendFactorAlpha),
-		blendOperationAlpha(blendOperationAlpha)
+	           VkBlendOp blendOperationAlpha)
+	    : Memset(this, 0)
+	    , alphaBlendEnable(alphaBlendEnable)
+	    , sourceBlendFactor(sourceBlendFactor)
+	    , destBlendFactor(destBlendFactor)
+	    , blendOperation(blendOperation)
+	    , sourceBlendFactorAlpha(sourceBlendFactorAlpha)
+	    , destBlendFactorAlpha(destBlendFactorAlpha)
+	    , blendOperationAlpha(blendOperationAlpha)
 	{}
 
 	bool alphaBlendEnable;
@@ -133,7 +135,7 @@ public:
 
 	float lineWidth;
 
-	int colorWriteMask[RENDERTARGETS];   // RGBA
+	int colorWriteMask[RENDERTARGETS];  // RGBA
 	unsigned int sampleMask;
 	unsigned int multiSampleMask;
 	int sampleCount;
@@ -157,4 +159,4 @@ private:
 
 }  // namespace sw
 
-#endif   // sw_Context_hpp
+#endif  // sw_Context_hpp

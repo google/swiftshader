@@ -15,17 +15,17 @@
 #ifndef sw_Renderer_hpp
 #define sw_Renderer_hpp
 
-#include "VertexProcessor.hpp"
+#include "Blitter.hpp"
 #include "PixelProcessor.hpp"
-#include "SetupProcessor.hpp"
 #include "Plane.hpp"
 #include "Primitive.hpp"
-#include "Blitter.hpp"
+#include "SetupProcessor.hpp"
+#include "VertexProcessor.hpp"
 #include "Device/Config.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
-#include "marl/pool.h"
 #include "marl/finally.h"
+#include "marl/pool.h"
 #include "marl/ticket.h"
 
 #include <atomic>
@@ -76,9 +76,9 @@ struct DrawData
 	float lineWidth;
 	int viewID;
 
-	PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
+	PixelProcessor::Stencil stencil[2];  // clockwise, counterclockwise
 	PixelProcessor::Factor factor;
-	unsigned int occlusion[MaxClusterCount];   // Number of pixels passing depth test
+	unsigned int occlusion[MaxClusterCount];  // Number of pixels passing depth test
 
 	float4 WxF;
 	float4 HxF;
@@ -131,15 +131,15 @@ struct DrawCall
 	};
 
 	using Pool = marl::BoundedPool<DrawCall, MaxDrawCount, marl::PoolPolicy::Preserve>;
-	using SetupFunction = int(*)(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
+	using SetupFunction = int (*)(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 
 	DrawCall();
 	~DrawCall();
 
-	static void run(const marl::Loan<DrawCall>& draw, marl::Ticket::Queue* tickets, marl::Ticket::Queue clusterQueues[MaxClusterCount]);
-	static void processVertices(DrawCall* draw, BatchData* batch);
-	static void processPrimitives(DrawCall* draw, BatchData* batch);
-	static void processPixels(const marl::Loan<DrawCall>& draw, const marl::Loan<BatchData>& batch, const std::shared_ptr<marl::Finally>& finally);
+	static void run(const marl::Loan<DrawCall> &draw, marl::Ticket::Queue *tickets, marl::Ticket::Queue clusterQueues[MaxClusterCount]);
+	static void processVertices(DrawCall *draw, BatchData *batch);
+	static void processPrimitives(DrawCall *draw, BatchData *batch);
+	static void processPixels(const marl::Loan<DrawCall> &draw, const marl::Loan<BatchData> &batch, const std::shared_ptr<marl::Finally> &finally);
 	void setup();
 	void teardown();
 
@@ -167,22 +167,22 @@ struct DrawCall
 	vk::ImageView *stencilBuffer;
 	TaskEvents *events;
 
-	vk::Query* occlusionQuery;
+	vk::Query *occlusionQuery;
 
 	DrawData *data;
 
 	static void processPrimitiveVertices(
-			unsigned int triangleIndicesOut[MaxBatchSize + 1][3],
-			const void *primitiveIndices,
-			VkIndexType indexType,
-			unsigned int start,
-			unsigned int triangleCount,
-			VkPrimitiveTopology topology,
-			VkProvokingVertexModeEXT provokingVertexMode);
+	    unsigned int triangleIndicesOut[MaxBatchSize + 1][3],
+	    const void *primitiveIndices,
+	    VkIndexType indexType,
+	    unsigned int start,
+	    unsigned int triangleCount,
+	    VkPrimitiveTopology topology,
+	    VkProvokingVertexModeEXT provokingVertexMode);
 
-	static int setupSolidTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
-	static int setupWireframeTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
-	static int setupPointTriangles(Triangle* triangles, Primitive* primitives, const DrawCall* drawCall, int count);
+	static int setupSolidTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
+	static int setupWireframeTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
+	static int setupPointTriangles(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 	static int setupLines(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 	static int setupPoints(Triangle *triangles, Primitive *primitives, const DrawCall *drawCall, int count);
 
@@ -193,18 +193,18 @@ struct DrawCall
 class alignas(16) Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor
 {
 public:
-	Renderer(vk::Device* device);
+	Renderer(vk::Device *device);
 
 	virtual ~Renderer();
 
-	void* operator new(size_t size);
-	void operator delete(void* mem);
+	void *operator new(size_t size);
+	void operator delete(void *mem);
 
 	bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 
-	void draw(const sw::Context* context, VkIndexType indexType, unsigned int count, int baseVertex,
-			TaskEvents *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D& framebufferExtent,
-			PushConstantStorage const & pushConstants, bool update = true);
+	void draw(const sw::Context *context, VkIndexType indexType, unsigned int count, int baseVertex,
+	          TaskEvents *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
+	          PushConstantStorage const &pushConstants, bool update = true);
 
 	// Viewport & Clipper
 	void setViewport(const VkViewport &viewport);
@@ -213,7 +213,7 @@ public:
 	void addQuery(vk::Query *query);
 	void removeQuery(vk::Query *query);
 
-	void advanceInstanceAttributes(Stream* inputs);
+	void advanceInstanceAttributes(Stream *inputs);
 
 	void synchronize();
 
@@ -224,7 +224,7 @@ private:
 	DrawCall::Pool drawCallPool;
 	DrawCall::BatchData::Pool batchDataPool;
 
-	std::atomic<int> nextDrawID = {0};
+	std::atomic<int> nextDrawID = { 0 };
 
 	vk::Query *occlusionQuery = nullptr;
 	marl::Ticket::Queue drawTickets;
@@ -238,9 +238,9 @@ private:
 	SetupProcessor::RoutineType setupRoutine;
 	PixelProcessor::RoutineType pixelRoutine;
 
-	vk::Device* device;
+	vk::Device *device;
 };
 
 }  // namespace sw
 
-#endif   // sw_Renderer_hpp
+#endif  // sw_Renderer_hpp

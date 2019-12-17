@@ -27,16 +27,16 @@ struct Clipper
 	enum ClipFlags
 	{
 		// Indicates the vertex is outside the respective frustum plane
-		CLIP_RIGHT  = 1 << 0,
-		CLIP_TOP    = 1 << 1,
-		CLIP_FAR    = 1 << 2,
-		CLIP_LEFT   = 1 << 3,
+		CLIP_RIGHT = 1 << 0,
+		CLIP_TOP = 1 << 1,
+		CLIP_FAR = 1 << 2,
+		CLIP_LEFT = 1 << 3,
 		CLIP_BOTTOM = 1 << 4,
-		CLIP_NEAR   = 1 << 5,
+		CLIP_NEAR = 1 << 5,
 
 		CLIP_FRUSTUM = 0x003F,
 
-		CLIP_FINITE = 1 << 7,   // All position coordinates are finite
+		CLIP_FINITE = 1 << 7,  // All position coordinates are finite
 	};
 
 	static unsigned int ComputeClipFlags(const float4 &v);
@@ -45,4 +45,4 @@ struct Clipper
 
 }  // namespace sw
 
-#endif   // sw_Clipper_hpp
+#endif  // sw_Clipper_hpp

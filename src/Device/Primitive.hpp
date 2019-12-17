@@ -22,35 +22,41 @@
 
 namespace sw {
 
-struct Triangle MEMORY_SANITIZER_ONLY(: Memset<Triangle>)
+struct Triangle MEMORY_SANITIZER_ONLY(
+    : Memset<Triangle>)
 {
 #if MEMORY_SANITIZER_ENABLED
 	// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
 	// false-positives when read. By clearing the struct in the constructor,
 	// we can avoid triggering these false-positives.
-	inline Triangle() : Memset<Triangle>(this, 0) {}
-#endif // MEMORY_SANITIZER_ENABLED
+	inline Triangle()
+	    : Memset<Triangle>(this, 0)
+	{}
+#endif  // MEMORY_SANITIZER_ENABLED
 
 	Vertex v0;
 	Vertex v1;
 	Vertex v2;
 };
 
-struct PlaneEquation   // z = A * x + B * y + C
+struct PlaneEquation  // z = A * x + B * y + C
 {
 	float4 A;
 	float4 B;
 	float4 C;
 };
 
-struct Primitive MEMORY_SANITIZER_ONLY(: Memset<Primitive>)
+struct Primitive MEMORY_SANITIZER_ONLY(
+    : Memset<Primitive>)
 {
 #if MEMORY_SANITIZER_ENABLED
 	// Memory sanitizer cannot 'see' writes from JIT'd code, and can raise
 	// false-positives when read. By clearing the struct in the constructor,
 	// we can avoid triggering these false-positives.
-	inline Primitive() : Memset<Primitive>(this, 0) {}
-#endif // MEMORY_SANITIZER_ENABLED
+	inline Primitive()
+	    : Memset<Primitive>(this, 0)
+	{}
+#endif  // MEMORY_SANITIZER_ENABLED
 
 	int yMin;
 	int yMax;
@@ -87,4 +93,4 @@ struct Primitive MEMORY_SANITIZER_ONLY(: Memset<Primitive>)
 
 }  // namespace sw
 
-#endif   // sw_Primitive_hpp
+#endif  // sw_Primitive_hpp

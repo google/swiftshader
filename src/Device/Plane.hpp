@@ -29,13 +29,13 @@ struct Plane
 	float D;
 
 	Plane();
-	Plane(float A, float B, float C, float D);   // Plane equation 
+	Plane(float A, float B, float C, float D);  // Plane equation
 	Plane(const float ABCD[4]);
 
-	friend Plane operator*(const Plane &p, const Matrix &A);   // Transform plane by matrix (post-multiply)
-	friend Plane operator*(const Matrix &A, const Plane &p);   // Transform plane by matrix (pre-multiply)
+	friend Plane operator*(const Plane &p, const Matrix &A);  // Transform plane by matrix (post-multiply)
+	friend Plane operator*(const Matrix &A, const Plane &p);  // Transform plane by matrix (pre-multiply)
 };
 
 }  // namespace sw
 
-#endif   // Plane_hpp
+#endif  // Plane_hpp

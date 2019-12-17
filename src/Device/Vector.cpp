@@ -81,7 +81,7 @@ bool operator!=(const Vector &U, const Vector &v)
 
 bool operator>(const Vector &u, const Vector &v)
 {
-	if((u^2) > (v^2))
+	if((u ^ 2) > (v ^ 2))
 		return true;
 	else
 		return false;
@@ -89,7 +89,7 @@ bool operator>(const Vector &u, const Vector &v)
 
 bool operator<(const Vector &u, const Vector &v)
 {
-	if((u^2) < (v^2))
+	if((u ^ 2) < (v ^ 2))
 		return true;
 	else
 		return false;
@@ -158,12 +158,12 @@ Vector &operator*=(Vector &v, const Matrix &M)
 
 float Vector::N(const Vector &v)
 {
-	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 float Vector::N2(const Vector &v)
 {
-	return v.x*v.x + v.y*v.y + v.z*v.z;
+	return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
 Vector lerp(const Vector &u, const Vector &v, float t)

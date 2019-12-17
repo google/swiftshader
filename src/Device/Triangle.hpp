@@ -28,4 +28,4 @@ struct Triangle
 
 }  // namespace sw
 
-#endif   // sw_Triangle_hpp
+#endif  // sw_Triangle_hpp

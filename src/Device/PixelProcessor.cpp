@@ -15,8 +15,8 @@
 #include "PixelProcessor.hpp"
 
 #include "Primitive.hpp"
-#include "Pipeline/PixelProgram.hpp"
 #include "Pipeline/Constants.hpp"
+#include "Pipeline/PixelProgram.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImageView.hpp"
 
@@ -26,7 +26,7 @@ namespace sw {
 
 uint32_t PixelProcessor::States::computeHash()
 {
-	uint32_t *state = reinterpret_cast<uint32_t*>(this);
+	uint32_t *state = reinterpret_cast<uint32_t *>(this);
 	uint32_t hash = 0;
 
 	for(unsigned int i = 0; i < sizeof(States) / sizeof(uint32_t); i++)
@@ -45,7 +45,7 @@ bool PixelProcessor::State::operator==(const State &state) const
 	}
 
 	static_assert(is_memcmparable<State>::value, "Cannot memcmp State");
-	return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
+	return memcmp(static_cast<const States *>(this), static_cast<const States *>(&state), sizeof(States)) == 0;
 }
 
 PixelProcessor::PixelProcessor()
@@ -90,7 +90,7 @@ void PixelProcessor::setRoutineCacheSize(int cacheSize)
 	routineCache = new RoutineCacheType(clamp(cacheSize, 1, 65536));
 }
 
-const PixelProcessor::State PixelProcessor::update(const Context* context) const
+const PixelProcessor::State PixelProcessor::update(const Context *context) const
 {
 	State state;
 
@@ -151,9 +151,9 @@ const PixelProcessor::State PixelProcessor::update(const Context* context) const
 }
 
 PixelProcessor::RoutineType PixelProcessor::routine(const State &state,
-	vk::PipelineLayout const *pipelineLayout,
-	SpirvShader const *pixelShader,
-	const vk::DescriptorSet::Bindings &descriptorSets)
+                                                    vk::PipelineLayout const *pipelineLayout,
+                                                    SpirvShader const *pixelShader,
+                                                    const vk::DescriptorSet::Bindings &descriptorSets)
 {
 	auto routine = routineCache->query(state);
 

@@ -16,8 +16,8 @@
 #define Vertex_hpp
 
 #include "Color.hpp"
-#include "System/Types.hpp"
 #include "Device/Config.hpp"
+#include "System/Types.hpp"
 
 namespace sw {
 
@@ -58,4 +58,4 @@ static_assert((sizeof(Vertex) & 0x0000000F) == 0, "Vertex size not a multiple of
 
 }  // namespace sw
 
-#endif   // Vertex_hpp
+#endif  // Vertex_hpp

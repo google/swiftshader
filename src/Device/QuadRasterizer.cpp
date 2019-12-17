@@ -22,7 +22,9 @@
 
 namespace sw {
 
-QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader) : state(state), spirvShader{spirvShader}
+QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader)
+    : state(state)
+    , spirvShader{ spirvShader }
 {
 }
 
@@ -32,13 +34,13 @@ QuadRasterizer::~QuadRasterizer()
 
 void QuadRasterizer::generate()
 {
-	constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
+	constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, constants));
 	occlusion = 0;
 
 	Do
 	{
-		Int yMin = *Pointer<Int>(primitive + OFFSET(Primitive,yMin));
-		Int yMax = *Pointer<Int>(primitive + OFFSET(Primitive,yMax));
+		Int yMin = *Pointer<Int>(primitive + OFFSET(Primitive, yMin));
+		Int yMax = *Pointer<Int>(primitive + OFFSET(Primitive, yMax));
 
 		Int cluster2 = cluster + cluster;
 		yMin += clusterCount * 2 - 2 - cluster2;
@@ -57,9 +59,9 @@ void QuadRasterizer::generate()
 
 	if(state.occlusionEnabled)
 	{
-		UInt clusterOcclusion = *Pointer<UInt>(data + OFFSET(DrawData,occlusion) + 4 * cluster);
+		UInt clusterOcclusion = *Pointer<UInt>(data + OFFSET(DrawData, occlusion) + 4 * cluster);
 		clusterOcclusion += occlusion;
-		*Pointer<UInt>(data + OFFSET(DrawData,occlusion) + 4 * cluster) = clusterOcclusion;
+		*Pointer<UInt>(data + OFFSET(DrawData, occlusion) + 4 * cluster) = clusterOcclusion;
 	}
 
 	Return();
@@ -77,49 +79,49 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 	{
 		if(state.colorWriteActive(index))
 		{
-			cBuffer[index] = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,colorBuffer[index])) + yMin * *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
+			cBuffer[index] = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, colorBuffer[index])) + yMin * *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 		}
 	}
 
 	if(state.depthTestActive)
 	{
-		zBuffer = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,depthBuffer)) + yMin * *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
+		zBuffer = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, depthBuffer)) + yMin * *Pointer<Int>(data + OFFSET(DrawData, depthPitchB));
 	}
 
 	if(state.stencilActive)
 	{
-		sBuffer = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,stencilBuffer)) + yMin * *Pointer<Int>(data + OFFSET(DrawData,stencilPitchB));
+		sBuffer = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, stencilBuffer)) + yMin * *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB));
 	}
 
 	Int y = yMin;
 
 	Do
 	{
-		Int x0a = Int(*Pointer<Short>(primitive + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
-		Int x0b = Int(*Pointer<Short>(primitive + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
+		Int x0a = Int(*Pointer<Short>(primitive + OFFSET(Primitive, outline->left) + (y + 0) * sizeof(Primitive::Span)));
+		Int x0b = Int(*Pointer<Short>(primitive + OFFSET(Primitive, outline->left) + (y + 1) * sizeof(Primitive::Span)));
 		Int x0 = Min(x0a, x0b);
 
 		for(unsigned int q = 1; q < state.multiSample; q++)
 		{
-			x0a = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
-			x0b = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
+			x0a = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->left) + (y + 0) * sizeof(Primitive::Span)));
+			x0b = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->left) + (y + 1) * sizeof(Primitive::Span)));
 			x0 = Min(x0, Min(x0a, x0b));
 		}
 
 		x0 &= 0xFFFFFFFE;
 
-		Int x1a = Int(*Pointer<Short>(primitive + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
-		Int x1b = Int(*Pointer<Short>(primitive + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
+		Int x1a = Int(*Pointer<Short>(primitive + OFFSET(Primitive, outline->right) + (y + 0) * sizeof(Primitive::Span)));
+		Int x1b = Int(*Pointer<Short>(primitive + OFFSET(Primitive, outline->right) + (y + 1) * sizeof(Primitive::Span)));
 		Int x1 = Max(x1a, x1b);
 
 		for(unsigned int q = 1; q < state.multiSample; q++)
 		{
-			x1a = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
-			x1b = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right) + (y + 1) * sizeof(Primitive::Span)));
+			x1a = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->right) + (y + 0) * sizeof(Primitive::Span)));
+			x1b = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->right) + (y + 1) * sizeof(Primitive::Span)));
 			x1 = Max(x1, Max(x1a, x1b));
 		}
 
-		Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(primitive + OFFSET(Primitive,yQuad), 16);
+		Float4 yyyy = Float4(Float(y)) + *Pointer<Float4>(primitive + OFFSET(Primitive, yQuad), 16);
 
 		if(interpolateZ())
 		{
@@ -129,10 +131,10 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 				if(state.multiSample > 1)
 				{
-					y -= *Pointer<Float4>(constants + OFFSET(Constants,Y) + q * sizeof(float4));
+					y -= *Pointer<Float4>(constants + OFFSET(Constants, Y) + q * sizeof(float4));
 				}
 
-				Dz[q] = *Pointer<Float4>(primitive + OFFSET(Primitive,z.C), 16) + y * *Pointer<Float4>(primitive + OFFSET(Primitive,z.B), 16);
+				Dz[q] = *Pointer<Float4>(primitive + OFFSET(Primitive, z.C), 16) + y * *Pointer<Float4>(primitive + OFFSET(Primitive, z.B), 16);
 			}
 		}
 
@@ -140,7 +142,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		{
 			if(interpolateW())
 			{
-				Dw = *Pointer<Float4>(primitive + OFFSET(Primitive,w.C), 16) + yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive,w.B), 16);
+				Dw = *Pointer<Float4>(primitive + OFFSET(Primitive, w.C), 16) + yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, w.B), 16);
 			}
 
 			if(spirvShader)
@@ -154,20 +156,20 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 					if(!spirvShader->inputs[interpolant].Flat)
 					{
 						Dv[interpolant] +=
-								yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].B), 16);
+						    yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].B), 16);
 					}
 				}
 
 				for(unsigned int i = 0; i < state.numClipDistances; i++)
 				{
 					DclipDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].C), 16) +
-								yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].B), 16);
+					                   yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, clipDistance[i].B), 16);
 				}
 
 				for(unsigned int i = 0; i < state.numCullDistances; i++)
 				{
 					DcullDistance[i] = *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].C), 16) +
-								yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].B), 16);
+					                   yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, cullDistance[i].B), 16);
 				}
 			}
 
@@ -176,7 +178,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
-				xLeft[q] = *Pointer<Short4>(primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline) + y * sizeof(Primitive::Span));
+				xLeft[q] = *Pointer<Short4>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline) + y * sizeof(Primitive::Span));
 				xRight[q] = xLeft[q];
 
 				xLeft[q] = Swizzle(xLeft[q], 0x0022) - Short4(1, 2, 1, 2);
@@ -190,7 +192,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
-					if(state.multiSampleMask & (1<<q))
+					if(state.multiSampleMask & (1 << q))
 					{
 						unsigned int i = state.multiSampledBresenham ? 0 : q;
 						Short4 mask = CmpGT(xxxx, xLeft[i]) & CmpGT(xRight[i], xxxx);
@@ -210,18 +212,18 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		{
 			if(state.colorWriteActive(index))
 			{
-				cBuffer[index] += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index])) << (1 + clusterCountLog2);   // FIXME: Precompute
+				cBuffer[index] += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index])) << (1 + clusterCountLog2);  // FIXME: Precompute
 			}
 		}
 
 		if(state.depthTestActive)
 		{
-			zBuffer += *Pointer<Int>(data + OFFSET(DrawData,depthPitchB)) << (1 + clusterCountLog2);   // FIXME: Precompute
+			zBuffer += *Pointer<Int>(data + OFFSET(DrawData, depthPitchB)) << (1 + clusterCountLog2);  // FIXME: Precompute
 		}
 
 		if(state.stencilActive)
 		{
-			sBuffer += *Pointer<Int>(data + OFFSET(DrawData,stencilPitchB)) << (1 + clusterCountLog2);   // FIXME: Precompute
+			sBuffer += *Pointer<Int>(data + OFFSET(DrawData, stencilPitchB)) << (1 + clusterCountLog2);  // FIXME: Precompute
 		}
 
 		y += 2 * clusterCount;

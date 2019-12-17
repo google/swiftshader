@@ -24,7 +24,13 @@ namespace sw {
 class Rasterizer : public RasterizerFunction
 {
 public:
-	Rasterizer() : primitive(Arg<0>()), count(Arg<1>()), cluster(Arg<2>()), clusterCount(Arg<3>()), data(Arg<4>()) {}
+	Rasterizer()
+	    : primitive(Arg<0>())
+	    , count(Arg<1>())
+	    , cluster(Arg<2>())
+	    , clusterCount(Arg<3>())
+	    , data(Arg<4>())
+	{}
 	virtual ~Rasterizer() {}
 
 protected:
@@ -37,4 +43,4 @@ protected:
 
 }  // namespace sw
 
-#endif   // sw_Rasterizer_hpp
+#endif  // sw_Rasterizer_hpp

@@ -62,19 +62,19 @@ struct Vector
 
 	friend Vector operator+(const Vector &u, const Vector &v);
 	friend Vector operator-(const Vector &u, const Vector &v);
-	friend float operator*(const Vector &u, const Vector &v);   // Dot product
+	friend float operator*(const Vector &u, const Vector &v);  // Dot product
 	friend Vector operator*(float s, const Vector &v);
 	friend Vector operator*(const Vector &v, float s);
 	friend Vector operator/(const Vector &v, float s);
 	friend float operator^(const Vector &u, const Vector &v);   // Angle between vectors
-	friend Vector operator%(const Vector &u, const Vector &v);   // Cross product
+	friend Vector operator%(const Vector &u, const Vector &v);  // Cross product
 
-	friend Vector operator*(const Matrix &M, const Vector& v);
+	friend Vector operator*(const Matrix &M, const Vector &v);
 	friend Vector operator*(const Vector &v, const Matrix &M);
 	friend Vector &operator*=(Vector &v, const Matrix &M);
 
 	static float N(const Vector &v);   // Norm
-	static float N2(const Vector &v);   // Squared norm
+	static float N2(const Vector &v);  // Squared norm
 
 	static Vector mirror(const Vector &v, const Plane &p);
 	static Vector reflect(const Vector &v, const Plane &p);
@@ -154,4 +154,4 @@ inline const float &Vector::operator[](int i) const
 
 }  // namespace sw
 
-#endif   // Vector_hpp
+#endif  // Vector_hpp

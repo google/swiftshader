@@ -15,7 +15,6 @@
 class BC_Decoder
 {
 public:
-
 	/// BCn_Decoder::Decode - Decodes 1 to 4 channel images to 8 bit output
 	/// @param src            Pointer to BCn encoded image
 	/// @param dst            Pointer to decoded output image
@@ -29,5 +28,5 @@ public:
 	/// @param isNoAlphaU     BC1: true if RGB, BC2/BC3: unused, BC4/BC5: true if unsigned
 	/// @return               true if the decoding was performed
 
-	static bool Decode(const unsigned char* src, unsigned char* dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, int n, bool isNoAlphaU);
+	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, int n, bool isNoAlphaU);
 };

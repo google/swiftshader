@@ -44,14 +44,14 @@ struct Polygon
 		this->b = 0;
 	}
 
-	float4 B[16];              // Buffer for clipped vertices
-	const float4 *P[16][16];   // Pointers to clipped polygon's vertices
+	float4 B[16];             // Buffer for clipped vertices
+	const float4 *P[16][16];  // Pointers to clipped polygon's vertices
 
-	int n;   // Number of vertices
-	int i;   // Level of P to use
-	int b;   // Next available new vertex
+	int n;  // Number of vertices
+	int i;  // Level of P to use
+	int b;  // Next available new vertex
 };
 
 }  // namespace sw
 
-#endif   // sw_Polygon_hpp
+#endif  // sw_Polygon_hpp

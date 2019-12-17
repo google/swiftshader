@@ -14,8 +14,8 @@
 
 #include "VertexProcessor.hpp"
 
-#include "Pipeline/VertexProgram.hpp"
 #include "Pipeline/Constants.hpp"
+#include "Pipeline/VertexProgram.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkDebug.hpp"
 
@@ -33,7 +33,7 @@ void VertexCache::clear()
 
 uint32_t VertexProcessor::States::computeHash()
 {
-	uint32_t *state = reinterpret_cast<uint32_t*>(this);
+	uint32_t *state = reinterpret_cast<uint32_t *>(this);
 	uint32_t hash = 0;
 
 	for(unsigned int i = 0; i < sizeof(States) / sizeof(uint32_t); i++)
@@ -48,23 +48,23 @@ unsigned int VertexProcessor::States::Input::bytesPerAttrib() const
 {
 	switch(type)
 	{
-	case STREAMTYPE_FLOAT:
-	case STREAMTYPE_INT:
-	case STREAMTYPE_UINT:
-		return count * sizeof(uint32_t);
-	case STREAMTYPE_HALF:
-	case STREAMTYPE_SHORT:
-	case STREAMTYPE_USHORT:
-		return count * sizeof(uint16_t);
-	case STREAMTYPE_BYTE:
-	case STREAMTYPE_SBYTE:
-		return count * sizeof(uint8_t);
-	case STREAMTYPE_COLOR:
-	case STREAMTYPE_2_10_10_10_INT:
-	case STREAMTYPE_2_10_10_10_UINT:
-		return sizeof(int);
-	default:
-		UNSUPPORTED("stream.type %d", int(type));
+		case STREAMTYPE_FLOAT:
+		case STREAMTYPE_INT:
+		case STREAMTYPE_UINT:
+			return count * sizeof(uint32_t);
+		case STREAMTYPE_HALF:
+		case STREAMTYPE_SHORT:
+		case STREAMTYPE_USHORT:
+			return count * sizeof(uint16_t);
+		case STREAMTYPE_BYTE:
+		case STREAMTYPE_SBYTE:
+			return count * sizeof(uint8_t);
+		case STREAMTYPE_COLOR:
+		case STREAMTYPE_2_10_10_10_INT:
+		case STREAMTYPE_2_10_10_10_UINT:
+			return sizeof(int);
+		default:
+			UNSUPPORTED("stream.type %d", int(type));
 	}
 
 	return 0;
@@ -78,7 +78,7 @@ bool VertexProcessor::State::operator==(const State &state) const
 	}
 
 	static_assert(is_memcmparable<State>::value, "Cannot memcmp States");
-	return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
+	return memcmp(static_cast<const States *>(this), static_cast<const States *>(&state), sizeof(States)) == 0;
 }
 
 VertexProcessor::VertexProcessor()
@@ -99,7 +99,7 @@ void VertexProcessor::setRoutineCacheSize(int cacheSize)
 	routineCache = new RoutineCacheType(clamp(cacheSize, 1, 65536));
 }
 
-const VertexProcessor::State VertexProcessor::update(const sw::Context* context)
+const VertexProcessor::State VertexProcessor::update(const sw::Context *context)
 {
 	State state;
 
@@ -114,7 +114,7 @@ const VertexProcessor::State VertexProcessor::update(const sw::Context* context)
 		state.input[i].normalized = context->input[i].normalized;
 		// TODO: get rid of attribType -- just keep the VK format all the way through, this fully determines
 		// how to handle the attribute.
-		state.input[i].attribType = context->vertexShader->inputs[i*4].Type;
+		state.input[i].attribType = context->vertexShader->inputs[i * 4].Type;
 	}
 
 	state.hash = state.computeHash();
@@ -129,7 +129,7 @@ VertexProcessor::RoutineType VertexProcessor::routine(const State &state,
 {
 	auto routine = routineCache->query(state);
 
-	if(!routine)   // Create one
+	if(!routine)  // Create one
 	{
 		VertexRoutine *generator = new VertexProgram(state, pipelineLayout, vertexShader, descriptorSets);
 		generator->generate();
