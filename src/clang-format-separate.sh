@@ -1,6 +1,5 @@
 SRC_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-pushd ${SRC_DIR}
 for DIR in "Device" "Pipeline" "Reactor" "System" "Vulkan" "WSI"
 do
     # Double clang-format, as it seems that one pass isn't always enough
@@ -11,5 +10,4 @@ do
     CHANGE_ID="$(echo $CHANGE_ID_SEED $DIR | openssl sha1)"
     git commit -m "clang-format the src/$DIR directory" -m "Bug: b/144825072" -m "Change-Id:I$CHANGE_ID"
 done
-popd
 

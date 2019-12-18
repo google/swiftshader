@@ -2,19 +2,8 @@
 
 cd git/SwiftShader
 
-# Validate commit message
-git log -1 --pretty=%B | grep -E '^Bug:|^Issue:|^Fixes:|^Regres:'
-
-if [ $? -ne 0 ]
-then
-  echo "error: Git commit message must have a Bug: line."
-  exit 1
-fi
-
-# Fail on any error.
-set -e
-# Display commands being run.
-set -x
+set -e # Fail on any error.
+set -x # Display commands being run.
 
 # Download all submodules
 git submodule update --init
