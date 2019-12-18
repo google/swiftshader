@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "a1359897_0c006209",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-12-18T18:41:10Z",
+      "side": 1,
+      "message": "Even without the GL_OES_depth_texture interaction, combination of filtering + depth compare is very widely used.",
+      "parentUuid": "d815406c_972eb3be",
+      "range": {
+        "startLine": 528,
+        "startChar": 2,
+        "endLine": 529,
+        "endChar": 36
+      },
+      "revId": "7b4bf2eb6793dce08ab8cee27ddf889bb94ca217",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0aeedbdf_cdc7377d",
         "filename": "src/Vulkan/VkPhysicalDevice.cpp",
         "patchSetId": 1
