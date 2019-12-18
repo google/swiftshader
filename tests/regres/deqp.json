@@ -1,8 +1,7 @@
 {
     "remote": "https://android.googlesource.com/platform/external/deqp",
-    "sha": "3e7bf08aadb749eed0419b7023166ca880bc7a75",
+    "sha": "5b2e2b6f59e5f32f820b230949aba960a84849c5",
     "patches": [
-        "tests/regres/deqp-patches/deqp-x11.patch",
-        "tests/regres/deqp-patches/graphicsfuzz-pending-test-fix.patch"
+        "tests/regres/deqp-patches/deqp-x11.patch"
     ]
 }
