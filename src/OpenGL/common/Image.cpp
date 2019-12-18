@@ -635,9 +635,12 @@ namespace gl
 
 namespace egl
 {
-	// We assume the data can be indexed with a signed 32-bit offset, including any padding,
-	// so we must keep the image size reasonable. 1 GiB ought to be enough for anybody.
-	enum { IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES = 0x40000000 };
+	// We assume the image data can be indexed with a signed 32-bit offset,
+	// so we must keep the size reasonable. 1 GiB ought to be enough for anybody.
+	// 4 extra bytes account for the padding added in Surface::size().
+	// They are not addressed separately, so can't cause overflow.
+	// TODO(b/145229887): Eliminate or don't hard-code the padding bytes.
+	enum : uint64_t { IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES = 0x40000000u + 4 };
 
 	enum TransferType
 	{

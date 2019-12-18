@@ -1331,6 +1331,12 @@ TEST_F(SwiftShaderTest, OutOfMemory)
 		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, width, height, depth, 0, GL_RGBA, GL_FLOAT, nullptr);
 		EXPECT_GLENUM_EQ(GL_OUT_OF_MEMORY, glGetError());
 
+		// b/145229887: Allocating an image of exactly 1 GiB should succeed.
+		const int width8k = 8192;
+		const int height8k = 8192;
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width8k, height8k, 0, GL_RGBA, GL_FLOAT, nullptr);
+		EXPECT_NO_GL_ERROR();
+
 		// The spec states that the GL is in an undefined state when GL_OUT_OF_MEMORY
 		// is returned, and the context must be recreated before attempting more rendering.
 		Uninitialize();
