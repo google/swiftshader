@@ -16,7 +16,6 @@
 #define sw_VertexProcessor_hpp
 
 #include "Context.hpp"
-#include "Matrix.hpp"
 #include "Memset.hpp"
 #include "RoutineCache.hpp"
 #include "Vertex.hpp"

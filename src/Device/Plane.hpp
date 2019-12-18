@@ -15,8 +15,6 @@
 #ifndef Plane_hpp
 #define Plane_hpp
 
-#include "Vector.hpp"
-
 namespace sw {
 
 struct Matrix;
@@ -31,9 +29,6 @@ struct Plane
 	Plane();
 	Plane(float A, float B, float C, float D);  // Plane equation
 	Plane(const float ABCD[4]);
-
-	friend Plane operator*(const Plane &p, const Matrix &A);  // Transform plane by matrix (post-multiply)
-	friend Plane operator*(const Matrix &A, const Plane &p);  // Transform plane by matrix (pre-multiply)
 };
 
 }  // namespace sw

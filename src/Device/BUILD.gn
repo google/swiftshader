@@ -23,15 +23,12 @@ swiftshader_source_set("Device_headers") {
     "Config.hpp",
     "Context.hpp",
     "ETC_Decoder.hpp",
-    "Matrix.hpp",
     "Memset.hpp",
     "PixelProcessor.hpp",
     "Plane.hpp",
-    "Point.hpp",
     "QuadRasterizer.hpp",
     "Renderer.hpp",
     "SetupProcessor.hpp",
-    "Vector.hpp",
     "VertexProcessor.hpp",
   ]
 }
@@ -45,14 +42,11 @@ swiftshader_source_set("Device") {
     "Config.cpp",
     "Context.cpp",
     "ETC_Decoder.cpp",
-    "Matrix.cpp",
     "PixelProcessor.cpp",
     "Plane.cpp",
-    "Point.cpp",
     "QuadRasterizer.cpp",
     "Renderer.cpp",
     "SetupProcessor.cpp",
-    "Vector.cpp",
     "VertexProcessor.cpp",
   ]
 
