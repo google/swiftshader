@@ -1699,16 +1699,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		// shift each 10 bit field left 6, and replicate 6 high bits into bottom 6
-		c.x = Short4(((cc << 6) & Int4(0xFFC0)) | ((cc >> 4) & Int4(0x3F)));
-		c.y = Short4(((cc >> 4) & Int4(0xFFC0)) | ((cc >> 14) & Int4(0x3F)));
-		c.z = Short4(((cc >> 14) & Int4(0xFFC0)) | ((cc >> 24) & Int4(0x3F)));
-		c.w = Short4(((cc >> 16) & Int4(0xC000)));
-
-		// replicate 2 bit alpha component all the way down
-		c.w |= (c.w >> 8) & Short4(0xc0);
-		c.w |= (c.w >> 4) & Short4(0x0c0c);
-		c.w |= (c.w >> 2) & Short4(0x3333);
+		a2b10g10r10Unpack(cc, c);
 	}
 	else if(state.textureFormat == VK_FORMAT_A2B10G10R10_UINT_PACK32)
 	{

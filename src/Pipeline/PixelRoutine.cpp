@@ -1055,10 +1055,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 2);
 			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 3);
 
-			pixel.x = Short4(v << 6) & Short4(0xFFC0u);
-			pixel.y = Short4(v >> 4) & Short4(0xFFC0u);
-			pixel.z = Short4(v >> 14) & Short4(0xFFC0u);
-			pixel.w = Short4(v >> 16) & Short4(0xC000u);
+			a2b10g10r10Unpack(v, pixel);
 		}
 		break;
 		default:
