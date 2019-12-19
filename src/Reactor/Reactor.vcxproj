@@ -298,7 +298,6 @@
     <ClInclude Include="LLVMReactor.hpp" />
     <ClInclude Include="LLVMReactorDebugInfo.hpp" />
     <ClInclude Include="ExecutableMemory.hpp" />
-    <ClInclude Include="MutexLock.hpp" />
     <ClInclude Include="Nucleus.hpp" />
     <ClInclude Include="Print.hpp" />
     <ClInclude Include="Reactor.hpp" />

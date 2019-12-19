@@ -68,9 +68,6 @@
     <ClInclude Include="ExecutableMemory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MutexLock.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Thread.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
