@@ -43,6 +43,9 @@ VkFormat SpirvFormatToVulkanFormat(spv::ImageFormat format)
 		case spv::ImageFormatRg32f: return VK_FORMAT_R32G32_SFLOAT;
 		case spv::ImageFormatRg32i: return VK_FORMAT_R32G32_SINT;
 		case spv::ImageFormatRg32ui: return VK_FORMAT_R32G32_UINT;
+		case spv::ImageFormatRg16f: return VK_FORMAT_R16G16_SFLOAT;
+		case spv::ImageFormatRg16i: return VK_FORMAT_R16G16_SINT;
+		case spv::ImageFormatRg16ui: return VK_FORMAT_R16G16_UINT;
 
 		default:
 			UNIMPLEMENTED("SPIR-V ImageFormat %u", format);
@@ -922,8 +925,18 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 			packed[1] = texel.Int(1);
 			numPackedElements = 2;
 			break;
-
 		case spv::ImageFormatRg16f:
+			texelSize = 4;
+			packed[0] = floatToHalfBits(texel.UInt(0), false) | floatToHalfBits(texel.UInt(1), true);
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRg16i:
+		case spv::ImageFormatRg16ui:
+			texelSize = 4;
+			packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xffff)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xffff)) << 16);
+			numPackedElements = 1;
+			break;
+
 		case spv::ImageFormatR11fG11fB10f:
 		case spv::ImageFormatR16f:
 		case spv::ImageFormatRgba16:
@@ -937,12 +950,10 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 		case spv::ImageFormatRg8Snorm:
 		case spv::ImageFormatR16Snorm:
 		case spv::ImageFormatR8Snorm:
-		case spv::ImageFormatRg16i:
 		case spv::ImageFormatRg8i:
 		case spv::ImageFormatR16i:
 		case spv::ImageFormatR8i:
 		case spv::ImageFormatRgb10a2ui:
-		case spv::ImageFormatRg16ui:
 		case spv::ImageFormatRg8ui:
 		case spv::ImageFormatR16ui:
 		case spv::ImageFormatR8ui:

@@ -580,6 +580,9 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_R32G32B32A32_UINT:
 		case VK_FORMAT_R32G32B32A32_SINT:
 		case VK_FORMAT_R32G32B32A32_SFLOAT:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16_SFLOAT:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
 			// Fall through
