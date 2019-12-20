@@ -950,6 +950,7 @@ private:
 			// Constructing a constant SIMD::Float is not guaranteed to preserve the data's exact
 			// bit pattern, but SPIR-V provides 32-bit words representing "the bit pattern for the constant".
 			// Thus we must first construct an integer constant, and bitcast to float.
+			ASSERT(obj.kind == SpirvShader::Object::Kind::Constant);
 			auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
 			return As<SIMD::Float>(SIMD::UInt(constantValue[i]));
 		}
@@ -960,6 +961,7 @@ private:
 			{
 				return intermediate->Int(i);
 			}
+			ASSERT(obj.kind == SpirvShader::Object::Kind::Constant);
 			auto constantValue = reinterpret_cast<int *>(obj.constantValue.get());
 			return SIMD::Int(constantValue[i]);
 		}
@@ -970,6 +972,7 @@ private:
 			{
 				return intermediate->UInt(i);
 			}
+			ASSERT(obj.kind == SpirvShader::Object::Kind::Constant);
 			auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
 			return SIMD::UInt(constantValue[i]);
 		}
