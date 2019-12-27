@@ -326,7 +326,7 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties *properties) con
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties *properties) const
 {
-	properties->maxMemoryAllocationSize = 1u << 31;
+	properties->maxMemoryAllocationSize = MAX_MEMORY_ALLOCATION_SIZE;
 	properties->maxPerSetDescriptors = 1024;
 }
 

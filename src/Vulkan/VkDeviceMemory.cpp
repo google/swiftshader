@@ -100,7 +100,9 @@ public:
 	{
 		void *buffer = vk::allocate(size, REQUIRED_MEMORY_ALIGNMENT, DEVICE_MEMORY);
 		if(!buffer)
+		{
 			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+		}
 
 		*pBuffer = buffer;
 		return VK_SUCCESS;
@@ -173,6 +175,11 @@ size_t DeviceMemory::ComputeRequiredAllocationSize(const VkMemoryAllocateInfo *p
 
 VkResult DeviceMemory::allocate()
 {
+	if(size > MAX_MEMORY_ALLOCATION_SIZE)
+	{
+		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+	}
+
 	VkResult result = VK_SUCCESS;
 	if(!buffer)
 	{
