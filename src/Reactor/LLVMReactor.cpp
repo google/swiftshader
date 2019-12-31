@@ -4049,6 +4049,26 @@ RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	                                                           isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
 }
 
+RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
+{
+	return RValue<Int>(Nucleus::createAtomicMin(x.value, y.value, memoryOrder));
+}
+
+RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
+{
+	return RValue<UInt>(Nucleus::createAtomicUMin(x.value, y.value, memoryOrder));
+}
+
+RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
+{
+	return RValue<Int>(Nucleus::createAtomicMax(x.value, y.value, memoryOrder));
+}
+
+RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
+{
+	return RValue<UInt>(Nucleus::createAtomicUMax(x.value, y.value, memoryOrder));
+}
+
 Type *Float4::getType()
 {
 	return T(llvm::VectorType::get(T(Float::getType()), 4));

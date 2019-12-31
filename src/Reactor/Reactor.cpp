@@ -2623,26 +2623,6 @@ RValue<UInt> XorAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_orde
 	return RValue<UInt>(Nucleus::createAtomicXor(x.value, y.value, memoryOrder));
 }
 
-RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
-{
-	return RValue<Int>(Nucleus::createAtomicMin(x.value, y.value, memoryOrder));
-}
-
-RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
-{
-	return RValue<UInt>(Nucleus::createAtomicUMin(x.value, y.value, memoryOrder));
-}
-
-RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
-{
-	return RValue<Int>(Nucleus::createAtomicMax(x.value, y.value, memoryOrder));
-}
-
-RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
-{
-	return RValue<UInt>(Nucleus::createAtomicUMax(x.value, y.value, memoryOrder));
-}
-
 RValue<UInt> ExchangeAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
 	return RValue<UInt>(Nucleus::createAtomicExchange(x.value, y.value, memoryOrder));

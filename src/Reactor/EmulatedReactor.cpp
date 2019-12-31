@@ -14,8 +14,10 @@
 
 #include "EmulatedReactor.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
+#include <mutex>
 #include <utility>
 
 namespace rr {
@@ -94,6 +96,31 @@ void scatter(RValue<Pointer<EL>> base, RValue<T> val, RValue<Int4> offsets, RVal
 			Store(Extract(val, i), Pointer<EL>(&baseBytePtr[offset]), alignment, atomic, order);
 		}
 	}
+}
+
+// TODO(b/148276653): Both atomicMin and atomicMax use a static (global) mutex that makes all min
+// operations for a given T mutually exclusive, rather than only the ones on the value pointed to
+// by ptr. Use a CAS loop, as is done for LLVMReactor's min/max atomic for Android.
+// TODO(b/148207274): Or, move this down into Subzero as a CAS-based operation.
+template<typename T>
+static T atomicMin(T *ptr, T value)
+{
+	static std::mutex m;
+
+	std::lock_guard<std::mutex> lock(m);
+	T origValue = *ptr;
+	*ptr = std::min(origValue, value);
+	return origValue;
+}
+template<typename T>
+static T atomicMax(T *ptr, T value)
+{
+	static std::mutex m;
+
+	std::lock_guard<std::mutex> lock(m);
+	T origValue = *ptr;
+	*ptr = std::max(origValue, value);
+	return origValue;
 }
 
 }  // anonymous namespace
@@ -222,6 +249,26 @@ RValue<Float4> Exp2(RValue<Float4> x)
 RValue<Float4> Log2(RValue<Float4> x)
 {
 	return call4(log2f, x);
+}
+
+RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
+{
+	return Call(atomicMin<int32_t>, x, y);
+}
+
+RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
+{
+	return Call(atomicMin<uint32_t>, x, y);
+}
+
+RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
+{
+	return Call(atomicMax<int32_t>, x, y);
+}
+
+RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
+{
+	return Call(atomicMax<uint32_t>, x, y);
 }
 
 RValue<Float4> FRem(RValue<Float4> lhs, RValue<Float4> rhs)

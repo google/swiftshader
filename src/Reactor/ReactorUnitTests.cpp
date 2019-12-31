@@ -2252,6 +2252,215 @@ TEST(ReactorUnitTests, ExtractFromRValue)
 	EXPECT_EQ(result[3], 678);
 }
 
+TEST(ReactorUnitTests, AddAtomic)
+{
+	FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+	{
+		Pointer<UInt> p = function.Arg<0>();
+		UInt a = function.Arg<1>();
+		UInt r = rr::AddAtomic(p, a, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 123;
+	uint32_t y = 456;
+	uint32_t prevX = routine(&x, y);
+	EXPECT_EQ(prevX, 123u);
+	EXPECT_EQ(x, 579u);
+}
+
+TEST(ReactorUnitTests, SubAtomic)
+{
+	FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+	{
+		Pointer<UInt> p = function.Arg<0>();
+		UInt a = function.Arg<1>();
+		UInt r = rr::SubAtomic(p, a, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 456;
+	uint32_t y = 123;
+	uint32_t prevX = routine(&x, y);
+	EXPECT_EQ(prevX, 456u);
+	EXPECT_EQ(x, 333u);
+}
+
+TEST(ReactorUnitTests, AndAtomic)
+{
+	FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+	{
+		Pointer<UInt> p = function.Arg<0>();
+		UInt a = function.Arg<1>();
+		UInt r = rr::AndAtomic(p, a, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 0b1111'0000;
+	uint32_t y = 0b1010'1100;
+	uint32_t prevX = routine(&x, y);
+	EXPECT_EQ(prevX, 0b1111'0000u);
+	EXPECT_EQ(x, 0b1010'0000u);
+}
+
+TEST(ReactorUnitTests, OrAtomic)
+{
+	FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+	{
+		Pointer<UInt> p = function.Arg<0>();
+		UInt a = function.Arg<1>();
+		UInt r = rr::OrAtomic(p, a, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 0b1111'0000;
+	uint32_t y = 0b1010'1100;
+	uint32_t prevX = routine(&x, y);
+	EXPECT_EQ(prevX, 0b1111'0000u);
+	EXPECT_EQ(x, 0b1111'1100u);
+}
+
+TEST(ReactorUnitTests, XorAtomic)
+{
+	FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+	{
+		Pointer<UInt> p = function.Arg<0>();
+		UInt a = function.Arg<1>();
+		UInt r = rr::XorAtomic(p, a, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 0b1111'0000;
+	uint32_t y = 0b1010'1100;
+	uint32_t prevX = routine(&x, y);
+	EXPECT_EQ(prevX, 0b1111'0000u);
+	EXPECT_EQ(x, 0b0101'1100u);
+}
+
+TEST(ReactorUnitTests, MinAtomic)
+{
+	{
+		FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+		{
+			Pointer<UInt> p = function.Arg<0>();
+			UInt a = function.Arg<1>();
+			UInt r = rr::MinAtomic(p, a, std::memory_order_relaxed);
+			Return(r);
+		}
+
+		auto routine = function("one");
+		uint32_t x = 123;
+		uint32_t y = 100;
+		uint32_t prevX = routine(&x, y);
+		EXPECT_EQ(prevX, 123u);
+		EXPECT_EQ(x, 100u);
+	}
+
+	{
+		FunctionT<int32_t(int32_t * p, int32_t a)> function;
+		{
+			Pointer<Int> p = function.Arg<0>();
+			Int a = function.Arg<1>();
+			Int r = rr::MinAtomic(p, a, std::memory_order_relaxed);
+			Return(r);
+		}
+
+		auto routine = function("one");
+		int32_t x = -123;
+		int32_t y = -200;
+		int32_t prevX = routine(&x, y);
+		EXPECT_EQ(prevX, -123);
+		EXPECT_EQ(x, -200);
+	}
+}
+
+TEST(ReactorUnitTests, MaxAtomic)
+{
+	{
+		FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+		{
+			Pointer<UInt> p = function.Arg<0>();
+			UInt a = function.Arg<1>();
+			UInt r = rr::MaxAtomic(p, a, std::memory_order_relaxed);
+			Return(r);
+		}
+
+		auto routine = function("one");
+		uint32_t x = 123;
+		uint32_t y = 100;
+		uint32_t prevX = routine(&x, y);
+		EXPECT_EQ(prevX, 123u);
+		EXPECT_EQ(x, 123u);
+	}
+
+	{
+		FunctionT<int32_t(int32_t * p, int32_t a)> function;
+		{
+			Pointer<Int> p = function.Arg<0>();
+			Int a = function.Arg<1>();
+			Int r = rr::MaxAtomic(p, a, std::memory_order_relaxed);
+			Return(r);
+		}
+
+		auto routine = function("one");
+		int32_t x = -123;
+		int32_t y = -200;
+		int32_t prevX = routine(&x, y);
+		EXPECT_EQ(prevX, -123);
+		EXPECT_EQ(x, -123);
+	}
+}
+
+TEST(ReactorUnitTests, ExchangeAtomic)
+{
+	FunctionT<uint32_t(uint32_t * p, uint32_t a)> function;
+	{
+		Pointer<UInt> p = function.Arg<0>();
+		UInt a = function.Arg<1>();
+		UInt r = rr::ExchangeAtomic(p, a, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 123;
+	uint32_t y = 456;
+	uint32_t prevX = routine(&x, y);
+	EXPECT_EQ(prevX, 123u);
+	EXPECT_EQ(x, y);
+}
+
+TEST(ReactorUnitTests, CompareExchangeAtomic)
+{
+	FunctionT<uint32_t(uint32_t * x, uint32_t y, uint32_t compare)> function;
+	{
+		Pointer<UInt> x = function.Arg<0>();
+		UInt y = function.Arg<1>();
+		UInt compare = function.Arg<2>();
+		UInt r = rr::CompareExchangeAtomic(x, y, compare, std::memory_order_relaxed, std::memory_order_relaxed);
+		Return(r);
+	}
+
+	auto routine = function("one");
+	uint32_t x = 123;
+	uint32_t y = 456;
+	uint32_t compare = 123;
+	uint32_t prevX = routine(&x, y, compare);
+	EXPECT_EQ(prevX, 123u);
+	EXPECT_EQ(x, y);
+
+	x = 123;
+	y = 456;
+	compare = 456;
+	prevX = routine(&x, y, compare);
+	EXPECT_EQ(prevX, 123u);
+	EXPECT_EQ(x, 123u);
+}
+
 TEST(ReactorUnitTests, SRem)
 {
 	FunctionT<void(int4 *, int4 *)> function;

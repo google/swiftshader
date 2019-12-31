@@ -89,7 +89,7 @@ namespace {
 #	define __x86_64__ 1
 #endif
 
-static Ice::OptLevel toIce(rr::Optimization::Level level)
+Ice::OptLevel toIce(rr::Optimization::Level level)
 {
 	switch(level)
 	{
@@ -101,6 +101,20 @@ static Ice::OptLevel toIce(rr::Optimization::Level level)
 		default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
 	return Ice::Opt_2;
+}
+
+Ice::Intrinsics::MemoryOrder stdToIceMemoryOrder(std::memory_order memoryOrder)
+{
+	switch(memoryOrder)
+	{
+		case std::memory_order_relaxed: return Ice::Intrinsics::MemoryOrderRelaxed;
+		case std::memory_order_consume: return Ice::Intrinsics::MemoryOrderConsume;
+		case std::memory_order_acquire: return Ice::Intrinsics::MemoryOrderAcquire;
+		case std::memory_order_release: return Ice::Intrinsics::MemoryOrderRelease;
+		case std::memory_order_acq_rel: return Ice::Intrinsics::MemoryOrderAcquireRelease;
+		case std::memory_order_seq_cst: return Ice::Intrinsics::MemoryOrderSequentiallyConsistent;
+	}
+	return Ice::Intrinsics::MemoryOrderInvalid;
 }
 
 class CPUID
@@ -1132,70 +1146,71 @@ Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedInd
 	return createAdd(ptr, index);
 }
 
+static Value *createAtomicRMW(Ice::Intrinsics::AtomicRMWOperation rmwOp, Value *ptr, Value *value, std::memory_order memoryOrder)
+{
+	Ice::Variable *result = ::function->makeVariable(value->getType());
+
+	const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AtomicRMW, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T };
+	auto target = ::context->getConstantUndef(Ice::IceType_i32);
+	auto inst = Ice::InstIntrinsicCall::create(::function, 0, result, target, intrinsic);
+	auto op = ::context->getConstantInt32(rmwOp);
+	auto order = ::context->getConstantInt32(stdToIceMemoryOrder(memoryOrder));
+	inst->addArg(op);
+	inst->addArg(ptr);
+	inst->addArg(value);
+	inst->addArg(order);
+	::basicBlock->appendInst(inst);
+
+	return V(result);
+}
+
 Value *Nucleus::createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("createAtomicAdd");
-	return nullptr;
+	return createAtomicRMW(Ice::Intrinsics::AtomicAdd, ptr, value, memoryOrder);
 }
 
 Value *Nucleus::createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("createAtomicSub");
-	return nullptr;
+	return createAtomicRMW(Ice::Intrinsics::AtomicSub, ptr, value, memoryOrder);
 }
 
 Value *Nucleus::createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("createAtomicAnd");
-	return nullptr;
+	return createAtomicRMW(Ice::Intrinsics::AtomicAnd, ptr, value, memoryOrder);
 }
 
 Value *Nucleus::createAtomicOr(Value *ptr, Value *value, std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("createAtomicOr");
-	return nullptr;
+	return createAtomicRMW(Ice::Intrinsics::AtomicOr, ptr, value, memoryOrder);
 }
 
 Value *Nucleus::createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("createAtomicXor");
-	return nullptr;
-}
-
-Value *Nucleus::createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder)
-{
-	UNIMPLEMENTED("createAtomicMin");
-	return nullptr;
-}
-
-Value *Nucleus::createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder)
-{
-	UNIMPLEMENTED("createAtomicMax");
-	return nullptr;
-}
-
-Value *Nucleus::createAtomicUMin(Value *ptr, Value *value, std::memory_order memoryOrder)
-{
-	UNIMPLEMENTED("createAtomicUMin");
-	return nullptr;
-}
-
-Value *Nucleus::createAtomicUMax(Value *ptr, Value *value, std::memory_order memoryOrder)
-{
-	UNIMPLEMENTED("createAtomicUMax");
-	return nullptr;
+	return createAtomicRMW(Ice::Intrinsics::AtomicXor, ptr, value, memoryOrder);
 }
 
 Value *Nucleus::createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("createAtomicExchange");
-	return nullptr;
+	return createAtomicRMW(Ice::Intrinsics::AtomicExchange, ptr, value, memoryOrder);
 }
 
 Value *Nucleus::createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
 {
-	UNIMPLEMENTED("createAtomicCompareExchange");
-	return nullptr;
+	Ice::Variable *result = ::function->makeVariable(value->getType());
+
+	const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AtomicCmpxchg, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T };
+	auto target = ::context->getConstantUndef(Ice::IceType_i32);
+	auto inst = Ice::InstIntrinsicCall::create(::function, 0, result, target, intrinsic);
+	auto orderEq = ::context->getConstantInt32(stdToIceMemoryOrder(memoryOrderEqual));
+	auto orderNeq = ::context->getConstantInt32(stdToIceMemoryOrder(memoryOrderUnequal));
+	inst->addArg(ptr);
+	inst->addArg(compare);
+	inst->addArg(value);
+	inst->addArg(orderEq);
+	inst->addArg(orderNeq);
+	::basicBlock->appendInst(inst);
+
+	return V(result);
 }
 
 static Value *createCast(Ice::InstCast::OpKind op, Value *v, Type *destType)
@@ -3603,8 +3618,14 @@ void Breakpoint()
 
 void Nucleus::createFence(std::memory_order memoryOrder)
 {
-	UNIMPLEMENTED("Subzero createFence()");
+	const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AtomicFence, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+	auto target = ::context->getConstantUndef(Ice::IceType_i32);
+	auto inst = Ice::InstIntrinsicCall::create(::function, 0, nullptr, target, intrinsic);
+	auto order = ::context->getConstantInt32(stdToIceMemoryOrder(memoryOrder));
+	inst->addArg(order);
+	::basicBlock->appendInst(inst);
 }
+
 Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned int alignment, bool zeroMaskedLanes)
 {
 	UNIMPLEMENTED("Subzero createMaskedLoad()");
@@ -3811,6 +3832,26 @@ RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef)
 		result = Insert(result, Cttz(Extract(x, 3), isZeroUndef), 3);
 		return result;
 	}
+}
+
+RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
+{
+	return emulated::MinAtomic(x, y, memoryOrder);
+}
+
+RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
+{
+	return emulated::MinAtomic(x, y, memoryOrder);
+}
+
+RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
+{
+	return emulated::MaxAtomic(x, y, memoryOrder);
+}
+
+RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
+{
+	return emulated::MaxAtomic(x, y, memoryOrder);
 }
 
 void EmitDebugLocation() {}

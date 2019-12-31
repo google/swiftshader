@@ -259,6 +259,9 @@ namespace {
 
 // Returns whether PNaCl allows the given memory ordering in general.
 bool isMemoryOrderValidPNaCl(uint64_t Order) {
+  if (::Ice::getFlags().getApplicationBinaryInterface() != ::Ice::ABI_PNaCl)
+    return true;
+
   switch (Order) {
   case Intrinsics::MemoryOrderAcquire:
   case Intrinsics::MemoryOrderRelease:

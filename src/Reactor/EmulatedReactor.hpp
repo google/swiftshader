@@ -48,6 +48,10 @@ RValue<Float4> Exp(RValue<Float4> x);
 RValue<Float4> Log(RValue<Float4> x);
 RValue<Float4> Exp2(RValue<Float4> x);
 RValue<Float4> Log2(RValue<Float4> x);
+RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder);
+RValue<UInt> MinAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder);
+RValue<Int> MaxAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder);
+RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder);
 RValue<Float4> FRem(RValue<Float4> lhs, RValue<Float4> rhs);
 
 }  // namespace emulated
