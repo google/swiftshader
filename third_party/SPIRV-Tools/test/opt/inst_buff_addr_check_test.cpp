@@ -310,7 +310,7 @@ OpFunctionEnd
   // SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   SinglePassRunAndCheck<InstBuffAddrCheckPass>(
       defs_before + func_before, defs_after + func_after + new_funcs, true,
-      true, 7u, 23u, 2u);
+      true, 7u, 23u);
 }
 
 TEST_F(InstBuffAddrTest, InstPhysicalStorageBufferLoadAndStore) {
@@ -612,7 +612,7 @@ OpFunctionEnd
   SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   SinglePassRunAndCheck<InstBuffAddrCheckPass>(
       defs_before + func_before, defs_after + func_after + new_funcs, true,
-      true, 7u, 23u, 2u);
+      true, 7u, 23u);
 }
 
 }  // namespace

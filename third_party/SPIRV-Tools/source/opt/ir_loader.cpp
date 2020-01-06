@@ -16,6 +16,7 @@
 
 #include <utility>
 
+#include "source/ext_inst.h"
 #include "source/opt/log.h"
 #include "source/opt/reflect.h"
 #include "source/util/make_unique.h"
@@ -113,11 +114,14 @@ bool IrLoader::AddInstruction(const spv_parsed_instruction_t* inst) {
       } else if (IsTypeInst(opcode)) {
         module_->AddType(std::move(spv_inst));
       } else if (IsConstantInst(opcode) || opcode == SpvOpVariable ||
-                 opcode == SpvOpUndef) {
+                 opcode == SpvOpUndef ||
+                 (opcode == SpvOpExtInst &&
+                  spvExtInstIsNonSemantic(inst->ext_inst_type))) {
         module_->AddGlobalValue(std::move(spv_inst));
       } else {
         Errorf(consumer_, src, loc,
-               "Unhandled inst type (opcode: %d) found outside function definition.",
+               "Unhandled inst type (opcode: %d) found outside function "
+               "definition.",
                opcode);
         return false;
       }

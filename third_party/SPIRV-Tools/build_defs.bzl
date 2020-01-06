@@ -40,6 +40,7 @@ TEST_COPTS = COMMON_COPTS + select({
 })
 
 DEBUGINFO_GRAMMAR_JSON_FILE = "source/extinst.debuginfo.grammar.json"
+CLDEBUGINFO100_GRAMMAR_JSON_FILE = "source/extinst.opencl.debuginfo.100.grammar.json"
 
 def generate_core_tables(version = None):
     if not version:
@@ -47,6 +48,7 @@ def generate_core_tables(version = None):
     grammars = [
         "@spirv_headers//:spirv_core_grammar_" + version,
         DEBUGINFO_GRAMMAR_JSON_FILE,
+        CLDEBUGINFO100_GRAMMAR_JSON_FILE,
     ]
     outs = [
         "core.insts-{}.inc".format(version),
@@ -61,8 +63,9 @@ def generate_core_tables(version = None):
             "$(location :generate_grammar_tables) " +
             "--spirv-core-grammar=$(location {0}) " +
             "--extinst-debuginfo-grammar=$(location {1}) " +
-            "--core-insts-output=$(location {2}) " +
-            "--operand-kinds-output=$(location {3})"
+            "--extinst-cldebuginfo100-grammar=$(location {2}) " +
+            "--core-insts-output=$(location {3}) " +
+            "--operand-kinds-output=$(location {4})"
         ).format(*fmtargs),
         tools = [":generate_grammar_tables"],
         visibility = ["//visibility:private"],
@@ -74,6 +77,7 @@ def generate_enum_string_mapping(version = None):
     grammars = [
         "@spirv_headers//:spirv_core_grammar_" + version,
         DEBUGINFO_GRAMMAR_JSON_FILE,
+        CLDEBUGINFO100_GRAMMAR_JSON_FILE,
     ]
     outs = [
         "extension_enum.inc",
@@ -88,8 +92,9 @@ def generate_enum_string_mapping(version = None):
             "$(location :generate_grammar_tables) " +
             "--spirv-core-grammar=$(location {0}) " +
             "--extinst-debuginfo-grammar=$(location {1}) " +
-            "--extension-enum-output=$(location {2}) " +
-            "--enum-string-mapping-output=$(location {3})"
+            "--extinst-cldebuginfo100-grammar=$(location {2}) " +
+            "--extension-enum-output=$(location {3}) " +
+            "--enum-string-mapping-output=$(location {4})"
         ).format(*fmtargs),
         tools = [":generate_grammar_tables"],
         visibility = ["//visibility:private"],
@@ -137,13 +142,14 @@ def generate_glsl_tables(version = None):
         visibility = ["//visibility:private"],
     )
 
-def generate_vendor_tables(extension = None):
+def generate_vendor_tables(extension, operand_kind_prefix = ""):
     if not extension:
         fail("Must specify extension", "extension")
-    extension_rule = extension.replace("-", "_")
+    extension_rule = extension.replace("-", "_").replace(".", "_")
     grammars = ["source/extinst.{}.grammar.json".format(extension)]
     outs = ["{}.insts.inc".format(extension)]
-    fmtargs = grammars + outs
+    prefices = [operand_kind_prefix]
+    fmtargs = grammars + outs + prefices
     native.genrule(
         name = "gen_vendor_tables_" + extension_rule,
         srcs = grammars,
@@ -151,7 +157,8 @@ def generate_vendor_tables(extension = None):
         cmd = (
             "$(location :generate_grammar_tables) " +
             "--extinst-vendor-grammar=$(location {0}) " +
-            "--vendor-insts-output=$(location {1})"
+            "--vendor-insts-output=$(location {1}) " +
+            "--vendor-operand-kind-prefix={2}"
         ).format(*fmtargs),
         tools = [":generate_grammar_tables"],
         visibility = ["//visibility:private"],
