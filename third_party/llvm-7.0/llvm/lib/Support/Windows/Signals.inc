@@ -297,6 +297,7 @@ static bool findModulesAndOffsets(void **StackTrace, int Depth,
 static void PrintStackTraceForThread(llvm::raw_ostream &OS, HANDLE hProcess,
                                      HANDLE hThread, STACKFRAME64 &StackFrame,
                                      CONTEXT *Context) {
+#if ENABLE_BACKTRACES
   // Initialize the symbol handler.
   fSymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
   fSymInitialize(hProcess, NULL, TRUE);
@@ -378,6 +379,7 @@ static void PrintStackTraceForThread(llvm::raw_ostream &OS, HANDLE hProcess,
 
     OS << '\n';
   }
+#endif
 }
 
 namespace llvm {
