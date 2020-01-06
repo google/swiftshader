@@ -14,34 +14,37 @@
 
 #include "System/Memory.hpp"
 #ifdef __linux__
-#include "System/Linux/MemFd.hpp"
+#	include "System/Linux/MemFd.hpp"
 #endif
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <cstdlib>
 
 using namespace sw;
 
 #ifdef __linux__
-TEST(MemFd, DefaultConstructor) {
+TEST(MemFd, DefaultConstructor)
+{
 	LinuxMemFd memfd;
 	ASSERT_FALSE(memfd.isValid());
 	ASSERT_EQ(-1, memfd.exportFd());
 }
 
-TEST(MemFd, AllocatingConstructor) {
+TEST(MemFd, AllocatingConstructor)
+{
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
 	LinuxMemFd memfd("test-region", kRegionSize);
 	ASSERT_TRUE(memfd.isValid());
 	ASSERT_GE(memfd.fd(), 0);
-	void* addr = memfd.mapReadWrite(0, kRegionSize);
+	void *addr = memfd.mapReadWrite(0, kRegionSize);
 	ASSERT_TRUE(addr);
 	memfd.unmap(addr, kRegionSize);
 }
 
-TEST(MemFd, ExplicitAllocation) {
+TEST(MemFd, ExplicitAllocation)
+{
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
 	LinuxMemFd memfd;
 	ASSERT_FALSE(memfd.isValid());
@@ -50,7 +53,8 @@ TEST(MemFd, ExplicitAllocation) {
 	ASSERT_TRUE(memfd.isValid());
 }
 
-TEST(MemFd, Close) {
+TEST(MemFd, Close)
+{
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
 	LinuxMemFd memfd("test-region", kRegionSize);
 	ASSERT_TRUE(memfd.isValid());
@@ -61,12 +65,13 @@ TEST(MemFd, Close) {
 	::close(fd);
 }
 
-TEST(MemFd, ExportImportFd) {
+TEST(MemFd, ExportImportFd)
+{
 	const size_t kRegionSize = sw::memoryPageSize() * 8;
 	LinuxMemFd memfd("test-region1", kRegionSize);
-	auto* addr = reinterpret_cast<uint8_t*>(memfd.mapReadWrite(0, kRegionSize));
+	auto *addr = reinterpret_cast<uint8_t *>(memfd.mapReadWrite(0, kRegionSize));
 	ASSERT_TRUE(addr);
-	for (size_t n = 0; n < kRegionSize; ++n)
+	for(size_t n = 0; n < kRegionSize; ++n)
 	{
 		addr[n] = static_cast<uint8_t>(n);
 	}
@@ -77,9 +82,9 @@ TEST(MemFd, ExportImportFd) {
 	LinuxMemFd memfd2;
 	memfd2.importFd(fd);
 	ASSERT_TRUE(memfd2.isValid());
-	addr = reinterpret_cast<uint8_t*>(memfd2.mapReadWrite(0, kRegionSize));
+	addr = reinterpret_cast<uint8_t *>(memfd2.mapReadWrite(0, kRegionSize));
 	ASSERT_TRUE(addr);
-	for (size_t n = 0; n < kRegionSize; ++n)
+	for(size_t n = 0; n < kRegionSize; ++n)
 	{
 		ASSERT_EQ(addr[n], static_cast<uint8_t>(n)) << "# " << n;
 	}

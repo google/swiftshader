@@ -14,8 +14,8 @@
 
 #include "System/Half.hpp"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <cstdlib>
 
@@ -48,9 +48,9 @@ unsigned int RGB9E5_reference(float r, float g, float b)
 	constexpr int g_sharedexp_maxexponent = 31;
 
 	constexpr float g_sharedexp_max =
-		((static_cast<float>(1 << g_sharedexp_mantissabits) - 1) /
-			static_cast<float>(1 << g_sharedexp_mantissabits)) *
-		static_cast<float>(1 << (g_sharedexp_maxexponent - g_sharedexp_bias));
+	    ((static_cast<float>(1 << g_sharedexp_mantissabits) - 1) /
+	     static_cast<float>(1 << g_sharedexp_mantissabits)) *
+	    static_cast<float>(1 << (g_sharedexp_maxexponent - g_sharedexp_bias));
 
 	const float red_c = clamp0hi(r, g_sharedexp_max);
 	const float green_c = clamp0hi(g, g_sharedexp_max);

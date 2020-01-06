@@ -15,26 +15,27 @@
 #include "Driver.hpp"
 
 #if defined(_WIN32)
-#    include "Windows.h"
-#    define OS_WINDOWS 1
+#	include "Windows.h"
+#	define OS_WINDOWS 1
 #elif defined(__APPLE__)
-#    include "dlfcn.h"
-#    define OS_MAC 1
+#	include "dlfcn.h"
+#	define OS_MAC 1
 #elif defined(__ANDROID__)
-#    include "dlfcn.h"
-#    define OS_ANDROID 1
+#	include "dlfcn.h"
+#	define OS_ANDROID 1
 #elif defined(__linux__)
-#    include "dlfcn.h"
-#    define OS_LINUX 1
+#	include "dlfcn.h"
+#	define OS_LINUX 1
 #elif defined(__Fuchsia__)
-#    include <zircon/dlfcn.h>
-#    define OS_FUCHSIA 1
+#	include <zircon/dlfcn.h>
+#	define OS_FUCHSIA 1
 #else
-#    error Unimplemented platform
+#	error Unimplemented platform
 #endif
 
-Driver::Driver() : vk_icdGetInstanceProcAddr(nullptr), dll(nullptr)
-{
+Driver::Driver()
+    : vk_icdGetInstanceProcAddr(nullptr)
+    , dll(nullptr){
 #define VK_GLOBAL(N, R, ...) N = nullptr
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
@@ -42,43 +43,43 @@ Driver::Driver() : vk_icdGetInstanceProcAddr(nullptr), dll(nullptr)
 #define VK_INSTANCE(N, R, ...) N = nullptr
 #include "VkInstanceFuncs.hpp"
 #undef VK_INSTANCE
-}
+    }
 
-Driver::~Driver()
+    Driver::~Driver()
 {
-    unload();
+	unload();
 }
 
 bool Driver::loadSwiftShader()
 {
 #if OS_WINDOWS
-	#if !defined(STANDALONE)
-		// The DLL is delay loaded (see BUILD.gn), so we can load
-		// the correct ones from Chrome's swiftshader subdirectory.
-		HMODULE libvulkan = LoadLibraryA("swiftshader\\libvulkan.dll");
-		EXPECT_NE((HMODULE)NULL, libvulkan);
-		return true;
-	#elif defined(NDEBUG)
-		#if defined(_WIN64)
-			return load("./build/Release_x64/vk_swiftshader.dll") ||
-			       load("./build/Release/vk_swiftshader.dll") ||
-			       load("./vk_swiftshader.dll");
-		#else
-			return load("./build/Release_Win32/vk_swiftshader.dll") ||
-			       load("./build/Release/vk_swiftshader.dll") ||
-			       load("./vk_swiftshader.dll");
-		#endif
-	#else
-		#if defined(_WIN64)
-			return load("./build/Debug_x64/vk_swiftshader.dll") ||
-			       load("./build/Debug/vk_swiftshader.dll") ||
-			       load("./vk_swiftshader.dll");
-		#else
-			return load("./build/Debug_Win32/vk_swiftshader.dll") ||
-			       load("./build/Debug/vk_swiftshader.dll") ||
-			       load("./vk_swiftshader.dll");
-		#endif
-	#endif
+#	if !defined(STANDALONE)
+	// The DLL is delay loaded (see BUILD.gn), so we can load
+	// the correct ones from Chrome's swiftshader subdirectory.
+	HMODULE libvulkan = LoadLibraryA("swiftshader\\libvulkan.dll");
+	EXPECT_NE((HMODULE)NULL, libvulkan);
+	return true;
+#	elif defined(NDEBUG)
+#		if defined(_WIN64)
+	return load("./build/Release_x64/vk_swiftshader.dll") ||
+	       load("./build/Release/vk_swiftshader.dll") ||
+	       load("./vk_swiftshader.dll");
+#		else
+	return load("./build/Release_Win32/vk_swiftshader.dll") ||
+	       load("./build/Release/vk_swiftshader.dll") ||
+	       load("./vk_swiftshader.dll");
+#		endif
+#	else
+#		if defined(_WIN64)
+	return load("./build/Debug_x64/vk_swiftshader.dll") ||
+	       load("./build/Debug/vk_swiftshader.dll") ||
+	       load("./vk_swiftshader.dll");
+#		else
+	return load("./build/Debug_Win32/vk_swiftshader.dll") ||
+	       load("./build/Debug/vk_swiftshader.dll") ||
+	       load("./vk_swiftshader.dll");
+#		endif
+#	endif
 #elif OS_MAC
 	return load("./build/Darwin/libvk_swiftshader.dylib") ||
 	       load("swiftshader/libvk_swiftshader.dylib") ||
@@ -91,65 +92,65 @@ bool Driver::loadSwiftShader()
 #elif OS_ANDROID || OS_FUCHSIA
 	return load("libvk_swiftshader.so");
 #else
-	#error Unimplemented platform
+#	error Unimplemented platform
 #endif
 }
 
 bool Driver::loadSystem()
 {
 #if OS_LINUX
-    return load("libvulkan.so.1");
+	return load("libvulkan.so.1");
 #else
-    return false;
+	return false;
 #endif
 }
 
-bool Driver::load(const char* path)
+bool Driver::load(const char *path)
 {
 #if OS_WINDOWS
-    dll = LoadLibraryA(path);
+	dll = LoadLibraryA(path);
 #elif(OS_MAC || OS_LINUX || OS_ANDROID || OS_FUCHSIA)
-    dll = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+	dll = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 #else
-    return false;
+	return false;
 #endif
-    if(dll == nullptr)
-    {
-        return false;
-    }
+	if(dll == nullptr)
+	{
+		return false;
+	}
 
-    // Is the driver an ICD?
-    if(!lookup(&vk_icdGetInstanceProcAddr, "vk_icdGetInstanceProcAddr"))
-    {
-        // Nope, attempt to use the loader version.
-        if(!lookup(&vk_icdGetInstanceProcAddr, "vkGetInstanceProcAddr"))
-        {
-            return false;
-        }
-    }
+	// Is the driver an ICD?
+	if(!lookup(&vk_icdGetInstanceProcAddr, "vk_icdGetInstanceProcAddr"))
+	{
+		// Nope, attempt to use the loader version.
+		if(!lookup(&vk_icdGetInstanceProcAddr, "vkGetInstanceProcAddr"))
+		{
+			return false;
+		}
+	}
 
-#define VK_GLOBAL(N, R, ...)                                             \
-    if(auto pfn = vk_icdGetInstanceProcAddr(nullptr, #N))                \
-    {                                                                    \
-        N = reinterpret_cast<decltype(N)>(pfn);                          \
-    }
+#define VK_GLOBAL(N, R, ...)                              \
+	if(auto pfn = vk_icdGetInstanceProcAddr(nullptr, #N)) \
+	{                                                     \
+		N = reinterpret_cast<decltype(N)>(pfn);           \
+	}
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
 
-    return true;
+	return true;
 }
 
 void Driver::unload()
 {
-    if(!isLoaded())
-    {
-        return;
-    }
+	if(!isLoaded())
+	{
+		return;
+	}
 
 #if OS_WINDOWS
-    FreeLibrary((HMODULE)dll);
-#elif (OS_LINUX || OS_FUCHSIA)
-    dlclose(dll);
+	FreeLibrary((HMODULE)dll);
+#elif(OS_LINUX || OS_FUCHSIA)
+	dlclose(dll);
 #endif
 
 #define VK_GLOBAL(N, R, ...) N = nullptr
@@ -163,38 +164,38 @@ void Driver::unload()
 
 bool Driver::isLoaded() const
 {
-    return dll != nullptr;
+	return dll != nullptr;
 }
 
 bool Driver::resolve(VkInstance instance)
 {
-    if(!isLoaded())
-    {
-        return false;
-    }
+	if(!isLoaded())
+	{
+		return false;
+	}
 
 #define VK_INSTANCE(N, R, ...)                             \
-    if(auto pfn = vk_icdGetInstanceProcAddr(instance, #N)) \
-    {                                                      \
-        N = reinterpret_cast<decltype(N)>(pfn);            \
-    }                                                      \
-    else                                                   \
-    {                                                      \
-        return false;                                      \
-    }
+	if(auto pfn = vk_icdGetInstanceProcAddr(instance, #N)) \
+	{                                                      \
+		N = reinterpret_cast<decltype(N)>(pfn);            \
+	}                                                      \
+	else                                                   \
+	{                                                      \
+		return false;                                      \
+	}
 #include "VkInstanceFuncs.hpp"
 #undef VK_INSTANCE
 
-    return true;
+	return true;
 }
 
-void* Driver::lookup(const char* name)
+void *Driver::lookup(const char *name)
 {
 #if OS_WINDOWS
-    return GetProcAddress((HMODULE)dll, name);
+	return GetProcAddress((HMODULE)dll, name);
 #elif(OS_MAC || OS_LINUX || OS_ANDROID || OS_FUCHSIA)
-    return dlsym(dll, name);
+	return dlsym(dll, name);
 #else
-    return nullptr;
+	return nullptr;
 #endif
 }

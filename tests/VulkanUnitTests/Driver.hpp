@@ -20,69 +20,69 @@
 class Driver
 {
 public:
-    Driver();
-    ~Driver();
+	Driver();
+	~Driver();
 
-    // loadSwiftShader attempts to load the SwiftShader vulkan driver.
-    // returns true on success, false on failure.
-    bool loadSwiftShader();
+	// loadSwiftShader attempts to load the SwiftShader vulkan driver.
+	// returns true on success, false on failure.
+	bool loadSwiftShader();
 
-    // loadSystem attempts to load the system's vulkan driver.
-    // returns true on success, false on failure.
-    bool loadSystem();
+	// loadSystem attempts to load the system's vulkan driver.
+	// returns true on success, false on failure.
+	bool loadSystem();
 
-    // load attempts to load the vulkan driver from the given path.
-    // returns true on success, false on failure.
-    bool load(const char* path);
+	// load attempts to load the vulkan driver from the given path.
+	// returns true on success, false on failure.
+	bool load(const char *path);
 
-    // unloads the currently loaded driver.
-    // No-op if no driver is currently loaded.
-    void unload();
+	// unloads the currently loaded driver.
+	// No-op if no driver is currently loaded.
+	void unload();
 
-    // isLoaded returns true if the driver is currently loaded.
-    bool isLoaded() const;
+	// isLoaded returns true if the driver is currently loaded.
+	bool isLoaded() const;
 
-    // resolve all the functions for the given VkInstance.
-    bool resolve(VkInstance);
+	// resolve all the functions for the given VkInstance.
+	bool resolve(VkInstance);
 
-    VKAPI_ATTR PFN_vkVoidFunction(VKAPI_CALL* vk_icdGetInstanceProcAddr)(VkInstance instance, const char* pName);
+	VKAPI_ATTR PFN_vkVoidFunction(VKAPI_CALL *vk_icdGetInstanceProcAddr)(VkInstance instance, const char *pName);
 
-    // Global vulkan function pointers.
-#define VK_GLOBAL(N, R, ...) VKAPI_ATTR R (VKAPI_CALL *N)(__VA_ARGS__)
+	// Global vulkan function pointers.
+#define VK_GLOBAL(N, R, ...) VKAPI_ATTR R(VKAPI_CALL *N)(__VA_ARGS__)
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
 
-    // Per-instance vulkan function pointers.
-#define VK_INSTANCE(N, R, ...) VKAPI_ATTR R (VKAPI_CALL *N)(__VA_ARGS__)
+	// Per-instance vulkan function pointers.
+#define VK_INSTANCE(N, R, ...) VKAPI_ATTR R(VKAPI_CALL *N)(__VA_ARGS__)
 #include "VkInstanceFuncs.hpp"
 #undef VK_INSTANCE
 
 private:
-    Driver(const Driver&) = delete;
-    Driver(Driver&&) = delete;
-    Driver& operator=(const Driver&) = delete;
+	Driver(const Driver &) = delete;
+	Driver(Driver &&) = delete;
+	Driver &operator=(const Driver &) = delete;
 
-    // lookup searches the loaded driver for a symbol with the given name,
-    // returning the address of this symbol if found, otherwise nullptr.
-    void* lookup(const char* name);
+	// lookup searches the loaded driver for a symbol with the given name,
+	// returning the address of this symbol if found, otherwise nullptr.
+	void *lookup(const char *name);
 
-    // Helper function to lookup a symbol and cast it to the appropriate type.
-    // Returns true if the symbol was found and assigned to ptr, otherwise
-    // returns false.
-    template<typename T>
-    inline bool lookup(T* ptr, const char* name);
+	// Helper function to lookup a symbol and cast it to the appropriate type.
+	// Returns true if the symbol was found and assigned to ptr, otherwise
+	// returns false.
+	template<typename T>
+	inline bool lookup(T *ptr, const char *name);
 
-    void* dll;
+	void *dll;
 };
 
 template<typename T>
-bool Driver::lookup(T* ptr, const char* name)
+bool Driver::lookup(T *ptr, const char *name)
 {
-    void* sym = lookup(name);
-    if(sym == nullptr)
-    {
-        return false;
-    }
-    *ptr = reinterpret_cast<T>(sym);
-    return true;
+	void *sym = lookup(name);
+	if(sym == nullptr)
+	{
+		return false;
+	}
+	*ptr = reinterpret_cast<T>(sym);
+	return true;
 }

@@ -17,5 +17,5 @@
 // TODO: Generate this list.
 
 // VK_GLOBAL(<function name>, <return type>, <arguments>...)
-VK_GLOBAL(vkCreateInstance, VkResult, const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance*);
-VK_GLOBAL(vkEnumerateInstanceVersion, VkResult, uint32_t*);
+VK_GLOBAL(vkCreateInstance, VkResult, const VkInstanceCreateInfo *, const VkAllocationCallbacks *, VkInstance *);
+VK_GLOBAL(vkEnumerateInstanceVersion, VkResult, uint32_t *);

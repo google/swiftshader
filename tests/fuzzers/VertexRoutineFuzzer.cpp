@@ -24,52 +24,60 @@
 #include "Renderer/VertexProcessor.hpp"
 #include "Shader/VertexProgram.hpp"
 
+#include <cassert>
 #include <cstdint>
 #include <memory>
-#include <cassert>
 
 namespace {
 
 // TODO(cwallez@google.com): Like in ANGLE, disable most of the pool allocator for fuzzing
 // This is a helper class to make sure all the resources used by the compiler are initialized
-class ScopedPoolAllocatorAndTLS {
-	public:
-		ScopedPoolAllocatorAndTLS() {
-			InitializeParseContextIndex();
-			InitializePoolIndex();
-			SetGlobalPoolAllocator(&allocator);
-		}
-		~ScopedPoolAllocatorAndTLS() {
-			SetGlobalPoolAllocator(nullptr);
-			FreePoolIndex();
-			FreeParseContextIndex();
-		}
+class ScopedPoolAllocatorAndTLS
+{
+public:
+	ScopedPoolAllocatorAndTLS()
+	{
+		InitializeParseContextIndex();
+		InitializePoolIndex();
+		SetGlobalPoolAllocator(&allocator);
+	}
+	~ScopedPoolAllocatorAndTLS()
+	{
+		SetGlobalPoolAllocator(nullptr);
+		FreePoolIndex();
+		FreeParseContextIndex();
+	}
 
-	private:
-		TPoolAllocator allocator;
+private:
+	TPoolAllocator allocator;
 };
 
 // Trivial implementation of the glsl::Shader interface that fakes being an API-level
 // shader object.
-class FakeVS : public glsl::Shader {
-	public:
-		FakeVS(sw::VertexShader* bytecode) : bytecode(bytecode) {
-		}
+class FakeVS : public glsl::Shader
+{
+public:
+	FakeVS(sw::VertexShader *bytecode)
+	    : bytecode(bytecode)
+	{
+	}
 
-		sw::Shader *getShader() const override {
-			return bytecode;
-		}
-		sw::VertexShader *getVertexShader() const override {
-			return bytecode;
-		}
+	sw::Shader *getShader() const override
+	{
+		return bytecode;
+	}
+	sw::VertexShader *getVertexShader() const override
+	{
+		return bytecode;
+	}
 
-	private:
-		sw::VertexShader* bytecode;
+private:
+	sw::VertexShader *bytecode;
 };
 
-} // anonymous namespace
+}  // anonymous namespace
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
 	// Data layout:
 	//
@@ -111,8 +119,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	resources.MaxTextureImageUnits = sw::TEXTURE_IMAGE_UNITS;
 	resources.MaxFragmentUniformVectors = sw::FRAGMENT_UNIFORM_VECTORS - 3;
 	resources.MaxDrawBuffers = sw::RENDERTARGETS;
-	resources.MaxVertexOutputVectors = 16; // ???
-	resources.MaxFragmentInputVectors = 15; // ???
+	resources.MaxVertexOutputVectors = 16;   // ???
+	resources.MaxFragmentInputVectors = 15;  // ???
 	resources.MinProgramTexelOffset = sw::MIN_PROGRAM_TEXEL_OFFSET;
 	resources.MaxProgramTexelOffset = sw::MAX_PROGRAM_TEXEL_OFFSET;
 	resources.OES_standard_derivatives = 1;
@@ -125,8 +133,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
 	glslCompiler->Init(resources);
 
-	const char* glslSource = reinterpret_cast<const char*>(data + kHeaderSize);
-	if (!glslCompiler->compile(&glslSource, 1, SH_OBJECT_CODE))
+	const char *glslSource = reinterpret_cast<const char *>(data + kHeaderSize);
+	if(!glslCompiler->compile(&glslSource, 1, SH_OBJECT_CODE))
 	{
 		return 0;
 	}
@@ -146,7 +154,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	state.transformFeedbackEnabled = (data[0] & 0x10) != 0;
 	state.verticesPerPrimitive = 1 + ((data[0] & 0x20) != 0) + ((data[0] & 0x40) != 0);
 
-	if((data[0] & 0x80) != 0)   // Unused/reserved.
+	if((data[0] & 0x80) != 0)  // Unused/reserved.
 	{
 		return 0;
 	}
@@ -163,7 +171,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	for(int i = 0; i < sw::MAX_VERTEX_INPUTS; i++)
 	{
 		sw::StreamType type = (sw::StreamType)data[1 + 2 * i + 0];
-		Stream stream = (Stream&)data[1 + 2 * i + 1];
+		Stream stream = (Stream &)data[1 + 2 * i + 1];
 
 		if(type > sw::STREAMTYPE_LAST) return 0;
 		if(stream.count > MAX_ATTRIBUTE_COMPONENTS) return 0;
@@ -178,10 +186,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	for(unsigned int i = 0; i < sw::VERTEX_TEXTURE_IMAGE_UNITS; i++)
 	{
 		// TODO
-	//	if(bytecodeShader->usesSampler(i))
-	//	{
-	//		state.samplerState[i] = context->sampler[sw::TEXTURE_IMAGE_UNITS + i].samplerState();
-	//	}
+		//	if(bytecodeShader->usesSampler(i))
+		//	{
+		//		state.samplerState[i] = context->sampler[sw::TEXTURE_IMAGE_UNITS + i].samplerState();
+		//	}
 
 		for(int j = 0; j < 32; j++)
 		{
@@ -206,7 +214,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	auto routine = program("VertexRoutine");
 	assert(routine);
 	const void *entry = routine->getEntry();
-	assert(entry); (void)entry;
+	assert(entry);
+	(void)entry;
 
 	return 0;
 }
@@ -219,7 +228,7 @@ int main(int argc, char *argv[])
 	fseek(file, 0L, SEEK_END);
 	long numbytes = ftell(file);
 	fseek(file, 0L, SEEK_SET);
-	uint8_t *buffer = (uint8_t*)calloc(numbytes, sizeof(uint8_t));
+	uint8_t *buffer = (uint8_t *)calloc(numbytes, sizeof(uint8_t));
 	fread(buffer, sizeof(char), numbytes, file);
 	fclose(file);
 

@@ -15,18 +15,18 @@
 // OpenGL ES unit tests that provide coverage for functionality not tested by
 // the dEQP test suite. Also used as a smoke test.
 
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <EGL/egl.h>
+#include <GL/glcorearb.h>
+#include <GL/glext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
-#include <GL/glcorearb.h>
-#include <GL/glext.h>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#	include <Windows.h>
 #endif
 
 #include <string.h>
@@ -42,15 +42,15 @@ class SwiftShaderTest : public testing::Test
 protected:
 	void SetUp() override
 	{
-		#if defined(_WIN32) && !defined(STANDALONE)
-			// The DLLs are delay loaded (see BUILD.gn), so we can load
-			// the correct ones from Chrome's swiftshader subdirectory.
-			HMODULE libEGL = LoadLibraryA("swiftshader\\libEGL.dll");
-			EXPECT_NE((HMODULE)NULL, libEGL);
+#if defined(_WIN32) && !defined(STANDALONE)
+		// The DLLs are delay loaded (see BUILD.gn), so we can load
+		// the correct ones from Chrome's swiftshader subdirectory.
+		HMODULE libEGL = LoadLibraryA("swiftshader\\libEGL.dll");
+		EXPECT_NE((HMODULE)NULL, libEGL);
 
-			HMODULE libGLESv2 = LoadLibraryA("swiftshader\\libGLESv2.dll");
-			EXPECT_NE((HMODULE)NULL, libGLESv2);
-		#endif
+		HMODULE libGLESv2 = LoadLibraryA("swiftshader\\libGLESv2.dll");
+		EXPECT_NE((HMODULE)NULL, libGLESv2);
+#endif
 	}
 
 	void expectFramebufferColor(const unsigned char referenceColor[4], GLint x = 0, GLint y = 0)
@@ -113,11 +113,10 @@ protected:
 		eglBindAPI(EGL_OPENGL_ES_API);
 		EXPECT_NO_EGL_ERROR();
 
-		const EGLint configAttributes[] =
-		{
-			EGL_SURFACE_TYPE,		EGL_PBUFFER_BIT,
-			EGL_RENDERABLE_TYPE,	EGL_OPENGL_ES2_BIT,
-			EGL_ALPHA_SIZE,			8,
+		const EGLint configAttributes[] = {
+			EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+			EGL_ALPHA_SIZE, 8,
 			EGL_NONE
 		};
 
@@ -145,8 +144,7 @@ protected:
 			EXPECT_TRUE(surfaceType & EGL_WINDOW_BIT);
 		}
 
-		EGLint surfaceAttributes[] =
-		{
+		EGLint surfaceAttributes[] = {
 			EGL_WIDTH, 1920,
 			EGL_HEIGHT, 1080,
 			EGL_NONE
@@ -156,8 +154,7 @@ protected:
 		EXPECT_NO_EGL_ERROR();
 		EXPECT_NE(EGL_NO_SURFACE, surface);
 
-		EGLint contextAttributes[] =
-		{
+		EGLint contextAttributes[] = {
 			EGL_CONTEXT_CLIENT_VERSION, version,
 			EGL_NONE
 		};
@@ -248,7 +245,8 @@ protected:
 		GLint compileStatus = 0;
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
 		glGetShaderInfoLog(shader, sizeof(buf), nullptr, buf);
-		EXPECT_EQ(compileStatus, GL_TRUE) << "Compile status: " << std::endl << buf;
+		EXPECT_EQ(compileStatus, GL_TRUE) << "Compile status: " << std::endl
+		                                  << buf;
 
 		return shader;
 	}
@@ -275,13 +273,13 @@ protected:
 		GLint linkStatus = 0;
 		glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
 		glGetProgramInfoLog(program, sizeof(buf), nullptr, buf);
-		EXPECT_NE(linkStatus, 0) << "Link status: " << std::endl << buf;
+		EXPECT_NE(linkStatus, 0) << "Link status: " << std::endl
+		                         << buf;
 
 		EXPECT_NO_GL_ERROR();
 	}
 
-
-	ProgramHandles createProgram(const std::string& vs, const std::string& fs)
+	ProgramHandles createProgram(const std::string &vs, const std::string &fs)
 	{
 		ProgramHandles ph;
 		ph.vertexShader = MakeShader(vs, GL_VERTEX_SHADER);
@@ -292,7 +290,7 @@ protected:
 		return ph;
 	}
 
-	void deleteProgram(const ProgramHandles& ph)
+	void deleteProgram(const ProgramHandles &ph)
 	{
 		glDeleteShader(ph.fragmentShader);
 		glDeleteShader(ph.vertexShader);
@@ -301,7 +299,7 @@ protected:
 		EXPECT_NO_GL_ERROR();
 	}
 
-	void drawQuad(GLuint program, const char* textureName = nullptr)
+	void drawQuad(GLuint program, const char *textureName = nullptr)
 	{
 		GLint prevProgram = 0;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
@@ -319,12 +317,12 @@ protected:
 			glUniform1i(location, 0);
 		}
 
-		float vertices[18] = { -1.0f,  1.0f, 0.5f,
-		                       -1.0f, -1.0f, 0.5f,
-		                        1.0f, -1.0f, 0.5f,
-		                       -1.0f,  1.0f, 0.5f,
-		                        1.0f, -1.0f, 0.5f,
-		                        1.0f,  1.0f, 0.5f };
+		float vertices[18] = { -1.0f, 1.0f, 0.5f,
+			                   -1.0f, -1.0f, 0.5f,
+			                   1.0f, -1.0f, 0.5f,
+			                   -1.0f, 1.0f, 0.5f,
+			                   1.0f, -1.0f, 0.5f,
+			                   1.0f, 1.0f, 0.5f };
 
 		glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, vertices);
 		glEnableVertexAttribArray(posLoc);
@@ -337,10 +335,11 @@ protected:
 		EXPECT_NO_GL_ERROR();
 	}
 
-	std::string replace(std::string str, const std::string& substr, const std::string& replacement)
+	std::string replace(std::string str, const std::string &substr, const std::string &replacement)
 	{
 		size_t pos = 0;
-		while((pos = str.find(substr, pos)) != std::string::npos) {
+		while((pos = str.find(substr, pos)) != std::string::npos)
+		{
 			str.replace(pos, substr.length(), replacement);
 			pos += replacement.length();
 		}
@@ -352,7 +351,7 @@ protected:
 		Initialize(3, false);
 
 		std::string vs =
-			R"(#version 300 es
+		    R"(#version 300 es
 			in vec4 position;
 			out float unfoldable;
 			$INSERT
@@ -364,7 +363,7 @@ protected:
 			})";
 
 		std::string fs =
-			R"(#version 300 es
+		    R"(#version 300 es
 			precision mediump float;
 			in float unfoldable;
 			out vec4 fragColor;
@@ -438,7 +437,7 @@ protected:
 	void checkCompileFails(std::string s)
 	{
 		std::string vs =
-			R"(#version 300 es
+		    R"(#version 300 es
 			in vec4 position;
 			out float unfoldable;
 			$INSERT
@@ -450,7 +449,7 @@ protected:
 			})";
 
 		std::string fs =
-			R"(#version 300 es
+		    R"(#version 300 es
 			precision mediump float;
 			in float unfoldable;
 			out vec4 fragColor;
@@ -486,16 +485,16 @@ TEST_F(SwiftShaderTest, Initalization)
 
 	const GLubyte *glVendor = glGetString(GL_VENDOR);
 	EXPECT_NO_GL_ERROR();
-	EXPECT_STREQ("Google Inc.", (const char*)glVendor);
+	EXPECT_STREQ("Google Inc.", (const char *)glVendor);
 
 	const GLubyte *glRenderer = glGetString(GL_RENDERER);
 	EXPECT_NO_GL_ERROR();
-	EXPECT_STREQ("Google SwiftShader", (const char*)glRenderer);
+	EXPECT_STREQ("Google SwiftShader", (const char *)glRenderer);
 
 	// SwiftShader return an OpenGL ES 3.0 context when a 2.0 context is requested, as allowed by the spec.
 	const GLubyte *glVersion = glGetString(GL_VERSION);
 	EXPECT_NO_GL_ERROR();
-	EXPECT_THAT((const char*)glVersion, testing::HasSubstr("OpenGL ES 3.0 SwiftShader "));
+	EXPECT_THAT((const char *)glVersion, testing::HasSubstr("OpenGL ES 3.0 SwiftShader "));
 
 	Uninitialize();
 }
@@ -535,7 +534,7 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 	unsigned char green[4] = { 0, 255, 0, 255 };
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 position;
 		out vec4 color;
 		void main()
@@ -548,7 +547,7 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		in vec4 color;
 		out vec4 fragColor;
@@ -595,7 +594,7 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 	Initialize(3, false);
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 position;
 		out vec4 color;
 		void main()
@@ -609,7 +608,7 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		in vec4 color;
 		out vec4 fragColor;
@@ -659,7 +658,7 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 	Initialize(3, false);
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 position;
 		out float color[4];
 		void main()
@@ -674,7 +673,7 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		in float color[4];
 		out vec4 fragColor;
@@ -715,7 +714,7 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	Initialize(3, false);
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		layout(location = 0) in vec4 a0;   // Explicitly bound in GLSL
 		layout(location = 2) in vec4 a2;   // Explicitly bound in GLSL
 		in vec4 a5;                        // Bound to location 5 by API
@@ -737,7 +736,7 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		in vec4 color;
 		out vec4 fragColor;
@@ -775,18 +774,18 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	EXPECT_NE(linkStatus, 0);
 	EXPECT_NO_GL_ERROR();
 
-	float vertices[6][3] = { { -1.0f,  1.0f, 0.5f },
-	                         { -1.0f, -1.0f, 0.5f },
-	                         {  1.0f, -1.0f, 0.5f },
-	                         { -1.0f,  1.0f, 0.5f },
-	                         {  1.0f, -1.0f, 0.5f },
-	                         {  1.0f,  1.0f, 0.5f } };
+	float vertices[6][3] = { { -1.0f, 1.0f, 0.5f },
+		                     { -1.0f, -1.0f, 0.5f },
+		                     { 1.0f, -1.0f, 0.5f },
+		                     { -1.0f, 1.0f, 0.5f },
+		                     { 1.0f, -1.0f, 0.5f },
+		                     { 1.0f, 1.0f, 0.5f } };
 
 	float attributes[5][4] = { { 1.0f, 2.0f, 3.0f, 4.0f },
-	                           { 5.0f, 6.0f, 7.0f, 8.0f },
-	                           { 9.0f, 10.0f, 11.0f, 12.0f },
-	                           { 13.0f, 14.0f, 15.0f, 16.0f },
-	                           { 17.0f, 18.0f, 19.0f, 20.0f } };
+		                       { 5.0f, 6.0f, 7.0f, 8.0f },
+		                       { 9.0f, 10.0f, 11.0f, 12.0f },
+		                       { 13.0f, 14.0f, 15.0f, 16.0f },
+		                       { 17.0f, 18.0f, 19.0f, 20.0f } };
 
 	GLint a0 = glGetAttribLocation(ph.program, "a0");
 	EXPECT_EQ(a0, 0);
@@ -802,7 +801,7 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	EXPECT_NO_GL_ERROR();
 
 	GLint a3 = glGetAttribLocation(ph.program, "a3");
-	EXPECT_EQ(a3, 3);   // Note: implementation specific
+	EXPECT_EQ(a3, 3);  // Note: implementation specific
 	glVertexAttribPointer(a3 + 0, 2, GL_FLOAT, GL_FALSE, 0, &attributes[1][0]);
 	glVertexAttribPointer(a3 + 1, 2, GL_FLOAT, GL_FALSE, 0, &attributes[1][2]);
 	glVertexAttribDivisor(a3 + 0, 1);
@@ -819,14 +818,14 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	EXPECT_NO_GL_ERROR();
 
 	GLint a1 = glGetAttribLocation(ph.program, "a1");
-	EXPECT_EQ(a1, 1);   // Note: implementation specific
+	EXPECT_EQ(a1, 1);  // Note: implementation specific
 	glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 0, attributes[3]);
 	glVertexAttribDivisor(a1, 1);
 	glEnableVertexAttribArray(a1);
 	EXPECT_NO_GL_ERROR();
 
 	GLint a6 = glGetAttribLocation(ph.program, "a6");
-	EXPECT_EQ(a6, 6);   // Note: implementation specific
+	EXPECT_EQ(a6, 6);  // Note: implementation specific
 	glVertexAttribPointer(a6, 4, GL_FLOAT, GL_FALSE, 0, attributes[4]);
 	glVertexAttribDivisor(a6, 1);
 	glEnableVertexAttribArray(a6);
@@ -850,7 +849,7 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 TEST_F(SwiftShaderTest, NegativeLocation)
 {
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		layout(location = 0x86868686u) in vec4 a0;   // Explicitly bound in GLSL
 		layout(location = 0x96969696u) in vec4 a2;   // Explicitly bound in GLSL
 		in vec4 a5;                        // Bound to location 5 by API
@@ -872,7 +871,7 @@ TEST_F(SwiftShaderTest, NegativeLocation)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		in vec4 color;
 		layout(location = 0xA6A6A6A6u) out vec4 fragColor;
@@ -956,22 +955,22 @@ TEST_F(SwiftShaderTest, CopyTexImage)
 TEST_F(SwiftShaderTest, CopyTexImageFromPixelBuffer)
 {
 	Initialize(3, false);
-	const GLuint red   = 0xff0000ff;
+	const GLuint red = 0xff0000ff;
 	const GLuint green = 0x00ff00ff;
-	const GLuint blue  = 0x0000ffff;
+	const GLuint blue = 0x0000ffff;
 	// Set up texture
 	GLuint texture = 0;
 	glGenTextures(1, &texture);
 	EXPECT_NO_GL_ERROR();
 	GLuint tex_data[4][4] = {
-		{red, red, red, red},
-		{red, red, red, red},
-		{red, red, red, red},
-		{red, red, red, red}
+		{ red, red, red, red },
+		{ red, red, red, red },
+		{ red, red, red, red },
+		{ red, red, red, red }
 	};
 	glBindTexture(GL_TEXTURE_2D, texture);
 	EXPECT_NO_GL_ERROR();
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *) tex_data[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *)tex_data[0]);
 	EXPECT_NO_GL_ERROR();
 	// Set up Pixel Buffer Object
 	GLuint pixelBuffer = 0;
@@ -982,12 +981,12 @@ TEST_F(SwiftShaderTest, CopyTexImageFromPixelBuffer)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	EXPECT_NO_GL_ERROR();
 	GLuint pixel_data[4][4] = {
-		{blue, blue, green, green},
-		{blue, blue, green, green},
-		{blue, blue, green, green},
-		{blue, blue, green, green},
+		{ blue, blue, green, green },
+		{ blue, blue, green, green },
+		{ blue, blue, green, green },
+		{ blue, blue, green, green },
 	};
-	glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof(pixel_data), (void *) pixel_data, GL_STREAM_DRAW);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof(pixel_data), (void *)pixel_data, GL_STREAM_DRAW);
 	// Should set the 2-rightmost columns of the currently bound texture to the
 	// 2-rightmost columns of the PBO;
 	GLintptr offset = 2 * sizeof(GLuint);
@@ -1000,24 +999,24 @@ TEST_F(SwiftShaderTest, CopyTexImageFromPixelBuffer)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 	EXPECT_NO_GL_ERROR();
 	unsigned int color[4][4] = {
-		{0, 0, 0, 0},
-		{0, 0, 0, 0},
-		{0, 0, 0, 0},
-		{0, 0, 0, 0}
+		{ 0, 0, 0, 0 },
+		{ 0, 0, 0, 0 },
+		{ 0, 0, 0, 0 },
+		{ 0, 0, 0, 0 }
 	};
 	glReadPixels(0, 0, 4, 4, GL_RGBA, GL_UNSIGNED_BYTE, &color);
 	EXPECT_NO_GL_ERROR();
 	bool allEqual = true;
-	for (int i = 0; i < 4; i++)
+	for(int i = 0; i < 4; i++)
 	{
-		for (int j = 0; j < 2; j++)
+		for(int j = 0; j < 2; j++)
 		{
 			allEqual = allEqual && (color[i][j] == tex_data[i][j]);
-			allEqual = allEqual && (color[i][j+2] == pixel_data[i][j+2]);
-			if (!allEqual)
+			allEqual = allEqual && (color[i][j + 2] == pixel_data[i][j + 2]);
+			if(!allEqual)
 				break;
 		}
-		if (!allEqual)
+		if(!allEqual)
 			break;
 	}
 	EXPECT_EQ(allEqual, true);
@@ -1074,7 +1073,7 @@ TEST_F(SwiftShaderTest, MatrixInStruct)
 	Initialize(2, false);
 
 	const std::string fs =
-		R"(#version 100
+	    R"(#version 100
 		precision mediump float;
 		struct S
 		{
@@ -1106,7 +1105,7 @@ TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 	EXPECT_NO_GL_ERROR();
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 position;
 		void main()
 		{
@@ -1114,7 +1113,7 @@ TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		struct SamplerStruct{ sampler2D tex[2]; };
 		vec4 doSample(in SamplerStruct s[2])
@@ -1156,7 +1155,7 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	Initialize(3, false);
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 position;
 		void main()
 		{
@@ -1164,7 +1163,7 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision mediump float;
 		const float kPI = 3.14159265358979323846;
 		uniform float positive_value;
@@ -1212,7 +1211,7 @@ TEST_F(SwiftShaderTest, TransformFeedback_DrawArraysInstanced)
 	Initialize(3, false);
 
 	std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in mediump vec2 vary;
 		out mediump vec4 color;
 		void main()
@@ -1220,7 +1219,7 @@ TEST_F(SwiftShaderTest, TransformFeedback_DrawArraysInstanced)
 			color = vec4(vary, 0.0, 1.0);
 		})";
 	std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		layout(location=0) in mediump vec2 pos;
 		out mediump vec2 vary;
 		void main()
@@ -1249,14 +1248,14 @@ TEST_F(SwiftShaderTest, TransformFeedback_BadViewport)
 	glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER, 1 << 12, nullptr, GL_STATIC_DRAW);
 
 	std::string vsSource =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 a_position;
 		void main()
 		{
 			gl_Position = a_position;
 		})";
 	std::string fsSource =
-		R"(#version 300 es
+	    R"(#version 300 es
 		precision highp float;
 		out vec4 my_FragColor;
 		void main()
@@ -1271,7 +1270,7 @@ TEST_F(SwiftShaderTest, TransformFeedback_BadViewport)
 	GLuint program = MakeProgram(vs, fs);
 
 	glTransformFeedbackVaryings(program, 1,
-			&varyings[0], GL_INTERLEAVED_ATTRIBS);
+	                            &varyings[0], GL_INTERLEAVED_ATTRIBS);
 	LinkProgram(program);
 	glUseProgram(program);
 
@@ -1286,12 +1285,24 @@ TEST_F(SwiftShaderTest, TransformFeedback_BadViewport)
 
 	GLint positionLocation = glGetAttribLocation(program, "a_position");
 	GLfloat quadVertices[] = {
-		-1.0f,  1.0f, 0.5f,
-		-1.0f, -1.0f, 0.5f,
-		 1.0f, -1.0f, 0.5f,
-		-1.0f,  1.0f, 0.5f,
-		 1.0f, -1.0f, 0.5f,
-		 1.0f,  1.0f, 0.5f,
+		-1.0f,
+		1.0f,
+		0.5f,
+		-1.0f,
+		-1.0f,
+		0.5f,
+		1.0f,
+		-1.0f,
+		0.5f,
+		-1.0f,
+		1.0f,
+		0.5f,
+		1.0f,
+		-1.0f,
+		0.5f,
+		1.0f,
+		1.0f,
+		0.5f,
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1345,12 +1356,11 @@ TEST_F(SwiftShaderTest, OutOfMemory)
 
 TEST_F(SwiftShaderTest, ViewportBounds)
 {
-	auto doRenderWithViewportSettings = [&](GLint x, GLint y, GLsizei w, GLsizei h)
-	{
+	auto doRenderWithViewportSettings = [&](GLint x, GLint y, GLsizei w, GLsizei h) {
 		Initialize(3, false);
 
 		std::string vs =
-			R"(#version 300 es
+		    R"(#version 300 es
 			in vec4 position;
 			out float unfoldable;
 			void main()
@@ -1360,7 +1370,7 @@ TEST_F(SwiftShaderTest, ViewportBounds)
 			})";
 
 		std::string fs =
-			R"(#version 300 es
+		    R"(#version 300 es
 			precision mediump float;
 			in float unfoldable;
 			out vec4 fragColor;
@@ -1598,14 +1608,14 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 	EXPECT_NO_GL_ERROR();
 
 	const std::string vs =
-		R"(attribute vec4 position;
+	    R"(attribute vec4 position;
 		void main()
 		{
 		    gl_Position = vec4(position.xy, 0.0, 1.0);
 		})";
 
 	const std::string fs =
-		R"(#extension GL_ARB_texture_rectangle : require
+	    R"(#extension GL_ARB_texture_rectangle : require
 		precision mediump float;
 		uniform sampler2DRect tex;
 		void main()
@@ -1649,7 +1659,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 	EXPECT_NO_GL_ERROR();
 
 	const std::string vs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		in vec4 position;
 		void main()
 		{
@@ -1657,7 +1667,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 		})";
 
 	const std::string fs =
-		R"(#version 300 es
+	    R"(#version 300 es
 		#extension GL_ARB_texture_rectangle : require
 		precision mediump float;
 		uniform sampler2DRect tex;
@@ -1808,21 +1818,21 @@ TEST_F(SwiftShaderTest, BlitTest)
 {
 	Initialize(3, false);
 
-	GLuint fbos[] = {0, 0};
+	GLuint fbos[] = { 0, 0 };
 	glGenFramebuffers(2, fbos);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbos[0]);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbos[1]);
 
-	GLuint textures[] = {0, 0};
+	GLuint textures[] = { 0, 0 };
 	glGenTextures(2, textures);
 
 	glBindTexture(GL_TEXTURE_2D, textures[0]);
 	unsigned char red[4][4] = {
-		{255, 0, 0, 255},
-		{255, 0, 0, 255},
-		{255, 0, 0, 255},
-		{255, 0, 0, 255}
+		{ 255, 0, 0, 255 },
+		{ 255, 0, 0, 255 },
+		{ 255, 0, 0, 255 },
+		{ 255, 0, 0, 255 }
 	};
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, red);
 	EXPECT_NO_GL_ERROR();
@@ -1832,10 +1842,10 @@ TEST_F(SwiftShaderTest, BlitTest)
 
 	glBindTexture(GL_TEXTURE_2D, textures[1]);
 	unsigned char black[4][4] = {
-		{0, 0, 0, 255},
-		{0, 0, 0, 255},
-		{0, 0, 0, 255},
-		{0, 0, 0, 255}
+		{ 0, 0, 0, 255 },
+		{ 0, 0, 0, 255 },
+		{ 0, 0, 0, 255 },
+		{ 0, 0, 0, 255 }
 	};
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, black);
 	EXPECT_NO_GL_ERROR();
@@ -1847,39 +1857,39 @@ TEST_F(SwiftShaderTest, BlitTest)
 	EXPECT_EQ(red[0][1], black[0][1]);
 
 	// Check that glBlitFramebuffer doesn't crash with ugly input.
-	const int big = (int) 2e9;
+	const int big = (int)2e9;
 	const int small = 200;
 	const int neg_small = -small;
 	const int neg_big = -big;
 	int max = 0x7fffffff;
 	int data[][8] = {
 		// sx0, sy0, sx1, sy1, dx0, dy0, dx1, dy1
-		{0, 0, 0, 0, 0, 0, 0, 0},
-		{-1, -1, -1, -1, -1, -1, -1, -1},
-		{1, 1, 1, 1, 1, 1, 1, 1},
-		{-1, -1, 1, 1, -1, -1, 1, 1},
-		{0, 0, 127, (int) 2e9, 10, 10, 200, 200},
-		{-2, -2, 127, 2147483470, 10, 10, 200, 200},
-		{big, small, small, big, big, big, small, small},
-		{neg_small, small, neg_small, neg_small, neg_small, big, small},
-		{big, big-1, big-2, big-3, big-4, big-5, big-6, big-7},
-		{big, neg_big, neg_big, big, small, big, 0, neg_small},
-		{323479648, 21931, 1769809195, 32733, 0, 0, -161640504, 32766},
-		{0, 0, max, max, 0, 0, 8, 8},
-		{0, 0, 8, 8, 0, 0, max, max},
-		{0, 0, max, max, 0, 0, max, max},
-		{-1, -1, max, max, 0, 0, 8, 8},
-		{0, 0, 8, 8, -1, -1, max, max},
-		{-1, -1, max, max, -1, -1, max, max},
-		{-max-1, -max-1, max, max, -max-1, -max-1, max, max}
+		{ 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ -1, -1, -1, -1, -1, -1, -1, -1 },
+		{ 1, 1, 1, 1, 1, 1, 1, 1 },
+		{ -1, -1, 1, 1, -1, -1, 1, 1 },
+		{ 0, 0, 127, (int)2e9, 10, 10, 200, 200 },
+		{ -2, -2, 127, 2147483470, 10, 10, 200, 200 },
+		{ big, small, small, big, big, big, small, small },
+		{ neg_small, small, neg_small, neg_small, neg_small, big, small },
+		{ big, big - 1, big - 2, big - 3, big - 4, big - 5, big - 6, big - 7 },
+		{ big, neg_big, neg_big, big, small, big, 0, neg_small },
+		{ 323479648, 21931, 1769809195, 32733, 0, 0, -161640504, 32766 },
+		{ 0, 0, max, max, 0, 0, 8, 8 },
+		{ 0, 0, 8, 8, 0, 0, max, max },
+		{ 0, 0, max, max, 0, 0, max, max },
+		{ -1, -1, max, max, 0, 0, 8, 8 },
+		{ 0, 0, 8, 8, -1, -1, max, max },
+		{ -1, -1, max, max, -1, -1, max, max },
+		{ -max - 1, -max - 1, max, max, -max - 1, -max - 1, max, max }
 	};
 
-	for (int i = 0; i < (int) (sizeof(data)/sizeof(data[0])); i++)
+	for(int i = 0; i < (int)(sizeof(data) / sizeof(data[0])); i++)
 	{
 		glBlitFramebuffer(
-				data[i][0], data[i][1], data[i][2], data[i][3],
-				data[i][4], data[i][5], data[i][6], data[i][7],
-				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		    data[i][0], data[i][1], data[i][2], data[i][3],
+		    data[i][4], data[i][5], data[i][6], data[i][7],
+		    GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		// Ignore error state, just make sure that we don't crash on these inputs.
 	}
 
@@ -1923,20 +1933,19 @@ TEST_F(SwiftShaderTest, InvalidEnum_TexImage2D)
 TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedIfs)
 {
 	std::string body = "return 1.0;";
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		body = "  if (f > " + std::to_string(i * 0.1f) + ") {\n" + body + "}\n";
 	}
 
 	checkCompiles(
-		"float F(float f) {\n" + body + "  return 0.0f;\n}\n"
-	);
+	    "float F(float f) {\n" + body + "  return 0.0f;\n}\n");
 }
 
 TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedSwitches)
 {
 	std::string body = "return 1.0;";
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		body = "  switch (int(f)) {\n case 1:\n  f *= 2.0;\n" + body + "}\n";
 	}
@@ -1947,25 +1956,25 @@ TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedSwitches)
 TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedLoops)
 {
 	std::string loops = "f = f + f * 2.0;";
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		auto it = "l" + std::to_string(i);
 		loops = "  for (int " + it + " = 0; " + it + " < i; " + it + "++) {\n" + loops + "}\n";
 	}
 
 	checkCompiles(
-		"float F(float f) {\n"
-		"  int i = (f > 0.0) ? 1 : 0;\n" + loops +
-		"  return f;\n"
-		"}\n"
-	);
+	    "float F(float f) {\n"
+	    "  int i = (f > 0.0) ? 1 : 0;\n" +
+	    loops +
+	    "  return f;\n"
+	    "}\n");
 }
 
 TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCalls)
 {
 	std::string funcs = "float E(float f) { return f * 2.0f; }\n";
 	std::string last = "E";
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		std::string f = "C" + std::to_string(i);
 		funcs += "float " + f + "(float f) { return " + last + "(f) + 1.0f; }\n";
@@ -1973,29 +1982,28 @@ TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCalls)
 	}
 
 	checkCompiles(funcs +
-		"float F(float f) { return " + last + "(f); }\n"
-	);
+	              "float F(float f) { return " + last + "(f); }\n");
 }
 
 TEST_F(SwiftShaderTest, CompilerLimits_ManyCallSites)
 {
 	std::string calls;
-	for (int i = 0; i < 256; i++)
+	for(int i = 0; i < 256; i++)
 	{
 		calls += "  f += C(f);\n";
 	}
 
 	checkCompiles(
-		"float C(float f) { return f * 2.0f; }\n"
-		"float F(float f) {\n" + calls + "  return f;\n}\n"
-	);
+	    "float C(float f) { return f * 2.0f; }\n"
+	    "float F(float f) {\n" +
+	    calls + "  return f;\n}\n");
 }
 
 TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCallsInUnusedFunction)
 {
 	std::string funcs = "float E(float f) { return f * 2.0f; }\n";
 	std::string last = "E";
-	for (int i = 0; i < 16; i++)
+	for(int i = 0; i < 16; i++)
 	{
 		std::string f = "C" + std::to_string(i);
 		funcs += "float " + f + "(float f) { return " + last + "(f) + 1.0f; }\n";
@@ -2003,8 +2011,7 @@ TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCallsInUnusedFunction)
 	}
 
 	checkCompiles(funcs +
-		"float F(float f) { return f; }\n"
-	);
+	              "float F(float f) { return f; }\n");
 }
 
 // Test that the compiler correctly handles functions being stripped.
@@ -2014,13 +2021,12 @@ TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCallsInUnusedFunction)
 TEST_F(SwiftShaderTest, CompilerLimits_SparseLabels)
 {
 	checkCompiles(
-		R"(void Dead1() {}
+	    R"(void Dead1() {}
 		void Dead2() {}
 		void Dead3() {}
 		void Dead4() {}
 		void Dead5() { Dead1(); Dead2(); Dead3(); Dead4(); }
-		float F(float f) { for(int i = 0; i < -1; ++i) { Dead5(); } return f; })"
-	);
+		float F(float f) { for(int i = 0; i < -1; ++i) { Dead5(); } return f; })");
 }
 
 // Test that the compiler doesn't compile arrays larger than
@@ -2028,10 +2034,10 @@ TEST_F(SwiftShaderTest, CompilerLimits_SparseLabels)
 TEST_F(SwiftShaderTest, CompilerLimits_ArraySize)
 {
 	checkCompileFails(
-		R"(uniform float u_var[100000000];
+	    R"(uniform float u_var[100000000];
 		float F(float f) { return u_var[2]; })");
 	checkCompileFails(
-		R"(struct structType { mediump sampler2D m0; mediump samplerCube m1; };
+	    R"(struct structType { mediump sampler2D m0; mediump samplerCube m1; };
 		uniform structType u_var[100000000];
 		float F(float f) { return texture(u_var[2].m1, vec3(0.0)), vec4(0.26, 1.72, 0.60, 0.12).x; })");
 }
@@ -2040,52 +2046,46 @@ TEST_F(SwiftShaderTest, CompilerLimits_ArraySize)
 TEST_F(SwiftShaderTest, BadNegation)
 {
 	checkCompileFails(
-		R"(uniform samplerCube m;
-		float F (float f) { vec4 ret = texture(-m, vec3(f)); return ret.x; })"
-	);
+	    R"(uniform samplerCube m;
+		float F (float f) { vec4 ret = texture(-m, vec3(f)); return ret.x; })");
 	checkCompileFails(
-		R"(uniform sampler2D m[9];
+	    R"(uniform sampler2D m[9];
 		vec4 G (sampler2D X[9]) { return texture(X[0], vec2(0.0f)); }
-		float F (float f) { vec4 ret = G(-m); return ret.x; })"
-	);
+		float F (float f) { vec4 ret = G(-m); return ret.x; })");
 	checkCompileFails(
-		R"(struct structType { int a; float b; };
+	    R"(struct structType { int a; float b; };
 		uniform structType m;
-		float F (float f) { structType n = -m; return f; })"
-	);
+		float F (float f) { structType n = -m; return f; })");
 	checkCompileFails(
-		R"(struct structType { int a; float b; };
+	    R"(struct structType { int a; float b; };
 		uniform structType m[4];
-		float F (float f) { structType n[4] = -m; return f; })"
-	);
+		float F (float f) { structType n[4] = -m; return f; })");
 	checkCompileFails(
-		R"(uniform float m[4];
+	    R"(uniform float m[4];
 		float G (float f[4]) { return f[0]; }
-		float F (float f) { return G(-m); })"
-	);
+		float F (float f) { return G(-m); })");
 }
 
 #ifndef EGL_ANGLE_iosurface_client_buffer
-#define EGL_ANGLE_iosurface_client_buffer 1
-#define EGL_IOSURFACE_ANGLE 0x3454
-#define EGL_IOSURFACE_PLANE_ANGLE 0x345A
-#define EGL_TEXTURE_RECTANGLE_ANGLE 0x345B
-#define EGL_TEXTURE_TYPE_ANGLE 0x345C
-#define EGL_TEXTURE_INTERNAL_FORMAT_ANGLE 0x345D
+#	define EGL_ANGLE_iosurface_client_buffer 1
+#	define EGL_IOSURFACE_ANGLE 0x3454
+#	define EGL_IOSURFACE_PLANE_ANGLE 0x345A
+#	define EGL_TEXTURE_RECTANGLE_ANGLE 0x345B
+#	define EGL_TEXTURE_TYPE_ANGLE 0x345C
+#	define EGL_TEXTURE_INTERNAL_FORMAT_ANGLE 0x345D
 #endif /* EGL_ANGLE_iosurface_client_buffer */
 
 #if defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
-#include <IOSurface/IOSurface.h>
+#	include <CoreFoundation/CoreFoundation.h>
+#	include <IOSurface/IOSurface.h>
 
-namespace
+namespace {
+void AddIntegerValue(CFMutableDictionaryRef dictionary, const CFStringRef key, int32_t value)
 {
-	void AddIntegerValue(CFMutableDictionaryRef dictionary, const CFStringRef key, int32_t value)
-	{
-		CFNumberRef number = CFNumberCreate(nullptr, kCFNumberSInt32Type, &value);
-		CFDictionaryAddValue(dictionary, key, number);
-		CFRelease(number);
-	}
+	CFNumberRef number = CFNumberCreate(nullptr, kCFNumberSInt32Type, &value);
+	CFDictionaryAddValue(dictionary, key, number);
+	CFRelease(number);
+}
 }  // anonymous namespace
 
 class EGLClientBufferWrapper
@@ -2097,7 +2097,7 @@ public:
 		ioSurface = nullptr;
 
 		CFMutableDictionaryRef dict = CFDictionaryCreateMutable(
-			kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+		    kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 		AddIntegerValue(dict, kIOSurfaceWidth, width);
 		AddIntegerValue(dict, kIOSurfaceHeight, height);
 		AddIntegerValue(dict, kIOSurfacePixelFormat, 'BGRA');
@@ -2121,10 +2121,10 @@ public:
 		return ioSurface;
 	}
 
-	const unsigned char* lockColor()
+	const unsigned char *lockColor()
 	{
 		IOSurfaceLock(ioSurface, kIOSurfaceLockReadOnly, nullptr);
-		return reinterpret_cast<const unsigned char*>(IOSurfaceGetBaseAddress(ioSurface));
+		return reinterpret_cast<const unsigned char *>(IOSurfaceGetBaseAddress(ioSurface));
 	}
 
 	void unlockColor()
@@ -2132,18 +2132,19 @@ public:
 		IOSurfaceUnlock(ioSurface, kIOSurfaceLockReadOnly, nullptr);
 	}
 
-	void writeColor(void* data, size_t dataSize)
+	void writeColor(void *data, size_t dataSize)
 	{
 		// Write the data to the IOSurface
 		IOSurfaceLock(ioSurface, 0, nullptr);
 		memcpy(IOSurfaceGetBaseAddress(ioSurface), data, dataSize);
 		IOSurfaceUnlock(ioSurface, 0, nullptr);
 	}
+
 private:
 	IOSurfaceRef ioSurface;
 };
 
-#else // __APPLE__
+#else  // __APPLE__
 
 class EGLClientBufferWrapper
 {
@@ -2163,7 +2164,7 @@ public:
 		return clientBuffer;
 	}
 
-	const unsigned char* lockColor()
+	const unsigned char *lockColor()
 	{
 		return clientBuffer;
 	}
@@ -2172,12 +2173,13 @@ public:
 	{
 	}
 
-	void writeColor(void* data, size_t dataSize)
+	void writeColor(void *data, size_t dataSize)
 	{
 		memcpy(clientBuffer, data, dataSize);
 	}
+
 private:
-	unsigned char* clientBuffer;
+	unsigned char *clientBuffer;
 };
 
 #endif
@@ -2189,14 +2191,22 @@ protected:
 	{
 		// Make a PBuffer from it using the EGL_ANGLE_iosurface_client_buffer extension
 		const EGLint attribs[] = {
-			EGL_WIDTH,                         width,
-			EGL_HEIGHT,                        height,
-			EGL_IOSURFACE_PLANE_ANGLE,         plane,
-			EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-			EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, (EGLint)internalFormat,
-			EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-			EGL_TEXTURE_TYPE_ANGLE,            (EGLint)type,
-			EGL_NONE,                          EGL_NONE,
+			EGL_WIDTH,
+			width,
+			EGL_HEIGHT,
+			height,
+			EGL_IOSURFACE_PLANE_ANGLE,
+			plane,
+			EGL_TEXTURE_TARGET,
+			EGL_TEXTURE_RECTANGLE_ANGLE,
+			EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+			(EGLint)internalFormat,
+			EGL_TEXTURE_FORMAT,
+			EGL_TEXTURE_RGBA,
+			EGL_TEXTURE_TYPE_ANGLE,
+			(EGLint)type,
+			EGL_NONE,
+			EGL_NONE,
 		};
 
 		EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, buffer, getConfig(), attribs);
@@ -2226,16 +2236,16 @@ protected:
 		else
 		{
 			glClearColor(clearToZero ? 0.0f : 1.0f / 255.0f,
-				clearToZero ? 0.0f : 2.0f / 255.0f,
-				clearToZero ? 0.0f : 3.0f / 255.0f,
-				clearToZero ? 0.0f : 4.0f / 255.0f);
+			             clearToZero ? 0.0f : 2.0f / 255.0f,
+			             clearToZero ? 0.0f : 3.0f / 255.0f,
+			             clearToZero ? 0.0f : 4.0f / 255.0f);
 			EXPECT_NO_GL_ERROR();
 			glClear(GL_COLOR_BUFFER_BIT);
 			EXPECT_NO_GL_ERROR();
 		}
 	}
 
-	void doClearTest(EGLClientBufferWrapper& clientBufferWrapper, GLenum internalFormat, GLenum type, void *data, size_t dataSize)
+	void doClearTest(EGLClientBufferWrapper &clientBufferWrapper, GLenum internalFormat, GLenum type, void *data, size_t dataSize)
 	{
 		ASSERT_TRUE(dataSize <= 4);
 
@@ -2260,10 +2270,10 @@ protected:
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
 		EXPECT_NO_EGL_ERROR();
 
-		const unsigned char* color = clientBufferWrapper.lockColor();
+		const unsigned char *color = clientBufferWrapper.lockColor();
 		for(size_t i = 0; i < dataSize; ++i)
 		{
-			EXPECT_EQ(color[i], reinterpret_cast<unsigned char*>(data)[i]);
+			EXPECT_EQ(color[i], reinterpret_cast<unsigned char *>(data)[i]);
 		}
 
 		result = eglDestroySurface(getDisplay(), pbuffer);
@@ -2271,7 +2281,7 @@ protected:
 		EXPECT_NO_EGL_ERROR();
 	}
 
-	void doSampleTest(EGLClientBufferWrapper& clientBufferWrapper, GLenum internalFormat, GLenum type, void *data, size_t dataSize)
+	void doSampleTest(EGLClientBufferWrapper &clientBufferWrapper, GLenum internalFormat, GLenum type, void *data, size_t dataSize)
 	{
 		ASSERT_TRUE(dataSize <= 4);
 
@@ -2286,14 +2296,14 @@ protected:
 
 		// Create program and draw quad using it
 		const std::string vs =
-			R"(attribute vec4 position;
+		    R"(attribute vec4 position;
 			void main()
 			{
 			    gl_Position = vec4(position.xy, 0.0, 1.0);
 			})";
 
 		const std::string fs =
-			R"(#extension GL_ARB_texture_rectangle : require
+		    R"(#extension GL_ARB_texture_rectangle : require
 			precision mediump float;
 			uniform sampler2DRect tex;
 			void main()
@@ -2313,10 +2323,10 @@ protected:
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, result);
 		EXPECT_NO_EGL_ERROR();
 
-		const unsigned char* color = clientBufferWrapper.lockColor();
+		const unsigned char *color = clientBufferWrapper.lockColor();
 		for(size_t i = 0; i < dataSize; ++i)
 		{
-			EXPECT_EQ(color[i], reinterpret_cast<unsigned char*>(data)[i]);
+			EXPECT_EQ(color[i], reinterpret_cast<unsigned char *>(data)[i]);
 		}
 		clientBufferWrapper.unlockColor();
 	}
@@ -2327,11 +2337,11 @@ TEST_F(IOSurfaceClientBufferTest, RenderToBGRA8888IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[4] = { 3, 2, 1, 4 };
 		doClearTest(clientBufferWrapper, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data, 4);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2341,11 +2351,11 @@ TEST_F(IOSurfaceClientBufferTest, ReadFromBGRA8888IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[4] = { 3, 2, 1, 4 };
 		doSampleTest(clientBufferWrapper, GL_BGRA_EXT, GL_UNSIGNED_BYTE, data, 4);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2355,11 +2365,11 @@ TEST_F(IOSurfaceClientBufferTest, RenderToRGBX8888IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[3] = { 1, 2, 3 };
 		doClearTest(clientBufferWrapper, GL_RGB, GL_UNSIGNED_BYTE, data, 3);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2369,11 +2379,11 @@ TEST_F(IOSurfaceClientBufferTest, ReadFromRGBX8888IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[3] = { 1, 2, 3 };
 		doSampleTest(clientBufferWrapper, GL_RGB, GL_UNSIGNED_BYTE, data, 3);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2383,11 +2393,11 @@ TEST_F(IOSurfaceClientBufferTest, RenderToRG88IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[2] = { 1, 2 };
 		doClearTest(clientBufferWrapper, GL_RG, GL_UNSIGNED_BYTE, data, 2);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2397,11 +2407,11 @@ TEST_F(IOSurfaceClientBufferTest, ReadFromRG88IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[2] = { 1, 2 };
 		doSampleTest(clientBufferWrapper, GL_RG, GL_UNSIGNED_BYTE, data, 2);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2411,11 +2421,11 @@ TEST_F(IOSurfaceClientBufferTest, RenderToR8IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[1] = { 1 };
 		doClearTest(clientBufferWrapper, GL_RED, GL_UNSIGNED_BYTE, data, 1);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2425,11 +2435,11 @@ TEST_F(IOSurfaceClientBufferTest, ReadFromR8IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		unsigned char data[1] = { 1 };
 		doSampleTest(clientBufferWrapper, GL_RED, GL_UNSIGNED_BYTE, data, 1);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2439,11 +2449,11 @@ TEST_F(IOSurfaceClientBufferTest, RenderToR16IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		uint16_t data[1] = { 257 };
 		doClearTest(clientBufferWrapper, GL_R16UI, GL_UNSIGNED_SHORT, data, 2);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2453,11 +2463,11 @@ TEST_F(IOSurfaceClientBufferTest, ReadFromR16IOSurface)
 {
 	Initialize(3, false);
 
-	{ // EGLClientBufferWrapper scope
+	{  // EGLClientBufferWrapper scope
 		EGLClientBufferWrapper clientBufferWrapper;
 		uint16_t data[1] = { 257 };
 		doSampleTest(clientBufferWrapper, GL_R16UI, GL_UNSIGNED_SHORT, data, 1);
-	} // end of EGLClientBufferWrapper scope
+	}  // end of EGLClientBufferWrapper scope
 
 	Uninitialize();
 }
@@ -2474,14 +2484,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// Success case
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2495,13 +2513,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// Missing EGL_WIDTH
 		{
 			const EGLint attribs[] = {
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2512,13 +2537,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// Missing EGL_HEIGHT
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2529,13 +2561,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// Missing EGL_IOSURFACE_PLANE_ANGLE
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2547,13 +2586,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// eglCreatePbufferFromClientBuffer
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2564,13 +2610,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// Missing EGL_TEXTURE_INTERNAL_FORMAT_ANGLE
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2582,13 +2635,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// eglCreatePbufferFromClientBuffer
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2599,13 +2659,20 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationMissingAttributes)
 		// Missing EGL_TEXTURE_TYPE_ANGLE
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2628,14 +2695,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// Success case
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2649,14 +2724,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_TEXTURE_FORMAT must be EGL_TEXTURE_RGBA
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGB,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGB,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2667,14 +2750,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_WIDTH must be at least 1
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         0,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				0,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2685,14 +2776,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_HEIGHT must be at least 1
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        0,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				0,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2704,14 +2803,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_WIDTH must be at most the width of the IOSurface
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         11,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				11,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2722,14 +2829,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_HEIGHT must be at most the height of the IOSurface
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        11,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				11,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2740,14 +2855,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_IOSURFACE_PLANE_ANGLE must less than the number of planes of the IOSurface
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         1,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				1,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2759,14 +2882,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_TEXTURE_FORMAT must be at EGL_TEXTURE_RECTANGLE_ANGLE
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_2D,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_2D,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2777,14 +2908,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// EGL_IOSURFACE_PLANE_ANGLE must be at least 0
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         -1,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_BGRA_EXT,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				-1,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_BGRA_EXT,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2795,14 +2934,22 @@ TEST_F(IOSurfaceClientBufferTest, NegativeValidationBadAttributes)
 		// The internal format / type most be listed in the table
 		{
 			const EGLint attribs[] = {
-				EGL_WIDTH,                         10,
-				EGL_HEIGHT,                        10,
-				EGL_IOSURFACE_PLANE_ANGLE,         0,
-				EGL_TEXTURE_TARGET,                EGL_TEXTURE_RECTANGLE_ANGLE,
-				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE, GL_RGBA,
-				EGL_TEXTURE_FORMAT,                EGL_TEXTURE_RGBA,
-				EGL_TEXTURE_TYPE_ANGLE,            GL_UNSIGNED_BYTE,
-				EGL_NONE,                          EGL_NONE,
+				EGL_WIDTH,
+				10,
+				EGL_HEIGHT,
+				10,
+				EGL_IOSURFACE_PLANE_ANGLE,
+				0,
+				EGL_TEXTURE_TARGET,
+				EGL_TEXTURE_RECTANGLE_ANGLE,
+				EGL_TEXTURE_INTERNAL_FORMAT_ANGLE,
+				GL_RGBA,
+				EGL_TEXTURE_FORMAT,
+				EGL_TEXTURE_RGBA,
+				EGL_TEXTURE_TYPE_ANGLE,
+				GL_UNSIGNED_BYTE,
+				EGL_NONE,
+				EGL_NONE,
 			};
 
 			EGLSurface pbuffer = eglCreatePbufferFromClientBuffer(getDisplay(), EGL_IOSURFACE_ANGLE, clientBufferWrapper.getClientBuffer(), getConfig(), attribs);
@@ -2831,4 +2978,3 @@ TEST_F(IOSurfaceClientBufferTest, MakeCurrentAllowed)
 
 	Uninitialize();
 }
-

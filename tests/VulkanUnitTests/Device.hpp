@@ -35,7 +35,7 @@ public:
 	// returned (as there was no Vulkan error), but calling Device::IsValid()
 	// on this device will return false.
 	static VkResult CreateComputeDevice(
-			Driver const *driver, VkInstance instance, std::unique_ptr<Device>& out);
+	    Driver const *driver, VkInstance instance, std::unique_ptr<Device> &out);
 
 	// IsValid returns true if the Device is initialized and can be used.
 	bool IsValid() const;
@@ -44,7 +44,7 @@ public:
 	// VK_BUFFER_USAGE_STORAGE_BUFFER_BIT usage, and
 	// VK_SHARING_MODE_EXCLUSIVE sharing mode.
 	VkResult CreateStorageBuffer(VkDeviceMemory memory, VkDeviceSize size,
-			VkDeviceSize offset, VkBuffer *out) const;
+	                             VkDeviceSize offset, VkBuffer *out) const;
 
 	// DestroyBuffer destroys a VkBuffer.
 	void DestroyBuffer(VkBuffer buffer) const;
@@ -52,7 +52,7 @@ public:
 	// CreateShaderModule creates a new shader module with the given SPIR-V
 	// code.
 	VkResult CreateShaderModule(const std::vector<uint32_t> &spirv,
-			VkShaderModule *out) const;
+	                            VkShaderModule *out) const;
 
 	// DestroyShaderModule destroys a VkShaderModule.
 	void DestroyShaderModule(VkShaderModule shaderModule) const;
@@ -60,15 +60,15 @@ public:
 	// CreateDescriptorSetLayout creates a new descriptor set layout with the
 	// given bindings.
 	VkResult CreateDescriptorSetLayout(
-			const std::vector<VkDescriptorSetLayoutBinding> &bindings,
-			VkDescriptorSetLayout *out) const;
+	    const std::vector<VkDescriptorSetLayoutBinding> &bindings,
+	    VkDescriptorSetLayout *out) const;
 
 	// DestroyDescriptorSetLayout destroys a VkDescriptorSetLayout.
 	void DestroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout) const;
 
 	// CreatePipelineLayout creates a new single set descriptor set layout.
 	VkResult CreatePipelineLayout(VkDescriptorSetLayout layout,
-			VkPipelineLayout *out) const;
+	                              VkPipelineLayout *out) const;
 
 	// DestroyPipelineLayout destroys a VkPipelineLayout.
 	void DestroyPipelineLayout(VkPipelineLayout pipelineLayout) const;
@@ -76,8 +76,8 @@ public:
 	// CreateComputePipeline creates a new compute pipeline with the entry point
 	// "main".
 	VkResult CreateComputePipeline(VkShaderModule module,
-			VkPipelineLayout pipelineLayout,
-			VkPipeline *out) const;
+	                               VkPipelineLayout pipelineLayout,
+	                               VkPipeline *out) const;
 
 	// DestroyPipeline destroys a graphics or compute pipeline.
 	void DestroyPipeline(VkPipeline pipeline) const;
@@ -85,7 +85,7 @@ public:
 	// CreateStorageBufferDescriptorPool creates a new descriptor pool that can
 	// hold descriptorCount storage buffers.
 	VkResult CreateStorageBufferDescriptorPool(uint32_t descriptorCount,
-			VkDescriptorPool *out) const;
+	                                           VkDescriptorPool *out) const;
 
 	// DestroyDescriptorPool destroys the VkDescriptorPool.
 	void DestroyDescriptorPool(VkDescriptorPool descriptorPool) const;
@@ -93,38 +93,38 @@ public:
 	// AllocateDescriptorSet allocates a single descriptor set with the given
 	// layout from pool.
 	VkResult AllocateDescriptorSet(VkDescriptorPool pool,
-			VkDescriptorSetLayout layout,
-			VkDescriptorSet *out) const;
+	                               VkDescriptorSetLayout layout,
+	                               VkDescriptorSet *out) const;
 
 	// UpdateStorageBufferDescriptorSets updates the storage buffers in
 	// descriptorSet with the given list of VkDescriptorBufferInfos.
 	void UpdateStorageBufferDescriptorSets(VkDescriptorSet descriptorSet,
-		const std::vector<VkDescriptorBufferInfo> &bufferInfos) const;
+	                                       const std::vector<VkDescriptorBufferInfo> &bufferInfos) const;
 
 	// AllocateMemory allocates size bytes from a memory heap that has all the
 	// given flag bits set.
 	// If memory could not be allocated from any heap then
 	// VK_ERROR_OUT_OF_DEVICE_MEMORY is returned.
-	VkResult AllocateMemory(size_t size, VkMemoryPropertyFlags flags, VkDeviceMemory* out) const;
+	VkResult AllocateMemory(size_t size, VkMemoryPropertyFlags flags, VkDeviceMemory *out) const;
 
 	// FreeMemory frees the VkDeviceMemory.
 	void FreeMemory(VkDeviceMemory memory) const;
 
 	// MapMemory wraps vkMapMemory, supplying the first VkDevice parameter.
 	VkResult MapMemory(VkDeviceMemory memory, VkDeviceSize offset,
-			VkDeviceSize size, VkMemoryMapFlags flags, void **ppData) const;
+	                   VkDeviceSize size, VkMemoryMapFlags flags, void **ppData) const;
 
 	// UnmapMemory wraps vkUnmapMemory, supplying the first VkDevice parameter.
 	void UnmapMemory(VkDeviceMemory memory) const;
 
 	// CreateCommandPool creates a new command pool.
-	VkResult CreateCommandPool(VkCommandPool* out) const;
+	VkResult CreateCommandPool(VkCommandPool *out) const;
 
 	// DestroyCommandPool destroys a VkCommandPool.
 	void DestroyCommandPool(VkCommandPool commandPool) const;
 
 	// AllocateCommandBuffer creates a new command buffer with a primary level.
-	VkResult AllocateCommandBuffer(VkCommandPool pool, VkCommandBuffer* out) const;
+	VkResult AllocateCommandBuffer(VkCommandPool pool, VkCommandBuffer *out) const;
 
 	// FreeCommandBuffer frees the VkCommandBuffer.
 	void FreeCommandBuffer(VkCommandPool pool, VkCommandBuffer buffer);
@@ -137,19 +137,18 @@ public:
 	VkResult QueueSubmitAndWait(VkCommandBuffer commandBuffer) const;
 
 	static VkResult GetPhysicalDevices(
-			Driver const *driver, VkInstance instance,
-			std::vector<VkPhysicalDevice> &out);
+	    Driver const *driver, VkInstance instance,
+	    std::vector<VkPhysicalDevice> &out);
 
 	static int GetComputeQueueFamilyIndex(
-			Driver const *driver, VkPhysicalDevice device);
+	    Driver const *driver, VkPhysicalDevice device);
 
 private:
 	Device(Driver const *driver, VkDevice device, VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex);
 
-
 	static std::vector<VkQueueFamilyProperties>
-		GetPhysicalDeviceQueueFamilyProperties(
-			Driver const *driver, VkPhysicalDevice device);
+	GetPhysicalDeviceQueueFamilyProperties(
+	    Driver const *driver, VkPhysicalDevice device);
 
 	Driver const *driver;
 	VkDevice device;

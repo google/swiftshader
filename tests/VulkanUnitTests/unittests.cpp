@@ -15,24 +15,23 @@
 // Vulkan unit tests that provide coverage for functionality not tested by
 // the dEQP test suite. Also used as a smoke test.
 
-#include "Driver.hpp"
 #include "Device.hpp"
+#include "Driver.hpp"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include "spirv-tools/libspirv.hpp"
 
-#include <sstream>
 #include <cstring>
+#include <sstream>
 
-namespace
+namespace {
+size_t alignUp(size_t val, size_t alignment)
 {
-    size_t alignUp(size_t val, size_t alignment)
-    {
-        return alignment * ((val + alignment - 1) / alignment);
-    }
-} // anonymous namespace
+	return alignment * ((val + alignment - 1) / alignment);
+}
+}  // anonymous namespace
 
 class SwiftShaderVulkanTest : public testing::Test
 {
@@ -40,69 +39,69 @@ class SwiftShaderVulkanTest : public testing::Test
 
 TEST_F(SwiftShaderVulkanTest, ICD_Check)
 {
-    Driver driver;
-    ASSERT_TRUE(driver.loadSwiftShader());
+	Driver driver;
+	ASSERT_TRUE(driver.loadSwiftShader());
 
-    auto createInstance = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkCreateInstance");
-    EXPECT_NE(createInstance, nullptr);
+	auto createInstance = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkCreateInstance");
+	EXPECT_NE(createInstance, nullptr);
 
-    auto enumerateInstanceExtensionProperties =
-        driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceExtensionProperties");
-    EXPECT_NE(enumerateInstanceExtensionProperties, nullptr);
+	auto enumerateInstanceExtensionProperties =
+	    driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceExtensionProperties");
+	EXPECT_NE(enumerateInstanceExtensionProperties, nullptr);
 
-    auto enumerateInstanceLayerProperties =
-        driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceLayerProperties");
-    EXPECT_NE(enumerateInstanceLayerProperties, nullptr);
+	auto enumerateInstanceLayerProperties =
+	    driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceLayerProperties");
+	EXPECT_NE(enumerateInstanceLayerProperties, nullptr);
 
-    auto enumerateInstanceVersion = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceVersion");
-    EXPECT_NE(enumerateInstanceVersion, nullptr);
+	auto enumerateInstanceVersion = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceVersion");
+	EXPECT_NE(enumerateInstanceVersion, nullptr);
 
-    auto bad_function = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "bad_function");
-    EXPECT_EQ(bad_function, nullptr);
+	auto bad_function = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "bad_function");
+	EXPECT_EQ(bad_function, nullptr);
 }
 
 TEST_F(SwiftShaderVulkanTest, Version)
 {
-    Driver driver;
-    ASSERT_TRUE(driver.loadSwiftShader());
+	Driver driver;
+	ASSERT_TRUE(driver.loadSwiftShader());
 
-    uint32_t apiVersion = 0;
-    VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
-    EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
+	uint32_t apiVersion = 0;
+	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
+	EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
 
-    const VkInstanceCreateInfo createInfo = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
-        nullptr,                                 // pNext
-        0,                                       // flags
-        nullptr,                                 // pApplicationInfo
-        0,                                       // enabledLayerCount
-        nullptr,                                 // ppEnabledLayerNames
-        0,                                       // enabledExtensionCount
-        nullptr,                                 // ppEnabledExtensionNames
-    };
-    VkInstance instance = VK_NULL_HANDLE;
-    result = driver.vkCreateInstance(&createInfo, nullptr, &instance);
-    EXPECT_EQ(result, VK_SUCCESS);
+	const VkInstanceCreateInfo createInfo = {
+		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
+		nullptr,                                 // pNext
+		0,                                       // flags
+		nullptr,                                 // pApplicationInfo
+		0,                                       // enabledLayerCount
+		nullptr,                                 // ppEnabledLayerNames
+		0,                                       // enabledExtensionCount
+		nullptr,                                 // ppEnabledExtensionNames
+	};
+	VkInstance instance = VK_NULL_HANDLE;
+	result = driver.vkCreateInstance(&createInfo, nullptr, &instance);
+	EXPECT_EQ(result, VK_SUCCESS);
 
-    ASSERT_TRUE(driver.resolve(instance));
+	ASSERT_TRUE(driver.resolve(instance));
 
-    uint32_t pPhysicalDeviceCount = 0;
-    result = driver.vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, nullptr);
-    EXPECT_EQ(result, VK_SUCCESS);
-    EXPECT_EQ(pPhysicalDeviceCount, 1U);
+	uint32_t pPhysicalDeviceCount = 0;
+	result = driver.vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, nullptr);
+	EXPECT_EQ(result, VK_SUCCESS);
+	EXPECT_EQ(pPhysicalDeviceCount, 1U);
 
-    VkPhysicalDevice pPhysicalDevice = VK_NULL_HANDLE;
-    result = driver.vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, &pPhysicalDevice);
-    EXPECT_EQ(result, VK_SUCCESS);
-    EXPECT_NE(pPhysicalDevice, (VkPhysicalDevice)VK_NULL_HANDLE);
+	VkPhysicalDevice pPhysicalDevice = VK_NULL_HANDLE;
+	result = driver.vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, &pPhysicalDevice);
+	EXPECT_EQ(result, VK_SUCCESS);
+	EXPECT_NE(pPhysicalDevice, (VkPhysicalDevice)VK_NULL_HANDLE);
 
-    VkPhysicalDeviceProperties physicalDeviceProperties;
-    driver.vkGetPhysicalDeviceProperties(pPhysicalDevice, &physicalDeviceProperties);
-    EXPECT_EQ(physicalDeviceProperties.apiVersion, (uint32_t)VK_API_VERSION_1_1);
-    EXPECT_EQ(physicalDeviceProperties.deviceID, 0xC0DEU);
-    EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
+	VkPhysicalDeviceProperties physicalDeviceProperties;
+	driver.vkGetPhysicalDeviceProperties(pPhysicalDevice, &physicalDeviceProperties);
+	EXPECT_EQ(physicalDeviceProperties.apiVersion, (uint32_t)VK_API_VERSION_1_1);
+	EXPECT_EQ(physicalDeviceProperties.deviceID, 0xC0DEU);
+	EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
 
-    EXPECT_NE(strstr(physicalDeviceProperties.deviceName, "SwiftShader Device"), nullptr);
+	EXPECT_NE(strstr(physicalDeviceProperties.deviceName, "SwiftShader Device"), nullptr);
 
 	VkPhysicalDeviceProperties2 physicalDeviceProperties2;
 	VkPhysicalDeviceDriverPropertiesKHR physicalDeviceDriverProperties;
@@ -119,142 +118,141 @@ TEST_F(SwiftShaderVulkanTest, Version)
 
 TEST_F(SwiftShaderVulkanTest, UnsupportedDeviceExtension)
 {
-    Driver driver;
-    ASSERT_TRUE(driver.loadSwiftShader());
+	Driver driver;
+	ASSERT_TRUE(driver.loadSwiftShader());
 
-    uint32_t apiVersion = 0;
-    VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
-    EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
+	uint32_t apiVersion = 0;
+	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
+	EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
 
-    const VkInstanceCreateInfo createInfo = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
-        nullptr,                                 // pNext
-        0,                                       // flags
-        nullptr,                                 // pApplicationInfo
-        0,                                       // enabledLayerCount
-        nullptr,                                 // ppEnabledLayerNames
-        0,                                       // enabledExtensionCount
-        nullptr,                                 // ppEnabledExtensionNames
-    };
-    VkInstance instance = VK_NULL_HANDLE;
-    result = driver.vkCreateInstance(&createInfo, nullptr, &instance);
-    EXPECT_EQ(result, VK_SUCCESS);
+	const VkInstanceCreateInfo createInfo = {
+		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
+		nullptr,                                 // pNext
+		0,                                       // flags
+		nullptr,                                 // pApplicationInfo
+		0,                                       // enabledLayerCount
+		nullptr,                                 // ppEnabledLayerNames
+		0,                                       // enabledExtensionCount
+		nullptr,                                 // ppEnabledExtensionNames
+	};
+	VkInstance instance = VK_NULL_HANDLE;
+	result = driver.vkCreateInstance(&createInfo, nullptr, &instance);
+	EXPECT_EQ(result, VK_SUCCESS);
 
-    ASSERT_TRUE(driver.resolve(instance));
+	ASSERT_TRUE(driver.resolve(instance));
 
 	VkBaseInStructure unsupportedExt = { VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT, nullptr };
 
-    // Gather all physical devices
-    std::vector<VkPhysicalDevice> physicalDevices;
-    result = Device::GetPhysicalDevices(&driver, instance, physicalDevices);
+	// Gather all physical devices
+	std::vector<VkPhysicalDevice> physicalDevices;
+	result = Device::GetPhysicalDevices(&driver, instance, physicalDevices);
 	EXPECT_EQ(result, VK_SUCCESS);
 
-    // Inspect each physical device's queue families for compute support.
-    for (auto physicalDevice : physicalDevices)
-    {
-        int queueFamilyIndex = Device::GetComputeQueueFamilyIndex(&driver, physicalDevice);
-        if (queueFamilyIndex < 0)
-        {
-            continue;
-        }
+	// Inspect each physical device's queue families for compute support.
+	for(auto physicalDevice : physicalDevices)
+	{
+		int queueFamilyIndex = Device::GetComputeQueueFamilyIndex(&driver, physicalDevice);
+		if(queueFamilyIndex < 0)
+		{
+			continue;
+		}
 
-        const float queuePrioritory = 1.0f;
-        const VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
-            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,  // sType
-            nullptr,                                     // pNext
-            0,                                           // flags
-            (uint32_t)queueFamilyIndex,                  // queueFamilyIndex
-            1,                                           // queueCount
-            &queuePrioritory,                            // pQueuePriorities
-        };
+		const float queuePrioritory = 1.0f;
+		const VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
+			VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,  // sType
+			nullptr,                                     // pNext
+			0,                                           // flags
+			(uint32_t)queueFamilyIndex,                  // queueFamilyIndex
+			1,                                           // queueCount
+			&queuePrioritory,                            // pQueuePriorities
+		};
 
-        const VkDeviceCreateInfo deviceCreateInfo = {
-            VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // sType
-            &unsupportedExt,                        // pNext
-            0,                                     // flags
-            1,                                     // queueCreateInfoCount
-            &deviceQueueCreateInfo,                // pQueueCreateInfos
-            0,                                     // enabledLayerCount
-            nullptr,                               // ppEnabledLayerNames
-            0,                                     // enabledExtensionCount
-            nullptr,                               // ppEnabledExtensionNames
-            nullptr,                               // pEnabledFeatures
-        };
+		const VkDeviceCreateInfo deviceCreateInfo = {
+			VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // sType
+			&unsupportedExt,                       // pNext
+			0,                                     // flags
+			1,                                     // queueCreateInfoCount
+			&deviceQueueCreateInfo,                // pQueueCreateInfos
+			0,                                     // enabledLayerCount
+			nullptr,                               // ppEnabledLayerNames
+			0,                                     // enabledExtensionCount
+			nullptr,                               // ppEnabledExtensionNames
+			nullptr,                               // pEnabledFeatures
+		};
 
-        VkDevice device;
-        result = driver.vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
+		VkDevice device;
+		result = driver.vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
 		EXPECT_EQ(result, VK_SUCCESS);
 		driver.vkDestroyDevice(device, nullptr);
-    }
+	}
 
-    driver.vkDestroyInstance(instance, nullptr);
+	driver.vkDestroyInstance(instance, nullptr);
 }
 
-std::vector<uint32_t> compileSpirv(const char* assembly)
+std::vector<uint32_t> compileSpirv(const char *assembly)
 {
-    spvtools::SpirvTools core(SPV_ENV_VULKAN_1_0);
+	spvtools::SpirvTools core(SPV_ENV_VULKAN_1_0);
 
-    core.SetMessageConsumer([](spv_message_level_t, const char*, const spv_position_t& p, const char* m) {
-        FAIL() << p.line << ":" << p.column << ": " << m;
-    });
+	core.SetMessageConsumer([](spv_message_level_t, const char *, const spv_position_t &p, const char *m) {
+		FAIL() << p.line << ":" << p.column << ": " << m;
+	});
 
-    std::vector<uint32_t> spirv;
-    EXPECT_TRUE(core.Assemble(assembly, &spirv));
-    EXPECT_TRUE(core.Validate(spirv));
+	std::vector<uint32_t> spirv;
+	EXPECT_TRUE(core.Assemble(assembly, &spirv));
+	EXPECT_TRUE(core.Validate(spirv));
 
-    // Warn if the disassembly does not match the source assembly.
-    // We do this as debugging tests in the debugger is often made much harder
-    // if the SSA names (%X) in the debugger do not match the source.
-    std::string disassembled;
-    core.Disassemble(spirv, &disassembled, SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
-    if (disassembled != assembly)
-    {
-        printf("-- WARNING: Disassembly does not match assembly: ---\n\n");
+	// Warn if the disassembly does not match the source assembly.
+	// We do this as debugging tests in the debugger is often made much harder
+	// if the SSA names (%X) in the debugger do not match the source.
+	std::string disassembled;
+	core.Disassemble(spirv, &disassembled, SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+	if(disassembled != assembly)
+	{
+		printf("-- WARNING: Disassembly does not match assembly: ---\n\n");
 
-        auto splitLines = [](const std::string& str) -> std::vector<std::string>
-        {
-            std::stringstream ss(str);
-            std::vector<std::string> out;
-            std::string line;
-            while (std::getline(ss, line, '\n')) { out.push_back(line); }
-            return out;
-        };
+		auto splitLines = [](const std::string &str) -> std::vector<std::string> {
+			std::stringstream ss(str);
+			std::vector<std::string> out;
+			std::string line;
+			while(std::getline(ss, line, '\n')) { out.push_back(line); }
+			return out;
+		};
 
-        auto srcLines = splitLines(std::string(assembly));
-        auto disLines = splitLines(disassembled);
+		auto srcLines = splitLines(std::string(assembly));
+		auto disLines = splitLines(disassembled);
 
-        for (size_t line = 0; line < srcLines.size() && line < disLines.size(); line++)
-        {
-            auto srcLine = (line < srcLines.size()) ? srcLines[line] : "<missing>";
-            auto disLine = (line < disLines.size()) ? disLines[line] : "<missing>";
-            if (srcLine != disLine)
-            {
-                printf("%zu: '%s' != '%s'\n", line, srcLine.c_str(), disLine.c_str());
-            }
-        }
-        printf("\n\n---\nExpected:\n\n%s", disassembled.c_str());
-    }
+		for(size_t line = 0; line < srcLines.size() && line < disLines.size(); line++)
+		{
+			auto srcLine = (line < srcLines.size()) ? srcLines[line] : "<missing>";
+			auto disLine = (line < disLines.size()) ? disLines[line] : "<missing>";
+			if(srcLine != disLine)
+			{
+				printf("%zu: '%s' != '%s'\n", line, srcLine.c_str(), disLine.c_str());
+			}
+		}
+		printf("\n\n---\nExpected:\n\n%s", disassembled.c_str());
+	}
 
-    return spirv;
+	return spirv;
 }
 
 #define VK_ASSERT(x) ASSERT_EQ(x, VK_SUCCESS)
 
 struct ComputeParams
 {
-    size_t numElements;
-    int localSizeX;
-    int localSizeY;
-    int localSizeZ;
+	size_t numElements;
+	int localSizeX;
+	int localSizeY;
+	int localSizeZ;
 
-    friend std::ostream& operator<<(std::ostream& os, const ComputeParams& params) {
-        return os << "ComputeParams{" <<
-            "numElements: " << params.numElements << ", " <<
-            "localSizeX: " << params.localSizeX << ", " <<
-            "localSizeY: " << params.localSizeY << ", " <<
-            "localSizeZ: " << params.localSizeZ <<
-            "}";
-    }
+	friend std::ostream &operator<<(std::ostream &os, const ComputeParams &params)
+	{
+		return os << "ComputeParams{"
+		          << "numElements: " << params.numElements << ", "
+		          << "localSizeX: " << params.localSizeX << ", "
+		          << "localSizeY: " << params.localSizeY << ", "
+		          << "localSizeZ: " << params.localSizeZ << "}";
+	}
 };
 
 // Base class for compute tests that read from an input buffer and write to an
@@ -262,231 +260,222 @@ struct ComputeParams
 class SwiftShaderVulkanBufferToBufferComputeTest : public testing::TestWithParam<ComputeParams>
 {
 public:
-    void test(const std::string& shader,
-        std::function<uint32_t(uint32_t idx)> input,
-        std::function<uint32_t(uint32_t idx)> expected);
+	void test(const std::string &shader,
+	          std::function<uint32_t(uint32_t idx)> input,
+	          std::function<uint32_t(uint32_t idx)> expected);
 };
 
 void SwiftShaderVulkanBufferToBufferComputeTest::test(
-        const std::string& shader,
-        std::function<uint32_t(uint32_t idx)> input,
-        std::function<uint32_t(uint32_t idx)> expected)
+    const std::string &shader,
+    std::function<uint32_t(uint32_t idx)> input,
+    std::function<uint32_t(uint32_t idx)> expected)
 {
-    auto code = compileSpirv(shader.c_str());
+	auto code = compileSpirv(shader.c_str());
 
-    Driver driver;
-    ASSERT_TRUE(driver.loadSwiftShader());
+	Driver driver;
+	ASSERT_TRUE(driver.loadSwiftShader());
 
-    const VkInstanceCreateInfo createInfo = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
-        nullptr,                                 // pNext
-        0,                                       // flags
-        nullptr,                                 // pApplicationInfo
-        0,                                       // enabledLayerCount
-        nullptr,                                 // ppEnabledLayerNames
-        0,                                       // enabledExtensionCount
-        nullptr,                                 // ppEnabledExtensionNames
-    };
+	const VkInstanceCreateInfo createInfo = {
+		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
+		nullptr,                                 // pNext
+		0,                                       // flags
+		nullptr,                                 // pApplicationInfo
+		0,                                       // enabledLayerCount
+		nullptr,                                 // ppEnabledLayerNames
+		0,                                       // enabledExtensionCount
+		nullptr,                                 // ppEnabledExtensionNames
+	};
 
-    VkInstance instance = VK_NULL_HANDLE;
-    VK_ASSERT(driver.vkCreateInstance(&createInfo, nullptr, &instance));
+	VkInstance instance = VK_NULL_HANDLE;
+	VK_ASSERT(driver.vkCreateInstance(&createInfo, nullptr, &instance));
 
-    ASSERT_TRUE(driver.resolve(instance));
+	ASSERT_TRUE(driver.resolve(instance));
 
-    std::unique_ptr<Device> device;
-    VK_ASSERT(Device::CreateComputeDevice(&driver, instance, device));
-    ASSERT_TRUE(device->IsValid());
+	std::unique_ptr<Device> device;
+	VK_ASSERT(Device::CreateComputeDevice(&driver, instance, device));
+	ASSERT_TRUE(device->IsValid());
 
-    // struct Buffers
-    // {
-    //     uint32_t pad0[63];
-    //     uint32_t magic0;
-    //     uint32_t in[NUM_ELEMENTS]; // Aligned to 0x100
-    //     uint32_t magic1;
-    //     uint32_t pad1[N];
-    //     uint32_t magic2;
-    //     uint32_t out[NUM_ELEMENTS]; // Aligned to 0x100
-    //     uint32_t magic3;
-    // };
-    static constexpr uint32_t magic0 = 0x01234567;
-    static constexpr uint32_t magic1 = 0x89abcdef;
-    static constexpr uint32_t magic2 = 0xfedcba99;
-    static constexpr uint32_t magic3 = 0x87654321;
-    size_t numElements = GetParam().numElements;
-    size_t alignElements = 0x100 / sizeof(uint32_t);
-    size_t magic0Offset = alignElements - 1;
-    size_t inOffset = 1 + magic0Offset;
-    size_t magic1Offset = numElements + inOffset;
-    size_t magic2Offset = alignUp(magic1Offset+1, alignElements) - 1;
-    size_t outOffset = 1 + magic2Offset;
-    size_t magic3Offset = numElements + outOffset;
-    size_t buffersTotalElements = alignUp(1 + magic3Offset, alignElements);
-    size_t buffersSize = sizeof(uint32_t) * buffersTotalElements;
+	// struct Buffers
+	// {
+	//     uint32_t pad0[63];
+	//     uint32_t magic0;
+	//     uint32_t in[NUM_ELEMENTS]; // Aligned to 0x100
+	//     uint32_t magic1;
+	//     uint32_t pad1[N];
+	//     uint32_t magic2;
+	//     uint32_t out[NUM_ELEMENTS]; // Aligned to 0x100
+	//     uint32_t magic3;
+	// };
+	static constexpr uint32_t magic0 = 0x01234567;
+	static constexpr uint32_t magic1 = 0x89abcdef;
+	static constexpr uint32_t magic2 = 0xfedcba99;
+	static constexpr uint32_t magic3 = 0x87654321;
+	size_t numElements = GetParam().numElements;
+	size_t alignElements = 0x100 / sizeof(uint32_t);
+	size_t magic0Offset = alignElements - 1;
+	size_t inOffset = 1 + magic0Offset;
+	size_t magic1Offset = numElements + inOffset;
+	size_t magic2Offset = alignUp(magic1Offset + 1, alignElements) - 1;
+	size_t outOffset = 1 + magic2Offset;
+	size_t magic3Offset = numElements + outOffset;
+	size_t buffersTotalElements = alignUp(1 + magic3Offset, alignElements);
+	size_t buffersSize = sizeof(uint32_t) * buffersTotalElements;
 
-    VkDeviceMemory memory;
-    VK_ASSERT(device->AllocateMemory(buffersSize,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            &memory));
+	VkDeviceMemory memory;
+	VK_ASSERT(device->AllocateMemory(buffersSize,
+	                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+	                                 &memory));
 
-    uint32_t* buffers;
-    VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void**)&buffers));
+	uint32_t *buffers;
+	VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void **)&buffers));
 
-    buffers[magic0Offset] = magic0;
-    buffers[magic1Offset] = magic1;
-    buffers[magic2Offset] = magic2;
-    buffers[magic3Offset] = magic3;
+	buffers[magic0Offset] = magic0;
+	buffers[magic1Offset] = magic1;
+	buffers[magic2Offset] = magic2;
+	buffers[magic3Offset] = magic3;
 
-    for(size_t i = 0; i < numElements; i++)
-    {
-        buffers[inOffset + i] = input(i);
-    }
+	for(size_t i = 0; i < numElements; i++)
+	{
+		buffers[inOffset + i] = input(i);
+	}
 
-    device->UnmapMemory(memory);
-    buffers = nullptr;
+	device->UnmapMemory(memory);
+	buffers = nullptr;
 
-    VkBuffer bufferIn;
-    VK_ASSERT(device->CreateStorageBuffer(memory,
-            sizeof(uint32_t) * numElements,
-            sizeof(uint32_t) * inOffset,
-            &bufferIn));
+	VkBuffer bufferIn;
+	VK_ASSERT(device->CreateStorageBuffer(memory,
+	                                      sizeof(uint32_t) * numElements,
+	                                      sizeof(uint32_t) * inOffset,
+	                                      &bufferIn));
 
-    VkBuffer bufferOut;
-    VK_ASSERT(device->CreateStorageBuffer(memory,
-            sizeof(uint32_t) * numElements,
-            sizeof(uint32_t) * outOffset,
-            &bufferOut));
+	VkBuffer bufferOut;
+	VK_ASSERT(device->CreateStorageBuffer(memory,
+	                                      sizeof(uint32_t) * numElements,
+	                                      sizeof(uint32_t) * outOffset,
+	                                      &bufferOut));
 
-    VkShaderModule shaderModule;
-    VK_ASSERT(device->CreateShaderModule(code, &shaderModule));
+	VkShaderModule shaderModule;
+	VK_ASSERT(device->CreateShaderModule(code, &shaderModule));
 
-    std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings =
-    {
-        {
-            0,                                  // binding
-            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,  // descriptorType
-            1,                                  // descriptorCount
-            VK_SHADER_STAGE_COMPUTE_BIT,        // stageFlags
-            0,                                  // pImmutableSamplers
-        },
-        {
-            1,                                  // binding
-            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,  // descriptorType
-            1,                                  // descriptorCount
-            VK_SHADER_STAGE_COMPUTE_BIT,        // stageFlags
-            0,                                  // pImmutableSamplers
-        }
-    };
+	std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings = {
+		{
+		    0,                                  // binding
+		    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,  // descriptorType
+		    1,                                  // descriptorCount
+		    VK_SHADER_STAGE_COMPUTE_BIT,        // stageFlags
+		    0,                                  // pImmutableSamplers
+		},
+		{
+		    1,                                  // binding
+		    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,  // descriptorType
+		    1,                                  // descriptorCount
+		    VK_SHADER_STAGE_COMPUTE_BIT,        // stageFlags
+		    0,                                  // pImmutableSamplers
+		}
+	};
 
-    VkDescriptorSetLayout descriptorSetLayout;
-    VK_ASSERT(device->CreateDescriptorSetLayout(descriptorSetLayoutBindings, &descriptorSetLayout));
+	VkDescriptorSetLayout descriptorSetLayout;
+	VK_ASSERT(device->CreateDescriptorSetLayout(descriptorSetLayoutBindings, &descriptorSetLayout));
 
-    VkPipelineLayout pipelineLayout;
-    VK_ASSERT(device->CreatePipelineLayout(descriptorSetLayout, &pipelineLayout));
+	VkPipelineLayout pipelineLayout;
+	VK_ASSERT(device->CreatePipelineLayout(descriptorSetLayout, &pipelineLayout));
 
-    VkPipeline pipeline;
-    VK_ASSERT(device->CreateComputePipeline(shaderModule, pipelineLayout, &pipeline));
+	VkPipeline pipeline;
+	VK_ASSERT(device->CreateComputePipeline(shaderModule, pipelineLayout, &pipeline));
 
-    VkDescriptorPool descriptorPool;
-    VK_ASSERT(device->CreateStorageBufferDescriptorPool(2, &descriptorPool));
+	VkDescriptorPool descriptorPool;
+	VK_ASSERT(device->CreateStorageBufferDescriptorPool(2, &descriptorPool));
 
-    VkDescriptorSet descriptorSet;
-    VK_ASSERT(device->AllocateDescriptorSet(descriptorPool, descriptorSetLayout, &descriptorSet));
+	VkDescriptorSet descriptorSet;
+	VK_ASSERT(device->AllocateDescriptorSet(descriptorPool, descriptorSetLayout, &descriptorSet));
 
-    std::vector<VkDescriptorBufferInfo> descriptorBufferInfos =
-    {
-        {
-            bufferIn,       // buffer
-            0,              // offset
-            VK_WHOLE_SIZE,  // range
-        },
-        {
-            bufferOut,      // buffer
-            0,              // offset
-            VK_WHOLE_SIZE,  // range
-        }
-    };
-    device->UpdateStorageBufferDescriptorSets(descriptorSet, descriptorBufferInfos);
+	std::vector<VkDescriptorBufferInfo> descriptorBufferInfos = {
+		{
+		    bufferIn,       // buffer
+		    0,              // offset
+		    VK_WHOLE_SIZE,  // range
+		},
+		{
+		    bufferOut,      // buffer
+		    0,              // offset
+		    VK_WHOLE_SIZE,  // range
+		}
+	};
+	device->UpdateStorageBufferDescriptorSets(descriptorSet, descriptorBufferInfos);
 
-    VkCommandPool commandPool;
-    VK_ASSERT(device->CreateCommandPool(&commandPool));
+	VkCommandPool commandPool;
+	VK_ASSERT(device->CreateCommandPool(&commandPool));
 
-    VkCommandBuffer commandBuffer;
-    VK_ASSERT(device->AllocateCommandBuffer(commandPool, &commandBuffer));
+	VkCommandBuffer commandBuffer;
+	VK_ASSERT(device->AllocateCommandBuffer(commandPool, &commandBuffer));
 
-    VK_ASSERT(device->BeginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, commandBuffer));
+	VK_ASSERT(device->BeginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, commandBuffer));
 
-    driver.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+	driver.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
-    driver.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet,
-                                   0, nullptr);
+	driver.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet,
+	                               0, nullptr);
 
-    driver.vkCmdDispatch(commandBuffer, numElements / GetParam().localSizeX, 1, 1);
+	driver.vkCmdDispatch(commandBuffer, numElements / GetParam().localSizeX, 1, 1);
 
-    VK_ASSERT(driver.vkEndCommandBuffer(commandBuffer));
+	VK_ASSERT(driver.vkEndCommandBuffer(commandBuffer));
 
-    VK_ASSERT(device->QueueSubmitAndWait(commandBuffer));
+	VK_ASSERT(device->QueueSubmitAndWait(commandBuffer));
 
-    VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void**)&buffers));
+	VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void **)&buffers));
 
-    for (size_t i = 0; i < numElements; ++i)
-    {
-        auto got = buffers[i + outOffset];
-        EXPECT_EQ(expected(i), got) << "Unexpected output at " << i;
-    }
+	for(size_t i = 0; i < numElements; ++i)
+	{
+		auto got = buffers[i + outOffset];
+		EXPECT_EQ(expected(i), got) << "Unexpected output at " << i;
+	}
 
-    // Check for writes outside of bounds.
-    EXPECT_EQ(buffers[magic0Offset], magic0);
-    EXPECT_EQ(buffers[magic1Offset], magic1);
-    EXPECT_EQ(buffers[magic2Offset], magic2);
-    EXPECT_EQ(buffers[magic3Offset], magic3);
+	// Check for writes outside of bounds.
+	EXPECT_EQ(buffers[magic0Offset], magic0);
+	EXPECT_EQ(buffers[magic1Offset], magic1);
+	EXPECT_EQ(buffers[magic2Offset], magic2);
+	EXPECT_EQ(buffers[magic3Offset], magic3);
 
-    device->UnmapMemory(memory);
-    buffers = nullptr;
+	device->UnmapMemory(memory);
+	buffers = nullptr;
 
-    device->FreeCommandBuffer(commandPool, commandBuffer);
-    device->FreeMemory(memory);
-    device->DestroyPipeline(pipeline);
-    device->DestroyCommandPool(commandPool);
-    device->DestroyPipelineLayout(pipelineLayout);
-    device->DestroyDescriptorSetLayout(descriptorSetLayout);
-    device->DestroyDescriptorPool(descriptorPool);
-    device->DestroyBuffer(bufferIn);
-    device->DestroyBuffer(bufferOut);
-    device->DestroyShaderModule(shaderModule);
-    device.reset(nullptr);
-    driver.vkDestroyInstance(instance, nullptr);
+	device->FreeCommandBuffer(commandPool, commandBuffer);
+	device->FreeMemory(memory);
+	device->DestroyPipeline(pipeline);
+	device->DestroyCommandPool(commandPool);
+	device->DestroyPipelineLayout(pipelineLayout);
+	device->DestroyDescriptorSetLayout(descriptorSetLayout);
+	device->DestroyDescriptorPool(descriptorPool);
+	device->DestroyBuffer(bufferIn);
+	device->DestroyBuffer(bufferOut);
+	device->DestroyShaderModule(shaderModule);
+	device.reset(nullptr);
+	driver.vkDestroyInstance(instance, nullptr);
 }
 
-INSTANTIATE_TEST_SUITE_P(ComputeParams, SwiftShaderVulkanBufferToBufferComputeTest, testing::Values(
-    ComputeParams{512, 1, 1, 1},
-    ComputeParams{512, 2, 1, 1},
-    ComputeParams{512, 4, 1, 1},
-    ComputeParams{512, 8, 1, 1},
-    ComputeParams{512, 16, 1, 1},
-    ComputeParams{512, 32, 1, 1},
+INSTANTIATE_TEST_SUITE_P(ComputeParams, SwiftShaderVulkanBufferToBufferComputeTest, testing::Values(ComputeParams{ 512, 1, 1, 1 }, ComputeParams{ 512, 2, 1, 1 }, ComputeParams{ 512, 4, 1, 1 }, ComputeParams{ 512, 8, 1, 1 }, ComputeParams{ 512, 16, 1, 1 }, ComputeParams{ 512, 32, 1, 1 },
 
-    // Non-multiple of SIMD-lane.
-    ComputeParams{3, 1, 1, 1},
-    ComputeParams{2, 1, 1, 1}
-));
+                                                                                                    // Non-multiple of SIMD-lane.
+                                                                                                    ComputeParams{ 3, 1, 1, 1 }, ComputeParams{ 2, 1, 1, 1 }));
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, Memcpy)
 {
-    std::stringstream src;
-    // #version 450
-    // layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-    // layout(binding = 0, std430) buffer InBuffer
-    // {
-    //     int Data[];
-    // } In;
-    // layout(binding = 1, std430) buffer OutBuffer
-    // {
-    //     int Data[];
-    // } Out;
-    // void main()
-    // {
-    //     Out.Data[gl_GlobalInvocationID.x] = In.Data[gl_GlobalInvocationID.x];
-    // }
+	std::stringstream src;
+	// #version 450
+	// layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+	// layout(binding = 0, std430) buffer InBuffer
+	// {
+	//     int Data[];
+	// } In;
+	// layout(binding = 1, std430) buffer OutBuffer
+	// {
+	//     int Data[];
+	// } Out;
+	// void main()
+	// {
+	//     Out.Data[gl_GlobalInvocationID.x] = In.Data[gl_GlobalInvocationID.x];
+	// }
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -529,13 +518,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, Memcpy)
               "OpStore %23 %22\n"               // out.arr[gl_GlobalInvocationId.x] = in[gl_GlobalInvocationId.x]
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, GlobalInvocationId)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -587,14 +579,17 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, GlobalInvocationId)
               "OpStore %32 %31\n"               // out.arr[gl_GlobalInvocationId.x] = in[gl_GlobalInvocationId.x] + gl_GlobalInvocationId.y + gl_GlobalInvocationId.z
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    // gl_GlobalInvocationId.y and gl_GlobalInvocationId.z should both be zero.
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
+	// gl_GlobalInvocationId.y and gl_GlobalInvocationId.z should both be zero.
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchSimple)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -647,13 +642,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchSimple)
               "OpStore %23 %22\n"
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchDeclareSSA)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -707,13 +705,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchDeclareSSA)
               "OpStore %23 %25\n"               // use SSA value from previous block
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i * 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i * 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalSimple)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -767,13 +768,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalSimple)
               "OpStore %25 %26\n"               // use SSA value from previous block
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i%2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i % 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalTwoEmptyBlocks)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -831,14 +835,17 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalTwoEmptyBloc
               "OpStore %25 %26\n"               // use SSA value from previous block
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i%2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i % 2; });
 }
 
 // TODO: Test for parallel assignment
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalStore)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -897,13 +904,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalStore)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 1 : 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 1 : 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalReturnTrue)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -959,14 +969,17 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalReturnTrue)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 0 : 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 0 : 2; });
 }
 
 // TODO: Test for parallel assignment
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalPhi)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1025,13 +1038,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchConditionalPhi)
               "OpStore %26 %32\n"
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 1 : 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 1 : 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchEmptyCases)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1088,13 +1104,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchEmptyCases)
               "OpStore %25 %26\n"               // use SSA value from previous block
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i%2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i % 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchStore)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1152,13 +1171,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchStore)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 2 : 1; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 0 ? 2 : 1; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchCaseReturn)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1215,13 +1237,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchCaseReturn)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 0 : 1; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 0 : 1; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchDefaultReturn)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1278,13 +1303,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchDefaultReturn)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 1 : 0; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 1 : 0; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchCaseFallthrough)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1345,13 +1373,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchCaseFallthrough)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchDefaultFallthrough)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1414,13 +1445,16 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchDefaultFallthrough)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchPhi)
 {
-    std::stringstream src;
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
               "OpMemoryModel Logical GLSL450\n"
@@ -1478,37 +1512,40 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, SwitchPhi)
     // End of branch logic
               "OpReturn\n"
               "OpFunctionEnd\n";
+	// clang-format on
 
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 1 : 2; });
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return (i % 2) == 1 ? 1 : 2; });
 }
 
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, LoopDivergentMergePhi)
 {
-    // #version 450
-    // layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-    // layout(binding = 0, std430) buffer InBuffer
-    // {
-    //     int Data[];
-    // } In;
-    // layout(binding = 1, std430) buffer OutBuffer
-    // {
-    //     int Data[];
-    // } Out;
-    // void main()
-    // {
-    //     int phi = 0;
-    //     uint lane = gl_GlobalInvocationID.x % 4;
-    //     for (uint i = 0; i < 4; i++)
-    //     {
-    //         if (lane == i)
-    //         {
-    //             phi = In.Data[gl_GlobalInvocationID.x];
-    //             break;
-    //         }
-    //     }
-    //     Out.Data[gl_GlobalInvocationID.x] = phi;
-    // }
-    std::stringstream src;
+	// #version 450
+	// layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+	// layout(binding = 0, std430) buffer InBuffer
+	// {
+	//     int Data[];
+	// } In;
+	// layout(binding = 1, std430) buffer OutBuffer
+	// {
+	//     int Data[];
+	// } Out;
+	// void main()
+	// {
+	//     int phi = 0;
+	//     uint lane = gl_GlobalInvocationID.x % 4;
+	//     for (uint i = 0; i < 4; i++)
+	//     {
+	//         if (lane == i)
+	//         {
+	//             phi = In.Data[gl_GlobalInvocationID.x];
+	//             break;
+	//         }
+	//     }
+	//     Out.Data[gl_GlobalInvocationID.x] = phi;
+	// }
+	std::stringstream src;
+	// clang-format off
     src <<
               "OpCapability Shader\n"
          "%1 = OpExtInstImport \"GLSL.std.450\"\n"
@@ -1581,5 +1618,8 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, LoopDivergentMergePhi)
               "OpStore %42 %41\n"
               "OpReturn\n"
               "OpFunctionEnd\n";
-    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
+	// clang-format on
+
+	test(
+	    src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
 }
