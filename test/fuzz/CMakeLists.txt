@@ -24,18 +24,28 @@ if (${SPIRV_BUILD_FUZZER})
           fuzzer_pass_add_useful_constructs_test.cpp
           instruction_descriptor_test.cpp
           transformation_add_constant_boolean_test.cpp
+          transformation_add_constant_composite_test.cpp
           transformation_add_constant_scalar_test.cpp
           transformation_add_dead_break_test.cpp
           transformation_add_dead_continue_test.cpp
+          transformation_add_global_undef_test.cpp
+          transformation_add_global_variable_test.cpp
           transformation_add_no_contraction_decoration_test.cpp
+          transformation_add_type_array_test.cpp
           transformation_add_type_boolean_test.cpp
           transformation_add_type_float_test.cpp
+          transformation_add_type_function_test.cpp
           transformation_add_type_int_test.cpp
+          transformation_add_type_matrix_test.cpp
           transformation_add_type_pointer_test.cpp
+          transformation_add_type_struct_test.cpp
+          transformation_add_type_vector_test.cpp
           transformation_composite_construct_test.cpp
           transformation_composite_extract_test.cpp
           transformation_copy_object_test.cpp
+          transformation_merge_blocks_test.cpp
           transformation_move_block_down_test.cpp
+          transformation_outline_function_test.cpp
           transformation_replace_boolean_constant_with_constant_binary_test.cpp
           transformation_replace_constant_with_uniform_test.cpp
           transformation_replace_id_with_synonym_test.cpp

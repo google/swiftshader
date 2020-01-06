@@ -225,12 +225,22 @@ typedef enum spv_operand_type_t {
   // A sequence of zero or more pairs of (Id, Literal integer)
   LAST_VARIABLE(SPV_OPERAND_TYPE_VARIABLE_ID_LITERAL_INTEGER),
 
-  // The following are concrete enum types.
+  // The following are concrete enum types from the DebugInfo extended
+  // instruction set.
   SPV_OPERAND_TYPE_DEBUG_INFO_FLAGS,  // DebugInfo Sec 3.2.  A mask.
   SPV_OPERAND_TYPE_DEBUG_BASE_TYPE_ATTRIBUTE_ENCODING,  // DebugInfo Sec 3.3
   SPV_OPERAND_TYPE_DEBUG_COMPOSITE_TYPE,                // DebugInfo Sec 3.4
   SPV_OPERAND_TYPE_DEBUG_TYPE_QUALIFIER,                // DebugInfo Sec 3.5
   SPV_OPERAND_TYPE_DEBUG_OPERATION,                     // DebugInfo Sec 3.6
+
+  // The following are concrete enum types from the OpenCL.DebugInfo.100
+  // extended instruction set.
+  SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_INFO_FLAGS,  // Sec 3.2. A Mask
+  SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_BASE_TYPE_ATTRIBUTE_ENCODING,  // Sec 3.3
+  SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_COMPOSITE_TYPE,                // Sec 3.4
+  SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_TYPE_QUALIFIER,                // Sec 3.5
+  SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_OPERATION,                     // Sec 3.6
+  SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_IMPORTED_ENTITY,               // Sec 3.7
 
   // This is a sentinel value, and does not represent an operand type.
   // It should come last.
@@ -248,6 +258,12 @@ typedef enum spv_ext_inst_type_t {
   SPV_EXT_INST_TYPE_SPV_AMD_GCN_SHADER,
   SPV_EXT_INST_TYPE_SPV_AMD_SHADER_BALLOT,
   SPV_EXT_INST_TYPE_DEBUGINFO,
+  SPV_EXT_INST_TYPE_OPENCL_DEBUGINFO_100,
+
+  // Multiple distinct extended instruction set types could return this
+  // value, if they are prefixed with NonSemantic. and are otherwise
+  // unrecognised
+  SPV_EXT_INST_TYPE_NONSEMANTIC_UNKNOWN,
 
   SPV_FORCE_32_BIT_ENUM(spv_ext_inst_type_t)
 } spv_ext_inst_type_t;
@@ -626,6 +642,11 @@ SPIRV_TOOLS_EXPORT void spvFuzzerOptionsSetRandomSeed(
 // up.
 SPIRV_TOOLS_EXPORT void spvFuzzerOptionsSetShrinkerStepLimit(
     spv_fuzzer_options options, uint32_t shrinker_step_limit);
+
+// Enables running the validator after every pass is applied during a fuzzing
+// run.
+SPIRV_TOOLS_EXPORT void spvFuzzerOptionsEnableFuzzerPassValidation(
+    spv_fuzzer_options options);
 
 // Encodes the given SPIR-V assembly text to its binary representation. The
 // length parameter specifies the number of bytes for text. Encoded binary will

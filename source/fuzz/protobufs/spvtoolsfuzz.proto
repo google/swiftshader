@@ -21,6 +21,16 @@ syntax = "proto3";
 
 package spvtools.fuzz.protobufs;
 
+message UInt32Pair {
+
+  // A pair of uint32s; useful for defining mappings.
+
+  uint32 first = 1;
+
+  uint32 second = 2;
+
+}
+
 message InstructionDescriptor {
 
   // Describes an instruction in some block of a function with respect to a
@@ -116,6 +126,37 @@ message UniformBufferElementDescriptor {
 
 }
 
+message InstructionOperand {
+
+  // Represents an operand to a SPIR-V instruction.
+
+  // The type of the operand.
+  uint32 operand_type = 1;
+
+  // The data associated with the operand.  For most operands (e.g. ids,
+  // storage classes and literals) this will be a single word.
+  repeated uint32 operand_data = 2;
+
+}
+
+message Instruction {
+
+  // Represents a SPIR-V instruction.
+
+  // The instruction's opcode (e.g. OpLabel).
+  uint32 opcode = 1;
+
+  // The id of the instruction's result type; 0 if there is no result type.
+  uint32 result_type_id = 2;
+
+  // The id of the instruction's result; 0 if there is no result.
+  uint32 result_id = 3;
+
+  // Zero or more input operands.
+  repeated InstructionOperand input_operand = 4;
+
+}
+
 message FactSequence {
   repeated Fact fact = 1;
 }
@@ -190,6 +231,17 @@ message Transformation {
     TransformationSetMemoryOperandsMask set_memory_operands_mask = 20;
     TransformationCompositeExtract composite_extract = 21;
     TransformationVectorShuffle vector_shuffle = 22;
+    TransformationOutlineFunction outline_function = 23;
+    TransformationMergeBlocks merge_blocks = 24;
+    TransformationAddTypeVector add_type_vector = 25;
+    TransformationAddTypeArray add_type_array = 26;
+    TransformationAddTypeMatrix add_type_matrix = 27;
+    TransformationAddTypeStruct add_type_struct = 28;
+    TransformationAddTypeFunction add_type_function = 29;
+    TransformationAddConstantComposite add_constant_composite = 30;
+    TransformationAddGlobalVariable add_global_variable = 31;
+    TransformationAddGlobalUndef add_global_undef = 32;
+    TransformationAddFunction add_function = 33;
     // Add additional option using the next available number.
   }
 }
@@ -203,6 +255,21 @@ message TransformationAddConstantBoolean {
 
   uint32 fresh_id = 1;
   bool is_true = 2;
+
+}
+
+message TransformationAddConstantComposite {
+
+  // Adds a constant of the given composite type to the module.
+
+  // Fresh id for the composite
+  uint32 fresh_id = 1;
+
+  // A composite type id
+  uint32 type_id = 2;
+
+  // Constituent ids for the composite
+  repeated uint32 constituent_id = 3;
 
 }
 
@@ -262,12 +329,64 @@ message TransformationAddDeadContinue {
 
 }
 
+message TransformationAddFunction {
+
+  // Adds a SPIR-V function to the module.
+
+  // The series of instructions that comprise the function.
+  repeated Instruction instruction = 1;
+
+}
+
+message TransformationAddGlobalUndef {
+
+  // Adds an undefined value of a given type to the module at global scope.
+
+  // Fresh id for the undefined value
+  uint32 fresh_id = 1;
+
+  // The type of the undefined value
+  uint32 type_id = 2;
+
+}
+
+message TransformationAddGlobalVariable {
+
+  // Adds a global variable of the given type to the module, with Private
+  // storage class and optionally with an initializer.
+
+  // Fresh id for the global variable
+  uint32 fresh_id = 1;
+
+  // The type of the global variable
+  uint32 type_id = 2;
+
+  // Optional initializer; 0 if there is no initializer
+  uint32 initializer_id = 3;
+
+}
+
 message TransformationAddNoContractionDecoration {
 
   // Applies OpDecorate NoContraction to the given result id
 
   // Result id to be decorated
   uint32 result_id = 1;
+
+}
+
+message TransformationAddTypeArray {
+
+  // Adds an array type of the given element type and size to the module
+
+  // Fresh id for the array type
+  uint32 fresh_id = 1;
+
+  // The array's element type
+  uint32 element_type_id = 2;
+
+  // The array's size
+  uint32 size_id = 3;
 
 }
 
@@ -292,6 +411,21 @@ message TransformationAddTypeFloat {
 
 }
 
+message TransformationAddTypeFunction {
+
+  // Adds a function type to the module
+
+  // Fresh id for the function type
+  uint32 fresh_id = 1;
+
+  // The function's return type
+  uint32 return_type_id = 2;
+
+  // The function's argument types
+  repeated uint32 argument_type_id = 3;
+
+}
+
 message TransformationAddTypeInt {
 
   // Adds OpTypeInt to the module with the given width and signedness
@@ -304,6 +438,22 @@ message TransformationAddTypeInt {
 
   // True if and only if this is a signed type
   bool is_signed = 3;
+
+}
+
+message TransformationAddTypeMatrix {
+
+  // Adds a matrix type to the module
+
+  // Fresh id for the matrix type
+  uint32 fresh_id = 1;
+
+  // The matrix's column type, which must be a floating-point vector (as per
+  // the "data rules" in the SPIR-V specification).
+  uint32 column_type_id = 2;
+
+  // The matrix's column count
+  uint32 column_count = 3;
 
 }
 
@@ -320,6 +470,33 @@ message TransformationAddTypePointer {
 
   // Id of the base type for the pointer
   uint32 base_type_id = 3;
+
+}
+
+message TransformationAddTypeStruct {
+
+  // Adds a struct type to the module
+
+  // Fresh id for the struct type
+  uint32 fresh_id = 1;
+
+  // The struct's member types
+  repeated uint32 member_type_id = 3;
+
+}
+
+message TransformationAddTypeVector {
+
+  // Adds a vector type to the module
+
+  // Fresh id for the vector type
+  uint32 fresh_id = 1;
+
+  // The vector's component type
+  uint32 component_type_id = 2;
+
+  // The vector's component count
+  uint32 component_count = 3;
 
 }
 
@@ -380,6 +557,16 @@ message TransformationCopyObject {
 
 }
 
+message TransformationMergeBlocks {
+
+  // A transformation that merges a block with its predecessor.
+
+  // The id of the block that is to be merged with its predecessor; the merged
+  // block will have the *predecessor's* id.
+  uint32 block_id = 1;
+
+}
+
 message TransformationMoveBlockDown {
 
   // A transformation that moves a basic block to be one position lower in
@@ -387,6 +574,53 @@ message TransformationMoveBlockDown {
 
   // The id of the block to move down.
   uint32 block_id = 1;
+}
+
+message TransformationOutlineFunction {
+
+  // A transformation that outlines a single-entry single-exit region of a
+  // control flow graph into a separate function, and replaces the region with
+  // a call to that function.
+
+  // Id of the entry block of the single-entry single-exit region to be outlined
+  uint32 entry_block = 1;
+
+  // Id of the exit block of the single-entry single-exit region to be outlined
+  uint32 exit_block = 2;
+
+  // Id of a struct that will store the return values of the new function
+  uint32 new_function_struct_return_type_id = 3;
+
+  // A fresh id for the type of the outlined function
+  uint32 new_function_type_id = 4;
+
+  // A fresh id for the outlined function itself
+  uint32 new_function_id = 5;
+
+  // A fresh id to represent the block in the outlined function that represents
+  // the first block of the outlined region.
+  uint32 new_function_region_entry_block = 6;
+
+  // A fresh id for the result of the OpFunctionCall instruction that will call
+  // the outlined function
+  uint32 new_caller_result_id = 7;
+
+  // A fresh id to capture the return value of the outlined function - the
+  // argument to OpReturn
+  uint32 new_callee_result_id = 8;
+
+  // Ids defined outside the region and used inside the region will become
+  // parameters to the outlined function.  This is a mapping from used ids to
+  // fresh parameter ids.
+  repeated UInt32Pair input_id_to_fresh_id = 9;
+
+  // Ids defined inside the region and used outside the region will become
+  // fresh ids defined by the outlined function, which get copied into the
+  // function's struct return value and then copied into their destination ids
+  // by the caller.  This is a mapping from original ids to corresponding fresh
+  // ids.
+  repeated UInt32Pair output_id_to_fresh_id = 10;
+
 }
 
 message TransformationReplaceBooleanConstantWithConstantBinary {

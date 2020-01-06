@@ -152,6 +152,53 @@ TEST_F(StripDebugStringTest, OpNameRemoved) {
                                             /* do_validation */ true);
 }
 
+TEST_F(StripDebugStringTest, OpStringRemovedWithNonSemantic) {
+  std::vector<const char*> input{
+      // clang-format off
+                     "OpCapability Shader",
+                     "OpExtension \"SPV_KHR_non_semantic_info\"",
+                "%1 = OpExtInstImport \"NonSemantic.Testing.Set\"",
+                     "OpMemoryModel Logical GLSL450",
+                     "OpEntryPoint Vertex %2 \"main\"",
+                // this string is not referenced, should be removed fully
+                "%3 = OpString \"minimal.vert\"",
+                     "OpName %3 \"bob\"",
+                // this string is referenced and cannot be removed,
+                // but the name should be
+                "%4 = OpString \"secondary.inc\"",
+                     "OpName %4 \"sue\"",
+             "%void = OpTypeVoid",
+                "%6 = OpTypeFunction %void",
+                "%2 = OpFunction %void None %6",
+                "%7 = OpLabel",
+                "%8 = OpExtInst %void %1 5 %4",
+                     "OpReturn",
+                     "OpFunctionEnd",
+      // clang-format on
+  };
+  std::vector<const char*> output{
+      // clang-format off
+                     "OpCapability Shader",
+                     "OpExtension \"SPV_KHR_non_semantic_info\"",
+                "%1 = OpExtInstImport \"NonSemantic.Testing.Set\"",
+                     "OpMemoryModel Logical GLSL450",
+                     "OpEntryPoint Vertex %2 \"main\"",
+                "%4 = OpString \"secondary.inc\"",
+             "%void = OpTypeVoid",
+                "%6 = OpTypeFunction %void",
+                "%2 = OpFunction %void None %6",
+                "%7 = OpLabel",
+                "%8 = OpExtInst %void %1 5 %4",
+                     "OpReturn",
+                     "OpFunctionEnd",
+      // clang-format on
+  };
+  SinglePassRunAndCheck<StripDebugInfoPass>(JoinAllInsts(input),
+                                            JoinAllInsts(output),
+                                            /* skip_nop = */ false,
+                                            /* do_validation */ true);
+}
+
 using StripDebugInfoTest = PassTest<::testing::TestWithParam<const char*>>;
 
 TEST_P(StripDebugInfoTest, Kind) {

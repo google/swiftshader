@@ -17,6 +17,7 @@
 #include <cstring>
 #include <fstream>
 #include <functional>
+#include <random>
 #include <sstream>
 #include <string>
 
@@ -106,6 +107,10 @@ Options (in lexicographical order):
                facts to make the guard non-obviously false.  This option is a
                helper for massaging crash-inducing tests into a runnable
                format; it does not perform any fuzzing.
+  --fuzzer-pass-validation
+               Run the validator after applying each fuzzer pass during
+               fuzzing.  Aborts fuzzing early if an invalid binary is created.
+               Useful for debugging spirv-fuzz.
   --replay
                File from which to read a sequence of transformations to replay
                (instead of fuzzing)
@@ -179,6 +184,9 @@ FuzzStatus ParseFlags(int argc, const char** argv, std::string* in_binary_file,
       } else if (0 == strncmp(cur_arg, "--force-render-red",
                               sizeof("--force-render-red") - 1)) {
         force_render_red = true;
+      } else if (0 == strncmp(cur_arg, "--fuzzer-pass-validation",
+                              sizeof("--fuzzer-pass-validation") - 1)) {
+        fuzzer_options->enable_fuzzer_pass_validation();
       } else if (0 == strncmp(cur_arg, "--replay=", sizeof("--replay=") - 1)) {
         const auto split_flag = spvtools::utils::SplitFlagArgs(cur_arg);
         *replay_transformations_file = std::string(split_flag.second);
@@ -397,16 +405,21 @@ bool Shrink(const spv_target_env& target_env,
 }
 
 bool Fuzz(const spv_target_env& target_env,
-          const spvtools::FuzzerOptions& fuzzer_options,
+          spv_const_fuzzer_options fuzzer_options,
           const std::vector<uint32_t>& binary_in,
           const spvtools::fuzz::protobufs::FactSequence& initial_facts,
           std::vector<uint32_t>* binary_out,
           spvtools::fuzz::protobufs::TransformationSequence*
               transformations_applied) {
-  spvtools::fuzz::Fuzzer fuzzer(target_env);
+  spvtools::fuzz::Fuzzer fuzzer(
+      target_env,
+      fuzzer_options->has_random_seed
+          ? fuzzer_options->random_seed
+          : static_cast<uint32_t>(std::random_device()()),
+      fuzzer_options->fuzzer_pass_validation_enabled);
   fuzzer.SetMessageConsumer(spvtools::utils::CLIMessageConsumer);
-  auto fuzz_result_status = fuzzer.Run(binary_in, initial_facts, fuzzer_options,
-                                       binary_out, transformations_applied);
+  auto fuzz_result_status =
+      fuzzer.Run(binary_in, initial_facts, binary_out, transformations_applied);
   if (fuzz_result_status !=
       spvtools::fuzz::Fuzzer::FuzzerResultStatus::kComplete) {
     spvtools::Error(FuzzDiagnostic, nullptr, {}, "Error running fuzzer");

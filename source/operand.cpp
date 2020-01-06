@@ -29,6 +29,7 @@
 // per-item basis. https://github.com/KhronosGroup/SPIRV-Tools/issues/1195
 
 #include "operand.kinds-unified1.inc"
+#include "spirv-tools/libspirv.h"
 
 static const spv_operand_table_t kOperandTable = {
     ARRAY_SIZE(pygen_variable_OperandInfoTable),
@@ -228,6 +229,18 @@ const char* spvOperandTypeStr(spv_operand_type_t type) {
       return "debug type qualifier";
     case SPV_OPERAND_TYPE_DEBUG_OPERATION:
       return "debug operation";
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_INFO_FLAGS:
+      return "OpenCL.DebugInfo.100 debug info flags";
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_BASE_TYPE_ATTRIBUTE_ENCODING:
+      return "OpenCL.DebugInfo.100 debug base type encoding";
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_COMPOSITE_TYPE:
+      return "OpenCL.DebugInfo.100 debug composite type";
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_TYPE_QUALIFIER:
+      return "OpenCL.DebugInfo.100 debug type qualifier";
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_OPERATION:
+      return "OpenCL.DebugInfo.100 debug operation";
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_IMPORTED_ENTITY:
+      return "OpenCL.DebugInfo.100 debug imported entity";
 
     // The next values are for values returned from an instruction, not actually
     // an operand.  So the specific strings don't matter.  But let's add them
@@ -312,6 +325,11 @@ bool spvOperandIsConcrete(spv_operand_type_t type) {
     case SPV_OPERAND_TYPE_DEBUG_COMPOSITE_TYPE:
     case SPV_OPERAND_TYPE_DEBUG_TYPE_QUALIFIER:
     case SPV_OPERAND_TYPE_DEBUG_OPERATION:
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_BASE_TYPE_ATTRIBUTE_ENCODING:
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_COMPOSITE_TYPE:
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_TYPE_QUALIFIER:
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_OPERATION:
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_IMPORTED_ENTITY:
       return true;
     default:
       break;
@@ -328,6 +346,7 @@ bool spvOperandIsConcreteMask(spv_operand_type_t type) {
     case SPV_OPERAND_TYPE_FUNCTION_CONTROL:
     case SPV_OPERAND_TYPE_MEMORY_ACCESS:
     case SPV_OPERAND_TYPE_DEBUG_INFO_FLAGS:
+    case SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_INFO_FLAGS:
       return true;
     default:
       break;

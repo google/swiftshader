@@ -2,6 +2,7 @@ load(
     ":build_defs.bzl",
     "COMMON_COPTS",
     "DEBUGINFO_GRAMMAR_JSON_FILE",
+    "CLDEBUGINFO100_GRAMMAR_JSON_FILE",
     "TEST_COPTS",
     "base_test",
     "generate_core_tables",
@@ -38,12 +39,6 @@ py_binary(
     srcs = ["utils/generate_language_headers.py"],
 )
 
-generate_core_tables("1.0")
-
-generate_core_tables("1.1")
-
-generate_core_tables("1.2")
-
 generate_core_tables("unified1")
 
 generate_enum_string_mapping("unified1")
@@ -62,7 +57,11 @@ generate_vendor_tables("spv-amd-shader-ballot")
 
 generate_vendor_tables("debuginfo")
 
+generate_vendor_tables("opencl.debuginfo.100", "CLDEBUG100_")
+
 generate_extinst_lang_headers("DebugInfo", DEBUGINFO_GRAMMAR_JSON_FILE)
+
+generate_extinst_lang_headers("OpenCLDebugInfo100", CLDEBUGINFO100_GRAMMAR_JSON_FILE)
 
 py_binary(
     name = "generate_registry_tables",
@@ -96,16 +95,15 @@ cc_library(
     name = "generated_headers",
     hdrs = [
         ":gen_build_version",
-        ":gen_core_tables_1.0",
-        ":gen_core_tables_1.1",
-        ":gen_core_tables_1.2",
         ":gen_core_tables_unified1",
         ":gen_enum_string_mapping",
         ":gen_extinst_lang_headers_DebugInfo",
+        ":gen_extinst_lang_headers_OpenCLDebugInfo100",
         ":gen_glsl_tables_unified1",
         ":gen_opencl_tables_unified1",
         ":gen_registry_tables",
         ":gen_vendor_tables_debuginfo",
+        ":gen_vendor_tables_opencl_debuginfo_100",
         ":gen_vendor_tables_spv_amd_gcn_shader",
         ":gen_vendor_tables_spv_amd_shader_ballot",
         ":gen_vendor_tables_spv_amd_shader_explicit_vertex_parameter",

@@ -178,73 +178,43 @@ SPVTOOLS_OPT_SRC_FILES := \
 
 # Locations of grammar files.
 #
-# TODO(dneto): Build a single set of tables that embeds versioning differences on
-# a per-item basis.  That must happen before SPIR-V 1.4, etc.
-# https://github.com/KhronosGroup/SPIRV-Tools/issues/1195
-SPV_CORE10_GRAMMAR=$(SPVHEADERS_LOCAL_PATH)/include/spirv/1.0/spirv.core.grammar.json
-SPV_CORE11_GRAMMAR=$(SPVHEADERS_LOCAL_PATH)/include/spirv/1.1/spirv.core.grammar.json
-SPV_CORE12_GRAMMAR=$(SPVHEADERS_LOCAL_PATH)/include/spirv/1.2/spirv.core.grammar.json
 SPV_COREUNIFIED1_GRAMMAR=$(SPVHEADERS_LOCAL_PATH)/include/spirv/unified1/spirv.core.grammar.json
-SPV_CORELATEST_GRAMMAR=$(SPV_COREUNIFIED1_GRAMMAR)
 SPV_GLSL_GRAMMAR=$(SPVHEADERS_LOCAL_PATH)/include/spirv/1.2/extinst.glsl.std.450.grammar.json
 SPV_OPENCL_GRAMMAR=$(SPVHEADERS_LOCAL_PATH)/include/spirv/1.2/extinst.opencl.std.100.grammar.json
 # TODO(dneto): I expect the DebugInfo grammar file to eventually migrate to SPIRV-Headers
 SPV_DEBUGINFO_GRAMMAR=$(LOCAL_PATH)/source/extinst.debuginfo.grammar.json
+SPV_CLDEBUGINFO100_GRAMMAR=$(LOCAL_PATH)/source/extinst.opencl.debuginfo.100.grammar.json
 
 define gen_spvtools_grammar_tables
-$(call generate-file-dir,$(1)/core.insts-1.0.inc)
-$(1)/core.insts-1.0.inc $(1)/operand.kinds-1.0.inc $(1)/glsl.std.450.insts.inc $(1)/opencl.std.insts.inc: \
+$(call generate-file-dir,$(1)/core.insts-unified1.inc)
+$(1)/core.insts-unified1.inc $(1)/operand.kinds-unified1.inc \
+$(1)/glsl.std.450.insts.inc \
+$(1)/opencl.std.insts.inc \
+: \
         $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-        $(SPV_CORE10_GRAMMAR) \
+        $(SPV_COREUNIFIED1_GRAMMAR) \
         $(SPV_GLSL_GRAMMAR) \
-        $(SPV_OPENCL_GRAMMAR) \
-        $(SPV_DEBUGINFO_GRAMMAR)
+        $(SPV_OpenCL_GRAMMAR) \
+        $(SPV_DEBUGINFO_GRAMMAR) \
+        $(SPV_CLDEBUGINFO100_GRAMMAR)
 		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-		                --spirv-core-grammar=$(SPV_CORE10_GRAMMAR) \
+		                --spirv-core-grammar=$(SPV_COREUNIFIED1_GRAMMAR) \
 		                --extinst-glsl-grammar=$(SPV_GLSL_GRAMMAR) \
 		                --extinst-opencl-grammar=$(SPV_OPENCL_GRAMMAR) \
 		                --extinst-debuginfo-grammar=$(SPV_DEBUGINFO_GRAMMAR) \
-		                --core-insts-output=$(1)/core.insts-1.0.inc \
+		                --extinst-cldebuginfo100-grammar=$(SPV_CLDEBUGINFO100_GRAMMAR) \
+		                --core-insts-output=$(1)/core.insts-unified1.inc \
 		                --glsl-insts-output=$(1)/glsl.std.450.insts.inc \
 		                --opencl-insts-output=$(1)/opencl.std.insts.inc \
-		                --operand-kinds-output=$(1)/operand.kinds-1.0.inc
-		@echo "[$(TARGET_ARCH_ABI)] Grammar v1.0   : instructions & operands <= grammar JSON files"
-$(1)/core.insts-1.1.inc $(1)/operand.kinds-1.1.inc: \
-        $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-        $(SPV_CORE11_GRAMMAR) \
-        $(SPV_DEBUGINFO_GRAMMAR)
-		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-		                --spirv-core-grammar=$(SPV_CORE11_GRAMMAR) \
-		                --extinst-debuginfo-grammar=$(SPV_DEBUGINFO_GRAMMAR) \
-		                --core-insts-output=$(1)/core.insts-1.1.inc \
-		                --operand-kinds-output=$(1)/operand.kinds-1.1.inc
-		@echo "[$(TARGET_ARCH_ABI)] Grammar v1.1   : instructions & operands <= grammar JSON files"
-$(1)/core.insts-1.2.inc $(1)/operand.kinds-1.2.inc: \
-        $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-        $(SPV_CORE12_GRAMMAR) \
-        $(SPV_DEBUGINFO_GRAMMAR)
-		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-		                --spirv-core-grammar=$(SPV_CORE12_GRAMMAR) \
-		                --extinst-debuginfo-grammar=$(SPV_DEBUGINFO_GRAMMAR) \
-		                --core-insts-output=$(1)/core.insts-1.2.inc \
-		                --operand-kinds-output=$(1)/operand.kinds-1.2.inc
-		@echo "[$(TARGET_ARCH_ABI)] Grammar v1.2   : instructions & operands <= grammar JSON files"
-$(1)/core.insts-unified1.inc $(1)/operand.kinds-unified1.inc: \
-        $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-        $(SPV_COREUNIFIED1_GRAMMAR) \
-        $(SPV_DEBUGINFO_GRAMMAR)
-		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-		                --spirv-core-grammar=$(SPV_COREUNIFIED1_GRAMMAR) \
-		                --extinst-debuginfo-grammar=$(SPV_DEBUGINFO_GRAMMAR) \
-		                --core-insts-output=$(1)/core.insts-unified1.inc \
 		                --operand-kinds-output=$(1)/operand.kinds-unified1.inc
-		@echo "[$(TARGET_ARCH_ABI)] Grammar v1.3 (from unified1)  : instructions & operands <= grammar JSON files"
-$(LOCAL_PATH)/source/opcode.cpp: $(1)/core.insts-1.0.inc $(1)/core.insts-1.1.inc $(1)/core.insts-1.2.inc $(1)/core.insts-unified1.inc
-$(LOCAL_PATH)/source/operand.cpp: $(1)/operand.kinds-1.0.inc $(1)/operand.kinds-1.1.inc $(1)/operand.kinds-1.2.inc $(1)/operand.kinds-unified1.inc
+		@echo "[$(TARGET_ARCH_ABI)] Grammar (from unified1)  : instructions & operands <= grammar JSON files"
+$(LOCAL_PATH)/source/opcode.cpp: $(1)/core.insts-unified1.inc
+$(LOCAL_PATH)/source/operand.cpp: $(1)/operand.kinds-unified1.inc
 $(LOCAL_PATH)/source/ext_inst.cpp: \
 	$(1)/glsl.std.450.insts.inc \
 	$(1)/opencl.std.insts.inc \
 	$(1)/debuginfo.insts.inc \
+	$(1)/opencl.debuginfo.100.insts.inc \
 	$(1)/spv-amd-gcn-shader.insts.inc \
 	$(1)/spv-amd-shader-ballot.insts.inc \
 	$(1)/spv-amd-shader-explicit-vertex-parameter.insts.inc \
@@ -271,8 +241,9 @@ $(1)/$(2).h : \
 		@echo "[$(TARGET_ARCH_ABI)] Generate language specific header for $(2): headers <= grammar"
 $(LOCAL_PATH)/source/ext_inst.cpp: $(1)/$(2).h
 endef
-# We generate language-specific headers for DebugInfo
+# We generate language-specific headers for DebugInfo and OpenCL.DebugInfo.100
 $(eval $(call gen_spvtools_lang_headers,$(SPVTOOLS_OUT_PATH),DebugInfo,$(SPV_DEBUGINFO_GRAMMAR)))
+$(eval $(call gen_spvtools_lang_headers,$(SPVTOOLS_OUT_PATH),OpenCLDebugInfo100,$(SPV_CLDEBUGINFO100_GRAMMAR)))
 
 
 define gen_spvtools_vendor_tables
@@ -282,22 +253,28 @@ $(1)/$(2).insts.inc : \
         $(LOCAL_PATH)/source/extinst.$(2).grammar.json
 		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/generate_grammar_tables.py \
 		    --extinst-vendor-grammar=$(LOCAL_PATH)/source/extinst.$(2).grammar.json \
-		    --vendor-insts-output=$(1)/$(2).insts.inc
+		    --vendor-insts-output=$(1)/$(2).insts.inc \
+		    --vendor-operand-kind-prefix=$(3)
 		@echo "[$(TARGET_ARCH_ABI)] Vendor extended instruction set: $(2) tables <= grammar"
 $(LOCAL_PATH)/source/ext_inst.cpp: $(1)/$(2).insts.inc
 endef
-# Vendor extended instruction sets, with grammars from SPIRV-Tools source tree.
-SPV_NONSTANDARD_EXTINST_GRAMMARS=$(foreach F,$(wildcard $(LOCAL_PATH)/source/extinst.*.grammar.json),$(patsubst extinst.%.grammar.json,%,$(notdir $F)))
-$(foreach E,$(SPV_NONSTANDARD_EXTINST_GRAMMARS),$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),$E)))
+# Vendor and debug extended instruction sets, with grammars from SPIRV-Tools source tree.
+$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),debuginfo,""))
+$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),opencl.debuginfo.100,"CLDEBUG100_"))
+$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),spv-amd-gcn-shader,""))
+$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),spv-amd-shader-ballot,""))
+$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),spv-amd-shader-explicit-vertex-parameter,""))
+$(eval $(call gen_spvtools_vendor_tables,$(SPVTOOLS_OUT_PATH),spv-amd-shader-trinary-minmax,""))
 
 define gen_spvtools_enum_string_mapping
 $(call generate-file-dir,$(1)/extension_enum.inc.inc)
 $(1)/extension_enum.inc $(1)/enum_string_mapping.inc: \
         $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-        $(SPV_CORELATEST_GRAMMAR)
+        $(SPV_COREUNIFIED1_GRAMMAR)
 		@$(HOST_PYTHON) $(LOCAL_PATH)/utils/generate_grammar_tables.py \
-		                --spirv-core-grammar=$(SPV_CORELATEST_GRAMMAR) \
+		                --spirv-core-grammar=$(SPV_COREUNIFIED1_GRAMMAR) \
 		                --extinst-debuginfo-grammar=$(SPV_DEBUGINFO_GRAMMAR) \
+		                --extinst-cldebuginfo100-grammar=$(SPV_CLDEBUGINFO100_GRAMMAR) \
 		                --extension-enum-output=$(1)/extension_enum.inc \
 		                --enum-string-mapping-output=$(1)/enum_string_mapping.inc
 		@echo "[$(TARGET_ARCH_ABI)] Generate enum<->string mapping <= grammar JSON files"

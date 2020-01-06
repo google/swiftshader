@@ -34,7 +34,7 @@ AUTHORS = ['The Khronos Group Inc.',
            'Samsung Inc']
 CURRENT_YEAR='2019'
 
-YEARS = '(2014-2016|2015-2016|2016|2016-2017|2017|2018|2019)'
+YEARS = '(2014-2016|2015-2016|2016|2016-2017|2017|2017-2019|2018|2019)'
 COPYRIGHT_RE = re.compile(
         'Copyright \(c\) {} ({})'.format(YEARS, '|'.join(AUTHORS)))
 

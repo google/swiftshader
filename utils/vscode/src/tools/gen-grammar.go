@@ -77,9 +77,12 @@ func run() error {
 					}
 					return rel
 				}
+				escape := func(str string) string {
+					return strings.ReplaceAll(str, `\`, `/`)
+				}
 				args := []string{
-					"--template=" + relPath(*templatePath),
-					"--out=" + relPath(*outputPath),
+					"--template=" + escape(relPath(*templatePath)),
+					"--out=" + escape(relPath(*outputPath)),
 				}
 				return "gen-grammar.go " + strings.Join(args, " ")
 			},
