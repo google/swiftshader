@@ -315,6 +315,243 @@ OpNop
                         "non-OpPhi instructions"));
 }
 
+TEST_F(ValidateAdjacency, NonSemanticBeforeOpPhiBad) {
+  const std::string body = R"(
+OpSelectionMerge %end_label None
+OpBranchConditional %true %true_label %false_label
+%true_label = OpLabel
+OpBranch %end_label
+%false_label = OpLabel
+OpBranch %end_label
+%end_label = OpLabel
+%dummy = OpExtInst %void %extinst 123 %int_1
+%result = OpPhi %bool %true %true_label %false %false_label
+)";
+
+  const std::string extra = R"(OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+)";
+
+  CompileSuccessfully(GenerateShaderCode(body, extra));
+  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpPhi must appear within a non-entry block before all "
+                        "non-OpPhi instructions"));
+}
+
+TEST_F(ValidateAdjacency, NonSemanticBetweenOpPhiBad) {
+  const std::string body = R"(
+OpSelectionMerge %end_label None
+OpBranchConditional %true %true_label %false_label
+%true_label = OpLabel
+OpBranch %end_label
+%false_label = OpLabel
+OpBranch %end_label
+%end_label = OpLabel
+%result1 = OpPhi %bool %true %true_label %false %false_label
+%dummy = OpExtInst %void %extinst 123 %int_1
+%result2 = OpPhi %bool %true %true_label %false %false_label
+)";
+
+  const std::string extra = R"(OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+)";
+
+  CompileSuccessfully(GenerateShaderCode(body, extra));
+  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpPhi must appear within a non-entry block before all "
+                        "non-OpPhi instructions"));
+}
+
+TEST_F(ValidateAdjacency, NonSemanticAfterOpPhiGood) {
+  const std::string body = R"(
+OpSelectionMerge %end_label None
+OpBranchConditional %true %true_label %false_label
+%true_label = OpLabel
+OpBranch %end_label
+%false_label = OpLabel
+OpBranch %end_label
+%end_label = OpLabel
+OpLine %string 0 0
+%result = OpPhi %bool %true %true_label %false %false_label
+%dummy = OpExtInst %void %extinst 123 %int_1
+)";
+
+  const std::string extra = R"(OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+)";
+
+  CompileSuccessfully(GenerateShaderCode(body, extra));
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateAdjacency, NonSemanticBeforeOpFunctionParameterBad) {
+  const std::string body = R"(
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+
+%string = OpString ""
+%void = OpTypeVoid
+%bool = OpTypeBool
+%int = OpTypeInt 32 0
+%true = OpConstantTrue %bool
+%false = OpConstantFalse %bool
+%zero = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%func = OpTypeFunction %void
+%func_int = OpTypePointer Function %int
+%paramfunc_type = OpTypeFunction %void %int %int
+
+%paramfunc = OpFunction %void None %paramfunc_type
+%dummy = OpExtInst %void %extinst 123 %int_1
+%a = OpFunctionParameter %int
+%b = OpFunctionParameter %int
+%paramfunc_entry = OpLabel
+OpReturn
+OpFunctionEnd
+
+%main = OpFunction %void None %func
+%main_entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(body);
+  EXPECT_EQ(SPV_ERROR_INVALID_LAYOUT, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Non-semantic OpExtInst within function definition "
+                        "must appear in a block"));
+}
+
+TEST_F(ValidateAdjacency, NonSemanticBetweenOpFunctionParameterBad) {
+  const std::string body = R"(
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+
+%string = OpString ""
+%void = OpTypeVoid
+%bool = OpTypeBool
+%int = OpTypeInt 32 0
+%true = OpConstantTrue %bool
+%false = OpConstantFalse %bool
+%zero = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%func = OpTypeFunction %void
+%func_int = OpTypePointer Function %int
+%paramfunc_type = OpTypeFunction %void %int %int
+
+%paramfunc = OpFunction %void None %paramfunc_type
+%a = OpFunctionParameter %int
+%dummy = OpExtInst %void %extinst 123 %int_1
+%b = OpFunctionParameter %int
+%paramfunc_entry = OpLabel
+OpReturn
+OpFunctionEnd
+
+%main = OpFunction %void None %func
+%main_entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(body);
+  EXPECT_EQ(SPV_ERROR_INVALID_LAYOUT, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Non-semantic OpExtInst within function definition "
+                        "must appear in a block"));
+}
+
+TEST_F(ValidateAdjacency, NonSemanticAfterOpFunctionParameterGood) {
+  const std::string body = R"(
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+
+%string = OpString ""
+%void = OpTypeVoid
+%bool = OpTypeBool
+%int = OpTypeInt 32 0
+%true = OpConstantTrue %bool
+%false = OpConstantFalse %bool
+%zero = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%func = OpTypeFunction %void
+%func_int = OpTypePointer Function %int
+%paramfunc_type = OpTypeFunction %void %int %int
+
+%paramfunc = OpFunction %void None %paramfunc_type
+%a = OpFunctionParameter %int
+%b = OpFunctionParameter %int
+%paramfunc_entry = OpLabel
+%dummy = OpExtInst %void %extinst 123 %int_1
+OpReturn
+OpFunctionEnd
+
+%main = OpFunction %void None %func
+%main_entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(body);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateAdjacency, NonSemanticBetweenFunctionsGood) {
+  const std::string body = R"(
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%extinst = OpExtInstImport "NonSemantic.Testing.Set"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+
+%string = OpString ""
+%void = OpTypeVoid
+%bool = OpTypeBool
+%int = OpTypeInt 32 0
+%true = OpConstantTrue %bool
+%false = OpConstantFalse %bool
+%zero = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%func = OpTypeFunction %void
+%func_int = OpTypePointer Function %int
+%paramfunc_type = OpTypeFunction %void %int %int
+
+%paramfunc = OpFunction %void None %paramfunc_type
+%a = OpFunctionParameter %int
+%b = OpFunctionParameter %int
+%paramfunc_entry = OpLabel
+OpReturn
+OpFunctionEnd
+
+%dummy = OpExtInst %void %extinst 123 %int_1
+
+%main = OpFunction %void None %func
+%main_entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(body);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 TEST_F(ValidateAdjacency, OpVariableInFunctionGood) {
   const std::string body = R"(
 OpLine %string 1 1

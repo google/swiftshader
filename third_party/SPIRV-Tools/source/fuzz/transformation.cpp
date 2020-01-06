@@ -17,18 +17,29 @@
 #include <cassert>
 
 #include "source/fuzz/transformation_add_constant_boolean.h"
+#include "source/fuzz/transformation_add_constant_composite.h"
 #include "source/fuzz/transformation_add_constant_scalar.h"
 #include "source/fuzz/transformation_add_dead_break.h"
 #include "source/fuzz/transformation_add_dead_continue.h"
+#include "source/fuzz/transformation_add_function.h"
+#include "source/fuzz/transformation_add_global_undef.h"
+#include "source/fuzz/transformation_add_global_variable.h"
 #include "source/fuzz/transformation_add_no_contraction_decoration.h"
+#include "source/fuzz/transformation_add_type_array.h"
 #include "source/fuzz/transformation_add_type_boolean.h"
 #include "source/fuzz/transformation_add_type_float.h"
+#include "source/fuzz/transformation_add_type_function.h"
 #include "source/fuzz/transformation_add_type_int.h"
+#include "source/fuzz/transformation_add_type_matrix.h"
 #include "source/fuzz/transformation_add_type_pointer.h"
+#include "source/fuzz/transformation_add_type_struct.h"
+#include "source/fuzz/transformation_add_type_vector.h"
 #include "source/fuzz/transformation_composite_construct.h"
 #include "source/fuzz/transformation_composite_extract.h"
 #include "source/fuzz/transformation_copy_object.h"
+#include "source/fuzz/transformation_merge_blocks.h"
 #include "source/fuzz/transformation_move_block_down.h"
+#include "source/fuzz/transformation_outline_function.h"
 #include "source/fuzz/transformation_replace_boolean_constant_with_constant_binary.h"
 #include "source/fuzz/transformation_replace_constant_with_uniform.h"
 #include "source/fuzz/transformation_replace_id_with_synonym.h"
@@ -51,6 +62,9 @@ std::unique_ptr<Transformation> Transformation::FromMessage(
     case protobufs::Transformation::TransformationCase::kAddConstantBoolean:
       return MakeUnique<TransformationAddConstantBoolean>(
           message.add_constant_boolean());
+    case protobufs::Transformation::TransformationCase::kAddConstantComposite:
+      return MakeUnique<TransformationAddConstantComposite>(
+          message.add_constant_composite());
     case protobufs::Transformation::TransformationCase::kAddConstantScalar:
       return MakeUnique<TransformationAddConstantScalar>(
           message.add_constant_scalar());
@@ -59,20 +73,39 @@ std::unique_ptr<Transformation> Transformation::FromMessage(
     case protobufs::Transformation::TransformationCase::kAddDeadContinue:
       return MakeUnique<TransformationAddDeadContinue>(
           message.add_dead_continue());
+    case protobufs::Transformation::TransformationCase::kAddFunction:
+      return MakeUnique<TransformationAddFunction>(message.add_function());
+    case protobufs::Transformation::TransformationCase::kAddGlobalUndef:
+      return MakeUnique<TransformationAddGlobalUndef>(
+          message.add_global_undef());
+    case protobufs::Transformation::TransformationCase::kAddGlobalVariable:
+      return MakeUnique<TransformationAddGlobalVariable>(
+          message.add_global_variable());
     case protobufs::Transformation::TransformationCase::
         kAddNoContractionDecoration:
       return MakeUnique<TransformationAddNoContractionDecoration>(
           message.add_no_contraction_decoration());
+    case protobufs::Transformation::TransformationCase::kAddTypeArray:
+      return MakeUnique<TransformationAddTypeArray>(message.add_type_array());
     case protobufs::Transformation::TransformationCase::kAddTypeBoolean:
       return MakeUnique<TransformationAddTypeBoolean>(
           message.add_type_boolean());
     case protobufs::Transformation::TransformationCase::kAddTypeFloat:
       return MakeUnique<TransformationAddTypeFloat>(message.add_type_float());
+    case protobufs::Transformation::TransformationCase::kAddTypeFunction:
+      return MakeUnique<TransformationAddTypeFunction>(
+          message.add_type_function());
     case protobufs::Transformation::TransformationCase::kAddTypeInt:
       return MakeUnique<TransformationAddTypeInt>(message.add_type_int());
+    case protobufs::Transformation::TransformationCase::kAddTypeMatrix:
+      return MakeUnique<TransformationAddTypeMatrix>(message.add_type_matrix());
     case protobufs::Transformation::TransformationCase::kAddTypePointer:
       return MakeUnique<TransformationAddTypePointer>(
           message.add_type_pointer());
+    case protobufs::Transformation::TransformationCase::kAddTypeStruct:
+      return MakeUnique<TransformationAddTypeStruct>(message.add_type_struct());
+    case protobufs::Transformation::TransformationCase::kAddTypeVector:
+      return MakeUnique<TransformationAddTypeVector>(message.add_type_vector());
     case protobufs::Transformation::TransformationCase::kCompositeConstruct:
       return MakeUnique<TransformationCompositeConstruct>(
           message.composite_construct());
@@ -81,8 +114,13 @@ std::unique_ptr<Transformation> Transformation::FromMessage(
           message.composite_extract());
     case protobufs::Transformation::TransformationCase::kCopyObject:
       return MakeUnique<TransformationCopyObject>(message.copy_object());
+    case protobufs::Transformation::TransformationCase::kMergeBlocks:
+      return MakeUnique<TransformationMergeBlocks>(message.merge_blocks());
     case protobufs::Transformation::TransformationCase::kMoveBlockDown:
       return MakeUnique<TransformationMoveBlockDown>(message.move_block_down());
+    case protobufs::Transformation::TransformationCase::kOutlineFunction:
+      return MakeUnique<TransformationOutlineFunction>(
+          message.outline_function());
     case protobufs::Transformation::TransformationCase::
         kReplaceBooleanConstantWithConstantBinary:
       return MakeUnique<TransformationReplaceBooleanConstantWithConstantBinary>(

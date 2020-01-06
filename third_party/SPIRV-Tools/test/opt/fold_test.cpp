@@ -3396,7 +3396,17 @@ INSTANTIATE_TEST_SUITE_P(CompositeConstructFoldingTest, GeneralInstructionFoldin
             "%2 = OpCompositeConstruct %v2int %103 %103\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        2, VEC2_0_ID)
+        2, VEC2_0_ID),
+    // Test case 5: Don't segfault when trying to fold an OpCompositeConstruct
+    // for an empty struct, and we reached the id limit.
+    InstructionFoldingCase<uint32_t>(
+        Header() + "%empty_struct = OpTypeStruct\n" +
+            "%main = OpFunction %void None %void_func\n" +
+            "%main_lab = OpLabel\n" +
+            "%4194303 = OpCompositeConstruct %empty_struct\n" +
+            "OpReturn\n" +
+            "OpFunctionEnd",
+        4194303, 0)
 ));
 
 INSTANTIATE_TEST_SUITE_P(PhiFoldingTest, GeneralInstructionFoldingTest,
@@ -6109,6 +6119,23 @@ INSTANTIATE_TEST_SUITE_P(MergeSubTest, MatchingInstructionFoldingTest,
       "%2 = OpLoad %float %var\n" +
       "%3 = OpFSub %float %float_1 %2\n" +
       "%4 = OpFSub %float %float_2 %3\n" +
+      "OpReturn\n" +
+      "OpFunctionEnd\n",
+    4, true),
+  // Test case 13: merge subtract of subtract with mixed types.
+  // 2 - (1 - x) = x + 1
+  InstructionFoldingCase<bool>(
+    Header() +
+      "; CHECK: [[int:%\\w+]] = OpTypeInt 32 1\n" +
+      "; CHECK: [[int_1:%\\w+]] = OpConstant [[int]] 1\n" +
+      "; CHECK: [[ld:%\\w+]] = OpLoad [[int]]\n" +
+      "; CHECK: %4 = OpIAdd [[int]] [[ld]] [[int_1]]\n" +
+      "%main = OpFunction %void None %void_func\n" +
+      "%main_lab = OpLabel\n" +
+      "%var = OpVariable %_ptr_int Function\n" +
+      "%2 = OpLoad %int %var\n" +
+      "%3 = OpISub %int %uint_1 %2\n" +
+      "%4 = OpISub %int %int_2 %3\n" +
       "OpReturn\n" +
       "OpFunctionEnd\n",
     4, true)
