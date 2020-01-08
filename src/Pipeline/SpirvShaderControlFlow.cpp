@@ -702,6 +702,7 @@ void SpirvShader::Yield(YieldResult res) const
 void SpirvShader::SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const
 {
 	state->activeLaneMaskValue = mask.value;
+	dbgUpdateActiveLaneMask(mask, state);
 }
 
 }  // namespace sw
