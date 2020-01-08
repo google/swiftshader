@@ -416,13 +416,25 @@ SpirvShader::SpirvShader(
 
 			case spv::OpExtInstImport:
 			{
-				// We will only support the GLSL 450 extended instruction set, so no point in tracking the ID we assign it.
-				// Valid shaders will not attempt to import any other instruction sets.
-				auto ext = insn.string(2);
-				if(0 != strcmp("GLSL.std.450", ext))
+				auto id = Extension::ID(insn.word(1));
+				auto name = insn.string(2);
+				auto ext = Extension{ Extension::Unknown };
+				for(auto it : std::initializer_list<std::pair<const char *, Extension::Name>>{
+				        { "GLSL.std.450", Extension::GLSLstd450 },
+				    })
 				{
-					UNSUPPORTED("SPIR-V Extension: %s", ext);
+					if(0 == strcmp(name, it.first))
+					{
+						ext = Extension{ it.second };
+						break;
+					}
 				}
+				if(ext.name == Extension::Unknown)
+				{
+					UNSUPPORTED("SPIR-V Extension: %s", name);
+					break;
+				}
+				extensions.emplace(id, ext);
 				break;
 			}
 			case spv::OpName:
@@ -573,7 +585,6 @@ SpirvShader::SpirvShader(
 			case spv::OpConvertUToF:
 			case spv::OpBitcast:
 			case spv::OpSelect:
-			case spv::OpExtInst:
 			case spv::OpIsInf:
 			case spv::OpIsNan:
 			case spv::OpAny:
@@ -656,6 +667,18 @@ SpirvShader::SpirvShader(
 			case spv::OpArrayLength:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
+				break;
+
+			case spv::OpExtInst:
+				switch(getExtension(insn.word(3)).name)
+				{
+					case Extension::GLSLstd450:
+						DefineResult(insn);
+						break;
+					default:
+						UNREACHABLE("Unexpected Extension name %d", int(getExtension(insn.word(3)).name));
+						break;
+				}
 				break;
 
 			case spv::OpStore:
@@ -2290,6 +2313,19 @@ SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitStat
 
 	result.move(0, SIMD::Int(arrayLength));
 
+	return EmitResult::Continue;
+}
+
+SpirvShader::EmitResult SpirvShader::EmitExtendedInstruction(InsnIterator insn, EmitState *state) const
+{
+	auto ext = getExtension(insn.word(3));
+	switch(ext.name)
+	{
+		case Extension::GLSLstd450:
+			return EmitExtGLSLstd450(insn, state);
+		default:
+			UNREACHABLE("Unknown Extension::Name<%d>", int(ext.name));
+	}
 	return EmitResult::Continue;
 }
 
