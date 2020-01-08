@@ -1365,7 +1365,7 @@ template<typename T, typename... Args>
 void CommandBuffer::addCommand(Args &&... args)
 {
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
-	commands->push_back(std::unique_ptr<T>(new T(std::forward<Args>(args)...)));
+	commands->push_back(std::make_unique<T>(std::forward<Args>(args)...));
 }
 
 void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, VkRect2D renderArea,

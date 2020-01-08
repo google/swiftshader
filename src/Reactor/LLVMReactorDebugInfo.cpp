@@ -521,7 +521,7 @@ DebugInfo::LineTokens const *DebugInfo::getOrParseFileTokens(const char *path)
 		return it->second.get();
 	}
 
-	auto tokens = std::unique_ptr<LineTokens>(new LineTokens());
+	auto tokens = std::make_unique<LineTokens>();
 
 	std::ifstream file(path);
 	std::string line;

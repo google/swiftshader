@@ -70,12 +70,12 @@ private:
 		static auto exports = [] {
 			if(getProcAddress(RTLD_DEFAULT, "xcb_create_gc"))
 			{
-				return std::unique_ptr<LibXcbExports>(new LibXcbExports(RTLD_DEFAULT));
+				return std::make_unique<LibXcbExports>(RTLD_DEFAULT);
 			}
 
 			if(auto lib = loadLibrary("libxcb.so.1"))
 			{
-				return std::unique_ptr<LibXcbExports>(new LibXcbExports(lib));
+				return std::make_unique<LibXcbExports>(lib);
 			}
 
 			return std::unique_ptr<LibXcbExports>();

@@ -185,7 +185,7 @@ Coroutine<Return(Arguments...)>::operator()(Arguments... args)
 	using Sig = Nucleus::CoroutineBegin<Arguments...>;
 	auto pfn = (Sig *)routine->getEntry(Nucleus::CoroutineEntryBegin);
 	auto handle = pfn(args...);
-	return std::unique_ptr<Stream<Return>>(new Stream<Return>(routine, handle));
+	return std::make_unique<Stream<Return>>(routine, handle);
 }
 
 #	ifdef Yield  // Defined in WinBase.h

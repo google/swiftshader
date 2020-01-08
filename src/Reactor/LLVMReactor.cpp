@@ -1499,7 +1499,7 @@ void Nucleus::createFunction(Type *ReturnType, std::vector<Type *> &Params)
 	jit->function = rr::createFunction("", T(ReturnType), T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	jit->debugInfo = std::unique_ptr<DebugInfo>(new DebugInfo(jit->builder.get(), &jit->context, jit->module.get(), jit->function));
+	jit->debugInfo = std::make_unique<DebugInfo>(jit->builder.get(), &jit->context, jit->module.get(), jit->function);
 #endif  // ENABLE_RR_DEBUG_INFO
 
 	jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->function));
@@ -4908,7 +4908,7 @@ void promoteFunctionToCoroutine()
 	//
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	jit->debugInfo = std::unique_ptr<rr::DebugInfo>(new rr::DebugInfo(jit->builder.get(), &jit->context, jit->module.get(), jit->function));
+	jit->debugInfo = std::make_unique<rr::DebugInfo>(jit->builder.get(), &jit->context, jit->module.get(), jit->function);
 #endif  // ENABLE_RR_DEBUG_INFO
 
 	jit->coroutine.suspendBlock = llvm::BasicBlock::Create(jit->context, "suspend", jit->function);
