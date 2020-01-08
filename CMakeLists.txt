@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.6.3)
 
+set(CMAKE_CXX_STANDARD 14)
+
 project(SwiftShader C CXX ASM)
 
 # On Windows we use custom solution and project files, except for certain third-
@@ -360,7 +362,6 @@ if(MSVC)
     )
 
 else()
-    set_cpp_flag("--std=c++11")
     set_cpp_flag("-fno-exceptions")
 
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS

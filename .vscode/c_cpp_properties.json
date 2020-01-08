@@ -18,7 +18,7 @@
                 "${workspaceFolder}/third_party/cppdap/include"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++11"
+            "cppStandard": "c++14"
         },
         {
             "name": "Mac",
@@ -38,7 +38,7 @@
                 "${workspaceFolder}/third_party/cppdap/include"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++11"
+            "cppStandard": "c++14"
         },
         {
             "name": "Win32",
@@ -58,7 +58,7 @@
                 "${workspaceFolder}/third_party/cppdap/include"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++11"
+            "cppStandard": "c++14"
         }
     ],
     "version": 4
