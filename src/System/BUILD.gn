@@ -36,6 +36,7 @@ swiftshader_source_set("System_headers") {
 
 swiftshader_source_set("System") {
   sources = [
+    "Build.cpp",
     "CPUID.cpp",
     "Configurator.cpp",
     "Debug.cpp",

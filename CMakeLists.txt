@@ -1768,6 +1768,7 @@ file(GLOB VULKAN_LIST
     ${VULKAN_DIR}/*.cpp
     ${VULKAN_DIR}/*.h
     ${VULKAN_DIR}/*.hpp
+    ${SOURCE_DIR}/System/Build.cpp
     ${SOURCE_DIR}/System/Build.hpp
     ${SOURCE_DIR}/System/CPUID.cpp
     ${SOURCE_DIR}/System/CPUID.hpp

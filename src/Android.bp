@@ -571,6 +571,7 @@ cc_defaults {
     ],
 
     srcs: [
+        "System/Build.cpp",
         "System/CPUID.cpp",
         "System/Configurator.cpp",
         "System/Half.cpp",
