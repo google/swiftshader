@@ -89,11 +89,57 @@ const void *Constant<T>::get() const
 	return &value;
 }
 
+// Reference is reference to a value in memory.
+template<typename T>
+class Reference : public Value
+{
+public:
+	inline Reference(T &ptr);
+	inline std::shared_ptr<Type> type() const override;
+	inline const void *get() const override;
+	inline bool set(void *ptr) override;
+
+private:
+	T &ref;
+};
+
+template<typename T>
+Reference<T>::Reference(T &ref)
+    : ref(ref)
+{
+}
+
+template<typename T>
+std::shared_ptr<Type> Reference<T>::type() const
+{
+	return TypeOf<T>::get();
+}
+
+template<typename T>
+const void *Reference<T>::get() const
+{
+	return &ref;
+}
+
+template<typename T>
+bool Reference<T>::set(void *ptr)
+{
+	ref = *reinterpret_cast<const T *>(ptr);
+	return true;
+}
+
 // make_constant() returns a shared_ptr to a Constant with the given value.
 template<typename T>
 inline std::shared_ptr<Constant<T>> make_constant(const T &value)
 {
-	return std::shared_ptr<Constant<T>>(new vk::dbg::Constant<T>(value));
+	return std::make_shared<Constant<T>>(value);
+}
+
+// make_reference() returns a shared_ptr to a Reference with the given value.
+template<typename T>
+inline std::shared_ptr<Reference<T>> make_reference(T &value)
+{
+	return std::make_shared<Reference<T>>(value);
 }
 
 }  // namespace dbg
