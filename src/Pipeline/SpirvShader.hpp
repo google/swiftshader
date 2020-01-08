@@ -1138,7 +1138,14 @@ private:
 	// Returns 0 when invalid.
 	static VkShaderStageFlagBits executionModelToStage(spv::ExecutionModel model);
 
-	struct GroupOps;
+	// Impl holds private forward declaration structs that are implemented
+	// in the corresponding SpirvShaderXXX.cpp files.
+	// This allows access to the private members of the SpirvShader, without
+	// littering the header with implementation details.
+	struct Impl
+	{
+		struct Group;
+	};
 };
 
 class SpirvRoutine

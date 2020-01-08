@@ -18,7 +18,7 @@
 
 namespace sw {
 
-struct SpirvShader::GroupOps
+struct SpirvShader::Impl::Group
 {
 
 	// Template function to perform a binary operation.
@@ -318,7 +318,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformIAdd:
 		{
 			using Type = SIMD::Int;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0),
 			    [](RValue<Type> a, RValue<Type> b) { return a + b; });
@@ -328,7 +328,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformFAdd:
 		{
 			using Type = SIMD::Float;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0.),
 			    [](RValue<Type> a, RValue<Type> b) { return a + b; });
@@ -338,7 +338,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformIMul:
 		{
 			using Type = SIMD::Int;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(1),
 			    [](RValue<Type> a, RValue<Type> b) { return a * b; });
@@ -348,7 +348,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformFMul:
 		{
 			using Type = SIMD::Float;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(1.),
 			    [](RValue<Type> a, RValue<Type> b) { return a * b; });
@@ -358,7 +358,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformBitwiseAnd:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(~0u),
 			    [](RValue<Type> a, RValue<Type> b) { return a & b; });
@@ -368,7 +368,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformBitwiseOr:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0),
 			    [](RValue<Type> a, RValue<Type> b) { return a | b; });
@@ -378,7 +378,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformBitwiseXor:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0),
 			    [](RValue<Type> a, RValue<Type> b) { return a ^ b; });
@@ -388,7 +388,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformSMin:
 		{
 			using Type = SIMD::Int;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(INT32_MAX),
 			    [](RValue<Type> a, RValue<Type> b) { return Min(a, b); });
@@ -398,7 +398,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformUMin:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(~0u),
 			    [](RValue<Type> a, RValue<Type> b) { return Min(a, b); });
@@ -408,7 +408,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformFMin:
 		{
 			using Type = SIMD::Float;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type::positive_inf(),
 			    [](RValue<Type> a, RValue<Type> b) { return NMin(a, b); });
@@ -418,7 +418,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformSMax:
 		{
 			using Type = SIMD::Int;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(INT32_MIN),
 			    [](RValue<Type> a, RValue<Type> b) { return Max(a, b); });
@@ -428,7 +428,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformUMax:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0),
 			    [](RValue<Type> a, RValue<Type> b) { return Max(a, b); });
@@ -438,7 +438,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformFMax:
 		{
 			using Type = SIMD::Float;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type::negative_inf(),
 			    [](RValue<Type> a, RValue<Type> b) { return NMax(a, b); });
@@ -448,7 +448,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformLogicalAnd:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(~0u),
 			    [](RValue<Type> a, RValue<Type> b) {
@@ -461,7 +461,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformLogicalOr:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0),
 			    [](RValue<Type> a, RValue<Type> b) {
@@ -474,7 +474,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformLogicalXor:
 		{
 			using Type = SIMD::UInt;
-			SpirvShader::GroupOps::BinaryOperation(
+			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
 			    Type(0),
 			    [](RValue<Type> a, RValue<Type> b) {
