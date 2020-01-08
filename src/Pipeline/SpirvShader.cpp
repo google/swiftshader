@@ -433,8 +433,11 @@ SpirvShader::SpirvShader(
 			case spv::OpLine:
 			case spv::OpNoLine:
 			case spv::OpModuleProcessed:
-			case spv::OpString:
 				// No semantic impact
+				break;
+
+			case spv::OpString:
+				strings.emplace(insn.word(1), insn.string(2));
 				break;
 
 			case spv::OpFunctionParameter:

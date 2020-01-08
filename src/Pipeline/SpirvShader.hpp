@@ -377,6 +377,9 @@ public:
 		Type::ID result;          // return type.
 	};
 
+	using String = std::string;
+	using StringID = SpirvID<std::string>;
+
 	struct TypeOrObject
 	{};  // Dummy struct to represent a Type or Object.
 
@@ -728,6 +731,7 @@ private:
 	HandleMap<Type> types;
 	HandleMap<Object> defs;
 	HandleMap<Function> functions;
+	std::unordered_map<StringID, String> strings;
 	Function::ID entryPoint;
 
 	const bool robustBufferAccess = true;
@@ -1003,6 +1007,13 @@ private:
 	{
 		auto it = functions.find(id);
 		ASSERT_MSG(it != functions.end(), "Unknown function %d", id.value());
+		return it->second;
+	}
+
+	String const &getString(StringID id) const
+	{
+		auto it = strings.find(id);
+		ASSERT_MSG(it != strings.end(), "Unknown string %d", id.value());
 		return it->second;
 	}
 
