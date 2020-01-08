@@ -47,12 +47,6 @@ class LValue;
 template<class T>
 class RValue;
 
-// enabled_if_t is identical to C++14's std::enable_if_t.
-// std::enable_if_t was introduced in C++14, but Reactor must support
-// C++11.
-template<bool Condition, class TrueType = void>
-using enable_if_t = typename std::enable_if<Condition, TrueType>::type;
-
 // IsDefined<T>::value is true if T is a valid type, otherwise false.
 template<typename T, typename Enable = void>
 struct IsDefined
@@ -61,7 +55,7 @@ struct IsDefined
 };
 
 template<typename T>
-struct IsDefined<T, enable_if_t<(sizeof(T) > 0)>>
+struct IsDefined<T, std::enable_if_t<(sizeof(T) > 0)>>
 {
 	static constexpr bool value = true;
 };
@@ -167,7 +161,7 @@ struct CToReactorPtr
 // CToReactorPtr specialization for T types that have a CToReactorT<>
 // specialization.
 template<typename T>
-struct CToReactorPtr<T, enable_if_t<HasReactorType<T>::value>>
+struct CToReactorPtr<T, std::enable_if_t<HasReactorType<T>::value>>
 {
 	using type = Pointer<CToReactorT<T>>;
 	static inline type cast(const T *v);  // implemented in Traits.inl
@@ -187,7 +181,7 @@ struct CToReactorPtr<void, void>
 // Drops the 'const' qualifier from the cast() method to avoid warnings
 // about const having no meaning for function types.
 template<typename T>
-struct CToReactorPtr<T, enable_if_t<std::is_function<T>::value>>
+struct CToReactorPtr<T, std::enable_if_t<std::is_function<T>::value>>
 {
 	using type = Pointer<Byte>;
 	static inline type cast(T *v);  // implemented in Traits.inl
@@ -201,7 +195,7 @@ using CToReactorPtrT = typename CToReactorPtr<T>::type;
 // CToReactorT<T*>::type resolves to Pointer< CToReactorT<T> >, otherwise
 // CToReactorT<T*>::type resolves to Pointer<Byte>.
 template<typename T>
-struct CToReactor<T, enable_if_t<std::is_pointer<T>::value>>
+struct CToReactor<T, std::enable_if_t<std::is_pointer<T>::value>>
 {
 	using elem = typename std::remove_pointer<T>::type;
 	using type = CToReactorPtrT<elem>;
@@ -210,7 +204,7 @@ struct CToReactor<T, enable_if_t<std::is_pointer<T>::value>>
 
 // CToReactor specialization for enum types.
 template<typename T>
-struct CToReactor<T, enable_if_t<std::is_enum<T>::value>>
+struct CToReactor<T, std::enable_if_t<std::is_enum<T>::value>>
 {
 	using underlying = typename std::underlying_type<T>::type;
 	using type = CToReactorT<underlying>;
@@ -224,7 +218,7 @@ struct IsRValue
 	static constexpr bool value = false;
 };
 template<typename T>
-struct IsRValue<T, enable_if_t<IsDefined<typename T::rvalue_underlying_type>::value>>
+struct IsRValue<T, std::enable_if_t<IsDefined<typename T::rvalue_underlying_type>::value>>
 {
 	static constexpr bool value = true;
 };
@@ -243,7 +237,7 @@ struct IsReference
 	static constexpr bool value = false;
 };
 template<typename T>
-struct IsReference<T, enable_if_t<IsDefined<typename T::reference_underlying_type>::value>>
+struct IsReference<T, std::enable_if_t<IsDefined<typename T::reference_underlying_type>::value>>
 {
 	static constexpr bool value = true;
 };
@@ -255,25 +249,25 @@ struct ReactorType;
 template<typename T>
 using ReactorTypeT = typename ReactorType<T>::type;
 template<typename T>
-struct ReactorType<T, enable_if_t<IsDefined<CToReactorT<T>>::value>>
+struct ReactorType<T, std::enable_if_t<IsDefined<CToReactorT<T>>::value>>
 {
 	using type = CToReactorT<T>;
 	static type cast(T v) { return CToReactor<T>::cast(v); }
 };
 template<typename T>
-struct ReactorType<T, enable_if_t<IsRValue<T>::value>>
+struct ReactorType<T, std::enable_if_t<IsRValue<T>::value>>
 {
 	using type = typename T::rvalue_underlying_type;
 	static type cast(T v) { return type(v); }
 };
 template<typename T>
-struct ReactorType<T, enable_if_t<IsLValue<T>::value>>
+struct ReactorType<T, std::enable_if_t<IsLValue<T>::value>>
 {
 	using type = T;
 	static type cast(T v) { return type(v); }
 };
 template<typename T>
-struct ReactorType<T, enable_if_t<IsReference<T>::value>>
+struct ReactorType<T, std::enable_if_t<IsReference<T>::value>>
 {
 	using type = T;
 	static type cast(T v) { return type(v); }
