@@ -428,6 +428,11 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo *
 	pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceExternalMemoryHostPropertiesEXT *properties) const
+{
+	properties->minImportedHostPointerAlignment = REQUIRED_MEMORY_ALIGNMENT;
+}
+
 void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR *properties) const
 {
 	properties->driverID = VK_DRIVER_ID_GOOGLE_SWIFTSHADER_KHR;

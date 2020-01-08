@@ -130,6 +130,79 @@ public:
 
 }  // namespace vk
 
+// Host-allocated memory and host-mapped foreign memory
+class ExternalMemoryHost : public vk::DeviceMemory::ExternalBase
+{
+public:
+	struct AllocateInfo
+	{
+		bool supported = false;
+		void *hostPointer = nullptr;
+
+		AllocateInfo() = default;
+
+		AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
+		{
+			const auto *createInfo = reinterpret_cast<const VkBaseInStructure *>(pAllocateInfo->pNext);
+			while(createInfo)
+			{
+				switch(createInfo->sType)
+				{
+					case VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT:
+					{
+						const auto *importInfo = reinterpret_cast<const VkImportMemoryHostPointerInfoEXT *>(createInfo);
+
+						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT && importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT)
+						{
+							UNSUPPORTED("importInfo->handleType");
+						}
+						hostPointer = importInfo->pHostPointer;
+						supported = true;
+						break;
+					}
+					default:
+						break;
+				}
+				createInfo = createInfo->pNext;
+			}
+		}
+	};
+
+	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = (VkExternalMemoryHandleTypeFlagBits)(VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT | VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT);
+
+	static bool supportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
+	{
+		AllocateInfo info(pAllocateInfo);
+		return info.supported;
+	}
+
+	explicit ExternalMemoryHost(const VkMemoryAllocateInfo *pAllocateInfo)
+	    : allocateInfo(pAllocateInfo)
+	{
+	}
+
+	VkResult allocate(size_t size, void **pBuffer) override
+	{
+		if(allocateInfo.supported)
+		{
+			*pBuffer = allocateInfo.hostPointer;
+			return VK_SUCCESS;
+		}
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
+
+	void deallocate(void *buffer, size_t size) override
+	{}
+
+	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override
+	{
+		return typeFlagBit;
+	}
+
+private:
+	AllocateInfo allocateInfo;
+};
+
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 #	if defined(__linux__) || defined(__ANDROID__)
 #		include "VkDeviceMemoryExternalLinux.hpp"
@@ -163,6 +236,10 @@ static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
 		return;
 	}
 #endif
+	if(parseCreateInfo<ExternalMemoryHost>(pAllocateInfo, pTraits))
+	{
+		return;
+	}
 	parseCreateInfo<DeviceMemoryHostExternalBase>(pAllocateInfo, pTraits);
 }
 

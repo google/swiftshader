@@ -381,6 +381,13 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	    } },
 #endif
 
+	// VK_EXT_external_memory_host
+	{
+	    VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryHostPointerPropertiesEXT),
+	    } },
+
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 	// VK_ANDROID_external_memory_android_hardware_buffer
 	{
