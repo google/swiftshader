@@ -40,11 +40,13 @@ function check() {
 
 # Validate commit message
 function run_bug_in_commit_msg() {
-  git log -1 --pretty=%B | grep -E '^Bug:|^Issue:|^Fixes:|^Regres:'
+  git log -1 --pretty=%B | grep -E '^(Bug|Issue|Fixes):(\s?)((b\/)|(\w+:))([0-9]+)$|(^Regres:)'
 
   if [ $? -ne 0 ]
   then
-    echo "Git commit message must have a Bug: line."
+    echo "Git commit message must have a Bug: line"
+    echo "followed by a bug ID in the form b/# for Buganizer bugs or"
+    echo "project:# for Monorail bugs (e.g. 'Bug: chromium:123')."
     return 1
   fi
 }
