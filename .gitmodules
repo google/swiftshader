@@ -13,3 +13,7 @@
 [submodule "third_party/libbacktrace/src"]
 	path = third_party/libbacktrace/src
 	url = https://github.com/ianlancetaylor/libbacktrace.git
+
+[submodule "third_party/PowerVR_Examples"]
+	path = third_party/PowerVR_Examples
+	url = https://github.com/powervr-graphics/Native_SDK.git

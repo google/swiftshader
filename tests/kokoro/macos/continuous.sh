@@ -22,7 +22,7 @@ if [[ "${BUILD_TYPE}" == "Debug" ]]; then
   ASAN="OFF"
 fi
 
-cmake .. "-DASAN=${ASAN}" "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DREACTOR_BACKEND=${REACTOR_BACKEND}" "-DREACTOR_VERIFY_LLVM_IR=1"
+cmake .. "-DSWIFTSHADER_ASAN=${ASAN}" "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DREACTOR_BACKEND=${REACTOR_BACKEND}" "-DREACTOR_VERIFY_LLVM_IR=1"
 make -j$(sysctl -n hw.logicalcpu)
 
 # Run unit tests
