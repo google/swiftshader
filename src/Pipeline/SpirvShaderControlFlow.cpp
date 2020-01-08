@@ -300,7 +300,7 @@ void SpirvShader::EmitNonLoop(EmitState *state) const
 			auto inMask = GetActiveLaneMaskEdge(state, in, blockId);
 			activeLaneMask |= inMask;
 		}
-		state->setActiveLaneMask(activeLaneMask);
+		SetActiveLaneMask(activeLaneMask, state);
 	}
 
 	EmitInstructions(block.begin(), block.end(), state);
@@ -377,7 +377,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	Nucleus::setInsertBlock(headerBasicBlock);
 
 	// Load the active lane mask.
-	state->setActiveLaneMask(loopActiveLaneMask);
+	SetActiveLaneMask(loopActiveLaneMask, state);
 
 	// Emit the non-phi loop header block's instructions.
 	for(auto insn = block.begin(); insn != block.end(); insn++)
@@ -544,20 +544,20 @@ SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *st
 SpirvShader::EmitResult SpirvShader::EmitUnreachable(InsnIterator insn, EmitState *state) const
 {
 	// TODO: Log something in this case?
-	state->setActiveLaneMask(SIMD::Int(0));
+	SetActiveLaneMask(SIMD::Int(0), state);
 	return EmitResult::Terminator;
 }
 
 SpirvShader::EmitResult SpirvShader::EmitReturn(InsnIterator insn, EmitState *state) const
 {
-	state->setActiveLaneMask(SIMD::Int(0));
+	SetActiveLaneMask(SIMD::Int(0), state);
 	return EmitResult::Terminator;
 }
 
 SpirvShader::EmitResult SpirvShader::EmitKill(InsnIterator insn, EmitState *state) const
 {
 	state->routine->killMask |= SignMask(state->activeLaneMask());
-	state->setActiveLaneMask(SIMD::Int(0));
+	SetActiveLaneMask(SIMD::Int(0), state);
 	return EmitResult::Terminator;
 }
 
@@ -697,6 +697,11 @@ void SpirvShader::Fence(spv::MemorySemanticsMask semantics) const
 void SpirvShader::Yield(YieldResult res) const
 {
 	rr::Yield(RValue<Int>(int(res)));
+}
+
+void SpirvShader::SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const
+{
+	state->activeLaneMaskValue = mask.value;
 }
 
 }  // namespace sw

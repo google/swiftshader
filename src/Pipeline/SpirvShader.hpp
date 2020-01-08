@@ -879,11 +879,6 @@ private:
 			return RValue<SIMD::Int>(storesAndAtomicsMaskValue);
 		}
 
-		void setActiveLaneMask(RValue<SIMD::Int> mask)
-		{
-			activeLaneMaskValue = mask.value;
-		}
-
 		// Add a new active lane mask edge from the current block to out.
 		// The edge mask value will be (mask AND activeLaneMaskValue).
 		// If multiple active lane masks are added for the same edge, then
@@ -1059,6 +1054,9 @@ private:
 	// If from is unreachable, then a mask of all zeros is returned.
 	// Asserts if from is reachable and the edge does not exist.
 	RValue<SIMD::Int> GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const;
+
+	// Updates the current active lane mask.
+	void SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const;
 
 	// Emit all the unvisited blocks (except for ignore) in DFS order,
 	// starting with id.
