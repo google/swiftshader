@@ -192,10 +192,7 @@ private:
 	           const llvm::DataLayout &dataLayout);
 	JITGlobals(const JITGlobals &) = default;
 
-	// The cache key here is actually a rr::Optimization::Level. We use int
-	// as 'enum class' types do not provide builtin hash functions until
-	// C++14. See: https://stackoverflow.com/a/29618545.
-	Cache<int, TargetMachineSPtr> targetMachines;
+	Cache<rr::Optimization::Level, TargetMachineSPtr> targetMachines;
 };
 
 JITGlobals *JITGlobals::get()
@@ -206,13 +203,15 @@ JITGlobals *JITGlobals::get()
 
 JITGlobals::TargetMachineSPtr JITGlobals::getTargetMachine(rr::Optimization::Level optlevel)
 {
-	return targetMachines.getOrCreate(static_cast<int>(optlevel), [&]() {
-		return TargetMachineSPtr(llvm::EngineBuilder()
 #ifdef ENABLE_RR_DEBUG_INFO
-		                             .setOptLevel(toLLVM(rr::Optimization::Level::None))
-#else
-		                                                                 .setOptLevel(toLLVM(optlevel))
+	auto llvmOptLevel = toLLVM(rr::Optimization::Level::None);
+#else   // ENABLE_RR_DEBUG_INFO
+	auto llvmOptLevel = toLLVM(optlevel);
 #endif  // ENABLE_RR_DEBUG_INFO
+
+	return targetMachines.getOrCreate(optlevel, [&]() {
+		return TargetMachineSPtr(llvm::EngineBuilder()
+		                             .setOptLevel(llvmOptLevel)
 		                             .setMCPU(mcpu)
 		                             .setMArch(march)
 		                             .setMAttrs(mattrs)
