@@ -293,9 +293,9 @@ std::vector<std::shared_ptr<File>> Context::Lock::files()
 }
 
 std::shared_ptr<Frame> Context::Lock::createFrame(
-    const std::shared_ptr<File> &file)
+    const std::shared_ptr<File> &file, std::string function)
 {
-	auto frame = std::make_shared<Frame>(ctx->nextFrameID++);
+	auto frame = std::make_shared<Frame>(ctx->nextFrameID++, std::move(function));
 	ctx->frames.add(frame->id, frame);
 	frame->arguments = createScope(file);
 	frame->locals = createScope(file);

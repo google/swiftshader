@@ -38,10 +38,9 @@ std::string Thread::name() const
 	return name_;
 }
 
-void Thread::update(const Location &location)
+void Thread::onLocationUpdate(std::unique_lock<std::mutex> &lock)
 {
-	std::unique_lock<std::mutex> lock(mutex);
-	frames.back()->location = location;
+	auto location = frames.back()->location;
 
 	if(state_ == State::Running)
 	{
@@ -79,11 +78,10 @@ void Thread::update(const Location &location)
 
 void Thread::enter(Context::Lock &ctxlck, const std::shared_ptr<File> &file, const std::string &function)
 {
-	auto frame = ctxlck.createFrame(file);
+	auto frame = ctxlck.createFrame(file, function);
 	auto isFunctionBreakpoint = ctxlck.isFunctionBreakpoint(function);
 
 	std::unique_lock<std::mutex> lock(mutex);
-	frame->function = function;
 	frames.push_back(frame);
 	if(isFunctionBreakpoint)
 	{
@@ -98,28 +96,22 @@ void Thread::exit()
 	frames.pop_back();
 }
 
-std::shared_ptr<VariableContainer> Thread::registers() const
+void Thread::update(std::function<void(Frame &)> f)
 {
 	std::unique_lock<std::mutex> lock(mutex);
-	return frames.back()->registers->variables;
+	auto &frame = *frames.back();
+	auto oldLocation = frame.location;
+	f(frame);
+	if(frame.location != oldLocation)
+	{
+		onLocationUpdate(lock);
+	}
 }
 
-std::shared_ptr<VariableContainer> Thread::locals() const
+Frame Thread::frame() const
 {
 	std::unique_lock<std::mutex> lock(mutex);
-	return frames.back()->locals->variables;
-}
-
-std::shared_ptr<VariableContainer> Thread::arguments() const
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	return frames.back()->arguments->variables;
-}
-
-std::shared_ptr<VariableContainer> Thread::hovers() const
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	return frames.back()->hovers->variables;
+	return *frames.back();
 }
 
 std::vector<Frame> Thread::stack() const

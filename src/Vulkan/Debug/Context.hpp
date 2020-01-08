@@ -89,9 +89,10 @@ public:
 		// files() returns the full list of files.
 		std::vector<std::shared_ptr<File>> files();
 
-		// createFrame() returns a new frame for the given file.
+		// createFrame() returns a new frame for the given file and function
+		// name.
 		std::shared_ptr<Frame> createFrame(
-		    const std::shared_ptr<File> &file);
+		    const std::shared_ptr<File> &file, std::string function);
 
 		// get() returns the frame with the given ID, or null if the frame
 		// does not exist or no longer has any external shared_ptr references.

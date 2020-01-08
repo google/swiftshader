@@ -70,13 +70,13 @@ class Frame
 public:
 	using ID = dbg::ID<Frame>;
 
-	inline Frame(ID id);
+	inline Frame(ID id, std::string function);
 
 	// The unique identifier of the stack frame.
 	const ID id;
 
 	// The name of function for this stack frame.
-	std::string function;
+	const std::string function;
 
 	// The current execution location within the stack frame.
 	Location location;
@@ -94,8 +94,9 @@ public:
 	std::shared_ptr<Scope> hovers;
 };
 
-Frame::Frame(ID id)
+Frame::Frame(ID id, std::string function)
     : id(id)
+    , function(std::move(function))
 {}
 
 // Thread holds the state for a single thread of execution.
@@ -127,23 +128,19 @@ public:
 	// exit() pops the thread's stack frame.
 	void exit();
 
-	// registers() returns the thread's current stack frame's register variables.
-	std::shared_ptr<VariableContainer> registers() const;
-
-	// locals() returns the thread's current stack frame's local variables.
-	std::shared_ptr<VariableContainer> locals() const;
-
-	// arguments() returns the thread's current stack frame's argument variables.
-	std::shared_ptr<VariableContainer> arguments() const;
-
-	// hovers() returns the thread's current stack frame's hover variables.
-	std::shared_ptr<VariableContainer> hovers() const;
+	// frame() returns a copy of the thread's top most stack frame.
+	Frame frame() const;
 
 	// stack() returns a copy of the thread's current stack frames.
 	std::vector<Frame> stack() const;
 
 	// state() returns the current thread's state.
 	State state() const;
+
+	// update() calls f to modify the top most frame of the stack.
+	// If the frame's location is changed, update() potentially blocks until the
+	// thread is resumed with one of the methods below.
+	void update(std::function<void(Frame &)> f);
 
 	// resume() resumes execution of the thread by unblocking a call to
 	// update() and setting the thread's state to State::Running.
@@ -170,15 +167,13 @@ public:
 	// suspend execution again.
 	void stepOut();
 
-	// update() updates the current stack frame's location, and potentially
-	// blocks until the thread is resumed with one of the methods above.
-	void update(const Location &location);
-
 	// The unique identifier of the thread.
 	const ID id;
 
 private:
 	EventListener *const broadcast;
+
+	void onLocationUpdate(std::unique_lock<std::mutex> &lock);
 
 	mutable std::mutex mutex;
 	std::string name_;
