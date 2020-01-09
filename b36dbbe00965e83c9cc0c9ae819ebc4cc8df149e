@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "83f00073_5775855d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-09T06:00:57Z",
+      "side": 1,
+      "message": "Just curious: is there any intention to supersede this extension with something HLL agnostic? At a super quick glance the current extension spec isn\u0027t very OpenCL specific (in fact \"OpenCL\" only mentioned 6 times and not in the opcode specifications).",
+      "range": {
+        "startLine": 10,
+        "startChar": 25,
+        "endLine": 10,
+        "endChar": 41
+      },
+      "revId": "b36dbbe00965e83c9cc0c9ae819ebc4cc8df149e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2560ff6e_6d533944",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-09T06:00:57Z",
+      "side": 1,
+      "message": "nit: Can\u0027t the list be pulled out to make this loop easier to parse?",
+      "range": {
+        "startLine": 422,
+        "startChar": 8,
+        "endLine": 424,
+        "endChar": 9
+      },
+      "revId": "b36dbbe00965e83c9cc0c9ae819ebc4cc8df149e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
