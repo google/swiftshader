@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6.3)
+﻿cmake_minimum_required(VERSION 3.6.3)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -344,6 +344,9 @@ if(MSVC)
     add_definitions(-D_SBCS)  # Single Byte Character Set (ASCII)
     add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)  # Disable MSVC warnings about std::aligned_storage being broken before VS 2017 15.8
 
+    set_cpp_flag("/DEBUG:FASTLINK" DEBUG)
+    set_cpp_flag("/DEBUG:FASTLINK" RELWITHDEBINFO)
+
     if(SWIFTSHADER_WARNINGS_AS_ERRORS)
         set_cpp_flag("/WX") # Treat all warnings as errors
     endif()
@@ -374,7 +377,6 @@ if(MSVC)
         "/we4838" # conversion from 'type_1' to 'type_2' requires a narrowing conversion
         "/we5038" # data member 'member1' will be initialized after data member 'member2' data member 'member' will be initialized after base class 'base_class'
     )
-
 else()
     set_cpp_flag("-fno-exceptions")
 

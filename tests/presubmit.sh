@@ -44,10 +44,10 @@ function run_bug_in_commit_msg() {
 
   if [ $? -ne 0 ]
   then
-    echo "Git commit message must have a Bug: line"
+    echo "${red}Git commit message must have a Bug: line"
     echo "followed by a bug ID in the form b/# for Buganizer bugs or"
     echo "project:# for Monorail bugs (e.g. 'Bug: chromium:123')."
-    echo "Omit any digits when no ID is required (e.g. 'Bug: fix build')."
+    echo "Omit any digits when no ID is required (e.g. 'Bug: fix build').${normal}"
     return 1
   fi
 }
@@ -61,9 +61,10 @@ function run_copyright_headers() {
   done | grep -v "(standard input)" > ${tmpfile}
   if test -s ${tmpfile}; then
     # tempfile is NOT empty
-    echo "Copyright issue in these files:"
+    echo "${red}Copyright issue in these files:"
     cat ${tmpfile}
     rm ${tmpfile}
+    echo "${normal}"
     return 1
   else
     rm ${tmpfile}
@@ -95,4 +96,4 @@ check clang-format run_clang_format
 check gofmt run_gofmt
 
 echo
-echo "${green}All check completed successfully.$normal"
+echo "${green}All check completed successfully.${normal}"

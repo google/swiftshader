@@ -11,13 +11,16 @@ if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 git submodule update --init
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
+# Lower the amount of debug info, to reduce Kokoro build times.
+SET LESS_DEBUG_INFO=1
+
 SET MSBUILD="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild"
 SET CONFIG=Debug
 
 cd %SRC%\build
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
-cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DCMAKE_BUILD_TYPE=%BUILD_TYPE%" "-DREACTOR_BACKEND=%REACTOR_BACKEND%" "-DREACTOR_VERIFY_LLVM_IR=1"
+cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DCMAKE_BUILD_TYPE=%BUILD_TYPE%" "-DREACTOR_BACKEND=%REACTOR_BACKEND%" "-DREACTOR_VERIFY_LLVM_IR=1" "-DLESS_DEBUG_INFO=%LESS_DEBUG_INFO%"
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
 %MSBUILD% /p:Configuration=%CONFIG% SwiftShader.sln
