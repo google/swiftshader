@@ -209,6 +209,7 @@ sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
 sw::SIMD::Float r11g11b10Unpack(UInt r11g11b10bits);
 UInt r11g11b10Pack(sw::SIMD::Float &value);
 void a2b10g10r10Unpack(Int4 &value, Vector4s &result);
+void a2r10g10b10Unpack(Int4 &value, Vector4s &result);
 
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints);
 

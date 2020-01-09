@@ -1701,6 +1701,16 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 
 		a2b10g10r10Unpack(cc, c);
 	}
+	else if(state.textureFormat == VK_FORMAT_A2R10G10B10_UNORM_PACK32)
+	{
+		Int4 cc;
+		cc = Insert(cc, Pointer<Int>(buffer)[index[0]], 0);
+		cc = Insert(cc, Pointer<Int>(buffer)[index[1]], 1);
+		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
+		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
+
+		a2r10g10b10Unpack(cc, c);
+	}
 	else if(state.textureFormat == VK_FORMAT_A2B10G10R10_UINT_PACK32)
 	{
 		Int4 cc;
@@ -1712,6 +1722,19 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		c.x = Short4(((cc)&Int4(0x3FF)));
 		c.y = Short4(((cc >> 10) & Int4(0x3FF)));
 		c.z = Short4(((cc >> 20) & Int4(0x3FF)));
+		c.w = Short4(((cc >> 30) & Int4(0x3)));
+	}
+	else if(state.textureFormat == VK_FORMAT_A2R10G10B10_UINT_PACK32)
+	{
+		Int4 cc;
+		cc = Insert(cc, Pointer<Int>(buffer)[index[0]], 0);
+		cc = Insert(cc, Pointer<Int>(buffer)[index[1]], 1);
+		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
+		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
+
+		c.z = Short4(((cc)&Int4(0x3FF)));
+		c.y = Short4(((cc >> 10) & Int4(0x3FF)));
+		c.x = Short4(((cc >> 20) & Int4(0x3FF)));
 		c.w = Short4(((cc >> 30) & Int4(0x3)));
 	}
 	else

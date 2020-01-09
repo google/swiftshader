@@ -442,6 +442,13 @@ Float4 Blitter::readFloat4(Pointer<Byte> element, const State &state)
 			c.z = Float(Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20));
 			c.w = Float(Int((*Pointer<UInt>(element) & UInt(0xC0000000)) >> 30));
 			break;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+			c.z = Float(Int((*Pointer<UInt>(element) & UInt(0x000003FF))));
+			c.y = Float(Int((*Pointer<UInt>(element) & UInt(0x000FFC00)) >> 10));
+			c.x = Float(Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20));
+			c.w = Float(Int((*Pointer<UInt>(element) & UInt(0xC0000000)) >> 30));
+			break;
 		case VK_FORMAT_D16_UNORM:
 			c.x = Float(Int((*Pointer<UShort>(element))));
 			break;
@@ -974,6 +981,12 @@ Int4 Blitter::readInt4(Pointer<Byte> element, const State &state)
 			c = Insert(c, Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20), 2);
 			c = Insert(c, Int((*Pointer<UInt>(element) & UInt(0xC0000000)) >> 30), 3);
 			break;
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+			c = Insert(c, Int((*Pointer<UInt>(element) & UInt(0x000003FF))), 2);
+			c = Insert(c, Int((*Pointer<UInt>(element) & UInt(0x000FFC00)) >> 10), 1);
+			c = Insert(c, Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20), 0);
+			c = Insert(c, Int((*Pointer<UInt>(element) & UInt(0xC0000000)) >> 30), 3);
+			break;
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_UINT:
 			c = Insert(c, Int(*Pointer<Byte>(element + 3)), 3);
@@ -1029,6 +1042,7 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 	switch(state.destFormat)
 	{
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 			c = Min(As<UInt4>(c), UInt4(0x03FF, 0x03FF, 0x03FF, 0x0003));
 			break;
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:

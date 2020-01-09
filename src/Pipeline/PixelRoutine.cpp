@@ -1063,6 +1063,18 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 			a2b10g10r10Unpack(v, pixel);
 		}
 		break;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		{
+			Int4 v = Int4(0);
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 0);
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 1);
+			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 2);
+			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 3);
+
+			a2r10g10b10Unpack(v, pixel);
+		}
+		break;
 		default:
 			UNIMPLEMENTED("VkFormat %d", state.targetFormat[index]);
 	}
@@ -1214,6 +1226,13 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 8) + Short4(0x0080);
 			current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 8) + Short4(0x0080);
 			break;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+			current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 10) + Short4(0x0020);
+			current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 10) + Short4(0x0020);
+			current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 10) + Short4(0x0020);
+			current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 2) + Short4(0x2000);
+			break;
 		default:
 			break;
 	}
@@ -1343,6 +1362,19 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			auto b = (Int4(current.z) >> 6) & Int4(0x3ff);
 			auto a = (Int4(current.w) >> 14) & Int4(0x3);
 			Int4 packed = (a << 30) | (b << 20) | (g << 10) | r;
+			auto c02 = As<Int2>(Int4(packed.xzzz));  // TODO: auto c02 = packed.xz;
+			auto c13 = As<Int2>(Int4(packed.ywww));  // TODO: auto c13 = packed.yw;
+			current.x = UnpackLow(c02, c13);
+			current.y = UnpackHigh(c02, c13);
+			break;
+		}
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		{
+			auto r = (Int4(current.x) >> 6) & Int4(0x3ff);
+			auto g = (Int4(current.y) >> 6) & Int4(0x3ff);
+			auto b = (Int4(current.z) >> 6) & Int4(0x3ff);
+			auto a = (Int4(current.w) >> 14) & Int4(0x3);
+			Int4 packed = (a << 30) | (r << 20) | (g << 10) | b;
 			auto c02 = As<Int2>(Int4(packed.xzzz));  // TODO: auto c02 = packed.xz;
 			auto c13 = As<Int2>(Int4(packed.ywww));  // TODO: auto c13 = packed.yw;
 			current.x = UnpackLow(c02, c13);
@@ -1635,6 +1667,9 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			}
 		}
 		break;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+			rgbaWriteMask = bgraWriteMask;
+			// [[fallthrough]]
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		{
 			buffer += 4 * x;
@@ -2040,6 +2075,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 			break;
 		case VK_FORMAT_R16G16_SFLOAT:
 		case VK_FORMAT_R32G32_SFLOAT:
@@ -2072,6 +2108,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 	}
 
 	int rgbaWriteMask = state.colorWriteActive(index);
+	int bgraWriteMask = (rgbaWriteMask & 0x0000000A) | (rgbaWriteMask & 0x00000001) << 2 | (rgbaWriteMask & 0x00000004) >> 2;
 
 	Int xMask;  // Combination of all masks
 
@@ -2617,6 +2654,35 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 				if(rgbaWriteMask != 0xF)
 				{
 					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[rgbaWriteMask][0]));
+				}
+				*Pointer<Int2>(buffer) = (As<Int2>(Int4(packed.zwww)) & mergedMask) | (value & ~mergedMask);
+			}
+			break;
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+			if((bgraWriteMask & 0x0000000F) != 0x0)
+			{
+				Int2 mergedMask, packedCol, value;
+				Int4 packed = ((As<Int4>(oC.w) & Int4(0x3)) << 30) |
+				              ((As<Int4>(oC.x) & Int4(0x3ff)) << 20) |
+				              ((As<Int4>(oC.y) & Int4(0x3ff)) << 10) |
+				              ((As<Int4>(oC.z) & Int4(0x3ff)));
+
+				buffer += 4 * x;
+				value = *Pointer<Int2>(buffer, 16);
+				mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
+				if(bgraWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[bgraWriteMask][0]));
+				}
+				*Pointer<Int2>(buffer) = (As<Int2>(packed) & mergedMask) | (value & ~mergedMask);
+
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+				value = *Pointer<Int2>(buffer, 16);
+				mergedMask = *Pointer<Int2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
+				if(bgraWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<Int2>(constants + OFFSET(Constants, mask10Q[bgraWriteMask][0]));
 				}
 				*Pointer<Int2>(buffer) = (As<Int2>(Int4(packed.zwww)) & mergedMask) | (value & ~mergedMask);
 			}

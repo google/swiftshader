@@ -805,10 +805,22 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(2, (packed[0] >> 20) & SIMD::Int(0x3FF));
 			dst.move(3, (packed[0] >> 30) & SIMD::Int(0x3));
 			break;
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+			dst.move(2, (packed[0]) & SIMD::Int(0x3FF));
+			dst.move(1, (packed[0] >> 10) & SIMD::Int(0x3FF));
+			dst.move(0, (packed[0] >> 20) & SIMD::Int(0x3FF));
+			dst.move(3, (packed[0] >> 30) & SIMD::Int(0x3));
+			break;
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 			dst.move(0, SIMD::Float((packed[0]) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
 			dst.move(1, SIMD::Float((packed[0] >> 10) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
 			dst.move(2, SIMD::Float((packed[0] >> 20) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
+			dst.move(3, SIMD::Float((packed[0] >> 30) & SIMD::Int(0x3)) * SIMD::Float(1.0f / 0x3));
+			break;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+			dst.move(2, SIMD::Float((packed[0]) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
+			dst.move(1, SIMD::Float((packed[0] >> 10) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
+			dst.move(0, SIMD::Float((packed[0] >> 20) & SIMD::Int(0x3FF)) * SIMD::Float(1.0f / 0x3FF));
 			dst.move(3, SIMD::Float((packed[0] >> 30) & SIMD::Int(0x3)) * SIMD::Float(1.0f / 0x3));
 			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:

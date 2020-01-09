@@ -231,6 +231,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 			case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 			case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+			case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
@@ -276,6 +277,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 			case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 			case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+			case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
@@ -320,6 +322,7 @@ void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
 			case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 			case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+			case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
 				oC[index].x = Max(oC[index].x, Float4(0.0f));
 				oC[index].x = Min(oC[index].x, Float4(1.0f));
 				oC[index].y = Max(oC[index].y, Float4(0.0f));
@@ -357,6 +360,7 @@ void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
 			case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 			case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+			case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 				break;
 			default:
 				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));

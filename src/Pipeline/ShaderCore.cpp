@@ -632,6 +632,22 @@ void a2b10g10r10Unpack(Int4 &value, Vector4s &result)
 	result.w |= As<Short4>(As<UShort4>(result.w) >> 8);
 }
 
+void a2r10g10b10Unpack(Int4 &value, Vector4s &result)
+{
+	result.x = Short4(value >> 14) & Short4(0xFFC0u);
+	result.y = Short4(value >> 4) & Short4(0xFFC0u);
+	result.z = Short4(value << 6) & Short4(0xFFC0u);
+	result.w = Short4(value >> 16) & Short4(0xC000u);
+
+	// Expand to 16 bit range
+	result.x |= As<Short4>(As<UShort4>(result.x) >> 10);
+	result.y |= As<Short4>(As<UShort4>(result.y) >> 10);
+	result.z |= As<Short4>(As<UShort4>(result.z) >> 10);
+	result.w |= As<Short4>(As<UShort4>(result.w) >> 2);
+	result.w |= As<Short4>(As<UShort4>(result.w) >> 4);
+	result.w |= As<Short4>(As<UShort4>(result.w) >> 8);
+}
+
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints)
 {
 	return rr::SignMask(ints) != 0;
