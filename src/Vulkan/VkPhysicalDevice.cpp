@@ -509,6 +509,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
 		case VK_FORMAT_D16_UNORM:
 		case VK_FORMAT_D32_SFLOAT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
 			// Fall through
@@ -536,7 +537,6 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_R32G32B32A32_UINT:
 		case VK_FORMAT_R32G32B32A32_SINT:
 		case VK_FORMAT_S8_UINT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
 			    VK_FORMAT_FEATURE_BLIT_SRC_BIT |
