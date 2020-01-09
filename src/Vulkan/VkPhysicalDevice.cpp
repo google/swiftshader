@@ -260,7 +260,7 @@ const VkPhysicalDeviceLimits &PhysicalDevice::getLimits() const
 		sampleCounts,                                     // framebufferNoAttachmentsSampleCounts
 		4,                                                // maxColorAttachments
 		sampleCounts,                                     // sampledImageColorSampleCounts
-		VK_SAMPLE_COUNT_1_BIT,                            // sampledImageIntegerSampleCounts
+		sampleCounts,                                     // sampledImageIntegerSampleCounts
 		sampleCounts,                                     // sampledImageDepthSampleCounts
 		sampleCounts,                                     // sampledImageStencilSampleCounts
 		VK_SAMPLE_COUNT_1_BIT,                            // storageImageSampleCounts (unsupported)
