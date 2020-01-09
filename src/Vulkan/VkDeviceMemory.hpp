@@ -31,6 +31,11 @@ public:
 	VkResult exportFd(int *pFd) const;
 #endif
 
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+	VkResult exportAhb(struct AHardwareBuffer **pAhb) const;
+	static VkResult getAhbProperties(const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties);
+#endif
+
 	void destroy(const VkAllocationCallbacks *pAllocator);
 	VkResult allocate();
 	VkResult map(VkDeviceSize offset, VkDeviceSize size, void **ppData);

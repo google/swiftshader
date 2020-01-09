@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "VkDeviceMemory.hpp"
+#include "VkBuffer.hpp"
+#include "VkImage.hpp"
 
 #include "VkConfig.h"
 
@@ -37,6 +39,13 @@ public:
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	virtual VkResult exportFd(int *pFd) const
+	{
+		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+	}
+#endif
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+	virtual VkResult exportAhb(struct AHardwareBuffer **pAhb) const
 	{
 		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 	}
@@ -129,6 +138,14 @@ public:
 #	endif
 #endif
 
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+#	if defined(__ANDROID__)
+#		include "VkDeviceMemoryExternalAndroid.hpp"
+#	else
+#		error "Missing VK_ANDROID_external_memory_android_hardware_buffer implementation for this platform!"
+#	endif
+#endif
+
 namespace vk {
 
 static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
@@ -136,6 +153,12 @@ static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
 {
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 	if(parseCreateInfo<OpaqueFdExternalMemory>(pAllocateInfo, pTraits))
+	{
+		return;
+	}
+#endif
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+	if(parseCreateInfo<AHardwareBufferExternalMemory>(pAllocateInfo, pTraits))
 	{
 		return;
 	}
@@ -233,6 +256,18 @@ bool DeviceMemory::checkExternalMemoryHandleType(
 VkResult DeviceMemory::exportFd(int *pFd) const
 {
 	return external->exportFd(pFd);
+}
+#endif
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+VkResult DeviceMemory::exportAhb(struct AHardwareBuffer **pAhb) const
+{
+	return external->exportAhb(pAhb);
+}
+
+VkResult DeviceMemory::getAhbProperties(const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
+{
+	return AHardwareBufferExternalMemory::getAhbProperties(buffer, pProperties);
 }
 #endif
 

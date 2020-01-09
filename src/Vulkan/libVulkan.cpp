@@ -243,6 +243,9 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 	// (from KHR_swapchain v70) to vkBindImageMemory2.
 	{ VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME, 7 },
 #endif
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+	{ VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME, VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_SPEC_VERSION },
+#endif
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	{ VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_FD_SPEC_VERSION },
 #endif
@@ -815,17 +818,31 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 				}
 				break;
 			}
+#endif  // SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
 			case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
 			{
 				auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(allocationInfo);
-				if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
+				switch(exportInfo->handleTypes)
 				{
-					UNSUPPORTED("exportInfo->handleTypes %u", exportInfo->handleTypes);
-					return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+#if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
+					case VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT:
+						break;
+#endif
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+					case VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID:
+						break;
+#endif
+					default:
+						UNSUPPORTED("exportInfo->handleTypes %u", exportInfo->handleTypes);
+						return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 				}
 				break;
 			}
-#endif  // SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+			case VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID:
+				// Ignore
+				break;
+#endif  // SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 			default:
 				WARN("pAllocateInfo->pNext sType = %s", vk::Stringify(allocationInfo->sType).c_str());
 				break;
@@ -898,6 +915,24 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryFdPropertiesKHR(VkDevice device, VkExt
 	return VK_SUCCESS;
 }
 #endif  // SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryAndroidHardwareBufferANDROID(VkDevice device, const VkMemoryGetAndroidHardwareBufferInfoANDROID *pInfo, struct AHardwareBuffer **pBuffer)
+{
+	TRACE("(VkDevice device = %p, const VkMemoryGetAndroidHardwareBufferInfoANDROID *pInfo = %p, struct AHardwareBuffer **pBuffer = %p)",
+	      device, pInfo, pBuffer);
+
+	return vk::Cast(pInfo->memory)->exportAhb(pBuffer);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetAndroidHardwareBufferPropertiesANDROID(VkDevice device, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
+{
+	TRACE("(VkDevice device = %p, const struct AHardwareBuffer *buffer = %p, VkAndroidHardwareBufferPropertiesANDROID *pProperties = %p)",
+	      device, buffer, pProperties);
+
+	return vk::DeviceMemory::getAhbProperties(buffer, pProperties);
+}
+#endif  // SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void **ppData)
 {

@@ -371,6 +371,16 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryFdPropertiesKHR),
 	    } },
 #endif
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+	// VK_ANDROID_external_memory_android_hardware_buffer
+	{
+	    VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetAndroidHardwareBufferPropertiesANDROID),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetMemoryAndroidHardwareBufferANDROID),
+	    } },
+#endif
 };
 
 #undef MAKE_VULKAN_DEVICE_ENTRY
