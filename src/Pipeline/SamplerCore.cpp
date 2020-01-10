@@ -1719,7 +1719,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		c.x = Short4(((cc)&Int4(0x3FF)));
+		c.x = Short4((cc & Int4(0x3FF)));
 		c.y = Short4(((cc >> 10) & Int4(0x3FF)));
 		c.z = Short4(((cc >> 20) & Int4(0x3FF)));
 		c.w = Short4(((cc >> 30) & Int4(0x3)));
@@ -1732,7 +1732,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		c.z = Short4(((cc)&Int4(0x3FF)));
+		c.z = Short4((cc & Int4(0x3FF)));
 		c.y = Short4(((cc >> 10) & Int4(0x3FF)));
 		c.x = Short4(((cc >> 20) & Int4(0x3FF)));
 		c.w = Short4(((cc >> 30) & Int4(0x3)));
@@ -2012,7 +2012,7 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z,
 				t.w = *Pointer<Float>(buffer + index[3] * 4);
 				t0 = As<UInt4>(t);
 				c.w = Float4(UInt4(1) << ((t0 >> 27) & UInt4(0x1F))) * Float4(1.0f / (1 << 24));
-				c.x = Float4((t0)&UInt4(0x1FF)) * c.w;
+				c.x = Float4(t0 & UInt4(0x1FF)) * c.w;
 				c.y = Float4((t0 >> 9) & UInt4(0x1FF)) * c.w;
 				c.z = Float4((t0 >> 18) & UInt4(0x1FF)) * c.w;
 				break;

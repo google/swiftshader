@@ -734,7 +734,7 @@ rr::RValue<sw::SIMD::Float> NMin(rr::RValue<sw::SIMD::Float> const &x, rr::RValu
 	    // If one operand is a NaN, the other operand is the result
 	    // If both operands are NaN, the result is a NaN.
 	    ((~xIsNan & yIsNan) & As<sw::SIMD::Int>(x)) |
-	    ((xIsNan)&As<sw::SIMD::Int>(y)));
+	    (xIsNan & As<sw::SIMD::Int>(y)));
 }
 
 // Returns y if y > x; otherwise result is x.
@@ -751,7 +751,7 @@ rr::RValue<sw::SIMD::Float> NMax(rr::RValue<sw::SIMD::Float> const &x, rr::RValu
 	    // If one operand is a NaN, the other operand is the result
 	    // If both operands are NaN, the result is a NaN.
 	    ((~xIsNan & yIsNan) & As<sw::SIMD::Int>(x)) |
-	    ((xIsNan)&As<sw::SIMD::Int>(y)));
+	    (xIsNan & As<sw::SIMD::Int>(y)));
 }
 
 // Returns the determinant of a 2x2 matrix.
