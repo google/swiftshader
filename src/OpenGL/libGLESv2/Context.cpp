@@ -4600,7 +4600,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_CHROMIUM_texture_filtering_hint",
 		"GL_NV_depth_buffer_float2",
 		"GL_NV_fence",
-		"GL_NV_framebuffer_blit",
+	//	"GL_NV_framebuffer_blit",  // b/147536183
 		"GL_NV_read_depth",
 		"GL_NV_read_depth_stencil",
 		"GL_NV_read_stencil",
