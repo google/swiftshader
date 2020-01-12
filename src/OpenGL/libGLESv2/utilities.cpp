@@ -679,51 +679,6 @@ namespace es2
 			return true;
 		}
 
-		// GL_NV_read_depth_stencil
-		if(format == GL_DEPTH_STENCIL_OES)
-		{
-			Renderbuffer *depthbuffer = framebuffer->getDepthbuffer();
-
-			if(!depthbuffer)
-			{
-				return error(GL_INVALID_OPERATION, false);
-			}
-
-			GLint internalformat = depthbuffer->getFormat();
-
-			switch(type)
-			{
-			case GL_UNSIGNED_INT_24_8_OES:
-				switch(internalformat)
-				{
-				case GL_DEPTH24_STENCIL8:
-					break;
-				case GL_DEPTH32F_STENCIL8:
-					return error(GL_INVALID_OPERATION, false);
-				default:
-					UNREACHABLE(internalformat);
-					return error(GL_INVALID_OPERATION, false);
-				}
-				break;
-			case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-				switch(internalformat)
-				{
-				case GL_DEPTH32F_STENCIL8:
-					break;
-				case GL_DEPTH24_STENCIL8:
-					return error(GL_INVALID_OPERATION, false);
-				default:
-					UNREACHABLE(internalformat);
-					return error(GL_INVALID_OPERATION, false);
-				}
-				break;
-			default:
-				return error(GL_INVALID_ENUM, false);
-			}
-
-			return true;
-		}
-
 		// GL_NV_read_stencil
 		if(format == GL_STENCIL_INDEX_OES)
 		{
