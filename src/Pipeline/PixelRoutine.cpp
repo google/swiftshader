@@ -1860,7 +1860,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 	{
 		one = Float4(1.0f);
 	}
-	else if(format.isNonNormalizedInteger())
+	else if(format.isUnnormalizedInteger())
 	{
 		one = As<Float4>(format.isUnsignedComponent(0) ? Int4(0xFFFFFFFF) : Int4(0x7FFFFFFF));
 	}

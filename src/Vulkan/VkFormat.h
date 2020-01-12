@@ -30,9 +30,9 @@ public:
 
 	bool isUnsignedNormalized() const;
 	bool isSignedNormalized() const;
-	bool isSignedNonNormalizedInteger() const;
-	bool isUnsignedNonNormalizedInteger() const;
-	bool isNonNormalizedInteger() const;
+	bool isSignedUnnormalizedInteger() const;
+	bool isUnsignedUnnormalizedInteger() const;
+	bool isUnnormalizedInteger() const;
 
 	VkImageAspectFlags getAspects() const;
 	Format getAspectFormat(VkImageAspectFlags aspect) const;

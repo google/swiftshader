@@ -274,7 +274,7 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	Format srcFormat = getFormat(srcAspect);
 	Format dstFormat = dstImage->getFormat(dstAspect);
 
-	if((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger())
+	if((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isUnnormalizedInteger())
 	{
 		// Requires multisampling resolve
 		VkImageBlit blitRegion;
@@ -863,11 +863,11 @@ VkFormat Image::getClearFormat() const
 {
 	// Set the proper format for the clear value, as described here:
 	// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#clears-values
-	if(format.isSignedNonNormalizedInteger())
+	if(format.isSignedUnnormalizedInteger())
 	{
 		return VK_FORMAT_R32G32B32A32_SINT;
 	}
-	else if(format.isUnsignedNonNormalizedInteger())
+	else if(format.isUnsignedUnnormalizedInteger())
 	{
 		return VK_FORMAT_R32G32B32A32_UINT;
 	}

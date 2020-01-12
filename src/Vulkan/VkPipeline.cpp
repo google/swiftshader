@@ -318,7 +318,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 		sw::Stream &input = context.input[desc.location];
 		input.count = getNumberOfChannels(desc.format);
 		input.type = getStreamType(desc.format);
-		input.normalized = !vk::Format(desc.format).isNonNormalizedInteger();
+		input.normalized = !vk::Format(desc.format).isUnnormalizedInteger();
 		input.offset = desc.offset;
 		input.binding = desc.binding;
 		input.vertexStride = vertexStrides[desc.binding];

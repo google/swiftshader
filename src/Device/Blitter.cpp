@@ -1262,8 +1262,8 @@ void Blitter::ApplyScaleAndClamp(Float4 &value, const State &state, bool preScal
 	float4 scale{}, unscale{};
 
 	if(state.clearOperation &&
-	   state.sourceFormat.isNonNormalizedInteger() &&
-	   !state.destFormat.isNonNormalizedInteger())
+	   state.sourceFormat.isUnnormalizedInteger() &&
+	   !state.destFormat.isUnnormalizedInteger())
 	{
 		// If we're clearing a buffer from an int or uint color into a normalized color,
 		// then the whole range of the int or uint color must be scaled between 0 and 1.
@@ -1365,8 +1365,8 @@ Blitter::BlitRoutineType Blitter::generate(const State &state)
 		Int sWidth = *Pointer<Int>(blit + OFFSET(BlitData, sWidth));
 		Int sHeight = *Pointer<Int>(blit + OFFSET(BlitData, sHeight));
 
-		bool intSrc = state.sourceFormat.isNonNormalizedInteger();
-		bool intDst = state.destFormat.isNonNormalizedInteger();
+		bool intSrc = state.sourceFormat.isUnnormalizedInteger();
+		bool intDst = state.destFormat.isUnnormalizedInteger();
 		bool intBoth = intSrc && intDst;
 		int srcBytes = state.sourceFormat.bytes();
 		int dstBytes = state.destFormat.bytes();

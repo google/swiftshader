@@ -2040,7 +2040,7 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z,
 
 		Vector4s cs = sampleTexel(index, buffer);
 
-		bool isInteger = state.textureFormat.isNonNormalizedInteger();
+		bool isInteger = state.textureFormat.isUnnormalizedInteger();
 		int componentCount = textureComponentCount();
 		for(int n = 0; n < componentCount; n++)
 		{
@@ -2511,7 +2511,7 @@ bool SamplerCore::hasFloatTexture() const
 
 bool SamplerCore::hasUnnormalizedIntegerTexture() const
 {
-	return state.textureFormat.isNonNormalizedInteger();
+	return state.textureFormat.isUnnormalizedInteger();
 }
 
 bool SamplerCore::hasUnsignedTextureComponent(int component) const

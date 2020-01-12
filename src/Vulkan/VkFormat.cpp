@@ -70,7 +70,7 @@ bool Format::isSignedNormalized() const
 	}
 }
 
-bool Format::isSignedNonNormalizedInteger() const
+bool Format::isSignedUnnormalizedInteger() const
 {
 	switch(format)
 	{
@@ -101,7 +101,7 @@ bool Format::isSignedNonNormalizedInteger() const
 	}
 }
 
-bool Format::isUnsignedNonNormalizedInteger() const
+bool Format::isUnsignedUnnormalizedInteger() const
 {
 	switch(format)
 	{
@@ -133,9 +133,9 @@ bool Format::isUnsignedNonNormalizedInteger() const
 	}
 }
 
-bool Format::isNonNormalizedInteger() const
+bool Format::isUnnormalizedInteger() const
 {
-	return isSignedNonNormalizedInteger() || isUnsignedNonNormalizedInteger();
+	return isSignedUnnormalizedInteger() || isUnsignedUnnormalizedInteger();
 }
 
 VkImageAspectFlags Format::getAspects() const
