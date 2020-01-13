@@ -442,7 +442,8 @@ SpirvShader::SpirvShader(
 					UNSUPPORTED("SPIR-V Extension: %s", name);
 					break;
 				}
-				extensions.emplace(id, ext);
+				extensionsByID.emplace(id, ext);
+				extensionsImported.emplace(ext.name);
 				break;
 			}
 			case spv::OpName:

@@ -748,7 +748,8 @@ private:
 	HandleMap<Object> defs;
 	HandleMap<Function> functions;
 	std::unordered_map<StringID, String> strings;
-	HandleMap<Extension> extensions;
+	HandleMap<Extension> extensionsByID;
+	std::unordered_set<Extension::Name> extensionsImported;
 	Function::ID entryPoint;
 
 	const bool robustBufferAccess = true;
@@ -1031,8 +1032,8 @@ private:
 
 	Extension const &getExtension(Extension::ID id) const
 	{
-		auto it = extensions.find(id);
-		ASSERT_MSG(it != extensions.end(), "Unknown extension %d", id.value());
+		auto it = extensionsByID.find(id);
+		ASSERT_MSG(it != extensionsByID.end(), "Unknown extension %d", id.value());
 		return it->second;
 	}
 
