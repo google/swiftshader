@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "0073ad93_5226c145",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-13T16:38:00Z",
+      "side": 1,
+      "message": "Enabled by:\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/39748\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/40028",
+      "parentUuid": "a1359897_0c006209",
+      "range": {
+        "startLine": 528,
+        "startChar": 2,
+        "endLine": 529,
+        "endChar": 36
+      },
+      "revId": "7b4bf2eb6793dce08ab8cee27ddf889bb94ca217",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0aeedbdf_cdc7377d",
         "filename": "src/Vulkan/VkPhysicalDevice.cpp",
         "patchSetId": 1
@@ -155,6 +179,30 @@
       "side": 1,
       "message": "I haven\u0027t seen any specific requirement on those being filterable yet.",
       "parentUuid": "0aeedbdf_cdc7377d",
+      "range": {
+        "startLine": 537,
+        "startChar": 3,
+        "endLine": 539,
+        "endChar": 42
+      },
+      "revId": "7b4bf2eb6793dce08ab8cee27ddf889bb94ca217",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12003510_6c2c4c44",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-13T16:38:00Z",
+      "side": 1,
+      "message": "b/147586576",
+      "parentUuid": "39c92d7c_e9241c65",
       "range": {
         "startLine": 537,
         "startChar": 3,
