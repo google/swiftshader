@@ -3,6 +3,7 @@
         {
             "name": "Linux",
             "defines": [
+                "ENABLE_VK_DEBUGGER=1",
                 "ENABLE_RR_DEBUG_INFO=1",
                 "VERIFY_LLVM_IR=1"
             ],
@@ -23,6 +24,7 @@
         {
             "name": "Mac",
             "defines": [
+                "ENABLE_VK_DEBUGGER=1",
                 "ENABLE_RR_DEBUG_INFO=1",
                 "VERIFY_LLVM_IR=1"
             ],
@@ -43,6 +45,7 @@
         {
             "name": "Win32",
             "defines": [
+                "ENABLE_VK_DEBUGGER=1",
                 "ENABLE_RR_DEBUG_INFO=1",
                 "VERIFY_LLVM_IR=1"
             ],
