@@ -14,6 +14,9 @@
 
 #include "SpirvShader.hpp"
 
+// If enabled, each instruction will be printed before processing.
+#define PRINT_EACH_PROCESSED_INSTRUCTION 0
+
 #ifdef ENABLE_VK_DEBUGGER
 
 #	include "Vulkan/Debug/Context.hpp"
@@ -598,6 +601,17 @@ void SpirvShader::dbgEndEmit(EmitState *state) const
 
 void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) const
 {
+#	if PRINT_EACH_PROCESSED_INSTRUCTION
+	auto instruction = spvtools::spvInstructionBinaryToText(
+	    SPV_ENV_VULKAN_1_1,
+	    insn.wordPointer(0),
+	    insn.wordCount(),
+	    insns.data(),
+	    insns.size(),
+	    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+	printf("%s\n", instruction.c_str());
+#	endif  // PRINT_EACH_PROCESSED_INSTRUCTION
+
 	auto dbg = impl.debugger;
 	if(!dbg) { return; }
 
