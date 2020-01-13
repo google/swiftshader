@@ -460,7 +460,7 @@ TEST(ReactorUnitTests, Swizzle)
 	}
 }
 
-TEST(ReactorUnitTests, Blend)
+TEST(ReactorUnitTests, Shuffle)
 {
 	{
 		// |select| is [0aaa:0bbb:0ccc:0ddd] where |aaa|, |bbb|, |ccc|

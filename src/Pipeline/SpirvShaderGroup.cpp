@@ -410,7 +410,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 			using Type = SIMD::Float;
 			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
-			    Type::positive_inf(),
+			    Type::infinity(),
 			    [](RValue<Type> a, RValue<Type> b) { return NMin(a, b); });
 			break;
 		}
@@ -438,9 +438,10 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformFMax:
 		{
 			using Type = SIMD::Float;
+			SIMD::Float negative_inf = -SIMD::Float::infinity();
 			Impl::Group::BinaryOperation(
 			    this, insn, state, dst,
-			    Type::negative_inf(),
+			    negative_inf,
 			    [](RValue<Type> a, RValue<Type> b) { return NMax(a, b); });
 			break;
 		}

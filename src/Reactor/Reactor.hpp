@@ -22,7 +22,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
-
+#include <limits>
 #include <tuple>
 #include <unordered_set>
 
@@ -2081,6 +2081,8 @@ public:
 	template<int T>
 	RValue<Float> operator=(const SwizzleMask1<Float4, T> &rhs);
 
+	static Float infinity();
+
 	static Type *getType();
 };
 
@@ -2243,13 +2245,12 @@ public:
 	template<int T>
 	RValue<Float4> operator=(const Swizzle4<Float4, T> &rhs);
 
+	static Float4 infinity();
+
 	static Type *getType();
-	static Float4 negative_inf();
-	static Float4 positive_inf();
 
 private:
 	void constant(float x, float y, float z, float w);
-	void infinity_constant(bool negative);
 };
 
 RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs);
