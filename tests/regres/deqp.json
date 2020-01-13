@@ -1,8 +1,7 @@
 {
     "remote": "https://android.googlesource.com/platform/external/deqp",
-    "sha": "5b2e2b6f59e5f32f820b230949aba960a84849c5",
+    "sha": "da1463790952d1c1ac6c1409d814c29286da1aea",
     "patches": [
-        "tests/regres/deqp-patches/deqp-x11.patch",
-        "tests/regres/deqp-patches/fix-cfg-validation.patch"
+        "tests/regres/deqp-patches/deqp-x11.patch"
     ]
 }
