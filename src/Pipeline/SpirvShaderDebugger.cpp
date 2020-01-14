@@ -672,6 +672,15 @@ SpirvShader::EmitResult SpirvShader::EmitLine(InsnIterator insn, EmitState *stat
 	return EmitResult::Continue;
 }
 
+void SpirvShader::DefineOpenCLDebugInfo100(const InsnIterator &insn)
+{
+}
+
+SpirvShader::EmitResult SpirvShader::EmitOpenCLDebugInfo100(InsnIterator insn, EmitState *state) const
+{
+	return EmitResult::Continue;
+}
+
 }  // namespace sw
 
 #else  // ENABLE_VK_DEBUGGER
@@ -689,6 +698,13 @@ void SpirvShader::dbgEndEmitInstruction(InsnIterator insn, EmitState *state) con
 void SpirvShader::dbgExposeIntermediate(Object::ID id, EmitState *state) const {}
 void SpirvShader::dbgUpdateActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const {}
 void SpirvShader::dbgDeclareResult(const InsnIterator &insn, Object::ID resultId) const {}
+
+void SpirvShader::DefineOpenCLDebugInfo100(const InsnIterator &insn) {}
+
+SpirvShader::EmitResult SpirvShader::EmitOpenCLDebugInfo100(InsnIterator insn, EmitState *state) const
+{
+	return EmitResult::Continue;
+}
 
 SpirvShader::EmitResult SpirvShader::EmitLine(InsnIterator insn, EmitState *state) const
 {

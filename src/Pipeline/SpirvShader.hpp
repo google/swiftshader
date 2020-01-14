@@ -389,6 +389,7 @@ public:
 		{
 			Unknown,
 			GLSLstd450,
+			OpenCLDebugInfo100
 		};
 
 		Name name;
@@ -769,6 +770,10 @@ private:
 	// Creates an Object for the instruction's result in 'defs'.
 	void DefineResult(const InsnIterator &insn);
 
+	// Processes the OpenCL.Debug.100 instruction for the initial definition
+	// pass of the SPIR-V.
+	void DefineOpenCLDebugInfo100(const InsnIterator &insn);
+
 	// Returns true if data in the given storage class is word-interleaved
 	// by each SIMD vector lane, otherwise data is stored linerally.
 	//
@@ -1093,6 +1098,7 @@ private:
 	EmitResult EmitSelect(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitExtendedInstruction(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitExtGLSLstd450(InsnIterator insn, EmitState *state) const;
+	EmitResult EmitOpenCLDebugInfo100(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitLine(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitAny(InsnIterator insn, EmitState *state) const;
 	EmitResult EmitAll(InsnIterator insn, EmitState *state) const;
