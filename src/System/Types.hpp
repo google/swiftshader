@@ -60,7 +60,7 @@ struct alignas(sizeof(T) * N) vec
 {
 	vec() = default;
 
-	explicit vec(T replicate)
+	constexpr explicit vec(T replicate)
 	{
 		for(int i = 0; i < N; i++)
 		{
