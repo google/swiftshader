@@ -52,7 +52,7 @@ void QuadRasterizer::generate()
 			rasterize(yMin, yMax);
 		}
 
-		primitive += sizeof(Primitive) * state.multiSample;
+		primitive += sizeof(Primitive) * state.multiSampleCount;
 		count--;
 	}
 	Until(count == 0);
@@ -101,7 +101,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		Int x0b = Int(*Pointer<Short>(primitive + OFFSET(Primitive, outline->left) + (y + 1) * sizeof(Primitive::Span)));
 		Int x0 = Min(x0a, x0b);
 
-		for(unsigned int q = 1; q < state.multiSample; q++)
+		for(unsigned int q = 1; q < state.multiSampleCount; q++)
 		{
 			x0a = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->left) + (y + 0) * sizeof(Primitive::Span)));
 			x0b = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->left) + (y + 1) * sizeof(Primitive::Span)));
@@ -114,7 +114,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 		Int x1b = Int(*Pointer<Short>(primitive + OFFSET(Primitive, outline->right) + (y + 1) * sizeof(Primitive::Span)));
 		Int x1 = Max(x1a, x1b);
 
-		for(unsigned int q = 1; q < state.multiSample; q++)
+		for(unsigned int q = 1; q < state.multiSampleCount; q++)
 		{
 			x1a = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->right) + (y + 0) * sizeof(Primitive::Span)));
 			x1b = Int(*Pointer<Short>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline->right) + (y + 1) * sizeof(Primitive::Span)));
@@ -125,11 +125,11 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 		if(interpolateZ())
 		{
-			for(unsigned int q = 0; q < state.multiSample; q++)
+			for(unsigned int q = 0; q < state.multiSampleCount; q++)
 			{
 				Float4 y = yyyy;
 
-				if(state.multiSample > 1)
+				if(state.multiSampleCount > 1)
 				{
 					y -= *Pointer<Float4>(constants + OFFSET(Constants, Y) + q * sizeof(float4));
 				}
@@ -176,7 +176,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 			Short4 xLeft[4];
 			Short4 xRight[4];
 
-			for(unsigned int q = 0; q < state.multiSample; q++)
+			for(unsigned int q = 0; q < state.multiSampleCount; q++)
 			{
 				xLeft[q] = *Pointer<Short4>(primitive + q * sizeof(Primitive) + OFFSET(Primitive, outline) + y * sizeof(Primitive::Span));
 				xRight[q] = xLeft[q];
@@ -190,11 +190,11 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 				Short4 xxxx = Short4(x);
 				Int cMask[4];
 
-				for(unsigned int q = 0; q < state.multiSample; q++)
+				for(unsigned int q = 0; q < state.multiSampleCount; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
 					{
-						unsigned int i = state.multiSampledBresenham ? 0 : q;
+						unsigned int i = state.enableMultiSampling ? q : 0;
 						Short4 mask = CmpGT(xxxx, xLeft[i]) & CmpGT(xRight[i], xxxx);
 						cMask[q] = SignMask(PackSigned(mask, mask)) & 0x0000000F;
 					}

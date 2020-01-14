@@ -78,7 +78,7 @@ SetupProcessor::State SetupProcessor::update(const sw::Context *context) const
 	state.frontFace = context->frontFace;
 	state.cullMode = context->cullMode;
 
-	state.multiSample = context->sampleCount;
+	state.multiSampleCount = context->sampleCount;
 	state.rasterizerDiscard = context->rasterizerDiscard;
 
 	state.numClipDistances = context->vertexShader->getNumOutputClipDistances();

@@ -25,7 +25,7 @@ Int4 PixelProgram::maskAny(Int cMask[4]) const
 {
 	// See if at least 1 sample is used
 	Int maskUnion = cMask[0];
-	for(auto i = 1u; i < state.multiSample; i++)
+	for(auto i = 1u; i < state.multiSampleCount; i++)
 	{
 		maskUnion |= cMask[i];
 	}
@@ -43,7 +43,7 @@ Int4 PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4]) const
 {
 	// See if at least 1 sample is used
 	Int maskUnion = cMask[0] & sMask[0] & zMask[0];
-	for(auto i = 1u; i < state.multiSample; i++)
+	for(auto i = 1u; i < state.multiSampleCount; i++)
 	{
 		maskUnion |= (cMask[i] & sMask[i] & zMask[i]);
 	}
@@ -130,7 +130,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 		Int4 laneBits = Int4(1, 2, 4, 8);
 
 		Int4 inputSampleMask = Int4(1) & CmpNEQ(Int4(cMask[0]) & laneBits, Int4(0));
-		for(auto i = 1u; i < state.multiSample; i++)
+		for(auto i = 1u; i < state.multiSampleCount; i++)
 		{
 			inputSampleMask |= Int4(1 << i) & CmpNEQ(Int4(cMask[i]) & laneBits, Int4(0));
 		}
@@ -163,7 +163,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 
 	if(spirvShader->getModes().ContainsKill)
 	{
-		for(auto i = 0u; i < state.multiSample; i++)
+		for(auto i = 0u; i < state.multiSampleCount; i++)
 		{
 			cMask[i] &= ~routine.killMask;
 		}
@@ -174,7 +174,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	{
 		auto outputSampleMask = As<SIMD::Int>(routine.getVariable(it->second.Id)[it->second.FirstComponent]);
 
-		for(auto i = 0u; i < state.multiSample; i++)
+		for(auto i = 0u; i < state.multiSampleCount; i++)
 		{
 			cMask[i] &= SignMask(CmpNEQ(outputSampleMask & SIMD::Int(1 << i), SIMD::Int(0)));
 		}
@@ -198,7 +198,7 @@ Bool PixelProgram::alphaTest(Int cMask[4])
 
 	Int pass = cMask[0];
 
-	for(unsigned int q = 1; q < state.multiSample; q++)
+	for(unsigned int q = 1; q < state.multiSampleCount; q++)
 	{
 		pass = pass | cMask[q];
 	}
@@ -232,7 +232,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 			case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 			case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-				for(unsigned int q = 0; q < state.multiSample; q++)
+				for(unsigned int q = 0; q < state.multiSampleCount; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
 					{
@@ -278,7 +278,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 			case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-				for(unsigned int q = 0; q < state.multiSample; q++)
+				for(unsigned int q = 0; q < state.multiSampleCount; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
 					{

@@ -58,13 +58,13 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 	Int zMask[4];  // Depth mask
 	Int sMask[4];  // Stencil mask
 
-	for(unsigned int q = 0; q < state.multiSample; q++)
+	for(unsigned int q = 0; q < state.multiSampleCount; q++)
 	{
 		zMask[q] = cMask[q];
 		sMask[q] = cMask[q];
 	}
 
-	for(unsigned int q = 0; q < state.multiSample; q++)
+	for(unsigned int q = 0; q < state.multiSampleCount; q++)
 	{
 		stencilTest(sBuffer, q, x, sMask[q], cMask[q]);
 	}
@@ -76,11 +76,11 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 	if(interpolateZ())
 	{
-		for(unsigned int q = 0; q < state.multiSample; q++)
+		for(unsigned int q = 0; q < state.multiSampleCount; q++)
 		{
 			Float4 x = xxxx;
 
-			if(state.multiSample > 1)
+			if(state.multiSampleCount > 1)
 			{
 				x -= *Pointer<Float4>(constants + OFFSET(Constants, X) + q * sizeof(float4));
 			}
@@ -93,7 +93,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 	if(earlyDepthTest)
 	{
-		for(unsigned int q = 0; q < state.multiSample; q++)
+		for(unsigned int q = 0; q < state.multiSampleCount; q++)
 		{
 			depthPass = depthPass || depthTest(zBuffer, q, x, z[q], sMask[q], zMask[q], cMask[q]);
 		}
@@ -111,7 +111,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 		{
 			Float4 WWWW(1.0e-9f);
 
-			for(unsigned int q = 0; q < state.multiSample; q++)
+			for(unsigned int q = 0; q < state.multiSampleCount; q++)
 			{
 				XXXX += *Pointer<Float4>(constants + OFFSET(Constants, sampleX[q]) + 16 * cMask[q]);
 				YYYY += *Pointer<Float4>(constants + OFFSET(Constants, sampleY[q]) + 16 * cMask[q]);
@@ -144,7 +144,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 				auto const &input = spirvShader->inputs[interpolant];
 				if(input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 				{
-					if(input.Centroid && state.multiSample > 1)
+					if(input.Centroid && state.multiSampleCount > 1)
 					{
 						routine.inputs[interpolant] =
 						    interpolateCentroid(XXXX, YYYY, rhwCentroid,
@@ -170,7 +170,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 				                            false, true, false);
 
 				auto clipMask = SignMask(CmpGE(distance, SIMD::Float(0)));
-				for(auto ms = 0u; ms < state.multiSample; ms++)
+				for(auto ms = 0u; ms < state.multiSampleCount; ms++)
 				{
 					// TODO: Fragments discarded by clipping do not exist at
 					// all -- they should not be counted in queries or have
@@ -223,7 +223,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 		if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaToCoverage)
 		{
-			for(unsigned int q = 0; q < state.multiSample; q++)
+			for(unsigned int q = 0; q < state.multiSampleCount; q++)
 			{
 				zMask[q] &= cMask[q];
 				sMask[q] &= cMask[q];
@@ -234,7 +234,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 		{
 			if(!earlyDepthTest)
 			{
-				for(unsigned int q = 0; q < state.multiSample; q++)
+				for(unsigned int q = 0; q < state.multiSampleCount; q++)
 				{
 					depthPass = depthPass || depthTest(zBuffer, q, x, z[q], sMask[q], zMask[q], cMask[q]);
 				}
@@ -242,7 +242,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			If(depthPass || Bool(earlyDepthTest))
 			{
-				for(unsigned int q = 0; q < state.multiSample; q++)
+				for(unsigned int q = 0; q < state.multiSampleCount; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
 					{
@@ -260,7 +260,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 		}
 	}
 
-	for(unsigned int q = 0; q < state.multiSample; q++)
+	for(unsigned int q = 0; q < state.multiSampleCount; q++)
 	{
 		if(state.multiSampleMask & (1 << q))
 		{

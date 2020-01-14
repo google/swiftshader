@@ -133,12 +133,12 @@ const PixelProcessor::State PixelProcessor::update(const Context *context) const
 		state.blendState[i] = context->getBlendState(i);
 	}
 
-	state.multiSample = static_cast<unsigned int>(context->sampleCount);
+	state.multiSampleCount = static_cast<unsigned int>(context->sampleCount);
 	state.multiSampleMask = context->multiSampleMask;
-	state.multiSampledBresenham = (state.multiSample > 1) && context->isDrawLine(true) &&
-	                              (context->lineRasterizationMode == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT);
+	state.enableMultiSampling = (state.multiSampleCount > 1) &&
+	                            !(context->isDrawLine(true) && (context->lineRasterizationMode == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
 
-	if(state.multiSample > 1 && context->pixelShader)
+	if(state.multiSampleCount > 1 && context->pixelShader)
 	{
 		state.centroid = context->pixelShader->getModes().NeedsCentroid;
 	}

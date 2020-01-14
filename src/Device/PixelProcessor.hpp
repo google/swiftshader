@@ -84,9 +84,9 @@ public:
 
 		unsigned int colorWriteMask;
 		VkFormat targetFormat[RENDERTARGETS];
-		unsigned int multiSample;
+		unsigned int multiSampleCount;
 		unsigned int multiSampleMask;
-		bool multiSampledBresenham;
+		bool enableMultiSampling;
 		bool alphaToCoverage;
 		bool centroid;
 		VkFrontFace frontFace;

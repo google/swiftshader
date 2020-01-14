@@ -51,7 +51,7 @@ public:
 		bool interpolateW : 1;
 		VkFrontFace frontFace : BITS(VK_FRONT_FACE_MAX_ENUM);
 		VkCullModeFlags cullMode : BITS(VK_CULL_MODE_FLAG_BITS_MAX_ENUM);
-		unsigned int multiSample : 3;  // 1, 2 or 4
+		unsigned int multiSampleCount : 3;  // 1, 2 or 4
 		bool rasterizerDiscard : 1;
 		unsigned int numClipDistances : 4;  // [0 - 8]
 		unsigned int numCullDistances : 4;  // [0 - 8]

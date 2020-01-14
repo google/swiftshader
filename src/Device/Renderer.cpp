@@ -617,7 +617,7 @@ int DrawCall::setupSolidTriangles(Triangle *triangles, Primitive *primitives, co
 {
 	auto &state = drawCall->setupState;
 
-	int ms = state.multiSample;
+	int ms = state.multiSampleCount;
 	const DrawData *data = drawCall->data;
 	int visible = 0;
 
@@ -662,7 +662,7 @@ int DrawCall::setupWireframeTriangles(Triangle *triangles, Primitive *primitives
 {
 	auto &state = drawCall->setupState;
 
-	int ms = state.multiSample;
+	int ms = state.multiSampleCount;
 	int visible = 0;
 
 	for(int i = 0; i < count; i++)
@@ -710,7 +710,7 @@ int DrawCall::setupPointTriangles(Triangle *triangles, Primitive *primitives, co
 {
 	auto &state = drawCall->setupState;
 
-	int ms = state.multiSample;
+	int ms = state.multiSampleCount;
 	int visible = 0;
 
 	for(int i = 0; i < count; i++)
@@ -756,7 +756,7 @@ int DrawCall::setupLines(Triangle *triangles, Primitive *primitives, const DrawC
 	auto &state = drawCall->setupState;
 
 	int visible = 0;
-	int ms = state.multiSample;
+	int ms = state.multiSampleCount;
 
 	for(int i = 0; i < count; i++)
 	{
@@ -777,7 +777,7 @@ int DrawCall::setupPoints(Triangle *triangles, Primitive *primitives, const Draw
 	auto &state = drawCall->setupState;
 
 	int visible = 0;
-	int ms = state.multiSample;
+	int ms = state.multiSampleCount;
 
 	for(int i = 0; i < count; i++)
 	{

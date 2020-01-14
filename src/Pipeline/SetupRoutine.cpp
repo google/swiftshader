@@ -166,7 +166,7 @@ void SetupRoutine::generate()
 		constexpr int subPixM = vk::SUBPIXEL_PRECISION_MASK;
 		constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
 
-		if(state.multiSample > 1)
+		if(state.multiSampleCount > 1)
 		{
 			yMin = (yMin + Constants::yMinMultiSampleOffset) >> subPixB;
 			yMax = (yMax + Constants::yMaxMultiSampleOffset) >> subPixB;
@@ -188,7 +188,7 @@ void SetupRoutine::generate()
 			Return(0);
 		}
 
-		For(Int q = 0, q < state.multiSample, q++)
+		For(Int q = 0, q < state.multiSampleCount, q++)
 		{
 			Array<Int> Xq(16);
 			Array<Int> Yq(16);
@@ -200,7 +200,7 @@ void SetupRoutine::generate()
 				Xq[i] = X[i];
 				Yq[i] = Y[i];
 
-				if(state.multiSample > 1)
+				if(state.multiSampleCount > 1)
 				{
 					Xq[i] = Xq[i] + *Pointer<Int>(constants + OFFSET(Constants, Xf) + q * sizeof(int));
 					Yq[i] = Yq[i] + *Pointer<Int>(constants + OFFSET(Constants, Yf) + q * sizeof(int));
@@ -213,7 +213,7 @@ void SetupRoutine::generate()
 			Pointer<Byte> leftEdge = Pointer<Byte>(primitive + OFFSET(Primitive, outline->left)) + q * sizeof(Primitive);
 			Pointer<Byte> rightEdge = Pointer<Byte>(primitive + OFFSET(Primitive, outline->right)) + q * sizeof(Primitive);
 
-			if(state.multiSample > 1)
+			if(state.multiSampleCount > 1)
 			{
 				Int xMin = *Pointer<Int>(data + OFFSET(DrawData, scissorX0));
 				Int xMax = *Pointer<Int>(data + OFFSET(DrawData, scissorX1));
@@ -242,7 +242,7 @@ void SetupRoutine::generate()
 				Until(i >= n);
 			}
 
-			if(state.multiSample == 1)
+			if(state.multiSampleCount == 1)
 			{
 				For(, yMin < yMax && *Pointer<Short>(leftEdge + yMin * sizeof(Primitive::Span)) == *Pointer<Short>(rightEdge + yMin * sizeof(Primitive::Span)), yMin++)
 				{
