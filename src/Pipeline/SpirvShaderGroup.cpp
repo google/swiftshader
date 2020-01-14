@@ -20,18 +20,18 @@ namespace sw {
 
 struct SpirvShader::Impl::Group
 {
-
 	// Template function to perform a binary operation.
-	// |TYPE| should be the type of the identity value (as an SIMD::<Type>).
+	// |TYPE| should be the type of the binary operation (as a SIMD::<ScalarType>).
+	// |I| should be a type suitable to initialize the identity value.
 	// |APPLY| should be a callable object that takes two RValue<TYPE> parameters
 	// and returns a new RValue<TYPE> corresponding to the operation's result.
-	template<typename TYPE, typename APPLY>
+	template<typename TYPE, typename I, typename APPLY>
 	static void BinaryOperation(
 	    const SpirvShader *shader,
 	    const SpirvShader::InsnIterator &insn,
 	    const SpirvShader::EmitState *state,
 	    Intermediate &dst,
-	    const TYPE &identity,
+	    const I identityValue,
 	    APPLY &&apply)
 	{
 		SpirvShader::GenericValue value(shader, state, insn.word(5));
@@ -39,6 +39,7 @@ struct SpirvShader::Impl::Group
 		for(auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			auto mask = As<SIMD::UInt>(state->activeLaneMask());
+			auto identity = TYPE(identityValue);
 			SIMD::UInt v_uint = (value.UInt(i) & mask) | (As<SIMD::UInt>(identity) & ~mask);
 			TYPE v = As<TYPE>(v_uint);
 			switch(spv::GroupOperation(insn.word(4)))
@@ -316,174 +317,109 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		}
 
 		case spv::OpGroupNonUniformIAdd:
-		{
-			using Type = SIMD::Int;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0),
-			    [](RValue<Type> a, RValue<Type> b) { return a + b; });
+			Impl::Group::BinaryOperation<SIMD::Int>(
+			    this, insn, state, dst, 0,
+			    [](auto a, auto b) { return a + b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformFAdd:
-		{
-			using Type = SIMD::Float;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0.),
-			    [](RValue<Type> a, RValue<Type> b) { return a + b; });
+			Impl::Group::BinaryOperation<SIMD::Float>(
+			    this, insn, state, dst, 0.0f,
+			    [](auto a, auto b) { return a + b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformIMul:
-		{
-			using Type = SIMD::Int;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(1),
-			    [](RValue<Type> a, RValue<Type> b) { return a * b; });
+			Impl::Group::BinaryOperation<SIMD::Int>(
+			    this, insn, state, dst, 1,
+			    [](auto a, auto b) { return a * b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformFMul:
-		{
-			using Type = SIMD::Float;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(1.),
-			    [](RValue<Type> a, RValue<Type> b) { return a * b; });
+			Impl::Group::BinaryOperation<SIMD::Float>(
+			    this, insn, state, dst, 1.0f,
+			    [](auto a, auto b) { return a * b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformBitwiseAnd:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(~0u),
-			    [](RValue<Type> a, RValue<Type> b) { return a & b; });
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, ~0u,
+			    [](auto a, auto b) { return a & b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformBitwiseOr:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0),
-			    [](RValue<Type> a, RValue<Type> b) { return a | b; });
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, 0,
+			    [](auto a, auto b) { return a | b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformBitwiseXor:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0),
-			    [](RValue<Type> a, RValue<Type> b) { return a ^ b; });
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, 0,
+			    [](auto a, auto b) { return a ^ b; });
 			break;
-		}
 
 		case spv::OpGroupNonUniformSMin:
-		{
-			using Type = SIMD::Int;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(INT32_MAX),
-			    [](RValue<Type> a, RValue<Type> b) { return Min(a, b); });
+			Impl::Group::BinaryOperation<SIMD::Int>(
+			    this, insn, state, dst, INT32_MAX,
+			    [](auto a, auto b) { return Min(a, b); });
 			break;
-		}
 
 		case spv::OpGroupNonUniformUMin:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(~0u),
-			    [](RValue<Type> a, RValue<Type> b) { return Min(a, b); });
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, ~0u,
+			    [](auto a, auto b) { return Min(a, b); });
 			break;
-		}
 
 		case spv::OpGroupNonUniformFMin:
-		{
-			using Type = SIMD::Float;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type::infinity(),
-			    [](RValue<Type> a, RValue<Type> b) { return NMin(a, b); });
+			Impl::Group::BinaryOperation<SIMD::Float>(
+			    this, insn, state, dst, SIMD::Float::infinity(),
+			    [](auto a, auto b) { return NMin(a, b); });
 			break;
-		}
 
 		case spv::OpGroupNonUniformSMax:
-		{
-			using Type = SIMD::Int;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(INT32_MIN),
-			    [](RValue<Type> a, RValue<Type> b) { return Max(a, b); });
+			Impl::Group::BinaryOperation<SIMD::Int>(
+			    this, insn, state, dst, INT32_MIN,
+			    [](auto a, auto b) { return Max(a, b); });
 			break;
-		}
 
 		case spv::OpGroupNonUniformUMax:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0),
-			    [](RValue<Type> a, RValue<Type> b) { return Max(a, b); });
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, 0,
+			    [](auto a, auto b) { return Max(a, b); });
 			break;
-		}
 
 		case spv::OpGroupNonUniformFMax:
-		{
-			using Type = SIMD::Float;
-			SIMD::Float negative_inf = -SIMD::Float::infinity();
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    negative_inf,
-			    [](RValue<Type> a, RValue<Type> b) { return NMax(a, b); });
+			Impl::Group::BinaryOperation<SIMD::Float>(
+			    this, insn, state, dst, -SIMD::Float::infinity(),
+			    [](auto a, auto b) { return NMax(a, b); });
 			break;
-		}
 
 		case spv::OpGroupNonUniformLogicalAnd:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(~0u),
-			    [](RValue<Type> a, RValue<Type> b) {
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, ~0u,
+			    [](auto a, auto b) {
 				    SIMD::UInt zero = SIMD::UInt(0);
 				    return CmpNEQ(a, zero) & CmpNEQ(b, zero);
 			    });
 			break;
-		}
 
 		case spv::OpGroupNonUniformLogicalOr:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0),
-			    [](RValue<Type> a, RValue<Type> b) {
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, 0,
+			    [](auto a, auto b) {
 				    SIMD::UInt zero = SIMD::UInt(0);
 				    return CmpNEQ(a, zero) | CmpNEQ(b, zero);
 			    });
 			break;
-		}
 
 		case spv::OpGroupNonUniformLogicalXor:
-		{
-			using Type = SIMD::UInt;
-			Impl::Group::BinaryOperation(
-			    this, insn, state, dst,
-			    Type(0),
-			    [](RValue<Type> a, RValue<Type> b) {
+			Impl::Group::BinaryOperation<SIMD::UInt>(
+			    this, insn, state, dst, 0,
+			    [](auto a, auto b) {
 				    SIMD::UInt zero = SIMD::UInt(0);
 				    return CmpNEQ(a, zero) ^ CmpNEQ(b, zero);
 			    });
 			break;
-		}
 
 		default:
 			UNIMPLEMENTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()).c_str());
