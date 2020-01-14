@@ -79,6 +79,8 @@ SetupProcessor::State SetupProcessor::update(const sw::Context *context) const
 	state.cullMode = context->cullMode;
 
 	state.multiSampleCount = context->sampleCount;
+	state.enableMultiSampling = (state.multiSampleCount > 1) &&
+	                            !(context->isDrawLine(true) && (context->lineRasterizationMode == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
 	state.rasterizerDiscard = context->rasterizerDiscard;
 
 	state.numClipDistances = context->vertexShader->getNumOutputClipDistances();
