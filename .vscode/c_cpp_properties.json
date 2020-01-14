@@ -16,7 +16,8 @@
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/linux/include",
-                "${workspaceFolder}/third_party/cppdap/include"
+                "${workspaceFolder}/third_party/cppdap/include",
+                "${workspaceFolder}/build/spirv-tools-ext/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++14"
@@ -37,7 +38,8 @@
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/darwin/include",
-                "${workspaceFolder}/third_party/cppdap/include"
+                "${workspaceFolder}/third_party/cppdap/include",
+                "${workspaceFolder}/build/spirv-tools-ext/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++14"
@@ -58,7 +60,8 @@
                 "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include",
-                "${workspaceFolder}/third_party/cppdap/include"
+                "${workspaceFolder}/third_party/cppdap/include",
+                "${workspaceFolder}/build/spirv-tools-ext/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++14"
