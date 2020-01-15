@@ -46,6 +46,30 @@
       "revId": "1cb59da72a5ab5c4301f5d5e2b08e44c2bb14a41",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b70ef06b_37d97a49",
+        "filename": "tests/kokoro/macos/continuous.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-15T15:55:42Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/c/SwiftShader/+/40228",
+      "parentUuid": "d3289518_9e711acb",
+      "range": {
+        "startLine": 20,
+        "startChar": 124,
+        "endLine": 20,
+        "endChar": 145
+      },
+      "revId": "1cb59da72a5ab5c4301f5d5e2b08e44c2bb14a41",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
