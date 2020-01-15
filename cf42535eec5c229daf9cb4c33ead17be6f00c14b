@@ -16,6 +16,24 @@
       "revId": "cf42535eec5c229daf9cb4c33ead17be6f00c14b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c223f91_432be138",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-15T15:11:38Z",
+      "side": 1,
+      "message": "Yes, this rename was missed in https://swiftshader-review.googlesource.com/c/SwiftShader/+/39050\nThis seemed like a good CL to sneak that in.",
+      "parentUuid": "463a92ee_47f9df43",
+      "revId": "cf42535eec5c229daf9cb4c33ead17be6f00c14b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
