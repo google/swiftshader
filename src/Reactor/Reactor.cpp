@@ -124,11 +124,11 @@ void Variable::killUnmaterialized()
 // since each hex digit is a separate swizzle index.
 //
 // For example:
-//      createBlend4( [a,b,c,d], [e,f,g,h], 0x0123 ) -> [a,b,c,d]
-//      createBlend4( [a,b,c,d], [e,f,g,h], 0x4567 ) -> [e,f,g,h]
-//      createBlend4( [a,b,c,d], [e,f,g,h], 0x4012 ) -> [e,a,b,c]
+//      createShuffle4( [a,b,c,d], [e,f,g,h], 0x0123 ) -> [a,b,c,d]
+//      createShuffle4( [a,b,c,d], [e,f,g,h], 0x4567 ) -> [e,f,g,h]
+//      createShuffle4( [a,b,c,d], [e,f,g,h], 0x4012 ) -> [e,a,b,c]
 //
-static Value *createBlend4(Value *lhs, Value *rhs, uint16_t select)
+static Value *createShuffle4(Value *lhs, Value *rhs, uint16_t select)
 {
 	int swizzle[4] = {
 		(select >> 12) & 0x07,
@@ -3534,7 +3534,7 @@ RValue<Int4> Swizzle(RValue<Int4> x, uint16_t select)
 
 RValue<Int4> Shuffle(RValue<Int4> x, RValue<Int4> y, unsigned short select)
 {
-	return RValue<Int4>(createBlend4(x.value, y.value, select));
+	return RValue<Int4>(createShuffle4(x.value, y.value, select));
 }
 
 UInt4::UInt4()
@@ -3788,7 +3788,7 @@ RValue<UInt4> Swizzle(RValue<UInt4> x, uint16_t select)
 
 RValue<UInt4> Shuffle(RValue<UInt4> x, RValue<UInt4> y, unsigned short select)
 {
-	return RValue<UInt4>(createBlend4(x.value, y.value, select));
+	return RValue<UInt4>(createShuffle4(x.value, y.value, select));
 }
 
 Half::Half(RValue<Float> cast)
@@ -4307,7 +4307,7 @@ RValue<Float4> Swizzle(RValue<Float4> x, uint16_t select)
 
 RValue<Float4> Shuffle(RValue<Float4> x, RValue<Float4> y, uint16_t select)
 {
-	return RValue<Float4>(createBlend4(x.value, y.value, select));
+	return RValue<Float4>(createShuffle4(x.value, y.value, select));
 }
 
 RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
