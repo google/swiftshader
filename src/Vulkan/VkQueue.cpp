@@ -235,9 +235,14 @@ VkResult Queue::present(const VkPresentInfoKHR *presentInfo)
 			presentInfo->pResults[i] = perSwapchainResult;
 		}
 
+		// Keep track of the worst result code. VK_SUBOPTIMAL_KHR is a success code so it should
+		// not override failure codes, but should not get replaced by a VK_SUCCESS result itself.
 		if(perSwapchainResult != VK_SUCCESS)
 		{
-			commandResult = perSwapchainResult;
+			if(commandResult == VK_SUCCESS || commandResult == VK_SUBOPTIMAL_KHR)
+			{
+				commandResult = perSwapchainResult;
+			}
 		}
 	}
 
