@@ -467,7 +467,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 
 	switch(format)
 	{
-			// Formats which can be sampled *and* filtered
+		// Formats which can be sampled *and* filtered
 		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
@@ -522,9 +522,9 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
-			// Fall through
+			// [[fallthrough]]
 
-			// Formats which can be sampled, but don't support filtering
+		// Formats which can be sampled, but don't support filtering
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8G8_UINT:
@@ -555,11 +555,12 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 			    VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
 			break;
 
-			// YCbCr formats:
+		// YCbCr formats:
 		case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
 		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+			    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT |
 			    VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
 			    VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
 			    VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT;
