@@ -611,10 +611,13 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 			break;
 		case VK_FORMAT_R16G16B16A16_SFLOAT:
 			if(writeA) { *Pointer<Half>(element + 6) = Half(c.w); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16B16_SFLOAT:
 			if(writeB) { *Pointer<Half>(element + 4) = Half(c.z); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16_SFLOAT:
 			if(writeG) { *Pointer<Half>(element + 2) = Half(c.y); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16_SFLOAT:
 			if(writeR) { *Pointer<Half>(element) = Half(c.x); }
 			break;
@@ -690,14 +693,17 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R8G8B8A8_SSCALED:
 		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(RoundInt(Float(c.w))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8B8_SINT:
 		case VK_FORMAT_R8G8B8_SNORM:
 		case VK_FORMAT_R8G8B8_SSCALED:
 			if(writeB) { *Pointer<SByte>(element + 2) = SByte(RoundInt(Float(c.z))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8_SINT:
 		case VK_FORMAT_R8G8_SNORM:
 		case VK_FORMAT_R8G8_SSCALED:
 			if(writeG) { *Pointer<SByte>(element + 1) = SByte(RoundInt(Float(c.y))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_SNORM:
 		case VK_FORMAT_R8_SSCALED:
@@ -708,11 +714,13 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R8G8B8_USCALED:
 		case VK_FORMAT_R8G8B8_SRGB:
 			if(writeB) { *Pointer<Byte>(element + 2) = Byte(RoundInt(Float(c.z))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8_UINT:
 		case VK_FORMAT_R8G8_UNORM:
 		case VK_FORMAT_R8G8_USCALED:
 		case VK_FORMAT_R8G8_SRGB:
 			if(writeG) { *Pointer<Byte>(element + 1) = Byte(RoundInt(Float(c.y))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_R8_USCALED:
@@ -814,8 +822,10 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 			break;
 		case VK_FORMAT_R32G32B32_SINT:
 			if(writeB) { *Pointer<Int>(element + 8) = RoundInt(Float(c.z)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R32G32_SINT:
 			if(writeG) { *Pointer<Int>(element + 4) = RoundInt(Float(c.y)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R32_SINT:
 			if(writeR) { *Pointer<Int>(element) = RoundInt(Float(c.x)); }
 			break;
@@ -834,8 +844,10 @@ void Blitter::write(Float4 &c, Pointer<Byte> element, const State &state)
 			break;
 		case VK_FORMAT_R32G32B32_UINT:
 			if(writeB) { *Pointer<UInt>(element + 8) = As<UInt>(RoundInt(Float(c.z))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R32G32_UINT:
 			if(writeG) { *Pointer<UInt>(element + 4) = As<UInt>(RoundInt(Float(c.y))); }
+			// [[fallthrough]]
 		case VK_FORMAT_R32_UINT:
 			if(writeR) { *Pointer<UInt>(element) = As<UInt>(RoundInt(Float(c.x))); }
 			break;
@@ -970,8 +982,10 @@ Int4 Blitter::readInt4(Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R8G8B8A8_SINT:
 			c = Insert(c, Int(*Pointer<SByte>(element + 3)), 3);
 			c = Insert(c, Int(*Pointer<SByte>(element + 2)), 2);
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8_SINT:
 			c = Insert(c, Int(*Pointer<SByte>(element + 1)), 1);
+			// [[fallthrough]]
 		case VK_FORMAT_R8_SINT:
 			c = Insert(c, Int(*Pointer<SByte>(element)), 0);
 			break;
@@ -991,8 +1005,10 @@ Int4 Blitter::readInt4(Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R8G8B8A8_UINT:
 			c = Insert(c, Int(*Pointer<Byte>(element + 3)), 3);
 			c = Insert(c, Int(*Pointer<Byte>(element + 2)), 2);
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8_UINT:
 			c = Insert(c, Int(*Pointer<Byte>(element + 1)), 1);
+			// [[fallthrough]]
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_S8_UINT:
 			c = Insert(c, Int(*Pointer<Byte>(element)), 0);
@@ -1000,16 +1016,20 @@ Int4 Blitter::readInt4(Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R16G16B16A16_SINT:
 			c = Insert(c, Int(*Pointer<Short>(element + 6)), 3);
 			c = Insert(c, Int(*Pointer<Short>(element + 4)), 2);
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16_SINT:
 			c = Insert(c, Int(*Pointer<Short>(element + 2)), 1);
+			// [[fallthrough]]
 		case VK_FORMAT_R16_SINT:
 			c = Insert(c, Int(*Pointer<Short>(element)), 0);
 			break;
 		case VK_FORMAT_R16G16B16A16_UINT:
 			c = Insert(c, Int(*Pointer<UShort>(element + 6)), 3);
 			c = Insert(c, Int(*Pointer<UShort>(element + 4)), 2);
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16_UINT:
 			c = Insert(c, Int(*Pointer<UShort>(element + 2)), 1);
+			// [[fallthrough]]
 		case VK_FORMAT_R16_UINT:
 			c = Insert(c, Int(*Pointer<UShort>(element)), 0);
 			break;
@@ -1020,6 +1040,7 @@ Int4 Blitter::readInt4(Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R32G32_SINT:
 		case VK_FORMAT_R32G32_UINT:
 			c = Insert(c, *Pointer<Int>(element + 4), 1);
+			// [[fallthrough]]
 		case VK_FORMAT_R32_SINT:
 		case VK_FORMAT_R32_UINT:
 			c = Insert(c, *Pointer<Int>(element), 0);
@@ -1096,6 +1117,7 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_B8G8R8A8_SINT:
 		case VK_FORMAT_B8G8R8A8_SSCALED:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(Extract(c, 3)); }
+			// [[fallthrough]]
 		case VK_FORMAT_B8G8R8_SINT:
 		case VK_FORMAT_B8G8R8_SSCALED:
 			if(writeB) { *Pointer<SByte>(element) = SByte(Extract(c, 2)); }
@@ -1107,12 +1129,15 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R8G8B8A8_SSCALED:
 		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(Extract(c, 3)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8B8_SINT:
 		case VK_FORMAT_R8G8B8_SSCALED:
 			if(writeB) { *Pointer<SByte>(element + 2) = SByte(Extract(c, 2)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8_SINT:
 		case VK_FORMAT_R8G8_SSCALED:
 			if(writeG) { *Pointer<SByte>(element + 1) = SByte(Extract(c, 1)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_SSCALED:
 			if(writeR) { *Pointer<SByte>(element) = SByte(Extract(c, 0)); }
@@ -1158,6 +1183,7 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_B8G8R8A8_UINT:
 		case VK_FORMAT_B8G8R8A8_USCALED:
 			if(writeA) { *Pointer<Byte>(element + 3) = Byte(Extract(c, 3)); }
+			// [[fallthrough]]
 		case VK_FORMAT_B8G8R8_UINT:
 		case VK_FORMAT_B8G8R8_USCALED:
 		case VK_FORMAT_B8G8R8_SRGB:
@@ -1170,12 +1196,15 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R8G8B8A8_USCALED:
 		case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
 			if(writeA) { *Pointer<Byte>(element + 3) = Byte(Extract(c, 3)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8B8_UINT:
 		case VK_FORMAT_R8G8B8_USCALED:
 			if(writeB) { *Pointer<Byte>(element + 2) = Byte(Extract(c, 2)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8_UINT:
 		case VK_FORMAT_R8G8_USCALED:
 			if(writeG) { *Pointer<Byte>(element + 1) = Byte(Extract(c, 1)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_USCALED:
 		case VK_FORMAT_S8_UINT:
@@ -1184,12 +1213,15 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R16G16B16A16_SINT:
 		case VK_FORMAT_R16G16B16A16_SSCALED:
 			if(writeA) { *Pointer<Short>(element + 6) = Short(Extract(c, 3)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16B16_SINT:
 		case VK_FORMAT_R16G16B16_SSCALED:
 			if(writeB) { *Pointer<Short>(element + 4) = Short(Extract(c, 2)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16_SINT:
 		case VK_FORMAT_R16G16_SSCALED:
 			if(writeG) { *Pointer<Short>(element + 2) = Short(Extract(c, 1)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16_SINT:
 		case VK_FORMAT_R16_SSCALED:
 			if(writeR) { *Pointer<Short>(element) = Short(Extract(c, 0)); }
@@ -1197,12 +1229,15 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 		case VK_FORMAT_R16G16B16A16_UINT:
 		case VK_FORMAT_R16G16B16A16_USCALED:
 			if(writeA) { *Pointer<UShort>(element + 6) = UShort(Extract(c, 3)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16B16_UINT:
 		case VK_FORMAT_R16G16B16_USCALED:
 			if(writeB) { *Pointer<UShort>(element + 4) = UShort(Extract(c, 2)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16G16_UINT:
 		case VK_FORMAT_R16G16_USCALED:
 			if(writeG) { *Pointer<UShort>(element + 2) = UShort(Extract(c, 1)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R16_UINT:
 		case VK_FORMAT_R16_USCALED:
 			if(writeR) { *Pointer<UShort>(element) = UShort(Extract(c, 0)); }
@@ -1247,8 +1282,10 @@ void Blitter::write(Int4 &c, Pointer<Byte> element, const State &state)
 			break;
 		case VK_FORMAT_R32G32B32_UINT:
 			if(writeB) { *Pointer<UInt>(element + 8) = As<UInt>(Extract(c, 2)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R32G32_UINT:
 			if(writeG) { *Pointer<UInt>(element + 4) = As<UInt>(Extract(c, 1)); }
+			// [[fallthrough]]
 		case VK_FORMAT_R32_UINT:
 			if(writeR) { *Pointer<UInt>(element) = As<UInt>(Extract(c, 0)); }
 			break;

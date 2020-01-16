@@ -1060,7 +1060,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 			v = Insert(v, *Pointer<Int>(buffer + 0), 2);
 			v = Insert(v, *Pointer<Int>(buffer + 4), 3);
 
-			a2b10g10r10Unpack(v, pixel);
+			pixel = a2b10g10r10Unpack(v);
 		}
 		break;
 		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
@@ -1072,7 +1072,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 			v = Insert(v, *Pointer<Int>(buffer + 4 * x), 2);
 			v = Insert(v, *Pointer<Int>(buffer + 4 * x + 4), 3);
 
-			a2r10g10b10Unpack(v, pixel);
+			pixel = a2r10g10b10Unpack(v);
 		}
 		break;
 		default:

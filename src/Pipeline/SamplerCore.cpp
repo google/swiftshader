@@ -1699,7 +1699,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		a2b10g10r10Unpack(cc, c);
+		c = a2b10g10r10Unpack(cc);
 	}
 	else if(state.textureFormat == VK_FORMAT_A2R10G10B10_UNORM_PACK32)
 	{
@@ -1709,7 +1709,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		cc = Insert(cc, Pointer<Int>(buffer)[index[2]], 2);
 		cc = Insert(cc, Pointer<Int>(buffer)[index[3]], 3);
 
-		a2r10g10b10Unpack(cc, c);
+		c = a2r10g10b10Unpack(cc);
 	}
 	else if(state.textureFormat == VK_FORMAT_A2B10G10R10_UINT_PACK32)
 	{

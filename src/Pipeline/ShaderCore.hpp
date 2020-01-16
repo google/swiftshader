@@ -206,10 +206,10 @@ void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N)
 
 sw::SIMD::UInt halfToFloatBits(sw::SIMD::UInt halfBits);
 sw::SIMD::UInt floatToHalfBits(sw::SIMD::UInt floatBits, bool storeInUpperBits);
-sw::SIMD::Float r11g11b10Unpack(UInt r11g11b10bits);
-UInt r11g11b10Pack(sw::SIMD::Float &value);
-void a2b10g10r10Unpack(Int4 &value, Vector4s &result);
-void a2r10g10b10Unpack(Int4 &value, Vector4s &result);
+Float4 r11g11b10Unpack(UInt r11g11b10bits);
+UInt r11g11b10Pack(const Float4 &value);
+Vector4s a2b10g10r10Unpack(const Int4 &value);
+Vector4s a2r10g10b10Unpack(const Int4 &value);
 
 rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints);
 
