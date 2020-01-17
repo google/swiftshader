@@ -136,6 +136,11 @@ public:
 	// called without building a new rr::Function or rr::Coroutine.
 	// While automatically called by operator(), finalize() should be called
 	// as early as possible to release the global Reactor mutex lock.
+	// It must also be called explicitly on the same thread that instantiates
+	// the Coroutine instance if operator() is invoked on separate threads.
+	// This is because presently, Reactor backends use a global mutex scoped
+	// to the generation of routines, and these must be locked/unlocked on the
+	// same thread.
 	inline void finalize(const Config::Edit &cfg = Config::Edit::None);
 
 	// Starts execution of the coroutine and returns a unique_ptr to a
@@ -182,9 +187,16 @@ Coroutine<Return(Arguments...)>::operator()(Arguments... args)
 {
 	finalize();
 
-	using Sig = Nucleus::CoroutineBegin<Arguments...>;
-	auto pfn = (Sig *)routine->getEntry(Nucleus::CoroutineEntryBegin);
-	auto handle = pfn(args...);
+	// TODO(b/148400732): Go back to just calling the CoroutineEntryBegin function directly.
+	std::function<Nucleus::CoroutineHandle()> coroutineBegin = [=] {
+		using Sig = Nucleus::CoroutineBegin<Arguments...>;
+		auto pfn = (Sig *)routine->getEntry(Nucleus::CoroutineEntryBegin);
+		auto handle = pfn(args...);
+		return handle;
+	};
+
+	auto handle = Nucleus::invokeCoroutineBegin(*routine, coroutineBegin);
+
 	return std::make_unique<Stream<Return>>(routine, handle);
 }
 

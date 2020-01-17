@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -171,7 +172,7 @@ public:
 	static BasicBlock *getInsertBlock();
 	static void setInsertBlock(BasicBlock *basicBlock);
 
-	static void createFunction(Type *ReturnType, std::vector<Type *> &Params);
+	static void createFunction(Type *returnType, const std::vector<Type *> &paramTypes);
 	static Value *getArgument(unsigned int index);
 
 	// Coroutines
@@ -190,9 +191,21 @@ public:
 		CoroutineEntryCount
 	};
 
-	static void createCoroutine(Type *ReturnType, std::vector<Type *> &Params);
+	// Begins the generation of the three coroutine functions: CoroutineBegin, CoroutineAwait, and CoroutineDestroy,
+	// which will be returned by Routine::getEntry() with arg CoroutineEntryBegin, CoroutineEntryAwait, and CoroutineEntryDestroy
+	// respectively. Called by Coroutine constructor.
+	// Params are used to generate the params to CoroutineBegin, while ReturnType is used as the YieldType for the coroutine,
+	// returned via CoroutineAwait..
+	static void createCoroutine(Type *returnType, const std::vector<Type *> &params);
+	// Generates code to store the passed in value, and to suspend execution of the coroutine, such that the next call to
+	// CoroutineAwait can set the output yieldValue and resume execution of the coroutine.
+	static void yield(Value *val);
+	// Called to finalize coroutine creation. After this call, Routine::getEntry can be called to retrieve the entry point to any
+	// of the three coroutine functions. Called by Coroutine::finalize.
 	std::shared_ptr<Routine> acquireCoroutine(const char *name, const Config::Edit &cfg = Config::Edit::None);
-	static void yield(Value *);
+	// Called by Coroutine::operator() to execute CoroutineEntryBegin wrapped up in func. This is needed in case
+	// the call must be run on a separate thread of execution (e.g. on a fiber).
+	static CoroutineHandle invokeCoroutineBegin(Routine &routine, std::function<CoroutineHandle()> func);
 
 	// Terminators
 	static void createRetVoid();

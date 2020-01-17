@@ -88,7 +88,7 @@ private:
 	void setLoadStoreInsts(Ice::CfgNode *, std::vector<LoadStoreInst> *);
 	bool hasLoadStoreInsts(Ice::CfgNode *node) const;
 
-	std::vector<Optimizer::Uses *> allocatedUses;
+	std::vector<Ice::Operand *> operandsWithUses;
 };
 
 void Optimizer::run(Ice::Cfg *function)
@@ -104,11 +104,13 @@ void Optimizer::run(Ice::Cfg *function)
 	optimizeStoresInSingleBasicBlock();
 	eliminateDeadCode();
 
-	for(auto uses : allocatedUses)
+	for(auto operand : operandsWithUses)
 	{
+		auto uses = reinterpret_cast<Uses *>(operand->getExternalData());
 		delete uses;
+		operand->setExternalData(nullptr);
 	}
-	allocatedUses.clear();
+	operandsWithUses.clear();
 }
 
 void Optimizer::eliminateDeadCode()
@@ -713,7 +715,7 @@ Optimizer::Uses *Optimizer::getUses(Ice::Operand *operand)
 	{
 		uses = new Optimizer::Uses;
 		setUses(operand, uses);
-		allocatedUses.push_back(uses);
+		operandsWithUses.push_back(operand);
 	}
 	return uses;
 }

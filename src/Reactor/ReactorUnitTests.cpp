@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 
 #include <cmath>
+#include <thread>
 #include <tuple>
 
 using namespace rr;
@@ -1894,6 +1895,150 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 	EXPECT_EQ(out, 99);
 	EXPECT_EQ(coroutine->await(out), false);
 	EXPECT_EQ(out, 99);
+}
+
+// This test was written because Subzero's handling of vector types
+// failed when more than one function is generated, as is the case
+// with coroutines.
+TEST(ReactorUnitTests, Coroutines_Vectors)
+{
+	if(!rr::Caps.CoroutinesSupported)
+	{
+		SUCCEED() << "Coroutines not supported";
+		return;
+	}
+
+	Coroutine<int()> function;
+	{
+		Int4 a{ 1, 2, 3, 4 };
+		Yield(rr::Extract(a, 2));
+		Int4 b{ 5, 6, 7, 8 };
+		Yield(rr::Extract(b, 1));
+		Int4 c{ 9, 10, 11, 12 };
+		Yield(rr::Extract(c, 1));
+	}
+
+	auto coroutine = function();
+
+	int out;
+	coroutine->await(out);
+	EXPECT_EQ(out, 3);
+	coroutine->await(out);
+	EXPECT_EQ(out, 6);
+	coroutine->await(out);
+	EXPECT_EQ(out, 10);
+}
+
+// This test was written to make sure a coroutine without a Yield()
+// works correctly, by executing like a regular function with no
+// return (the return type is ignored).
+// We also run it twice to ensure per instance and/or global state
+// is properly cleaned up in between.
+TEST(ReactorUnitTests, Coroutines_NoYield)
+{
+	if(!rr::Caps.CoroutinesSupported)
+	{
+		SUCCEED() << "Coroutines not supported";
+		return;
+	}
+
+	for(int i = 0; i < 2; ++i)
+	{
+		Coroutine<int()> function;
+		{
+			Int a;
+			a = 4;
+		}
+
+		auto coroutine = function();
+		int out;
+		EXPECT_EQ(coroutine->await(out), false);
+	}
+}
+
+// Test generating one coroutine, and executing it on multiple threads. This makes
+// sure the implementation manages per-call instance data correctly.
+TEST(ReactorUnitTests, Coroutines_Parallel)
+{
+	if(!rr::Caps.CoroutinesSupported)
+	{
+		SUCCEED() << "Coroutines not supported";
+		return;
+	}
+
+	Coroutine<int()> function;
+	{
+		Yield(Int(0));
+		Yield(Int(1));
+		Int current = 1;
+		Int next = 1;
+		While(true)
+		{
+			Yield(next);
+			auto tmp = current + next;
+			current = next;
+			next = tmp;
+		}
+	}
+
+	// Must call on same thread that creates the coroutine
+	function.finalize();
+
+	constexpr int32_t expected[] = {
+		0,
+		1,
+		1,
+		2,
+		3,
+		5,
+		8,
+		13,
+		21,
+		34,
+		55,
+		89,
+		144,
+		233,
+		377,
+		610,
+		987,
+		1597,
+		2584,
+		4181,
+		6765,
+		10946,
+		17711,
+		28657,
+		46368,
+		75025,
+		121393,
+		196418,
+		317811,
+	};
+
+	constexpr auto count = sizeof(expected) / sizeof(expected[0]);
+
+	std::vector<std::thread> threads;
+	const size_t numThreads = 100;
+
+	for(size_t t = 0; t < numThreads; ++t)
+	{
+		threads.emplace_back([&] {
+			auto coroutine = function();
+
+			for(size_t i = 0; i < count; i++)
+			{
+				int out = 0;
+				EXPECT_EQ(coroutine->await(out), true);
+				EXPECT_EQ(out, expected[i]);
+			}
+		});
+	}
+
+	for(auto &t : threads)
+	{
+		t.join();
+	}
 }
 
 template<typename TestFuncType, typename RefFuncType, typename TestValueType>

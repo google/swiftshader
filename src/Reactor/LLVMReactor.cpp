@@ -1302,9 +1302,9 @@ Type *T(InternalType t)
 	return reinterpret_cast<Type *>(t);
 }
 
-inline std::vector<llvm::Type *> &T(std::vector<Type *> &t)
+inline const std::vector<llvm::Type *> &T(const std::vector<Type *> &t)
 {
-	return reinterpret_cast<std::vector<llvm::Type *> &>(t);
+	return reinterpret_cast<const std::vector<llvm::Type *> &>(t);
 }
 
 inline llvm::BasicBlock *B(BasicBlock *t)
@@ -1506,7 +1506,7 @@ void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 	jit->builder->SetInsertPoint(B(basicBlock));
 }
 
-void Nucleus::createFunction(Type *ReturnType, std::vector<Type *> &Params)
+void Nucleus::createFunction(Type *ReturnType, const std::vector<Type *> &Params)
 {
 	jit->function = rr::createFunction("", T(ReturnType), T(Params));
 
@@ -4964,7 +4964,7 @@ void promoteFunctionToCoroutine()
 
 namespace rr {
 
-void Nucleus::createCoroutine(Type *YieldType, std::vector<Type *> &Params)
+void Nucleus::createCoroutine(Type *YieldType, const std::vector<Type *> &Params)
 {
 	// Coroutines are initially created as a regular function.
 	// Upon the first call to Yield(), the function is promoted to a true
@@ -5121,6 +5121,11 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	jit.reset();
 
 	return routine;
+}
+
+Nucleus::CoroutineHandle Nucleus::invokeCoroutineBegin(Routine &routine, std::function<Nucleus::CoroutineHandle()> func)
+{
+	return func();
 }
 
 }  // namespace rr
