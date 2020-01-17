@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "453078fc_be76928d",
+        "filename": "src/Pipeline/SpirvShaderDebugger.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-01-17T13:59:16Z",
+      "side": 1,
+      "message": "We discussed in chat. I thought kindof was constexpr because you wanted to instantiate Object at compile-time, and I was suggesting making it the constructor constexpr in Object so that you could achieve this. But after looking more, I saw that kindof is static, so you didn\u0027t want/need to instantiate Object. And you explained that you made kindof constexpr for the static_assert.\n\nSo we\u0027re all good.",
+      "parentUuid": "397863d5_1eaf9cf0",
+      "revId": "04845ba8bc274f09b22aecec73ae57da7908785d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b9ecd752_f2da8ccf",
         "filename": "src/Pipeline/SpirvShaderDebugger.cpp",
         "patchSetId": 2
