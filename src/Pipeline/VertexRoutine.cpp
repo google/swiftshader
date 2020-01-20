@@ -177,11 +177,13 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 	Pointer<Byte> source2 = buffer + offsets.z;
 	Pointer<Byte> source3 = buffer + offsets.w;
 
+	vk::Format format(stream.format);
+
 	UInt4 zero(0);
 	if(robustBufferAccess)
 	{
 		// TODO(b/141124876): Optimize for wide-vector gather operations.
-		UInt4 limits = offsets + UInt4(stream.bytesPerAttrib());
+		UInt4 limits = offsets + UInt4(format.bytes());
 		Pointer<Byte> zeroSource = As<Pointer<Byte>>(&zero);
 		source0 = IfThenElse(limits.x <= robustnessSize, source0, zeroSource);
 		source1 = IfThenElse(limits.y <= robustnessSize, source1, zeroSource);
@@ -189,19 +191,25 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 		source3 = IfThenElse(limits.w <= robustnessSize, source3, zeroSource);
 	}
 
-	bool isNativeFloatAttrib = (stream.attribType == SpirvShader::ATTRIBTYPE_FLOAT) || stream.normalized;
+	int componentCount = format.componentCount();
+	bool normalized = !format.isUnnormalizedInteger();
+	bool isNativeFloatAttrib = (stream.attribType == SpirvShader::ATTRIBTYPE_FLOAT) || normalized;
+	bool bgra = false;
 
-	switch(stream.type)
+	switch(stream.format)
 	{
-		case STREAMTYPE_FLOAT:
+		case VK_FORMAT_R32_SFLOAT:
+		case VK_FORMAT_R32G32_SFLOAT:
+		case VK_FORMAT_R32G32B32_SFLOAT:
+		case VK_FORMAT_R32G32B32A32_SFLOAT:
 		{
-			if(stream.count == 0)
+			if(componentCount == 0)
 			{
 				// Null stream, all default components
 			}
 			else
 			{
-				if(stream.count == 1)
+				if(componentCount == 1)
 				{
 					v.x.x = *Pointer<Float>(source0);
 					v.x.y = *Pointer<Float>(source1);
@@ -215,22 +223,22 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 					v.z = *Pointer<Float4>(source2);
 					v.w = *Pointer<Float4>(source3);
 
-					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+					transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 				}
 
 				switch(stream.attribType)
 				{
 					case SpirvShader::ATTRIBTYPE_INT:
-						if(stream.count >= 1) v.x = As<Float4>(Int4(v.x));
-						if(stream.count >= 2) v.x = As<Float4>(Int4(v.y));
-						if(stream.count >= 3) v.x = As<Float4>(Int4(v.z));
-						if(stream.count >= 4) v.x = As<Float4>(Int4(v.w));
+						if(componentCount >= 1) v.x = As<Float4>(Int4(v.x));
+						if(componentCount >= 2) v.x = As<Float4>(Int4(v.y));
+						if(componentCount >= 3) v.x = As<Float4>(Int4(v.z));
+						if(componentCount >= 4) v.x = As<Float4>(Int4(v.w));
 						break;
 					case SpirvShader::ATTRIBTYPE_UINT:
-						if(stream.count >= 1) v.x = As<Float4>(UInt4(v.x));
-						if(stream.count >= 2) v.x = As<Float4>(UInt4(v.y));
-						if(stream.count >= 3) v.x = As<Float4>(UInt4(v.z));
-						if(stream.count >= 4) v.x = As<Float4>(UInt4(v.w));
+						if(componentCount >= 1) v.x = As<Float4>(UInt4(v.x));
+						if(componentCount >= 2) v.x = As<Float4>(UInt4(v.y));
+						if(componentCount >= 3) v.x = As<Float4>(UInt4(v.z));
+						if(componentCount >= 4) v.x = As<Float4>(UInt4(v.w));
 						break;
 					default:
 						break;
@@ -238,7 +246,16 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			}
 		}
 		break;
-		case STREAMTYPE_BYTE:
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			bgra = true;
+		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 			if(isNativeFloatAttrib)  // Stream: UByte, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<Byte4>(source0));
@@ -246,14 +263,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = Float4(*Pointer<Byte4>(source2));
 				v.w = Float4(*Pointer<Byte4>(source3));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-				if(stream.normalized)
+				if(normalized)
 				{
-					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
+					if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
 				}
 			}
 			else  // Stream: UByte, Shader attrib: Int / UInt
@@ -263,10 +280,17 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = As<Float4>(Int4(*Pointer<Byte4>(source2)));
 				v.w = As<Float4>(Int4(*Pointer<Byte4>(source3)));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 			}
 			break;
-		case STREAMTYPE_SBYTE:
+		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			if(isNativeFloatAttrib)  // Stream: SByte, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<SByte4>(source0));
@@ -274,14 +298,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = Float4(*Pointer<SByte4>(source2));
 				v.w = Float4(*Pointer<SByte4>(source3));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-				if(stream.normalized)
+				if(normalized)
 				{
-					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
-					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
-					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
-					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+					if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
 				}
 			}
 			else  // Stream: SByte, Shader attrib: Int / UInt
@@ -291,25 +315,15 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = As<Float4>(Int4(*Pointer<SByte4>(source2)));
 				v.w = As<Float4>(Int4(*Pointer<SByte4>(source3)));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 			}
 			break;
-		case STREAMTYPE_COLOR:
-		{
-			v.x = Float4(*Pointer<Byte4>(source0)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			v.y = Float4(*Pointer<Byte4>(source1)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			v.z = Float4(*Pointer<Byte4>(source2)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-			v.w = Float4(*Pointer<Byte4>(source3)) * *Pointer<Float4>(constants + OFFSET(Constants, unscaleByte));
-
-			transpose4x4(v.x, v.y, v.z, v.w);
-
-			// Swap red and blue
-			Float4 t = v.x;
-			v.x = v.z;
-			v.z = t;
-		}
-		break;
-		case STREAMTYPE_SHORT:
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+		case VK_FORMAT_R16G16B16A16_SINT:
 			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<Short4>(source0));
@@ -317,14 +331,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = Float4(*Pointer<Short4>(source2));
 				v.w = Float4(*Pointer<Short4>(source3));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-				if(stream.normalized)
+				if(normalized)
 				{
-					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
-					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
-					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
-					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+					if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
 				}
 			}
 			else  // Stream: Short, Shader attrib: Int/UInt, no type conversion
@@ -334,10 +348,15 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = As<Float4>(Int4(*Pointer<Short4>(source2)));
 				v.w = As<Float4>(Int4(*Pointer<Short4>(source3)));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 			}
 			break;
-		case STREAMTYPE_USHORT:
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16G16B16A16_UNORM:
+		case VK_FORMAT_R16G16B16A16_UINT:
 			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<UShort4>(source0));
@@ -345,14 +364,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = Float4(*Pointer<UShort4>(source2));
 				v.w = Float4(*Pointer<UShort4>(source3));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-				if(stream.normalized)
+				if(normalized)
 				{
-					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
-					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
+					if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUShort));
 				}
 			}
 			else  // Stream: UShort, Shader attrib: Int/UInt, no type conversion
@@ -362,10 +381,13 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = As<Float4>(Int4(*Pointer<UShort4>(source2)));
 				v.w = As<Float4>(Int4(*Pointer<UShort4>(source3)));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 			}
 			break;
-		case STREAMTYPE_INT:
+		case VK_FORMAT_R32_SINT:
+		case VK_FORMAT_R32G32_SINT:
+		case VK_FORMAT_R32G32B32_SINT:
+		case VK_FORMAT_R32G32B32A32_SINT:
 			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<Int4>(source0));
@@ -373,14 +395,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = Float4(*Pointer<Int4>(source2));
 				v.w = Float4(*Pointer<Int4>(source3));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-				if(stream.normalized)
+				if(normalized)
 				{
-					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
-					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
-					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
-					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
 				}
 			}
 			else  // Stream: Int, Shader attrib: Int/UInt, no type conversion
@@ -390,10 +412,13 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = *Pointer<Float4>(source2);
 				v.w = *Pointer<Float4>(source3);
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 			}
 			break;
-		case STREAMTYPE_UINT:
+		case VK_FORMAT_R32_UINT:
+		case VK_FORMAT_R32G32_UINT:
+		case VK_FORMAT_R32G32B32_UINT:
+		case VK_FORMAT_R32G32B32A32_UINT:
 			if(isNativeFloatAttrib)  // Stream: UInt, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<UInt4>(source0));
@@ -401,14 +426,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = Float4(*Pointer<UInt4>(source2));
 				v.w = Float4(*Pointer<UInt4>(source3));
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-				if(stream.normalized)
+				if(normalized)
 				{
-					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
-					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
 				}
 			}
 			else  // Stream: UInt, Shader attrib: Int/UInt, no type conversion
@@ -418,12 +443,14 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z = *Pointer<Float4>(source2);
 				v.w = *Pointer<Float4>(source3);
 
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 			}
 			break;
-		case STREAMTYPE_HALF:
+		case VK_FORMAT_R16_SFLOAT:
+		case VK_FORMAT_R16G16_SFLOAT:
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
 		{
-			if(stream.count >= 1)
+			if(componentCount >= 1)
 			{
 				UShort x0 = *Pointer<UShort>(source0 + 0);
 				UShort x1 = *Pointer<UShort>(source1 + 0);
@@ -436,7 +463,7 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.x.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(x3) * 4);
 			}
 
-			if(stream.count >= 2)
+			if(componentCount >= 2)
 			{
 				UShort y0 = *Pointer<UShort>(source0 + 2);
 				UShort y1 = *Pointer<UShort>(source1 + 2);
@@ -449,7 +476,7 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.y.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(y3) * 4);
 			}
 
-			if(stream.count >= 3)
+			if(componentCount >= 3)
 			{
 				UShort z0 = *Pointer<UShort>(source0 + 4);
 				UShort z1 = *Pointer<UShort>(source1 + 4);
@@ -462,7 +489,7 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 				v.z.w = *Pointer<Float>(constants + OFFSET(Constants, half2float) + Int(z3) * 4);
 			}
 
-			if(stream.count >= 4)
+			if(componentCount >= 4)
 			{
 				UShort w0 = *Pointer<UShort>(source0 + 6);
 				UShort w1 = *Pointer<UShort>(source1 + 6);
@@ -476,29 +503,46 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			}
 		}
 		break;
-		case STREAMTYPE_2_10_10_10_INT:
+		case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+			bgra = true;
+		case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
 			src = Insert(src, *Pointer<Int>(source1), 1);
 			src = Insert(src, *Pointer<Int>(source2), 2);
 			src = Insert(src, *Pointer<Int>(source3), 3);
-
-			v.x = Float4((src << 22) >> 22);
-			v.y = Float4((src << 12) >> 22);
-			v.z = Float4((src << 02) >> 22);
-			v.w = Float4(src >> 30);
-
-			if(stream.normalized)
+			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
-				v.x = Max(v.x * Float4(1.0f / 0x1FF), Float4(-1.0f));
-				v.y = Max(v.y * Float4(1.0f / 0x1FF), Float4(-1.0f));
-				v.z = Max(v.z * Float4(1.0f / 0x1FF), Float4(-1.0f));
-				v.w = Max(v.w, Float4(-1.0f));
+				v.x = Float4((src << 22) >> 22);
+				v.y = Float4((src << 12) >> 22);
+				v.z = Float4((src << 02) >> 22);
+				v.w = Float4(src >> 30);
+
+				if(normalized)
+				{
+					v.x = Max(v.x * Float4(1.0f / 0x1FF), Float4(-1.0f));
+					v.y = Max(v.y * Float4(1.0f / 0x1FF), Float4(-1.0f));
+					v.z = Max(v.z * Float4(1.0f / 0x1FF), Float4(-1.0f));
+					v.w = Max(v.w, Float4(-1.0f));
+				}
+			}
+			else  // Stream: UInt, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = As<Float4>((src << 22) >> 22);
+				v.y = As<Float4>((src << 12) >> 22);
+				v.z = As<Float4>((src << 02) >> 22);
+				v.w = As<Float4>(src >> 30);
 			}
 		}
 		break;
-		case STREAMTYPE_2_10_10_10_UINT:
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+			bgra = true;
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 		{
 			Int4 src;
 			src = Insert(src, *Pointer<Int>(source0), 0);
@@ -506,28 +550,46 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 			src = Insert(src, *Pointer<Int>(source2), 2);
 			src = Insert(src, *Pointer<Int>(source3), 3);
 
-			v.x = Float4(src & Int4(0x3FF));
-			v.y = Float4((src >> 10) & Int4(0x3FF));
-			v.z = Float4((src >> 20) & Int4(0x3FF));
-			v.w = Float4((src >> 30) & Int4(0x3));
-
-			if(stream.normalized)
+			if(isNativeFloatAttrib)  // Stream: Int, Shader attrib: Float
 			{
-				v.x *= Float4(1.0f / 0x3FF);
-				v.y *= Float4(1.0f / 0x3FF);
-				v.z *= Float4(1.0f / 0x3FF);
-				v.w *= Float4(1.0f / 0x3);
+				v.x = Float4(src & Int4(0x3FF));
+				v.y = Float4((src >> 10) & Int4(0x3FF));
+				v.z = Float4((src >> 20) & Int4(0x3FF));
+				v.w = Float4((src >> 30) & Int4(0x3));
+
+				if(normalized)
+				{
+					v.x *= Float4(1.0f / 0x3FF);
+					v.y *= Float4(1.0f / 0x3FF);
+					v.z *= Float4(1.0f / 0x3FF);
+					v.w *= Float4(1.0f / 0x3);
+				}
+			}
+			else  // Stream: UInt, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = As<Float4>(src & Int4(0x3FF));
+				v.y = As<Float4>((src >> 10) & Int4(0x3FF));
+				v.z = As<Float4>((src >> 20) & Int4(0x3FF));
+				v.w = As<Float4>((src >> 30) & Int4(0x3));
 			}
 		}
 		break;
 		default:
-			UNSUPPORTED("stream.type %d", int(stream.type));
+			UNSUPPORTED("stream.format %d", int(stream.format));
 	}
 
-	if(stream.count < 1) v.x = Float4(0.0f);
-	if(stream.count < 2) v.y = Float4(0.0f);
-	if(stream.count < 3) v.z = Float4(0.0f);
-	if(stream.count < 4) v.w = isNativeFloatAttrib ? As<Float4>(Float4(1.0f)) : As<Float4>(Int4(1));
+	if(bgra)
+	{
+		// Swap red and blue
+		Float4 t = v.x;
+		v.x = v.z;
+		v.z = t;
+	}
+
+	if(componentCount < 1) v.x = Float4(0.0f);
+	if(componentCount < 2) v.y = Float4(0.0f);
+	if(componentCount < 3) v.z = Float4(0.0f);
+	if(componentCount < 4) v.w = isNativeFloatAttrib ? As<Float4>(Float4(1.0f)) : As<Float4>(Int4(1));
 
 	return v;
 }

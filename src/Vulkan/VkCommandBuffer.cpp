@@ -1811,7 +1811,7 @@ void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context &context, int f
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
 		auto &attrib = context.input[i];
-		if(attrib.count)
+		if(attrib.format != VK_FORMAT_UNDEFINED)
 		{
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
 			VkDeviceSize offset = attrib.offset + vertexInput.offset +

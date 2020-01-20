@@ -31,132 +31,6 @@
 
 namespace {
 
-sw::StreamType getStreamType(VkFormat format)
-{
-	switch(format)
-	{
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-			return sw::STREAMTYPE_BYTE;
-		case VK_FORMAT_B8G8R8A8_UNORM:
-			return sw::STREAMTYPE_COLOR;
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-			return sw::STREAMTYPE_SBYTE;
-		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-			return sw::STREAMTYPE_2_10_10_10_UINT;
-		case VK_FORMAT_R16_UNORM:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UINT:
-			return sw::STREAMTYPE_USHORT;
-		case VK_FORMAT_R16_SNORM:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16G16_SNORM:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16B16A16_SNORM:
-		case VK_FORMAT_R16G16B16A16_SINT:
-			return sw::STREAMTYPE_SHORT;
-		case VK_FORMAT_R16_SFLOAT:
-		case VK_FORMAT_R16G16_SFLOAT:
-		case VK_FORMAT_R16G16B16A16_SFLOAT:
-			return sw::STREAMTYPE_HALF;
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32_UINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-			return sw::STREAMTYPE_UINT;
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32B32_SINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-			return sw::STREAMTYPE_INT;
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-			return sw::STREAMTYPE_FLOAT;
-		default:
-			UNIMPLEMENTED("format");
-	}
-
-	return sw::STREAMTYPE_BYTE;
-}
-
-unsigned char getNumberOfChannels(VkFormat format)
-{
-	switch(format)
-	{
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R16_UNORM:
-		case VK_FORMAT_R16_SNORM:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_SFLOAT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_SFLOAT:
-			return 1;
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16_SNORM:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_SFLOAT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_SFLOAT:
-			return 2;
-		case VK_FORMAT_R32G32B32_UINT:
-		case VK_FORMAT_R32G32B32_SINT:
-		case VK_FORMAT_R32G32B32_SFLOAT:
-			return 3;
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16G16B16A16_SNORM:
-		case VK_FORMAT_R16G16B16A16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-			return 4;
-		default:
-			UNIMPLEMENTED("format");
-	}
-
-	return 0;
-}
-
 // preprocessSpirv applies and freezes specializations into constants, and inlines all functions.
 std::vector<uint32_t> preprocessSpirv(
     std::vector<uint32_t> const &code,
@@ -333,9 +207,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	{
 		auto const &desc = vertexInputState->pVertexAttributeDescriptions[i];
 		sw::Stream &input = context.input[desc.location];
-		input.count = getNumberOfChannels(desc.format);
-		input.type = getStreamType(desc.format);
-		input.normalized = !vk::Format(desc.format).isUnnormalizedInteger();
+		input.format = desc.format;
 		input.offset = desc.offset;
 		input.binding = desc.binding;
 		input.vertexStride = vertexStrides[desc.binding];

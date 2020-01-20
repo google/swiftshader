@@ -44,32 +44,6 @@ uint32_t VertexProcessor::States::computeHash()
 	return hash;
 }
 
-unsigned int VertexProcessor::States::Input::bytesPerAttrib() const
-{
-	switch(type)
-	{
-		case STREAMTYPE_FLOAT:
-		case STREAMTYPE_INT:
-		case STREAMTYPE_UINT:
-			return count * sizeof(uint32_t);
-		case STREAMTYPE_HALF:
-		case STREAMTYPE_SHORT:
-		case STREAMTYPE_USHORT:
-			return count * sizeof(uint16_t);
-		case STREAMTYPE_BYTE:
-		case STREAMTYPE_SBYTE:
-			return count * sizeof(uint8_t);
-		case STREAMTYPE_COLOR:
-		case STREAMTYPE_2_10_10_10_INT:
-		case STREAMTYPE_2_10_10_10_UINT:
-			return sizeof(int);
-		default:
-			UNSUPPORTED("stream.type %d", int(type));
-	}
-
-	return 0;
-}
-
 bool VertexProcessor::State::operator==(const State &state) const
 {
 	if(hash != state.hash)
@@ -109,9 +83,7 @@ const VertexProcessor::State VertexProcessor::update(const sw::Context *context)
 
 	for(int i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
 	{
-		state.input[i].type = context->input[i].type;
-		state.input[i].count = context->input[i].count;
-		state.input[i].normalized = context->input[i].normalized;
+		state.input[i].format = context->input[i].format;
 		// TODO: get rid of attribType -- just keep the VK format all the way through, this fully determines
 		// how to handle the attribute.
 		state.input[i].attribType = context->vertexShader->inputs[i * 4].Type;

@@ -15,26 +15,9 @@
 #ifndef sw_Stream_hpp
 #define sw_Stream_hpp
 
-#include "System/Types.hpp"
+#include <Vulkan/VulkanPlatform.h>
 
 namespace sw {
-
-enum StreamType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-{
-	STREAMTYPE_COLOR,  // 4 normalized unsigned bytes, ZYXW order
-	STREAMTYPE_FLOAT,  // Normalization ignored
-	STREAMTYPE_BYTE,
-	STREAMTYPE_SBYTE,
-	STREAMTYPE_SHORT,
-	STREAMTYPE_USHORT,
-	STREAMTYPE_INT,
-	STREAMTYPE_UINT,
-	STREAMTYPE_HALF,  // Normalization ignored
-	STREAMTYPE_2_10_10_10_INT,
-	STREAMTYPE_2_10_10_10_UINT,
-
-	STREAMTYPE_LAST = STREAMTYPE_2_10_10_10_UINT
-};
 
 struct Stream
 {
@@ -42,9 +25,7 @@ struct Stream
 	unsigned int robustnessSize = 0;
 	unsigned int vertexStride = 0;
 	unsigned int instanceStride = 0;
-	StreamType type = STREAMTYPE_FLOAT;
-	unsigned char count = 0;
-	bool normalized = false;
+	VkFormat format = VK_FORMAT_UNDEFINED;
 	unsigned int offset = 0;
 	unsigned int binding = 0;
 };

@@ -68,14 +68,10 @@ public:
 		{
 			operator bool() const  // Returns true if stream contains data
 			{
-				return count != 0;
+				return format != VK_FORMAT_UNDEFINED;
 			}
 
-			unsigned int bytesPerAttrib() const;
-
-			StreamType type : BITS(STREAMTYPE_LAST);
-			unsigned int count : 3;
-			bool normalized : 1;
+			VkFormat format;  // TODO(b/148016460): Could be restricted to VK_FORMAT_END_RANGE
 			unsigned int attribType : BITS(SpirvShader::ATTRIBTYPE_LAST);
 		};
 
