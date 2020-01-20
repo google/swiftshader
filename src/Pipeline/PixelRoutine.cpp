@@ -80,7 +80,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 		{
 			Float4 x = xxxx;
 
-			if(state.multiSampleCount > 1)
+			if(state.enableMultiSampling)
 			{
 				x -= *Pointer<Float4>(constants + OFFSET(Constants, X) + q * sizeof(float4));
 			}
@@ -144,7 +144,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 				auto const &input = spirvShader->inputs[interpolant];
 				if(input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 				{
-					if(input.Centroid && state.multiSampleCount > 1)
+					if(input.Centroid && state.enableMultiSampling)
 					{
 						routine.inputs[interpolant] =
 						    interpolateCentroid(XXXX, YYYY, rhwCentroid,
@@ -172,10 +172,9 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 				auto clipMask = SignMask(CmpGE(distance, SIMD::Float(0)));
 				for(auto ms = 0u; ms < state.multiSampleCount; ms++)
 				{
-					// TODO: Fragments discarded by clipping do not exist at
-					// all -- they should not be counted in queries or have
-					// their Z/S effects performed when early fragment tests
-					// are enabled.
+					// FIXME(b/148105887): Fragments discarded by clipping do not exist at
+					// all -- they should not be counted in queries or have their Z/S effects
+					// performed when early fragment tests are enabled.
 					cMask[ms] &= clipMask;
 				}
 

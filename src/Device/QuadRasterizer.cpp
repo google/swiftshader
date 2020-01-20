@@ -129,7 +129,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 			{
 				Float4 y = yyyy;
 
-				if(state.multiSampleCount > 1)
+				if(state.enableMultiSampling)
 				{
 					y -= *Pointer<Float4>(constants + OFFSET(Constants, Y) + q * sizeof(float4));
 				}

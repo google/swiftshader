@@ -138,7 +138,7 @@ const PixelProcessor::State PixelProcessor::update(const Context *context) const
 	state.enableMultiSampling = (state.multiSampleCount > 1) &&
 	                            !(context->isDrawLine(true) && (context->lineRasterizationMode == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
 
-	if(state.multiSampleCount > 1 && context->pixelShader)
+	if(state.enableMultiSampling && context->pixelShader)
 	{
 		state.centroid = context->pixelShader->getModes().NeedsCentroid;
 	}
