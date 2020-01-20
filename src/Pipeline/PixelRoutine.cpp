@@ -1233,6 +1233,17 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 10) + Short4(0x0020);
 			current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 2) + Short4(0x2000);
 			break;
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 5) + Short4(0x0400);
+			current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 5) + Short4(0x0400);
+			current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 5) + Short4(0x0400);
+			current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 1) + Short4(0x4000);
+			break;
+		case VK_FORMAT_R5G6B5_UNORM_PACK16:
+			current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 5) + Short4(0x0400);
+			current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 6) + Short4(0x0200);
+			current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 5) + Short4(0x0400);
+			break;
 		default:
 			break;
 	}
