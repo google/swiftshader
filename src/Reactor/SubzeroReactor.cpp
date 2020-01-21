@@ -49,6 +49,48 @@
 #include <limits>
 #include <mutex>
 
+// Subzero utility functions
+// These functions only accept and return Subzero (Ice) types, and do not access any globals.
+namespace sz {
+static Ice::Constant *getConstantPointer(Ice::GlobalContext *context, void const *ptr)
+{
+	if(sizeof(void *) == 8)
+	{
+		return context->getConstantInt64(reinterpret_cast<intptr_t>(ptr));
+	}
+	else
+	{
+		return context->getConstantInt32(reinterpret_cast<intptr_t>(ptr));
+	}
+}
+
+// Returns a non-const variable copy of const v
+static Ice::Variable *createUnconstCast(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Constant *v)
+{
+	Ice::Variable *result = function->makeVariable(v->getType());
+	Ice::InstCast *cast = Ice::InstCast::create(function, Ice::InstCast::Bitcast, result, v);
+	basicBlock->appendInst(cast);
+	return result;
+}
+
+static Ice::Variable *createLoad(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *ptr, Ice::Type type, unsigned int align)
+{
+	// TODO(b/148272103): InstLoad assumes that a constant ptr is an offset, rather than an
+	// absolute address. We circumvent this by casting to a non-const variable, and loading
+	// from that.
+	if(auto *cptr = llvm::dyn_cast<Ice::Constant>(ptr))
+	{
+		ptr = sz::createUnconstCast(function, basicBlock, cptr);
+	}
+
+	Ice::Variable *result = function->makeVariable(type);
+	auto load = Ice::InstLoad::create(function, result, ptr, align);
+	basicBlock->appendInst(load);
+
+	return result;
+}
+
+}  // namespace sz
 namespace rr {
 class ELFMemoryStreamer;
 }
@@ -579,13 +621,17 @@ public:
 		return funcs[index];
 	}
 
-	const void *addConstantData(const void *data, size_t size)
+	const void *addConstantData(const void *data, size_t size, size_t alignment = 1)
 	{
-		auto buf = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
-		memcpy(buf.get(), data, size);
-		auto ptr = buf.get();
+		// TODO(b/148086935): Replace with a buffer allocator.
+		size_t space = size + alignment;
+		auto buf = std::unique_ptr<uint8_t[]>(new uint8_t[space]);
+		void *ptr = buf.get();
+		void *alignedPtr = std::align(alignment, size, ptr, space);
+		ASSERT(alignedPtr);
+		memcpy(alignedPtr, data, size);
 		constantData.emplace_back(std::move(buf));
-		return ptr;
+		return alignedPtr;
 	}
 
 private:
@@ -985,7 +1031,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 	ASSERT(memoryOrder == std::memory_order_relaxed);  // Unimplemented
 
 	int valueType = (int)reinterpret_cast<intptr_t>(type);
-	Ice::Variable *result = ::function->makeVariable(T(type));
+	Ice::Variable *result = nullptr;
 
 	if((valueType & EmulatedBits) && (align != 0))  // Narrow vector not stored on stack.
 	{
@@ -999,6 +1045,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				Int4 vector;
 				vector = Insert(vector, x, 0);
 
+				result = ::function->makeVariable(T(type));
 				auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, result, vector.loadValue());
 				::basicBlock->appendInst(bitcast);
 			}
@@ -1012,6 +1059,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				vector = Insert(vector, x, 0);
 				vector = Insert(vector, y, 1);
 
+				result = ::function->makeVariable(T(type));
 				auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, result, vector.loadValue());
 				::basicBlock->appendInst(bitcast);
 			}
@@ -1022,6 +1070,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 		{
 			const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			result = ::function->makeVariable(T(type));
 			auto load = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
 			load->addArg(ptr);
 			load->addArg(::context->getConstantInt32(typeSize(type)));
@@ -1030,10 +1079,10 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 	}
 	else
 	{
-		auto load = Ice::InstLoad::create(::function, result, ptr, align);
-		::basicBlock->appendInst(load);
+		result = sz::createLoad(::function, ::basicBlock, V(ptr), T(type), align);
 	}
 
+	ASSERT(result);
 	return V(result);
 }
 
@@ -1581,16 +1630,22 @@ Value *Nucleus::createNullPointer(Type *Ty)
 	return createNullValue(T(sizeof(void *) == 8 ? Ice::IceType_i64 : Ice::IceType_i32));
 }
 
+static Ice::Constant *IceConstantData(void const *data, size_t size, size_t alignment = 1)
+{
+	return sz::getConstantPointer(::context, ::routine->addConstantData(data, size, alignment));
+}
+
 Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 {
 	const int vectorSize = 16;
 	ASSERT(Ice::typeWidthInBytes(T(type)) == vectorSize);
 	const int alignment = vectorSize;
-	auto globalPool = ::function->getGlobalPool();
 
 	const int64_t *i = constants;
 	const double *f = reinterpret_cast<const double *>(constants);
-	Ice::VariableDeclaration::DataInitializer *dataInitializer = nullptr;
+
+	// TODO(148082873): Fix global variable constants when generating multiple functions
+	Ice::Constant *ptr = nullptr;
 
 	switch((int)reinterpret_cast<intptr_t>(type))
 	{
@@ -1599,14 +1654,14 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 		{
 			const int initializer[4] = { (int)i[0], (int)i[1], (int)i[2], (int)i[3] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Ice::IceType_v4f32:
 		{
 			const float initializer[4] = { (float)f[0], (float)f[1], (float)f[2], (float)f[3] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Ice::IceType_v8i16:
@@ -1614,7 +1669,7 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 		{
 			const short initializer[8] = { (short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[4], (short)i[5], (short)i[6], (short)i[7] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Ice::IceType_v16i8:
@@ -1622,64 +1677,51 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 		{
 			const char initializer[16] = { (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[8], (char)i[9], (char)i[10], (char)i[11], (char)i[12], (char)i[13], (char)i[14], (char)i[15] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Type_v2i32:
 		{
 			const int initializer[4] = { (int)i[0], (int)i[1], (int)i[0], (int)i[1] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Type_v2f32:
 		{
 			const float initializer[4] = { (float)f[0], (float)f[1], (float)f[0], (float)f[1] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Type_v4i16:
 		{
 			const short initializer[8] = { (short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[0], (short)i[1], (short)i[2], (short)i[3] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Type_v8i8:
 		{
 			const char initializer[16] = { (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		case Type_v4i8:
 		{
 			const char initializer[16] = { (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3] };
 			static_assert(sizeof(initializer) == vectorSize, "!");
-			dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char *)initializer, vectorSize);
+			ptr = IceConstantData(initializer, vectorSize, alignment);
 		}
 		break;
 		default:
 			UNREACHABLE("Unknown constant vector type: %d", (int)reinterpret_cast<intptr_t>(type));
 	}
 
-	auto name = Ice::GlobalString::createWithoutString(::context);
-	auto *variableDeclaration = Ice::VariableDeclaration::create(globalPool);
-	variableDeclaration->setName(name);
-	variableDeclaration->setAlignment(alignment);
-	variableDeclaration->setIsConstant(true);
-	variableDeclaration->addInitializer(dataInitializer);
+	ASSERT(ptr);
 
-	::function->addGlobal(variableDeclaration);
-
-	constexpr int32_t offset = 0;
-	Ice::Operand *ptr = ::context->getConstantSym(offset, name);
-
-	Ice::Variable *result = ::function->makeVariable(T(type));
-	auto load = Ice::InstLoad::create(::function, result, ptr, alignment);
-	::basicBlock->appendInst(load);
-
+	Ice::Variable *result = sz::createLoad(::function, ::basicBlock, ptr, T(type), alignment);
 	return V(result);
 }
 
@@ -3575,21 +3617,12 @@ RValue<Long> Ticks()
 
 RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
 {
-	if(sizeof(void *) == 8)
-	{
-		return RValue<Pointer<Byte>>(V(::context->getConstantInt64(reinterpret_cast<intptr_t>(ptr))));
-	}
-	else
-	{
-		return RValue<Pointer<Byte>>(V(::context->getConstantInt32(reinterpret_cast<intptr_t>(ptr))));
-	}
+	return RValue<Pointer<Byte>>{ V(sz::getConstantPointer(::context, ptr)) };
 }
 
 RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
 {
-	// TODO: Try to use Ice::VariableDeclaration::DataInitializer and
-	// getConstantSym instead of tagging data on the routine.
-	return ConstantPointer(::routine->addConstantData(data, size));
+	return RValue<Pointer<Byte>>{ V(IceConstantData(data, size)) };
 }
 
 Value *Call(RValue<Pointer<Byte>> fptr, Type *retTy, std::initializer_list<Value *> args, std::initializer_list<Type *> argTys)

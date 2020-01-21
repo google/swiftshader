@@ -2499,6 +2499,24 @@ TEST(ReactorUnitTests, FRem)
 	EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
 }
 
+// Subzero's load instruction assumes that a Constant ptr value is an offset, rather than an absolute
+// pointer, and would fail during codegen. This was fixed by casting the constant to a non-const
+// variable, and loading from it instead. This test makes sure this works.
+TEST(ReactorUnitTests, LoadFromConstantData)
+{
+	const int value = 123;
+
+	FunctionT<int()> function;
+	{
+		auto p = Pointer<Int>{ ConstantData(&value, sizeof(value)) };
+		Int v = *p;
+		Return(v);
+	}
+
+	const int result = function("one")();
+	EXPECT_EQ(result, value);
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
