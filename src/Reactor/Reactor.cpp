@@ -4240,11 +4240,6 @@ RValue<Float4> operator/(RValue<Float4> lhs, RValue<Float4> rhs)
 	return RValue<Float4>(Nucleus::createFDiv(lhs.value, rhs.value));
 }
 
-RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
-{
-	return RValue<Float4>(Nucleus::createFRem(lhs.value, rhs.value));
-}
-
 RValue<Float4> operator+=(Float4 &lhs, RValue<Float4> rhs)
 {
 	return lhs = lhs + rhs;

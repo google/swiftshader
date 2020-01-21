@@ -48,6 +48,7 @@ RValue<Float4> Exp(RValue<Float4> x);
 RValue<Float4> Log(RValue<Float4> x);
 RValue<Float4> Exp2(RValue<Float4> x);
 RValue<Float4> Log2(RValue<Float4> x);
+RValue<Float4> FRem(RValue<Float4> lhs, RValue<Float4> rhs);
 
 }  // namespace emulated
 }  // namespace rr

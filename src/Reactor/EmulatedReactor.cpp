@@ -224,5 +224,10 @@ RValue<Float4> Log2(RValue<Float4> x)
 	return call4(log2f, x);
 }
 
+RValue<Float4> FRem(RValue<Float4> lhs, RValue<Float4> rhs)
+{
+	return call4(fmodf, lhs, rhs);
+}
+
 }  // namespace emulated
 }  // namespace rr

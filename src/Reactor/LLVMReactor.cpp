@@ -1632,6 +1632,11 @@ Value *Nucleus::createFRem(Value *lhs, Value *rhs)
 	return V(jit->builder->CreateFRem(V(lhs), V(rhs)));
 }
 
+RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
+{
+	return RValue<Float4>(Nucleus::createFRem(lhs.value, rhs.value));
+}
+
 Value *Nucleus::createShl(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();

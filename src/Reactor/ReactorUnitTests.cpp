@@ -25,31 +25,62 @@ using namespace rr;
 constexpr float PI = 3.141592653589793f;
 
 using float4 = float[4];
+using int4 = int[4];
 
-// Value type wrapper around a float4
-struct float4_value
+// TODO: Move to Reactor.hpp
+template<>
+struct rr::CToReactor<int[4]>
 {
-	float4_value() = default;
-	explicit float4_value(float rep)
+	using type = Int4;
+	static Int4 cast(float[4]);
+};
+
+// Value type wrapper around a <type>[4] (i.e. float4, int4)
+template<typename T>
+struct type4_value
+{
+	using E = typename std::remove_pointer_t<std::decay_t<T>>;
+
+	type4_value() = default;
+	explicit type4_value(E rep)
 	    : v{ rep, rep, rep, rep }
 	{}
-	float4_value(float x, float y, float z, float w)
+	type4_value(E x, E y, E z, E w)
 	    : v{ x, y, z, w }
 	{}
 
-	bool operator==(const float4_value &rhs) const
+	bool operator==(const type4_value &rhs) const
 	{
 		return std::equal(std::begin(v), std::end(v), rhs.v);
 	}
 
 	// For gtest printing
-	friend std::ostream &operator<<(std::ostream &os, const float4_value &value)
+	friend std::ostream &operator<<(std::ostream &os, const type4_value &value)
 	{
 		return os << "[" << value.v[0] << ", " << value.v[1] << ", " << value.v[2] << ", " << value.v[3] << "]";
 	}
 
-	float4 v;
+	T v;
 };
+
+using float4_value = type4_value<float4>;
+using int4_value = type4_value<int4>;
+
+// Invoke a void(type4_value<T>*) routine on &v.v, returning wrapped result in v
+template<typename RoutineType, typename T>
+type4_value<T> invokeRoutine(RoutineType &routine, type4_value<T> v)
+{
+	routine(&v.v);
+	return v;
+}
+
+// Invoke a void(type4_value<T>*, type4_value<T>*) routine on &v1.v, &v2.v returning wrapped result in v1
+template<typename RoutineType, typename T>
+type4_value<T> invokeRoutine(RoutineType &routine, type4_value<T> v1, type4_value<T> v2)
+{
+	routine(&v1.v, &v2.v);
+	return v1;
+}
 
 // For gtest printing of pairs
 namespace std {
@@ -59,22 +90,6 @@ std::ostream &operator<<(std::ostream &os, const std::pair<T, U> &value)
 	return os << "{ " << value.first << ", " << value.second << " }";
 }
 }  // namespace std
-
-// Invoke a void(float4*) routine on &v.v, returning wrapped result in v
-template<typename RoutineType>
-float4_value invokeRoutine(RoutineType &routine, float4_value v)
-{
-	routine(&v.v);
-	return v;
-}
-
-// Invoke a void(float4*, float4*) routine on &v1.v, &v2.v returning wrapped result in v1
-template<typename RoutineType>
-float4_value invokeRoutine(RoutineType &routine, float4_value v1, float4_value v2)
-{
-	routine(&v1.v, &v2.v);
-	return v1;
-}
 
 int reference(int *p, int y)
 {
@@ -2235,6 +2250,44 @@ TEST(ReactorUnitTests, ExtractFromRValue)
 	EXPECT_EQ(result[1], 1);
 	EXPECT_EQ(result[2], 678);
 	EXPECT_EQ(result[3], 678);
+}
+
+TEST(ReactorUnitTests, SRem)
+{
+	FunctionT<void(int4 *, int4 *)> function;
+	{
+		Pointer<Int4> a = function.Arg<0>();
+		Pointer<Int4> b = function.Arg<1>();
+		*a = *a % *b;
+	}
+
+	auto routine = function("one");
+
+	int4_value result = invokeRoutine(routine, int4_value{ 10, 11, 12, 13 }, int4_value{ 3, 3, 3, 3 });
+	int4_value expected = int4_value{ 10 % 3, 11 % 3, 12 % 3, 13 % 3 };
+	EXPECT_FLOAT_EQ(result.v[0], expected.v[0]);
+	EXPECT_FLOAT_EQ(result.v[1], expected.v[1]);
+	EXPECT_FLOAT_EQ(result.v[2], expected.v[2]);
+	EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
+}
+
+TEST(ReactorUnitTests, FRem)
+{
+	FunctionT<void(float4 *, float4 *)> function;
+	{
+		Pointer<Float4> a = function.Arg<0>();
+		Pointer<Float4> b = function.Arg<1>();
+		*a = *a % *b;
+	}
+
+	auto routine = function("one");
+
+	float4_value result = invokeRoutine(routine, float4_value{ 10.1f, 11.2f, 12.3f, 13.4f }, float4_value{ 3.f, 3.f, 3.f, 3.f });
+	float4_value expected = float4_value{ fmodf(10.1f, 3.f), fmodf(11.2f, 3.f), fmodf(12.3f, 3.f), fmodf(13.4f, 3.f) };
+	EXPECT_FLOAT_EQ(result.v[0], expected.v[0]);
+	EXPECT_FLOAT_EQ(result.v[1], expected.v[1]);
+	EXPECT_FLOAT_EQ(result.v[2], expected.v[2]);
+	EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
 }
 
 int main(int argc, char **argv)

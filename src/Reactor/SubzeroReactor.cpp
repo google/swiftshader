@@ -898,7 +898,15 @@ Value *Nucleus::createSRem(Value *lhs, Value *rhs)
 
 Value *Nucleus::createFRem(Value *lhs, Value *rhs)
 {
-	return createArithmetic(Ice::InstArithmetic::Frem, lhs, rhs);
+	// TODO(b/148139679) Fix Subzero generating invalid code for FRem on vector types
+	// createArithmetic(Ice::InstArithmetic::Frem, lhs, rhs);
+	UNIMPLEMENTED("Nucleus::createFRem");
+	return nullptr;
+}
+
+RValue<Float4> operator%(RValue<Float4> lhs, RValue<Float4> rhs)
+{
+	return emulated::FRem(lhs, rhs);
 }
 
 Value *Nucleus::createShl(Value *lhs, Value *rhs)
