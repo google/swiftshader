@@ -370,7 +370,7 @@ void PixelRoutine::stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, boo
 			value ^= Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
 			break;
 		default:
-			UNIMPLEMENTED("VkCompareOp: %d", int(stencilCompareMode));
+			UNSUPPORTED("VkCompareOp: %d", int(stencilCompareMode));
 	}
 }
 
@@ -429,7 +429,7 @@ Bool PixelRoutine::depthTest32F(const Pointer<Byte> &zBuffer, int q, const Int &
 			zTest = CmpLT(zValue, Z);
 			break;
 		default:
-			UNIMPLEMENTED("VkCompareOp: %d", int(state.depthCompareMode));
+			UNSUPPORTED("VkCompareOp: %d", int(state.depthCompareMode));
 	}
 
 	switch(state.depthCompareMode)
@@ -512,7 +512,7 @@ Bool PixelRoutine::depthTest16(const Pointer<Byte> &zBuffer, int q, const Int &x
 			zTest = Int4(CmpGT(Z, zValue));
 			break;
 		default:
-			UNIMPLEMENTED("VkCompareOp: %d", int(state.depthCompareMode));
+			UNSUPPORTED("VkCompareOp: %d", int(state.depthCompareMode));
 	}
 
 	switch(state.depthCompareMode)
@@ -779,7 +779,7 @@ void PixelRoutine::stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkS
 			output = bufferValue - Byte8(1, 1, 1, 1, 1, 1, 1, 1);
 			break;
 		default:
-			UNIMPLEMENTED("VkStencilOp: %d", int(operation));
+			UNSUPPORTED("VkStencilOp: %d", int(operation));
 	}
 }
 
@@ -860,7 +860,7 @@ void PixelRoutine::blendFactor(Vector4s &blendFactor, const Vector4s &current, c
 			blendFactor.z = *Pointer<Short4>(data + OFFSET(DrawData, factor.invBlendConstant4W[3]));
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendFactor: %d", int(blendFactorActive));
+			UNSUPPORTED("VkBlendFactor: %d", int(blendFactorActive));
 	}
 }
 
@@ -910,7 +910,7 @@ void PixelRoutine::blendFactorAlpha(Vector4s &blendFactor, const Vector4s &curre
 			blendFactor.w = *Pointer<Short4>(data + OFFSET(DrawData, factor.invBlendConstant4W[3]));
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendFactor: %d", int(blendFactorAlphaActive));
+			UNSUPPORTED("VkBlendFactor: %d", int(blendFactorAlphaActive));
 	}
 }
 
@@ -1075,7 +1075,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		}
 		break;
 		default:
-			UNIMPLEMENTED("VkFormat %d", state.targetFormat[index]);
+			UNSUPPORTED("VkFormat %d", state.targetFormat[index]);
 	}
 
 	if(isSRGB(index))
@@ -1156,7 +1156,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s 
 			current.z = Short4(0x0000);
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendOp: %d", int(state.blendState[index].blendOperation));
+			UNSUPPORTED("VkBlendOp: %d", int(state.blendState[index].blendOperation));
 	}
 
 	blendFactorAlpha(sourceFactor, current, pixel, state.blendState[index].sourceBlendFactorAlpha);
@@ -1199,7 +1199,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s 
 			current.w = Short4(0x0000);
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendOp: %d", int(state.blendState[index].blendOperationAlpha));
+			UNSUPPORTED("VkBlendOp: %d", int(state.blendState[index].blendOperationAlpha));
 	}
 }
 
@@ -1392,7 +1392,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			break;
 		}
 		default:
-			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
+			UNSUPPORTED("VkFormat: %d", int(state.targetFormat[index]));
 	}
 
 	Short4 c01 = current.z;
@@ -1704,7 +1704,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 		}
 		break;
 		default:
-			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
+			UNSUPPORTED("VkFormat: %d", int(state.targetFormat[index]));
 	}
 }
 
@@ -1790,7 +1790,7 @@ void PixelRoutine::blendFactor(Vector4f &blendFactor, const Vector4f &oC, const 
 			break;
 
 		default:
-			UNIMPLEMENTED("VkBlendFactor: %d", int(blendFactorActive));
+			UNSUPPORTED("VkBlendFactor: %d", int(blendFactorActive));
 	}
 }
 
@@ -1840,7 +1840,7 @@ void PixelRoutine::blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, c
 			blendFactor.w = *Pointer<Float4>(data + OFFSET(DrawData, factor.invBlendConstant4F[3]));
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendFactor: %d", int(blendFactorAlphaActive));
+			UNSUPPORTED("VkBlendFactor: %d", int(blendFactorAlphaActive));
 	}
 }
 
@@ -1967,7 +1967,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 			pixel.w = one;
 			break;
 		default:
-			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
+			UNSUPPORTED("VkFormat: %d", int(state.targetFormat[index]));
 	}
 
 	// Final Color = ObjectColor * SourceBlendFactor + PixelColor * DestinationBlendFactor
@@ -2026,7 +2026,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 			oC.z = Float4(0.0f);
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendOp: %d", int(state.blendState[index].blendOperation));
+			UNSUPPORTED("VkBlendOp: %d", int(state.blendState[index].blendOperation));
 	}
 
 	blendFactorAlpha(sourceFactor, oC, pixel, state.blendState[index].sourceBlendFactorAlpha);
@@ -2063,7 +2063,7 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 			oC.w = Float4(0.0f);
 			break;
 		default:
-			UNIMPLEMENTED("VkBlendOp: %d", int(state.blendState[index].blendOperationAlpha));
+			UNSUPPORTED("VkBlendOp: %d", int(state.blendState[index].blendOperationAlpha));
 	}
 
 	if(format.isUnsignedComponent(0)) { oC.x = Max(oC.x, Float4(0.0f)); }
@@ -2114,7 +2114,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			transpose4x4(oC.x, oC.y, oC.z, oC.w);
 			break;
 		default:
-			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
+			UNSUPPORTED("VkFormat: %d", int(state.targetFormat[index]));
 	}
 
 	int rgbaWriteMask = state.colorWriteActive(index);
@@ -2698,7 +2698,7 @@ void PixelRoutine::writeColor(int index, const Pointer<Byte> &cBuffer, const Int
 			}
 			break;
 		default:
-			UNIMPLEMENTED("VkFormat: %d", int(targetFormat));
+			UNSUPPORTED("VkFormat: %d", int(targetFormat));
 	}
 }
 

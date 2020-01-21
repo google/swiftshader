@@ -93,7 +93,7 @@ Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice 
 	if(pCreateInfo->enabledLayerCount)
 	{
 		// "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values must be ignored by implementations."
-		UNIMPLEMENTED("enabledLayerCount");  // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
+		UNSUPPORTED("enabledLayerCount");  // TODO(b/119321052): UNSUPPORTED() should be used only for features that must still be implemented. Use a more informational macro here.
 	}
 
 	// FIXME (b/119409619): use an allocator here so we can control all memory allocations

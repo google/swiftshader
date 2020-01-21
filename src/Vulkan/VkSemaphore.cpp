@@ -56,7 +56,7 @@ struct SemaphoreCreateInfo
 				exportSemaphore = true;
 				if(exportInfo->handleTypes != Semaphore::External::kExternalSemaphoreHandleType)
 				{
-					UNIMPLEMENTED("exportInfo->handleTypes");
+					UNSUPPORTED("exportInfo->handleTypes");
 				}
 				break;
 			}

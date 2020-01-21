@@ -272,7 +272,7 @@ SpirvShader::SpirvShader(
 					}
 					case spv::StorageClassAtomicCounter:
 					case spv::StorageClassImage:
-						UNIMPLEMENTED("StorageClass %d not yet implemented", (int)storageClass);
+						UNSUPPORTED("StorageClass %d not yet implemented", (int)storageClass);
 						break;
 
 					case spv::StorageClassCrossWorkgroup:
@@ -722,7 +722,7 @@ SpirvShader::SpirvShader(
 			}
 
 			default:
-				UNIMPLEMENTED("%s", OpcodeName(opcode).c_str());
+				UNSUPPORTED("%s", OpcodeName(opcode).c_str());
 		}
 	}
 

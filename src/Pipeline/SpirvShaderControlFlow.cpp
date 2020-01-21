@@ -581,12 +581,12 @@ SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitSta
 		{
 			if(insnNumber > 1)
 			{
-				UNIMPLEMENTED("Function block number of instructions: %d", insnNumber);
+				UNSUPPORTED("Function block number of instructions: %d", insnNumber);
 				return EmitResult::Continue;
 			}
 			if(blockInsn.opcode() != wrapOpKill[insnNumber++])
 			{
-				UNIMPLEMENTED("Function block instruction %d : %s", insnNumber - 1, OpcodeName(blockInsn.opcode()).c_str());
+				UNSUPPORTED("Function block instruction %d : %s", insnNumber - 1, OpcodeName(blockInsn.opcode()).c_str());
 				return EmitResult::Continue;
 			}
 			if(blockInsn.opcode() == spv::OpKill)

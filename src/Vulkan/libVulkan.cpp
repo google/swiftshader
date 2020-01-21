@@ -267,7 +267,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 
 	if(pCreateInfo->enabledLayerCount)
 	{
-		UNIMPLEMENTED("pCreateInfo->enabledLayerCount");
+		UNSUPPORTED("pCreateInfo->enabledLayerCount");
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
@@ -371,7 +371,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 			break;
 
 		default:
-			UNIMPLEMENTED("tiling");
+			UNSUPPORTED("tiling");
 			features = 0;
 	}
 
@@ -507,7 +507,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	if(pCreateInfo->enabledLayerCount)
 	{
 		// "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values must be ignored by implementations."
-		UNIMPLEMENTED("pCreateInfo->enabledLayerCount");  // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
+		UNSUPPORTED("pCreateInfo->enabledLayerCount");
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
@@ -662,7 +662,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		const VkDeviceQueueCreateInfo &queueCreateInfo = pCreateInfo->pQueueCreateInfos[i];
 		if(queueCreateInfo.flags)
 		{
-			UNIMPLEMENTED("queueCreateInfo.flags");
+			UNSUPPORTED("queueCreateInfo.flags");
 		}
 
 		auto extInfo = reinterpret_cast<VkBaseInStructure const *>(queueCreateInfo.pNext);
@@ -1052,7 +1052,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties(VkPhys
 VKAPI_ATTR VkResult VKAPI_CALL vkQueueBindSparse(VkQueue queue, uint32_t bindInfoCount, const VkBindSparseInfo *pBindInfo, VkFence fence)
 {
 	TRACE("()");
-	UNIMPLEMENTED("vkQueueBindSparse");
+	UNSUPPORTED("vkQueueBindSparse");
 	return VK_SUCCESS;
 }
 
@@ -1114,7 +1114,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSemaphore(VkDevice device, const VkSemaph
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	return vk::Semaphore::Create(pAllocator, pCreateInfo, pSemaphore, pAllocator);
@@ -1136,7 +1136,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreFdKHR(VkDevice device, const VkSema
 
 	if(pGetFdInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
-		UNIMPLEMENTED("pGetFdInfo->handleType");
+		UNSUPPORTED("pGetFdInfo->handleType");
 	}
 
 	return vk::Cast(pGetFdInfo->semaphore)->exportFd(pFd);
@@ -1149,7 +1149,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreFdKHR(VkDevice device, const VkI
 
 	if(pImportSemaphoreInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
-		UNIMPLEMENTED("pImportSemaphoreInfo->handleType");
+		UNSUPPORTED("pImportSemaphoreInfo->handleType");
 	}
 	bool temporaryImport = (pImportSemaphoreInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
 
@@ -1167,7 +1167,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
 
 	if(pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
-		UNIMPLEMENTED("pImportSemaphoreZirconHandleInfo->handleType");
+		UNSUPPORTED("pImportSemaphoreZirconHandleInfo->handleType");
 	}
 	bool temporaryImport = (pImportSemaphoreZirconHandleInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
 
@@ -1184,7 +1184,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
 
 	if(pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
-		UNIMPLEMENTED("pGetZirconHandleInfo->handleType");
+		UNSUPPORTED("pGetZirconHandleInfo->handleType");
 	}
 
 	return vk::Cast(pGetZirconHandleInfo->semaphore)->exportHandle(pZirconHandle);
@@ -1198,7 +1198,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreat
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1251,7 +1251,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateQueryPool(VkDevice device, const VkQueryP
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1318,7 +1318,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBuffe
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1452,7 +1452,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1508,7 +1508,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkSha
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1536,7 +1536,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPi
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1652,7 +1652,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineLayout(VkDevice device, const VkP
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1680,7 +1680,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1778,7 +1778,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkResetDescriptorPool(VkDevice device, VkDescript
 
 	if(flags)
 	{
-		UNIMPLEMENTED("flags");
+		UNSUPPORTED("flags");
 	}
 
 	return vk::Cast(descriptorPool)->reset();
@@ -1824,7 +1824,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateFramebuffer(VkDevice device, const VkFram
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1852,7 +1852,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 
 	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags");
 	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -3033,7 +3033,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(VkDevice device,
 
 	if(pCreateInfo->flags || (pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET))
 	{
-		UNIMPLEMENTED("pCreateInfo->flags || (pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET)");
+		UNSUPPORTED("pCreateInfo->flags || (pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET)");
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -3099,7 +3099,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer,
 	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t lineStippleFactor = %u, uint16_t lineStipplePattern = %u",
 	      commandBuffer, lineStippleFactor, lineStipplePattern);
 
-	UNIMPLEMENTED("Line stipple not supported");
+	UNSUPPORTED("Line stipple not supported");
 }
 
 #ifdef VK_USE_PLATFORM_XCB_KHR

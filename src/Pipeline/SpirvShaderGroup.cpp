@@ -69,8 +69,8 @@ struct SpirvShader::Impl::Group
 					break;
 				}
 				default:
-					UNIMPLEMENTED("EmitGroupNonUniform op: %s Group operation: %d",
-					              SpirvShader::OpcodeName(type.opcode()).c_str(), insn.word(4));
+					UNSUPPORTED("EmitGroupNonUniform op: %s Group operation: %d",
+					            SpirvShader::OpcodeName(type.opcode()).c_str(), insn.word(4));
 			}
 		}
 	}
@@ -422,7 +422,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 			break;
 
 		default:
-			UNIMPLEMENTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()).c_str());
+			UNSUPPORTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()).c_str());
 	}
 	return EmitResult::Continue;
 }

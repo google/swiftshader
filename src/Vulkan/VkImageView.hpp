@@ -66,7 +66,7 @@ public:
 			case VK_SAMPLE_COUNT_1_BIT: return 1;
 			case VK_SAMPLE_COUNT_4_BIT: return 4;
 			default:
-				UNIMPLEMENTED("Sample count flags %d", image->getSampleCountFlagBits());
+				UNSUPPORTED("Sample count flags %d", image->getSampleCountFlagBits());
 				return 1;
 		}
 	}

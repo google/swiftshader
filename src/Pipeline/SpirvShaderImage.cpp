@@ -48,7 +48,7 @@ VkFormat SpirvFormatToVulkanFormat(spv::ImageFormat format)
 		case spv::ImageFormatRg16ui: return VK_FORMAT_R16G16_UINT;
 
 		default:
-			UNIMPLEMENTED("SPIR-V ImageFormat %u", format);
+			UNSUPPORTED("SPIR-V ImageFormat %u", format);
 			return VK_FORMAT_UNDEFINED;
 	}
 }
@@ -95,7 +95,8 @@ SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(Variant variant,
 		return EmitImageSample({ variant, Grad }, insn, state);
 	}
 	else
-		UNIMPLEMENTED("Image Operands %x", imageOperands);
+		UNSUPPORTED("Image Operands %x", imageOperands);
+
 	return EmitResult::Continue;
 }
 
@@ -836,7 +837,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(3, SIMD::Float((packed[0] >> 15) & SIMD::Int(0x1)));
 			break;
 		default:
-			UNIMPLEMENTED("VkFormat %d", int(vkFormat));
+			UNSUPPORTED("VkFormat %d", int(vkFormat));
 			break;
 	}
 
@@ -969,7 +970,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 		case spv::ImageFormatRg8ui:
 		case spv::ImageFormatR16ui:
 		case spv::ImageFormatR8ui:
-			UNIMPLEMENTED("spv::ImageFormat %d", int(format));
+			UNSUPPORTED("spv::ImageFormat %d", int(format));
 			break;
 
 		default:

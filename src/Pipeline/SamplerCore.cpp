@@ -2031,7 +2031,7 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z,
 				break;
 			}
 			default:
-				UNIMPLEMENTED("Format %d", VkFormat(state.textureFormat));
+				UNSUPPORTED("Format %d", VkFormat(state.textureFormat));
 		}
 	}
 	else
@@ -2142,7 +2142,7 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 			borderA = Int4(1);
 			break;
 		default:
-			UNIMPLEMENTED("sint/uint/sfloat border: %u", state.border);
+			UNSUPPORTED("sint/uint/sfloat border: %u", state.border);
 	}
 
 	Vector4f out;

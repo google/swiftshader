@@ -237,7 +237,7 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
 				case VK_FILTER_NEAREST: return FILTER_POINT;
 				case VK_FILTER_LINEAR: return FILTER_MIN_LINEAR_MAG_POINT;
 				default:
-					UNIMPLEMENTED("minFilter %d", sampler->minFilter);
+					UNSUPPORTED("minFilter %d", sampler->minFilter);
 					return FILTER_POINT;
 			}
 			break;
@@ -247,7 +247,7 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
 				case VK_FILTER_NEAREST: return FILTER_MIN_POINT_MAG_LINEAR;
 				case VK_FILTER_LINEAR: return FILTER_LINEAR;
 				default:
-					UNIMPLEMENTED("minFilter %d", sampler->minFilter);
+					UNSUPPORTED("minFilter %d", sampler->minFilter);
 					return FILTER_POINT;
 			}
 			break;
@@ -255,7 +255,7 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
 			break;
 	}
 
-	UNIMPLEMENTED("magFilter %d", sampler->magFilter);
+	UNSUPPORTED("magFilter %d", sampler->magFilter);
 	return FILTER_POINT;
 }
 
@@ -276,7 +276,7 @@ sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
 		case VK_SAMPLER_MIPMAP_MODE_NEAREST: return MIPMAP_POINT;
 		case VK_SAMPLER_MIPMAP_MODE_LINEAR: return MIPMAP_LINEAR;
 		default:
-			UNIMPLEMENTED("mipmapMode %d", sampler->mipmapMode);
+			UNSUPPORTED("mipmapMode %d", sampler->mipmapMode);
 			return MIPMAP_POINT;
 	}
 }
@@ -354,7 +354,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 			break;
 
 		default:
-			UNIMPLEMENTED("imageViewType %d", imageViewType);
+			UNSUPPORTED("imageViewType %d", imageViewType);
 			return ADDRESSING_WRAP;
 	}
 
@@ -387,7 +387,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 		case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER: return ADDRESSING_BORDER;
 		case VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE: return ADDRESSING_MIRRORONCE;
 		default:
-			UNIMPLEMENTED("addressMode %d", addressMode);
+			UNSUPPORTED("addressMode %d", addressMode);
 			return ADDRESSING_WRAP;
 	}
 }

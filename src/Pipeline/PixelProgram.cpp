@@ -291,7 +291,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 				}
 				break;
 			default:
-				UNIMPLEMENTED("VkFormat: %d", int(format));
+				UNSUPPORTED("VkFormat: %d", int(format));
 		}
 	}
 }
@@ -363,7 +363,7 @@ void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
 			case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 				break;
 			default:
-				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
+				UNSUPPORTED("VkFormat: %d", int(state.targetFormat[index]));
 		}
 	}
 }
