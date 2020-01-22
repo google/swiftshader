@@ -468,13 +468,18 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		return dap::ConfigurationDoneResponse();
 	});
 
-	printf("Waiting for debugger connection...\n");
 	server->start(port, [&](const std::shared_ptr<dap::ReaderWriter> &rw) {
 		session->bind(rw);
 		ctx->addListener(this);
 	});
-	configurationDone.wait();
-	printf("Debugger connection established\n");
+
+	static bool waitForDebugger = getenv("VK_WAIT_FOR_DEBUGGER") != nullptr;
+	if(waitForDebugger)
+	{
+		printf("Waiting for debugger connection...\n");
+		configurationDone.wait();
+		printf("Debugger connection established\n");
+	}
 }
 
 Server::Impl::~Impl()
