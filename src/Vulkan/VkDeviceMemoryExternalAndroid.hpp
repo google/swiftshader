@@ -55,7 +55,7 @@ public:
 
 						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
 						{
-							UNSUPPORTED("exportInfo->handleTypes");
+							UNIMPLEMENTED("exportInfo->handleTypes");
 						}
 						exportAhb = true;
 					}
@@ -146,7 +146,7 @@ public:
 
 	static VkResult getAhbProperties(const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
 	{
-		UNSUPPORTED("getAhbProperties");
+		UNIMPLEMENTED("getAhbProperties");
 		return VK_SUCCESS;
 	}
 

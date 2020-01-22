@@ -92,7 +92,7 @@ QueryPool::QueryPool(const VkQueryPoolCreateInfo *pCreateInfo, void *mem)
     , type(pCreateInfo->queryType)
     , count(pCreateInfo->queryCount)
 {
-	// According to the Vulkan spec, section 34.1. Features:
+	// According to the Vulkan 1.2 spec, section 30. Features:
 	// "pipelineStatisticsQuery specifies whether the pipeline statistics
 	//  queries are supported. If this feature is not enabled, queries of
 	//  type VK_QUERY_TYPE_PIPELINE_STATISTICS cannot be created, and
@@ -100,7 +100,7 @@ QueryPool::QueryPool(const VkQueryPoolCreateInfo *pCreateInfo, void *mem)
 	//  pipelineStatistics member of the VkQueryPoolCreateInfo structure."
 	if(type == VK_QUERY_TYPE_PIPELINE_STATISTICS)
 	{
-		UNSUPPORTED("pCreateInfo->queryType");
+		UNSUPPORTED("VkPhysicalDeviceFeatures::pipelineStatisticsQuery");
 	}
 
 	// Construct all queries
@@ -189,7 +189,7 @@ void QueryPool::begin(uint32_t query, VkQueryControlFlags flags)
 
 	if(flags != 0)
 	{
-		UNSUPPORTED("flags");
+		UNIMPLEMENTED("vkCmdBeginQuery::flags %d", int(flags));
 	}
 
 	pool[query].prepare(type);

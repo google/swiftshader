@@ -120,12 +120,12 @@ void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags a
 
 	if(!imageTypesMatch(image->getImageType()))
 	{
-		UNSUPPORTED("imageTypesMatch");
+		UNIMPLEMENTED("imageTypesMatch");
 	}
 
 	if(!format.isCompatible(image->getFormat()))
 	{
-		UNSUPPORTED("incompatible formats");
+		UNIMPLEMENTED("incompatible formats");
 	}
 
 	VkImageSubresourceRange sr = subresourceRange;
@@ -139,12 +139,12 @@ void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags a
 
 	if(!imageTypesMatch(image->getImageType()))
 	{
-		UNSUPPORTED("imageTypesMatch");
+		UNIMPLEMENTED("imageTypesMatch");
 	}
 
 	if(!format.isCompatible(image->getFormat()))
 	{
-		UNSUPPORTED("incompatible formats");
+		UNIMPLEMENTED("incompatible formats");
 	}
 
 	VkImageSubresourceRange sr;
@@ -173,7 +173,7 @@ void ImageView::resolve(ImageView *resolveAttachment, int layer)
 {
 	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
 	{
-		UNSUPPORTED("levelCount");
+		UNIMPLEMENTED("levelCount");
 	}
 
 	VkImageCopy region;
@@ -201,7 +201,7 @@ void ImageView::resolve(ImageView *resolveAttachment)
 {
 	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
 	{
-		UNSUPPORTED("levelCount");
+		UNIMPLEMENTED("levelCount");
 	}
 
 	VkImageCopy region;
@@ -244,7 +244,7 @@ const Image *ImageView::getImage(Usage usage) const
 		case SAMPLING:
 			return image->getSampledImage(format);
 		default:
-			UNSUPPORTED("usage %d", int(usage));
+			UNREACHABLE("usage %d", int(usage));
 			return nullptr;
 	}
 }

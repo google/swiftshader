@@ -1750,7 +1750,7 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 	if((region.srcSubresource.layerCount != region.dstSubresource.layerCount) ||
 	   (region.srcSubresource.aspectMask != region.dstSubresource.aspectMask))
 	{
-		UNSUPPORTED("region");
+		UNIMPLEMENTED("region");
 	}
 
 	if(region.dstOffsets[0].x > region.dstOffsets[1].x)
@@ -1892,7 +1892,7 @@ Blitter::CornerUpdateRoutineType Blitter::generateCornerUpdate(const State &stat
 
 	if(state.srcSamples != 1)
 	{
-		UNSUPPORTED("state.srcSamples %d", state.srcSamples);
+		UNIMPLEMENTED("state.srcSamples %d", state.srcSamples);
 	}
 
 	CornerUpdateFunction function;
@@ -1924,8 +1924,8 @@ void Blitter::updateBorders(vk::Image *image, const VkImageSubresourceLayers &su
 {
 	if(image->getArrayLayers() < (subresourceLayers.baseArrayLayer + 6))
 	{
-		UNSUPPORTED("image->getArrayLayers() %d, baseArrayLayer %d",
-		            image->getArrayLayers(), subresourceLayers.baseArrayLayer);
+		UNIMPLEMENTED("image->getArrayLayers() %d, baseArrayLayer %d",
+		              image->getArrayLayers(), subresourceLayers.baseArrayLayer);
 	}
 
 	// From Vulkan 1.1 spec, section 11.5. Image Views:
@@ -1982,7 +1982,7 @@ void Blitter::updateBorders(vk::Image *image, const VkImageSubresourceLayers &su
 
 	if(samples != VK_SAMPLE_COUNT_1_BIT)
 	{
-		UNSUPPORTED("Multi-sampled cube: %d samples", static_cast<int>(samples));
+		UNIMPLEMENTED("Multi-sampled cube: %d samples", static_cast<int>(samples));
 	}
 
 	auto cornerUpdateRoutine = getCornerUpdateRoutine(state);

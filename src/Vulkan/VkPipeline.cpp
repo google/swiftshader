@@ -149,17 +149,27 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 {
 	context.robustBufferAccess = robustBufferAccess;
 
-	if(((pCreateInfo->flags &
-	     ~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
-	       VK_PIPELINE_CREATE_DERIVATIVE_BIT |
-	       VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0) ||
-	   (pCreateInfo->pTessellationState != nullptr))
+	if((pCreateInfo->flags &
+	    ~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
+	      VK_PIPELINE_CREATE_DERIVATIVE_BIT |
+	      VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0)
 	{
-		UNSUPPORTED("pCreateInfo settings");
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
+	}
+
+	if(pCreateInfo->pTessellationState != nullptr)
+	{
+		UNSUPPORTED("pCreateInfo->pTessellationState");
 	}
 
 	if(pCreateInfo->pDynamicState)
 	{
+		if(pCreateInfo->pDynamicState->flags != 0)
+		{
+			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("pCreateInfo->pDynamicState->flags %d", int(pCreateInfo->pDynamicState->flags));
+		}
+
 		for(uint32_t i = 0; i < pCreateInfo->pDynamicState->dynamicStateCount; i++)
 		{
 			VkDynamicState dynamicState = pCreateInfo->pDynamicState->pDynamicStates[i];
@@ -178,14 +188,16 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 					dynamicStateFlags |= (1 << dynamicState);
 					break;
 				default:
-					UNSUPPORTED("dynamic state");
+					UNSUPPORTED("VkDynamicState %d", int(dynamicState));
 			}
 		}
 	}
 
 	const VkPipelineVertexInputStateCreateInfo *vertexInputState = pCreateInfo->pVertexInputState;
+
 	if(vertexInputState->flags != 0)
 	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
 		UNSUPPORTED("vertexInputState->flags");
 	}
 
@@ -214,23 +226,30 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 		input.instanceStride = instanceStrides[desc.binding];
 	}
 
-	const VkPipelineInputAssemblyStateCreateInfo *assemblyState = pCreateInfo->pInputAssemblyState;
-	if(assemblyState->flags != 0)
+	const VkPipelineInputAssemblyStateCreateInfo *inputAssemblyState = pCreateInfo->pInputAssemblyState;
+
+	if(inputAssemblyState->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->pInputAssemblyState settings");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->pInputAssemblyState->flags %d", int(pCreateInfo->pInputAssemblyState->flags));
 	}
 
-	primitiveRestartEnable = (assemblyState->primitiveRestartEnable != VK_FALSE);
-	context.topology = assemblyState->topology;
+	primitiveRestartEnable = (inputAssemblyState->primitiveRestartEnable != VK_FALSE);
+	context.topology = inputAssemblyState->topology;
 
 	const VkPipelineViewportStateCreateInfo *viewportState = pCreateInfo->pViewportState;
 	if(viewportState)
 	{
-		if((viewportState->flags != 0) ||
-		   (viewportState->viewportCount != 1) ||
+		if(viewportState->flags != 0)
+		{
+			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("pCreateInfo->pViewportState->flags %d", int(pCreateInfo->pViewportState->flags));
+		}
+
+		if((viewportState->viewportCount != 1) ||
 		   (viewportState->scissorCount != 1))
 		{
-			UNSUPPORTED("pCreateInfo->pViewportState settings");
+			UNSUPPORTED("VkPhysicalDeviceFeatures::multiViewport");
 		}
 
 		if(!hasDynamicState(VK_DYNAMIC_STATE_SCISSOR))
@@ -245,10 +264,16 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	}
 
 	const VkPipelineRasterizationStateCreateInfo *rasterizationState = pCreateInfo->pRasterizationState;
-	if((rasterizationState->flags != 0) ||
-	   (rasterizationState->depthClampEnable != VK_FALSE))
+
+	if(rasterizationState->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->pRasterizationState settings");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->pRasterizationState->flags %d", int(pCreateInfo->pRasterizationState->flags));
+	}
+
+	if(rasterizationState->depthClampEnable != VK_FALSE)
+	{
+		UNSUPPORTED("VkPhysicalDeviceFeatures::depthClamp");
 	}
 
 	context.rasterizerDiscard = (rasterizationState->rasterizerDiscardEnable != VK_FALSE);
@@ -290,6 +315,22 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	const VkPipelineMultisampleStateCreateInfo *multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
 	{
+		if(multisampleState->flags != 0)
+		{
+			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("pCreateInfo->pMultisampleState->flags %d", int(pCreateInfo->pMultisampleState->flags));
+		}
+
+		if(multisampleState->sampleShadingEnable != VK_FALSE)
+		{
+			UNSUPPORTED("VkPhysicalDeviceFeatures::sampleRateShading");
+		}
+
+		if(multisampleState->alphaToOneEnable != VK_FALSE)
+		{
+			UNSUPPORTED("VkPhysicalDeviceFeatures::alphaToOne");
+		}
+
 		switch(multisampleState->rasterizationSamples)
 		{
 			case VK_SAMPLE_COUNT_1_BIT:
@@ -308,13 +349,6 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 		}
 
 		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable != VK_FALSE);
-
-		if((multisampleState->flags != 0) ||
-		   (multisampleState->sampleShadingEnable != VK_FALSE) ||
-		   (multisampleState->alphaToOneEnable != VK_FALSE))
-		{
-			UNSUPPORTED("multisampleState");
-		}
 	}
 	else
 	{
@@ -324,10 +358,15 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	const VkPipelineDepthStencilStateCreateInfo *depthStencilState = pCreateInfo->pDepthStencilState;
 	if(depthStencilState)
 	{
-		if((depthStencilState->flags != 0) ||
-		   (depthStencilState->depthBoundsTestEnable != VK_FALSE))
+		if(depthStencilState->flags != 0)
 		{
-			UNSUPPORTED("depthStencilState");
+			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("pCreateInfo->pDepthStencilState->flags %d", int(pCreateInfo->pDepthStencilState->flags));
+		}
+
+		if(depthStencilState->depthBoundsTestEnable != VK_FALSE)
+		{
+			UNSUPPORTED("VkPhysicalDeviceFeatures::depthBounds");
 		}
 
 		context.depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable != VK_FALSE);
@@ -346,10 +385,15 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	const VkPipelineColorBlendStateCreateInfo *colorBlendState = pCreateInfo->pColorBlendState;
 	if(colorBlendState)
 	{
-		if((colorBlendState->flags != 0) ||
-		   ((colorBlendState->logicOpEnable != VK_FALSE)))
+		if(pCreateInfo->pColorBlendState->flags != 0)
 		{
-			UNSUPPORTED("colorBlendState");
+			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+			UNSUPPORTED("pCreateInfo->pColorBlendState->flags %d", int(pCreateInfo->pColorBlendState->flags));
+		}
+
+		if(colorBlendState->logicOpEnable != VK_FALSE)
+		{
+			UNSUPPORTED("VkPhysicalDeviceFeatures::logicOp");
 		}
 
 		if(!hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS))
@@ -427,7 +471,8 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 	{
 		if(pStage->flags != 0)
 		{
-			UNSUPPORTED("pStage->flags");
+			// Vulkan 1.2: "flags must be 0"
+			UNSUPPORTED("pStage->flags %d", int(pStage->flags));
 		}
 
 		const ShaderModule *module = vk::Cast(pStage->module);
@@ -479,7 +524,7 @@ uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
 			return std::max<uint32_t>(vertexCount, 2) - 2;
 		default:
-			UNSUPPORTED("context.topology %d", int(context.topology));
+			UNSUPPORTED("VkPrimitiveTopology %d", int(context.topology));
 	}
 
 	return 0;

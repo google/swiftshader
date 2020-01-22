@@ -265,9 +265,15 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 
 	initializeLibrary();
 
-	if(pCreateInfo->enabledLayerCount)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->enabledLayerCount");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
+	}
+
+	if(pCreateInfo->enabledLayerCount != 0)
+	{
+		UNIMPLEMENTED("pCreateInfo->enabledLayerCount != 0");
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
@@ -371,7 +377,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 			break;
 
 		default:
-			UNSUPPORTED("tiling");
+			UNSUPPORTED("VkImageTiling %d", int(tiling));
 			features = 0;
 	}
 
@@ -504,10 +510,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	TRACE("(VkPhysicalDevice physicalDevice = %p, const VkDeviceCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkDevice* pDevice = %p)",
 	      physicalDevice, pCreateInfo, pAllocator, pDevice);
 
-	if(pCreateInfo->enabledLayerCount)
+	if(pCreateInfo->flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
+	}
+
+	if(pCreateInfo->enabledLayerCount != 0)
 	{
 		// "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values must be ignored by implementations."
-		UNSUPPORTED("pCreateInfo->enabledLayerCount");
+		UNSUPPORTED("pCreateInfo->enabledLayerCount != 0");
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
@@ -660,9 +672,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
 	{
 		const VkDeviceQueueCreateInfo &queueCreateInfo = pCreateInfo->pQueueCreateInfos[i];
-		if(queueCreateInfo.flags)
+		if(queueCreateInfo.flags != 0)
 		{
-			UNSUPPORTED("queueCreateInfo.flags");
+			UNSUPPORTED("pCreateInfo->pQueueCreateInfos[%d]->flags %d", i, queueCreateInfo.flags);
 		}
 
 		auto extInfo = reinterpret_cast<VkBaseInStructure const *>(queueCreateInfo.pNext);
@@ -939,6 +951,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkMapMemory(VkDevice device, VkDeviceMemory memor
 	TRACE("(VkDevice device = %p, VkDeviceMemory memory = %p, VkDeviceSize offset = %d, VkDeviceSize size = %d, VkMemoryMapFlags flags = %d, void** ppData = %p)",
 	      device, static_cast<void *>(memory), int(offset), int(size), flags, ppData);
 
+	if(flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("flags %d", int(flags));
+	}
+
 	return vk::Cast(memory)->map(offset, size, ppData);
 }
 
@@ -1112,9 +1130,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSemaphore(VkDevice device, const VkSemaph
 	TRACE("(VkDevice device = %p, const VkSemaphoreCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkSemaphore* pSemaphore = %p)",
 	      device, pCreateInfo, pAllocator, pSemaphore);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	return vk::Semaphore::Create(pAllocator, pCreateInfo, pSemaphore, pAllocator);
@@ -1136,7 +1155,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreFdKHR(VkDevice device, const VkSema
 
 	if(pGetFdInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
-		UNSUPPORTED("pGetFdInfo->handleType");
+		UNSUPPORTED("pGetFdInfo->handleType %d", int(pGetFdInfo->handleType));
 	}
 
 	return vk::Cast(pGetFdInfo->semaphore)->exportFd(pFd);
@@ -1149,7 +1168,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreFdKHR(VkDevice device, const VkI
 
 	if(pImportSemaphoreInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
-		UNSUPPORTED("pImportSemaphoreInfo->handleType");
+		UNSUPPORTED("pImportSemaphoreInfo->handleType %d", int(pImportSemaphoreInfo->handleType));
 	}
 	bool temporaryImport = (pImportSemaphoreInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
 
@@ -1167,7 +1186,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
 
 	if(pImportSemaphoreZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
-		UNSUPPORTED("pImportSemaphoreZirconHandleInfo->handleType");
+		UNSUPPORTED("pImportSemaphoreZirconHandleInfo->handleType %d", int(pImportSemaphoreZirconHandleInfo->handleType));
 	}
 	bool temporaryImport = (pImportSemaphoreZirconHandleInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
 
@@ -1184,7 +1203,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
 
 	if(pGetZirconHandleInfo->handleType != VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA)
 	{
-		UNSUPPORTED("pGetZirconHandleInfo->handleType");
+		UNSUPPORTED("pGetZirconHandleInfo->handleType %d", int(pGetZirconHandleInfo->handleType));
 	}
 
 	return vk::Cast(pGetZirconHandleInfo->semaphore)->exportHandle(pZirconHandle);
@@ -1196,14 +1215,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreat
 	TRACE("(VkDevice device = %p, const VkEventCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkEvent* pEvent = %p)",
 	      device, pCreateInfo, pAllocator, pEvent);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
 	while(extInfo)
 	{
+		// Vulkan 1.2: "pNext must be NULL"
 		WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extInfo->sType).c_str());
 		extInfo = extInfo->pNext;
 	}
@@ -1249,9 +1270,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateQueryPool(VkDevice device, const VkQueryP
 	TRACE("(VkDevice device = %p, const VkQueryPoolCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkQueryPool* pQueryPool = %p)",
 	      device, pCreateInfo, pAllocator, pQueryPool);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1316,9 +1338,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBuffe
 	TRACE("(VkDevice device = %p, const VkBufferViewCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkBufferView* pView = %p)",
 	      device, pCreateInfo, pAllocator, pView);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1450,9 +1473,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 	TRACE("(VkDevice device = %p, const VkImageViewCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkImageView* pView = %p)",
 	      device, pCreateInfo, pAllocator, pView);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1506,9 +1529,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkSha
 	TRACE("(VkDevice device = %p, const VkShaderModuleCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkShaderModule* pShaderModule = %p)",
 	      device, pCreateInfo, pAllocator, pShaderModule);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1534,9 +1558,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPi
 	TRACE("(VkDevice device = %p, const VkPipelineCacheCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkPipelineCache* pPipelineCache = %p)",
 	      device, pCreateInfo, pAllocator, pPipelineCache);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -1650,9 +1675,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineLayout(VkDevice device, const VkP
 	TRACE("(VkDevice device = %p, const VkPipelineLayoutCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkPipelineLayout* pPipelineLayout = %p)",
 	      device, pCreateInfo, pAllocator, pPipelineLayout);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1678,9 +1704,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 	TRACE("(VkDevice device = %p, const VkSamplerCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkSampler* pSampler = %p)",
 	      device, pCreateInfo, pAllocator, pSampler);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1776,9 +1802,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkResetDescriptorPool(VkDevice device, VkDescript
 	TRACE("(VkDevice device = %p, VkDescriptorPool descriptorPool = %p, VkDescriptorPoolResetFlags flags = 0x%x)",
 	      device, static_cast<void *>(descriptorPool), int(flags));
 
-	if(flags)
+	if(flags != 0)
 	{
-		UNSUPPORTED("flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("flags %d", int(flags));
 	}
 
 	return vk::Cast(descriptorPool)->reset();
@@ -1822,9 +1849,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateFramebuffer(VkDevice device, const VkFram
 	TRACE("(VkDevice device = %p, const VkFramebufferCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkFramebuffer* pFramebuffer = %p)",
 	      device, pCreateInfo, pAllocator, pFramebuffer);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -1850,9 +1877,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 	TRACE("(VkDevice device = %p, const VkRenderPassCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkRenderPass* pRenderPass = %p)",
 	      device, pCreateInfo, pAllocator, pRenderPass);
 
-	if(pCreateInfo->flags)
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
@@ -2502,7 +2530,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, u
 	      device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
 
 	ASSERT(localDeviceIndex != remoteDeviceIndex);                 // "localDeviceIndex must not equal remoteDeviceIndex"
-	UNREACHABLE("remoteDeviceIndex: %d", int(remoteDeviceIndex));  // Only one physical device is supported, and since the device indexes can't be equal, this should never be called.
+	UNSUPPORTED("remoteDeviceIndex: %d", int(remoteDeviceIndex));  // Only one physical device is supported, and since the device indexes can't be equal, this should never be called.
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask)
@@ -2973,6 +3001,12 @@ VKAPI_ATTR void VKAPI_CALL vkTrimCommandPool(VkDevice device, VkCommandPool comm
 	TRACE("(VkDevice device = %p, VkCommandPool commandPool = %p, VkCommandPoolTrimFlags flags = %d)",
 	      device, static_cast<void *>(commandPool), flags);
 
+	if(flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("flags %d", int(flags));
+	}
+
 	vk::Cast(commandPool)->trim(flags);
 }
 
@@ -2988,19 +3022,17 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueu
 		extInfo = extInfo->pNext;
 	}
 
-	// The only flag that can be set here is VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT
-	// According to the Vulkan spec, 4.3.1. Queue Family Properties:
-	// "VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT specifies that the device queue is a
-	//  protected-capable queue. If the protected memory feature is not enabled,
-	//  the VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT bit of flags must not be set."
-	if(pQueueInfo->flags)
+	if(pQueueInfo->flags != 0)
 	{
-		*pQueue = VK_NULL_HANDLE;
+		// The only flag that can be set here is VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT
+		// According to the Vulkan 1.2.132 spec, 4.3.1. Queue Family Properties:
+		// "VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT specifies that the device queue is a
+		//  protected-capable queue. If the protected memory feature is not enabled,
+		//  the VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT bit of flags must not be set."
+		UNSUPPORTED("VkPhysicalDeviceVulkan11Features::protectedMemory");
 	}
-	else
-	{
-		vkGetDeviceQueue(device, pQueueInfo->queueFamilyIndex, pQueueInfo->queueIndex, pQueue);
-	}
+
+	vkGetDeviceQueue(device, pQueueInfo->queueFamilyIndex, pQueueInfo->queueIndex, pQueue);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(VkDevice device, const VkSamplerYcbcrConversionCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkSamplerYcbcrConversion *pYcbcrConversion)
@@ -3031,9 +3063,15 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(VkDevice device,
 	TRACE("(VkDevice device = %p, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate = %p)",
 	      device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
 
-	if(pCreateInfo->flags || (pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET))
+	if(pCreateInfo->flags != 0)
 	{
-		UNSUPPORTED("pCreateInfo->flags || (pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET)");
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
+	}
+
+	if(pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET)
+	{
+		UNSUPPORTED("pCreateInfo->templateType %d", int(pCreateInfo->templateType));
 	}
 
 	auto extInfo = reinterpret_cast<VkBaseInStructure const *>(pCreateInfo->pNext);
@@ -3099,7 +3137,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer,
 	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t lineStippleFactor = %u, uint16_t lineStipplePattern = %u",
 	      commandBuffer, lineStippleFactor, lineStipplePattern);
 
-	UNSUPPORTED("Line stipple not supported");
+	UNSUPPORTED("VkPhysicalDeviceLineRasterizationFeaturesEXT::stippled*Lines");
 }
 
 #ifdef VK_USE_PLATFORM_XCB_KHR

@@ -47,7 +47,7 @@ public:
 
 						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 						{
-							UNSUPPORTED("importInfo->handleType");
+							UNIMPLEMENTED("importInfo->handleType");
 						}
 						importFd = true;
 						fd = importInfo->fd;
@@ -59,7 +59,7 @@ public:
 
 						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
 						{
-							UNSUPPORTED("exportInfo->handleTypes");
+							UNIMPLEMENTED("exportInfo->handleTypes");
 						}
 						exportFd = true;
 					}

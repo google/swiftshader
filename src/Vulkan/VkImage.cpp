@@ -894,7 +894,7 @@ void Image::clear(const VkClearColorValue &color, const VkImageSubresourceRange 
 {
 	if(!(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT))
 	{
-		UNSUPPORTED("aspectMask");
+		UNIMPLEMENTED("aspectMask");
 	}
 
 	device->getBlitter()->clear((void *)color.float32, getClearFormat(), this, format, subresourceRange);
@@ -905,7 +905,7 @@ void Image::clear(const VkClearDepthStencilValue &color, const VkImageSubresourc
 	if((subresourceRange.aspectMask & ~(VK_IMAGE_ASPECT_DEPTH_BIT |
 	                                    VK_IMAGE_ASPECT_STENCIL_BIT)) != 0)
 	{
-		UNSUPPORTED("aspectMask");
+		UNIMPLEMENTED("aspectMask");
 	}
 
 	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
@@ -929,7 +929,7 @@ void Image::clear(const VkClearValue &clearValue, const vk::Format &viewFormat, 
 	     (subresourceRange.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT |
 	                                     VK_IMAGE_ASPECT_STENCIL_BIT))))
 	{
-		UNSUPPORTED("subresourceRange");
+		UNIMPLEMENTED("subresourceRange");
 	}
 
 	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)

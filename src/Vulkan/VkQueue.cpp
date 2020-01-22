@@ -178,7 +178,7 @@ void Queue::taskLoop(marl::Scheduler *scheduler)
 				submitQueue(task);
 				break;
 			default:
-				UNSUPPORTED("task.type %d", static_cast<int>(task.type));
+				UNREACHABLE("task.type %d", static_cast<int>(task.type));
 				break;
 		}
 	}
