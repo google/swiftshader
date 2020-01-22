@@ -16,6 +16,24 @@
       "revId": "cf73e58e460b6681847b00439f577d4a412c75d1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a68f89ff_11cbc5dd",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 4
+      },
+      "lineNbr": 2109,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-01-22T16:36:29Z",
+      "side": 1,
+      "message": "I checked with my version of CMake and I get a warning:\n\n  CMake Warning (dev) in CMakeLists.txt:\n  A logical block opening on the line\n\n    src/SwiftShader/CMakeLists.txt:2103 (if)\n\n  closes on the line\n\n    src/SwiftShader/CMakeLists.txt:2109 (endif)\n\n  with mis-matching arguments.\n  This warning is for project developers.  Use -Wno-dev to suppress it.\n\nI personally find this helpful to brain-parse, especially when we start nesting these. Why is it cumbersome?",
+      "parentUuid": "b82835b9_fa5fca3f",
+      "revId": "cf73e58e460b6681847b00439f577d4a412c75d1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
