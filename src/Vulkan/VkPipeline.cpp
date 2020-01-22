@@ -251,7 +251,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 		UNIMPLEMENTED("pCreateInfo->pRasterizationState settings");
 	}
 
-	context.rasterizerDiscard = (rasterizationState->rasterizerDiscardEnable == VK_TRUE);
+	context.rasterizerDiscard = (rasterizationState->rasterizerDiscardEnable != VK_FALSE);
 	context.cullMode = rasterizationState->cullMode;
 	context.frontFace = rasterizationState->frontFace;
 	context.polygonMode = rasterizationState->polygonMode;
@@ -307,7 +307,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 			context.sampleMask = multisampleState->pSampleMask[0];
 		}
 
-		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable == VK_TRUE);
+		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable != VK_FALSE);
 
 		if((multisampleState->flags != 0) ||
 		   (multisampleState->sampleShadingEnable != VK_FALSE) ||
@@ -330,12 +330,12 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 			UNIMPLEMENTED("depthStencilState");
 		}
 
-		context.depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable == VK_TRUE);
-		context.depthBufferEnable = (depthStencilState->depthTestEnable == VK_TRUE);
-		context.depthWriteEnable = (depthStencilState->depthWriteEnable == VK_TRUE);
+		context.depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable != VK_FALSE);
+		context.depthBufferEnable = (depthStencilState->depthTestEnable != VK_FALSE);
+		context.depthWriteEnable = (depthStencilState->depthWriteEnable != VK_FALSE);
 		context.depthCompareMode = depthStencilState->depthCompareOp;
 
-		context.stencilEnable = (depthStencilState->stencilTestEnable == VK_TRUE);
+		context.stencilEnable = (depthStencilState->stencilTestEnable != VK_FALSE);
 		if(context.stencilEnable)
 		{
 			context.frontStencil = depthStencilState->front;
@@ -365,7 +365,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 			const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
 			context.colorWriteMask[i] = attachment.colorWriteMask;
 
-			context.setBlendState(i, { (attachment.blendEnable == VK_TRUE),
+			context.setBlendState(i, { (attachment.blendEnable != VK_FALSE),
 			                           attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
 			                           attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp });
 		}

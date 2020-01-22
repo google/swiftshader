@@ -450,7 +450,7 @@ bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatur
 
 	for(unsigned int i = 0; i < featureCount; i++)
 	{
-		if((requestedFeature[i] == VK_TRUE) && (supportedFeature[i] != VK_TRUE))
+		if((requestedFeature[i] != VK_FALSE) && (supportedFeature[i] == VK_FALSE))
 		{
 			return false;
 		}

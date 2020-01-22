@@ -561,10 +561,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const VkPhysicalDevice16BitStorageFeatures *storage16BitFeatures = reinterpret_cast<const VkPhysicalDevice16BitStorageFeatures *>(extensionCreateInfo);
 
-				if(storage16BitFeatures->storageBuffer16BitAccess == VK_TRUE ||
-				   storage16BitFeatures->uniformAndStorageBuffer16BitAccess == VK_TRUE ||
-				   storage16BitFeatures->storagePushConstant16 == VK_TRUE ||
-				   storage16BitFeatures->storageInputOutput16 == VK_TRUE)
+				if(storage16BitFeatures->storageBuffer16BitAccess != VK_FALSE ||
+				   storage16BitFeatures->uniformAndStorageBuffer16BitAccess != VK_FALSE ||
+				   storage16BitFeatures->storagePushConstant16 != VK_FALSE ||
+				   storage16BitFeatures->storageInputOutput16 != VK_FALSE)
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}
@@ -574,8 +574,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			{
 				const VkPhysicalDeviceVariablePointerFeatures *variablePointerFeatures = reinterpret_cast<const VkPhysicalDeviceVariablePointerFeatures *>(extensionCreateInfo);
 
-				if(variablePointerFeatures->variablePointersStorageBuffer == VK_TRUE ||
-				   variablePointerFeatures->variablePointers == VK_TRUE)
+				if(variablePointerFeatures->variablePointersStorageBuffer != VK_FALSE ||
+				   variablePointerFeatures->variablePointers != VK_FALSE)
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}
@@ -616,10 +616,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
 			{
 				const VkPhysicalDeviceLineRasterizationFeaturesEXT *lineRasterizationFeatures = reinterpret_cast<const VkPhysicalDeviceLineRasterizationFeaturesEXT *>(extensionCreateInfo);
-				if((lineRasterizationFeatures->smoothLines == VK_TRUE) ||
-				   (lineRasterizationFeatures->stippledBresenhamLines == VK_TRUE) ||
-				   (lineRasterizationFeatures->stippledRectangularLines == VK_TRUE) ||
-				   (lineRasterizationFeatures->stippledSmoothLines == VK_TRUE))
+				if((lineRasterizationFeatures->smoothLines != VK_FALSE) ||
+				   (lineRasterizationFeatures->stippledBresenhamLines != VK_FALSE) ||
+				   (lineRasterizationFeatures->stippledRectangularLines != VK_FALSE) ||
+				   (lineRasterizationFeatures->stippledSmoothLines != VK_FALSE))
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}

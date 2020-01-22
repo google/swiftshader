@@ -80,9 +80,9 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 
 		samplerState.mipmapFilter = convertMipmapMode(sampler);
 
-		samplerState.compareEnable = (sampler->compareEnable == VK_TRUE);
+		samplerState.compareEnable = (sampler->compareEnable != VK_FALSE);
 		samplerState.compareOp = sampler->compareOp;
-		samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates == VK_TRUE);
+		samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates != VK_FALSE);
 
 		if(sampler->ycbcrConversion)
 		{
@@ -224,7 +224,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 
 sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
 {
-	if(sampler->anisotropyEnable == VK_TRUE)
+	if(sampler->anisotropyEnable != VK_FALSE)
 	{
 		return FILTER_ANISOTROPIC;
 	}
