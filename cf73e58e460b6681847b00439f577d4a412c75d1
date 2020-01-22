@@ -34,6 +34,24 @@
       "revId": "cf73e58e460b6681847b00439f577d4a412c75d1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82edd836_7e5da03e",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 4
+      },
+      "lineNbr": 2109,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-01-22T17:06:28Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/c/SwiftShader/+/40468/",
+      "parentUuid": "a68f89ff_11cbc5dd",
+      "revId": "cf73e58e460b6681847b00439f577d4a412c75d1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
