@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b82835b9_fa5fca3f",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 4
+      },
+      "lineNbr": 2109,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-01-22T16:21:18Z",
+      "side": 1,
+      "message": "CMake used to require the string in endif() to match the one in if(), but they fixed that a long time ago. I know that it seems helpful, but it\u0027s cumbersome, and is not idiomatic CMake. In fact, most endifs() in the file don\u0027t have any text. Can we remove this, and also the one for SWIFTSHADER_BUILD_CPPDAP ON LINE 2098?",
+      "revId": "cf73e58e460b6681847b00439f577d4a412c75d1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
