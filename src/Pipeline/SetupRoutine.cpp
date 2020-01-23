@@ -202,8 +202,9 @@ void SetupRoutine::generate()
 
 				if(state.enableMultiSampling)
 				{
-					Xq[i] = Xq[i] + *Pointer<Int>(constants + OFFSET(Constants, Xf) + q * sizeof(int));
-					Yq[i] = Yq[i] + *Pointer<Int>(constants + OFFSET(Constants, Yf) + q * sizeof(int));
+					// The subtraction here is because we're not moving the point, we're testing the edge against it
+					Xq[i] = Xq[i] - *Pointer<Int>(constants + OFFSET(Constants, Xf) + q * sizeof(int));
+					Yq[i] = Yq[i] - *Pointer<Int>(constants + OFFSET(Constants, Yf) + q * sizeof(int));
 				}
 
 				i++;

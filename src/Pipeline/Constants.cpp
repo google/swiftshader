@@ -299,12 +299,8 @@ Constants::Constants()
 		{
 			for(int i = 0; i < 4; i++)
 			{
-				// Reorder sample points for centroid computation
-				const float Xs[4] = { X[1][0], X[2][0], X[0][0], X[3][0] };
-				const float Ys[4] = { Y[1][0], Y[2][0], Y[0][0], Y[3][0] };
-
-				sampleX[q][c][i] = c & (1 << i) ? Xs[q] : 0.0f;
-				sampleY[q][c][i] = c & (1 << i) ? Ys[q] : 0.0f;
+				sampleX[q][c][i] = c & (1 << i) ? X[q][0] : 0.0f;
+				sampleY[q][c][i] = c & (1 << i) ? Y[q][0] : 0.0f;
 				weight[c][i] = c & (1 << i) ? 1.0f : 0.0f;
 			}
 		}
@@ -312,9 +308,8 @@ Constants::Constants()
 
 	constexpr auto subPixB = vk::SUBPIXEL_PRECISION_BITS;
 
-	// Reorder sample points for fragment offset computation
-	const int Xf[4] = { toFixedPoint(X[2][0], subPixB), toFixedPoint(X[1][0], subPixB), toFixedPoint(X[3][0], subPixB), toFixedPoint(X[0][0], subPixB) };
-	const int Yf[4] = { toFixedPoint(Y[2][0], subPixB), toFixedPoint(Y[1][0], subPixB), toFixedPoint(Y[3][0], subPixB), toFixedPoint(Y[0][0], subPixB) };
+	const int Xf[4] = { toFixedPoint(X[0][0], subPixB), toFixedPoint(X[1][0], subPixB), toFixedPoint(X[2][0], subPixB), toFixedPoint(X[3][0], subPixB) };
+	const int Yf[4] = { toFixedPoint(Y[0][0], subPixB), toFixedPoint(Y[1][0], subPixB), toFixedPoint(Y[2][0], subPixB), toFixedPoint(Y[3][0], subPixB) };
 
 	memcpy(&this->Xf, &Xf, sizeof(Xf));
 	memcpy(&this->Yf, &Yf, sizeof(Yf));

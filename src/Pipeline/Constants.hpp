@@ -108,10 +108,10 @@ struct Constants
 	};
 
 	static constexpr float SampleLocationsY[4] = {
-		-(VkSampleLocations4[0][1] - 0.5f),
-		-(VkSampleLocations4[1][1] - 0.5f),
-		-(VkSampleLocations4[2][1] - 0.5f),
-		-(VkSampleLocations4[3][1] - 0.5f),
+		VkSampleLocations4[0][1] - 0.5f,
+		VkSampleLocations4[1][1] - 0.5f,
+		VkSampleLocations4[2][1] - 0.5f,
+		VkSampleLocations4[3][1] - 0.5f,
 	};
 
 	// Compute the yMin and yMax multisample offsets so that they are just
