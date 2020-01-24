@@ -30,10 +30,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"./cause"
-	"./consts"
-	"./git"
-	"./testlist"
+	"../../cause"
+	"../../consts"
+	"../../git"
+	"../../testlist"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

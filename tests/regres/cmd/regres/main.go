@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Regres is a tool that detects test regressions with SwiftShader changes.
+// regres is a tool that detects test regressions with SwiftShader changes.
 //
 // Regres monitors changes that have been put up for review with Gerrit.
 // Once a new patchset has been found, regres will checkout, build and test the
@@ -44,13 +44,13 @@ import (
 	"strings"
 	"time"
 
-	"./cause"
-	"./consts"
-	"./deqp"
-	"./git"
-	"./shell"
-	"./testlist"
-	"./util"
+	"../../cause"
+	"../../consts"
+	"../../deqp"
+	"../../git"
+	"../../shell"
+	"../../testlist"
+	"../../util"
 	gerrit "github.com/andygrunwald/go-gerrit"
 )
 
