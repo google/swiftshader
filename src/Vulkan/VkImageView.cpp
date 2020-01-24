@@ -75,6 +75,7 @@ void ImageView::destroy(const VkAllocationCallbacks *pAllocator)
 {
 }
 
+// Vulkan 1.2 Table 8. Image and image view parameter compatibility requirements
 bool ImageView::imageTypesMatch(VkImageType imageType) const
 {
 	uint32_t imageArrayLayers = image->getArrayLayers();
@@ -118,15 +119,8 @@ void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags a
 {
 	// Note: clearing ignores swizzling, so components is ignored.
 
-	if(!imageTypesMatch(image->getImageType()))
-	{
-		UNIMPLEMENTED("imageTypesMatch");
-	}
-
-	if(!format.isCompatible(image->getFormat()))
-	{
-		UNIMPLEMENTED("incompatible formats");
-	}
+	ASSERT(imageTypesMatch(image->getImageType()));
+	ASSERT(format.isCompatible(image->getFormat()));
 
 	VkImageSubresourceRange sr = subresourceRange;
 	sr.aspectMask = aspectMask;
@@ -137,15 +131,8 @@ void ImageView::clear(const VkClearValue &clearValue, const VkImageAspectFlags a
 {
 	// Note: clearing ignores swizzling, so components is ignored.
 
-	if(!imageTypesMatch(image->getImageType()))
-	{
-		UNIMPLEMENTED("imageTypesMatch");
-	}
-
-	if(!format.isCompatible(image->getFormat()))
-	{
-		UNIMPLEMENTED("incompatible formats");
-	}
+	ASSERT(imageTypesMatch(image->getImageType()));
+	ASSERT(format.isCompatible(image->getFormat()));
 
 	VkImageSubresourceRange sr;
 	sr.aspectMask = aspectMask;
@@ -173,7 +160,7 @@ void ImageView::resolve(ImageView *resolveAttachment, int layer)
 {
 	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
 	{
-		UNIMPLEMENTED("levelCount");
+		UNIMPLEMENTED("b/148242443: levelCount != 1");  // FIXME(b/148242443)
 	}
 
 	VkImageCopy region;
@@ -201,7 +188,7 @@ void ImageView::resolve(ImageView *resolveAttachment)
 {
 	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
 	{
-		UNIMPLEMENTED("levelCount");
+		UNIMPLEMENTED("b/148242443: levelCount != 1");  // FIXME(b/148242443)
 	}
 
 	VkImageCopy region;

@@ -1747,11 +1747,11 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 		return;
 	}
 
-	if((region.srcSubresource.layerCount != region.dstSubresource.layerCount) ||
-	   (region.srcSubresource.aspectMask != region.dstSubresource.aspectMask))
-	{
-		UNIMPLEMENTED("region");
-	}
+	// Vulkan 1.2 section 18.5. Image Copies with Scaling:
+	// "The layerCount member of srcSubresource and dstSubresource must match"
+	// "The aspectMask member of srcSubresource and dstSubresource must match"
+	ASSERT(region.srcSubresource.layerCount == region.dstSubresource.layerCount);
+	ASSERT(region.srcSubresource.aspectMask == region.dstSubresource.aspectMask);
 
 	if(region.dstOffsets[0].x > region.dstOffsets[1].x)
 	{
@@ -1890,10 +1890,9 @@ Blitter::CornerUpdateRoutineType Blitter::generateCornerUpdate(const State &stat
 	ASSERT(state.sourceFormat == state.destFormat);
 	ASSERT(state.srcSamples == state.destSamples);
 
-	if(state.srcSamples != 1)
-	{
-		UNIMPLEMENTED("state.srcSamples %d", state.srcSamples);
-	}
+	// Vulkan 1.2: "If samples is not VK_SAMPLE_COUNT_1_BIT, then imageType must be
+	// VK_IMAGE_TYPE_2D, flags must not contain VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT"
+	ASSERT(state.srcSamples == 1);
 
 	CornerUpdateFunction function;
 	{
@@ -1922,11 +1921,7 @@ Blitter::CornerUpdateRoutineType Blitter::generateCornerUpdate(const State &stat
 
 void Blitter::updateBorders(vk::Image *image, const VkImageSubresourceLayers &subresourceLayers)
 {
-	if(image->getArrayLayers() < (subresourceLayers.baseArrayLayer + 6))
-	{
-		UNIMPLEMENTED("image->getArrayLayers() %d, baseArrayLayer %d",
-		              image->getArrayLayers(), subresourceLayers.baseArrayLayer);
-	}
+	ASSERT(image->getArrayLayers() >= (subresourceLayers.baseArrayLayer + 6));
 
 	// From Vulkan 1.1 spec, section 11.5. Image Views:
 	// "For cube and cube array image views, the layers of the image view starting
@@ -1980,10 +1975,9 @@ void Blitter::updateBorders(vk::Image *image, const VkImageSubresourceLayers &su
 	VkSampleCountFlagBits samples = image->getSampleCountFlagBits();
 	State state(format, format, samples, samples, Options{ 0xF });
 
-	if(samples != VK_SAMPLE_COUNT_1_BIT)
-	{
-		UNIMPLEMENTED("Multi-sampled cube: %d samples", static_cast<int>(samples));
-	}
+	// Vulkan 1.2: "If samples is not VK_SAMPLE_COUNT_1_BIT, then imageType must be
+	// VK_IMAGE_TYPE_2D, flags must not contain VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT"
+	ASSERT(samples == VK_SAMPLE_COUNT_1_BIT);
 
 	auto cornerUpdateRoutine = getCornerUpdateRoutine(state);
 	if(!cornerUpdateRoutine)

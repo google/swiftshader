@@ -273,7 +273,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 
 	if(pCreateInfo->enabledLayerCount != 0)
 	{
-		UNIMPLEMENTED("pCreateInfo->enabledLayerCount != 0");
+		UNIMPLEMENTED("b/148240133: pCreateInfo->enabledLayerCount != 0");  // FIXME(b/148240133)
 	}
 
 	uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);

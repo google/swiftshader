@@ -225,7 +225,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 		Object::ID initializerId = insn.word(4);
 		if(getObject(initializerId).kind != Object::Kind::Constant)
 		{
-			UNIMPLEMENTED("Non-constant initializers not yet implemented");
+			UNIMPLEMENTED("b/148241854: Non-constant initializers not yet implemented");  // FIXME(b/148241854)
 		}
 
 		switch(objectTy.storageClass)

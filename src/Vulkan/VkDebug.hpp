@@ -20,6 +20,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <cctype>
 #include <string>
 
 #if !defined(TRACE_OUTPUT_FILE)
@@ -110,11 +112,13 @@ void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
 		}                                        \
 	} while(0)
 
-// A macro to indicate functionality currently unimplemented for a feature
-// advertised as supported. For unsupported features not advertised as supported
-// use UNSUPPORTED().
+// A macro to indicate functionality currently unimplemented, for a feature advertised
+// as supported. Since this is a bug, a bug ID must be provided, in b/### format.
+// For unimplemented functionality not advertised as supported, use UNSUPPORTED() instead.
 #undef UNIMPLEMENTED
-#define UNIMPLEMENTED(format, ...) DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__)
+#define UNIMPLEMENTED(format, ...)                   \
+	DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__); \
+	static_assert(format[0] == 'b' && format[1] == '/' && format[2] >= '0' && format[2] <= '9', "explanation must start with bug reference in b/### format")
 
 // A macro to indicate unsupported functionality.
 // This should be called when a Vulkan / SPIR-V feature is attempted to be used,

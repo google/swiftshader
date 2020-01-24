@@ -189,7 +189,7 @@ void QueryPool::begin(uint32_t query, VkQueryControlFlags flags)
 
 	if(flags != 0)
 	{
-		UNIMPLEMENTED("vkCmdBeginQuery::flags %d", int(flags));
+		UNSUPPORTED("vkCmdBeginQuery::flags %d", int(flags));
 	}
 
 	pool[query].prepare(type);

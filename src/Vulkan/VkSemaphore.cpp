@@ -15,6 +15,7 @@
 #include "VkSemaphore.hpp"
 
 #include "VkConfig.h"
+#include "VkStringify.hpp"
 
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 #	if defined(__linux__) || defined(__ANDROID__)
@@ -50,15 +51,20 @@ struct SemaphoreCreateInfo
 		for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 		    nextInfo != nullptr; nextInfo = nextInfo->pNext)
 		{
-			if(nextInfo->sType == VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO)
+			switch(nextInfo->sType)
 			{
-				const auto *exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
-				exportSemaphore = true;
-				if(exportInfo->handleTypes != Semaphore::External::kExternalSemaphoreHandleType)
+				case VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO:
 				{
-					UNIMPLEMENTED("exportInfo->handleTypes");
+					const auto *exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
+					exportSemaphore = true;
+					if(exportInfo->handleTypes != Semaphore::External::kExternalSemaphoreHandleType)
+					{
+						UNSUPPORTED("exportInfo->handleTypes %d", int(exportInfo->handleTypes));
+					}
 				}
 				break;
+				default:
+					WARN("nextInfo->sType = %s", vk::Stringify(nextInfo->sType).c_str());
 			}
 		}
 	}
