@@ -2906,35 +2906,6 @@ RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 #endif
 }
 
-RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	int pshufb[16] = {
-		select0 + 0,
-		select0 + 1,
-		select1 + 0,
-		select1 + 1,
-		select2 + 0,
-		select2 + 1,
-		select3 + 0,
-		select3 + 1,
-		select4 + 0,
-		select4 + 1,
-		select5 + 0,
-		select5 + 1,
-		select6 + 0,
-		select6 + 1,
-		select7 + 0,
-		select7 + 1,
-	};
-
-	Value *byte16 = Nucleus::createBitCast(x.value, Byte16::getType());
-	Value *shuffle = Nucleus::createShuffleVector(byte16, byte16, pshufb);
-	Value *short8 = Nucleus::createBitCast(shuffle, UShort8::getType());
-
-	return RValue<UShort8>(short8);
-}
-
 RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();

@@ -141,6 +141,8 @@ Function<Int(Float)> function;
 
 Note that this is a bitwise cast. Unlike C++'s ```reinterpret_cast<>```, it does not allow casting between different sized types. Think of it as storing the value in memory and then loading from that same address into the casted type.
 
+An important exception is that 16-, 8-, and 4-byte vectors can be cast to other vectors of one of these sizes. Casting to a longer vector leaves the upper contents undefined.
+
 ### Pointers
 
 Pointers also use a template class:

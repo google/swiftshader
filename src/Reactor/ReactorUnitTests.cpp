@@ -345,133 +345,199 @@ TEST(ReactorUnitTests, Concatenate)
 	}
 }
 
+TEST(ReactorUnitTests, Cast)
+{
+	FunctionT<void(void *)> function;
+	{
+		Pointer<Byte> out = function.Arg<0>();
+
+		Int4 c = Int4(0x01020304, 0x05060708, 0x09101112, 0x13141516);
+		*Pointer<Short4>(out + 16 * 0) = Short4(c);
+		*Pointer<Byte4>(out + 16 * 1 + 0) = Byte4(c);
+		*Pointer<Byte4>(out + 16 * 1 + 4) = Byte4(As<Byte8>(c));
+		*Pointer<Byte4>(out + 16 * 1 + 8) = Byte4(As<Short4>(c));
+	}
+
+	auto routine = function("one");
+
+	if(routine)
+	{
+		int out[2][4];
+
+		memset(&out, 0, sizeof(out));
+
+		routine(&out);
+
+		EXPECT_EQ(out[0][0], 0x07080304);
+		EXPECT_EQ(out[0][1], 0x15161112);
+
+		EXPECT_EQ(out[1][0], 0x16120804);
+		EXPECT_EQ(out[1][1], 0x01020304);
+		EXPECT_EQ(out[1][2], 0x06080204);
+	}
+}
+
+static uint16_t swizzleCode4(int i)
+{
+	auto x = (i >> 0) & 0x03;
+	auto y = (i >> 2) & 0x03;
+	auto z = (i >> 4) & 0x03;
+	auto w = (i >> 6) & 0x03;
+	return static_cast<uint16_t>((x << 12) | (y << 8) | (z << 4) | (w << 0));
+}
+
+TEST(ReactorUnitTests, Swizzle4)
+{
+	FunctionT<void(void *)> function;
+	{
+		Pointer<Byte> out = function.Arg<0>();
+
+		for(int i = 0; i < 256; i++)
+		{
+			*Pointer<Float4>(out + 16 * i) = Swizzle(Float4(1.0f, 2.0f, 3.0f, 4.0f), swizzleCode4(i));
+		}
+
+		for(int i = 0; i < 256; i++)
+		{
+			*Pointer<Float4>(out + 16 * (256 + i)) = ShuffleLowHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f), swizzleCode4(i));
+		}
+
+		*Pointer<Float4>(out + 16 * (512 + 0)) = UnpackLow(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
+		*Pointer<Float4>(out + 16 * (512 + 1)) = UnpackHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
+		*Pointer<Int2>(out + 16 * (512 + 2)) = UnpackLow(Short4(1, 2, 3, 4), Short4(5, 6, 7, 8));
+		*Pointer<Int2>(out + 16 * (512 + 3)) = UnpackHigh(Short4(1, 2, 3, 4), Short4(5, 6, 7, 8));
+		*Pointer<Short4>(out + 16 * (512 + 4)) = UnpackLow(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
+		*Pointer<Short4>(out + 16 * (512 + 5)) = UnpackHigh(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
+
+		for(int i = 0; i < 256; i++)
+		{
+			*Pointer<Short4>(out + 16 * (512 + 6) + (8 * i)) =
+			    Swizzle(Short4(1, 2, 3, 4), swizzleCode4(i));
+		}
+
+		for(int i = 0; i < 256; i++)
+		{
+			*Pointer<Int4>(out + 16 * (512 + 6 + i) + (8 * 256)) =
+			    Swizzle(Int4(1, 2, 3, 4), swizzleCode4(i));
+		}
+	}
+
+	auto routine = function("one");
+
+	if(routine)
+	{
+		struct
+		{
+			float f[256 + 256 + 2][4];
+			int i[388][4];
+		} out;
+
+		memset(&out, 0, sizeof(out));
+
+		routine(&out);
+
+		for(int i = 0; i < 256; i++)
+		{
+			EXPECT_EQ(out.f[i][0], float((i >> 0) & 0x03) + 1.0f);
+			EXPECT_EQ(out.f[i][1], float((i >> 2) & 0x03) + 1.0f);
+			EXPECT_EQ(out.f[i][2], float((i >> 4) & 0x03) + 1.0f);
+			EXPECT_EQ(out.f[i][3], float((i >> 6) & 0x03) + 1.0f);
+		}
+
+		for(int i = 0; i < 256; i++)
+		{
+			EXPECT_EQ(out.f[256 + i][0], float((i >> 0) & 0x03) + 1.0f);
+			EXPECT_EQ(out.f[256 + i][1], float((i >> 2) & 0x03) + 1.0f);
+			EXPECT_EQ(out.f[256 + i][2], float((i >> 4) & 0x03) + 5.0f);
+			EXPECT_EQ(out.f[256 + i][3], float((i >> 6) & 0x03) + 5.0f);
+		}
+
+		EXPECT_EQ(out.f[512 + 0][0], 1.0f);
+		EXPECT_EQ(out.f[512 + 0][1], 5.0f);
+		EXPECT_EQ(out.f[512 + 0][2], 2.0f);
+		EXPECT_EQ(out.f[512 + 0][3], 6.0f);
+
+		EXPECT_EQ(out.f[512 + 1][0], 3.0f);
+		EXPECT_EQ(out.f[512 + 1][1], 7.0f);
+		EXPECT_EQ(out.f[512 + 1][2], 4.0f);
+		EXPECT_EQ(out.f[512 + 1][3], 8.0f);
+
+		EXPECT_EQ(out.i[0][0], 0x00050001);
+		EXPECT_EQ(out.i[0][1], 0x00060002);
+		EXPECT_EQ(out.i[0][2], 0x00000000);
+		EXPECT_EQ(out.i[0][3], 0x00000000);
+
+		EXPECT_EQ(out.i[1][0], 0x00070003);
+		EXPECT_EQ(out.i[1][1], 0x00080004);
+		EXPECT_EQ(out.i[1][2], 0x00000000);
+		EXPECT_EQ(out.i[1][3], 0x00000000);
+
+		EXPECT_EQ(out.i[2][0], 0x0A020901);
+		EXPECT_EQ(out.i[2][1], 0x0C040B03);
+		EXPECT_EQ(out.i[2][2], 0x00000000);
+		EXPECT_EQ(out.i[2][3], 0x00000000);
+
+		EXPECT_EQ(out.i[3][0], 0x0E060D05);
+		EXPECT_EQ(out.i[3][1], 0x10080F07);
+		EXPECT_EQ(out.i[3][2], 0x00000000);
+		EXPECT_EQ(out.i[3][3], 0x00000000);
+
+		for(int i = 0; i < 256; i++)
+		{
+			EXPECT_EQ(out.i[4 + i / 2][0 + (i % 2) * 2] & 0xFFFF,
+			          ((i >> 0) & 0x03) + 1);
+			EXPECT_EQ(out.i[4 + i / 2][0 + (i % 2) * 2] >> 16,
+			          ((i >> 2) & 0x03) + 1);
+			EXPECT_EQ(out.i[4 + i / 2][1 + (i % 2) * 2] & 0xFFFF,
+			          ((i >> 4) & 0x03) + 1);
+			EXPECT_EQ(out.i[4 + i / 2][1 + (i % 2) * 2] >> 16,
+			          ((i >> 6) & 0x03) + 1);
+		}
+
+		for(int i = 0; i < 256; i++)
+		{
+			EXPECT_EQ(out.i[132 + i][0], ((i >> 0) & 0x03) + 1);
+			EXPECT_EQ(out.i[132 + i][1], ((i >> 2) & 0x03) + 1);
+			EXPECT_EQ(out.i[132 + i][2], ((i >> 4) & 0x03) + 1);
+			EXPECT_EQ(out.i[132 + i][3], ((i >> 6) & 0x03) + 1);
+		}
+	}
+}
+
 TEST(ReactorUnitTests, Swizzle)
 {
-	auto swizzleCode = [](int i) -> uint16_t {
-		auto x = (i >> 0) & 0x03;
-		auto y = (i >> 2) & 0x03;
-		auto z = (i >> 4) & 0x03;
-		auto w = (i >> 6) & 0x03;
-		return (x << 12) | (y << 8) | (z << 4) | (w << 0);
-	};
-
+	FunctionT<void(void *)> function;
 	{
-		FunctionT<int(void *)> function;
-		{
-			Pointer<Byte> out = function.Arg<0>();
+		Pointer<Byte> out = function.Arg<0>();
 
-			for(int i = 0; i < 256; i++)
-			{
-				*Pointer<Float4>(out + 16 * i) = Swizzle(Float4(1.0f, 2.0f, 3.0f, 4.0f), swizzleCode(i));
-			}
+		Int4 c = Int4(0x01020304, 0x05060708, 0x09101112, 0x13141516);
+		*Pointer<Byte16>(out + 16 * 0) = Swizzle(As<Byte16>(c), 0xFEDCBA9876543210ull);
+		*Pointer<Byte8>(out + 16 * 1) = Swizzle(As<Byte8>(c), 0x76543210u);
+		*Pointer<UShort8>(out + 16 * 2) = Swizzle(As<UShort8>(c), 0x76543210u);
+	}
 
-			for(int i = 0; i < 256; i++)
-			{
-				*Pointer<Float4>(out + 16 * (256 + i)) = ShuffleLowHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f), swizzleCode(i));
-			}
+	auto routine = function("one");
 
-			*Pointer<Float4>(out + 16 * (512 + 0)) = UnpackLow(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
-			*Pointer<Float4>(out + 16 * (512 + 1)) = UnpackHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
-			*Pointer<Int2>(out + 16 * (512 + 2)) = UnpackLow(Short4(1, 2, 3, 4), Short4(5, 6, 7, 8));
-			*Pointer<Int2>(out + 16 * (512 + 3)) = UnpackHigh(Short4(1, 2, 3, 4), Short4(5, 6, 7, 8));
-			*Pointer<Short4>(out + 16 * (512 + 4)) = UnpackLow(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
-			*Pointer<Short4>(out + 16 * (512 + 5)) = UnpackHigh(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
+	if(routine)
+	{
+		int out[3][4];
 
-			for(int i = 0; i < 256; i++)
-			{
-				*Pointer<Short4>(out + 16 * (512 + 6) + (8 * i)) =
-				    Swizzle(Short4(1, 2, 3, 4), swizzleCode(i));
-			}
+		memset(&out, 0, sizeof(out));
 
-			for(int i = 0; i < 256; i++)
-			{
-				*Pointer<Int4>(out + 16 * (512 + 6 + i) + (8 * 256)) =
-				    Swizzle(Int4(1, 2, 3, 4), swizzleCode(i));
-			}
+		routine(&out);
 
-			Return(0);
-		}
+		EXPECT_EQ(out[0][0], 0x16151413);
+		EXPECT_EQ(out[0][1], 0x12111009);
+		EXPECT_EQ(out[0][2], 0x08070605);
+		EXPECT_EQ(out[0][3], 0x04030201);
 
-		auto routine = function("one");
+		EXPECT_EQ(out[1][0], 0x08070605);
+		EXPECT_EQ(out[1][1], 0x04030201);
 
-		if(routine)
-		{
-			struct
-			{
-				float f[256 + 256 + 2][4];
-				int i[388][4];
-			} out;
-
-			memset(&out, 0, sizeof(out));
-
-			routine(&out);
-
-			for(int i = 0; i < 256; i++)
-			{
-				EXPECT_EQ(out.f[i][0], float((i >> 0) & 0x03) + 1.0f);
-				EXPECT_EQ(out.f[i][1], float((i >> 2) & 0x03) + 1.0f);
-				EXPECT_EQ(out.f[i][2], float((i >> 4) & 0x03) + 1.0f);
-				EXPECT_EQ(out.f[i][3], float((i >> 6) & 0x03) + 1.0f);
-			}
-
-			for(int i = 0; i < 256; i++)
-			{
-				EXPECT_EQ(out.f[256 + i][0], float((i >> 0) & 0x03) + 1.0f);
-				EXPECT_EQ(out.f[256 + i][1], float((i >> 2) & 0x03) + 1.0f);
-				EXPECT_EQ(out.f[256 + i][2], float((i >> 4) & 0x03) + 5.0f);
-				EXPECT_EQ(out.f[256 + i][3], float((i >> 6) & 0x03) + 5.0f);
-			}
-
-			EXPECT_EQ(out.f[512 + 0][0], 1.0f);
-			EXPECT_EQ(out.f[512 + 0][1], 5.0f);
-			EXPECT_EQ(out.f[512 + 0][2], 2.0f);
-			EXPECT_EQ(out.f[512 + 0][3], 6.0f);
-
-			EXPECT_EQ(out.f[512 + 1][0], 3.0f);
-			EXPECT_EQ(out.f[512 + 1][1], 7.0f);
-			EXPECT_EQ(out.f[512 + 1][2], 4.0f);
-			EXPECT_EQ(out.f[512 + 1][3], 8.0f);
-
-			EXPECT_EQ(out.i[0][0], 0x00050001);
-			EXPECT_EQ(out.i[0][1], 0x00060002);
-			EXPECT_EQ(out.i[0][2], 0x00000000);
-			EXPECT_EQ(out.i[0][3], 0x00000000);
-
-			EXPECT_EQ(out.i[1][0], 0x00070003);
-			EXPECT_EQ(out.i[1][1], 0x00080004);
-			EXPECT_EQ(out.i[1][2], 0x00000000);
-			EXPECT_EQ(out.i[1][3], 0x00000000);
-
-			EXPECT_EQ(out.i[2][0], 0x0A020901);
-			EXPECT_EQ(out.i[2][1], 0x0C040B03);
-			EXPECT_EQ(out.i[2][2], 0x00000000);
-			EXPECT_EQ(out.i[2][3], 0x00000000);
-
-			EXPECT_EQ(out.i[3][0], 0x0E060D05);
-			EXPECT_EQ(out.i[3][1], 0x10080F07);
-			EXPECT_EQ(out.i[3][2], 0x00000000);
-			EXPECT_EQ(out.i[3][3], 0x00000000);
-
-			for(int i = 0; i < 256; i++)
-			{
-				EXPECT_EQ(out.i[4 + i / 2][0 + (i % 2) * 2] & 0xFFFF,
-				          ((i >> 0) & 0x03) + 1);
-				EXPECT_EQ(out.i[4 + i / 2][0 + (i % 2) * 2] >> 16,
-				          ((i >> 2) & 0x03) + 1);
-				EXPECT_EQ(out.i[4 + i / 2][1 + (i % 2) * 2] & 0xFFFF,
-				          ((i >> 4) & 0x03) + 1);
-				EXPECT_EQ(out.i[4 + i / 2][1 + (i % 2) * 2] >> 16,
-				          ((i >> 6) & 0x03) + 1);
-			}
-
-			for(int i = 0; i < 256; i++)
-			{
-				EXPECT_EQ(out.i[132 + i][0], ((i >> 0) & 0x03) + 1);
-				EXPECT_EQ(out.i[132 + i][1], ((i >> 2) & 0x03) + 1);
-				EXPECT_EQ(out.i[132 + i][2], ((i >> 4) & 0x03) + 1);
-				EXPECT_EQ(out.i[132 + i][3], ((i >> 6) & 0x03) + 1);
-			}
-		}
+		EXPECT_EQ(out[2][0], 0x15161314);
+		EXPECT_EQ(out[2][1], 0x11120910);
+		EXPECT_EQ(out[2][2], 0x07080506);
+		EXPECT_EQ(out[2][3], 0x03040102);
 	}
 }
 

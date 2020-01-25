@@ -2682,23 +2682,11 @@ RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 	}
 }
 
-RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7)
-{
-	UNIMPLEMENTED("RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7)");
-	return UShort8(0);
-}
-
 RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 {
 	UNIMPLEMENTED("RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)");
 	return UShort8(0);
 }
-
-// FIXME: Implement as Shuffle(x, y, Select(i0, ..., i16)) and Shuffle(x, y, SELECT_PACK_REPEAT(element))
-//	RValue<UShort8> PackRepeat(RValue<Byte16> x, RValue<Byte16> y, int element)
-//	{
-//		ASSERT(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
-//	}
 
 Type *UShort8::getType()
 {

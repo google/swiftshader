@@ -517,15 +517,19 @@ class Byte4 : public LValue<Byte4>
 {
 public:
 	explicit Byte4(RValue<Byte8> cast);
+	explicit Byte4(RValue<UShort4> cast);
+	explicit Byte4(RValue<Short4> cast);
+	explicit Byte4(RValue<UInt4> cast);
+	explicit Byte4(RValue<Int4> cast);
 
 	Byte4() = default;
 	//	Byte4(int x, int y, int z, int w);
-	//	Byte4(RValue<Byte4> rhs);
-	//	Byte4(const Byte4 &rhs);
+	Byte4(RValue<Byte4> rhs);
+	Byte4(const Byte4 &rhs);
 	Byte4(const Reference<Byte4> &rhs);
 
-	//	RValue<Byte4> operator=(RValue<Byte4> rhs);
-	//	RValue<Byte4> operator=(const Byte4 &rhs);
+	RValue<Byte4> operator=(RValue<Byte4> rhs);
+	RValue<Byte4> operator=(const Byte4 &rhs);
 	//	RValue<Byte4> operator=(const Reference<Byte4> &rhs);
 
 	static Type *getType();
@@ -656,6 +660,7 @@ RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y);
 RValue<Int> SignMask(RValue<Byte8> x);
 //	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y);
 RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y);
+RValue<Byte8> Swizzle(RValue<Byte8> x, uint32_t select);
 
 class SByte8 : public LValue<SByte8>
 {
@@ -713,7 +718,6 @@ class Byte16 : public LValue<Byte16>
 {
 public:
 	Byte16() = default;
-	//	Byte16(int x, int y, int z, int w);
 	Byte16(RValue<Byte16> rhs);
 	Byte16(const Byte16 &rhs);
 	Byte16(const Reference<Byte16> &rhs);
@@ -752,6 +756,7 @@ public:
 //	const Byte16 &operator++(Byte16 &val);   // Pre-increment
 //	RValue<Byte16> operator--(Byte16 &val, int);   // Post-decrement
 //	const Byte16 &operator--(Byte16 &val);   // Pre-decrement
+RValue<Byte16> Swizzle(RValue<Byte16> x, uint64_t select);
 
 class SByte16 : public LValue<SByte16>
 {
@@ -1065,7 +1070,7 @@ RValue<UShort8> operator~(RValue<UShort8> val);
 //	RValue<Bool> operator!=(RValue<UShort8> lhs, RValue<UShort8> rhs);
 //	RValue<Bool> operator==(RValue<UShort8> lhs, RValue<UShort8> rhs);
 
-RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7);
+RValue<UShort8> Swizzle(RValue<UShort8> x, uint32_t select);
 RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y);
 
 class Int : public LValue<Int>
