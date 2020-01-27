@@ -250,22 +250,18 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		}
 
 		dap::VariablesResponse response;
-		vars->foreach(req.start.value(0), [&](const Variable &v) {
-			if(!req.count.has_value() ||
-			   req.count.value() < int(response.variables.size()))
+		vars->foreach(req.start.value(0), req.count.value(~0), [&](const Variable &v) {
+			dap::Variable out;
+			out.evaluateName = v.name;
+			out.name = v.name;
+			out.type = v.value->type()->string();
+			out.value = v.value->string();
+			if(v.value->type()->kind == Kind::VariableContainer)
 			{
-				dap::Variable out;
-				out.evaluateName = v.name;
-				out.name = v.name;
-				out.type = v.value->type()->string();
-				out.value = v.value->string();
-				if(v.value->type()->kind == Kind::VariableContainer)
-				{
-					auto const vc = static_cast<const VariableContainer *>(v.value.get());
-					out.variablesReference = vc->id.value();
-				}
-				response.variables.push_back(out);
+				auto const vc = static_cast<const VariableContainer *>(v.value.get());
+				out.variablesReference = vc->id.value();
 			}
+			response.variables.push_back(out);
 		});
 		return response;
 	});

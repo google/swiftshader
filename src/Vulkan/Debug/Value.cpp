@@ -62,7 +62,7 @@ std::string Value::string(const FormatFlags &fmt /* = FormatFlags::Default */) c
 			auto subfmt = *fmt.subListFmt;
 			subfmt.listIndent = fmt.listIndent + fmt.subListFmt->listIndent;
 			bool first = true;
-			vc->foreach(0, [&](const Variable &var) {
+			vc->foreach(0, ~0, [&](const Variable &var) {
 				if(!first) { out += fmt.listDelimiter; }
 				first = false;
 				out += fmt.listIndent;

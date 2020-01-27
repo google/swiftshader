@@ -46,7 +46,7 @@ public:
 	// foreach() calls cb with each of the variables in the container.
 	// F must be a function with the signature void(const Variable&).
 	template<typename F>
-	inline void foreach(size_t startIndex, const F &cb) const;
+	inline void foreach(size_t startIndex, size_t count, const F &cb) const;
 
 	// find() looks up the variable with the given name.
 	// If the variable with the given name is found, cb is called with the
@@ -60,16 +60,30 @@ public:
 	// put() places the variable with the given name and value into the container.
 	inline void put(const std::string &name, const std::shared_ptr<Value> &value);
 
+	// extend() adds base to the list of VariableContainers that will be
+	// searched and traversed for variables.
+	inline void extend(const std::shared_ptr<VariableContainer> &base);
+
 	// The unique identifier of the variable.
 	const ID id;
 
 private:
+	struct ForeachIndex
+	{
+		size_t start;
+		size_t count;
+	};
+
+	template<typename F>
+	inline void foreach(ForeachIndex &index, const F &cb) const;
+
 	inline std::shared_ptr<Type> type() const override;
 	inline const void *get() const override;
 
 	mutable std::mutex mutex;
 	std::vector<Variable> variables;
 	std::unordered_map<std::string, int> indices;
+	std::vector<std::shared_ptr<VariableContainer>> extends;
 };
 
 VariableContainer::VariableContainer(ID id)
@@ -77,12 +91,27 @@ VariableContainer::VariableContainer(ID id)
 {}
 
 template<typename F>
-void VariableContainer::foreach(size_t startIndex, const F &cb) const
+void VariableContainer::foreach(size_t startIndex, size_t count, const F &cb) const
+{
+	auto index = ForeachIndex{ startIndex, count };
+	foreach(index, cb);
+}
+
+template<typename F>
+void VariableContainer::foreach(ForeachIndex &index, const F &cb) const
 {
 	std::unique_lock<std::mutex> lock(mutex);
-	for(size_t i = startIndex; i < variables.size(); i++)
+	for(size_t i = index.start; i < variables.size() && i < index.count; i++)
 	{
 		cb(variables[i]);
+	}
+
+	index.start -= std::min(index.start, variables.size());
+	index.count -= std::min(index.count, variables.size());
+
+	for(auto &base : extends)
+	{
+		base->foreach(index, cb);
 	}
 }
 
@@ -95,6 +124,13 @@ bool VariableContainer::find(const std::string &name, const F &cb) const
 		if(var.name == name)
 		{
 			cb(var);
+			return true;
+		}
+	}
+	for(auto &base : extends)
+	{
+		if(base->find(name, cb))
+		{
 			return true;
 		}
 	}
@@ -120,6 +156,12 @@ void VariableContainer::put(const std::string &name,
                             const std::shared_ptr<Value> &value)
 {
 	put({ name, value });
+}
+
+void VariableContainer::extend(const std::shared_ptr<VariableContainer> &base)
+{
+	std::unique_lock<std::mutex> lock(mutex);
+	extends.emplace_back(base);
 }
 
 std::shared_ptr<Type> VariableContainer::type() const
