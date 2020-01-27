@@ -464,9 +464,9 @@ public:
 	void createScope(const debug::Scope *);
 	void setScope(debug::SourceScope *newScope);
 
-	vk::dbg::VariableContainer *locals(const debug::Scope *);
 	vk::dbg::VariableContainer *hovers(const debug::Scope *);
 	vk::dbg::VariableContainer *localsLane(const debug::Scope *, int lane);
+	vk::dbg::VariableContainer *builtinsLane(int lane);
 
 	template<typename K>
 	vk::dbg::VariableContainer *group(vk::dbg::VariableContainer *vc, K key);
@@ -492,8 +492,9 @@ public:
 	const Debugger *debugger;
 	const std::shared_ptr<vk::dbg::Thread> thread;
 	std::unordered_map<const debug::Scope *, Scopes> scopes;
-	Scopes rootScopes;                       // Scopes for the root stack frame.
-	debug::SourceScope *srcScope = nullptr;  // Current source scope.
+	Scopes rootScopes;                                                                        // Scopes for the root stack frame.
+	std::array<std::shared_ptr<vk::dbg::VariableContainer>, sw::SIMD::Width> builtinsByLane;  // Scopes for builtin varibles (shared by all shader frames).
+	debug::SourceScope *srcScope = nullptr;                                                   // Current source scope.
 };
 
 SpirvShader::Impl::Debugger::State *SpirvShader::Impl::Debugger::State::create(const Debugger *debugger, const char *name)
@@ -512,13 +513,21 @@ SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *
     , thread(lock.currentThread())
 {
 	enter(lock, stackBase);
+
+	for(int i = 0; i < sw::SIMD::Width; i++)
+	{
+		builtinsByLane[i] = lock.createVariableContainer();
+	}
+
 	thread->update([&](vk::dbg::Frame &frame) {
 		rootScopes.locals = frame.locals;
 		rootScopes.hovers = frame.hovers;
 		for(int i = 0; i < sw::SIMD::Width; i++)
 		{
-			rootScopes.localsByLane[i] = lock.createVariableContainer();
-			frame.locals->variables->put(laneNames[i], rootScopes.localsByLane[i]);
+			auto locals = lock.createVariableContainer();
+			locals->extend(builtinsByLane[i]);
+			frame.locals->variables->put(laneNames[i], locals);
+			rootScopes.localsByLane[i] = locals;
 		}
 	});
 }
@@ -551,11 +560,6 @@ void SpirvShader::Impl::Debugger::State::update(vk::dbg::File::ID fileID, int li
 	});
 }
 
-vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::locals(const debug::Scope *scope)
-{
-	return getScopes(scope).locals->variables.get();
-}
-
 vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::hovers(const debug::Scope *scope)
 {
 	return getScopes(scope).hovers->variables.get();
@@ -564,6 +568,11 @@ vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::hovers(const deb
 vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::localsLane(const debug::Scope *scope, int i)
 {
 	return getScopes(scope).localsByLane[i].get();
+}
+
+vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::builtinsLane(int i)
+{
+	return builtinsByLane[i].get();
 }
 
 template<typename K>
@@ -598,8 +607,10 @@ void SpirvShader::Impl::Debugger::State::createScope(const debug::Scope *spirvSc
 	s.hovers = lock.createScope(spirvScope->source->dbgFile);
 	for(int i = 0; i < sw::SIMD::Width; i++)
 	{
-		s.localsByLane[i] = lock.createVariableContainer();
-		s.locals->variables->put(laneNames[i], s.localsByLane[i]);
+		auto locals = lock.createVariableContainer();
+		locals->extend(builtinsByLane[i]);
+		s.localsByLane[i] = locals;
+		s.locals->variables->put(laneNames[i], locals);
 	}
 	scopes.emplace(spirvScope, std::move(s));
 }
@@ -655,6 +666,7 @@ public:
 	static Group hovers(Ptr state, const debug::Scope *scope);
 	static Group locals(Ptr state, const debug::Scope *scope);
 	static Group localsLane(Ptr state, const debug::Scope *scope, int lane);
+	static Group builtinsLane(Ptr state, int lane);
 
 	Group(Ptr state, Ptr group);
 
@@ -691,15 +703,15 @@ SpirvShader::Impl::Debugger::Group::hovers(Ptr state, const debug::Scope *scope)
 }
 
 SpirvShader::Impl::Debugger::Group
-SpirvShader::Impl::Debugger::Group::locals(Ptr state, const debug::Scope *scope)
-{
-	return Group(state, rr::Call(&State::locals, state, scope));
-}
-
-SpirvShader::Impl::Debugger::Group
 SpirvShader::Impl::Debugger::Group::localsLane(Ptr state, const debug::Scope *scope, int lane)
 {
 	return Group(state, rr::Call(&State::localsLane, state, scope, lane));
+}
+
+SpirvShader::Impl::Debugger::Group
+SpirvShader::Impl::Debugger::Group::builtinsLane(Ptr state, int lane)
+{
+	return Group(state, rr::Call(&State::builtinsLane, state, lane));
 }
 
 SpirvShader::Impl::Debugger::Group::Group(Ptr state, Ptr group)
@@ -1284,55 +1296,57 @@ void SpirvShader::dbgBeginEmit(EmitState *state) const
 
 	SetActiveLaneMask(state->activeLaneMask(), state);
 
-	auto locals = Group::locals(dbgState, &debug::Scope::Root);
-	locals.put<const char *, int>("subgroupSize", routine->invocationsPerSubgroup);
-
-	switch(executionModel)
+	for(int i = 0; i < SIMD::Width; i++)
 	{
-		case spv::ExecutionModelGLCompute:
-			locals.putVec3<const char *, int>("numWorkgroups", routine->numWorkgroups);
-			locals.putVec3<const char *, int>("workgroupID", routine->workgroupID);
-			locals.putVec3<const char *, int>("workgroupSize", routine->workgroupSize);
-			locals.put<const char *, int>("numSubgroups", routine->subgroupsPerWorkgroup);
-			locals.put<const char *, int>("subgroupIndex", routine->subgroupIndex);
+		auto builtins = Group::builtinsLane(dbgState, i);
+		builtins.put<const char *, int>("subgroupSize", routine->invocationsPerSubgroup);
 
-			for(int i = 0; i < SIMD::Width; i++)
-			{
-				auto lane = Group::localsLane(dbgState, &debug::Scope::Root, i);
-				lane.put<const char *, int>("globalInvocationId",
-				                            rr::Extract(routine->globalInvocationID[0], i),
-				                            rr::Extract(routine->globalInvocationID[1], i),
-				                            rr::Extract(routine->globalInvocationID[2], i));
-				lane.put<const char *, int>("localInvocationId",
-				                            rr::Extract(routine->localInvocationID[0], i),
-				                            rr::Extract(routine->localInvocationID[1], i),
-				                            rr::Extract(routine->localInvocationID[2], i));
-				lane.put<const char *, int>("localInvocationIndex", rr::Extract(routine->localInvocationIndex, i));
-			}
-			break;
+		switch(executionModel)
+		{
+			case spv::ExecutionModelGLCompute:
+				builtins.putVec3<const char *, int>("numWorkgroups", routine->numWorkgroups);
+				builtins.putVec3<const char *, int>("workgroupID", routine->workgroupID);
+				builtins.putVec3<const char *, int>("workgroupSize", routine->workgroupSize);
+				builtins.put<const char *, int>("numSubgroups", routine->subgroupsPerWorkgroup);
+				builtins.put<const char *, int>("subgroupIndex", routine->subgroupIndex);
 
-		case spv::ExecutionModelFragment:
-			locals.put<const char *, int>("viewIndex", routine->viewID);
-			for(int i = 0; i < SIMD::Width; i++)
-			{
-				auto lane = Group::localsLane(dbgState, &debug::Scope::Root, i);
-				lane.put<const char *, float>("fragCoord",
-				                              rr::Extract(routine->fragCoord[0], i),
-				                              rr::Extract(routine->fragCoord[1], i),
-				                              rr::Extract(routine->fragCoord[2], i),
-				                              rr::Extract(routine->fragCoord[3], i));
-				lane.put<const char *, float>("pointCoord",
-				                              rr::Extract(routine->pointCoord[0], i),
-				                              rr::Extract(routine->pointCoord[1], i));
-				lane.put<const char *, int>("windowSpacePosition",
-				                            rr::Extract(routine->windowSpacePosition[0], i),
-				                            rr::Extract(routine->windowSpacePosition[1], i));
-				lane.put<const char *, int>("helperInvocation", rr::Extract(routine->helperInvocation, i));
-			}
-			break;
+				builtins.put<const char *, int>("globalInvocationId",
+				                                rr::Extract(routine->globalInvocationID[0], i),
+				                                rr::Extract(routine->globalInvocationID[1], i),
+				                                rr::Extract(routine->globalInvocationID[2], i));
+				builtins.put<const char *, int>("localInvocationId",
+				                                rr::Extract(routine->localInvocationID[0], i),
+				                                rr::Extract(routine->localInvocationID[1], i),
+				                                rr::Extract(routine->localInvocationID[2], i));
+				builtins.put<const char *, int>("localInvocationIndex", rr::Extract(routine->localInvocationIndex, i));
+				break;
 
-		default:
-			break;
+			case spv::ExecutionModelFragment:
+				builtins.put<const char *, int>("viewIndex", routine->viewID);
+				builtins.put<const char *, float>("fragCoord",
+				                                  rr::Extract(routine->fragCoord[0], i),
+				                                  rr::Extract(routine->fragCoord[1], i),
+				                                  rr::Extract(routine->fragCoord[2], i),
+				                                  rr::Extract(routine->fragCoord[3], i));
+				builtins.put<const char *, float>("pointCoord",
+				                                  rr::Extract(routine->pointCoord[0], i),
+				                                  rr::Extract(routine->pointCoord[1], i));
+				builtins.put<const char *, int>("windowSpacePosition",
+				                                rr::Extract(routine->windowSpacePosition[0], i),
+				                                rr::Extract(routine->windowSpacePosition[1], i));
+				builtins.put<const char *, int>("helperInvocation", rr::Extract(routine->helperInvocation, i));
+				break;
+
+			case spv::ExecutionModelVertex:
+				builtins.put<const char *, int>("viewIndex", routine->viewID);
+				builtins.put<const char *, int>("instanceIndex", routine->instanceID);
+				builtins.put<const char *, int>("vertexIndex",
+				                                rr::Extract(routine->vertexIndex, i));
+				break;
+
+			default:
+				break;
+		}
 	}
 }
 
