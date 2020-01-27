@@ -2711,9 +2711,9 @@ void PixelRoutine::sRGBtoLinear16_12_16(Vector4s &c)
 {
 	Pointer<Byte> LUT = constants + OFFSET(Constants, sRGBtoLinear12_16);
 
-	c.x = As<UShort4>(c.x) >> 4;
-	c.y = As<UShort4>(c.y) >> 4;
-	c.z = As<UShort4>(c.z) >> 4;
+	c.x = AddSat(As<UShort4>(c.x), UShort4(0x0007)) >> 4;
+	c.y = AddSat(As<UShort4>(c.y), UShort4(0x0007)) >> 4;
+	c.z = AddSat(As<UShort4>(c.z), UShort4(0x0007)) >> 4;
 
 	c.x = Insert(c.x, *Pointer<Short>(LUT + 2 * Int(Extract(c.x, 0))), 0);
 	c.x = Insert(c.x, *Pointer<Short>(LUT + 2 * Int(Extract(c.x, 1))), 1);
@@ -2733,9 +2733,9 @@ void PixelRoutine::sRGBtoLinear16_12_16(Vector4s &c)
 
 void PixelRoutine::linearToSRGB16_12_16(Vector4s &c)
 {
-	c.x = As<UShort4>(c.x) >> 4;
-	c.y = As<UShort4>(c.y) >> 4;
-	c.z = As<UShort4>(c.z) >> 4;
+	c.x = AddSat(As<UShort4>(c.x), UShort4(0x0007)) >> 4;
+	c.y = AddSat(As<UShort4>(c.y), UShort4(0x0007)) >> 4;
+	c.z = AddSat(As<UShort4>(c.z), UShort4(0x0007)) >> 4;
 
 	linearToSRGB12_16(c);
 }

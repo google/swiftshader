@@ -161,8 +161,8 @@ private:
 	void write(Int4 &color, Pointer<Byte> element, const State &state);
 	static void ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled = false);
 	static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes);
-	static Float4 LinearToSRGB(Float4 &color);
-	static Float4 sRGBtoLinear(Float4 &color);
+	static Float4 LinearToSRGB(const Float4 &color);
+	static Float4 sRGBtoLinear(const Float4 &color);
 
 	using BlitFunction = FunctionT<void(const BlitData *)>;
 	using BlitRoutineType = BlitFunction::RoutineType;

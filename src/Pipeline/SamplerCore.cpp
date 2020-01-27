@@ -1746,7 +1746,10 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 		{
 			if(isRGBComponent(i))
 			{
-				sRGBtoLinear16_8_16(c[i]);
+				// The current table-based sRGB conversion requires 0xFF00 to represent 1.0.
+				ASSERT(state.textureFormat.has8bitTextureComponents());
+
+				sRGBtoLinearFF00(c[i]);
 			}
 		}
 	}
@@ -2492,11 +2495,11 @@ void SamplerCore::convertUnsigned16(Float4 &cf, Short4 &cs)
 	cf = Float4(As<UShort4>(cs)) * Float4(1.0f / 0xFFFF);
 }
 
-void SamplerCore::sRGBtoLinear16_8_16(Short4 &c)
+void SamplerCore::sRGBtoLinearFF00(Short4 &c)
 {
 	c = As<UShort4>(c) >> 8;
 
-	Pointer<Byte> LUT = Pointer<Byte>(constants + OFFSET(Constants, sRGBtoLinear8_16));
+	Pointer<Byte> LUT = Pointer<Byte>(constants + OFFSET(Constants, sRGBtoLinearFF_FF00));
 
 	c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 0))), 0);
 	c = Insert(c, *Pointer<Short>(LUT + 2 * Int(Extract(c, 1))), 1);

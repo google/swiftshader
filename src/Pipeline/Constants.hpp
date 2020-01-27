@@ -72,7 +72,7 @@ struct Constants
 	word4 mask5551Q[16];  // 4 bit writemask -> A1R5G5B5 bit patterns, replicated 4x
 	dword4 mask11X[8];    // 3 bit writemask -> B10G11R11 bit patterns, replicated 4x
 
-	unsigned short sRGBtoLinear8_16[256];
+	unsigned short sRGBtoLinearFF_FF00[256];
 
 	unsigned short linearToSRGB12_16[4096];
 	unsigned short sRGBtoLinear12_16[4096];

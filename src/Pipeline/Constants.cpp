@@ -270,7 +270,7 @@ Constants::Constants()
 
 	for(int i = 0; i < 256; i++)
 	{
-		sRGBtoLinear8_16[i] = (unsigned short)(sRGBtoLinear((float)i / 0xFF) * 0xFFFF + 0.5f);
+		sRGBtoLinearFF_FF00[i] = (unsigned short)(sRGBtoLinear((float)i / 0xFF) * 0xFF00 + 0.5f);
 	}
 
 	for(int i = 0; i < 0x1000; i++)

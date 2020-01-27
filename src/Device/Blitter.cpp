@@ -1354,7 +1354,7 @@ Int Blitter::ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes)
 	return y * pitchB + x * bytes;
 }
 
-Float4 Blitter::LinearToSRGB(Float4 &c)
+Float4 Blitter::LinearToSRGB(const Float4 &c)
 {
 	Float4 lc = Min(c, Float4(0.0031308f)) * Float4(12.92f);
 	Float4 ec = Float4(1.055f) * power(c, Float4(1.0f / 2.4f)) - Float4(0.055f);
@@ -1365,7 +1365,7 @@ Float4 Blitter::LinearToSRGB(Float4 &c)
 	return s;
 }
 
-Float4 Blitter::sRGBtoLinear(Float4 &c)
+Float4 Blitter::sRGBtoLinear(const Float4 &c)
 {
 	Float4 lc = c * Float4(1.0f / 12.92f);
 	Float4 ec = power((c + Float4(0.055f)) * Float4(1.0f / 1.055f), Float4(2.4f));
