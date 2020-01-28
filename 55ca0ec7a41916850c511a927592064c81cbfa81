@@ -46,6 +46,30 @@
       "revId": "55ca0ec7a41916850c511a927592064c81cbfa81",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ac7f90a_e56c227d",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5082,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-01-28T20:03:30Z",
+      "side": 1,
+      "message": "These LLVM coroutine passes were only added to support C++20\u0027s coroutines. Did something significant change late in the spec?",
+      "parentUuid": "da995221_dc533771",
+      "range": {
+        "startLine": 5082,
+        "startChar": 30,
+        "endLine": 5082,
+        "endChar": 36
+      },
+      "revId": "55ca0ec7a41916850c511a927592064c81cbfa81",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
