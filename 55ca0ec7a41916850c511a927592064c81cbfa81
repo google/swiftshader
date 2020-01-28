@@ -22,6 +22,30 @@
       "revId": "55ca0ec7a41916850c511a927592064c81cbfa81",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da995221_dc533771",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5082,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-01-28T19:43:34Z",
+      "side": 1,
+      "message": "I know, right? I wonder if this has to do with updates to coroutines for C++20.",
+      "parentUuid": "f134b95c_b731b362",
+      "range": {
+        "startLine": 5082,
+        "startChar": 30,
+        "endLine": 5082,
+        "endChar": 36
+      },
+      "revId": "55ca0ec7a41916850c511a927592064c81cbfa81",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
