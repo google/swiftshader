@@ -52,6 +52,9 @@ __pragma(warning(push))
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Intrinsics.h"
+#if LLVM_VERSION_MAJOR >= 8
+#	include "llvm/IR/IntrinsicsX86.h"
+#endif
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Mangler.h"
@@ -347,7 +350,11 @@ public:
 		// Round down base address to align with a page boundary. This matches
 		// DefaultMMapper behavior.
 		void *addr = block.base();
+#if LLVM_VERSION_MAJOR >= 8
+		size_t size = block.allocatedSize();
+#else
 		size_t size = block.size();
+#endif
 		size_t pageSize = rr::memoryPageSize();
 		addr = reinterpret_cast<void *>(
 		    reinterpret_cast<uintptr_t>(addr) & ~(pageSize - 1));
@@ -360,7 +367,13 @@ public:
 
 	std::error_code releaseMappedMemory(llvm::sys::MemoryBlock &block)
 	{
-		rr::deallocateMemoryPages(block.base(), block.size());
+#if LLVM_VERSION_MAJOR >= 8
+		size_t size = block.allocatedSize();
+#else
+		size_t size = block.size();
+#endif
+
+		rr::deallocateMemoryPages(block.base(), size);
 		return std::error_code();
 	}
 
@@ -5064,11 +5077,21 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	{
 		// Run manadory coroutine transforms.
 		llvm::legacy::PassManager pm;
+
+#if LLVM_VERSION_MAJOR >= 8
+		pm.add(llvm::createCoroEarlyLegacyPass());
+		pm.add(llvm::createCoroSplitLegacyPass());
+		pm.add(llvm::createCoroElideLegacyPass());
+		pm.add(llvm::createBarrierNoopPass());
+		pm.add(llvm::createCoroCleanupLegacyPass());
+#else
 		pm.add(llvm::createCoroEarlyPass());
 		pm.add(llvm::createCoroSplitPass());
 		pm.add(llvm::createCoroElidePass());
 		pm.add(llvm::createBarrierNoopPass());
 		pm.add(llvm::createCoroCleanupPass());
+#endif
+
 		pm.run(*jit->module);
 	}
 
