@@ -1,0 +1,1 @@
+go run %~dp0cmd\regres\main.go %*

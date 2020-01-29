@@ -83,10 +83,6 @@ var (
 )
 
 func main() {
-	if runtime.GOOS != "linux" {
-		log.Fatal("regres only currently runs on linux")
-	}
-
 	flag.ErrHelp = errors.New("regres is a tool to detect regressions between versions of SwiftShader")
 	flag.Parse()
 
