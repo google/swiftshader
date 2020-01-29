@@ -22,6 +22,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67b57d96_4721c5a6",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-29T22:39:33Z",
+      "side": 1,
+      "message": "For posterity: This caused Regres to use it as the build output directory, expecting vk_swiftshader.json to be in that directory as well. https://swiftshader-review.googlesource.com/40649 makes it always use build/ instead, and has some checks for ensuring the .json and .so are where they\u0027re expected to be.\n\nTotally forgot that I made copying the \"loader\" lib to out/ part of this change. O:-) Still makes sense I think, and I intent to have more build products copied in here.\n\nLet me know when you\u0027ve updated and restarted Regres, and I\u0027ll rebase this.",
+      "parentUuid": "127d9666_c0511b0c",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
