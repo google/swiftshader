@@ -106,9 +106,8 @@ void Optimizer::run(Ice::Cfg *function)
 
 	for(auto operand : operandsWithUses)
 	{
-		auto uses = reinterpret_cast<Uses *>(operand->getExternalData());
-		delete uses;
-		operand->setExternalData(nullptr);
+		// Deletes the Uses instance on the operand
+		setUses(operand, nullptr);
 	}
 	operandsWithUses.clear();
 }
@@ -722,6 +721,11 @@ Optimizer::Uses *Optimizer::getUses(Ice::Operand *operand)
 
 void Optimizer::setUses(Ice::Operand *operand, Optimizer::Uses *uses)
 {
+	if(auto *oldUses = reinterpret_cast<Optimizer::Uses *>(operand->Ice::Operand::getExternalData()))
+	{
+		delete oldUses;
+	}
+
 	operand->Ice::Operand::setExternalData(uses);
 }
 
