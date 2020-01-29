@@ -872,14 +872,15 @@ func (t *test) build() error {
 func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error) {
 	log.Printf("Running tests for '%s'\n", t.commit)
 
-	outDir := filepath.Join(t.srcDir, "out")
-	if !util.IsDir(outDir) { // https://swiftshader-review.googlesource.com/c/SwiftShader/+/27188
-		outDir = t.buildDir
+	swiftshaderICDSo := filepath.Join(t.buildDir, "libvk_swiftshader.so")
+	if _, err := os.Stat(swiftshaderICDSo); err != nil {
+		return nil, fmt.Errorf("Couldn't find '%s'", swiftshaderICDSo)
 	}
-	if !util.IsDir(outDir) {
-		return nil, fmt.Errorf("Couldn't find output directory")
+
+	swiftshaderICDJSON := filepath.Join(t.buildDir, "Linux", "vk_swiftshader_icd.json")
+	if _, err := os.Stat(swiftshaderICDJSON); err != nil {
+		return nil, fmt.Errorf("Couldn't find '%s'", swiftshaderICDJSON)
 	}
-	log.Println("outDir:", outDir)
 
 	config := deqp.Config{
 		ExeEgl:    filepath.Join(d.path, "build", "modules", "egl", "deqp-egl"),
@@ -889,7 +890,7 @@ func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error)
 		TestLists: testLists,
 		Env: []string{
 			"LD_LIBRARY_PATH=" + t.buildDir + ":" + os.Getenv("LD_LIBRARY_PATH"),
-			"VK_ICD_FILENAMES=" + filepath.Join(outDir, "Linux", "vk_swiftshader_icd.json"),
+			"VK_ICD_FILENAMES=" + swiftshaderICDJSON,
 			"DISPLAY=" + os.Getenv("DISPLAY"),
 			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
 		},
