@@ -16,6 +16,24 @@
       "revId": "80ca543333e12a8ca27e74d60f1e4ce13406b600",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9868e470_23ca2463",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 46365
+      },
+      "writtenOn": "2020-01-30T18:20:58Z",
+      "side": 1,
+      "message": "Ok regression bot took a long time to reply. I\u0027m not sure what the failure exactly is, but I have a feeling it may have something to do with ptr being modified instead of ptr.base, so the above change is likely a necessity (rather than a nice to have).",
+      "parentUuid": "c587151e_1a494c12",
+      "revId": "80ca543333e12a8ca27e74d60f1e4ce13406b600",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
