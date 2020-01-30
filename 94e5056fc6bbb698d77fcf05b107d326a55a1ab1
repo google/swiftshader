@@ -46,6 +46,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "903a3df3_00fe6348",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-01-30T00:39:46Z",
+      "side": 1,
+      "message": "I would much prefer to avoid dumping build artifacts into the source tree.\nYes, we currently have a bit of a convention to build into `${CMAKE_CURRENT_SOURCE_DIR}/build`, but it\u0027s far more hygienic to allow the build artifacts to be placed out-of-tree and have the build not touch the source tree at all.\n\nWhat I\u0027d suggest is that we copy these to `${CMAKE_BINARY_DIR}/out`. You\u0027ll then still get your out directory, and we\u0027re keeping the git checkout clean.",
+      "parentUuid": "67b57d96_4721c5a6",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
