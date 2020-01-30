@@ -118,6 +118,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "18606a8e_4ba0e4bf",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-30T11:21:55Z",
+      "side": 1,
+      "message": "I\u0027m not arguing against the benefits of multiple build directories. We can have this copied to ${CMAKE_BINARY_DIR}/out/ as well. Heck, no reason not to copy it to ${CMAKE_BINARY_DIR}/ directly.\n\nThe benefit of having it in /out/ is knowing where your last build output is, or someone else\u0027s.",
+      "parentUuid": "2fe813fc_d0f6c55b",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
