@@ -94,6 +94,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2fe813fc_d0f6c55b",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-01-30T09:07:40Z",
+      "side": 1,
+      "message": "\u003e Note that /out/ is (still) in .gitignore, so the git checkout is kept clean.\n\nI\u0027m aware it is still in the .gitignore (and I\u0027d like it removed), but I still wouldn\u0027t consider this \u0027clean\u0027.\n\nSome more reasons:\n• Dumping stuff into the source tree makes it impossible to use multiple build directories. ccache helps here, but if you have the disk space, it is sometimes *really* convenient to have multiple build output directories with different configs (debug vs release, LLVM vs subzero). This is especially useful when trying to identify a bug that only affects one flavour, and requires continual hopping and testing between build types.\n• Dumping stuff into the source tree also means you cannot \"go nuclear\" and `rm -fr` the build directory to ensure you have a clean build. To point: I\u0027m fairly certain that these lines we\u0027re discussing will not delete the copied files if you `make clean`.\n\nAs I said, copy these to `${CMAKE_BINARY_DIR}/out`, you\u0027ll get what you want at `{swiftshader}/build/out`, and we get the ability to do builds completely out-of-tree. We\u0027re all winners.",
+      "parentUuid": "75000e99_12146ede",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
