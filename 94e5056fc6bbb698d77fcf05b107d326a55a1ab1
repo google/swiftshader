@@ -166,6 +166,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7e4e619_5255bffa",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-30T16:16:49Z",
+      "side": 1,
+      "message": "I\u0027ve split it off into a separate change so we don\u0027t have to block this on it.",
+      "parentUuid": "d6329b65_9bab1cb6",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
