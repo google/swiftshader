@@ -40,7 +40,7 @@ function check() {
 
 # Validate commit message
 function run_bug_in_commit_msg() {
-  git log -1 --pretty=%B | grep -E '^(Bug|Issue|Fixes):(\s?)(((b\/)|(\w+:))([0-9]+)|[^0-9]+)$|(^Regres:)'
+  git log -1 --pretty=%B | grep -E '^(Bug|Issue|Fixes):(\s?)(((b\/)|(\w+:))([0-9]+)|[^0-9]+)$|(^Regres:)|(^PiperOrigin-RevId:)'
 
   if [ $? -ne 0 ]
   then
