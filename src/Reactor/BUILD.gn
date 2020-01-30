@@ -330,6 +330,7 @@ if (supports_llvm) {
 
     sources = [
       "CPUID.cpp",
+      "LLVMJIT.cpp",
       "LLVMReactor.cpp",
     ]
 

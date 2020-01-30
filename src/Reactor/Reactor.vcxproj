@@ -287,6 +287,7 @@
     <ClCompile Include="CPUID.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="LLVMReactor.cpp" />
+    <ClCompile Include="LLVMJIT.cpp" />
     <ClCompile Include="LLVMReactorDebugInfo.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
     <ClCompile Include="Reactor.cpp" />

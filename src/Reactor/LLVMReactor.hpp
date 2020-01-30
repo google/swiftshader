@@ -15,10 +15,31 @@
 #ifndef rr_LLVMReactor_hpp
 #define rr_LLVMReactor_hpp
 
-namespace llvm {
+#include "Nucleus.hpp"
 
-class Type;
-class Value;
+#include "Debug.hpp"
+#include "LLVMReactorDebugInfo.hpp"
+#include "Print.hpp"
+
+#ifdef _MSC_VER
+__pragma(warning(push))
+    __pragma(warning(disable : 4146))  // unary minus operator applied to unsigned type, result still unsigned
+#endif
+
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+
+#ifdef _MSC_VER
+    __pragma(warning(pop))
+#endif
+
+#include <memory>
+
+        namespace llvm
+{
+
+	class Type;
+	class Value;
 
 }  // namespace llvm
 
@@ -48,6 +69,81 @@ inline Value *V(llvm::Value *t)
 // Useful for emitting something that can have a source location without
 // effect.
 void Nop();
+
+class Routine;
+class Config;
+
+// JITBuilder holds all the LLVM state for building routines.
+class JITBuilder
+{
+public:
+	JITBuilder(const rr::Config &config);
+
+	void optimize(const rr::Config &cfg);
+
+	std::shared_ptr<rr::Routine> acquireRoutine(llvm::Function **funcs, size_t count, const rr::Config &cfg);
+
+	const Config config;
+	llvm::LLVMContext context;
+	std::unique_ptr<llvm::Module> module;
+	std::unique_ptr<llvm::IRBuilder<>> builder;
+	llvm::Function *function = nullptr;
+
+	struct CoroutineState
+	{
+		llvm::Function *await = nullptr;
+		llvm::Function *destroy = nullptr;
+		llvm::Value *handle = nullptr;
+		llvm::Value *id = nullptr;
+		llvm::Value *promise = nullptr;
+		llvm::Type *yieldType = nullptr;
+		llvm::BasicBlock *entryBlock = nullptr;
+		llvm::BasicBlock *suspendBlock = nullptr;
+		llvm::BasicBlock *endBlock = nullptr;
+		llvm::BasicBlock *destroyBlock = nullptr;
+	};
+	CoroutineState coroutine;
+
+#ifdef ENABLE_RR_DEBUG_INFO
+	std::unique_ptr<rr::DebugInfo> debugInfo;
+#endif
+};
+
+inline std::memory_order atomicOrdering(llvm::AtomicOrdering memoryOrder)
+{
+	switch(memoryOrder)
+	{
+		case llvm::AtomicOrdering::Monotonic: return std::memory_order_relaxed;  // https://llvm.org/docs/Atomics.html#monotonic
+		case llvm::AtomicOrdering::Acquire: return std::memory_order_acquire;
+		case llvm::AtomicOrdering::Release: return std::memory_order_release;
+		case llvm::AtomicOrdering::AcquireRelease: return std::memory_order_acq_rel;
+		case llvm::AtomicOrdering::SequentiallyConsistent: return std::memory_order_seq_cst;
+		default:
+			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
+			return std::memory_order_acq_rel;
+	}
+}
+
+inline llvm::AtomicOrdering atomicOrdering(bool atomic, std::memory_order memoryOrder)
+{
+	if(!atomic)
+	{
+		return llvm::AtomicOrdering::NotAtomic;
+	}
+
+	switch(memoryOrder)
+	{
+		case std::memory_order_relaxed: return llvm::AtomicOrdering::Monotonic;  // https://llvm.org/docs/Atomics.html#monotonic
+		case std::memory_order_consume: return llvm::AtomicOrdering::Acquire;    // https://llvm.org/docs/Atomics.html#acquire: "It should also be used for C++11/C11 memory_order_consume."
+		case std::memory_order_acquire: return llvm::AtomicOrdering::Acquire;
+		case std::memory_order_release: return llvm::AtomicOrdering::Release;
+		case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
+		case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
+		default:
+			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
+			return llvm::AtomicOrdering::AcquireRelease;
+	}
+}
 
 }  // namespace rr
 

@@ -18,6 +18,9 @@
     <ClCompile Include="LLVMReactor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LLVMJIT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LLVMReactorDebugInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

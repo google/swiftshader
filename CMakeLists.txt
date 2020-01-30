@@ -1745,6 +1745,7 @@ set(REACTOR_LLVM_LIST
     ${SOURCE_DIR}/Reactor/EmulatedReactor.cpp
     ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
     ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
+    ${SOURCE_DIR}/Reactor/LLVMJIT.cpp
     ${SOURCE_DIR}/Reactor/LLVMReactor.cpp
     ${SOURCE_DIR}/Reactor/LLVMReactor.hpp
     ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.cpp

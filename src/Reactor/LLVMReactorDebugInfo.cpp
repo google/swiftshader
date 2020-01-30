@@ -21,11 +21,21 @@
 
 #	include "boost/stacktrace.hpp"
 
+// TODO(b/143539525): Eliminate when warning has been fixed.
+#	ifdef _MSC_VER
+__pragma(warning(push))
+    __pragma(warning(disable : 4146))  // unary minus operator applied to unsigned type, result still unsigned
+#	endif
+
 #	include "llvm/Demangle/Demangle.h"
 #	include "llvm/ExecutionEngine/JITEventListener.h"
 #	include "llvm/IR/DIBuilder.h"
 #	include "llvm/IR/IRBuilder.h"
 #	include "llvm/IR/Intrinsics.h"
+
+#	ifdef _MSC_VER
+    __pragma(warning(pop))
+#	endif
 
 #	include <cctype>
 #	include <fstream>
@@ -40,17 +50,18 @@
 #		define LOG(msg, ...)
 #	endif
 
-namespace {
-
-std::pair<llvm::StringRef, llvm::StringRef> splitPath(const char *path)
+        namespace
 {
-	return llvm::StringRef(path).rsplit('/');
-}
 
-// Note: createGDBRegistrationListener() returns a pointer to a singleton.
-// Nothing is actually created.
-auto jitEventListener = llvm::JITEventListener::createGDBRegistrationListener();  // guarded by jitEventListenerMutex
-std::mutex jitEventListenerMutex;
+	std::pair<llvm::StringRef, llvm::StringRef> splitPath(const char *path)
+	{
+		return llvm::StringRef(path).rsplit('/');
+	}
+
+	// Note: createGDBRegistrationListener() returns a pointer to a singleton.
+	// Nothing is actually created.
+	auto jitEventListener = llvm::JITEventListener::createGDBRegistrationListener();  // guarded by jitEventListenerMutex
+	std::mutex jitEventListenerMutex;
 
 }  // namespace
 

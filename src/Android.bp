@@ -179,6 +179,7 @@ cc_defaults {
 
     srcs: [
         "Reactor/Reactor.cpp",
+        "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/Debug.cpp",
         "Reactor/CPUID.cpp",
@@ -200,6 +201,7 @@ cc_defaults {
 
     srcs: [
         "Reactor/Reactor.cpp",
+        "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/Debug.cpp",
         "Reactor/CPUID.cpp",
