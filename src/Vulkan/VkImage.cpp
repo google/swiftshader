@@ -17,10 +17,10 @@
 #include "VkBuffer.hpp"
 #include "VkDevice.hpp"
 #include "VkDeviceMemory.hpp"
+#include "Device/ASTC_Decoder.hpp"
 #include "Device/BC_Decoder.hpp"
 #include "Device/Blitter.hpp"
 #include "Device/ETC_Decoder.hpp"
-#include "Device/ASTC_Decoder.hpp"
 
 #ifdef __ANDROID__
 #	include "System/GrallocAndroid.hpp"
