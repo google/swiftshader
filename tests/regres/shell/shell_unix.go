@@ -115,14 +115,3 @@ func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) (
 		return b.Bytes(), err
 	}
 }
-
-// ErrTimeout is the error returned when a process does not finish with its
-// permitted time.
-type ErrTimeout struct {
-	process string
-	timeout time.Duration
-}
-
-func (e ErrTimeout) Error() string {
-	return fmt.Sprintf("'%v' did not return after %v", e.process, e.timeout)
-}
