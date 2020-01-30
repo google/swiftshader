@@ -410,7 +410,7 @@ Value *V(Ice::Operand *v)
 
 Ice::Operand *V(Value *v)
 {
-	return reinterpret_cast<Ice::Variable *>(v);
+	return reinterpret_cast<Ice::Operand *>(v);
 }
 
 BasicBlock *B(Ice::CfgNode *b)
