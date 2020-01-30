@@ -178,7 +178,7 @@ public:
 	static JITGlobals *get();
 
 	const std::string mcpu;
-	const std::vector<llvm::StringRef> mattrs;
+	const std::vector<std::string> mattrs;
 	const char *const march;
 	const llvm::TargetOptions targetOptions;
 	const llvm::DataLayout dataLayout;
@@ -189,7 +189,7 @@ private:
 	static JITGlobals create();
 	static llvm::CodeGenOpt::Level toLLVM(rr::Optimization::Level level);
 	JITGlobals(const char *mcpu,
-	           const std::vector<llvm::StringRef> &mattrs,
+	           const std::vector<std::string> &mattrs,
 	           const char *march,
 	           const llvm::TargetOptions &targetOptions,
 	           const llvm::DataLayout &dataLayout);
@@ -248,11 +248,11 @@ JITGlobals JITGlobals::create()
 	(void)ok;  // getHostCPUFeatures always returns false on other platforms
 #endif
 
-	std::vector<llvm::StringRef> mattrs;
+	std::vector<std::string> mattrs;
 
 	for(auto &feature : features)
 	{
-		if(feature.second) { mattrs.push_back(feature.first()); }
+		if(feature.second) { mattrs.push_back(feature.first().str()); }
 	}
 
 	const char *march = nullptr;
@@ -307,7 +307,7 @@ llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 }
 
 JITGlobals::JITGlobals(const char *mcpu,
-                       const std::vector<llvm::StringRef> &mattrs,
+                       const std::vector<std::string> &mattrs,
                        const char *march,
                        const llvm::TargetOptions &targetOptions,
                        const llvm::DataLayout &dataLayout)
@@ -4077,7 +4077,7 @@ RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
 
 RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
 {
-	auto str = ::llvm::StringRef(reinterpret_cast<const char *>(data), size);
+	auto str = ::std::string(reinterpret_cast<const char *>(data), size);
 	auto ptr = jit->builder->CreateGlobalStringPtr(str);
 	return RValue<Pointer<Byte>>(V(ptr));
 }
