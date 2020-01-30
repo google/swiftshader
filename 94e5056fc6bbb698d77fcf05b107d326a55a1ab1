@@ -70,6 +70,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "75000e99_12146ede",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-30T02:28:23Z",
+      "side": 1,
+      "message": "Note that /out/ is (still) in .gitignore, so the git checkout is kept clean. /build/ is checked in, but that will be changed back to being ignored when b/139189696 is completed, which this CL is blocking.",
+      "parentUuid": "903a3df3_00fe6348",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
