@@ -142,6 +142,30 @@
       "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d6329b65_9bab1cb6",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 6
+      },
+      "lineNbr": 2167,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-01-30T11:58:51Z",
+      "side": 1,
+      "message": "Then you\u0027re actively encouraging people to use the binaries out of the source tree instead of the build folder, which encourages people to use a process that suffers from the problems I\u0027ve listed above.\nI just don\u0027t understand why {SwiftShader}/build/out is any worse to you than {SwiftShader}/out. I honestly cannot think of a single compelling argument.\n\nIf you\u0027re strongly objecting to changing this, I recommend getting a second opinion here.",
+      "parentUuid": "18606a8e_4ba0e4bf",
+      "range": {
+        "startLine": 2167,
+        "startChar": 79,
+        "endLine": 2167,
+        "endChar": 83
+      },
+      "revId": "94e5056fc6bbb698d77fcf05b107d326a55a1ab1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
