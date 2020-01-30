@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c587151e_1a494c12",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 46365
+      },
+      "writtenOn": "2020-01-30T17:21:21Z",
+      "side": 1,
+      "message": "I\u0027d say ideally this should say:\n\n    ptr.base +\u003d stride * stage-\u003egetIntermediate(indexIds[i]).Int(0).OpSubgroupFirstInvocation()\n\nBut there were too many abstractions for me to easily find what that last function looks like.",
+      "revId": "80ca543333e12a8ca27e74d60f1e4ce13406b600",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
