@@ -1120,12 +1120,11 @@ private:
 	// Returns a SIMD::Pointer to the underlying data for the given pointer
 	// object.
 	// Handles objects of the following kinds:
-	//  • DescriptorSet
-	//  • DivergentPointer
-	//  • InterfaceVariable
-	//  • NonDivergentPointer
+	//  - DescriptorSet
+	//  - Pointer
+	//  - InterfaceVariable
 	// Calling GetPointerToData with objects of any other kind will assert.
-	SIMD::Pointer GetPointerToData(Object::ID id, int arrayIndex, EmitState const *state) const;
+	SIMD::Pointer GetPointerToData(Object::ID id, Int arrayIndex, EmitState const *state) const;
 
 	SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const;
 	SIMD::Pointer WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, EmitState const *state) const;

@@ -372,7 +372,7 @@ void SpirvShader::VisitMemoryObject(Object::ID id, const MemoryVisitor &f) const
 	}
 }
 
-SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, int arrayIndex, EmitState const *state) const
+SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, Int arrayIndex, EmitState const *state) const
 {
 	auto routine = state->routine;
 	auto &object = getObject(id);
@@ -390,7 +390,7 @@ SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, int arrayIndex, EmitS
 
 			uint32_t bindingOffset = routine->pipelineLayout->getBindingOffset(d.DescriptorSet, d.Binding);
 			uint32_t descriptorSize = routine->pipelineLayout->getDescriptorSize(d.DescriptorSet, d.Binding);
-			uint32_t descriptorOffset = bindingOffset + descriptorSize * arrayIndex;
+			Int descriptorOffset = bindingOffset + descriptorSize * arrayIndex;
 
 			auto set = state->getPointer(id);
 			Pointer<Byte> descriptor = set.base + descriptorOffset;                                        // BufferDescriptor*
@@ -399,7 +399,7 @@ SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, int arrayIndex, EmitS
 
 			if(routine->pipelineLayout->isDescriptorDynamic(d.DescriptorSet, d.Binding))
 			{
-				uint32_t dynamicOffsetIndex =
+				Int dynamicOffsetIndex =
 				    routine->pipelineLayout->getDynamicOffsetIndex(d.DescriptorSet, d.Binding) +
 				    arrayIndex;
 				Int offset = routine->descriptorDynamicOffsets[dynamicOffsetIndex];

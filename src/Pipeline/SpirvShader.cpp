@@ -1094,14 +1094,23 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 	Decorations d = {};
 	ApplyDecorationsForId(&d, baseObject.typeId());
 
-	uint32_t arrayIndex = 0;
+	Int arrayIndex = 0;
 	if(baseObject.kind == Object::Kind::DescriptorSet)
 	{
 		auto type = getType(typeId).definition.opcode();
 		if(type == spv::OpTypeArray || type == spv::OpTypeRuntimeArray)
 		{
-			ASSERT(getObject(indexIds[0]).kind == Object::Kind::Constant);
-			arrayIndex = GetConstScalarInt(indexIds[0]);
+			auto &obj = getObject(indexIds[0]);
+			ASSERT(obj.kind == Object::Kind::Constant || obj.kind == Object::Kind::Intermediate);
+			if(obj.kind == Object::Kind::Constant)
+			{
+				arrayIndex = GetConstScalarInt(indexIds[0]);
+			}
+			else
+			{
+				// Note: the value of indexIds[0] must be dynamically uniform.
+				arrayIndex = Extract(state->getIntermediate(indexIds[0]).Int(0), 0);
+			}
 
 			numIndexes--;
 			indexIds++;
@@ -1223,21 +1232,25 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 			case spv::OpTypeArray:
 			case spv::OpTypeRuntimeArray:
 			{
-				// TODO: b/127950082: Check bounds.
+				// TODO(b/127950082): Check bounds.
 				if(getType(baseObject).storageClass == spv::StorageClassUniformConstant)
 				{
 					// indexing into an array of descriptors.
-					auto &obj = getObject(indexIds[i]);
-					if(obj.kind != Object::Kind::Constant)
-					{
-						UNSUPPORTED("SPIR-V SampledImageArrayDynamicIndexing Capability");
-					}
-
 					auto d = descriptorDecorations.at(baseId);
 					ASSERT(d.DescriptorSet >= 0);
 					ASSERT(d.Binding >= 0);
 					uint32_t descriptorSize = routine->pipelineLayout->getDescriptorSize(d.DescriptorSet, d.Binding);
-					ptr.base += descriptorSize * GetConstScalarInt(indexIds[i]);
+
+					auto &obj = getObject(indexIds[i]);
+					if(obj.kind == Object::Kind::Constant)
+					{
+						ptr.base += descriptorSize * GetConstScalarInt(indexIds[i]);
+					}
+					else
+					{
+						// Note: the value of indexIds[i] must be dynamically uniform.
+						ptr.base += descriptorSize * Extract(state->getIntermediate(indexIds[i]).Int(0), 0);
+					}
 				}
 				else
 				{
