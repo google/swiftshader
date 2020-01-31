@@ -110,6 +110,7 @@ option_if_not_defined(SWIFTSHADER_USE_GROUP_SOURCES "Group the source files in a
 
 option_if_not_defined(SWIFTSHADER_BUILD_SAMPLES "Build sample programs" 1)
 option_if_not_defined(SWIFTSHADER_BUILD_TESTS "Build test programs" 1)
+option_if_not_defined(SWIFTSHADER_BUILD_BENCHMARKS "Build benchmarks" 0)
 
 option_if_not_defined(SWIFTSHADER_MSAN "Build with memory sanitizer" 0)
 option_if_not_defined(SWIFTSHADER_ASAN "Build with address sanitizer" 0)
@@ -160,16 +161,31 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Initialize submodules
 ###########################################################
 
-if (NOT TARGET gtest)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/.git)
-        message(WARNING "
-      third_party/googletest submodule missing.
-      Running 'git submodule update --init' to download it:
-        ")
+if (SWIFTSHADER_BUILD_TESTS)
+    if (NOT TARGET gtest)
+        if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/.git)
+            message(WARNING "
+        third_party/googletest submodule missing.
+        Running 'git submodule update --init' to download it:
+            ")
 
-        execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest)
+            execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest)
+        endif()
     endif()
 endif()
+
+if(SWIFTSHADER_BUILD_BENCHMARKS)
+    if (NOT TARGET benchmark::benchmark)
+        if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark/.git)
+            message(WARNING "
+        third_party/benchmark submodule missing.
+        Running 'git submodule update --init' to download it:
+            ")
+
+            execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark)
+        endif()
+    endif()
+endif(SWIFTSHADER_BUILD_BENCHMARKS)
 
 if (NOT TARGET libbacktrace)
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace/src/.git)
@@ -2301,6 +2317,25 @@ if(SWIFTSHADER_BUILD_TESTS)
         target_link_libraries(math-unittests pthread)
     endif()
 endif(SWIFTSHADER_BUILD_TESTS)
+
+if(SWIFTSHADER_BUILD_BENCHMARKS)
+    if (NOT TARGET benchmark::benchmark)
+        set(BENCHMARK_ENABLE_TESTING FALSE CACHE BOOL FALSE FORCE)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark)
+    endif()
+
+    set(REACTOR_BENCHMARK_LIST
+        ${SOURCE_DIR}/Reactor/ReactorBenchmarks.cpp
+    )
+
+    add_executable(ReactorBenchmarks ${REACTOR_BENCHMARK_LIST})
+    target_link_libraries(ReactorBenchmarks benchmark::benchmark ${Reactor})
+
+    set_target_properties(ReactorBenchmarks PROPERTIES
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        FOLDER "Benchmarks"
+    )
+endif(SWIFTSHADER_BUILD_BENCHMARKS)
 
 if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
     set(VK_UNITTESTS_LIST
