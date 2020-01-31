@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa046d70_27b79f27",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-31T15:10:16Z",
+      "side": 1,
+      "message": "Probably a good idea to open a bug and explain what\u0027s been unsuccessful, so that when we do have this enabled successfully but something goes wrong later, we don\u0027t have to rediscover all this. :)",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "7f065c558bc2843ba246c3b907527eb4456639f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
