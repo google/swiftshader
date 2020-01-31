@@ -16,6 +16,24 @@
       "revId": "4867db1d198a6257af6f32a4fae6d1debc04d607",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8173b26_4ae50f66",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-01-31T04:36:10Z",
+      "side": 1,
+      "message": "I\u0027ll have to check, but I think the spec forbids non-uniform branching of sampling operations. At least I\u0027m pretty sure GLSL ES does.",
+      "parentUuid": "3da6932a_e99fb4d2",
+      "revId": "4867db1d198a6257af6f32a4fae6d1debc04d607",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
