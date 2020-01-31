@@ -34,6 +34,24 @@
       "revId": "4867db1d198a6257af6f32a4fae6d1debc04d607",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f01cfbe_10f90a0a",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 46365
+      },
+      "writtenOn": "2020-01-31T04:43:56Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure you can do something like:\n\n    dynamically_uniform_index \u003d ...;\n    if (some_non_uniform_condition)\n    {\n        texture(samplerArray[dynamically_uniform_index], non_uniform_coordinates);\n    }\n\n(not sure if GLES disallows that, but modern languages shouldn\u0027t)\n\nI\u0027d guess all lanes (in swiftshader) would have the same value for `dynamically_uniform_index` regardless of active or not, but just wanted to bring that to your attention, in case that\u0027s not true.\n\n---\n\nAlso, I don\u0027t know if you care to add an UNSUPPORTED if not all lanes are equal, but maybe some SPIR-V validation beforehand prevents that? Unless the SPIR-V is manipulated, I don\u0027t think any shader compiler actually generates such a code though (i.e. non_uniform_index is disallowed by all shading languages I think).",
+      "parentUuid": "f8173b26_4ae50f66",
+      "revId": "4867db1d198a6257af6f32a4fae6d1debc04d607",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
