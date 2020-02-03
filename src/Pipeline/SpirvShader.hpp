@@ -1160,6 +1160,11 @@ private:
 	static std::string OpcodeName(spv::Op op);
 	static std::memory_order MemoryOrder(spv::MemorySemanticsMask memorySemantics);
 
+	// IsStatement() returns true if the given opcode actually performs
+	// work (as opposed to declaring a type, defining a function start / end,
+	// etc).
+	static bool IsStatement(spv::Op op);
+
 	// Helper as we often need to take dot products as part of doing other things.
 	SIMD::Float Dot(unsigned numComponents, GenericValue const &x, GenericValue const &y) const;
 

@@ -1373,12 +1373,17 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 
 	if(extensionsImported.count(Extension::OpenCLDebugInfo100) == 0)
 	{
-		auto dbg = impl.debugger;
-		if(!dbg) { return; }
+		// We're emitting debugger logic for SPIR-V.
+		// Only single line step over statement instructions.
+		if(IsStatement(insn.opcode()))
+		{
+			auto dbg = impl.debugger;
+			if(!dbg) { return; }
 
-		auto line = dbg->spirvLineMappings.at(insn.wordPointer(0));
-		auto column = 0;
-		rr::Call(&Impl::Debugger::State::update, state->routine->dbgState, dbg->spirvFile->id, line, column);
+			auto line = dbg->spirvLineMappings.at(insn.wordPointer(0));
+			auto column = 0;
+			rr::Call(&Impl::Debugger::State::update, state->routine->dbgState, dbg->spirvFile->id, line, column);
+		}
 	}
 }
 
