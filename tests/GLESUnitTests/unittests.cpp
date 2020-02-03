@@ -2066,6 +2066,18 @@ TEST_F(SwiftShaderTest, BadNegation)
 		float F (float f) { return G(-m); })");
 }
 
+TEST_F(SwiftShaderTest, SwitchDefaultOnly)
+{
+	checkCompiles(R"(
+		float F (float f) {
+			switch (0u) {
+			default:
+				return -f;
+			}
+			return f;
+		})");
+}
+
 #ifndef EGL_ANGLE_iosurface_client_buffer
 #	define EGL_ANGLE_iosurface_client_buffer 1
 #	define EGL_IOSURFACE_ANGLE 0x3454

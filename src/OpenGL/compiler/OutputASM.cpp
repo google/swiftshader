@@ -2058,7 +2058,11 @@ namespace glsl
 		// If there's a default case, traverse it here
 		if(defaultIt != sequence.end())
 		{
-			emit(sw::Shader::OPCODE_ELSE);
+			if(nbCases != 0)
+			{
+				emit(sw::Shader::OPCODE_ELSE);
+			}
+
 			for(++defaultIt; defaultIt != sequence.end(); ++defaultIt)
 			{
 				(*defaultIt)->traverse(this);
