@@ -903,6 +903,7 @@ namespace sw
 		case OPCODE_TEXBIAS:         return "texbias";
 		case OPCODE_TEXOFFSET:       return "texoffset";
 		case OPCODE_TEXOFFSETBIAS:   return "texoffsetbias";
+		case OPCODE_TEXLOD:          return "texlod";
 		case OPCODE_TEXLODOFFSET:    return "texlodoffset";
 		case OPCODE_TEXELFETCH:      return "texelfetch";
 		case OPCODE_TEXELFETCHOFFSET: return "texelfetchoffset";
@@ -992,8 +993,7 @@ namespace sw
 		case OPCODE_TEST:            return "test";
 		case OPCODE_SWITCH:          return "switch";
 		case OPCODE_ENDSWITCH:       return "endswitch";
-		default:
-			ASSERT(false);
+		case OPCODE_SCALAR:          return "scalar";
 		}
 
 		return "<unknown>";
