@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1ad3e03_11f57af7",
+        "filename": "src/Vulkan/vk_swiftshader.lds",
+        "patchSetId": 9
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2020-02-04T01:53:47Z",
+      "side": 1,
+      "message": "This blew up the Android build. This linker script is shared between desktop Linux and Android builds, and the WSI entrypoints must not be exposed in Android. Perhaps we should unshare this script.",
+      "range": {
+        "startLine": 212,
+        "startChar": 1,
+        "endLine": 212,
+        "endChar": 20
+      },
+      "revId": "29a9809ac8152805e8ee3f6686ebff791200f1b6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
