@@ -542,7 +542,7 @@ cc_defaults {
 
     local_include_dirs: [ "Vulkan" ],
 
-    version_script: "Vulkan/vk_swiftshader.lds",
+    version_script: "Vulkan/android_vk_swiftshader.lds",
 
     generated_headers: [ "commit_header" ],
 
