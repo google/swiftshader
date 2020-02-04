@@ -255,7 +255,7 @@ func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- Tes
 	// For example, GCOV_PREFIX="/tmp/gcov_output/PROC_ID" becomes GCOV_PREFIX="/tmp/gcov_output/1" in the first go routine.
 	// You might expect PROC_ID to be the process ID of some process, but the only real requirement is that
 	// it is a unique ID between the *parallel* child processes.
-	env := make([]string, len(c.Env))
+	env := make([]string, 0, len(c.Env))
 	for _, v := range c.Env {
 		if strings.HasPrefix(v, "GCOV_PREFIX=") {
 			v = strings.ReplaceAll(v, "PROC_ID", strconv.Itoa(goroutineIndex))
