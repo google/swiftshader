@@ -408,6 +408,7 @@ if(MSVC)
 else()
     set_cpp_flag("-fno-exceptions")
 
+    # Explicitly enable these warnings.
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS
         "-Wall"
         "-Wreorder"
@@ -421,6 +422,29 @@ else()
             "-Wstring-conversion"
             "-Wextra-semi"
             "-Wignored-qualifiers"
+        )
+    endif()
+
+    # Disable pedanitc warnings
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+            "-Wno-ignored-attributes"   # ignoring attributes on template argument 'X'
+            "-Wno-attributes"           # 'X' attribute ignored
+            "-Wno-strict-aliasing"      # dereferencing type-punned pointer will break strict-aliasing rules
+            "-Wno-comment"              # multi-line comment
+        )
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
+            list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+                "-Wno-init-list-lifetime"  # assignment from temporary initializer_list does not extend the lifetime of the underlying array
+            )
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+            "-Wno-unneeded-internal-declaration"  # function 'X' is not needed and will not be emitted
+            "-Wno-unused-private-field"           # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
+            "-Wno-comment"                        # multi-line comment
+            "-Wno-undefined-var-template"         # instantiation of variable 'X' required here, but no definition is available
+
             # Silence errors caused by unknown warnings when building with older
             # versions of Clang. This demands checking that warnings added above
             # are spelled correctly and work as intended!
@@ -483,23 +507,6 @@ else()
 
     if(SWIFTSHADER_DCHECK_ALWAYS_ON)
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DDCHECK_ALWAYS_ON")
-    endif()
-
-    # Disable pedanitc warnings
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-            "-Wno-ignored-attributes"   # ignoring attributes on template argument 'X'
-            "-Wno-attributes"           # 'X' attribute ignored
-            "-Wno-strict-aliasing"      # dereferencing type-punned pointer will break strict-aliasing rules
-            "-Wno-comment"              # multi-line comment
-        )
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-            "-Wno-unneeded-internal-declaration"  # function 'X' is not needed and will not be emitted
-            "-Wno-unused-private-field"           # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
-            "-Wno-comment"                        # multi-line comment
-            "-Wno-undefined-var-template"         # instantiation of variable 'X' required here, but no definition is available
-        )
     endif()
 
     # For distribution it is more important to be slim than super optimized
@@ -1494,6 +1501,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         list(APPEND LLVM_COMPILE_OPTIONS
             "-Wno-class-memaccess"  # memset/memcmp used on non-trivial class object
             "-Wno-attributes"	# declared inline but not inline
+        )
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
+        list(APPEND LLVM_COMPILE_OPTIONS
+            "-Wno-init-list-lifetime"  # assignment from temporary initializer_list does not extend the lifetime of the underlying array
         )
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
