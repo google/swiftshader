@@ -8,16 +8,17 @@
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
-                "${workspaceFolder}/src",
+                "${workspaceFolder}/build/spirv-tools-ext/include",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/third_party/benchmark/include",
+                "${workspaceFolder}/third_party/cppdap/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include",
+                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
-                "${workspaceFolder}/third_party/SPIRV-Tools/include",
-                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/linux/include",
-                "${workspaceFolder}/third_party/cppdap/include",
-                "${workspaceFolder}/build/spirv-tools-ext/include"
+                "${workspaceFolder}/third_party/SPIRV-Tools/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++14"
@@ -30,16 +31,17 @@
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
-                "${workspaceFolder}/src",
+                "${workspaceFolder}/build/spirv-tools-ext/include",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/third_party/benchmark/include",
+                "${workspaceFolder}/third_party/cppdap/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include",
+                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
                 "${workspaceFolder}/third_party/marl/include",
                 "${workspaceFolder}/third_party/SPIRV-Headers/include",
-                "${workspaceFolder}/third_party/SPIRV-Tools/include",
-                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
-                "${workspaceFolder}/third_party/llvm-7.0/configs/darwin/include",
-                "${workspaceFolder}/third_party/cppdap/include",
-                "${workspaceFolder}/build/spirv-tools-ext/include"
+                "${workspaceFolder}/third_party/SPIRV-Tools/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++14"
@@ -52,16 +54,17 @@
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
-                "${workspaceFolder}/src",
+                "${workspaceFolder}/build/spirv-tools-ext/include",
                 "${workspaceFolder}/include",
-                "${workspaceFolder}/third_party/marl/include",
-                "${workspaceFolder}/third_party/SPIRV-Headers/include",
-                "${workspaceFolder}/third_party/SPIRV-Tools/include",
-                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/third_party/benchmark/include",
+                "${workspaceFolder}/third_party/cppdap/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
                 "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include",
-                "${workspaceFolder}/third_party/cppdap/include",
-                "${workspaceFolder}/build/spirv-tools-ext/include"
+                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
+                "${workspaceFolder}/third_party/marl/include",
+                "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/SPIRV-Tools/include"
             ],
             "cStandard": "c11",
             "cppStandard": "c++14"
