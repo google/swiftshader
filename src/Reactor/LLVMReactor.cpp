@@ -1049,6 +1049,22 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 			auto elTy = T(type);
 			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
 
+#if __has_feature(memory_sanitizer)
+			// Mark all memory writes as initialized by calling __msan_unpoison
+			{
+				// void __msan_unpoison(const volatile void *a, size_t size)
+				auto voidTy = ::llvm::Type::getVoidTy(jit->context);
+				auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
+				auto voidPtrTy = i8Ty->getPointerTo();
+				auto sizetTy = ::llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
+				auto funcTy = ::llvm::FunctionType::get(voidTy, { voidPtrTy, sizetTy }, false);
+				auto func = jit->module->getOrInsertFunction("__msan_unpoison", funcTy);
+				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
+				jit->builder->CreateCall(func, { jit->builder->CreatePointerCast(V(ptr), voidPtrTy),
+				                                 ::llvm::ConstantInt::get(sizetTy, size) });
+			}
+#endif
+
 			if(!atomic)
 			{
 				jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
