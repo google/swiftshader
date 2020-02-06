@@ -27,7 +27,7 @@ public:
 	void TearDown(const ::benchmark::State &state) {}
 };
 
-BENCHMARK_F(Coroutines, Fibonacci)
+BENCHMARK_DEFINE_F(Coroutines, Fibonacci)
 (benchmark::State &state)
 {
 	using namespace rr;
@@ -55,9 +55,16 @@ BENCHMARK_F(Coroutines, Fibonacci)
 
 	auto coroutine = function();
 
+	const auto iterations = state.range(0);
+
 	int out = 0;
 	for(auto _ : state)
 	{
-		coroutine->await(out);
+		for(int64_t i = 0; i < iterations; i++)
+		{
+			coroutine->await(out);
+		}
 	}
 }
+
+BENCHMARK_REGISTER_F(Coroutines, Fibonacci)->RangeMultiplier(8)->Range(1, 0x1000000)->ArgName("iterations");
