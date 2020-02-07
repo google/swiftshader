@@ -2125,11 +2125,43 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 	}
 };
 
-INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float, IntrinsicTest_Float, testing::Values(IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, { 0.f, 1.f, 12345.f } }, IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, { 0.f, 1.f, 12345.f } }, IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, { 0.f, 1.f, 12345.f } }));
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float, IntrinsicTest_Float, testing::Values(
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, {0.f, 1.f, 12345.f} },
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, {0.f, 1.f, 12345.f} },
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, {0.f, 1.f, 12345.f} }
+));
+// clang-format on
 
-INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); }, sinf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); }, cosf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); }, tanf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v); }, asinf, { 0.f, 1.f, -1.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v); }, acosf, { 0.f, 1.f, -1.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); }, atanf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); }, sinhf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); }, coshf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); }, tanhf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); }, asinhf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); }, acoshf, { 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); }, atanhf, { 0.f, 1.f, -1.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); }, expf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); }, logf, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); }, exp2f, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); }, log2f, { 0.f, 1.f, PI, 12345.f } }, IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); }, sqrtf, { 0.f, 1.f, PI, 12345.f } }));
+// TODO(b/149110874) Use coshf/sinhf when we've implemented SpirV versions at the SpirV level
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); },   sinf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); },   cosf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); },   tanf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v); },  asinf,  {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v); },  acosf,  {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); },  atanf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); },  sinhf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); },  coshf,  {0.f, 1.f, PI, 12345.f} },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); },  tanhf,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); }, asinhf, {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); }, acoshf, {     1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); }, atanhf, {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); },   expf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); },   logf,   {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); },  exp2f,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); },  log2f,  {0.f, 1.f, PI, 12345.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); },  sqrtf,  {0.f, 1.f, PI, 12345.f}  }
+));
+// clang-format on
 
-INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4_Float4, IntrinsicTest_Float4_Float4, testing::Values(IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { { 0.f, 0.f }, { 0.f, -1.f }, { -1.f, 0.f }, { 12345.f, 12345.f } } }, IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); }, powf, { { 0.f, 0.f }, { 0.f, -1.f }, { -1.f, 0.f }, { 12345.f, 12345.f } } }));
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4_Float4, IntrinsicTest_Float4_Float4, testing::Values(
+	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } },
+	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); },   powf,   { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } }
+));
+// clang-format on
 
 TEST_P(IntrinsicTest_Float, Test)
 {
