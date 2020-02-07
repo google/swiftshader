@@ -59,6 +59,7 @@ swiftshader_source_set("WSI") {
 
   deps = [
     "../../third_party/marl:Marl_headers",
+    "../System",
     "../Vulkan:swiftshader_libvulkan_headers",
   ]
 
