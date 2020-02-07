@@ -165,6 +165,92 @@ void initializeLibrary()
 	(void)doOnce;
 }
 
+template<class T>
+void ValidateRenderPassPNextChain(VkDevice device, const T *pCreateInfo)
+{
+	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+
+	while(extensionCreateInfo)
+	{
+		switch(extensionCreateInfo->sType)
+		{
+			case VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO:
+			{
+				const VkRenderPassInputAttachmentAspectCreateInfo *inputAttachmentAspectCreateInfo = reinterpret_cast<const VkRenderPassInputAttachmentAspectCreateInfo *>(extensionCreateInfo);
+
+				for(uint32_t i = 0; i < inputAttachmentAspectCreateInfo->aspectReferenceCount; i++)
+				{
+					const auto &aspectReference = inputAttachmentAspectCreateInfo->pAspectReferences[i];
+					ASSERT(aspectReference.subpass < pCreateInfo->subpassCount);
+					const auto &subpassDescription = pCreateInfo->pSubpasses[aspectReference.subpass];
+					ASSERT(aspectReference.inputAttachmentIndex < subpassDescription.inputAttachmentCount);
+					const auto &attachmentReference = subpassDescription.pInputAttachments[aspectReference.inputAttachmentIndex];
+					if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+					{
+						// If the pNext chain includes an instance of VkRenderPassInputAttachmentAspectCreateInfo, for any
+						// element of the pInputAttachments member of any element of pSubpasses where the attachment member
+						// is not VK_ATTACHMENT_UNUSED, the aspectMask member of the corresponding element of
+						// VkRenderPassInputAttachmentAspectCreateInfo::pAspectReferences must only include aspects that are
+						// present in images of the format specified by the element of pAttachments at attachment
+						vk::Format format(pCreateInfo->pAttachments[attachmentReference.attachment].format);
+						bool isDepth = format.isDepth();
+						bool isStencil = format.isStencil();
+						ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) || (!isDepth && !isStencil));
+						ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) || isDepth);
+						ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) || isStencil);
+					}
+				}
+			}
+			break;
+			case VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO:
+			{
+				const VkRenderPassMultiviewCreateInfo *multiviewCreateInfo = reinterpret_cast<const VkRenderPassMultiviewCreateInfo *>(extensionCreateInfo);
+				ASSERT((multiviewCreateInfo->subpassCount == 0) || (multiviewCreateInfo->subpassCount == pCreateInfo->subpassCount));
+				ASSERT((multiviewCreateInfo->dependencyCount == 0) || (multiviewCreateInfo->dependencyCount == pCreateInfo->dependencyCount));
+
+				bool zeroMask = (multiviewCreateInfo->pViewMasks[0] == 0);
+				for(uint32_t i = 1; i < multiviewCreateInfo->subpassCount; i++)
+				{
+					ASSERT((multiviewCreateInfo->pViewMasks[i] == 0) == zeroMask);
+				}
+
+				if(zeroMask)
+				{
+					ASSERT(multiviewCreateInfo->correlationMaskCount == 0);
+				}
+
+				for(uint32_t i = 0; i < multiviewCreateInfo->dependencyCount; i++)
+				{
+					const auto &dependency = pCreateInfo->pDependencies[i];
+					if(multiviewCreateInfo->pViewOffsets[i] != 0)
+					{
+						ASSERT(dependency.srcSubpass != dependency.dstSubpass);
+						ASSERT(dependency.dependencyFlags & VK_DEPENDENCY_VIEW_LOCAL_BIT);
+					}
+					if(zeroMask)
+					{
+						ASSERT(!(dependency.dependencyFlags & VK_DEPENDENCY_VIEW_LOCAL_BIT));
+					}
+				}
+
+				// If the pNext chain includes an instance of VkRenderPassMultiviewCreateInfo,
+				// each element of its pViewMask member must not include a bit at a position
+				// greater than the value of VkPhysicalDeviceLimits::maxFramebufferLayers
+				// pViewMask is a 32 bit value. If maxFramebufferLayers > 32, it's impossible
+				// for pViewMask to contain a bit at an illegal position
+				// Note: Verify pViewMask values instead if we hit this assert
+				ASSERT(vk::Cast(device)->getPhysicalDevice()->getProperties().limits.maxFramebufferLayers >= 32);
+			}
+			break;
+			default:
+				WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
+				break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
+	}
+}
+
 }  // namespace
 
 extern "C" {
@@ -212,6 +298,7 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 	// Vulkan 1.1 promoted extensions
 	{ VK_KHR_16BIT_STORAGE_EXTENSION_NAME, VK_KHR_16BIT_STORAGE_SPEC_VERSION },
 	{ VK_KHR_BIND_MEMORY_2_EXTENSION_NAME, VK_KHR_BIND_MEMORY_2_SPEC_VERSION },
+	{ VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME, VK_KHR_CREATE_RENDERPASS_2_SPEC_VERSION },
 	{ VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME, VK_KHR_DEDICATED_ALLOCATION_SPEC_VERSION },
 	{ VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME, VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_SPEC_VERSION },
 	{ VK_KHR_DEVICE_GROUP_EXTENSION_NAME, VK_KHR_DEVICE_GROUP_SPEC_VERSION },
@@ -1884,87 +1971,23 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
-	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+	ValidateRenderPassPNextChain(device, pCreateInfo);
 
-	while(extensionCreateInfo)
+	return vk::RenderPass::Create(pAllocator, pCreateInfo, pRenderPass);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass2KHR(VkDevice device, const VkRenderPassCreateInfo2KHR *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkRenderPass *pRenderPass)
+{
+	TRACE("(VkDevice device = %p, const VkRenderPassCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkRenderPass* pRenderPass = %p)",
+	      device, pCreateInfo, pAllocator, pRenderPass);
+
+	if(pCreateInfo->flags != 0)
 	{
-		switch(extensionCreateInfo->sType)
-		{
-			case VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO:
-			{
-				const VkRenderPassInputAttachmentAspectCreateInfo *inputAttachmentAspectCreateInfo = reinterpret_cast<const VkRenderPassInputAttachmentAspectCreateInfo *>(extensionCreateInfo);
-
-				for(uint32_t i = 0; i < inputAttachmentAspectCreateInfo->aspectReferenceCount; i++)
-				{
-					const VkInputAttachmentAspectReference &aspectReference = inputAttachmentAspectCreateInfo->pAspectReferences[i];
-					ASSERT(aspectReference.subpass < pCreateInfo->subpassCount);
-					const VkSubpassDescription &subpassDescription = pCreateInfo->pSubpasses[aspectReference.subpass];
-					ASSERT(aspectReference.inputAttachmentIndex < subpassDescription.inputAttachmentCount);
-					const VkAttachmentReference &attachmentReference = subpassDescription.pInputAttachments[aspectReference.inputAttachmentIndex];
-					if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
-					{
-						// If the pNext chain includes an instance of VkRenderPassInputAttachmentAspectCreateInfo, for any
-						// element of the pInputAttachments member of any element of pSubpasses where the attachment member
-						// is not VK_ATTACHMENT_UNUSED, the aspectMask member of the corresponding element of
-						// VkRenderPassInputAttachmentAspectCreateInfo::pAspectReferences must only include aspects that are
-						// present in images of the format specified by the element of pAttachments at attachment
-						vk::Format format(pCreateInfo->pAttachments[attachmentReference.attachment].format);
-						bool isDepth = format.isDepth();
-						bool isStencil = format.isStencil();
-						ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) || (!isDepth && !isStencil));
-						ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) || isDepth);
-						ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) || isStencil);
-					}
-				}
-			}
-			break;
-			case VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO:
-			{
-				const VkRenderPassMultiviewCreateInfo *multiviewCreateInfo = reinterpret_cast<const VkRenderPassMultiviewCreateInfo *>(extensionCreateInfo);
-				ASSERT((multiviewCreateInfo->subpassCount == 0) || (multiviewCreateInfo->subpassCount == pCreateInfo->subpassCount));
-				ASSERT((multiviewCreateInfo->dependencyCount == 0) || (multiviewCreateInfo->dependencyCount == pCreateInfo->dependencyCount));
-
-				bool zeroMask = (multiviewCreateInfo->pViewMasks[0] == 0);
-				for(uint32_t i = 1; i < multiviewCreateInfo->subpassCount; i++)
-				{
-					ASSERT((multiviewCreateInfo->pViewMasks[i] == 0) == zeroMask);
-				}
-
-				if(zeroMask)
-				{
-					ASSERT(multiviewCreateInfo->correlationMaskCount == 0);
-				}
-
-				for(uint32_t i = 0; i < multiviewCreateInfo->dependencyCount; i++)
-				{
-					const VkSubpassDependency &dependency = pCreateInfo->pDependencies[i];
-					if(multiviewCreateInfo->pViewOffsets[i] != 0)
-					{
-						ASSERT(dependency.srcSubpass != dependency.dstSubpass);
-						ASSERT(dependency.dependencyFlags & VK_DEPENDENCY_VIEW_LOCAL_BIT);
-					}
-					if(zeroMask)
-					{
-						ASSERT(!(dependency.dependencyFlags & VK_DEPENDENCY_VIEW_LOCAL_BIT));
-					}
-				}
-
-				// If the pNext chain includes an instance of VkRenderPassMultiviewCreateInfo,
-				// each element of its pViewMask member must not include a bit at a position
-				// greater than the value of VkPhysicalDeviceLimits::maxFramebufferLayers
-				// pViewMask is a 32 bit value. If maxFramebufferLayers > 32, it's impossible
-				// for pViewMask to contain a bit at an illegal position
-				// Note: Verify pViewMask values instead if we hit this assert
-				ASSERT(vk::Cast(device)->getPhysicalDevice()->getProperties().limits.maxFramebufferLayers >= 32);
-			}
-			break;
-			default:
-				WARN("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
-				break;
-		}
-
-		extensionCreateInfo = extensionCreateInfo->pNext;
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
+
+	ValidateRenderPassPNextChain(device, pCreateInfo);
 
 	return vk::RenderPass::Create(pAllocator, pCreateInfo, pRenderPass);
 }
@@ -2415,6 +2438,14 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, c
 	vk::Cast(commandBuffer)->beginRenderPass(vk::Cast(pRenderPassBegin->renderPass), vk::Cast(pRenderPassBegin->framebuffer), pRenderPassBegin->renderArea, pRenderPassBegin->clearValueCount, pRenderPassBegin->pClearValues, contents);
 }
 
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo *pRenderPassBegin, const VkSubpassBeginInfoKHR *pSubpassBeginInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderPassBeginInfo* pRenderPassBegin = %p, const VkSubpassBeginInfoKHR* pSubpassBeginInfo = %p)",
+	      commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+
+	vk::Cast(commandBuffer)->beginRenderPass(vk::Cast(pRenderPassBegin->renderPass), vk::Cast(pRenderPassBegin->framebuffer), pRenderPassBegin->renderArea, pRenderPassBegin->clearValueCount, pRenderPassBegin->pClearValues, pSubpassBeginInfo->contents);
+}
+
 VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents contents)
 {
 	TRACE("(VkCommandBuffer commandBuffer = %p, VkSubpassContents contents = %d)",
@@ -2423,9 +2454,24 @@ VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSub
 	vk::Cast(commandBuffer)->nextSubpass(contents);
 }
 
+VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer, const VkSubpassBeginInfoKHR *pSubpassBeginInfo, const VkSubpassEndInfoKHR *pSubpassEndInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkSubpassBeginInfoKHR* pSubpassBeginInfo = %p, const VkSubpassEndInfoKHR* pSubpassEndInfo = %p)",
+	      commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
+
+	vk::Cast(commandBuffer)->nextSubpass(pSubpassBeginInfo->contents);
+}
+
 VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass(VkCommandBuffer commandBuffer)
 {
 	TRACE("(VkCommandBuffer commandBuffer = %p)", commandBuffer);
+
+	vk::Cast(commandBuffer)->endRenderPass();
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer, const VkSubpassEndInfoKHR *pSubpassEndInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkSubpassEndInfoKHR* pSubpassEndInfo = %p)", commandBuffer, pSubpassEndInfo);
 
 	vk::Cast(commandBuffer)->endRenderPass();
 }

@@ -25,9 +25,11 @@ class RenderPass : public Object<RenderPass, VkRenderPass>
 {
 public:
 	RenderPass(const VkRenderPassCreateInfo *pCreateInfo, void *mem);
+	RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem);
 	void destroy(const VkAllocationCallbacks *pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkRenderPassCreateInfo *pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const VkRenderPassCreateInfo2KHR *pCreateInfo);
 
 	void getRenderAreaGranularity(VkExtent2D *pGranularity) const;
 
@@ -93,6 +95,8 @@ private:
 	uint32_t *attachmentViewMasks = nullptr;
 
 	void MarkFirstUse(int attachment, int subpass);
+	template<class T>
+	void init(const T *pCreateInfo, void *mem);
 };
 
 static inline RenderPass *Cast(VkRenderPass object)

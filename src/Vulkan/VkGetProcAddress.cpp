@@ -320,6 +320,15 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	    {
 	        MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
 	    } },
+	// VK_KHR_create_renderpass2
+	{
+	    VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCreateRenderPass2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdBeginRenderPass2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdNextSubpass2KHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdEndRenderPass2KHR),
+	    } },
 	// VK_EXT_line_rasterization
 	{
 	    VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
