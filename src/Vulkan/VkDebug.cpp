@@ -19,6 +19,10 @@
 #include <cstdio>
 #include <string>
 
+#if __ANDROID__
+#	include <android/log.h>
+#endif
+
 #if defined(__unix__)
 #	define PTRACE
 #	include <sys/ptrace.h>
@@ -28,6 +32,10 @@
 #elif defined(__APPLE__) || defined(__MACH__)
 #	include <sys/sysctl.h>
 #	include <unistd.h>
+#endif
+
+#ifdef ERROR
+#	undef ERROR  // b/127920555
 #endif
 
 namespace {
@@ -84,27 +92,71 @@ bool IsUnderDebugger()
 #endif
 }
 
-}  // anonymous namespace
+enum class Level
+{
+	DEBUG,
+	INFO,
+	WARN,
+	ERROR,
+	FATAL,
+};
 
-namespace vk {
+#ifdef __ANDROID__
+void logv_android(Level level, const char *msg)
+{
+	switch(level)
+	{
+		case Level::DEBUG:
+			__android_log_write(ANDROID_LOG_DEBUG, "SwiftShader", msg);
+			break;
+		case Level::INFO:
+			__android_log_write(ANDROID_LOG_INFO, "SwiftShader", msg);
+			break;
+		case Level::WARN:
+			__android_log_write(ANDROID_LOG_WARN, "SwiftShader", msg);
+			break;
+		case Level::ERROR:
+			__android_log_write(ANDROID_LOG_ERROR, "SwiftShader", msg);
+			break;
+		case Level::FATAL:
+			__android_log_write(ANDROID_LOG_FATAL, "SwiftShader", msg);
+			break;
+	}
+}
+#else
+void logv_std(Level level, const char *msg)
+{
+	switch(level)
+	{
+		case Level::DEBUG:
+		case Level::INFO:
+			fprintf(stdout, "%s", msg);
+			break;
+		case Level::WARN:
+		case Level::ERROR:
+		case Level::FATAL:
+			fprintf(stderr, "%s", msg);
+			break;
+	}
+}
+#endif
 
-void tracev(const char *format, va_list args)
+void logv(Level level, const char *format, va_list args)
 {
 #ifndef SWIFTSHADER_DISABLE_TRACE
-	const bool traceToDebugOut = false;
-	const bool traceToFile = false;
+	char buffer[2048];
+	vsnprintf(buffer, sizeof(buffer), format, args);
 
-	if(traceToDebugOut)
-	{
-		char buffer[2048];
-		vsnprintf(buffer, sizeof(buffer), format, args);
-#	if defined(_WIN32)
-		::OutputDebugString(buffer);
+#	if defined(__ANDROID__)
+	logv_android(level, buffer);
+#	elif defined(_WIN32)
+	logv_std(level, buffer);
+	::OutputDebugString(buffer);
 #	else
-		printf("%s", buffer);
+	logv_std(level, buffer);
 #	endif
-	}
 
+	const bool traceToFile = false;
 	if(traceToFile)
 	{
 		FILE *file = fopen(TRACE_OUTPUT_FILE, "a");
@@ -118,11 +170,15 @@ void tracev(const char *format, va_list args)
 #endif  // SWIFTSHADER_DISABLE_TRACE
 }
 
+}  // anonymous namespace
+
+namespace vk {
+
 void trace(const char *format, ...)
 {
 	va_list vararg;
 	va_start(vararg, format);
-	tracev(format, vararg);
+	logv(Level::DEBUG, format, vararg);
 	va_end(vararg);
 }
 
@@ -130,11 +186,7 @@ void warn(const char *format, ...)
 {
 	va_list vararg;
 	va_start(vararg, format);
-	tracev(format, vararg);
-	va_end(vararg);
-
-	va_start(vararg, format);
-	vfprintf(stderr, format, vararg);
+	logv(Level::WARN, format, vararg);
 	va_end(vararg);
 }
 
@@ -143,11 +195,7 @@ void abort(const char *format, ...)
 	va_list vararg;
 
 	va_start(vararg, format);
-	tracev(format, vararg);
-	va_end(vararg);
-
-	va_start(vararg, format);
-	vfprintf(stderr, format, vararg);
+	logv(Level::FATAL, format, vararg);
 	va_end(vararg);
 
 	::abort();
@@ -156,24 +204,21 @@ void abort(const char *format, ...)
 void trace_assert(const char *format, ...)
 {
 	static std::atomic<bool> asserted = { false };
-	va_list vararg;
-	va_start(vararg, format);
-
 	if(IsUnderDebugger() && !asserted.exchange(true))
 	{
 		// Abort after tracing and printing to stderr
-		tracev(format, vararg);
-		va_end(vararg);
-
+		va_list vararg;
 		va_start(vararg, format);
-		vfprintf(stderr, format, vararg);
+		logv(Level::FATAL, format, vararg);
 		va_end(vararg);
 
 		::abort();
 	}
 	else if(!asserted)
 	{
-		tracev(format, vararg);
+		va_list vararg;
+		va_start(vararg, format);
+		logv(Level::FATAL, format, vararg);
 		va_end(vararg);
 	}
 }
