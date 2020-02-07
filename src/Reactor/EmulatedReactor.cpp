@@ -193,12 +193,14 @@ RValue<Float4> Atan(RValue<Float4> x)
 
 RValue<Float4> Sinh(RValue<Float4> x)
 {
-	return call4(sinhf, x);
+	// TODO(b/149110874) Use coshf/sinhf when we've implemented SpirV versions at the SpirV level
+	return Float4(0.5f) * (emulated::Exp(x) - emulated::Exp(-x));
 }
 
 RValue<Float4> Cosh(RValue<Float4> x)
 {
-	return call4(coshf, x);
+	// TODO(b/149110874) Use coshf/sinhf when we've implemented SpirV versions at the SpirV level
+	return Float4(0.5f) * (emulated::Exp(x) + emulated::Exp(-x));
 }
 
 RValue<Float4> Tanh(RValue<Float4> x)

@@ -16,6 +16,7 @@
 
 #include "CPUID.hpp"
 #include "Debug.hpp"
+#include "EmulatedReactor.hpp"
 #include "LLVMReactorDebugInfo.hpp"
 #include "Reactor.hpp"
 #include "x86.hpp"
@@ -3171,12 +3172,12 @@ RValue<Float4> Atan(RValue<Float4> v)
 
 RValue<Float4> Sinh(RValue<Float4> v)
 {
-	return Float4(0.5f) * (Exp(v) - Exp(-v));
+	return emulated::Sinh(v);
 }
 
 RValue<Float4> Cosh(RValue<Float4> v)
 {
-	return Float4(0.5f) * (Exp(v) + Exp(-v));
+	return emulated::Cosh(v);
 }
 
 RValue<Float4> Tanh(RValue<Float4> v)
