@@ -38,6 +38,10 @@
 #	undef ERROR  // b/127920555
 #endif
 
+#ifndef SWIFTSHADER_LOGGING_LEVEL
+#	define SWIFTSHADER_LOGGING_LEVEL INFO
+#endif
+
 namespace {
 
 bool IsUnderDebugger()
@@ -143,6 +147,11 @@ void logv_std(Level level, const char *msg)
 
 void logv(Level level, const char *format, va_list args)
 {
+	if(static_cast<int>(level) < static_cast<int>(Level::SWIFTSHADER_LOGGING_LEVEL))
+	{
+		return;
+	}
+
 #ifndef SWIFTSHADER_DISABLE_TRACE
 	char buffer[2048];
 	vsnprintf(buffer, sizeof(buffer), format, args);
