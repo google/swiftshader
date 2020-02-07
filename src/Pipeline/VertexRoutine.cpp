@@ -18,8 +18,8 @@
 #include "SpirvShader.hpp"
 #include "Device/Renderer.hpp"
 #include "Device/Vertex.hpp"
+#include "System/Debug.hpp"
 #include "System/Half.hpp"
-#include "Vulkan/VkDebug.hpp"
 
 namespace sw {
 

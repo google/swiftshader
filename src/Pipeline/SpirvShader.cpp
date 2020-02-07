@@ -14,7 +14,7 @@
 
 #include "SpirvShader.hpp"
 
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 #include "Vulkan/VkRenderPass.hpp"
 

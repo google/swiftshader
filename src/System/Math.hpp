@@ -15,9 +15,8 @@
 #ifndef sw_Math_hpp
 #define sw_Math_hpp
 
+#include "Debug.hpp"
 #include "Types.hpp"
-
-#include "Vulkan/VkDebug.hpp"
 
 #include <cmath>
 #if defined(_MSC_VER)

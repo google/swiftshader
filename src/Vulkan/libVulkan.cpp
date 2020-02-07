@@ -17,7 +17,6 @@
 #include "VkCommandBuffer.hpp"
 #include "VkCommandPool.hpp"
 #include "VkConfig.h"
-#include "VkDebug.hpp"
 #include "VkDescriptorPool.hpp"
 #include "VkDescriptorSetLayout.hpp"
 #include "VkDescriptorUpdateTemplate.hpp"
@@ -42,6 +41,8 @@
 #include "VkSemaphore.hpp"
 #include "VkShaderModule.hpp"
 #include "VkStringify.hpp"
+
+#include "System/Debug.hpp"
 
 #if defined(VK_USE_PLATFORM_METAL_EXT) || defined(VK_USE_PLATFORM_MACOS_MVK)
 #	include "WSI/MetalSurface.h"

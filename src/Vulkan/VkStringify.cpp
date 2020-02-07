@@ -11,8 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include "VkStringify.hpp"
-#include "VkDebug.hpp"
+
+#include "System/Debug.hpp"
+
 #include "vulkan/vk_ext_provoking_vertex.h"
 
 #include <iostream>

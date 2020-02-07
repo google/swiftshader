@@ -16,7 +16,7 @@
 
 #include "Constants.hpp"
 #include "PixelRoutine.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 #include "Vulkan/VkSampler.hpp"
 
 #include <limits>

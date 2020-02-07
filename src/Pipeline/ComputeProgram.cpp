@@ -15,7 +15,7 @@
 #include "ComputeProgram.hpp"
 #include "Constants.hpp"
 
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 
 #include "marl/defer.h"

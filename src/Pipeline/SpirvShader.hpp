@@ -20,9 +20,9 @@
 #include "SpirvID.hpp"
 #include "Device/Config.hpp"
 #include "Device/Sampler.hpp"
+#include "System/Debug.hpp"
 #include "System/Types.hpp"
 #include "Vulkan/VkConfig.h"
-#include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
 #include <spirv/unified1/spirv.hpp>

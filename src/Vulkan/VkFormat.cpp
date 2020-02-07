@@ -13,7 +13,8 @@
 // limitations under the License.
 
 #include "VkFormat.h"
-#include "VkDebug.hpp"
+
+#include "System/Debug.hpp"
 #include "System/Math.hpp"
 
 namespace vk {

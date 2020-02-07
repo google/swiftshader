@@ -15,13 +15,13 @@
 #include "VkDevice.hpp"
 
 #include "VkConfig.h"
-#include "VkDebug.hpp"
 #include "VkDescriptorSetLayout.hpp"
 #include "VkFence.hpp"
 #include "VkQueue.hpp"
 #include "Debug/Context.hpp"
 #include "Debug/Server.hpp"
 #include "Device/Blitter.hpp"
+#include "System/Debug.hpp"
 
 #include <chrono>
 #include <climits>

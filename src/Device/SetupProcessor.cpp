@@ -21,7 +21,7 @@
 #include "Pipeline/Constants.hpp"
 #include "Pipeline/SetupRoutine.hpp"
 #include "Pipeline/SpirvShader.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 
 #include <cstring>
 

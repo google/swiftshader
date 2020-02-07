@@ -16,8 +16,8 @@
 
 #include "SamplerCore.hpp"  // TODO: Figure out what's needed.
 #include "Device/Config.hpp"
+#include "System/Debug.hpp"
 #include "System/Math.hpp"
-#include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkDescriptorSetLayout.hpp"
 #include "Vulkan/VkDevice.hpp"
 #include "Vulkan/VkImageView.hpp"

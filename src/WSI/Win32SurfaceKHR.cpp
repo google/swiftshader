@@ -14,7 +14,7 @@
 
 #include "Win32SurfaceKHR.hpp"
 
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 #include "Vulkan/VkDeviceMemory.hpp"
 
 #include <string.h>

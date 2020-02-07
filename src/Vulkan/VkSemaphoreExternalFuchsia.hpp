@@ -15,7 +15,7 @@
 #ifndef VK_SEMAPHORE_EXTERNAL_FUCHSIA_H_
 #define VK_SEMAPHORE_EXTERNAL_FUCHSIA_H_
 
-#include "VkDebug.hpp"
+#include "System/Debug.hpp"
 
 #include <zircon/syscalls.h>
 

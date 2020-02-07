@@ -17,7 +17,7 @@
 
 #include "Reactor/Print.hpp"
 #include "Reactor/Reactor.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 
 #include <array>
 #include <atomic>   // std::memory_order

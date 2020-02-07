@@ -16,8 +16,9 @@
 #define VK_OBJECT_HPP_
 
 #include "VkConfig.h"
-#include "VkDebug.hpp"
 #include "VkMemory.h"
+
+#include "System/Debug.hpp"
 
 #include <Vulkan/VulkanPlatform.h>
 #include <vulkan/vk_icd.h>

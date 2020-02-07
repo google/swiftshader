@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkDebug.hpp"
 #include "VkStringify.hpp"
+
+#include "System/Debug.hpp"
 #include "System/Linux/MemFd.hpp"
 
 #include <errno.h>

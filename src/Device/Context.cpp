@@ -16,8 +16,8 @@
 
 #include "Primitive.hpp"
 #include "Pipeline/SpirvShader.hpp"
+#include "System/Debug.hpp"
 #include "System/Memory.hpp"
-#include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImageView.hpp"
 
 #include <string.h>

@@ -19,7 +19,7 @@
 #include "Device/Primitive.hpp"
 #include "Device/QuadRasterizer.hpp"
 #include "Device/Renderer.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 
 namespace sw {

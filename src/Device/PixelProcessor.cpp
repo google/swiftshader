@@ -17,7 +17,7 @@
 #include "Primitive.hpp"
 #include "Pipeline/Constants.hpp"
 #include "Pipeline/PixelProgram.hpp"
-#include "Vulkan/VkDebug.hpp"
+#include "System/Debug.hpp"
 #include "Vulkan/VkImageView.hpp"
 
 #include <cstring>

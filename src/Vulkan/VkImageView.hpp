@@ -15,10 +15,11 @@
 #ifndef VK_IMAGE_VIEW_HPP_
 #define VK_IMAGE_VIEW_HPP_
 
-#include "VkDebug.hpp"
 #include "VkFormat.h"
 #include "VkImage.hpp"
 #include "VkObject.hpp"
+
+#include "System/Debug.hpp"
 
 #include <atomic>
 

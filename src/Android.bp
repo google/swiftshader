@@ -113,18 +113,18 @@ cc_defaults {
     ],
 
     srcs: [
-        "Common/CPUID.cpp",
         "Common/Configurator.cpp",
+        "Common/CPUID.cpp",
         "Common/DebugAndroid.cpp",
         "Common/GrallocAndroid.cpp",
         "Common/Half.cpp",
         "Common/Math.cpp",
         "Common/Memory.cpp",
         "Common/Resource.cpp",
+        "Common/SharedLibrary.cpp",
         "Common/Socket.cpp",
         "Common/Thread.cpp",
         "Common/Timer.cpp",
-	"Common/SharedLibrary.cpp",
         "Main/Config.cpp",
         "Main/FrameBuffer.cpp",
         "Main/FrameBufferAndroid.cpp",
@@ -177,6 +177,10 @@ cc_defaults {
 
     defaults: [ "libswiftshader_common_defaults" ],
 
+    header_libs: [
+        "swiftshader_platform_headers",
+    ],
+
     srcs: [
         "Reactor/Reactor.cpp",
         "Reactor/LLVMJIT.cpp",
@@ -194,10 +198,18 @@ cc_defaults {
     static_libs: [
         "libLLVM7_swiftshader",
     ],
+
+    shared_libs: [
+        "liblog",
+    ],
 }
 
 cc_defaults {
     name: "libswiftshadervk_llvm_defaults",
+
+    header_libs: [
+        "swiftshader_platform_headers",
+    ],
 
     srcs: [
         "Reactor/Reactor.cpp",
@@ -219,6 +231,7 @@ cc_defaults {
 
     shared_libs: [
         "libcutils",
+        "liblog",
     ],
 }
 
@@ -578,16 +591,16 @@ cc_defaults {
 
     srcs: [
         "System/Build.cpp",
-        "System/CPUID.cpp",
         "System/Configurator.cpp",
+        "System/CPUID.cpp",
+        "System/Debug.cpp",
+        "System/GrallocAndroid.cpp",
         "System/Half.cpp",
         "System/Linux/MemFd.cpp",
         "System/Math.cpp",
         "System/Memory.cpp",
         "System/Socket.cpp",
         "System/Timer.cpp",
-        "System/DebugAndroid.cpp",
-        "System/GrallocAndroid.cpp",
         "Device/*.cpp",
         "Pipeline/*.cpp",
         "Vulkan/*.cpp",

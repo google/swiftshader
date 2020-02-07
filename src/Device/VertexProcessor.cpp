@@ -16,8 +16,8 @@
 
 #include "Pipeline/Constants.hpp"
 #include "Pipeline/VertexProgram.hpp"
+#include "System/Debug.hpp"
 #include "System/Math.hpp"
-#include "Vulkan/VkDebug.hpp"
 
 #include <cstring>
 
