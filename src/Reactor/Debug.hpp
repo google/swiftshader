@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cctype>
+#include <string>
+
 #if !defined(TRACE_OUTPUT_FILE)
 #	define TRACE_OUTPUT_FILE "debug.txt"
 #endif
@@ -44,14 +47,19 @@ inline void warn() {}
 // Outputs the message to the debugging log and stderr, and calls abort().
 void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 
+// Outputs text to the debugging log, and asserts once if a debugger is attached.
+void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
+
 }  // namespace rr
 
 // A macro to output a trace of a function call and its arguments to the
 // debugging log. Disabled if RR_DISABLE_TRACE is defined.
 #if defined(RR_DISABLE_TRACE)
 #	define TRACE(message, ...) (void(0))
+#	define TRACE_ASSERT(message, ...) (void(0))
 #else
 #	define TRACE(message, ...) rr::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#	define TRACE_ASSERT(message, ...) rr::trace_assert("%s:%d %s TRACE_ASSERT: " message "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #endif
 
 // A macro to print a warning message to the debugging log and stderr to denote
@@ -104,11 +112,31 @@ void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 		}                                        \
 	} while(0)
 
-// A macro to indicate unimplemented functionality.
-#undef UNIMPLEMENTED
-#define UNIMPLEMENTED(format, ...) DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__)
+// A macro to indicate functionality currently unimplemented, for a feature advertised
+// as supported. This is similar to UNIMPLEMENTED() but does not check there's a bug
+// number.
+#undef UNIMPLEMENTED_NO_BUG
+#define UNIMPLEMENTED_NO_BUG(format, ...) \
+	DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__);
 
-// A macro for code which is not expected to be reached under valid assumptions.
+// A macro to indicate functionality currently unimplemented, for a feature advertised
+// as supported. Since this is a bug, a bug ID must be provided, in b/### format.
+// For unimplemented functionality not advertised as supported, use UNSUPPORTED() instead.
+#undef UNIMPLEMENTED
+#define UNIMPLEMENTED(format, ...)                                                                                                                            \
+	static_assert(format[0] == 'b' && format[1] == '/' && format[2] >= '0' && format[2] <= '9', "explanation must start with bug reference in b/### format"); \
+	UNIMPLEMENTED_NO_BUG(format, ##__VA_ARGS__)
+
+// A macro to indicate unsupported functionality.
+// This should be called when a feature is attempted to be used, but is not
+// currently implemented by Reactor.
+// Note that in a well-behaved application these should not be reached as the
+// application should be respecting the advertised features / limits.
+#undef UNSUPPORTED
+#define UNSUPPORTED(format, ...) DABORT("UNSUPPORTED: " format, ##__VA_ARGS__)
+
+// A macro for code which should never be reached, even with misbehaving
+// applications.
 #undef UNREACHABLE
 #define UNREACHABLE(format, ...) DABORT("UNREACHABLE: " format, ##__VA_ARGS__)
 

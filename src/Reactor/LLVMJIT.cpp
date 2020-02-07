@@ -414,7 +414,7 @@ void *resolveExternalSymbol(const char *name)
 				case 4: atomicLoad<uint32_t>(ptr, ret, ordering); break;
 				case 8: atomicLoad<uint64_t>(ptr, ret, ordering); break;
 				default:
-					UNIMPLEMENTED("Atomic::load(size: %d)", int(size));
+					UNIMPLEMENTED_NO_BUG("Atomic::load(size: %d)", int(size));
 			}
 		}
 		static void store(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
@@ -426,7 +426,7 @@ void *resolveExternalSymbol(const char *name)
 				case 4: atomicStore<uint32_t>(ptr, ret, ordering); break;
 				case 8: atomicStore<uint64_t>(ptr, ret, ordering); break;
 				default:
-					UNIMPLEMENTED("Atomic::store(size: %d)", int(size));
+					UNIMPLEMENTED_NO_BUG("Atomic::store(size: %d)", int(size));
 			}
 		}
 	};

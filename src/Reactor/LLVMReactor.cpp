@@ -53,7 +53,7 @@
 #if defined(__x86_64__) && defined(_WIN32)
 extern "C" void X86CompilationCallback()
 {
-	UNIMPLEMENTED("X86CompilationCallback");
+	UNIMPLEMENTED_NO_BUG("X86CompilationCallback");
 }
 #endif
 

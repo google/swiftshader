@@ -1169,7 +1169,7 @@ Value *Nucleus::createFRem(Value *lhs, Value *rhs)
 {
 	// TODO(b/148139679) Fix Subzero generating invalid code for FRem on vector types
 	// createArithmetic(Ice::InstArithmetic::Frem, lhs, rhs);
-	UNIMPLEMENTED("Nucleus::createFRem");
+	UNIMPLEMENTED("b/148139679 Nucleus::createFRem");
 	return nullptr;
 }
 
@@ -2272,7 +2272,7 @@ Short4::Short4(RValue<Int4> cast)
 
 Short4::Short4(RValue<Float4> cast)
 {
-	UNIMPLEMENTED("Short4::Short4(RValue<Float4> cast)");
+	UNIMPLEMENTED_NO_BUG("Short4::Short4(RValue<Float4> cast)");
 }
 
 RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
@@ -2750,7 +2750,7 @@ RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y)
 
 RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
 {
-	UNIMPLEMENTED("RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)");
+	UNIMPLEMENTED_NO_BUG("RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)");
 	return UShort4(0);
 }
 
@@ -2815,13 +2815,13 @@ RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 
 RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)
 {
-	UNIMPLEMENTED("RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)");
+	UNIMPLEMENTED_NO_BUG("RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)");
 	return Int4(0);
 }
 
 RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 {
-	UNIMPLEMENTED("RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)");
+	UNIMPLEMENTED_NO_BUG("RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)");
 	return Short8(0);
 }
 
@@ -2886,7 +2886,7 @@ RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 
 RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 {
-	UNIMPLEMENTED("RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)");
+	UNIMPLEMENTED_NO_BUG("RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)");
 	return UShort8(0);
 }
 
@@ -3801,7 +3801,7 @@ Type *Float4::getType()
 
 RValue<Long> Ticks()
 {
-	UNIMPLEMENTED("RValue<Long> Ticks()");
+	UNIMPLEMENTED_NO_BUG("RValue<Long> Ticks()");
 	return Long(Int(0));
 }
 
@@ -3851,12 +3851,12 @@ void Nucleus::createFence(std::memory_order memoryOrder)
 
 Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned int alignment, bool zeroMaskedLanes)
 {
-	UNIMPLEMENTED("Subzero createMaskedLoad()");
+	UNIMPLEMENTED_NO_BUG("Subzero createMaskedLoad()");
 	return nullptr;
 }
 void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned int alignment)
 {
-	UNIMPLEMENTED("Subzero createMaskedStore()");
+	UNIMPLEMENTED_NO_BUG("Subzero createMaskedStore()");
 }
 
 RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
@@ -3983,7 +3983,7 @@ RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
 {
 	if(emulateIntrinsics)
 	{
-		UNIMPLEMENTED("Subzero Ctlz()");
+		UNIMPLEMENTED_NO_BUG("Subzero Ctlz()");
 		return UInt(0);
 	}
 	else
@@ -4003,7 +4003,7 @@ RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef)
 {
 	if(emulateIntrinsics)
 	{
-		UNIMPLEMENTED("Subzero Ctlz()");
+		UNIMPLEMENTED_NO_BUG("Subzero Ctlz()");
 		return UInt4(0);
 	}
 	else
@@ -4022,7 +4022,7 @@ RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef)
 {
 	if(emulateIntrinsics)
 	{
-		UNIMPLEMENTED("Subzero Cttz()");
+		UNIMPLEMENTED_NO_BUG("Subzero Cttz()");
 		return UInt(0);
 	}
 	else
@@ -4042,7 +4042,7 @@ RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef)
 {
 	if(emulateIntrinsics)
 	{
-		UNIMPLEMENTED("Subzero Cttz()");
+		UNIMPLEMENTED_NO_BUG("Subzero Cttz()");
 		return UInt4(0);
 	}
 	else
@@ -4130,7 +4130,7 @@ void convertThreadToMainFiber(Nucleus::CoroutineHandle handle)
 	}
 	ASSERT(coroData->mainFiber);
 #else
-	UNIMPLEMENTED("convertThreadToMainFiber not implemented for current platform");
+	UNIMPLEMENTED_NO_BUG("convertThreadToMainFiber not implemented for current platform");
 #endif
 }
 
@@ -4147,7 +4147,7 @@ void convertMainFiberToThread(Nucleus::CoroutineHandle handle)
 		coroData->mainFiber = nullptr;
 	}
 #else
-	UNIMPLEMENTED("convertMainFiberToThread not implemented for current platform");
+	UNIMPLEMENTED_NO_BUG("convertMainFiberToThread not implemented for current platform");
 #endif
 }
 using FiberFunc = std::function<void()>;
@@ -4172,7 +4172,7 @@ void createRoutineFiber(Nucleus::CoroutineHandle handle, FiberFunc *fiberFunc)
 	coroData->routineFiber = ::CreateFiber(StackSize, &Invoker::fiberEntry, fiberFunc);
 	ASSERT(coroData->routineFiber);
 #else
-	UNIMPLEMENTED("createRoutineFiber not implemented for current platform");
+	UNIMPLEMENTED_NO_BUG("createRoutineFiber not implemented for current platform");
 #endif
 }
 
@@ -4184,7 +4184,7 @@ void deleteRoutineFiber(Nucleus::CoroutineHandle handle)
 	::DeleteFiber(coroData->routineFiber);
 	coroData->routineFiber = nullptr;
 #else
-	UNIMPLEMENTED("deleteRoutineFiber not implemented for current platform");
+	UNIMPLEMENTED_NO_BUG("deleteRoutineFiber not implemented for current platform");
 #endif
 }
 
@@ -4197,7 +4197,7 @@ void switchToMainFiber(Nucleus::CoroutineHandle handle)
 	ASSERT(coroData->mainFiber);
 	::SwitchToFiber(coroData->mainFiber);
 #else
-	UNIMPLEMENTED("switchToMainFiber not implemented for current platform");
+	UNIMPLEMENTED_NO_BUG("switchToMainFiber not implemented for current platform");
 #endif
 }
 
@@ -4210,7 +4210,7 @@ void switchToRoutineFiber(Nucleus::CoroutineHandle handle)
 	ASSERT(coroData->routineFiber);
 	::SwitchToFiber(coroData->routineFiber);
 #else
-	UNIMPLEMENTED("switchToRoutineFiber not implemented for current platform");
+	UNIMPLEMENTED_NO_BUG("switchToRoutineFiber not implemented for current platform");
 #endif
 }
 
