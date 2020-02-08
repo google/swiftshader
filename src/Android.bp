@@ -182,12 +182,13 @@ cc_defaults {
     ],
 
     srcs: [
-        "Reactor/Reactor.cpp",
+        "Reactor/CPUID.cpp",
+        "Reactor/Debug.cpp",
+        "Reactor/EmulatedReactor.cpp",
+        "Reactor/ExecutableMemory.cpp",
         "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
-        "Reactor/Debug.cpp",
-        "Reactor/CPUID.cpp",
-        "Reactor/ExecutableMemory.cpp",
+        "Reactor/Reactor.cpp",
     ],
 
     cflags: [
@@ -212,12 +213,13 @@ cc_defaults {
     ],
 
     srcs: [
-        "Reactor/Reactor.cpp",
+        "Reactor/CPUID.cpp",
+        "Reactor/Debug.cpp",
+        "Reactor/EmulatedReactor.cpp",
+        "Reactor/ExecutableMemory.cpp",
         "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
-        "Reactor/Debug.cpp",
-        "Reactor/CPUID.cpp",
-        "Reactor/ExecutableMemory.cpp",
+        "Reactor/Reactor.cpp",
     ],
 
     cflags: [
