@@ -22,7 +22,7 @@
 namespace {
 
 // checkForNoMissingOps() is an unused function that simply exists to try and
-// detect missing opcodes in "SpirvShaderInstructions.inc".
+// detect missing opcodes in "SpirvShaderInstructions.inl".
 // If there are missing opcodes, then some compilers will warn that not all
 // enum values are handled by the switch case below.
 constexpr void checkForNoMissingOps(spv::Op op)
@@ -35,7 +35,7 @@ constexpr void checkForNoMissingOps(spv::Op op)
 #define DECORATE_OP(isStatement, op) \
 	case spv::op:                    \
 		return;
-#include "SpirvShaderInstructions.inc"
+#include "SpirvShaderInstructions.inl"
 #undef DECORATE_OP
 		case spv::OpMax: return;
 	}
@@ -54,7 +54,7 @@ bool SpirvShader::IsStatement(spv::Op op)
 #define DECORATE_OP(isStatement, op)    \
 	CONCAT2(IS_STATEMENT_, isStatement) \
 	(op)
-#include "SpirvShaderInstructions.inc"
+#include "SpirvShaderInstructions.inl"
 #undef IS_STATEMENT_T
 #undef IS_STATEMENT_F
 #undef DECORATE_OP

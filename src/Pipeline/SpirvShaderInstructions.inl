@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// SpirvShaderInstructions.inc holds additional metadata for SPIR-V opcodes.
-// SpirvShaderInstructions.inc should only be included by
+// SpirvShaderInstructions.inl holds additional metadata for SPIR-V opcodes.
+// SpirvShaderInstructions.inl should only be included by
 // SpirvShaderInstructions.cpp.
 
 #ifndef DECORATE_OP
-#	error "SpirvShaderInstructions.inc must be included after defining DECORATE_OP()"
+#	error "SpirvShaderInstructions.inl must be included after defining DECORATE_OP()"
 #endif
 
 //   is-statement
