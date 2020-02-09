@@ -109,26 +109,28 @@ config("swiftshader_config") {
       ]
     } else if (target_cpu == "mipsel" && current_cpu == target_cpu) {
       cflags += [
-        "-march=mipsel",
+        "-EL",
         "-fPIC",
         "-mhard-float",
         "-mfp32",
+        "-mxgot",
       ]
       if (mips_arch_variant == "r1") {
         cflags += [
-          "-mcpu=mips32",
+          "-march=mips32",
         ]
       } else {
         cflags += [
-          "-mcpu=mips32r2",
+          "-march=mips32r2",
         ]
       }
     } else if (target_cpu == "mips64el" && current_cpu == target_cpu) {
       cflags += [
-        "-march=mips64el",
-        "-mcpu=mips64r2",
+        "-EL",
+        "-arch=mips64r2",
         "-mabi=64",
         "-fPIC",
+        "-mxgot",
       ]
     }
 
