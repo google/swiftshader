@@ -8,9 +8,56 @@ Marl is a C++ 11 library that provides a fluent interface for running tasks acro
 
 Marl uses a combination of fibers and threads to allow efficient execution of tasks that can block, while keeping a fixed number of hardware threads.
 
-Marl supports Windows, macOS, Linux, Fuchsia and Android (arm, aarch64, ppc64 (ELFv2), x86 and x64).
+Marl supports Windows, macOS, Linux, Fuchsia and Android (arm, aarch64, mips64, ppc64 (ELFv2), x86 and x64).
 
 Marl has no dependencies on other libraries (with an exception on googletest for building the optional unit tests).
+
+Example:
+
+```cpp
+#include "marl/defer.h"
+#include "marl/event.h"
+#include "marl/scheduler.h"
+
+#include <cstdio>
+
+int main() {
+  // Create a marl scheduler using the 4 hardware threads.
+  // Bind this scheduler to the main thread so we can call marl::schedule()
+  marl::Scheduler scheduler;
+  scheduler.bind();
+  scheduler.setWorkerThreadCount(4);
+  defer(scheduler.unbind());  // Automatically unbind before returning.
+
+  // Create an event that automatically resets itself.
+  marl::Event sayHellow(marl::Event::Mode::Auto);
+  marl::Event saidHellow(marl::Event::Mode::Auto);
+
+  // Schedule some tasks to run asynchronously.
+  for (int i = 0; i < 10; i++) {
+    // Each task will run on one of the 4 worker threads.
+    marl::schedule([=] {  // All marl primitives are capture-by-value.
+      printf("Task %d waiting to say hello!\n", i);
+
+      // Blocking in a task?
+      // The scheduler will find something else for this thread to do.
+      sayHellow.wait();
+
+      printf("Hello from task %d!\n", i);
+
+      saidHellow.signal();
+    });
+  }
+
+  // Unblock the tasks one by one.
+  for (int i = 0; i < 10; i++) {
+    sayHellow.signal();
+    saidHellow.wait();
+  }
+
+  // All tasks are guaranteed to completed before the scheduler is destructed.
+}
+```
 
 ## Building
 
@@ -55,10 +102,13 @@ This will define the `marl` library target, which you can pass to `target_link_l
 target_link_libraries(<target> marl) # replace <target> with the name of your project's target
 ```
 
-You will also want to add the `marl` public headers to your project's include search paths so you can `#include` the marl headers:
+You may also wish to specify your own paths to the third party libraries used by `marl`.
+You can do this by setting any of the following variables before the call to `add_subdirectory()`:
 
 ```cmake
-target_include_directories($<target> PRIVATE "${MARL_DIR}/include") # replace <target> with the name of your project's target
+set(MARL_THIRD_PARTY_DIR <third-party-root-directory>) # defaults to ${MARL_DIR}/third_party
+set(MARL_GOOGLETEST_DIR  <path-to-googletest>)         # defaults to ${MARL_THIRD_PARTY_DIR}/googletest
+add_subdirectory(${MARL_DIR})
 ```
 
 ---
