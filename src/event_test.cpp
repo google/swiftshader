@@ -191,19 +191,20 @@ TEST_P(WithBoundScheduler, EventWaitUntilTimeTaken) {
   wg.wait();
 }
 
-// EventWaitStressTest spins up a whole lot of wait_fors(), unblocks them early,
-// and then let's all the workers go to idle before repeating.
+// EventWaitStressTest spins up a whole lot of wait_fors(), unblocking some
+// with timeouts and some with an event signal, and then let's all the workers
+// go to idle before repeating.
 // This is testing to ensure that the scheduler handles timeouts correctly when
 // they are early-unblocked. Specifically, this is to test that fibers are
 // not double-placed into the idle or working lists.
 TEST_P(WithBoundScheduler, EventWaitStressTest) {
   auto event = marl::Event(marl::Event::Mode::Manual);
   for (int i = 0; i < 10; i++) {
-    auto wg = marl::WaitGroup(1000);
-    for (int j = 0; j < 1000; j++) {
+    auto wg = marl::WaitGroup(100);
+    for (int j = 0; j < 100; j++) {
       marl::schedule([=] {
         defer(wg.done());
-        event.wait_for(std::chrono::milliseconds(100));
+        event.wait_for(std::chrono::milliseconds(j));
       });
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));

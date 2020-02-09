@@ -27,7 +27,7 @@ elif [ "$BUILD_SYSTEM" == "bazel" ]; then
     sh bazel-0.29.1-installer-darwin-x86_64.sh --prefix=$BUILD_ROOT/bazel
     rm bazel-0.29.1-installer-darwin-x86_64.sh
     # Build and run
-    $BUILD_ROOT/bazel/bin/bazel test //:tests
+    $BUILD_ROOT/bazel/bin/bazel test //:tests --test_output=all
     $BUILD_ROOT/bazel/bin/bazel run //examples:fractal
     $BUILD_ROOT/bazel/bin/bazel run //examples:primes > /dev/null
 else

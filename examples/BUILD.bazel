@@ -13,21 +13,31 @@
 # limitations under the License.
 
 cc_binary(
-  name = "fractal",
-  srcs = [
-    "fractal.cpp",
-  ],
-  deps = [
-    "//:marl",
-  ],
+    name = "fractal",
+    srcs = [
+        "fractal.cpp",
+    ],
+    deps = [
+        "//:marl",
+    ],
 )
 
 cc_binary(
-  name = "primes",
-  srcs = [
-    "primes.cpp",
-  ],
-  deps = [
-    "//:marl",
-  ],
+    name = "hello_task",
+    srcs = [
+        "hello_task.cpp",
+    ],
+    deps = [
+        "//:marl",
+    ],
+)
+
+cc_binary(
+    name = "primes",
+    srcs = [
+        "primes.cpp",
+    ],
+    deps = [
+        "//:marl",
+    ],
 )
