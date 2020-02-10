@@ -39,7 +39,7 @@
 #endif
 
 #ifndef REACTOR_LOGGING_LEVEL
-#	define REACTOR_LOGGING_LEVEL INFO
+#	define REACTOR_LOGGING_LEVEL Info
 #endif
 
 namespace {
@@ -98,11 +98,11 @@ bool IsUnderDebugger()
 
 enum class Level
 {
-	DEBUG,
-	INFO,
-	WARN,
-	ERROR,
-	FATAL,
+	Debug,
+	Info,
+	Warn,
+	Error,
+	Fatal,
 };
 
 #ifdef __ANDROID__
@@ -110,19 +110,19 @@ void logv_android(Level level, const char *msg)
 {
 	switch(level)
 	{
-		case Level::DEBUG:
+		case Level::Debug:
 			__android_log_write(ANDROID_LOG_DEBUG, "SwiftShader", msg);
 			break;
-		case Level::INFO:
+		case Level::Info:
 			__android_log_write(ANDROID_LOG_INFO, "SwiftShader", msg);
 			break;
-		case Level::WARN:
+		case Level::Warn:
 			__android_log_write(ANDROID_LOG_WARN, "SwiftShader", msg);
 			break;
-		case Level::ERROR:
+		case Level::Error:
 			__android_log_write(ANDROID_LOG_ERROR, "SwiftShader", msg);
 			break;
-		case Level::FATAL:
+		case Level::Fatal:
 			__android_log_write(ANDROID_LOG_FATAL, "SwiftShader", msg);
 			break;
 	}
@@ -132,13 +132,13 @@ void logv_std(Level level, const char *msg)
 {
 	switch(level)
 	{
-		case Level::DEBUG:
-		case Level::INFO:
+		case Level::Debug:
+		case Level::Info:
 			fprintf(stdout, "%s", msg);
 			break;
-		case Level::WARN:
-		case Level::ERROR:
-		case Level::FATAL:
+		case Level::Warn:
+		case Level::Error:
+		case Level::Fatal:
 			fprintf(stderr, "%s", msg);
 			break;
 	}
@@ -187,7 +187,7 @@ void trace(const char *format, ...)
 {
 	va_list vararg;
 	va_start(vararg, format);
-	logv(Level::DEBUG, format, vararg);
+	logv(Level::Debug, format, vararg);
 	va_end(vararg);
 }
 
@@ -195,7 +195,7 @@ void warn(const char *format, ...)
 {
 	va_list vararg;
 	va_start(vararg, format);
-	logv(Level::WARN, format, vararg);
+	logv(Level::Warn, format, vararg);
 	va_end(vararg);
 }
 
@@ -204,7 +204,7 @@ void abort(const char *format, ...)
 	va_list vararg;
 
 	va_start(vararg, format);
-	logv(Level::FATAL, format, vararg);
+	logv(Level::Fatal, format, vararg);
 	va_end(vararg);
 
 	::abort();
@@ -218,7 +218,7 @@ void trace_assert(const char *format, ...)
 		// Abort after tracing and printing to stderr
 		va_list vararg;
 		va_start(vararg, format);
-		logv(Level::FATAL, format, vararg);
+		logv(Level::Fatal, format, vararg);
 		va_end(vararg);
 
 		::abort();
@@ -227,7 +227,7 @@ void trace_assert(const char *format, ...)
 	{
 		va_list vararg;
 		va_start(vararg, format);
-		logv(Level::FATAL, format, vararg);
+		logv(Level::Fatal, format, vararg);
 		va_end(vararg);
 	}
 }
