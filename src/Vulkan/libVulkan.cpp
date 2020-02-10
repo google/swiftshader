@@ -312,6 +312,7 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 	{ VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MULTIVIEW_SPEC_VERSION },
 	{ VK_KHR_RELAXED_BLOCK_LAYOUT_EXTENSION_NAME, VK_KHR_RELAXED_BLOCK_LAYOUT_SPEC_VERSION },
 	{ VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME, VK_KHR_SAMPLER_YCBCR_CONVERSION_SPEC_VERSION },
+	{ VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME, VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_SPEC_VERSION },
 	// Only 1.1 core version of this is supported. The extension has additional requirements
 	//{ VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME, VK_KHR_SHADER_DRAW_PARAMETERS_SPEC_VERSION },
 	{ VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME, VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_SPEC_VERSION },
@@ -711,6 +712,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				{
 					return VK_ERROR_FEATURE_NOT_PRESENT;
 				}
+			}
+			break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES_KHR:
+			{
+				const VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR* shaderDrawParametersFeatures = reinterpret_cast<const VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR*>(extensionCreateInfo);
+
+				// Separate depth and stencil layouts is already supported
+				(void)(shaderDrawParametersFeatures->separateDepthStencilLayouts);
 			}
 			break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
@@ -2743,6 +2752,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES:
 			{
 				auto features = reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures *>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
+			}
+			break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES_KHR:
+			{
+				auto features = reinterpret_cast<VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR*>(extensionFeatures);
 				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;

@@ -158,6 +158,11 @@ void PhysicalDevice::getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures *fe
 	features->shaderDrawParameters = VK_FALSE;
 }
 
+void PhysicalDevice::getFeatures(VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR* features) const
+{
+	features->separateDepthStencilLayouts = VK_TRUE;
+}
+
 void PhysicalDevice::getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT *features) const
 {
 	features->rectangularLines = VK_TRUE;
