@@ -423,18 +423,20 @@ SpirvShader::SpirvShader(
 
 			case spv::OpExtInstImport:
 			{
-				auto const extensionsByName = std::initializer_list<std::pair<const char *, Extension::Name>>{
+				static constexpr std::pair<const char *, Extension::Name> extensionsByName[] = {
 					{ "GLSL.std.450", Extension::GLSLstd450 },
 					{ "OpenCL.DebugInfo.100", Extension::OpenCLDebugInfo100 },
 				};
+				static constexpr auto extensionCount = sizeof(extensionsByName) / sizeof(extensionsByName[0]);
+
 				auto id = Extension::ID(insn.word(1));
 				auto name = insn.string(2);
 				auto ext = Extension{ Extension::Unknown };
-				for(auto it : extensionsByName)
+				for(size_t i = 0; i < extensionCount; i++)
 				{
-					if(0 == strcmp(name, it.first))
+					if(0 == strcmp(name, extensionsByName[i].first))
 					{
-						ext = Extension{ it.second };
+						ext = Extension{ extensionsByName[i].second };
 						break;
 					}
 				}
