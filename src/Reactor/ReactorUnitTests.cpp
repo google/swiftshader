@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "Coroutine.hpp"
+#include "Print.hpp"
 #include "Reactor.hpp"
 
 #include "gtest/gtest.h"
@@ -105,6 +106,206 @@ int reference(int *p, int y)
 	int sum = x + y + z;
 
 	return sum;
+}
+
+class StdOutCapture
+{
+public:
+	~StdOutCapture()
+	{
+		stopIfCapturing();
+	}
+
+	void start()
+	{
+		stopIfCapturing();
+		capturing = true;
+		testing::internal::CaptureStdout();
+	}
+
+	std::string stop()
+	{
+		assert(capturing);
+		capturing = false;
+		return testing::internal::GetCapturedStdout();
+	}
+
+private:
+	void stopIfCapturing()
+	{
+		if(capturing)
+		{
+			// This stops the capture
+			testing::internal::GetCapturedStdout();
+		}
+	}
+
+	bool capturing = false;
+};
+
+std::vector<std::string> split(const std::string &s)
+{
+	std::vector<std::string> result;
+	std::istringstream iss(s);
+	for(std::string line; std::getline(iss, line);)
+	{
+		result.push_back(line);
+	}
+	return result;
+}
+
+TEST(ReactorUnitTests, PrintPrimitiveTypes)
+{
+#ifdef ENABLE_RR_PRINT
+	FunctionT<void()> function;
+	{
+		bool b(true);
+		int8_t i8(-1);
+		uint8_t ui8(1);
+		int16_t i16(-1);
+		uint16_t ui16(1);
+		int32_t i32(-1);
+		uint32_t ui32(1);
+		int64_t i64(-1);
+		uint64_t ui64(1);
+		float f(1);
+		double d(2);
+		const char *cstr = "const char*";
+		std::string str = "std::string";
+		int *p = nullptr;
+
+		RR_WATCH(b);
+		RR_WATCH(i8);
+		RR_WATCH(ui8);
+		RR_WATCH(i16);
+		RR_WATCH(ui16);
+		RR_WATCH(i32);
+		RR_WATCH(ui32);
+		RR_WATCH(i64);
+		RR_WATCH(ui64);
+		RR_WATCH(f);
+		RR_WATCH(d);
+		RR_WATCH(cstr);
+		RR_WATCH(str);
+		RR_WATCH(p);
+	}
+
+	auto routine = function("one");
+
+	char pNullptr[64];
+	snprintf(pNullptr, sizeof(pNullptr), "  p: %p", nullptr);
+
+	const char *expected[] = {
+		"  b: true",
+		"  i8: -1",
+		"  ui8: 1",
+		"  i16: -1",
+		"  ui16: 1",
+		"  i32: -1",
+		"  ui32: 1",
+		"  i64: -1",
+		"  ui64: 1",
+		"  f: 1.000000",
+		"  d: 2.000000",
+		"  cstr: const char*",
+		"  str: std::string",
+		pNullptr,
+	};
+	constexpr size_t expectedSize = sizeof(expected) / sizeof(expected[0]);
+
+	StdOutCapture capture;
+	capture.start();
+	routine();
+	auto output = split(capture.stop());
+	for(size_t i = 0, j = 1; i < expectedSize; ++i, j += 2)
+	{
+		ASSERT_EQ(expected[i], output[j]);
+	}
+
+#endif
+}
+
+TEST(ReactorUnitTests, PrintReactorTypes)
+{
+#ifdef ENABLE_RR_PRINT
+	FunctionT<void()> function;
+	{
+		Bool b(true);
+		Int i(-1);
+		Int2 i2(-1, -2);
+		Int4 i4(-1, -2, -3, -4);
+		UInt ui(1);
+		UInt2 ui2(1, 2);
+		UInt4 ui4(1, 2, 3, 4);
+		Short s(-1);
+		Short4 s4(-1, -2, -3, -4);
+		UShort us(1);
+		UShort4 us4(1, 2, 3, 4);
+		Float f(1);
+		Float4 f4(1, 2, 3, 4);
+		Long l(i);
+		Pointer<Int> pi = nullptr;
+		RValue<Int> rvi = i;
+		Byte by('a');
+		Byte4 by4(i4);
+
+		RR_WATCH(b);
+		RR_WATCH(i);
+		RR_WATCH(i2);
+		RR_WATCH(i4);
+		RR_WATCH(ui);
+		RR_WATCH(ui2);
+		RR_WATCH(ui4);
+		RR_WATCH(s);
+		RR_WATCH(s4);
+		RR_WATCH(us);
+		RR_WATCH(us4);
+		RR_WATCH(f);
+		RR_WATCH(f4);
+		RR_WATCH(l);
+		RR_WATCH(pi);
+		RR_WATCH(rvi);
+		RR_WATCH(by);
+		RR_WATCH(by4);
+	}
+
+	auto routine = function("one");
+
+	char piNullptr[64];
+	snprintf(piNullptr, sizeof(piNullptr), "  pi: %p", nullptr);
+
+	const char *expected[] = {
+		"  b: true",
+		"  i: -1",
+		"  i2: [-1, -2]",
+		"  i4: [-1, -2, -3, -4]",
+		"  ui: 1",
+		"  ui2: [1, 2]",
+		"  ui4: [1, 2, 3, 4]",
+		"  s: -1",
+		"  s4: [-1, -2, -3, -4]",
+		"  us: 1",
+		"  us4: [1, 2, 3, 4]",
+		"  f: 1.000000",
+		"  f4: [1.000000, 2.000000, 3.000000, 4.000000]",
+		"  l: -1",
+		piNullptr,
+		"  rvi: -1",
+		"  by: 97",
+		"  by4: [255, 254, 253, 252]",
+	};
+	constexpr size_t expectedSize = sizeof(expected) / sizeof(expected[0]);
+
+	StdOutCapture capture;
+	capture.start();
+	routine();
+	auto output = split(capture.stop());
+	for(size_t i = 0, j = 1; i < expectedSize; ++i, j += 2)
+	{
+		ASSERT_EQ(expected[i], output[j]);
+	}
+
+#endif
 }
 
 TEST(ReactorUnitTests, Sample)

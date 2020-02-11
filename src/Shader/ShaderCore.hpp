@@ -17,6 +17,7 @@
 
 #include "Shader.hpp"
 #include "Reactor/Reactor.hpp"
+#include "Reactor/Print.hpp"
 #include "Common/Debug.hpp"
 
 namespace sw

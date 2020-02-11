@@ -120,6 +120,7 @@ option_if_not_defined(SWIFTSHADER_WARNINGS_AS_ERRORS "Treat all warnings as erro
 option_if_not_defined(SWIFTSHADER_DCHECK_ALWAYS_ON "Check validation macros even in release builds" 0)
 option_if_not_defined(REACTOR_EMIT_DEBUG_INFO "Emit debug info for JIT functions" 0)
 option_if_not_defined(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location info for JIT functions" 0)
+option_if_not_defined(REACTOR_ENABLE_PRINT "Enable RR_PRINT macros" 0)
 option_if_not_defined(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" 0)
 option_if_not_defined(SWIFTSHADER_LESS_DEBUG_INFO "Generate less debug info to reduce file size" 0)
 option_if_not_defined(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER "Enable vulkan debugger support" 0)
@@ -543,14 +544,19 @@ else()
 endif()
 
 if(REACTOR_EMIT_PRINT_LOCATION)
-    # This feature depends on REACTOR_EMIT_DEBUG_INFO, so enable it
+    # This feature depends on REACTOR_EMIT_DEBUG_INFO and REACTOR_ENABLE_PRINT
     set(REACTOR_EMIT_DEBUG_INFO "On")
+    set(REACTOR_ENABLE_PRINT "On")
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_RR_EMIT_PRINT_LOCATION")
 endif()
 
 if(REACTOR_EMIT_DEBUG_INFO)
     message(WARNING "REACTOR_EMIT_DEBUG_INFO is enabled. This will likely affect performance.")
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_RR_DEBUG_INFO")
+endif()
+
+if(REACTOR_ENABLE_PRINT)
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_RR_PRINT")
 endif()
 
 if(REACTOR_VERIFY_LLVM_IR)

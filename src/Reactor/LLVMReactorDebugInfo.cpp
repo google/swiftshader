@@ -18,6 +18,7 @@
 
 #	include "LLVMReactor.hpp"
 #	include "Reactor.hpp"
+#	include "Print.hpp"
 
 #	include "boost/stacktrace.hpp"
 

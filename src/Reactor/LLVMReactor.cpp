@@ -18,6 +18,7 @@
 #include "Debug.hpp"
 #include "EmulatedReactor.hpp"
 #include "LLVMReactorDebugInfo.hpp"
+#include "Print.hpp"
 #include "Reactor.hpp"
 #include "x86.hpp"
 
@@ -3874,6 +3875,13 @@ static std::vector<Value *> toDouble(const std::vector<Value *> &vals)
 	return elements;
 }
 
+std::vector<Value *> PrintValue::Ty<Bool>::val(const RValue<Bool> &v)
+{
+	auto t = jit->builder->CreateGlobalStringPtr("true");
+	auto f = jit->builder->CreateGlobalStringPtr("false");
+	return { V(jit->builder->CreateSelect(V(v.value), t, f)) };
+}
+
 std::vector<Value *> PrintValue::Ty<Byte>::val(const RValue<Byte> &v)
 {
 	return toInt({ v.value }, false);
@@ -3965,7 +3973,7 @@ void Printv(const char *function, const char *file, int line, const char *fmt, s
 	if(function != nullptr) { str += "%s "; }
 	str += fmt;
 
-	// Perform subsitution on all '{n}' bracketed indices in the format
+	// Perform substitution on all '{n}' bracketed indices in the format
 	// message.
 	int i = 0;
 	for(const PrintValue &arg : args)
