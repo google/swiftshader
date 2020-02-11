@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "712ee9bd_1305875d",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-02-11T11:56:36Z",
+      "side": 1,
+      "message": "aeabi is ARM only, right?\nYou need to conditionally compile this.",
+      "range": {
+        "startLine": 83,
+        "startChar": 18,
+        "endLine": 83,
+        "endChar": 33
+      },
+      "revId": "5f5a06488ab913daadee2add475b0d46d4a432b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
