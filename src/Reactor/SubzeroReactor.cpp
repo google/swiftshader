@@ -160,7 +160,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 		ret = function->makeVariable(retTy);
 	}
 
-	std::array<Ice::Variable *, sizeof...(args)> iceArgs {{ std::forward<RArgs>(args)... }};
+	std::array<Ice::Variable *, sizeof...(args)> iceArgs{ { std::forward<RArgs>(args)... } };
 
 	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, getConstantPointer(function->getContext(), reinterpret_cast<void const *>(fptr)), false);
 	for(auto arg : iceArgs)

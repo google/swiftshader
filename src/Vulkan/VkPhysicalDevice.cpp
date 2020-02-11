@@ -158,7 +158,7 @@ void PhysicalDevice::getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures *fe
 	features->shaderDrawParameters = VK_FALSE;
 }
 
-void PhysicalDevice::getFeatures(VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR* features) const
+void PhysicalDevice::getFeatures(VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR *features) const
 {
 	features->separateDepthStencilLayouts = VK_TRUE;
 }
