@@ -19,12 +19,24 @@
 #ifndef marl_sal_h
 #define marl_sal_h
 
-#ifndef _Requires_lock_held_
-#define _Requires_lock_held_(x)
+#ifndef _Acquires_lock_
+#define _Acquires_lock_(...)
 #endif
 
-#ifndef _Requires_lock_not_held_
-#define _Requires_lock_not_held_(x)
+#ifndef _Guarded_by_
+#define _Guarded_by_(...)
+#endif
+
+#ifndef _Releases_lock_
+#define _Releases_lock_(...)
+#endif
+
+#ifndef _Requires_lock_held_
+#define _Requires_lock_held_(...)
+#endif
+
+#ifndef _When_
+#define _When_(...)
 #endif
 
 #endif  // marl_sal_h

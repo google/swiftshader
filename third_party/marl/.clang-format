@@ -1,2 +1,10 @@
 # http://clang.llvm.org/docs/ClangFormatStyleOptions.html
 BasedOnStyle: Chromium
+
+---
+Language:        Cpp
+StatementMacros:
+ - _Acquires_lock_
+ - _Releases_lock_
+ - _Requires_lock_held_
+ - _When_

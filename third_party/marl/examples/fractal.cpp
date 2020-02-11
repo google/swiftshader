@@ -146,10 +146,7 @@ constexpr float windowMaxY = +0.5f;
 constexpr float cx = -0.8f;
 constexpr float cy = 0.156f;
 
-int main(int argc, const char** argv) {
-  (void)argc;  // unused parameter
-  (void)argv;  // unused parameter
-
+int main() {
   // Create a marl scheduler using the full number of logical cpus.
   // Bind this scheduler to the main thread so we can call marl::schedule()
   marl::Scheduler scheduler;
