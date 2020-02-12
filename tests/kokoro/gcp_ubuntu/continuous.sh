@@ -24,7 +24,7 @@ fi
 LESS_DEBUG_INFO=1
 
 cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DREACTOR_BACKEND=${REACTOR_BACKEND}" "-DREACTOR_VERIFY_LLVM_IR=1" "-DLESS_DEBUG_INFO=${LESS_DEBUG_INFO}"
-make --jobs=$(nproc)
+cmake --build . -- -j $(nproc)
 
 # Run unit tests
 
@@ -33,3 +33,10 @@ cd .. # Some tests must be run from project root
 build/ReactorUnitTests
 build/gles-unittests
 build/vk-unittests
+
+# Incrementally build and run rr::Print unit tests
+cd build
+cmake .. "-DREACTOR_ENABLE_PRINT=1"
+cmake --build . --target ReactorUnitTests -- -j $(nproc)
+cd ..
+build/ReactorUnitTests --gtest_filter=ReactorUnitTests.Print*

@@ -26,7 +26,7 @@ if [[ "${BUILD_TYPE}" == "Debug" ]]; then
 fi
 
 cmake .. "-DSWIFTSHADER_ASAN=${ASAN}" "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DREACTOR_BACKEND=${REACTOR_BACKEND}" "-DREACTOR_VERIFY_LLVM_IR=1" "-DLESS_DEBUG_INFO=${LESS_DEBUG_INFO}"
-make -j$(sysctl -n hw.logicalcpu)
+cmake --build . -- -j$(sysctl -n hw.logicalcpu)
 
 # Run unit tests
 
@@ -35,3 +35,10 @@ cd .. # Some tests must be run from project root
 build/ReactorUnitTests
 build/gles-unittests
 build/vk-unittests
+
+# Incrementally build and run rr::Print unit tests
+cd build
+cmake .. "-DREACTOR_ENABLE_PRINT=1"
+cmake --build . --target ReactorUnitTests -- -j$(sysctl -n hw.logicalcpu)
+cd ..
+build/ReactorUnitTests --gtest_filter=ReactorUnitTests.Print*
