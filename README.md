@@ -18,6 +18,7 @@ Example:
 #include "marl/defer.h"
 #include "marl/event.h"
 #include "marl/scheduler.h"
+#include "marl/waitgroup.h"
 
 #include <cstdio>
 
@@ -29,33 +30,38 @@ int main() {
   scheduler.setWorkerThreadCount(4);
   defer(scheduler.unbind());  // Automatically unbind before returning.
 
-  // Create an event that automatically resets itself.
-  marl::Event sayHellow(marl::Event::Mode::Auto);
-  marl::Event saidHellow(marl::Event::Mode::Auto);
+  constexpr int numTasks = 10;
+
+  // Create an event that is manually reset.
+  marl::Event sayHellow(marl::Event::Mode::Manual);
+
+  // Create a WaitGroup with an initial count of numTasks.
+  marl::WaitGroup saidHellow(numTasks);
 
   // Schedule some tasks to run asynchronously.
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < numTasks; i++) {
     // Each task will run on one of the 4 worker threads.
     marl::schedule([=] {  // All marl primitives are capture-by-value.
-      printf("Task %d waiting to say hello!\n", i);
+      // Decrement the WaitGroup counter when the task has finished.
+      defer(saidHellow.done());
+
+      printf("Task %d waiting to say hello...\n", i);
 
       // Blocking in a task?
       // The scheduler will find something else for this thread to do.
       sayHellow.wait();
 
       printf("Hello from task %d!\n", i);
-
-      saidHellow.signal();
     });
   }
 
-  // Unblock the tasks one by one.
-  for (int i = 0; i < 10; i++) {
-    sayHellow.signal();
-    saidHellow.wait();
-  }
+  sayHellow.signal();  // Unblock all the tasks.
 
-  // All tasks are guaranteed to completed before the scheduler is destructed.
+  saidHellow.wait();  // Wait for all tasks to complete.
+
+  printf("All tasks said hello.\n");
+
+  // All tasks are guaranteed to complete before the scheduler is destructed.
 }
 ```
 
@@ -110,6 +116,10 @@ set(MARL_THIRD_PARTY_DIR <third-party-root-directory>) # defaults to ${MARL_DIR}
 set(MARL_GOOGLETEST_DIR  <path-to-googletest>)         # defaults to ${MARL_THIRD_PARTY_DIR}/googletest
 add_subdirectory(${MARL_DIR})
 ```
+
+## Benchmarks
+
+Graphs of several microbenchmarks can be found [here](https://google.github.io/marl/benchmarks).
 
 ---
 

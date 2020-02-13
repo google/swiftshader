@@ -16,10 +16,12 @@
 
 #include "benchmark/benchmark.h"
 
+volatile int do_not_optimize_away_result = 0;
+
 static void Defer(benchmark::State& state) {
-  int i = 0;
   for (auto _ : state) {
-    defer(benchmark::DoNotOptimize(i++));
+    // Avoid benchmark::DoNotOptimize() as this is unfairly slower on Windows.
+    defer(do_not_optimize_away_result++);
   }
 }
 BENCHMARK(Defer);

@@ -133,12 +133,17 @@ Scheduler::Scheduler(Allocator* allocator /* = Allocator::Default */)
 }
 
 Scheduler::~Scheduler() {
+#if MARL_DEBUG_ENABLED
   {
     std::unique_lock<std::mutex> lock(singleThreadedWorkerMutex);
     MARL_ASSERT(singleThreadedWorkers.size() == 0,
                 "Scheduler still bound on %d threads",
                 int(singleThreadedWorkers.size()));
   }
+#endif  // MARL_DEBUG_ENABLED
+
+  // Release all worker threads.
+  // This will wait for all in-flight tasks to complete before returning.
   setWorkerThreadCount(0);
 }
 
@@ -401,6 +406,7 @@ void Scheduler::Worker::stop() {
   }
 }
 
+_Requires_lock_held_(waitLock)
 bool Scheduler::Worker::wait(Fiber::Lock& waitLock,
                              const TimePoint* timeout,
                              const Predicate& pred) {
@@ -422,17 +428,20 @@ bool Scheduler::Worker::wait(Fiber::Lock& waitLock,
     // Fiber resumed. We don't need the work mutex locked any more.
     work.mutex.unlock();
 
+    // Re-lock to either return due to timeout, or call pred().
+    waitLock.lock();
+
     // Check timeout.
     if (timeout != nullptr && std::chrono::system_clock::now() >= *timeout) {
       return false;
     }
 
-    // Spurious wake up. Re-lock, spin again.
-    waitLock.lock();
+    // Spurious wake up. Spin again.
   }
   return true;
 }
 
+_Requires_lock_held_(work.mutex)
 void Scheduler::Worker::suspend(
     const std::chrono::system_clock::time_point* timeout) {
   // Current fiber is yielding as it is blocked.

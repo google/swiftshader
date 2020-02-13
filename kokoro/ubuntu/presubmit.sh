@@ -14,7 +14,7 @@ if [ "$BUILD_SYSTEM" == "cmake" ]; then
     cd build
 
     build_and_run() {
-        cmake .. -DMARL_BUILD_EXAMPLES=1 -DMARL_BUILD_TESTS=1 -DMARL_WARNINGS_AS_ERRORS=1 $1
+        cmake .. -DMARL_BUILD_EXAMPLES=1 -DMARL_BUILD_TESTS=1 -DMARL_BUILD_BENCHMARKS=1 -DMARL_WARNINGS_AS_ERRORS=1 $1
         make --jobs=$(nproc)
 
         ./marl-unittests

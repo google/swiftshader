@@ -34,6 +34,8 @@ namespace marl {
 // thread will work on other tasks until the ConditionVariable is unblocked.
 class ConditionVariable {
  public:
+  inline ConditionVariable();
+
   // notify_one() notifies and potentially unblocks one waiting fiber or thread.
   inline void notify_one();
 
@@ -65,12 +67,19 @@ class ConditionVariable {
                   Predicate&& pred);
 
  private:
+  ConditionVariable(const ConditionVariable&) = delete;
+  ConditionVariable(ConditionVariable&&) = delete;
+  ConditionVariable& operator=(const ConditionVariable&) = delete;
+  ConditionVariable& operator=(ConditionVariable&&) = delete;
+
   std::mutex mutex;
   std::unordered_set<Scheduler::Fiber*> waiting;
   std::condition_variable condition;
   std::atomic<int> numWaiting = {0};
   std::atomic<int> numWaitingOnCondition = {0};
 };
+
+ConditionVariable::ConditionVariable() {}
 
 void ConditionVariable::notify_one() {
   if (numWaiting == 0) {
