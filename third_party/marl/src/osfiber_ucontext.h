@@ -115,6 +115,7 @@ Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
   out->target = func;
 
   auto res = getcontext(&out->context);
+  (void)res;
   MARL_ASSERT(res == 0, "getcontext() returned %d", int(res));
   out->context.uc_stack.ss_sp = out->stack.ptr;
   out->context.uc_stack.ss_size = stackSize;
@@ -130,6 +131,7 @@ Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
 
 void OSFiber::switchTo(OSFiber* fiber) {
   auto res = swapcontext(&context, &fiber->context);
+  (void)res;
   MARL_ASSERT(res == 0, "swapcontext() returned %d", int(res));
 }
 

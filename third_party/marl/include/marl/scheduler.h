@@ -43,6 +43,7 @@ using Task = std::function<void()>;
 // A scheduler can be bound to one or more threads using the bind() method.
 // Once bound to a thread, that thread can call marl::schedule() to enqueue
 // work tasks to be executed asynchronously.
+// All threads must be unbound with unbind() before the scheduler is destructed.
 // Scheduler are initially constructed in single-threaded mode.
 // Call setWorkerThreadCount() to spawn dedicated worker threads.
 class Scheduler {
@@ -53,6 +54,10 @@ class Scheduler {
   using Predicate = std::function<bool()>;
 
   Scheduler(Allocator* allocator = Allocator::Default);
+
+  // Destructor.
+  // Ensure that all threads are unbound before calling - failure to do so may
+  // result in leaked memory.
   ~Scheduler();
 
   // get() returns the scheduler bound to the current thread.
@@ -64,6 +69,8 @@ class Scheduler {
 
   // unbind() unbinds the scheduler currently bound to the current thread.
   // There must be a existing scheduler bound to the thread prior to calling.
+  // unbind() flushes any enqueued tasks on the single-threaded worker before
+  // returning.
   static void unbind();
 
   // enqueue() queues the task for asynchronous execution.
@@ -117,6 +124,7 @@ class Scheduler {
     // will be locked before wait() returns.
     // pred will be always be called with the lock held.
     // wait() must only be called on the currently executing fiber.
+    _Requires_lock_held_(lock)
     void wait(Lock& lock, const Predicate& pred);
 
     // wait() suspends execution of this Fiber until the Fiber is woken up with
@@ -133,6 +141,7 @@ class Scheduler {
     // will be locked before wait() returns.
     // pred will be always be called with the lock held.
     // wait() must only be called on the currently executing fiber.
+    _Requires_lock_held_(lock)
     template <typename Clock, typename Duration>
     inline bool wait(Lock& lock,
                      const std::chrono::time_point<Clock, Duration>& timeout,
@@ -201,6 +210,11 @@ class Scheduler {
   };
 
  private:
+  Scheduler(const Scheduler&) = delete;
+  Scheduler(Scheduler&&) = delete;
+  Scheduler& operator=(const Scheduler&) = delete;
+  Scheduler& operator=(Scheduler&&) = delete;
+
   // Stack size in bytes of a new fiber.
   // TODO: Make configurable so the default size can be reduced.
   static constexpr size_t FiberStackSize = 1024 * 1024;
@@ -271,6 +285,7 @@ class Scheduler {
     // wait() suspends execution of the current task until the predicate pred
     // returns true.
     // See Fiber::wait() for more information.
+    _Requires_lock_held_(lock)
     bool wait(Fiber::Lock& lock,
               const TimePoint* timeout,
               const Predicate& pred);
@@ -436,6 +451,7 @@ class Scheduler {
       singleThreadedWorkers;
 };
 
+_Requires_lock_held_(lock)
 template <typename Clock, typename Duration>
 bool Scheduler::Fiber::wait(
     Lock& lock,

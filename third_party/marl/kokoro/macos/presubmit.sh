@@ -13,7 +13,7 @@ if [ "$BUILD_SYSTEM" == "cmake" ]; then
     mkdir build
     cd build
 
-    cmake .. -DMARL_BUILD_EXAMPLES=1 -DMARL_BUILD_TESTS=1 -DMARL_WARNINGS_AS_ERRORS=1
+    cmake .. -DMARL_BUILD_EXAMPLES=1 -DMARL_BUILD_TESTS=1 -DMARL_BUILD_BENCHMARKS=1 -DMARL_WARNINGS_AS_ERRORS=1
     make -j$(sysctl -n hw.logicalcpu)
 
     ./marl-unittests
