@@ -750,6 +750,26 @@ void PixelRoutine::stencilOperation(Byte8 &newValue, const Byte8 &bufferValue, c
 	}
 }
 
+Byte8 PixelRoutine::stencilReplaceRef(bool isBack)
+{
+	auto it = spirvShader->outputBuiltins.find(spv::BuiltInFragStencilRefEXT);
+	if(it != spirvShader->outputBuiltins.end())
+	{
+		UInt4 sRef = As<UInt4>(routine.getVariable(it->second.Id)[it->second.FirstComponent]) & UInt4(0xff);
+		// TODO (b/148295813): Could be done with a single pshufb instruction. Optimize the
+		//                     following line by either adding a rr::Shuffle() variant to do
+		//                     it explicitly or adding a Byte4(Int4) constructor would work.
+		sRef.x = rr::UInt(sRef.x) | (rr::UInt(sRef.y) << 8) | (rr::UInt(sRef.z) << 16) | (rr::UInt(sRef.w) << 24);
+
+		UInt2 sRefDuplicated;
+		sRefDuplicated = Insert(sRefDuplicated, sRef.x, 0);
+		sRefDuplicated = Insert(sRefDuplicated, sRef.x, 1);
+		return As<Byte8>(sRefDuplicated);
+	}
+
+	return *Pointer<Byte8>(data + OFFSET(DrawData, stencil[isBack].referenceQ));
+}
+
 void PixelRoutine::stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkStencilOp operation, bool isBack)
 {
 	switch(operation)
@@ -761,7 +781,7 @@ void PixelRoutine::stencilOperation(Byte8 &output, const Byte8 &bufferValue, VkS
 			output = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 			break;
 		case VK_STENCIL_OP_REPLACE:
-			output = *Pointer<Byte8>(data + OFFSET(DrawData, stencil[isBack].referenceQ));
+			output = stencilReplaceRef(isBack);
 			break;
 		case VK_STENCIL_OP_INCREMENT_AND_CLAMP:
 			output = AddSat(bufferValue, Byte8(1, 1, 1, 1, 1, 1, 1, 1));

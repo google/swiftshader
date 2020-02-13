@@ -381,6 +381,7 @@ SpirvShader::SpirvShader(
 					case spv::CapabilityGroupNonUniformShuffleRelative: capabilities.GroupNonUniformShuffleRelative = true; break;
 					case spv::CapabilityDeviceGroup: capabilities.DeviceGroup = true; break;
 					case spv::CapabilityMultiView: capabilities.MultiView = true; break;
+					case spv::CapabilityStencilExportEXT: capabilities.StencilExportEXT = true; break;
 					default:
 						UNSUPPORTED("Unsupported capability %u", insn.word(1));
 				}
@@ -719,6 +720,7 @@ SpirvShader::SpirvShader(
 				if(!strcmp(ext, "SPV_KHR_variable_pointers")) break;
 				if(!strcmp(ext, "SPV_KHR_device_group")) break;
 				if(!strcmp(ext, "SPV_KHR_multiview")) break;
+				if(!strcmp(ext, "SPV_EXT_shader_stencil_export")) break;
 				UNSUPPORTED("SPIR-V Extension: %s", ext);
 				break;
 			}

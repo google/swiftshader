@@ -1915,7 +1915,7 @@ namespace sw
 					Int c1 = Int(*Pointer<Byte>(buffer[f1] + index[1]));
 					Int c2 = Int(*Pointer<Byte>(buffer[f2] + index[2]));
 					Int c3 = Int(*Pointer<Byte>(buffer[f3] + index[3]));
-					c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+					c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24); // TODO (b/148295813) : Optimize with pshufb
 
 					switch(state.textureFormat)
 					{
@@ -2067,7 +2067,7 @@ namespace sw
 			Int c1 = Int(buffer[0][index[1]]);
 			Int c2 = Int(buffer[0][index[2]]);
 			Int c3 = Int(buffer[0][index[3]]);
-			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24); // TODO (b/148295813) : Optimize with pshufb
 			UShort4 Y = As<UShort4>(Unpack(As<Byte4>(c0)));
 
 			computeIndices(index, uuuu, vvvv, wwww, offset, mipmap + sizeof(Mipmap), function);
@@ -2075,14 +2075,14 @@ namespace sw
 			c1 = Int(buffer[1][index[1]]);
 			c2 = Int(buffer[1][index[2]]);
 			c3 = Int(buffer[1][index[3]]);
-			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24); // TODO (b/148295813) : Optimize with pshufb
 			UShort4 V = As<UShort4>(Unpack(As<Byte4>(c0)));
 
 			c0 = Int(buffer[2][index[0]]);
 			c1 = Int(buffer[2][index[1]]);
 			c2 = Int(buffer[2][index[2]]);
 			c3 = Int(buffer[2][index[3]]);
-			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
+			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24); // TODO (b/148295813) : Optimize with pshufb
 			UShort4 U = As<UShort4>(Unpack(As<Byte4>(c0)));
 
 			const UShort4 yY = UShort4(iround(Yy * 0x4000));
