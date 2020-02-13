@@ -65,6 +65,17 @@ inline Value *V(llvm::Value *t)
 	return reinterpret_cast<Value *>(t);
 }
 
+inline std::vector<llvm::Value *> V(const std::vector<Value *> &values)
+{
+	std::vector<llvm::Value *> result;
+	result.reserve(values.size());
+	for(auto &v : values)
+	{
+		result.push_back(V(v));
+	}
+	return result;
+}
+
 // Emits a no-op instruction that will not be optimized away.
 // Useful for emitting something that can have a source location without
 // effect.

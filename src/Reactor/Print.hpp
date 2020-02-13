@@ -337,6 +337,10 @@ struct PrintValue::Ty<RValue<T>>
 	static std::vector<Value *> val(const RValue<T> &v) { return PrintValue::Ty<T>::val(v); }
 };
 
+// VPrintf emits a call to printf() using vals[0] as the format string,
+// and vals[1..n] as the args.
+void VPrintf(const std::vector<Value *> &vals);
+
 // Printv emits a call to printf() using the function, file and line,
 // message and optional values.
 // See Printv below.

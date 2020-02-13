@@ -14,6 +14,7 @@
 
 #include "Reactor.hpp"
 #include "Debug.hpp"
+#include "Print.hpp"
 
 #include <cmath>
 
@@ -4595,5 +4596,198 @@ Float4 CToReactor<float[4]>::cast(float v[4])
 
 // TODO: Long has no constructor that takes a uint64_t
 // Long          CToReactor<uint64_t>::cast(uint64_t v)       { return type(v); }
+
+#ifdef ENABLE_RR_PRINT
+static std::string replaceAll(std::string str, const std::string &substr, const std::string &replacement)
+{
+	size_t pos = 0;
+	while((pos = str.find(substr, pos)) != std::string::npos)
+	{
+		str.replace(pos, substr.length(), replacement);
+		pos += replacement.length();
+	}
+	return str;
+}
+
+// extractAll returns a vector containing the extracted n scalar value of
+// the vector vec.
+// TODO: Move to Reactor.cpp (LLVMReactor can use this too)
+static std::vector<Value *> extractAll(Value *vec, int n)
+{
+	Type *elemTy = Nucleus::getContainedType(Nucleus::getType(vec));
+	std::vector<Value *> elements;
+	elements.reserve(n);
+	for(int i = 0; i < n; i++)
+	{
+		auto el = Nucleus::createExtractElement(vec, elemTy, i);
+		elements.push_back(el);
+	}
+	return elements;
+}
+
+// toInt returns all the integer values in vals extended to a printf-required storage value
+static std::vector<Value *> toInt(const std::vector<Value *> &vals, bool isSigned)
+{
+	auto storageTy = Nucleus::getPrintfStorageType(Int::getType());
+	std::vector<Value *> elements;
+	elements.reserve(vals.size());
+	for(auto v : vals)
+	{
+		if(isSigned)
+		{
+			elements.push_back(Nucleus::createSExt(v, storageTy));
+		}
+		else
+		{
+			elements.push_back(Nucleus::createZExt(v, storageTy));
+		}
+	}
+	return elements;
+}
+
+// toFloat returns all the float values in vals extended to extended to a printf-required storage value
+static std::vector<Value *> toFloat(const std::vector<Value *> &vals)
+{
+	auto storageTy = Nucleus::getPrintfStorageType(Float::getType());
+	std::vector<Value *> elements;
+	elements.reserve(vals.size());
+	for(auto v : vals)
+	{
+		elements.push_back(Nucleus::createFPExt(v, storageTy));
+	}
+	return elements;
+}
+
+std::vector<Value *> PrintValue::Ty<Bool>::val(const RValue<Bool> &v)
+{
+	auto t = Nucleus::createConstantString("true");
+	auto f = Nucleus::createConstantString("false");
+	return { Nucleus::createSelect(v.value, t, f) };
+}
+
+std::vector<Value *> PrintValue::Ty<Byte>::val(const RValue<Byte> &v)
+{
+	return toInt({ v.value }, false);
+}
+
+std::vector<Value *> PrintValue::Ty<Byte4>::val(const RValue<Byte4> &v)
+{
+	return toInt(extractAll(v.value, 4), false);
+}
+
+std::vector<Value *> PrintValue::Ty<Int>::val(const RValue<Int> &v)
+{
+	return toInt({ v.value }, true);
+}
+
+std::vector<Value *> PrintValue::Ty<Int2>::val(const RValue<Int2> &v)
+{
+	return toInt(extractAll(v.value, 2), true);
+}
+
+std::vector<Value *> PrintValue::Ty<Int4>::val(const RValue<Int4> &v)
+{
+	return toInt(extractAll(v.value, 4), true);
+}
+
+std::vector<Value *> PrintValue::Ty<UInt>::val(const RValue<UInt> &v)
+{
+	return toInt({ v.value }, false);
+}
+
+std::vector<Value *> PrintValue::Ty<UInt2>::val(const RValue<UInt2> &v)
+{
+	return toInt(extractAll(v.value, 2), false);
+}
+
+std::vector<Value *> PrintValue::Ty<UInt4>::val(const RValue<UInt4> &v)
+{
+	return toInt(extractAll(v.value, 4), false);
+}
+
+std::vector<Value *> PrintValue::Ty<Short>::val(const RValue<Short> &v)
+{
+	return toInt({ v.value }, true);
+}
+
+std::vector<Value *> PrintValue::Ty<Short4>::val(const RValue<Short4> &v)
+{
+	return toInt(extractAll(v.value, 4), true);
+}
+
+std::vector<Value *> PrintValue::Ty<UShort>::val(const RValue<UShort> &v)
+{
+	return toInt({ v.value }, false);
+}
+
+std::vector<Value *> PrintValue::Ty<UShort4>::val(const RValue<UShort4> &v)
+{
+	return toInt(extractAll(v.value, 4), false);
+}
+
+std::vector<Value *> PrintValue::Ty<Float>::val(const RValue<Float> &v)
+{
+	return toFloat({ v.value });
+}
+
+std::vector<Value *> PrintValue::Ty<Float4>::val(const RValue<Float4> &v)
+{
+	return toFloat(extractAll(v.value, 4));
+}
+
+std::vector<Value *> PrintValue::Ty<const char *>::val(const char *v)
+{
+	return { Nucleus::createConstantString(v) };
+}
+
+void Printv(const char *function, const char *file, int line, const char *fmt, std::initializer_list<PrintValue> args)
+{
+	// Build the printf format message string.
+	std::string str;
+	if(file != nullptr) { str += (line > 0) ? "%s:%d " : "%s "; }
+	if(function != nullptr) { str += "%s "; }
+	str += fmt;
+
+	// Perform substitution on all '{n}' bracketed indices in the format
+	// message.
+	int i = 0;
+	for(const PrintValue &arg : args)
+	{
+		str = replaceAll(str, "{" + std::to_string(i++) + "}", arg.format);
+	}
+
+	std::vector<Value *> vals;
+	vals.reserve(8);
+
+	// The format message is always the first argument.
+	vals.push_back(Nucleus::createConstantString(str));
+
+	// Add optional file, line and function info if provided.
+	if(file != nullptr)
+	{
+		vals.push_back(Nucleus::createConstantString(file));
+		if(line > 0)
+		{
+			vals.push_back(Nucleus::createConstantInt(line));
+		}
+	}
+	if(function != nullptr)
+	{
+		vals.push_back(Nucleus::createConstantString(function));
+	}
+
+	// Add all format arguments.
+	for(const PrintValue &arg : args)
+	{
+		for(auto val : arg.values)
+		{
+			vals.push_back(val);
+		}
+	}
+
+	// This call is implemented by each backend
+	VPrintf(vals);
+}
+#endif  // ENABLE_RR_PRINT
 
 }  // namespace rr

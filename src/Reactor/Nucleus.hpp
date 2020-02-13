@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #ifdef None
@@ -326,8 +327,13 @@ public:
 	static Value *createNullPointer(Type *type);
 	static Value *createConstantVector(const int64_t *constants, Type *type);
 	static Value *createConstantVector(const double *constants, Type *type);
+	static Value *createConstantString(const char *v);
+	static Value *createConstantString(const std::string &v) { return createConstantString(v.c_str()); }
 
+	static Type *getType(Value *value);
+	static Type *getContainedType(Type *vectorType);
 	static Type *getPointerType(Type *elementType);
+	static Type *getPrintfStorageType(Type *valueType);
 };
 
 }  // namespace rr

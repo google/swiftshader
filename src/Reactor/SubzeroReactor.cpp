@@ -14,6 +14,7 @@
 
 #include "Debug.hpp"
 #include "EmulatedReactor.hpp"
+#include "Print.hpp"
 #include "Reactor.hpp"
 
 #include "ExecutableMemory.hpp"
@@ -143,11 +144,8 @@ Ice::Constant *getConstantPointer(Ice::GlobalContext *context, void const *ptr)
 }
 
 // Wrapper for calls on C functions with Ice types
-template<typename Return, typename... CArgs, typename... RArgs>
-Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&... args)
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, void const *fptr, const std::vector<Ice::Operand *> &iceArgs)
 {
-	Ice::Type retTy = T(rr::CToReactorT<Return>::getType());
-
 	// Subzero doesn't support boolean return values. Replace with an i32.
 	if(retTy == Ice::IceType_i1)
 	{
@@ -160,9 +158,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 		ret = function->makeVariable(retTy);
 	}
 
-	std::array<Ice::Variable *, sizeof...(args)> iceArgs{ { std::forward<RArgs>(args)... } };
-
-	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, getConstantPointer(function->getContext(), reinterpret_cast<void const *>(fptr)), false);
+	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, getConstantPointer(function->getContext(), fptr), false);
 	for(auto arg : iceArgs)
 	{
 		call->addArg(arg);
@@ -170,6 +166,15 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 
 	basicBlock->appendInst(call);
 	return ret;
+}
+
+// Wrapper for calls on C functions with Ice types
+template<typename Return, typename... CArgs, typename... RArgs>
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&... args)
+{
+	Ice::Type retTy = T(rr::CToReactorT<Return>::getType());
+	std::vector<Ice::Operand *> iceArgs{ std::forward<RArgs>(args)... };
+	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs);
 }
 
 // Returns a non-const variable copy of const v
@@ -412,6 +417,17 @@ Value *V(Ice::Operand *v)
 Ice::Operand *V(Value *v)
 {
 	return reinterpret_cast<Ice::Operand *>(v);
+}
+
+std::vector<Ice::Operand *> V(const std::vector<Value *> &values)
+{
+	std::vector<Ice::Operand *> result;
+	result.reserve(values.size());
+	for(auto &v : values)
+	{
+		result.push_back(V(v));
+	}
+	return result;
 }
 
 BasicBlock *B(Ice::CfgNode *b)
@@ -797,6 +813,13 @@ private:
 	std::size_t position;
 	std::vector<std::unique_ptr<uint8_t[]>> constantData;
 };
+
+#ifdef ENABLE_RR_PRINT
+void VPrintf(const std::vector<Value *> &vals)
+{
+	sz::Call(::function, ::basicBlock, Ice::IceType_i32, reinterpret_cast<const void *>(::printf), V(vals));
+}
+#endif  // ENABLE_RR_PRINT
 
 Nucleus::Nucleus()
 {
@@ -1701,7 +1724,7 @@ Value *Nucleus::createFCmpUNE(Value *lhs, Value *rhs)
 Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
 {
 	auto result = ::function->makeVariable(T(type));
-	auto extract = Ice::InstExtractElement::create(::function, result, vector, ::context->getConstantInt32(index));
+	auto extract = Ice::InstExtractElement::create(::function, result, V(vector), ::context->getConstantInt32(index));
 	::basicBlock->appendInst(extract);
 
 	return V(result);
@@ -1764,9 +1787,56 @@ void Nucleus::createUnreachable()
 	::basicBlock->appendInst(unreachable);
 }
 
+Type *Nucleus::getType(Value *value)
+{
+	return T(V(value)->getType());
+}
+
+Type *Nucleus::getContainedType(Type *vectorType)
+{
+	Ice::Type vecTy = T(vectorType);
+	switch(vecTy)
+	{
+		case Ice::IceType_v4i1: return T(Ice::IceType_i1);
+		case Ice::IceType_v8i1: return T(Ice::IceType_i1);
+		case Ice::IceType_v16i1: return T(Ice::IceType_i1);
+		case Ice::IceType_v16i8: return T(Ice::IceType_i8);
+		case Ice::IceType_v8i16: return T(Ice::IceType_i16);
+		case Ice::IceType_v4i32: return T(Ice::IceType_i32);
+		case Ice::IceType_v4f32: return T(Ice::IceType_f32);
+		default:
+			ASSERT_MSG(false, "getContainedType: input type is not a vector type");
+			return {};
+	}
+}
+
 Type *Nucleus::getPointerType(Type *ElementType)
 {
 	return T(sz::getPointerType(T(ElementType)));
+}
+
+static constexpr Ice::Type getNaturalIntType()
+{
+	constexpr size_t intSize = sizeof(int);
+	static_assert(intSize == 4 || intSize == 8, "");
+	return intSize == 4 ? Ice::IceType_i32 : Ice::IceType_i64;
+}
+
+Type *Nucleus::getPrintfStorageType(Type *valueType)
+{
+	Ice::Type valueTy = T(valueType);
+	switch(valueTy)
+	{
+		case Ice::IceType_i32:
+			return T(getNaturalIntType());
+
+		case Ice::IceType_f32:
+			return T(Ice::IceType_f64);
+
+		default:
+			UNIMPLEMENTED_NO_BUG("getPrintfStorageType: add more cases as needed");
+			return {};
+	}
 }
 
 Value *Nucleus::createNullValue(Type *Ty)
@@ -1931,6 +2001,11 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 Value *Nucleus::createConstantVector(const double *constants, Type *type)
 {
 	return createConstantVector((const int64_t *)constants, type);
+}
+
+Value *Nucleus::createConstantString(const char *v)
+{
+	return V(IceConstantData(v, strlen(v) + 1));
 }
 
 Type *Void::getType()
