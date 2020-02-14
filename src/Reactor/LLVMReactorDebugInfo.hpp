@@ -16,6 +16,7 @@
 #define rr_LLVMReactorDebugInfo_hpp
 
 #include "Reactor.hpp"
+#include "ReactorDebugInfo.hpp"
 
 #ifdef ENABLE_RR_DEBUG_INFO
 
@@ -110,44 +111,6 @@ private:
 	};
 
 	using LineTokens = std::unordered_map<unsigned int, Token>;
-
-	struct FunctionLocation
-	{
-		std::string name;
-		std::string file;
-
-		bool operator==(const FunctionLocation &rhs) const { return name == rhs.name && file == rhs.file; }
-		bool operator!=(const FunctionLocation &rhs) const { return !(*this == rhs); }
-
-		struct Hash
-		{
-			std::size_t operator()(const FunctionLocation &l) const noexcept
-			{
-				return std::hash<std::string>()(l.file) * 31 +
-				       std::hash<std::string>()(l.name);
-			}
-		};
-	};
-
-	struct Location
-	{
-		FunctionLocation function;
-		unsigned int line = 0;
-
-		bool operator==(const Location &rhs) const { return function == rhs.function && line == rhs.line; }
-		bool operator!=(const Location &rhs) const { return !(*this == rhs); }
-
-		struct Hash
-		{
-			std::size_t operator()(const Location &l) const noexcept
-			{
-				return FunctionLocation::Hash()(l.function) * 31 +
-				       std::hash<unsigned int>()(l.line);
-			}
-		};
-	};
-
-	using Backtrace = std::vector<Location>;
 
 	struct Pending
 	{

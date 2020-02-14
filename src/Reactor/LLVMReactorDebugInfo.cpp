@@ -134,17 +134,7 @@ void DebugInfo::EmitLocation()
 	builder->SetCurrentDebugLocation(getLocation(backtrace, backtrace.size() - 1));
 
 #	ifdef ENABLE_RR_EMIT_PRINT_LOCATION
-	static Location lastLocation;
-	if(backtrace.size() == 0)
-	{
-		return;
-	}
-	Location currLocation = backtrace[backtrace.size() - 1];
-	if(currLocation != lastLocation)
-	{
-		rr::Print("rr> {0} [{1}:{2}]\n", currLocation.function.name.c_str(), currLocation.function.file.c_str(), currLocation.line);
-		lastLocation = std::move(currLocation);
-	}
+	emitPrintLocation(backtrace);
 #	endif  // ENABLE_RR_EMIT_PRINT_LOCATION
 }
 
@@ -443,48 +433,14 @@ void DebugInfo::registerBasicTypes()
 	diTypes.emplace(T(Float4::getType()), diBuilder->createVectorType(128, 128, diTypes[T(Float::getType())], { vec4 }));
 }
 
-DebugInfo::Location DebugInfo::getCallerLocation() const
+Location DebugInfo::getCallerLocation() const
 {
 	return getCallerBacktrace(1)[0];
 }
 
-DebugInfo::Backtrace DebugInfo::getCallerBacktrace(size_t limit /* = 0 */) const
+Backtrace DebugInfo::getCallerBacktrace(size_t limit /* = 0 */) const
 {
-	auto shouldSkipFile = [](llvm::StringRef fileSR) {
-		return fileSR.empty() ||
-		       fileSR.endswith_lower("ReactorDebugInfo.cpp") ||
-		       fileSR.endswith_lower("Reactor.cpp") ||
-		       fileSR.endswith_lower("Reactor.hpp") ||
-		       fileSR.endswith_lower("stacktrace.hpp");
-	};
-
-	std::vector<DebugInfo::Location> locations;
-
-	// Note that bs::stacktrace() effectively returns a vector of addresses; bs::frame construction is where
-	// the heavy lifting is done: resolving the function name, file and line number.
-	namespace bs = boost::stacktrace;
-	for(bs::frame frame : bs::stacktrace())
-	{
-		if(shouldSkipFile(frame.source_file()))
-		{
-			continue;
-		}
-
-		DebugInfo::Location location;
-		location.function.file = frame.source_file();
-		location.function.name = frame.name();
-		location.line = frame.source_line();
-		locations.push_back(location);
-
-		if(limit > 0 && locations.size() >= limit)
-		{
-			break;
-		}
-	}
-
-	std::reverse(locations.begin(), locations.end());
-
-	return locations;
+	return rr::getCallerBacktrace(limit);
 }
 
 llvm::DIType *DebugInfo::getOrCreateType(llvm::Type *type)

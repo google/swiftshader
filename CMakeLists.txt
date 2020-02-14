@@ -543,12 +543,6 @@ else()
     endif()
 endif()
 
-if((${REACTOR_BACKEND} STREQUAL "Subzero") AND (REACTOR_EMIT_PRINT_LOCATION OR REACTOR_EMIT_DEBUG_INFO))
-    message(WARNING "REACTOR_ENABLE_PRINT, REACTOR_EMIT_PRINT_LOCATION, and REACTOR_EMIT_DEBUG_INFO are not supported by Subzero, disabling.")
-    set(REACTOR_EMIT_PRINT_LOCATION "Off")
-    set(REACTOR_EMIT_DEBUG_INFO "Off")
-endif()
-
 if(REACTOR_EMIT_PRINT_LOCATION)
     # This feature depends on REACTOR_EMIT_DEBUG_INFO and REACTOR_ENABLE_PRINT
     set(REACTOR_EMIT_DEBUG_INFO "On")
@@ -1640,6 +1634,8 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         ${SOURCE_DIR}/Reactor/Print.hpp
         ${SOURCE_DIR}/Reactor/Reactor.cpp
         ${SOURCE_DIR}/Reactor/Reactor.hpp
+        ${SOURCE_DIR}/Reactor/ReactorDebugInfo.cpp
+        ${SOURCE_DIR}/Reactor/ReactorDebugInfo.hpp
         ${SOURCE_DIR}/Reactor/Routine.hpp
         ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
     )
@@ -1780,6 +1776,8 @@ set(REACTOR_LLVM_LIST
     ${SOURCE_DIR}/Reactor/Print.hpp
     ${SOURCE_DIR}/Reactor/Reactor.cpp
     ${SOURCE_DIR}/Reactor/Reactor.hpp
+    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.cpp
+    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.hpp
     ${SOURCE_DIR}/Reactor/Routine.hpp
 )
 
@@ -2002,43 +2000,42 @@ if(${REACTOR_BACKEND} STREQUAL "LLVM")
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
     )
     target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
-
-    if(REACTOR_EMIT_DEBUG_INFO)
-        if(WIN32)
-            # Boost stacktrace uses COM on Windows.
-            # On Windows, cache COM instances in TLS for performance.
-            target_compile_definitions(ReactorLLVM PRIVATE BOOST_STACKTRACE_USE_WINDBG_CACHED)
-        else()
-            # Boost stacktrace uses libbacktrace
-            target_compile_definitions(ReactorLLVM PRIVATE BOOST_STACKTRACE_USE_BACKTRACE)
-
-            # Boost stacktrace uses exceptions, so force enable it
-            set_cpp_flag("-fexceptions")
-
-            add_library(Libbacktrace STATIC ${LIBBACKTRACE_LIST})
-            set_target_properties(Libbacktrace PROPERTIES
-                INCLUDE_DIRECTORIES "${LIBBACKTRACE_INCLUDE_DIR}"
-                POSITION_INDEPENDENT_CODE 1
-                FOLDER "Core"
-            )
-            target_link_libraries(Libbacktrace ${OS_LIBS})
-            target_link_libraries(ReactorLLVM Libbacktrace)
-        endif()
-
-        # Download boost and use it
-        DownloadBoost()
-        set(BOOST_INCLUDEDIR ${BOOST_THIRD_PARTY_DIR})
-        find_package(Boost REQUIRED)
-        target_link_libraries(ReactorLLVM Boost::boost)
-
-    endif(REACTOR_EMIT_DEBUG_INFO)
-
     set(Reactor ReactorLLVM)
 elseif(${REACTOR_BACKEND} STREQUAL "Subzero")
     set(Reactor ReactorSubzero)
 else()
     message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM' or 'Subzero'")
 endif()
+
+if(REACTOR_EMIT_DEBUG_INFO)
+    if(WIN32)
+        # Boost stacktrace uses COM on Windows.
+        # On Windows, cache COM instances in TLS for performance.
+        target_compile_definitions(${Reactor} PRIVATE BOOST_STACKTRACE_USE_WINDBG_CACHED)
+    else()
+        # Boost stacktrace uses libbacktrace
+        target_compile_definitions(${Reactor} PRIVATE BOOST_STACKTRACE_USE_BACKTRACE)
+
+        # Boost stacktrace uses exceptions, so force enable it
+        set_cpp_flag("-fexceptions")
+
+        add_library(Libbacktrace STATIC ${LIBBACKTRACE_LIST})
+        set_target_properties(Libbacktrace PROPERTIES
+            INCLUDE_DIRECTORIES "${LIBBACKTRACE_INCLUDE_DIR}"
+            POSITION_INDEPENDENT_CODE 1
+            FOLDER "Core"
+        )
+        target_link_libraries(Libbacktrace ${OS_LIBS})
+        target_link_libraries(${Reactor} Libbacktrace)
+    endif()
+
+    # Download boost and use it
+    DownloadBoost()
+    set(BOOST_INCLUDEDIR ${BOOST_THIRD_PARTY_DIR})
+    find_package(Boost REQUIRED)
+    target_link_libraries(${Reactor} Boost::boost)
+
+endif(REACTOR_EMIT_DEBUG_INFO)
 
 add_library(GLCompiler STATIC ${OPENGL_COMPILER_LIST})
 set_target_properties(GLCompiler PROPERTIES
