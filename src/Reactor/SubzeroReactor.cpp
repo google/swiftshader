@@ -922,10 +922,10 @@ static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Coun
 		rr::optimize(currFunc);
 
 		currFunc->computeInOutEdges();
-		ASSERT(!currFunc->hasError());
+		ASSERT_MSG(!currFunc->hasError(), "%s", currFunc->getError().c_str());
 
 		currFunc->translate();
-		ASSERT(!currFunc->hasError());
+		ASSERT_MSG(!currFunc->hasError(), "%s", currFunc->getError().c_str());
 
 		currFunc->getAssembler<>()->setInternal(currFunc->getInternal());
 
