@@ -156,7 +156,7 @@ std::vector<std::string> split(const std::string &s)
 
 TEST(ReactorUnitTests, PrintPrimitiveTypes)
 {
-#ifdef ENABLE_RR_PRINT
+#if defined(ENABLE_RR_PRINT) && !defined(ENABLE_RR_EMIT_PRINT_LOCATION)
 	FunctionT<void()> function;
 	{
 		bool b(true);
@@ -227,7 +227,7 @@ TEST(ReactorUnitTests, PrintPrimitiveTypes)
 
 TEST(ReactorUnitTests, PrintReactorTypes)
 {
-#ifdef ENABLE_RR_PRINT
+#if defined(ENABLE_RR_PRINT) && !defined(ENABLE_RR_EMIT_PRINT_LOCATION)
 	FunctionT<void()> function;
 	{
 		Bool b(true);
