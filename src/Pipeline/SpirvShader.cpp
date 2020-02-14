@@ -2327,20 +2327,22 @@ SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitStat
 
 	auto &structPtrTy = getType(getObject(structPtrId).type);
 	auto &structTy = getType(structPtrTy.element);
-	auto &arrayTy = getType(structTy.definition.word(2 + arrayFieldIdx));
-	ASSERT(arrayTy.definition.opcode() == spv::OpTypeRuntimeArray);
-	auto &arrayElTy = getType(arrayTy.element);
+	auto arrayId = Type::ID(structTy.definition.word(2 + arrayFieldIdx));
 
 	auto &result = state->createIntermediate(resultId, 1);
 	auto structBase = GetPointerToData(structPtrId, 0, state);
 
-	Decorations d = {};
-	ApplyDecorationsForIdMember(&d, structPtrTy.element, arrayFieldIdx);
-	ASSERT(d.HasOffset);
+	Decorations structDecorations = {};
+	ApplyDecorationsForIdMember(&structDecorations, structPtrTy.element, arrayFieldIdx);
+	ASSERT(structDecorations.HasOffset);
 
-	auto arrayBase = structBase + d.Offset;
+	auto arrayBase = structBase + structDecorations.Offset;
 	auto arraySizeInBytes = SIMD::Int(arrayBase.limit()) - arrayBase.offsets();
-	auto arrayLength = arraySizeInBytes / SIMD::Int(arrayElTy.sizeInComponents * sizeof(float));
+
+	Decorations arrayDecorations = {};
+	ApplyDecorationsForId(&arrayDecorations, arrayId);
+	ASSERT(arrayDecorations.HasArrayStride);
+	auto arrayLength = arraySizeInBytes / SIMD::Int(arrayDecorations.ArrayStride);
 
 	result.move(0, SIMD::Int(arrayLength));
 
