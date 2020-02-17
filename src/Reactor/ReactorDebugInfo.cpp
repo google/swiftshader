@@ -20,6 +20,7 @@
 #	include "boost/stacktrace.hpp"
 
 #	include <algorithm>
+#	include <unordered_map>
 
 namespace rr {
 
@@ -58,21 +59,35 @@ Backtrace getCallerBacktrace(size_t limit /* = 0 */)
 
 	std::vector<Location> locations;
 
-	// Note that bs::stacktrace() effectively returns a vector of addresses; bs::frame construction is where
-	// the heavy lifting is done: resolving the function name, file and line number.
 	namespace bs = boost::stacktrace;
+
+	// Cache to avoid expensive stacktrace lookups, especially since our use-case results in looking up the
+	// same call stack addresses many times.
+	static std::unordered_map<bs::frame::native_frame_ptr_t, Location> cache;
+
 	for(bs::frame frame : bs::stacktrace())
 	{
-		if(shouldSkipFile(frame.source_file()))
+		Location location;
+
+		auto iter = cache.find(frame.address());
+		if(iter == cache.end())
+		{
+			location.function.file = frame.source_file();
+			location.function.name = frame.name();
+			location.line = frame.source_line();
+			cache[frame.address()] = location;
+		}
+		else
+		{
+			location = iter->second;
+		}
+
+		if(shouldSkipFile(location.function.file))
 		{
 			continue;
 		}
 
-		Location location;
-		location.function.file = frame.source_file();
-		location.function.name = frame.name();
-		location.line = frame.source_line();
-		locations.push_back(location);
+		locations.push_back(std::move(location));
 
 		if(limit > 0 && locations.size() >= limit)
 		{
