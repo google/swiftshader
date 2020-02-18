@@ -1,0 +1,3 @@
+dEQP-VK.graphicsfuzz.always-false-if-in-do-while
+dEQP-VK.graphicsfuzz.do-while-with-always-true-if
+dEQP-VK.graphicsfuzz.return-before-writing-wrong-color

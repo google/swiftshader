@@ -17,7 +17,6 @@ dEQP-VK.wsi.xlib.swapchain.create.composite_alpha
 dEQP-VK.wsi.xlib.swapchain.create.image_array_layers
 dEQP-VK.wsi.xlib.swapchain.create.image_extent
 dEQP-VK.wsi.xlib.swapchain.create.image_format
-dEQP-VK.wsi.xlib.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.xlib.swapchain.create.image_swapchain_create_info
 dEQP-VK.wsi.xlib.swapchain.create.image_usage
 dEQP-VK.wsi.xlib.swapchain.create.min_image_count

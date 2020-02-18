@@ -5401,4 +5401,5 @@ dEQP-VK.wsi.xlib.shared_presentable_image.scale_none.rotate_90.pre_multiplied.de
 dEQP-VK.wsi.xlib.surface.query_capabilities2
 dEQP-VK.wsi.xlib.surface.query_formats2
 dEQP-VK.wsi.xlib.surface.query_protected_capabilities
+dEQP-VK.wsi.xlib.swapchain.create.image_sharing_mode
 dEQP-VK.wsi.xlib.swapchain.render.device_group2
