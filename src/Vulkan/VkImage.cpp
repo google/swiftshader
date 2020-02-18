@@ -990,11 +990,14 @@ void Image::prepareForSampling(const VkImageSubresourceRange &subresourceRange)
 			subresourceRange.baseArrayLayer,
 			6
 		};
+
+		// Update the borders of all the groups of 6 layers that can be part of a cubemaps but don't
+		// touch leftover layers that cannot be part of cubemaps.
 		uint32_t lastMipLevel = getLastMipLevel(subresourceRange);
 		for(; subresourceLayers.mipLevel <= lastMipLevel; subresourceLayers.mipLevel++)
 		{
 			for(subresourceLayers.baseArrayLayer = 0;
-			    subresourceLayers.baseArrayLayer < arrayLayers;
+			    subresourceLayers.baseArrayLayer < arrayLayers - 5;
 			    subresourceLayers.baseArrayLayer += 6)
 			{
 				device->getBlitter()->updateBorders(decompressedImage ? decompressedImage : this, subresourceLayers);
