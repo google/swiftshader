@@ -98,11 +98,13 @@ bool IsUnderDebugger()
 
 enum class Level
 {
+	Verbose,
 	Debug,
 	Info,
 	Warn,
 	Error,
 	Fatal,
+	Disabled,
 };
 
 #ifdef __ANDROID__
@@ -125,6 +127,8 @@ void logv_android(Level level, const char *msg)
 		case Level::Fatal:
 			__android_log_write(ANDROID_LOG_FATAL, "SwiftShader", msg);
 			break;
+		default:
+			break;
 	}
 }
 #else
@@ -141,32 +145,32 @@ void logv_std(Level level, const char *msg)
 		case Level::Fatal:
 			fprintf(stderr, "%s", msg);
 			break;
+		default:
+			break;
 	}
 }
 #endif
 
 void logv(Level level, const char *format, va_list args)
 {
-	if(static_cast<int>(level) < static_cast<int>(Level::SWIFTSHADER_LOGGING_LEVEL))
+	if(static_cast<int>(level) >= static_cast<int>(Level::SWIFTSHADER_LOGGING_LEVEL))
 	{
-		return;
-	}
-
 #ifndef SWIFTSHADER_DISABLE_TRACE
-	char buffer[2048];
-	vsnprintf(buffer, sizeof(buffer), format, args);
+		char buffer[2048];
+		vsnprintf(buffer, sizeof(buffer), format, args);
 
 #	if defined(__ANDROID__)
-	logv_android(level, buffer);
+		logv_android(level, buffer);
 #	elif defined(_WIN32)
-	logv_std(level, buffer);
-	::OutputDebugString(buffer);
+		logv_std(level, buffer);
+		::OutputDebugString(buffer);
 #	else
-	logv_std(level, buffer);
+		logv_std(level, buffer);
 #	endif
+	}
 
-	const bool traceToFile = false;
-	if(traceToFile)
+	const Level traceToFileLevel = Level::Disabled;
+	if(static_cast<int>(level) >= static_cast<int>(traceToFileLevel))
 	{
 		FILE *file = fopen(TRACE_OUTPUT_FILE, "a");
 
@@ -210,8 +214,10 @@ void abort(const char *format, ...)
 	::abort();
 }
 
-void trace_assert(const char *format, ...)
+void log_trap(const char *format, ...)
 {
+	// If enabled, log_assert will log all messages, and otherwise ignore them
+	// unless a debugger is attached.
 	static std::atomic<bool> asserted = { false };
 	if(IsUnderDebugger() && !asserted.exchange(true))
 	{
@@ -227,7 +233,7 @@ void trace_assert(const char *format, ...)
 	{
 		va_list vararg;
 		va_start(vararg, format);
-		logv(Level::Fatal, format, vararg);
+		logv(Level::Verbose, format, vararg);
 		va_end(vararg);
 	}
 }

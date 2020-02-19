@@ -47,8 +47,8 @@ inline void warn() {}
 // Outputs the message to the debugging log and stderr, and calls abort().
 void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 
-// Outputs text to the debugging log, and asserts once if a debugger is attached.
-void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
+// Outputs text to the debugging log, and traps once if a debugger is attached.
+void log_trap(const char *format, ...) CHECK_PRINTF_ARGS;
 
 }  // namespace sw
 
@@ -59,7 +59,7 @@ void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
 #	define TRACE_ASSERT(message, ...) (void(0))
 #else
 #	define TRACE(message, ...) sw::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
-#	define TRACE_ASSERT(message, ...) sw::trace_assert("%s:%d %s TRACE_ASSERT: " message "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#	define LOG_TRAP(message, ...) sw::log_trap("%s:%d %s TRACE_ASSERT: " message "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #endif
 
 // A macro to print a warning message to the debugging log and stderr to denote
