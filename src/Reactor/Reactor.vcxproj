@@ -291,7 +291,6 @@
     <ClCompile Include="LLVMReactorDebugInfo.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
     <ClCompile Include="Reactor.cpp" />
-    <ClCompile Include="Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPUID.hpp" />
