@@ -94,6 +94,30 @@
       "revId": "d9153544581fc65b555cd56c417567a3b0c2a115",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c227299_e61cb759",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2343,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-02-20T03:14:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0d3f828a_e1ac187f",
+      "range": {
+        "startLine": 2343,
+        "startChar": 49,
+        "endLine": 2343,
+        "endChar": 81
+      },
+      "revId": "d9153544581fc65b555cd56c417567a3b0c2a115",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
