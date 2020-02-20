@@ -101,6 +101,10 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
       "VkDeviceMemoryExternalLinux.hpp",
       "VkSemaphoreExternalLinux.hpp",
     ]
+  } else if (is_mac) {
+    sources += [
+      "VkDeviceMemoryExternalMac.hpp",
+    ]
   } else if (is_fuchsia) {
     sources += [ "VkSemaphoreExternalFuchsia.hpp" ]
   }

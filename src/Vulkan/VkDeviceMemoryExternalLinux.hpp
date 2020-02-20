@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkStringify.hpp"
-
 #include "System/Debug.hpp"
 #include "System/Linux/MemFd.hpp"
 
@@ -24,67 +22,11 @@
 class OpaqueFdExternalMemory : public vk::DeviceMemory::ExternalBase
 {
 public:
-	// Helper struct to parse the VkMemoryAllocateInfo.pNext chain and
-	// extract relevant information related to the handle type supported
-	// by this DeviceMemory;:ExternalBase subclass.
-	struct AllocateInfo
-	{
-		bool importFd = false;
-		bool exportFd = false;
-		int fd = -1;
-
-		AllocateInfo() = default;
-
-		// Parse the VkMemoryAllocateInfo.pNext chain to initialize an AllocateInfo.
-		AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
-		{
-			const auto *createInfo = reinterpret_cast<const VkBaseInStructure *>(pAllocateInfo->pNext);
-			while(createInfo)
-			{
-				switch(createInfo->sType)
-				{
-					case VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR:
-					{
-						const auto *importInfo = reinterpret_cast<const VkImportMemoryFdInfoKHR *>(createInfo);
-
-						if(importInfo->handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
-						{
-							UNSUPPORTED("VkImportMemoryFdInfoKHR::handleType %d", int(importInfo->handleType));
-						}
-						importFd = true;
-						fd = importInfo->fd;
-					}
-					break;
-					case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
-					{
-						const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(createInfo);
-
-						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)
-						{
-							UNSUPPORTED("VkExportMemoryAllocateInfo::handleTypes %d", int(exportInfo->handleTypes));
-						}
-						exportFd = true;
-					}
-					break;
-					case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
-						// This can safely be ignored, as the Vulkan spec mentions:
-						// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
-						//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
-						break;
-
-					default:
-						WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(createInfo->sType).c_str());
-				}
-				createInfo = createInfo->pNext;
-			}
-		}
-	};
-
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 
 	static bool SupportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 	{
-		AllocateInfo info(pAllocateInfo);
+		OpaqueFdAllocateInfo info(pAllocateInfo);
 		return info.importFd || info.exportFd;
 	}
 
@@ -152,5 +94,5 @@ public:
 
 private:
 	LinuxMemFd memfd;
-	AllocateInfo allocateInfo;
+	OpaqueFdAllocateInfo allocateInfo;
 };
