@@ -632,55 +632,70 @@ Config Nucleus::getDefaultConfig()
 
 std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
 {
-	auto cfg = cfgEdit.apply(jit->config);
+	std::shared_ptr<Routine> routine;
 
-	if(jit->builder->GetInsertBlock()->empty() || !jit->builder->GetInsertBlock()->back().isTerminator())
-	{
-		llvm::Type *type = jit->function->getReturnType();
+	auto acquire = [&]() {
+		auto cfg = cfgEdit.apply(jit->config);
 
-		if(type->isVoidTy())
+		if(jit->builder->GetInsertBlock()->empty() || !jit->builder->GetInsertBlock()->back().isTerminator())
 		{
-			createRetVoid();
+			llvm::Type *type = jit->function->getReturnType();
+
+			if(type->isVoidTy())
+			{
+				createRetVoid();
+			}
+			else
+			{
+				createRet(V(llvm::UndefValue::get(type)));
+			}
 		}
-		else
-		{
-			createRet(V(llvm::UndefValue::get(type)));
-		}
-	}
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	if(jit->debugInfo != nullptr)
-	{
-		jit->debugInfo->Finalize();
-	}
+		if(jit->debugInfo != nullptr)
+		{
+			jit->debugInfo->Finalize();
+		}
 #endif  // ENABLE_RR_DEBUG_INFO
 
-	if(false)
-	{
-		std::error_code error;
-		llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
-		jit->module->print(file, 0);
-	}
+		if(false)
+		{
+			std::error_code error;
+			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
+			jit->module->print(file, 0);
+		}
 
 #if defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
-	{
-		llvm::legacy::PassManager pm;
-		pm.add(llvm::createVerifierPass());
-		pm.run(*jit->module);
-	}
+		{
+			llvm::legacy::PassManager pm;
+			pm.add(llvm::createVerifierPass());
+			pm.run(*jit->module);
+		}
 #endif  // defined(ENABLE_RR_LLVM_IR_VERIFICATION) || !defined(NDEBUG)
 
-	jit->optimize(cfg);
+		jit->optimize(cfg);
 
-	if(false)
-	{
-		std::error_code error;
-		llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
-		jit->module->print(file, 0);
-	}
+		if(false)
+		{
+			std::error_code error;
+			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
+			jit->module->print(file, 0);
+		}
 
-	auto routine = jit->acquireRoutine(&jit->function, 1, cfg);
-	jit.reset();
+		routine = jit->acquireRoutine(&jit->function, 1, cfg);
+		jit.reset();
+	};
+
+#ifdef JIT_IN_SEPARATE_THREAD
+	// Perform optimizations and codegen in a separate thread to avoid stack overflow.
+	// FIXME(b/149829034): This is not a long-term solution. Reactor has no control
+	// over the threading and stack sizes of its users, so this should be addressed
+	// at a higher level instead.
+	std::thread thread(acquire);
+	thread.join();
+#else
+	acquire();
+#endif
 
 	return routine;
 }
