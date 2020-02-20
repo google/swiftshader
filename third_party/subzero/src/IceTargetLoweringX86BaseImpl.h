@@ -1199,6 +1199,8 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   SpillAreaSizeBytes = StackSize - StackOffset; // Adjust for alignment, if any
 
   if (SpillAreaSizeBytes) {
+    emitStackProbe(SpillAreaSizeBytes);
+
     // Generate "sub stackptr, SpillAreaSizeBytes"
     _sub_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
   }
