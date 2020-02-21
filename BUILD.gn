@@ -92,14 +92,14 @@ config("swiftshader_config") {
       ]
     }
 
-    if (target_cpu == "x64") {  # 64 bit version
+    if (current_cpu == "x64") {  # 64 bit version
       cflags += [
         "-m64",
         "-fPIC",
         "-march=x86-64",
         "-mtune=generic",
       ]
-    } else if (target_cpu == "x86") {  # 32 bit version
+    } else if (current_cpu == "x86") {  # 32 bit version
       cflags += [
         "-m32",
         "-msse2",
@@ -137,7 +137,7 @@ config("swiftshader_config") {
     if (is_linux) {
       ldflags = [ "-Wl,--gc-sections" ]
 
-      if (target_cpu == "mipsel") {
+      if (current_cpu == "mipsel") {
         ldflags += [
           "-Wl,--hash-style=sysv",
         ]
@@ -150,7 +150,7 @@ config("swiftshader_config") {
             "-mips32r2",
           ]
         }
-      } else if (target_cpu == "mips64el") {
+      } else if (current_cpu == "mips64el") {
         ldflags += [
           "-Wl,--hash-style=sysv",
           "-mips64r2",
@@ -160,7 +160,7 @@ config("swiftshader_config") {
       }
 
       # A bug in the gold linker prevents using ICF on 32-bit (crbug.com/729532)
-      if (use_gold && (target_cpu == "x86" || target_cpu == "mipsel")) {
+      if (use_gold && (current_cpu == "x86" || current_cpu == "mipsel")) {
         ldflags += [ "-Wl,--icf=none" ]
       }
     }

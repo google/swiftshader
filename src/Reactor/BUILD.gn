@@ -18,7 +18,7 @@ declare_args() {
   # Subzero produces smaller binaries, but doesn't support ARM64, MIPS64, and
   # PPC64.
   use_swiftshader_with_subzero =
-      target_cpu != "arm64" && target_cpu != "mips64el" && target_cpu != "ppc64"
+      current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64"
   supports_llvm = is_linux || is_fuchsia || is_win || is_android || is_mac
 }
 
@@ -38,7 +38,7 @@ config("swiftshader_reactor_private_config") {
       "__STDC_LIMIT_MACROS",
     ]
 
-    if (target_cpu == "x86" || target_cpu == "x64") {
+    if (current_cpu == "x86" || current_cpu == "x64") {
       cflags += [ "-msse2" ]
     }
   }
@@ -71,22 +71,22 @@ if (use_swiftshader_with_subzero) {
       defines += [ "SUBZERO_USE_MICROSOFT_ABI" ]
     }
 
-    if (target_cpu == "x64") {
+    if (current_cpu == "x64") {
       defines += [
         "SZTARGET=X8664",
         "SUBZERO_TARGET=X8664",
       ]
-    } else if (target_cpu == "x86") {
+    } else if (current_cpu == "x86") {
       defines += [
         "SZTARGET=X8632",
         "SUBZERO_TARGET=X8632",
       ]
-    } else if (target_cpu == "mipsel") {
+    } else if (current_cpu == "mipsel") {
       defines += [
         "SZTARGET=MIPS32",
         "SUBZERO_TARGET=MIPS32",
       ]
-    } else if (target_cpu == "arm") {
+    } else if (current_cpu == "arm") {
       defines += [
         "SZTARGET=ARM32",
         "SUBZERO_TARGET=ARM32",
@@ -272,23 +272,23 @@ if (use_swiftshader_with_subzero) {
       "$subzero_llvm_dir/lib/Support/regstrlcpy.c",
     ]
 
-    if (target_cpu == "x64") {
+    if (current_cpu == "x64") {
       sources += [
         "$subzero_dir/src/IceInstX8664.cpp",
         "$subzero_dir/src/IceTargetLoweringX8664.cpp",
       ]
-    } else if (target_cpu == "x86") {
+    } else if (current_cpu == "x86") {
       sources += [
         "$subzero_dir/src/IceInstX8632.cpp",
         "$subzero_dir/src/IceTargetLoweringX8632.cpp",
       ]
-    } else if (target_cpu == "mipsel") {
+    } else if (current_cpu == "mipsel") {
       sources += [
         "$subzero_dir/src/IceAssemblerMIPS32.cpp",
         "$subzero_dir/src/IceInstMIPS32.cpp",
         "$subzero_dir/src/IceTargetLoweringMIPS32.cpp",
       ]
-    } else if (target_cpu == "arm") {
+    } else if (current_cpu == "arm") {
       sources += [
         "$subzero_dir/src/IceAssemblerARM32.cpp",
         "$subzero_dir/src/IceInstARM32.cpp",

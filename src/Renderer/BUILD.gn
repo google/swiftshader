@@ -22,7 +22,7 @@ config("swiftshader_renderer_private_config") {
       "/wd4324",  # structure was padded due to alignment specifier
       "/wd5030",  # attribute is not recognized
     ]
-  } else if (target_cpu == "x86" || target_cpu == "x64") {
+  } else if (current_cpu == "x86" || current_cpu == "x64") {
     cflags = [
       "-msse2",
       "-Wno-sign-compare",

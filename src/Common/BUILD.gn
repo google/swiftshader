@@ -21,7 +21,7 @@ config("swiftshader_common_private_config") {
       "/wd4201",  # nameless struct/union
       "/wd5030",  # attribute is not recognized
     ]
-  } else if (target_cpu == "x86" || target_cpu == "x64") {
+  } else if (current_cpu == "x86" || current_cpu == "x64") {
     cflags = [ "-msse2" ]
   }
 }
