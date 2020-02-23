@@ -1454,7 +1454,7 @@ namespace es2
 			}
 
 			bool found = false;
-			for(const glsl::Varying varying : vertexShader->varyings)
+			for(const glsl::Varying& varying : vertexShader->varyings)
 			{
 				if(tfVaryingName == varying.name)
 				{

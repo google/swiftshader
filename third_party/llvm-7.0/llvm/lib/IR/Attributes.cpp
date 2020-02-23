@@ -929,7 +929,7 @@ AttributeList::get(LLVMContext &C,
     MaxIndex = Attrs[Attrs.size() - 2].first;
 
   SmallVector<AttributeSet, 4> AttrVec(attrIdxToArrayIdx(MaxIndex) + 1);
-  for (const auto Pair : Attrs)
+  for (const auto& Pair : Attrs)
     AttrVec[attrIdxToArrayIdx(Pair.first)] = Pair.second;
 
   return getImpl(C, AttrVec);
