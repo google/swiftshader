@@ -57,6 +57,8 @@ swiftshader_source_set("Pipeline") {
     "..",
     "../../include",
     "../../third_party/SPIRV-Headers/include",
+    "$swiftshader_spirv_tools_dir/include",
+    "$spirv_tools_spirv_headers_dir/include",
   ]
 
   deps = [
