@@ -589,6 +589,28 @@ cc_defaults {
     },
 }
 
+cc_library_static {
+    name: "swiftshader_debug",
+
+    vendor_available: true,
+
+    cflags: [
+        "-DLOG_TAG=\"swiftshader\"",
+    ],
+
+    srcs: [
+        "System/Debug.cpp",
+    ],
+
+    export_include_dirs: [
+        ".",
+    ],
+
+    shared_libs: [
+        "liblog",
+    ],
+}
+
 cc_defaults {
     name: "libvk_swiftshader_common_defaults",
 
@@ -601,7 +623,6 @@ cc_defaults {
         "System/Build.cpp",
         "System/Configurator.cpp",
         "System/CPUID.cpp",
-        "System/Debug.cpp",
         "System/GrallocAndroid.cpp",
         "System/Half.cpp",
         "System/Linux/MemFd.cpp",
@@ -615,6 +636,8 @@ cc_defaults {
     ],
 
     static_libs: [
+        "swiftshader_astc",
+        "swiftshader_debug",
         "swiftshader_marl",
         "swiftshader_spirv-tools",
     ],

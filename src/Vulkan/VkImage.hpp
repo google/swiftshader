@@ -113,6 +113,7 @@ private:
 	int borderSize() const;
 	void decodeETC2(const VkImageSubresourceRange &subresourceRange) const;
 	void decodeBC(const VkImageSubresourceRange &subresourceRange) const;
+	void decodeASTC(const VkImageSubresourceRange &subresourceRange) const;
 
 	const Device *const device = nullptr;
 	DeviceMemory *deviceMemory = nullptr;

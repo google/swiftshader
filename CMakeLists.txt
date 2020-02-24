@@ -330,6 +330,7 @@ set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+set(ASTC_DIR ${THIRD_PARTY_DIR}/astc-encoder)
 set(LLVM_DIR ${THIRD_PARTY_DIR}/llvm-7.0/llvm)
 set(LLVM_CONFIG_DIR ${THIRD_PARTY_DIR}/llvm-7.0/configs)
 set(LIBBACKTRACE_DIR ${THIRD_PARTY_DIR}/libbacktrace/src)
@@ -1865,6 +1866,8 @@ file(GLOB VULKAN_LIST
     ${SOURCE_DIR}/WSI/VkSurfaceKHR.hpp
     ${SOURCE_DIR}/WSI/VkSwapchainKHR.cpp
     ${SOURCE_DIR}/WSI/VkSwapchainKHR.hpp
+    ${ASTC_DIR}/Source/*.cpp
+    ${ASTC_DIR}/Source/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
