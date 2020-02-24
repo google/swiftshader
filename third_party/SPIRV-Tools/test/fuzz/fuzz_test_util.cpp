@@ -76,6 +76,7 @@ bool IsValid(spv_target_env env, const opt::IRContext* ir) {
   std::vector<uint32_t> binary;
   ir->module()->ToBinary(&binary, false);
   SpirvTools t(env);
+  t.SetMessageConsumer(kConsoleMessageConsumer);
   return t.Validate(binary);
 }
 

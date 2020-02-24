@@ -97,9 +97,9 @@ void FuzzerPassApplyIdSynonyms::Apply() {
           continue;
         }
 
-        if (!TransformationReplaceIdWithSynonym::IdsIsAvailableAtUse(
-                GetIRContext(), use_inst, use_in_operand_index,
-                synonym_to_try->object())) {
+        if (!fuzzerutil::IdIsAvailableAtUse(GetIRContext(), use_inst,
+                                            use_in_operand_index,
+                                            synonym_to_try->object())) {
           continue;
         }
 

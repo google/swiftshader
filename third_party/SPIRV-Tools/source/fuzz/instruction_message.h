@@ -27,8 +27,7 @@ namespace fuzz {
 // Creates an Instruction protobuf message from its component parts.
 protobufs::Instruction MakeInstructionMessage(
     SpvOp opcode, uint32_t result_type_id, uint32_t result_id,
-    const std::vector<std::pair<uint32_t, std::vector<uint32_t>>>&
-        input_operands);
+    const opt::Instruction::OperandList& input_operands);
 
 // Creates and returns an opt::Instruction from protobuf message
 // |instruction_message|, relative to |ir_context|.  In the process, the module

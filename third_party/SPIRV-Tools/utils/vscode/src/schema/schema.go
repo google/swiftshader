@@ -97,9 +97,11 @@ const (
 	OperandCategoryComposite = "Composite"
 )
 
+type OpcodeMap map[string]*Opcode
+
 var (
 	// Opcodes is a map of opcode name to Opcode description.
-	Opcodes = map[string]*Opcode {
+	Opcodes = OpcodeMap {
 		"OpNop": OpNop,
 		"OpUndef": OpUndef,
 		"OpSourceContinued": OpSourceContinued,
@@ -627,13 +629,306 @@ var (
 		"OpSubgroupAvcSicGetInterRawSadsINTEL": OpSubgroupAvcSicGetInterRawSadsINTEL,
 	}
 
+	// ExtOpcodes is a map of extension name to Opcode description list.
+	ExtOpcodes = map[string]OpcodeMap {
+		"GLSL.std.450": {
+			"Round": GLSLStd450_Round,
+			"RoundEven": GLSLStd450_RoundEven,
+			"Trunc": GLSLStd450_Trunc,
+			"FAbs": GLSLStd450_FAbs,
+			"SAbs": GLSLStd450_SAbs,
+			"FSign": GLSLStd450_FSign,
+			"SSign": GLSLStd450_SSign,
+			"Floor": GLSLStd450_Floor,
+			"Ceil": GLSLStd450_Ceil,
+			"Fract": GLSLStd450_Fract,
+			"Radians": GLSLStd450_Radians,
+			"Degrees": GLSLStd450_Degrees,
+			"Sin": GLSLStd450_Sin,
+			"Cos": GLSLStd450_Cos,
+			"Tan": GLSLStd450_Tan,
+			"Asin": GLSLStd450_Asin,
+			"Acos": GLSLStd450_Acos,
+			"Atan": GLSLStd450_Atan,
+			"Sinh": GLSLStd450_Sinh,
+			"Cosh": GLSLStd450_Cosh,
+			"Tanh": GLSLStd450_Tanh,
+			"Asinh": GLSLStd450_Asinh,
+			"Acosh": GLSLStd450_Acosh,
+			"Atanh": GLSLStd450_Atanh,
+			"Atan2": GLSLStd450_Atan2,
+			"Pow": GLSLStd450_Pow,
+			"Exp": GLSLStd450_Exp,
+			"Log": GLSLStd450_Log,
+			"Exp2": GLSLStd450_Exp2,
+			"Log2": GLSLStd450_Log2,
+			"Sqrt": GLSLStd450_Sqrt,
+			"InverseSqrt": GLSLStd450_InverseSqrt,
+			"Determinant": GLSLStd450_Determinant,
+			"MatrixInverse": GLSLStd450_MatrixInverse,
+			"Modf": GLSLStd450_Modf,
+			"ModfStruct": GLSLStd450_ModfStruct,
+			"FMin": GLSLStd450_FMin,
+			"UMin": GLSLStd450_UMin,
+			"SMin": GLSLStd450_SMin,
+			"FMax": GLSLStd450_FMax,
+			"UMax": GLSLStd450_UMax,
+			"SMax": GLSLStd450_SMax,
+			"FClamp": GLSLStd450_FClamp,
+			"UClamp": GLSLStd450_UClamp,
+			"SClamp": GLSLStd450_SClamp,
+			"FMix": GLSLStd450_FMix,
+			"IMix": GLSLStd450_IMix,
+			"Step": GLSLStd450_Step,
+			"SmoothStep": GLSLStd450_SmoothStep,
+			"Fma": GLSLStd450_Fma,
+			"Frexp": GLSLStd450_Frexp,
+			"FrexpStruct": GLSLStd450_FrexpStruct,
+			"Ldexp": GLSLStd450_Ldexp,
+			"PackSnorm4x8": GLSLStd450_PackSnorm4x8,
+			"PackUnorm4x8": GLSLStd450_PackUnorm4x8,
+			"PackSnorm2x16": GLSLStd450_PackSnorm2x16,
+			"PackUnorm2x16": GLSLStd450_PackUnorm2x16,
+			"PackHalf2x16": GLSLStd450_PackHalf2x16,
+			"PackDouble2x32": GLSLStd450_PackDouble2x32,
+			"UnpackSnorm2x16": GLSLStd450_UnpackSnorm2x16,
+			"UnpackUnorm2x16": GLSLStd450_UnpackUnorm2x16,
+			"UnpackHalf2x16": GLSLStd450_UnpackHalf2x16,
+			"UnpackSnorm4x8": GLSLStd450_UnpackSnorm4x8,
+			"UnpackUnorm4x8": GLSLStd450_UnpackUnorm4x8,
+			"UnpackDouble2x32": GLSLStd450_UnpackDouble2x32,
+			"Length": GLSLStd450_Length,
+			"Distance": GLSLStd450_Distance,
+			"Cross": GLSLStd450_Cross,
+			"Normalize": GLSLStd450_Normalize,
+			"FaceForward": GLSLStd450_FaceForward,
+			"Reflect": GLSLStd450_Reflect,
+			"Refract": GLSLStd450_Refract,
+			"FindILsb": GLSLStd450_FindILsb,
+			"FindSMsb": GLSLStd450_FindSMsb,
+			"FindUMsb": GLSLStd450_FindUMsb,
+			"InterpolateAtCentroid": GLSLStd450_InterpolateAtCentroid,
+			"InterpolateAtSample": GLSLStd450_InterpolateAtSample,
+			"InterpolateAtOffset": GLSLStd450_InterpolateAtOffset,
+			"NMin": GLSLStd450_NMin,
+			"NMax": GLSLStd450_NMax,
+			"NClamp": GLSLStd450_NClamp,
+		},
+		"OpenCL.std": {
+			"acos": OpenCLStd_acos,
+			"acosh": OpenCLStd_acosh,
+			"acospi": OpenCLStd_acospi,
+			"asin": OpenCLStd_asin,
+			"asinh": OpenCLStd_asinh,
+			"asinpi": OpenCLStd_asinpi,
+			"atan": OpenCLStd_atan,
+			"atan2": OpenCLStd_atan2,
+			"atanh": OpenCLStd_atanh,
+			"atanpi": OpenCLStd_atanpi,
+			"atan2pi": OpenCLStd_atan2pi,
+			"cbrt": OpenCLStd_cbrt,
+			"ceil": OpenCLStd_ceil,
+			"copysign": OpenCLStd_copysign,
+			"cos": OpenCLStd_cos,
+			"cosh": OpenCLStd_cosh,
+			"cospi": OpenCLStd_cospi,
+			"erfc": OpenCLStd_erfc,
+			"erf": OpenCLStd_erf,
+			"exp": OpenCLStd_exp,
+			"exp2": OpenCLStd_exp2,
+			"exp10": OpenCLStd_exp10,
+			"expm1": OpenCLStd_expm1,
+			"fabs": OpenCLStd_fabs,
+			"fdim": OpenCLStd_fdim,
+			"floor": OpenCLStd_floor,
+			"fma": OpenCLStd_fma,
+			"fmax": OpenCLStd_fmax,
+			"fmin": OpenCLStd_fmin,
+			"fmod": OpenCLStd_fmod,
+			"fract": OpenCLStd_fract,
+			"frexp": OpenCLStd_frexp,
+			"hypot": OpenCLStd_hypot,
+			"ilogb": OpenCLStd_ilogb,
+			"ldexp": OpenCLStd_ldexp,
+			"lgamma": OpenCLStd_lgamma,
+			"lgamma_r": OpenCLStd_lgamma_r,
+			"log": OpenCLStd_log,
+			"log2": OpenCLStd_log2,
+			"log10": OpenCLStd_log10,
+			"log1p": OpenCLStd_log1p,
+			"logb": OpenCLStd_logb,
+			"mad": OpenCLStd_mad,
+			"maxmag": OpenCLStd_maxmag,
+			"minmag": OpenCLStd_minmag,
+			"modf": OpenCLStd_modf,
+			"nan": OpenCLStd_nan,
+			"nextafter": OpenCLStd_nextafter,
+			"pow": OpenCLStd_pow,
+			"pown": OpenCLStd_pown,
+			"powr": OpenCLStd_powr,
+			"remainder": OpenCLStd_remainder,
+			"remquo": OpenCLStd_remquo,
+			"rint": OpenCLStd_rint,
+			"rootn": OpenCLStd_rootn,
+			"round": OpenCLStd_round,
+			"rsqrt": OpenCLStd_rsqrt,
+			"sin": OpenCLStd_sin,
+			"sincos": OpenCLStd_sincos,
+			"sinh": OpenCLStd_sinh,
+			"sinpi": OpenCLStd_sinpi,
+			"sqrt": OpenCLStd_sqrt,
+			"tan": OpenCLStd_tan,
+			"tanh": OpenCLStd_tanh,
+			"tanpi": OpenCLStd_tanpi,
+			"tgamma": OpenCLStd_tgamma,
+			"trunc": OpenCLStd_trunc,
+			"half_cos": OpenCLStd_half_cos,
+			"half_divide": OpenCLStd_half_divide,
+			"half_exp": OpenCLStd_half_exp,
+			"half_exp2": OpenCLStd_half_exp2,
+			"half_exp10": OpenCLStd_half_exp10,
+			"half_log": OpenCLStd_half_log,
+			"half_log2": OpenCLStd_half_log2,
+			"half_log10": OpenCLStd_half_log10,
+			"half_powr": OpenCLStd_half_powr,
+			"half_recip": OpenCLStd_half_recip,
+			"half_rsqrt": OpenCLStd_half_rsqrt,
+			"half_sin": OpenCLStd_half_sin,
+			"half_sqrt": OpenCLStd_half_sqrt,
+			"half_tan": OpenCLStd_half_tan,
+			"native_cos": OpenCLStd_native_cos,
+			"native_divide": OpenCLStd_native_divide,
+			"native_exp": OpenCLStd_native_exp,
+			"native_exp2": OpenCLStd_native_exp2,
+			"native_exp10": OpenCLStd_native_exp10,
+			"native_log": OpenCLStd_native_log,
+			"native_log2": OpenCLStd_native_log2,
+			"native_log10": OpenCLStd_native_log10,
+			"native_powr": OpenCLStd_native_powr,
+			"native_recip": OpenCLStd_native_recip,
+			"native_rsqrt": OpenCLStd_native_rsqrt,
+			"native_sin": OpenCLStd_native_sin,
+			"native_sqrt": OpenCLStd_native_sqrt,
+			"native_tan": OpenCLStd_native_tan,
+			"s_abs": OpenCLStd_s_abs,
+			"s_abs_diff": OpenCLStd_s_abs_diff,
+			"s_add_sat": OpenCLStd_s_add_sat,
+			"u_add_sat": OpenCLStd_u_add_sat,
+			"s_hadd": OpenCLStd_s_hadd,
+			"u_hadd": OpenCLStd_u_hadd,
+			"s_rhadd": OpenCLStd_s_rhadd,
+			"u_rhadd": OpenCLStd_u_rhadd,
+			"s_clamp": OpenCLStd_s_clamp,
+			"u_clamp": OpenCLStd_u_clamp,
+			"clz": OpenCLStd_clz,
+			"ctz": OpenCLStd_ctz,
+			"s_mad_hi": OpenCLStd_s_mad_hi,
+			"u_mad_sat": OpenCLStd_u_mad_sat,
+			"s_mad_sat": OpenCLStd_s_mad_sat,
+			"s_max": OpenCLStd_s_max,
+			"u_max": OpenCLStd_u_max,
+			"s_min": OpenCLStd_s_min,
+			"u_min": OpenCLStd_u_min,
+			"s_mul_hi": OpenCLStd_s_mul_hi,
+			"rotate": OpenCLStd_rotate,
+			"s_sub_sat": OpenCLStd_s_sub_sat,
+			"u_sub_sat": OpenCLStd_u_sub_sat,
+			"u_upsample": OpenCLStd_u_upsample,
+			"s_upsample": OpenCLStd_s_upsample,
+			"popcount": OpenCLStd_popcount,
+			"s_mad24": OpenCLStd_s_mad24,
+			"u_mad24": OpenCLStd_u_mad24,
+			"s_mul24": OpenCLStd_s_mul24,
+			"u_mul24": OpenCLStd_u_mul24,
+			"u_abs": OpenCLStd_u_abs,
+			"u_abs_diff": OpenCLStd_u_abs_diff,
+			"u_mul_hi": OpenCLStd_u_mul_hi,
+			"u_mad_hi": OpenCLStd_u_mad_hi,
+			"fclamp": OpenCLStd_fclamp,
+			"degrees": OpenCLStd_degrees,
+			"fmax_common": OpenCLStd_fmax_common,
+			"fmin_common": OpenCLStd_fmin_common,
+			"mix": OpenCLStd_mix,
+			"radians": OpenCLStd_radians,
+			"step": OpenCLStd_step,
+			"smoothstep": OpenCLStd_smoothstep,
+			"sign": OpenCLStd_sign,
+			"cross": OpenCLStd_cross,
+			"distance": OpenCLStd_distance,
+			"length": OpenCLStd_length,
+			"normalize": OpenCLStd_normalize,
+			"fast_distance": OpenCLStd_fast_distance,
+			"fast_length": OpenCLStd_fast_length,
+			"fast_normalize": OpenCLStd_fast_normalize,
+			"bitselect": OpenCLStd_bitselect,
+			"select": OpenCLStd_select,
+			"vloadn": OpenCLStd_vloadn,
+			"vstoren": OpenCLStd_vstoren,
+			"vload_half": OpenCLStd_vload_half,
+			"vload_halfn": OpenCLStd_vload_halfn,
+			"vstore_half": OpenCLStd_vstore_half,
+			"vstore_half_r": OpenCLStd_vstore_half_r,
+			"vstore_halfn": OpenCLStd_vstore_halfn,
+			"vstore_halfn_r": OpenCLStd_vstore_halfn_r,
+			"vloada_halfn": OpenCLStd_vloada_halfn,
+			"vstorea_halfn": OpenCLStd_vstorea_halfn,
+			"vstorea_halfn_r": OpenCLStd_vstorea_halfn_r,
+			"shuffle": OpenCLStd_shuffle,
+			"shuffle2": OpenCLStd_shuffle2,
+			"printf": OpenCLStd_printf,
+			"prefetch": OpenCLStd_prefetch,
+		},
+		"OpenCL.DebugInfo.100": {
+			"DebugInfoNone": OpenCLDebugInfo100_DebugInfoNone,
+			"DebugCompilationUnit": OpenCLDebugInfo100_DebugCompilationUnit,
+			"DebugTypeBasic": OpenCLDebugInfo100_DebugTypeBasic,
+			"DebugTypePointer": OpenCLDebugInfo100_DebugTypePointer,
+			"DebugTypeQualifier": OpenCLDebugInfo100_DebugTypeQualifier,
+			"DebugTypeArray": OpenCLDebugInfo100_DebugTypeArray,
+			"DebugTypeVector": OpenCLDebugInfo100_DebugTypeVector,
+			"DebugTypedef": OpenCLDebugInfo100_DebugTypedef,
+			"DebugTypeFunction": OpenCLDebugInfo100_DebugTypeFunction,
+			"DebugTypeEnum": OpenCLDebugInfo100_DebugTypeEnum,
+			"DebugTypeComposite": OpenCLDebugInfo100_DebugTypeComposite,
+			"DebugTypeMember": OpenCLDebugInfo100_DebugTypeMember,
+			"DebugTypeInheritance": OpenCLDebugInfo100_DebugTypeInheritance,
+			"DebugTypePtrToMember": OpenCLDebugInfo100_DebugTypePtrToMember,
+			"DebugTypeTemplate": OpenCLDebugInfo100_DebugTypeTemplate,
+			"DebugTypeTemplateParameter": OpenCLDebugInfo100_DebugTypeTemplateParameter,
+			"DebugTypeTemplateTemplateParameter": OpenCLDebugInfo100_DebugTypeTemplateTemplateParameter,
+			"DebugTypeTemplateParameterPack": OpenCLDebugInfo100_DebugTypeTemplateParameterPack,
+			"DebugGlobalVariable": OpenCLDebugInfo100_DebugGlobalVariable,
+			"DebugFunctionDeclaration": OpenCLDebugInfo100_DebugFunctionDeclaration,
+			"DebugFunction": OpenCLDebugInfo100_DebugFunction,
+			"DebugLexicalBlock": OpenCLDebugInfo100_DebugLexicalBlock,
+			"DebugLexicalBlockDiscriminator": OpenCLDebugInfo100_DebugLexicalBlockDiscriminator,
+			"DebugScope": OpenCLDebugInfo100_DebugScope,
+			"DebugNoScope": OpenCLDebugInfo100_DebugNoScope,
+			"DebugInlinedAt": OpenCLDebugInfo100_DebugInlinedAt,
+			"DebugLocalVariable": OpenCLDebugInfo100_DebugLocalVariable,
+			"DebugInlinedVariable": OpenCLDebugInfo100_DebugInlinedVariable,
+			"DebugDeclare": OpenCLDebugInfo100_DebugDeclare,
+			"DebugValue": OpenCLDebugInfo100_DebugValue,
+			"DebugOperation": OpenCLDebugInfo100_DebugOperation,
+			"DebugExpression": OpenCLDebugInfo100_DebugExpression,
+			"DebugMacroDef": OpenCLDebugInfo100_DebugMacroDef,
+			"DebugMacroUndef": OpenCLDebugInfo100_DebugMacroUndef,
+			"DebugImportedEntity": OpenCLDebugInfo100_DebugImportedEntity,
+			"DebugSource": OpenCLDebugInfo100_DebugSource,
+		},
+	}
+
 	OpNop = &Opcode {
 		Opname:   "OpNop",
+		Class:    "Miscellaneous",
+		Opcode:   0,
 		Operands: []Operand {
 		},
 	}
 	OpUndef = &Opcode {
 		Opname:   "OpUndef",
+		Class:    "Miscellaneous",
+		Opcode:   1,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -649,6 +944,8 @@ var (
 	}
 	OpSourceContinued = &Opcode {
 		Opname:   "OpSourceContinued",
+		Class:    "Debug",
+		Opcode:   2,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindLiteralString,
@@ -659,6 +956,8 @@ var (
 	}
 	OpSource = &Opcode {
 		Opname:   "OpSource",
+		Class:    "Debug",
+		Opcode:   3,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindSourceLanguage,
@@ -684,6 +983,8 @@ var (
 	}
 	OpSourceExtension = &Opcode {
 		Opname:   "OpSourceExtension",
+		Class:    "Debug",
+		Opcode:   4,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindLiteralString,
@@ -694,6 +995,8 @@ var (
 	}
 	OpName = &Opcode {
 		Opname:   "OpName",
+		Class:    "Debug",
+		Opcode:   5,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -709,6 +1012,8 @@ var (
 	}
 	OpMemberName = &Opcode {
 		Opname:   "OpMemberName",
+		Class:    "Debug",
+		Opcode:   6,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -729,6 +1034,8 @@ var (
 	}
 	OpString = &Opcode {
 		Opname:   "OpString",
+		Class:    "Debug",
+		Opcode:   7,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -744,6 +1051,8 @@ var (
 	}
 	OpLine = &Opcode {
 		Opname:   "OpLine",
+		Class:    "Debug",
+		Opcode:   8,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -764,6 +1073,8 @@ var (
 	}
 	OpExtension = &Opcode {
 		Opname:   "OpExtension",
+		Class:    "Extension",
+		Opcode:   10,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindLiteralString,
@@ -774,6 +1085,8 @@ var (
 	}
 	OpExtInstImport = &Opcode {
 		Opname:   "OpExtInstImport",
+		Class:    "Extension",
+		Opcode:   11,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -789,6 +1102,8 @@ var (
 	}
 	OpExtInst = &Opcode {
 		Opname:   "OpExtInst",
+		Class:    "Extension",
+		Opcode:   12,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -819,6 +1134,8 @@ var (
 	}
 	OpMemoryModel = &Opcode {
 		Opname:   "OpMemoryModel",
+		Class:    "Mode-Setting",
+		Opcode:   14,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindAddressingModel,
@@ -834,6 +1151,8 @@ var (
 	}
 	OpEntryPoint = &Opcode {
 		Opname:   "OpEntryPoint",
+		Class:    "Mode-Setting",
+		Opcode:   15,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindExecutionModel,
@@ -859,6 +1178,8 @@ var (
 	}
 	OpExecutionMode = &Opcode {
 		Opname:   "OpExecutionMode",
+		Class:    "Mode-Setting",
+		Opcode:   16,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -874,6 +1195,8 @@ var (
 	}
 	OpCapability = &Opcode {
 		Opname:   "OpCapability",
+		Class:    "Mode-Setting",
+		Opcode:   17,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindCapability,
@@ -884,6 +1207,8 @@ var (
 	}
 	OpTypeVoid = &Opcode {
 		Opname:   "OpTypeVoid",
+		Class:    "Type-Declaration",
+		Opcode:   19,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -894,6 +1219,8 @@ var (
 	}
 	OpTypeBool = &Opcode {
 		Opname:   "OpTypeBool",
+		Class:    "Type-Declaration",
+		Opcode:   20,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -904,6 +1231,8 @@ var (
 	}
 	OpTypeInt = &Opcode {
 		Opname:   "OpTypeInt",
+		Class:    "Type-Declaration",
+		Opcode:   21,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -924,6 +1253,8 @@ var (
 	}
 	OpTypeFloat = &Opcode {
 		Opname:   "OpTypeFloat",
+		Class:    "Type-Declaration",
+		Opcode:   22,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -939,6 +1270,8 @@ var (
 	}
 	OpTypeVector = &Opcode {
 		Opname:   "OpTypeVector",
+		Class:    "Type-Declaration",
+		Opcode:   23,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -959,6 +1292,8 @@ var (
 	}
 	OpTypeMatrix = &Opcode {
 		Opname:   "OpTypeMatrix",
+		Class:    "Type-Declaration",
+		Opcode:   24,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -979,6 +1314,8 @@ var (
 	}
 	OpTypeImage = &Opcode {
 		Opname:   "OpTypeImage",
+		Class:    "Type-Declaration",
+		Opcode:   25,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1029,6 +1366,8 @@ var (
 	}
 	OpTypeSampler = &Opcode {
 		Opname:   "OpTypeSampler",
+		Class:    "Type-Declaration",
+		Opcode:   26,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1039,6 +1378,8 @@ var (
 	}
 	OpTypeSampledImage = &Opcode {
 		Opname:   "OpTypeSampledImage",
+		Class:    "Type-Declaration",
+		Opcode:   27,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1054,6 +1395,8 @@ var (
 	}
 	OpTypeArray = &Opcode {
 		Opname:   "OpTypeArray",
+		Class:    "Type-Declaration",
+		Opcode:   28,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1074,6 +1417,8 @@ var (
 	}
 	OpTypeRuntimeArray = &Opcode {
 		Opname:   "OpTypeRuntimeArray",
+		Class:    "Type-Declaration",
+		Opcode:   29,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1089,6 +1434,8 @@ var (
 	}
 	OpTypeStruct = &Opcode {
 		Opname:   "OpTypeStruct",
+		Class:    "Type-Declaration",
+		Opcode:   30,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1104,6 +1451,8 @@ var (
 	}
 	OpTypeOpaque = &Opcode {
 		Opname:   "OpTypeOpaque",
+		Class:    "Type-Declaration",
+		Opcode:   31,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1119,6 +1468,8 @@ var (
 	}
 	OpTypePointer = &Opcode {
 		Opname:   "OpTypePointer",
+		Class:    "Type-Declaration",
+		Opcode:   32,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1139,6 +1490,8 @@ var (
 	}
 	OpTypeFunction = &Opcode {
 		Opname:   "OpTypeFunction",
+		Class:    "Type-Declaration",
+		Opcode:   33,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1159,6 +1512,8 @@ var (
 	}
 	OpTypeEvent = &Opcode {
 		Opname:   "OpTypeEvent",
+		Class:    "Type-Declaration",
+		Opcode:   34,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1169,6 +1524,8 @@ var (
 	}
 	OpTypeDeviceEvent = &Opcode {
 		Opname:   "OpTypeDeviceEvent",
+		Class:    "Type-Declaration",
+		Opcode:   35,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1179,6 +1536,8 @@ var (
 	}
 	OpTypeReserveId = &Opcode {
 		Opname:   "OpTypeReserveId",
+		Class:    "Type-Declaration",
+		Opcode:   36,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1189,6 +1548,8 @@ var (
 	}
 	OpTypeQueue = &Opcode {
 		Opname:   "OpTypeQueue",
+		Class:    "Type-Declaration",
+		Opcode:   37,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1199,6 +1560,8 @@ var (
 	}
 	OpTypePipe = &Opcode {
 		Opname:   "OpTypePipe",
+		Class:    "Type-Declaration",
+		Opcode:   38,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1214,6 +1577,8 @@ var (
 	}
 	OpTypeForwardPointer = &Opcode {
 		Opname:   "OpTypeForwardPointer",
+		Class:    "Type-Declaration",
+		Opcode:   39,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1229,6 +1594,8 @@ var (
 	}
 	OpConstantTrue = &Opcode {
 		Opname:   "OpConstantTrue",
+		Class:    "Constant-Creation",
+		Opcode:   41,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1244,6 +1611,8 @@ var (
 	}
 	OpConstantFalse = &Opcode {
 		Opname:   "OpConstantFalse",
+		Class:    "Constant-Creation",
+		Opcode:   42,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1259,6 +1628,8 @@ var (
 	}
 	OpConstant = &Opcode {
 		Opname:   "OpConstant",
+		Class:    "Constant-Creation",
+		Opcode:   43,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1279,6 +1650,8 @@ var (
 	}
 	OpConstantComposite = &Opcode {
 		Opname:   "OpConstantComposite",
+		Class:    "Constant-Creation",
+		Opcode:   44,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1299,6 +1672,8 @@ var (
 	}
 	OpConstantSampler = &Opcode {
 		Opname:   "OpConstantSampler",
+		Class:    "Constant-Creation",
+		Opcode:   45,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1329,6 +1704,8 @@ var (
 	}
 	OpConstantNull = &Opcode {
 		Opname:   "OpConstantNull",
+		Class:    "Constant-Creation",
+		Opcode:   46,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1344,6 +1721,8 @@ var (
 	}
 	OpSpecConstantTrue = &Opcode {
 		Opname:   "OpSpecConstantTrue",
+		Class:    "Constant-Creation",
+		Opcode:   48,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1359,6 +1738,8 @@ var (
 	}
 	OpSpecConstantFalse = &Opcode {
 		Opname:   "OpSpecConstantFalse",
+		Class:    "Constant-Creation",
+		Opcode:   49,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1374,6 +1755,8 @@ var (
 	}
 	OpSpecConstant = &Opcode {
 		Opname:   "OpSpecConstant",
+		Class:    "Constant-Creation",
+		Opcode:   50,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1394,6 +1777,8 @@ var (
 	}
 	OpSpecConstantComposite = &Opcode {
 		Opname:   "OpSpecConstantComposite",
+		Class:    "Constant-Creation",
+		Opcode:   51,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1414,6 +1799,8 @@ var (
 	}
 	OpSpecConstantOp = &Opcode {
 		Opname:   "OpSpecConstantOp",
+		Class:    "Constant-Creation",
+		Opcode:   52,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1434,6 +1821,8 @@ var (
 	}
 	OpFunction = &Opcode {
 		Opname:   "OpFunction",
+		Class:    "Function",
+		Opcode:   54,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1459,6 +1848,8 @@ var (
 	}
 	OpFunctionParameter = &Opcode {
 		Opname:   "OpFunctionParameter",
+		Class:    "Function",
+		Opcode:   55,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1474,11 +1865,15 @@ var (
 	}
 	OpFunctionEnd = &Opcode {
 		Opname:   "OpFunctionEnd",
+		Class:    "Function",
+		Opcode:   56,
 		Operands: []Operand {
 		},
 	}
 	OpFunctionCall = &Opcode {
 		Opname:   "OpFunctionCall",
+		Class:    "Function",
+		Opcode:   57,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1504,6 +1899,8 @@ var (
 	}
 	OpVariable = &Opcode {
 		Opname:   "OpVariable",
+		Class:    "Memory",
+		Opcode:   59,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1529,6 +1926,8 @@ var (
 	}
 	OpImageTexelPointer = &Opcode {
 		Opname:   "OpImageTexelPointer",
+		Class:    "Memory",
+		Opcode:   60,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1559,6 +1958,8 @@ var (
 	}
 	OpLoad = &Opcode {
 		Opname:   "OpLoad",
+		Class:    "Memory",
+		Opcode:   61,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1584,6 +1985,8 @@ var (
 	}
 	OpStore = &Opcode {
 		Opname:   "OpStore",
+		Class:    "Memory",
+		Opcode:   62,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1604,6 +2007,8 @@ var (
 	}
 	OpCopyMemory = &Opcode {
 		Opname:   "OpCopyMemory",
+		Class:    "Memory",
+		Opcode:   63,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1629,6 +2034,8 @@ var (
 	}
 	OpCopyMemorySized = &Opcode {
 		Opname:   "OpCopyMemorySized",
+		Class:    "Memory",
+		Opcode:   64,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1659,6 +2066,8 @@ var (
 	}
 	OpAccessChain = &Opcode {
 		Opname:   "OpAccessChain",
+		Class:    "Memory",
+		Opcode:   65,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1684,6 +2093,8 @@ var (
 	}
 	OpInBoundsAccessChain = &Opcode {
 		Opname:   "OpInBoundsAccessChain",
+		Class:    "Memory",
+		Opcode:   66,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1709,6 +2120,8 @@ var (
 	}
 	OpPtrAccessChain = &Opcode {
 		Opname:   "OpPtrAccessChain",
+		Class:    "Memory",
+		Opcode:   67,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1739,6 +2152,8 @@ var (
 	}
 	OpArrayLength = &Opcode {
 		Opname:   "OpArrayLength",
+		Class:    "Memory",
+		Opcode:   68,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1764,6 +2179,8 @@ var (
 	}
 	OpGenericPtrMemSemantics = &Opcode {
 		Opname:   "OpGenericPtrMemSemantics",
+		Class:    "Memory",
+		Opcode:   69,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1784,6 +2201,8 @@ var (
 	}
 	OpInBoundsPtrAccessChain = &Opcode {
 		Opname:   "OpInBoundsPtrAccessChain",
+		Class:    "Memory",
+		Opcode:   70,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1814,6 +2233,8 @@ var (
 	}
 	OpDecorate = &Opcode {
 		Opname:   "OpDecorate",
+		Class:    "Annotation",
+		Opcode:   71,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1829,6 +2250,8 @@ var (
 	}
 	OpMemberDecorate = &Opcode {
 		Opname:   "OpMemberDecorate",
+		Class:    "Annotation",
+		Opcode:   72,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1849,6 +2272,8 @@ var (
 	}
 	OpDecorationGroup = &Opcode {
 		Opname:   "OpDecorationGroup",
+		Class:    "Annotation",
+		Opcode:   73,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -1859,6 +2284,8 @@ var (
 	}
 	OpGroupDecorate = &Opcode {
 		Opname:   "OpGroupDecorate",
+		Class:    "Annotation",
+		Opcode:   74,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1874,6 +2301,8 @@ var (
 	}
 	OpGroupMemberDecorate = &Opcode {
 		Opname:   "OpGroupMemberDecorate",
+		Class:    "Annotation",
+		Opcode:   75,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -1889,6 +2318,8 @@ var (
 	}
 	OpVectorExtractDynamic = &Opcode {
 		Opname:   "OpVectorExtractDynamic",
+		Class:    "Composite",
+		Opcode:   77,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1914,6 +2345,8 @@ var (
 	}
 	OpVectorInsertDynamic = &Opcode {
 		Opname:   "OpVectorInsertDynamic",
+		Class:    "Composite",
+		Opcode:   78,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1944,6 +2377,8 @@ var (
 	}
 	OpVectorShuffle = &Opcode {
 		Opname:   "OpVectorShuffle",
+		Class:    "Composite",
+		Opcode:   79,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1974,6 +2409,8 @@ var (
 	}
 	OpCompositeConstruct = &Opcode {
 		Opname:   "OpCompositeConstruct",
+		Class:    "Composite",
+		Opcode:   80,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -1994,6 +2431,8 @@ var (
 	}
 	OpCompositeExtract = &Opcode {
 		Opname:   "OpCompositeExtract",
+		Class:    "Composite",
+		Opcode:   81,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2019,6 +2458,8 @@ var (
 	}
 	OpCompositeInsert = &Opcode {
 		Opname:   "OpCompositeInsert",
+		Class:    "Composite",
+		Opcode:   82,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2049,6 +2490,8 @@ var (
 	}
 	OpCopyObject = &Opcode {
 		Opname:   "OpCopyObject",
+		Class:    "Composite",
+		Opcode:   83,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2069,6 +2512,8 @@ var (
 	}
 	OpTranspose = &Opcode {
 		Opname:   "OpTranspose",
+		Class:    "Composite",
+		Opcode:   84,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2089,6 +2534,8 @@ var (
 	}
 	OpSampledImage = &Opcode {
 		Opname:   "OpSampledImage",
+		Class:    "Image",
+		Opcode:   86,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2114,6 +2561,8 @@ var (
 	}
 	OpImageSampleImplicitLod = &Opcode {
 		Opname:   "OpImageSampleImplicitLod",
+		Class:    "Image",
+		Opcode:   87,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2144,6 +2593,8 @@ var (
 	}
 	OpImageSampleExplicitLod = &Opcode {
 		Opname:   "OpImageSampleExplicitLod",
+		Class:    "Image",
+		Opcode:   88,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2174,6 +2625,8 @@ var (
 	}
 	OpImageSampleDrefImplicitLod = &Opcode {
 		Opname:   "OpImageSampleDrefImplicitLod",
+		Class:    "Image",
+		Opcode:   89,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2209,6 +2662,8 @@ var (
 	}
 	OpImageSampleDrefExplicitLod = &Opcode {
 		Opname:   "OpImageSampleDrefExplicitLod",
+		Class:    "Image",
+		Opcode:   90,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2244,6 +2699,8 @@ var (
 	}
 	OpImageSampleProjImplicitLod = &Opcode {
 		Opname:   "OpImageSampleProjImplicitLod",
+		Class:    "Image",
+		Opcode:   91,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2274,6 +2731,8 @@ var (
 	}
 	OpImageSampleProjExplicitLod = &Opcode {
 		Opname:   "OpImageSampleProjExplicitLod",
+		Class:    "Image",
+		Opcode:   92,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2304,6 +2763,8 @@ var (
 	}
 	OpImageSampleProjDrefImplicitLod = &Opcode {
 		Opname:   "OpImageSampleProjDrefImplicitLod",
+		Class:    "Image",
+		Opcode:   93,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2339,6 +2800,8 @@ var (
 	}
 	OpImageSampleProjDrefExplicitLod = &Opcode {
 		Opname:   "OpImageSampleProjDrefExplicitLod",
+		Class:    "Image",
+		Opcode:   94,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2374,6 +2837,8 @@ var (
 	}
 	OpImageFetch = &Opcode {
 		Opname:   "OpImageFetch",
+		Class:    "Image",
+		Opcode:   95,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2404,6 +2869,8 @@ var (
 	}
 	OpImageGather = &Opcode {
 		Opname:   "OpImageGather",
+		Class:    "Image",
+		Opcode:   96,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2439,6 +2906,8 @@ var (
 	}
 	OpImageDrefGather = &Opcode {
 		Opname:   "OpImageDrefGather",
+		Class:    "Image",
+		Opcode:   97,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2474,6 +2943,8 @@ var (
 	}
 	OpImageRead = &Opcode {
 		Opname:   "OpImageRead",
+		Class:    "Image",
+		Opcode:   98,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2504,6 +2975,8 @@ var (
 	}
 	OpImageWrite = &Opcode {
 		Opname:   "OpImageWrite",
+		Class:    "Image",
+		Opcode:   99,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -2529,6 +3002,8 @@ var (
 	}
 	OpImage = &Opcode {
 		Opname:   "OpImage",
+		Class:    "Image",
+		Opcode:   100,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2549,6 +3024,8 @@ var (
 	}
 	OpImageQueryFormat = &Opcode {
 		Opname:   "OpImageQueryFormat",
+		Class:    "Image",
+		Opcode:   101,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2569,6 +3046,8 @@ var (
 	}
 	OpImageQueryOrder = &Opcode {
 		Opname:   "OpImageQueryOrder",
+		Class:    "Image",
+		Opcode:   102,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2589,6 +3068,8 @@ var (
 	}
 	OpImageQuerySizeLod = &Opcode {
 		Opname:   "OpImageQuerySizeLod",
+		Class:    "Image",
+		Opcode:   103,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2614,6 +3095,8 @@ var (
 	}
 	OpImageQuerySize = &Opcode {
 		Opname:   "OpImageQuerySize",
+		Class:    "Image",
+		Opcode:   104,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2634,6 +3117,8 @@ var (
 	}
 	OpImageQueryLod = &Opcode {
 		Opname:   "OpImageQueryLod",
+		Class:    "Image",
+		Opcode:   105,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2659,6 +3144,8 @@ var (
 	}
 	OpImageQueryLevels = &Opcode {
 		Opname:   "OpImageQueryLevels",
+		Class:    "Image",
+		Opcode:   106,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2679,6 +3166,8 @@ var (
 	}
 	OpImageQuerySamples = &Opcode {
 		Opname:   "OpImageQuerySamples",
+		Class:    "Image",
+		Opcode:   107,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2699,6 +3188,8 @@ var (
 	}
 	OpConvertFToU = &Opcode {
 		Opname:   "OpConvertFToU",
+		Class:    "Conversion",
+		Opcode:   109,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2719,6 +3210,8 @@ var (
 	}
 	OpConvertFToS = &Opcode {
 		Opname:   "OpConvertFToS",
+		Class:    "Conversion",
+		Opcode:   110,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2739,6 +3232,8 @@ var (
 	}
 	OpConvertSToF = &Opcode {
 		Opname:   "OpConvertSToF",
+		Class:    "Conversion",
+		Opcode:   111,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2759,6 +3254,8 @@ var (
 	}
 	OpConvertUToF = &Opcode {
 		Opname:   "OpConvertUToF",
+		Class:    "Conversion",
+		Opcode:   112,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2779,6 +3276,8 @@ var (
 	}
 	OpUConvert = &Opcode {
 		Opname:   "OpUConvert",
+		Class:    "Conversion",
+		Opcode:   113,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2799,6 +3298,8 @@ var (
 	}
 	OpSConvert = &Opcode {
 		Opname:   "OpSConvert",
+		Class:    "Conversion",
+		Opcode:   114,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2819,6 +3320,8 @@ var (
 	}
 	OpFConvert = &Opcode {
 		Opname:   "OpFConvert",
+		Class:    "Conversion",
+		Opcode:   115,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2839,6 +3342,8 @@ var (
 	}
 	OpQuantizeToF16 = &Opcode {
 		Opname:   "OpQuantizeToF16",
+		Class:    "Conversion",
+		Opcode:   116,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2859,6 +3364,8 @@ var (
 	}
 	OpConvertPtrToU = &Opcode {
 		Opname:   "OpConvertPtrToU",
+		Class:    "Conversion",
+		Opcode:   117,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2879,6 +3386,8 @@ var (
 	}
 	OpSatConvertSToU = &Opcode {
 		Opname:   "OpSatConvertSToU",
+		Class:    "Conversion",
+		Opcode:   118,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2899,6 +3408,8 @@ var (
 	}
 	OpSatConvertUToS = &Opcode {
 		Opname:   "OpSatConvertUToS",
+		Class:    "Conversion",
+		Opcode:   119,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2919,6 +3430,8 @@ var (
 	}
 	OpConvertUToPtr = &Opcode {
 		Opname:   "OpConvertUToPtr",
+		Class:    "Conversion",
+		Opcode:   120,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2939,6 +3452,8 @@ var (
 	}
 	OpPtrCastToGeneric = &Opcode {
 		Opname:   "OpPtrCastToGeneric",
+		Class:    "Conversion",
+		Opcode:   121,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2959,6 +3474,8 @@ var (
 	}
 	OpGenericCastToPtr = &Opcode {
 		Opname:   "OpGenericCastToPtr",
+		Class:    "Conversion",
+		Opcode:   122,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -2979,6 +3496,8 @@ var (
 	}
 	OpGenericCastToPtrExplicit = &Opcode {
 		Opname:   "OpGenericCastToPtrExplicit",
+		Class:    "Conversion",
+		Opcode:   123,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3004,6 +3523,8 @@ var (
 	}
 	OpBitcast = &Opcode {
 		Opname:   "OpBitcast",
+		Class:    "Conversion",
+		Opcode:   124,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3024,6 +3545,8 @@ var (
 	}
 	OpSNegate = &Opcode {
 		Opname:   "OpSNegate",
+		Class:    "Arithmetic",
+		Opcode:   126,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3044,6 +3567,8 @@ var (
 	}
 	OpFNegate = &Opcode {
 		Opname:   "OpFNegate",
+		Class:    "Arithmetic",
+		Opcode:   127,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3064,6 +3589,8 @@ var (
 	}
 	OpIAdd = &Opcode {
 		Opname:   "OpIAdd",
+		Class:    "Arithmetic",
+		Opcode:   128,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3089,6 +3616,8 @@ var (
 	}
 	OpFAdd = &Opcode {
 		Opname:   "OpFAdd",
+		Class:    "Arithmetic",
+		Opcode:   129,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3114,6 +3643,8 @@ var (
 	}
 	OpISub = &Opcode {
 		Opname:   "OpISub",
+		Class:    "Arithmetic",
+		Opcode:   130,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3139,6 +3670,8 @@ var (
 	}
 	OpFSub = &Opcode {
 		Opname:   "OpFSub",
+		Class:    "Arithmetic",
+		Opcode:   131,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3164,6 +3697,8 @@ var (
 	}
 	OpIMul = &Opcode {
 		Opname:   "OpIMul",
+		Class:    "Arithmetic",
+		Opcode:   132,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3189,6 +3724,8 @@ var (
 	}
 	OpFMul = &Opcode {
 		Opname:   "OpFMul",
+		Class:    "Arithmetic",
+		Opcode:   133,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3214,6 +3751,8 @@ var (
 	}
 	OpUDiv = &Opcode {
 		Opname:   "OpUDiv",
+		Class:    "Arithmetic",
+		Opcode:   134,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3239,6 +3778,8 @@ var (
 	}
 	OpSDiv = &Opcode {
 		Opname:   "OpSDiv",
+		Class:    "Arithmetic",
+		Opcode:   135,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3264,6 +3805,8 @@ var (
 	}
 	OpFDiv = &Opcode {
 		Opname:   "OpFDiv",
+		Class:    "Arithmetic",
+		Opcode:   136,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3289,6 +3832,8 @@ var (
 	}
 	OpUMod = &Opcode {
 		Opname:   "OpUMod",
+		Class:    "Arithmetic",
+		Opcode:   137,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3314,6 +3859,8 @@ var (
 	}
 	OpSRem = &Opcode {
 		Opname:   "OpSRem",
+		Class:    "Arithmetic",
+		Opcode:   138,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3339,6 +3886,8 @@ var (
 	}
 	OpSMod = &Opcode {
 		Opname:   "OpSMod",
+		Class:    "Arithmetic",
+		Opcode:   139,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3364,6 +3913,8 @@ var (
 	}
 	OpFRem = &Opcode {
 		Opname:   "OpFRem",
+		Class:    "Arithmetic",
+		Opcode:   140,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3389,6 +3940,8 @@ var (
 	}
 	OpFMod = &Opcode {
 		Opname:   "OpFMod",
+		Class:    "Arithmetic",
+		Opcode:   141,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3414,6 +3967,8 @@ var (
 	}
 	OpVectorTimesScalar = &Opcode {
 		Opname:   "OpVectorTimesScalar",
+		Class:    "Arithmetic",
+		Opcode:   142,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3439,6 +3994,8 @@ var (
 	}
 	OpMatrixTimesScalar = &Opcode {
 		Opname:   "OpMatrixTimesScalar",
+		Class:    "Arithmetic",
+		Opcode:   143,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3464,6 +4021,8 @@ var (
 	}
 	OpVectorTimesMatrix = &Opcode {
 		Opname:   "OpVectorTimesMatrix",
+		Class:    "Arithmetic",
+		Opcode:   144,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3489,6 +4048,8 @@ var (
 	}
 	OpMatrixTimesVector = &Opcode {
 		Opname:   "OpMatrixTimesVector",
+		Class:    "Arithmetic",
+		Opcode:   145,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3514,6 +4075,8 @@ var (
 	}
 	OpMatrixTimesMatrix = &Opcode {
 		Opname:   "OpMatrixTimesMatrix",
+		Class:    "Arithmetic",
+		Opcode:   146,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3539,6 +4102,8 @@ var (
 	}
 	OpOuterProduct = &Opcode {
 		Opname:   "OpOuterProduct",
+		Class:    "Arithmetic",
+		Opcode:   147,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3564,6 +4129,8 @@ var (
 	}
 	OpDot = &Opcode {
 		Opname:   "OpDot",
+		Class:    "Arithmetic",
+		Opcode:   148,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3589,6 +4156,8 @@ var (
 	}
 	OpIAddCarry = &Opcode {
 		Opname:   "OpIAddCarry",
+		Class:    "Arithmetic",
+		Opcode:   149,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3614,6 +4183,8 @@ var (
 	}
 	OpISubBorrow = &Opcode {
 		Opname:   "OpISubBorrow",
+		Class:    "Arithmetic",
+		Opcode:   150,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3639,6 +4210,8 @@ var (
 	}
 	OpUMulExtended = &Opcode {
 		Opname:   "OpUMulExtended",
+		Class:    "Arithmetic",
+		Opcode:   151,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3664,6 +4237,8 @@ var (
 	}
 	OpSMulExtended = &Opcode {
 		Opname:   "OpSMulExtended",
+		Class:    "Arithmetic",
+		Opcode:   152,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3689,6 +4264,8 @@ var (
 	}
 	OpAny = &Opcode {
 		Opname:   "OpAny",
+		Class:    "Relational_and_Logical",
+		Opcode:   154,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3709,6 +4286,8 @@ var (
 	}
 	OpAll = &Opcode {
 		Opname:   "OpAll",
+		Class:    "Relational_and_Logical",
+		Opcode:   155,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3729,6 +4308,8 @@ var (
 	}
 	OpIsNan = &Opcode {
 		Opname:   "OpIsNan",
+		Class:    "Relational_and_Logical",
+		Opcode:   156,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3749,6 +4330,8 @@ var (
 	}
 	OpIsInf = &Opcode {
 		Opname:   "OpIsInf",
+		Class:    "Relational_and_Logical",
+		Opcode:   157,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3769,6 +4352,8 @@ var (
 	}
 	OpIsFinite = &Opcode {
 		Opname:   "OpIsFinite",
+		Class:    "Relational_and_Logical",
+		Opcode:   158,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3789,6 +4374,8 @@ var (
 	}
 	OpIsNormal = &Opcode {
 		Opname:   "OpIsNormal",
+		Class:    "Relational_and_Logical",
+		Opcode:   159,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3809,6 +4396,8 @@ var (
 	}
 	OpSignBitSet = &Opcode {
 		Opname:   "OpSignBitSet",
+		Class:    "Relational_and_Logical",
+		Opcode:   160,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3829,6 +4418,8 @@ var (
 	}
 	OpLessOrGreater = &Opcode {
 		Opname:   "OpLessOrGreater",
+		Class:    "Relational_and_Logical",
+		Opcode:   161,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3854,6 +4445,8 @@ var (
 	}
 	OpOrdered = &Opcode {
 		Opname:   "OpOrdered",
+		Class:    "Relational_and_Logical",
+		Opcode:   162,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3879,6 +4472,8 @@ var (
 	}
 	OpUnordered = &Opcode {
 		Opname:   "OpUnordered",
+		Class:    "Relational_and_Logical",
+		Opcode:   163,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3904,6 +4499,8 @@ var (
 	}
 	OpLogicalEqual = &Opcode {
 		Opname:   "OpLogicalEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   164,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3929,6 +4526,8 @@ var (
 	}
 	OpLogicalNotEqual = &Opcode {
 		Opname:   "OpLogicalNotEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   165,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3954,6 +4553,8 @@ var (
 	}
 	OpLogicalOr = &Opcode {
 		Opname:   "OpLogicalOr",
+		Class:    "Relational_and_Logical",
+		Opcode:   166,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -3979,6 +4580,8 @@ var (
 	}
 	OpLogicalAnd = &Opcode {
 		Opname:   "OpLogicalAnd",
+		Class:    "Relational_and_Logical",
+		Opcode:   167,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4004,6 +4607,8 @@ var (
 	}
 	OpLogicalNot = &Opcode {
 		Opname:   "OpLogicalNot",
+		Class:    "Relational_and_Logical",
+		Opcode:   168,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4024,6 +4629,8 @@ var (
 	}
 	OpSelect = &Opcode {
 		Opname:   "OpSelect",
+		Class:    "Relational_and_Logical",
+		Opcode:   169,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4054,6 +4661,8 @@ var (
 	}
 	OpIEqual = &Opcode {
 		Opname:   "OpIEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   170,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4079,6 +4688,8 @@ var (
 	}
 	OpINotEqual = &Opcode {
 		Opname:   "OpINotEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   171,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4104,6 +4715,8 @@ var (
 	}
 	OpUGreaterThan = &Opcode {
 		Opname:   "OpUGreaterThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   172,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4129,6 +4742,8 @@ var (
 	}
 	OpSGreaterThan = &Opcode {
 		Opname:   "OpSGreaterThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   173,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4154,6 +4769,8 @@ var (
 	}
 	OpUGreaterThanEqual = &Opcode {
 		Opname:   "OpUGreaterThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   174,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4179,6 +4796,8 @@ var (
 	}
 	OpSGreaterThanEqual = &Opcode {
 		Opname:   "OpSGreaterThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   175,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4204,6 +4823,8 @@ var (
 	}
 	OpULessThan = &Opcode {
 		Opname:   "OpULessThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   176,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4229,6 +4850,8 @@ var (
 	}
 	OpSLessThan = &Opcode {
 		Opname:   "OpSLessThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   177,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4254,6 +4877,8 @@ var (
 	}
 	OpULessThanEqual = &Opcode {
 		Opname:   "OpULessThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   178,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4279,6 +4904,8 @@ var (
 	}
 	OpSLessThanEqual = &Opcode {
 		Opname:   "OpSLessThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   179,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4304,6 +4931,8 @@ var (
 	}
 	OpFOrdEqual = &Opcode {
 		Opname:   "OpFOrdEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   180,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4329,6 +4958,8 @@ var (
 	}
 	OpFUnordEqual = &Opcode {
 		Opname:   "OpFUnordEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   181,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4354,6 +4985,8 @@ var (
 	}
 	OpFOrdNotEqual = &Opcode {
 		Opname:   "OpFOrdNotEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   182,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4379,6 +5012,8 @@ var (
 	}
 	OpFUnordNotEqual = &Opcode {
 		Opname:   "OpFUnordNotEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   183,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4404,6 +5039,8 @@ var (
 	}
 	OpFOrdLessThan = &Opcode {
 		Opname:   "OpFOrdLessThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   184,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4429,6 +5066,8 @@ var (
 	}
 	OpFUnordLessThan = &Opcode {
 		Opname:   "OpFUnordLessThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   185,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4454,6 +5093,8 @@ var (
 	}
 	OpFOrdGreaterThan = &Opcode {
 		Opname:   "OpFOrdGreaterThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   186,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4479,6 +5120,8 @@ var (
 	}
 	OpFUnordGreaterThan = &Opcode {
 		Opname:   "OpFUnordGreaterThan",
+		Class:    "Relational_and_Logical",
+		Opcode:   187,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4504,6 +5147,8 @@ var (
 	}
 	OpFOrdLessThanEqual = &Opcode {
 		Opname:   "OpFOrdLessThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   188,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4529,6 +5174,8 @@ var (
 	}
 	OpFUnordLessThanEqual = &Opcode {
 		Opname:   "OpFUnordLessThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   189,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4554,6 +5201,8 @@ var (
 	}
 	OpFOrdGreaterThanEqual = &Opcode {
 		Opname:   "OpFOrdGreaterThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   190,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4579,6 +5228,8 @@ var (
 	}
 	OpFUnordGreaterThanEqual = &Opcode {
 		Opname:   "OpFUnordGreaterThanEqual",
+		Class:    "Relational_and_Logical",
+		Opcode:   191,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4604,6 +5255,8 @@ var (
 	}
 	OpShiftRightLogical = &Opcode {
 		Opname:   "OpShiftRightLogical",
+		Class:    "Bit",
+		Opcode:   194,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4629,6 +5282,8 @@ var (
 	}
 	OpShiftRightArithmetic = &Opcode {
 		Opname:   "OpShiftRightArithmetic",
+		Class:    "Bit",
+		Opcode:   195,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4654,6 +5309,8 @@ var (
 	}
 	OpShiftLeftLogical = &Opcode {
 		Opname:   "OpShiftLeftLogical",
+		Class:    "Bit",
+		Opcode:   196,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4679,6 +5336,8 @@ var (
 	}
 	OpBitwiseOr = &Opcode {
 		Opname:   "OpBitwiseOr",
+		Class:    "Bit",
+		Opcode:   197,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4704,6 +5363,8 @@ var (
 	}
 	OpBitwiseXor = &Opcode {
 		Opname:   "OpBitwiseXor",
+		Class:    "Bit",
+		Opcode:   198,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4729,6 +5390,8 @@ var (
 	}
 	OpBitwiseAnd = &Opcode {
 		Opname:   "OpBitwiseAnd",
+		Class:    "Bit",
+		Opcode:   199,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4754,6 +5417,8 @@ var (
 	}
 	OpNot = &Opcode {
 		Opname:   "OpNot",
+		Class:    "Bit",
+		Opcode:   200,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4774,6 +5439,8 @@ var (
 	}
 	OpBitFieldInsert = &Opcode {
 		Opname:   "OpBitFieldInsert",
+		Class:    "Bit",
+		Opcode:   201,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4809,6 +5476,8 @@ var (
 	}
 	OpBitFieldSExtract = &Opcode {
 		Opname:   "OpBitFieldSExtract",
+		Class:    "Bit",
+		Opcode:   202,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4839,6 +5508,8 @@ var (
 	}
 	OpBitFieldUExtract = &Opcode {
 		Opname:   "OpBitFieldUExtract",
+		Class:    "Bit",
+		Opcode:   203,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4869,6 +5540,8 @@ var (
 	}
 	OpBitReverse = &Opcode {
 		Opname:   "OpBitReverse",
+		Class:    "Bit",
+		Opcode:   204,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4889,6 +5562,8 @@ var (
 	}
 	OpBitCount = &Opcode {
 		Opname:   "OpBitCount",
+		Class:    "Bit",
+		Opcode:   205,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4909,6 +5584,8 @@ var (
 	}
 	OpDPdx = &Opcode {
 		Opname:   "OpDPdx",
+		Class:    "Derivative",
+		Opcode:   207,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4929,6 +5606,8 @@ var (
 	}
 	OpDPdy = &Opcode {
 		Opname:   "OpDPdy",
+		Class:    "Derivative",
+		Opcode:   208,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4949,6 +5628,8 @@ var (
 	}
 	OpFwidth = &Opcode {
 		Opname:   "OpFwidth",
+		Class:    "Derivative",
+		Opcode:   209,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4969,6 +5650,8 @@ var (
 	}
 	OpDPdxFine = &Opcode {
 		Opname:   "OpDPdxFine",
+		Class:    "Derivative",
+		Opcode:   210,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -4989,6 +5672,8 @@ var (
 	}
 	OpDPdyFine = &Opcode {
 		Opname:   "OpDPdyFine",
+		Class:    "Derivative",
+		Opcode:   211,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5009,6 +5694,8 @@ var (
 	}
 	OpFwidthFine = &Opcode {
 		Opname:   "OpFwidthFine",
+		Class:    "Derivative",
+		Opcode:   212,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5029,6 +5716,8 @@ var (
 	}
 	OpDPdxCoarse = &Opcode {
 		Opname:   "OpDPdxCoarse",
+		Class:    "Derivative",
+		Opcode:   213,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5049,6 +5738,8 @@ var (
 	}
 	OpDPdyCoarse = &Opcode {
 		Opname:   "OpDPdyCoarse",
+		Class:    "Derivative",
+		Opcode:   214,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5069,6 +5760,8 @@ var (
 	}
 	OpFwidthCoarse = &Opcode {
 		Opname:   "OpFwidthCoarse",
+		Class:    "Derivative",
+		Opcode:   215,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5089,16 +5782,22 @@ var (
 	}
 	OpEmitVertex = &Opcode {
 		Opname:   "OpEmitVertex",
+		Class:    "Primitive",
+		Opcode:   218,
 		Operands: []Operand {
 		},
 	}
 	OpEndPrimitive = &Opcode {
 		Opname:   "OpEndPrimitive",
+		Class:    "Primitive",
+		Opcode:   219,
 		Operands: []Operand {
 		},
 	}
 	OpEmitStreamVertex = &Opcode {
 		Opname:   "OpEmitStreamVertex",
+		Class:    "Primitive",
+		Opcode:   220,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5109,6 +5808,8 @@ var (
 	}
 	OpEndStreamPrimitive = &Opcode {
 		Opname:   "OpEndStreamPrimitive",
+		Class:    "Primitive",
+		Opcode:   221,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5119,6 +5820,8 @@ var (
 	}
 	OpControlBarrier = &Opcode {
 		Opname:   "OpControlBarrier",
+		Class:    "Barrier",
+		Opcode:   224,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdScope,
@@ -5139,6 +5842,8 @@ var (
 	}
 	OpMemoryBarrier = &Opcode {
 		Opname:   "OpMemoryBarrier",
+		Class:    "Barrier",
+		Opcode:   225,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdScope,
@@ -5154,6 +5859,8 @@ var (
 	}
 	OpAtomicLoad = &Opcode {
 		Opname:   "OpAtomicLoad",
+		Class:    "Atomic",
+		Opcode:   227,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5184,6 +5891,8 @@ var (
 	}
 	OpAtomicStore = &Opcode {
 		Opname:   "OpAtomicStore",
+		Class:    "Atomic",
+		Opcode:   228,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5209,6 +5918,8 @@ var (
 	}
 	OpAtomicExchange = &Opcode {
 		Opname:   "OpAtomicExchange",
+		Class:    "Atomic",
+		Opcode:   229,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5244,6 +5955,8 @@ var (
 	}
 	OpAtomicCompareExchange = &Opcode {
 		Opname:   "OpAtomicCompareExchange",
+		Class:    "Atomic",
+		Opcode:   230,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5289,6 +6002,8 @@ var (
 	}
 	OpAtomicCompareExchangeWeak = &Opcode {
 		Opname:   "OpAtomicCompareExchangeWeak",
+		Class:    "Atomic",
+		Opcode:   231,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5334,6 +6049,8 @@ var (
 	}
 	OpAtomicIIncrement = &Opcode {
 		Opname:   "OpAtomicIIncrement",
+		Class:    "Atomic",
+		Opcode:   232,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5364,6 +6081,8 @@ var (
 	}
 	OpAtomicIDecrement = &Opcode {
 		Opname:   "OpAtomicIDecrement",
+		Class:    "Atomic",
+		Opcode:   233,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5394,6 +6113,8 @@ var (
 	}
 	OpAtomicIAdd = &Opcode {
 		Opname:   "OpAtomicIAdd",
+		Class:    "Atomic",
+		Opcode:   234,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5429,6 +6150,8 @@ var (
 	}
 	OpAtomicISub = &Opcode {
 		Opname:   "OpAtomicISub",
+		Class:    "Atomic",
+		Opcode:   235,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5464,6 +6187,8 @@ var (
 	}
 	OpAtomicSMin = &Opcode {
 		Opname:   "OpAtomicSMin",
+		Class:    "Atomic",
+		Opcode:   236,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5499,6 +6224,8 @@ var (
 	}
 	OpAtomicUMin = &Opcode {
 		Opname:   "OpAtomicUMin",
+		Class:    "Atomic",
+		Opcode:   237,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5534,6 +6261,8 @@ var (
 	}
 	OpAtomicSMax = &Opcode {
 		Opname:   "OpAtomicSMax",
+		Class:    "Atomic",
+		Opcode:   238,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5569,6 +6298,8 @@ var (
 	}
 	OpAtomicUMax = &Opcode {
 		Opname:   "OpAtomicUMax",
+		Class:    "Atomic",
+		Opcode:   239,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5604,6 +6335,8 @@ var (
 	}
 	OpAtomicAnd = &Opcode {
 		Opname:   "OpAtomicAnd",
+		Class:    "Atomic",
+		Opcode:   240,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5639,6 +6372,8 @@ var (
 	}
 	OpAtomicOr = &Opcode {
 		Opname:   "OpAtomicOr",
+		Class:    "Atomic",
+		Opcode:   241,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5674,6 +6409,8 @@ var (
 	}
 	OpAtomicXor = &Opcode {
 		Opname:   "OpAtomicXor",
+		Class:    "Atomic",
+		Opcode:   242,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5709,6 +6446,8 @@ var (
 	}
 	OpPhi = &Opcode {
 		Opname:   "OpPhi",
+		Class:    "Control-Flow",
+		Opcode:   245,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5729,6 +6468,8 @@ var (
 	}
 	OpLoopMerge = &Opcode {
 		Opname:   "OpLoopMerge",
+		Class:    "Control-Flow",
+		Opcode:   246,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5749,6 +6490,8 @@ var (
 	}
 	OpSelectionMerge = &Opcode {
 		Opname:   "OpSelectionMerge",
+		Class:    "Control-Flow",
+		Opcode:   247,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5764,6 +6507,8 @@ var (
 	}
 	OpLabel = &Opcode {
 		Opname:   "OpLabel",
+		Class:    "Control-Flow",
+		Opcode:   248,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -5774,6 +6519,8 @@ var (
 	}
 	OpBranch = &Opcode {
 		Opname:   "OpBranch",
+		Class:    "Control-Flow",
+		Opcode:   249,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5784,6 +6531,8 @@ var (
 	}
 	OpBranchConditional = &Opcode {
 		Opname:   "OpBranchConditional",
+		Class:    "Control-Flow",
+		Opcode:   250,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5809,6 +6558,8 @@ var (
 	}
 	OpSwitch = &Opcode {
 		Opname:   "OpSwitch",
+		Class:    "Control-Flow",
+		Opcode:   251,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5829,16 +6580,22 @@ var (
 	}
 	OpKill = &Opcode {
 		Opname:   "OpKill",
+		Class:    "Control-Flow",
+		Opcode:   252,
 		Operands: []Operand {
 		},
 	}
 	OpReturn = &Opcode {
 		Opname:   "OpReturn",
+		Class:    "Control-Flow",
+		Opcode:   253,
 		Operands: []Operand {
 		},
 	}
 	OpReturnValue = &Opcode {
 		Opname:   "OpReturnValue",
+		Class:    "Control-Flow",
+		Opcode:   254,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5849,11 +6606,15 @@ var (
 	}
 	OpUnreachable = &Opcode {
 		Opname:   "OpUnreachable",
+		Class:    "Control-Flow",
+		Opcode:   255,
 		Operands: []Operand {
 		},
 	}
 	OpLifetimeStart = &Opcode {
 		Opname:   "OpLifetimeStart",
+		Class:    "Control-Flow",
+		Opcode:   256,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5869,6 +6630,8 @@ var (
 	}
 	OpLifetimeStop = &Opcode {
 		Opname:   "OpLifetimeStop",
+		Class:    "Control-Flow",
+		Opcode:   257,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -5884,6 +6647,8 @@ var (
 	}
 	OpGroupAsyncCopy = &Opcode {
 		Opname:   "OpGroupAsyncCopy",
+		Class:    "Group",
+		Opcode:   259,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5929,6 +6694,8 @@ var (
 	}
 	OpGroupWaitEvents = &Opcode {
 		Opname:   "OpGroupWaitEvents",
+		Class:    "Group",
+		Opcode:   260,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdScope,
@@ -5949,6 +6716,8 @@ var (
 	}
 	OpGroupAll = &Opcode {
 		Opname:   "OpGroupAll",
+		Class:    "Group",
+		Opcode:   261,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5974,6 +6743,8 @@ var (
 	}
 	OpGroupAny = &Opcode {
 		Opname:   "OpGroupAny",
+		Class:    "Group",
+		Opcode:   262,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -5999,6 +6770,8 @@ var (
 	}
 	OpGroupBroadcast = &Opcode {
 		Opname:   "OpGroupBroadcast",
+		Class:    "Group",
+		Opcode:   263,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6029,6 +6802,8 @@ var (
 	}
 	OpGroupIAdd = &Opcode {
 		Opname:   "OpGroupIAdd",
+		Class:    "Group",
+		Opcode:   264,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6059,6 +6834,8 @@ var (
 	}
 	OpGroupFAdd = &Opcode {
 		Opname:   "OpGroupFAdd",
+		Class:    "Group",
+		Opcode:   265,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6089,6 +6866,8 @@ var (
 	}
 	OpGroupFMin = &Opcode {
 		Opname:   "OpGroupFMin",
+		Class:    "Group",
+		Opcode:   266,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6119,6 +6898,8 @@ var (
 	}
 	OpGroupUMin = &Opcode {
 		Opname:   "OpGroupUMin",
+		Class:    "Group",
+		Opcode:   267,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6149,6 +6930,8 @@ var (
 	}
 	OpGroupSMin = &Opcode {
 		Opname:   "OpGroupSMin",
+		Class:    "Group",
+		Opcode:   268,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6179,6 +6962,8 @@ var (
 	}
 	OpGroupFMax = &Opcode {
 		Opname:   "OpGroupFMax",
+		Class:    "Group",
+		Opcode:   269,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6209,6 +6994,8 @@ var (
 	}
 	OpGroupUMax = &Opcode {
 		Opname:   "OpGroupUMax",
+		Class:    "Group",
+		Opcode:   270,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6239,6 +7026,8 @@ var (
 	}
 	OpGroupSMax = &Opcode {
 		Opname:   "OpGroupSMax",
+		Class:    "Group",
+		Opcode:   271,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6269,6 +7058,8 @@ var (
 	}
 	OpReadPipe = &Opcode {
 		Opname:   "OpReadPipe",
+		Class:    "Pipe",
+		Opcode:   274,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6304,6 +7095,8 @@ var (
 	}
 	OpWritePipe = &Opcode {
 		Opname:   "OpWritePipe",
+		Class:    "Pipe",
+		Opcode:   275,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6339,6 +7132,8 @@ var (
 	}
 	OpReservedReadPipe = &Opcode {
 		Opname:   "OpReservedReadPipe",
+		Class:    "Pipe",
+		Opcode:   276,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6384,6 +7179,8 @@ var (
 	}
 	OpReservedWritePipe = &Opcode {
 		Opname:   "OpReservedWritePipe",
+		Class:    "Pipe",
+		Opcode:   277,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6429,6 +7226,8 @@ var (
 	}
 	OpReserveReadPipePackets = &Opcode {
 		Opname:   "OpReserveReadPipePackets",
+		Class:    "Pipe",
+		Opcode:   278,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6464,6 +7263,8 @@ var (
 	}
 	OpReserveWritePipePackets = &Opcode {
 		Opname:   "OpReserveWritePipePackets",
+		Class:    "Pipe",
+		Opcode:   279,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6499,6 +7300,8 @@ var (
 	}
 	OpCommitReadPipe = &Opcode {
 		Opname:   "OpCommitReadPipe",
+		Class:    "Pipe",
+		Opcode:   280,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -6524,6 +7327,8 @@ var (
 	}
 	OpCommitWritePipe = &Opcode {
 		Opname:   "OpCommitWritePipe",
+		Class:    "Pipe",
+		Opcode:   281,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -6549,6 +7354,8 @@ var (
 	}
 	OpIsValidReserveId = &Opcode {
 		Opname:   "OpIsValidReserveId",
+		Class:    "Pipe",
+		Opcode:   282,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6569,6 +7376,8 @@ var (
 	}
 	OpGetNumPipePackets = &Opcode {
 		Opname:   "OpGetNumPipePackets",
+		Class:    "Pipe",
+		Opcode:   283,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6599,6 +7408,8 @@ var (
 	}
 	OpGetMaxPipePackets = &Opcode {
 		Opname:   "OpGetMaxPipePackets",
+		Class:    "Pipe",
+		Opcode:   284,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6629,6 +7440,8 @@ var (
 	}
 	OpGroupReserveReadPipePackets = &Opcode {
 		Opname:   "OpGroupReserveReadPipePackets",
+		Class:    "Pipe",
+		Opcode:   285,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6669,6 +7482,8 @@ var (
 	}
 	OpGroupReserveWritePipePackets = &Opcode {
 		Opname:   "OpGroupReserveWritePipePackets",
+		Class:    "Pipe",
+		Opcode:   286,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6709,6 +7524,8 @@ var (
 	}
 	OpGroupCommitReadPipe = &Opcode {
 		Opname:   "OpGroupCommitReadPipe",
+		Class:    "Pipe",
+		Opcode:   287,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdScope,
@@ -6739,6 +7556,8 @@ var (
 	}
 	OpGroupCommitWritePipe = &Opcode {
 		Opname:   "OpGroupCommitWritePipe",
+		Class:    "Pipe",
+		Opcode:   288,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdScope,
@@ -6769,6 +7588,8 @@ var (
 	}
 	OpEnqueueMarker = &Opcode {
 		Opname:   "OpEnqueueMarker",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   291,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6804,6 +7625,8 @@ var (
 	}
 	OpEnqueueKernel = &Opcode {
 		Opname:   "OpEnqueueKernel",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   292,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6874,6 +7697,8 @@ var (
 	}
 	OpGetKernelNDrangeSubGroupCount = &Opcode {
 		Opname:   "OpGetKernelNDrangeSubGroupCount",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   293,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6914,6 +7739,8 @@ var (
 	}
 	OpGetKernelNDrangeMaxSubGroupSize = &Opcode {
 		Opname:   "OpGetKernelNDrangeMaxSubGroupSize",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   294,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6954,6 +7781,8 @@ var (
 	}
 	OpGetKernelWorkGroupSize = &Opcode {
 		Opname:   "OpGetKernelWorkGroupSize",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   295,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -6989,6 +7818,8 @@ var (
 	}
 	OpGetKernelPreferredWorkGroupSizeMultiple = &Opcode {
 		Opname:   "OpGetKernelPreferredWorkGroupSizeMultiple",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   296,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7024,6 +7855,8 @@ var (
 	}
 	OpRetainEvent = &Opcode {
 		Opname:   "OpRetainEvent",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   297,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7034,6 +7867,8 @@ var (
 	}
 	OpReleaseEvent = &Opcode {
 		Opname:   "OpReleaseEvent",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   298,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7044,6 +7879,8 @@ var (
 	}
 	OpCreateUserEvent = &Opcode {
 		Opname:   "OpCreateUserEvent",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   299,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7059,6 +7896,8 @@ var (
 	}
 	OpIsValidEvent = &Opcode {
 		Opname:   "OpIsValidEvent",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   300,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7079,6 +7918,8 @@ var (
 	}
 	OpSetUserEventStatus = &Opcode {
 		Opname:   "OpSetUserEventStatus",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   301,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7094,6 +7935,8 @@ var (
 	}
 	OpCaptureEventProfilingInfo = &Opcode {
 		Opname:   "OpCaptureEventProfilingInfo",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   302,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7114,6 +7957,8 @@ var (
 	}
 	OpGetDefaultQueue = &Opcode {
 		Opname:   "OpGetDefaultQueue",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   303,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7129,6 +7974,8 @@ var (
 	}
 	OpBuildNDRange = &Opcode {
 		Opname:   "OpBuildNDRange",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   304,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7159,6 +8006,8 @@ var (
 	}
 	OpImageSparseSampleImplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleImplicitLod",
+		Class:    "Image",
+		Opcode:   305,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7189,6 +8038,8 @@ var (
 	}
 	OpImageSparseSampleExplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleExplicitLod",
+		Class:    "Image",
+		Opcode:   306,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7219,6 +8070,8 @@ var (
 	}
 	OpImageSparseSampleDrefImplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleDrefImplicitLod",
+		Class:    "Image",
+		Opcode:   307,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7254,6 +8107,8 @@ var (
 	}
 	OpImageSparseSampleDrefExplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleDrefExplicitLod",
+		Class:    "Image",
+		Opcode:   308,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7289,6 +8144,8 @@ var (
 	}
 	OpImageSparseSampleProjImplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleProjImplicitLod",
+		Class:    "Image",
+		Opcode:   309,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7319,6 +8176,8 @@ var (
 	}
 	OpImageSparseSampleProjExplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleProjExplicitLod",
+		Class:    "Image",
+		Opcode:   310,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7349,6 +8208,8 @@ var (
 	}
 	OpImageSparseSampleProjDrefImplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleProjDrefImplicitLod",
+		Class:    "Image",
+		Opcode:   311,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7384,6 +8245,8 @@ var (
 	}
 	OpImageSparseSampleProjDrefExplicitLod = &Opcode {
 		Opname:   "OpImageSparseSampleProjDrefExplicitLod",
+		Class:    "Image",
+		Opcode:   312,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7419,6 +8282,8 @@ var (
 	}
 	OpImageSparseFetch = &Opcode {
 		Opname:   "OpImageSparseFetch",
+		Class:    "Image",
+		Opcode:   313,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7449,6 +8314,8 @@ var (
 	}
 	OpImageSparseGather = &Opcode {
 		Opname:   "OpImageSparseGather",
+		Class:    "Image",
+		Opcode:   314,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7484,6 +8351,8 @@ var (
 	}
 	OpImageSparseDrefGather = &Opcode {
 		Opname:   "OpImageSparseDrefGather",
+		Class:    "Image",
+		Opcode:   315,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7519,6 +8388,8 @@ var (
 	}
 	OpImageSparseTexelsResident = &Opcode {
 		Opname:   "OpImageSparseTexelsResident",
+		Class:    "Image",
+		Opcode:   316,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7539,11 +8410,15 @@ var (
 	}
 	OpNoLine = &Opcode {
 		Opname:   "OpNoLine",
+		Class:    "Debug",
+		Opcode:   317,
 		Operands: []Operand {
 		},
 	}
 	OpAtomicFlagTestAndSet = &Opcode {
 		Opname:   "OpAtomicFlagTestAndSet",
+		Class:    "Atomic",
+		Opcode:   318,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7574,6 +8449,8 @@ var (
 	}
 	OpAtomicFlagClear = &Opcode {
 		Opname:   "OpAtomicFlagClear",
+		Class:    "Atomic",
+		Opcode:   319,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7594,6 +8471,8 @@ var (
 	}
 	OpImageSparseRead = &Opcode {
 		Opname:   "OpImageSparseRead",
+		Class:    "Image",
+		Opcode:   320,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7624,6 +8503,8 @@ var (
 	}
 	OpSizeOf = &Opcode {
 		Opname:   "OpSizeOf",
+		Class:    "Miscellaneous",
+		Opcode:   321,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7644,6 +8525,8 @@ var (
 	}
 	OpTypePipeStorage = &Opcode {
 		Opname:   "OpTypePipeStorage",
+		Class:    "Type-Declaration",
+		Opcode:   322,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -7654,6 +8537,8 @@ var (
 	}
 	OpConstantPipeStorage = &Opcode {
 		Opname:   "OpConstantPipeStorage",
+		Class:    "Pipe",
+		Opcode:   323,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7684,6 +8569,8 @@ var (
 	}
 	OpCreatePipeFromPipeStorage = &Opcode {
 		Opname:   "OpCreatePipeFromPipeStorage",
+		Class:    "Pipe",
+		Opcode:   324,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7704,6 +8591,8 @@ var (
 	}
 	OpGetKernelLocalSizeForSubgroupCount = &Opcode {
 		Opname:   "OpGetKernelLocalSizeForSubgroupCount",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   325,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7744,6 +8633,8 @@ var (
 	}
 	OpGetKernelMaxNumSubgroups = &Opcode {
 		Opname:   "OpGetKernelMaxNumSubgroups",
+		Class:    "Device-Side_Enqueue",
+		Opcode:   326,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7779,6 +8670,8 @@ var (
 	}
 	OpTypeNamedBarrier = &Opcode {
 		Opname:   "OpTypeNamedBarrier",
+		Class:    "Type-Declaration",
+		Opcode:   327,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -7789,6 +8682,8 @@ var (
 	}
 	OpNamedBarrierInitialize = &Opcode {
 		Opname:   "OpNamedBarrierInitialize",
+		Class:    "Barrier",
+		Opcode:   328,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7809,6 +8704,8 @@ var (
 	}
 	OpMemoryNamedBarrier = &Opcode {
 		Opname:   "OpMemoryNamedBarrier",
+		Class:    "Barrier",
+		Opcode:   329,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7829,6 +8726,8 @@ var (
 	}
 	OpModuleProcessed = &Opcode {
 		Opname:   "OpModuleProcessed",
+		Class:    "Debug",
+		Opcode:   330,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindLiteralString,
@@ -7839,6 +8738,8 @@ var (
 	}
 	OpExecutionModeId = &Opcode {
 		Opname:   "OpExecutionModeId",
+		Class:    "Mode-Setting",
+		Opcode:   331,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7854,6 +8755,8 @@ var (
 	}
 	OpDecorateId = &Opcode {
 		Opname:   "OpDecorateId",
+		Class:    "Annotation",
+		Opcode:   332,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -7869,6 +8772,8 @@ var (
 	}
 	OpGroupNonUniformElect = &Opcode {
 		Opname:   "OpGroupNonUniformElect",
+		Class:    "Non-Uniform",
+		Opcode:   333,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7889,6 +8794,8 @@ var (
 	}
 	OpGroupNonUniformAll = &Opcode {
 		Opname:   "OpGroupNonUniformAll",
+		Class:    "Non-Uniform",
+		Opcode:   334,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7914,6 +8821,8 @@ var (
 	}
 	OpGroupNonUniformAny = &Opcode {
 		Opname:   "OpGroupNonUniformAny",
+		Class:    "Non-Uniform",
+		Opcode:   335,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7939,6 +8848,8 @@ var (
 	}
 	OpGroupNonUniformAllEqual = &Opcode {
 		Opname:   "OpGroupNonUniformAllEqual",
+		Class:    "Non-Uniform",
+		Opcode:   336,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7964,6 +8875,8 @@ var (
 	}
 	OpGroupNonUniformBroadcast = &Opcode {
 		Opname:   "OpGroupNonUniformBroadcast",
+		Class:    "Non-Uniform",
+		Opcode:   337,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -7994,6 +8907,8 @@ var (
 	}
 	OpGroupNonUniformBroadcastFirst = &Opcode {
 		Opname:   "OpGroupNonUniformBroadcastFirst",
+		Class:    "Non-Uniform",
+		Opcode:   338,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8019,6 +8934,8 @@ var (
 	}
 	OpGroupNonUniformBallot = &Opcode {
 		Opname:   "OpGroupNonUniformBallot",
+		Class:    "Non-Uniform",
+		Opcode:   339,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8044,6 +8961,8 @@ var (
 	}
 	OpGroupNonUniformInverseBallot = &Opcode {
 		Opname:   "OpGroupNonUniformInverseBallot",
+		Class:    "Non-Uniform",
+		Opcode:   340,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8069,6 +8988,8 @@ var (
 	}
 	OpGroupNonUniformBallotBitExtract = &Opcode {
 		Opname:   "OpGroupNonUniformBallotBitExtract",
+		Class:    "Non-Uniform",
+		Opcode:   341,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8099,6 +9020,8 @@ var (
 	}
 	OpGroupNonUniformBallotBitCount = &Opcode {
 		Opname:   "OpGroupNonUniformBallotBitCount",
+		Class:    "Non-Uniform",
+		Opcode:   342,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8129,6 +9052,8 @@ var (
 	}
 	OpGroupNonUniformBallotFindLSB = &Opcode {
 		Opname:   "OpGroupNonUniformBallotFindLSB",
+		Class:    "Non-Uniform",
+		Opcode:   343,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8154,6 +9079,8 @@ var (
 	}
 	OpGroupNonUniformBallotFindMSB = &Opcode {
 		Opname:   "OpGroupNonUniformBallotFindMSB",
+		Class:    "Non-Uniform",
+		Opcode:   344,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8179,6 +9106,8 @@ var (
 	}
 	OpGroupNonUniformShuffle = &Opcode {
 		Opname:   "OpGroupNonUniformShuffle",
+		Class:    "Non-Uniform",
+		Opcode:   345,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8209,6 +9138,8 @@ var (
 	}
 	OpGroupNonUniformShuffleXor = &Opcode {
 		Opname:   "OpGroupNonUniformShuffleXor",
+		Class:    "Non-Uniform",
+		Opcode:   346,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8239,6 +9170,8 @@ var (
 	}
 	OpGroupNonUniformShuffleUp = &Opcode {
 		Opname:   "OpGroupNonUniformShuffleUp",
+		Class:    "Non-Uniform",
+		Opcode:   347,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8269,6 +9202,8 @@ var (
 	}
 	OpGroupNonUniformShuffleDown = &Opcode {
 		Opname:   "OpGroupNonUniformShuffleDown",
+		Class:    "Non-Uniform",
+		Opcode:   348,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8299,6 +9234,8 @@ var (
 	}
 	OpGroupNonUniformIAdd = &Opcode {
 		Opname:   "OpGroupNonUniformIAdd",
+		Class:    "Non-Uniform",
+		Opcode:   349,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8334,6 +9271,8 @@ var (
 	}
 	OpGroupNonUniformFAdd = &Opcode {
 		Opname:   "OpGroupNonUniformFAdd",
+		Class:    "Non-Uniform",
+		Opcode:   350,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8369,6 +9308,8 @@ var (
 	}
 	OpGroupNonUniformIMul = &Opcode {
 		Opname:   "OpGroupNonUniformIMul",
+		Class:    "Non-Uniform",
+		Opcode:   351,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8404,6 +9345,8 @@ var (
 	}
 	OpGroupNonUniformFMul = &Opcode {
 		Opname:   "OpGroupNonUniformFMul",
+		Class:    "Non-Uniform",
+		Opcode:   352,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8439,6 +9382,8 @@ var (
 	}
 	OpGroupNonUniformSMin = &Opcode {
 		Opname:   "OpGroupNonUniformSMin",
+		Class:    "Non-Uniform",
+		Opcode:   353,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8474,6 +9419,8 @@ var (
 	}
 	OpGroupNonUniformUMin = &Opcode {
 		Opname:   "OpGroupNonUniformUMin",
+		Class:    "Non-Uniform",
+		Opcode:   354,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8509,6 +9456,8 @@ var (
 	}
 	OpGroupNonUniformFMin = &Opcode {
 		Opname:   "OpGroupNonUniformFMin",
+		Class:    "Non-Uniform",
+		Opcode:   355,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8544,6 +9493,8 @@ var (
 	}
 	OpGroupNonUniformSMax = &Opcode {
 		Opname:   "OpGroupNonUniformSMax",
+		Class:    "Non-Uniform",
+		Opcode:   356,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8579,6 +9530,8 @@ var (
 	}
 	OpGroupNonUniformUMax = &Opcode {
 		Opname:   "OpGroupNonUniformUMax",
+		Class:    "Non-Uniform",
+		Opcode:   357,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8614,6 +9567,8 @@ var (
 	}
 	OpGroupNonUniformFMax = &Opcode {
 		Opname:   "OpGroupNonUniformFMax",
+		Class:    "Non-Uniform",
+		Opcode:   358,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8649,6 +9604,8 @@ var (
 	}
 	OpGroupNonUniformBitwiseAnd = &Opcode {
 		Opname:   "OpGroupNonUniformBitwiseAnd",
+		Class:    "Non-Uniform",
+		Opcode:   359,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8684,6 +9641,8 @@ var (
 	}
 	OpGroupNonUniformBitwiseOr = &Opcode {
 		Opname:   "OpGroupNonUniformBitwiseOr",
+		Class:    "Non-Uniform",
+		Opcode:   360,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8719,6 +9678,8 @@ var (
 	}
 	OpGroupNonUniformBitwiseXor = &Opcode {
 		Opname:   "OpGroupNonUniformBitwiseXor",
+		Class:    "Non-Uniform",
+		Opcode:   361,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8754,6 +9715,8 @@ var (
 	}
 	OpGroupNonUniformLogicalAnd = &Opcode {
 		Opname:   "OpGroupNonUniformLogicalAnd",
+		Class:    "Non-Uniform",
+		Opcode:   362,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8789,6 +9752,8 @@ var (
 	}
 	OpGroupNonUniformLogicalOr = &Opcode {
 		Opname:   "OpGroupNonUniformLogicalOr",
+		Class:    "Non-Uniform",
+		Opcode:   363,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8824,6 +9789,8 @@ var (
 	}
 	OpGroupNonUniformLogicalXor = &Opcode {
 		Opname:   "OpGroupNonUniformLogicalXor",
+		Class:    "Non-Uniform",
+		Opcode:   364,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8859,6 +9826,8 @@ var (
 	}
 	OpGroupNonUniformQuadBroadcast = &Opcode {
 		Opname:   "OpGroupNonUniformQuadBroadcast",
+		Class:    "Non-Uniform",
+		Opcode:   365,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8889,6 +9858,8 @@ var (
 	}
 	OpGroupNonUniformQuadSwap = &Opcode {
 		Opname:   "OpGroupNonUniformQuadSwap",
+		Class:    "Non-Uniform",
+		Opcode:   366,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8919,6 +9890,8 @@ var (
 	}
 	OpCopyLogical = &Opcode {
 		Opname:   "OpCopyLogical",
+		Class:    "Composite",
+		Opcode:   400,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8939,6 +9912,8 @@ var (
 	}
 	OpPtrEqual = &Opcode {
 		Opname:   "OpPtrEqual",
+		Class:    "Memory",
+		Opcode:   401,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8964,6 +9939,8 @@ var (
 	}
 	OpPtrNotEqual = &Opcode {
 		Opname:   "OpPtrNotEqual",
+		Class:    "Memory",
+		Opcode:   402,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -8989,6 +9966,8 @@ var (
 	}
 	OpPtrDiff = &Opcode {
 		Opname:   "OpPtrDiff",
+		Class:    "Memory",
+		Opcode:   403,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9014,6 +9993,8 @@ var (
 	}
 	OpSubgroupBallotKHR = &Opcode {
 		Opname:   "OpSubgroupBallotKHR",
+		Class:    "Group",
+		Opcode:   4421,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9034,6 +10015,8 @@ var (
 	}
 	OpSubgroupFirstInvocationKHR = &Opcode {
 		Opname:   "OpSubgroupFirstInvocationKHR",
+		Class:    "Group",
+		Opcode:   4422,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9054,6 +10037,8 @@ var (
 	}
 	OpSubgroupAllKHR = &Opcode {
 		Opname:   "OpSubgroupAllKHR",
+		Class:    "Group",
+		Opcode:   4428,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9074,6 +10059,8 @@ var (
 	}
 	OpSubgroupAnyKHR = &Opcode {
 		Opname:   "OpSubgroupAnyKHR",
+		Class:    "Group",
+		Opcode:   4429,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9094,6 +10081,8 @@ var (
 	}
 	OpSubgroupAllEqualKHR = &Opcode {
 		Opname:   "OpSubgroupAllEqualKHR",
+		Class:    "Group",
+		Opcode:   4430,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9114,6 +10103,8 @@ var (
 	}
 	OpSubgroupReadInvocationKHR = &Opcode {
 		Opname:   "OpSubgroupReadInvocationKHR",
+		Class:    "Group",
+		Opcode:   4432,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9139,6 +10130,8 @@ var (
 	}
 	OpGroupIAddNonUniformAMD = &Opcode {
 		Opname:   "OpGroupIAddNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5000,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9169,6 +10162,8 @@ var (
 	}
 	OpGroupFAddNonUniformAMD = &Opcode {
 		Opname:   "OpGroupFAddNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5001,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9199,6 +10194,8 @@ var (
 	}
 	OpGroupFMinNonUniformAMD = &Opcode {
 		Opname:   "OpGroupFMinNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5002,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9229,6 +10226,8 @@ var (
 	}
 	OpGroupUMinNonUniformAMD = &Opcode {
 		Opname:   "OpGroupUMinNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5003,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9259,6 +10258,8 @@ var (
 	}
 	OpGroupSMinNonUniformAMD = &Opcode {
 		Opname:   "OpGroupSMinNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5004,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9289,6 +10290,8 @@ var (
 	}
 	OpGroupFMaxNonUniformAMD = &Opcode {
 		Opname:   "OpGroupFMaxNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5005,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9319,6 +10322,8 @@ var (
 	}
 	OpGroupUMaxNonUniformAMD = &Opcode {
 		Opname:   "OpGroupUMaxNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5006,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9349,6 +10354,8 @@ var (
 	}
 	OpGroupSMaxNonUniformAMD = &Opcode {
 		Opname:   "OpGroupSMaxNonUniformAMD",
+		Class:    "Group",
+		Opcode:   5007,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9379,6 +10386,8 @@ var (
 	}
 	OpFragmentMaskFetchAMD = &Opcode {
 		Opname:   "OpFragmentMaskFetchAMD",
+		Class:    "Reserved",
+		Opcode:   5011,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9404,6 +10413,8 @@ var (
 	}
 	OpFragmentFetchAMD = &Opcode {
 		Opname:   "OpFragmentFetchAMD",
+		Class:    "Reserved",
+		Opcode:   5012,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9434,6 +10445,8 @@ var (
 	}
 	OpReadClockKHR = &Opcode {
 		Opname:   "OpReadClockKHR",
+		Class:    "Reserved",
+		Opcode:   5056,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9454,6 +10467,8 @@ var (
 	}
 	OpImageSampleFootprintNV = &Opcode {
 		Opname:   "OpImageSampleFootprintNV",
+		Class:    "Image",
+		Opcode:   5283,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9494,6 +10509,8 @@ var (
 	}
 	OpGroupNonUniformPartitionNV = &Opcode {
 		Opname:   "OpGroupNonUniformPartitionNV",
+		Class:    "Non-Uniform",
+		Opcode:   5296,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9514,6 +10531,8 @@ var (
 	}
 	OpWritePackedPrimitiveIndices4x8NV = &Opcode {
 		Opname:   "OpWritePackedPrimitiveIndices4x8NV",
+		Class:    "Reserved",
+		Opcode:   5299,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -9529,6 +10548,8 @@ var (
 	}
 	OpReportIntersectionNV = &Opcode {
 		Opname:   "OpReportIntersectionNV",
+		Class:    "Reserved",
+		Opcode:   5334,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9554,16 +10575,22 @@ var (
 	}
 	OpIgnoreIntersectionNV = &Opcode {
 		Opname:   "OpIgnoreIntersectionNV",
+		Class:    "Reserved",
+		Opcode:   5335,
 		Operands: []Operand {
 		},
 	}
 	OpTerminateRayNV = &Opcode {
 		Opname:   "OpTerminateRayNV",
+		Class:    "Reserved",
+		Opcode:   5336,
 		Operands: []Operand {
 		},
 	}
 	OpTraceNV = &Opcode {
 		Opname:   "OpTraceNV",
+		Class:    "Reserved",
+		Opcode:   5337,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -9624,6 +10651,8 @@ var (
 	}
 	OpTypeAccelerationStructureNV = &Opcode {
 		Opname:   "OpTypeAccelerationStructureNV",
+		Class:    "Reserved",
+		Opcode:   5341,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -9634,6 +10663,8 @@ var (
 	}
 	OpExecuteCallableNV = &Opcode {
 		Opname:   "OpExecuteCallableNV",
+		Class:    "Reserved",
+		Opcode:   5344,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -9649,6 +10680,8 @@ var (
 	}
 	OpTypeCooperativeMatrixNV = &Opcode {
 		Opname:   "OpTypeCooperativeMatrixNV",
+		Class:    "Reserved",
+		Opcode:   5358,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -9679,6 +10712,8 @@ var (
 	}
 	OpCooperativeMatrixLoadNV = &Opcode {
 		Opname:   "OpCooperativeMatrixLoadNV",
+		Class:    "Reserved",
+		Opcode:   5359,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9714,6 +10749,8 @@ var (
 	}
 	OpCooperativeMatrixStoreNV = &Opcode {
 		Opname:   "OpCooperativeMatrixStoreNV",
+		Class:    "Reserved",
+		Opcode:   5360,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -9744,6 +10781,8 @@ var (
 	}
 	OpCooperativeMatrixMulAddNV = &Opcode {
 		Opname:   "OpCooperativeMatrixMulAddNV",
+		Class:    "Reserved",
+		Opcode:   5361,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9774,6 +10813,8 @@ var (
 	}
 	OpCooperativeMatrixLengthNV = &Opcode {
 		Opname:   "OpCooperativeMatrixLengthNV",
+		Class:    "Reserved",
+		Opcode:   5362,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9794,21 +10835,29 @@ var (
 	}
 	OpBeginInvocationInterlockEXT = &Opcode {
 		Opname:   "OpBeginInvocationInterlockEXT",
+		Class:    "Reserved",
+		Opcode:   5364,
 		Operands: []Operand {
 		},
 	}
 	OpEndInvocationInterlockEXT = &Opcode {
 		Opname:   "OpEndInvocationInterlockEXT",
+		Class:    "Reserved",
+		Opcode:   5365,
 		Operands: []Operand {
 		},
 	}
 	OpDemoteToHelperInvocationEXT = &Opcode {
 		Opname:   "OpDemoteToHelperInvocationEXT",
+		Class:    "Reserved",
+		Opcode:   5380,
 		Operands: []Operand {
 		},
 	}
 	OpIsHelperInvocationEXT = &Opcode {
 		Opname:   "OpIsHelperInvocationEXT",
+		Class:    "Reserved",
+		Opcode:   5381,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9824,6 +10873,8 @@ var (
 	}
 	OpSubgroupShuffleINTEL = &Opcode {
 		Opname:   "OpSubgroupShuffleINTEL",
+		Class:    "Group",
+		Opcode:   5571,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9849,6 +10900,8 @@ var (
 	}
 	OpSubgroupShuffleDownINTEL = &Opcode {
 		Opname:   "OpSubgroupShuffleDownINTEL",
+		Class:    "Group",
+		Opcode:   5572,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9879,6 +10932,8 @@ var (
 	}
 	OpSubgroupShuffleUpINTEL = &Opcode {
 		Opname:   "OpSubgroupShuffleUpINTEL",
+		Class:    "Group",
+		Opcode:   5573,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9909,6 +10964,8 @@ var (
 	}
 	OpSubgroupShuffleXorINTEL = &Opcode {
 		Opname:   "OpSubgroupShuffleXorINTEL",
+		Class:    "Group",
+		Opcode:   5574,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9934,6 +10991,8 @@ var (
 	}
 	OpSubgroupBlockReadINTEL = &Opcode {
 		Opname:   "OpSubgroupBlockReadINTEL",
+		Class:    "Group",
+		Opcode:   5575,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9954,6 +11013,8 @@ var (
 	}
 	OpSubgroupBlockWriteINTEL = &Opcode {
 		Opname:   "OpSubgroupBlockWriteINTEL",
+		Class:    "Group",
+		Opcode:   5576,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -9969,6 +11030,8 @@ var (
 	}
 	OpSubgroupImageBlockReadINTEL = &Opcode {
 		Opname:   "OpSubgroupImageBlockReadINTEL",
+		Class:    "Group",
+		Opcode:   5577,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -9994,6 +11057,8 @@ var (
 	}
 	OpSubgroupImageBlockWriteINTEL = &Opcode {
 		Opname:   "OpSubgroupImageBlockWriteINTEL",
+		Class:    "Group",
+		Opcode:   5578,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -10014,6 +11079,8 @@ var (
 	}
 	OpSubgroupImageMediaBlockReadINTEL = &Opcode {
 		Opname:   "OpSubgroupImageMediaBlockReadINTEL",
+		Class:    "Group",
+		Opcode:   5580,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10049,6 +11116,8 @@ var (
 	}
 	OpSubgroupImageMediaBlockWriteINTEL = &Opcode {
 		Opname:   "OpSubgroupImageMediaBlockWriteINTEL",
+		Class:    "Group",
+		Opcode:   5581,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -10079,6 +11148,8 @@ var (
 	}
 	OpUCountLeadingZerosINTEL = &Opcode {
 		Opname:   "OpUCountLeadingZerosINTEL",
+		Class:    "Reserved",
+		Opcode:   5585,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10099,6 +11170,8 @@ var (
 	}
 	OpUCountTrailingZerosINTEL = &Opcode {
 		Opname:   "OpUCountTrailingZerosINTEL",
+		Class:    "Reserved",
+		Opcode:   5586,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10119,6 +11192,8 @@ var (
 	}
 	OpAbsISubINTEL = &Opcode {
 		Opname:   "OpAbsISubINTEL",
+		Class:    "Reserved",
+		Opcode:   5587,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10144,6 +11219,8 @@ var (
 	}
 	OpAbsUSubINTEL = &Opcode {
 		Opname:   "OpAbsUSubINTEL",
+		Class:    "Reserved",
+		Opcode:   5588,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10169,6 +11246,8 @@ var (
 	}
 	OpIAddSatINTEL = &Opcode {
 		Opname:   "OpIAddSatINTEL",
+		Class:    "Reserved",
+		Opcode:   5589,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10194,6 +11273,8 @@ var (
 	}
 	OpUAddSatINTEL = &Opcode {
 		Opname:   "OpUAddSatINTEL",
+		Class:    "Reserved",
+		Opcode:   5590,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10219,6 +11300,8 @@ var (
 	}
 	OpIAverageINTEL = &Opcode {
 		Opname:   "OpIAverageINTEL",
+		Class:    "Reserved",
+		Opcode:   5591,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10244,6 +11327,8 @@ var (
 	}
 	OpUAverageINTEL = &Opcode {
 		Opname:   "OpUAverageINTEL",
+		Class:    "Reserved",
+		Opcode:   5592,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10269,6 +11354,8 @@ var (
 	}
 	OpIAverageRoundedINTEL = &Opcode {
 		Opname:   "OpIAverageRoundedINTEL",
+		Class:    "Reserved",
+		Opcode:   5593,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10294,6 +11381,8 @@ var (
 	}
 	OpUAverageRoundedINTEL = &Opcode {
 		Opname:   "OpUAverageRoundedINTEL",
+		Class:    "Reserved",
+		Opcode:   5594,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10319,6 +11408,8 @@ var (
 	}
 	OpISubSatINTEL = &Opcode {
 		Opname:   "OpISubSatINTEL",
+		Class:    "Reserved",
+		Opcode:   5595,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10344,6 +11435,8 @@ var (
 	}
 	OpUSubSatINTEL = &Opcode {
 		Opname:   "OpUSubSatINTEL",
+		Class:    "Reserved",
+		Opcode:   5596,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10369,6 +11462,8 @@ var (
 	}
 	OpIMul32x16INTEL = &Opcode {
 		Opname:   "OpIMul32x16INTEL",
+		Class:    "Reserved",
+		Opcode:   5597,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10394,6 +11489,8 @@ var (
 	}
 	OpUMul32x16INTEL = &Opcode {
 		Opname:   "OpUMul32x16INTEL",
+		Class:    "Reserved",
+		Opcode:   5598,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10419,6 +11516,8 @@ var (
 	}
 	OpDecorateString = &Opcode {
 		Opname:   "OpDecorateString",
+		Class:    "Annotation",
+		Opcode:   5632,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -10434,6 +11533,8 @@ var (
 	}
 	OpDecorateStringGOOGLE = &Opcode {
 		Opname:   "OpDecorateStringGOOGLE",
+		Class:    "Annotation",
+		Opcode:   5632,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -10449,6 +11550,8 @@ var (
 	}
 	OpMemberDecorateString = &Opcode {
 		Opname:   "OpMemberDecorateString",
+		Class:    "Annotation",
+		Opcode:   5633,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -10469,6 +11572,8 @@ var (
 	}
 	OpMemberDecorateStringGOOGLE = &Opcode {
 		Opname:   "OpMemberDecorateStringGOOGLE",
+		Class:    "Annotation",
+		Opcode:   5633,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdRef,
@@ -10489,6 +11594,8 @@ var (
 	}
 	OpVmeImageINTEL = &Opcode {
 		Opname:   "OpVmeImageINTEL",
+		Class:    "@exclude",
+		Opcode:   5699,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10514,6 +11621,8 @@ var (
 	}
 	OpTypeVmeImageINTEL = &Opcode {
 		Opname:   "OpTypeVmeImageINTEL",
+		Class:    "@exclude",
+		Opcode:   5700,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10529,6 +11638,8 @@ var (
 	}
 	OpTypeAvcImePayloadINTEL = &Opcode {
 		Opname:   "OpTypeAvcImePayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5701,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10539,6 +11650,8 @@ var (
 	}
 	OpTypeAvcRefPayloadINTEL = &Opcode {
 		Opname:   "OpTypeAvcRefPayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5702,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10549,6 +11662,8 @@ var (
 	}
 	OpTypeAvcSicPayloadINTEL = &Opcode {
 		Opname:   "OpTypeAvcSicPayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5703,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10559,6 +11674,8 @@ var (
 	}
 	OpTypeAvcMcePayloadINTEL = &Opcode {
 		Opname:   "OpTypeAvcMcePayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5704,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10569,6 +11686,8 @@ var (
 	}
 	OpTypeAvcMceResultINTEL = &Opcode {
 		Opname:   "OpTypeAvcMceResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5705,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10579,6 +11698,8 @@ var (
 	}
 	OpTypeAvcImeResultINTEL = &Opcode {
 		Opname:   "OpTypeAvcImeResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5706,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10589,6 +11710,8 @@ var (
 	}
 	OpTypeAvcImeResultSingleReferenceStreamoutINTEL = &Opcode {
 		Opname:   "OpTypeAvcImeResultSingleReferenceStreamoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5707,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10599,6 +11722,8 @@ var (
 	}
 	OpTypeAvcImeResultDualReferenceStreamoutINTEL = &Opcode {
 		Opname:   "OpTypeAvcImeResultDualReferenceStreamoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5708,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10609,6 +11734,8 @@ var (
 	}
 	OpTypeAvcImeSingleReferenceStreaminINTEL = &Opcode {
 		Opname:   "OpTypeAvcImeSingleReferenceStreaminINTEL",
+		Class:    "@exclude",
+		Opcode:   5709,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10619,6 +11746,8 @@ var (
 	}
 	OpTypeAvcImeDualReferenceStreaminINTEL = &Opcode {
 		Opname:   "OpTypeAvcImeDualReferenceStreaminINTEL",
+		Class:    "@exclude",
+		Opcode:   5710,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10629,6 +11758,8 @@ var (
 	}
 	OpTypeAvcRefResultINTEL = &Opcode {
 		Opname:   "OpTypeAvcRefResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5711,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10639,6 +11770,8 @@ var (
 	}
 	OpTypeAvcSicResultINTEL = &Opcode {
 		Opname:   "OpTypeAvcSicResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5712,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResult,
@@ -10649,6 +11782,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultInterBaseMultiReferencePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultInterBaseMultiReferencePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5713,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10674,6 +11809,8 @@ var (
 	}
 	OpSubgroupAvcMceSetInterBaseMultiReferencePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetInterBaseMultiReferencePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5714,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10699,6 +11836,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultInterShapePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultInterShapePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5715,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10724,6 +11863,8 @@ var (
 	}
 	OpSubgroupAvcMceSetInterShapePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetInterShapePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5716,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10749,6 +11890,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultInterDirectionPenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultInterDirectionPenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5717,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10774,6 +11917,8 @@ var (
 	}
 	OpSubgroupAvcMceSetInterDirectionPenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetInterDirectionPenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5718,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10799,6 +11944,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultIntraLumaShapePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultIntraLumaShapePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5719,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10824,6 +11971,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultInterMotionVectorCostTableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultInterMotionVectorCostTableINTEL",
+		Class:    "@exclude",
+		Opcode:   5720,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10849,6 +11998,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultHighPenaltyCostTableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultHighPenaltyCostTableINTEL",
+		Class:    "@exclude",
+		Opcode:   5721,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10864,6 +12015,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultMediumPenaltyCostTableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultMediumPenaltyCostTableINTEL",
+		Class:    "@exclude",
+		Opcode:   5722,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10879,6 +12032,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultLowPenaltyCostTableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultLowPenaltyCostTableINTEL",
+		Class:    "@exclude",
+		Opcode:   5723,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10894,6 +12049,8 @@ var (
 	}
 	OpSubgroupAvcMceSetMotionVectorCostFunctionINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetMotionVectorCostFunctionINTEL",
+		Class:    "@exclude",
+		Opcode:   5724,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10929,6 +12086,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultIntraLumaModePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultIntraLumaModePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5725,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10954,6 +12113,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultNonDcLumaIntraPenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultNonDcLumaIntraPenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5726,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10969,6 +12130,8 @@ var (
 	}
 	OpSubgroupAvcMceGetDefaultIntraChromaModeBasePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetDefaultIntraChromaModeBasePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5727,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -10984,6 +12147,8 @@ var (
 	}
 	OpSubgroupAvcMceSetAcOnlyHaarINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetAcOnlyHaarINTEL",
+		Class:    "@exclude",
+		Opcode:   5728,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11004,6 +12169,8 @@ var (
 	}
 	OpSubgroupAvcMceSetSourceInterlacedFieldPolarityINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetSourceInterlacedFieldPolarityINTEL",
+		Class:    "@exclude",
+		Opcode:   5729,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11029,6 +12196,8 @@ var (
 	}
 	OpSubgroupAvcMceSetSingleReferenceInterlacedFieldPolarityINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetSingleReferenceInterlacedFieldPolarityINTEL",
+		Class:    "@exclude",
+		Opcode:   5730,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11054,6 +12223,8 @@ var (
 	}
 	OpSubgroupAvcMceSetDualReferenceInterlacedFieldPolaritiesINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceSetDualReferenceInterlacedFieldPolaritiesINTEL",
+		Class:    "@exclude",
+		Opcode:   5731,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11084,6 +12255,8 @@ var (
 	}
 	OpSubgroupAvcMceConvertToImePayloadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceConvertToImePayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5732,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11104,6 +12277,8 @@ var (
 	}
 	OpSubgroupAvcMceConvertToImeResultINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceConvertToImeResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5733,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11124,6 +12299,8 @@ var (
 	}
 	OpSubgroupAvcMceConvertToRefPayloadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceConvertToRefPayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5734,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11144,6 +12321,8 @@ var (
 	}
 	OpSubgroupAvcMceConvertToRefResultINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceConvertToRefResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5735,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11164,6 +12343,8 @@ var (
 	}
 	OpSubgroupAvcMceConvertToSicPayloadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceConvertToSicPayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5736,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11184,6 +12365,8 @@ var (
 	}
 	OpSubgroupAvcMceConvertToSicResultINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceConvertToSicResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5737,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11204,6 +12387,8 @@ var (
 	}
 	OpSubgroupAvcMceGetMotionVectorsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetMotionVectorsINTEL",
+		Class:    "@exclude",
+		Opcode:   5738,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11224,6 +12409,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterDistortionsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterDistortionsINTEL",
+		Class:    "@exclude",
+		Opcode:   5739,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11244,6 +12431,8 @@ var (
 	}
 	OpSubgroupAvcMceGetBestInterDistortionsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetBestInterDistortionsINTEL",
+		Class:    "@exclude",
+		Opcode:   5740,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11264,6 +12453,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterMajorShapeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterMajorShapeINTEL",
+		Class:    "@exclude",
+		Opcode:   5741,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11284,6 +12475,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterMinorShapeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterMinorShapeINTEL",
+		Class:    "@exclude",
+		Opcode:   5742,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11304,6 +12497,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterDirectionsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterDirectionsINTEL",
+		Class:    "@exclude",
+		Opcode:   5743,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11324,6 +12519,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterMotionVectorCountINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterMotionVectorCountINTEL",
+		Class:    "@exclude",
+		Opcode:   5744,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11344,6 +12541,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterReferenceIdsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterReferenceIdsINTEL",
+		Class:    "@exclude",
+		Opcode:   5745,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11364,6 +12563,8 @@ var (
 	}
 	OpSubgroupAvcMceGetInterReferenceInterlacedFieldPolaritiesINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcMceGetInterReferenceInterlacedFieldPolaritiesINTEL",
+		Class:    "@exclude",
+		Opcode:   5746,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11394,6 +12595,8 @@ var (
 	}
 	OpSubgroupAvcImeInitializeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeInitializeINTEL",
+		Class:    "@exclude",
+		Opcode:   5747,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11424,6 +12627,8 @@ var (
 	}
 	OpSubgroupAvcImeSetSingleReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeSetSingleReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5748,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11454,6 +12659,8 @@ var (
 	}
 	OpSubgroupAvcImeSetDualReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeSetDualReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5749,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11489,6 +12696,8 @@ var (
 	}
 	OpSubgroupAvcImeRefWindowSizeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeRefWindowSizeINTEL",
+		Class:    "@exclude",
+		Opcode:   5750,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11514,6 +12723,8 @@ var (
 	}
 	OpSubgroupAvcImeAdjustRefOffsetINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeAdjustRefOffsetINTEL",
+		Class:    "@exclude",
+		Opcode:   5751,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11549,6 +12760,8 @@ var (
 	}
 	OpSubgroupAvcImeConvertToMcePayloadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeConvertToMcePayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5752,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11569,6 +12782,8 @@ var (
 	}
 	OpSubgroupAvcImeSetMaxMotionVectorCountINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeSetMaxMotionVectorCountINTEL",
+		Class:    "@exclude",
+		Opcode:   5753,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11594,6 +12809,8 @@ var (
 	}
 	OpSubgroupAvcImeSetUnidirectionalMixDisableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeSetUnidirectionalMixDisableINTEL",
+		Class:    "@exclude",
+		Opcode:   5754,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11614,6 +12831,8 @@ var (
 	}
 	OpSubgroupAvcImeSetEarlySearchTerminationThresholdINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeSetEarlySearchTerminationThresholdINTEL",
+		Class:    "@exclude",
+		Opcode:   5755,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11639,6 +12858,8 @@ var (
 	}
 	OpSubgroupAvcImeSetWeightedSadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeSetWeightedSadINTEL",
+		Class:    "@exclude",
+		Opcode:   5756,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11664,6 +12885,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithSingleReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithSingleReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5757,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11694,6 +12917,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithDualReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithDualReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5758,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11729,6 +12954,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithSingleReferenceStreaminINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithSingleReferenceStreaminINTEL",
+		Class:    "@exclude",
+		Opcode:   5759,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11764,6 +12991,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithDualReferenceStreaminINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithDualReferenceStreaminINTEL",
+		Class:    "@exclude",
+		Opcode:   5760,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11804,6 +13033,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithSingleReferenceStreamoutINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithSingleReferenceStreamoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5761,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11834,6 +13065,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithDualReferenceStreamoutINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithDualReferenceStreamoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5762,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11869,6 +13102,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithSingleReferenceStreaminoutINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithSingleReferenceStreaminoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5763,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11904,6 +13139,8 @@ var (
 	}
 	OpSubgroupAvcImeEvaluateWithDualReferenceStreaminoutINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeEvaluateWithDualReferenceStreaminoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5764,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11944,6 +13181,8 @@ var (
 	}
 	OpSubgroupAvcImeConvertToMceResultINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeConvertToMceResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5765,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11964,6 +13203,8 @@ var (
 	}
 	OpSubgroupAvcImeGetSingleReferenceStreaminINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetSingleReferenceStreaminINTEL",
+		Class:    "@exclude",
+		Opcode:   5766,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -11984,6 +13225,8 @@ var (
 	}
 	OpSubgroupAvcImeGetDualReferenceStreaminINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetDualReferenceStreaminINTEL",
+		Class:    "@exclude",
+		Opcode:   5767,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12004,6 +13247,8 @@ var (
 	}
 	OpSubgroupAvcImeStripSingleReferenceStreamoutINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeStripSingleReferenceStreamoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5768,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12024,6 +13269,8 @@ var (
 	}
 	OpSubgroupAvcImeStripDualReferenceStreamoutINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeStripDualReferenceStreamoutINTEL",
+		Class:    "@exclude",
+		Opcode:   5769,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12044,6 +13291,8 @@ var (
 	}
 	OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeMotionVectorsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeMotionVectorsINTEL",
+		Class:    "@exclude",
+		Opcode:   5770,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12069,6 +13318,8 @@ var (
 	}
 	OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeDistortionsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeDistortionsINTEL",
+		Class:    "@exclude",
+		Opcode:   5771,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12094,6 +13345,8 @@ var (
 	}
 	OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeReferenceIdsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetStreamoutSingleReferenceMajorShapeReferenceIdsINTEL",
+		Class:    "@exclude",
+		Opcode:   5772,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12119,6 +13372,8 @@ var (
 	}
 	OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeMotionVectorsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeMotionVectorsINTEL",
+		Class:    "@exclude",
+		Opcode:   5773,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12149,6 +13404,8 @@ var (
 	}
 	OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeDistortionsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeDistortionsINTEL",
+		Class:    "@exclude",
+		Opcode:   5774,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12179,6 +13436,8 @@ var (
 	}
 	OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeReferenceIdsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetStreamoutDualReferenceMajorShapeReferenceIdsINTEL",
+		Class:    "@exclude",
+		Opcode:   5775,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12209,6 +13468,8 @@ var (
 	}
 	OpSubgroupAvcImeGetBorderReachedINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetBorderReachedINTEL",
+		Class:    "@exclude",
+		Opcode:   5776,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12234,6 +13495,8 @@ var (
 	}
 	OpSubgroupAvcImeGetTruncatedSearchIndicationINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetTruncatedSearchIndicationINTEL",
+		Class:    "@exclude",
+		Opcode:   5777,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12254,6 +13517,8 @@ var (
 	}
 	OpSubgroupAvcImeGetUnidirectionalEarlySearchTerminationINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetUnidirectionalEarlySearchTerminationINTEL",
+		Class:    "@exclude",
+		Opcode:   5778,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12274,6 +13539,8 @@ var (
 	}
 	OpSubgroupAvcImeGetWeightingPatternMinimumMotionVectorINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetWeightingPatternMinimumMotionVectorINTEL",
+		Class:    "@exclude",
+		Opcode:   5779,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12294,6 +13561,8 @@ var (
 	}
 	OpSubgroupAvcImeGetWeightingPatternMinimumDistortionINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcImeGetWeightingPatternMinimumDistortionINTEL",
+		Class:    "@exclude",
+		Opcode:   5780,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12314,6 +13583,8 @@ var (
 	}
 	OpSubgroupAvcFmeInitializeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcFmeInitializeINTEL",
+		Class:    "@exclude",
+		Opcode:   5781,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12364,6 +13635,8 @@ var (
 	}
 	OpSubgroupAvcBmeInitializeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcBmeInitializeINTEL",
+		Class:    "@exclude",
+		Opcode:   5782,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12419,6 +13692,8 @@ var (
 	}
 	OpSubgroupAvcRefConvertToMcePayloadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefConvertToMcePayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5783,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12439,6 +13714,8 @@ var (
 	}
 	OpSubgroupAvcRefSetBidirectionalMixDisableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefSetBidirectionalMixDisableINTEL",
+		Class:    "@exclude",
+		Opcode:   5784,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12459,6 +13736,8 @@ var (
 	}
 	OpSubgroupAvcRefSetBilinearFilterEnableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefSetBilinearFilterEnableINTEL",
+		Class:    "@exclude",
+		Opcode:   5785,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12479,6 +13758,8 @@ var (
 	}
 	OpSubgroupAvcRefEvaluateWithSingleReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefEvaluateWithSingleReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5786,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12509,6 +13790,8 @@ var (
 	}
 	OpSubgroupAvcRefEvaluateWithDualReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefEvaluateWithDualReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5787,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12544,6 +13827,8 @@ var (
 	}
 	OpSubgroupAvcRefEvaluateWithMultiReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefEvaluateWithMultiReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5788,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12574,6 +13859,8 @@ var (
 	}
 	OpSubgroupAvcRefEvaluateWithMultiReferenceInterlacedINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefEvaluateWithMultiReferenceInterlacedINTEL",
+		Class:    "@exclude",
+		Opcode:   5789,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12609,6 +13896,8 @@ var (
 	}
 	OpSubgroupAvcRefConvertToMceResultINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcRefConvertToMceResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5790,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12629,6 +13918,8 @@ var (
 	}
 	OpSubgroupAvcSicInitializeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicInitializeINTEL",
+		Class:    "@exclude",
+		Opcode:   5791,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12649,6 +13940,8 @@ var (
 	}
 	OpSubgroupAvcSicConfigureSkcINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicConfigureSkcINTEL",
+		Class:    "@exclude",
+		Opcode:   5792,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12694,6 +13987,8 @@ var (
 	}
 	OpSubgroupAvcSicConfigureIpeLumaINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicConfigureIpeLumaINTEL",
+		Class:    "@exclude",
+		Opcode:   5793,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12749,6 +14044,8 @@ var (
 	}
 	OpSubgroupAvcSicConfigureIpeLumaChromaINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicConfigureIpeLumaChromaINTEL",
+		Class:    "@exclude",
+		Opcode:   5794,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12819,6 +14116,8 @@ var (
 	}
 	OpSubgroupAvcSicGetMotionVectorMaskINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetMotionVectorMaskINTEL",
+		Class:    "@exclude",
+		Opcode:   5795,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12844,6 +14143,8 @@ var (
 	}
 	OpSubgroupAvcSicConvertToMcePayloadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicConvertToMcePayloadINTEL",
+		Class:    "@exclude",
+		Opcode:   5796,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12864,6 +14165,8 @@ var (
 	}
 	OpSubgroupAvcSicSetIntraLumaShapePenaltyINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicSetIntraLumaShapePenaltyINTEL",
+		Class:    "@exclude",
+		Opcode:   5797,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12889,6 +14192,8 @@ var (
 	}
 	OpSubgroupAvcSicSetIntraLumaModeCostFunctionINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicSetIntraLumaModeCostFunctionINTEL",
+		Class:    "@exclude",
+		Opcode:   5798,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12924,6 +14229,8 @@ var (
 	}
 	OpSubgroupAvcSicSetIntraChromaModeCostFunctionINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicSetIntraChromaModeCostFunctionINTEL",
+		Class:    "@exclude",
+		Opcode:   5799,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12949,6 +14256,8 @@ var (
 	}
 	OpSubgroupAvcSicSetBilinearFilterEnableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicSetBilinearFilterEnableINTEL",
+		Class:    "@exclude",
+		Opcode:   5800,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12969,6 +14278,8 @@ var (
 	}
 	OpSubgroupAvcSicSetSkcForwardTransformEnableINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicSetSkcForwardTransformEnableINTEL",
+		Class:    "@exclude",
+		Opcode:   5801,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -12994,6 +14305,8 @@ var (
 	}
 	OpSubgroupAvcSicSetBlockBasedRawSkipSadINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicSetBlockBasedRawSkipSadINTEL",
+		Class:    "@exclude",
+		Opcode:   5802,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13019,6 +14332,8 @@ var (
 	}
 	OpSubgroupAvcSicEvaluateIpeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicEvaluateIpeINTEL",
+		Class:    "@exclude",
+		Opcode:   5803,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13044,6 +14359,8 @@ var (
 	}
 	OpSubgroupAvcSicEvaluateWithSingleReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicEvaluateWithSingleReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5804,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13074,6 +14391,8 @@ var (
 	}
 	OpSubgroupAvcSicEvaluateWithDualReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicEvaluateWithDualReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5805,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13109,6 +14428,8 @@ var (
 	}
 	OpSubgroupAvcSicEvaluateWithMultiReferenceINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicEvaluateWithMultiReferenceINTEL",
+		Class:    "@exclude",
+		Opcode:   5806,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13139,6 +14460,8 @@ var (
 	}
 	OpSubgroupAvcSicEvaluateWithMultiReferenceInterlacedINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicEvaluateWithMultiReferenceInterlacedINTEL",
+		Class:    "@exclude",
+		Opcode:   5807,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13174,6 +14497,8 @@ var (
 	}
 	OpSubgroupAvcSicConvertToMceResultINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicConvertToMceResultINTEL",
+		Class:    "@exclude",
+		Opcode:   5808,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13194,6 +14519,8 @@ var (
 	}
 	OpSubgroupAvcSicGetIpeLumaShapeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetIpeLumaShapeINTEL",
+		Class:    "@exclude",
+		Opcode:   5809,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13214,6 +14541,8 @@ var (
 	}
 	OpSubgroupAvcSicGetBestIpeLumaDistortionINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetBestIpeLumaDistortionINTEL",
+		Class:    "@exclude",
+		Opcode:   5810,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13234,6 +14563,8 @@ var (
 	}
 	OpSubgroupAvcSicGetBestIpeChromaDistortionINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetBestIpeChromaDistortionINTEL",
+		Class:    "@exclude",
+		Opcode:   5811,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13254,6 +14585,8 @@ var (
 	}
 	OpSubgroupAvcSicGetPackedIpeLumaModesINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetPackedIpeLumaModesINTEL",
+		Class:    "@exclude",
+		Opcode:   5812,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13274,6 +14607,8 @@ var (
 	}
 	OpSubgroupAvcSicGetIpeChromaModeINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetIpeChromaModeINTEL",
+		Class:    "@exclude",
+		Opcode:   5813,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13294,6 +14629,8 @@ var (
 	}
 	OpSubgroupAvcSicGetPackedSkcLumaCountThresholdINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetPackedSkcLumaCountThresholdINTEL",
+		Class:    "@exclude",
+		Opcode:   5814,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13314,6 +14651,8 @@ var (
 	}
 	OpSubgroupAvcSicGetPackedSkcLumaSumThresholdINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetPackedSkcLumaSumThresholdINTEL",
+		Class:    "@exclude",
+		Opcode:   5815,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13334,6 +14673,8 @@ var (
 	}
 	OpSubgroupAvcSicGetInterRawSadsINTEL = &Opcode {
 		Opname:   "OpSubgroupAvcSicGetInterRawSadsINTEL",
+		Class:    "@exclude",
+		Opcode:   5816,
 		Operands: []Operand {
 			Operand {
 				Kind:       OperandKindIdResultType,
@@ -13349,6 +14690,4167 @@ var (
 				Kind:       OperandKindIdRef,
 				Name:       "'Payload'",
 				Quantifier: "",
+			}, 
+		},
+	}
+
+	GLSLStd450_Round = &Opcode {
+		Opname:   "Round",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_RoundEven = &Opcode {
+		Opname:   "RoundEven",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Trunc = &Opcode {
+		Opname:   "Trunc",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FAbs = &Opcode {
+		Opname:   "FAbs",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_SAbs = &Opcode {
+		Opname:   "SAbs",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FSign = &Opcode {
+		Opname:   "FSign",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_SSign = &Opcode {
+		Opname:   "SSign",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Floor = &Opcode {
+		Opname:   "Floor",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Ceil = &Opcode {
+		Opname:   "Ceil",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Fract = &Opcode {
+		Opname:   "Fract",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Radians = &Opcode {
+		Opname:   "Radians",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'degrees'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Degrees = &Opcode {
+		Opname:   "Degrees",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'radians'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Sin = &Opcode {
+		Opname:   "Sin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Cos = &Opcode {
+		Opname:   "Cos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Tan = &Opcode {
+		Opname:   "Tan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Asin = &Opcode {
+		Opname:   "Asin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Acos = &Opcode {
+		Opname:   "Acos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Atan = &Opcode {
+		Opname:   "Atan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y_over_x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Sinh = &Opcode {
+		Opname:   "Sinh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Cosh = &Opcode {
+		Opname:   "Cosh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Tanh = &Opcode {
+		Opname:   "Tanh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Asinh = &Opcode {
+		Opname:   "Asinh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Acosh = &Opcode {
+		Opname:   "Acosh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Atanh = &Opcode {
+		Opname:   "Atanh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Atan2 = &Opcode {
+		Opname:   "Atan2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Pow = &Opcode {
+		Opname:   "Pow",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Exp = &Opcode {
+		Opname:   "Exp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Log = &Opcode {
+		Opname:   "Log",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Exp2 = &Opcode {
+		Opname:   "Exp2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Log2 = &Opcode {
+		Opname:   "Log2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Sqrt = &Opcode {
+		Opname:   "Sqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_InverseSqrt = &Opcode {
+		Opname:   "InverseSqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Determinant = &Opcode {
+		Opname:   "Determinant",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_MatrixInverse = &Opcode {
+		Opname:   "MatrixInverse",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Modf = &Opcode {
+		Opname:   "Modf",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'i'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_ModfStruct = &Opcode {
+		Opname:   "ModfStruct",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FMin = &Opcode {
+		Opname:   "FMin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UMin = &Opcode {
+		Opname:   "UMin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_SMin = &Opcode {
+		Opname:   "SMin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FMax = &Opcode {
+		Opname:   "FMax",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UMax = &Opcode {
+		Opname:   "UMax",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_SMax = &Opcode {
+		Opname:   "SMax",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FClamp = &Opcode {
+		Opname:   "FClamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minVal'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxVal'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UClamp = &Opcode {
+		Opname:   "UClamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minVal'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxVal'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_SClamp = &Opcode {
+		Opname:   "SClamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minVal'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxVal'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FMix = &Opcode {
+		Opname:   "FMix",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_IMix = &Opcode {
+		Opname:   "IMix",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Step = &Opcode {
+		Opname:   "Step",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'edge'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_SmoothStep = &Opcode {
+		Opname:   "SmoothStep",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'edge0'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'edge1'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Fma = &Opcode {
+		Opname:   "Fma",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Frexp = &Opcode {
+		Opname:   "Frexp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'exp'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FrexpStruct = &Opcode {
+		Opname:   "FrexpStruct",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Ldexp = &Opcode {
+		Opname:   "Ldexp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'exp'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_PackSnorm4x8 = &Opcode {
+		Opname:   "PackSnorm4x8",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_PackUnorm4x8 = &Opcode {
+		Opname:   "PackUnorm4x8",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_PackSnorm2x16 = &Opcode {
+		Opname:   "PackSnorm2x16",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_PackUnorm2x16 = &Opcode {
+		Opname:   "PackUnorm2x16",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_PackHalf2x16 = &Opcode {
+		Opname:   "PackHalf2x16",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_PackDouble2x32 = &Opcode {
+		Opname:   "PackDouble2x32",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UnpackSnorm2x16 = &Opcode {
+		Opname:   "UnpackSnorm2x16",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UnpackUnorm2x16 = &Opcode {
+		Opname:   "UnpackUnorm2x16",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UnpackHalf2x16 = &Opcode {
+		Opname:   "UnpackHalf2x16",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UnpackSnorm4x8 = &Opcode {
+		Opname:   "UnpackSnorm4x8",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UnpackUnorm4x8 = &Opcode {
+		Opname:   "UnpackUnorm4x8",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_UnpackDouble2x32 = &Opcode {
+		Opname:   "UnpackDouble2x32",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Length = &Opcode {
+		Opname:   "Length",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Distance = &Opcode {
+		Opname:   "Distance",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p0'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p1'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Cross = &Opcode {
+		Opname:   "Cross",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Normalize = &Opcode {
+		Opname:   "Normalize",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FaceForward = &Opcode {
+		Opname:   "FaceForward",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'N'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'I'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Nref'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Reflect = &Opcode {
+		Opname:   "Reflect",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'I'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'N'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_Refract = &Opcode {
+		Opname:   "Refract",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'I'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'N'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'eta'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FindILsb = &Opcode {
+		Opname:   "FindILsb",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FindSMsb = &Opcode {
+		Opname:   "FindSMsb",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_FindUMsb = &Opcode {
+		Opname:   "FindUMsb",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_InterpolateAtCentroid = &Opcode {
+		Opname:   "InterpolateAtCentroid",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'interpolant'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_InterpolateAtSample = &Opcode {
+		Opname:   "InterpolateAtSample",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'interpolant'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'sample'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_InterpolateAtOffset = &Opcode {
+		Opname:   "InterpolateAtOffset",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'interpolant'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_NMin = &Opcode {
+		Opname:   "NMin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_NMax = &Opcode {
+		Opname:   "NMax",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	GLSLStd450_NClamp = &Opcode {
+		Opname:   "NClamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minVal'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxVal'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_acos = &Opcode {
+		Opname:   "acos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_acosh = &Opcode {
+		Opname:   "acosh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_acospi = &Opcode {
+		Opname:   "acospi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_asin = &Opcode {
+		Opname:   "asin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_asinh = &Opcode {
+		Opname:   "asinh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_asinpi = &Opcode {
+		Opname:   "asinpi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_atan = &Opcode {
+		Opname:   "atan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_atan2 = &Opcode {
+		Opname:   "atan2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_atanh = &Opcode {
+		Opname:   "atanh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_atanpi = &Opcode {
+		Opname:   "atanpi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_atan2pi = &Opcode {
+		Opname:   "atan2pi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_cbrt = &Opcode {
+		Opname:   "cbrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_ceil = &Opcode {
+		Opname:   "ceil",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_copysign = &Opcode {
+		Opname:   "copysign",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_cos = &Opcode {
+		Opname:   "cos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_cosh = &Opcode {
+		Opname:   "cosh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_cospi = &Opcode {
+		Opname:   "cospi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_erfc = &Opcode {
+		Opname:   "erfc",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_erf = &Opcode {
+		Opname:   "erf",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_exp = &Opcode {
+		Opname:   "exp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_exp2 = &Opcode {
+		Opname:   "exp2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_exp10 = &Opcode {
+		Opname:   "exp10",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_expm1 = &Opcode {
+		Opname:   "expm1",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fabs = &Opcode {
+		Opname:   "fabs",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fdim = &Opcode {
+		Opname:   "fdim",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_floor = &Opcode {
+		Opname:   "floor",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fma = &Opcode {
+		Opname:   "fma",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fmax = &Opcode {
+		Opname:   "fmax",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fmin = &Opcode {
+		Opname:   "fmin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fmod = &Opcode {
+		Opname:   "fmod",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fract = &Opcode {
+		Opname:   "fract",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'ptr'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_frexp = &Opcode {
+		Opname:   "frexp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'exp'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_hypot = &Opcode {
+		Opname:   "hypot",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_ilogb = &Opcode {
+		Opname:   "ilogb",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_ldexp = &Opcode {
+		Opname:   "ldexp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'k'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_lgamma = &Opcode {
+		Opname:   "lgamma",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_lgamma_r = &Opcode {
+		Opname:   "lgamma_r",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'signp'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_log = &Opcode {
+		Opname:   "log",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_log2 = &Opcode {
+		Opname:   "log2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_log10 = &Opcode {
+		Opname:   "log10",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_log1p = &Opcode {
+		Opname:   "log1p",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_logb = &Opcode {
+		Opname:   "logb",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_mad = &Opcode {
+		Opname:   "mad",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_maxmag = &Opcode {
+		Opname:   "maxmag",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_minmag = &Opcode {
+		Opname:   "minmag",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_modf = &Opcode {
+		Opname:   "modf",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'iptr'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_nan = &Opcode {
+		Opname:   "nan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'nancode'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_nextafter = &Opcode {
+		Opname:   "nextafter",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_pow = &Opcode {
+		Opname:   "pow",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_pown = &Opcode {
+		Opname:   "pown",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_powr = &Opcode {
+		Opname:   "powr",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_remainder = &Opcode {
+		Opname:   "remainder",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_remquo = &Opcode {
+		Opname:   "remquo",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'quo'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_rint = &Opcode {
+		Opname:   "rint",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_rootn = &Opcode {
+		Opname:   "rootn",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_round = &Opcode {
+		Opname:   "round",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_rsqrt = &Opcode {
+		Opname:   "rsqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_sin = &Opcode {
+		Opname:   "sin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_sincos = &Opcode {
+		Opname:   "sincos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'cosval'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_sinh = &Opcode {
+		Opname:   "sinh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_sinpi = &Opcode {
+		Opname:   "sinpi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_sqrt = &Opcode {
+		Opname:   "sqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_tan = &Opcode {
+		Opname:   "tan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_tanh = &Opcode {
+		Opname:   "tanh",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_tanpi = &Opcode {
+		Opname:   "tanpi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_tgamma = &Opcode {
+		Opname:   "tgamma",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_trunc = &Opcode {
+		Opname:   "trunc",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_cos = &Opcode {
+		Opname:   "half_cos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_divide = &Opcode {
+		Opname:   "half_divide",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_exp = &Opcode {
+		Opname:   "half_exp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_exp2 = &Opcode {
+		Opname:   "half_exp2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_exp10 = &Opcode {
+		Opname:   "half_exp10",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_log = &Opcode {
+		Opname:   "half_log",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_log2 = &Opcode {
+		Opname:   "half_log2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_log10 = &Opcode {
+		Opname:   "half_log10",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_powr = &Opcode {
+		Opname:   "half_powr",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_recip = &Opcode {
+		Opname:   "half_recip",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_rsqrt = &Opcode {
+		Opname:   "half_rsqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_sin = &Opcode {
+		Opname:   "half_sin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_sqrt = &Opcode {
+		Opname:   "half_sqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_half_tan = &Opcode {
+		Opname:   "half_tan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_cos = &Opcode {
+		Opname:   "native_cos",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_divide = &Opcode {
+		Opname:   "native_divide",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_exp = &Opcode {
+		Opname:   "native_exp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_exp2 = &Opcode {
+		Opname:   "native_exp2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_exp10 = &Opcode {
+		Opname:   "native_exp10",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_log = &Opcode {
+		Opname:   "native_log",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_log2 = &Opcode {
+		Opname:   "native_log2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_log10 = &Opcode {
+		Opname:   "native_log10",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_powr = &Opcode {
+		Opname:   "native_powr",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_recip = &Opcode {
+		Opname:   "native_recip",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_rsqrt = &Opcode {
+		Opname:   "native_rsqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_sin = &Opcode {
+		Opname:   "native_sin",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_sqrt = &Opcode {
+		Opname:   "native_sqrt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_native_tan = &Opcode {
+		Opname:   "native_tan",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_abs = &Opcode {
+		Opname:   "s_abs",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_abs_diff = &Opcode {
+		Opname:   "s_abs_diff",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_add_sat = &Opcode {
+		Opname:   "s_add_sat",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_add_sat = &Opcode {
+		Opname:   "u_add_sat",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_hadd = &Opcode {
+		Opname:   "s_hadd",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_hadd = &Opcode {
+		Opname:   "u_hadd",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_rhadd = &Opcode {
+		Opname:   "s_rhadd",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_rhadd = &Opcode {
+		Opname:   "u_rhadd",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_clamp = &Opcode {
+		Opname:   "s_clamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minval'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxval'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_clamp = &Opcode {
+		Opname:   "u_clamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minval'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxval'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_clz = &Opcode {
+		Opname:   "clz",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_ctz = &Opcode {
+		Opname:   "ctz",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_mad_hi = &Opcode {
+		Opname:   "s_mad_hi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_mad_sat = &Opcode {
+		Opname:   "u_mad_sat",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'z'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_mad_sat = &Opcode {
+		Opname:   "s_mad_sat",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'z'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_max = &Opcode {
+		Opname:   "s_max",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_max = &Opcode {
+		Opname:   "u_max",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_min = &Opcode {
+		Opname:   "s_min",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_min = &Opcode {
+		Opname:   "u_min",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_mul_hi = &Opcode {
+		Opname:   "s_mul_hi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_rotate = &Opcode {
+		Opname:   "rotate",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'v'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'i'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_sub_sat = &Opcode {
+		Opname:   "s_sub_sat",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_sub_sat = &Opcode {
+		Opname:   "u_sub_sat",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_upsample = &Opcode {
+		Opname:   "u_upsample",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'hi'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'lo'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_upsample = &Opcode {
+		Opname:   "s_upsample",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'hi'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'lo'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_popcount = &Opcode {
+		Opname:   "popcount",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_mad24 = &Opcode {
+		Opname:   "s_mad24",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'z'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_mad24 = &Opcode {
+		Opname:   "u_mad24",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'z'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_s_mul24 = &Opcode {
+		Opname:   "s_mul24",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_mul24 = &Opcode {
+		Opname:   "u_mul24",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_abs = &Opcode {
+		Opname:   "u_abs",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_abs_diff = &Opcode {
+		Opname:   "u_abs_diff",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_mul_hi = &Opcode {
+		Opname:   "u_mul_hi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_u_mad_hi = &Opcode {
+		Opname:   "u_mad_hi",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fclamp = &Opcode {
+		Opname:   "fclamp",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'minval'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'maxval'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_degrees = &Opcode {
+		Opname:   "degrees",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'radians'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fmax_common = &Opcode {
+		Opname:   "fmax_common",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fmin_common = &Opcode {
+		Opname:   "fmin_common",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_mix = &Opcode {
+		Opname:   "mix",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_radians = &Opcode {
+		Opname:   "radians",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'degrees'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_step = &Opcode {
+		Opname:   "step",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'edge'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_smoothstep = &Opcode {
+		Opname:   "smoothstep",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'edge0'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'edge1'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_sign = &Opcode {
+		Opname:   "sign",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_cross = &Opcode {
+		Opname:   "cross",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p0'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p1'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_distance = &Opcode {
+		Opname:   "distance",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p0'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p1'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_length = &Opcode {
+		Opname:   "length",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_normalize = &Opcode {
+		Opname:   "normalize",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fast_distance = &Opcode {
+		Opname:   "fast_distance",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p0'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p1'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fast_length = &Opcode {
+		Opname:   "fast_length",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_fast_normalize = &Opcode {
+		Opname:   "fast_normalize",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_bitselect = &Opcode {
+		Opname:   "bitselect",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_select = &Opcode {
+		Opname:   "select",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'a'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'b'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'c'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vloadn = &Opcode {
+		Opname:   "vloadn",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'n'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstoren = &Opcode {
+		Opname:   "vstoren",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vload_half = &Opcode {
+		Opname:   "vload_half",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vload_halfn = &Opcode {
+		Opname:   "vload_halfn",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'n'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstore_half = &Opcode {
+		Opname:   "vstore_half",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstore_half_r = &Opcode {
+		Opname:   "vstore_half_r",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindFPRoundingMode,
+				Name:       "'mode'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstore_halfn = &Opcode {
+		Opname:   "vstore_halfn",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstore_halfn_r = &Opcode {
+		Opname:   "vstore_halfn_r",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindFPRoundingMode,
+				Name:       "'mode'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vloada_halfn = &Opcode {
+		Opname:   "vloada_halfn",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'n'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstorea_halfn = &Opcode {
+		Opname:   "vstorea_halfn",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_vstorea_halfn_r = &Opcode {
+		Opname:   "vstorea_halfn_r",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'data'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'p'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindFPRoundingMode,
+				Name:       "'mode'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_shuffle = &Opcode {
+		Opname:   "shuffle",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'shuffle mask'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_shuffle2 = &Opcode {
+		Opname:   "shuffle2",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'x'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'y'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'shuffle mask'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLStd_printf = &Opcode {
+		Opname:   "printf",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'format'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'additional arguments'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLStd_prefetch = &Opcode {
+		Opname:   "prefetch",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'ptr'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'num elements'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugInfoNone = &Opcode {
+		Opname:   "DebugInfoNone",
+		Operands: []Operand {
+		},
+	}
+	OpenCLDebugInfo100_DebugCompilationUnit = &Opcode {
+		Opname:   "DebugCompilationUnit",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Version'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'DWARF Version'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindSourceLanguage,
+				Name:       "'Language'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeBasic = &Opcode {
+		Opname:   "DebugTypeBasic",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Size'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugBaseTypeAttributeEncoding,
+				Name:       "'Encoding'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypePointer = &Opcode {
+		Opname:   "DebugTypePointer",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Base Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindStorageClass,
+				Name:       "'Storage Class'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeQualifier = &Opcode {
+		Opname:   "DebugTypeQualifier",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Base Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugTypeQualifier,
+				Name:       "'Type Qualifier'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeArray = &Opcode {
+		Opname:   "DebugTypeArray",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Base Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Component Counts'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeVector = &Opcode {
+		Opname:   "DebugTypeVector",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Base Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Component Count'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypedef = &Opcode {
+		Opname:   "DebugTypedef",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Base Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeFunction = &Opcode {
+		Opname:   "DebugTypeFunction",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Return Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parameter Types'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeEnum = &Opcode {
+		Opname:   "DebugTypeEnum",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Underlying Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Size'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindPairIdRefIdRef,
+				Name:       "'Value, Name, Value, Name, ...'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeComposite = &Opcode {
+		Opname:   "DebugTypeComposite",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugCompositeType,
+				Name:       "'Tag'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Linkage Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Size'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Members'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeMember = &Opcode {
+		Opname:   "DebugTypeMember",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Size'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeInheritance = &Opcode {
+		Opname:   "DebugTypeInheritance",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Child'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Size'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypePtrToMember = &Opcode {
+		Opname:   "DebugTypePtrToMember",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Member Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeTemplate = &Opcode {
+		Opname:   "DebugTypeTemplate",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Target'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parameters'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeTemplateParameter = &Opcode {
+		Opname:   "DebugTypeTemplateParameter",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Actual Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeTemplateTemplateParameter = &Opcode {
+		Opname:   "DebugTypeTemplateTemplateParameter",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Template Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugTypeTemplateParameterPack = &Opcode {
+		Opname:   "DebugTypeTemplateParameterPack",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Template Parameters'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugGlobalVariable = &Opcode {
+		Opname:   "DebugGlobalVariable",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Linkage Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Variable'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Static Member Declaration'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugFunctionDeclaration = &Opcode {
+		Opname:   "DebugFunctionDeclaration",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Linkage Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugFunction = &Opcode {
+		Opname:   "DebugFunction",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Linkage Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Scope Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Function'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Declaration'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugLexicalBlock = &Opcode {
+		Opname:   "DebugLexicalBlock",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugLexicalBlockDiscriminator = &Opcode {
+		Opname:   "DebugLexicalBlockDiscriminator",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Discriminator'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugScope = &Opcode {
+		Opname:   "DebugScope",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Scope'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Inlined At'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugNoScope = &Opcode {
+		Opname:   "DebugNoScope",
+		Operands: []Operand {
+		},
+	}
+	OpenCLDebugInfo100_DebugInlinedAt = &Opcode {
+		Opname:   "DebugInlinedAt",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Scope'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Inlined'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugLocalVariable = &Opcode {
+		Opname:   "DebugLocalVariable",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Type'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugInfoFlags,
+				Name:       "'Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Arg Number'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugInlinedVariable = &Opcode {
+		Opname:   "DebugInlinedVariable",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Variable'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Inlined'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugDeclare = &Opcode {
+		Opname:   "DebugDeclare",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Local Variable'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Variable'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Expression'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugValue = &Opcode {
+		Opname:   "DebugValue",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Local Variable'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Expression'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Indexes'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugOperation = &Opcode {
+		Opname:   "DebugOperation",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindDebugOperation,
+				Name:       "'OpCode'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Operands ...'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugExpression = &Opcode {
+		Opname:   "DebugExpression",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Operands ...'",
+				Quantifier: "*",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugMacroDef = &Opcode {
+		Opname:   "DebugMacroDef",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Value'",
+				Quantifier: "?",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugMacroUndef = &Opcode {
+		Opname:   "DebugMacroUndef",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Macro'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugImportedEntity = &Opcode {
+		Opname:   "DebugImportedEntity",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Name'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindDebugImportedEntity,
+				Name:       "'Tag'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Source'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Entity'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Line'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindLiteralInteger,
+				Name:       "'Column'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Parent'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpenCLDebugInfo100_DebugSource = &Opcode {
+		Opname:   "DebugSource",
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'File'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Text'",
+				Quantifier: "?",
 			}, 
 		},
 	}
@@ -18113,6 +23615,363 @@ var (
 		Enumerants: []Enumerant {
 		},
 		Bases:      []*OperandKind {OperandKindIdRef,OperandKindIdRef,},
+	}
+	OperandKindDebugInfoFlags = &OperandKind {
+		Kind:       "DebugInfoFlags",
+		Category:   "BitEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "FlagIsProtected",
+				Value:        0x01,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIsPrivate",
+				Value:        0x02,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIsPublic",
+				Value:        0x03,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIsLocal",
+				Value:        0x04,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIsDefinition",
+				Value:        0x08,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagFwdDecl",
+				Value:        0x10,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagArtificial",
+				Value:        0x20,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagExplicit",
+				Value:        0x40,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagPrototyped",
+				Value:        0x80,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagObjectPointer",
+				Value:        0x100,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagStaticMember",
+				Value:        0x200,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIndirectVariable",
+				Value:        0x400,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagLValueReference",
+				Value:        0x800,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagRValueReference",
+				Value:        0x1000,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIsOptimized",
+				Value:        0x2000,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagIsEnumClass",
+				Value:        0x4000,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagTypePassByValue",
+				Value:        0x8000,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "FlagTypePassByReference",
+				Value:        0x10000,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindDebugBaseTypeAttributeEncoding = &OperandKind {
+		Kind:       "DebugBaseTypeAttributeEncoding",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "Unspecified",
+				Value:        0,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Address",
+				Value:        1,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Boolean",
+				Value:        2,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Float",
+				Value:        3,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Signed",
+				Value:        4,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "SignedChar",
+				Value:        5,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Unsigned",
+				Value:        6,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "UnsignedChar",
+				Value:        7,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindDebugCompositeType = &OperandKind {
+		Kind:       "DebugCompositeType",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "Class",
+				Value:        0,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Structure",
+				Value:        1,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Union",
+				Value:        2,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindDebugTypeQualifier = &OperandKind {
+		Kind:       "DebugTypeQualifier",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "ConstType",
+				Value:        0,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "VolatileType",
+				Value:        1,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "RestrictType",
+				Value:        2,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "AtomicType",
+				Value:        3,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindDebugOperation = &OperandKind {
+		Kind:       "DebugOperation",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "Deref",
+				Value:        0,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Plus",
+				Value:        1,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Minus",
+				Value:        2,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "PlusUconst",
+				Value:        3,
+				Capabilities: []string{},
+				Parameters:   []Parameter{{OperandKindLiteralInteger, ""},},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "BitPiece",
+				Value:        4,
+				Capabilities: []string{},
+				Parameters:   []Parameter{{OperandKindLiteralInteger, ""},{OperandKindLiteralInteger, ""},},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Swap",
+				Value:        5,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Xderef",
+				Value:        6,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "StackValue",
+				Value:        7,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Constu",
+				Value:        8,
+				Capabilities: []string{},
+				Parameters:   []Parameter{{OperandKindLiteralInteger, ""},},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "Fragment",
+				Value:        9,
+				Capabilities: []string{},
+				Parameters:   []Parameter{{OperandKindLiteralInteger, ""},{OperandKindLiteralInteger, ""},},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindDebugImportedEntity = &OperandKind {
+		Kind:       "DebugImportedEntity",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "ImportedModule",
+				Value:        0,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "ImportedDeclaration",
+				Value:        1,
+				Capabilities: []string{},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
 	}
 
 )

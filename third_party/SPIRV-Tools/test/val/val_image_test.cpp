@@ -4841,6 +4841,169 @@ TEST_F(ValidateImage, ZeroExtendVectorSIntTexelV14Good) {
   EXPECT_THAT(getDiagnosticString(), Eq(""));
 }
 
+TEST_F(ValidateImage, ReadLodAMDSuccess1) {
+  const std::string body = R"(
+%img = OpLoad %type_image_u32_2d_0000 %uniform_image_u32_2d_0000
+%res1 = OpImageRead %u32vec4 %img %u32vec2_01 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability StorageImageReadWithoutFormat\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, ReadLodAMDSuccess2) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_1d_0002_rgba32f %uniform_image_f32_1d_0002_rgba32f
+%res1 = OpImageRead %f32vec4 %img %u32vec2_01 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability Image1D\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, ReadLodAMDSuccess3) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_cube_0102_rgba32f %uniform_image_f32_cube_0102_rgba32f
+%res1 = OpImageRead %f32vec4 %img %u32vec3_012 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability ImageCubeArray\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, ReadLodAMDNeedCapability) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_cube_0102_rgba32f %uniform_image_f32_cube_0102_rgba32f
+%res1 = OpImageRead %f32vec4 %img %u32vec3_012 Lod %u32_0
+)";
+
+  const std::string extra = "\nOpCapability ImageCubeArray\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_ERROR_INVALID_DATA,
+            ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Image Operand Lod can only be used with ExplicitLod "
+                        "opcodes and OpImageFetch"));
+}
+
+TEST_F(ValidateImage, WriteLodAMDSuccess1) {
+  const std::string body = R"(
+%img = OpLoad %type_image_u32_2d_0000 %uniform_image_u32_2d_0000
+OpImageWrite %img %u32vec2_01 %u32vec4_0123 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability StorageImageWriteWithoutFormat\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, WriteLodAMDSuccess2) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_1d_0002_rgba32f %uniform_image_f32_1d_0002_rgba32f
+OpImageWrite %img %u32_1 %f32vec4_0000 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability Image1D\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, WriteLodAMDSuccess3) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_cube_0102_rgba32f %uniform_image_f32_cube_0102_rgba32f
+OpImageWrite %img %u32vec3_012 %f32vec4_0000 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability ImageCubeArray\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, WriteLodAMDNeedCapability) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_cube_0102_rgba32f %uniform_image_f32_cube_0102_rgba32f
+OpImageWrite %img %u32vec3_012 %f32vec4_0000 Lod %u32_0
+)";
+
+  const std::string extra = "\nOpCapability ImageCubeArray\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_ERROR_INVALID_DATA,
+            ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Image Operand Lod can only be used with ExplicitLod "
+                        "opcodes and OpImageFetch"));
+}
+
+TEST_F(ValidateImage, SparseReadLodAMDSuccess) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0002 %uniform_image_f32_2d_0002
+%res1 = OpImageSparseRead %struct_u32_f32vec4 %img %u32vec2_01 Lod %u32_0
+)";
+
+  const std::string extra =
+      "\nOpCapability StorageImageReadWithoutFormat\n"
+      "OpCapability ImageReadWriteLodAMD\n"
+      "OpExtension \"SPV_AMD_shader_image_load_store_lod\"\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+}
+
+TEST_F(ValidateImage, SparseReadLodAMDNeedCapability) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0002 %uniform_image_f32_2d_0002
+%res1 = OpImageSparseRead %struct_u32_f32vec4 %img %u32vec2_01 Lod %u32_0
+)";
+
+  const std::string extra = "\nOpCapability StorageImageReadWithoutFormat\n";
+  CompileSuccessfully(
+      GenerateShaderCode(body, extra, "Fragment", "", SPV_ENV_UNIVERSAL_1_1),
+      SPV_ENV_UNIVERSAL_1_1);
+  ASSERT_EQ(SPV_ERROR_INVALID_DATA,
+            ValidateInstructions(SPV_ENV_UNIVERSAL_1_1));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Image Operand Lod can only be used with ExplicitLod "
+                        "opcodes and OpImageFetch"));
+}
+
 // No negative tests for ZeroExtend since we don't truly know the
 // texel format.
 

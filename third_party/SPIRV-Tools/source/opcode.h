@@ -56,9 +56,6 @@ void spvInstructionCopy(const uint32_t* words, const SpvOp opcode,
                         const uint16_t word_count,
                         const spv_endianness_t endian, spv_instruction_t* inst);
 
-// Gets the name of an instruction, without the "Op" prefix.
-const char* spvOpcodeString(const SpvOp opcode);
-
 // Determine if the given opcode is a scalar type. Returns zero if false,
 // non-zero otherwise.
 int32_t spvOpcodeIsScalarType(const SpvOp opcode);

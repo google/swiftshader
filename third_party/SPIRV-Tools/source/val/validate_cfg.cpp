@@ -728,10 +728,10 @@ spv_result_t StructuredControlFlowChecks(
     }
 
     Construct::ConstructBlockSet construct_blocks = construct.blocks(function);
+    std::string construct_name, header_name, exit_name;
+    std::tie(construct_name, header_name, exit_name) =
+        ConstructNames(construct.type());
     for (auto block : construct_blocks) {
-      std::string construct_name, header_name, exit_name;
-      std::tie(construct_name, header_name, exit_name) =
-          ConstructNames(construct.type());
       // Check that all exits from the construct are via structured exits.
       for (auto succ : *block->successors()) {
         if (block->reachable() && !construct_blocks.count(succ) &&

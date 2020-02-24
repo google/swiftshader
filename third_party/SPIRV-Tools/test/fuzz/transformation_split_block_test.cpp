@@ -774,6 +774,77 @@ TEST(TransformationSplitBlockTest, SplitOpPhiWithSinglePredecessor) {
   ASSERT_TRUE(IsEqual(env, after_split, context.get()));
 }
 
+TEST(TransformationSplitBlockTest, DeadBlockShouldSplitToTwoDeadBlocks) {
+  // This checks that if a block B is marked as dead, it should split into a
+  // pair of dead blocks.
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %4 "main"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpConstantFalse %6
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpSelectionMerge %9 None
+               OpBranchConditional %7 %8 %9
+          %8 = OpLabel
+               OpBranch %9
+          %9 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+
+  FactManager fact_manager;
+
+  // Record the fact that block 8 is dead.
+  fact_manager.AddFactBlockIsDead(8);
+
+  auto split = TransformationSplitBlock(
+      MakeInstructionDescriptor(8, SpvOpBranch, 0), 100);
+  ASSERT_TRUE(split.IsApplicable(context.get(), fact_manager));
+  split.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  ASSERT_TRUE(fact_manager.BlockIsDead(8));
+  ASSERT_TRUE(fact_manager.BlockIsDead(100));
+
+  std::string after_split = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %4 "main"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpConstantFalse %6
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpSelectionMerge %9 None
+               OpBranchConditional %7 %8 %9
+          %8 = OpLabel
+               OpBranch %100
+        %100 = OpLabel
+               OpBranch %9
+          %9 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+  ASSERT_TRUE(IsEqual(env, after_split, context.get()));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

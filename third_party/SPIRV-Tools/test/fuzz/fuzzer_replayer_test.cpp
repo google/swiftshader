@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "source/fuzz/fuzzer.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/replayer.h"
 #include "source/fuzz/uniform_buffer_element_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
@@ -23,109 +24,35 @@ namespace {
 
 const uint32_t kNumFuzzerRuns = 20;
 
-void AddConstantUniformFact(protobufs::FactSequence* facts,
-                            uint32_t descriptor_set, uint32_t binding,
-                            std::vector<uint32_t>&& indices, uint32_t value) {
-  protobufs::FactConstantUniform fact;
-  *fact.mutable_uniform_buffer_element_descriptor() =
-      MakeUniformBufferElementDescriptor(descriptor_set, binding,
-                                         std::move(indices));
-  *fact.mutable_constant_word()->Add() = value;
-  protobufs::Fact temp;
-  *temp.mutable_constant_uniform_fact() = fact;
-  *facts->mutable_fact()->Add() = temp;
-}
+// The SPIR-V came from this GLSL:
+//
+// #version 310 es
+//
+// void foo() {
+//   int x;
+//   x = 2;
+//   for (int i = 0; i < 100; i++) {
+//     x += i;
+//     x = x * 2;
+//   }
+//   return;
+// }
+//
+// void main() {
+//   foo();
+//   for (int i = 0; i < 10; i++) {
+//     int j = 20;
+//     while(j > 0) {
+//       foo();
+//       j--;
+//     }
+//     do {
+//       i++;
+//     } while(i < 4);
+//   }
+// }
 
-// Reinterpret the bits of |value| as a 32-bit unsigned int
-uint32_t FloatBitsAsUint(float value) {
-  uint32_t result;
-  memcpy(&result, &value, sizeof(float));
-  return result;
-}
-
-// Assembles the given |shader| text, and then runs the fuzzer |num_runs|
-// times, using successive seeds starting from |initial_seed|.  Checks that
-// the binary produced after each fuzzer run is valid, and that replaying
-// the transformations that were applied during fuzzing leads to an
-// identical binary.
-void RunFuzzerAndReplayer(const std::string& shader,
-                          const protobufs::FactSequence& initial_facts,
-                          uint32_t initial_seed, uint32_t num_runs) {
-  const auto env = SPV_ENV_UNIVERSAL_1_5;
-
-  std::vector<uint32_t> binary_in;
-  SpirvTools t(env);
-  t.SetMessageConsumer(kConsoleMessageConsumer);
-  ASSERT_TRUE(t.Assemble(shader, &binary_in, kFuzzAssembleOption));
-  ASSERT_TRUE(t.Validate(binary_in));
-
-  for (uint32_t seed = initial_seed; seed < initial_seed + num_runs; seed++) {
-    std::vector<uint32_t> fuzzer_binary_out;
-    protobufs::TransformationSequence fuzzer_transformation_sequence_out;
-
-    Fuzzer fuzzer(env, seed, true);
-    fuzzer.SetMessageConsumer(kSilentConsumer);
-    auto fuzzer_result_status =
-        fuzzer.Run(binary_in, initial_facts, &fuzzer_binary_out,
-                   &fuzzer_transformation_sequence_out);
-    ASSERT_EQ(Fuzzer::FuzzerResultStatus::kComplete, fuzzer_result_status);
-    ASSERT_TRUE(t.Validate(fuzzer_binary_out));
-
-    std::vector<uint32_t> replayer_binary_out;
-    protobufs::TransformationSequence replayer_transformation_sequence_out;
-
-    Replayer replayer(env, false);
-    replayer.SetMessageConsumer(kSilentConsumer);
-    auto replayer_result_status = replayer.Run(
-        binary_in, initial_facts, fuzzer_transformation_sequence_out,
-        &replayer_binary_out, &replayer_transformation_sequence_out);
-    ASSERT_EQ(Replayer::ReplayerResultStatus::kComplete,
-              replayer_result_status);
-
-    // After replaying the transformations applied by the fuzzer, exactly those
-    // transformations should have been applied, and the binary resulting from
-    // replay should be identical to that which resulted from fuzzing.
-    std::string fuzzer_transformations_string;
-    std::string replayer_transformations_string;
-    fuzzer_transformation_sequence_out.SerializeToString(
-        &fuzzer_transformations_string);
-    replayer_transformation_sequence_out.SerializeToString(
-        &replayer_transformations_string);
-    ASSERT_EQ(fuzzer_transformations_string, replayer_transformations_string);
-    ASSERT_EQ(fuzzer_binary_out, replayer_binary_out);
-  }
-}
-
-TEST(FuzzerReplayerTest, Miscellaneous1) {
-  // The SPIR-V came from this GLSL:
-  //
-  // #version 310 es
-  //
-  // void foo() {
-  //   int x;
-  //   x = 2;
-  //   for (int i = 0; i < 100; i++) {
-  //     x += i;
-  //     x = x * 2;
-  //   }
-  //   return;
-  // }
-  //
-  // void main() {
-  //   foo();
-  //   for (int i = 0; i < 10; i++) {
-  //     int j = 20;
-  //     while(j > 0) {
-  //       foo();
-  //       j--;
-  //     }
-  //     do {
-  //       i++;
-  //     } while(i < 4);
-  //   }
-  // }
-
-  std::string shader = R"(
+const std::string kTestShader1 = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
@@ -260,66 +187,60 @@ TEST(FuzzerReplayerTest, Miscellaneous1) {
                OpFunctionEnd
   )";
 
-  // Do some fuzzer runs, starting from an initial seed of 0 (seed value chosen
-  // arbitrarily).
-  RunFuzzerAndReplayer(shader, protobufs::FactSequence(), 0, kNumFuzzerRuns);
-}
+// The SPIR-V came from this GLSL, which was then optimized using spirv-opt
+// with the -O argument:
+//
+// #version 310 es
+//
+// precision highp float;
+//
+// layout(location = 0) out vec4 _GLF_color;
+//
+// layout(set = 0, binding = 0) uniform buf0 {
+//  vec2 injectionSwitch;
+// };
+// layout(set = 0, binding = 1) uniform buf1 {
+//  vec2 resolution;
+// };
+// bool checkSwap(float a, float b)
+// {
+//  return gl_FragCoord.y < resolution.y / 2.0 ? a > b : a < b;
+// }
+// void main()
+// {
+//  float data[10];
+//  for(int i = 0; i < 10; i++)
+//   {
+//    data[i] = float(10 - i) * injectionSwitch.y;
+//   }
+//  for(int i = 0; i < 9; i++)
+//   {
+//    for(int j = 0; j < 10; j++)
+//     {
+//      if(j < i + 1)
+//       {
+//        continue;
+//       }
+//      bool doSwap = checkSwap(data[i], data[j]);
+//      if(doSwap)
+//       {
+//        float temp = data[i];
+//        data[i] = data[j];
+//        data[j] = temp;
+//       }
+//     }
+//   }
+//  if(gl_FragCoord.x < resolution.x / 2.0)
+//   {
+//    _GLF_color = vec4(data[0] / 10.0, data[5] / 10.0, data[9] / 10.0, 1.0);
+//   }
+//  else
+//   {
+//    _GLF_color = vec4(data[5] / 10.0, data[9] / 10.0, data[0] / 10.0, 1.0);
+//   }
+// }
 
-TEST(FuzzerReplayerTest, Miscellaneous2) {
-  // The SPIR-V came from this GLSL, which was then optimized using spirv-opt
-  // with the -O argument:
-  //
-  // #version 310 es
-  //
-  // precision highp float;
-  //
-  // layout(location = 0) out vec4 _GLF_color;
-  //
-  // layout(set = 0, binding = 0) uniform buf0 {
-  //  vec2 injectionSwitch;
-  // };
-  // layout(set = 0, binding = 1) uniform buf1 {
-  //  vec2 resolution;
-  // };
-  // bool checkSwap(float a, float b)
-  // {
-  //  return gl_FragCoord.y < resolution.y / 2.0 ? a > b : a < b;
-  // }
-  // void main()
-  // {
-  //  float data[10];
-  //  for(int i = 0; i < 10; i++)
-  //   {
-  //    data[i] = float(10 - i) * injectionSwitch.y;
-  //   }
-  //  for(int i = 0; i < 9; i++)
-  //   {
-  //    for(int j = 0; j < 10; j++)
-  //     {
-  //      if(j < i + 1)
-  //       {
-  //        continue;
-  //       }
-  //      bool doSwap = checkSwap(data[i], data[j]);
-  //      if(doSwap)
-  //       {
-  //        float temp = data[i];
-  //        data[i] = data[j];
-  //        data[j] = temp;
-  //       }
-  //     }
-  //   }
-  //  if(gl_FragCoord.x < resolution.x / 2.0)
-  //   {
-  //    _GLF_color = vec4(data[0] / 10.0, data[5] / 10.0, data[9] / 10.0, 1.0);
-  //   }
-  //  else
-  //   {
-  //    _GLF_color = vec4(data[5] / 10.0, data[9] / 10.0, data[0] / 10.0, 1.0);
-  //   }
-  // }
-
-  std::string shader = R"(
+const std::string kTestShader2 = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
@@ -507,121 +428,115 @@ TEST(FuzzerReplayerTest, Miscellaneous2) {
                OpFunctionEnd
   )";
 
-  // Do some fuzzer runs, starting from an initial seed of 10 (seed value chosen
-  // arbitrarily).
-  RunFuzzerAndReplayer(shader, protobufs::FactSequence(), 10, kNumFuzzerRuns);
-}
+// The SPIR-V came from this GLSL, which was then optimized using spirv-opt
+// with the -O argument:
+//
+// #version 310 es
+//
+// precision highp float;
+//
+// layout(location = 0) out vec4 _GLF_color;
+//
+// layout(set = 0, binding = 0) uniform buf0 {
+//  vec2 resolution;
+// };
+// void main(void)
+// {
+//  float A[50];
+//  for(
+//      int i = 0;
+//      i < 200;
+//      i ++
+//  )
+//   {
+//    if(i >= int(resolution.x))
+//     {
+//      break;
+//     }
+//    if((4 * (i / 4)) == i)
+//     {
+//      A[i / 4] = float(i);
+//     }
+//   }
+//  for(
+//      int i = 0;
+//      i < 50;
+//      i ++
+//  )
+//   {
+//    if(i < int(gl_FragCoord.x))
+//     {
+//      break;
+//     }
+//    if(i > 0)
+//     {
+//      A[i] += A[i - 1];
+//     }
+//   }
+//  if(int(gl_FragCoord.x) < 20)
+//   {
+//    _GLF_color = vec4(A[0] / resolution.x, A[4] / resolution.y, 1.0, 1.0);
+//   }
+//  else
+//   if(int(gl_FragCoord.x) < 40)
+//    {
+//     _GLF_color = vec4(A[5] / resolution.x, A[9] / resolution.y, 1.0, 1.0);
+//    }
+//   else
+//    if(int(gl_FragCoord.x) < 60)
+//     {
+//      _GLF_color = vec4(A[10] / resolution.x, A[14] / resolution.y,
+//      1.0, 1.0);
+//     }
+//    else
+//     if(int(gl_FragCoord.x) < 80)
+//      {
+//       _GLF_color = vec4(A[15] / resolution.x, A[19] / resolution.y,
+//       1.0, 1.0);
+//      }
+//     else
+//      if(int(gl_FragCoord.x) < 100)
+//       {
+//        _GLF_color = vec4(A[20] / resolution.x, A[24] / resolution.y,
+//        1.0, 1.0);
+//       }
+//      else
+//       if(int(gl_FragCoord.x) < 120)
+//        {
+//         _GLF_color = vec4(A[25] / resolution.x, A[29] / resolution.y,
+//         1.0, 1.0);
+//        }
+//       else
+//        if(int(gl_FragCoord.x) < 140)
+//         {
+//          _GLF_color = vec4(A[30] / resolution.x, A[34] / resolution.y,
+//          1.0, 1.0);
+//         }
+//        else
+//         if(int(gl_FragCoord.x) < 160)
+//          {
+//           _GLF_color = vec4(A[35] / resolution.x, A[39] /
+//           resolution.y, 1.0, 1.0);
+//          }
+//         else
+//          if(int(gl_FragCoord.x) < 180)
+//           {
+//            _GLF_color = vec4(A[40] / resolution.x, A[44] /
+//            resolution.y, 1.0, 1.0);
+//           }
+//          else
+//           if(int(gl_FragCoord.x) < 180)
+//            {
+//             _GLF_color = vec4(A[45] / resolution.x, A[49] /
+//             resolution.y, 1.0, 1.0);
+//            }
+//           else
+//            {
+//             discard;
+//            }
+// }
 
-TEST(FuzzerReplayerTest, Miscellaneous3) {
-  // The SPIR-V came from this GLSL, which was then optimized using spirv-opt
-  // with the -O argument:
-  //
-  // #version 310 es
-  //
-  // precision highp float;
-  //
-  // layout(location = 0) out vec4 _GLF_color;
-  //
-  // layout(set = 0, binding = 0) uniform buf0 {
-  //  vec2 resolution;
-  // };
-  // void main(void)
-  // {
-  //  float A[50];
-  //  for(
-  //      int i = 0;
-  //      i < 200;
-  //      i ++
-  //  )
-  //   {
-  //    if(i >= int(resolution.x))
-  //     {
-  //      break;
-  //     }
-  //    if((4 * (i / 4)) == i)
-  //     {
-  //      A[i / 4] = float(i);
-  //     }
-  //   }
-  //  for(
-  //      int i = 0;
-  //      i < 50;
-  //      i ++
-  //  )
-  //   {
-  //    if(i < int(gl_FragCoord.x))
-  //     {
-  //      break;
-  //     }
-  //    if(i > 0)
-  //     {
-  //      A[i] += A[i - 1];
-  //     }
-  //   }
-  //  if(int(gl_FragCoord.x) < 20)
-  //   {
-  //    _GLF_color = vec4(A[0] / resolution.x, A[4] / resolution.y, 1.0, 1.0);
-  //   }
-  //  else
-  //   if(int(gl_FragCoord.x) < 40)
-  //    {
-  //     _GLF_color = vec4(A[5] / resolution.x, A[9] / resolution.y, 1.0, 1.0);
-  //    }
-  //   else
-  //    if(int(gl_FragCoord.x) < 60)
-  //     {
-  //      _GLF_color = vec4(A[10] / resolution.x, A[14] / resolution.y,
-  //      1.0, 1.0);
-  //     }
-  //    else
-  //     if(int(gl_FragCoord.x) < 80)
-  //      {
-  //       _GLF_color = vec4(A[15] / resolution.x, A[19] / resolution.y,
-  //       1.0, 1.0);
-  //      }
-  //     else
-  //      if(int(gl_FragCoord.x) < 100)
-  //       {
-  //        _GLF_color = vec4(A[20] / resolution.x, A[24] / resolution.y,
-  //        1.0, 1.0);
-  //       }
-  //      else
-  //       if(int(gl_FragCoord.x) < 120)
-  //        {
-  //         _GLF_color = vec4(A[25] / resolution.x, A[29] / resolution.y,
-  //         1.0, 1.0);
-  //        }
-  //       else
-  //        if(int(gl_FragCoord.x) < 140)
-  //         {
-  //          _GLF_color = vec4(A[30] / resolution.x, A[34] / resolution.y,
-  //          1.0, 1.0);
-  //         }
-  //        else
-  //         if(int(gl_FragCoord.x) < 160)
-  //          {
-  //           _GLF_color = vec4(A[35] / resolution.x, A[39] /
-  //           resolution.y, 1.0, 1.0);
-  //          }
-  //         else
-  //          if(int(gl_FragCoord.x) < 180)
-  //           {
-  //            _GLF_color = vec4(A[40] / resolution.x, A[44] /
-  //            resolution.y, 1.0, 1.0);
-  //           }
-  //          else
-  //           if(int(gl_FragCoord.x) < 180)
-  //            {
-  //             _GLF_color = vec4(A[45] / resolution.x, A[49] /
-  //             resolution.y, 1.0, 1.0);
-  //            }
-  //           else
-  //            {
-  //             discard;
-  //            }
-  // }
-
-  std::string shader = R"(
+const std::string kTestShader3 = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
@@ -969,21 +884,10 @@ TEST(FuzzerReplayerTest, Miscellaneous3) {
                OpFunctionEnd
   )";
 
-  // Add the facts "resolution.x == 250" and "resolution.y == 100".
-  protobufs::FactSequence facts;
-  AddConstantUniformFact(&facts, 0, 0, {0, 0}, 250);
-  AddConstantUniformFact(&facts, 0, 0, {0, 1}, 100);
+// The SPIR-V comes from the 'matrices_smart_loops' GLSL shader that ships
+// with GraphicsFuzz.
 
-  // Do some fuzzer runs, starting from an initial seed of 94 (seed value chosen
-  // arbitrarily).
-  RunFuzzerAndReplayer(shader, facts, 94, kNumFuzzerRuns);
-}
-
-TEST(FuzzerReplayerTest, Miscellaneous4) {
-  // The SPIR-V comes from the 'matrices_smart_loops' GLSL shader that ships
-  // with GraphicsFuzz.
-
-  std::string shader = R"(
+const std::string kTestShader4 = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
@@ -1611,6 +1515,114 @@ TEST(FuzzerReplayerTest, Miscellaneous4) {
                OpFunctionEnd
   )";
 
+void AddConstantUniformFact(protobufs::FactSequence* facts,
+                            uint32_t descriptor_set, uint32_t binding,
+                            std::vector<uint32_t>&& indices, uint32_t value) {
+  protobufs::FactConstantUniform fact;
+  *fact.mutable_uniform_buffer_element_descriptor() =
+      MakeUniformBufferElementDescriptor(descriptor_set, binding,
+                                         std::move(indices));
+  *fact.mutable_constant_word()->Add() = value;
+  protobufs::Fact temp;
+  *temp.mutable_constant_uniform_fact() = fact;
+  *facts->mutable_fact()->Add() = temp;
+}
+
+// Reinterpret the bits of |value| as a 32-bit unsigned int
+uint32_t FloatBitsAsUint(float value) {
+  uint32_t result;
+  memcpy(&result, &value, sizeof(float));
+  return result;
+}
+
+// Assembles the given |shader| text, and then runs the fuzzer |num_runs|
+// times, using successive seeds starting from |initial_seed|.  Checks that
+// the binary produced after each fuzzer run is valid, and that replaying
+// the transformations that were applied during fuzzing leads to an
+// identical binary.
+void RunFuzzerAndReplayer(const std::string& shader,
+                          const protobufs::FactSequence& initial_facts,
+                          uint32_t initial_seed, uint32_t num_runs) {
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
+
+  std::vector<uint32_t> binary_in;
+  SpirvTools t(env);
+  t.SetMessageConsumer(kConsoleMessageConsumer);
+  ASSERT_TRUE(t.Assemble(shader, &binary_in, kFuzzAssembleOption));
+  ASSERT_TRUE(t.Validate(binary_in));
+
+  std::vector<fuzzerutil::ModuleSupplier> donor_suppliers;
+  for (auto donor :
+       {&kTestShader1, &kTestShader2, &kTestShader3, &kTestShader4}) {
+    donor_suppliers.emplace_back([donor]() {
+      return BuildModule(env, kConsoleMessageConsumer, *donor,
+                         kFuzzAssembleOption);
+    });
+  }
+
+  for (uint32_t seed = initial_seed; seed < initial_seed + num_runs; seed++) {
+    std::vector<uint32_t> fuzzer_binary_out;
+    protobufs::TransformationSequence fuzzer_transformation_sequence_out;
+
+    Fuzzer fuzzer(env, seed, true);
+    fuzzer.SetMessageConsumer(kSilentConsumer);
+    auto fuzzer_result_status =
+        fuzzer.Run(binary_in, initial_facts, donor_suppliers,
+                   &fuzzer_binary_out, &fuzzer_transformation_sequence_out);
+    ASSERT_EQ(Fuzzer::FuzzerResultStatus::kComplete, fuzzer_result_status);
+    ASSERT_TRUE(t.Validate(fuzzer_binary_out));
+
+    std::vector<uint32_t> replayer_binary_out;
+    protobufs::TransformationSequence replayer_transformation_sequence_out;
+
+    Replayer replayer(env, false);
+    replayer.SetMessageConsumer(kSilentConsumer);
+    auto replayer_result_status = replayer.Run(
+        binary_in, initial_facts, fuzzer_transformation_sequence_out,
+        &replayer_binary_out, &replayer_transformation_sequence_out);
+    ASSERT_EQ(Replayer::ReplayerResultStatus::kComplete,
+              replayer_result_status);
+
+    // After replaying the transformations applied by the fuzzer, exactly those
+    // transformations should have been applied, and the binary resulting from
+    // replay should be identical to that which resulted from fuzzing.
+    std::string fuzzer_transformations_string;
+    std::string replayer_transformations_string;
+    fuzzer_transformation_sequence_out.SerializeToString(
+        &fuzzer_transformations_string);
+    replayer_transformation_sequence_out.SerializeToString(
+        &replayer_transformations_string);
+    ASSERT_EQ(fuzzer_transformations_string, replayer_transformations_string);
+    ASSERT_EQ(fuzzer_binary_out, replayer_binary_out);
+  }
+}
+
+TEST(FuzzerReplayerTest, Miscellaneous1) {
+  // Do some fuzzer runs, starting from an initial seed of 0 (seed value chosen
+  // arbitrarily).
+  RunFuzzerAndReplayer(kTestShader1, protobufs::FactSequence(), 0,
+                       kNumFuzzerRuns);
+}
+
+TEST(FuzzerReplayerTest, Miscellaneous2) {
+  // Do some fuzzer runs, starting from an initial seed of 10 (seed value chosen
+  // arbitrarily).
+  RunFuzzerAndReplayer(kTestShader2, protobufs::FactSequence(), 10,
+                       kNumFuzzerRuns);
+}
+
+TEST(FuzzerReplayerTest, Miscellaneous3) {
+  // Add the facts "resolution.x == 250" and "resolution.y == 100".
+  protobufs::FactSequence facts;
+  AddConstantUniformFact(&facts, 0, 0, {0, 0}, 250);
+  AddConstantUniformFact(&facts, 0, 0, {0, 1}, 100);
+
+  // Do some fuzzer runs, starting from an initial seed of 94 (seed value chosen
+  // arbitrarily).
+  RunFuzzerAndReplayer(kTestShader3, facts, 94, kNumFuzzerRuns);
+}
+
+TEST(FuzzerReplayerTest, Miscellaneous4) {
   // Add the facts:
   //  - "one == 1.0"
   //  - "resolution.y == 256.0",
@@ -1621,7 +1633,7 @@ TEST(FuzzerReplayerTest, Miscellaneous4) {
 
   // Do some fuzzer runs, starting from an initial seed of 14 (seed value chosen
   // arbitrarily).
-  RunFuzzerAndReplayer(shader, facts, 14, kNumFuzzerRuns);
+  RunFuzzerAndReplayer(kTestShader4, facts, 14, kNumFuzzerRuns);
 }
 
 }  // namespace

@@ -28,8 +28,8 @@ class TransformationAddTypeMatrix : public Transformation {
   explicit TransformationAddTypeMatrix(
       const protobufs::TransformationAddTypeMatrix& message);
 
-  TransformationAddTypeMatrix(uint32_t fresh_id, uint32_t base_type_id,
-                              uint32_t size);
+  TransformationAddTypeMatrix(uint32_t fresh_id, uint32_t column_type_id,
+                              uint32_t column_count);
 
   // - |message_.fresh_id| must be a fresh id
   // - |message_.column_type_id| must be the id of a floating-point vector type

@@ -91,6 +91,12 @@ class Instruction {
            spvExtInstIsNonSemantic(inst_.ext_inst_type);
   }
 
+  /// True if this is an OpExtInst for debug info extension.
+  bool IsDebugInfo() const {
+    return opcode() == SpvOp::SpvOpExtInst &&
+           spvExtInstIsDebugInfo(inst_.ext_inst_type);
+  }
+
   // Casts the words belonging to the operand under |index| to |T| and returns.
   template <typename T>
   T GetOperandAs(size_t index) const {

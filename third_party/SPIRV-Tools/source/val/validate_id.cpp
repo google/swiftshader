@@ -131,7 +131,11 @@ spv_result_t CheckIdDefinitionDominateUse(ValidationState_t& _) {
 // instruction operand's ID can be forward referenced.
 spv_result_t IdPass(ValidationState_t& _, Instruction* inst) {
   auto can_have_forward_declared_ids =
-      spvOperandCanBeForwardDeclaredFunction(inst->opcode());
+      inst->opcode() == SpvOpExtInst &&
+              spvExtInstIsDebugInfo(inst->ext_inst_type())
+          ? spvDbgInfoExtOperandCanBeForwardDeclaredFunction(
+                inst->ext_inst_type(), inst->word(4))
+          : spvOperandCanBeForwardDeclaredFunction(inst->opcode());
 
   // Keep track of a result id defined by this instruction.  0 means it
   // does not define an id.

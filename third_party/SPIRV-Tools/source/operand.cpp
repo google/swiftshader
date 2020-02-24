@@ -19,6 +19,8 @@
 
 #include <algorithm>
 
+#include "DebugInfo.h"
+#include "OpenCLDebugInfo100.h"
 #include "source/macro.h"
 #include "source/spirv_constant.h"
 #include "source/spirv_target_env.h"
@@ -509,6 +511,40 @@ std::function<bool(unsigned)> spvOperandCanBeForwardDeclaredFunction(
     default:
       out = [](unsigned) { return false; };
       break;
+  }
+  return out;
+}
+
+std::function<bool(unsigned)> spvDbgInfoExtOperandCanBeForwardDeclaredFunction(
+    spv_ext_inst_type_t ext_type, uint32_t key) {
+  // TODO(https://gitlab.khronos.org/spirv/SPIR-V/issues/532): Forward
+  // references for debug info instructions are still in discussion. We must
+  // update the following lines of code when we conclude the spec.
+  std::function<bool(unsigned index)> out;
+  if (ext_type == SPV_EXT_INST_TYPE_OPENCL_DEBUGINFO_100) {
+    switch (OpenCLDebugInfo100Instructions(key)) {
+      case OpenCLDebugInfo100DebugFunction:
+        out = [](unsigned index) { return index == 13; };
+        break;
+      case OpenCLDebugInfo100DebugTypeComposite:
+        out = [](unsigned index) { return index >= 13; };
+        break;
+      default:
+        out = [](unsigned) { return false; };
+        break;
+    }
+  } else {
+    switch (DebugInfoInstructions(key)) {
+      case DebugInfoDebugFunction:
+        out = [](unsigned index) { return index == 13; };
+        break;
+      case DebugInfoDebugTypeComposite:
+        out = [](unsigned index) { return index >= 12; };
+        break;
+      default:
+        out = [](unsigned) { return false; };
+        break;
+    }
   }
   return out;
 }

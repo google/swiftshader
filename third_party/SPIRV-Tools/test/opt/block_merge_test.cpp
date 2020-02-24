@@ -423,6 +423,42 @@ OpFunctionEnd
   SinglePassRunAndMatch<BlockMergePass>(text, true);
 }
 
+TEST_F(BlockMergeTest, MergeContinueWithOpLine) {
+  const std::string text = R"(
+; CHECK: OpBranch [[header:%\w+]]
+; CHECK: [[header]] = OpLabel
+; CHECK-NEXT: OpLogicalAnd
+; CHECK-NEXT: OpLine {{%\w+}} 1 1
+; CHECK-NEXT: OpLoopMerge {{%\w+}} [[header]] None
+; CHECK-NEXT: OpBranch [[header]]
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %func "func"
+OpExecutionMode %func OriginUpperLeft
+%src = OpString "test.shader"
+%void = OpTypeVoid
+%bool = OpTypeBool
+%true = OpConstantTrue %bool
+%false = OpConstantFalse  %bool
+%functy = OpTypeFunction %void
+%func = OpFunction %void None %functy
+%entry = OpLabel
+OpBranch %header
+%header = OpLabel
+OpLoopMerge %merge %continue None
+OpBranch %continue
+%continue = OpLabel
+%op = OpLogicalAnd %bool %true %false
+OpLine %src 1 1
+OpBranch %header
+%merge = OpLabel
+OpUnreachable
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<BlockMergePass>(text, true);
+}
+
 TEST_F(BlockMergeTest, TwoHeadersCannotBeMerged) {
   const std::string text = R"(
 ; CHECK: OpBranch [[loop_header:%\w+]]

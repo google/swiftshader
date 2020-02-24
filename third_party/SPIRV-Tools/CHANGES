@@ -1,7 +1,32 @@
 Revision history for SPIRV-Tools
 
-v2020.1-dev 2019-12-11
- - Start v2020.1-dev
+v2020.2-dev 2020-02-03
+ - Start v2020.2-dev
+
+v2020.1 2020-02-03
+ - General:
+   - Add support for SPV_KHR_non_semantic_info (#3110)
+   - Support OpenCL.DebugInfo.100 extended instruction set (#3080)
+   - Added support for Vulkan 1.2
+   - Add API function to better handle getting the necessary environment (#3142)
+   - Clarify mapping of target env to SPIR-V version (#3150)
+   - Implement constant folding for many transcendentals (#3166)
+ - Optimizer
+   - Change default version for CreatInstBindlessCheckPass to 2 (#3096, #3119)
+   - Better handling of OpLine on merge blocks (#3130)
+   - Use dummy switch instead of dummy loop in MergeReturn pass. (#3151)
+   - Handle TimeAMD in AmdExtensionToKhrPass. (#3168)
+ - Validator
+   - Fix structured exit validation (#3141)
+ - Reduce
+ - Fuzz
+   - Fuzzer pass to merge blocks (#3097)
+   - Transformation to add a new function to a module (#3114)
+   - Add fuzzer pass to perform module donation (#3117)
+   - Fuzzer passes to create and branch to new dead blocks (#3135)
+   - Fuzzer pass to add composite types (#3171)
+ - Linker:
+   - Remove names and decorations of imported symbols (#3081)
 
 v2019.5 2019-12-11
  - General:
