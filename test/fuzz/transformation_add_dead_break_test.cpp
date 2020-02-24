@@ -1948,9 +1948,6 @@ TEST(TransformationAddDeadBreakTest, PhiInstructions) {
   // Not applicable because two OpPhis (not just one) need to be updated at 20
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {13})
                    .IsApplicable(context.get(), fact_manager));
-  // Not applicable because only two OpPhis (not three) need to be updated at 20
-  ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {13, 21, 22})
-                   .IsApplicable(context.get(), fact_manager));
   // Not applicable because the given ids do not have types that match the
   // OpPhis at 20, in order
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {21, 13})

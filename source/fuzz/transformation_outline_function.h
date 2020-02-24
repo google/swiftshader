@@ -128,15 +128,6 @@ class TransformationOutlineFunction : public Transformation {
       opt::BasicBlock* region_exit_block);
 
  private:
-  // A helper method for the applicability check.  Returns true if and only if
-  // |id| is (a) a fresh id for the module, and (b) an id that has not
-  // previously been subject to this check.  We use this to check whether the
-  // ids given for the transformation are not only fresh but also different from
-  // one another.
-  bool CheckIdIsFreshAndNotUsedByThisTransformation(
-      uint32_t id, opt::IRContext* context,
-      std::set<uint32_t>* ids_used_by_this_transformation) const;
-
   // Ensures that the module's id bound is at least the maximum of any fresh id
   // associated with the transformation.
   void UpdateModuleIdBoundForFreshIds(
@@ -167,10 +158,14 @@ class TransformationOutlineFunction : public Transformation {
   // A new struct type to represent the function return type, and a new function
   // type for the function, will be added to the module (unless suitable types
   // are already present).
+  //
+  // Facts about the function containing the outlined region that are relevant
+  // to the new function are propagated via |fact_manager|.
   std::unique_ptr<opt::Function> PrepareFunctionPrototype(
-      opt::IRContext* context, const std::vector<uint32_t>& region_input_ids,
+      const std::vector<uint32_t>& region_input_ids,
       const std::vector<uint32_t>& region_output_ids,
-      const std::map<uint32_t, uint32_t>& input_id_to_fresh_id_map) const;
+      const std::map<uint32_t, uint32_t>& input_id_to_fresh_id_map,
+      opt::IRContext* context, FactManager* fact_manager) const;
 
   // Creates the body of the outlined function by cloning blocks from the
   // original region, given by |region_blocks|, adapting the cloned version
@@ -178,14 +173,18 @@ class TransformationOutlineFunction : public Transformation {
   // and patching up branches to |original_region_entry_block| to refer to its
   // clone.  Parameters |region_output_ids| and |output_id_to_fresh_id_map| are
   // used to determine what the function should return.
+  //
+  // The |fact_manager| argument allow facts about blocks being outlined, e.g.
+  // whether they are dead blocks, to be asserted about blocks that get created
+  // during outlining.
   void PopulateOutlinedFunction(
-      opt::IRContext* context,
       const opt::BasicBlock& original_region_entry_block,
       const opt::BasicBlock& original_region_exit_block,
       const std::set<opt::BasicBlock*>& region_blocks,
       const std::vector<uint32_t>& region_output_ids,
       const std::map<uint32_t, uint32_t>& output_id_to_fresh_id_map,
-      opt::Function* outlined_function) const;
+      opt::IRContext* context, opt::Function* outlined_function,
+      FactManager* fact_manager) const;
 
   // Shrinks the outlined region, given by |region_blocks|, down to the single
   // block |original_region_entry_block|.  This block is itself shrunk to just

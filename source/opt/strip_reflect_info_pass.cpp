@@ -77,6 +77,7 @@ Pass::Status StripReflectInfoPass::Process() {
   for (auto& dbg : context()->debugs1()) to_remove.push_back(&dbg);
   for (auto& dbg : context()->debugs2()) to_remove.push_back(&dbg);
   for (auto& dbg : context()->debugs3()) to_remove.push_back(&dbg);
+  for (auto& dbg : context()->ext_inst_debuginfo()) to_remove.push_back(&dbg);
 
   // remove any extended inst imports that are non semantic
   std::unordered_set<uint32_t> non_semantic_sets;

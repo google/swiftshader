@@ -181,11 +181,15 @@ void spvInstructionCopy(const uint32_t* words, const SpvOp opcode,
   }
 }
 
-const char* spvOpcodeString(const SpvOp opcode) {
+const char* spvOpcodeString(const uint32_t opcode) {
   const auto beg = kOpcodeTableEntries;
   const auto end = kOpcodeTableEntries + ARRAY_SIZE(kOpcodeTableEntries);
-  spv_opcode_desc_t needle = {"",    opcode, 0, nullptr, 0,   {},
-                              false, false,  0, nullptr, ~0u, ~0u};
+  spv_opcode_desc_t needle = {"",    static_cast<SpvOp>(opcode),
+                              0,     nullptr,
+                              0,     {},
+                              false, false,
+                              0,     nullptr,
+                              ~0u,   ~0u};
   auto comp = [](const spv_opcode_desc_t& lhs, const spv_opcode_desc_t& rhs) {
     return lhs.opcode < rhs.opcode;
   };

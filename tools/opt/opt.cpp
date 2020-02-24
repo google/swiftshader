@@ -111,7 +111,7 @@ Options (in lexicographical order):)",
   printf(R"(
   --amd-ext-to-khr
                Replaces the extensions VK_AMD_shader_ballot, VK_AMD_gcn_shader,
-               and VK_AMD_shader_trinary_minmax with equivalant code using core
+               and VK_AMD_shader_trinary_minmax with equivalent code using core
                instructions and capabilities.)");
   printf(R"(
   --ccp
@@ -173,7 +173,7 @@ Options (in lexicographical order):)",
   printf(R"(
   --eliminate-dead-branches
                Convert conditional branches with constant condition to the
-               indicated unconditional brranch. Delete all resulting dead
+               indicated unconditional branch. Delete all resulting dead
                code. Performed only on entry point call tree functions.)");
   printf(R"(
   --eliminate-dead-code-aggressive
@@ -302,7 +302,7 @@ Options (in lexicographical order):)",
                the optimization is above the threshold.)");
   printf(R"(
   --max-id-bound=<n>
-               Sets the maximum value for the id bound for the moudle.  The
+               Sets the maximum value for the id bound for the module.  The
                default is the minimum value for this limit, 0x3FFFFF.  See
                section 2.17 of the Spir-V specification.)");
   printf(R"(
@@ -428,7 +428,7 @@ Options (in lexicographical order):)",
   --scalar-replacement[=<n>]
                Replace aggregate function scope variables that are only accessed
                via their elements with new function variables representing each
-               element.  <n> is a limit on the size of the aggragates that will
+               element.  <n> is a limit on the size of the aggregates that will
                be replaced.  0 means there is no limit.  The default value is
                100.)");
   printf(R"(
@@ -447,7 +447,7 @@ Options (in lexicographical order):)",
   --split-invalid-unreachable
                Attempts to legalize for WebGPU cases where an unreachable
                merge-block is also a continue-target by splitting it into two
-               seperate blocks. There exist legal, for Vulkan, instances of this
+               separate blocks. There exist legal, for Vulkan, instances of this
                pattern that cannot be converted into legal WebGPU, so this
                conversion may not succeed.)");
   printf(R"(
@@ -472,7 +472,7 @@ Options (in lexicographical order):)",
   printf(R"(
   --target-env=<env>
                Set the target environment. Without this flag the target
-               enviroment defaults to spv1.3. <env> must be one of
+               environment defaults to spv1.5. <env> must be one of
                {%s})",
          target_env_list.c_str());
   printf(R"(

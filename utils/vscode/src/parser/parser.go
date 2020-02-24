@@ -396,12 +396,13 @@ func isAlpha(r rune) bool        { return unicode.IsLetter(r) }
 func isAlphaNumeric(r rune) bool { return isAlpha(r) || isNumeric(r) }
 
 type parser struct {
-	lines    []string               // all source lines
-	toks     []*Token               // all tokens
-	diags    []Diagnostic           // parser emitted diagnostics
-	idents   map[string]*Identifier // identifiers by name
-	mappings map[*Token]interface{} // tokens to semantic map
-	insts    []*Instruction         // all instructions
+	lines          []string                    // all source lines
+	toks           []*Token                    // all tokens
+	diags          []Diagnostic                // parser emitted diagnostics
+	idents         map[string]*Identifier      // identifiers by name
+	mappings       map[*Token]interface{}      // tokens to semantic map
+	extInstImports map[string]schema.OpcodeMap // extension imports by identifier
+	insts          []*Instruction              // all instructions
 }
 
 func (p *parser) parse() error {
@@ -459,9 +460,9 @@ func (p *parser) instruction(i int) (n int) {
 		p.addIdentDef(inst.Result.Text(p.lines), inst, p.tok(i))
 	}
 
-	for _, o := range operands {
+	processOperand := func(o schema.Operand) bool {
 		if p.newline(i + n) {
-			break
+			return false
 		}
 
 		switch o.Quantifier {
@@ -481,8 +482,35 @@ func (p *parser) instruction(i int) (n int) {
 					inst.Tokens = append(inst.Tokens, op.Tokens...)
 					n += c
 				} else {
-					break
+					return false
 				}
+			}
+		}
+		return true
+	}
+
+	for _, o := range operands {
+		if !processOperand(o) {
+			break
+		}
+
+		if inst.Opcode == schema.OpExtInst && n == 4 {
+			extImportTok, extNameTok := p.tok(i+n), p.tok(i+n+1)
+			extImport := extImportTok.Text(p.lines)
+			if extOpcodes, ok := p.extInstImports[extImport]; ok {
+				extName := extNameTok.Text(p.lines)
+				if extOpcode, ok := extOpcodes[extName]; ok {
+					n += 2 // skip ext import, ext name
+					for _, o := range extOpcode.Operands {
+						if !processOperand(o) {
+							break
+						}
+					}
+				} else {
+					p.err(extNameTok, "Unknown extension opcode '%s'", extName)
+				}
+			} else {
+				p.err(extImportTok, "Expected identifier to OpExtInstImport")
 			}
 		}
 	}
@@ -492,6 +520,19 @@ func (p *parser) instruction(i int) (n int) {
 	}
 
 	p.insts = append(p.insts, inst)
+
+	if inst.Opcode == schema.OpExtInstImport && len(inst.Tokens) >= 4 {
+		// Instruction is a OpExtInstImport. Keep track of this.
+		extTok := inst.Tokens[3]
+		extName := strings.Trim(extTok.Text(p.lines), `"`)
+		extOpcodes, ok := schema.ExtOpcodes[extName]
+		if !ok {
+			p.err(extTok, "Unknown extension '%s'", extName)
+		}
+		extImport := inst.Result.Text(p.lines)
+		p.extInstImports[extImport] = extOpcodes
+	}
+
 	return
 }
 
@@ -545,7 +586,7 @@ func (p *parser) operand(n string, k *schema.OperandKind, i int, optional bool) 
 
 	case schema.OperandCategoryLiteral:
 		switch tok.Type {
-		case String, Integer, Float:
+		case String, Integer, Float, Ident:
 			return op, 1
 		}
 		if !optional {
@@ -683,10 +724,11 @@ func Parse(source string) (Results, error) {
 	}
 	lines := strings.SplitAfter(source, "\n")
 	p := parser{
-		lines:    lines,
-		toks:     toks,
-		idents:   map[string]*Identifier{},
-		mappings: map[*Token]interface{}{},
+		lines:          lines,
+		toks:           toks,
+		idents:         map[string]*Identifier{},
+		mappings:       map[*Token]interface{}{},
+		extInstImports: map[string]schema.OpcodeMap{},
 	}
 	if err := p.parse(); err != nil {
 		return Results{}, err

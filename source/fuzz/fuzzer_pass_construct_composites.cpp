@@ -44,7 +44,7 @@ void FuzzerPassConstructComposites::Apply() {
 
   MaybeAddTransformationBeforeEachInstruction(
       [this, &composite_type_ids](
-          const opt::Function& function, opt::BasicBlock* block,
+          opt::Function* function, opt::BasicBlock* block,
           opt::BasicBlock::iterator inst_it,
           const protobufs::InstructionDescriptor& instruction_descriptor)
           -> void {

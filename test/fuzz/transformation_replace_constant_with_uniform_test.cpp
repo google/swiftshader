@@ -1442,6 +1442,56 @@ TEST(TransformationReplaceConstantWithUniformTest, ComplexReplacements) {
   ASSERT_TRUE(IsEqual(env, after, context.get()));
 }
 
+TEST(TransformationReplaceConstantWithUniformTest,
+     DoNotReplaceVariableInitializer) {
+  // If a local variable has a constant initializer, this cannot be replaced
+  // by a uniform.
+
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource GLSL 450
+               OpMemberDecorate %16 0 Offset 0
+               OpDecorate %16 Block
+               OpDecorate %18 DescriptorSet 0
+               OpDecorate %18 Binding 0
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypePointer Function %6
+         %50 = OpConstant %6 0
+         %16 = OpTypeStruct %6
+         %17 = OpTypePointer Uniform %16
+         %51 = OpTypePointer Uniform %6
+         %18 = OpVariable %17 Uniform
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %8 = OpVariable %7 Function %50
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  protobufs::UniformBufferElementDescriptor blockname_a =
+      MakeUniformBufferElementDescriptor(0, 0, {0});
+
+  ASSERT_TRUE(AddFactHelper(&fact_manager, context.get(), 0, blockname_a));
+
+  ASSERT_FALSE(TransformationReplaceConstantWithUniform(
+                   MakeIdUseDescriptor(
+                       50, MakeInstructionDescriptor(8, SpvOpVariable, 0), 1),
+                   blockname_a, 100, 101)
+                   .IsApplicable(context.get(), fact_manager));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

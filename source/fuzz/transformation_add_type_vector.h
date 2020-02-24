@@ -28,8 +28,8 @@ class TransformationAddTypeVector : public Transformation {
   explicit TransformationAddTypeVector(
       const protobufs::TransformationAddTypeVector& message);
 
-  TransformationAddTypeVector(uint32_t fresh_id, uint32_t base_type_id,
-                              uint32_t size);
+  TransformationAddTypeVector(uint32_t fresh_id, uint32_t component_type_id,
+                              uint32_t component_count);
 
   // - |message_.fresh_id| must be a fresh id
   // - |message_.component_type_id| must be the id of a scalar type

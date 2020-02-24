@@ -268,7 +268,7 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowWithUnreachableMerge) {
 ; CHECK: [[true:%\w+]] = OpConstantTrue
 ; CHECK: OpFunction
 ; CHECK: [[var:%\w+]] = OpVariable [[:%\w+]] Function [[false]]
-; CHECK: OpLoopMerge [[return_block:%\w+]]
+; CHECK: OpSelectionMerge [[return_block:%\w+]]
 ; CHECK: OpSelectionMerge [[merge_lab:%\w+]]
 ; CHECK: OpBranchConditional [[cond:%\w+]] [[if_lab:%\w+]] [[then_lab:%\w+]]
 ; CHECK: [[if_lab]] = OpLabel
@@ -314,7 +314,7 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowAddPhi) {
 ; CHECK: [[true:%\w+]] = OpConstantTrue
 ; CHECK: OpFunction
 ; CHECK: [[var:%\w+]] = OpVariable [[:%\w+]] Function [[false]]
-; CHECK: OpLoopMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
 ; CHECK: OpSelectionMerge [[merge_lab:%\w+]]
 ; CHECK: OpBranchConditional [[cond:%\w+]] [[if_lab:%\w+]] [[then_lab:%\w+]]
 ; CHECK: [[if_lab]] = OpLabel
@@ -364,7 +364,7 @@ TEST_F(MergeReturnPassTest, StructuredControlDecoration) {
 ; CHECK: [[true:%\w+]] = OpConstantTrue
 ; CHECK: OpFunction
 ; CHECK: [[var:%\w+]] = OpVariable [[:%\w+]] Function [[false]]
-; CHECK: OpLoopMerge [[return_block:%\w+]]
+; CHECK: OpSelectionMerge [[return_block:%\w+]]
 ; CHECK: OpSelectionMerge [[merge_lab:%\w+]]
 ; CHECK: OpBranchConditional [[cond:%\w+]] [[if_lab:%\w+]] [[then_lab:%\w+]]
 ; CHECK: [[if_lab]] = OpLabel
@@ -411,7 +411,7 @@ TEST_F(MergeReturnPassTest, SplitBlockUsedInPhi) {
   const std::string before =
       R"(
 ; CHECK: OpFunction
-; CHECK: OpLoopMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
 ; CHECK: OpLoopMerge [[loop_merge:%\w+]]
 ; CHECK: [[loop_merge]] = OpLabel
 ; CHECK: OpBranchConditional {{%\w+}} [[dummy_loop_merge]] [[old_code_path:%\w+]]
@@ -525,7 +525,7 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowBothMergeAndHeader) {
       R"(
 ; CHECK: OpFunction
 ; CHECK: [[ret_flag:%\w+]] = OpVariable %_ptr_Function_bool Function %false
-; CHECK: OpLoopMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
 ; CHECK: OpLoopMerge [[loop1_merge:%\w+]] {{%\w+}}
 ; CHECK-NEXT: OpBranchConditional {{%\w+}} [[if_lab:%\w+]] {{%\w+}}
 ; CHECK: [[if_lab]] = OpLabel
@@ -914,7 +914,7 @@ TEST_F(MergeReturnPassTest, NestedLoopMerge) {
   const std::string test =
       R"(
 ; CHECK: OpFunction
-; CHECK: OpLoopMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
 ; CHECK: OpLoopMerge [[outer_loop_merge:%\w+]]
 ; CHECK: OpLoopMerge [[inner_loop_merge:%\w+]]
 ; CHECK: OpSelectionMerge
@@ -1150,7 +1150,6 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowDontChangeEntryPhi) {
       R"(
 ; CHECK: OpFunction %void
 ; CHECK: OpLabel
-; CHECK: OpLabel
 ; CHECK: [[pre_header:%\w+]] = OpLabel
 ; CHECK: [[header:%\w+]] = OpLabel
 ; CHECK-NEXT: OpPhi %bool {{%\w+}} [[pre_header]] [[iv:%\w+]] [[continue:%\w+]]
@@ -1195,7 +1194,6 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowPartialReplacePhi) {
   const std::string before =
       R"(
 ; CHECK: OpFunction %void
-; CHECK: OpLabel
 ; CHECK: OpLabel
 ; CHECK: [[pre_header:%\w+]] = OpLabel
 ; CHECK: [[header:%\w+]] = OpLabel
@@ -1258,7 +1256,9 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowPartialReplacePhi) {
 TEST_F(MergeReturnPassTest, GeneratePhiInOuterLoop) {
   const std::string before =
       R"(
-      ; CHECK: OpLoopMerge
+      ; CHECK: OpSelectionMerge
+      ; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+      ; CHECK-NEXT: [[def_bb1]] = OpLabel
       ; CHECK: OpLoopMerge [[merge:%\w+]] [[continue:%\w+]]
       ; CHECK: [[continue]] = OpLabel
       ; CHECK-NEXT: [[undef:%\w+]] = OpUndef
@@ -1322,7 +1322,9 @@ TEST_F(MergeReturnPassTest, SerialLoopsUpdateBlockMapping) {
   // #2455: This test case triggers phi insertions that use previously inserted
   // phis. Without the fix, it fails to validate.
   const std::string spirv = R"(
-; CHECK: OpLoopMerge
+; CHECK: OpSelectionMerge
+; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+; CHECK-NEXT: [[def_bb1]] = OpLabel
 ; CHECK: OpLoopMerge
 ; CHECK: OpLoopMerge
 ; CHECK: OpLoopMerge [[merge:%\w+]]
@@ -1430,9 +1432,9 @@ TEST_F(MergeReturnPassTest, SerialLoopsUpdateBlockMapping) {
 TEST_F(MergeReturnPassTest, InnerLoopMergeIsOuterLoopContinue) {
   const std::string before =
       R"(
-      ; CHECK: OpLoopMerge
-      ; CHECK-NEXT: OpBranch [[bb1:%\w+]]
-      ; CHECK: [[bb1]] = OpLabel
+      ; CHECK: OpSelectionMerge
+      ; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+      ; CHECK-NEXT: [[def_bb1]] = OpLabel
       ; CHECK-NEXT: OpBranch [[outer_loop_header:%\w+]]
       ; CHECK: [[outer_loop_header]] = OpLabel
       ; CHECK-NEXT: OpLoopMerge [[outer_loop_merge:%\w+]] [[outer_loop_continue:%\w+]] None
@@ -1481,7 +1483,9 @@ TEST_F(MergeReturnPassTest, InnerLoopMergeIsOuterLoopContinue) {
 TEST_F(MergeReturnPassTest, BreakFromLoopUseNoLongerDominated) {
   const std::string spirv = R"(
 ; CHECK: [[undef:%\w+]] = OpUndef
-; CHECK: OpLoopMerge
+; CHECK: OpSelectionMerge
+; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+; CHECK-NEXT: [[def_bb1]] = OpLabel
 ; CHECK: OpLoopMerge [[merge:%\w+]] [[cont:%\w+]]
 ; CHECK-NEXT: OpBranch [[body:%\w+]]
 ; CHECK: [[body]] = OpLabel
@@ -1541,7 +1545,9 @@ OpFunctionEnd
 TEST_F(MergeReturnPassTest, TwoBreaksFromLoopUsesNoLongerDominated) {
   const std::string spirv = R"(
 ; CHECK: [[undef:%\w+]] = OpUndef
-; CHECK: OpLoopMerge
+; CHECK: OpSelectionMerge
+; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+; CHECK-NEXT: [[def_bb1]] = OpLabel
 ; CHECK: OpLoopMerge [[merge:%\w+]] [[cont:%\w+]]
 ; CHECK-NEXT: OpBranch [[body:%\w+]]
 ; CHECK: [[body]] = OpLabel
@@ -1725,7 +1731,9 @@ TEST_F(MergeReturnPassTest, MergeToMergeBranch) {
   const std::string text =
       R"(
 ; CHECK: [[new_undef:%\w+]] = OpUndef %uint
-; CHECK: OpLoopMerge
+; CHECK: OpSelectionMerge
+; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+; CHECK-NEXT: [[def_bb1]] = OpLabel
 ; CHECK: OpLoopMerge [[merge1:%\w+]]
 ; CHECK: OpLoopMerge [[merge2:%\w+]]
 ; CHECK: [[merge1]] = OpLabel
@@ -1781,7 +1789,9 @@ TEST_F(MergeReturnPassTest, PhiInSecondMerge) {
   //  Add and use a phi in the second merge block from the return.
   const std::string text =
       R"(
-; CHECK: OpLoopMerge
+; CHECK: OpSelectionMerge
+; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+; CHECK-NEXT: [[def_bb1]] = OpLabel
 ; CHECK: OpLoopMerge [[merge_bb:%\w+]] [[continue_bb:%\w+]]
 ; CHECK: [[continue_bb]] = OpLabel
 ; CHECK-NEXT: [[val:%\w+]] = OpUndef %float
@@ -1824,6 +1834,91 @@ TEST_F(MergeReturnPassTest, PhiInSecondMerge) {
          %11 = OpLabel
          %17 = OpConvertFToS %int %16
                OpReturn
+               OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<MergeReturnPass>(text, true);
+}
+
+TEST_F(MergeReturnPassTest, ReturnsInSwitch) {
+  //  Cannot branch directly to dummy switch merge block from original switch.
+  //  Must branch to merge block of original switch and then do predicated
+  //  branch to merge block of dummy switch.
+  const std::string text =
+      R"(
+; CHECK: OpSelectionMerge [[dummy_merge_bb:%\w+]]
+; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
+; CHECK-NEXT: [[def_bb1]] = OpLabel
+; CHECK: OpSelectionMerge
+; CHECK-NEXT: OpSwitch {{%\w+}} [[inner_merge_bb:%\w+]] 0 {{%\w+}} 1 {{%\w+}}
+; CHECK: OpBranch [[inner_merge_bb]]
+; CHECK: OpBranch [[inner_merge_bb]]
+; CHECK-NEXT: [[inner_merge_bb]] = OpLabel
+; CHECK: OpBranchConditional {{%\w+}} [[dummy_merge_bb]] {{%\w+}}
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %PSMain "PSMain" %_entryPointOutput_color
+               OpExecutionMode %PSMain OriginUpperLeft
+               OpSource HLSL 500
+               OpMemberDecorate %cb 0 Offset 0
+               OpMemberDecorate %cb 1 Offset 16
+               OpMemberDecorate %cb 2 Offset 32
+               OpMemberDecorate %cb 3 Offset 48
+               OpDecorate %cb Block
+               OpDecorate %_ DescriptorSet 0
+               OpDecorate %_ Binding 0
+               OpDecorate %_entryPointOutput_color Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+          %8 = OpTypeFunction %v4float
+        %int = OpTypeInt 32 1
+         %cb = OpTypeStruct %v4float %v4float %v4float %int
+%_ptr_Uniform_cb = OpTypePointer Uniform %cb
+          %_ = OpVariable %_ptr_Uniform_cb Uniform
+      %int_3 = OpConstant %int 3
+%_ptr_Uniform_int = OpTypePointer Uniform %int
+      %int_0 = OpConstant %int 0
+%_ptr_Uniform_v4float = OpTypePointer Uniform %v4float
+      %int_1 = OpConstant %int 1
+      %int_2 = OpConstant %int 2
+    %float_0 = OpConstant %float 0
+    %float_1 = OpConstant %float 1
+         %45 = OpConstantComposite %v4float %float_0 %float_0 %float_0 %float_1
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%_entryPointOutput_color = OpVariable %_ptr_Output_v4float Output
+     %PSMain = OpFunction %void None %3
+          %5 = OpLabel
+         %50 = OpFunctionCall %v4float %BlendValue_
+               OpStore %_entryPointOutput_color %50
+               OpReturn
+               OpFunctionEnd
+%BlendValue_ = OpFunction %v4float None %8
+         %10 = OpLabel
+         %21 = OpAccessChain %_ptr_Uniform_int %_ %int_3
+         %22 = OpLoad %int %21
+               OpSelectionMerge %25 None
+               OpSwitch %22 %25 0 %23 1 %24
+         %23 = OpLabel
+         %28 = OpAccessChain %_ptr_Uniform_v4float %_ %int_0
+         %29 = OpLoad %v4float %28
+               OpReturnValue %29
+         %24 = OpLabel
+         %31 = OpAccessChain %_ptr_Uniform_v4float %_ %int_0
+         %32 = OpLoad %v4float %31
+         %34 = OpAccessChain %_ptr_Uniform_v4float %_ %int_1
+         %35 = OpLoad %v4float %34
+         %37 = OpAccessChain %_ptr_Uniform_v4float %_ %int_2
+         %38 = OpLoad %v4float %37
+         %39 = OpFMul %v4float %35 %38
+         %40 = OpFAdd %v4float %32 %39
+               OpReturnValue %40
+         %25 = OpLabel
+               OpReturnValue %45
                OpFunctionEnd
 )";
 

@@ -22,14 +22,19 @@ if (${SPIRV_BUILD_FUZZER})
           fact_manager_test.cpp
           fuzz_test_util.cpp
           fuzzer_pass_add_useful_constructs_test.cpp
+          fuzzer_pass_donate_modules_test.cpp
           instruction_descriptor_test.cpp
+          transformation_access_chain_test.cpp
           transformation_add_constant_boolean_test.cpp
           transformation_add_constant_composite_test.cpp
           transformation_add_constant_scalar_test.cpp
+          transformation_add_dead_block_test.cpp
           transformation_add_dead_break_test.cpp
           transformation_add_dead_continue_test.cpp
+          transformation_add_function_test.cpp
           transformation_add_global_undef_test.cpp
           transformation_add_global_variable_test.cpp
+          transformation_add_local_variable_test.cpp
           transformation_add_no_contraction_decoration_test.cpp
           transformation_add_type_array_test.cpp
           transformation_add_type_boolean_test.cpp
@@ -43,6 +48,8 @@ if (${SPIRV_BUILD_FUZZER})
           transformation_composite_construct_test.cpp
           transformation_composite_extract_test.cpp
           transformation_copy_object_test.cpp
+          transformation_function_call_test.cpp
+          transformation_load_test.cpp
           transformation_merge_blocks_test.cpp
           transformation_move_block_down_test.cpp
           transformation_outline_function_test.cpp
@@ -54,6 +61,7 @@ if (${SPIRV_BUILD_FUZZER})
           transformation_set_memory_operands_mask_test.cpp
           transformation_set_selection_control_test.cpp
           transformation_split_block_test.cpp
+          transformation_store_test.cpp
           transformation_vector_shuffle_test.cpp
           uniform_buffer_element_descriptor_test.cpp)
 

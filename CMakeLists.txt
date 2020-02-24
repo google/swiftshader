@@ -300,7 +300,7 @@ if (NOT "${SPIRV_SKIP_TESTS}")
            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
-set(SPIRV_LIBRARIES "-lSPIRV-Tools -lSPIRV-Tools-link -lSPIRV-Tools-opt")
+set(SPIRV_LIBRARIES "-lSPIRV-Tools-opt -lSPIRV-Tools -lSPIRV-Tools-link")
 set(SPIRV_SHARED_LIBRARIES "-lSPIRV-Tools-shared")
 
 # Build pkg-config file

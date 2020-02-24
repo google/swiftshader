@@ -765,6 +765,11 @@ def main():
                         help='prefix for operand kinds (to disambiguate operand type enums)')
     args = parser.parse_args()
 
+    # The GN build system needs this because it doesn't handle quoting
+    # empty string arguments well.
+    if args.vendor_operand_kind_prefix == "...nil...":
+        args.vendor_operand_kind_prefix = ""
+
     if (args.core_insts_output is None) != \
             (args.operand_kinds_output is None):
         print('error: --core-insts-output and --operand-kinds-output '
@@ -774,8 +779,8 @@ def main():
          args.extinst_debuginfo_grammar and
          args.extinst_cldebuginfo100_grammar):
         print('error: --operand-kinds-output requires --spirv-core-grammar '
-              'and --exinst-debuginfo-grammar '
-              'and --exinst-cldebuginfo100-grammar')
+              'and --extinst-debuginfo-grammar '
+              'and --extinst-cldebuginfo100-grammar')
         exit(1)
     if (args.glsl_insts_output is None) != \
             (args.extinst_glsl_grammar is None):

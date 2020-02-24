@@ -21,16 +21,15 @@ namespace fuzz {
 
 protobufs::Instruction MakeInstructionMessage(
     SpvOp opcode, uint32_t result_type_id, uint32_t result_id,
-    const std::vector<std::pair<uint32_t, std::vector<uint32_t>>>&
-        input_operands) {
+    const opt::Instruction::OperandList& input_operands) {
   protobufs::Instruction result;
   result.set_opcode(opcode);
   result.set_result_type_id(result_type_id);
   result.set_result_id(result_id);
   for (auto& operand : input_operands) {
     auto operand_message = result.add_input_operand();
-    operand_message->set_operand_type(operand.first);
-    for (auto operand_word : operand.second) {
+    operand_message->set_operand_type(static_cast<uint32_t>(operand.type));
+    for (auto operand_word : operand.words) {
       operand_message->add_operand_data(operand_word);
     }
   }

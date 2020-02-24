@@ -800,9 +800,102 @@ bool FactManager::DataSynonymFacts::IsSynonymous(
 // End of data synonym facts
 //==============================
 
+//==============================
+// Dead block facts
+
+// The purpose of this class is to group the fields and data used to represent
+// facts about data blocks.
+class FactManager::DeadBlockFacts {
+ public:
+  // See method in FactManager which delegates to this method.
+  void AddFact(const protobufs::FactBlockIsDead& fact);
+
+  // See method in FactManager which delegates to this method.
+  bool BlockIsDead(uint32_t block_id) const;
+
+ private:
+  std::set<uint32_t> dead_block_ids_;
+};
+
+void FactManager::DeadBlockFacts::AddFact(
+    const protobufs::FactBlockIsDead& fact) {
+  dead_block_ids_.insert(fact.block_id());
+}
+
+bool FactManager::DeadBlockFacts::BlockIsDead(uint32_t block_id) const {
+  return dead_block_ids_.count(block_id) != 0;
+}
+
+// End of dead block facts
+//==============================
+
+//==============================
+// Livesafe function facts
+
+// The purpose of this class is to group the fields and data used to represent
+// facts about livesafe functions.
+class FactManager::LivesafeFunctionFacts {
+ public:
+  // See method in FactManager which delegates to this method.
+  void AddFact(const protobufs::FactFunctionIsLivesafe& fact);
+
+  // See method in FactManager which delegates to this method.
+  bool FunctionIsLivesafe(uint32_t function_id) const;
+
+ private:
+  std::set<uint32_t> livesafe_function_ids_;
+};
+
+void FactManager::LivesafeFunctionFacts::AddFact(
+    const protobufs::FactFunctionIsLivesafe& fact) {
+  livesafe_function_ids_.insert(fact.function_id());
+}
+
+bool FactManager::LivesafeFunctionFacts::FunctionIsLivesafe(
+    uint32_t function_id) const {
+  return livesafe_function_ids_.count(function_id) != 0;
+}
+
+// End of livesafe function facts
+//==============================
+
+//==============================
+// Irrelevant pointee value facts
+
+// The purpose of this class is to group the fields and data used to represent
+// facts about pointers whose pointee values are irrelevant.
+class FactManager::IrrelevantPointeeValueFacts {
+ public:
+  // See method in FactManager which delegates to this method.
+  void AddFact(const protobufs::FactPointeeValueIsIrrelevant& fact);
+
+  // See method in FactManager which delegates to this method.
+  bool PointeeValueIsIrrelevant(uint32_t pointer_id) const;
+
+ private:
+  std::set<uint32_t> pointers_to_irrelevant_pointees_ids_;
+};
+
+void FactManager::IrrelevantPointeeValueFacts::AddFact(
+    const protobufs::FactPointeeValueIsIrrelevant& fact) {
+  pointers_to_irrelevant_pointees_ids_.insert(fact.pointer_id());
+}
+
+bool FactManager::IrrelevantPointeeValueFacts::PointeeValueIsIrrelevant(
+    uint32_t pointer_id) const {
+  return pointers_to_irrelevant_pointees_ids_.count(pointer_id) != 0;
+}
+
+// End of arbitrarily-valued variable facts
+//==============================
+
 FactManager::FactManager()
     : uniform_constant_facts_(MakeUnique<ConstantUniformFacts>()),
-      data_synonym_facts_(MakeUnique<DataSynonymFacts>()) {}
+      data_synonym_facts_(MakeUnique<DataSynonymFacts>()),
+      dead_block_facts_(MakeUnique<DeadBlockFacts>()),
+      livesafe_function_facts_(MakeUnique<LivesafeFunctionFacts>()),
+      irrelevant_pointee_value_facts_(
+          MakeUnique<IrrelevantPointeeValueFacts>()) {}
 
 FactManager::~FactManager() = default;
 
@@ -826,6 +919,12 @@ bool FactManager::AddFact(const fuzz::protobufs::Fact& fact,
                                               context);
     case protobufs::Fact::kDataSynonymFact:
       data_synonym_facts_->AddFact(fact.data_synonym_fact(), context);
+      return true;
+    case protobufs::Fact::kBlockIsDeadFact:
+      dead_block_facts_->AddFact(fact.block_is_dead_fact());
+      return true;
+    case protobufs::Fact::kFunctionIsLivesafeFact:
+      livesafe_function_facts_->AddFact(fact.function_is_livesafe_fact());
       return true;
     default:
       assert(false && "Unknown fact type.");
@@ -896,6 +995,36 @@ bool FactManager::IsSynonymous(
     opt::IRContext* context) const {
   return data_synonym_facts_->IsSynonymous(data_descriptor1, data_descriptor2,
                                            context);
+}
+
+bool FactManager::BlockIsDead(uint32_t block_id) const {
+  return dead_block_facts_->BlockIsDead(block_id);
+}
+
+void FactManager::AddFactBlockIsDead(uint32_t block_id) {
+  protobufs::FactBlockIsDead fact;
+  fact.set_block_id(block_id);
+  dead_block_facts_->AddFact(fact);
+}
+
+bool FactManager::FunctionIsLivesafe(uint32_t function_id) const {
+  return livesafe_function_facts_->FunctionIsLivesafe(function_id);
+}
+
+void FactManager::AddFactFunctionIsLivesafe(uint32_t function_id) {
+  protobufs::FactFunctionIsLivesafe fact;
+  fact.set_function_id(function_id);
+  livesafe_function_facts_->AddFact(fact);
+}
+
+bool FactManager::PointeeValueIsIrrelevant(uint32_t pointer_id) const {
+  return irrelevant_pointee_value_facts_->PointeeValueIsIrrelevant(pointer_id);
+}
+
+void FactManager::AddFactValueOfPointeeIsIrrelevant(uint32_t pointer_id) {
+  protobufs::FactPointeeValueIsIrrelevant fact;
+  fact.set_pointer_id(pointer_id);
+  irrelevant_pointee_value_facts_->AddFact(fact);
 }
 
 }  // namespace fuzz

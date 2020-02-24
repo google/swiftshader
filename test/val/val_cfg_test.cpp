@@ -4187,6 +4187,115 @@ OpFunctionEnd
           "1[%loop], but its merge block 2[%continue] is not"));
 }
 
+TEST_F(ValidateCFG, ExitFromConstructWhoseHeaderIsAMerge) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+%void = OpTypeVoid
+%2 = OpTypeFunction %void
+%int = OpTypeInt 32 1
+%4 = OpUndef %int
+%bool = OpTypeBool
+%6 = OpUndef %bool
+%7 = OpFunction %void None %2
+%8 = OpLabel
+OpSelectionMerge %9 None
+OpSwitch %4 %10 0 %11
+%10 = OpLabel
+OpBranch %9
+%11 = OpLabel
+OpBranch %12
+%12 = OpLabel
+OpLoopMerge %13 %14 None
+OpBranch %15
+%15 = OpLabel
+OpSelectionMerge %16 None
+OpSwitch %4 %17 1 %18 2 %19
+%17 = OpLabel
+OpBranch %16
+%18 = OpLabel
+OpBranch %14
+%19 = OpLabel
+OpBranch %16
+%16 = OpLabel
+OpBranch %14
+%14 = OpLabel
+OpBranchConditional %6 %12 %13
+%13 = OpLabel
+OpSelectionMerge %20 None
+OpBranchConditional %6 %21 %20
+%21 = OpLabel
+OpBranch %9
+%20 = OpLabel
+OpBranch %10
+%9 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateCFG, ExitFromConstructWhoseHeaderIsAMerge2) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+       %void = OpTypeVoid
+          %4 = OpTypeFunction %void
+        %int = OpTypeInt 32 1
+          %6 = OpUndef %int
+       %bool = OpTypeBool
+          %8 = OpUndef %bool
+          %2 = OpFunction %void None %4
+          %9 = OpLabel
+               OpSelectionMerge %10 None
+               OpSwitch %6 %11 0 %12
+         %11 = OpLabel
+               OpBranch %10
+         %12 = OpLabel
+               OpBranch %13
+         %13 = OpLabel
+               OpLoopMerge %14 %15 None
+               OpBranch %16
+         %16 = OpLabel
+               OpSelectionMerge %17 None
+               OpSwitch %6 %18 1 %19 2 %20
+         %18 = OpLabel
+               OpBranch %17
+         %19 = OpLabel
+               OpBranch %15
+         %20 = OpLabel
+               OpBranch %17
+         %17 = OpLabel
+               OpBranch %15
+         %15 = OpLabel
+               OpBranchConditional %8 %13 %14
+         %14 = OpLabel
+               OpSelectionMerge %21 None
+               OpBranchConditional %8 %22 %21
+         %22 = OpLabel
+               OpSelectionMerge %23 None
+               OpBranchConditional %8 %24 %23
+         %24 = OpLabel
+               OpBranch %10
+         %23 = OpLabel
+               OpBranch %21
+         %21 = OpLabel
+               OpBranch %11
+         %10 = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 }  // namespace
 }  // namespace val
 }  // namespace spvtools

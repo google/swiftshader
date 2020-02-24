@@ -88,6 +88,7 @@ spv_result_t spvExtInstTableGet(spv_ext_inst_table* pExtInstTable,
     case SPV_ENV_WEBGPU_0:
     case SPV_ENV_UNIVERSAL_1_4:
     case SPV_ENV_UNIVERSAL_1_5:
+    case SPV_ENV_VULKAN_1_2:
       *pExtInstTable = &kTable_1_0;
       return SPV_SUCCESS;
     default:
@@ -132,6 +133,14 @@ spv_ext_inst_type_t spvExtInstImportTypeGet(const char* name) {
 
 bool spvExtInstIsNonSemantic(const spv_ext_inst_type_t type) {
   if (type == SPV_EXT_INST_TYPE_NONSEMANTIC_UNKNOWN) {
+    return true;
+  }
+  return false;
+}
+
+bool spvExtInstIsDebugInfo(const spv_ext_inst_type_t type) {
+  if (type == SPV_EXT_INST_TYPE_OPENCL_DEBUGINFO_100 ||
+      type == SPV_EXT_INST_TYPE_DEBUGINFO) {
     return true;
   }
   return false;

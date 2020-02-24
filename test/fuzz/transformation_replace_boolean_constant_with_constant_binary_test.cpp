@@ -650,6 +650,45 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest, OpPhi) {
   ASSERT_FALSE(replacement.IsApplicable(context.get(), fact_manager));
 }
 
+TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
+     DoNotReplaceVariableInitializer) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %4 "main"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpTypePointer Function %6
+          %9 = OpConstantTrue %6
+         %10 = OpTypeInt 32 1
+         %13 = OpConstant %10 0
+         %15 = OpConstant %10 1
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+         %50 = OpVariable %7 Function %9
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+
+  ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
+                   MakeIdUseDescriptor(
+                       9, MakeInstructionDescriptor(50, SpvOpVariable, 0), 1),
+                   13, 15, SpvOpSLessThan, 100)
+                   .IsApplicable(context.get(), fact_manager));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

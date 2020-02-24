@@ -1378,6 +1378,7 @@ OpFunctionEnd
 
   SinglePassRunAndMatch<DeadBranchElimPass>(text, true);
 }
+
 TEST_F(DeadBranchElimTest, LeaveContinueBackedgeExtraBlock) {
   const std::string text = R"(
 ; CHECK: OpBranch [[header:%\w+]]
@@ -3159,6 +3160,73 @@ OpFunctionEnd
 )";
 
   SinglePassRunAndCheck<DeadBranchElimPass>(before, after, true, true);
+}
+
+TEST_F(DeadBranchElimTest, BreakInNestedHeaderWithSingleCase) {
+  const std::string text = R"(OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+OpSource GLSL 450
+OpName %main "main"
+%void = OpTypeVoid
+%4 = OpTypeFunction %void
+%bool = OpTypeBool
+%uint = OpTypeInt 32 0
+%uint_0 = OpConstant %uint 0
+%8 = OpUndef %bool
+%main = OpFunction %void None %4
+%9 = OpLabel
+OpSelectionMerge %10 None
+OpSwitch %uint_0 %11
+%11 = OpLabel
+OpSelectionMerge %12 None
+OpBranchConditional %8 %10 %12
+%12 = OpLabel
+OpBranch %10
+%10 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndCheck<DeadBranchElimPass>(text, text, true, true);
+}
+
+TEST_F(DeadBranchElimTest, BreakInNestedHeaderWithTwoCases) {
+  const std::string text = R"(
+; CHECK: OpSelectionMerge [[merge:%\w+]] None
+; CHECK-NEXT: OpSwitch %uint_0 [[bb:%\w+\n]]
+OpCapability Shader
+%1 = OpExtInstImport "GLSL.std.450"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+OpSource GLSL 450
+OpName %main "main"
+%void = OpTypeVoid
+%4 = OpTypeFunction %void
+%bool = OpTypeBool
+%uint = OpTypeInt 32 0
+%uint_0 = OpConstant %uint 0
+%8 = OpUndef %bool
+%main = OpFunction %void None %4
+%9 = OpLabel
+OpSelectionMerge %10 None
+OpSwitch %uint_0 %11 1 %12
+%11 = OpLabel
+OpSelectionMerge %13 None
+OpBranchConditional %8 %10 %13
+%13 = OpLabel
+OpBranch %10
+%12 = OpLabel
+OpBranch %10
+%10 = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<DeadBranchElimPass>(text, true);
 }
 
 // TODO(greg-lunarg): Add tests to verify handling of these cases:

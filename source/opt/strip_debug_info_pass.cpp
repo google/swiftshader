@@ -75,6 +75,7 @@ Pass::Status StripDebugInfoPass::Process() {
 
   for (auto& dbg : context()->debugs2()) to_kill.push_back(&dbg);
   for (auto& dbg : context()->debugs3()) to_kill.push_back(&dbg);
+  for (auto& dbg : context()->ext_inst_debuginfo()) to_kill.push_back(&dbg);
 
   // OpName must come first, since they may refer to other debug instructions.
   // If they are after the instructions that refer to, then they will be killed

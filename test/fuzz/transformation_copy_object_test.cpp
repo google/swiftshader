@@ -588,6 +588,96 @@ TEST(TransformationCopyObjectTest, MiscellaneousCopies) {
   ASSERT_TRUE(IsEqual(env, after_transformation, context.get()));
 }
 
+TEST(TransformationCopyObjectTest, DoNotCopyNullOrUndefPointers) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypePointer Function %6
+          %8 = OpConstantNull %7
+          %9 = OpUndef %7
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+
+  // Illegal to copy null.
+  ASSERT_FALSE(TransformationCopyObject(
+                   8, MakeInstructionDescriptor(5, SpvOpReturn, 0), 100)
+                   .IsApplicable(context.get(), fact_manager));
+
+  // Illegal to copy an OpUndef of pointer type.
+  ASSERT_FALSE(TransformationCopyObject(
+                   9, MakeInstructionDescriptor(5, SpvOpReturn, 0), 100)
+                   .IsApplicable(context.get(), fact_manager));
+}
+
+TEST(TransformationCopyObjectTest, PropagateIrrelevantPointeeFact) {
+  // Checks that if a pointer is known to have an irrelevant value, the same
+  // holds after the pointer is copied.
+
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypePointer Function %6
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %8 = OpVariable %7 Function
+          %9 = OpVariable %7 Function
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  fact_manager.AddFactValueOfPointeeIsIrrelevant(8);
+
+  TransformationCopyObject transformation1(
+      8, MakeInstructionDescriptor(9, SpvOpReturn, 0), 100);
+  TransformationCopyObject transformation2(
+      9, MakeInstructionDescriptor(9, SpvOpReturn, 0), 101);
+  TransformationCopyObject transformation3(
+      100, MakeInstructionDescriptor(9, SpvOpReturn, 0), 102);
+
+  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
+  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
+  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
+  transformation3.Apply(context.get(), &fact_manager);
+
+  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(8));
+  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(100));
+  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(102));
+  ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(9));
+  ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(101));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

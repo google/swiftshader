@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "gmock/gmock.h"
-
 #include "test/opt/pass_fixture.h"
 #include "test/opt/pass_utils.h"
 
@@ -913,6 +912,42 @@ TEST_F(AmdExtToKhrTest, SetVersion1) {
   EXPECT_THAT(output, HasSubstr("Version: 1.4"));
 }
 
+TEST_F(AmdExtToKhrTest, TimeAMD) {
+  const std::string text = R"(
+               OpCapability Shader
+               OpCapability Int64
+               OpExtension "SPV_AMD_gcn_shader"
+; CHECK-NOT: OpExtension "SPV_AMD_gcn_shader"
+; CHECK: OpExtension "SPV_KHR_shader_clock"
+          %1 = OpExtInstImport "GLSL.std.450"
+          %2 = OpExtInstImport "SPV_AMD_gcn_shader"
+; CHECK-NOT: OpExtInstImport "SPV_AMD_gcn_shader"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+               OpSourceExtension "GL_AMD_gcn_shader"
+               OpSourceExtension "GL_ARB_gpu_shader_int64"
+               OpName %main "main"
+               OpName %time "time"
+       %void = OpTypeVoid
+          %6 = OpTypeFunction %void
+      %ulong = OpTypeInt 64 0
+%_ptr_Function_ulong = OpTypePointer Function %ulong
+       %main = OpFunction %void None %6
+          %9 = OpLabel
+       %time = OpVariable %_ptr_Function_ulong Function
+; CHECK: [[uint:%\w+]] = OpTypeInt 32 0
+; CHECK: [[uint_3:%\w+]] = OpConstant [[uint]] 3
+         %10 = OpExtInst %ulong %2 TimeAMD
+; CHECK: %10 = OpReadClockKHR %ulong [[uint_3]]
+               OpStore %time %10
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<AmdExtensionToKhrPass>(text, true);
+}
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools
