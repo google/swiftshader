@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include <array>
 #include <cmath>
 #include <thread>
 #include <tuple>
@@ -1499,6 +1500,53 @@ TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 		float result = routine(1, 2.f, 3, 4.f, 5, 6.f, 7, 8.f, 9, 10.f);
 		EXPECT_EQ(result, 55.f);
 	}
+}
+
+// This test was written because on Windows with Subzero, we would get a crash when executing a function
+// with a large number of local variables. The problem was that on Windows, 4K pages are allocated as
+// needed for the stack whenever an access is made in a "guard page", at which point the page is committed,
+// and the next 4K page becomes the guard page. If a stack access is made that's beyond the guard page,
+// a regular page fault occurs. To fix this, Subzero (and any compiler) now emits a call to __chkstk with
+// the stack size in EAX, so that it can probe the stack in 4K increments up to that size, committing the
+// required pages. See https://docs.microsoft.com/en-us/windows/win32/devnotes/-win32-chkstk.
+TEST(ReactorUnitTests, LargeStack)
+{
+#if defined(_WIN32)
+	// An empirically large enough value to access outside the guard pages
+	constexpr int ArrayByteSize = 24 * 1024;
+	constexpr int ArraySize = ArrayByteSize / sizeof(int32_t);
+
+	FunctionT<void(int32_t * v)> function;
+	{
+		// Allocate a stack array large enough that writing to the first element will reach beyond
+		// the guard page.
+		Array<Int, ArraySize> largeStackArray;
+		for(int i = 0; i < ArraySize; ++i)
+		{
+			largeStackArray[i] = i;
+		}
+
+		Pointer<Int> in = function.Arg<0>();
+		for(int i = 0; i < ArraySize; ++i)
+		{
+			in[i] = largeStackArray[i];
+		}
+	}
+
+	auto routine = function("one");
+	std::array<int32_t, ArraySize> v;
+
+	// Run this in a thread, so that we get the default reserved stack size (8K on Win64).
+	std::thread t([&] {
+		routine(v.data());
+	});
+	t.join();
+
+	for(int i = 0; i < ArraySize; ++i)
+	{
+		EXPECT_EQ(v[i], i);
+	}
+#endif
 }
 
 TEST(ReactorUnitTests, Call)

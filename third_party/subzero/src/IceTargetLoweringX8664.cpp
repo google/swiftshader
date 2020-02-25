@@ -17,6 +17,10 @@
 #include "IceDefs.h"
 #include "IceTargetLoweringX8664Traits.h"
 
+#if defined(SUBZERO_USE_MICROSOFT_ABI)
+extern "C" void __chkstk();
+#endif
+
 namespace X8664 {
 std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
   return ::Ice::X8664::TargetX8664::create(Func);
@@ -756,6 +760,26 @@ void TargetX8664::emitSandboxedReturn() {
 
     _jmp(T_rcx);
   }
+}
+
+void TargetX8664::emitStackProbe(size_t StackSizeBytes) {
+#if defined(SUBZERO_USE_MICROSOFT_ABI)
+  // Mirroring the behavior of MSVC here, which emits a _chkstk when locals are
+  // >= 4KB, rather than the 8KB claimed by the docs.
+  if (StackSizeBytes >= 4096) {
+    // __chkstk on Win64 probes the stack up to RSP - EAX, but does not clobber
+    // RSP, so we don't need to save and restore it.
+
+    Variable *EAX = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+    _mov(EAX, Ctx->getConstantInt32(StackSizeBytes));
+
+    auto *CallTarget =
+        Ctx->getConstantInt64(reinterpret_cast<int64_t>(&__chkstk));
+    Operand *CallTargetReg =
+        legalizeToReg(CallTarget, Traits::RegisterSet::Reg_r11);
+    emitCallToTarget(CallTargetReg, nullptr);
+  }
+#endif
 }
 
 // In some cases, there are x-macros tables for both high-level and low-level
