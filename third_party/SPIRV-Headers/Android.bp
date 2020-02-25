@@ -1,34 +1,35 @@
-filegroup {
-    name: "swiftshader_spirv.core.grammar.json-1.0",
-    srcs: ["include/spirv/1.0/spirv.core.grammar.json"],
-}
+//
+// Copyright (C) 2020 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 
 filegroup {
-    name: "swiftshader_spirv.core.grammar.json-1.1",
-    srcs: ["include/spirv/1.1/spirv.core.grammar.json"],
-}
-
-filegroup {
-    name: "swiftshader_spirv.core.grammar.json-1.2",
-    srcs: ["include/spirv/1.2/spirv.core.grammar.json"],
-}
-
-filegroup {
-    name: "swiftshader_spirv.core.grammar.json-unified1",
+    name: "swiftshader_spirv_headers_unified1_spirv.core.grammar.json",
     srcs: ["include/spirv/unified1/spirv.core.grammar.json"],
 }
 
 filegroup {
-    name: "swiftshader_spirv.glsl.grammar.json",
-    srcs: ["include/spirv/1.2/extinst.glsl.std.450.grammar.json"],
+    name: "swiftshader_spirv_headers_unified1_extinst.opencl.std.100.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.opencl.std.100.grammar.json"],
 }
 
 filegroup {
-    name: "swiftshader_spirv.opencl.grammar.json",
-    srcs: ["include/spirv/1.2/extinst.opencl.std.100.grammar.json"],
+    name: "swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.glsl.std.450.grammar.json"],
 }
 
 filegroup {
-    name: "swiftshader_spirv.registry.xml",
+    name: "swiftshader_spirv_headers_spir-v.xml",
     srcs: ["include/spirv/spir-v.xml"],
 }

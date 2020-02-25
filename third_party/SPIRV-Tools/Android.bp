@@ -16,170 +16,84 @@
 
 // SPIRV Tools
 
-filegroup {
-    name: "swiftshader_spirv.debuginfo.grammar.json",
-    srcs: ["source/extinst.debuginfo.grammar.json"],
-}
-
-filegroup {
-    name: "swiftshader_spirv.extinst.opencl.debuginfo.100.grammar.json",
-    srcs: ["source/extinst.opencl.debuginfo.100.grammar.json"],
-}
+// genrules were obtained from the CMake build:
+// $ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug
+// $ ninja -v -j 1 >log.log
+// Find Python invocations.
+// Use regex replacements to get "cmd:" lines below.
 
 genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_unified1",
+    name: "swiftshader_spvtools_generate_grammar_tables",
     out: [
         "core.insts-unified1.inc",
+        "debuginfo.insts.inc",
+        "enum_string_mapping.inc",
+        "extension_enum.inc",
         "glsl.std.450.insts.inc",
+        "opencl.debuginfo.100.insts.inc",
         "opencl.std.insts.inc",
         "operand.kinds-unified1.inc",
-    ],
-    srcs: [
-        ":swiftshader_spirv.core.grammar.json-unified1",
-        ":swiftshader_spirv.glsl.grammar.json",
-        ":swiftshader_spirv.opencl.grammar.json",
-        ":swiftshader_spirv.debuginfo.grammar.json",
-        ":swiftshader_spirv.extinst.opencl.debuginfo.100.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) "+
-         "--spirv-core-grammar=$(location :swiftshader_spirv.core.grammar.json-unified1) "+
-         "--extinst-glsl-grammar=$(location :swiftshader_spirv.glsl.grammar.json) "+
-         "--extinst-opencl-grammar=$(location :swiftshader_spirv.opencl.grammar.json) "+
-         "--extinst-debuginfo-grammar=$(location :swiftshader_spirv.debuginfo.grammar.json) "+
-         "--extinst-cldebuginfo100-grammar=$(location :swiftshader_spirv.extinst.opencl.debuginfo.100.grammar.json) "+
-         "--core-insts-output=$(location core.insts-unified1.inc) "+
-         "--glsl-insts-output=$(location glsl.std.450.insts.inc) "+
-         "--opencl-insts-output=$(location opencl.std.insts.inc) "+
-         "--operand-kinds-output=$(location operand.kinds-unified1.inc)",
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_debuginfo",
-    out: [
-        "debuginfo.insts.inc",
-    ],
-    srcs: [
-        ":swiftshader_spirv.debuginfo.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --extinst-vendor-grammar=$(in) "+
-         "--vendor-insts-output=$(out)"
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_opencl_debuginfo_100",
-    out: [
-        "opencl.debuginfo.100.insts.inc",
-    ],
-    srcs: [
-        ":swiftshader_spirv.extinst.opencl.debuginfo.100.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --extinst-vendor-grammar=$(in) "+
-         "--vendor-insts-output=$(out) "+
-         "--vendor-operand-kind-prefix=CLDEBUG100_"
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_amd-gcn-shader",
-    out: [
         "spv-amd-gcn-shader.insts.inc",
-    ],
-    srcs: [
-        "source/extinst.spv-amd-gcn-shader.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --extinst-vendor-grammar=$(in) "+
-         "--vendor-insts-output=$(out)"
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_amd-shader-ballot",
-    out: [
         "spv-amd-shader-ballot.insts.inc",
-    ],
-    srcs: [
-        "source/extinst.spv-amd-shader-ballot.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --extinst-vendor-grammar=$(in) "+
-         "--vendor-insts-output=$(out)"
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_amd-shader-explicit-vertex-parameter",
-    out: [
         "spv-amd-shader-explicit-vertex-parameter.insts.inc",
-    ],
-    srcs: [
-        "source/extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --extinst-vendor-grammar=$(in) "+
-         "--vendor-insts-output=$(out)"
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_grammar_tables_amd-shader-trinary-minmax",
-    out: [
         "spv-amd-shader-trinary-minmax.insts.inc",
     ],
     srcs: [
+        ":swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json",
+        ":swiftshader_spirv_headers_unified1_extinst.opencl.std.100.grammar.json",
+        ":swiftshader_spirv_headers_unified1_spirv.core.grammar.json",
+        "source/extinst.debuginfo.grammar.json",
+        "source/extinst.opencl.debuginfo.100.grammar.json",
+        "source/extinst.spv-amd-gcn-shader.grammar.json",
+        "source/extinst.spv-amd-shader-ballot.grammar.json",
+        "source/extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json",
         "source/extinst.spv-amd-shader-trinary-minmax.grammar.json",
     ],
     tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --extinst-vendor-grammar=$(in) "+
-         "--vendor-insts-output=$(out)"
+    cmd:
+        "$(location) --extinst-vendor-grammar=$(location source/extinst.spv-amd-gcn-shader.grammar.json) --vendor-insts-output=$(location spv-amd-gcn-shader.insts.inc) --vendor-operand-kind-prefix=; "+
+        "$(location) --spirv-core-grammar=$(location :swiftshader_spirv_headers_unified1_spirv.core.grammar.json) --extinst-debuginfo-grammar=$(location source/extinst.debuginfo.grammar.json) --extinst-cldebuginfo100-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --core-insts-output=$(location core.insts-unified1.inc) --operand-kinds-output=$(location operand.kinds-unified1.inc); "+
+        "$(location) --extinst-vendor-grammar=$(location source/extinst.debuginfo.grammar.json) --vendor-insts-output=$(location debuginfo.insts.inc) --vendor-operand-kind-prefix=; "+
+        "$(location) --extinst-vendor-grammar=$(location source/extinst.spv-amd-shader-ballot.grammar.json) --vendor-insts-output=$(location spv-amd-shader-ballot.insts.inc) --vendor-operand-kind-prefix=; "+
+        "$(location) --extinst-vendor-grammar=$(location source/extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json) --vendor-insts-output=$(location spv-amd-shader-explicit-vertex-parameter.insts.inc) --vendor-operand-kind-prefix=; "+
+        "$(location) --extinst-vendor-grammar=$(location source/extinst.spv-amd-shader-trinary-minmax.grammar.json) --vendor-insts-output=$(location spv-amd-shader-trinary-minmax.insts.inc) --vendor-operand-kind-prefix=; "+
+        "$(location) --extinst-vendor-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --vendor-insts-output=$(location opencl.debuginfo.100.insts.inc) --vendor-operand-kind-prefix=CLDEBUG100_; "+
+        "$(location) --spirv-core-grammar=$(location :swiftshader_spirv_headers_unified1_spirv.core.grammar.json) --extinst-debuginfo-grammar=$(location source/extinst.debuginfo.grammar.json) --extinst-cldebuginfo100-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --extension-enum-output=$(location extension_enum.inc) --enum-string-mapping-output=$(location enum_string_mapping.inc); "+
+        "$(location) --extinst-opencl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.opencl.std.100.grammar.json) --opencl-insts-output=$(location opencl.std.insts.inc); "+
+        "$(location) --extinst-glsl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json) --glsl-insts-output=$(location glsl.std.450.insts.inc); "
 }
 
+
 genrule {
-    name: "swiftshader_gen_spvtools_lang_headers",
+    name: "swiftshader_spvtools_generate_language_headers",
     out: [
         "DebugInfo.h",
+        "OpenCLDebugInfo100.h",
     ],
     srcs: [
-        ":swiftshader_spirv.debuginfo.grammar.json",
+        "source/extinst.debuginfo.grammar.json",
+        "source/extinst.opencl.debuginfo.100.grammar.json",
     ],
     tool_files: ["utils/generate_language_headers.py"],
-    cmd: "$(location) --extinst-name=DebugInfo "+
-         "--extinst-grammar=$(location :swiftshader_spirv.debuginfo.grammar.json) "+
-         "--extinst-output-base=$$(dirname $(location DebugInfo.h))/DebugInfo",
+    cmd: 
+        "$(location) --extinst-name=DebugInfo --extinst-grammar=$(location source/extinst.debuginfo.grammar.json) --extinst-output-base=$$(dirname $(location DebugInfo.h))/DebugInfo; "+
+        "$(location) --extinst-name=OpenCLDebugInfo100 --extinst-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --extinst-output-base=$$(dirname $(location OpenCLDebugInfo100.h))/OpenCLDebugInfo100; "
 }
 
 genrule {
-    name: "swiftshader_gen_spvtools_enum_string_mapping",
-    out: [
-        "extension_enum.inc",
-        "enum_string_mapping.inc",
-    ],
-    srcs: [
-        ":swiftshader_spirv.core.grammar.json-unified1",
-        ":swiftshader_spirv.debuginfo.grammar.json",
-        ":swiftshader_spirv.extinst.opencl.debuginfo.100.grammar.json",
-    ],
-    tool_files: ["utils/generate_grammar_tables.py"],
-    cmd: "$(location) --spirv-core-grammar=$(location :swiftshader_spirv.core.grammar.json-unified1) "+
-         "--extinst-debuginfo-grammar=$(location :swiftshader_spirv.debuginfo.grammar.json) "+
-         "--extinst-cldebuginfo100-grammar=$(location :swiftshader_spirv.extinst.opencl.debuginfo.100.grammar.json) "+
-         "--extension-enum-output=$(location extension_enum.inc) "+
-         "--enum-string-mapping-output=$(location enum_string_mapping.inc) "
-}
-
-genrule {
-    name: "swiftshader_gen_spvtools_generators_inc",
+    name: "swiftshader_spvtools_generate_registry_tables",
     out: [
         "generators.inc"
     ],
     srcs: [
-        ":swiftshader_spirv.registry.xml"
+        ":swiftshader_spirv_headers_spir-v.xml"
     ],
     tool_files: ["utils/generate_registry_tables.py"],
-    cmd: "$(location) --xml=$(location :swiftshader_spirv.registry.xml) --generator-output=$(location generators.inc)",
+    cmd: "$(location) --xml=$(location :swiftshader_spirv_headers_spir-v.xml) --generator-output=$(location generators.inc)",
 }
 
 genrule { // FIXME this relies on `git` which is no good on build machines
-    name: "swiftshader_gen_spvtools_build_version_inc",
+    name: "swiftshader_spvtools_update_build_version",
     out: ["build-version.inc"],
     srcs: ["CHANGES"],
     tool_files: ["utils/update_build_version.py"],
@@ -206,17 +120,10 @@ cc_library_static {
         "external/swiftshader/third_party/SPIRV-Headers/include"
     ],
     generated_headers: [
-        "swiftshader_gen_spvtools_grammar_tables_unified1",
-        "swiftshader_gen_spvtools_grammar_tables_debuginfo",
-        "swiftshader_gen_spvtools_grammar_tables_opencl_debuginfo_100",
-        "swiftshader_gen_spvtools_grammar_tables_amd-gcn-shader",
-        "swiftshader_gen_spvtools_grammar_tables_amd-shader-ballot",
-        "swiftshader_gen_spvtools_grammar_tables_amd-shader-explicit-vertex-parameter",
-        "swiftshader_gen_spvtools_grammar_tables_amd-shader-trinary-minmax",
-        "swiftshader_gen_spvtools_enum_string_mapping",
-        "swiftshader_gen_spvtools_generators_inc",
-        "swiftshader_gen_spvtools_build_version_inc",
-        "swiftshader_gen_spvtools_lang_headers",
+        "swiftshader_spvtools_generate_grammar_tables",
+        "swiftshader_spvtools_generate_language_headers",
+        "swiftshader_spvtools_update_build_version",
+        "swiftshader_spvtools_generate_registry_tables",
     ],
     stl: "libc++_static",
     cppflags: [
