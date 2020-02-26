@@ -158,8 +158,12 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     inputs = [
       "vk_swiftshader.lds",
     ]
-    ldflags = [ "-Wl,--version-script=" +
-                rebase_path("vk_swiftshader.lds", root_build_dir) ]
+    ldflags = [
+      # -Bsymbolic binds symbol references to their global definitions within
+      # a shared object, thereby preventing symbol preemption.
+      "-Wl,-Bsymbolic",
+      "-Wl,--version-script=" +
+          rebase_path("vk_swiftshader.lds", root_build_dir) ]
   }
 
   deps = [

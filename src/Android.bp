@@ -555,6 +555,12 @@ cc_defaults {
         "-Wno-non-virtual-dtor",
     ],
 
+    ldflags: [
+        // -Bsymbolic binds symbol references to their global definitions within
+        // a shared object, thereby preventing symbol preemption.
+        "-Wl,-Bsymbolic",
+    ],
+
     local_include_dirs: [ "Vulkan" ],
 
     version_script: "Vulkan/android_vk_swiftshader.lds",
