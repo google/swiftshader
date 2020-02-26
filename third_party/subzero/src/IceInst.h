@@ -426,7 +426,8 @@ class InstCall : public InstHighLevel {
 public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                           Operand *CallTarget, bool HasTailCall,
-                          bool IsTargetHelperCall = false) {
+                          bool IsTargetHelperCall = false,
+                          bool IsVariadic = false) {
     /// Set HasSideEffects to true so that the call instruction can't be
     /// dead-code eliminated. IntrinsicCalls can override this if the particular
     /// intrinsic is deletable and has no side-effects.
@@ -434,7 +435,7 @@ public:
     constexpr InstKind Kind = Inst::Call;
     return new (Func->allocate<InstCall>())
         InstCall(Func, NumArgs, Dest, CallTarget, HasTailCall,
-                 IsTargetHelperCall, HasSideEffects, Kind);
+                 IsTargetHelperCall, IsVariadic, HasSideEffects, Kind);
   }
   void addArg(Operand *Arg) { addSource(Arg); }
   Operand *getCallTarget() const { return getSrc(0); }
@@ -442,6 +443,7 @@ public:
   SizeT getNumArgs() const { return getSrcSize() - 1; }
   bool isTailcall() const { return HasTailCall; }
   bool isTargetHelperCall() const { return IsTargetHelperCall; }
+  bool isVariadic() const { return IsVariadic; }
   bool isMemoryWrite() const override { return true; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Call; }
@@ -449,10 +451,10 @@ public:
 
 protected:
   InstCall(Cfg *Func, SizeT NumArgs, Variable *Dest, Operand *CallTarget,
-           bool HasTailCall, bool IsTargetHelperCall, bool HasSideEff,
-           InstKind Kind)
+           bool HasTailCall, bool IsTargetHelperCall, bool IsVariadic,
+           bool HasSideEff, InstKind Kind)
       : InstHighLevel(Func, Kind, NumArgs + 1, Dest), HasTailCall(HasTailCall),
-        IsTargetHelperCall(IsTargetHelperCall) {
+        IsTargetHelperCall(IsTargetHelperCall), IsVariadic(IsVariadic) {
     HasSideEffects = HasSideEff;
     addSource(CallTarget);
   }
@@ -460,6 +462,7 @@ protected:
 private:
   const bool HasTailCall;
   const bool IsTargetHelperCall;
+  const bool IsVariadic;
 };
 
 /// Cast instruction (a.k.a. conversion operation).
@@ -633,7 +636,7 @@ public:
 private:
   InstIntrinsicCall(Cfg *Func, SizeT NumArgs, Variable *Dest,
                     Operand *CallTarget, const Intrinsics::IntrinsicInfo &Info)
-      : InstCall(Func, NumArgs, Dest, CallTarget, false, false,
+      : InstCall(Func, NumArgs, Dest, CallTarget, false, false, false,
                  Info.HasSideEffects, Inst::IntrinsicCall),
         Info(Info) {}
 

@@ -640,7 +640,8 @@ void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
   _jmp(JumpTarget);
 }
 
-Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
+Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
+                                    size_t NumVariadicFpArgs) {
   Inst *NewCall = nullptr;
   auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget);
   if (NeedSandboxing) {
@@ -700,7 +701,6 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
         _add(T64, r15);
         CallTarget = T64;
       }
-
       NewCall = Context.insert<Traits::Insts::Jmp>(CallTarget);
     }
     if (ReturnReg != nullptr) {
@@ -715,14 +715,42 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
       Variable *T = makeReg(IceType_i64);
       _movzx(T, CallTargetR);
       CallTarget = T;
-    } else if (llvm::isa<Constant>(CallTarget) &&
-               CallTarget->getType() == IceType_i64) {
-      // x86-64 does not support 64-bit direct calls, so write the value
-      // to a register and make an indirect call.
-      Variable *T = makeReg(IceType_i64);
-      _mov(T, CallTarget);
-      CallTarget = T;
+
+    } else if (CallTarget->getType() == IceType_i64) {
+      // x86-64 does not support 64-bit direct calls, so write the value to a
+      // register and make an indirect call for Constant call targets.
+      RegNumT TargetReg = {};
+
+      // System V: force r11 when calling a variadic function so that rax isn't
+      // used, since rax stores the number of FP args (see NumVariadicFpArgs
+      // usage below).
+#if !defined(SUBZERO_USE_MICROSOFT_ABI)
+      if (NumVariadicFpArgs > 0)
+        TargetReg = Traits::RegisterSet::Reg_r11;
+#endif
+
+      if (llvm::isa<Constant>(CallTarget)) {
+        Variable *T = makeReg(IceType_i64, TargetReg);
+        _mov(T, CallTarget);
+        CallTarget = T;
+      } else if (llvm::isa<Variable>(CallTarget)) {
+        Operand *T = legalizeToReg(CallTarget, TargetReg);
+        CallTarget = T;
+      }
     }
+
+    // System V: store number of FP args in RAX for variadic calls
+#if !defined(SUBZERO_USE_MICROSOFT_ABI)
+    if (NumVariadicFpArgs > 0) {
+      // Store number of FP args (stored in XMM registers) in RAX for variadic
+      // calls
+      auto *NumFpArgs = Ctx->getConstantInt64(NumVariadicFpArgs);
+      Variable *NumFpArgsReg =
+          legalizeToReg(NumFpArgs, Traits::RegisterSet::Reg_rax);
+      Context.insert<InstFakeUse>(NumFpArgsReg);
+    }
+#endif
+
     NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
   }
   return NewCall;

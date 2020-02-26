@@ -351,7 +351,13 @@ bool TargetX8632::legalizeOptAddrForSandbox(OptAddr *Addr) {
   return false;
 }
 
-Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
+Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
+                                    size_t NumVariadicFpArgs) {
+  (void)NumVariadicFpArgs;
+  // Note that NumVariadicFpArgs is only used for System V x86-64 variadic
+  // calls, because floating point arguments are passed via vector registers,
+  // whereas for x86-32, all args are passed via the stack.
+
   std::unique_ptr<AutoBundle> Bundle;
   if (NeedSandboxing) {
     if (llvm::isa<Constant>(CallTarget)) {

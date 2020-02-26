@@ -65,7 +65,8 @@ protected:
   void emitStackProbe(size_t StackSizeBytes);
   void lowerIndirectJump(Variable *JumpTarget);
   void emitGetIP(CfgNode *Node);
-  Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) override;
+  Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg,
+                         size_t NumVariadicFpArgs = 0) override;
   Variable *moveReturnValueToRegister(Operand *Value, Type ReturnType) override;
 
 private:

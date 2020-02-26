@@ -2816,7 +2816,8 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Emit the call to the function.
   Operand *CallTarget =
       legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
-  Inst *NewCall = emitCallToTarget(CallTarget, ReturnReg);
+  size_t NumVariadicFpArgs = Instr->isVariadic() ? XmmArgs.size() : 0;
+  Inst *NewCall = emitCallToTarget(CallTarget, ReturnReg, NumVariadicFpArgs);
   // Keep the upper return register live on 32-bit platform.
   if (ReturnRegHi)
     Context.insert<InstFakeDef>(ReturnRegHi);

@@ -145,7 +145,7 @@ Ice::Constant *getConstantPointer(Ice::GlobalContext *context, void const *ptr)
 }
 
 // Wrapper for calls on C functions with Ice types
-Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, void const *fptr, const std::vector<Ice::Operand *> &iceArgs)
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, void const *fptr, const std::vector<Ice::Operand *> &iceArgs, bool isVariadic)
 {
 	// Subzero doesn't support boolean return values. Replace with an i32.
 	if(retTy == Ice::IceType_i1)
@@ -159,7 +159,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retT
 		ret = function->makeVariable(retTy);
 	}
 
-	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, getConstantPointer(function->getContext(), fptr), false);
+	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, getConstantPointer(function->getContext(), fptr), false, false, isVariadic);
 	for(auto arg : iceArgs)
 	{
 		call->addArg(arg);
@@ -175,7 +175,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 {
 	Ice::Type retTy = T(rr::CToReactorT<Return>::getType());
 	std::vector<Ice::Operand *> iceArgs{ std::forward<RArgs>(args)... };
-	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs);
+	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs, false);
 }
 
 // Returns a non-const variable copy of const v
@@ -818,7 +818,7 @@ private:
 #ifdef ENABLE_RR_PRINT
 void VPrintf(const std::vector<Value *> &vals)
 {
-	sz::Call(::function, ::basicBlock, Ice::IceType_i32, reinterpret_cast<const void *>(::printf), V(vals));
+	sz::Call(::function, ::basicBlock, Ice::IceType_i32, reinterpret_cast<const void *>(::printf), V(vals), true);
 }
 #endif  // ENABLE_RR_PRINT
 
