@@ -93,7 +93,7 @@ bool PipelineCache::SpirvShaderKey::SpecializationInfo::operator<(const Speciali
 		}
 	}
 
-	return (info < specializationInfo.info);
+	return false;
 }
 
 PipelineCache::SpirvShaderKey::SpirvShaderKey(const VkShaderStageFlagBits pipelineStage,
