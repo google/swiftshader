@@ -46,6 +46,30 @@
       "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4ac3312_b5f98fd0",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-02-27T15:07:54Z",
+      "side": 0,
+      "message": "Thanks for remembering why this was added!\n\nWould it make sense to make the `!info || !specializationInfo.info` case early-out and add an assert that `!info \u003d\u003d !specializationInfo.info` inside of it? Worth checking the spec on what\u0027s allowed and how things should behave.",
+      "parentUuid": "9752cf81_8863a20f",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
