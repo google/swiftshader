@@ -18,6 +18,7 @@
 
 #include "Config.h"
 
+#include "Display.h"
 #include "common/debug.h"
 
 #include <EGL/eglext.h>
@@ -192,6 +193,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	// the intent of EGL_ANDROID_framebuffer_target is to prevent any copies or conversions.
 	mFramebufferTargetAndroid = (displayFormat == renderTargetFormat) ? EGL_TRUE : EGL_FALSE;
 	mRecordableAndroid = EGL_TRUE;
+	mBindToTextureTargetANGLE = EGL_TEXTURE_RECTANGLE_ANGLE;
 }
 
 EGLConfig Config::getHandle() const
@@ -398,6 +400,7 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 				case EGL_CONFORMANT:                 match = (config->mConformant & attribIt->second) == attribIt->second;      break;
 				case EGL_RECORDABLE_ANDROID:         match = config->mRecordableAndroid == (EGLBoolean)attribIt->second;        break;
 				case EGL_FRAMEBUFFER_TARGET_ANDROID: match = config->mFramebufferTargetAndroid == (EGLBoolean)attribIt->second; break;
+				case EGL_BIND_TO_TEXTURE_TARGET_ANGLE: match = config->mBindToTextureTargetANGLE == (EGLBoolean)attribIt->second; break;
 
 				// Ignored attributes
 				case EGL_MAX_PBUFFER_WIDTH:

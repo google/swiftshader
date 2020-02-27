@@ -76,6 +76,7 @@ public:
 
 	EGLBoolean mRecordableAndroid;          // EGL_ANDROID_recordable
 	EGLBoolean mFramebufferTargetAndroid;   // EGL_ANDROID_framebuffer_target
+	EGLenum mBindToTextureTargetANGLE;      // EGL_ANGLE_iosurface_client_buffer
 };
 
 struct CompareConfig

@@ -279,6 +279,7 @@ bool Display::getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value)
 	case EGL_MAX_PBUFFER_PIXELS:         *value = configuration->mMaxPBufferPixels;         break;
 	case EGL_RECORDABLE_ANDROID:         *value = configuration->mRecordableAndroid;        break;
 	case EGL_FRAMEBUFFER_TARGET_ANDROID: *value = configuration->mFramebufferTargetAndroid; break;
+	case EGL_BIND_TO_TEXTURE_TARGET_ANGLE: *value = configuration->mBindToTextureTargetANGLE; break;
 	default:
 		return false;
 	}
