@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d77f1dc1_c368bf80",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-02-27T14:55:05Z",
+      "side": 0,
+      "message": "I just remembered why this was here. We still need a test in the case where only \"info\" or \"specializationInfo.info\" is not null.\n\nYou probably need something like:\nelse if(info || specializationInfo.info)\n{\n\treturn (info \u003c specializationInfo.info);\n}\n\nreturn false;",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
