@@ -70,6 +70,30 @@
       "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23289015_482100e1",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 29190
+      },
+      "writtenOn": "2020-02-27T15:59:23Z",
+      "side": 0,
+      "message": "Spec:\n\nIt is legal for a SPIR-V module with specializations to be compiled into a pipeline where no specialization info was provided. SPIR-V specialization constants contain default values such that if a specialization is not provided\n\nhttps://renderdoc.org/vkspec_chunked/chap9.html#pipelines-specialization-constants\n\nI\u0027ll make a CL.",
+      "parentUuid": "e4ac3312_b5f98fd0",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
