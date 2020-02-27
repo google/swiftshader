@@ -190,6 +190,30 @@
       "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "72c50193_de81e16e",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 29190
+      },
+      "writtenOn": "2020-02-27T20:07:46Z",
+      "side": 0,
+      "message": "A bug would be nice. It\u0027s a bit tricky to implement. The test would be quite order-dependent because of the caching nature. I\u0027ll speak to Chris.",
+      "parentUuid": "795d51cd_9b69c4ea",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
