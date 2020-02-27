@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c95c4270_a6330182",
+        "filename": "src/Android.bp",
+        "patchSetId": 2
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-02-27T21:54:30Z",
+      "side": 1,
+      "message": "I might have to move this to the cc_library_shared targets below instead to be effective.",
+      "range": {
+        "startLine": 558,
+        "startChar": 4,
+        "endLine": 562,
+        "endChar": 6
+      },
+      "revId": "e3621dca154207c1df41123a94b4691f95185adf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
