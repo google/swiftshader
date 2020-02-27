@@ -22,6 +22,30 @@
       "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9752cf81_8863a20f",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-02-27T14:58:32Z",
+      "side": 0,
+      "message": "Although I\u0027m wondering if this case is even possible. If we do have specialization info, the SPIR-V code must have code to handle it, so it may not be possible to have the same SPIR-V code with and without specialization info.",
+      "parentUuid": "d77f1dc1_c368bf80",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
