@@ -62,34 +62,43 @@ void PipelineCache::SpirvShaderKey::SpecializationInfo::Deleter::operator()(VkSp
 
 bool PipelineCache::SpirvShaderKey::SpecializationInfo::operator<(const SpecializationInfo &specializationInfo) const
 {
-	if(info && specializationInfo.info)
+	// Check that either both or neither keys have specialization info.
+	if((info.get() == nullptr) != (specializationInfo.info.get() == nullptr))
 	{
-		if(info->mapEntryCount != specializationInfo.info->mapEntryCount)
-		{
-			return info->mapEntryCount < specializationInfo.info->mapEntryCount;
-		}
+		return info.get() == nullptr;
+	}
 
-		if(info->dataSize != specializationInfo.info->dataSize)
-		{
-			return info->dataSize < specializationInfo.info->dataSize;
-		}
+	if(!info)
+	{
+		ASSERT(!specializationInfo.info);
+		return false;
+	}
 
-		if(info->mapEntryCount > 0)
-		{
-			int cmp = memcmp(info->pMapEntries, specializationInfo.info->pMapEntries, info->mapEntryCount * sizeof(VkSpecializationMapEntry));
-			if(cmp != 0)
-			{
-				return cmp < 0;
-			}
-		}
+	if(info->mapEntryCount != specializationInfo.info->mapEntryCount)
+	{
+		return info->mapEntryCount < specializationInfo.info->mapEntryCount;
+	}
 
-		if(info->dataSize > 0)
+	if(info->dataSize != specializationInfo.info->dataSize)
+	{
+		return info->dataSize < specializationInfo.info->dataSize;
+	}
+
+	if(info->mapEntryCount > 0)
+	{
+		int cmp = memcmp(info->pMapEntries, specializationInfo.info->pMapEntries, info->mapEntryCount * sizeof(VkSpecializationMapEntry));
+		if(cmp != 0)
 		{
-			int cmp = memcmp(info->pData, specializationInfo.info->pData, info->dataSize);
-			if(cmp != 0)
-			{
-				return cmp < 0;
-			}
+			return cmp < 0;
+		}
+	}
+
+	if(info->dataSize > 0)
+	{
+		int cmp = memcmp(info->pData, specializationInfo.info->pData, info->dataSize);
+		if(cmp != 0)
+		{
+			return cmp < 0;
 		}
 	}
 
