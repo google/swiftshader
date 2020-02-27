@@ -94,6 +94,30 @@
       "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5508482_eba6b81d",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-02-27T18:03:27Z",
+      "side": 0,
+      "message": "Thank you!\n\nSince this change introduce a bug which wasn\u0027t caught by dEQP, would you mind filing a bug with Khronos to request a test?",
+      "parentUuid": "23289015_482100e1",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
