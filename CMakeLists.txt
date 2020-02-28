@@ -1549,6 +1549,25 @@ if(LINUX)
     target_link_libraries(llvm dl)
 endif()
 
+
+###########################################################
+# marl
+###########################################################
+if(BUILD_MARL)
+    set(MARL_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
+    add_subdirectory(third_party/marl)
+endif()
+
+
+###########################################################
+# cppdap
+###########################################################
+if(SWIFTSHADER_BUILD_CPPDAP)
+    set(CPPDAP_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
+    add_subdirectory(${CPPDAP_DIR})
+endif()
+
+
 ###########################################################
 # Subzero
 ###########################################################
@@ -1695,6 +1714,8 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         FOLDER "Subzero"
     )
     target_link_libraries(ReactorSubzero SubzeroDependencies)
+
+    target_link_libraries(ReactorSubzero marl)
 
     if(WIN32)
         target_compile_definitions(ReactorSubzero PRIVATE SUBZERO_USE_MICROSOFT_ABI)
@@ -2157,16 +2178,6 @@ if(SWIFTSHADER_BUILD_GLES_CM)
     )
 endif(SWIFTSHADER_BUILD_GLES_CM)
 
-if(BUILD_MARL)
-    set(MARL_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
-    add_subdirectory(third_party/marl)
-endif()
-
-if(SWIFTSHADER_BUILD_CPPDAP)
-    set(CPPDAP_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
-    add_subdirectory(${CPPDAP_DIR})
-endif()
-
 if(SWIFTSHADER_BUILD_VULKAN)
     add_library(vk_swiftshader SHARED ${VULKAN_LIST})
 
@@ -2322,9 +2333,9 @@ if(SWIFTSHADER_BUILD_TESTS)
     )
 
     if(NOT WIN32 AND ${REACTOR_BACKEND} STREQUAL "Subzero")
-        target_link_libraries(ReactorUnitTests ${Reactor} pthread dl)
+        target_link_libraries(ReactorUnitTests ${Reactor} marl pthread dl)
     else()
-        target_link_libraries(ReactorUnitTests ${Reactor})
+        target_link_libraries(ReactorUnitTests ${Reactor} marl)
     endif()
 
     set(GLES_UNITTESTS_LIST
@@ -2390,7 +2401,7 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
     )
 
     add_executable(ReactorBenchmarks ${REACTOR_BENCHMARK_LIST})
-    target_link_libraries(ReactorBenchmarks benchmark::benchmark ${Reactor})
+    target_link_libraries(ReactorBenchmarks benchmark::benchmark marl ${Reactor})
 
     set_target_properties(ReactorBenchmarks PROPERTIES
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
