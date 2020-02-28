@@ -214,6 +214,30 @@
       "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a6fc0505_8ef4e09d",
+        "filename": "src/Vulkan/VkPipelineCache.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-02-28T15:22:24Z",
+      "side": 0,
+      "message": "https://issuetracker.google.com/150449637 Might be easier to test with a SwiftShader-specific unit test.",
+      "parentUuid": "72c50193_de81e16e",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 41
+      },
+      "revId": "4d40271e3f09de5e6734b4223ea15b4faf758d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
