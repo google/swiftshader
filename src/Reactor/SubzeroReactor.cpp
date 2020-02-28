@@ -268,7 +268,16 @@ Ice::Fdstream *out = nullptr;
 // Coroutine globals
 rr::Type *coroYieldType = nullptr;
 std::shared_ptr<rr::CoroutineGenerator> coroGen;
+marl::Scheduler &getOrCreateScheduler()
+{
+	static auto scheduler = [] {
+		auto s = std::make_unique<marl::Scheduler>();
+		s->setWorkerThreadCount(8);
+		return s;
+	}();
 
+	return *scheduler;
+}
 }  // Anonymous namespace
 
 namespace {
@@ -4467,6 +4476,7 @@ namespace coro {
 // Lifetime: from yield to when CoroutineEntryDestroy generated function is called.
 struct CoroutineData
 {
+	bool useInternalScheduler = false;
 	marl::Event suspended;                                // the coroutine is suspended on a yield()
 	marl::Event resumed;                                  // the caller is suspended on an await()
 	marl::Event done{ marl::Event::Mode::Manual };        // the coroutine should stop at the next yield()
@@ -4510,9 +4520,13 @@ void resume(Nucleus::CoroutineHandle handle)
 void stop(Nucleus::CoroutineHandle handle)
 {
 	auto *coroData = reinterpret_cast<CoroutineData *>(handle);
-	coroData->done.signal();               // signal that the coroutine should stop at next (or current) yield.
-	coroData->resumed.signal();            // wake the coroutine if blocked on a yield.
-	coroData->terminated.wait();           // wait for the coroutine to return.
+	coroData->done.signal();      // signal that the coroutine should stop at next (or current) yield.
+	coroData->resumed.signal();   // wake the coroutine if blocked on a yield.
+	coroData->terminated.wait();  // wait for the coroutine to return.
+	if(coroData->useInternalScheduler)
+	{
+		::getOrCreateScheduler().unbind();
+	}
 	coro::destroyCoroutineData(coroData);  // free the coroutine data.
 }
 
@@ -4751,6 +4765,12 @@ static Nucleus::CoroutineHandle invokeCoroutineBegin(std::function<Nucleus::Coro
 {
 	// This doubles up as our coroutine handle
 	auto coroData = coro::createCoroutineData();
+
+	coroData->useInternalScheduler = (marl::Scheduler::get() == nullptr);
+	if(coroData->useInternalScheduler)
+	{
+		::getOrCreateScheduler().bind();
+	}
 
 	marl::schedule([=] {
 		// Store handle in TLS so that the coroutine can grab it right away, before

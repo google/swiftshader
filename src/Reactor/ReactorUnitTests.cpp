@@ -18,9 +18,6 @@
 
 #include "gtest/gtest.h"
 
-#include "marl/defer.h"
-#include "marl/scheduler.h"
-
 #include <array>
 #include <cmath>
 #include <thread>
@@ -2137,11 +2134,6 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 		return;
 	}
 
-	marl::Scheduler scheduler;
-	scheduler.setWorkerThreadCount(8);
-	scheduler.bind();
-	defer(scheduler.unbind());
-
 	Coroutine<int()> function;
 	{
 		Yield(Int(0));
@@ -2174,11 +2166,6 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 		SUCCEED() << "Coroutines not supported";
 		return;
 	}
-
-	marl::Scheduler scheduler;
-	scheduler.setWorkerThreadCount(8);
-	scheduler.bind();
-	defer(scheduler.unbind());
 
 	Coroutine<uint8_t(uint8_t * data, int count)> function;
 	{
@@ -2221,11 +2208,6 @@ TEST(ReactorUnitTests, Coroutines_Vectors)
 		return;
 	}
 
-	marl::Scheduler scheduler;
-	scheduler.setWorkerThreadCount(8);
-	scheduler.bind();
-	defer(scheduler.unbind());
-
 	Coroutine<int()> function;
 	{
 		Int4 a{ 1, 2, 3, 4 };
@@ -2260,11 +2242,6 @@ TEST(ReactorUnitTests, Coroutines_NoYield)
 		return;
 	}
 
-	marl::Scheduler scheduler;
-	scheduler.setWorkerThreadCount(8);
-	scheduler.bind();
-	defer(scheduler.unbind());
-
 	for(int i = 0; i < 2; ++i)
 	{
 		Coroutine<int()> function;
@@ -2288,11 +2265,6 @@ TEST(ReactorUnitTests, Coroutines_Parallel)
 		SUCCEED() << "Coroutines not supported";
 		return;
 	}
-
-	marl::Scheduler scheduler;
-	scheduler.setWorkerThreadCount(8);
-	//scheduler.bind();
-	//defer(scheduler.unbind());
 
 	Coroutine<int()> function;
 	{
@@ -2318,9 +2290,6 @@ TEST(ReactorUnitTests, Coroutines_Parallel)
 	for(size_t t = 0; t < numThreads; ++t)
 	{
 		threads.emplace_back([&] {
-			scheduler.bind();
-			defer(scheduler.unbind());
-
 			auto coroutine = function();
 
 			for(size_t i = 0; i < fibonacci.size(); i++)

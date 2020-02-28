@@ -2329,9 +2329,9 @@ if(SWIFTSHADER_BUILD_TESTS)
     )
 
     if(NOT WIN32 AND ${REACTOR_BACKEND} STREQUAL "Subzero")
-        target_link_libraries(ReactorUnitTests ${Reactor} marl pthread dl)
+        target_link_libraries(ReactorUnitTests ${Reactor} pthread dl)
     else()
-        target_link_libraries(ReactorUnitTests ${Reactor} marl)
+        target_link_libraries(ReactorUnitTests ${Reactor})
     endif()
 
     set(GLES_UNITTESTS_LIST
