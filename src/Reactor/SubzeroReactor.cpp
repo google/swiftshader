@@ -1286,12 +1286,31 @@ Value *Nucleus::createNot(Value *v)
 	}
 }
 
+static void validateAtomicAndMemoryOrderArgs(bool atomic, std::memory_order memoryOrder)
+{
+#if defined(__i386__) || defined(__x86_64__)
+	// We're good, atomics and strictest memory order (except seq_cst) are guaranteed.
+	// Note that sequential memory ordering could be guaranteed by using x86's LOCK prefix.
+	// Note also that relaxed memory order could be implemented using MOVNTPS and friends.
+#else
+	if(atomic)
+	{
+		UNIMPLEMENTED("b/150475088 Atomic load/store not implemented for current platform");
+	}
+	if(memoryOrder != std::memory_order_relaxed)
+	{
+		UNIMPLEMENTED("b/150475088 Memory order other than memory_order_relaxed not implemented for current platform");
+	}
+#endif
+
+	// Vulkan doesn't allow sequential memory order
+	ASSERT(memoryOrder != std::memory_order_seq_cst);
+}
+
 Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int align, bool atomic, std::memory_order memoryOrder)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-
-	ASSERT(!atomic);                                   // Unimplemented
-	ASSERT(memoryOrder == std::memory_order_relaxed);  // Unimplemented
+	validateAtomicAndMemoryOrderArgs(atomic, memoryOrder);
 
 	int valueType = (int)reinterpret_cast<intptr_t>(type);
 	Ice::Variable *result = nullptr;
@@ -1314,6 +1333,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 			}
 			else if(typeSize(type) == 8)
 			{
+				ASSERT_MSG(!atomic, "Emulated 64-bit loads are not atomic");
 				auto pointer = RValue<Pointer<Byte>>(ptr);
 				Int x = *Pointer<Int>(pointer);
 				Int y = *Pointer<Int>(pointer + 4);
@@ -1352,12 +1372,10 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int align, bool atomic, std::memory_order memoryOrder)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-
-	ASSERT(!atomic);                                   // Unimplemented
-	ASSERT(memoryOrder == std::memory_order_relaxed);  // Unimplemented
+	validateAtomicAndMemoryOrderArgs(atomic, memoryOrder);
 
 #if __has_feature(memory_sanitizer)
-	    // Mark all (non-stack) memory writes as initialized by calling __msan_unpoison
+	// Mark all (non-stack) memory writes as initialized by calling __msan_unpoison
 	if(align != 0)
 	{
 		auto call = Ice::InstCall::create(::function, 2, nullptr, ::context->getConstantInt64(reinterpret_cast<intptr_t>(__msan_unpoison)), false);
@@ -1387,6 +1405,7 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 			}
 			else if(typeSize(type) == 8)
 			{
+				ASSERT_MSG(!atomic, "Emulated 64-bit stores are not atomic");
 				Ice::Variable *vector = ::function->makeVariable(Ice::IceType_v4i32);
 				auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, vector, value);
 				::basicBlock->appendInst(bitcast);
