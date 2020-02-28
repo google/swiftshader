@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bb4098cc_ed93053f",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalPosix.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2020-02-28T17:27:59Z",
+      "side": 1,
+      "message": "Should we create an actual file with shm_open, then mmap it? I\u0027m concerned about low default settings for shm limits on macos",
+      "revId": "5678e62882307de8b055e9922f8e81dd0426c1ca",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
