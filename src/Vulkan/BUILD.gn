@@ -50,6 +50,10 @@ config("swiftshader_libvulkan_private_config") {
       "-Wno-switch",
     ]
   }
+
+  defines += [
+     "SWIFTSHADER_ENABLE_ASTC",  # TODO(b/150130101)
+  ]
 }
 
 swiftshader_source_set("swiftshader_libvulkan_headers") {

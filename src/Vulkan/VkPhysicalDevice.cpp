@@ -76,7 +76,11 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_FALSE,  // multiViewport
 		VK_TRUE,   // samplerAnisotropy
 		VK_TRUE,   // textureCompressionETC2
-		VK_TRUE,   // textureCompressionASTC_LDR
+#ifdef SWIFTSHADER_ENABLE_ASTC
+		VK_TRUE,  // textureCompressionASTC_LDR
+#else
+		VK_FALSE,  // textureCompressionASTC_LDR
+#endif
 		VK_FALSE,  // textureCompressionBC
 		VK_FALSE,  // occlusionQueryPrecise
 		VK_FALSE,  // pipelineStatisticsQuery
@@ -527,6 +531,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
 		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
 		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+#ifdef SWIFTSHADER_ENABLE_ASTC
 		case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
 		case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
@@ -555,6 +560,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
 		case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
 		case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+#endif
 		case VK_FORMAT_D16_UNORM:
 		case VK_FORMAT_D32_SFLOAT:
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:

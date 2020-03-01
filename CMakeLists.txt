@@ -123,7 +123,8 @@ option_if_not_defined(REACTOR_EMIT_PRINT_LOCATION "Emit printing of location inf
 option_if_not_defined(REACTOR_ENABLE_PRINT "Enable RR_PRINT macros" 0)
 option_if_not_defined(REACTOR_VERIFY_LLVM_IR "Check reactor-generated LLVM IR is valid even in release builds" 0)
 option_if_not_defined(SWIFTSHADER_LESS_DEBUG_INFO "Generate less debug info to reduce file size" 0)
-option_if_not_defined(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER "Enable vulkan debugger support" 0)
+option_if_not_defined(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER "Enable Vulkan debugger support" 0)
+option_if_not_defined(SWIFTSHADER_ENABLE_ASTC "Enable ASTC compressed textures support" 1)  # TODO(b/150130101)
 
 set(BUILD_MARL ${SWIFTSHADER_BUILD_VULKAN})
 
@@ -1866,8 +1867,6 @@ file(GLOB VULKAN_LIST
     ${SOURCE_DIR}/WSI/VkSurfaceKHR.hpp
     ${SOURCE_DIR}/WSI/VkSwapchainKHR.cpp
     ${SOURCE_DIR}/WSI/VkSwapchainKHR.hpp
-    ${ASTC_DIR}/Source/*.cpp
-    ${ASTC_DIR}/Source/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
@@ -1879,6 +1878,15 @@ if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
     )
     list(APPEND VULKAN_LIST ${VULKAN_DEBUG_LIST})
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_VK_DEBUGGER")
+endif()
+
+if(SWIFTSHADER_ENABLE_ASTC)
+    file(GLOB_RECURSE VULKAN_ASTC_LIST
+        ${ASTC_DIR}/Source/*.cpp
+        ${ASTC_DIR}/Source/*.h
+    )
+    list(APPEND VULKAN_LIST ${VULKAN_ASTC_LIST})
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DSWIFTSHADER_ENABLE_ASTC")
 endif()
 
 if(LINUX OR ANDROID)

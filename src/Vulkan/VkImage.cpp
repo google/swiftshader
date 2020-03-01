@@ -13,18 +13,20 @@
 // limitations under the License.
 
 #include "VkImage.hpp"
+
 #include "VkBuffer.hpp"
 #include "VkDevice.hpp"
 #include "VkDeviceMemory.hpp"
-#include "Device/ASTC_Decoder.hpp"
 #include "Device/BC_Decoder.hpp"
 #include "Device/Blitter.hpp"
 #include "Device/ETC_Decoder.hpp"
-#include <cstring>
+#include "Device/ASTC_Decoder.hpp"
 
 #ifdef __ANDROID__
 #	include "System/GrallocAndroid.hpp"
 #endif
+
+#include <cstring>
 
 namespace {
 

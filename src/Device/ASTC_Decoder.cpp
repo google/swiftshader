@@ -13,14 +13,19 @@
 // limitations under the License.
 
 #include "ASTC_Decoder.hpp"
-#include "../third_party/astc-encoder/Source/astc_codec_internals.h"
+
 #include "System/Math.hpp"
+
+#ifdef SWIFTSHADER_ENABLE_ASTC
+#	include "../third_party/astc-encoder/Source/astc_codec_internals.h"
+#endif
 
 #include <memory>
 #include <unordered_map>
 
 namespace {
 
+#ifdef SWIFTSHADER_ENABLE_ASTC
 void write_imageblock(unsigned char *img,
                       // picture-block to initialize with image data. We assume that orig_data is valid
                       const imageblock *pb,
@@ -91,6 +96,7 @@ void write_imageblock(unsigned char *img,
 		}
 	}
 }
+#endif
 
 }  // namespace
 
@@ -100,6 +106,7 @@ void ASTC_Decoder::Decode(const unsigned char *source, unsigned char *dest,
                           int xBlockSize, int yBlockSize, int zBlockSize,
                           int xblocks, int yblocks, int zblocks, bool isUnsignedByte)
 {
+#ifdef SWIFTSHADER_ENABLE_ASTC
 	build_quantization_mode_table();
 
 	astc_decode_mode decode_mode = isUnsignedByte ? DECODE_LDR : DECODE_HDR;
@@ -124,4 +131,5 @@ void ASTC_Decoder::Decode(const unsigned char *source, unsigned char *dest,
 	}
 
 	term_block_size_descriptor(bsd.get());
+#endif
 }
