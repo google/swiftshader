@@ -72,6 +72,10 @@ swiftshader_source_set("Device") {
     "../../third_party/SPIRV-Headers/include",
   ]
 
+  defines = [
+     "SWIFTSHADER_ENABLE_ASTC",  # TODO(b/150130101)
+  ]
+
   deps = [
     "../../third_party/marl:Marl_headers",
     "../Pipeline:Pipeline_headers",
