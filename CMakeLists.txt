@@ -296,7 +296,7 @@ macro(set_shared_library_export_map TARGET DIR)
 
         # -Bsymbolic binds symbol references to their global definitions within
         # a shared object, thereby preventing symbol preemption.
-        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY COMPILE_FLAGS "  -Wl,-Bsymbolic")
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS "  -Wl,-Bsymbolic")
 
         if(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
           # MIPS supports sysv hash-style only.
