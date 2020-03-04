@@ -2029,7 +2029,7 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	const int64_t *i = constants;
 	const double *f = reinterpret_cast<const double *>(constants);
 
-	// TODO(148082873): Fix global variable constants when generating multiple functions
+	// TODO(b/148082873): Fix global variable constants when generating multiple functions
 	Ice::Constant *ptr = nullptr;
 
 	switch((int)reinterpret_cast<intptr_t>(type))
@@ -2474,7 +2474,10 @@ Short4::Short4(RValue<Int4> cast)
 
 Short4::Short4(RValue<Float4> cast)
 {
-	UNIMPLEMENTED_NO_BUG("Short4::Short4(RValue<Float4> cast)");
+	// TODO(b/150791192): Generalize and optimize
+	auto smin = std::numeric_limits<short>::min();
+	auto smax = std::numeric_limits<short>::max();
+	*this = Short4(Int4(Max(Min(cast, Float4(smax)), Float4(smin))));
 }
 
 RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
