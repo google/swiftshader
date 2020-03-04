@@ -855,9 +855,9 @@ func (t *test) build() error {
 
 	if err := shell.Shell(buildTimeout, t.r.cmake, t.buildDir,
 		"-DCMAKE_BUILD_TYPE=Release",
-		"-DDCHECK_ALWAYS_ON=1",
+		"-DSWIFTSHADER_DCHECK_ALWAYS_ON=1",
 		"-DREACTOR_VERIFY_LLVM_IR=1",
-		"-DWARNINGS_AS_ERRORS=0",
+		"-DSWIFTSHADER_WARNINGS_AS_ERRORS=0",
 		".."); err != nil {
 		return err
 	}
