@@ -428,6 +428,7 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 					// on this load.
 					if(llvm::isa<Ice::Constant>(storeValue))
 					{
+						unmatchedLoads = true;
 						continue;
 					}
 
