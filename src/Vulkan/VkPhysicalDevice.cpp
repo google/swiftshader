@@ -71,7 +71,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_TRUE,   // fillModeNonSolid
 		VK_FALSE,  // depthBounds
 		VK_FALSE,  // wideLines
-		VK_FALSE,  // largePoints
+		VK_TRUE,   // largePoints
 		VK_FALSE,  // alphaToOne
 		VK_FALSE,  // multiViewport
 		VK_TRUE,   // samplerAnisotropy

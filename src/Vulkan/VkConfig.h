@@ -74,7 +74,7 @@ enum
 
 enum
 {
-	MAX_POINT_SIZE = 1,		// Large points are not supported. If/when we turn this on, must be >= 64.
+	MAX_POINT_SIZE = 1023,
 };
 
 constexpr int SUBPIXEL_PRECISION_BITS = 4;
