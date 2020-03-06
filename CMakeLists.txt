@@ -1664,6 +1664,13 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
             "/wd4334" # ''operator' : result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
             "/wd4996" # The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: new_name.
         )
+        list(APPEND SUBZERO_DEPENDENCIES_COMPILE_OPTIONS
+            ${SUBZERO_COMPILE_OPTIONS}
+            "/wd4267"  # '=': conversion from 'size_t' to 'sopno', possible loss of data
+            "/wd4244"  # '=': conversion from '__int64' to 'llvm_regoff_t', possible loss of data
+            "/wd4141"  # 'inline': used more than once
+            "/wd4291"  # 'void *operator new(size_t,const `anonymous-namespace'::NamedBufferAlloc &)': no matching operator delete found; memory will not be freed if initialization throws an exception
+        )
     endif()
 
     add_library(SubzeroDependencies STATIC
@@ -1672,7 +1679,7 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
     set_target_properties(SubzeroDependencies PROPERTIES
         POSITION_INDEPENDENT_CODE 1
         INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
-        COMPILE_OPTIONS "${SUBZERO_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SUBZERO_DEPENDENCIES_COMPILE_OPTIONS}"
         FOLDER "Subzero"
     )
 
