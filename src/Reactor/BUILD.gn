@@ -265,11 +265,11 @@ if (use_swiftshader_with_subzero) {
       "$subzero_llvm_dir/lib/Support/circular_raw_ostream.cpp",
       "$subzero_llvm_dir/lib/Support/raw_os_ostream.cpp",
       "$subzero_llvm_dir/lib/Support/raw_ostream.cpp",
-      "$subzero_llvm_dir/lib/Support/regcomp.cpp",
-      "$subzero_llvm_dir/lib/Support/regerror.cpp",
-      "$subzero_llvm_dir/lib/Support/regexec.cpp",
-      "$subzero_llvm_dir/lib/Support/regfree.cpp",
-      "$subzero_llvm_dir/lib/Support/regstrlcpy.cpp",
+      "$subzero_llvm_dir/lib/Support/regcomp.c",
+      "$subzero_llvm_dir/lib/Support/regerror.c",
+      "$subzero_llvm_dir/lib/Support/regexec.c",
+      "$subzero_llvm_dir/lib/Support/regfree.c",
+      "$subzero_llvm_dir/lib/Support/regstrlcpy.c",
     ]
 
     if (current_cpu == "x64") {

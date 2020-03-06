@@ -138,19 +138,19 @@
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\NativeFormatting.cpp">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regerror.cpp">
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regerror.c">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regfree.cpp">
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regfree.c">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regstrlcpy.cpp">
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regstrlcpy.c">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regcomp.cpp">
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regcomp.c">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regexec.cpp">
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regexec.c">
       <Filter>Source Files\Support</Filter>
     </ClCompile>
   </ItemGroup>

@@ -174,12 +174,12 @@
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Program.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\raw_ostream.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\raw_os_ostream.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regcomp.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regerror.cpp" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regcomp.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regerror.c" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Regex.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regexec.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regfree.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regstrlcpy.cpp" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regexec.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regfree.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regstrlcpy.c" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Signals.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\SmallPtrSet.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\SmallVector.cpp" />

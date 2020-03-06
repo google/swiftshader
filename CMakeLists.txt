@@ -377,12 +377,6 @@ if(MSVC)
     set_cpp_flag("/DEBUG:FASTLINK" DEBUG)
     set_cpp_flag("/DEBUG:FASTLINK" RELWITHDEBINFO)
 
-    if(SWIFTSHADER_WARNINGS_AS_ERRORS)
-        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-            "/WX" # Treat all warnings as errors
-        )
-    endif()
-
     # Disable specific warnings
     # TODO: Not all of these should be disabled, but for now, we want a warning-free msvc build. Remove these one by one
     #       and fix the actual warnings in code.
@@ -511,10 +505,6 @@ else()
         set_cpp_flag("-s" RELEASE)
     endif()
 
-    if(SWIFTSHADER_WARNINGS_AS_ERRORS)
-        list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-Werror") # Treat all warnings as errors
-    endif()
-
     if(SWIFTSHADER_DCHECK_ALWAYS_ON)
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DDCHECK_ALWAYS_ON")
     endif()
@@ -546,6 +536,14 @@ else()
     elseif(SWIFTSHADER_UBSAN)
         set_cpp_flag("-fsanitize=undefined")
         set_linker_flag("-fsanitize=undefined")
+    endif()
+endif()
+
+if(SWIFTSHADER_WARNINGS_AS_ERRORS)
+    if(MSVC)
+        set(WARNINGS_AS_ERRORS "/WX")  # Treat all warnings as errors
+    else()
+        set(WARNINGS_AS_ERRORS "-Werror")  # Treat all warnings as errors
     endif()
 endif()
 
@@ -1625,6 +1623,7 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
 
     file(GLOB_RECURSE SUBZERO_DEPENDENCIES_LIST
         ${SUBZERO_LLVM_DIR}/*.cpp
+        ${SUBZERO_LLVM_DIR}/*.c
         ${SUBZERO_LLVM_DIR}/*.h
     )
 
@@ -1667,18 +1666,28 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         )
     endif()
 
+    add_library(SubzeroDependencies STATIC
+        ${SUBZERO_DEPENDENCIES_LIST}
+    )
+    set_target_properties(SubzeroDependencies PROPERTIES
+        POSITION_INDEPENDENT_CODE 1
+        INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
+        COMPILE_OPTIONS "${SUBZERO_COMPILE_OPTIONS}"
+        FOLDER "Subzero"
+    )
+
     add_library(ReactorSubzero STATIC
         ${SUBZERO_LIST}
-        ${SUBZERO_DEPENDENCIES_LIST}
         ${SUBZERO_REACTOR_LIST}
     )
     set_target_properties(ReactorSubzero PROPERTIES
         POSITION_INDEPENDENT_CODE 1
         INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
-        COMPILE_OPTIONS "${SUBZERO_COMPILE_OPTIONS};${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SUBZERO_COMPILE_OPTIONS};${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "SZTARGET=${SUBZERO_TARGET}; ALLOW_DUMP=0; ALLOW_TIMERS=0; ALLOW_LLVM_CL=0; ALLOW_LLVM_IR=0; ALLOW_LLVM_IR_AS_INPUT=0; ALLOW_MINIMAL_BUILD=0; ALLOW_WASM=0; ICE_THREAD_LOCAL_HACK=0;"
         FOLDER "Subzero"
     )
+    target_link_libraries(ReactorSubzero SubzeroDependencies)
 
     if(WIN32)
         target_compile_definitions(ReactorSubzero PRIVATE SUBZERO_USE_MICROSOFT_ABI)
@@ -2000,7 +2009,7 @@ set_target_properties(SwiftShader PROPERTIES
     INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
     FOLDER "Core"
-    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
     COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
 )
 target_link_libraries(SwiftShader ${OS_LIBS})
@@ -2011,7 +2020,7 @@ if(${REACTOR_BACKEND} STREQUAL "LLVM")
         INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
         POSITION_INDEPENDENT_CODE 1
         FOLDER "Core"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
     )
     target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
     set(Reactor ReactorLLVM)
@@ -2056,7 +2065,7 @@ set_target_properties(GLCompiler PROPERTIES
     INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
-    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
 )
 target_link_libraries(GLCompiler ${OS_LIBS})
 
@@ -2071,7 +2080,7 @@ if(SWIFTSHADER_BUILD_EGL)
     set_target_properties(libEGL PROPERTIES
         INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         FOLDER "OpenGL"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
         PREFIX ""
     )
@@ -2100,7 +2109,7 @@ if(SWIFTSHADER_BUILD_GLESv2)
     set_target_properties(libGLESv2 PROPERTIES
         INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         FOLDER "OpenGL"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
@@ -2124,7 +2133,7 @@ if(SWIFTSHADER_BUILD_GLES_CM)
     set_target_properties(libGLES_CM PROPERTIES
         INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         FOLDER "OpenGL"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;"
         PREFIX ""
     )
@@ -2186,7 +2195,7 @@ if(SWIFTSHADER_BUILD_VULKAN)
     set_target_properties(vk_swiftshader PROPERTIES
         INCLUDE_DIRECTORIES "${VULKAN_INCLUDE_DIR}"
         FOLDER "Vulkan"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "VK_EXPORT=;NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
     )
 
@@ -2301,7 +2310,7 @@ if(SWIFTSHADER_BUILD_TESTS)
     add_executable(ReactorUnitTests ${REACTOR_UNIT_TESTS_LIST})
     set_target_properties(ReactorUnitTests PROPERTIES
         INCLUDE_DIRECTORIES "${REACTOR_UNIT_TESTS_INCLUDE_DIR}"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         FOLDER "Tests"
     )
 
@@ -2328,7 +2337,7 @@ if(SWIFTSHADER_BUILD_TESTS)
     set_target_properties(gles-unittests PROPERTIES
         INCLUDE_DIRECTORIES "${GLES_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "STANDALONE"
     )
 
@@ -2355,7 +2364,7 @@ if(SWIFTSHADER_BUILD_TESTS)
     set_target_properties(math-unittests PROPERTIES
         INCLUDE_DIRECTORIES "${MATH_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
     )
 
     if(NOT WIN32)
@@ -2377,7 +2386,7 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
     target_link_libraries(ReactorBenchmarks benchmark::benchmark ${Reactor})
 
     set_target_properties(ReactorBenchmarks PROPERTIES
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         FOLDER "Benchmarks"
     )
 endif(SWIFTSHADER_BUILD_BENCHMARKS)
@@ -2405,7 +2414,7 @@ if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
     set_target_properties(vk-unittests PROPERTIES
         INCLUDE_DIRECTORIES "${VK_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "STANDALONE"
     )
 

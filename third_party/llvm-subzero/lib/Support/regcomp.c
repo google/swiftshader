@@ -1085,12 +1085,12 @@ allocset(struct parse *p)
 		ptr = (cset *)realloc((char *)p->g->sets, nc * sizeof(cset));
 		if (ptr == NULL)
 			goto nomem;
-		p->g->sets = (cset *)ptr;
+		p->g->sets = ptr;
 
 		ptr = (uch *)realloc((char *)p->g->setbits, nbytes);
 		if (ptr == NULL)
 			goto nomem;
-		p->g->setbits = (uch *)ptr;
+		p->g->setbits = ptr;
 
 		for (i = 0; i < no; i++)
 			p->g->sets[i].ptr = p->g->setbits + css*(i/CHAR_BIT);
@@ -1223,7 +1223,7 @@ mcadd( struct parse *p, cset *cs, const char *cp)
 		SETERROR(REG_ESPACE);
 		return;
 	}
-	cs->multis = (char *)np;
+	cs->multis = np;
 
 	llvm_strlcpy(cs->multis + oldend - 1, cp, cs->smultis - oldend + 1);
 }
@@ -1523,7 +1523,7 @@ findmust(struct parse *p, struct re_guts *g)
 		return;
 
 	/* turn it into a character string */
-	g->must = (char *)malloc((size_t)g->mlen + 1);
+	g->must = malloc((size_t)g->mlen + 1);
 	if (g->must == NULL) {		/* argh; just forget it */
 		g->mlen = 0;
 		return;

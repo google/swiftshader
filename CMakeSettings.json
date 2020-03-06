@@ -10,13 +10,7 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
-      "variables": [
-        {
-          "name": "REACTOR_BACKEND",
-          "value": "Subzero",
-          "type": "STRING"
-        }
-      ]
+      "variables": []
     },
     {
       "name": "x86-Debug",
@@ -52,18 +46,7 @@
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": [
-        {
-          "name": "SWIFTSHADER_BUILD_PVR",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "REACTOR_BACKEND",
-          "value": "Subzero",
-          "type": "STRING"
-        }
-      ]
+      "variables": []
     }
   ]
 }
