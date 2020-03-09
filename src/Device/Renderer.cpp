@@ -1146,14 +1146,8 @@ bool DrawCall::setupPoint(Primitive &primitive, Triangle &triangle, const DrawCa
 			}
 		}
 
-		triangle.v1 = triangle.v0;
-		triangle.v2 = triangle.v0;
-
-		constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
-
-		triangle.v1.projected.x += iround(subPixF * 0.5f * pSize);
-		triangle.v2.projected.y -= iround(subPixF * 0.5f * pSize) * (data.HxF[0] > 0.0f ? 1 : -1);  // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
 		primitive.pointSizeInv = 1.0f / pSize;
+
 		return draw.setupRoutine(&primitive, &triangle, &polygon, &data);
 	}
 
