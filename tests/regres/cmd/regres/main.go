@@ -79,6 +79,7 @@ var (
 	dryRun        = flag.Bool("dry", false, "don't post regres reports to gerrit")
 	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
 	dailyNow      = flag.Bool("dailynow", false, "Start by running the daily pass")
+	dailyChange   = flag.String("dailychange", "", "Change hash to use for daily pass, HEAD if not provided")
 	priority      = flag.String("priority", "", "Prioritize a single change with the given id")
 )
 
@@ -96,6 +97,7 @@ func main() {
 		keepCheckouts: *keepCheckouts,
 		dryRun:        *dryRun,
 		dailyNow:      *dailyNow,
+		dailyChange:   *dailyChange,
 		priority:      *priority,
 	}
 
@@ -117,6 +119,7 @@ type regres struct {
 	dryRun        bool   // don't post any reviews
 	maxProcMemory uint64 // max virtual memory for child processes
 	dailyNow      bool   // start with a daily run
+	dailyChange   string // Change hash to use for daily pass, HEAD if not provided
 	priority      string // Prioritize a single change with the given id
 }
 
@@ -508,40 +511,46 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp
 func (r *regres) updateTestLists(client *gerrit.Client) error {
 	log.Println("Updating test lists")
 
-	headHash, err := git.FetchRefHash("HEAD", gitURL)
-	if err != nil {
-		return cause.Wrap(err, "Could not get hash of master HEAD")
+	dailyHash := git.Hash{}
+	if r.dailyChange == "" {
+		headHash, err := git.FetchRefHash("HEAD", gitURL)
+		if err != nil {
+			return cause.Wrap(err, "Could not get hash of master HEAD")
+		}
+		dailyHash = headHash
+	} else {
+		dailyHash = git.ParseHash(r.dailyChange)
 	}
 
-	// Get the full test results for latest master.
-	test := r.newTest(headHash)
+	// Get the full test results.
+	test := r.newTest(dailyHash)
 	defer test.cleanup()
 
 	// Always need to checkout the change.
 	if err := test.checkout(); err != nil {
-		return cause.Wrap(err, "Failed to checkout '%s'", headHash)
+		return cause.Wrap(err, "Failed to checkout '%s'", dailyHash)
 	}
 
 	d, err := r.getOrBuildDEQP(test)
 	if err != nil {
-		return cause.Wrap(err, "Failed to build deqp for '%s'", headHash)
+		return cause.Wrap(err, "Failed to build deqp for '%s'", dailyHash)
 	}
 
 	// Load the test lists.
 	testLists, err := test.loadTestLists(fullTestListRelPath)
 	if err != nil {
-		return cause.Wrap(err, "Failed to load full test lists for '%s'", headHash)
+		return cause.Wrap(err, "Failed to load full test lists for '%s'", dailyHash)
 	}
 
 	// Build the change.
 	if err := test.build(); err != nil {
-		return cause.Wrap(err, "Failed to build '%s'", headHash)
+		return cause.Wrap(err, "Failed to build '%s'", dailyHash)
 	}
 
 	// Run the tests on the change.
 	results, err := test.run(testLists, d)
 	if err != nil {
-		return cause.Wrap(err, "Failed to test '%s'", headHash)
+		return cause.Wrap(err, "Failed to test '%s'", dailyHash)
 	}
 
 	// Write out the test list status files.
@@ -565,7 +574,7 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 	}
 
 	commitMsg := strings.Builder{}
-	commitMsg.WriteString(consts.TestListUpdateCommitSubjectPrefix + headHash.String()[:8])
+	commitMsg.WriteString(consts.TestListUpdateCommitSubjectPrefix + dailyHash.String()[:8])
 	if existingChange != nil {
 		// Reuse gerrit change ID if there's already a change up for review.
 		commitMsg.WriteString("\n\n")
@@ -794,24 +803,23 @@ func (r *regres) newTest(commit git.Hash) *test {
 }
 
 type test struct {
-	r             *regres
-	commit        git.Hash // hash of the commit to test
-	srcDir        string   // directory for the SwiftShader checkout
-	resDir        string   // directory for the test results
-	buildDir      string   // directory for SwiftShader build
-	keepCheckouts bool     // don't delete source & build checkouts after testing
+	r        *regres
+	commit   git.Hash // hash of the commit to test
+	srcDir   string   // directory for the SwiftShader checkout
+	resDir   string   // directory for the test results
+	buildDir string   // directory for SwiftShader build
 }
 
 // cleanup removes any temporary files used by the test.
 func (t *test) cleanup() {
-	if t.srcDir != "" && !t.keepCheckouts {
+	if t.srcDir != "" && !t.r.keepCheckouts {
 		os.RemoveAll(t.srcDir)
 	}
 }
 
 // checkout clones the test's source commit into t.src.
 func (t *test) checkout() error {
-	if util.IsDir(t.srcDir) && t.keepCheckouts {
+	if util.IsDir(t.srcDir) && t.r.keepCheckouts {
 		log.Printf("Reusing source cache for commit '%s'\n", t.commit)
 		return nil
 	}
