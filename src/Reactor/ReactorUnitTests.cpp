@@ -1667,6 +1667,35 @@ TEST(ReactorUnitTests, CallImplicitCast)
 	EXPECT_EQ(c.str, "hello world");
 }
 
+TEST(ReactorUnitTests, CallBoolReturnFunction)
+{
+	struct Class
+	{
+		static bool IsEven(int a)
+		{
+			return a % 2 == 0;
+		}
+	};
+
+	FunctionT<int(int)> function;
+	{
+		Int a = function.Arg<0>();
+		Bool res = Call(Class::IsEven, a);
+		If(res)
+		{
+			Return(1);
+		}
+		Return(0);
+	}
+
+	auto routine = function("one");
+
+	for(int i = 0; i < 10; ++i)
+	{
+		EXPECT_EQ(routine(i), i % 2 == 0);
+	}
+}
+
 TEST(ReactorUnitTests, Call_Args4)
 {
 	struct Class

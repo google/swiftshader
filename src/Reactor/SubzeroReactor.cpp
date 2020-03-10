@@ -144,29 +144,48 @@ Ice::Constant *getConstantPointer(Ice::GlobalContext *context, void const *ptr)
 	}
 }
 
-// Wrapper for calls on C functions with Ice types
-Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, void const *fptr, const std::vector<Ice::Operand *> &iceArgs, bool isVariadic)
-{
-	// Subzero doesn't support boolean return values. Replace with an i32.
-	if(retTy == Ice::IceType_i1)
-	{
-		retTy = Ice::IceType_i32;
-	}
+// TODO(amaiorano): remove this prototype once these are moved to separate header/cpp
+Ice::Variable *createTruncate(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *from, Ice::Type toType);
 
+// Wrapper for calls on C functions with Ice types
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, Ice::Operand *callTarget, const std::vector<Ice::Operand *> &iceArgs, bool isVariadic)
+{
 	Ice::Variable *ret = nullptr;
-	if(retTy != Ice::IceType_void)
+
+	// Subzero doesn't support boolean return values. Replace with an i32 temporarily,
+	// then truncate result to bool.
+	// TODO(b/151158858): Add support to Subzero's InstCall for bool-returning functions
+	const bool returningBool = (retTy == Ice::IceType_i1);
+	if(returningBool)
+	{
+		ret = function->makeVariable(Ice::IceType_i32);
+	}
+	else if(retTy != Ice::IceType_void)
 	{
 		ret = function->makeVariable(retTy);
 	}
 
-	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, getConstantPointer(function->getContext(), fptr), false, false, isVariadic);
+	auto call = Ice::InstCall::create(function, iceArgs.size(), ret, callTarget, false, false, isVariadic);
 	for(auto arg : iceArgs)
 	{
 		call->addArg(arg);
 	}
 
 	basicBlock->appendInst(call);
+
+	if(returningBool)
+	{
+		// Truncate result to bool so that if any (lsb) bits were set, result will be true
+		ret = createTruncate(function, basicBlock, ret, Ice::IceType_i1);
+	}
+
 	return ret;
+}
+
+Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retTy, void const *fptr, const std::vector<Ice::Operand *> &iceArgs, bool isVariadic)
+{
+	Ice::Operand *callTarget = getConstantPointer(function->getContext(), fptr);
+	return Call(function, basicBlock, retTy, callTarget, iceArgs, isVariadic);
 }
 
 // Wrapper for calls on C functions with Ice types
@@ -185,6 +204,14 @@ Ice::Variable *createUnconstCast(Ice::Cfg *function, Ice::CfgNode *basicBlock, I
 	Ice::InstCast *cast = Ice::InstCast::create(function, Ice::InstCast::Bitcast, result, v);
 	basicBlock->appendInst(cast);
 	return result;
+}
+
+Ice::Variable *createTruncate(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *from, Ice::Type toType)
+{
+	Ice::Variable *to = function->makeVariable(toType);
+	Ice::InstCast *cast = Ice::InstCast::create(function, Ice::InstCast::Trunc, to, from);
+	basicBlock->appendInst(cast);
+	return to;
 }
 
 Ice::Variable *createLoad(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *ptr, Ice::Type type, unsigned int align)
@@ -4138,18 +4165,7 @@ RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
 Value *Call(RValue<Pointer<Byte>> fptr, Type *retTy, std::initializer_list<Value *> args, std::initializer_list<Type *> argTys)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Ice::Variable *ret = nullptr;
-	if(retTy != nullptr)
-	{
-		ret = ::function->makeVariable(T(retTy));
-	}
-	auto call = Ice::InstCall::create(::function, args.size(), ret, V(fptr.value), false);
-	for(auto arg : args)
-	{
-		call->addArg(V(arg));
-	}
-	::basicBlock->appendInst(call);
-	return V(ret);
+	return V(sz::Call(::function, ::basicBlock, T(retTy), V(fptr.value), V(args), false));
 }
 
 void Breakpoint()
