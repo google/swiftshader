@@ -15,12 +15,34 @@
 #ifndef marl_thread_h
 #define marl_thread_h
 
+#include <functional>
+
 namespace marl {
 
-// Thread contains static methods that abstract OS-specific thread / cpu
+// Thread provides an OS abstraction for threads of execution.
+// Thread is used by marl instead of std::thread as Windows does not naturally
+// scale beyond 64 logical threads on a single CPU, unless you use the Win32
+// API.
+// Thread alsocontains static methods that abstract OS-specific thread / cpu
 // queries and control.
 class Thread {
  public:
+  using Func = std::function<void()>;
+
+  Thread() = default;
+  Thread(Thread&&);
+  Thread& operator=(Thread&&);
+
+  // Start a new thread that calls func.
+  // logicalCpuHint is a hint to run the thread on the specified logical CPU.
+  // logicalCpuHint may be entirely ignored.
+  Thread(unsigned int logicalCpuHint, const Func& func);
+
+  ~Thread();
+
+  // join() blocks until the thread completes.
+  void join();
+
   // setName() sets the name of the currently executing thread for displaying
   // in a debugger.
   static void setName(const char* fmt, ...);
@@ -28,6 +50,13 @@ class Thread {
   // numLogicalCPUs() returns the number of available logical CPU cores for
   // the system.
   static unsigned int numLogicalCPUs();
+
+ private:
+  Thread(const Thread&) = delete;
+  Thread& operator=(const Thread&) = delete;
+
+  class Impl;
+  Impl* impl = nullptr;
 };
 
 }  // namespace marl
