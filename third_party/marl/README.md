@@ -65,6 +65,12 @@ int main() {
 }
 ```
 
+
+## Benchmarks
+
+Graphs of several microbenchmarks can be found [here](https://google.github.io/marl/benchmarks).
+
+
 ## Building
 
 Marl contains many unit tests and examples that can be built using CMake.
@@ -116,10 +122,6 @@ set(MARL_THIRD_PARTY_DIR <third-party-root-directory>) # defaults to ${MARL_DIR}
 set(MARL_GOOGLETEST_DIR  <path-to-googletest>)         # defaults to ${MARL_THIRD_PARTY_DIR}/googletest
 add_subdirectory(${MARL_DIR})
 ```
-
-## Benchmarks
-
-Graphs of several microbenchmarks can be found [here](https://google.github.io/marl/benchmarks).
 
 ---
 

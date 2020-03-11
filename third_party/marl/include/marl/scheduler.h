@@ -18,6 +18,7 @@
 #include "debug.h"
 #include "memory.h"
 #include "sal.h"
+#include "thread.h"
 
 #include <array>
 #include <atomic>
@@ -411,7 +412,7 @@ class Scheduler {
     Scheduler* const scheduler;
     Allocator::unique_ptr<Fiber> mainFiber;
     Fiber* currentFiber = nullptr;
-    std::thread thread;
+    Thread thread;
     Work work;
     FiberSet idleFibers;  // Fibers that have completed which can be reused.
     std::vector<Allocator::unique_ptr<Fiber>>

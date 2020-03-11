@@ -23,6 +23,7 @@
 .text
 .global marl_fiber_swap
 .align 4
+.type marl_fiber_swap, %function
 marl_fiber_swap:
 
     // Save context 'from'

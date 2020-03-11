@@ -361,7 +361,7 @@ Scheduler::Worker::Worker(Scheduler* scheduler, Mode mode, uint32_t id)
 void Scheduler::Worker::start() {
   switch (mode) {
     case Mode::MultiThreaded:
-      thread = std::thread([=] {
+      thread = Thread(id, [=] {
         Thread::setName("Thread<%.2d>", int(id));
 
         if (auto const& initFunc = scheduler->getThreadInitializer()) {
