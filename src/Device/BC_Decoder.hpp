@@ -18,15 +18,13 @@ public:
 	/// BCn_Decoder::Decode - Decodes 1 to 4 channel images to 8 bit output
 	/// @param src            Pointer to BCn encoded image
 	/// @param dst            Pointer to decoded output image
-	/// @param w              src image width
-	/// @param h              src image height
-	/// @param dstW           dst image width
-	/// @param dstH           dst image height
+	/// @param w              image width
+	/// @param h              image height
 	/// @param dstPitch       dst image pitch (bytes per row)
 	/// @param dstBpp         dst image bytes per pixel
 	/// @param n              n in BCn format
 	/// @param isNoAlphaU     BC1: true if RGB, BC2/BC3: unused, BC4/BC5: true if unsigned
 	/// @return               true if the decoding was performed
 
-	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, int n, bool isNoAlphaU);
+	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstPitch, int dstBpp, int n, bool isNoAlphaU);
 };

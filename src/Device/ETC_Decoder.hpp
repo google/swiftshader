@@ -29,13 +29,11 @@ public:
 	/// ETC_Decoder::Decode - Decodes 1 to 4 channel images to 8 bit output
 	/// @param src            Pointer to ETC2 encoded image
 	/// @param dst            Pointer to BGRA, 8 bit output
-	/// @param w              src image width
-	/// @param h              src image height
-	/// @param dstW           dst image width
-	/// @param dstH           dst image height
+	/// @param w              image width
+	/// @param h              image height
 	/// @param dstPitch       dst image pitch (bytes per row)
 	/// @param dstBpp         dst image bytes per pixel
 	/// @param inputType      src's format
 	/// @return               true if the decoding was performed
-	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, InputType inputType);
+	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstPitch, int dstBpp, InputType inputType);
 };

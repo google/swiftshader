@@ -667,7 +667,7 @@ private:
 }  // namespace
 
 // Decodes 1 to 4 channel images to 8 bit output
-bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstW, int dstH, int dstPitch, int dstBpp, InputType inputType)
+bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstPitch, int dstBpp, InputType inputType)
 {
 	const ETC2 *sources[2];
 	sources[0] = (const ETC2 *)src;
@@ -683,7 +683,7 @@ bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, in
 				unsigned char *dstRow = dst + (y * dstPitch);
 				for(int x = 0; x < w; x += 4, sources[0]++)
 				{
-					ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 1, x, y, dstW, dstH, dstPitch, inputType == ETC_R_SIGNED, true);
+					ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 1, x, y, w, h, dstPitch, inputType == ETC_R_SIGNED, true);
 				}
 			}
 			break;
@@ -695,7 +695,7 @@ bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, in
 				unsigned char *dstRow = dst + (y * dstPitch);
 				for(int x = 0; x < w; x += 4, sources[0] += 2, sources[1] += 2)
 				{
-					ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 2, x, y, dstW, dstH, dstPitch, inputType == ETC_RG_SIGNED, true);
+					ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 2, x, y, w, h, dstPitch, inputType == ETC_RG_SIGNED, true);
 				}
 			}
 			break;
@@ -706,7 +706,7 @@ bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, in
 				unsigned char *dstRow = dst + (y * dstPitch);
 				for(int x = 0; x < w; x += 4, sources[0]++)
 				{
-					sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, dstW, dstH, dstPitch, alphaValues, inputType == ETC_RGB_PUNCHTHROUGH_ALPHA);
+					sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, w, h, dstPitch, alphaValues, inputType == ETC_RGB_PUNCHTHROUGH_ALPHA);
 				}
 			}
 			break;
@@ -717,11 +717,11 @@ bool ETC_Decoder::Decode(const unsigned char *src, unsigned char *dst, int w, in
 				for(int x = 0; x < w; x += 4)
 				{
 					// Decode Alpha
-					ETC2::DecodeBlock(&sources[0], &(alphaValues[0][0]), 1, x, y, dstW, dstH, 4, false, false);
+					ETC2::DecodeBlock(&sources[0], &(alphaValues[0][0]), 1, x, y, w, h, 4, false, false);
 					sources[0]++;  // RGBA packets are 128 bits, so move on to the next 64 bit packet to decode the RGB color
 
 					// Decode RGB
-					sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, dstW, dstH, dstPitch, alphaValues, false);
+					sources[0]->decodeBlock(dstRow + (x * dstBpp), x, y, w, h, dstPitch, alphaValues, false);
 					sources[0]++;
 				}
 			}
