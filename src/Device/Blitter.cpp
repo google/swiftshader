@@ -119,12 +119,13 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 			0,                                                     // sSliceB (unused in clear operations)
 			dest->slicePitchBytes(aspect, subresLayers.mipLevel),  // dSliceB
 
-			0.5f, 0.5f, 0.0f, 0.0f,  // x0, y0, w, h
+			0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f,  // x0, y0, z0, w, h, d
 
-			area.offset.y, static_cast<int>(area.offset.y + area.extent.height),  // y0d, y1d
 			area.offset.x, static_cast<int>(area.offset.x + area.extent.width),   // x0d, x1d
+			area.offset.y, static_cast<int>(area.offset.y + area.extent.height),  // y0d, y1d
+			0, 1,                                                                 // z0d, z1d
 
-			0, 0,  // sWidth, sHeight
+			0, 0, 0,  // sWidth, sHeight, sDepth
 		};
 
 		if(renderArea && dest->is3DSlice())
@@ -1354,6 +1355,11 @@ Int Blitter::ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes)
 	return y * pitchB + x * bytes;
 }
 
+Int Blitter::ComputeOffset(Int &x, Int &y, Int &z, Int &sliceB, Int &pitchB, int bytes)
+{
+	return z * sliceB + y * pitchB + x * bytes;
+}
+
 Float4 Blitter::LinearToSRGB(const Float4 &c)
 {
 	Float4 lc = Min(c, Float4(0.0031308f)) * Float4(12.92f);
@@ -1378,6 +1384,168 @@ Float4 Blitter::sRGBtoLinear(const Float4 &c)
 	return s;
 }
 
+Float4 Blitter::sample(Pointer<Byte> &source, Float &x, Float &y, Float &z,
+                       Int &sWidth, Int &sHeight, Int &sDepth,
+                       Int &sSliceB, Int &sPitchB, const State &state)
+{
+	bool intSrc = state.sourceFormat.isUnnormalizedInteger();
+	int srcBytes = state.sourceFormat.bytes();
+
+	Float4 color;
+
+	bool preScaled = false;
+	if(!state.filter || intSrc)
+	{
+		Int X = Int(x);
+		Int Y = Int(y);
+		Int Z = Int(z);
+
+		if(state.clampToEdge)
+		{
+			X = Clamp(X, 0, sWidth - 1);
+			Y = Clamp(Y, 0, sHeight - 1);
+			Z = Clamp(Z, 0, sDepth - 1);
+		}
+
+		Pointer<Byte> s = source + ComputeOffset(X, Y, Z, sSliceB, sPitchB, srcBytes);
+
+		color = readFloat4(s, state);
+
+		if(state.srcSamples > 1)  // Resolve multisampled source
+		{
+			if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
+			{
+				ApplyScaleAndClamp(color, state);
+				preScaled = true;
+			}
+			Float4 accum = color;
+			for(int sample = 1; sample < state.srcSamples; sample++)
+			{
+				s += sSliceB;
+				color = readFloat4(s, state);
+
+				if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
+				{
+					ApplyScaleAndClamp(color, state);
+					preScaled = true;
+				}
+				accum += color;
+			}
+			color = accum * Float4(1.0f / static_cast<float>(state.srcSamples));
+		}
+	}
+	else  // Bilinear filtering
+	{
+		Float X = x;
+		Float Y = y;
+		Float Z = z;
+
+		if(state.clampToEdge)
+		{
+			X = Min(Max(x, 0.5f), Float(sWidth) - 0.5f);
+			Y = Min(Max(y, 0.5f), Float(sHeight) - 0.5f);
+			Z = Min(Max(z, 0.5f), Float(sDepth) - 0.5f);
+		}
+
+		Float x0 = X - 0.5f;
+		Float y0 = Y - 0.5f;
+		Float z0 = Z - 0.5f;
+
+		Int X0 = Max(Int(x0), 0);
+		Int Y0 = Max(Int(y0), 0);
+		Int Z0 = Max(Int(z0), 0);
+
+		Int X1 = X0 + 1;
+		Int Y1 = Y0 + 1;
+		X1 = IfThenElse(X1 >= sWidth, X0, X1);
+		Y1 = IfThenElse(Y1 >= sHeight, Y0, Y1);
+
+		if(state.filter3D)
+		{
+			Int Z1 = Z0 + 1;
+			Z1 = IfThenElse(Z1 >= sHeight, Z0, Z1);
+
+			Pointer<Byte> s000 = source + ComputeOffset(X0, Y0, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s010 = source + ComputeOffset(X1, Y0, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s100 = source + ComputeOffset(X0, Y1, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s110 = source + ComputeOffset(X1, Y1, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s001 = source + ComputeOffset(X0, Y0, Z1, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s011 = source + ComputeOffset(X1, Y0, Z1, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s101 = source + ComputeOffset(X0, Y1, Z1, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s111 = source + ComputeOffset(X1, Y1, Z1, sSliceB, sPitchB, srcBytes);
+
+			Float4 c000 = readFloat4(s000, state);
+			Float4 c010 = readFloat4(s010, state);
+			Float4 c100 = readFloat4(s100, state);
+			Float4 c110 = readFloat4(s110, state);
+			Float4 c001 = readFloat4(s001, state);
+			Float4 c011 = readFloat4(s011, state);
+			Float4 c101 = readFloat4(s101, state);
+			Float4 c111 = readFloat4(s111, state);
+
+			if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
+			{
+				ApplyScaleAndClamp(c000, state);
+				ApplyScaleAndClamp(c010, state);
+				ApplyScaleAndClamp(c100, state);
+				ApplyScaleAndClamp(c110, state);
+				ApplyScaleAndClamp(c001, state);
+				ApplyScaleAndClamp(c011, state);
+				ApplyScaleAndClamp(c101, state);
+				ApplyScaleAndClamp(c111, state);
+				preScaled = true;
+			}
+
+			Float4 fx = Float4(x0 - Float(X0));
+			Float4 fy = Float4(y0 - Float(Y0));
+			Float4 fz = Float4(z0 - Float(Z0));
+			Float4 ix = Float4(1.0f) - fx;
+			Float4 iy = Float4(1.0f) - fy;
+			Float4 iz = Float4(1.0f) - fz;
+
+			color = ((c000 * ix + c010 * fx) * iy +
+			         (c100 * ix + c110 * fx) * fy) *
+			            iz +
+			        ((c001 * ix + c011 * fx) * iy +
+			         (c101 * ix + c111 * fx) * fy) *
+			            fz;
+		}
+		else
+		{
+			Pointer<Byte> s00 = source + ComputeOffset(X0, Y0, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s01 = source + ComputeOffset(X1, Y0, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s10 = source + ComputeOffset(X0, Y1, Z0, sSliceB, sPitchB, srcBytes);
+			Pointer<Byte> s11 = source + ComputeOffset(X1, Y1, Z0, sSliceB, sPitchB, srcBytes);
+
+			Float4 c00 = readFloat4(s00, state);
+			Float4 c01 = readFloat4(s01, state);
+			Float4 c10 = readFloat4(s10, state);
+			Float4 c11 = readFloat4(s11, state);
+
+			if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
+			{
+				ApplyScaleAndClamp(c00, state);
+				ApplyScaleAndClamp(c01, state);
+				ApplyScaleAndClamp(c10, state);
+				ApplyScaleAndClamp(c11, state);
+				preScaled = true;
+			}
+
+			Float4 fx = Float4(x0 - Float(X0));
+			Float4 fy = Float4(y0 - Float(Y0));
+			Float4 ix = Float4(1.0f) - fx;
+			Float4 iy = Float4(1.0f) - fy;
+
+			color = (c00 * ix + c01 * fx) * iy +
+			        (c10 * ix + c11 * fx) * fy;
+		}
+	}
+
+	ApplyScaleAndClamp(color, state, preScaled);
+
+	return color;
+}
+
 Blitter::BlitRoutineType Blitter::generate(const State &state)
 {
 	BlitFunction function;
@@ -1388,19 +1556,26 @@ Blitter::BlitRoutineType Blitter::generate(const State &state)
 		Pointer<Byte> dest = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData, dest));
 		Int sPitchB = *Pointer<Int>(blit + OFFSET(BlitData, sPitchB));
 		Int dPitchB = *Pointer<Int>(blit + OFFSET(BlitData, dPitchB));
+		Int sSliceB = *Pointer<Int>(blit + OFFSET(BlitData, sSliceB));
+		Int dSliceB = *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
 
 		Float x0 = *Pointer<Float>(blit + OFFSET(BlitData, x0));
 		Float y0 = *Pointer<Float>(blit + OFFSET(BlitData, y0));
+		Float z0 = *Pointer<Float>(blit + OFFSET(BlitData, z0));
 		Float w = *Pointer<Float>(blit + OFFSET(BlitData, w));
 		Float h = *Pointer<Float>(blit + OFFSET(BlitData, h));
+		Float d = *Pointer<Float>(blit + OFFSET(BlitData, d));
 
 		Int x0d = *Pointer<Int>(blit + OFFSET(BlitData, x0d));
 		Int x1d = *Pointer<Int>(blit + OFFSET(BlitData, x1d));
 		Int y0d = *Pointer<Int>(blit + OFFSET(BlitData, y0d));
 		Int y1d = *Pointer<Int>(blit + OFFSET(BlitData, y1d));
+		Int z0d = *Pointer<Int>(blit + OFFSET(BlitData, z0d));
+		Int z1d = *Pointer<Int>(blit + OFFSET(BlitData, z1d));
 
 		Int sWidth = *Pointer<Int>(blit + OFFSET(BlitData, sWidth));
 		Int sHeight = *Pointer<Int>(blit + OFFSET(BlitData, sHeight));
+		Int sDepth = *Pointer<Int>(blit + OFFSET(BlitData, sDepth));
 
 		bool intSrc = state.sourceFormat.isUnnormalizedInteger();
 		bool intDst = state.destFormat.isUnnormalizedInteger();
@@ -1428,156 +1603,73 @@ Blitter::BlitRoutineType Blitter::generate(const State &state)
 			}
 		}
 
-		For(Int j = y0d, j < y1d, j++)
+		For(Int k = z0d, k < z1d, k++)
 		{
-			Float y = state.clearOperation ? RValue<Float>(y0) : y0 + Float(j) * h;
-			Pointer<Byte> destLine = dest + j * dPitchB;
+			Float z = state.clearOperation ? RValue<Float>(z0) : z0 + Float(k) * d;
+			Pointer<Byte> destSlice = dest + k * dSliceB;
 
-			For(Int i = x0d, i < x1d, i++)
+			For(Int j = y0d, j < y1d, j++)
 			{
-				Float x = state.clearOperation ? RValue<Float>(x0) : x0 + Float(i) * w;
-				Pointer<Byte> d = destLine + i * dstBytes;
+				Float y = state.clearOperation ? RValue<Float>(y0) : y0 + Float(j) * h;
+				Pointer<Byte> destLine = destSlice + j * dPitchB;
 
-				if(hasConstantColorI)
+				For(Int i = x0d, i < x1d, i++)
 				{
-					for(int s = 0; s < state.destSamples; s++)
+					Float x = state.clearOperation ? RValue<Float>(x0) : x0 + Float(i) * w;
+					Pointer<Byte> d = destLine + i * dstBytes;
+
+					if(hasConstantColorI)
 					{
-						write(constantColorI, d, state);
+						for(int s = 0; s < state.destSamples; s++)
+						{
+							write(constantColorI, d, state);
 
-						d += *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
+							d += dSliceB;
+						}
 					}
-				}
-				else if(hasConstantColorF)
-				{
-					for(int s = 0; s < state.destSamples; s++)
+					else if(hasConstantColorF)
 					{
-						write(constantColorF, d, state);
+						for(int s = 0; s < state.destSamples; s++)
+						{
+							write(constantColorF, d, state);
 
-						d += *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
+							d += dSliceB;
+						}
 					}
-				}
-				else if(intBoth)  // Integer types do not support filtering
-				{
-					Int X = Int(x);
-					Int Y = Int(y);
-
-					if(state.clampToEdge)
-					{
-						X = Clamp(X, 0, sWidth - 1);
-						Y = Clamp(Y, 0, sHeight - 1);
-					}
-
-					Pointer<Byte> s = source + ComputeOffset(X, Y, sPitchB, srcBytes);
-
-					// When both formats are true integer types, we don't go to float to avoid losing precision
-					Int4 color = readInt4(s, state);
-					for(int s = 0; s < state.destSamples; s++)
-					{
-						write(color, d, state);
-
-						d += *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
-					}
-				}
-				else
-				{
-					Float4 color;
-
-					bool preScaled = false;
-					if(!state.filter || intSrc)
+					else if(intBoth)  // Integer types do not support filtering
 					{
 						Int X = Int(x);
 						Int Y = Int(y);
+						Int Z = Int(z);
 
 						if(state.clampToEdge)
 						{
 							X = Clamp(X, 0, sWidth - 1);
 							Y = Clamp(Y, 0, sHeight - 1);
+							Z = Clamp(Z, 0, sDepth - 1);
 						}
 
-						Pointer<Byte> s = source + ComputeOffset(X, Y, sPitchB, srcBytes);
+						Pointer<Byte> s = source + ComputeOffset(X, Y, Z, sSliceB, sPitchB, srcBytes);
 
-						color = readFloat4(s, state);
-
-						if(state.srcSamples > 1)  // Resolve multisampled source
+						// When both formats are true integer types, we don't go to float to avoid losing precision
+						Int4 color = readInt4(s, state);
+						for(int s = 0; s < state.destSamples; s++)
 						{
-							if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
-							{
-								ApplyScaleAndClamp(color, state);
-								preScaled = true;
-							}
-							Float4 accum = color;
-							for(int sample = 1; sample < state.srcSamples; sample++)
-							{
-								s += *Pointer<Int>(blit + OFFSET(BlitData, sSliceB));
-								color = readFloat4(s, state);
+							write(color, d, state);
 
-								if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
-								{
-									ApplyScaleAndClamp(color, state);
-									preScaled = true;
-								}
-								accum += color;
-							}
-							color = accum * Float4(1.0f / static_cast<float>(state.srcSamples));
+							d += dSliceB;
 						}
 					}
-					else  // Bilinear filtering
+					else
 					{
-						Float X = x;
-						Float Y = y;
+						Float4 color = sample(source, x, y, z, sWidth, sHeight, sDepth, sSliceB, sPitchB, state);
 
-						if(state.clampToEdge)
+						for(int s = 0; s < state.destSamples; s++)
 						{
-							X = Min(Max(x, 0.5f), Float(sWidth) - 0.5f);
-							Y = Min(Max(y, 0.5f), Float(sHeight) - 0.5f);
+							write(color, d, state);
+
+							d += dSliceB;
 						}
-
-						Float x0 = X - 0.5f;
-						Float y0 = Y - 0.5f;
-
-						Int X0 = Max(Int(x0), 0);
-						Int Y0 = Max(Int(y0), 0);
-
-						Int X1 = X0 + 1;
-						Int Y1 = Y0 + 1;
-						X1 = IfThenElse(X1 >= sWidth, X0, X1);
-						Y1 = IfThenElse(Y1 >= sHeight, Y0, Y1);
-
-						Pointer<Byte> s00 = source + ComputeOffset(X0, Y0, sPitchB, srcBytes);
-						Pointer<Byte> s01 = source + ComputeOffset(X1, Y0, sPitchB, srcBytes);
-						Pointer<Byte> s10 = source + ComputeOffset(X0, Y1, sPitchB, srcBytes);
-						Pointer<Byte> s11 = source + ComputeOffset(X1, Y1, sPitchB, srcBytes);
-
-						Float4 c00 = readFloat4(s00, state);
-						Float4 c01 = readFloat4(s01, state);
-						Float4 c10 = readFloat4(s10, state);
-						Float4 c11 = readFloat4(s11, state);
-
-						if(state.allowSRGBConversion && state.sourceFormat.isSRGBformat())  // sRGB -> RGB
-						{
-							ApplyScaleAndClamp(c00, state);
-							ApplyScaleAndClamp(c01, state);
-							ApplyScaleAndClamp(c10, state);
-							ApplyScaleAndClamp(c11, state);
-							preScaled = true;
-						}
-
-						Float4 fx = Float4(x0 - Float(X0));
-						Float4 fy = Float4(y0 - Float(Y0));
-						Float4 ix = Float4(1.0f) - fx;
-						Float4 iy = Float4(1.0f) - fy;
-
-						color = (c00 * ix + c01 * fx) * iy +
-						        (c10 * ix + c11 * fx) * fy;
-					}
-
-					ApplyScaleAndClamp(color, state, preScaled);
-
-					for(int s = 0; s < state.destSamples; s++)
-					{
-						write(color, d, state);
-
-						d += *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
 					}
 				}
 			}
@@ -1635,18 +1727,19 @@ void Blitter::blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subres
 		src->slicePitchBytes(aspect, subresource.mipLevel),  // sSliceB
 		bufferSlicePitch,                                    // dSliceB
 
-		0, 0, 1, 1,
+		0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
 
-		0,                                // y0d
-		static_cast<int>(extent.height),  // y1d
 		0,                                // x0d
 		static_cast<int>(extent.width),   // x1d
+		0,                                // y0d
+		static_cast<int>(extent.height),  // y1d
+		0,                                // z0d
+		static_cast<int>(extent.depth),   // z1d
 
-		static_cast<int>(extent.width),  // sWidth
-		static_cast<int>(extent.height)  // sHeight;
+		static_cast<int>(extent.width),   // sWidth
+		static_cast<int>(extent.height),  // sHeight
+		static_cast<int>(extent.depth),   // sDepth
 	};
-
-	VkOffset3D srcOffset = { 0, 0, offset.z };
 
 	VkImageSubresourceLayers srcSubresLayers = subresource;
 	srcSubresLayers.layerCount = 1;
@@ -1663,16 +1756,9 @@ void Blitter::blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subres
 
 	for(; srcSubresLayers.baseArrayLayer <= lastLayer; srcSubresLayers.baseArrayLayer++)
 	{
-		srcOffset.z = offset.z;
-
-		for(auto i = 0u; i < extent.depth; i++)
-		{
-			data.source = src->getTexelPointer(srcOffset, srcSubresLayers);
-			ASSERT(data.source < src->end());
-			blitRoutine(&data);
-			srcOffset.z++;
-			data.dest = (dst += bufferSlicePitch);
-		}
+		data.source = src->getTexelPointer({ 0, 0, 0 }, srcSubresLayers);
+		ASSERT(data.source < src->end());
+		blitRoutine(&data);
 	}
 }
 
@@ -1698,19 +1784,22 @@ void Blitter::blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subr
 
 		static_cast<float>(-offset.x),  // x0
 		static_cast<float>(-offset.y),  // y0
+		static_cast<float>(-offset.z),  // z0
 		1.0f,                           // w
 		1.0f,                           // h
+		1.0f,                           // d
 
-		offset.y,                                    // y0d
-		static_cast<int>(offset.y + extent.height),  // y1d
 		offset.x,                                    // x0d
 		static_cast<int>(offset.x + extent.width),   // x1d
+		offset.y,                                    // y0d
+		static_cast<int>(offset.y + extent.height),  // y1d
+		offset.z,                                    // z0d
+		static_cast<int>(offset.z + extent.depth),   // z1d
 
-		static_cast<int>(extent.width),  // sWidth
-		static_cast<int>(extent.height)  // sHeight;
+		static_cast<int>(extent.width),   // sWidth
+		static_cast<int>(extent.height),  // sHeight;
+		static_cast<int>(extent.depth),   // sDepth;
 	};
-
-	VkOffset3D dstOffset = { 0, 0, offset.z };
 
 	VkImageSubresourceLayers dstSubresLayers = subresource;
 	dstSubresLayers.layerCount = 1;
@@ -1727,16 +1816,9 @@ void Blitter::blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subr
 
 	for(; dstSubresLayers.baseArrayLayer <= lastLayer; dstSubresLayers.baseArrayLayer++)
 	{
-		dstOffset.z = offset.z;
-
-		for(auto i = 0u; i < extent.depth; i++)
-		{
-			data.dest = dst->getTexelPointer(dstOffset, dstSubresLayers);
-			ASSERT(data.dest < dst->end());
-			blitRoutine(&data);
-			dstOffset.z++;
-			data.source = (src += bufferSlicePitch);
-		}
+		data.dest = dst->getTexelPointer({ 0, 0, 0 }, dstSubresLayers);
+		ASSERT(data.dest < dst->end());
+		blitRoutine(&data);
 	}
 }
 
@@ -1769,15 +1851,15 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
 	VkExtent3D srcExtent = src->getMipLevelExtent(srcAspect, region.srcSubresource.mipLevel);
 
-	int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
-	ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
-
 	float widthRatio = static_cast<float>(region.srcOffsets[1].x - region.srcOffsets[0].x) /
 	                   static_cast<float>(region.dstOffsets[1].x - region.dstOffsets[0].x);
 	float heightRatio = static_cast<float>(region.srcOffsets[1].y - region.srcOffsets[0].y) /
 	                    static_cast<float>(region.dstOffsets[1].y - region.dstOffsets[0].y);
+	float depthRatio = static_cast<float>(region.srcOffsets[1].z - region.srcOffsets[0].z) /
+	                   static_cast<float>(region.dstOffsets[1].z - region.dstOffsets[0].z);
 	float x0 = region.srcOffsets[0].x + (0.5f - region.dstOffsets[0].x) * widthRatio;
 	float y0 = region.srcOffsets[0].y + (0.5f - region.dstOffsets[0].y) * heightRatio;
+	float z0 = region.srcOffsets[0].z + (0.5f - region.dstOffsets[0].z) * depthRatio;
 
 	auto srcFormat = src->getFormat(srcAspect);
 	auto dstFormat = dst->getFormat(dstAspect);
@@ -1795,6 +1877,8 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 	                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||
 	                    (static_cast<uint32_t>(region.srcOffsets[1].y) > srcExtent.height) ||
 	                    (doFilter && ((x0 < 0.5f) || (y0 < 0.5f)));
+	state.filter3D = (region.srcOffsets[1].z - region.srcOffsets[0].z) !=
+	                 (region.dstOffsets[1].z - region.dstOffsets[0].z);
 
 	auto blitRoutine = getBlitRoutine(state);
 	if(!blitRoutine)
@@ -1812,20 +1896,22 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 
 		x0,
 		y0,
+		z0,
 		widthRatio,
 		heightRatio,
+		depthRatio,
 
-		region.dstOffsets[0].y,  // y0d
-		region.dstOffsets[1].y,  // y1d
 		region.dstOffsets[0].x,  // x0d
 		region.dstOffsets[1].x,  // x1d
+		region.dstOffsets[0].y,  // y0d
+		region.dstOffsets[1].y,  // y1d
+		region.dstOffsets[0].z,  // z0d
+		region.dstOffsets[1].z,  // z1d
 
-		static_cast<int>(srcExtent.width),  // sWidth
-		static_cast<int>(srcExtent.height)  // sHeight;
+		static_cast<int>(srcExtent.width),   // sWidth
+		static_cast<int>(srcExtent.height),  // sHeight
+		static_cast<int>(srcExtent.depth),   // sDepth
 	};
-
-	VkOffset3D srcOffset = { 0, 0, region.srcOffsets[0].z };
-	VkOffset3D dstOffset = { 0, 0, region.dstOffsets[0].z };
 
 	VkImageSubresourceLayers srcSubresLayers = {
 		region.srcSubresource.aspectMask,
@@ -1853,21 +1939,13 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 
 	for(; srcSubresLayers.baseArrayLayer <= lastLayer; srcSubresLayers.baseArrayLayer++, dstSubresLayers.baseArrayLayer++)
 	{
-		srcOffset.z = region.srcOffsets[0].z;
-		dstOffset.z = region.dstOffsets[0].z;
+		data.source = src->getTexelPointer({ 0, 0, 0 }, srcSubresLayers);
+		data.dest = dst->getTexelPointer({ 0, 0, 0 }, dstSubresLayers);
 
-		for(int i = 0; i < numSlices; i++)
-		{
-			data.source = src->getTexelPointer(srcOffset, srcSubresLayers);
-			data.dest = dst->getTexelPointer(dstOffset, dstSubresLayers);
+		ASSERT(data.source < src->end());
+		ASSERT(data.dest < dst->end());
 
-			ASSERT(data.source < src->end());
-			ASSERT(data.dest < dst->end());
-
-			blitRoutine(&data);
-			srcOffset.z++;
-			dstOffset.z++;
-		}
+		blitRoutine(&data);
 	}
 }
 
