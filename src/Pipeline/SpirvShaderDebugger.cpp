@@ -906,6 +906,16 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 			break;
 		case OpenCLDebugInfo100DebugNoScope:
 			break;
+		case OpenCLDebugInfo100DebugInlinedAt:
+			defineOrEmit(insn, pass, [&](debug::InlinedAt *ia) {
+				ia->line = insn.word(5);
+				ia->scope = get(debug::LexicalBlock::ID(insn.word(6)));
+				if(insn.wordCount() > 7)
+				{
+					ia->inlined = get(debug::InlinedAt::ID(insn.word(7)));
+				}
+			});
+			break;
 		case OpenCLDebugInfo100DebugLocalVariable:
 			defineOrEmit(insn, pass, [&](debug::LocalVariable *var) {
 				var->name = shader->getString(insn.word(5));
