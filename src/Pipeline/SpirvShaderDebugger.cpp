@@ -153,12 +153,14 @@ struct ObjectImpl : public BASE
 template<typename TO, typename FROM>
 TO *cast(FROM *obj)
 {
+	if(obj == nullptr) { return nullptr; }  // None
 	return (TO::kindof(obj->kind)) ? static_cast<TO *>(obj) : nullptr;
 }
 
 template<typename TO, typename FROM>
 const TO *cast(const FROM *obj)
 {
+	if(obj == nullptr) { return nullptr; }  // None
 	return (TO::kindof(obj->kind)) ? static_cast<const TO *>(obj) : nullptr;
 }
 
@@ -419,8 +421,12 @@ private:
 	template<typename ID, typename T>
 	void add(ID id, T *);
 
+	// addNone() registers given id as a None value or type.
+	void addNone(debug::Object::ID id);
+
 	// get() returns the debug object with the given id.
 	// The object must exist and be of type (or derive from type) T.
+	// A returned nullptr represents a None value or type.
 	template<typename T>
 	T *get(SpirvID<T> id) const;
 
@@ -797,6 +803,12 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 	auto extInstIndex = insn.word(4);
 	switch(extInstIndex)
 	{
+		case OpenCLDebugInfo100DebugInfoNone:
+			if(pass == Pass::Define)
+			{
+				addNone(debug::Object::ID(insn.word(2)));
+			}
+			break;
 		case OpenCLDebugInfo100DebugCompilationUnit:
 			defineOrEmit(insn, pass, [&](debug::CompilationUnit *cu) {
 				cu->source = get(debug::Source::ID(insn.word(7)));
@@ -977,7 +989,6 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 			});
 			break;
 
-		case OpenCLDebugInfo100DebugInfoNone:
 		case OpenCLDebugInfo100DebugTypePointer:
 		case OpenCLDebugInfo100DebugTypeQualifier:
 		case OpenCLDebugInfo100DebugTypeArray:
@@ -1016,7 +1027,14 @@ void SpirvShader::Impl::Debugger::setPosition(EmitState *state, const std::strin
 template<typename ID, typename T>
 void SpirvShader::Impl::Debugger::add(ID id, T *obj)
 {
-	auto added = objects.emplace(debug::Object::ID(id.value()), obj).second;
+	ASSERT_MSG(obj != nullptr, "add() called with nullptr obj");
+	bool added = objects.emplace(debug::Object::ID(id.value()), obj).second;
+	ASSERT_MSG(added, "Debug object with %d already exists", id.value());
+}
+
+void SpirvShader::Impl::Debugger::addNone(debug::Object::ID id)
+{
+	bool added = objects.emplace(debug::Object::ID(id.value()), nullptr).second;
 	ASSERT_MSG(added, "Debug object with %d already exists", id.value());
 }
 
