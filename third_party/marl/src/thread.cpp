@@ -124,8 +124,9 @@ Thread::Thread(unsigned int logicalCpu, const Func& func) {
   MARL_ASSERT(size > 0,
               "InitializeProcThreadAttributeList() did not give a size");
 
+  std::vector<uint8_t> buffer(size);
   LPPROC_THREAD_ATTRIBUTE_LIST attributes =
-      reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(alloca(size));
+      reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(buffer.data());
   CHECK_WIN32(InitializeProcThreadAttributeList(attributes, 1, 0, &size));
   defer(DeleteProcThreadAttributeList(attributes));
 
