@@ -976,8 +976,31 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				fileIDs.emplace(source->file.c_str(), file->id);
 			});
 			break;
+
+		case OpenCLDebugInfo100DebugInfoNone:
+		case OpenCLDebugInfo100DebugTypePointer:
+		case OpenCLDebugInfo100DebugTypeQualifier:
+		case OpenCLDebugInfo100DebugTypeArray:
+		case OpenCLDebugInfo100DebugTypedef:
+		case OpenCLDebugInfo100DebugTypeEnum:
+		case OpenCLDebugInfo100DebugTypeInheritance:
+		case OpenCLDebugInfo100DebugTypePtrToMember:
+		case OpenCLDebugInfo100DebugTypeTemplate:
+		case OpenCLDebugInfo100DebugTypeTemplateParameter:
+		case OpenCLDebugInfo100DebugTypeTemplateTemplateParameter:
+		case OpenCLDebugInfo100DebugTypeTemplateParameterPack:
+		case OpenCLDebugInfo100DebugGlobalVariable:
+		case OpenCLDebugInfo100DebugFunctionDeclaration:
+		case OpenCLDebugInfo100DebugLexicalBlockDiscriminator:
+		case OpenCLDebugInfo100DebugInlinedVariable:
+		case OpenCLDebugInfo100DebugOperation:
+		case OpenCLDebugInfo100DebugMacroDef:
+		case OpenCLDebugInfo100DebugMacroUndef:
+		case OpenCLDebugInfo100DebugImportedEntity:
+			UNIMPLEMENTED("b/148401179 OpenCLDebugInfo100 instruction %d", int(extInstIndex));
+			break;
 		default:
-			UNSUPPORTED("Unsupported OpenCLDebugInfo100 instruction %d", int(extInstIndex));
+			UNSUPPORTED("OpenCLDebugInfo100 instruction %d", int(extInstIndex));
 	}
 }
 
