@@ -16,6 +16,8 @@
 
 // If enabled, each instruction will be printed before processing.
 #define PRINT_EACH_PROCESSED_INSTRUCTION 0
+// If enabled, each instruction will be printed before executing.
+#define PRINT_EACH_EXECUTED_INSTRUCTION 0
 
 #ifdef ENABLE_VK_DEBUGGER
 
@@ -1452,15 +1454,30 @@ void SpirvShader::dbgEndEmit(EmitState *state) const
 void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) const
 {
 #	if PRINT_EACH_PROCESSED_INSTRUCTION
-	auto instruction = spvtools::spvInstructionBinaryToText(
-	    SPV_ENV_VULKAN_1_1,
-	    insn.wordPointer(0),
-	    insn.wordCount(),
-	    insns.data(),
-	    insns.size(),
-	    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
-	printf("%s\n", instruction.c_str());
+	{
+		auto instruction = spvtools::spvInstructionBinaryToText(
+		    SPV_ENV_VULKAN_1_1,
+		    insn.wordPointer(0),
+		    insn.wordCount(),
+		    insns.data(),
+		    insns.size(),
+		    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+		printf("%s\n", instruction.c_str());
+	}
 #	endif  // PRINT_EACH_PROCESSED_INSTRUCTION
+
+#	if PRINT_EACH_EXECUTED_INSTRUCTION
+	{
+		auto instruction = spvtools::spvInstructionBinaryToText(
+		    SPV_ENV_VULKAN_1_1,
+		    insn.wordPointer(0),
+		    insn.wordCount(),
+		    insns.data(),
+		    insns.size(),
+		    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+		rr::Print("{0}\n", instruction);
+	}
+#	endif  // PRINT_EACH_EXECUTED_INSTRUCTION
 
 	if(extensionsImported.count(Extension::OpenCLDebugInfo100) == 0)
 	{
