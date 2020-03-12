@@ -50,6 +50,7 @@ __pragma(warning(push))
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Error.h"
+#include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Transforms/Coroutines.h"
