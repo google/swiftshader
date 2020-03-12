@@ -205,10 +205,12 @@ struct Scope : public Object
 	static constexpr bool kindof(Kind kind)
 	{
 		return kind == Kind::CompilationUnit ||
+		       kind == Kind::Function ||
 		       kind == Kind::LexicalBlock;
 	}
 
 	struct Source *source = nullptr;
+	Scope *parent = nullptr;
 };
 
 struct Type : public Object
@@ -290,14 +292,12 @@ struct Member : ObjectImpl<Member, Object, Object::Kind::Member>
 	uint32_t flags = 0;   // OR'd from OpenCLDebugInfo100DebugInfoFlags
 };
 
-struct Function : ObjectImpl<Function, Object, Object::Kind::Function>
+struct Function : ObjectImpl<Function, Scope, Object::Kind::Function>
 {
 	std::string name;
 	FunctionType *type = nullptr;
-	Source *source = nullptr;
 	uint32_t line = 0;
 	uint32_t column = 0;
-	struct LexicalBlock *parent = nullptr;
 	std::string linkage;
 	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
 	uint32_t scopeLine = 0;
@@ -308,9 +308,7 @@ struct LexicalBlock : ObjectImpl<LexicalBlock, Scope, Object::Kind::LexicalBlock
 {
 	uint32_t line = 0;
 	uint32_t column = 0;
-	Scope *parent = nullptr;
 	std::string name;
-	Function *function = nullptr;
 };
 
 struct InlinedAt : ObjectImpl<InlinedAt, Object, Object::Kind::InlinedAt>
@@ -322,7 +320,7 @@ struct InlinedAt : ObjectImpl<InlinedAt, Object, Object::Kind::InlinedAt>
 
 struct SourceScope : ObjectImpl<SourceScope, Object, Object::Kind::SourceScope>
 {
-	LexicalBlock *scope = nullptr;
+	Scope *scope = nullptr;
 	InlinedAt *inlinedAt = nullptr;
 };
 
@@ -366,6 +364,16 @@ struct Value : ObjectImpl<Value, Object, Object::Kind::Value>
 };
 
 const Scope Scope::Root = CompilationUnit{};
+
+// find<T>() searches the nested scopes, returning for the first scope that is
+// castable to type T. If no scope can be found of type T, then nullptr is
+// returned.
+template<typename T>
+T *find(Scope *scope)
+{
+	if(auto out = cast<T>(scope)) { return out; }
+	return scope->parent ? find<T>(scope->parent) : nullptr;
+}
 
 }  // namespace debug
 }  // anonymous namespace
@@ -629,6 +637,10 @@ void SpirvShader::Impl::Debugger::State::putRef(vk::dbg::VariableContainer *vc, 
 
 void SpirvShader::Impl::Debugger::State::createScope(const debug::Scope *spirvScope)
 {
+	// TODO(b/151338669): We're creating scopes per-shader invocation.
+	// This is all really static information, and should only be created
+	// once *per program*.
+
 	ASSERT(spirvScope != nullptr);
 
 	// TODO: Deal with scope nesting.
@@ -653,23 +665,26 @@ void SpirvShader::Impl::Debugger::State::setScope(debug::SourceScope *newSrcScop
 	if(oldSrcScope == newSrcScope) { return; }
 	srcScope = newSrcScope;
 
-	auto lock = debugger->ctx->lock();
-	auto thread = lock.currentThread();
-
-	debug::Function *oldFunction = oldSrcScope ? oldSrcScope->scope->function : nullptr;
-	debug::Function *newFunction = newSrcScope ? newSrcScope->scope->function : nullptr;
-
-	if(oldFunction != newFunction)
+	if(debug::cast<debug::LexicalBlock>(srcScope->scope))
 	{
-		if(oldFunction) { thread->exit(); }
-		if(newFunction) { thread->enter(lock, newFunction->source->dbgFile, newFunction->name); }
-	}
+		auto lock = debugger->ctx->lock();
+		auto thread = lock.currentThread();
 
-	auto dbgScope = getScopes(srcScope->scope);
-	thread->update([&](vk::dbg::Frame &frame) {
-		frame.locals = dbgScope.locals;
-		frame.hovers = dbgScope.hovers;
-	});
+		debug::Function *oldFunction = oldSrcScope ? debug::find<debug::Function>(oldSrcScope->scope) : nullptr;
+		debug::Function *newFunction = newSrcScope ? debug::find<debug::Function>(newSrcScope->scope) : nullptr;
+
+		if(oldFunction != newFunction)
+		{
+			if(oldFunction) { thread->exit(); }
+			if(newFunction) { thread->enter(lock, newFunction->source->dbgFile, newFunction->name); }
+		}
+
+		auto dbgScope = getScopes(srcScope->scope);
+		thread->update([&](vk::dbg::Frame &frame) {
+			frame.locals = dbgScope.locals;
+			frame.hovers = dbgScope.hovers;
+		});
+	}
 }
 
 const SpirvShader::Impl::Debugger::State::Scopes &SpirvShader::Impl::Debugger::State::getScopes(const debug::Scope *scope)
@@ -680,7 +695,9 @@ const SpirvShader::Impl::Debugger::State::Scopes &SpirvShader::Impl::Debugger::S
 	}
 
 	auto dbgScopeIt = scopes.find(scope);
-	ASSERT_MSG(dbgScopeIt != scopes.end(), "createScope() not called for debug::Scope %p", scope);
+	ASSERT_MSG(dbgScopeIt != scopes.end(),
+	           "createScope() not called for debug::Scope %s %p",
+	           cstr(scope->kind), scope);
 	return dbgScopeIt->second;
 }
 
@@ -904,14 +921,14 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				func->source = get(debug::Source::ID(insn.word(7)));
 				func->line = insn.word(8);
 				func->column = insn.word(9);
-				func->parent = get(debug::LexicalBlock::ID(insn.word(10)));
+				func->parent = get(debug::Scope::ID(insn.word(10)));
 				func->linkage = shader->getString(insn.word(11));
 				func->flags = insn.word(12);
 				func->scopeLine = insn.word(13);
 				func->function = Function::ID(insn.word(14));
 				// declaration: word(13)
 
-				func->parent->function = func;
+				rr::Call(&State::createScope, state->routine->dbgState, func);
 			});
 			break;
 		case OpenCLDebugInfo100DebugLexicalBlock:
@@ -925,15 +942,12 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 					scope->name = shader->getString(insn.word(9));
 				}
 
-				// TODO: We're creating scopes per-shader invocation.
-				// This is all really static information, and should only be created
-				// once *per program*.
 				rr::Call(&State::createScope, state->routine->dbgState, scope);
 			});
 			break;
 		case OpenCLDebugInfo100DebugScope:
 			defineOrEmit(insn, pass, [&](debug::SourceScope *ss) {
-				ss->scope = get(debug::LexicalBlock::ID(insn.word(5)));
+				ss->scope = get(debug::Scope::ID(insn.word(5)));
 				if(insn.wordCount() > 6)
 				{
 					ss->inlinedAt = get(debug::InlinedAt::ID(insn.word(6)));
@@ -947,7 +961,7 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 		case OpenCLDebugInfo100DebugInlinedAt:
 			defineOrEmit(insn, pass, [&](debug::InlinedAt *ia) {
 				ia->line = insn.word(5);
-				ia->scope = get(debug::LexicalBlock::ID(insn.word(6)));
+				ia->scope = get(debug::Scope::ID(insn.word(6)));
 				if(insn.wordCount() > 7)
 				{
 					ia->inlined = get(debug::InlinedAt::ID(insn.word(7)));
