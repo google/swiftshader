@@ -1535,7 +1535,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     )
 endif()
 
-add_library(llvm STATIC ${LLVM_LIST})
+add_library(llvm STATIC EXCLUDE_FROM_ALL ${LLVM_LIST})
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     INCLUDE_DIRECTORIES "${LLVM_INCLUDE_DIR}"
