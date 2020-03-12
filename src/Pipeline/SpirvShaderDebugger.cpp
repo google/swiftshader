@@ -134,6 +134,32 @@ struct Object
 	static constexpr bool kindof(Object::Kind kind) { return true; }
 };
 
+// cstr() returns the c-string name of the given Object::Kind.
+constexpr const char *cstr(Object::Kind k)
+{
+	switch(k)
+	{
+		case Object::Kind::Object: return "Object";
+		case Object::Kind::Declare: return "Declare";
+		case Object::Kind::Expression: return "Expression";
+		case Object::Kind::Function: return "Function";
+		case Object::Kind::InlinedAt: return "InlinedAt";
+		case Object::Kind::LocalVariable: return "LocalVariable";
+		case Object::Kind::Member: return "Member";
+		case Object::Kind::Operation: return "Operation";
+		case Object::Kind::Source: return "Source";
+		case Object::Kind::SourceScope: return "SourceScope";
+		case Object::Kind::Value: return "Value";
+		case Object::Kind::CompilationUnit: return "CompilationUnit";
+		case Object::Kind::LexicalBlock: return "LexicalBlock";
+		case Object::Kind::BasicType: return "BasicType";
+		case Object::Kind::VectorType: return "VectorType";
+		case Object::Kind::FunctionType: return "FunctionType";
+		case Object::Kind::CompositeType: return "CompositeType";
+	}
+	return "<unknown>";
+}
+
 template<typename TYPE_, typename BASE, Object::Kind KIND_>
 struct ObjectImpl : public BASE
 {
@@ -1044,8 +1070,8 @@ T *SpirvShader::Impl::Debugger::get(SpirvID<T> id) const
 	auto it = objects.find(debug::Object::ID(id.value()));
 	ASSERT_MSG(it != objects.end(), "Unknown debug object %d", id.value());
 	auto ptr = debug::cast<T>(it->second.get());
-	ASSERT_MSG(ptr, "Debug object %d is not of the correct type. Got: %d, want: %d",
-	           id.value(), int(it->second->kind), int(T::KIND));
+	ASSERT_MSG(ptr, "Debug object %d is not of the correct type. Got: %s, want: %s",
+	           id.value(), cstr(it->second->kind), cstr(T::KIND));
 	return ptr;
 }
 
