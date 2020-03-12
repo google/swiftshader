@@ -268,7 +268,8 @@ sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
 
 	if(sampler->ycbcrConversion)
 	{
-		return MIPMAP_NONE;  // YCbCr images can only have one mipmap level.
+		// TODO(b/151263485): Check image view level count instead.
+		return MIPMAP_NONE;
 	}
 
 	switch(sampler->mipmapMode)

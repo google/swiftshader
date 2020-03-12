@@ -623,7 +623,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 			    VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT;
 			pFormatProperties->bufferFeatures |=
 			    VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT;
-			// Fall through
+			// [[fallthrough]]
 		case VK_FORMAT_R8G8B8A8_UNORM:
 		case VK_FORMAT_R8G8B8A8_SNORM:
 		case VK_FORMAT_R8G8B8A8_UINT:
@@ -643,7 +643,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_R16G16_SFLOAT:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
-			// Fall through
+			// [[fallthrough]]
 		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
@@ -678,7 +678,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT;
-			// Fall through
+			// [[fallthrough]]
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8G8_UINT:
@@ -898,7 +898,7 @@ void PhysicalDevice::getImageFormatProperties(Format format, VkImageType type, V
 	//  have further restrictions on their limits and capabilities compared to images created with other formats."
 	if(format.isYcbcrFormat())
 	{
-		pImageFormatProperties->maxMipLevels = 1;
+		pImageFormatProperties->maxMipLevels = 1;  // TODO(b/151263485): This is relied on by the sampler to disable mipmapping for Y'CbCr image sampling.
 		pImageFormatProperties->maxArrayLayers = 1;
 		pImageFormatProperties->sampleCounts = VK_SAMPLE_COUNT_1_BIT;
 	}
