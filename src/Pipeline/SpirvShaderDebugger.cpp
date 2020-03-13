@@ -377,6 +377,12 @@ T *find(Scope *scope)
 	return scope->parent ? find<T>(scope->parent) : nullptr;
 }
 
+bool hasDebuggerScope(debug::Scope *spirvScope)
+{
+	return debug::cast<debug::Function>(spirvScope) != nullptr ||
+	       debug::cast<debug::LexicalBlock>(spirvScope) != nullptr;
+}
+
 }  // namespace debug
 }  // anonymous namespace
 
@@ -421,7 +427,8 @@ struct SpirvShader::Impl::Debugger
 
 	void process(const SpirvShader *shader, const InsnIterator &insn, EmitState *state, Pass pass);
 
-	void setPosition(EmitState *state, const std::string &path, uint32_t line, uint32_t column);
+	void setLocation(EmitState *state, const std::shared_ptr<vk::dbg::File> &, int line, int column);
+	void setLocation(EmitState *state, const std::string &path, int line, int column);
 
 	// exposeVariable exposes the variable with the given ID to the debugger
 	// using the specified key.
@@ -469,8 +476,6 @@ private:
 	// use get() and add() to access this
 	std::unordered_map<debug::Object::ID, std::unique_ptr<debug::Object>> objects;
 
-	std::unordered_map<std::string, vk::dbg::File::ID> fileIDs;
-
 	// defineOrEmit() when called in Pass::Define, creates and stores a
 	// zero-initialized object into the Debugger::objects map using the
 	// object identifier held by second instruction operand.
@@ -483,6 +488,8 @@ private:
 	// The object type is automatically inferred from the function signature.
 	template<typename F, typename T = typename std::remove_pointer<ArgTyT<F>>::type>
 	void defineOrEmit(InsnIterator insn, Pass pass, F &&emit);
+
+	std::unordered_map<std::string, std::shared_ptr<vk::dbg::File>> files;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -502,7 +509,7 @@ public:
 	void enter(vk::dbg::Context::Lock &lock, const char *name);
 	void exit();
 	void updateActiveLaneMask(int lane, bool enabled);
-	void update(vk::dbg::File::ID file, int line, int column);
+	void updateLocation(vk::dbg::File::ID file, int line, int column);
 	void createScope(const debug::Scope *);
 	void setScope(debug::SourceScope *newScope);
 
@@ -594,7 +601,7 @@ void SpirvShader::Impl::Debugger::State::updateActiveLaneMask(int lane, bool ena
 	rootScopes.localsByLane[lane]->put("enabled", vk::dbg::make_constant(enabled));
 }
 
-void SpirvShader::Impl::Debugger::State::update(vk::dbg::File::ID fileID, int line, int column)
+void SpirvShader::Impl::Debugger::State::updateLocation(vk::dbg::File::ID fileID, int line, int column)
 {
 	auto file = debugger->ctx->lock().get(fileID);
 	thread->update([&](vk::dbg::Frame &frame) {
@@ -645,19 +652,35 @@ void SpirvShader::Impl::Debugger::State::createScope(const debug::Scope *spirvSc
 
 	ASSERT(spirvScope != nullptr);
 
-	// TODO: Deal with scope nesting.
-
 	auto lock = debugger->ctx->lock();
 	Scopes s = {};
 	s.locals = lock.createScope(spirvScope->source->dbgFile);
 	s.hovers = lock.createScope(spirvScope->source->dbgFile);
+
 	for(int i = 0; i < sw::SIMD::Width; i++)
 	{
 		auto locals = lock.createVariableContainer();
-		locals->extend(builtinsByLane[i]);
 		s.localsByLane[i] = locals;
 		s.locals->variables->put(laneNames[i], locals);
 	}
+
+	if(hasDebuggerScope(spirvScope->parent))
+	{
+		auto parent = getScopes(spirvScope->parent);
+		for(int i = 0; i < sw::SIMD::Width; i++)
+		{
+			s.localsByLane[i]->extend(parent.localsByLane[i]);
+		}
+		s.hovers->variables->extend(parent.hovers->variables);
+	}
+	else
+	{
+		for(int i = 0; i < sw::SIMD::Width; i++)
+		{
+			s.localsByLane[i]->extend(builtinsByLane[i]);
+		}
+	}
+
 	scopes.emplace(spirvScope, std::move(s));
 }
 
@@ -667,7 +690,7 @@ void SpirvShader::Impl::Debugger::State::setScope(debug::SourceScope *newSrcScop
 	if(oldSrcScope == newSrcScope) { return; }
 	srcScope = newSrcScope;
 
-	if(debug::cast<debug::LexicalBlock>(srcScope->scope))
+	if(hasDebuggerScope(srcScope->scope))
 	{
 		auto lock = debugger->ctx->lock();
 		auto thread = lock.currentThread();
@@ -1027,7 +1050,7 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 
 				auto file = dbg->ctx->lock().createVirtualFile(source->file.c_str(), source->source.c_str());
 				source->dbgFile = file;
-				fileIDs.emplace(source->file.c_str(), file->id);
+				files.emplace(source->file.c_str(), file);
 			});
 			break;
 
@@ -1057,12 +1080,17 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 	}
 }
 
-void SpirvShader::Impl::Debugger::setPosition(EmitState *state, const std::string &path, uint32_t line, uint32_t column)
+void SpirvShader::Impl::Debugger::setLocation(EmitState *state, const std::shared_ptr<vk::dbg::File> &file, int line, int column)
 {
-	auto it = fileIDs.find(path);
-	if(it != fileIDs.end())
+	rr::Call(&State::updateLocation, state->routine->dbgState, file->id, line, column);
+}
+
+void SpirvShader::Impl::Debugger::setLocation(EmitState *state, const std::string &path, int line, int column)
+{
+	auto it = files.find(path);
+	if(it != files.end())
 	{
-		rr::Call(&State::update, state->routine->dbgState, it->second, line, column);
+		setLocation(state, it->second, line, column);
 	}
 }
 
@@ -1479,18 +1507,19 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 	}
 #	endif  // PRINT_EACH_EXECUTED_INSTRUCTION
 
-	if(extensionsImported.count(Extension::OpenCLDebugInfo100) == 0)
-	{
-		// We're emitting debugger logic for SPIR-V.
-		// Only single line step over statement instructions.
-		if(IsStatement(insn.opcode()))
-		{
-			auto dbg = impl.debugger;
-			if(!dbg) { return; }
+	// Only single line step over statement instructions.
 
-			auto line = dbg->spirvLineMappings.at(insn.wordPointer(0));
-			auto column = 0;
-			rr::Call(&Impl::Debugger::State::update, state->routine->dbgState, dbg->spirvFile->id, line, column);
+	if(auto dbg = impl.debugger)
+	{
+		if(extensionsImported.count(Extension::OpenCLDebugInfo100) == 0)
+		{
+			// We're emitting debugger logic for SPIR-V.
+			if(IsStatement(insn.opcode()))
+			{
+				auto line = dbg->spirvLineMappings.at(insn.wordPointer(0));
+				auto column = 0;
+				dbg->setLocation(state, dbg->spirvFile, line, column);
+			}
 		}
 	}
 }
@@ -1542,7 +1571,7 @@ SpirvShader::EmitResult SpirvShader::EmitLine(InsnIterator insn, EmitState *stat
 		auto path = getString(insn.word(1));
 		auto line = insn.word(2);
 		auto column = insn.word(3);
-		dbg->setPosition(state, path, line, column);
+		dbg->setLocation(state, path, line, column);
 	}
 	return EmitResult::Continue;
 }
