@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d47636f3_fed33fad",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-03-13T16:14:33Z",
+      "side": 1,
+      "message": "Does it work to depend on something not in the same directory? I\u0027ve had issues with that for Android.bp. Not sure about BUILD.gn.",
+      "range": {
+        "startLine": 306,
+        "startChar": 7,
+        "endLine": 306,
+        "endChar": 13
+      },
+      "revId": "acc886db84dee89106d8a5d877ab7f62b23a2a7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
