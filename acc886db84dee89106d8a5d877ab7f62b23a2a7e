@@ -22,6 +22,30 @@
       "revId": "acc886db84dee89106d8a5d877ab7f62b23a2a7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a41cdcd_8b3c908c",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-03-13T16:19:15Z",
+      "side": 1,
+      "message": "Apparently it works. It\u0027s what is done in other places in our BUILD.gn files...",
+      "parentUuid": "d47636f3_fed33fad",
+      "range": {
+        "startLine": 306,
+        "startChar": 7,
+        "endLine": 306,
+        "endChar": 13
+      },
+      "revId": "acc886db84dee89106d8a5d877ab7f62b23a2a7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
