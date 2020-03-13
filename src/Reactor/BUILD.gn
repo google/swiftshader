@@ -303,6 +303,7 @@ if (use_swiftshader_with_subzero) {
   }
   swiftshader_source_set("swiftshader_subzero_reactor") {
     deps = [
+      "../../third_party/marl:Marl",
       ":swiftshader_reactor_base",
       ":swiftshader_subzero",
     ]
