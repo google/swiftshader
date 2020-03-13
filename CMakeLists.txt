@@ -1572,155 +1572,151 @@ endif()
 # Subzero
 ###########################################################
 
-if(${REACTOR_BACKEND} STREQUAL "Subzero")
-    set(SUBZERO_LIST
-        ${SUBZERO_DIR}/src/IceAssembler.cpp
-        ${SUBZERO_DIR}/src/IceCfg.cpp
-        ${SUBZERO_DIR}/src/IceCfgNode.cpp
-        ${SUBZERO_DIR}/src/IceClFlags.cpp
-        ${SUBZERO_DIR}/src/IceELFObjectWriter.cpp
-        ${SUBZERO_DIR}/src/IceELFSection.cpp
-        ${SUBZERO_DIR}/src/IceFixups.cpp
-        ${SUBZERO_DIR}/src/IceGlobalContext.cpp
-        ${SUBZERO_DIR}/src/IceGlobalInits.cpp
-        ${SUBZERO_DIR}/src/IceInst.cpp
-        ${SUBZERO_DIR}/src/IceInstrumentation.cpp
-        ${SUBZERO_DIR}/src/IceIntrinsics.cpp
-        ${SUBZERO_DIR}/src/IceLiveness.cpp
-        ${SUBZERO_DIR}/src/IceLoopAnalyzer.cpp
-        ${SUBZERO_DIR}/src/IceMangling.cpp
-        ${SUBZERO_DIR}/src/IceMemory.cpp
-        ${SUBZERO_DIR}/src/IceOperand.cpp
-        ${SUBZERO_DIR}/src/IceRangeSpec.cpp
-        ${SUBZERO_DIR}/src/IceRegAlloc.cpp
-        ${SUBZERO_DIR}/src/IceRevision.cpp
-        ${SUBZERO_DIR}/src/IceRNG.cpp
-        ${SUBZERO_DIR}/src/IceSwitchLowering.cpp
-        ${SUBZERO_DIR}/src/IceTargetLowering.cpp
-        ${SUBZERO_DIR}/src/IceThreading.cpp
-        ${SUBZERO_DIR}/src/IceTimerTree.cpp
-        ${SUBZERO_DIR}/src/IceTypes.cpp
-        ${SUBZERO_DIR}/src/IceVariableSplitting.cpp
-    )
+set(SUBZERO_LIST
+    ${SUBZERO_DIR}/src/IceAssembler.cpp
+    ${SUBZERO_DIR}/src/IceCfg.cpp
+    ${SUBZERO_DIR}/src/IceCfgNode.cpp
+    ${SUBZERO_DIR}/src/IceClFlags.cpp
+    ${SUBZERO_DIR}/src/IceELFObjectWriter.cpp
+    ${SUBZERO_DIR}/src/IceELFSection.cpp
+    ${SUBZERO_DIR}/src/IceFixups.cpp
+    ${SUBZERO_DIR}/src/IceGlobalContext.cpp
+    ${SUBZERO_DIR}/src/IceGlobalInits.cpp
+    ${SUBZERO_DIR}/src/IceInst.cpp
+    ${SUBZERO_DIR}/src/IceInstrumentation.cpp
+    ${SUBZERO_DIR}/src/IceIntrinsics.cpp
+    ${SUBZERO_DIR}/src/IceLiveness.cpp
+    ${SUBZERO_DIR}/src/IceLoopAnalyzer.cpp
+    ${SUBZERO_DIR}/src/IceMangling.cpp
+    ${SUBZERO_DIR}/src/IceMemory.cpp
+    ${SUBZERO_DIR}/src/IceOperand.cpp
+    ${SUBZERO_DIR}/src/IceRangeSpec.cpp
+    ${SUBZERO_DIR}/src/IceRegAlloc.cpp
+    ${SUBZERO_DIR}/src/IceRevision.cpp
+    ${SUBZERO_DIR}/src/IceRNG.cpp
+    ${SUBZERO_DIR}/src/IceSwitchLowering.cpp
+    ${SUBZERO_DIR}/src/IceTargetLowering.cpp
+    ${SUBZERO_DIR}/src/IceThreading.cpp
+    ${SUBZERO_DIR}/src/IceTimerTree.cpp
+    ${SUBZERO_DIR}/src/IceTypes.cpp
+    ${SUBZERO_DIR}/src/IceVariableSplitting.cpp
+)
 
-    # FIXME: Shouldn't depend on external source files directly.
+# FIXME: Shouldn't depend on external source files directly.
+list(APPEND SUBZERO_LIST
+    ${SOURCE_DIR}/Common/Memory.cpp
+)
+
+if(ARCH STREQUAL "x86_64")
     list(APPEND SUBZERO_LIST
-        ${SOURCE_DIR}/Common/Memory.cpp
+        ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
+        ${SUBZERO_DIR}/src/IceInstX8664.cpp
+        ${SUBZERO_DIR}/src/IceTargetLoweringX8664.cpp
     )
-
-    if(ARCH STREQUAL "x86_64")
-        list(APPEND SUBZERO_LIST
-            ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
-            ${SUBZERO_DIR}/src/IceInstX8664.cpp
-            ${SUBZERO_DIR}/src/IceTargetLoweringX8664.cpp
-        )
-        set(SUBZERO_TARGET X8664)
-    elseif(ARCH STREQUAL "x86")
-        list(APPEND SUBZERO_LIST
-            ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
-            ${SUBZERO_DIR}/src/IceInstX8632.cpp
-            ${SUBZERO_DIR}/src/IceTargetLoweringX8632.cpp
-        )
-        set(SUBZERO_TARGET X8632)
-    elseif(ARCH STREQUAL "arm")
-        list(APPEND SUBZERO_LIST
-            ${SUBZERO_DIR}/src/IceAssemblerARM32.cpp
-            ${SUBZERO_DIR}/src/IceInstARM32.cpp
-            ${SUBZERO_DIR}/src/IceTargetLoweringARM32.cpp
-        )
-        set(SUBZERO_TARGET ARM32)
-    elseif(ARCH STREQUAL "mipsel")
-        list(APPEND SUBZERO_LIST
-            ${SUBZERO_DIR}/src/IceAssemblerMIPS32.cpp
-            ${SUBZERO_DIR}/src/IceInstMIPS32.cpp
-            ${SUBZERO_DIR}/src/IceTargetLoweringMIPS32.cpp
-        )
-        set(SUBZERO_TARGET MIPS32)
-    else()
-        message(FATAL_ERROR "Architecture '${ARCH}' not supported by Subzero")
-    endif()
-
-    file(GLOB_RECURSE SUBZERO_DEPENDENCIES_LIST
-        ${SUBZERO_LLVM_DIR}/*.cpp
-        ${SUBZERO_LLVM_DIR}/*.c
-        ${SUBZERO_LLVM_DIR}/*.h
+    set(SUBZERO_TARGET X8664)
+elseif(ARCH STREQUAL "x86")
+    list(APPEND SUBZERO_LIST
+        ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
+        ${SUBZERO_DIR}/src/IceInstX8632.cpp
+        ${SUBZERO_DIR}/src/IceTargetLoweringX8632.cpp
     )
-
-    set(SUBZERO_REACTOR_LIST
-        ${SOURCE_DIR}/Reactor/Debug.cpp
-        ${SOURCE_DIR}/Reactor/Debug.hpp
-        ${SOURCE_DIR}/Reactor/EmulatedReactor.cpp
-        ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
-        ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
-        ${SOURCE_DIR}/Reactor/Nucleus.hpp
-        ${SOURCE_DIR}/Reactor/Optimizer.cpp
-        ${SOURCE_DIR}/Reactor/Print.hpp
-        ${SOURCE_DIR}/Reactor/Reactor.cpp
-        ${SOURCE_DIR}/Reactor/Reactor.hpp
-        ${SOURCE_DIR}/Reactor/ReactorDebugInfo.cpp
-        ${SOURCE_DIR}/Reactor/ReactorDebugInfo.hpp
-        ${SOURCE_DIR}/Reactor/Routine.hpp
-        ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
+    set(SUBZERO_TARGET X8632)
+elseif(ARCH STREQUAL "arm")
+    list(APPEND SUBZERO_LIST
+        ${SUBZERO_DIR}/src/IceAssemblerARM32.cpp
+        ${SUBZERO_DIR}/src/IceInstARM32.cpp
+        ${SUBZERO_DIR}/src/IceTargetLoweringARM32.cpp
     )
-
-    set(SUBZERO_INCLUDE_DIR
-        ${SUBZERO_DIR}/
-        ${SUBZERO_LLVM_DIR}/include/
-        ${SUBZERO_DIR}/pnacl-llvm/include/
+    set(SUBZERO_TARGET ARM32)
+elseif(ARCH STREQUAL "mipsel")
+    list(APPEND SUBZERO_LIST
+        ${SUBZERO_DIR}/src/IceAssemblerMIPS32.cpp
+        ${SUBZERO_DIR}/src/IceInstMIPS32.cpp
+        ${SUBZERO_DIR}/src/IceTargetLoweringMIPS32.cpp
     )
+    set(SUBZERO_TARGET MIPS32)
+else()
+    message(FATAL_ERROR "Architecture '${ARCH}' not supported by Subzero")
+endif()
 
-    if(WIN32)
-        list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Windows/include/)
-    elseif(LINUX)
-        list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Linux/include/)
-    elseif(APPLE)
-        list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/MacOS/include/)
-    endif()
+file(GLOB_RECURSE SUBZERO_DEPENDENCIES_LIST
+    ${SUBZERO_LLVM_DIR}/*.cpp
+    ${SUBZERO_LLVM_DIR}/*.c
+    ${SUBZERO_LLVM_DIR}/*.h
+)
 
-    if(WIN32)
-        list(APPEND SUBZERO_COMPILE_OPTIONS
-            "/wd4146" # unary minus operator applied to unsigned type, result still unsigned
-            "/wd4334" # ''operator' : result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
-            "/wd4996" # The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: new_name.
-        )
-        list(APPEND SUBZERO_DEPENDENCIES_COMPILE_OPTIONS
-            ${SUBZERO_COMPILE_OPTIONS}
-            "/wd4267"  # '=': conversion from 'size_t' to 'sopno', possible loss of data
-            "/wd4244"  # '=': conversion from '__int64' to 'llvm_regoff_t', possible loss of data
-            "/wd4141"  # 'inline': used more than once
-            "/wd4291"  # 'void *operator new(size_t,const `anonymous-namespace'::NamedBufferAlloc &)': no matching operator delete found; memory will not be freed if initialization throws an exception
-        )
-    endif()
+set(SUBZERO_REACTOR_LIST
+    ${SOURCE_DIR}/Reactor/Debug.cpp
+    ${SOURCE_DIR}/Reactor/Debug.hpp
+    ${SOURCE_DIR}/Reactor/EmulatedReactor.cpp
+    ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
+    ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
+    ${SOURCE_DIR}/Reactor/Nucleus.hpp
+    ${SOURCE_DIR}/Reactor/Optimizer.cpp
+    ${SOURCE_DIR}/Reactor/Print.hpp
+    ${SOURCE_DIR}/Reactor/Reactor.cpp
+    ${SOURCE_DIR}/Reactor/Reactor.hpp
+    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.cpp
+    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.hpp
+    ${SOURCE_DIR}/Reactor/Routine.hpp
+    ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
+)
 
-    add_library(SubzeroDependencies STATIC
-        ${SUBZERO_DEPENDENCIES_LIST}
+set(SUBZERO_INCLUDE_DIR
+    ${SUBZERO_DIR}/
+    ${SUBZERO_LLVM_DIR}/include/
+    ${SUBZERO_DIR}/pnacl-llvm/include/
+)
+
+if(WIN32)
+    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Windows/include/)
+elseif(LINUX)
+    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Linux/include/)
+elseif(APPLE)
+    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/MacOS/include/)
+endif()
+
+if(WIN32)
+    list(APPEND SUBZERO_COMPILE_OPTIONS
+        "/wd4146" # unary minus operator applied to unsigned type, result still unsigned
+        "/wd4334" # ''operator' : result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+        "/wd4996" # The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: new_name.
     )
-    set_target_properties(SubzeroDependencies PROPERTIES
-        POSITION_INDEPENDENT_CODE 1
-        INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
-        COMPILE_OPTIONS "${SUBZERO_DEPENDENCIES_COMPILE_OPTIONS}"
-        FOLDER "Subzero"
+    list(APPEND SUBZERO_DEPENDENCIES_COMPILE_OPTIONS
+        ${SUBZERO_COMPILE_OPTIONS}
+        "/wd4267"  # '=': conversion from 'size_t' to 'sopno', possible loss of data
+        "/wd4244"  # '=': conversion from '__int64' to 'llvm_regoff_t', possible loss of data
+        "/wd4141"  # 'inline': used more than once
+        "/wd4291"  # 'void *operator new(size_t,const `anonymous-namespace'::NamedBufferAlloc &)': no matching operator delete found; memory will not be freed if initialization throws an exception
     )
+endif()
 
-    add_library(ReactorSubzero STATIC
-        ${SUBZERO_LIST}
-        ${SUBZERO_REACTOR_LIST}
-    )
-    set_target_properties(ReactorSubzero PROPERTIES
-        POSITION_INDEPENDENT_CODE 1
-        INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
-        COMPILE_OPTIONS "${SUBZERO_COMPILE_OPTIONS};${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "SZTARGET=${SUBZERO_TARGET}; ALLOW_DUMP=0; ALLOW_TIMERS=0; ALLOW_LLVM_CL=0; ALLOW_LLVM_IR=0; ALLOW_LLVM_IR_AS_INPUT=0; ALLOW_MINIMAL_BUILD=0; ALLOW_WASM=0; ICE_THREAD_LOCAL_HACK=0;"
-        FOLDER "Subzero"
-    )
-    target_link_libraries(ReactorSubzero SubzeroDependencies)
+add_library(SubzeroDependencies STATIC EXCLUDE_FROM_ALL
+    ${SUBZERO_DEPENDENCIES_LIST}
+)
+set_target_properties(SubzeroDependencies PROPERTIES
+    POSITION_INDEPENDENT_CODE 1
+    INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
+    COMPILE_OPTIONS "${SUBZERO_DEPENDENCIES_COMPILE_OPTIONS}"
+    FOLDER "Subzero"
+)
 
-    target_link_libraries(ReactorSubzero marl)
+add_library(ReactorSubzero STATIC EXCLUDE_FROM_ALL
+    ${SUBZERO_LIST}
+    ${SUBZERO_REACTOR_LIST}
+)
+set_target_properties(ReactorSubzero PROPERTIES
+    POSITION_INDEPENDENT_CODE 1
+    INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
+    COMPILE_OPTIONS "${SUBZERO_COMPILE_OPTIONS};${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+    COMPILE_DEFINITIONS "SZTARGET=${SUBZERO_TARGET}; ALLOW_DUMP=0; ALLOW_TIMERS=0; ALLOW_LLVM_CL=0; ALLOW_LLVM_IR=0; ALLOW_LLVM_IR_AS_INPUT=0; ALLOW_MINIMAL_BUILD=0; ALLOW_WASM=0; ICE_THREAD_LOCAL_HACK=0;"
+    FOLDER "Subzero"
+)
+target_link_libraries(ReactorSubzero SubzeroDependencies marl)
 
-    if(WIN32)
-        target_compile_definitions(ReactorSubzero PRIVATE SUBZERO_USE_MICROSOFT_ABI)
-    endif()
-endif(${REACTOR_BACKEND} STREQUAL "Subzero")
+if(WIN32)
+    target_compile_definitions(ReactorSubzero PRIVATE SUBZERO_USE_MICROSOFT_ABI)
+endif()
 
 ###########################################################
 # Include Directories
@@ -2032,7 +2028,7 @@ endif()
 # SwiftShader Targets
 ###########################################################
 
-add_library(SwiftShader STATIC ${SWIFTSHADER_LIST})
+add_library(SwiftShader STATIC EXCLUDE_FROM_ALL ${SWIFTSHADER_LIST})
 set_target_properties(SwiftShader PROPERTIES
     INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
@@ -2042,15 +2038,16 @@ set_target_properties(SwiftShader PROPERTIES
 )
 target_link_libraries(SwiftShader ${OS_LIBS})
 
+add_library(ReactorLLVM STATIC EXCLUDE_FROM_ALL ${REACTOR_LLVM_LIST})
+set_target_properties(ReactorLLVM PROPERTIES
+    INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
+    POSITION_INDEPENDENT_CODE 1
+    FOLDER "Core"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+)
+target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
+
 if(${REACTOR_BACKEND} STREQUAL "LLVM")
-    add_library(ReactorLLVM STATIC ${REACTOR_LLVM_LIST})
-    set_target_properties(ReactorLLVM PROPERTIES
-        INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
-        POSITION_INDEPENDENT_CODE 1
-        FOLDER "Core"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-    )
-    target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
     set(Reactor ReactorLLVM)
 elseif(${REACTOR_BACKEND} STREQUAL "Subzero")
     set(Reactor ReactorSubzero)
@@ -2070,7 +2067,7 @@ if(REACTOR_EMIT_DEBUG_INFO)
         # Boost stacktrace uses exceptions, so force enable it
         set_cpp_flag("-fexceptions")
 
-        add_library(Libbacktrace STATIC ${LIBBACKTRACE_LIST})
+        add_library(Libbacktrace STATIC EXCLUDE_FROM_ALL ${LIBBACKTRACE_LIST})
         set_target_properties(Libbacktrace PROPERTIES
             INCLUDE_DIRECTORIES "${LIBBACKTRACE_INCLUDE_DIR}"
             POSITION_INDEPENDENT_CODE 1
@@ -2085,10 +2082,9 @@ if(REACTOR_EMIT_DEBUG_INFO)
     set(BOOST_INCLUDEDIR ${BOOST_THIRD_PARTY_DIR})
     find_package(Boost REQUIRED)
     target_link_libraries(${Reactor} Boost::boost)
-
 endif(REACTOR_EMIT_DEBUG_INFO)
 
-add_library(GLCompiler STATIC ${OPENGL_COMPILER_LIST})
+add_library(GLCompiler STATIC EXCLUDE_FROM_ALL ${OPENGL_COMPILER_LIST})
 set_target_properties(GLCompiler PROPERTIES
     INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
