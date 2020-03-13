@@ -400,18 +400,12 @@ SpirvShader::SpirvShader(
 				function.result = Type::ID(insn.word(1));
 				function.type = Type::ID(insn.word(4));
 				// Scan forward to find the function's label.
-				for(auto it = insn; it != end() && function.entry == 0; it++)
+				for(auto it = insn; it != end(); it++)
 				{
-					switch(it.opcode())
+					if(it.opcode() == spv::OpLabel)
 					{
-						case spv::OpFunction:
-						case spv::OpFunctionParameter:
-							break;
-						case spv::OpLabel:
-							function.entry = Block::ID(it.word(1));
-							break;
-						default:
-							WARN("Unexpected opcode '%s' following OpFunction", OpcodeName(it.opcode()).c_str());
+						function.entry = Block::ID(it.word(1));
+						break;
 					}
 				}
 				ASSERT_MSG(function.entry != 0, "Function<%d> has no label", currentFunction.value());
