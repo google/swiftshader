@@ -102,7 +102,7 @@ class Event {
 
  private:
   struct Shared {
-    inline Shared(Mode mode, bool initialState);
+    inline Shared(Allocator* allocator, Mode mode, bool initialState);
     inline void signal();
     inline void wait();
 
@@ -123,8 +123,8 @@ class Event {
   const std::shared_ptr<Shared> shared;
 };
 
-Event::Shared::Shared(Mode mode, bool initialState)
-    : mode(mode), signalled(initialState) {}
+Event::Shared::Shared(Allocator* allocator, Mode mode, bool initialState)
+    : cv(allocator), mode(mode), signalled(initialState) {}
 
 void Event::Shared::signal() {
   std::unique_lock<std::mutex> lock(mutex);
@@ -179,7 +179,7 @@ bool Event::Shared::wait_until(
 Event::Event(Mode mode /* = Mode::Auto */,
              bool initialState /* = false */,
              Allocator* allocator /* = Allocator::Default */)
-    : shared(allocator->make_shared<Shared>(mode, initialState)) {}
+    : shared(allocator->make_shared<Shared>(allocator, mode, initialState)) {}
 
 void Event::signal() const {
   shared->signal();

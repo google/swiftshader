@@ -18,27 +18,26 @@
 #include "debug.h"
 #include "memory.h"
 #include "sal.h"
+#include "task.h"
 #include "thread.h"
 
 #include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <deque>
 #include <functional>
 #include <map>
 #include <mutex>
-#include <queue>
 #include <set>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace marl {
 
 class OSFiber;
-
-// Task is a unit of work for the scheduler.
-using Task = std::function<void()>;
 
 // Scheduler asynchronously processes Tasks.
 // A scheduler can be bound to one or more threads using the bind() method.
@@ -257,8 +256,8 @@ class Scheduler {
 
   // TODO: Implement a queue that recycles elements to reduce number of
   // heap allocations.
-  using TaskQueue = std::queue<Task>;
-  using FiberQueue = std::queue<Fiber*>;
+  using TaskQueue = std::deque<Task>;
+  using FiberQueue = std::deque<Fiber*>;
   using FiberSet = std::unordered_set<Fiber*>;
 
   // Workers executes Tasks on a single thread.
@@ -318,9 +317,9 @@ class Scheduler {
     // flush() processes all pending tasks before returning.
     void flush();
 
-    // dequeue() attempts to take a Task from the worker. Returns true if
-    // a task was taken and assigned to out, otherwise false.
-    bool dequeue(Task& out);
+    // steal() attempts to steal a Task from the worker for another worker.
+    // Returns true if a task was taken and assigned to out, otherwise false.
+    bool steal(Task& out);
 
     // getCurrent() returns the Worker currently bound to the current
     // thread.
@@ -338,14 +337,17 @@ class Scheduler {
     // continue to process tasks until stop() is called.
     // If the worker was constructed in Mode::SingleThreaded, run() call
     // flush() and return.
+    _Requires_lock_held_(work.mutex)
     void run();
 
     // createWorkerFiber() creates a new fiber that when executed calls
     // run().
+    _Requires_lock_held_(work.mutex)
     Fiber* createWorkerFiber();
 
     // switchToFiber() switches execution to the given fiber. The fiber
     // must belong to this worker.
+    _Requires_lock_held_(work.mutex)
     void switchToFiber(Fiber*);
 
     // runUntilIdle() executes all pending tasks and then returns.
@@ -387,8 +389,13 @@ class Scheduler {
       _Guarded_by_(mutex) TaskQueue tasks;
       _Guarded_by_(mutex) FiberQueue fibers;
       _Guarded_by_(mutex) WaitingFibers waiting;
+      _Guarded_by_(mutex) bool notifyAdded = true;
       std::condition_variable added;
       std::mutex mutex;
+
+      _Requires_lock_held_(mutex)
+      template <typename F>
+      inline void wait(F&&);
     };
 
     // https://en.wikipedia.org/wiki/Xorshift
@@ -418,7 +425,7 @@ class Scheduler {
     std::vector<Allocator::unique_ptr<Fiber>>
         workerFibers;  // All fibers created by this worker.
     FastRnd rng;
-    std::atomic<bool> shutdown = {false};
+    bool shutdown = false;
   };
 
   // stealWork() attempts to steal a task from the worker with the given id.
@@ -472,6 +479,14 @@ Scheduler::Fiber* Scheduler::Worker::getCurrentFiber() const {
   return currentFiber;
 }
 
+// schedule() schedules the task T to be asynchronously called using the
+// currently bound scheduler.
+inline void schedule(Task&& t) {
+  MARL_ASSERT_HAS_BOUND_SCHEDULER("marl::schedule");
+  auto scheduler = Scheduler::get();
+  scheduler->enqueue(std::move(t));
+}
+
 // schedule() schedules the function f to be asynchronously called with the
 // given arguments using the currently bound scheduler.
 template <typename Function, typename... Args>
@@ -488,7 +503,7 @@ template <typename Function>
 inline void schedule(Function&& f) {
   MARL_ASSERT_HAS_BOUND_SCHEDULER("marl::schedule");
   auto scheduler = Scheduler::get();
-  scheduler->enqueue(std::forward<Function>(f));
+  scheduler->enqueue(Task(std::forward<Function>(f)));
 }
 
 }  // namespace marl

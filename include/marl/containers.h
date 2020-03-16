@@ -19,9 +19,8 @@
 #include "memory.h"
 
 #include <algorithm>  // std::max
+#include <cstddef>    // size_t
 #include <utility>    // std::move
-
-#include <cstddef>  // size_t
 
 namespace marl {
 namespace containers {
@@ -241,6 +240,207 @@ void vector<T, BASE_CAPACITY>::free() {
     allocator->free(allocation);
     elements = nullptr;
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// list<T, BASE_CAPACITY>
+////////////////////////////////////////////////////////////////////////////////
+
+// list is a minimal std::list like container that supports constant time
+// insertion and removal of elements.
+// list keeps hold of allocations (it only releases allocations on destruction),
+// to avoid repeated heap allocations and frees when frequently inserting and
+// removing elements.
+template <typename T>
+class list {
+  struct Entry {
+    T data;
+    Entry* next;
+    Entry* prev;
+  };
+
+ public:
+  class iterator {
+   public:
+    inline iterator(Entry*);
+    inline T* operator->();
+    inline T& operator*();
+    inline iterator& operator++();
+    inline bool operator==(const iterator&) const;
+    inline bool operator!=(const iterator&) const;
+
+   private:
+    friend list;
+    Entry* entry;
+  };
+
+  inline list(Allocator* allocator = Allocator::Default);
+  inline ~list();
+
+  inline iterator begin();
+  inline iterator end();
+  inline size_t size() const;
+
+  template <typename... Args>
+  iterator emplace_front(Args&&... args);
+  inline void erase(iterator);
+
+ private:
+  // copy / move is currently unsupported.
+  list(const list&) = delete;
+  list(list&&) = delete;
+  list& operator=(const list&) = delete;
+  list& operator=(list&&) = delete;
+
+  void grow(size_t count);
+
+  static void unlink(Entry* entry, Entry*& list);
+  static void link(Entry* entry, Entry*& list);
+
+  Allocator* const allocator;
+  size_t size_ = 0;
+  size_t capacity = 0;
+  vector<Allocation, 8> allocations;
+  Entry* free = nullptr;
+  Entry* head = nullptr;
+};
+
+template <typename T>
+list<T>::iterator::iterator(Entry* entry) : entry(entry) {}
+
+template <typename T>
+T* list<T>::iterator::operator->() {
+  return &entry->data;
+}
+
+template <typename T>
+T& list<T>::iterator::operator*() {
+  return entry->data;
+}
+
+template <typename T>
+typename list<T>::iterator& list<T>::iterator::operator++() {
+  entry = entry->next;
+  return *this;
+}
+
+template <typename T>
+bool list<T>::iterator::operator==(const iterator& rhs) const {
+  return entry == rhs.entry;
+}
+
+template <typename T>
+bool list<T>::iterator::operator!=(const iterator& rhs) const {
+  return entry != rhs.entry;
+}
+
+template <typename T>
+list<T>::list(Allocator* allocator /* = Allocator::Default */)
+    : allocator(allocator), allocations(allocator) {
+  grow(8);
+}
+
+template <typename T>
+list<T>::~list() {
+  for (auto el = head; el != nullptr; el = el->next) {
+    el->data.~T();
+  }
+  for (auto alloc : allocations) {
+    allocator->free(alloc);
+  }
+}
+
+template <typename T>
+typename list<T>::iterator list<T>::begin() {
+  return {head};
+}
+
+template <typename T>
+typename list<T>::iterator list<T>::end() {
+  return {nullptr};
+}
+
+template <typename T>
+size_t list<T>::size() const {
+  return size_;
+}
+
+template <typename T>
+template <typename... Args>
+typename list<T>::iterator list<T>::emplace_front(Args&&... args) {
+  if (free == nullptr) {
+    grow(capacity);
+  }
+
+  auto entry = free;
+
+  unlink(entry, free);
+  link(entry, head);
+
+  new (&entry->data) T(std::forward<T>(args)...);
+  size_++;
+
+  return entry;
+}
+
+template <typename T>
+void list<T>::erase(iterator it) {
+  auto entry = it.entry;
+  unlink(entry, head);
+  link(entry, free);
+
+  entry->data.~T();
+  size_--;
+}
+
+template <typename T>
+void list<T>::grow(size_t count) {
+  Allocation::Request request;
+  request.size = sizeof(Entry) * count;
+  request.alignment = alignof(Entry);
+  request.usage = Allocation::Usage::List;
+  auto alloc = allocator->allocate(request);
+
+  auto entries = reinterpret_cast<Entry*>(alloc.ptr);
+  for (size_t i = 0; i < count; i++) {
+    auto entry = &entries[i];
+    entry->prev = nullptr;
+    entry->next = free;
+    if (free) {
+      free->prev = entry;
+    }
+    free = entry;
+  }
+
+  allocations.emplace_back(std::move(alloc));
+
+  capacity += count;
+}
+
+template <typename T>
+void list<T>::unlink(Entry* entry, Entry*& list) {
+  if (list == entry) {
+    list = list->next;
+  }
+  if (entry->prev) {
+    entry->prev->next = entry->next;
+  }
+  if (entry->next) {
+    entry->next->prev = entry->prev;
+  }
+  entry->prev = nullptr;
+  entry->next = nullptr;
+}
+
+template <typename T>
+void list<T>::link(Entry* entry, Entry*& list) {
+  MARL_ASSERT(entry->next == nullptr, "link() called on entry already linked");
+  MARL_ASSERT(entry->prev == nullptr, "link() called on entry already linked");
+  if (list) {
+    entry->next = list;
+    list->prev = entry;
+  }
+  list = entry;
 }
 
 }  // namespace containers
