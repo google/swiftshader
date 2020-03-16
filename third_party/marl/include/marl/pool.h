@@ -232,7 +232,7 @@ class BoundedPool : public Pool<T> {
  private:
   class Storage : public Pool<T>::Storage {
    public:
-    inline Storage();
+    inline Storage(Allocator* allocator);
     inline ~Storage();
     inline void return_(Item*) override;
 
@@ -245,7 +245,8 @@ class BoundedPool : public Pool<T> {
 };
 
 template <typename T, int N, PoolPolicy POLICY>
-BoundedPool<T, N, POLICY>::Storage::Storage() {
+BoundedPool<T, N, POLICY>::Storage::Storage(Allocator* allocator)
+    : returned(allocator) {
   for (int i = 0; i < N; i++) {
     if (POLICY == PoolPolicy::Preserve) {
       items[i].construct();
@@ -267,7 +268,7 @@ BoundedPool<T, N, POLICY>::Storage::~Storage() {
 template <typename T, int N, PoolPolicy POLICY>
 BoundedPool<T, N, POLICY>::BoundedPool(
     Allocator* allocator /* = Allocator::Default */)
-    : storage(allocator->make_shared<Storage>()) {}
+    : storage(allocator->make_shared<Storage>(allocator)) {}
 
 template <typename T, int N, PoolPolicy POLICY>
 typename BoundedPool<T, N, POLICY>::Loan BoundedPool<T, N, POLICY>::borrow()
