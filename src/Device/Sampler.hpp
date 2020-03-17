@@ -112,6 +112,11 @@ struct Sampler
 	VkSamplerYcbcrModelConversion ycbcrModel;
 	bool studioSwing;    // Narrow range
 	bool swappedChroma;  // Cb/Cr components in reverse order
+
+	float mipLodBias = 0.0f;
+	float maxAnisotropy = 0.0f;
+	float minLod = 0.0f;
+	float maxLod = 0.0f;
 };
 
 }  // namespace sw

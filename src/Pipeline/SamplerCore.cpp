@@ -96,7 +96,7 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 			computeLod3D(texture, sampler, lod, uuuu, vvvv, wwww, dsx, dsy, function);
 		}
 
-		Float bias = *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
+		Float bias = state.mipLodBias;
 
 		if(function == Bias)
 		{
@@ -110,7 +110,7 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 	{
 		// Vulkan 1.1: "The absolute value of mipLodBias must be less than or equal to VkPhysicalDeviceLimits::maxSamplerLodBias"
 		// Hence no explicit clamping to maxSamplerLodBias is required in this case.
-		lod = lodOrBias + *Pointer<Float>(sampler + OFFSET(vk::Sampler, mipLodBias));
+		lod = lodOrBias + state.mipLodBias;
 	}
 	else if(function == Fetch)
 	{
@@ -131,8 +131,8 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 			c.y = Float4(lod);  // Unclamped LOD.
 		}
 
-		lod = Max(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, minLod)));
-		lod = Min(lod, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxLod)));
+		lod = Max(lod, state.minLod);
+		lod = Min(lod, state.maxLod);
 
 		if(function == Query)
 		{
@@ -1198,7 +1198,7 @@ void SamplerCore::computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Flo
 		vDelta = As<Float4>((As<Int4>(dvdx) & mask) | ((As<Int4>(dvdy) & ~mask)));
 
 		anisotropy = lod * Rcp_pp(det);
-		anisotropy = Min(anisotropy, *Pointer<Float>(sampler + OFFSET(vk::Sampler, maxAnisotropy)));
+		anisotropy = Min(anisotropy, state.maxAnisotropy);
 
 		lod *= Rcp_pp(anisotropy * anisotropy);
 	}

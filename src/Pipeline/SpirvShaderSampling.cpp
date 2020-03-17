@@ -90,6 +90,11 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 			samplerState.studioSwing = (sampler->ycbcrConversion->ycbcrRange == VK_SAMPLER_YCBCR_RANGE_ITU_NARROW);
 			samplerState.swappedChroma = (sampler->ycbcrConversion->components.r != VK_COMPONENT_SWIZZLE_R);
 		}
+
+		samplerState.mipLodBias = sampler->mipLodBias;
+		samplerState.maxAnisotropy = sampler->maxAnisotropy;
+		samplerState.minLod = sampler->minLod;
+		samplerState.maxLod = sampler->maxLod;
 	}
 
 	routine = emitSamplerRoutine(instruction, samplerState);
