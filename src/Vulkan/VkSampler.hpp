@@ -58,17 +58,14 @@ struct SamplerState : sw::Memset<SamplerState>
 class Sampler : public Object<Sampler, VkSampler>, public SamplerState
 {
 public:
-	Sampler(const VkSamplerCreateInfo *pCreateInfo, void *mem, const vk::SamplerYcbcrConversion *ycbcrConversion);
+	Sampler(const VkSamplerCreateInfo *pCreateInfo, void *mem, const SamplerState &samplerState, uint32_t samplerID);
 
 	static size_t ComputeRequiredAllocationSize(const VkSamplerCreateInfo *pCreateInfo)
 	{
 		return 0;
 	}
 
-	const uint32_t id = nextID++;
-
-private:
-	static std::atomic<uint32_t> nextID;
+	const uint32_t id = 0;
 };
 
 class SamplerYcbcrConversion : public Object<SamplerYcbcrConversion, VkSamplerYcbcrConversion>

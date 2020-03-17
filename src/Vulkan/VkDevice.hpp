@@ -16,8 +16,11 @@
 #define VK_DEVICE_HPP_
 
 #include "VkObject.hpp"
+#include "VkSampler.hpp"
 #include "Device/LRUCache.hpp"
 #include "Reactor/Routine.hpp"
+
+#include <map>
 #include <memory>
 #include <mutex>
 
@@ -98,6 +101,30 @@ public:
 	rr::Routine *findInConstCache(const SamplingRoutineCache::Key &key) const;
 	void updateSamplingRoutineConstCache();
 
+	class SamplerIndexer
+	{
+	public:
+		~SamplerIndexer();
+
+		uint32_t index(const SamplerState &samplerState);
+		void remove(const SamplerState &samplerState);
+
+	private:
+		struct Identifier
+		{
+			uint32_t id;
+			uint32_t count;  // Number of samplers sharing this state identifier.
+		};
+
+		std::map<SamplerState, Identifier> map;  // guarded by mutex
+		std::mutex mutex;
+
+		uint32_t nextID = 0;
+	};
+
+	uint32_t indexSampler(const SamplerState &samplerState);
+	void removeSampler(const SamplerState &samplerState);
+
 	std::shared_ptr<vk::dbg::Context> getDebuggerContext() const
 	{
 #ifdef ENABLE_VK_DEBUGGER
@@ -118,7 +145,9 @@ private:
 	typedef char ExtensionName[VK_MAX_EXTENSION_NAME_SIZE];
 	ExtensionName *extensions = nullptr;
 	const VkPhysicalDeviceFeatures enabledFeatures = {};
+
 	std::shared_ptr<marl::Scheduler> scheduler;
+	std::unique_ptr<SamplerIndexer> samplerIndexer;
 
 #ifdef ENABLE_VK_DEBUGGER
 	struct

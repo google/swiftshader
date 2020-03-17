@@ -16,8 +16,6 @@
 
 namespace vk {
 
-std::atomic<uint32_t> Sampler::nextID(1);
-
 SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion)
     : Memset(this, 0)
     , magFilter(pCreateInfo->magFilter)
@@ -44,8 +42,9 @@ SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::Sam
 	}
 }
 
-Sampler::Sampler(const VkSamplerCreateInfo *pCreateInfo, void *mem, const vk::SamplerYcbcrConversion *ycbcrConversion)
-    : SamplerState(pCreateInfo, ycbcrConversion)
+Sampler::Sampler(const VkSamplerCreateInfo *pCreateInfo, void *mem, const SamplerState &samplerState, uint32_t samplerID)
+    : SamplerState(samplerState)
+    , id(samplerID)
 {
 }
 

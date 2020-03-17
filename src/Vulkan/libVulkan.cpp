@@ -1857,7 +1857,18 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerC
 		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
-	return vk::Sampler::Create(pAllocator, pCreateInfo, pSampler, ycbcrConversion);
+	vk::SamplerState samplerState(pCreateInfo, ycbcrConversion);
+	uint32_t samplerID = vk::Cast(device)->indexSampler(samplerState);
+
+	VkResult result = vk::Sampler::Create(pAllocator, pCreateInfo, pSampler, samplerState, samplerID);
+
+	if(*pSampler == VK_NULL_HANDLE)
+	{
+		ASSERT(result != VK_SUCCESS);
+		vk::Cast(device)->removeSampler(samplerState);
+	}
+
+	return result;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks *pAllocator)
@@ -1865,7 +1876,12 @@ VKAPI_ATTR void VKAPI_CALL vkDestroySampler(VkDevice device, VkSampler sampler, 
 	TRACE("(VkDevice device = %p, VkSampler sampler = %p, const VkAllocationCallbacks* pAllocator = %p)",
 	      device, static_cast<void *>(sampler), pAllocator);
 
-	vk::destroy(sampler, pAllocator);
+	if(sampler != VK_NULL_HANDLE)
+	{
+		vk::Cast(device)->removeSampler(*vk::Cast(sampler));
+
+		vk::destroy(sampler, pAllocator);
+	}
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorSetLayout(VkDevice device, const VkDescriptorSetLayoutCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDescriptorSetLayout *pSetLayout)
