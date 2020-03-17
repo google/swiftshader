@@ -194,6 +194,8 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Type retT
 template<typename Return, typename... CArgs, typename... RArgs>
 Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(CArgs...), RArgs &&... args)
 {
+	static_assert(sizeof...(CArgs) == sizeof...(RArgs), "Expected number of args don't match");
+
 	Ice::Type retTy = T(rr::CToReactorT<Return>::getType());
 	std::vector<Ice::Operand *> iceArgs{ std::forward<RArgs>(args)... };
 	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs, false);
@@ -656,13 +658,23 @@ static void *relocateSymbol(const ElfHeader *elfHeader, const Elf64_Rela &reloca
 	return symbolValue;
 }
 
-void *loadImage(uint8_t *const elfImage, size_t &codeSize, const char *functionName = nullptr)
+struct EntryPoint
 {
+	const void *entry;
+	size_t codeSize = 0;
+};
+
+std::vector<EntryPoint> loadImage(uint8_t *const elfImage, const std::vector<const char *> &functionNames)
+{
+	ASSERT(functionNames.size() > 0);
+	std::vector<EntryPoint> entryPoints(functionNames.size());
+
 	ElfHeader *elfHeader = (ElfHeader *)elfImage;
 
+	// TODO: assert?
 	if(!elfHeader->checkMagic())
 	{
-		return nullptr;
+		return {};
 	}
 
 	// Expect ELF bitness to match platform
@@ -682,7 +694,6 @@ void *loadImage(uint8_t *const elfImage, size_t &codeSize, const char *functionN
 #endif
 
 	SectionHeader *sectionHeader = (SectionHeader *)(elfImage + elfHeader->e_shoff);
-	void *entry = nullptr;
 
 	for(int i = 0; i < elfHeader->e_shnum; i++)
 	{
@@ -690,17 +701,25 @@ void *loadImage(uint8_t *const elfImage, size_t &codeSize, const char *functionN
 		{
 			if(sectionHeader[i].sh_flags & SHF_EXECINSTR)
 			{
-				auto getCurrSectionName = [&]() {
+				auto findSectionNameEntryIndex = [&]() -> size_t {
 					auto sectionNameOffset = sectionHeader[elfHeader->e_shstrndx].sh_offset + sectionHeader[i].sh_name;
-					return reinterpret_cast<const char *>(elfImage + sectionNameOffset);
-				};
-				if(functionName && strstr(getCurrSectionName(), functionName) == nullptr)
-				{
-					continue;
-				}
+					const char *sectionName = reinterpret_cast<const char *>(elfImage + sectionNameOffset);
 
-				entry = elfImage + sectionHeader[i].sh_offset;
-				codeSize = sectionHeader[i].sh_size;
+					for(size_t j = 0; j < functionNames.size(); ++j)
+					{
+						if(strstr(sectionName, functionNames[j]) != nullptr)
+						{
+							return j;
+						}
+					}
+
+					UNREACHABLE("Failed to find executable section that matches input function names");
+					return static_cast<size_t>(-1);
+				};
+
+				size_t index = findSectionNameEntryIndex();
+				entryPoints[index].entry = elfImage + sectionHeader[i].sh_offset;
+				entryPoints[index].codeSize = sectionHeader[i].sh_size;
 			}
 		}
 		else if(sectionHeader[i].sh_type == SHT_REL)
@@ -725,7 +744,7 @@ void *loadImage(uint8_t *const elfImage, size_t &codeSize, const char *functionN
 		}
 	}
 
-	return entry;
+	return entryPoints;
 }
 
 template<typename T>
@@ -796,18 +815,20 @@ public:
 
 	void seek(uint64_t Off) override { position = Off; }
 
-	const void *getEntryByName(const char *name)
+	std::vector<EntryPoint> loadImageAndGetEntryPoints(const std::vector<const char *> &functionNames)
 	{
-		size_t codeSize = 0;
-		const void *entry = loadImage(&buffer[0], codeSize, name);
+		auto entryPoints = loadImage(&buffer[0], functionNames);
 
 #if defined(_WIN32)
 		FlushInstructionCache(GetCurrentProcess(), NULL, 0);
 #else
-		__builtin___clear_cache((char *)entry, (char *)entry + codeSize);
+		for(auto &entryPoint : entryPoints)
+		{
+			__builtin___clear_cache((char *)entryPoint.entry, (char *)entryPoint.entry + entryPoint.codeSize);
+		}
 #endif
 
-		return entry;
+		return entryPoints;
 	}
 
 	void finalize()
@@ -1026,10 +1047,11 @@ static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Coun
 	objectWriter->writeNonUserSections();
 
 	// Done compiling functions, get entry pointers to each of them
-	for(size_t i = 0; i < Count; ++i)
+	auto entryPoints = ::routine->loadImageAndGetEntryPoints({ names, names + Count });
+	ASSERT(entryPoints.size() == Count);
+	for(size_t i = 0; i < entryPoints.size(); ++i)
 	{
-		const void *entry = ::routine->getEntryByName(names[i]);
-		::routine->setEntry(i, entry);
+		::routine->setEntry(i, entryPoints[i].entry);
 	}
 
 	::routine->finalize();
@@ -4719,7 +4741,7 @@ public:
 		//         <resumeBlock>
 		//     }
 		Ice::CfgNode *bb = awaitFunc->getEntryNode();
-		Ice::Variable *done = sz::Call(awaitFunc, bb, coro::isDone);
+		Ice::Variable *done = sz::Call(awaitFunc, bb, coro::isDone, handle);
 		auto br = Ice::InstBr::create(awaitFunc, done, doneBlock, resumeBlock);
 		bb->appendInst(br);
 
