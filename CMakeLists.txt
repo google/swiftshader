@@ -118,7 +118,8 @@ option_if_not_defined(SWIFTSHADER_BUILD_EGL "Build the EGL library" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_GLESv2 "Build the OpenGL ES 2 library" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_GLES_CM "Build the OpenGL ES 1.1 library" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_VULKAN "Build the Vulkan library" TRUE)
-option_if_not_defined(SWIFTSHADER_BUILD_PVR "Fetch and build the PowerVR examples" FALSE)
+option_if_not_defined(SWIFTSHADER_BUILD_PVR "Build the PowerVR examples" TRUE)
+option_if_not_defined(SWIFTSHADER_GET_PVR "Check out the PowerVR submodule" FALSE)
 
 option_if_not_defined(SWIFTSHADER_USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" TRUE)
 
@@ -260,7 +261,7 @@ function(DownloadBoost)
     endif()
 endfunction()
 
-if (SWIFTSHADER_BUILD_PVR)
+if(SWIFTSHADER_GET_PVR)
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples/.git)
         message(WARNING "
         third_party/PowerVR_Examples submodule missing.
@@ -269,7 +270,10 @@ if (SWIFTSHADER_BUILD_PVR)
 
         execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples)
     endif()
-    set(PVR_BUILD_EXAMPLES TRUE CACHE BOOL "Build the PowerVR SDK Examples" FORCE)
+    set(SWIFTSHADER_GET_PVR FALSE CACHE BOOL "Check out the PowerVR submodule" FORCE)
+endif()
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples/.git)
+    set(HAVE_PVR_SUBMODULE TRUE)
 endif()
 
 ###########################################################
@@ -1533,7 +1537,7 @@ if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
     target_link_libraries(vk-unittests ${OS_LIBS} SPIRV-Tools ${SWIFTSHADER_LIBS})
 endif(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
 
-if(SWIFTSHADER_BUILD_PVR)
+if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     if(UNIX AND NOT APPLE)
         set(PVR_WINDOW_SYSTEM XCB)
 
@@ -1542,6 +1546,7 @@ if(SWIFTSHADER_BUILD_PVR)
         set(CMAKE_BUILD_RPATH "$ORIGIN")
     endif()
 
+    set(PVR_BUILD_EXAMPLES TRUE CACHE BOOL "Build the PowerVR SDK Examples" FORCE)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples)
 
     if(NOT APPLE)
