@@ -2567,4 +2567,55 @@ bool Format::isRGBComponent(int component) const
 	return false;
 }
 
+static constexpr uint8_t pack(VkFormat format)
+{
+	if(format > VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM)
+	{
+		return 0;
+	}
+
+	// 0 - 184 direct mapping
+	if(format >= 0 && format <= VK_FORMAT_ASTC_12x12_SRGB_BLOCK)
+	{
+		return uint8_t(format);
+	}
+
+	// 10001560xx -> 185 - 218
+	if(format >= VK_FORMAT_G8B8G8R8_422_UNORM && format <= VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM)
+	{
+		return uint8_t(format - VK_FORMAT_G8B8G8R8_422_UNORM + 185);
+	}
+
+	// 100005400x -> 219 - 226
+	if(format >= VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG && format <= VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG)
+	{
+		return uint8_t(format - VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG + 219);
+	}
+
+	// 10000660xx -> 227 - 240
+	if(format >= VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT && format <= VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT)
+	{
+		return uint8_t(format - VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT + 227);
+	}
+
+	return 0;
+}
+
+static_assert(VK_HEADER_VERSION == 128, "Update VkFormat to uint8_t mapping if needed");
+static_assert(pack(VK_FORMAT_UNDEFINED) == 0, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_ASTC_12x12_SRGB_BLOCK) == 184, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_G8B8G8R8_422_UNORM) == 185, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM) == 218, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG) == 219, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG) == 226, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT) == 227, "Incorrect VkFormat packed value");
+static_assert(pack(VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT) == 240, "Incorrect VkFormat packed value");
+
+uint8_t Format::mapTo8bit(VkFormat format)
+{
+	ASSERT(format <= VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM);
+
+	return pack(format);
+}
+
 }  // namespace vk
