@@ -89,17 +89,17 @@ public:
 		std::shared_ptr<rr::Routine> query(const Key &key) const;
 		void add(const Key &key, const std::shared_ptr<rr::Routine> &routine);
 
-		rr::Routine *queryConst(const Key &key) const;
-		void updateConstCache();
+		rr::Routine *querySnapshot(const Key &key) const;
+		void updateSnapshot();
 
 	private:
-		sw::LRUConstCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;
+		sw::LRUSnapshotCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;
 	};
 
 	SamplingRoutineCache *getSamplingRoutineCache() const;
 	std::mutex &getSamplingRoutineCacheMutex();
-	rr::Routine *findInConstCache(const SamplingRoutineCache::Key &key) const;
-	void updateSamplingRoutineConstCache();
+	rr::Routine *querySnapshotCache(const SamplingRoutineCache::Key &key) const;
+	void updateSamplingRoutineSnapshotCache();
 
 	class SamplerIndexer
 	{

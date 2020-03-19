@@ -555,7 +555,7 @@ void Renderer::synchronize()
 	MARL_SCOPED_EVENT("synchronize");
 	auto ticket = drawTickets.take();
 	ticket.wait();
-	device->updateSamplingRoutineConstCache();
+	device->updateSamplingRoutineSnapshotCache();
 	ticket.done();
 }
 

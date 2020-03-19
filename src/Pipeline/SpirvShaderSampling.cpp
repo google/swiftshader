@@ -40,7 +40,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 
 	ASSERT(imageDescriptor->device);
 
-	if(auto routine = imageDescriptor->device->findInConstCache(key))
+	if(auto routine = imageDescriptor->device->querySnapshotCache(key))
 	{
 		return (ImageSampler *)(routine->getEntry());
 	}

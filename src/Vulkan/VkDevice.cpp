@@ -49,14 +49,14 @@ void Device::SamplingRoutineCache::add(const vk::Device::SamplingRoutineCache::K
 	cache.add(key, routine);
 }
 
-rr::Routine *Device::SamplingRoutineCache::queryConst(const vk::Device::SamplingRoutineCache::Key &key) const
+rr::Routine *Device::SamplingRoutineCache::querySnapshot(const vk::Device::SamplingRoutineCache::Key &key) const
 {
-	return cache.queryConstCache(key).get();
+	return cache.querySnapshot(key).get();
 }
 
-void Device::SamplingRoutineCache::updateConstCache()
+void Device::SamplingRoutineCache::updateSnapshot()
 {
-	cache.updateConstCache();
+	cache.updateSnapshot();
 }
 
 Device::SamplerIndexer::~SamplerIndexer()
@@ -302,15 +302,15 @@ Device::SamplingRoutineCache *Device::getSamplingRoutineCache() const
 	return samplingRoutineCache.get();
 }
 
-rr::Routine *Device::findInConstCache(const SamplingRoutineCache::Key &key) const
+rr::Routine *Device::querySnapshotCache(const SamplingRoutineCache::Key &key) const
 {
-	return samplingRoutineCache->queryConst(key);
+	return samplingRoutineCache->querySnapshot(key);
 }
 
-void Device::updateSamplingRoutineConstCache()
+void Device::updateSamplingRoutineSnapshotCache()
 {
 	std::unique_lock<std::mutex> lock(samplingRoutineCacheMutex);
-	samplingRoutineCache->updateConstCache();
+	samplingRoutineCache->updateSnapshot();
 }
 
 std::mutex &Device::getSamplingRoutineCacheMutex()
