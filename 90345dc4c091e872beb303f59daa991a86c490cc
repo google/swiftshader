@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e27b171c_a3776c94",
+        "filename": "third_party/marl/src/osfiber_x86.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-03-19T15:52:35Z",
+      "side": 1,
+      "message": "osfiber_x86 is for \u0027nix x86 platforms. If we end up writing assembly fibers for windows, these files will be renamed.",
+      "parentUuid": "94a8c6f0_98b42392",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 71
+      },
+      "revId": "90345dc4c091e872beb303f59daa991a86c490cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b8c266a1_d6ce5c30",
         "filename": "third_party/marl/src/osfiber_x86.c",
         "patchSetId": 2
@@ -60,6 +84,30 @@
       "side": 1,
       "message": "Never mind, I was reading this out of context.",
       "parentUuid": "b8c266a1_d6ce5c30",
+      "range": {
+        "startLine": 31,
+        "startChar": 45,
+        "endLine": 31,
+        "endChar": 64
+      },
+      "revId": "90345dc4c091e872beb303f59daa991a86c490cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a166cfe_396055c3",
+        "filename": "third_party/marl/src/osfiber_x86.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-03-19T15:52:35Z",
+      "side": 1,
+      "message": "Nope, it needs to be a jump as we don\u0027t want the fiber trampolining to be part of the callstack.",
+      "parentUuid": "bdbe029b_fe8623d3",
       "range": {
         "startLine": 31,
         "startChar": 45,
