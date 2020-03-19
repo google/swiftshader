@@ -611,7 +611,8 @@ Float4 r11g11b10Unpack(UInt r11g11b10bits)
 
 UInt r11g11b10Pack(const Float4 &value)
 {
-	auto halfBits = floatToHalfBits(As<UInt4>(value), true);
+	// 10 and 11 bit floats are unsigned, so their minimal value is 0
+	auto halfBits = floatToHalfBits(As<UInt4>(Max(value, Float4(0.0f))), true);
 	// Truncates instead of rounding. See b/147900455
 	UInt4 truncBits = halfBits & UInt4(0x7FF00000, 0x7FF00000, 0x7FE00000, 0);
 	return (UInt(truncBits.x) >> 20) | (UInt(truncBits.y) >> 9) | (UInt(truncBits.z) << 1);
