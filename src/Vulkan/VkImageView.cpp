@@ -14,7 +14,9 @@
 
 #include "VkImageView.hpp"
 #include "VkImage.hpp"
-#include <System/Math.hpp>
+#include "System/Math.hpp"
+
+#include <climits>
 
 namespace {
 
@@ -54,7 +56,28 @@ VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange ran
 
 namespace vk {
 
-std::atomic<uint32_t> ImageView::nextID(1);
+Identifier::Identifier(const Image *image, VkImageViewType type, VkFormat fmt, VkComponentMapping mapping)
+{
+	imageViewType = type;
+	format = Format::mapTo8bit(fmt);
+	r = mapping.r;
+	g = mapping.g;
+	b = mapping.b;
+	a = mapping.a;
+
+	// TODO(b/152224843): eliminate
+	auto extent = image->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	large = (extent.width > SHRT_MAX) ||
+	        (extent.height > SHRT_MAX) ||
+	        (extent.depth > SHRT_MAX);
+}
+
+Identifier::Identifier(VkFormat fmt)
+{
+	static_assert(VK_IMAGE_VIEW_TYPE_END_RANGE == 6, "VkImageViewType does not allow using 7 to indicate buffer view");
+	imageViewType = 7;  // Still fits in 3-bit field
+	format = Format::mapTo8bit(fmt);
+}
 
 ImageView::ImageView(const VkImageViewCreateInfo *pCreateInfo, void *mem, const vk::SamplerYcbcrConversion *ycbcrConversion)
     : image(vk::Cast(pCreateInfo->image))
@@ -63,6 +86,7 @@ ImageView::ImageView(const VkImageViewCreateInfo *pCreateInfo, void *mem, const 
     , components(ResolveComponentMapping(pCreateInfo->components, format))
     , subresourceRange(ResolveRemainingLevelsLayers(pCreateInfo->subresourceRange, image))
     , ycbcrConversion(ycbcrConversion)
+    , id(image, viewType, format, components)
 {
 }
 

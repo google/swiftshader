@@ -27,6 +27,36 @@ namespace vk {
 
 class SamplerYcbcrConversion;
 
+// Uniquely identifies state used by sampling routine generation.
+// ID space shared by image views and buffer views.
+union Identifier
+{
+	// Image view identifier
+	Identifier(const Image *image, VkImageViewType type, VkFormat format, VkComponentMapping mapping);
+
+	// Buffer view identifier
+	Identifier(VkFormat format);
+
+	operator uint32_t() const
+	{
+		static_assert(sizeof(Identifier) == sizeof(uint32_t), "Identifier must be 32-bit");
+		return id;
+	}
+
+	uint32_t id = 0;
+
+	struct
+	{
+		uint32_t imageViewType : 3;
+		uint32_t format : 8;
+		uint32_t r : 3;
+		uint32_t g : 3;
+		uint32_t b : 3;
+		uint32_t a : 3;
+		uint32_t large : 1;  // Has dimension larger than SHRT_MAX (see b/133429305).
+	};
+};
+
 class ImageView : public Object<ImageView, VkImageView>
 {
 public:
@@ -82,22 +112,20 @@ public:
 	const VkImageSubresourceRange &getSubresourceRange() const { return subresourceRange; }
 	size_t getImageSizeInBytes() const { return image->getMemoryRequirements().size; }
 
-	const uint32_t id = nextID++;
-
 private:
-	static std::atomic<uint32_t> nextID;
-	friend class BufferView;  // ImageView/BufferView share the ID space above.
-
 	bool imageTypesMatch(VkImageType imageType) const;
 	const Image *getImage(Usage usage) const;
 
 	Image *const image = nullptr;
 	const VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;
-	const Format format;
+	const Format format = VK_FORMAT_UNDEFINED;
 	const VkComponentMapping components = {};
 	const VkImageSubresourceRange subresourceRange = {};
 
 	const vk::SamplerYcbcrConversion *ycbcrConversion = nullptr;
+
+public:
+	const Identifier id;
 };
 
 // TODO(b/132437008): Also used by SamplerYcbcrConversion. Move somewhere centrally?
