@@ -56,7 +56,7 @@ SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler &state)
 {
 }
 
-Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float4 uvw[4], Float4 &q, Float &&lodOrBias, Float4 &dsx, Float4 &dsy, Vector4f &offset, Int4 &sampleId, SamplerFunction function)
+Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvw[4], Float4 &q, Float &&lodOrBias, Float4 &dsx, Float4 &dsy, Vector4f &offset, Int4 &sampleId, SamplerFunction function)
 {
 	Vector4f c;
 
@@ -84,16 +84,16 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Pointer<Byte> &sampl
 		{
 			if(!isCube())
 			{
-				computeLod(texture, sampler, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, dsx, dsy, function);
+				computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, dsx, dsy, function);
 			}
 			else
 			{
-				computeLodCube(texture, sampler, lod, uvw[0], uvw[1], uvw[2], dsx, dsy, M, function);
+				computeLodCube(texture, lod, uvw[0], uvw[1], uvw[2], dsx, dsy, M, function);
 			}
 		}
 		else
 		{
-			computeLod3D(texture, sampler, lod, uuuu, vvvv, wwww, dsx, dsy, function);
+			computeLod3D(texture, lod, uuuu, vvvv, wwww, dsx, dsy, function);
 		}
 
 		Float bias = state.mipLodBias;
@@ -1160,7 +1160,7 @@ Float SamplerCore::log2(Float lod)
 	return lod;
 }
 
-void SamplerCore::computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float4 &dsx, Float4 &dsy, SamplerFunction function)
+void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float4 &dsx, Float4 &dsy, SamplerFunction function)
 {
 	Float4 duvdxy;
 
@@ -1206,7 +1206,7 @@ void SamplerCore::computeLod(Pointer<Byte> &texture, Pointer<Byte> &sampler, Flo
 	lod = log2sqrt(lod);  // log2(sqrt(lod))
 }
 
-void SamplerCore::computeLodCube(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &u, Float4 &v, Float4 &w, Float4 &dsx, Float4 &dsy, Float4 &M, SamplerFunction function)
+void SamplerCore::computeLodCube(Pointer<Byte> &texture, Float &lod, Float4 &u, Float4 &v, Float4 &w, Float4 &dsx, Float4 &dsy, Float4 &M, SamplerFunction function)
 {
 	Float4 dudxy, dvdxy, dsdxy;
 
@@ -1247,7 +1247,7 @@ void SamplerCore::computeLodCube(Pointer<Byte> &texture, Pointer<Byte> &sampler,
 	lod = log2(lod);
 }
 
-void SamplerCore::computeLod3D(Pointer<Byte> &texture, Pointer<Byte> &sampler, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, Float4 &dsx, Float4 &dsy, SamplerFunction function)
+void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, Float4 &dsx, Float4 &dsy, SamplerFunction function)
 {
 	Float4 dudxy, dvdxy, dsdxy;
 

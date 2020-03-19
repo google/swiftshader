@@ -304,7 +304,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	}
 
 	Array<SIMD::Float> out(4);
-	Call<ImageSampler>(cache.function, texture, sampler, &in[0], &out[0], state->routine->constants);
+	Call<ImageSampler>(cache.function, texture, &in[0], &out[0], state->routine->constants);
 
 	for(auto i = 0u; i < resultType.sizeInComponents; i++) { result.move(i, out[i]); }
 

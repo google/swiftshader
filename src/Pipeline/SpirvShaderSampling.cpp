@@ -106,13 +106,12 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction instruction, const Sampler &samplerState)
 {
 	// TODO(b/129523279): Hold a separate mutex lock for the sampler being built.
-	rr::Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
+	rr::Function<Void(Pointer<Byte>, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)> function;
 	{
 		Pointer<Byte> texture = function.Arg<0>();
-		Pointer<Byte> sampler = function.Arg<1>();
-		Pointer<SIMD::Float> in = function.Arg<2>();
-		Pointer<SIMD::Float> out = function.Arg<3>();
-		Pointer<Byte> constants = function.Arg<4>();
+		Pointer<SIMD::Float> in = function.Arg<1>();
+		Pointer<SIMD::Float> out = function.Arg<2>();
+		Pointer<Byte> constants = function.Arg<3>();
 
 		SIMD::Float uvw[4] = { 0, 0, 0, 0 };
 		SIMD::Float q = 0;
@@ -203,7 +202,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 					dPdy.y = Float(0.0f);
 				}
 
-				Vector4f sample = s.sampleTexture(texture, sampler, uvw, q, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
+				Vector4f sample = s.sampleTexture(texture, uvw, q, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
 
 				Pointer<Float> rgba = out;
 				rgba[0 * SIMD::Width + i] = Pointer<Float>(&sample.x)[i];
@@ -214,7 +213,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 		}
 		else
 		{
-			Vector4f sample = s.sampleTexture(texture, sampler, uvw, q, lodOrBias.x, (dsx.x), (dsy.x), offset, sampleId, samplerFunction);
+			Vector4f sample = s.sampleTexture(texture, uvw, q, lodOrBias.x, (dsx.x), (dsy.x), offset, sampleId, samplerFunction);
 
 			Pointer<SIMD::Float> rgba = out;
 			rgba[0] = sample.x;

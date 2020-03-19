@@ -135,7 +135,7 @@ public:
 	using InsnStore = std::vector<uint32_t>;
 	InsnStore insns;
 
-	using ImageSampler = void(void *texture, void *sampler, void *uvsIn, void *texelOut, void *constants);
+	using ImageSampler = void(void *texture, void *uvsIn, void *texelOut, void *constants);
 
 	enum class YieldResult
 	{
