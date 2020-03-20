@@ -58,37 +58,6 @@
 // These functions only accept and return Subzero (Ice) types, and do not access any globals.
 namespace {
 namespace sz {
-void replaceEntryNode(Ice::Cfg *function, Ice::CfgNode *newEntryNode)
-{
-	ASSERT_MSG(function->getEntryNode() != nullptr, "Function should have an entry node");
-
-	if(function->getEntryNode() == newEntryNode)
-	{
-		return;
-	}
-
-	// Make this the new entry node
-	function->setEntryNode(newEntryNode);
-
-	// Reorder nodes so that new entry block comes first. This is required
-	// by Cfg::renumberInstructions, which expects the first node in the list
-	// to be the entry node.
-	{
-		auto nodes = function->getNodes();
-
-		// TODO(amaiorano): Fast path if newEntryNode is last? Can avoid linear search.
-
-		auto iter = std::find(nodes.begin(), nodes.end(), newEntryNode);
-		ASSERT_MSG(iter != nodes.end(), "New node should be in the function's node list");
-
-		nodes.erase(iter);
-		nodes.insert(nodes.begin(), newEntryNode);
-
-		// swapNodes replaces its nodes with the input one, and renumbers them,
-		// so our new entry node will be 0, and the previous will be 1.
-		function->swapNodes(nodes);
-	}
-}
 
 Ice::Cfg *createFunction(Ice::GlobalContext *context, Ice::Type returnType, const std::vector<Ice::Type> &paramTypes)
 {
@@ -258,6 +227,8 @@ rr::Config &defaultConfig()
 
 Ice::GlobalContext *context = nullptr;
 Ice::Cfg *function = nullptr;
+Ice::CfgNode *entryBlock = nullptr;
+Ice::CfgNode *basicBlockTop = nullptr;
 Ice::CfgNode *basicBlock = nullptr;
 Ice::CfgLocalAllocatorScope *allocator = nullptr;
 rr::ELFMemoryStreamer *routine = nullptr;
@@ -491,12 +462,17 @@ static size_t typeSize(Type *type)
 	return Ice::typeWidthInBytes(T(type));
 }
 
-static void createRetVoidIfNoRet()
+static void finalizeFunction()
 {
+	// Create a return if none was added
 	if(::basicBlock->getInsts().empty() || ::basicBlock->getInsts().back().getKind() != Ice::Inst::Ret)
 	{
 		Nucleus::createRetVoid();
 	}
+
+	// Connect the entry block to the top of the initial basic block
+	auto br = Ice::InstBr::create(::function, ::basicBlockTop);
+	::entryBlock->appendInst(br);
 }
 
 using ElfHeader = std::conditional<sizeof(void *) == 8, Elf64_Ehdr, Elf32_Ehdr>::type;
@@ -947,7 +923,9 @@ Nucleus::~Nucleus()
 	delete ::out;
 	::out = nullptr;
 
+	::entryBlock = nullptr;
 	::basicBlock = nullptr;
+	::basicBlockTop = nullptr;
 
 	::codegenMutex.unlock();
 }
@@ -1064,7 +1042,7 @@ static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Coun
 
 std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config::Edit &cfgEdit /* = Config::Edit::None */)
 {
-	createRetVoidIfNoRet();
+	finalizeFunction();
 	return rr::acquireRoutine({ ::function }, { name }, cfgEdit);
 }
 
@@ -1105,7 +1083,9 @@ void Nucleus::createFunction(Type *returnType, const std::vector<Type *> &paramT
 {
 	ASSERT(::function == nullptr);
 	ASSERT(::allocator == nullptr);
+	ASSERT(::entryBlock == nullptr);
 	ASSERT(::basicBlock == nullptr);
+	ASSERT(::basicBlockTop == nullptr);
 
 	::function = sz::createFunction(::context, T(returnType), T(paramTypes));
 
@@ -1115,7 +1095,9 @@ void Nucleus::createFunction(Type *returnType, const std::vector<Type *> &paramT
 	// TODO: Get rid of this as a global, and create scoped allocs in every Nucleus function instead.
 	::allocator = new Ice::CfgLocalAllocatorScope(::function);
 
-	::basicBlock = ::function->getEntryNode();
+	::entryBlock = ::function->getEntryNode();
+	::basicBlock = ::function->makeNode();
+	::basicBlockTop = ::basicBlock;
 }
 
 Value *Nucleus::getArgument(unsigned int index)
@@ -4617,29 +4599,13 @@ public:
 		//        ... <REACTOR CODE> ...
 		//
 
-		// Save original entry block and current block, and create a new entry block and make it current.
-		// This new block will be used to inject code above the begin routine's existing code. We make
-		// this block branch to the original entry block as the last instruction.
-		auto origEntryBB = ::function->getEntryNode();
-		auto origCurrBB = ::basicBlock;
-		auto newBB = ::function->makeNode();
-		sz::replaceEntryNode(::function, newBB);
-		::basicBlock = newBB;
-
 		//        this->handle = coro::getHandleParam();
-		this->handle = sz::Call(::function, ::basicBlock, coro::getHandleParam);
+		this->handle = sz::Call(::function, ::entryBlock, coro::getHandleParam);
 
 		//        YieldType promise;
 		//        coro::setPromisePtr(handle, &promise); // For await
 		this->promise = sz::allocateStackVariable(::function, T(::coroYieldType));
-		sz::Call(::function, ::basicBlock, coro::setPromisePtr, this->handle, this->promise);
-
-		// Branch to original entry block
-		auto br = Ice::InstBr::create(::function, origEntryBB);
-		::basicBlock->appendInst(br);
-
-		// Restore current block for future instructions
-		::basicBlock = origCurrBB;
+		sz::Call(::function, ::entryBlock, coro::setPromisePtr, this->handle, this->promise);
 	}
 
 	// Adds instructions for Yield() calls at the current location of the main coroutine function.
@@ -4853,7 +4819,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		// Finish generating coroutine functions
 		{
 			Ice::CfgLocalAllocatorScope scopedAlloc{ ::function };
-			createRetVoidIfNoRet();
+			finalizeFunction();
 		}
 
 		auto awaitFunc = ::coroGen->generateAwaitFunction();
@@ -4873,7 +4839,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	{
 		{
 			Ice::CfgLocalAllocatorScope scopedAlloc{ ::function };
-			createRetVoidIfNoRet();
+			finalizeFunction();
 		}
 
 		::coroYieldType = nullptr;
