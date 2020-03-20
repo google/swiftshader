@@ -61,7 +61,7 @@ public:
 	sw::float4 getScale() const;
 
 	// Texture sampling utilities
-	bool has16bitTextureFormat() const;
+	bool has16bitPackedTextureFormat() const;
 	bool has8bitTextureComponents() const;
 	bool has16bitTextureComponents() const;
 	bool has32bitIntegerTextureComponents() const;

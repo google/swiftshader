@@ -103,7 +103,7 @@ private:
 	bool hasUnsignedTextureComponent(int component) const;
 	int textureComponentCount() const;
 	bool hasThirdCoordinate() const;
-	bool has16bitTextureFormat() const;
+	bool has16bitPackedTextureFormat() const;
 	bool has8bitTextureComponents() const;
 	bool has16bitTextureComponents() const;
 	bool has32bitIntegerTextureComponents() const;

@@ -1496,7 +1496,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 {
 	Vector4s c;
 
-	if(has16bitTextureFormat())
+	if(has16bitPackedTextureFormat())
 	{
 		c.x = Insert(c.x, Pointer<Short>(buffer)[index[0]], 0);
 		c.x = Insert(c.x, Pointer<Short>(buffer)[index[1]], 1);
@@ -2534,9 +2534,9 @@ bool SamplerCore::hasThirdCoordinate() const
 	       (state.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
 }
 
-bool SamplerCore::has16bitTextureFormat() const
+bool SamplerCore::has16bitPackedTextureFormat() const
 {
-	return state.textureFormat.has16bitTextureFormat();
+	return state.textureFormat.has16bitPackedTextureFormat();
 }
 
 bool SamplerCore::has8bitTextureComponents() const
