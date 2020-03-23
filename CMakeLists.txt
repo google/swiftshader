@@ -130,6 +130,7 @@ option_if_not_defined(SWIFTSHADER_MSAN "Build with memory sanitizer" FALSE)
 option_if_not_defined(SWIFTSHADER_ASAN "Build with address sanitizer" FALSE)
 option_if_not_defined(SWIFTSHADER_TSAN "Build with thread sanitizer" FALSE)
 option_if_not_defined(SWIFTSHADER_UBSAN "Build with undefined behavior sanitizer" FALSE)
+option_if_not_defined(SWIFTSHADER_EMIT_COVERAGE "Emit code coverage information" FALSE)
 option_if_not_defined(SWIFTSHADER_WARNINGS_AS_ERRORS "Treat all warnings as errors" TRUE)
 option_if_not_defined(SWIFTSHADER_DCHECK_ALWAYS_ON "Check validation macros even in release builds" FALSE)
 option_if_not_defined(REACTOR_EMIT_DEBUG_INFO "Emit debug info for JIT functions" FALSE)
@@ -323,9 +324,11 @@ macro(set_shared_library_export_map TARGET DIR)
           set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=both")
         endif()
 
-        # Gc sections is used in combination with each functions being
-        # in its own section, to reduce the binary size.
-        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--gc-sections")
+        if(NOT ${SWIFTSHADER_EMIT_COVERAGE})
+            # Gc sections is used in combination with each functions being
+            # in its own section, to reduce the binary size.
+            set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--gc-sections")
+        endif()
 
         # Don't allow undefined symbols, unless it's a Sanitizer build.
         if(NOT SWIFTSHADER_MSAN AND NOT SWIFTSHADER_ASAN AND NOT SWIFTSHADER_TSAN AND NOT SWIFTSHADER_UBSAN)
@@ -365,6 +368,8 @@ set(HELLO2_DIR ${THIRD_PARTY_DIR}/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLE
 
 # Flags for project code (non 3rd party)
 set(SWIFTSHADER_COMPILE_OPTIONS "")
+set(SWIFTSHADER_LINK_FLAGS "")
+set(SWIFTSHADER_LIBS "")
 
 macro(set_cpp_flag FLAG)
     if(${ARGC} GREATER 1)
@@ -438,6 +443,18 @@ else()
             "-Wextra-semi"
             "-Wignored-qualifiers"
         )
+    endif()
+
+    if (SWIFTSHADER_EMIT_COVERAGE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+            list(APPEND SWIFTSHADER_COMPILE_OPTIONS "--coverage")
+            list(APPEND SWIFTSHADER_LIBS "gcov")
+        elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-fprofile-instr-generate" "-fcoverage-mapping")
+            list(APPEND SWIFTSHADER_LINK_FLAGS "-fprofile-instr-generate" "-fcoverage-mapping")
+        else()
+            message(FATAL_ERROR "Coverage generation not supported for the ${CMAKE_CXX_COMPILER_ID} toolchain")
+        endif()
     endif()
 
     # Disable pedanitc warnings
@@ -590,6 +607,10 @@ if(WIN32)
     add_definitions(-DWINVER=0x501 -DNOMINMAX -DSTRICT)
     set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib")
 endif()
+
+# Transform SWIFTSHADER_LINK_FLAGS from semicolon delimited to whitespace
+# delimited (what is expected by LINK_FLAGS)
+string(REPLACE ";" " " SWIFTSHADER_LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}")
 
 ###########################################################
 # LLVM
@@ -1081,8 +1102,9 @@ set_target_properties(SwiftShader PROPERTIES
     FOLDER "Core"
     COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
     COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
+    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
-target_link_libraries(SwiftShader ${OS_LIBS})
+target_link_libraries(SwiftShader ${OS_LIBS} ${SWIFTSHADER_LIBS})
 
 add_library(ReactorLLVM STATIC EXCLUDE_FROM_ALL ${REACTOR_LLVM_LIST})
 set_target_properties(ReactorLLVM PROPERTIES
@@ -1090,6 +1112,7 @@ set_target_properties(ReactorLLVM PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "Core"
     COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
 target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
 
@@ -1119,7 +1142,7 @@ if(REACTOR_EMIT_DEBUG_INFO)
             POSITION_INDEPENDENT_CODE 1
             FOLDER "Core"
         )
-        target_link_libraries(Libbacktrace ${OS_LIBS})
+        target_link_libraries(Libbacktrace ${OS_LIBS} ${SWIFTSHADER_LIBS})
         target_link_libraries(${Reactor} Libbacktrace)
     endif()
 
@@ -1136,8 +1159,9 @@ set_target_properties(GLCompiler PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
     COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
-target_link_libraries(GLCompiler ${OS_LIBS})
+target_link_libraries(GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(LIB_PREFIX "lib64")
@@ -1152,6 +1176,7 @@ if(SWIFTSHADER_BUILD_EGL)
         FOLDER "OpenGL"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         PREFIX ""
     )
     if(LINUX)
@@ -1163,7 +1188,7 @@ if(SWIFTSHADER_BUILD_EGL)
         set_target_properties(libEGL PROPERTIES SUFFIX "_swiftshader.so")
     endif ()
     set_shared_library_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
-    target_link_libraries(libEGL ${OS_LIBS})
+    target_link_libraries(libEGL ${OS_LIBS} ${SWIFTSHADER_LIBS})
     add_custom_command(
         TARGET libEGL
         POST_BUILD
@@ -1181,13 +1206,14 @@ if(SWIFTSHADER_BUILD_GLESv2)
         FOLDER "OpenGL"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         PREFIX ""
     )
     if (ANDROID)
         set_target_properties(libGLESv2 PROPERTIES SUFFIX "_swiftshader.so")
     endif ()
     set_shared_library_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
-    target_link_libraries(libGLESv2 SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
+    target_link_libraries(libGLESv2 SwiftShader ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
     add_custom_command(
         TARGET libGLESv2
         POST_BUILD
@@ -1205,13 +1231,14 @@ if(SWIFTSHADER_BUILD_GLES_CM)
         FOLDER "OpenGL"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         PREFIX ""
     )
     if (ANDROID)
         set_target_properties(libGLES_CM PROPERTIES SUFFIX "_swiftshader.so")
     endif ()
     set_shared_library_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
-    target_link_libraries(libGLES_CM SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
+    target_link_libraries(libGLES_CM SwiftShader ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
     add_custom_command(
         TARGET libGLES_CM
         POST_BUILD
@@ -1257,6 +1284,7 @@ if(SWIFTSHADER_BUILD_VULKAN)
         FOLDER "Vulkan"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "VK_EXPORT=;NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     )
 
     if(WIN32)
@@ -1283,7 +1311,7 @@ if(SWIFTSHADER_BUILD_VULKAN)
 
     set_shared_library_export_map(vk_swiftshader ${SOURCE_DIR}/Vulkan)
 
-    set(VK_SWIFTSHADER_LIBS ${Reactor} marl ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt)
+    set(VK_SWIFTSHADER_LIBS ${Reactor} marl ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt ${SWIFTSHADER_LIBS})
     if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
         list(APPEND VK_SWIFTSHADER_LIBS cppdap)
     endif()
@@ -1335,6 +1363,7 @@ if(SWIFTSHADER_BUILD_SAMPLES)
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+            LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         )
         target_link_libraries(OGLES2HelloAPI dl ${X11} libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
     elseif(APPLE)
@@ -1346,9 +1375,10 @@ if(SWIFTSHADER_BUILD_SAMPLES)
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};-Wno-deprecated-declarations" # 'NSTitledWindowMask', 'NSClosableWindowMask' is deprecated
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+            LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
             MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
         )
-        target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
+        target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS} ${SWIFTSHADER_LIBS})
         set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
         )
@@ -1371,6 +1401,7 @@ if(SWIFTSHADER_BUILD_TESTS)
     set_target_properties(ReactorUnitTests PROPERTIES
         INCLUDE_DIRECTORIES "${REACTOR_UNIT_TESTS_INCLUDE_DIR}"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         FOLDER "Tests"
     )
 
@@ -1399,9 +1430,10 @@ if(SWIFTSHADER_BUILD_TESTS)
         FOLDER "Tests"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "STANDALONE"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     )
 
-    target_link_libraries(gles-unittests libEGL libGLESv2 ${OS_LIBS})
+    target_link_libraries(gles-unittests libEGL libGLESv2 ${OS_LIBS} ${SWIFTSHADER_LIBS})
     if(ANDROID)
         target_link_libraries(gles-unittests -landroid)
     endif()
@@ -1425,10 +1457,11 @@ if(SWIFTSHADER_BUILD_TESTS)
         INCLUDE_DIRECTORIES "${MATH_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     )
 
     if(NOT WIN32)
-        target_link_libraries(math-unittests pthread)
+        target_link_libraries(math-unittests pthread ${SWIFTSHADER_LIBS})
     endif()
 endif(SWIFTSHADER_BUILD_TESTS)
 
@@ -1447,6 +1480,7 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
 
     set_target_properties(ReactorBenchmarks PROPERTIES
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         FOLDER "Benchmarks"
     )
 endif(SWIFTSHADER_BUILD_BENCHMARKS)
@@ -1476,9 +1510,10 @@ if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
         FOLDER "Tests"
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         COMPILE_DEFINITIONS "STANDALONE"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     )
 
-    target_link_libraries(vk-unittests ${OS_LIBS} SPIRV-Tools)
+    target_link_libraries(vk-unittests ${OS_LIBS} SPIRV-Tools ${SWIFTSHADER_LIBS})
 endif(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
 
 if(SWIFTSHADER_BUILD_PVR)
