@@ -25,6 +25,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -44,6 +45,9 @@ var (
 	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
 	output        = flag.String("output", "results.json", "path to an output JSON results file")
 	filter        = flag.String("filter", "", "filter for test names. Start with a '/' to indicate regex")
+	limit         = flag.Int("limit", 0, "only run a maximum of this number of tests")
+	shuffle       = flag.Bool("shuffle", false, "shuffle tests")
+	noResults     = flag.Bool("no-results", false, "disable generation of results.json file")
 )
 
 const testTimeout = time.Minute * 2
@@ -70,9 +74,18 @@ func run() error {
 		}
 	}
 
-	testLists := testlist.Lists{group}
-
 	shell.MaxProcMemory = *maxProcMemory
+
+	if *shuffle {
+		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+		rnd.Shuffle(len(group.Tests), func(i, j int) { group.Tests[i], group.Tests[j] = group.Tests[j], group.Tests[i] })
+	}
+
+	if *limit != 0 && len(group.Tests) > *limit {
+		group.Tests = group.Tests[:*limit]
+	}
+
+	log.Printf("Running %d tests...\n", len(group.Tests))
 
 	config := deqp.Config{
 		ExeEgl:           "",
@@ -81,11 +94,9 @@ func run() error {
 		ExeVulkan:        *deqpVkBinary,
 		Env:              os.Environ(),
 		NumParallelTests: *numThreads,
-		TestLists:        testLists,
+		TestLists:        testlist.Lists{group},
 		TestTimeout:      testTimeout,
 	}
-
-	log.Printf("Running %d tests...\n", len(group.Tests))
 
 	res, err := config.Run()
 	if err != nil {
@@ -102,9 +113,11 @@ func run() error {
 		}
 	}
 
-	err = res.Save(*output)
-	if err != nil {
-		return err
+	if !*noResults {
+		err = res.Save(*output)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
