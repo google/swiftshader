@@ -79,8 +79,10 @@ var (
 	dryRun        = flag.Bool("dry", false, "don't post regres reports to gerrit")
 	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
 	dailyNow      = flag.Bool("dailynow", false, "Start by running the daily pass")
+	dailyOnly     = flag.Bool("dailyonly", false, "Run only the daily pass")
 	dailyChange   = flag.String("dailychange", "", "Change hash to use for daily pass, HEAD if not provided")
 	priority      = flag.String("priority", "", "Prioritize a single change with the given id")
+	limit         = flag.Int("limit", 0, "only run a maximum of this number of tests")
 )
 
 func main() {
@@ -97,6 +99,7 @@ func main() {
 		keepCheckouts: *keepCheckouts,
 		dryRun:        *dryRun,
 		dailyNow:      *dailyNow,
+		dailyOnly:     *dailyOnly,
 		dailyChange:   *dailyChange,
 		priority:      *priority,
 	}
@@ -119,6 +122,7 @@ type regres struct {
 	dryRun        bool   // don't post any reviews
 	maxProcMemory uint64 // max virtual memory for child processes
 	dailyNow      bool   // start with a daily run
+	dailyOnly     bool   // run only the daily run
 	dailyChange   string // Change hash to use for daily pass, HEAD if not provided
 	priority      string // Prioritize a single change with the given id
 }
@@ -200,16 +204,24 @@ func (r *regres) run() error {
 	lastUpdatedTestLists := toDate(time.Now())
 	lastQueriedChanges := time.Time{}
 
-	if r.dailyNow {
+	if r.dailyNow || r.dailyOnly {
 		lastUpdatedTestLists = date{}
 	}
 
 	for {
 		if now := time.Now(); toDate(now) != lastUpdatedTestLists && now.Hour() >= dailyUpdateTestListHour {
 			lastUpdatedTestLists = toDate(now)
-			if err := r.updateTestLists(client); err != nil {
+			if err := r.updateTestLists(client, subzero); err != nil {
 				log.Println(err.Error())
 			}
+			if err := r.updateTestLists(client, llvm); err != nil {
+				log.Println(err.Error())
+			}
+		}
+
+		if r.dailyOnly {
+			log.Println("Daily finished with --dailyonly. Stopping")
+			return nil
 		}
 
 		// Update list of tracked changes.
@@ -508,8 +520,8 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists, d deqp
 	return results, nil
 }
 
-func (r *regres) updateTestLists(client *gerrit.Client) error {
-	log.Println("Updating test lists")
+func (r *regres) updateTestLists(client *gerrit.Client, reactorBackend reactorBackend) error {
+	log.Printf("Updating test lists (reactorBackend: %v)\n", reactorBackend)
 
 	dailyHash := git.Hash{}
 	if r.dailyChange == "" {
@@ -523,7 +535,7 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 	}
 
 	// Get the full test results.
-	test := r.newTest(dailyHash)
+	test := r.newTest(dailyHash).setReactorBackend(reactorBackend)
 	defer test.cleanup()
 
 	// Always need to checkout the change.
@@ -575,6 +587,7 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 
 	commitMsg := strings.Builder{}
 	commitMsg.WriteString(consts.TestListUpdateCommitSubjectPrefix + dailyHash.String()[:8])
+	commitMsg.WriteString("\n\nReactor backend: " + string(reactorBackend))
 	if existingChange != nil {
 		// Reuse gerrit change ID if there's already a change up for review.
 		commitMsg.WriteString("\n\n")
@@ -600,6 +613,14 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 		}
 		log.Println("Test results posted for review")
 	}
+
+	// We've just pushed a new commit. Let's reset back to the parent commit
+	// (dailyHash), so that we can run updateTestLists again for another backend,
+	// and have it update the commit with the same change-id.
+	if err := git.CheckoutCommit(test.srcDir, dailyHash); err != nil {
+		return cause.Wrap(err, "Failed to checkout parent commit")
+	}
+	log.Println("Checked out parent commit")
 
 	change, err := r.findTestListChange(client)
 	if err != nil {
@@ -794,20 +815,34 @@ func (r *regres) newTest(commit git.Hash) *test {
 	srcDir := filepath.Join(r.cacheRoot, "src", commit.String())
 	resDir := filepath.Join(r.cacheRoot, "res", commit.String())
 	return &test{
-		r:        r,
-		commit:   commit,
-		srcDir:   srcDir,
-		resDir:   resDir,
-		buildDir: filepath.Join(srcDir, "build"),
+		r:              r,
+		commit:         commit,
+		srcDir:         srcDir,
+		resDir:         resDir,
+		buildDir:       filepath.Join(srcDir, "build"),
+		reactorBackend: llvm,
 	}
 }
 
+func (t *test) setReactorBackend(reactorBackend reactorBackend) *test {
+	t.reactorBackend = reactorBackend
+	return t
+}
+
+type reactorBackend string
+
+const (
+	llvm    reactorBackend = "LLVM"
+	subzero reactorBackend = "Subzero"
+)
+
 type test struct {
-	r        *regres
-	commit   git.Hash // hash of the commit to test
-	srcDir   string   // directory for the SwiftShader checkout
-	resDir   string   // directory for the test results
-	buildDir string   // directory for SwiftShader build
+	r              *regres
+	commit         git.Hash       // hash of the commit to test
+	srcDir         string         // directory for the SwiftShader checkout
+	resDir         string         // directory for the test results
+	buildDir       string         // directory for SwiftShader build
+	reactorBackend reactorBackend // backend for SwiftShader build
 }
 
 // cleanup removes any temporary files used by the test.
@@ -865,6 +900,7 @@ func (t *test) build() error {
 		"-DCMAKE_BUILD_TYPE=Release",
 		"-DSWIFTSHADER_DCHECK_ALWAYS_ON=1",
 		"-DREACTOR_VERIFY_LLVM_IR=1",
+		"-DREACTOR_BACKEND="+string(t.reactorBackend),
 		"-DSWIFTSHADER_WARNINGS_AS_ERRORS=0",
 		".."); err != nil {
 		return err
@@ -888,6 +924,10 @@ func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error)
 	swiftshaderICDJSON := filepath.Join(t.buildDir, "Linux", "vk_swiftshader_icd.json")
 	if _, err := os.Stat(swiftshaderICDJSON); err != nil {
 		return nil, fmt.Errorf("Couldn't find '%s'", swiftshaderICDJSON)
+	}
+
+	if *limit != 0 && len(testLists) > *limit {
+		testLists = testLists[:*limit]
 	}
 
 	config := deqp.Config{
