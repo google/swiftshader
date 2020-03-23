@@ -48,13 +48,13 @@ class Schedule : public benchmark::Fixture {
     }
   }
 
-  // numThreads return the number of threads in the benchmark run from the
+  // numThreads() return the number of threads in the benchmark run from the
   // state.
   static int numThreads(const ::benchmark::State& state) {
     return static_cast<int>(state.range(1));
   }
 
-  // numTasks return the number of tasks in the benchmark run from the state.
+  // numTasks() return the number of tasks in the benchmark run from the state.
   static int numTasks(const ::benchmark::State& state) {
     return static_cast<int>(state.range(0));
   }

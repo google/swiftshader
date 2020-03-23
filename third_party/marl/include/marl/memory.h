@@ -38,7 +38,8 @@ struct Allocation {
     Undefined = 0,
     Stack,   // Fiber stack
     Create,  // Allocator::create(), make_unique(), make_shared()
-    Vector,  // marl::vector<T>
+    Vector,  // marl::containers::vector<T>
+    List,    // marl::containers::list<T>
     Count,   // Not intended to be used as a usage type - used for upper bound.
   };
 
