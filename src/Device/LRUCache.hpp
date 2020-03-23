@@ -73,19 +73,6 @@ private:
 	std::unordered_map<Key, Data, Hasher> constCache;
 };
 
-// Traits-like helper class for checking if objects can be compared using memcmp().
-// Useful for statically asserting if a cache key can implement operator==() with memcmp().
-template<typename T>
-struct is_memcmparable
-{
-// std::is_trivially_copyable is not available in older GCC versions.
-#if !defined(__GNUC__) || __GNUC__ > 5
-	static const bool value = std::is_trivially_copyable<T>::value;
-#else
-	// At least check it doesn't have virtual methods.
-	static const bool value = !std::is_polymorphic<T>::value;
-#endif
-};
 }  // namespace sw
 
 namespace sw {

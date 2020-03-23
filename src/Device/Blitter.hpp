@@ -89,12 +89,6 @@ class Blitter
 		    , destSamples(destSamples)
 		{}
 
-		bool operator==(const State &state) const
-		{
-			static_assert(is_memcmparable<State>::value, "Cannot memcmp State");
-			return memcmp(this, &state, sizeof(State)) == 0;
-		}
-
 		vk::Format sourceFormat;
 		vk::Format destFormat;
 		int srcSamples = 0;

@@ -44,8 +44,7 @@ bool PixelProcessor::State::operator==(const State &state) const
 		return false;
 	}
 
-	static_assert(is_memcmparable<State>::value, "Cannot memcmp State");
-	return memcmp(static_cast<const States *>(this), static_cast<const States *>(&state), sizeof(States)) == 0;
+	return *static_cast<const States *>(this) == static_cast<const States &>(state);
 }
 
 PixelProcessor::PixelProcessor()

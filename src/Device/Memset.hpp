@@ -18,10 +18,19 @@
 #include <cstring>
 #include <type_traits>
 
+// GCC 8+ warns that
+// "‘void* memset(void*, int, size_t)’ clearing an object of non-trivial type ‘T’;
+//  use assignment or value-initialization instead [-Werror=class-memaccess]"
+// This is benign iff it happens before any of the base or member constructors are called.
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
 namespace sw {
 
-// Helper class for clearing the memory of objects at construction.
-// Useful as the first base class of cache keys which may contain padding
+// Memset<> is a helper class for clearing the memory of objects at construction.
+// It is useful as the *first* base class of map keys which may contain padding
 // bytes or bits otherwise left uninitialized.
 template<class T>
 struct Memset
@@ -29,24 +38,49 @@ struct Memset
 	Memset(T *object, int val)
 	{
 		static_assert(std::is_base_of<Memset<T>, T>::value, "Memset<T> must only clear the memory of a type of which it is a base class");
+		::memset(object, 0, sizeof(T));
+	}
 
-// GCC 8+ warns that
-// "‘void* memset(void*, int, size_t)’ clearing an object of non-trivial type ‘T’;
-//  use assignment or value-initialization instead [-Werror=class-memaccess]"
-// This is benign iff it happens before any of the base or member constructrs are called.
-#if defined(__GNUC__) && (__GNUC__ >= 8)
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
+	// Don't rely on the implicitly declared copy constructor and copy assignment operator.
+	// They can leave padding bytes uninitialized.
+	Memset(const Memset &rhs)
+	{
+		::memcpy(this, &rhs, sizeof(T));
+	}
 
-		memset(object, 0, sizeof(T));
+	Memset &operator=(const Memset &rhs)
+	{
+		::memcpy(this, &rhs, sizeof(T));
+		return *this;
+	}
 
-#if defined(__GNUC__) && (__GNUC__ >= 8)
-#	pragma GCC diagnostic pop
-#endif
+	// The compiler won't declare an implicit move constructor and move assignment operator
+	// due to having a user-defined copy constructor and copy assignment operator. Delete
+	// them for explicitness. We always want memcpy() being called.
+	Memset(const Memset &&rhs) = delete;
+	Memset &operator=(const Memset &&rhs) = delete;
+
+	friend bool operator==(const T &a, const T &b)
+	{
+		return ::memcmp(&a, &b, sizeof(T)) == 0;
+	}
+
+	friend bool operator!=(const T &a, const T &b)
+	{
+		return ::memcmp(&a, &b, sizeof(T)) != 0;
+	}
+
+	friend bool operator<(const T &a, const T &b)
+	{
+		return ::memcmp(&a, &b, sizeof(T)) < 0;
 	}
 };
 
 }  // namespace sw
+
+// Restore -Wclass-memaccess
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#	pragma GCC diagnostic pop
+#endif
 
 #endif  // sw_Memset_hpp
