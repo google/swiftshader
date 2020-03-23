@@ -505,10 +505,6 @@ else()
         set_cpp_flag("-s" RELEASE)
     endif()
 
-    if(SWIFTSHADER_DCHECK_ALWAYS_ON)
-        list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DDCHECK_ALWAYS_ON")
-    endif()
-
     # For distribution it is more important to be slim than super optimized
     set_cpp_flag("-Os" RELEASE)
     set_cpp_flag("-Os" RELWITHDEBINFO)
@@ -537,6 +533,10 @@ else()
         set_cpp_flag("-fsanitize=undefined")
         set_linker_flag("-fsanitize=undefined")
     endif()
+endif()
+
+if(SWIFTSHADER_DCHECK_ALWAYS_ON)
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DDCHECK_ALWAYS_ON")
 endif()
 
 if(SWIFTSHADER_WARNINGS_AS_ERRORS)
