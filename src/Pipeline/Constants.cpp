@@ -341,8 +341,12 @@ Constants::Constants()
 	static const float4 unscaleSByte = { 1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F };
 	static const float4 unscaleShort = { 1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF };
 	static const float4 unscaleUShort = { 1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF };
-	static const float4 unscaleInt = { 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF };
-	static const float4 unscaleUInt = { 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF };
+
+	// NOTE: Using "1.0f / 0x7FFFFFF" below results in a compiler error, e.g.:
+	// error: implicit conversion from 'int' to 'float' changes value from 2147483646 to 2147483648
+	static const float4 unscaleInt = { (float)(1.0 / 0x7FFFFFFF), (float)(1.0 / 0x7FFFFFFF), (float)(1.0 / 0x7FFFFFFF), (float)(1.0 / 0x7FFFFFFF) };
+	static const float4 unscaleUInt = { (float)(1.0 / 0xFFFFFFFF), (float)(1.0 / 0xFFFFFFFF), (float)(1.0 / 0xFFFFFFFF), (float)(1.0 / 0xFFFFFFFF) };
+
 	static const float4 unscaleFixed = { 1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000 };
 
 	memcpy(&this->unscaleByte, &unscaleByte, sizeof(unscaleByte));

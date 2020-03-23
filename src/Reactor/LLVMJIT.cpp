@@ -271,7 +271,7 @@ JITGlobals::JITGlobals(const char *mcpu,
 {
 }
 
-class MemoryMapper : public llvm::SectionMemoryManager::MemoryMapper
+class MemoryMapper final : public llvm::SectionMemoryManager::MemoryMapper
 {
 public:
 	MemoryMapper() {}
