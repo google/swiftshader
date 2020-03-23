@@ -84,12 +84,9 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		samplerState.compareOp = sampler->compareOp;
 		samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates != VK_FALSE);
 
-		if(sampler->ycbcrConversion)
-		{
-			samplerState.ycbcrModel = sampler->ycbcrConversion->ycbcrModel;
-			samplerState.studioSwing = (sampler->ycbcrConversion->ycbcrRange == VK_SAMPLER_YCBCR_RANGE_ITU_NARROW);
-			samplerState.swappedChroma = (sampler->ycbcrConversion->components.r != VK_COMPONENT_SWIZZLE_R);
-		}
+		samplerState.ycbcrModel = sampler->ycbcrModel;
+		samplerState.studioSwing = sampler->studioSwing;
+		samplerState.swappedChroma = sampler->swappedChroma;
 
 		samplerState.mipLodBias = sampler->mipLodBias;
 		samplerState.maxAnisotropy = sampler->maxAnisotropy;
@@ -270,7 +267,7 @@ sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
 		return MIPMAP_POINT;  // Samplerless operations (OpImageFetch) can take an integer Lod operand.
 	}
 
-	if(sampler->ycbcrConversion)
+	if(sampler->ycbcrModel != VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY)
 	{
 		// TODO(b/151263485): Check image view level count instead.
 		return MIPMAP_NONE;

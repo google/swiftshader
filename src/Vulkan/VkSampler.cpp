@@ -18,4 +18,35 @@ namespace vk {
 
 std::atomic<uint32_t> Sampler::nextID(1);
 
+SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion)
+    : Memset(this, 0)
+    , magFilter(pCreateInfo->magFilter)
+    , minFilter(pCreateInfo->minFilter)
+    , mipmapMode(pCreateInfo->mipmapMode)
+    , addressModeU(pCreateInfo->addressModeU)
+    , addressModeV(pCreateInfo->addressModeV)
+    , addressModeW(pCreateInfo->addressModeW)
+    , mipLodBias(pCreateInfo->mipLodBias)
+    , anisotropyEnable(pCreateInfo->anisotropyEnable)
+    , maxAnisotropy(pCreateInfo->maxAnisotropy)
+    , compareEnable(pCreateInfo->compareEnable)
+    , compareOp(pCreateInfo->compareOp)
+    , minLod(ClampLod(pCreateInfo->minLod))
+    , maxLod(ClampLod(pCreateInfo->maxLod))
+    , borderColor(pCreateInfo->borderColor)
+    , unnormalizedCoordinates(pCreateInfo->unnormalizedCoordinates)
+{
+	if(ycbcrConversion)
+	{
+		ycbcrModel = ycbcrConversion->ycbcrModel;
+		studioSwing = (ycbcrConversion->ycbcrRange == VK_SAMPLER_YCBCR_RANGE_ITU_NARROW);
+		swappedChroma = (ycbcrConversion->components.r != VK_COMPONENT_SWIZZLE_R);
+	}
+}
+
+Sampler::Sampler(const VkSamplerCreateInfo *pCreateInfo, void *mem, const vk::SamplerYcbcrConversion *ycbcrConversion)
+    : SamplerState(pCreateInfo, ycbcrConversion)
+{
+}
+
 }  // namespace vk
