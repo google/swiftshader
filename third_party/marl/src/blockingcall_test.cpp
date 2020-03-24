@@ -61,3 +61,11 @@ TEST_P(WithBoundScheduler, BlockingCallIntReturn) {
 
   ASSERT_EQ(n.load(), 4950);
 }
+
+TEST_P(WithBoundScheduler, BlockingCallSchedulesTask) {
+  marl::WaitGroup wg(1);
+  marl::schedule([=] {
+    marl::blocking_call([=] { marl::schedule([=] { wg.done(); }); });
+  });
+  wg.wait();
+}
