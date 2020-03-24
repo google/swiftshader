@@ -1339,6 +1339,19 @@ if(SWIFTSHADER_BUILD_VULKAN)
         "${VULKAN_DIR}/vk_swiftshader_icd.json.tmpl"
         "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/vk_swiftshader_icd.json"
     )
+
+    if(SWIFTSHADER_EMIT_COVERAGE)
+        # Emit a coverage-toolchain.txt file next to the vk_swiftshader_icd.json
+        # file so that regres can locate the LLVM toolchain used to build the
+        # .so file. With this, the correct llvm-cov and llvm-profdata tools
+        # from the same toolchain can be located.
+        get_filename_component(COMPILER_TOOLCHAIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+        file(WRITE
+            "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/coverage-toolchain.txt"
+            "${COMPILER_TOOLCHAIN_DIR}"
+        )
+    endif()
+
 endif()
 
 ###########################################################
