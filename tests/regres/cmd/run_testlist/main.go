@@ -21,9 +21,12 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -33,9 +36,12 @@ import (
 	"strings"
 	"time"
 
+	"../../cov"
 	"../../deqp"
+	"../../llvm"
 	"../../shell"
 	"../../testlist"
+	"../../util"
 )
 
 var (
@@ -48,6 +54,7 @@ var (
 	limit         = flag.Int("limit", 0, "only run a maximum of this number of tests")
 	shuffle       = flag.Bool("shuffle", false, "shuffle tests")
 	noResults     = flag.Bool("no-results", false, "disable generation of results.json file")
+	genCoverage   = flag.Bool("coverage", false, "generate test coverage")
 )
 
 const testTimeout = time.Minute * 2
@@ -98,6 +105,15 @@ func run() error {
 		TestTimeout:      testTimeout,
 	}
 
+	if *genCoverage {
+		icdPath := findSwiftshaderICD()
+		config.CoverageEnv = &cov.Env{
+			LLVM:    findLLVMToolchain(icdPath),
+			RootDir: projectRootDir(),
+			ExePath: findSwiftshaderSO(icdPath),
+		}
+	}
+
 	res, err := config.Run()
 	if err != nil {
 		return err
@@ -113,6 +129,12 @@ func run() error {
 		}
 	}
 
+	if *genCoverage {
+		if err := ioutil.WriteFile("coverage.json", []byte(res.Coverage.JSON()), 0666); err != nil {
+			return err
+		}
+	}
+
 	if !*noResults {
 		err = res.Save(*output)
 		if err != nil {
@@ -121,6 +143,80 @@ func run() error {
 	}
 
 	return nil
+}
+
+func findSwiftshaderICD() string {
+	icdPaths := strings.Split(os.Getenv("VK_ICD_FILENAMES"), ";")
+	for _, icdPath := range icdPaths {
+		_, file := filepath.Split(icdPath)
+		if file == "vk_swiftshader_icd.json" {
+			return icdPath
+		}
+	}
+	panic("Cannot find vk_swiftshader_icd.json in VK_ICD_FILENAMES")
+}
+
+func findSwiftshaderSO(vkSwiftshaderICD string) string {
+	root := struct {
+		ICD struct {
+			Path string `json:"library_path"`
+		}
+	}{}
+
+	icd, err := ioutil.ReadFile(vkSwiftshaderICD)
+	if err != nil {
+		panic(fmt.Errorf("Could not read '%v'. %v", vkSwiftshaderICD, err))
+	}
+
+	if err := json.NewDecoder(bytes.NewReader(icd)).Decode(&root); err != nil {
+		panic(fmt.Errorf("Could not parse '%v'. %v", vkSwiftshaderICD, err))
+	}
+
+	if util.IsFile(root.ICD.Path) {
+		return root.ICD.Path
+	}
+	dir := filepath.Dir(vkSwiftshaderICD)
+	path, err := filepath.Abs(filepath.Join(dir, root.ICD.Path))
+	if err != nil {
+		panic(fmt.Errorf("Could not locate ICD so at '%v'. %v", root.ICD.Path, err))
+	}
+
+	return path
+}
+
+func findLLVMToolchain(vkSwiftshaderICD string) llvm.Toolchain {
+	minVersion := llvm.Version{Major: 8}
+
+	// Try finding the llvm toolchain via the CMake generated
+	// coverage-toolchain.txt file that sits next to vk_swiftshader_icd.json.
+	dir := filepath.Dir(vkSwiftshaderICD)
+	toolchainInfoPath := filepath.Join(dir, "coverage-toolchain.txt")
+	if util.IsFile(toolchainInfoPath) {
+		if body, err := ioutil.ReadFile(toolchainInfoPath); err == nil {
+			toolchain := llvm.Search(string(body)).FindAtLeast(minVersion)
+			if toolchain != nil {
+				return *toolchain
+			}
+		}
+	}
+
+	// Fallback, try searching PATH.
+	toolchain := llvm.Search().FindAtLeast(llvm.Version{Major: 8})
+	if toolchain == nil {
+		log.Fatal("Could not find LLVM toolchain")
+	}
+
+	return *toolchain
+}
+
+func projectRootDir() string {
+	_, thisFile, _, _ := runtime.Caller(1)
+	thisDir := filepath.Dir(thisFile)
+	root, err := filepath.Abs(filepath.Join(thisDir, "../../../.."))
+	if err != nil {
+		panic(err)
+	}
+	return root
 }
 
 func main() {

@@ -147,8 +147,8 @@ func (r *regres) resolveDirs() error {
 	}
 
 	for _, path := range allDirs {
-		if _, err := os.Stat(*path); err != nil {
-			return cause.Wrap(err, "Couldn't find path '%v'", *path)
+		if !util.IsDir(*path) {
+			return fmt.Errorf("Couldn't find path '%v'", *path)
 		}
 	}
 
@@ -917,12 +917,12 @@ func (t *test) run(testLists testlist.Lists, d deqpBuild) (*deqp.Results, error)
 	log.Printf("Running tests for '%s'\n", t.commit)
 
 	swiftshaderICDSo := filepath.Join(t.buildDir, "libvk_swiftshader.so")
-	if _, err := os.Stat(swiftshaderICDSo); err != nil {
+	if !util.IsFile(swiftshaderICDSo) {
 		return nil, fmt.Errorf("Couldn't find '%s'", swiftshaderICDSo)
 	}
 
 	swiftshaderICDJSON := filepath.Join(t.buildDir, "Linux", "vk_swiftshader_icd.json")
-	if _, err := os.Stat(swiftshaderICDJSON); err != nil {
+	if !util.IsFile(swiftshaderICDJSON) {
 		return nil, fmt.Errorf("Couldn't find '%s'", swiftshaderICDJSON)
 	}
 
