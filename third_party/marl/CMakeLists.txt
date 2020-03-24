@@ -105,13 +105,7 @@ endif(NOT MSVC)
 ###########################################################
 # OS libraries
 ###########################################################
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    set(MARL_OS_LIBS Kernel32)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(MARL_OS_LIBS pthread)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    set(MARL_OS_LIBS)
-endif()
+find_package(Threads REQUIRED)
 
 ###########################################################
 # Functions
@@ -152,7 +146,7 @@ function(marl_set_target_options target)
         target_link_libraries(${target} "-fsanitize=thread")
     endif()
 
-    target_include_directories(${target} PUBLIC ${MARL_INCLUDE_DIR})
+    target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${MARL_INCLUDE_DIR}>)
 endfunction(marl_set_target_options)
 
 ###########################################################
@@ -167,11 +161,18 @@ set_target_properties(marl PROPERTIES
 
 marl_set_target_options(marl)
 
-target_link_libraries(marl "${MARL_OS_LIBS}")
+target_link_libraries(marl PUBLIC Threads::Threads)
 
 # install
 if(MARL_INSTALL)
+    include(CMakePackageConfigHelpers)
     include(GNUInstallDirs)
+
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/marl-config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/marl-config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/marl
+    )
 
     install(DIRECTORY ${MARL_INCLUDE_DIR}/marl
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -187,8 +188,12 @@ if(MARL_INSTALL)
     )
 
     install(EXPORT marl-targets
-        FILE marl-config.cmake
+        FILE marl-targets.cmake
         NAMESPACE marl::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/marl
+    )
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/marl-config.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/marl
     )
 endif(MARL_INSTALL)
