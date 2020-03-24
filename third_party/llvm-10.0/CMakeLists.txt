@@ -1209,3 +1209,26 @@ if(LINUX OR APPLE)
     target_link_libraries(llvm dl z)
 endif()
 
+if(SWIFTSHADER_EMIT_COVERAGE)
+    # llvm-with-cov is an llvm target with additional coverage library
+    # functionality. This is used to build 'turbo-cov', a custom and faster
+    # reimplementation of llvm-cov.
+    add_library(llvm-with-cov STATIC EXCLUDE_FROM_ALL
+        ${LLVM_DIR}/lib/ProfileData/InstrProfReader.cpp
+        ${LLVM_DIR}/lib/ProfileData/ProfileSummaryBuilder.cpp
+        ${LLVM_DIR}/lib/ProfileData/Coverage/CoverageMapping.cpp
+        ${LLVM_DIR}/lib/ProfileData/Coverage/CoverageMappingReader.cpp
+        ${LLVM_DIR}/lib/Support/Compression.cpp
+    )
+    set_target_properties(llvm-with-cov PROPERTIES
+        POSITION_INDEPENDENT_CODE 1
+        COMPILE_OPTIONS "${LLVM_COMPILE_OPTIONS}"
+        COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
+        FOLDER "LLVM"
+    )
+    target_include_directories(llvm-with-cov PUBLIC "${LLVM_INCLUDE_DIR}")
+
+    if(LINUX OR APPLE)
+        target_link_libraries(llvm-with-cov llvm pthread)
+    endif()
+endif()

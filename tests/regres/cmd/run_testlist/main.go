@@ -107,10 +107,12 @@ func run() error {
 
 	if *genCoverage {
 		icdPath := findSwiftshaderICD()
+		t := findToolchain(icdPath)
 		config.CoverageEnv = &cov.Env{
-			LLVM:    findLLVMToolchain(icdPath),
-			RootDir: projectRootDir(),
-			ExePath: findSwiftshaderSO(icdPath),
+			LLVM:     t.llvm,
+			TurboCov: t.turbocov,
+			RootDir:  projectRootDir(),
+			ExePath:  findSwiftshaderSO(icdPath),
 		}
 	}
 
@@ -184,29 +186,42 @@ func findSwiftshaderSO(vkSwiftshaderICD string) string {
 	return path
 }
 
-func findLLVMToolchain(vkSwiftshaderICD string) llvm.Toolchain {
-	minVersion := llvm.Version{Major: 8}
+type toolchain struct {
+	llvm     llvm.Toolchain
+	turbocov string
+}
+
+func findToolchain(vkSwiftshaderICD string) toolchain {
+	minVersion := llvm.Version{Major: 7}
 
 	// Try finding the llvm toolchain via the CMake generated
 	// coverage-toolchain.txt file that sits next to vk_swiftshader_icd.json.
 	dir := filepath.Dir(vkSwiftshaderICD)
 	toolchainInfoPath := filepath.Join(dir, "coverage-toolchain.txt")
 	if util.IsFile(toolchainInfoPath) {
-		if body, err := ioutil.ReadFile(toolchainInfoPath); err == nil {
-			toolchain := llvm.Search(string(body)).FindAtLeast(minVersion)
-			if toolchain != nil {
-				return *toolchain
+		if file, err := os.Open(toolchainInfoPath); err == nil {
+			defer file.Close()
+			content := struct {
+				LLVM     string `json:"llvm"`
+				TurboCov string `json:"turbo-cov"`
+			}{}
+			err := json.NewDecoder(file).Decode(&content)
+			if err != nil {
+				log.Fatalf("Couldn't read 'toolchainInfoPath': %v", err)
+			}
+			if t := llvm.Search(content.LLVM).FindAtLeast(minVersion); t != nil {
+				return toolchain{*t, content.TurboCov}
 			}
 		}
 	}
 
 	// Fallback, try searching PATH.
-	toolchain := llvm.Search().FindAtLeast(llvm.Version{Major: 8})
-	if toolchain == nil {
-		log.Fatal("Could not find LLVM toolchain")
+	if t := llvm.Search().FindAtLeast(minVersion); t != nil {
+		return toolchain{*t, ""}
 	}
 
-	return *toolchain
+	log.Fatal("Could not find LLVM toolchain")
+	return toolchain{}
 }
 
 func projectRootDir() string {

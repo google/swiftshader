@@ -18,6 +18,7 @@ package cov
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -62,9 +63,10 @@ type Coverage struct {
 
 // Env holds the enviroment settings for performing coverage processing.
 type Env struct {
-	LLVM    llvm.Toolchain
-	RootDir string // path to SwiftShader git root directory
-	ExePath string // path to the executable binary
+	LLVM     llvm.Toolchain
+	RootDir  string // path to SwiftShader git root directory
+	ExePath  string // path to the executable binary
+	TurboCov string // path to turbo-cov (optional)
 }
 
 // AppendRuntimeEnv returns the environment variables env with the
@@ -78,7 +80,7 @@ func AppendRuntimeEnv(env []string, coverageFile string) []string {
 func (e Env) Import(profrawPath string) (*Coverage, error) {
 	profdata := profrawPath + ".profdata"
 
-	if err := exec.Command(e.LLVM.Profdata(), "merge", "-sparse", profrawPath, "-o", profdata).Run(); err != nil {
+	if err := exec.Command(e.LLVM.Profdata(), "merge", "-sparse", profrawPath, "-output", profdata).Run(); err != nil {
 		return nil, cause.Wrap(err, "llvm-profdata errored")
 	}
 	defer os.Remove(profdata)
@@ -96,22 +98,33 @@ func (e Env) Import(profrawPath string) (*Coverage, error) {
 			"-skip-functions",
 		)
 	}
-	data, err := exec.Command(e.LLVM.Cov(), args...).Output()
-	if err != nil {
-		return nil, cause.Wrap(err, "llvm-cov errored")
+
+	if e.TurboCov == "" {
+		data, err := exec.Command(e.LLVM.Cov(), args...).Output()
+		if err != nil {
+			return nil, cause.Wrap(err, "llvm-cov errored: %v", string(data))
+		}
+		cov, err := e.parseCov(data)
+		if err != nil {
+			return nil, cause.Wrap(err, "Couldn't parse coverage json data")
+		}
+		return cov, nil
 	}
 
-	c, err := e.parse(data)
+	data, err := exec.Command(e.TurboCov, e.ExePath, profdata).Output()
 	if err != nil {
-		return nil, cause.Wrap(err, "Couldn't parse coverage json data")
+		return nil, cause.Wrap(err, "turbo-cov errored: %v", string(data))
 	}
-
-	return c, nil
+	cov, err := e.parseTurboCov(data)
+	if err != nil {
+		return nil, cause.Wrap(err, "Couldn't process turbo-cov output")
+	}
+	return cov, nil
 }
 
 // https://clang.llvm.org/docs/SourceBasedCodeCoverage.html
 // https://stackoverflow.com/a/56792192
-func (e Env) parse(raw []byte) (*Coverage, error) {
+func (e Env) parseCov(raw []byte) (*Coverage, error) {
 	// line int, col int, count int64, hasCount bool, isRegionEntry bool
 	type segment []interface{}
 
@@ -160,6 +173,75 @@ func (e Env) parse(raw []byte) (*Coverage, error) {
 			c.Files = append(c.Files, file)
 		}
 	}
+
+	return c, nil
+}
+
+func (e Env) parseTurboCov(data []byte) (*Coverage, error) {
+	u32 := func() uint32 {
+		out := binary.LittleEndian.Uint32(data)
+		data = data[4:]
+		return out
+	}
+	u8 := func() uint8 {
+		out := data[0]
+		data = data[1:]
+		return out
+	}
+	str := func() string {
+		len := u32()
+		out := data[:len]
+		data = data[len:]
+		return string(out)
+	}
+
+	numFiles := u32()
+	c := &Coverage{Files: make([]File, 0, numFiles)}
+	for i := 0; i < int(numFiles); i++ {
+		path := str()
+		relpath, err := filepath.Rel(e.RootDir, path)
+		if err != nil {
+			return nil, err
+		}
+		if strings.HasPrefix(relpath, "..") {
+			continue
+		}
+
+		file := File{Path: relpath}
+
+		type segment struct {
+			location Location
+			count    int
+			covered  bool
+		}
+
+		numSegements := u32()
+		segments := make([]segment, numSegements)
+		for j := range segments {
+			segment := &segments[j]
+			segment.location.Line = int(u32())
+			segment.location.Column = int(u32())
+			segment.count = int(u32())
+			segment.covered = u8() != 0
+		}
+
+		for sIdx := 0; sIdx+1 < len(segments); sIdx++ {
+			start := segments[sIdx].location
+			end := segments[sIdx+1].location
+			if segments[sIdx].count > 0 {
+				if c := len(file.Spans); c > 0 && file.Spans[c-1].End == start {
+					file.Spans[c-1].End = end
+				} else {
+					file.Spans = append(file.Spans, Span{start, end})
+				}
+			}
+		}
+
+		if len(file.Spans) > 0 {
+			c.Files = append(c.Files, file)
+		}
+	}
+
 	return c, nil
 }
 

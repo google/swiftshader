@@ -1342,14 +1342,17 @@ if(SWIFTSHADER_BUILD_VULKAN)
     )
 
     if(SWIFTSHADER_EMIT_COVERAGE)
+        add_executable(turbo-cov ${TESTS_DIR}/regres/cov/turbo-cov/main.cpp)
+        target_link_libraries(turbo-cov llvm-with-cov)
+
         # Emit a coverage-toolchain.txt file next to the vk_swiftshader_icd.json
         # file so that regres can locate the LLVM toolchain used to build the
         # .so file. With this, the correct llvm-cov and llvm-profdata tools
         # from the same toolchain can be located.
         get_filename_component(COMPILER_TOOLCHAIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
-        file(WRITE
-            "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/coverage-toolchain.txt"
-            "${COMPILER_TOOLCHAIN_DIR}"
+        file(GENERATE
+            OUTPUT "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/coverage-toolchain.txt"
+            CONTENT "{\"llvm\": \"${COMPILER_TOOLCHAIN_DIR}\", \"turbo-cov\": \"$<TARGET_FILE:turbo-cov>\"}"
         )
     endif()
 
@@ -1426,8 +1429,8 @@ if(SWIFTSHADER_BUILD_TESTS)
     endif()
 
     set(GLES_UNITTESTS_LIST
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/unittests.cpp
+        ${TESTS_DIR}/GLESUnitTests/main.cpp
+        ${TESTS_DIR}/GLESUnitTests/unittests.cpp
         ${THIRD_PARTY_DIR}/googletest/googletest/src/gtest-all.cc
     )
 
@@ -1454,8 +1457,8 @@ if(SWIFTSHADER_BUILD_TESTS)
 
     # Math unit tests
     set(MATH_UNITTESTS_LIST
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/MathUnitTests/unittests.cpp
+        ${TESTS_DIR}/MathUnitTests/main.cpp
+        ${TESTS_DIR}/MathUnitTests/unittests.cpp
         ${THIRD_PARTY_DIR}/googletest/googletest/src/gtest-all.cc
     )
 
@@ -1501,10 +1504,10 @@ endif(SWIFTSHADER_BUILD_BENCHMARKS)
 
 if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
     set(VK_UNITTESTS_LIST
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/Device.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/Driver.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/unittests.cpp
+        ${TESTS_DIR}/VulkanUnitTests/Device.cpp
+        ${TESTS_DIR}/VulkanUnitTests/Driver.cpp
+        ${TESTS_DIR}/VulkanUnitTests/main.cpp
+        ${TESTS_DIR}/VulkanUnitTests/unittests.cpp
         ${THIRD_PARTY_DIR}/googletest/googletest/src/gtest-all.cc
     )
 
