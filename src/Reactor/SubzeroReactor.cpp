@@ -4481,10 +4481,11 @@ namespace coro {
 struct CoroutineData
 {
 	bool useInternalScheduler = false;
-	marl::Event suspended;                                // the coroutine is suspended on a yield()
-	marl::Event resumed;                                  // the caller is suspended on an await()
-	marl::Event done{ marl::Event::Mode::Manual };        // the coroutine should stop at the next yield()
-	marl::Event terminated{ marl::Event::Mode::Manual };  // the coroutine has finished.
+	bool done = false;        // the coroutine should stop at the next yield()
+	bool terminated = false;  // the coroutine has finished.
+	bool inRoutine = false;   // is the coroutine currently executing?
+	marl::Scheduler::Fiber *mainFiber = nullptr;
+	marl::Scheduler::Fiber *routineFiber = nullptr;
 	void *promisePtr = nullptr;
 };
 
@@ -4504,19 +4505,31 @@ void destroyCoroutineData(CoroutineData *coroData)
 // is called.
 bool suspend(Nucleus::CoroutineHandle handle)
 {
-	auto *data = reinterpret_cast<CoroutineData *>(handle);
-	data->suspended.signal();
-	data->resumed.wait();
-	return !data->done.test();
+	auto *coroData = reinterpret_cast<CoroutineData *>(handle);
+	ASSERT(marl::Scheduler::Fiber::current() == coroData->routineFiber);
+	ASSERT(coroData->inRoutine);
+	coroData->inRoutine = false;
+	coroData->mainFiber->notify();
+	while(!coroData->inRoutine)
+	{
+		coroData->routineFiber->wait();
+	}
+	return !coroData->done;
 }
 
 // resume() is called by await(), blocking until the coroutine calls yield()
 // or the coroutine terminates.
 void resume(Nucleus::CoroutineHandle handle)
 {
-	auto *data = reinterpret_cast<CoroutineData *>(handle);
-	data->resumed.signal();
-	data->suspended.wait();
+	auto *coroData = reinterpret_cast<CoroutineData *>(handle);
+	ASSERT(marl::Scheduler::Fiber::current() == coroData->mainFiber);
+	ASSERT(!coroData->inRoutine);
+	coroData->inRoutine = true;
+	coroData->routineFiber->notify();
+	while(coroData->inRoutine)
+	{
+		coroData->mainFiber->wait();
+	}
 }
 
 // stop() is called by coroutine_destroy(), signalling that it's done, then blocks
@@ -4524,9 +4537,18 @@ void resume(Nucleus::CoroutineHandle handle)
 void stop(Nucleus::CoroutineHandle handle)
 {
 	auto *coroData = reinterpret_cast<CoroutineData *>(handle);
-	coroData->done.signal();      // signal that the coroutine should stop at next (or current) yield.
-	coroData->resumed.signal();   // wake the coroutine if blocked on a yield.
-	coroData->terminated.wait();  // wait for the coroutine to return.
+	ASSERT(marl::Scheduler::Fiber::current() == coroData->mainFiber);
+	ASSERT(!coroData->inRoutine);
+	if(!coroData->terminated)
+	{
+		coroData->done = true;
+		coroData->inRoutine = true;
+		coroData->routineFiber->notify();
+		while(!coroData->terminated)
+		{
+			coroData->mainFiber->wait();
+		}
+	}
 	if(coroData->useInternalScheduler)
 	{
 		::getOrCreateScheduler().unbind();
@@ -4555,7 +4577,7 @@ Nucleus::CoroutineHandle getHandleParam()
 bool isDone(Nucleus::CoroutineHandle handle)
 {
 	auto *coroData = reinterpret_cast<CoroutineData *>(handle);
-	return coroData->done.test();
+	return coroData->done;
 }
 
 void setPromisePtr(Nucleus::CoroutineHandle handle, void *promisePtr)
@@ -4765,15 +4787,29 @@ static Nucleus::CoroutineHandle invokeCoroutineBegin(std::function<Nucleus::Coro
 		// any fiber switch occurs.
 		coro::setHandleParam(coroData);
 
+		ASSERT(!coroData->routineFiber);
+		coroData->routineFiber = marl::Scheduler::Fiber::current();
+
 		beginFunc();
 
-		coroData->done.signal();        // coroutine is done.
-		coroData->suspended.signal();   // resume any blocking await() call.
-		coroData->terminated.signal();  // signal that the coroutine data is ready for freeing.
+		ASSERT(coroData->inRoutine);
+		coroData->done = true;        // coroutine is done.
+		coroData->terminated = true;  // signal that the coroutine data is ready for freeing.
+		coroData->inRoutine = false;
+		coroData->mainFiber->notify();
 	};
-	marl::schedule(marl::Task(run, marl::Task::Flags::SameThread));
 
-	coroData->suspended.wait();  // block until the first yield or coroutine end
+	ASSERT(!coroData->mainFiber);
+	coroData->mainFiber = marl::Scheduler::Fiber::current();
+
+	// block until the first yield or coroutine end
+	ASSERT(!coroData->inRoutine);
+	coroData->inRoutine = true;
+	marl::schedule(marl::Task(run, marl::Task::Flags::SameThread));
+	while(coroData->inRoutine)
+	{
+		coroData->mainFiber->wait();
+	}
 
 	return coroData;
 }
