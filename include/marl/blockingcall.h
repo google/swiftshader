@@ -15,7 +15,7 @@
 #ifndef marl_blocking_call_h
 #define marl_blocking_call_h
 
-#include "defer.h"
+#include "scheduler.h"
 #include "waitgroup.h"
 
 #include <thread>
@@ -32,10 +32,17 @@ class OnNewThread {
   inline static RETURN_TYPE call(F&& f, Args&&... args) {
     RETURN_TYPE result;
     WaitGroup wg(1);
+    auto scheduler = Scheduler::get();
     auto thread = std::thread(
-        [&](Args&&... args) {
-          defer(wg.done());
+        [&, wg](Args&&... args) {
+          if (scheduler != nullptr) {
+            scheduler->bind();
+          }
           result = f(std::forward<Args>(args)...);
+          if (scheduler != nullptr) {
+            Scheduler::unbind();
+          }
+          wg.done();
         },
         std::forward<Args>(args)...);
     wg.wait();
@@ -50,10 +57,17 @@ class OnNewThread<void> {
   template <typename F, typename... Args>
   inline static void call(F&& f, Args&&... args) {
     WaitGroup wg(1);
+    auto scheduler = Scheduler::get();
     auto thread = std::thread(
-        [&](Args&&... args) {
-          defer(wg.done());
+        [&, wg](Args&&... args) {
+          if (scheduler != nullptr) {
+            scheduler->bind();
+          }
           f(std::forward<Args>(args)...);
+          if (scheduler != nullptr) {
+            Scheduler::unbind();
+          }
+          wg.done();
         },
         std::forward<Args>(args)...);
     wg.wait();

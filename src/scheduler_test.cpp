@@ -107,11 +107,14 @@ TEST_P(WithBoundScheduler, FibersResumeOnSameThread) {
 TEST_P(WithBoundScheduler, FibersResumeOnSameStdThread) {
   auto scheduler = marl::Scheduler::get();
 
+  // on 32-bit OSs, excessive numbers of threads can run out of address space.
+  constexpr auto num_threads = sizeof(void*) > 4 ? 1000 : 100;
+
   marl::WaitGroup fence(1);
-  marl::WaitGroup wg(1000);
+  marl::WaitGroup wg(num_threads);
 
   std::vector<std::thread> threads;
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < num_threads; i++) {
     threads.push_back(std::thread([=] {
       scheduler->bind();
 

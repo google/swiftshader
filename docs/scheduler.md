@@ -9,9 +9,9 @@ Table of Contents:
   - [Workers](#workers)
     - [`marl::Scheduler::Worker::run()`](#marlschedulerworkerrun)
     - [`marl::Scheduler::Worker::runUntilIdle()`](#marlschedulerworkerrununtilidle)
-    - [`marl::Scheduler::Worker::suspend()`](#marlschedulerworkersuspend)
     - [`marl::Scheduler::Worker::waitForWork()`](#marlschedulerworkerwaitforwork)
     - [`marl::Scheduler::Worker::spinForWork()`](#marlschedulerworkerspinforwork)
+    - [`marl::Scheduler::Worker::suspend()`](#marlschedulerworkersuspend)
   - [Worker Types](#worker-types)
     - [Single-Threaded-Workers](#single-threaded-workers)
     - [Multi-Threaded-Workers](#multi-threaded-workers)
@@ -22,7 +22,8 @@ This document describes the inner workings of the scheduler. This document is no
 
 ## Binding
 
-The scheduler must be bound to each thread that calls `marl::schedule()`, and unbound from all threads before the scheduler is destructed.
+The scheduler must be bound to each thread that calls `marl::schedule()`.
+The scheduler destructor will block until the scheduler is unbound from all threads.
 
 Binding is made using the `marl::Scheduler::bind()` and `marl::Scheduler::unbind()` methods.
 
@@ -31,7 +32,7 @@ Binding assigns a thread-local storage variable so the scheduler is associated w
 1. It allows `marl::schedule()` and the various synchronization primitives to be called without requiring a pointer to the `marl::Scheduler`.
 2. More importantly, it provides a way to get the currently executing fiber for the current thread. This is used by `marl::ConditionVariable::wait()` to suspend the current fiber and place it into a vector so the `marl::ConditionVariable::notify_`xxx`()` methods can reschedule the blocked fibers.
 
-Binding also creates an internal [Single-Threaded-Worker](#single-threaded-workers) for the calling thread. This worker is used for scheduling tasks when there are no [Multi-Threaded-Workers](#multi-threaded-workers) available. Unbinding will ensure that all scheduled tasks for the  [Single-Threaded-Worker](#single-threaded-workers) are completed before returning.
+Each binding also creates an internal [Single-Threaded-Worker](#single-threaded-workers) for the calling thread. This worker is used for scheduling tasks when there are no [Multi-Threaded-Workers](#multi-threaded-workers) available. Unbinding will ensure that all scheduled tasks for the  [Single-Threaded-Worker](#single-threaded-workers) are completed before returning.
 
 ## Fibers
 
@@ -75,8 +76,9 @@ The scheduler holds a number of `marl::Scheduler::Worker`s. Each worker holds:
 - `work.tasks` - A queue of tasks, yet to be started.
 - `work.fibers` - A queue of suspended fibers, ready to be resumed.
 - `work.waiting` - A queue of suspended fibers, waiting to be resumed or time out.
-- `idleFibers` - A set of idle fibers, ready to be reused.
 - `work.num` - A counter that is kept in sync with `work.tasks.size() + work.fibers.size()`.
+- `work.numBlockedFibers` - A counter that records the current number of fibers blocked in a [`suspend()`](#marlschedulerworkersuspend) call.
+- `idleFibers` - A set of idle fibers, ready to be reused.
 
 When a task is scheduled with a call to `marl::schedule()`, a worker is picked, and the task is placed on to the worker's `work.tasks` queue. The worker is picked using the following rules:
 
@@ -85,10 +87,20 @@ When a task is scheduled with a call to `marl::schedule()`, a worker is picked, 
 
 ### `marl::Scheduler::Worker::run()`
 
-`run()` is the entry point for workers to execute their tasks. The logic is slightly different based on whether the worker is a [Single-Threaded-Worker](#single-threaded-workers) or a [Multi-Threaded-Worker](#multi-threaded-workers), but both share the same basic logic:
+`run()` is the main processing function for worker fibers. `run()` is called by the start of each [Multi-Threaded-Worker](#multi-threaded-workers) thread, and whenever a new worker fiber is spawned from [`Worker::suspend()`](#marlschedulerworkersuspend) when all other fibers have become blocked.
 
-- Enter a loop that only exits when the worker is shutdown.
-- In this loop call [`marl::Scheduler::Worker::runUntilIdle()`](#marl::Scheduler::Worker::runUntilIdle())
+This function is shared by both the [Single-Threaded](#single-threaded-workers) and [Multi-Threaded](#multi-threaded-workers) worker types.
+
+`run()` calls `runUntilShutdown()`, which will enter a loop that:
+
+- Calls [`waitForWork()`](#marlschedulerworkerwaitforwork) to block until there's something new to process.
+- Calls [`runUntilIdle()`](#marlschedulerworkerrununtilidle) to process all new tasks and fibers. Note that fibers can switch inside [`runUntilIdle()`](#marlschedulerworkerrununtilidle), so the execution of `run()` may hop between fibers for a single thread.
+
+This loop continues until the worker has finished all its work and has been told to shutdown.
+
+Once the loop has exited due to the worker being told to shutdown, the `mainFiber` is resumed, which will handle the rest of the shutdown logic.
+
+![flowchart](imgs/worker_run.svg)
 
 ### `marl::Scheduler::Worker::runUntilIdle()`
 
@@ -110,20 +122,6 @@ The basic logic of this method is as follows:
 3. Once there's no more fibers or tasks to execute, `runUntilIdle()` returns.
 
 ![flowchart](imgs/worker_rununtilidle.svg)
-
-### `marl::Scheduler::Worker::suspend()`
-
-Marl allows tasks to block, while keeping threads busy.
-
-If a task blocks, then `Scheduler::Worker::suspend()` is called. `suspend()` begins by calling [`Scheduler::Worker::waitForWork()`](#marl::Scheduler::Worker::waitForWork()), which blocks until there's a task or fiber that can be executed. Then, one of the following occurs:
-
- 1. If there's any unblocked fibers, the fiber is taken from the `work.fibers` queue and is switched to.
- 2. If there's any idle fibers, one is taken from the `idleFibers` set and is switched to. This idle fiber when resumed, will continue the role of executing tasks.
- 3. If none of the above occurs, then a new fiber needs to be created to continue executing tasks. This fiber is created to begin execution in [`marl::Scheduler::Worker::run()`](#marl::Scheduler::Worker::run()), and is switched to.
-
-In all cases, the `suspend()` call switches to another fiber. When the suspended fiber is resumed, `suspend()` returns back to the caller.
-
-![flowchart](imgs/worker_suspend.svg)
 
 ### `marl::Scheduler::Worker::waitForWork()`
 
@@ -164,12 +162,27 @@ Any fibers that have timed out in the `work.waiting` queue are automatically mov
 
 ![flowchart](imgs/worker_spinforwork.svg)
 
+### `marl::Scheduler::Worker::suspend()`
+
+Marl allows tasks to block, while keeping threads busy.
+
+If a task blocks, then `Scheduler::Worker::suspend()` is called. `suspend()` begins by calling [`Scheduler::Worker::waitForWork()`](#marl::Scheduler::Worker::waitForWork()), which blocks until there's a task or fiber that can be executed. Then, one of the following occurs:
+
+ 1. If there's any unblocked fibers, the fiber is taken from the `work.fibers` queue and is switched to.
+ 2. If there's any idle fibers, one is taken from the `idleFibers` set and is switched to. This idle fiber when resumed, will continue the role of executing tasks.
+ 3. If none of the above occurs, then a new fiber needs to be created to continue executing tasks. This fiber is created to begin execution in [`marl::Scheduler::Worker::run()`](#marl::Scheduler::Worker::run()), and is switched to.
+
+In all cases, the `suspend()` call switches to another fiber. When the suspended fiber is resumed, `suspend()` returns back to the caller.
+
+![flowchart](imgs/worker_suspend.svg)
+
 ## Worker Types
 
 A worker is created as either a Single-Threaded-Worker or Multi-Threaded-Worker.
 
-Most of the logic is the same between these two modes.
-The most significant difference between the STW and MTW is the behavior of the worker's entry point function - `marl::Scheduler::Worker::run()`.
+The majority of the logic is identical between the two modes.
+
+The most significant difference is that the Multi-Threaded-Worker spawns a dedicated worker thread to call `marl::Scheduler::run()`, where as the Single-Threaded-Worker will only call `marl::Scheduler::run()` on a new fiber, when all other fibers become blocked.
 
 ### Single-Threaded-Workers
 
@@ -178,11 +191,7 @@ A single-threaded-worker (STW) is created for each thread that is bound with a c
 If the scheduler has no dedicated worker threads (`marl::Scheduler::getWorkerThreadCount() == 0`), then scheduled tasks are queued on to the STW for the currently executing thread.
 
 Because in this mode there are no worker threads, the tasks queued on the STW are not automatically background executed. Instead, tasks are only executed whenever there's a call to [`marl::Scheduler::Worker::suspend()`](#marlschedulerworkersuspend).
-The logic for `suspend()` is common for STWs and MTWs, and the first call will create a fiber which calls `marl::Scheduler::Worker::run()`.
-
-`marl::Scheduler::Worker::run()` is implemented for STWs as a loop that calls `marl::Scheduler::Worker::runUntilIdle()`, and then switches back to the main fiber. This loop only exits once the worker is shutdown.
-
-![flowchart](imgs/worker_run_stw.svg)
+The logic for [`suspend()`](#marlschedulerworkersuspend) is common for STWs and MTWs, spawning new fibers that call [`marl::Scheduler::Worker::run()`](#marlschedulerworkerrun) whenever all other fibers are blocked.
 
 ```c++
 void SingleThreadedWorkerExample() {
@@ -201,9 +210,9 @@ void SingleThreadedWorkerExample() {
   // This is a blocking call.
   // marl::Event::wait() (indirectly) calls marl::Scheduler::Worker::suspend().
   // marl::Scheduler::Worker::suspend() creates and switches to a fiber which
-  // calls marl::Scheduler::Worker::run() to run all enqueued tasks. The fiber
-  // then places itself into idleFibers set and switches back to the main fiber
-  // to continue execution.
+  // calls marl::Scheduler::Worker::run() to run all enqueued tasks. Once the
+  // main fiber becomes unblocked, marl::Scheduler::Worker::runUntilIdle() will
+  // switch back to the main fiber to continue execution of the application.
   done.wait();
 }
 ```
@@ -212,8 +221,6 @@ void SingleThreadedWorkerExample() {
 
 Multi-Threaded-Workers are created when `marl::Scheduler::setWorkerThreadCount()` is called with a positive number.
 
-Each MTW is paired with a new `std::thread` that calls `marl::Scheduler::Worker::run()`.
+Each MTW is paired with a new `std::thread` that begins by calling `marl::Scheduler::Worker::run()`.
 
-`marl::Scheduler::Worker::run()` is implemented for MTWs as a loop that calls `marl::Scheduler::Worker::waitForWork()` followed by `marl::Scheduler::Worker::runUntilIdle()`. This loop only exits once the worker is shutdown.
-
-![flowchart](imgs/worker_run_mtw.svg)
+When the worker is told to shutdown and all work is complete, `marl::Scheduler::Worker::run()` exits the main procesing loop, and switches back to the main thread fiber which ends the `std::thread`.
