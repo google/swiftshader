@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d91bd8f2_a02bcfe5",
+        "filename": "src/Vulkan/VkImage.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-03-25T19:37:03Z",
+      "side": 1,
+      "message": "Moved to https://swiftshader-review.googlesource.com/c/SwiftShader/+/42908",
+      "parentUuid": "1b196f78_eaf2b2c6",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 54
+      },
+      "revId": "28837fc15a22c69a80fffad2019ff2aab731ada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43fd3fdb_43b64254",
         "filename": "src/Vulkan/VkImageView.cpp",
         "patchSetId": 7
@@ -93,6 +117,30 @@
       "revId": "28837fc15a22c69a80fffad2019ff2aab731ada1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e02ac624_bcc942c4",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-03-25T19:37:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1d69f08_973a0c51",
+      "range": {
+        "startLine": 69,
+        "startChar": 17,
+        "endLine": 69,
+        "endChar": 23
+      },
+      "revId": "28837fc15a22c69a80fffad2019ff2aab731ada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
