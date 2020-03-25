@@ -593,7 +593,7 @@ endif()
 ###########################################################
 # LLVM
 ###########################################################
-add_subdirectory(third_party/llvm-7.0) # TODO(bclayton): This currently exports the LLVM_INCLUDE_DIR var. Don't.
+add_subdirectory(third_party/llvm-7.0)
 
 
 ###########################################################
@@ -771,7 +771,6 @@ endif()
 set(COMMON_INCLUDE_DIR
     ${SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${LLVM_INCLUDE_DIR}
     ${LIBBACKTRACE_INCLUDE_DIR}
 )
 set(OPENGL_INCLUDE_DIR

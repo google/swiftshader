@@ -975,16 +975,9 @@ set_target_properties(llvm PROPERTIES
     COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
     FOLDER "LLVM"
 )
+target_include_directories(llvm PUBLIC "${LLVM_INCLUDE_DIR}")
 
 # Add required libraries for LLVM
 if(LINUX)
     target_link_libraries(llvm dl)
 endif()
-
-
-###########################################################
-# Publics
-###########################################################
-# TODO(bclayton): Remove this and replace with:
-# target_include_directories(llvm PUBLIC "${LLVM_INCLUDE_DIR}")
-set(LLVM_INCLUDE_DIR ${LLVM_INCLUDE_DIR} PARENT_SCOPE)
