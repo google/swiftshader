@@ -1205,7 +1205,7 @@ set_target_properties(llvm PROPERTIES
 target_include_directories(llvm PUBLIC "${LLVM_INCLUDE_DIR}")
 
 # Add required libraries for LLVM
-if(LINUX)
+if(LINUX OR APPLE)
     target_link_libraries(llvm dl z)
 endif()
 
