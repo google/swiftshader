@@ -149,9 +149,12 @@ else()
 endif()
 
 set(DEFAULT_REACTOR_BACKEND "LLVM")
-
 set(REACTOR_BACKEND ${DEFAULT_REACTOR_BACKEND} CACHE STRING "JIT compiler back-end used by Reactor")
 set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
+
+set(DEFAULT_SWIFTSHADER_LLVM_VERSION "7.0")
+set(SWIFTSHADER_LLVM_VERSION ${DEFAULT_SWIFTSHADER_LLVM_VERSION} CACHE STRING "LLVM version to use")
+set_property(CACHE SWIFTSHADER_LLVM_VERSION PROPERTY STRINGS "7.0" "10.0")
 
 # If defined, overrides the default optimization level of the current reactor backend.
 # Set to one of the rr::Optimization::Level enum values.
@@ -345,8 +348,6 @@ set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 set(ASTC_DIR ${THIRD_PARTY_DIR}/astc-encoder)
-set(LLVM_DIR ${THIRD_PARTY_DIR}/llvm-7.0/llvm)
-set(LLVM_CONFIG_DIR ${THIRD_PARTY_DIR}/llvm-7.0/configs)
 set(LIBBACKTRACE_DIR ${THIRD_PARTY_DIR}/libbacktrace/src)
 set(LIBBACKTRACE_CONFIG_DIR ${THIRD_PARTY_DIR}/libbacktrace/config)
 set(LIBBACKTRACE_INCLUDE_DIR ${THIRD_PARTY_DIR}/libbacktrace/src)
@@ -593,7 +594,7 @@ endif()
 ###########################################################
 # LLVM
 ###########################################################
-add_subdirectory(third_party/llvm-7.0)
+add_subdirectory(third_party/llvm-${SWIFTSHADER_LLVM_VERSION})
 
 
 ###########################################################

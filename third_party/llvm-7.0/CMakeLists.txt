@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set(LLVM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llvm)
+set(LLVM_CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/configs)
+
 set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/AliasAnalysis.cpp
     ${LLVM_DIR}/lib/Analysis/AliasAnalysisSummary.cpp
