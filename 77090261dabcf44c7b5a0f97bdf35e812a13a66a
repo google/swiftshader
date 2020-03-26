@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08521c40_577e265a",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-03-26T13:01:49Z",
+      "side": 1,
+      "message": "Both subresourceRange and ycbcrConversion should be part of the id, Sorry I missed that in the initial review.",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 45
+      },
+      "revId": "77090261dabcf44c7b5a0f97bdf35e812a13a66a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
