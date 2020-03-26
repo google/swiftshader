@@ -18,13 +18,6 @@
 #include "ExecutableMemory.hpp"
 #include "Routine.hpp"
 
-#if defined(__clang__)
-// LLVM has occurrences of the extra-semi warning in its headers, which will be
-// treated as an error in SwiftShader targets.
-#	pragma clang diagnostic push
-#	pragma clang diagnostic ignored "-Wextra-semi"
-#endif  // defined(__clang__)
-
 // TODO(b/143539525): Eliminate when warning has been fixed.
 #ifdef _MSC_VER
 __pragma(warning(push))
@@ -59,10 +52,6 @@ __pragma(warning(push))
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
-
-#if defined(__clang__)
-#	pragma clang diagnostic pop
-#endif  // defined(__clang__)
 
 #ifdef _MSC_VER
     __pragma(warning(pop))
@@ -595,6 +584,17 @@ class JITRoutine : public rr::Routine
 #endif
 
 public:
+#if defined(__clang__)
+// TODO(bclayton): Switch to new JIT
+// error: 'LegacyIRCompileLayer' is deprecated: ORCv1 layers (layers with the 'Legacy' prefix) are deprecated.
+// Please use the ORCv2 IRCompileLayer instead [-Werror,-Wdeprecated-declarations]
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 	JITRoutine(
 	    std::unique_ptr<llvm::Module> module,
 	    llvm::Function **funcs,
@@ -638,6 +638,13 @@ public:
 	          })
 	    , addresses(count)
 	{
+
+#if defined(__clang__)
+#	pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#	pragma GCC diagnostic pop
+#endif
+
 		std::vector<std::string> mangledNames(count);
 		for(size_t i = 0; i < count; i++)
 		{

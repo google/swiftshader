@@ -476,6 +476,7 @@ else()
             "-Wno-unused-private-field"           # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
             "-Wno-comment"                        # multi-line comment
             "-Wno-undefined-var-template"         # instantiation of variable 'X' required here, but no definition is available
+            "-Wno-extra-semi"                     # extra ';' after member function definition
 
             # Silence errors caused by unknown warnings when building with older
             # versions of Clang. This demands checking that warnings added above
