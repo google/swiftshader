@@ -86,7 +86,7 @@ ImageView::ImageView(const VkImageViewCreateInfo *pCreateInfo, void *mem, const 
     , components(ResolveComponentMapping(pCreateInfo->components, format))
     , subresourceRange(ResolveRemainingLevelsLayers(pCreateInfo->subresourceRange, image))
     , ycbcrConversion(ycbcrConversion)
-    , id(image, viewType, format, components)
+    , id(image, viewType, format.getAspectFormat(subresourceRange.aspectMask), components)
 {
 }
 
