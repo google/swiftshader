@@ -22,6 +22,30 @@
       "revId": "77090261dabcf44c7b5a0f97bdf35e812a13a66a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e45b84b_77571d71",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-03-26T15:21:08Z",
+      "side": 1,
+      "message": "ycbcrConversion doesn\u0027t have to be part of it, because the spec mandates that the same one is passed to the sampler object. See b/151263485#comment2 for details.\n\nFor subresourceRange I thought we were safe because the mipmap and layer info is used as \u0027data\u0027 instead of state as part of the sw::Texture\u0027s mipmap levels (similar to the mipmap dimensions which is definitely data), and we don\u0027t generate a different sampling routine based on that. So far so good.\n\nWhat I missed is VkImageSubresourceRange::aspectMask affecting the effective format, which we do specialize for.",
+      "parentUuid": "08521c40_577e265a",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 45
+      },
+      "revId": "77090261dabcf44c7b5a0f97bdf35e812a13a66a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
