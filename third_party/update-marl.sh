@@ -13,5 +13,5 @@ git subtree pull --prefix third_party/marl https://github.com/google/marl master
 
 ALL_CHANGES=`git log -n 1 HEAD^2 | egrep '^(\s{4}[0-9a-f]{9}\s*.*)$'`
 HEAD_CHANGE=`echo "$ALL_CHANGES" | egrep '[0-9a-f]{9}' -o -m 1`
-LOG_MSG=`echo -e "Update Marl to $HEAD_CHANGE\n${REASON}\nChanges:\n$ALL_CHANGES\n\nCommands:\n    git subtree pull --prefix third_party/marl https://github.com/google/marl master --squash\n\nBug: b/140546382"`
+LOG_MSG=`echo -e "Update Marl to $HEAD_CHANGE\n${REASON}\nChanges:\n$ALL_CHANGES\n\nCommands:\n    ./third_party/update-marl.sh --squash\n\nBug: b/140546382"`
 git commit --amend -m "$LOG_MSG"
