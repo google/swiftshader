@@ -15,11 +15,6 @@ if [[ -z "${REACTOR_BACKEND}" ]]; then
   REACTOR_BACKEND="LLVM"
 fi
 
-if [[ "${LLVM_VERSION}" == "10.0" ]]; then
-  echo "TODO(b/152339534): LLVM 10 migration is still in progress"
-  exit 0
-fi
-
 # Lower the amount of debug info, to reduce Kokoro build times.
 SWIFTSHADER_LESS_DEBUG_INFO=1
 
