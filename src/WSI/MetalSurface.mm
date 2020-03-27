@@ -40,6 +40,7 @@ public:
         {
             layer = (CAMetalLayer*)[obj retain];
             layer.framebufferOnly = false;
+            layer.device = MTLCreateSystemDefaultDevice();
         }
         else
         {
@@ -68,6 +69,7 @@ public:
     {
         if(layer)
         {
+            [layer.device release];
             [layer release];
         }
         if(view)

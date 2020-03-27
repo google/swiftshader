@@ -14,6 +14,15 @@
 
 import("../swiftshader.gni")
 
+config("WSI_metal_weak_framework") {
+  if (is_mac) {
+    ldflags = [
+      "-weak_framework",
+      "Metal",
+    ]
+  }
+}
+
 swiftshader_source_set("WSI") {
   sources = [
     "VkSurfaceKHR.cpp",
@@ -42,13 +51,14 @@ swiftshader_source_set("WSI") {
 
   if (is_mac) {
     sources += [
-      "MetalSurface.mm",
       "MetalSurface.h",
+      "MetalSurface.mm",
     ]
     libs = [
       "Cocoa.framework",
       "QuartzCore.framework",
     ]
+    public_configs = [ ":WSI_metal_weak_framework" ]
   }
 
   include_dirs = [
@@ -63,5 +73,5 @@ swiftshader_source_set("WSI") {
     "../Vulkan:swiftshader_libvulkan_headers",
   ]
 
-  configs = [ "../Vulkan:swiftshader_libvulkan_private_config", ]
+  configs = [ "../Vulkan:swiftshader_libvulkan_private_config" ]
 }
