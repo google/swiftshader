@@ -31,7 +31,14 @@ var MaxProcMemory uint64 = 4 * 1024 * 1024 * 1024 // 4GB
 // directory wd.
 // If the process does not finish within timeout a errTimeout will be returned.
 func Shell(timeout time.Duration, exe, wd string, args ...string) error {
-	if out, err := Exec(timeout, exe, wd, nil, args...); err != nil {
+	return Env(timeout, exe, wd, nil, args...)
+}
+
+// Env runs the executable exe with the given arguments, in the working
+// directory wd, with the custom env.
+// If the process does not finish within timeout a errTimeout will be returned.
+func Env(timeout time.Duration, exe, wd string, env []string, args ...string) error {
+	if out, err := Exec(timeout, exe, wd, env, args...); err != nil {
 		return cause.Wrap(err, "%s", out)
 	}
 	return nil

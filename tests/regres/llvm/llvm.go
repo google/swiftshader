@@ -39,6 +39,10 @@ type Version struct {
 	Major, Minor, Point int
 }
 
+func (v Version) String() string {
+	return fmt.Sprintf("%v.%v.%v", v.Major, v.Minor, v.Point)
+}
+
 // GreaterEqual returns true if v >= rhs.
 func (v Version) GreaterEqual(rhs Version) bool {
 	if v.Major > rhs.Major {
@@ -138,6 +142,16 @@ type Toolchain struct {
 // Toolchains is a list of Toolchain
 type Toolchains []Toolchain
 
+// Find looks for a toolchain with the specific version.
+func (l Toolchains) Find(v Version) *Toolchain {
+	for _, t := range l {
+		if t.Version == v {
+			return &t
+		}
+	}
+	return nil
+}
+
 // FindAtLeast looks for a toolchain with the given version, returning the highest found version.
 func (l Toolchains) FindAtLeast(v Version) *Toolchain {
 	out := (*Toolchain)(nil)
@@ -191,6 +205,16 @@ func Search(paths ...string) Toolchains {
 	sort.Slice(out, func(i, j int) bool { return out[i].Version.GreaterEqual(out[j].Version) })
 
 	return out
+}
+
+// Clang returns the path to the clang executable.
+func (t Toolchain) Clang() string {
+	return filepath.Join(t.BinDir, "clang"+exeExt())
+}
+
+// ClangXX returns the path to the clang++ executable.
+func (t Toolchain) ClangXX() string {
+	return filepath.Join(t.BinDir, "clang++"+exeExt())
 }
 
 // Cov returns the path to the llvm-cov executable.

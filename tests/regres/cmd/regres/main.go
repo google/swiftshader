@@ -32,6 +32,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -48,9 +49,11 @@ import (
 	"../../consts"
 	"../../deqp"
 	"../../git"
+	"../../llvm"
 	"../../shell"
 	"../../testlist"
 	"../../util"
+
 	gerrit "github.com/andygrunwald/go-gerrit"
 )
 
@@ -70,6 +73,7 @@ const (
 
 var (
 	numParallelTests = runtime.NumCPU()
+	llvmVersion      = llvm.Version{Major: 10}
 
 	cacheDir      = flag.String("cache", "cache", "path to the output cache directory")
 	gerritEmail   = flag.String("email", "$SS_REGRES_EMAIL", "gerrit email address for posting regres results")
@@ -111,20 +115,84 @@ func main() {
 }
 
 type regres struct {
-	cmake         string // path to cmake executable
-	make          string // path to make executable
-	python        string // path to python executable
-	cacheRoot     string // path to the regres cache directory
-	gerritEmail   string // gerrit email address used for posting results
-	gerritUser    string // gerrit username used for posting results
-	gerritPass    string // gerrit password used for posting results
-	keepCheckouts bool   // don't delete source & build checkouts after testing
-	dryRun        bool   // don't post any reviews
-	maxProcMemory uint64 // max virtual memory for child processes
-	dailyNow      bool   // start with a daily run
-	dailyOnly     bool   // run only the daily run
-	dailyChange   string // Change hash to use for daily pass, HEAD if not provided
-	priority      string // Prioritize a single change with the given id
+	cmake         string          // path to cmake executable
+	make          string          // path to make executable
+	python        string          // path to python executable
+	tar           string          // path to tar executable
+	cacheRoot     string          // path to the regres cache directory
+	toolchain     *llvm.Toolchain // the LLVM toolchain used to build SwiftShader
+	gerritEmail   string          // gerrit email address used for posting results
+	gerritUser    string          // gerrit username used for posting results
+	gerritPass    string          // gerrit password used for posting results
+	keepCheckouts bool            // don't delete source & build checkouts after testing
+	dryRun        bool            // don't post any reviews
+	maxProcMemory uint64          // max virtual memory for child processes
+	dailyNow      bool            // start with a daily run
+	dailyOnly     bool            // run only the daily run
+	dailyChange   string          // Change hash to use for daily pass, HEAD if not provided
+	priority      string          // Prioritize a single change with the given id
+}
+
+// getToolchain returns the LLVM toolchain, possibly downloading and
+// decompressing it if it wasn't found in the cache directory.
+func getToolchain(tarExe, cacheRoot string) (*llvm.Toolchain, error) {
+	path := filepath.Join(cacheRoot, "llvm")
+
+	if toolchain := llvm.Search(path).Find(llvmVersion); toolchain != nil {
+		return toolchain, nil
+	}
+
+	// LLVM toolchain may have been updated, remove the directory if it exists.
+	os.RemoveAll(path)
+
+	log.Printf("Downloading LLVM %v toolchain...\n", llvmVersion)
+	tar, err := llvmVersion.Download()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't download LLVM %v: %v", llvmVersion, err)
+	}
+
+	tarFile := filepath.Join(cacheRoot, "llvm.tar.xz")
+	if err := ioutil.WriteFile(tarFile, tar, 0666); err != nil {
+		return nil, fmt.Errorf("Couldn't write '%v': %v", tarFile, err)
+	}
+	defer os.Remove(tarFile)
+
+	log.Printf("Decompressing LLVM %v toolchain...\n", llvmVersion)
+	target := filepath.Join(cacheRoot, "llvm-tmp")
+	os.MkdirAll(target, 0755)
+	defer os.RemoveAll(target)
+	if err := exec.Command(tarExe, "-xf", tarFile, "-C", target).Run(); err != nil {
+		return nil, fmt.Errorf("Couldn't decompress LLVM tar download: %v", err)
+	}
+
+	// The tar, once decompressed, holds a single root directory with a name
+	// starting with 'clang+llvm'. Move this to path.
+	files, err := filepath.Glob(filepath.Join(target, "*"))
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't glob decompressed files: %v", err)
+	}
+	if len(files) != 1 || !util.IsDir(files[0]) {
+		return nil, fmt.Errorf("Unexpected decompressed files: %+v", files)
+	}
+	if err := os.Rename(files[0], path); err != nil {
+		return nil, fmt.Errorf("Couldn't move %v to %v", files[0], path)
+	}
+
+	// We should now have everything in the right place.
+	toolchain := llvm.Search(path).Find(llvmVersion)
+	if toolchain == nil {
+		return nil, fmt.Errorf("Couldn't find LLVM toolchain after downloading")
+	}
+
+	return toolchain, nil
+}
+
+// toolchainEnv() returns the environment variables for executing CMake commands.
+func (r *regres) toolchainEnv() []string {
+	return append([]string{
+		"CC=" + r.toolchain.Clang(),
+		"CXX=" + r.toolchain.ClangXX(),
+	}, os.Environ()...)
 }
 
 // resolveDirs ensures that the necessary directories used can be found, and
@@ -165,6 +233,7 @@ func (r *regres) resolveExes() error {
 		{"cmake", &r.cmake},
 		{"make", &r.make},
 		{"python", &r.python},
+		{"tar", &r.tar},
 	} {
 		path, err := exec.LookPath(e.name)
 		if err != nil {
@@ -192,6 +261,12 @@ func (r *regres) run() error {
 		return cause.Wrap(err, "Couldn't resolve all directories")
 	}
 
+	toolchain, err := getToolchain(r.tar, r.cacheRoot)
+	if err != nil {
+		return cause.Wrap(err, "Couldn't download LLVM toolchain")
+	}
+	r.toolchain = toolchain
+
 	client, err := gerrit.NewClient(gerritURL, nil)
 	if err != nil {
 		return cause.Wrap(err, "Couldn't create gerrit client")
@@ -211,10 +286,10 @@ func (r *regres) run() error {
 	for {
 		if now := time.Now(); toDate(now) != lastUpdatedTestLists && now.Hour() >= dailyUpdateTestListHour {
 			lastUpdatedTestLists = toDate(now)
-			if err := r.updateTestLists(client, subzero); err != nil {
+			if err := r.updateTestLists(client, backendSubzero); err != nil {
 				log.Println(err.Error())
 			}
-			if err := r.updateTestLists(client, llvm); err != nil {
+			if err := r.updateTestLists(client, backendLLVM); err != nil {
 				log.Println(err.Error())
 			}
 		}
@@ -820,7 +895,7 @@ func (r *regres) newTest(commit git.Hash) *test {
 		srcDir:         srcDir,
 		resDir:         resDir,
 		buildDir:       filepath.Join(srcDir, "build"),
-		reactorBackend: llvm,
+		reactorBackend: backendLLVM,
 	}
 }
 
@@ -832,8 +907,8 @@ func (t *test) setReactorBackend(reactorBackend reactorBackend) *test {
 type reactorBackend string
 
 const (
-	llvm    reactorBackend = "LLVM"
-	subzero reactorBackend = "Subzero"
+	backendLLVM    reactorBackend = "LLVM"
+	backendSubzero reactorBackend = "Subzero"
 )
 
 type test struct {
@@ -842,6 +917,7 @@ type test struct {
 	srcDir         string         // directory for the SwiftShader checkout
 	resDir         string         // directory for the test results
 	buildDir       string         // directory for SwiftShader build
+	toolchain      llvm.Toolchain // the toolchain used for building
 	reactorBackend reactorBackend // backend for SwiftShader build
 }
 
@@ -896,7 +972,7 @@ func (t *test) build() error {
 		return cause.Wrap(err, "Failed to create build directory")
 	}
 
-	if err := shell.Shell(buildTimeout, t.r.cmake, t.buildDir,
+	if err := shell.Env(buildTimeout, t.r.cmake, t.buildDir, t.r.toolchainEnv(),
 		"-DCMAKE_BUILD_TYPE=Release",
 		"-DSWIFTSHADER_DCHECK_ALWAYS_ON=1",
 		"-DREACTOR_VERIFY_LLVM_IR=1",
