@@ -1092,7 +1092,8 @@ elseif(APPLE)
     find_library(QUARTZ_FRAMEWORK Quartz)
     find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
     find_library(IOSURFACE_FRAMEWORK IOSurface)
-    set(OS_LIBS "${COCOA_FRAMEWORK}" "${QUARTZ_FRAMEWORK}" "${CORE_FOUNDATION_FRAMEWORK}" "${IOSURFACE_FRAMEWORK}")
+    find_library(METAL_FRAMEWORK Metal)
+    set(OS_LIBS "${COCOA_FRAMEWORK}" "${QUARTZ_FRAMEWORK}" "${CORE_FOUNDATION_FRAMEWORK}" "${IOSURFACE_FRAMEWORK}" "${METAL_FRAMEWORK}")
 endif()
 
 ###########################################################
