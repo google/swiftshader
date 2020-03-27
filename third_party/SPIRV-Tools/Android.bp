@@ -76,8 +76,8 @@ genrule {
     ],
     tool_files: ["utils/generate_language_headers.py"],
     cmd: 
-        "$(location) --extinst-name=DebugInfo --extinst-grammar=$(location source/extinst.debuginfo.grammar.json) --extinst-output-base=$$(dirname $(location DebugInfo.h))/DebugInfo; "+
-        "$(location) --extinst-name=OpenCLDebugInfo100 --extinst-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --extinst-output-base=$$(dirname $(location OpenCLDebugInfo100.h))/OpenCLDebugInfo100; "
+        "$(location) --extinst-grammar=$(location source/extinst.debuginfo.grammar.json) --extinst-output-path=$(location DebugInfo.h); "+
+        "$(location) --extinst-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --extinst-output-path=$(location OpenCLDebugInfo100.h); "
 }
 
 genrule {
