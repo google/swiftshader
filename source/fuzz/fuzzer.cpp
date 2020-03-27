@@ -26,6 +26,7 @@
 #include "source/fuzz/fuzzer_pass_add_dead_blocks.h"
 #include "source/fuzz/fuzzer_pass_add_dead_breaks.h"
 #include "source/fuzz/fuzzer_pass_add_dead_continues.h"
+#include "source/fuzz/fuzzer_pass_add_equation_instructions.h"
 #include "source/fuzz/fuzzer_pass_add_function_calls.h"
 #include "source/fuzz/fuzzer_pass_add_global_variables.h"
 #include "source/fuzz/fuzzer_pass_add_loads.h"
@@ -44,7 +45,10 @@
 #include "source/fuzz/fuzzer_pass_obfuscate_constants.h"
 #include "source/fuzz/fuzzer_pass_outline_functions.h"
 #include "source/fuzz/fuzzer_pass_permute_blocks.h"
+#include "source/fuzz/fuzzer_pass_permute_function_parameters.h"
 #include "source/fuzz/fuzzer_pass_split_blocks.h"
+#include "source/fuzz/fuzzer_pass_swap_commutable_operands.h"
+#include "source/fuzz/fuzzer_pass_toggle_access_chain_instruction.h"
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
 #include "source/fuzz/pseudo_random_generator.h"
 #include "source/opt/build_module.h"
@@ -200,6 +204,9 @@ Fuzzer::FuzzerResultStatus Fuzzer::Run(
     MaybeAddPass<FuzzerPassAddDeadContinues>(&passes, ir_context.get(),
                                              &fact_manager, &fuzzer_context,
                                              transformation_sequence_out);
+    MaybeAddPass<FuzzerPassAddEquationInstructions>(
+        &passes, ir_context.get(), &fact_manager, &fuzzer_context,
+        transformation_sequence_out);
     MaybeAddPass<FuzzerPassAddFunctionCalls>(&passes, ir_context.get(),
                                              &fact_manager, &fuzzer_context,
                                              transformation_sequence_out);
@@ -239,6 +246,9 @@ Fuzzer::FuzzerResultStatus Fuzzer::Run(
     MaybeAddPass<FuzzerPassPermuteBlocks>(&passes, ir_context.get(),
                                           &fact_manager, &fuzzer_context,
                                           transformation_sequence_out);
+    MaybeAddPass<FuzzerPassPermuteFunctionParameters>(
+        &passes, ir_context.get(), &fact_manager, &fuzzer_context,
+        transformation_sequence_out);
     MaybeAddPass<FuzzerPassSplitBlocks>(&passes, ir_context.get(),
                                         &fact_manager, &fuzzer_context,
                                         transformation_sequence_out);
@@ -274,6 +284,12 @@ Fuzzer::FuzzerResultStatus Fuzzer::Run(
       &final_passes, ir_context.get(), &fact_manager, &fuzzer_context,
       transformation_sequence_out);
   MaybeAddPass<FuzzerPassAddNoContractionDecorations>(
+      &final_passes, ir_context.get(), &fact_manager, &fuzzer_context,
+      transformation_sequence_out);
+  MaybeAddPass<FuzzerPassSwapCommutableOperands>(
+      &final_passes, ir_context.get(), &fact_manager, &fuzzer_context,
+      transformation_sequence_out);
+  MaybeAddPass<FuzzerPassToggleAccessChainInstruction>(
       &final_passes, ir_context.get(), &fact_manager, &fuzzer_context,
       transformation_sequence_out);
   for (auto& pass : final_passes) {

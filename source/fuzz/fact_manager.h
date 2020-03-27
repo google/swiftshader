@@ -68,6 +68,14 @@ class FactManager {
   // is irrelevant: it does not affect the observable behaviour of the module.
   void AddFactValueOfPointeeIsIrrelevant(uint32_t pointer_id);
 
+  // Records the fact that |lhs_id| is defined by the equation:
+  //
+  //   |lhs_id| = |opcode| |rhs_id[0]| ... |rhs_id[N-1]|
+  //
+  void AddFactIdEquation(uint32_t lhs_id, SpvOp opcode,
+                         const std::vector<uint32_t>& rhs_id,
+                         opt::IRContext* context);
+
   // The fact manager is responsible for managing a few distinct categories of
   // facts. In principle there could be different fact managers for each kind
   // of fact, but in practice providing one 'go to' place for facts is
@@ -179,9 +187,10 @@ class FactManager {
   std::unique_ptr<ConstantUniformFacts>
       uniform_constant_facts_;  // Unique pointer to internal data.
 
-  class DataSynonymFacts;  // Opaque class for management of data synonym facts.
-  std::unique_ptr<DataSynonymFacts>
-      data_synonym_facts_;  // Unique pointer to internal data.
+  class DataSynonymAndIdEquationFacts;  // Opaque class for management of data
+                                        // synonym and id equation facts.
+  std::unique_ptr<DataSynonymAndIdEquationFacts>
+      data_synonym_and_id_equation_facts_;  // Unique pointer to internal data.
 
   class DeadBlockFacts;  // Opaque class for management of dead block facts.
   std::unique_ptr<DeadBlockFacts>

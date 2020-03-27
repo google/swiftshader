@@ -395,6 +395,12 @@ uint32_t FindFunctionType(opt::IRContext* ir_context,
   return 0;
 }
 
+opt::Instruction* GetFunctionType(opt::IRContext* context,
+                                  const opt::Function* function) {
+  uint32_t type_id = function->DefInst().GetSingleWordInOperand(1);
+  return context->get_def_use_mgr()->GetDef(type_id);
+}
+
 opt::Function* FindFunction(opt::IRContext* ir_context, uint32_t function_id) {
   for (auto& function : *ir_context->module()) {
     if (function.result_id() == function_id) {
@@ -402,6 +408,15 @@ opt::Function* FindFunction(opt::IRContext* ir_context, uint32_t function_id) {
     }
   }
   return nullptr;
+}
+
+bool FunctionIsEntryPoint(opt::IRContext* context, uint32_t function_id) {
+  for (auto& entry_point : context->module()->entry_points()) {
+    if (entry_point.GetSingleWordInOperand(1) == function_id) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool IdIsAvailableAtUse(opt::IRContext* context,

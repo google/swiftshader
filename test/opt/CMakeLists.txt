@@ -55,6 +55,7 @@ add_spvtools_unittest(TARGET opt
        insert_extract_elim_test.cpp
        inst_bindless_check_test.cpp
        inst_buff_addr_check_test.cpp
+       inst_debug_printf_test.cpp
        instruction_list_test.cpp
        instruction_test.cpp
        ir_builder.cpp

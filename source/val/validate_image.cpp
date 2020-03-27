@@ -847,6 +847,7 @@ bool IsAllowedSampledImageOperand(SpvOp opcode) {
     case SpvOpImageSparseSampleDrefExplicitLod:
     case SpvOpImageSparseGather:
     case SpvOpImageSparseDrefGather:
+    case SpvOpCopyObject:
       return true;
     default:
       return false;

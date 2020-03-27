@@ -1515,6 +1515,44 @@ const std::string kTestShader4 = R"(
                OpFunctionEnd
   )";
 
+// The SPIR-V comes from the following GLSL:
+//
+// #version 310 es
+// precision highp float;
+//
+// layout(location = 0) out vec4 color;
+//
+// void main()
+// {
+//   color = vec4(1.0, 0.0, 0.0, 1.0);
+// }
+
+const std::string kTestShader5 = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main" %9
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %4 "main"
+               OpName %9 "color"
+               OpDecorate %9 Location 0
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeFloat 32
+          %7 = OpTypeVector %6 4
+          %8 = OpTypePointer Output %7
+          %9 = OpVariable %8 Output
+         %10 = OpConstant %6 1
+         %11 = OpConstant %6 0
+         %12 = OpConstantComposite %7 %10 %11 %11 %10
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpStore %9 %12
+               OpReturn
+               OpFunctionEnd
+  )";
+
 void AddConstantUniformFact(protobufs::FactSequence* facts,
                             uint32_t descriptor_set, uint32_t binding,
                             std::vector<uint32_t>&& indices, uint32_t value) {
@@ -1552,8 +1590,8 @@ void RunFuzzerAndReplayer(const std::string& shader,
   ASSERT_TRUE(t.Validate(binary_in));
 
   std::vector<fuzzerutil::ModuleSupplier> donor_suppliers;
-  for (auto donor :
-       {&kTestShader1, &kTestShader2, &kTestShader3, &kTestShader4}) {
+  for (auto donor : {&kTestShader1, &kTestShader2, &kTestShader3, &kTestShader4,
+                     &kTestShader5}) {
     donor_suppliers.emplace_back([donor]() {
       return BuildModule(env, kConsoleMessageConsumer, *donor,
                          kFuzzAssembleOption);
@@ -1634,6 +1672,13 @@ TEST(FuzzerReplayerTest, Miscellaneous4) {
   // Do some fuzzer runs, starting from an initial seed of 14 (seed value chosen
   // arbitrarily).
   RunFuzzerAndReplayer(kTestShader4, facts, 14, kNumFuzzerRuns);
+}
+
+TEST(FuzzerReplayerTest, Miscellaneous5) {
+  // Do some fuzzer runs, starting from an initial seed of 29 (seed value chosen
+  // arbitrarily).
+  RunFuzzerAndReplayer(kTestShader5, protobufs::FactSequence(), 29,
+                       kNumFuzzerRuns);
 }
 
 }  // namespace

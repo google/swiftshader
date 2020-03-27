@@ -55,10 +55,6 @@ class TransformationFunctionCall : public Transformation {
 
   protobufs::Transformation ToMessage() const override;
 
-  // Helper to determine whether |function_id| is targeted by OpEntryPoint.
-  static bool FunctionIsEntryPoint(opt::IRContext* context,
-                                   uint32_t function_id);
-
  private:
   protobufs::TransformationFunctionCall message_;
 };
