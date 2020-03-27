@@ -11,9 +11,6 @@ sudo apt-get install -y gcc-7 g++-7
 sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100 --slave /usr/bin/g++ g++ /usr/bin/g++-7
 sudo update-alternatives --set gcc "/usr/bin/gcc-7"
 
-# Download all submodules
-git submodule update --init
-
 mkdir -p build && cd build
 
 if [[ -z "${REACTOR_BACKEND}" ]]; then

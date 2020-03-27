@@ -14,9 +14,6 @@ IF "%LLVM_VERSION%"=="10.0" (
   EXIT 0
 )
 
-git submodule update --init
-if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
-
 # Lower the amount of debug info, to reduce Kokoro build times.
 SET LESS_DEBUG_INFO=1
 

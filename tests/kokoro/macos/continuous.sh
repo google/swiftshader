@@ -7,8 +7,6 @@ set -x
 
 cd git/SwiftShader
 
-git submodule update --init
-
 mkdir -p build && cd build
 
 if [[ -z "${REACTOR_BACKEND}" ]]; then
