@@ -234,34 +234,33 @@ OpLine %7 3 18
 %44 = OpExtInst %void %1 DebugLocalVariable %16 %40 %34 6 16 %43 FlagIsLocal 0
 %45 = OpExtInst %void %1 DebugLocalVariable %17 %40 %34 7 16 %43 FlagIsLocal 1
 %46 = OpExtInst %void %1 DebugLocalVariable %18 %36 %34 8 3 %43 FlagIsLocal
-%47 = OpExtInst %void %1 DebugDeclare %44 %pos %42
-%48 = OpExtInst %void %1 DebugDeclare %45 %color %42
 OpLine %7 6 1
 %main = OpFunction %void None %31
-%49 = OpLabel
-%50 = OpExtInst %void %1 DebugScope %43
+%47 = OpLabel
+%60 = OpExtInst %void %1 DebugScope %43
 OpLine %7 8 13
 %vout = OpVariable %_ptr_Function_VS_OUTPUT Function
-%51 = OpExtInst %void %1 DebugDeclare %46 %vout %42
+%49 = OpExtInst %void %1 DebugDeclare %46 %vout %42
 OpLine %7 9 14
-%52 = OpLoad %v4float %pos
+%50 = OpLoad %v4float %pos
 OpLine %7 9 3
-%53 = OpAccessChain %_ptr_Function_v4float %vout %int_0
-%54 = OpExtInst %void %1 DebugValue %46 %53 %42 %int_0
-OpStore %53 %52
+%51 = OpAccessChain %_ptr_Function_v4float %vout %int_0
+%52 = OpExtInst %void %1 DebugValue %46 %51 %42 %int_0
+OpStore %51 %50
 OpLine %7 10 16
-%55 = OpLoad %v4float %color
+%53 = OpLoad %v4float %color
 OpLine %7 10 3
-%56 = OpAccessChain %_ptr_Function_v4float %vout %int_1
-%57 = OpExtInst %void %1 DebugValue %46 %56 %42 %int_1
-OpStore %56 %55
+%54 = OpAccessChain %_ptr_Function_v4float %vout %int_1
+%55 = OpExtInst %void %1 DebugValue %46 %54 %42 %int_1
+OpStore %54 %53
 OpLine %7 11 10
-%58 = OpLoad %VS_OUTPUT %vout
+%56 = OpLoad %VS_OUTPUT %vout
 OpLine %7 11 3
-%59 = OpCompositeExtract %v4float %58 0
-OpStore %gl_Position %59
-%60 = OpCompositeExtract %v4float %58 1
-OpStore %out_var_COLOR %60
+%57 = OpCompositeExtract %v4float %56 0
+OpStore %gl_Position %57
+%58 = OpCompositeExtract %v4float %56 1
+OpStore %out_var_COLOR %58
+%61 = OpExtInst %void %1 DebugNoScope
 OpReturn
 OpFunctionEnd
 )");
@@ -377,7 +376,7 @@ OpLine %5 12 37
 OpLine %5 12 1
 %main = OpFunction %void None %36
 %bb_entry = OpLabel
-%52 = OpExtInst %void %1 DebugScope %47
+%70 = OpExtInst %void %1 DebugScope %47
 OpLine %5 13 16
 %param_var_arg1 = OpVariable %_ptr_Function_float Function
 %53 = OpLoad %float %pos
@@ -386,6 +385,7 @@ OpLine %5 13 10
 %54 = OpFunctionCall %v4float %func1 %param_var_arg1
 OpLine %5 13 3
 OpStore %gl_Position %54
+%71 = OpExtInst %void %1 DebugNoScope
 OpReturn
 OpFunctionEnd
 OpLine %5 5 1
@@ -393,41 +393,45 @@ OpLine %5 5 1
 OpLine %5 5 20
 %arg1 = OpFunctionParameter %_ptr_Function_float
 %bb_entry_0 = OpLabel
-%55 = OpExtInst %void %1 DebugScope %48
+%72 = OpExtInst %void %1 DebugScope %48
 OpLine %5 9 16
 %param_var_arg2 = OpVariable %_ptr_Function_float Function
 OpLine %5 6 7
-%56 = OpLoad %float %arg1
+%57 = OpLoad %float %arg1
 OpLine %5 6 12
-%57 = OpFOrdGreaterThan %bool %56 %float_1
+%58 = OpFOrdGreaterThan %bool %57 %float_1
 OpLine %5 6 17
+%73 = OpExtInst %void %1 DebugNoScope
 OpSelectionMerge %if_merge None
-OpBranchConditional %57 %if_true %if_merge
+OpBranchConditional %58 %if_true %if_merge
 %if_true = OpLabel
-%58 = OpExtInst %void %1 DebugScope %50
+%74 = OpExtInst %void %1 DebugScope %50
 OpLine %5 7 5
+%75 = OpExtInst %void %1 DebugNoScope
 OpReturnValue %32
 %if_merge = OpLabel
-%59 = OpExtInst %void %1 DebugScope %51
+%76 = OpExtInst %void %1 DebugScope %51
 OpLine %5 9 16
-%60 = OpLoad %float %arg1
-OpStore %param_var_arg2 %60
+%63 = OpLoad %float %arg1
+OpStore %param_var_arg2 %63
 OpLine %5 9 10
-%61 = OpFunctionCall %v4float %func2 %param_var_arg2
+%64 = OpFunctionCall %v4float %func2 %param_var_arg2
 OpLine %5 9 3
-OpReturnValue %61
+%77 = OpExtInst %void %1 DebugNoScope
+OpReturnValue %64
 OpFunctionEnd
 OpLine %5 1 1
 %func2 = OpFunction %v4float None %38
 OpLine %5 1 20
 %arg2 = OpFunctionParameter %_ptr_Function_float
 %bb_entry_1 = OpLabel
-%62 = OpExtInst %void %1 DebugScope %49
+%78 = OpExtInst %void %1 DebugScope %49
 OpLine %5 2 17
-%63 = OpLoad %float %arg2
-%64 = OpCompositeConstruct %v4float %63 %float_0 %float_0 %float_0
+%67 = OpLoad %float %arg2
+%68 = OpCompositeConstruct %v4float %67 %float_0 %float_0 %float_0
 OpLine %5 2 3
-OpReturnValue %64
+%79 = OpExtInst %void %1 DebugNoScope
+OpReturnValue %68
 OpFunctionEnd
 )");
 }
@@ -547,28 +551,31 @@ OpLine %5 12 37
 OpLine %5 12 1
 %main = OpFunction %void None %28
 %bb_entry = OpLabel
-%51 = OpExtInst %void %1 DebugScope %44 %49
+%62 = OpExtInst %void %1 DebugScope %44 %49
 OpLine %5 6 7
 %52 = OpLoad %float %pos
 OpLine %5 6 12
 %53 = OpFOrdGreaterThan %bool %52 %float_1
 OpLine %5 6 17
+%63 = OpExtInst %void %1 DebugNoScope
 OpSelectionMerge %if_merge None
 OpBranchConditional %53 %if_true %if_merge
 %if_true = OpLabel
-%54 = OpExtInst %void %1 DebugScope %46 %49
+%64 = OpExtInst %void %1 DebugScope %46 %49
 OpLine %5 7 5
 OpStore %gl_Position %24
+%65 = OpExtInst %void %1 DebugNoScope
 OpReturn
 %if_merge = OpLabel
-%55 = OpExtInst %void %1 DebugScope %45 %50
+%66 = OpExtInst %void %1 DebugScope %45 %50
 OpLine %5 2 17
-%56 = OpLoad %float %pos
+%58 = OpLoad %float %pos
 OpLine %5 2 10
-%57 = OpCompositeConstruct %v4float %56 %float_0 %float_0 %float_0
-%58 = OpExtInst %void %1 DebugScope %43
+%59 = OpCompositeConstruct %v4float %58 %float_0 %float_0 %float_0
+%67 = OpExtInst %void %1 DebugScope %43
 OpLine %5 13 3
-OpStore %gl_Position %57
+OpStore %gl_Position %59
+%68 = OpExtInst %void %1 DebugNoScope
 OpReturn
 OpFunctionEnd
 )");
@@ -683,8 +690,8 @@ OpLine %5 12 37
 %51 = OpExtInst %void %1 DebugLexicalBlock %40 9 3 %48
 OpLine %5 12 1
 %main = OpFunction %void None %36
-%52 = OpExtInst %void %1 DebugScope %47
 %bb_entry = OpLabel
+%70 = OpExtInst %void %1 DebugScope %47
 OpLine %5 13 16
 %param_var_arg1 = OpVariable %_ptr_Function_float Function
 %53 = OpLoad %float %pos
@@ -693,6 +700,7 @@ OpLine %5 13 10
 %54 = OpFunctionCall %v4float %func1 %param_var_arg1
 OpLine %5 13 3
 OpStore %gl_Position %54
+%71 = OpExtInst %void %1 DebugNoScope
 OpReturn
 OpFunctionEnd
 OpLine %5 5 1
@@ -700,48 +708,244 @@ OpLine %5 5 1
 OpLine %5 5 20
 %arg1 = OpFunctionParameter %_ptr_Function_float
 %bb_entry_0 = OpLabel
-%55 = OpExtInst %void %1 DebugScope %48
+%72 = OpExtInst %void %1 DebugScope %48
 OpLine %5 9 16
 %param_var_arg2 = OpVariable %_ptr_Function_float Function
 OpLine %5 6 7
-%56 = OpLoad %float %arg1
+%57 = OpLoad %float %arg1
 OpLine %5 6 12
-%57 = OpFOrdGreaterThan %bool %56 %float_1
+%58 = OpFOrdGreaterThan %bool %57 %float_1
 OpLine %5 6 17
+%73 = OpExtInst %void %1 DebugNoScope
 OpSelectionMerge %if_merge None
-OpBranchConditional %57 %if_true %if_merge
+OpBranchConditional %58 %if_true %if_merge
 %if_true = OpLabel
-%58 = OpExtInst %void %1 DebugScope %50
+%74 = OpExtInst %void %1 DebugScope %50
 OpLine %5 7 5
+%75 = OpExtInst %void %1 DebugNoScope
 OpReturnValue %32
 %if_merge = OpLabel
-%59 = OpExtInst %void %1 DebugScope %51
+%76 = OpExtInst %void %1 DebugScope %51
 OpLine %5 9 16
-%60 = OpLoad %float %arg1
-OpStore %param_var_arg2 %60
+%63 = OpLoad %float %arg1
+OpStore %param_var_arg2 %63
 OpLine %5 9 10
-%61 = OpFunctionCall %v4float %func2 %param_var_arg2
+%64 = OpFunctionCall %v4float %func2 %param_var_arg2
 OpLine %5 9 3
-OpReturnValue %61
+%77 = OpExtInst %void %1 DebugNoScope
+OpReturnValue %64
 OpFunctionEnd
 OpLine %5 1 1
 %func2 = OpFunction %v4float None %38
 OpLine %5 1 20
 %arg2 = OpFunctionParameter %_ptr_Function_float
 %bb_entry_1 = OpLabel
-%62 = OpExtInst %void %1 DebugScope %49
+%78 = OpExtInst %void %1 DebugScope %49
 OpLine %5 2 17
-%63 = OpLoad %float %arg2
-%64 = OpCompositeConstruct %v4float %63 %float_0 %float_0 %float_0
+%67 = OpLoad %float %arg2
+%68 = OpCompositeConstruct %v4float %67 %float_0 %float_0 %float_0
 OpLine %5 2 3
-OpReturnValue %64
+%79 = OpExtInst %void %1 DebugNoScope
+OpReturnValue %68
 OpFunctionEnd
 )";
 
   SpirvTools t(SPV_ENV_UNIVERSAL_1_1);
   std::unique_ptr<IRContext> context =
       BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text);
-  ASSERT_EQ(nullptr, context);
+  ASSERT_NE(nullptr, context);
+
+  std::vector<uint32_t> binary;
+  context->module()->ToBinary(&binary, /* skip_nop = */ false);
+
+  std::string disassembled_text;
+  EXPECT_TRUE(t.Disassemble(binary, &disassembled_text));
+  EXPECT_EQ(text, disassembled_text);
+}
+
+TEST(IrBuilder, DebugInfoInstInFunctionOutOfBlock2) {
+  // /* HLSL */
+  //
+  // struct VS_OUTPUT {
+  //   float4 pos : SV_POSITION;
+  //   float4 color : COLOR;
+  // };
+  //
+  // VS_OUTPUT main(float4 pos : POSITION,
+  //                float4 color : COLOR) {
+  //   VS_OUTPUT vout;
+  //   vout.pos = pos;
+  //   vout.color = color;
+  //   return vout;
+  // }
+  const std::string text = R"(OpCapability Shader
+%1 = OpExtInstImport "OpenCL.DebugInfo.100"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main" %in_var_POSITION %in_var_COLOR %gl_Position %out_var_COLOR
+%7 = OpString "vs.hlsl"
+OpSource HLSL 600 %7 "#line 1 \"vs.hlsl\"
+struct VS_OUTPUT {
+  float4 pos : SV_POSITION;
+  float4 color : COLOR;
+};
+
+VS_OUTPUT main(float4 pos : POSITION,
+               float4 color : COLOR) {
+  VS_OUTPUT vout;
+  vout.pos = pos;
+  vout.color = color;
+  return vout;
+}
+"
+%8 = OpString "#line 1 \"vs.hlsl\"
+struct VS_OUTPUT {
+  float4 pos : SV_POSITION;
+  float4 color : COLOR;
+};
+
+VS_OUTPUT main(float4 pos : POSITION,
+               float4 color : COLOR) {
+  VS_OUTPUT vout;
+  vout.pos = pos;
+  vout.color = color;
+  return vout;
+}
+"
+%9 = OpString "VS_OUTPUT"
+%10 = OpString "float"
+%11 = OpString "src.main"
+%12 = OpString "pos"
+%13 = OpString "color"
+%14 = OpString "vout"
+OpName %in_var_POSITION "in.var.POSITION"
+OpName %in_var_COLOR "in.var.COLOR"
+OpName %out_var_COLOR "out.var.COLOR"
+OpName %main "main"
+OpName %param_var_pos "param.var.pos"
+OpName %param_var_color "param.var.color"
+OpName %VS_OUTPUT "VS_OUTPUT"
+OpMemberName %VS_OUTPUT 0 "pos"
+OpMemberName %VS_OUTPUT 1 "color"
+OpName %src_main "src.main"
+OpName %pos "pos"
+OpName %color "color"
+OpName %bb_entry "bb.entry"
+OpName %vout "vout"
+OpDecorate %gl_Position BuiltIn Position
+OpDecorate %in_var_POSITION Location 0
+OpDecorate %in_var_COLOR Location 1
+OpDecorate %out_var_COLOR Location 0
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%int_1 = OpConstant %int 1
+%uint = OpTypeInt 32 0
+%uint_32 = OpConstant %uint 32
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%void = OpTypeVoid
+%uint_256 = OpConstant %uint 256
+%uint_0 = OpConstant %uint 0
+%uint_128 = OpConstant %uint 128
+%36 = OpTypeFunction %void
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%VS_OUTPUT = OpTypeStruct %v4float %v4float
+%38 = OpTypeFunction %VS_OUTPUT %_ptr_Function_v4float %_ptr_Function_v4float
+%_ptr_Function_VS_OUTPUT = OpTypePointer Function %VS_OUTPUT
+OpLine %7 6 29
+%in_var_POSITION = OpVariable %_ptr_Input_v4float Input
+OpLine %7 7 31
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+OpLine %7 2 16
+%gl_Position = OpVariable %_ptr_Output_v4float Output
+OpLine %7 3 18
+%out_var_COLOR = OpVariable %_ptr_Output_v4float Output
+%40 = OpExtInst %void %1 DebugExpression
+%41 = OpExtInst %void %1 DebugSource %7 %8
+%42 = OpExtInst %void %1 DebugCompilationUnit 1 4 %41 HLSL
+%43 = OpExtInst %void %1 DebugTypeComposite %9 Structure %41 1 1 %42 %9 %uint_256 FlagIsProtected|FlagIsPrivate %44 %45
+%46 = OpExtInst %void %1 DebugTypeBasic %10 %uint_32 Float
+%47 = OpExtInst %void %1 DebugTypeVector %46 4
+%48 = OpExtInst %void %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %43 %47 %47
+%49 = OpExtInst %void %1 DebugFunction %11 %48 %41 6 1 %42 %11 FlagIsProtected|FlagIsPrivate 7 %src_main
+%50 = OpExtInst %void %1 DebugLocalVariable %12 %47 %41 6 23 %49 FlagIsLocal 0
+%51 = OpExtInst %void %1 DebugLocalVariable %13 %47 %41 7 23 %49 FlagIsLocal 1
+%52 = OpExtInst %void %1 DebugLexicalBlock %41 7 38 %49
+%53 = OpExtInst %void %1 DebugLocalVariable %14 %43 %41 8 13 %52 FlagIsLocal
+%44 = OpExtInst %void %1 DebugTypeMember %12 %47 %41 2 3 %43 %uint_0 %uint_128 FlagIsProtected|FlagIsPrivate
+%45 = OpExtInst %void %1 DebugTypeMember %13 %47 %41 3 3 %43 %uint_128 %uint_128 FlagIsProtected|FlagIsPrivate
+OpLine %7 6 1
+%main = OpFunction %void None %36
+%54 = OpLabel
+%74 = OpExtInst %void %1 DebugScope %42
+OpLine %7 6 23
+%param_var_pos = OpVariable %_ptr_Function_v4float Function
+OpLine %7 7 23
+%param_var_color = OpVariable %_ptr_Function_v4float Function
+OpLine %7 6 23
+%56 = OpLoad %v4float %in_var_POSITION
+OpStore %param_var_pos %56
+OpLine %7 7 23
+%57 = OpLoad %v4float %in_var_COLOR
+OpStore %param_var_color %57
+OpLine %7 6 1
+%58 = OpFunctionCall %VS_OUTPUT %src_main %param_var_pos %param_var_color
+OpLine %7 6 11
+%59 = OpCompositeExtract %v4float %58 0
+OpLine %7 2 16
+OpStore %gl_Position %59
+OpLine %7 6 11
+%60 = OpCompositeExtract %v4float %58 1
+OpLine %7 3 18
+OpStore %out_var_COLOR %60
+%75 = OpExtInst %void %1 DebugNoScope
+OpReturn
+OpFunctionEnd
+OpLine %7 6 1
+%src_main = OpFunction %VS_OUTPUT None %38
+%76 = OpExtInst %void %1 DebugScope %49
+OpLine %7 6 23
+%pos = OpFunctionParameter %_ptr_Function_v4float
+OpLine %7 7 23
+%color = OpFunctionParameter %_ptr_Function_v4float
+%63 = OpExtInst %void %1 DebugDeclare %50 %pos %40
+%64 = OpExtInst %void %1 DebugDeclare %51 %color %40
+%77 = OpExtInst %void %1 DebugNoScope
+%bb_entry = OpLabel
+%78 = OpExtInst %void %1 DebugScope %52
+OpLine %7 8 13
+%vout = OpVariable %_ptr_Function_VS_OUTPUT Function
+%67 = OpExtInst %void %1 DebugDeclare %53 %vout %40
+OpLine %7 9 14
+%68 = OpLoad %v4float %pos
+OpLine %7 9 3
+%69 = OpAccessChain %_ptr_Function_v4float %vout %int_0
+OpStore %69 %68
+OpLine %7 10 16
+%70 = OpLoad %v4float %color
+OpLine %7 10 3
+%71 = OpAccessChain %_ptr_Function_v4float %vout %int_1
+OpStore %71 %70
+OpLine %7 11 10
+%72 = OpLoad %VS_OUTPUT %vout
+OpLine %7 11 3
+%79 = OpExtInst %void %1 DebugNoScope
+OpReturnValue %72
+OpFunctionEnd
+)";
+
+  SpirvTools t(SPV_ENV_UNIVERSAL_1_1);
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text);
+  ASSERT_NE(nullptr, context);
+
+  std::vector<uint32_t> binary;
+  context->module()->ToBinary(&binary, /* skip_nop = */ false);
+
+  std::string disassembled_text;
+  EXPECT_TRUE(t.Disassemble(binary, &disassembled_text));
+  EXPECT_EQ(text, disassembled_text);
 }
 
 TEST(IrBuilder, LocalGlobalVariables) {

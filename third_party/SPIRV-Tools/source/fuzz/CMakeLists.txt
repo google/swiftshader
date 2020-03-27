@@ -42,6 +42,7 @@ if(SPIRV_BUILD_FUZZER)
         fuzzer_pass_add_dead_blocks.h
         fuzzer_pass_add_dead_breaks.h
         fuzzer_pass_add_dead_continues.h
+        fuzzer_pass_add_equation_instructions.h
         fuzzer_pass_add_function_calls.h
         fuzzer_pass_add_global_variables.h
         fuzzer_pass_add_loads.h
@@ -61,7 +62,10 @@ if(SPIRV_BUILD_FUZZER)
         fuzzer_pass_obfuscate_constants.h
         fuzzer_pass_outline_functions.h
         fuzzer_pass_permute_blocks.h
+        fuzzer_pass_permute_function_parameters.h
         fuzzer_pass_split_blocks.h
+        fuzzer_pass_swap_commutable_operands.h
+        fuzzer_pass_toggle_access_chain_instruction.h
         fuzzer_util.h
         id_use_descriptor.h
         instruction_descriptor.h
@@ -96,11 +100,13 @@ if(SPIRV_BUILD_FUZZER)
         transformation_composite_construct.h
         transformation_composite_extract.h
         transformation_copy_object.h
+        transformation_equation_instruction.h
         transformation_function_call.h
         transformation_load.h
         transformation_merge_blocks.h
         transformation_move_block_down.h
         transformation_outline_function.h
+        transformation_permute_function_parameters.h
         transformation_replace_boolean_constant_with_constant_binary.h
         transformation_replace_constant_with_uniform.h
         transformation_replace_id_with_synonym.h
@@ -110,6 +116,8 @@ if(SPIRV_BUILD_FUZZER)
         transformation_set_selection_control.h
         transformation_split_block.h
         transformation_store.h
+        transformation_swap_commutable_operands.h
+        transformation_toggle_access_chain_instruction.h
         transformation_vector_shuffle.h
         uniform_buffer_element_descriptor.h
         ${CMAKE_CURRENT_BINARY_DIR}/protobufs/spvtoolsfuzz.pb.h
@@ -126,6 +134,7 @@ if(SPIRV_BUILD_FUZZER)
         fuzzer_pass_add_dead_blocks.cpp
         fuzzer_pass_add_dead_breaks.cpp
         fuzzer_pass_add_dead_continues.cpp
+        fuzzer_pass_add_equation_instructions.cpp
         fuzzer_pass_add_function_calls.cpp
         fuzzer_pass_add_global_variables.cpp
         fuzzer_pass_add_loads.cpp
@@ -145,7 +154,10 @@ if(SPIRV_BUILD_FUZZER)
         fuzzer_pass_obfuscate_constants.cpp
         fuzzer_pass_outline_functions.cpp
         fuzzer_pass_permute_blocks.cpp
+        fuzzer_pass_permute_function_parameters.cpp
         fuzzer_pass_split_blocks.cpp
+        fuzzer_pass_swap_commutable_operands.cpp
+        fuzzer_pass_toggle_access_chain_instruction.cpp
         fuzzer_util.cpp
         id_use_descriptor.cpp
         instruction_descriptor.cpp
@@ -179,11 +191,13 @@ if(SPIRV_BUILD_FUZZER)
         transformation_composite_construct.cpp
         transformation_composite_extract.cpp
         transformation_copy_object.cpp
+        transformation_equation_instruction.cpp
         transformation_function_call.cpp
         transformation_load.cpp
         transformation_merge_blocks.cpp
         transformation_move_block_down.cpp
         transformation_outline_function.cpp
+        transformation_permute_function_parameters.cpp
         transformation_replace_boolean_constant_with_constant_binary.cpp
         transformation_replace_constant_with_uniform.cpp
         transformation_replace_id_with_synonym.cpp
@@ -193,6 +207,8 @@ if(SPIRV_BUILD_FUZZER)
         transformation_set_selection_control.cpp
         transformation_split_block.cpp
         transformation_store.cpp
+        transformation_swap_commutable_operands.cpp
+        transformation_toggle_access_chain_instruction.cpp
         transformation_vector_shuffle.cpp
         uniform_buffer_element_descriptor.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/protobufs/spvtoolsfuzz.pb.cc

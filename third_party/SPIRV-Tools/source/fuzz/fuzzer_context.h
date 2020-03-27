@@ -62,6 +62,40 @@ class FuzzerContext {
     return result;
   }
 
+  // Randomly shuffles a |sequence| between |lo| and |hi| indices inclusively.
+  // |lo| and |hi| must be valid indices to the |sequence|
+  template <typename T>
+  void Shuffle(std::vector<T>* sequence, size_t lo, size_t hi) const {
+    auto& array = *sequence;
+
+    if (array.empty()) {
+      return;
+    }
+
+    assert(lo <= hi && hi < array.size() && "lo and/or hi indices are invalid");
+
+    // i > lo to account for potential infinite loop when lo == 0
+    for (size_t i = hi; i > lo; --i) {
+      auto index =
+          random_generator_->RandomUint32(static_cast<uint32_t>(i - lo + 1));
+
+      if (lo + index != i) {
+        // Introduce std::swap to the scope but don't use it
+        // directly since there might be a better overload
+        using std::swap;
+        swap(array[lo + index], array[i]);
+      }
+    }
+  }
+
+  // Ramdomly shuffles a |sequence|
+  template <typename T>
+  void Shuffle(std::vector<T>* sequence) const {
+    if (!sequence->empty()) {
+      Shuffle(sequence, 0, sequence->size() - 1);
+    }
+  }
+
   // Yields an id that is guaranteed not to be used in the module being fuzzed,
   // or to have been issued before.
   uint32_t GetFreshId();
@@ -81,6 +115,9 @@ class FuzzerContext {
   uint32_t GetChanceOfAddingDeadBreak() { return chance_of_adding_dead_break_; }
   uint32_t GetChanceOfAddingDeadContinue() {
     return chance_of_adding_dead_continue_;
+  }
+  uint32_t GetChanceOfAddingEquationInstruction() {
+    return chance_of_adding_equation_instruction_;
   }
   uint32_t GetChanceOfAddingGlobalVariable() {
     return chance_of_adding_global_variable_;
@@ -136,10 +173,16 @@ class FuzzerContext {
   uint32_t GetChanceOfOutliningFunction() {
     return chance_of_outlining_function_;
   }
+  uint32_t GetChanceOfPermutingParameters() {
+    return chance_of_permuting_parameters_;
+  }
   uint32_t GetChanceOfReplacingIdWithSynonym() {
     return chance_of_replacing_id_with_synonym_;
   }
   uint32_t GetChanceOfSplittingBlock() { return chance_of_splitting_block_; }
+  uint32_t GetChanceOfTogglingAccessChainInstruction() {
+    return chance_of_toggling_access_chain_instruction_;
+  }
   uint32_t GetRandomLoopControlPeelCount() {
     return random_generator_->RandomUint32(max_loop_control_peel_count_);
   }
@@ -177,6 +220,7 @@ class FuzzerContext {
   uint32_t chance_of_adding_dead_block_;
   uint32_t chance_of_adding_dead_break_;
   uint32_t chance_of_adding_dead_continue_;
+  uint32_t chance_of_adding_equation_instruction_;
   uint32_t chance_of_adding_global_variable_;
   uint32_t chance_of_adding_load_;
   uint32_t chance_of_adding_local_variable_;
@@ -199,8 +243,10 @@ class FuzzerContext {
   uint32_t chance_of_moving_block_down_;
   uint32_t chance_of_obfuscating_constant_;
   uint32_t chance_of_outlining_function_;
+  uint32_t chance_of_permuting_parameters_;
   uint32_t chance_of_replacing_id_with_synonym_;
   uint32_t chance_of_splitting_block_;
+  uint32_t chance_of_toggling_access_chain_instruction_;
 
   // Limits associated with various quantities for which random values are
   // chosen during fuzzing.

@@ -120,10 +120,28 @@ OpCapability Int64
       execution_model, memory_model);
 }
 
-std::string GenerateWebGPUShaderCode(
+std::string GenerateWebGPUComputeShaderCode(
     const std::string& body,
     const std::string& capabilities_and_extensions = "",
     const std::string& execution_model = "GLCompute") {
+  const std::string vulkan_memory_capability = R"(
+OpCapability VulkanMemoryModelKHR
+)";
+  const std::string vulkan_memory_extension = R"(
+OpExtension "SPV_KHR_vulkan_memory_model"
+)";
+  const std::string memory_model = "OpMemoryModel Logical VulkanKHR";
+  return GenerateShaderCodeImpl(body,
+                                vulkan_memory_capability +
+                                    capabilities_and_extensions +
+                                    vulkan_memory_extension,
+                                "", execution_model, memory_model);
+}
+
+std::string GenerateWebGPUVertexShaderCode(
+    const std::string& body,
+    const std::string& capabilities_and_extensions = "",
+    const std::string& execution_model = "Vertex") {
   const std::string vulkan_memory_capability = R"(
 OpCapability VulkanMemoryModelKHR
 )";
@@ -257,7 +275,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUAcquireReleaseSuccess) {
 OpControlBarrier %workgroup %workgroup %acquire_release_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_WEBGPU_0));
 }
 
@@ -266,7 +284,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPURelaxedFailure) {
 OpControlBarrier %workgroup %workgroup %workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("For WebGPU, AcquireRelease must be set for Memory "
@@ -278,7 +296,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUMissingWorkgroupFailure) {
 OpControlBarrier %workgroup %workgroup %acquire_release
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("For WebGPU, WorkgroupMemory must be set for Memory "
@@ -290,7 +308,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUUniformFailure) {
 OpControlBarrier %workgroup %workgroup %acquire_release_uniform_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(
       getDiagnosticString(),
@@ -303,7 +321,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUReleaseFailure) {
 OpControlBarrier %workgroup %workgroup %release_uniform_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("For WebGPU, AcquireRelease must be set for Memory "
@@ -421,7 +439,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUExecutionScopeDeviceBad) {
 OpControlBarrier %device %workgroup %none
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ControlBarrier: in WebGPU environment Execution Scope "
@@ -433,11 +451,25 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUExecutionScopeSubgroupBad) {
 OpControlBarrier %subgroup %workgroup %none
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ControlBarrier: in WebGPU environment Execution Scope "
                         "is limited to Workgroup"));
+}
+
+TEST_F(ValidateBarriers,
+       OpControlBarrierWebGPUExecutionScopeWorkgroupNonComputeBad) {
+  const std::string body = R"(
+OpControlBarrier %workgroup %workgroup %acquire_release_workgroup
+)";
+
+  CompileSuccessfully(GenerateWebGPUVertexShaderCode(body), SPV_ENV_WEBGPU_0);
+  ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_WEBGPU_0));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "Workgroup Execution Scope is limited to GLCompute execution model"));
 }
 
 TEST_F(ValidateBarriers, OpControlBarrierVulkanMemoryScopeSubgroup) {
@@ -479,7 +511,7 @@ TEST_F(ValidateBarriers, OpControlBarrierWebGPUMemoryScopeNonWorkgroup) {
 OpControlBarrier %workgroup %subgroup %acquire_release_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ControlBarrier: in WebGPU environment Memory Scope is "
@@ -710,7 +742,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUImageMemorySuccess) {
 OpMemoryBarrier %workgroup %image_memory
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_WEBGPU_0));
 }
 
@@ -719,7 +751,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUDeviceFailure) {
 OpMemoryBarrier %subgroup %image_memory
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("in WebGPU environment Memory Scope is limited to "
@@ -731,7 +763,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUAcquireReleaseFailure) {
 OpMemoryBarrier %workgroup %acquire_release_uniform_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ImageMemory must be set for Memory Semantics of "
@@ -743,7 +775,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPURelaxedFailure) {
 OpMemoryBarrier %workgroup %uniform_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ImageMemory must be set for Memory Semantics of "
@@ -755,7 +787,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUAcquireFailure) {
 OpMemoryBarrier %workgroup %acquire_uniform_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ImageMemory must be set for Memory Semantics of "
@@ -767,7 +799,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUReleaseFailure) {
 OpMemoryBarrier %workgroup %release_uniform_workgroup
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("ImageMemory must be set for Memory Semantics of "
@@ -779,11 +811,24 @@ TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUUniformFailure) {
 OpMemoryBarrier %workgroup %uniform_image_memory
 )";
 
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(GenerateWebGPUComputeShaderCode(body), SPV_ENV_WEBGPU_0);
   EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("only ImageMemory may be set for Memory Semantics of "
                         "OpMemoryBarrier"));
+}
+
+TEST_F(ValidateBarriers, OpMemoryBarrierWebGPUWorkgroupNonComputeFailure) {
+  const std::string body = R"(
+OpMemoryBarrier %workgroup %image_memory
+)";
+
+  CompileSuccessfully(GenerateWebGPUVertexShaderCode(body), SPV_ENV_WEBGPU_0);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_WEBGPU_0));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "Workgroup Memory Scope is limited to GLCompute execution model"));
 }
 
 TEST_F(ValidateBarriers, OpMemoryBarrierFloatMemoryScope) {

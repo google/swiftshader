@@ -130,6 +130,10 @@ bool spvOpcodeIsScalarizable(SpvOp opcode);
 // Returns true if the given opcode is a debug instruction.
 bool spvOpcodeIsDebug(SpvOp opcode);
 
+// Returns true for opcodes that are binary operators,
+// where the order of the operands is irrelevant.
+bool spvOpcodeIsCommutativeBinaryOperator(SpvOp opcode);
+
 // Returns a vector containing the indices of the memory semantics <id>
 // operands for |opcode|.
 std::vector<uint32_t> spvOpcodeMemorySemanticsOperandIndices(SpvOp opcode);

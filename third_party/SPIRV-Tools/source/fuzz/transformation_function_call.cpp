@@ -53,7 +53,7 @@ bool TransformationFunctionCall::IsApplicable(
   }
 
   // The function must not be an entry point
-  if (FunctionIsEntryPoint(context, message_.callee_id())) {
+  if (fuzzerutil::FunctionIsEntryPoint(context, message_.callee_id())) {
     return false;
   }
 
@@ -179,16 +179,6 @@ protobufs::Transformation TransformationFunctionCall::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_function_call() = message_;
   return result;
-}
-
-bool TransformationFunctionCall::FunctionIsEntryPoint(opt::IRContext* context,
-                                                      uint32_t function_id) {
-  for (auto& entry_point : context->module()->entry_points()) {
-    if (entry_point.GetSingleWordInOperand(1) == function_id) {
-      return true;
-    }
-  }
-  return false;
 }
 
 }  // namespace fuzz

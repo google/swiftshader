@@ -70,24 +70,24 @@ class FuzzerPass {
   // all times tracking an instruction descriptor that allows the latest
   // instruction to be located even if it has no result id.
   //
-  // The code to manipulate the instruction descriptor is a bit fiddly, and the
+  // The code to manipulate the instruction descriptor is a bit fiddly.  The
   // point of this method is to avoiding having to duplicate it in multiple
   // transformation passes.
   //
-  // The function |maybe_apply_transformation| is invoked for each instruction
-  // |inst_it| in block |block| of function |function| that is encountered.  The
+  // The function |action| is invoked for each instruction |inst_it| in block
+  // |block| of function |function| that is encountered.  The
   // |instruction_descriptor| parameter to the function object allows |inst_it|
   // to be identified.
   //
-  // The job of |maybe_apply_transformation| is to randomly decide whether to
-  // try to apply some transformation, and then - if selected - to attempt to
-  // apply it.
-  void MaybeAddTransformationBeforeEachInstruction(
+  // In most intended use cases, the job of |action| is to randomly decide
+  // whether to try to apply some transformation, and then - if selected - to
+  // attempt to apply it.
+  void ForEachInstructionWithInstructionDescriptor(
       std::function<
           void(opt::Function* function, opt::BasicBlock* block,
                opt::BasicBlock::iterator inst_it,
                const protobufs::InstructionDescriptor& instruction_descriptor)>
-          maybe_apply_transformation);
+          action);
 
   // A generic helper for applying a transformation that should be applicable
   // by construction, and adding it to the sequence of applied transformations.
@@ -111,6 +111,12 @@ class FuzzerPass {
   // Returns the id of an OpTypeFloat instruction, with width 32.  If such an
   // instruction does not exist, a transformation is applied to add it.
   uint32_t FindOrCreate32BitFloatType();
+
+  // Returns the id of an OpTypeFunction %<return_type_id> %<...argument_id>
+  // instruction. If such an instruction doesn't exist, a transformation
+  // is applied to create a new one.
+  uint32_t FindOrCreateFunctionType(uint32_t return_type_id,
+                                    const std::vector<uint32_t>& argument_id);
 
   // Returns the id of an OpTypeVector instruction, with |component_type_id|
   // (which must already exist) as its base type, and |component_count|

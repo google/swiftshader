@@ -152,9 +152,17 @@ bool IsMergeOrContinue(opt::IRContext* ir_context, uint32_t block_id);
 uint32_t FindFunctionType(opt::IRContext* ir_context,
                           const std::vector<uint32_t>& type_ids);
 
+// Returns a type instruction (OpTypeFunction) for |function|.
+// Returns |nullptr| if type is not found.
+opt::Instruction* GetFunctionType(opt::IRContext* context,
+                                  const opt::Function* function);
+
 // Returns the function with result id |function_id|, or |nullptr| if no such
 // function exists.
 opt::Function* FindFunction(opt::IRContext* ir_context, uint32_t function_id);
+
+// Returns |true| if one of entry points has function id |function_id|.
+bool FunctionIsEntryPoint(opt::IRContext* context, uint32_t function_id);
 
 // Checks whether |id| is available (according to dominance rules) at the use
 // point defined by input operand |use_input_operand_index| of

@@ -22,6 +22,7 @@
 #include "source/fuzz/transformation_add_global_undef.h"
 #include "source/fuzz/transformation_add_type_boolean.h"
 #include "source/fuzz/transformation_add_type_float.h"
+#include "source/fuzz/transformation_add_type_function.h"
 #include "source/fuzz/transformation_add_type_int.h"
 #include "source/fuzz/transformation_add_type_matrix.h"
 #include "source/fuzz/transformation_add_type_pointer.h"
@@ -89,12 +90,12 @@ std::vector<opt::Instruction*> FuzzerPass::FindAvailableInstructions(
   return result;
 }
 
-void FuzzerPass::MaybeAddTransformationBeforeEachInstruction(
+void FuzzerPass::ForEachInstructionWithInstructionDescriptor(
     std::function<
         void(opt::Function* function, opt::BasicBlock* block,
              opt::BasicBlock::iterator inst_it,
              const protobufs::InstructionDescriptor& instruction_descriptor)>
-        maybe_apply_transformation) {
+        action) {
   // Consider every block in every function.
   for (auto& function : *GetIRContext()->module()) {
     for (auto& block : function) {
@@ -132,11 +133,10 @@ void FuzzerPass::MaybeAddTransformationBeforeEachInstruction(
         const SpvOp opcode = inst_it->opcode();
 
         // Invoke the provided function, which might apply a transformation.
-        maybe_apply_transformation(
-            &function, &block, inst_it,
-            MakeInstructionDescriptor(
-                base, opcode,
-                skip_count.count(opcode) ? skip_count.at(opcode) : 0));
+        action(&function, &block, inst_it,
+               MakeInstructionDescriptor(
+                   base, opcode,
+                   skip_count.count(opcode) ? skip_count.at(opcode) : 0));
 
         if (!inst_it->HasResultId()) {
           skip_count[opcode] =
@@ -177,6 +177,26 @@ uint32_t FuzzerPass::FindOrCreate32BitFloatType() {
   }
   auto result = GetFuzzerContext()->GetFreshId();
   ApplyTransformation(TransformationAddTypeFloat(result, 32));
+  return result;
+}
+
+uint32_t FuzzerPass::FindOrCreateFunctionType(
+    uint32_t return_type_id, const std::vector<uint32_t>& argument_id) {
+  // FindFunctionType has a sigle argument for OpTypeFunction operands
+  // so we will have to copy them all in this vector
+  std::vector<uint32_t> type_ids(argument_id.size() + 1);
+  type_ids[0] = return_type_id;
+  std::copy(argument_id.begin(), argument_id.end(), type_ids.begin() + 1);
+
+  // Check if type exists
+  auto existing_id = fuzzerutil::FindFunctionType(GetIRContext(), type_ids);
+  if (existing_id) {
+    return existing_id;
+  }
+
+  auto result = GetFuzzerContext()->GetFreshId();
+  ApplyTransformation(
+      TransformationAddTypeFunction(result, return_type_id, argument_id));
   return result;
 }
 

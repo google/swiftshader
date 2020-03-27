@@ -32,6 +32,7 @@ bool IsValidScope(uint32_t scope) {
     case SpvScopeSubgroup:
     case SpvScopeInvocation:
     case SpvScopeQueueFamilyKHR:
+    case SpvScopeShaderCallKHR:
       return true;
     case SpvScopeMax:
       break;
@@ -143,6 +144,20 @@ spv_result_t ValidateExecutionScope(ValidationState_t& _,
              << spvOpcodeString(opcode)
              << ": in WebGPU environment Execution Scope is limited to "
              << "Workgroup";
+    } else {
+      _.function(inst->function()->id())
+          ->RegisterExecutionModelLimitation(
+              [](SpvExecutionModel model, std::string* message) {
+                if (model != SpvExecutionModelGLCompute) {
+                  if (message) {
+                    *message =
+                        ": in WebGPU environment, Workgroup Execution Scope is "
+                        "limited to GLCompute execution model";
+                  }
+                  return false;
+                }
+                return true;
+              });
     }
   }
 
@@ -260,6 +275,22 @@ spv_result_t ValidateMemoryScope(ValidationState_t& _, const Instruction* inst,
                  << "Workgroup, Invocation, and QueueFamilyKHR";
         }
         break;
+    }
+
+    if (value == SpvScopeWorkgroup) {
+      _.function(inst->function()->id())
+          ->RegisterExecutionModelLimitation(
+              [](SpvExecutionModel model, std::string* message) {
+                if (model != SpvExecutionModelGLCompute) {
+                  if (message) {
+                    *message =
+                        ": in WebGPU environment, Workgroup Memory Scope is "
+                        "limited to GLCompute execution model";
+                  }
+                  return false;
+                }
+                return true;
+              });
     }
   }
 

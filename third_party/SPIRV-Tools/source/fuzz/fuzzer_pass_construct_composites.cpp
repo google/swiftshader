@@ -42,7 +42,7 @@ void FuzzerPassConstructComposites::Apply() {
     }
   }
 
-  MaybeAddTransformationBeforeEachInstruction(
+  ForEachInstructionWithInstructionDescriptor(
       [this, &composite_type_ids](
           opt::Function* function, opt::BasicBlock* block,
           opt::BasicBlock::iterator inst_it,
