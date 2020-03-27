@@ -81,6 +81,7 @@ cc_library(
         "include/spirv/1.2/GLSL.std.450.h",
         "include/spirv/1.2/OpenCL.std.h",
         "include/spirv/unified1/GLSL.std.450.h",
+        "include/spirv/unified1/NonSemanticDebugPrintf.h",
         "include/spirv/unified1/OpenCL.std.h",
     ],
     includes = ["include"],
