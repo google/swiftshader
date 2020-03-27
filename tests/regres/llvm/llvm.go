@@ -17,7 +17,11 @@
 package llvm
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -50,6 +54,79 @@ func (v Version) GreaterEqual(rhs Version) bool {
 		return false
 	}
 	return v.Point >= rhs.Point
+}
+
+// Download downloads and verifies the LLVM toolchain for the current OS.
+func (v Version) Download() ([]byte, error) {
+	return v.DownloadForOS(runtime.GOOS)
+}
+
+// DownloadForOS downloads and verifies the LLVM toolchain for the given OS.
+func (v Version) DownloadForOS(osName string) ([]byte, error) {
+	url, sig, key, err := v.DownloadInfoForOS(osName)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("Could not download LLVM from %v: %v", url, err)
+	}
+	defer resp.Body.Close()
+
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Could not download LLVM from %v: %v", url, err)
+	}
+
+	sigfile, err := os.Open(sig)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't open file '%s': %v", sig, err)
+	}
+	defer sigfile.Close()
+
+	keyfile, err := os.Open(key)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't open file '%s': %v", key, err)
+	}
+	defer keyfile.Close()
+
+	if err := util.CheckPGP(bytes.NewReader(content), sigfile, keyfile); err != nil {
+		return nil, err
+	}
+	return content, nil
+}
+
+// DownloadInfoForOS returns the download url, signature and key for the given
+// LLVM version for the given OS.
+func (v Version) DownloadInfoForOS(os string) (url, sig, key string, err error) {
+	switch v {
+	case Version{10, 0, 0}:
+		key = relfile("10.0.0.pub.key")
+		switch os {
+		case "linux":
+			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"
+			sig = relfile("10.0.0-ubuntu.sig")
+			return
+		case "darwin":
+			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz"
+			sig = relfile("10.0.0-darwin.sig")
+			return
+		case "windows":
+			url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/LLVM-10.0.0-win64.exe"
+			sig = relfile("10.0.0-win64.sig")
+			return
+		default:
+			return "", "", "", fmt.Errorf("Unsupported OS: %v", os)
+		}
+	default:
+		return "", "", "", fmt.Errorf("Unknown download for LLVM %v", v)
+	}
+}
+func relfile(path string) string {
+	_, thisFile, _, _ := runtime.Caller(1)
+	thisDir := filepath.Dir(thisFile)
+	return filepath.Join(thisDir, path)
 }
 
 // Toolchain holds the paths and version information about an LLVM toolchain.
