@@ -120,10 +120,8 @@ func CheckoutRemoteBranch(path, url string, branch string) error {
 	for _, cmds := range [][]string{
 		{"init"},
 		{"remote", "add", "origin", url},
-		// Note: this depth is here to prevent massive dEQP checkouts that can
-		// take all day. If the commit cannot be found in the checked out branch
-		// then this limit may need to be increased.
-		{"fetch", "origin", "--depth=99", branch},
+		{"fetch", "origin", "--depth=1", branch},
+		{"checkout", branch},
 	} {
 		if err := shell.Shell(gitTimeout, exe, path, cmds...); err != nil {
 			os.RemoveAll(path)

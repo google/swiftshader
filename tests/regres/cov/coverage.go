@@ -85,24 +85,24 @@ func (e Env) Import(profrawPath string) (*Coverage, error) {
 	}
 	defer os.Remove(profdata)
 
-	args := []string{
-		"export",
-		e.ExePath,
-		"-instr-profile=" + profdata,
-		"-format=text",
-	}
-	if e.LLVM.Version.GreaterEqual(llvm.Version{Major: 9}) {
-		// LLVM 9 has new flags that omit stuff we don't care about.
-		args = append(args,
-			"-skip-expansions",
-			"-skip-functions",
-		)
-	}
-
 	if e.TurboCov == "" {
+		args := []string{
+			"export",
+			e.ExePath,
+			"-instr-profile=" + profdata,
+			"-format=text",
+		}
+		if e.LLVM.Version.GreaterEqual(llvm.Version{Major: 9}) {
+			// LLVM 9 has new flags that omit stuff we don't care about.
+			args = append(args,
+				"-skip-expansions",
+				"-skip-functions",
+			)
+		}
+
 		data, err := exec.Command(e.LLVM.Cov(), args...).Output()
 		if err != nil {
-			return nil, cause.Wrap(err, "llvm-cov errored: %v", string(data))
+			return nil, cause.Wrap(err, "llvm-cov errored: %v", string(err.(*exec.ExitError).Stderr))
 		}
 		cov, err := e.parseCov(data)
 		if err != nil {
@@ -113,7 +113,7 @@ func (e Env) Import(profrawPath string) (*Coverage, error) {
 
 	data, err := exec.Command(e.TurboCov, e.ExePath, profdata).Output()
 	if err != nil {
-		return nil, cause.Wrap(err, "turbo-cov errored: %v", string(data))
+		return nil, cause.Wrap(err, "turbo-cov errored: %v", string(err.(*exec.ExitError).Stderr))
 	}
 	cov, err := e.parseTurboCov(data)
 	if err != nil {
@@ -566,12 +566,15 @@ func indent(s string) string {
 }
 
 // JSON returns the full test tree serialized to JSON.
-func (t *Tree) JSON() string {
+func (t *Tree) JSON(revision string) string {
 	sb := &strings.Builder{}
 	sb.WriteString(`{`)
 
+	// write the revision
+	sb.WriteString(`"r":"` + revision + `"`)
+
 	// write the strings
-	sb.WriteString(`"n":[`)
+	sb.WriteString(`,"n":[`)
 	for i, s := range t.strings.s {
 		if i > 0 {
 			sb.WriteString(`,`)

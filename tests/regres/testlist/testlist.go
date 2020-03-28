@@ -79,6 +79,20 @@ func (g Group) Filter(pred func(string) bool) Group {
 	return out
 }
 
+// Limit returns a new Group that contains a maximum of limit tests.
+func (g Group) Limit(limit int) Group {
+	out := Group{
+		Name:  g.Name,
+		File:  g.File,
+		API:   g.API,
+		Tests: g.Tests,
+	}
+	if len(g.Tests) > limit {
+		out.Tests = g.Tests[:limit]
+	}
+	return out
+}
+
 // Lists is the full list of tests to be run.
 type Lists []Group
 

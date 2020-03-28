@@ -47,7 +47,7 @@ int main(int argc, const char **argv)
 {
 	if(argc < 3)
 	{
-		fprintf(stderr, "llvm-cov-bin <exe> <profdata>\n");
+		fprintf(stderr, "turbo-cov <exe> <profdata>\n");
 		return 1;
 	}
 

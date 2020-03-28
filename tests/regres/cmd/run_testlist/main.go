@@ -132,7 +132,7 @@ func run() error {
 	}
 
 	if *genCoverage {
-		if err := ioutil.WriteFile("coverage.json", []byte(res.Coverage.JSON()), 0666); err != nil {
+		if err := ioutil.WriteFile("coverage.json", []byte(res.Coverage.JSON("master")), 0666); err != nil {
 			return err
 		}
 	}

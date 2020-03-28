@@ -158,7 +158,8 @@ func (c *Config) Run() (*Results, error) {
 	// For each API that we are testing
 	for _, list := range c.TestLists {
 		// Resolve the test runner
-		var exe string
+		exe, supportsCoverage := "", false
+
 		switch list.API {
 		case testlist.EGL:
 			exe = c.ExeEgl
@@ -167,7 +168,7 @@ func (c *Config) Run() (*Results, error) {
 		case testlist.GLES3:
 			exe = c.ExeGles3
 		case testlist.Vulkan:
-			exe = c.ExeVulkan
+			exe, supportsCoverage = c.ExeVulkan, true
 		default:
 			return nil, fmt.Errorf("Unknown API '%v'", list.API)
 		}
@@ -182,7 +183,7 @@ func (c *Config) Run() (*Results, error) {
 		wg.Add(c.NumParallelTests)
 		for i := 0; i < c.NumParallelTests; i++ {
 			go func(index int) {
-				c.TestRoutine(exe, tests, results, index)
+				c.TestRoutine(exe, tests, results, index, supportsCoverage)
 				wg.Done()
 			}(goroutineIndex)
 			goroutineIndex++
@@ -255,7 +256,7 @@ func (c *Config) Run() (*Results, error) {
 // is written to results.
 // TestRoutine only returns once the tests chan has been closed.
 // TestRoutine does not close the results chan.
-func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- TestResult, goroutineIndex int) {
+func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- TestResult, goroutineIndex int, supportsCoverage bool) {
 	// Context for the GCOV_PREFIX environment variable:
 	// If you compile SwiftShader with gcc and the --coverage flag, the build will contain coverage instrumentation.
 	// We can use this to get the code coverage of SwiftShader from running dEQP.
@@ -286,8 +287,10 @@ func (c *Config) TestRoutine(exe string, tests <-chan string, results chan<- Tes
 	}
 
 	coverageFile := filepath.Join(c.TempDir, fmt.Sprintf("%v.profraw", goroutineIndex))
-	if c.CoverageEnv != nil {
-		env = cov.AppendRuntimeEnv(env, coverageFile)
+	if supportsCoverage {
+		if c.CoverageEnv != nil {
+			env = cov.AppendRuntimeEnv(env, coverageFile)
+		}
 	}
 	logPath := filepath.Join(c.TempDir, fmt.Sprintf("%v.log", goroutineIndex))
 
@@ -312,10 +315,10 @@ nextTest:
 		}
 
 		var coverage *cov.Coverage
-		if c.CoverageEnv != nil {
+		if c.CoverageEnv != nil && supportsCoverage { // IsFile() check here is for GLES tests that don't emit coverage.
 			coverage, err = c.CoverageEnv.Import(coverageFile)
 			if err != nil {
-				log.Printf("Warning: Failed to get test coverage for test '%v'. %v", name, err)
+				log.Printf("Warning: Failed to process test coverage for test '%v'. %v", name, err)
 			}
 			os.Remove(coverageFile)
 		}
