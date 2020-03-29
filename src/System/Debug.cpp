@@ -14,11 +14,6 @@
 
 #include "Debug.hpp"
 
-#include <atomic>
-#include <cstdarg>
-#include <cstdio>
-#include <string>
-
 #if __ANDROID__
 #	include <android/log.h>
 #endif
@@ -33,6 +28,11 @@
 #	include <sys/sysctl.h>
 #	include <unistd.h>
 #endif
+
+#include <atomic>
+#include <cstdarg>
+#include <cstdio>
+#include <string>
 
 #ifdef ERROR
 #	undef ERROR  // b/127920555

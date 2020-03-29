@@ -45,58 +45,54 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		return (ImageSampler *)(routine->getEntry());
 	}
 
-	std::unique_lock<std::mutex> lock(imageDescriptor->device->getSamplingRoutineCacheMutex());
 	vk::Device::SamplingRoutineCache *cache = imageDescriptor->device->getSamplingRoutineCache();
 
-	auto routine = cache->query(key);
-	if(routine)
-	{
-		return (ImageSampler *)(routine->getEntry());
-	}
+	auto createSamplingRoutine = [&](const vk::Device::SamplingRoutineCache::Key &key) {
+		auto type = imageDescriptor->type;
 
-	auto type = imageDescriptor->type;
+		Sampler samplerState = {};
+		samplerState.textureType = type;
+		samplerState.textureFormat = imageDescriptor->format;
 
-	Sampler samplerState = {};
-	samplerState.textureType = type;
-	samplerState.textureFormat = imageDescriptor->format;
-
-	samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
-	samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
-	samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
-	samplerState.addressingModeY = convertAddressingMode(3, sampler, type);
-
-	samplerState.mipmapFilter = convertMipmapMode(sampler);
-	samplerState.swizzle = imageDescriptor->swizzle;
-	samplerState.gatherComponent = instruction.gatherComponent;
-	samplerState.highPrecisionFiltering = false;
-	samplerState.largeTexture = (imageDescriptor->extent.width > SHRT_MAX) ||
-	                            (imageDescriptor->extent.height > SHRT_MAX) ||
-	                            (imageDescriptor->extent.depth > SHRT_MAX);
-
-	if(sampler)
-	{
-		samplerState.textureFilter = (instruction.samplerMethod == Gather) ? FILTER_GATHER : convertFilterMode(sampler);
-		samplerState.border = sampler->borderColor;
+		samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
+		samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
+		samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
+		samplerState.addressingModeY = convertAddressingMode(3, sampler, type);
 
 		samplerState.mipmapFilter = convertMipmapMode(sampler);
+		samplerState.swizzle = imageDescriptor->swizzle;
+		samplerState.gatherComponent = instruction.gatherComponent;
+		samplerState.highPrecisionFiltering = false;
+		samplerState.largeTexture = (imageDescriptor->extent.width > SHRT_MAX) ||
+		                            (imageDescriptor->extent.height > SHRT_MAX) ||
+		                            (imageDescriptor->extent.depth > SHRT_MAX);
 
-		samplerState.compareEnable = (sampler->compareEnable != VK_FALSE);
-		samplerState.compareOp = sampler->compareOp;
-		samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates != VK_FALSE);
+		if(sampler)
+		{
+			samplerState.textureFilter = (instruction.samplerMethod == Gather) ? FILTER_GATHER : convertFilterMode(sampler);
+			samplerState.border = sampler->borderColor;
 
-		samplerState.ycbcrModel = sampler->ycbcrModel;
-		samplerState.studioSwing = sampler->studioSwing;
-		samplerState.swappedChroma = sampler->swappedChroma;
+			samplerState.mipmapFilter = convertMipmapMode(sampler);
 
-		samplerState.mipLodBias = sampler->mipLodBias;
-		samplerState.maxAnisotropy = sampler->maxAnisotropy;
-		samplerState.minLod = sampler->minLod;
-		samplerState.maxLod = sampler->maxLod;
-	}
+			samplerState.compareEnable = (sampler->compareEnable != VK_FALSE);
+			samplerState.compareOp = sampler->compareOp;
+			samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates != VK_FALSE);
 
-	routine = emitSamplerRoutine(instruction, samplerState);
+			samplerState.ycbcrModel = sampler->ycbcrModel;
+			samplerState.studioSwing = sampler->studioSwing;
+			samplerState.swappedChroma = sampler->swappedChroma;
 
-	cache->add(key, routine);
+			samplerState.mipLodBias = sampler->mipLodBias;
+			samplerState.maxAnisotropy = sampler->maxAnisotropy;
+			samplerState.minLod = sampler->minLod;
+			samplerState.maxLod = sampler->maxLod;
+		}
+
+		return emitSamplerRoutine(instruction, samplerState);
+	};
+
+	auto routine = cache->getOrCreate(key, createSamplingRoutine);
+
 	return (ImageSampler *)(routine->getEntry());
 }
 
