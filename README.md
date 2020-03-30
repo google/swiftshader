@@ -5,7 +5,7 @@
 Introduction
 ------------
 
-SwiftShader is a high-performance CPU-based implementation of the Vulkan, OpenGL ES, and Direct3D 9 graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
+SwiftShader is a high-performance CPU-based implementation of the Vulkan and OpenGL ES graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
 
 Building
 --------
@@ -108,5 +108,5 @@ Disclaimer
 ----------
 
 1. Trademarks are the property of their respective owners.
-2. We do not claim official conformance with the Direct3D and OpenGL graphics APIs at this moment.
+2. We do not claim official conformance with the OpenGL graphics API at this moment.
 3. This is not an official Google product.
