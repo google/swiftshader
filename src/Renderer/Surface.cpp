@@ -2681,7 +2681,7 @@ namespace sw
 				// and stencil operations also read 8 bytes per four 8-bit stencil values,
 				// so we have to allocate 4 extra bytes to avoid buffer overruns.
 			    // TODO(b/145229887): Eliminate if possible, or don't hard-code.
-				return size + 4;
+				return static_cast<size_t>(size) + 4;
 			}
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
