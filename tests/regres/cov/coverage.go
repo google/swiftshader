@@ -17,14 +17,18 @@
 package cov
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime/debug"
 	"sort"
+	"strconv"
 	"strings"
 
 	"../cause"
@@ -297,24 +301,12 @@ func (t *Tree) Tests() *Test { return &t.testRoot }
 // Strings returns the string table
 func (t *Tree) Strings() Strings { return t.strings }
 
-type indexedTest struct {
-	index   TestIndex
-	created bool
-}
-
 func (t *Tree) index(path Path) []indexedTest {
 	out := make([]indexedTest, len(path))
 	test := &t.testRoot
 	for i, p := range path {
 		name := t.strings.index(p)
-		idx, ok := test.indices[name]
-		if !ok {
-			idx = TestIndex(len(test.children))
-			test.children = append(test.children, newTest())
-			test.indices[name] = idx
-		}
-		out[i] = indexedTest{idx, !ok}
-		test = &test.children[idx]
+		test, out[i] = test.index(name)
 	}
 	return out
 }
@@ -426,6 +418,21 @@ func newTest() Test {
 	return Test{
 		indices: map[StringID]TestIndex{},
 	}
+}
+
+type indexedTest struct {
+	index   TestIndex
+	created bool
+}
+
+func (t *Test) index(name StringID) (*Test, indexedTest) {
+	idx, ok := t.indices[name]
+	if !ok {
+		idx = TestIndex(len(t.children))
+		t.children = append(t.children, newTest())
+		t.indices[name] = idx
+	}
+	return &t.children[idx], indexedTest{idx, !ok}
 }
 
 type namedIndex struct {
@@ -711,4 +718,239 @@ func (t *Tree) writeCoverageJSON(c *TestCoverage, sb *strings.Builder) {
 		t.writeCoverageMapJSON(c.Children, sb)
 	}
 	sb.WriteString(`}`)
+}
+
+// ReadJSON parses the JSON Tree from r.
+func ReadJSON(r io.Reader) (*Tree, string, error) {
+	p := parser{r: bufio.NewReader(r)}
+	return p.parse()
+}
+
+type parser struct {
+	r   *bufio.Reader
+	err error
+
+	revision string
+	tree     Tree
+}
+
+func (p *parser) parse() (*Tree, string, error) {
+	p.tree.init()
+	p.dict(func(key string) {
+		switch key {
+		case "r":
+			p.revision = p.str()
+		case "n":
+			p.parseStrings()
+		case "t":
+			p.parseTests(&p.tree.testRoot)
+		case "s":
+			p.parseSpans()
+		case "f":
+			p.parseFiles()
+		default:
+			p.fail("Unknown root key '%v'", key)
+		}
+	})
+	if p.err != nil {
+		return nil, "", p.err
+	}
+	return &p.tree, p.revision, nil
+}
+
+func (p *parser) parseStrings() {
+	p.array(func(idx int) {
+		id := StringID(idx)
+		s := p.str()
+		p.tree.strings.m[s] = id
+		p.tree.strings.s = append(p.tree.strings.s, s)
+	})
+}
+
+func (p *parser) parseTests(t *Test) {
+	p.array(func(idx int) {
+		p.expect("[")
+		name := StringID(p.integer())
+		child, _ := t.index(name)
+		p.expect(",")
+		p.parseTests(child)
+		p.expect("]")
+	})
+}
+
+func (p *parser) parseSpans() {
+	p.array(func(idx int) {
+		p.tree.spans[p.parseSpan()] = SpanID(idx)
+	})
+}
+
+func (p *parser) parseSpan() Span {
+	p.expect("[")
+	s := Span{}
+	s.Start.Line = p.integer()
+	p.expect(",")
+	s.Start.Column = p.integer()
+	p.expect(",")
+	s.End.Line = p.integer()
+	p.expect(",")
+	s.End.Column = p.integer()
+	p.expect("]")
+	return s
+}
+
+func (p *parser) parseFiles() {
+	p.dict(func(path string) {
+		file := TestCoverageMap{}
+		p.tree.files[path] = file
+		p.parseCoverageMap(file)
+	})
+}
+
+func (p *parser) parseCoverageMap(tcm TestCoverageMap) {
+	p.array(func(int) {
+		p.expect("[")
+		idx := TestIndex(p.integer())
+		p.expect(",")
+		p.parseCoverage(tcm.index(idx))
+		p.expect("]")
+	})
+}
+
+func (p *parser) parseCoverage(tc *TestCoverage) {
+	p.dict(func(key string) {
+		switch key {
+		case "s":
+			p.array(func(int) {
+				id := SpanID(p.integer())
+				tc.Spans[id] = struct{}{}
+			})
+		case "c":
+			p.parseCoverageMap(tc.Children)
+		default:
+			p.fail("Unknown test key: '%s'", key)
+		}
+	})
+}
+
+func (p *parser) array(f func(idx int)) {
+	p.expect("[")
+	if p.match("]") {
+		return
+	}
+	idx := 0
+	for p.err == nil {
+		f(idx)
+		if !p.match(",") {
+			p.expect("]")
+			return
+		}
+		idx++
+	}
+	p.expect("]")
+}
+
+func (p *parser) dict(f func(key string)) {
+	p.expect("{")
+	if p.match("}") {
+		return
+	}
+	for p.err == nil {
+		key := p.str()
+		p.expect(`:`)
+		f(key)
+		if !p.match(",") {
+			p.expect("}")
+			return
+		}
+	}
+	p.expect("}")
+}
+
+func (p *parser) next() byte {
+	d := make([]byte, 1)
+	n, err := p.r.Read(d)
+	if err != nil || n != 1 {
+		p.err = err
+		return 0
+	}
+	return d[0]
+}
+
+func (p *parser) peek() byte {
+	d, err := p.r.Peek(1)
+	if err != nil {
+		p.err = err
+		return 0
+	}
+	return d[0]
+}
+
+func (p *parser) expect(s string) {
+	if p.err != nil {
+		return
+	}
+	d := make([]byte, len(s))
+	n, err := p.r.Read(d)
+	if err != nil {
+		p.err = err
+		return
+	}
+	got := string(d[:n])
+	if got != s {
+		p.fail("Expected '%v', got '%v'", s, got)
+		return
+	}
+}
+
+func (p *parser) match(s string) bool {
+	got, err := p.r.Peek(len(s))
+	if err != nil {
+		return false
+	}
+	if string(got) != s {
+		return false
+	}
+	p.r.Discard(len(s))
+	return true
+}
+
+func (p *parser) str() string {
+	p.expect(`"`)
+	sb := strings.Builder{}
+	for p.err == nil {
+		c := p.next()
+		if c == '"' {
+			return sb.String()
+		}
+		sb.WriteByte(c)
+	}
+	return ""
+}
+
+func (p *parser) integer() int {
+	sb := strings.Builder{}
+	for {
+		if c := p.peek(); c < '0' || c > '9' {
+			break
+		}
+		sb.WriteByte(p.next())
+	}
+	if sb.Len() == 0 {
+		p.fail("Expected integer, got '%c'", p.peek())
+		return 0
+	}
+	i, err := strconv.Atoi(sb.String())
+	if err != nil {
+		p.fail("Failed to parse integer: %v", err)
+		return 0
+	}
+	return i
+}
+
+func (p *parser) fail(msg string, args ...interface{}) {
+	if p.err == nil {
+		msg = fmt.Sprintf(msg, args...)
+		stack := string(debug.Stack())
+		p.err = fmt.Errorf("%v\nCallstack:\n%v", msg, stack)
+	}
 }

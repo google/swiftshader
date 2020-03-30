@@ -255,3 +255,30 @@ func spans(ids ...cov.SpanID) cov.SpanSet {
 	}
 	return out
 }
+
+func TestTreeEncodeDecode(t *testing.T) {
+	orig := &cov.Tree{}
+	orig.Add(cov.Path{"a", "b"}, coverage(fileA, span0, span1))
+	orig.Add(cov.Path{"a", "b", "d", "i"}, coverage(fileA, span0, span1))
+	orig.Add(cov.Path{"a", "b", "e"}, coverage(fileA, span0, span1, span2))
+	orig.Add(cov.Path{"a", "c", "g", "n"}, coverage(fileB, span0, span3))
+	orig.Add(cov.Path{"a", "c", "g", "o"}, coverage(fileB, span0, span3))
+	orig.Add(cov.Path{"a", "c", "f"}, coverage(fileA, span1))
+	orig.Add(cov.Path{"a", "b", "e", "j"}, coverage(fileC, span3))
+	orig.Add(cov.Path{"a", "b", "e", "k"}, coverage(fileA, span3))
+	orig.Add(cov.Path{"a", "c", "f", "l", "v"}, coverage(fileA, span1, span2))
+	orig.Add(cov.Path{"a", "c", "f", "l", "x"}, coverage(fileA, span1, span2))
+	orig.Add(cov.Path{"a", "c", "g", "n", "z"}, coverage(fileC, span2))
+	orig.Add(cov.Path{"a", "b"}, coverage(fileA, span0, span1))
+	orig.Add(cov.Path{"a", "b"}, coverage(fileA, span0, span1))
+
+	origJSON := orig.JSON("revision goes here")
+	read, revision, err := cov.ReadJSON(strings.NewReader(origJSON))
+	if err != nil {
+		t.Fatalf("cov.ReadJSON() failed with: %v", err)
+	}
+	readJSON := read.JSON(revision)
+	if origJSON != readJSON {
+		t.Fatalf("Encode -> Decode -> Encode produced different results:\nOriginal:\n\n%v\n\nRead:\n\n%v", origJSON, readJSON)
+	}
+}
