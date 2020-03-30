@@ -354,9 +354,6 @@ set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 set(ASTC_DIR ${THIRD_PARTY_DIR}/astc-encoder)
-set(LIBBACKTRACE_DIR ${THIRD_PARTY_DIR}/libbacktrace/src)
-set(LIBBACKTRACE_CONFIG_DIR ${THIRD_PARTY_DIR}/libbacktrace/config)
-set(LIBBACKTRACE_INCLUDE_DIR ${THIRD_PARTY_DIR}/libbacktrace/src)
 set(CPPDAP_DIR ${THIRD_PARTY_DIR}/cppdap)
 set(CPPDAP_INCLUDE_DIR ${CPPDAP_DIR}/include)
 set(JSON_INCLUDE_DIR ${THIRD_PARTY_DIR}/json/include)
@@ -425,10 +422,6 @@ if(MSVC)
         "/we5038" # data member 'member1' will be initialized after data member 'member2' data member 'member' will be initialized after base class 'base_class'
     )
 else()
-    list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-        "-fno-exceptions"
-    )
-
     # Explicitly enable these warnings.
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS
         "-Wall"
@@ -610,6 +603,17 @@ if(WIN32)
     set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib")
 endif()
 
+set(USE_EXCEPTIONS
+    ${REACTOR_EMIT_DEBUG_INFO} # boost::stacktrace uses exceptions
+)
+if(NOT MSVC)
+    if (${USE_EXCEPTIONS})
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-fexceptions")
+    else()
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-fno-exceptions")
+    endif()
+endif()
+
 # Transform SWIFTSHADER_LINK_FLAGS from semicolon delimited to whitespace
 # delimited (what is expected by LINK_FLAGS)
 string(REPLACE ";" " " SWIFTSHADER_LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}")
@@ -676,7 +680,6 @@ target_link_libraries(ReactorSubzero subzero marl)
 set(COMMON_INCLUDE_DIR
     ${SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${LIBBACKTRACE_INCLUDE_DIR}
 )
 set(OPENGL_INCLUDE_DIR
     ${OPENGL_DIR}
@@ -717,35 +720,6 @@ list(REMOVE_ITEM SWIFTSHADER_LIST
     ${SOURCE_DIR}/Common/GrallocAndroid.cpp
     ${SOURCE_DIR}/Common/GrallocAndroid.hpp
 )
-
-if(REACTOR_EMIT_DEBUG_INFO)
-    set(LIBBACKTRACE_LIST
-        ${LIBBACKTRACE_DIR}/atomic.c
-        ${LIBBACKTRACE_DIR}/backtrace.c
-        ${LIBBACKTRACE_DIR}/backtrace.h
-        ${LIBBACKTRACE_DIR}/dwarf.c
-        ${LIBBACKTRACE_DIR}/fileline.c
-        ${LIBBACKTRACE_DIR}/filenames.h
-        ${LIBBACKTRACE_DIR}/internal.h
-        ${LIBBACKTRACE_DIR}/mmap.c
-        ${LIBBACKTRACE_DIR}/mmapio.c
-        ${LIBBACKTRACE_DIR}/posix.c
-        ${LIBBACKTRACE_DIR}/print.c
-        ${LIBBACKTRACE_DIR}/simple.c
-        ${LIBBACKTRACE_DIR}/sort.c
-        ${LIBBACKTRACE_DIR}/state.c
-        ${LIBBACKTRACE_INCLUDE_DIR}/backtrace-supported.h
-        ${LIBBACKTRACE_INCLUDE_DIR}/config.h
-    )
-
-    if(WIN32)
-        list(APPEND LIBBACKTRACE_LIST ${LIBBACKTRACE_DIR}/pecoff.c)
-    elseif(LINUX)
-        list(APPEND LIBBACKTRACE_LIST ${LIBBACKTRACE_DIR}/elf.c)
-    elseif(APPLE)
-        message(FATAL_ERROR "libbacktrace does not support mach-o yet")
-    endif()
-endif(REACTOR_EMIT_DEBUG_INFO)
 
 set(REACTOR_LLVM_LIST
     ${SOURCE_DIR}/Reactor/CPUID.cpp
@@ -1015,19 +989,9 @@ if(REACTOR_EMIT_DEBUG_INFO)
         target_compile_definitions(${Reactor} PRIVATE BOOST_STACKTRACE_USE_WINDBG_CACHED)
     else()
         # Boost stacktrace uses libbacktrace
+        add_subdirectory(third_party/libbacktrace)
         target_compile_definitions(${Reactor} PRIVATE BOOST_STACKTRACE_USE_BACKTRACE)
-
-        # Boost stacktrace uses exceptions, so force enable it
-        set_cpp_flag("-fexceptions")
-
-        add_library(Libbacktrace STATIC EXCLUDE_FROM_ALL ${LIBBACKTRACE_LIST})
-        set_target_properties(Libbacktrace PROPERTIES
-            INCLUDE_DIRECTORIES "${LIBBACKTRACE_INCLUDE_DIR}"
-            POSITION_INDEPENDENT_CODE 1
-            FOLDER "Core"
-        )
-        target_link_libraries(Libbacktrace ${OS_LIBS} ${SWIFTSHADER_LIBS})
-        target_link_libraries(${Reactor} Libbacktrace)
+        target_link_libraries(${Reactor} libbacktrace)
     endif()
 
     # Download boost and use it
@@ -1263,12 +1227,7 @@ if(SWIFTSHADER_BUILD_TESTS)
         LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         FOLDER "Tests"
     )
-
-    if(NOT WIN32 AND ${REACTOR_BACKEND} STREQUAL "Subzero")
-        target_link_libraries(ReactorUnitTests ${Reactor} pthread dl)
-    else()
-        target_link_libraries(ReactorUnitTests ${Reactor})
-    endif()
+    target_link_libraries(ReactorUnitTests ${Reactor} ${OS_LIBS})
 
     set(GLES_UNITTESTS_LIST
         ${TESTS_DIR}/GLESUnitTests/main.cpp
