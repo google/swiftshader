@@ -123,8 +123,7 @@ option_if_not_defined(SWIFTSHADER_GET_PVR "Check out the PowerVR submodule" FALS
 
 option_if_not_defined(SWIFTSHADER_USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" TRUE)
 
-option_if_not_defined(SWIFTSHADER_BUILD_SAMPLES "Build sample programs" TRUE)
-option_if_not_defined(SWIFTSHADER_BUILD_TESTS "Build test programs" TRUE)
+option_if_not_defined(SWIFTSHADER_BUILD_TESTS "Build unit tests" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_BENCHMARKS "Build benchmarks" FALSE)
 
 option_if_not_defined(SWIFTSHADER_MSAN "Build with memory sanitizer" FALSE)
@@ -1365,47 +1364,6 @@ endif()
 ###########################################################
 # Sample programs and tests
 ###########################################################
-
-if(SWIFTSHADER_BUILD_SAMPLES)
-    if(WIN32)
-        add_executable(Legacy_OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_Windows.cpp)
-        set_target_properties(Legacy_OGLES2HelloAPI PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
-            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
-            COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
-            FOLDER "Samples"
-        )
-        target_link_libraries(Legacy_OGLES2HelloAPI libEGL libGLESv2)
-        set_property(TARGET Legacy_OGLES2HelloAPI APPEND_STRING PROPERTY LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-        set(CMAKE_DEFAULT_STARTUP_PROJECT Legacy_OGLES2HelloAPI)
-    elseif(LINUX)
-        add_executable(Legacy_OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
-        set_target_properties(Legacy_OGLES2HelloAPI PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
-            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
-            COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
-            LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        )
-        target_link_libraries(Legacy_OGLES2HelloAPI dl ${X11} libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
-    elseif(APPLE)
-        add_executable(Legacy_OGLES2HelloAPI MACOSX_BUNDLE
-            ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm
-            ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
-        )
-        set_target_properties(Legacy_OGLES2HelloAPI PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
-            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};-Wno-deprecated-declarations" # 'NSTitledWindowMask', 'NSClosableWindowMask' is deprecated
-            COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
-            LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-            MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
-        )
-        target_link_libraries(Legacy_OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
-        set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
-            MACOSX_PACKAGE_LOCATION "Resources"
-        )
-    endif()
-endif(SWIFTSHADER_BUILD_SAMPLES)
-
 
 if(SWIFTSHADER_BUILD_TESTS)
     set(REACTOR_UNIT_TESTS_LIST
