@@ -1368,38 +1368,38 @@ endif()
 
 if(SWIFTSHADER_BUILD_SAMPLES)
     if(WIN32)
-        add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_Windows.cpp)
-        set_target_properties(OGLES2HelloAPI PROPERTIES
+        add_executable(Legacy_OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_Windows.cpp)
+        set_target_properties(Legacy_OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
             FOLDER "Samples"
         )
-        target_link_libraries(OGLES2HelloAPI libEGL libGLESv2)
-        set_property(TARGET OGLES2HelloAPI APPEND_STRING PROPERTY LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-        set(CMAKE_DEFAULT_STARTUP_PROJECT OGLES2HelloAPI)
+        target_link_libraries(Legacy_OGLES2HelloAPI libEGL libGLESv2)
+        set_property(TARGET Legacy_OGLES2HelloAPI APPEND_STRING PROPERTY LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+        set(CMAKE_DEFAULT_STARTUP_PROJECT Legacy_OGLES2HelloAPI)
     elseif(LINUX)
-        add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
-        set_target_properties(OGLES2HelloAPI PROPERTIES
+        add_executable(Legacy_OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
+        set_target_properties(Legacy_OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
             LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         )
-        target_link_libraries(OGLES2HelloAPI dl ${X11} libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
+        target_link_libraries(Legacy_OGLES2HelloAPI dl ${X11} libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
     elseif(APPLE)
-        add_executable(OGLES2HelloAPI MACOSX_BUNDLE
+        add_executable(Legacy_OGLES2HelloAPI MACOSX_BUNDLE
             ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm
             ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
         )
-        set_target_properties(OGLES2HelloAPI PROPERTIES
+        set_target_properties(Legacy_OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};-Wno-deprecated-declarations" # 'NSTitledWindowMask', 'NSClosableWindowMask' is deprecated
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
             LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
             MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
         )
-        target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS} ${SWIFTSHADER_LIBS})
+        target_link_libraries(Legacy_OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
         set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
         )
@@ -1557,38 +1557,73 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/bin/${VULKAN_API_LIBRARY_NAME}
         )
+        add_custom_command(
+            TARGET libGLESv2
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:libGLESv2>
+        )
+        add_custom_command(
+            TARGET libEGL
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:libEGL>
+        )
     endif()
 
     # Samples known to work well
     set(PVR_VULKAN_TARGET_GOOD
         VulkanBumpmap
+        VulkanExampleUI
+        VulkanGaussianBlur
         VulkanGlass
         VulkanGnomeHorde
         VulkanHelloAPI
         VulkanImageBasedLighting
+        VulkanIntroducingPVRUtils
         VulkanMultiSampling
+        VulkanNavigation2D
+        VulkanParticleSystem
         VulkanSkinning
+    )
+
+    set(PVR_GLES_TARGET_GOOD
+        OpenGLESHelloAPI
+        OpenGLESIntroducingPVRUtils
+        OpenGLESNavigation2D
     )
 
     set(PVR_VULKAN_TARGET_OTHER
         VulkanDeferredShading
         VulkanDeferredShadingPFX
-        VulkanExampleUI
         VulkanGameOfLife
-        VulkanGaussianBlur
         VulkanIBLMapsGenerator
         VulkanIMGTextureFilterCubic
         VulkanIntroducingPVRShell
-        VulkanIntroducingPVRUtils
         VulkanIntroducingPVRVk
         VulkanIntroducingUIRenderer
         VulkanMultithreading
-        VulkanNavigation2D
         VulkanNavigation3D
-        VulkanParticleSystem
         VulkanPostProcessing
         VulkanPVRScopeExample
         VulkanPVRScopeRemote
+    )
+
+    set(PVR_GLES_TARGET_OTHER
+        OpenGLESDeferredShading
+        OpenGLESGaussianBlur
+        OpenGLESImageBasedLighting
+        OpenGLESIMGFramebufferDownsample
+        OpenGLESIMGTextureFilterCubic
+        OpenGLESIntroducingPVRCamera
+        OpenGLESIntroducingPVRShell
+        OpenGLESIntroducingUIRenderer
+        OpenGLESMultiviewVR
+        OpenGLESNavigation3D
+        OpenGLESOpenCLExample
+        OpenGLESParticleSystem
+        OpenGLESPostProcessing
+        OpenGLESPVRScopeExample
+        OpenGLESPVRScopeRemote
+        OpenGLESSkinning
     )
 
     set(PVR_TARGET_OTHER
@@ -1598,25 +1633,6 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
         OGLCompiler
         OSDependent
         OpenCLMatrixMultiplication
-        OpenGLESDeferredShading
-        OpenGLESGaussianBlur
-        OpenGLESHelloAPI
-        OpenGLESImageBasedLighting
-        OpenGLESIMGFramebufferDownsample
-        OpenGLESIMGTextureFilterCubic
-        OpenGLESIntroducingPVRCamera
-        OpenGLESIntroducingPVRShell
-        OpenGLESIntroducingPVRUtils
-        OpenGLESIntroducingUIRenderer
-        OpenGLESMultiviewVR
-        OpenGLESNavigation2D
-        OpenGLESNavigation3D
-        OpenGLESOpenCLExample
-        OpenGLESParticleSystem
-        OpenGLESPostProcessing
-        OpenGLESPVRScopeExample
-        OpenGLESPVRScopeRemote
-        OpenGLESSkinning
         pugixml
         PVRAssets
         PVRCamera
@@ -1637,15 +1653,25 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
         ${PVR_VULKAN_TARGET_OTHER}
     )
 
+    set(PVR_GLES_TARGET
+        ${PVR_GLES_TARGET_GOOD}
+        ${PVR_GLES_TARGET_OTHER}
+    )
+
     foreach(pvr_target ${PVR_VULKAN_TARGET})
         add_dependencies(${pvr_target} vk_swiftshader)
     endforeach()
 
-    foreach(pvr_target ${PVR_VULKAN_TARGET_GOOD})
+    foreach(pvr_target ${PVR_GLES_TARGET})
+        add_dependencies(${pvr_target} libGLESv2)
+        add_dependencies(${pvr_target} libEGL)
+    endforeach()
+
+    foreach(pvr_target ${PVR_VULKAN_TARGET_GOOD} ${PVR_GLES_TARGET_GOOD})
         set_target_properties(${pvr_target} PROPERTIES FOLDER Samples)
     endforeach()
 
-    foreach(pvr_target ${PVR_TARGET_OTHER} ${PVR_VULKAN_TARGET_OTHER})
+    foreach(pvr_target ${PVR_TARGET_OTHER} ${PVR_VULKAN_TARGET_OTHER} ${PVR_GLES_TARGET_OTHER})
         set_target_properties(${pvr_target} PROPERTIES FOLDER Samples/PowerVR-Build)
     endforeach()
 endif()
