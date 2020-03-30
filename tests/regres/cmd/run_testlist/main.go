@@ -36,6 +36,7 @@ import (
 	"strings"
 	"time"
 
+	"../../cause"
 	"../../cov"
 	"../../deqp"
 	"../../llvm"
@@ -132,8 +133,12 @@ func run() error {
 	}
 
 	if *genCoverage {
-		if err := ioutil.WriteFile("coverage.json", []byte(res.Coverage.JSON("master")), 0666); err != nil {
-			return err
+		f, err := os.Create("coverage.dat")
+		if err != nil {
+			return cause.Wrap(err, "Couldn't open coverage.dat file")
+		}
+		if err := res.Coverage.Encode("master", f); err != nil {
+			return cause.Wrap(err, "Couldn't encode coverage data")
 		}
 	}
 

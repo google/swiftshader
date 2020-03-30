@@ -26,14 +26,12 @@
 package main
 
 import (
-	"archive/zip"
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"math"
@@ -759,33 +757,23 @@ func (r *regres) commitCoverage(cov *cov.Tree, revision git.Hash) error {
 	dir := filepath.Join(r.cacheRoot, "coverage")
 	defer os.RemoveAll(dir)
 	if err := git.CheckoutRemoteBranch(dir, url, coverageBranch); err != nil {
-		return fmt.Errorf("Failed to checkout gh-pages branch: %v", err)
+		return cause.Wrap(err, "Failed to checkout gh-pages branch")
 	}
 
-	filePath := filepath.Join(dir, "coverage.zip")
+	filePath := filepath.Join(dir, "coverage.dat")
 	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("Failed to create file '%s': %v", filePath, err)
+		return cause.Wrap(err, "Failed to create file '%s'", filePath)
 	}
 	defer file.Close()
 
-	coverage := cov.JSON(revision.String())
-
-	zw := zip.NewWriter(file)
-	zfw, err := zw.Create("coverage.json")
-	if err != nil {
-		return fmt.Errorf("Failed to create 'coverage.json' file in zip: %v", err)
-	}
-	if _, err := io.Copy(zfw, strings.NewReader(coverage)); err != nil {
-		return fmt.Errorf("Failed to compress coverage datas: %v", err)
-	}
-	if err := zw.Close(); err != nil {
-		return fmt.Errorf("Failed to close zip file: %v", err)
+	if err := cov.Encode(revision.String(), file); err != nil {
+		return cause.Wrap(err, "Failed to encode coverage")
 	}
 	file.Close()
 
 	if err := git.Add(dir, filePath); err != nil {
-		return fmt.Errorf("Failed to git add '%s': %v", filePath, err)
+		return cause.Wrap(err, "Failed to git add '%s'", filePath)
 	}
 
 	shortHash := revision.String()[:8]
@@ -795,17 +783,16 @@ func (r *regres) commitCoverage(cov *cov.Tree, revision git.Hash) error {
 		Email: r.gerritEmail,
 	})
 	if err != nil {
-		return fmt.Errorf("Failed to 'git commit': %v", err)
+		return cause.Wrap(err, "Failed to git commit")
 	}
 
 	if !r.dryRun {
 		err = git.Push(dir, url, coverageBranch, coverageBranch, git.PushFlags{})
 		if err != nil {
-			return fmt.Errorf("Failed to 'git push': %v", err)
+			return cause.Wrap(err, "Failed to 'git push'")
 		}
+		log.Printf("Coverage for %v pushed to Github\n", shortHash)
 	}
-
-	log.Printf("Coverage for %v pushed to Github\n", shortHash)
 
 	return nil
 }

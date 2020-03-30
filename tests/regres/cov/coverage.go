@@ -19,10 +19,12 @@ package cov
 import (
 	"bufio"
 	"bytes"
+	"compress/zlib"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +32,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"../cause"
 	"../llvm"
@@ -252,6 +255,18 @@ func (e Env) parseTurboCov(data []byte) (*Coverage, error) {
 // Path is a tree node path formed from a list of strings
 type Path []string
 
+type treeFile struct {
+	tcm        TestCoverageMap
+	spangroups map[SpanGroupID]SpanGroup
+}
+
+func newTreeFile() *treeFile {
+	return &treeFile{
+		tcm:        TestCoverageMap{},
+		spangroups: map[SpanGroupID]SpanGroup{},
+	}
+}
+
 // Tree represents source code coverage across a tree of different processes.
 // Each tree node is addressed by a Path.
 type Tree struct {
@@ -259,7 +274,7 @@ type Tree struct {
 	strings     Strings
 	spans       map[Span]SpanID
 	testRoot    Test
-	files       map[string]TestCoverageMap
+	files       map[string]*treeFile
 }
 
 func (t *Tree) init() {
@@ -267,7 +282,7 @@ func (t *Tree) init() {
 		t.strings.m = map[string]StringID{}
 		t.spans = map[Span]SpanID{}
 		t.testRoot = newTest()
-		t.files = map[string]TestCoverageMap{}
+		t.files = map[string]*treeFile{}
 		t.initialized = true
 	}
 }
@@ -290,9 +305,9 @@ func (t *Tree) Spans() []Span {
 	return out
 }
 
-// File returns the TestCoverageMap for the given file
-func (t *Tree) File(path string) TestCoverageMap {
-	return t.files[path]
+// FileCoverage returns the TestCoverageMap for the given file
+func (t *Tree) FileCoverage(path string) TestCoverageMap {
+	return t.files[path].tcm
 }
 
 // Tests returns the root test
@@ -334,17 +349,17 @@ nextFile:
 	// For each file with coverage...
 	for _, file := range cov.Files {
 		// Lookup or create the file's test coverage map
-		tcm, ok := t.files[file.Path]
+		tf, ok := t.files[file.Path]
 		if !ok {
-			tcm = TestCoverageMap{}
-			t.files[file.Path] = tcm
+			tf = newTreeFile()
+			t.files[file.Path] = tf
 		}
 
 		// Add all the spans to the map, get the span ids
 		spans := t.addSpans(file.Spans)
 
 		// Starting from the test root, walk down the test tree.
-		test := t.testRoot
+		tcm, test := tf.tcm, t.testRoot
 		parent := (*TestCoverage)(nil)
 		for _, indexedTest := range tests {
 			if indexedTest.created {
@@ -471,6 +486,7 @@ func (t Test) String(s Strings) string {
 // child test.
 type TestCoverage struct {
 	Spans    SpanSet
+	Group    *SpanGroupID
 	Children TestCoverageMap
 }
 
@@ -487,6 +503,13 @@ func (tc TestCoverage) String(t *Test, s Strings) string {
 
 // TestCoverageMap is a map of TestIndex to *TestCoverage.
 type TestCoverageMap map[TestIndex]*TestCoverage
+
+func (tcm TestCoverageMap) traverse(cb func(*TestCoverage)) {
+	for _, tc := range tcm {
+		cb(tc)
+		tc.Children.traverse(cb)
+	}
+}
 
 func (tcm TestCoverageMap) String(t *Test, s Strings) string {
 	sb := strings.Builder{}
@@ -547,6 +570,15 @@ func (s SpanSet) String() string {
 	return sb.String()
 }
 
+func (s SpanSet) containsAll(rhs SpanSet) bool {
+	for span := range rhs {
+		if _, found := s[span]; !found {
+			return false
+		}
+	}
+	return true
+}
+
 func (s SpanSet) sub(rhs SpanSet) SpanSet {
 	out := make(SpanSet, len(s))
 	for span := range s {
@@ -568,8 +600,128 @@ func (s SpanSet) add(rhs SpanSet) SpanSet {
 	return out
 }
 
+// SpanGroupID is an identifier of a SpanGroup.
+type SpanGroupID int
+
+// SpanGroup holds a number of spans, potentially extending from another
+// SpanGroup.
+type SpanGroup struct {
+	spans  SpanSet
+	extend *SpanGroupID
+}
+
+func newSpanGroup() SpanGroup {
+	return SpanGroup{spans: SpanSet{}}
+}
+
 func indent(s string) string {
 	return strings.TrimSuffix(strings.ReplaceAll(s, "\n", "\n  "), "  ")
+}
+
+// Optimize optimizes the Tree by de-duplicating common spans into a tree of
+// SpanGroups.
+func (t *Tree) Optimize() {
+	log.Printf("Optimizing coverage tree...")
+
+	// Start by gathering all of the unique spansets
+	wg := sync.WaitGroup{}
+	wg.Add(len(t.files))
+	for _, file := range t.files {
+		file := file
+		go func() {
+			defer wg.Done()
+			file.optimize()
+		}()
+	}
+	wg.Wait()
+}
+
+func (f *treeFile) optimize() {
+	const minSpansInGroup = 2
+
+	type spansetKey string
+	spansetMap := map[spansetKey]SpanSet{}
+
+	f.tcm.traverse(func(tc *TestCoverage) {
+		if len(tc.Spans) >= minSpansInGroup {
+			key := spansetKey(tc.Spans.String())
+			if _, ok := spansetMap[key]; !ok {
+				spansetMap[key] = tc.Spans
+			}
+		}
+	})
+
+	if len(spansetMap) == 0 {
+		return
+	}
+
+	// Sort by number of spans in each sets.
+	type spansetInfo struct {
+		key spansetKey
+		set SpanSet // fully expanded set
+		grp SpanGroup
+		id  SpanGroupID
+	}
+	spansets := make([]*spansetInfo, 0, len(spansetMap))
+	for key, set := range spansetMap {
+		spansets = append(spansets, &spansetInfo{
+			key: key,
+			set: set,
+			grp: SpanGroup{spans: set},
+			id:  SpanGroupID(len(spansets)),
+		})
+	}
+	sort.Slice(spansets, func(i, j int) bool { return len(spansets[i].set) > len(spansets[j].set) })
+
+	// Loop over the spanGroups starting from the largest, and try to fold them
+	// into the larger sets.
+	// This is O(n^2) complexity.
+nextSpan:
+	for i, a := range spansets[:len(spansets)-1] {
+		for _, b := range spansets[i+1:] {
+			if len(a.set) > len(b.set) && a.set.containsAll(b.set) {
+				extend := b.id // Do not take address of iterator!
+				a.grp.spans = a.set.sub(b.set)
+				a.grp.extend = &extend
+				continue nextSpan
+			}
+		}
+	}
+
+	// Rebuild a map of spansetKey to SpanGroup
+	spangroupMap := make(map[spansetKey]*spansetInfo, len(spansets))
+	for _, s := range spansets {
+		spangroupMap[s.key] = s
+	}
+
+	// Store the groups in the tree
+	f.spangroups = make(map[SpanGroupID]SpanGroup, len(spansets))
+	for _, s := range spansets {
+		f.spangroups[s.id] = s.grp
+	}
+
+	// Update all the uses.
+	f.tcm.traverse(func(tc *TestCoverage) {
+		key := spansetKey(tc.Spans.String())
+		if g, ok := spangroupMap[key]; ok {
+			tc.Spans = nil
+			tc.Group = &g.id
+		}
+	})
+}
+
+// Encode zlib encodes the JSON coverage tree to w.
+func (t *Tree) Encode(revision string, w io.Writer) error {
+	t.Optimize()
+
+	zw := zlib.NewWriter(w)
+
+	_, err := zw.Write([]byte(t.JSON(revision)))
+	if err != nil {
+		return err
+	}
+
+	return zw.Close()
 }
 
 // JSON returns the full test tree serialized to JSON.
@@ -644,10 +796,9 @@ func (t *Tree) writeSpansJSON(sb *strings.Builder) {
 		if i > 0 {
 			sb.WriteString(`,`)
 		}
-		span := s.span
 		sb.WriteString(fmt.Sprintf("[%v,%v,%v,%v]",
-			span.Start.Line, span.Start.Column,
-			span.End.Line, span.End.Column))
+			s.span.Start.Line, s.span.Start.Column,
+			s.span.End.Line, s.span.End.Column))
 	}
 
 	sb.WriteString(`]`)
@@ -662,15 +813,59 @@ func (t *Tree) writeFilesJSON(sb *strings.Builder) {
 
 	sb.WriteString(`{`)
 	for i, path := range paths {
+		file := t.files[path]
 		if i > 0 {
 			sb.WriteString(`,`)
 		}
 		sb.WriteString(`"`)
 		sb.WriteString(path)
 		sb.WriteString(`":`)
-		t.writeCoverageMapJSON(t.files[path], sb)
+		sb.WriteString(`{`)
+		sb.WriteString(`"g":`)
+		t.writeSpanGroupsJSON(file.spangroups, sb)
+		sb.WriteString(`,"c":`)
+		t.writeCoverageMapJSON(file.tcm, sb)
+		sb.WriteString(`}`)
 	}
 
+	sb.WriteString(`}`)
+}
+
+func (t *Tree) writeSpanGroupsJSON(spangroups map[SpanGroupID]SpanGroup, sb *strings.Builder) {
+	type groupAndID struct {
+		group SpanGroup
+		id    SpanGroupID
+	}
+	groups := make([]groupAndID, 0, len(spangroups))
+	for id, group := range spangroups {
+		groups = append(groups, groupAndID{group, id})
+	}
+	sort.Slice(groups, func(i, j int) bool { return groups[i].id < groups[j].id })
+
+	sb.WriteString(`[`)
+	for i, g := range groups {
+		if i > 0 {
+			sb.WriteString(`,`)
+		}
+		t.writeSpanGroupJSON(g.group, sb)
+	}
+	sb.WriteString(`]`)
+}
+
+func (t *Tree) writeSpanGroupJSON(group SpanGroup, sb *strings.Builder) {
+	sb.WriteString(`{`)
+	sb.WriteString(`"s":[`)
+	for i, spanID := range group.spans.List() {
+		if i > 0 {
+			sb.WriteString(`,`)
+		}
+		sb.WriteString(fmt.Sprintf("%v", spanID))
+	}
+	sb.WriteString(`]`)
+	if group.extend != nil {
+		sb.WriteString(`,"e":`)
+		sb.WriteString(fmt.Sprintf("%v", *group.extend))
+	}
 	sb.WriteString(`}`)
 }
 
@@ -710,6 +905,11 @@ func (t *Tree) writeCoverageJSON(c *TestCoverage, sb *strings.Builder) {
 		sb.WriteString(`]`)
 		comma = true
 	}
+	if c.Group != nil {
+		sb.WriteString(`"g":`)
+		sb.WriteString(fmt.Sprintf("%v", *c.Group))
+		comma = true
+	}
 	if len(c.Children) > 0 {
 		if comma {
 			sb.WriteString(`,`)
@@ -746,6 +946,8 @@ func (p *parser) parse() (*Tree, string, error) {
 			p.parseTests(&p.tree.testRoot)
 		case "s":
 			p.parseSpans()
+		case "g":
+			p.parseSpanGroups()
 		case "f":
 			p.parseFiles()
 		default:
@@ -800,10 +1002,48 @@ func (p *parser) parseSpan() Span {
 
 func (p *parser) parseFiles() {
 	p.dict(func(path string) {
-		file := TestCoverageMap{}
-		p.tree.files[path] = file
-		p.parseCoverageMap(file)
+		p.tree.files[path] = p.parseFile()
 	})
+}
+
+func (p *parser) parseFile() *treeFile {
+	file := newTreeFile()
+	if p.peek() == '{' {
+		p.dict(func(key string) {
+			switch key {
+			case "g":
+				file.spangroups = p.parseSpanGroups()
+			case "c":
+				p.parseCoverageMap(file.tcm)
+			default:
+				p.fail("Unknown file key: '%s'", key)
+			}
+		})
+	} else { // backwards compatibility
+		p.parseCoverageMap(file.tcm)
+	}
+	return file
+}
+
+func (p *parser) parseSpanGroups() map[SpanGroupID]SpanGroup {
+	spangroups := map[SpanGroupID]SpanGroup{}
+	p.array(func(groupIdx int) {
+		g := newSpanGroup()
+		p.dict(func(key string) {
+			switch key {
+			case "s":
+				p.array(func(spanIdx int) {
+					id := SpanID(p.integer())
+					g.spans[id] = struct{}{}
+				})
+			case "e":
+				extend := SpanGroupID(p.integer())
+				g.extend = &extend
+			}
+		})
+		spangroups[SpanGroupID(groupIdx)] = g
+	})
+	return spangroups
 }
 
 func (p *parser) parseCoverageMap(tcm TestCoverageMap) {
@@ -824,6 +1064,9 @@ func (p *parser) parseCoverage(tc *TestCoverage) {
 				id := SpanID(p.integer())
 				tc.Spans[id] = struct{}{}
 			})
+		case "g":
+			groupID := SpanGroupID(p.integer())
+			tc.Group = &groupID
 		case "c":
 			p.parseCoverageMap(tc.Children)
 		default:

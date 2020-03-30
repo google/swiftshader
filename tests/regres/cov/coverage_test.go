@@ -225,7 +225,7 @@ func checkTests(t *testing.T, tree *cov.Tree, expect string) {
 }
 
 func checkCoverage(t *testing.T, tree *cov.Tree, file string, expect string) {
-	g, e := tree.File(file).String(tree.Tests(), tree.Strings()), expect
+	g, e := tree.FileCoverage(file).String(tree.Tests(), tree.Strings()), expect
 	if tg, te := trimWS(g), trimWS(e); tg != te {
 		t.Errorf("Coverage not as expected.\nGot:\n%v\nExpect:\n%v\n------\nGot:    %v\nExpect: %v", g, e, tg, te)
 	}
