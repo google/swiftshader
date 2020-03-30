@@ -577,9 +577,17 @@ endif()
 string(REPLACE ";" " " SWIFTSHADER_LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}")
 
 ###########################################################
+# libbacktrace and boost
+###########################################################
+if(REACTOR_EMIT_DEBUG_INFO)
+    add_subdirectory(third_party/libbacktrace EXCLUDE_FROM_ALL)
+    add_subdirectory(third_party/boost EXCLUDE_FROM_ALL)
+endif()
+
+###########################################################
 # LLVM
 ###########################################################
-add_subdirectory(third_party/llvm-${SWIFTSHADER_LLVM_VERSION})
+add_subdirectory(third_party/llvm-${SWIFTSHADER_LLVM_VERSION} EXCLUDE_FROM_ALL)
 
 ###########################################################
 # Subzero
@@ -604,32 +612,6 @@ if(SWIFTSHADER_BUILD_CPPDAP)
     add_subdirectory(${CPPDAP_DIR})
 endif()
 
-set(SUBZERO_REACTOR_LIST
-    ${SOURCE_DIR}/Reactor/Debug.cpp
-    ${SOURCE_DIR}/Reactor/Debug.hpp
-    ${SOURCE_DIR}/Reactor/EmulatedReactor.cpp
-    ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
-    ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
-    ${SOURCE_DIR}/Reactor/Nucleus.hpp
-    ${SOURCE_DIR}/Reactor/Optimizer.cpp
-    ${SOURCE_DIR}/Reactor/Print.hpp
-    ${SOURCE_DIR}/Reactor/Reactor.cpp
-    ${SOURCE_DIR}/Reactor/Reactor.hpp
-    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.cpp
-    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.hpp
-    ${SOURCE_DIR}/Reactor/Routine.hpp
-    ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
-)
-
-add_library(ReactorSubzero STATIC EXCLUDE_FROM_ALL
-    ${SUBZERO_REACTOR_LIST}
-)
-set_target_properties(ReactorSubzero PROPERTIES
-    POSITION_INDEPENDENT_CODE 1
-    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-    FOLDER "Subzero"
-)
-target_link_libraries(ReactorSubzero subzero marl)
 
 ###########################################################
 # Include Directories
@@ -677,28 +659,6 @@ list(REMOVE_ITEM SWIFTSHADER_LIST
     ${SOURCE_DIR}/Common/DebugAndroid.hpp
     ${SOURCE_DIR}/Common/GrallocAndroid.cpp
     ${SOURCE_DIR}/Common/GrallocAndroid.hpp
-)
-
-set(REACTOR_LLVM_LIST
-    ${SOURCE_DIR}/Reactor/CPUID.cpp
-    ${SOURCE_DIR}/Reactor/CPUID.hpp
-    ${SOURCE_DIR}/Reactor/Debug.cpp
-    ${SOURCE_DIR}/Reactor/Debug.hpp
-    ${SOURCE_DIR}/Reactor/EmulatedReactor.cpp
-    ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
-    ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
-    ${SOURCE_DIR}/Reactor/LLVMJIT.cpp
-    ${SOURCE_DIR}/Reactor/LLVMReactor.cpp
-    ${SOURCE_DIR}/Reactor/LLVMReactor.hpp
-    ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.cpp
-    ${SOURCE_DIR}/Reactor/LLVMReactorDebugInfo.hpp
-    ${SOURCE_DIR}/Reactor/Nucleus.hpp
-    ${SOURCE_DIR}/Reactor/Print.hpp
-    ${SOURCE_DIR}/Reactor/Reactor.cpp
-    ${SOURCE_DIR}/Reactor/Reactor.hpp
-    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.cpp
-    ${SOURCE_DIR}/Reactor/ReactorDebugInfo.hpp
-    ${SOURCE_DIR}/Reactor/Routine.hpp
 )
 
 file(GLOB_RECURSE EGL_LIST
@@ -922,15 +882,7 @@ set_target_properties(SwiftShader PROPERTIES
 )
 target_link_libraries(SwiftShader ${OS_LIBS} ${SWIFTSHADER_LIBS})
 
-add_library(ReactorLLVM STATIC EXCLUDE_FROM_ALL ${REACTOR_LLVM_LIST})
-set_target_properties(ReactorLLVM PROPERTIES
-    INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
-    POSITION_INDEPENDENT_CODE 1
-    FOLDER "Core"
-    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-)
-target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
+add_subdirectory(src/Reactor) # Add ReactorSubzero and ReactorLLVM targets
 
 if(${REACTOR_BACKEND} STREQUAL "LLVM")
     set(Reactor ReactorLLVM)
@@ -939,22 +891,6 @@ elseif(${REACTOR_BACKEND} STREQUAL "Subzero")
 else()
     message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM' or 'Subzero'")
 endif()
-
-if(REACTOR_EMIT_DEBUG_INFO)
-    if(WIN32)
-        # Boost stacktrace uses COM on Windows.
-        # On Windows, cache COM instances in TLS for performance.
-        target_compile_definitions(${Reactor} PRIVATE BOOST_STACKTRACE_USE_WINDBG_CACHED)
-    else()
-        # Boost stacktrace uses libbacktrace
-        add_subdirectory(third_party/libbacktrace)
-        target_compile_definitions(${Reactor} PRIVATE BOOST_STACKTRACE_USE_BACKTRACE)
-        target_link_libraries(${Reactor} libbacktrace)
-    endif()
-
-    add_subdirectory(third_party/boost)
-    target_link_libraries(${Reactor} Boost::boost)
-endif(REACTOR_EMIT_DEBUG_INFO)
 
 add_library(GLCompiler STATIC EXCLUDE_FROM_ALL ${OPENGL_COMPILER_LIST})
 set_target_properties(GLCompiler PROPERTIES
