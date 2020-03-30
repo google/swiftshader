@@ -4,9 +4,17 @@
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -27,7 +35,17 @@
     <CharacterSet>NotSet</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
@@ -44,11 +62,15 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">llvm.dir\Debug\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">llvm</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">llvm</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.lib</TargetExt>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build\Visual Studio 15 2017 Win64\Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">llvm.dir\Release\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">llvm</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">llvm</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -87,6 +109,43 @@
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4141;4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x86</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -122,6 +181,43 @@
     </Midl>
     <Lib>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DisableSpecificWarnings>4141;4146;4244;4267;4291;4319;4624;4805;4996</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\PowerPC;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x86</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -638,24 +734,34 @@
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\raw_ostream.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regcomp.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regerror.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\Regex.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regexec.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regfree.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\regstrlcpy.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\RWMutex.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Support\ScaledNumber.cpp" />

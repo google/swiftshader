@@ -36,6 +36,9 @@
     <ClCompile Include="Reactor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EmulatedReactor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Nucleus.hpp">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Traits.inl">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

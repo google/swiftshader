@@ -22,33 +22,33 @@
     <ProjectGuid>{0EB31AEC-B020-46AB-BA05-730F6D01C29B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Subzero</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
@@ -96,7 +96,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\marl\include;$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -117,7 +117,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\marl\include;$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -140,7 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\marl\include;$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -165,7 +165,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\marl\include;$(SolutionDir)third_party\subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
