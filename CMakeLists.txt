@@ -311,7 +311,6 @@ set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-set(ASTC_DIR ${THIRD_PARTY_DIR}/astc-encoder)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 set(HELLO2_DIR ${THIRD_PARTY_DIR}/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
 
@@ -600,7 +599,6 @@ if(BUILD_MARL)
     add_subdirectory(third_party/marl)
 endif()
 
-
 ###########################################################
 # cppdap
 ###########################################################
@@ -609,6 +607,12 @@ if(SWIFTSHADER_BUILD_CPPDAP)
     add_subdirectory(third_party/cppdap)
 endif()
 
+###########################################################
+# astc-encoder
+###########################################################
+if(SWIFTSHADER_ENABLE_ASTC)
+    add_subdirectory(third_party/astc-encoder)
+endif()
 
 ###########################################################
 # Include Directories
@@ -751,15 +755,6 @@ if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
     )
     list(APPEND VULKAN_LIST ${VULKAN_DEBUG_LIST})
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_VK_DEBUGGER")
-endif()
-
-if(SWIFTSHADER_ENABLE_ASTC)
-    file(GLOB_RECURSE VULKAN_ASTC_LIST
-        ${ASTC_DIR}/Source/*.cpp
-        ${ASTC_DIR}/Source/*.h
-    )
-    list(APPEND VULKAN_LIST ${VULKAN_ASTC_LIST})
-    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DSWIFTSHADER_ENABLE_ASTC")
 endif()
 
 if(LINUX OR ANDROID)
@@ -1049,6 +1044,9 @@ if(SWIFTSHADER_BUILD_VULKAN)
     set(VK_SWIFTSHADER_LIBS ${Reactor} marl ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt ${SWIFTSHADER_LIBS})
     if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
         list(APPEND VK_SWIFTSHADER_LIBS cppdap)
+    endif()
+    if(SWIFTSHADER_ENABLE_ASTC)
+        list(APPEND VK_SWIFTSHADER_LIBS astc-encoder)
     endif()
     target_link_libraries(vk_swiftshader ${VK_SWIFTSHADER_LIBS})
 

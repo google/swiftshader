@@ -17,7 +17,7 @@
 #include "System/Math.hpp"
 
 #ifdef SWIFTSHADER_ENABLE_ASTC
-#	include "../third_party/astc-encoder/Source/astc_codec_internals.h"
+#	include "astc_codec_internals.h"
 #endif
 
 #include <memory>
