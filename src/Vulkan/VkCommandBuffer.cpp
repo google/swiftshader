@@ -14,6 +14,7 @@
 
 #include "VkCommandBuffer.hpp"
 #include "VkBuffer.hpp"
+#include "VkDevice.hpp"
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
 #include "VkFramebuffer.hpp"

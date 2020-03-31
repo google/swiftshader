@@ -19,6 +19,7 @@
 #include "Type.hpp"
 #include "Value.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <string>

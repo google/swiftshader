@@ -312,9 +312,6 @@ set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 set(ASTC_DIR ${THIRD_PARTY_DIR}/astc-encoder)
-set(CPPDAP_DIR ${THIRD_PARTY_DIR}/cppdap)
-set(CPPDAP_INCLUDE_DIR ${CPPDAP_DIR}/include)
-set(JSON_INCLUDE_DIR ${THIRD_PARTY_DIR}/json/include)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 set(HELLO2_DIR ${THIRD_PARTY_DIR}/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
 
@@ -609,7 +606,7 @@ endif()
 ###########################################################
 if(SWIFTSHADER_BUILD_CPPDAP)
     set(CPPDAP_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
-    add_subdirectory(${CPPDAP_DIR})
+    add_subdirectory(third_party/cppdap)
 endif()
 
 
@@ -628,7 +625,6 @@ set(OPENGL_INCLUDE_DIR
 
 set(VULKAN_INCLUDE_DIR
     ${COMMON_INCLUDE_DIR}
-    ${CPPDAP_INCLUDE_DIR}
 )
 
 ###########################################################
