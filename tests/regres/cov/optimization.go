@@ -33,6 +33,9 @@ func (t *Tree) Optimize() {
 		go func() {
 			defer wg.Done()
 			o := optimizer{}
+			for idx, tc := range file.tcm {
+				o.invertForCommon(tc, &t.testRoot.children[idx])
+			}
 			o.createGroups(file)
 		}()
 	}
@@ -41,6 +44,8 @@ func (t *Tree) Optimize() {
 
 type optimizer struct{}
 
+// createGroups looks for common SpanSets, and creates indexable span groups
+// which are then used instead.
 func (o *optimizer) createGroups(f *treeFile) {
 	const minSpansInGroup = 2
 
@@ -71,7 +76,7 @@ func (o *optimizer) createGroups(f *treeFile) {
 		spansets = append(spansets, &spansetInfo{
 			key: key,
 			set: set,
-			grp: SpanGroup{spans: set},
+			grp: SpanGroup{Spans: set},
 		})
 	}
 
@@ -100,8 +105,8 @@ nextSpan:
 		for _, b := range spansets[i+1:] {
 			if len(a.set) > len(b.set) && a.set.containsAll(b.set) {
 				extend := b.id // Do not take address of iterator!
-				a.grp.spans = a.set.sub(b.set)
-				a.grp.extend = &extend
+				a.grp.Spans = a.set.removeAll(b.set)
+				a.grp.Extend = &extend
 				continue nextSpan
 			}
 		}
@@ -127,4 +132,40 @@ nextSpan:
 			tc.Group = &g.id
 		}
 	})
+}
+
+// invertCommon looks for tree nodes with the majority of the child nodes with
+// the same spans. This span is promoted up to the parent, and the children
+// have the span inverted.
+func (o *optimizer) invertForCommon(tc *TestCoverage, t *Test) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(tc.Children))
+	for id, child := range tc.Children {
+		id, child := id, child
+		go func() {
+			defer wg.Done()
+			o.invertForCommon(child, &t.children[id])
+		}()
+	}
+	wg.Wait()
+
+	counts := map[SpanID]int{}
+	for _, child := range tc.Children {
+		for span := range child.Spans {
+			counts[span] = counts[span] + 1
+		}
+	}
+
+	for span, count := range counts {
+		if count > len(t.children)/2 {
+			tc.Spans = tc.Spans.invert(span)
+			for _, idx := range t.indices {
+				child := tc.Children.index(idx)
+				child.Spans = child.Spans.invert(span)
+				if child.deletable() {
+					delete(tc.Children, idx)
+				}
+			}
+		}
+	}
 }

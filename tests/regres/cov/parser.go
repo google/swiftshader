@@ -176,16 +176,16 @@ func (t *Tree) writeSpanGroupsJSON(spangroups map[SpanGroupID]SpanGroup, sb *str
 func (t *Tree) writeSpanGroupJSON(group SpanGroup, sb *strings.Builder) {
 	sb.WriteString(`{`)
 	sb.WriteString(`"s":[`)
-	for i, spanID := range group.spans.List() {
+	for i, spanID := range group.Spans.List() {
 		if i > 0 {
 			sb.WriteString(`,`)
 		}
 		sb.WriteString(fmt.Sprintf("%v", spanID))
 	}
 	sb.WriteString(`]`)
-	if group.extend != nil {
+	if group.Extend != nil {
 		sb.WriteString(`,"e":`)
-		sb.WriteString(fmt.Sprintf("%v", *group.extend))
+		sb.WriteString(fmt.Sprintf("%v", *group.Extend))
 	}
 	sb.WriteString(`}`)
 }
@@ -349,11 +349,11 @@ func (p *parser) parseSpanGroups() map[SpanGroupID]SpanGroup {
 			case "s":
 				p.array(func(spanIdx int) {
 					id := SpanID(p.integer())
-					g.spans[id] = struct{}{}
+					g.Spans[id] = struct{}{}
 				})
 			case "e":
 				extend := SpanGroupID(p.integer())
-				g.extend = &extend
+				g.Extend = &extend
 			}
 		})
 		spangroups[SpanGroupID(groupIdx)] = g

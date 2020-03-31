@@ -222,13 +222,91 @@ func TestTree(t *testing.T) {
 	//                         ╭┴╮      ╭╯
 	//                         v x      z
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
+	checkGroups(t, tree.FileSpanGroups(fileA), map[cov.SpanGroupID]cov.SpanGroup{
+		0: cov.SpanGroup{Spans: spans(0, 1)},
+		1: cov.SpanGroup{Spans: spans(0, 3)},
+		2: cov.SpanGroup{Spans: spans(1, 2)},
+	})
 	checkTests(t, tree, `{a:{b:{d:{i} e:{j k}} c:{f:{l:{v x}} g:{n: {z} o}}}}`)
 	checkCoverage(t, tree, fileA, `a:{b:{d:{<0>} e:{[3]}} c:{f:{<2>} g:{n:{[2]} o:{<1>}}}}`)
+}
+
+func TestTreeOptInvertForCommon(t *testing.T) {
+	tree := &cov.Tree{}
+
+	tree.Add(cov.Path{"a", "b"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "c"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "d"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "e"}, coverage(fileA, span1))
+	tree.Add(cov.Path{"a", "f"}, coverage(fileA, span1))
+	tree.Add(cov.Path{"a", "g"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "h"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "i"}, coverage(fileA, span0))
+
+	//               (a)
+	//  ┏━━━┳━━━┳━━━┳━┻━┳━━━┳━━━┳━━━┓
+	// (b) (c) (d) (e) (f) (g) (h) (i)
+	// [0] [0] [0] [1] [1] [0] [0] [0]
+	checkSpans(t, tree.Spans(), span0, span1)
+	checkTests(t, tree, `{a:{b c d e f g h i}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{[0]} c:{[0]} d:{[0]} e:{[1]} f:{[1]} g:{[0]} h:{[0]} i:{[0]}}`)
+
+	tree.Optimize()
+
+	//               [0]
+	//               (a)
+	//  ╭───┬───┬───┲━┻━┱───┬───┬───╮
+	//  b   c   d  ┏┛   ┗┓  g   h   i
+	//            (e)   (f)
+	//            <0>   <0>
+	checkSpans(t, tree.Spans(), span0, span1)
+	checkGroups(t, tree.FileSpanGroups(fileA), map[cov.SpanGroupID]cov.SpanGroup{
+		0: cov.SpanGroup{Spans: spans(0, 1)},
+	})
+	checkTests(t, tree, `{a:{b c d e f g h i}}`)
+	checkCoverage(t, tree, fileA, `a:{[0] e:{<0>} f:{<0>}}`)
+}
+
+func TestTreeOptDontInvertForCommon(t *testing.T) {
+	tree := &cov.Tree{}
+
+	tree.Add(cov.Path{"a", "b"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "c"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "d"}, coverage(fileA, span0))
+	tree.Add(cov.Path{"a", "e"}, coverage(fileA, span1))
+	tree.Add(cov.Path{"a", "f"}, coverage(fileA, span1))
+	tree.Add(cov.Path{"a", "g"}, coverage(fileA, span2))
+	tree.Add(cov.Path{"a", "h"}, coverage(fileA, span2))
+	tree.Add(cov.Path{"a", "i"}, coverage(fileA, span2))
+
+	//               (a)
+	//  ┏━━━┳━━━┳━━━┳━┻━┳━━━┳━━━┳━━━┓
+	// (b) (c) (d) (e) (f) (g) (h) (i)
+	// [0] [0] [0] [1] [1] [2] [2] [2]
+	checkSpans(t, tree.Spans(), span0, span1, span2)
+	checkTests(t, tree, `{a:{b c d e f g h i}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{[0]} c:{[0]} d:{[0]} e:{[1]} f:{[1]} g:{[2]} h:{[2]} i:{[2]}}`)
+
+	tree.Optimize()
+
+	//               (a)
+	//  ┏━━━┳━━━┳━━━┳━┻━┳━━━┳━━━┳━━━┓
+	// (b) (c) (d) (e) (f) (g) (h) (i)
+	// [0] [0] [0] [1] [1] [2] [2] [2]
+	checkSpans(t, tree.Spans(), span0, span1, span2)
+	checkTests(t, tree, `{a:{b c d e f g h i}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{[0]} c:{[0]} d:{[0]} e:{[1]} f:{[1]} g:{[2]} h:{[2]} i:{[2]}}`)
 }
 
 func checkSpans(t *testing.T, got []cov.Span, expect ...cov.Span) {
 	if !reflect.DeepEqual(got, expect) {
 		t.Errorf("Spans not as expected.\nGot:    %+v\nExpect: %+v", got, expect)
+	}
+}
+
+func checkGroups(t *testing.T, got, expect map[cov.SpanGroupID]cov.SpanGroup) {
+	if !reflect.DeepEqual(got, expect) {
+		t.Errorf("SpanGroupss not as expected.\nGot:    %+v\nExpect: %+v", got, expect)
 	}
 }
 

@@ -76,12 +76,16 @@ func (l SpanList) Compare(o SpanList) int {
 
 // Spans returns all the spans used by the tree
 func (t *Tree) Spans() SpanList {
-	out := make(SpanList, 0, len(t.spans))
-	for span := range t.spans {
-		out = append(out, span)
+	out := make(SpanList, len(t.spans))
+	for span, id := range t.spans {
+		out[id] = span
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Before(out[j]) })
 	return out
+}
+
+// FileSpanGroups returns all the span groups for the given file
+func (t *Tree) FileSpanGroups(path string) map[SpanGroupID]SpanGroup {
+	return t.files[path].spangroups
 }
 
 // FileCoverage returns the TestCoverageMap for the given file
@@ -143,7 +147,7 @@ nextFile:
 		for _, indexedTest := range tests {
 			if indexedTest.created {
 				if parent != nil && len(test.children) == 1 {
-					parent.Spans = parent.Spans.add(spans)
+					parent.Spans = parent.Spans.addAll(spans)
 					delete(parent.Children, indexedTest.index)
 				} else {
 					tc := tcm.index(indexedTest.index)
@@ -157,19 +161,19 @@ nextFile:
 
 			// If the tree node contains spans that are not in this new test,
 			// we need to push those spans down to all the other children.
-			if lower := tc.Spans.sub(spans); len(lower) > 0 {
+			if lower := tc.Spans.removeAll(spans); len(lower) > 0 {
 				// push into each child node
 				for i := range test.children {
 					child := tc.Children.index(TestIndex(i))
-					child.Spans = child.Spans.add(lower)
+					child.Spans = child.Spans.addAll(lower)
 				}
 				// remove from node
-				tc.Spans = tc.Spans.sub(lower)
+				tc.Spans = tc.Spans.removeAll(lower)
 			}
 
 			// The spans that are in the new test, but are not part of the tree
 			// node carry propagating down.
-			spans = spans.sub(tc.Spans)
+			spans = spans.removeAll(tc.Spans)
 			if len(spans) == 0 {
 				continue nextFile
 			}
@@ -288,9 +292,15 @@ func (tc TestCoverage) String(t *Test, s Strings) string {
 	return sb.String()
 }
 
+// deletable returns true if the TestCoverage provides no data.
+func (tc TestCoverage) deletable() bool {
+	return len(tc.Spans) == 0 && tc.Group == nil && len(tc.Children) == 0
+}
+
 // TestCoverageMap is a map of TestIndex to *TestCoverage.
 type TestCoverageMap map[TestIndex]*TestCoverage
 
+// traverse performs a depth first traversal of the TestCoverage tree.
 func (tcm TestCoverageMap) traverse(cb func(*TestCoverage)) {
 	for _, tc := range tcm {
 		cb(tc)
@@ -380,16 +390,31 @@ func (s SpanSet) String() string {
 	return sb.String()
 }
 
+func (s SpanSet) contains(rhs SpanID) bool {
+	_, found := s[rhs]
+	return found
+}
+
 func (s SpanSet) containsAll(rhs SpanSet) bool {
 	for span := range rhs {
-		if _, found := s[span]; !found {
+		if !s.contains(span) {
 			return false
 		}
 	}
 	return true
 }
 
-func (s SpanSet) sub(rhs SpanSet) SpanSet {
+func (s SpanSet) remove(rhs SpanID) SpanSet {
+	out := make(SpanSet, len(s))
+	for span := range s {
+		if span != rhs {
+			out[span] = struct{}{}
+		}
+	}
+	return out
+}
+
+func (s SpanSet) removeAll(rhs SpanSet) SpanSet {
 	out := make(SpanSet, len(s))
 	for span := range s {
 		if _, found := rhs[span]; !found {
@@ -399,7 +424,16 @@ func (s SpanSet) sub(rhs SpanSet) SpanSet {
 	return out
 }
 
-func (s SpanSet) add(rhs SpanSet) SpanSet {
+func (s SpanSet) add(rhs SpanID) SpanSet {
+	out := make(SpanSet, len(s)+1)
+	for span := range s {
+		out[span] = struct{}{}
+	}
+	out[rhs] = struct{}{}
+	return out
+}
+
+func (s SpanSet) addAll(rhs SpanSet) SpanSet {
 	out := make(SpanSet, len(s)+len(rhs))
 	for span := range s {
 		out[span] = struct{}{}
@@ -410,18 +444,25 @@ func (s SpanSet) add(rhs SpanSet) SpanSet {
 	return out
 }
 
+func (s SpanSet) invert(rhs SpanID) SpanSet {
+	if s.contains(rhs) {
+		return s.remove(rhs)
+	}
+	return s.add(rhs)
+}
+
 // SpanGroupID is an identifier of a SpanGroup.
 type SpanGroupID int
 
 // SpanGroup holds a number of spans, potentially extending from another
 // SpanGroup.
 type SpanGroup struct {
-	spans  SpanSet
-	extend *SpanGroupID
+	Spans  SpanSet
+	Extend *SpanGroupID
 }
 
 func newSpanGroup() SpanGroup {
-	return SpanGroup{spans: SpanSet{}}
+	return SpanGroup{Spans: SpanSet{}}
 }
 
 func indent(s string) string {
