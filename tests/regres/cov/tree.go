@@ -54,21 +54,35 @@ func (t *Tree) init() {
 	}
 }
 
+// SpanList is a list of Spans
+type SpanList []Span
+
+// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
+func (l SpanList) Compare(o SpanList) int {
+	switch {
+	case len(l) < len(o):
+		return -1
+	case len(l) > len(o):
+		return 1
+	}
+	for i, a := range l {
+		switch a.Compare(o[i]) {
+		case -1:
+			return -1
+		case 1:
+			return 1
+		}
+	}
+	return 0
+}
+
 // Spans returns all the spans used by the tree
-func (t *Tree) Spans() []Span {
-	out := make([]Span, 0, len(t.spans))
+func (t *Tree) Spans() SpanList {
+	out := make(SpanList, 0, len(t.spans))
 	for span := range t.spans {
 		out = append(out, span)
 	}
-	sort.Slice(out, func(i, j int) bool {
-		if out[i].Start.Line < out[j].Start.Line {
-			return true
-		}
-		if out[i].Start.Line > out[j].Start.Line {
-			return false
-		}
-		return out[i].Start.Column < out[j].Start.Column
-	})
+	sort.Slice(out, func(i, j int) bool { return out[i].Before(out[j]) })
 	return out
 }
 
@@ -259,7 +273,15 @@ type TestCoverage struct {
 
 func (tc TestCoverage) String(t *Test, s Strings) string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("{%v", tc.Spans))
+	sb.WriteString("{")
+	if len(tc.Spans) > 0 {
+		sb.WriteString(tc.Spans.String())
+	}
+	if tc.Group != nil {
+		sb.WriteString(" <")
+		sb.WriteString(fmt.Sprintf("%v", *tc.Group))
+		sb.WriteString(">")
+	}
 	if len(tc.Children) > 0 {
 		sb.WriteString(" ")
 		sb.WriteString(tc.Children.String(t, s))
@@ -313,9 +335,32 @@ type SpanID int
 // SpanSet is a set of SpanIDs.
 type SpanSet map[SpanID]struct{}
 
+// SpanIDList is a list of SpanIDs
+type SpanIDList []SpanID
+
+// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
+func (l SpanIDList) Compare(o SpanIDList) int {
+	switch {
+	case len(l) < len(o):
+		return -1
+	case len(l) > len(o):
+		return 1
+	}
+	for i, a := range l {
+		b := o[i]
+		switch {
+		case a < b:
+			return -1
+		case a > b:
+			return 1
+		}
+	}
+	return 0
+}
+
 // List returns the full list of sorted span ids.
-func (s SpanSet) List() []SpanID {
-	out := make([]SpanID, 0, len(s))
+func (s SpanSet) List() SpanIDList {
+	out := make(SpanIDList, 0, len(s))
 	for span := range s {
 		out = append(out, span)
 	}
@@ -422,7 +467,6 @@ func (f *treeFile) optimize() {
 		return
 	}
 
-	// Sort by number of spans in each sets.
 	type spansetInfo struct {
 		key spansetKey
 		set SpanSet // fully expanded set
@@ -435,10 +479,25 @@ func (f *treeFile) optimize() {
 			key: key,
 			set: set,
 			grp: SpanGroup{spans: set},
-			id:  SpanGroupID(len(spansets)),
 		})
 	}
-	sort.Slice(spansets, func(i, j int) bool { return len(spansets[i].set) > len(spansets[j].set) })
+
+	// Sort by number of spans in each sets starting with the largest.
+	sort.Slice(spansets, func(i, j int) bool {
+		a, b := spansets[i].set, spansets[j].set
+		switch {
+		case len(a) > len(b):
+			return true
+		case len(a) < len(b):
+			return false
+		}
+		return a.List().Compare(b.List()) == -1 // Just to keep output stable
+	})
+
+	// Assign IDs now that we have stable order.
+	for i := range spansets {
+		spansets[i].id = SpanGroupID(i)
+	}
 
 	// Loop over the spanGroups starting from the largest, and try to fold them
 	// into the larger sets.

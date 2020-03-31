@@ -88,7 +88,7 @@ func TestTree(t *testing.T) {
 	//      i
 	checkSpans(t, tree.Spans(), span0, span1, span2)
 	checkTests(t, tree, `{a:{b:{d:{i} e}}}`)
-	checkCoverage(t, tree, fileA, `a:{[0,1] b:{[] e:{[2]}}}`)
+	checkCoverage(t, tree, fileA, `a:{[0,1] b:{e:{[2]}}}`)
 
 	t.Log("Add 'n' with the coverage [0,3]")
 	tree.Add(cov.Path{"a", "c", "g", "n"}, coverage(fileA, span0, span3))
@@ -132,7 +132,7 @@ func TestTree(t *testing.T) {
 	//      i                   n   o
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
 	checkTests(t, tree, `{a:{b:{d:{i} e} c:{f g:{n o}}}}`)
-	checkCoverage(t, tree, fileA, `a:{[] b:{[0,1] e:{[2]}} c:{[] f:{[1]} g:{[0,3]}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{[0,1] e:{[2]}} c:{f:{[1]} g:{[0,3]}}}`)
 
 	t.Log("Add 'j' with the coverage [3]")
 	tree.Add(cov.Path{"a", "b", "e", "j"}, coverage(fileA, span3))
@@ -146,7 +146,7 @@ func TestTree(t *testing.T) {
 	//         i   j                n   o
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
 	checkTests(t, tree, `{a:{b:{d:{i} e:{j}} c:{f g:{n o}}}}`)
-	checkCoverage(t, tree, fileA, `a:{[] b:{[] d:{[0,1]} e:{[3]}} c:{[] f:{[1]} g:{[0,3]}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{d:{[0,1]} e:{[3]}} c:{f:{[1]} g:{[0,3]}}}`)
 
 	t.Log("Add 'k' with the coverage [3]")
 	tree.Add(cov.Path{"a", "b", "e", "k"}, coverage(fileA, span3))
@@ -160,7 +160,7 @@ func TestTree(t *testing.T) {
 	//         i   j   k            n   o
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
 	checkTests(t, tree, `{a:{b:{d:{i} e:{j k}} c:{f g:{n o}}}}`)
-	checkCoverage(t, tree, fileA, `a:{[] b:{[] d:{[0,1]} e:{[3]}} c:{[] f:{[1]} g:{[0,3]}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{d:{[0,1]} e:{[3]}} c:{f:{[1]} g:{[0,3]}}}`)
 
 	t.Log("Add 'v' with the coverage [1,2]")
 	tree.Add(cov.Path{"a", "c", "f", "l", "v"}, coverage(fileA, span1, span2))
@@ -176,7 +176,7 @@ func TestTree(t *testing.T) {
 	//                         v
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
 	checkTests(t, tree, `{a:{b:{d:{i} e:{j k}} c:{f:{l:{v}} g:{n o}}}}`)
-	checkCoverage(t, tree, fileA, `a:{[] b:{[] d:{[0,1]} e:{[3]}} c:{[] f:{[1,2]} g:{[0,3]}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{d:{[0,1]} e:{[3]}} c:{f:{[1,2]} g:{[0,3]}}}`)
 
 	t.Log("Add 'x' with the coverage [1,2]")
 	tree.Add(cov.Path{"a", "c", "f", "l", "x"}, coverage(fileA, span1, span2))
@@ -192,7 +192,7 @@ func TestTree(t *testing.T) {
 	//                         v x
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
 	checkTests(t, tree, `{a:{b:{d:{i} e:{j k}} c:{f:{l:{v x}} g:{n o}}}}`)
-	checkCoverage(t, tree, fileA, `a:{[] b:{[] d:{[0,1]} e:{[3]}} c:{[] f:{[1,2]} g:{[0,3]}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{d:{[0,1]} e:{[3]}} c:{f:{[1,2]} g:{[0,3]}}}`)
 
 	t.Log("Add 'z' with the coverage [2]")
 	tree.Add(cov.Path{"a", "c", "g", "n", "z"}, coverage(fileA, span2))
@@ -208,7 +208,22 @@ func TestTree(t *testing.T) {
 	//                         v x      z
 	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
 	checkTests(t, tree, `{a:{b:{d:{i} e:{j k}} c:{f:{l:{v x}} g:{n: {z} o}}}}`)
-	checkCoverage(t, tree, fileA, `a:{[] b:{[] d:{[0,1]} e:{[3]}} c:{[] f:{[1,2]} g:{[] n:{[2]} o:{[0,3]}}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{d:{[0,1]} e:{[3]}} c:{f:{[1,2]} g:{n:{[2]} o:{[0,3]}}}}`)
+
+	tree.Optimize()
+
+	//                   (a)
+	//           ┏━━━━━━━━┻━━━━━━━━━━━━┓
+	//          (b)                   (c)
+	//       ┏━━━┻━━━┓            ┏━━━━┻━━━━┓
+	//   <0>(d)     (e)[3]    <2>(f)       (g)
+	//       ╰─╮   ╭─┴─╮        ╭─╯       ┏━┻━┓
+	//         i   j   k        l    [2](n) (o)<1>
+	//                         ╭┴╮      ╭╯
+	//                         v x      z
+	checkSpans(t, tree.Spans(), span0, span1, span2, span3)
+	checkTests(t, tree, `{a:{b:{d:{i} e:{j k}} c:{f:{l:{v x}} g:{n: {z} o}}}}`)
+	checkCoverage(t, tree, fileA, `a:{b:{d:{<0>} e:{[3]}} c:{f:{<2>} g:{n:{[2]} o:{<1>}}}}`)
 }
 
 func checkSpans(t *testing.T, got []cov.Span, expect ...cov.Span) {

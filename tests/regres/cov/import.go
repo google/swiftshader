@@ -37,14 +37,46 @@ func (l Location) String() string {
 	return fmt.Sprintf("%v:%v", l.Line, l.Column)
 }
 
+// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
+func (l Location) Compare(o Location) int {
+	switch {
+	case l.Line < o.Line:
+		return -1
+	case l.Line > o.Line:
+		return 1
+	}
+	return 0
+}
+
+// Before returns true if l comes before o.
+func (l Location) Before(o Location) bool { return l.Compare(o) == -1 }
+
 // Span describes a start and end interval in a source file.
 type Span struct {
 	Start, End Location
 }
 
-func (l Span) String() string {
-	return fmt.Sprintf("%v-%v", l.Start, l.End)
+func (s Span) String() string {
+	return fmt.Sprintf("%v-%v", s.Start, s.End)
 }
+
+// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
+func (s Span) Compare(o Span) int {
+	switch {
+	case s.Start.Before(o.Start):
+		return -1
+	case o.Start.Before(s.Start):
+		return 1
+	case s.End.Before(o.End):
+		return -1
+	case o.End.Before(s.End):
+		return 1
+	}
+	return 0
+}
+
+// Before returns true if span s comes before o.
+func (s Span) Before(o Span) bool { return s.Compare(o) == -1 }
 
 // File describes the coverage spans in a single source file.
 type File struct {
