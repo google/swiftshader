@@ -16,6 +16,7 @@
 #include "Debug.hpp"
 #include "Print.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 // Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
@@ -23,28 +24,6 @@
 #ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
 #	define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
 #endif
-
-namespace {
-
-// Introduced in C++20.
-template<class ForwardIterator, class UnaryPredicate>
-ForwardIterator remove_if(ForwardIterator first, ForwardIterator last,
-                          UnaryPredicate pred)
-{
-	ForwardIterator result = first;
-	while(first != last)
-	{
-		if(!pred(*first))
-		{
-			*result = std::move(*first);
-			++result;
-		}
-		++first;
-	}
-	return result;
-}
-
-}  // anonymous namespace
 
 namespace rr {
 
@@ -71,7 +50,10 @@ void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> &edits, s
 				list.push_back(edit.second);
 				break;
 			case ListEdit::Remove:
-				::remove_if(list.begin(), list.end(), [&](T item) { return item == edit.second; });
+				list.erase(std::remove_if(list.begin(), list.end(), [&](T item) {
+					           return item == edit.second;
+				           }),
+				           list.end());
 				break;
 			case ListEdit::Clear:
 				list.clear();
