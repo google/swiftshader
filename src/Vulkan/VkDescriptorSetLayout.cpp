@@ -449,7 +449,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			descriptor[i].slicePitchBytes = descriptor[i].samplePitchBytes * imageView->getSampleCount();
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 			descriptor[i].sampleCount = imageView->getSampleCount();
-			descriptor[i].sizeInBytes = static_cast<int>(imageView->getImageSizeInBytes());
+			descriptor[i].sizeInBytes = static_cast<int>(imageView->getSizeInBytes());
 
 			if(imageView->getFormat().isStencil())
 			{

@@ -178,6 +178,42 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	return memoryRequirements;
 }
 
+size_t Image::getSizeInBytes(const VkImageSubresourceRange &subresourceRange) const
+{
+	size_t size = 0;
+	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
+	uint32_t lastMipLevel = getLastMipLevel(subresourceRange);
+	uint32_t layerCount = lastLayer - subresourceRange.baseArrayLayer + 1;
+	uint32_t mipLevelCount = lastMipLevel - subresourceRange.baseMipLevel + 1;
+
+	auto aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
+
+	if(layerCount > 1)
+	{
+		if(mipLevelCount < mipLevels)  // Compute size for all layers except the last one, then add relevant mip level sizes only for last layer
+		{
+			size = (layerCount - 1) * getLayerSize(aspect);
+			for(uint32_t mipLevel = subresourceRange.baseMipLevel; mipLevel <= lastMipLevel; ++mipLevel)
+			{
+				size += getMultiSampledLevelSize(aspect, mipLevel);
+			}
+		}
+		else  // All mip levels used, compute full layer sizes
+		{
+			size = layerCount * getLayerSize(aspect);
+		}
+	}
+	else  // Single layer, add all mip levels in the subresource range
+	{
+		for(uint32_t mipLevel = subresourceRange.baseMipLevel; mipLevel <= lastMipLevel; ++mipLevel)
+		{
+			size += getMultiSampledLevelSize(aspect, mipLevel);
+		}
+	}
+
+	return size;
+}
+
 bool Image::canBindToMemory(DeviceMemory *pDeviceMemory) const
 {
 	return pDeviceMemory->checkExternalMemoryHandleType(supportedExternalMemoryHandleTypes);
