@@ -22,6 +22,30 @@
       "revId": "a3a396ab6a139bd5769cf1ac6fd7a2661046dfa0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08b43c9d_a1ded694",
+        "filename": ".gitignore",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-04-02T14:46:19Z",
+      "side": 1,
+      "message": "Hmm, yeah, I guess that makes sense. Ideally, this would just be a submodule, but boost doesn\u0027t really have a submodule repo (they sort of do, but mainly for developers of boost). This isn\u0027t new, though. The original change had it downloading boost into third_party/boost[version]. I suppose this is as good a time as any to remove that. The only downside is that searching in source will be more awkward when it will come to searching boost, but I suppose I can live with that.",
+      "parentUuid": "9294d6d9_aed5172a",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 25
+      },
+      "revId": "a3a396ab6a139bd5769cf1ac6fd7a2661046dfa0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
