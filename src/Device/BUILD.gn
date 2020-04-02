@@ -20,7 +20,6 @@ swiftshader_source_set("Device_headers") {
     "BC_Decoder.hpp",
     "Blitter.hpp",
     "Clipper.hpp",
-    "Color.hpp",
     "Config.hpp",
     "Context.hpp",
     "ETC_Decoder.hpp",
