@@ -18,7 +18,6 @@
 #include "VkConfig.h"
 #include "VkDescriptorSet.hpp"
 #include "VkObject.hpp"
-#include "Device/Color.hpp"
 #include "Device/Context.hpp"
 
 #include <memory>
@@ -159,7 +158,7 @@ public:
 		{
 			VkViewport viewport;
 			VkRect2D scissor;
-			sw::Color<float> blendConstants;
+			sw::float4 blendConstants;
 			float depthBiasConstantFactor = 0.0f;
 			float depthBiasClamp = 0.0f;
 			float depthBiasSlopeFactor = 0.0f;

@@ -21,6 +21,7 @@
 #include "Device/Config.hpp"
 #include "Device/Sampler.hpp"
 #include "System/Debug.hpp"
+#include "System/Math.hpp"
 #include "System/Types.hpp"
 #include "Vulkan/VkConfig.h"
 #include "Vulkan/VkDescriptorSet.hpp"

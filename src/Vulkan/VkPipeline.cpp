@@ -398,10 +398,10 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 
 		if(!hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS))
 		{
-			blendConstants.r = colorBlendState->blendConstants[0];
-			blendConstants.g = colorBlendState->blendConstants[1];
-			blendConstants.b = colorBlendState->blendConstants[2];
-			blendConstants.a = colorBlendState->blendConstants[3];
+			blendConstants.x = colorBlendState->blendConstants[0];
+			blendConstants.y = colorBlendState->blendConstants[1];
+			blendConstants.z = colorBlendState->blendConstants[2];
+			blendConstants.w = colorBlendState->blendConstants[3];
 		}
 
 		for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
@@ -545,7 +545,7 @@ const VkViewport &GraphicsPipeline::getViewport() const
 	return viewport;
 }
 
-const sw::Color<float> &GraphicsPipeline::getBlendConstants() const
+const sw::float4 &GraphicsPipeline::getBlendConstants() const
 {
 	return blendConstants;
 }

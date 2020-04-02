@@ -102,7 +102,7 @@ public:
 	const sw::Context &getContext() const;
 	const VkRect2D &getScissor() const;
 	const VkViewport &getViewport() const;
-	const sw::Color<float> &getBlendConstants() const;
+	const sw::float4 &getBlendConstants() const;
 	bool hasDynamicState(VkDynamicState dynamicState) const;
 	bool hasPrimitiveRestartEnable() const { return primitiveRestartEnable; }
 
@@ -117,7 +117,7 @@ private:
 	sw::Context context;
 	VkRect2D scissor;
 	VkViewport viewport;
-	sw::Color<float> blendConstants;
+	sw::float4 blendConstants;
 };
 
 class ComputePipeline : public Pipeline, public ObjectBase<ComputePipeline, VkPipeline>

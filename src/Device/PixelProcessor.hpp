@@ -15,7 +15,6 @@
 #ifndef sw_PixelProcessor_hpp
 #define sw_PixelProcessor_hpp
 
-#include "Color.hpp"
 #include "Context.hpp"
 #include "Memset.hpp"
 #include "RoutineCache.hpp"
@@ -149,7 +148,7 @@ public:
 
 	virtual ~PixelProcessor();
 
-	void setBlendConstant(const Color<float> &blendConstant);
+	void setBlendConstant(const float4 &blendConstant);
 
 protected:
 	const State update(const Context *context) const;

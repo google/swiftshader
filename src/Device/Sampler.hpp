@@ -15,7 +15,6 @@
 #ifndef sw_Sampler_hpp
 #define sw_Sampler_hpp
 
-#include "Device/Color.hpp"
 #include "Device/Config.hpp"
 #include "System/Types.hpp"
 #include "Vulkan/VkFormat.h"
