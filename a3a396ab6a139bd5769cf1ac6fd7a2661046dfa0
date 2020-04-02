@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9294d6d9_aed5172a",
+        "filename": ".gitignore",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-04-02T09:21:54Z",
+      "side": 1,
+      "message": "Argh. Can this go into the CMake build folder instead?\nI have a loathing for the source tree to be modified in any way.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 25
+      },
+      "revId": "a3a396ab6a139bd5769cf1ac6fd7a2661046dfa0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
