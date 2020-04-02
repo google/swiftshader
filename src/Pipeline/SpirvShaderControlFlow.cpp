@@ -472,7 +472,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	// Continue emitting from the merge block.
 	Nucleus::setInsertBlock(mergeBasicBlock);
 	state->pending->push_back(mergeBlockId);
-	for(auto it : mergeActiveLaneMasks)
+	for(const auto &it : mergeActiveLaneMasks)
 	{
 		state->addActiveLaneMaskEdge(it.first, mergeBlockId, it.second);
 	}
@@ -574,7 +574,7 @@ SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitSta
 	ASSERT(function.blocks.size() == 1);
 	spv::Op wrapOpKill[] = { spv::OpLabel, spv::OpKill };
 
-	for(auto block : function.blocks)
+	for(const auto &block : function.blocks)
 	{
 		int insnNumber = 0;
 		for(auto blockInsn : block.second)

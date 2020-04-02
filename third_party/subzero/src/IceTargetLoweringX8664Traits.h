@@ -679,7 +679,7 @@ public:
     RandomNumberGeneratorWrapper RNGW(RNG);
 
     // Shuffle the resulting equivalence classes.
-    for (auto I : EquivalenceClasses) {
+    for (const auto &I : EquivalenceClasses) {
       const RegisterList &List = I.second;
       RegisterList Shuffled(List);
       RandomShuffle(Shuffled.begin(), Shuffled.end(), RNGW);
@@ -695,7 +695,7 @@ public:
       OstreamLocker L(Func->getContext());
       Ostream &Str = Func->getContext()->getStrDump();
       Str << "Register equivalence classes:\n";
-      for (auto I : EquivalenceClasses) {
+      for (const auto &I : EquivalenceClasses) {
         Str << "{";
         const RegisterList &List = I.second;
         bool First = true;
