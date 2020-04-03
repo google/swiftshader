@@ -85,4 +85,17 @@ private:
 
 }  // namespace sw
 
+namespace std {
+
+template<>
+struct hash<sw::SetupProcessor::State>
+{
+	uint64_t operator()(const sw::SetupProcessor::State &state) const
+	{
+		return state.hash;
+	}
+};
+
+}  // namespace std
+
 #endif  // sw_SetupProcessor_hpp

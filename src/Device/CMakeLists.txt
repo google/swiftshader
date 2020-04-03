@@ -31,7 +31,6 @@ set(DEVICE_SRC_FILES
     Context.hpp
     ETC_Decoder.cpp
     ETC_Decoder.hpp
-    LRUCache.hpp
     Memset.hpp
     PixelProcessor.cpp
     PixelProcessor.hpp

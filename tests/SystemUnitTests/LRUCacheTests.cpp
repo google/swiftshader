@@ -44,8 +44,8 @@ void checkRange(const Cache &cache, std::vector<std::pair<typename Cache::Key, t
 TEST(LRUCache, Empty)
 {
 	LRUCache<std::string, std::string> cache(8);
-	ASSERT_EQ(cache.get(""), "");
-	ASSERT_EQ(cache.get("123"), "");
+	ASSERT_EQ(cache.lookup(""), "");
+	ASSERT_EQ(cache.lookup("123"), "");
 	for(auto ignored : cache)
 	{
 		(void)ignored;
@@ -62,10 +62,10 @@ TEST(LRUCache, AddNoEviction)
 	cache.add("3", "three");
 	cache.add("4", "four");
 
-	ASSERT_EQ(cache.get("1"), "one");
-	ASSERT_EQ(cache.get("2"), "two");
-	ASSERT_EQ(cache.get("3"), "three");
-	ASSERT_EQ(cache.get("4"), "four");
+	ASSERT_EQ(cache.lookup("1"), "one");
+	ASSERT_EQ(cache.lookup("2"), "two");
+	ASSERT_EQ(cache.lookup("3"), "three");
+	ASSERT_EQ(cache.lookup("4"), "four");
 
 	checkRange(cache, {
 	                      { "4", "four" },
@@ -86,12 +86,61 @@ TEST(LRUCache, AddWithEviction)
 	cache.add("5", "five");
 	cache.add("6", "six");
 
-	ASSERT_EQ(cache.get("1"), "");
-	ASSERT_EQ(cache.get("2"), "");
-	ASSERT_EQ(cache.get("3"), "three");
-	ASSERT_EQ(cache.get("4"), "four");
-	ASSERT_EQ(cache.get("5"), "five");
-	ASSERT_EQ(cache.get("6"), "six");
+	ASSERT_EQ(cache.lookup("1"), "");
+	ASSERT_EQ(cache.lookup("2"), "");
+	ASSERT_EQ(cache.lookup("3"), "three");
+	ASSERT_EQ(cache.lookup("4"), "four");
+	ASSERT_EQ(cache.lookup("5"), "five");
+	ASSERT_EQ(cache.lookup("6"), "six");
+
+	checkRange(cache, {
+	                      { "6", "six" },
+	                      { "5", "five" },
+	                      { "4", "four" },
+	                      { "3", "three" },
+	                  });
+}
+
+TEST(LRUCache, AddClearAdd)
+{
+	LRUCache<std::string, std::string> cache(4);
+
+	// Add some data.
+	cache.add("1", "one");
+	cache.add("2", "two");
+	cache.add("3", "three");
+	cache.add("4", "four");
+	cache.add("5", "five");
+	cache.add("6", "six");
+
+	// Clear it.
+	cache.clear();
+
+	// Check has no data.
+	ASSERT_EQ(cache.lookup("1"), "");
+	ASSERT_EQ(cache.lookup("2"), "");
+	ASSERT_EQ(cache.lookup("3"), "");
+	ASSERT_EQ(cache.lookup("4"), "");
+	ASSERT_EQ(cache.lookup("5"), "");
+	ASSERT_EQ(cache.lookup("6"), "");
+
+	checkRange(cache, {});
+
+	// Add it again.
+	cache.add("1", "one");
+	cache.add("2", "two");
+	cache.add("3", "three");
+	cache.add("4", "four");
+	cache.add("5", "five");
+	cache.add("6", "six");
+
+	// Check has data.
+	ASSERT_EQ(cache.lookup("1"), "");
+	ASSERT_EQ(cache.lookup("2"), "");
+	ASSERT_EQ(cache.lookup("3"), "three");
+	ASSERT_EQ(cache.lookup("4"), "four");
+	ASSERT_EQ(cache.lookup("5"), "five");
+	ASSERT_EQ(cache.lookup("6"), "six");
 
 	checkRange(cache, {
 	                      { "6", "six" },

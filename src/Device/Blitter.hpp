@@ -95,6 +95,7 @@ class Blitter
 		int destSamples = 0;
 		bool filter3D = false;
 	};
+	friend std::hash<Blitter::State>;
 
 	struct BlitData
 	{
@@ -192,5 +193,23 @@ private:
 };
 
 }  // namespace sw
+
+namespace std {
+
+template<>
+struct hash<sw::Blitter::State>
+{
+	uint64_t operator()(const sw::Blitter::State &state) const
+	{
+		uint64_t hash = state.sourceFormat;
+		hash = hash * 31 + state.destFormat;
+		hash = hash * 31 + state.srcSamples;
+		hash = hash * 31 + state.destSamples;
+		hash = hash * 31 + state.filter3D;
+		return hash;
+	}
+};
+
+}  // namespace std
 
 #endif  // sw_Blitter_hpp

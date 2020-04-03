@@ -21,6 +21,7 @@ swiftshader_source_set("System_headers") {
     "Configurator.hpp",
     "Debug.hpp",
     "Half.hpp",
+    "LRUCache.hpp",
     "Math.hpp",
     "Memory.hpp",
     "Socket.cpp",

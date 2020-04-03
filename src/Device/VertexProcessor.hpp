@@ -106,4 +106,17 @@ private:
 
 }  // namespace sw
 
+namespace std {
+
+template<>
+struct hash<sw::VertexProcessor::State>
+{
+	uint64_t operator()(const sw::VertexProcessor::State &state) const
+	{
+		return state.hash;
+	}
+};
+
+}  // namespace std
+
 #endif  // sw_VertexProcessor_hpp

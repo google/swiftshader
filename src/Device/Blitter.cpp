@@ -1682,7 +1682,7 @@ Blitter::BlitRoutineType Blitter::generate(const State &state)
 Blitter::BlitRoutineType Blitter::getBlitRoutine(const State &state)
 {
 	std::unique_lock<std::mutex> lock(blitMutex);
-	auto blitRoutine = blitCache.query(state);
+	auto blitRoutine = blitCache.lookup(state);
 
 	if(!blitRoutine)
 	{
@@ -1696,7 +1696,7 @@ Blitter::BlitRoutineType Blitter::getBlitRoutine(const State &state)
 Blitter::CornerUpdateRoutineType Blitter::getCornerUpdateRoutine(const State &state)
 {
 	std::unique_lock<std::mutex> lock(cornerUpdateMutex);
-	auto cornerUpdateRoutine = cornerUpdateCache.query(state);
+	auto cornerUpdateRoutine = cornerUpdateCache.lookup(state);
 
 	if(!cornerUpdateRoutine)
 	{

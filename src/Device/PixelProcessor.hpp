@@ -164,4 +164,17 @@ private:
 
 }  // namespace sw
 
+namespace std {
+
+template<>
+struct hash<sw::PixelProcessor::State>
+{
+	uint64_t operator()(const sw::PixelProcessor::State &state) const
+	{
+		return state.hash;
+	}
+};
+
+}  // namespace std
+
 #endif  // sw_PixelProcessor_hpp

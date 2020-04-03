@@ -17,12 +17,13 @@
 
 #include "VkObject.hpp"
 #include "VkSampler.hpp"
-#include "Device/LRUCache.hpp"
 #include "Reactor/Routine.hpp"
+#include "System/LRUCache.hpp"
 
 #include <map>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 
 namespace marl {
 class Scheduler;
@@ -95,29 +96,33 @@ public:
 		template<typename Function>
 		std::shared_ptr<rr::Routine> getOrCreate(const Key &key, Function &&createRoutine)
 		{
-			std::lock_guard<std::mutex> lock(mutex);
+			auto it = snapshot.find(key);
+			if(it != snapshot.end()) { return it->second; }
 
-			if(auto existingRoutine = cache.query(key))
+			std::unique_lock<std::mutex> lock(mutex);
+			if(auto existingRoutine = cache.lookup(key))
 			{
 				return existingRoutine;
 			}
 
 			std::shared_ptr<rr::Routine> newRoutine = createRoutine(key);
 			cache.add(key, newRoutine);
+			snapshotNeedsUpdate = true;
 
 			return newRoutine;
 		}
 
-		rr::Routine *querySnapshot(const Key &key) const;
 		void updateSnapshot();
 
 	private:
-		sw::LRUSnapshotCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;  // guarded by mutex
+		bool snapshotNeedsUpdate = false;
+		std::unordered_map<Key, std::shared_ptr<rr::Routine>, Key::Hash> snapshot;
+
+		sw::LRUCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;  // guarded by mutex
 		std::mutex mutex;
 	};
 
 	SamplingRoutineCache *getSamplingRoutineCache() const;
-	rr::Routine *querySnapshotCache(const SamplingRoutineCache::Key &key) const;
 	void updateSamplingRoutineSnapshotCache();
 
 	class SamplerIndexer

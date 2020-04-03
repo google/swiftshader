@@ -23,6 +23,7 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 )
 
 set(SYSTEM_UNIT_TESTS_SRC_FILES
+    LRUCacheTests.cpp
     main.cpp
     unittests.cpp
 )

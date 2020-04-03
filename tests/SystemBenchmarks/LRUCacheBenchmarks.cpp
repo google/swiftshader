@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Device/LRUCache.hpp"
+#include "System/LRUCache.hpp"
 
 #include "benchmark/benchmark.h"
 
@@ -106,7 +106,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetIntCacheHit)
 
 	for(auto _ : state)
 	{
-		cache.query(rnd() % size);
+		cache.lookup(rnd() % size);
 	}
 }
 BENCHMARK_REGISTER_F(LRUCacheBenchmark, GetIntCacheHit)->RangeMultiplier(8)->Range(1, 0x100000)->ArgName("cache-size");
@@ -123,7 +123,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetIntCacheMiss)
 
 	for(auto _ : state)
 	{
-		cache.query(rnd() % size);
+		cache.lookup(rnd() % size);
 	}
 }
 BENCHMARK_REGISTER_F(LRUCacheBenchmark, GetIntCacheMiss)->RangeMultiplier(8)->Range(1, 0x100000)->ArgName("cache-size");
@@ -131,7 +131,7 @@ BENCHMARK_REGISTER_F(LRUCacheBenchmark, GetIntCacheMiss)->RangeMultiplier(8)->Ra
 BENCHMARK_DEFINE_F(LRUCacheBenchmark, AddRandomComplexKey)
 (benchmark::State &state)
 {
-	sw::LRUCache<ComplexKey, size_t> cache(size);
+	sw::LRUCache<ComplexKey, size_t, ComplexKeyHash> cache(size);
 	FastRnd rnd;
 
 	int i = 0;
@@ -152,7 +152,7 @@ BENCHMARK_REGISTER_F(LRUCacheBenchmark, AddRandomComplexKey)->RangeMultiplier(8)
 BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheHit)
 (benchmark::State &state)
 {
-	sw::LRUCache<ComplexKey, size_t> cache(size);
+	sw::LRUCache<ComplexKey, size_t, ComplexKeyHash> cache(size);
 	FastRnd rnd;
 
 	for(size_t i = 0; i < size; i++)
@@ -174,7 +174,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheHit)
 		{
 			key.words[w] = i & (1U << w);
 		}
-		cache.query(key);
+		cache.lookup(key);
 	}
 }
 BENCHMARK_REGISTER_F(LRUCacheBenchmark, GetComplexKeyCacheHit)->RangeMultiplier(8)->Range(1, 0x100000)->ArgName("cache-size");
@@ -182,7 +182,7 @@ BENCHMARK_REGISTER_F(LRUCacheBenchmark, GetComplexKeyCacheHit)->RangeMultiplier(
 BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheMiss)
 (benchmark::State &state)
 {
-	sw::LRUCache<ComplexKey, size_t> cache(size);
+	sw::LRUCache<ComplexKey, size_t, ComplexKeyHash> cache(size);
 	FastRnd rnd;
 
 	for(size_t i = 0; i < size; i++)
@@ -204,7 +204,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheMiss)
 		{
 			key.words[w] = i & (1U << w);
 		}
-		cache.query(key);
+		cache.lookup(key);
 	}
 }
 BENCHMARK_REGISTER_F(LRUCacheBenchmark, GetComplexKeyCacheMiss)->RangeMultiplier(8)->Range(1, 0x100000)->ArgName("cache-size");
