@@ -33,7 +33,7 @@ cc_library_static {
 
     export_include_dirs: [
         "Source",
-    ]
+    ],
 
     static_libs: [
         "swiftshader_debug",
