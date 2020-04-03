@@ -22,6 +22,30 @@
       "revId": "ab225693b1eb7b3b2520b787e6fd9a0e650db510",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "176f680d_17bad88b",
+        "filename": "third_party/boost/CMakeLists.txt",
+        "patchSetId": 8
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-04-03T13:41:14Z",
+      "side": 1,
+      "message": "Actually, because it\u0027s weird for a CMakeLists file to actively do something like this, I\u0027d rather have it behind a function, and explicitly call it like this.",
+      "parentUuid": "42aa1a2f_2fde8148",
+      "range": {
+        "startLine": 58,
+        "startChar": 1,
+        "endLine": 58,
+        "endChar": 15
+      },
+      "revId": "ab225693b1eb7b3b2520b787e6fd9a0e650db510",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
