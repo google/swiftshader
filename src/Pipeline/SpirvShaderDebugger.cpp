@@ -1046,11 +1046,16 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				if(insn.wordCount() > 6)
 				{
 					source->source = shader->getString(insn.word(6));
+					auto file = dbg->ctx->lock().createVirtualFile(source->file.c_str(), source->source.c_str());
+					source->dbgFile = file;
+					files.emplace(source->file.c_str(), file);
 				}
-
-				auto file = dbg->ctx->lock().createVirtualFile(source->file.c_str(), source->source.c_str());
-				source->dbgFile = file;
-				files.emplace(source->file.c_str(), file);
+				else
+				{
+					auto file = dbg->ctx->lock().createPhysicalFile(source->file.c_str());
+					source->dbgFile = file;
+					files.emplace(source->file.c_str(), file);
+				}
 			});
 			break;
 
