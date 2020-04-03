@@ -20,8 +20,10 @@
 #include "Reactor/Reactor.hpp"
 #include "Vulkan/VkFormat.h"
 
+#include "marl/mutex.h"
+#include "marl/tsa.h"
+
 #include <cstring>
-#include <mutex>
 
 namespace vk {
 
@@ -186,10 +188,11 @@ private:
 	                  const VkImageSubresourceLayers &dstSubresourceLayers, Edge dstEdge,
 	                  const VkImageSubresourceLayers &srcSubresourceLayers, Edge srcEdge);
 
-	std::mutex blitMutex;
-	RoutineCache<State, BlitFunction::CFunctionType> blitCache;  // guarded by blitMutex
-	std::mutex cornerUpdateMutex;
-	RoutineCache<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache;  // guarded by cornerUpdateMutex
+	marl::mutex blitMutex;
+	RoutineCache<State, BlitFunction::CFunctionType> blitCache GUARDED_BY(blitMutex);
+
+	marl::mutex cornerUpdateMutex;
+	RoutineCache<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache GUARDED_BY(cornerUpdateMutex);
 };
 
 }  // namespace sw

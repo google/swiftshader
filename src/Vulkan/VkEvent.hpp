@@ -16,8 +16,11 @@
 #define VK_EVENT_HPP_
 
 #include "VkObject.hpp"
+
+#include "marl/mutex.h"
+#include "marl/tsa.h"
+
 #include <condition_variable>
-#include <mutex>
 
 namespace vk {
 
@@ -35,35 +38,35 @@ public:
 
 	void signal()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
-		status = VK_EVENT_SET;
-		lock.unlock();
+		{
+			marl::lock lock(mutex);
+			status = VK_EVENT_SET;
+		}
 		condition.notify_all();
 	}
 
 	void reset()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
+		marl::lock lock(mutex);
 		status = VK_EVENT_RESET;
 	}
 
 	VkResult getStatus()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
+		marl::lock lock(mutex);
 		auto result = status;
-		lock.unlock();
 		return result;
 	}
 
 	void wait()
 	{
-		std::unique_lock<std::mutex> lock(mutex);
-		condition.wait(lock, [this] { return status == VK_EVENT_SET; });
+		marl::lock lock(mutex);
+		lock.wait(condition, [this]() REQUIRES(mutex) { return status == VK_EVENT_SET; });
 	}
 
 private:
-	VkResult status = VK_EVENT_RESET;  // guarded by mutex
-	std::mutex mutex;
+	marl::mutex mutex;
+	VkResult status GUARDED_BY(mutex) = VK_EVENT_RESET;
 	std::condition_variable condition;
 };
 

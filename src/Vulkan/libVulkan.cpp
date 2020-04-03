@@ -71,8 +71,10 @@
 
 #include "Reactor/Nucleus.hpp"
 
+#include "marl/mutex.h"
 #include "marl/scheduler.h"
 #include "marl/thread.h"
+#include "marl/tsa.h"
 
 #include "System/CPUID.hpp"
 
@@ -133,21 +135,27 @@ void setCPUDefaults()
 
 std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 {
-	static std::mutex mutex;
-	static std::weak_ptr<marl::Scheduler> schedulerWeak;
-	std::unique_lock<std::mutex> lock(mutex);
-	auto scheduler = schedulerWeak.lock();
-	if(!scheduler)
+	struct Scheduler
 	{
-		scheduler = std::make_shared<marl::Scheduler>();
-		scheduler->setThreadInitializer([] {
+		marl::mutex mutex;
+		std::weak_ptr<marl::Scheduler> weakptr GUARDED_BY(mutex);
+	};
+
+	static Scheduler scheduler;
+
+	marl::lock lock(scheduler.mutex);
+	auto sptr = scheduler.weakptr.lock();
+	if(!sptr)
+	{
+		sptr = std::make_shared<marl::Scheduler>();
+		sptr->setThreadInitializer([] {
 			sw::CPUID::setFlushToZero(true);
 			sw::CPUID::setDenormalsAreZero(true);
 		});
-		scheduler->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
-		schedulerWeak = scheduler;
+		sptr->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+		scheduler.weakptr = sptr;
 	}
-	return scheduler;
+	return sptr;
 }
 
 // initializeLibrary() is called by vkCreateInstance() to perform one-off global

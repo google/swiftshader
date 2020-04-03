@@ -20,9 +20,11 @@
 #include "Reactor/Routine.hpp"
 #include "System/LRUCache.hpp"
 
+#include "marl/mutex.h"
+#include "marl/tsa.h"
+
 #include <map>
 #include <memory>
-#include <mutex>
 #include <unordered_map>
 
 namespace marl {
@@ -99,7 +101,7 @@ public:
 			auto it = snapshot.find(key);
 			if(it != snapshot.end()) { return it->second; }
 
-			std::unique_lock<std::mutex> lock(mutex);
+			marl::lock lock(mutex);
 			if(auto existingRoutine = cache.lookup(key))
 			{
 				return existingRoutine;
@@ -118,8 +120,8 @@ public:
 		bool snapshotNeedsUpdate = false;
 		std::unordered_map<Key, std::shared_ptr<rr::Routine>, Key::Hash> snapshot;
 
-		sw::LRUCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache;  // guarded by mutex
-		std::mutex mutex;
+		marl::mutex mutex;
+		sw::LRUCache<Key, std::shared_ptr<rr::Routine>, Key::Hash> cache GUARDED_BY(mutex);
 	};
 
 	SamplingRoutineCache *getSamplingRoutineCache() const;
@@ -140,8 +142,8 @@ public:
 			uint32_t count;  // Number of samplers sharing this state identifier.
 		};
 
-		std::map<SamplerState, Identifier> map;  // guarded by mutex
-		std::mutex mutex;
+		marl::mutex mutex;
+		std::map<SamplerState, Identifier> map GUARDED_BY(mutex);
 
 		uint32_t nextID = 0;
 	};

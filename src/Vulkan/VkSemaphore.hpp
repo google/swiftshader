@@ -19,7 +19,8 @@
 #include "VkObject.hpp"
 
 #include "marl/event.h"
-#include <mutex>
+#include "marl/mutex.h"
+#include "marl/tsa.h"
 
 #if VK_USE_PLATFORM_FUCHSIA
 #	include <zircon/types.h>
@@ -147,10 +148,10 @@ private:
 
 	const VkAllocationCallbacks *allocator = nullptr;
 	VkExternalSemaphoreHandleTypeFlags exportableHandleTypes = (VkExternalSemaphoreHandleTypeFlags)0;
-	std::mutex mutex;
 	marl::Event internal;
-	External *external = nullptr;
-	External *tempExternal = nullptr;
+	marl::mutex mutex;
+	External *external GUARDED_BY(mutex) = nullptr;
+	External *tempExternal GUARDED_BY(mutex) = nullptr;
 };
 
 static inline Semaphore *Cast(VkSemaphore object)

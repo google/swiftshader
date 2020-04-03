@@ -40,7 +40,7 @@ namespace vk {
 
 void Device::SamplingRoutineCache::updateSnapshot()
 {
-	std::unique_lock<std::mutex> lock(mutex);
+	marl::lock lock(mutex);
 
 	if(snapshotNeedsUpdate)
 	{
@@ -62,7 +62,7 @@ Device::SamplerIndexer::~SamplerIndexer()
 
 uint32_t Device::SamplerIndexer::index(const SamplerState &samplerState)
 {
-	std::unique_lock<std::mutex> lock(mutex);
+	marl::lock lock(mutex);
 
 	auto it = map.find(samplerState);
 
@@ -81,7 +81,7 @@ uint32_t Device::SamplerIndexer::index(const SamplerState &samplerState)
 
 void Device::SamplerIndexer::remove(const SamplerState &samplerState)
 {
-	std::unique_lock<std::mutex> lock(mutex);
+	marl::lock lock(mutex);
 
 	auto it = map.find(samplerState);
 	ASSERT(it != map.end());
