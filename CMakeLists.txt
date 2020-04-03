@@ -756,7 +756,7 @@ file(GLOB VULKAN_LIST
     ${SOURCE_DIR}/WSI/VkSurfaceKHR.hpp
     ${SOURCE_DIR}/WSI/VkSwapchainKHR.cpp
     ${SOURCE_DIR}/WSI/VkSwapchainKHR.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h
 )
 
 if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
@@ -1011,12 +1011,15 @@ if(SWIFTSHADER_BUILD_VULKAN)
     # Ideally, this header would just be pre-built and part of SPIRV-Headers.
     # See: https://github.com/KhronosGroup/SPIRV-Headers/issues/137
     set(SPIRV_TOOLS_EXT_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/spirv-tools-ext/include)
-    add_custom_target(spirv_tools_ext_includes
+    add_custom_command(
+        OUTPUT "${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h"
         DEPENDS spirv-tools-header-OpenCLDebugInfo100
         COMMAND ${CMAKE_COMMAND} -E copy
-            ${spirv-tools_BINARY_DIR}/OpenCLDebugInfo100.h
-            ${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h
+            "${spirv-tools_BINARY_DIR}/OpenCLDebugInfo100.h"
+            "${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h"
     )
+    add_custom_target(spirv_tools_ext_includes
+        DEPENDS "${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h")
     set_target_properties(spirv_tools_ext_includes PROPERTIES FOLDER "SPIRV-Tools build")
     list(APPEND VULKAN_INCLUDE_DIR "${SPIRV_TOOLS_EXT_INC_DIR}")
     add_dependencies(vk_swiftshader spirv_tools_ext_includes)
