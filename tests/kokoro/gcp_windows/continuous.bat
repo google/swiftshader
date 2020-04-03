@@ -44,6 +44,9 @@ if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 build\Debug\gles-unittests.exe
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
+build\Debug\system-unittests.exe
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
+
 build\Debug\vk-unittests.exe
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
