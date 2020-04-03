@@ -536,10 +536,7 @@ dap::Source Server::Impl::source(File *file)
 	{
 		out.sourceReference = file->id.value();
 	}
-	else
-	{
-		out.path = file->path();
-	}
+	out.path = file->path();
 	return out;
 }
 
