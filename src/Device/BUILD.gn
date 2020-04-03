@@ -50,6 +50,7 @@ swiftshader_source_set("Device") {
     "Renderer.cpp",
     "SetupProcessor.cpp",
     "VertexProcessor.cpp",
+    # TODO: Write Build.gn for third_party/astc-encoder
     "../../third_party/astc-encoder/Source/astc_block_sizes2.cpp",
     "../../third_party/astc-encoder/Source/astc_color_unquantize.cpp",
     "../../third_party/astc-encoder/Source/astc_decompress_symbolic.cpp",
@@ -68,6 +69,7 @@ swiftshader_source_set("Device") {
     "..",
     "../../include",
     "../../third_party/SPIRV-Headers/include",
+    "../../third_party/astc-encoder/Source"
   ]
 
   defines = [
