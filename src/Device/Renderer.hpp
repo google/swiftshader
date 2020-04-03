@@ -17,7 +17,6 @@
 
 #include "Blitter.hpp"
 #include "PixelProcessor.hpp"
-#include "Plane.hpp"
 #include "Primitive.hpp"
 #include "SetupProcessor.hpp"
 #include "VertexProcessor.hpp"
