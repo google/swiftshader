@@ -112,6 +112,11 @@ QueryPool::QueryPool(const VkQueryPoolCreateInfo *pCreateInfo, void *mem)
 
 void QueryPool::destroy(const VkAllocationCallbacks *pAllocator)
 {
+	for(uint32_t i = 0; i < count; i++)
+	{
+		pool[i].~Query();
+	}
+
 	vk::deallocate(pool, pAllocator);
 }
 
