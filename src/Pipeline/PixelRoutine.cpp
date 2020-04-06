@@ -1109,7 +1109,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 
 void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s &current, const Int &x)
 {
-	if(!state.blendState[index].alphaBlendEnable)
+	if(!state.blendState[index].alphaBlendEnable || vk::Format(state.targetFormat[index]).isUnnormalizedInteger())
 	{
 		return;
 	}
@@ -1869,7 +1869,7 @@ void PixelRoutine::blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, c
 
 void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f &oC, const Int &x)
 {
-	if(!state.blendState[index].alphaBlendEnable)
+	if(!state.blendState[index].alphaBlendEnable || vk::Format(state.targetFormat[index]).isUnnormalizedInteger())
 	{
 		return;
 	}
