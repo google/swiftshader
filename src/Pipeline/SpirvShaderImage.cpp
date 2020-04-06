@@ -107,11 +107,28 @@ SpirvShader::EmitResult SpirvShader::EmitImageFetch(InsnIterator insn, EmitState
 
 SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const
 {
+	auto &resultType = getType(insn.resultTypeId());
+	auto &result = state->createIntermediate(insn.resultId(), resultType.componentCount);
+	Array<SIMD::Float> out(4);
+
+	// TODO(b/153380916): When we're in a code path that is always executed,
+	// i.e. post-dominators of the entry block, we don't have to dynamically
+	// check whether any lanes are active, and can elide the jump.
+	If(AnyTrue(state->activeLaneMask()))
+	{
+		EmitImageSampleUnconditional(out, instruction, insn, state);
+	}
+
+	for(auto i = 0u; i < resultType.componentCount; i++) { result.move(i, out[i]); }
+
+	return EmitResult::Continue;
+}
+
+void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageInstruction instruction, InsnIterator insn, EmitState *state) const
+{
 	Object::ID sampledImageId = insn.word(3);  // For OpImageFetch this is just an Image, not a SampledImage.
 	Object::ID coordinateId = insn.word(4);
-	auto &resultType = getType(insn.resultTypeId());
 
-	auto &result = state->createIntermediate(insn.resultId(), resultType.componentCount);
 	auto imageDescriptor = state->getPointer(sampledImageId).base;  // vk::SampledImageDescriptor*
 
 	// If using a separate sampler, look through the OpSampledImage instruction to find the sampler descriptor
@@ -297,12 +314,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 		cache.sampler = sampler;
 	}
 
-	Array<SIMD::Float> out(4);
 	Call<ImageSampler>(cache.function, texture, &in[0], &out[0], state->routine->constants);
-
-	for(auto i = 0u; i < resultType.componentCount; i++) { result.move(i, out[i]); }
-
-	return EmitResult::Continue;
 }
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
