@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,60 +27,20 @@ import (
 	"../llvm"
 )
 
-// Location describes a single line-column position in a source file.
-type Location struct {
-	Line, Column int
+var ignorePaths = map[string]bool{
+	"src/Common":   true,
+	"src/Main":     true,
+	"src/OpenGL":   true,
+	"src/Renderer": true,
+	"src/Shader":   true,
+	"src/System":   true,
 }
-
-func (l Location) String() string {
-	return fmt.Sprintf("%v:%v", l.Line, l.Column)
-}
-
-// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
-func (l Location) Compare(o Location) int {
-	switch {
-	case l.Line < o.Line:
-		return -1
-	case l.Line > o.Line:
-		return 1
-	}
-	return 0
-}
-
-// Before returns true if l comes before o.
-func (l Location) Before(o Location) bool { return l.Compare(o) == -1 }
-
-// Span describes a start and end interval in a source file.
-type Span struct {
-	Start, End Location
-}
-
-func (s Span) String() string {
-	return fmt.Sprintf("%v-%v", s.Start, s.End)
-}
-
-// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
-func (s Span) Compare(o Span) int {
-	switch {
-	case s.Start.Before(o.Start):
-		return -1
-	case o.Start.Before(s.Start):
-		return 1
-	case s.End.Before(o.End):
-		return -1
-	case o.End.Before(s.End):
-		return 1
-	}
-	return 0
-}
-
-// Before returns true if span s comes before o.
-func (s Span) Before(o Span) bool { return s.Compare(o) == -1 }
 
 // File describes the coverage spans in a single source file.
 type File struct {
-	Path  string
-	Spans []Span
+	Path      string
+	Covered   SpanList // Spans with coverage
+	Uncovered SpanList // Compiled spans without coverage
 }
 
 // Coverage describes the coverage spans for all the source files for a single
@@ -148,7 +107,43 @@ func (e Env) Import(profrawPath string) (*Coverage, error) {
 	if err != nil {
 		return nil, cause.Wrap(err, "Couldn't process turbo-cov output")
 	}
+
+	// Gather all the source files to include them even if there is no coverage
+	// information produced for these files. This highlights files that aren't
+	// even compiled.
+	allFiles := map[string]struct{}{}
+	for _, file := range cov.Files {
+		allFiles[file.Path] = struct{}{}
+	}
+	filepath.Walk(filepath.Join(e.RootDir, "src"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(e.RootDir, path)
+		if err != nil || ignorePaths[rel] {
+			return filepath.SkipDir
+		}
+		if !info.IsDir() {
+			switch filepath.Ext(path) {
+			case ".h", ".c", ".cc", ".cpp", ".hpp":
+				if _, seen := allFiles[rel]; !seen {
+					cov.Files = append(cov.Files, File{Path: rel})
+				}
+			}
+		}
+		return nil
+	})
+
 	return cov, nil
+}
+
+func appendSpan(spans []Span, span Span) []Span {
+	if c := len(spans); c > 0 && spans[c-1].End == span.Start {
+		spans[c-1].End = span.End
+	} else {
+		spans = append(spans, span)
+	}
+	return spans
 }
 
 // https://clang.llvm.org/docs/SourceBasedCodeCoverage.html
@@ -189,16 +184,13 @@ func (e Env) parseCov(raw []byte) (*Coverage, error) {
 		for sIdx := 0; sIdx+1 < len(f.Segments); sIdx++ {
 			start := Location{(int)(f.Segments[sIdx][0].(float64)), (int)(f.Segments[sIdx][1].(float64))}
 			end := Location{(int)(f.Segments[sIdx+1][0].(float64)), (int)(f.Segments[sIdx+1][1].(float64))}
-			covered := f.Segments[sIdx][2].(float64) != 0
-			if covered {
-				if c := len(file.Spans); c > 0 && file.Spans[c-1].End == start {
-					file.Spans[c-1].End = end
-				} else {
-					file.Spans = append(file.Spans, Span{start, end})
-				}
+			if covered := f.Segments[sIdx][2].(float64) != 0; covered {
+				file.Covered.Add(Span{start, end})
+			} else {
+				file.Uncovered.Add(Span{start, end})
 			}
 		}
-		if len(file.Spans) > 0 {
+		if len(file.Covered) > 0 {
 			c.Files = append(c.Files, file)
 		}
 	}
@@ -257,16 +249,16 @@ func (e Env) parseTurboCov(data []byte) (*Coverage, error) {
 		for sIdx := 0; sIdx+1 < len(segments); sIdx++ {
 			start := segments[sIdx].location
 			end := segments[sIdx+1].location
-			if segments[sIdx].count > 0 {
-				if c := len(file.Spans); c > 0 && file.Spans[c-1].End == start {
-					file.Spans[c-1].End = end
+			if segments[sIdx].covered {
+				if segments[sIdx].count > 0 {
+					file.Covered.Add(Span{start, end})
 				} else {
-					file.Spans = append(file.Spans, Span{start, end})
+					file.Uncovered.Add(Span{start, end})
 				}
 			}
 		}
 
-		if len(file.Spans) > 0 {
+		if len(file.Covered) > 0 {
 			c.Files = append(c.Files, file)
 		}
 	}

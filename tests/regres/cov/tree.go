@@ -23,6 +23,7 @@ import (
 type treeFile struct {
 	tcm        TestCoverageMap
 	spangroups map[SpanGroupID]SpanGroup
+	allSpans   SpanList
 }
 
 func newTreeFile() *treeFile {
@@ -50,28 +51,6 @@ func (t *Tree) init() {
 		t.files = map[string]*treeFile{}
 		t.initialized = true
 	}
-}
-
-// SpanList is a list of Spans
-type SpanList []Span
-
-// Compare returns -1 if l comes before o, 1 if l comes after o, otherwise 0.
-func (l SpanList) Compare(o SpanList) int {
-	switch {
-	case len(l) < len(o):
-		return -1
-	case len(l) > len(o):
-		return 1
-	}
-	for i, a := range l {
-		switch a.Compare(o[i]) {
-		case -1:
-			return -1
-		case 1:
-			return 1
-		}
-	}
-	return 0
 }
 
 // Spans returns all the spans used by the tree
@@ -109,7 +88,7 @@ func (t *Tree) index(path Path) []indexedTest {
 	return out
 }
 
-func (t *Tree) addSpans(spans []Span) SpanSet {
+func (t *Tree) addSpans(spans SpanList) SpanSet {
 	out := make(SpanSet, len(spans))
 	for _, s := range spans {
 		id, ok := t.spans[s]
@@ -138,8 +117,15 @@ nextFile:
 			t.files[file.Path] = tf
 		}
 
+		for _, span := range file.Covered {
+			tf.allSpans.Add(span)
+		}
+		for _, span := range file.Uncovered {
+			tf.allSpans.Add(span)
+		}
+
 		// Add all the spans to the map, get the span ids
-		spans := t.addSpans(file.Spans)
+		spans := t.addSpans(file.Covered)
 
 		// Starting from the test root, walk down the test tree.
 		tcm, test := tf.tcm, t.testRoot

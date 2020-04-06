@@ -334,8 +334,8 @@ func coverage(file string, spans ...cov.Span) *cov.Coverage {
 	return &cov.Coverage{
 		[]cov.File{
 			cov.File{
-				Path:  file,
-				Spans: spans,
+				Path:    file,
+				Covered: spans,
 			},
 		},
 	}

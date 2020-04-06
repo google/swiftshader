@@ -50,6 +50,11 @@ func (t *Tree) JSON(revision string) string {
 	sb := &strings.Builder{}
 	sb.WriteString(`{`)
 
+	spansByID := map[SpanID]Span{}
+	for span, id := range t.spans {
+		spansByID[id] = span
+	}
+
 	// write the revision
 	sb.WriteString(`"r":"` + revision + `"`)
 
@@ -75,7 +80,7 @@ func (t *Tree) JSON(revision string) string {
 
 	// write the files
 	sb.WriteString(`,"f":`)
-	t.writeFilesJSON(sb)
+	t.writeFilesJSON(spansByID, sb)
 
 	sb.WriteString(`}`)
 	return sb.String()
@@ -125,7 +130,13 @@ func (t *Tree) writeSpansJSON(sb *strings.Builder) {
 	sb.WriteString(`]`)
 }
 
-func (t *Tree) writeFilesJSON(sb *strings.Builder) {
+func (t *Tree) writeSpanJSON(span Span, sb *strings.Builder) {
+	sb.WriteString(fmt.Sprintf("[%v,%v,%v,%v]",
+		span.Start.Line, span.Start.Column,
+		span.End.Line, span.End.Column))
+}
+
+func (t *Tree) writeFilesJSON(spansByID map[SpanID]Span, sb *strings.Builder) {
 	paths := make([]string, 0, len(t.files))
 	for path := range t.files {
 		paths = append(paths, path)
@@ -135,6 +146,20 @@ func (t *Tree) writeFilesJSON(sb *strings.Builder) {
 	sb.WriteString(`{`)
 	for i, path := range paths {
 		file := t.files[path]
+
+		uncovered := append(SpanList{}, file.allSpans...)
+		file.tcm.traverse(func(tc *TestCoverage) {
+			for id := range tc.Spans {
+				uncovered.Remove(spansByID[id])
+			}
+		})
+
+		percentage := 0.0
+		if totalLines := file.allSpans.NumLines(); totalLines > 0 {
+			uncoveredLines := uncovered.NumLines()
+			percentage = 1.0 - (float64(uncoveredLines) / float64(totalLines))
+		}
+
 		if i > 0 {
 			sb.WriteString(`,`)
 		}
@@ -142,8 +167,12 @@ func (t *Tree) writeFilesJSON(sb *strings.Builder) {
 		sb.WriteString(path)
 		sb.WriteString(`":`)
 		sb.WriteString(`{`)
-		sb.WriteString(`"g":`)
+		sb.WriteString(`"p":`)
+		sb.WriteString(fmt.Sprintf("%v", percentage))
+		sb.WriteString(`,"g":`)
 		t.writeSpanGroupsJSON(file.spangroups, sb)
+		sb.WriteString(`,"u":`)
+		t.writeUncoveredJSON(file, uncovered, sb)
 		sb.WriteString(`,"c":`)
 		t.writeCoverageMapJSON(file.tcm, sb)
 		sb.WriteString(`}`)
@@ -188,6 +217,17 @@ func (t *Tree) writeSpanGroupJSON(group SpanGroup, sb *strings.Builder) {
 		sb.WriteString(fmt.Sprintf("%v", *group.Extend))
 	}
 	sb.WriteString(`}`)
+}
+
+func (t *Tree) writeUncoveredJSON(tf *treeFile, uncovered SpanList, sb *strings.Builder) {
+	sb.WriteString(`[`)
+	for i, span := range uncovered {
+		if i > 0 {
+			sb.WriteString(`,`)
+		}
+		t.writeSpanJSON(span, sb)
+	}
+	sb.WriteString(`]`)
 }
 
 func (t *Tree) writeCoverageMapJSON(c TestCoverageMap, sb *strings.Builder) {
@@ -326,10 +366,14 @@ func (p *parser) parseFile() *treeFile {
 	if p.peek() == '{' {
 		p.dict(func(key string) {
 			switch key {
+			case "p":
+				p.double()
 			case "g":
 				file.spangroups = p.parseSpanGroups()
 			case "c":
 				p.parseCoverageMap(file.tcm)
+			case "u":
+				p.parseUncovered(file)
 			default:
 				p.fail("Unknown file key: '%s'", key)
 			}
@@ -368,6 +412,12 @@ func (p *parser) parseCoverageMap(tcm TestCoverageMap) {
 		p.expect(",")
 		p.parseCoverage(tcm.index(idx))
 		p.expect("]")
+	})
+}
+
+func (p *parser) parseUncovered(tf *treeFile) {
+	p.array(func(int) {
+		tf.allSpans.Add(p.parseSpan())
 	})
 }
 
@@ -503,6 +553,26 @@ func (p *parser) integer() int {
 		return 0
 	}
 	return i
+}
+
+func (p *parser) double() float64 {
+	sb := strings.Builder{}
+	for {
+		if c := p.peek(); c != '.' && (c < '0' || c > '9') {
+			break
+		}
+		sb.WriteByte(p.next())
+	}
+	if sb.Len() == 0 {
+		p.fail("Expected double, got '%c'", p.peek())
+		return 0
+	}
+	f, err := strconv.ParseFloat(sb.String(), 64)
+	if err != nil {
+		p.fail("Failed to parse double: %v", err)
+		return 0
+	}
+	return f
 }
 
 func (p *parser) fail(msg string, args ...interface{}) {
