@@ -1209,18 +1209,44 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark)
     endif()
 
+    # Reactor benchmarks
     set(REACTOR_BENCHMARK_LIST
         ${SOURCE_DIR}/Reactor/ReactorBenchmarks.cpp
     )
 
     add_executable(ReactorBenchmarks ${REACTOR_BENCHMARK_LIST})
     target_link_libraries(ReactorBenchmarks benchmark::benchmark marl ${Reactor})
-
     set_target_properties(ReactorBenchmarks PROPERTIES
         COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
         LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
         FOLDER "Benchmarks"
     )
+
+    # System benchmarks
+    set(SYSTEM_BENCHMARKS_LIST
+        ${SOURCE_DIR}/System/Debug.cpp
+
+        ${TESTS_DIR}/SystemBenchmarks/main.cpp
+        ${TESTS_DIR}/SystemBenchmarks/LRUCacheBenchmarks.cpp
+    )
+
+    set(SYSTEM_BENCHMARKS_INCLUDE_DIR
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/
+    )
+
+    add_executable(system-benchmarks ${SYSTEM_BENCHMARKS_LIST})
+    target_link_libraries(system-benchmarks benchmark::benchmark)
+    set_target_properties(system-benchmarks PROPERTIES
+        INCLUDE_DIRECTORIES "${SYSTEM_BENCHMARKS_INCLUDE_DIR}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
+        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
+        FOLDER "Benchmarks"
+    )
+
+    target_link_libraries(system-benchmarks gtest gmock)
+    if(NOT WIN32)
+        target_link_libraries(system-benchmarks pthread ${SWIFTSHADER_LIBS})
+    endif()
 endif(SWIFTSHADER_BUILD_BENCHMARKS)
 
 if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
