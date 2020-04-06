@@ -647,32 +647,6 @@ set(VULKAN_INCLUDE_DIR
 # File Lists
 ###########################################################
 
-file(GLOB_RECURSE SWIFTSHADER_LIST
-    ${SOURCE_DIR}/Common/*.cpp
-    ${SOURCE_DIR}/Common/*.h
-    ${SOURCE_DIR}/Common/*.hpp
-    ${SOURCE_DIR}/Renderer/*.cpp
-    ${SOURCE_DIR}/Renderer/*.h
-    ${SOURCE_DIR}/Renderer/*.hpp
-    ${SOURCE_DIR}/Shader/*.cpp
-    ${SOURCE_DIR}/Shader/*.h
-    ${SOURCE_DIR}/Shader/*.hpp
-)
-list(APPEND SWIFTSHADER_LIST
-    ${SOURCE_DIR}/Main/Config.cpp
-    ${SOURCE_DIR}/Main/Config.hpp
-    ${SOURCE_DIR}/Main/FrameBuffer.cpp
-    ${SOURCE_DIR}/Main/FrameBuffer.hpp
-    ${SOURCE_DIR}/Main/SwiftConfig.cpp
-    ${SOURCE_DIR}/Main/SwiftConfig.hpp
-)
-list(REMOVE_ITEM SWIFTSHADER_LIST
-    ${SOURCE_DIR}/Common/DebugAndroid.cpp
-    ${SOURCE_DIR}/Common/DebugAndroid.hpp
-    ${SOURCE_DIR}/Common/GrallocAndroid.cpp
-    ${SOURCE_DIR}/Common/GrallocAndroid.hpp
-)
-
 file(GLOB_RECURSE EGL_LIST
     ${OPENGL_DIR}/libEGL/*.cpp
     ${OPENGL_DIR}/libEGL/*.h
@@ -775,14 +749,6 @@ endif()
 ###########################################################
 
 if(WIN32)
-    list(APPEND SWIFTSHADER_LIST
-        ${SOURCE_DIR}/Main/FrameBufferDD.cpp
-        ${SOURCE_DIR}/Main/FrameBufferDD.hpp
-        ${SOURCE_DIR}/Main/FrameBufferGDI.cpp
-        ${SOURCE_DIR}/Main/FrameBufferGDI.hpp
-        ${SOURCE_DIR}/Main/FrameBufferWin.cpp
-        ${SOURCE_DIR}/Main/FrameBufferWin.hpp
-    )
     list(APPEND OPENGL_COMPILER_LIST ${OPENGL_COMPILER_DIR}/ossource_win.cpp)
     list(APPEND EGL_LIST ${OPENGL_DIR}/libEGL/libEGL.rc)
     list(APPEND GLES2_LIST ${OPENGL_DIR}/libGLESv2/libGLESv2.rc)
@@ -793,12 +759,6 @@ if(WIN32)
         ${SOURCE_DIR}/WSI/Win32SurfaceKHR.hpp
     )
 elseif(LINUX)
-    list(APPEND SWIFTSHADER_LIST
-        ${SOURCE_DIR}/Main/FrameBufferX11.cpp
-        ${SOURCE_DIR}/Main/FrameBufferX11.hpp
-        ${SOURCE_DIR}/Main/libX11.cpp
-        ${SOURCE_DIR}/Main/libX11.hpp
-    )
     list(APPEND OPENGL_COMPILER_LIST
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
     )
@@ -820,10 +780,6 @@ elseif(LINUX)
     endif()
 
 elseif(APPLE)
-    list(APPEND SWIFTSHADER_LIST
-        ${SOURCE_DIR}/Main/FrameBufferOSX.mm
-        ${SOURCE_DIR}/Main/FrameBufferOSX.hpp
-    )
     list(APPEND EGL_LIST
         ${OPENGL_DIR}/libEGL/OSXUtils.mm
         ${OPENGL_DIR}/libEGL/OSXUtils.hpp
@@ -837,10 +793,6 @@ elseif(APPLE)
         ${SOURCE_DIR}/WSI/MetalSurface.h
     )
 elseif(ANDROID)
-    list(APPEND SWIFTSHADER_LIST
-        ${SOURCE_DIR}/Main/FrameBufferAndroid.cpp
-        ${SOURCE_DIR}/Main/FrameBufferAndroid.hpp
-    )
     list(APPEND OPENGL_COMPILER_LIST
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
     )
@@ -863,17 +815,6 @@ endif()
 # SwiftShader Targets
 ###########################################################
 
-add_library(SwiftShader STATIC EXCLUDE_FROM_ALL ${SWIFTSHADER_LIST})
-set_target_properties(SwiftShader PROPERTIES
-    INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
-    POSITION_INDEPENDENT_CODE 1
-    FOLDER "Core"
-    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-    COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-)
-target_link_libraries(SwiftShader ${OS_LIBS} ${SWIFTSHADER_LIBS})
-
 add_subdirectory(src/Reactor) # Add ReactorSubzero and ReactorLLVM targets
 
 if(${REACTOR_BACKEND} STREQUAL "LLVM")
@@ -883,6 +824,21 @@ elseif(${REACTOR_BACKEND} STREQUAL "Subzero")
 else()
     message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM' or 'Subzero'")
 endif()
+
+
+add_subdirectory(src/Common) # Add gl_common target
+add_subdirectory(src/Main) # Add gl_main target
+add_subdirectory(src/Shader) # Add gl_shader target
+add_subdirectory(src/Renderer) # Add gl_renderer target
+
+# Combine all gl_* targets into an interface target
+# along with other dependencies
+add_library(gl_swiftshader_core INTERFACE)
+target_link_libraries(gl_swiftshader_core INTERFACE
+    # Transitively depends on shader, main, core, Reactor,
+    # OS_LIBS and SWIFTSHADER_LIBS
+    gl_renderer
+)
 
 add_library(GLCompiler STATIC EXCLUDE_FROM_ALL ${OPENGL_COMPILER_LIST})
 set_target_properties(GLCompiler PROPERTIES
@@ -919,7 +875,7 @@ if(SWIFTSHADER_BUILD_EGL)
         set_target_properties(libEGL PROPERTIES SUFFIX "_swiftshader.so")
     endif ()
     set_shared_library_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
-    target_link_libraries(libEGL SwiftShader ${OS_LIBS} ${SWIFTSHADER_LIBS})
+    target_link_libraries(libEGL gl_swiftshader_core ${OS_LIBS} ${SWIFTSHADER_LIBS})
     add_custom_command(
         TARGET libEGL
         POST_BUILD
@@ -944,7 +900,7 @@ if(SWIFTSHADER_BUILD_GLESv2)
         set_target_properties(libGLESv2 PROPERTIES SUFFIX "_swiftshader.so")
     endif ()
     set_shared_library_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
-    target_link_libraries(libGLESv2 SwiftShader ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
+    target_link_libraries(libGLESv2 gl_swiftshader_core ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
     add_custom_command(
         TARGET libGLESv2
         POST_BUILD
@@ -969,7 +925,7 @@ if(SWIFTSHADER_BUILD_GLES_CM)
         set_target_properties(libGLES_CM PROPERTIES SUFFIX "_swiftshader.so")
     endif ()
     set_shared_library_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
-    target_link_libraries(libGLES_CM SwiftShader ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
+    target_link_libraries(libGLES_CM gl_swiftshader_core ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
     add_custom_command(
         TARGET libGLES_CM
         POST_BUILD
