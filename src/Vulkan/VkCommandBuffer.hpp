@@ -54,11 +54,6 @@ public:
 
 	CommandBuffer(Device *device, VkCommandBufferLevel pLevel);
 
-	static inline CommandBuffer *Cast(VkCommandBuffer object)
-	{
-		return reinterpret_cast<CommandBuffer *>(object);
-	}
-
 	void destroy(const VkAllocationCallbacks *pAllocator);
 
 	VkResult begin(VkCommandBufferUsageFlags flags, const VkCommandBufferInheritanceInfo *pInheritanceInfo);
