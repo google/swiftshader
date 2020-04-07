@@ -647,51 +647,6 @@ set(VULKAN_INCLUDE_DIR
 # File Lists
 ###########################################################
 
-file(GLOB_RECURSE EGL_LIST
-    ${OPENGL_DIR}/libEGL/*.cpp
-    ${OPENGL_DIR}/libEGL/*.h
-    ${OPENGL_DIR}/libEGL/*.hpp
-    ${OPENGL_DIR}/common/Object.cpp
-    ${OPENGL_DIR}/common/Object.hpp
-    ${OPENGL_DIR}/common/debug.cpp
-    ${OPENGL_DIR}/common/debug.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
-)
-
-file(GLOB_RECURSE GLES2_LIST
-    ${OPENGL_DIR}/libGLESv2/*.cpp
-    ${OPENGL_DIR}/libGLESv2/*.h
-    ${OPENGL_DIR}/libGLESv2/*.hpp
-    ${OPENGL_DIR}/common/*.cpp
-    ${OPENGL_DIR}/common/*.h
-    ${OPENGL_DIR}/common/*.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES2/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES3/*.h
-)
-
-file(GLOB_RECURSE GLES_CM_LIST
-    ${OPENGL_DIR}/libGLES_CM/*.cpp
-    ${OPENGL_DIR}/libGLES_CM/*.h
-    ${OPENGL_DIR}/libGLES_CM/*.hpp
-    ${OPENGL_DIR}/common/*.cpp
-    ${OPENGL_DIR}/common/*.h
-    ${OPENGL_DIR}/common/*.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES/*.h
-)
-
-file(GLOB_RECURSE OPENGL_COMPILER_LIST
-    ${OPENGL_COMPILER_DIR}/*.cpp
-    ${OPENGL_COMPILER_DIR}/*.h
-    ${OPENGL_COMPILER_DIR}/*.hpp
-)
-file(GLOB_RECURSE OPENGL_COMPILER_OS_SPECIFIC_LIST
-    ${OPENGL_COMPILER_DIR}/ossource*.cpp
-    ${OPENGL_COMPILER_DIR}/ossource*.h
-    ${OPENGL_COMPILER_DIR}/ossource*.hpp
-)
-list(REMOVE_ITEM OPENGL_COMPILER_LIST ${OPENGL_COMPILER_OS_SPECIFIC_LIST})
 
 file(GLOB VULKAN_LIST
     ${VULKAN_DIR}/*.cpp
@@ -749,20 +704,12 @@ endif()
 ###########################################################
 
 if(WIN32)
-    list(APPEND OPENGL_COMPILER_LIST ${OPENGL_COMPILER_DIR}/ossource_win.cpp)
-    list(APPEND EGL_LIST ${OPENGL_DIR}/libEGL/libEGL.rc)
-    list(APPEND GLES2_LIST ${OPENGL_DIR}/libGLESv2/libGLESv2.rc)
-    list(APPEND GLES_CM_LIST ${OPENGL_DIR}/libGLES_CM/libGLES_CM.rc)
     list(APPEND VULKAN_LIST
         ${VULKAN_DIR}/Vulkan.rc
         ${SOURCE_DIR}/WSI/Win32SurfaceKHR.cpp
         ${SOURCE_DIR}/WSI/Win32SurfaceKHR.hpp
     )
 elseif(LINUX)
-    list(APPEND OPENGL_COMPILER_LIST
-        ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
-    )
-
     if(X11)
         list(APPEND VULKAN_LIST
             ${SOURCE_DIR}/WSI/XlibSurfaceKHR.cpp
@@ -780,21 +727,9 @@ elseif(LINUX)
     endif()
 
 elseif(APPLE)
-    list(APPEND EGL_LIST
-        ${OPENGL_DIR}/libEGL/OSXUtils.mm
-        ${OPENGL_DIR}/libEGL/OSXUtils.hpp
-    )
-    list(APPEND OPENGL_COMPILER_LIST
-        ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
-    )
-
     list(APPEND VULKAN_LIST
         ${SOURCE_DIR}/WSI/MetalSurface.mm
         ${SOURCE_DIR}/WSI/MetalSurface.h
-    )
-elseif(ANDROID)
-    list(APPEND OPENGL_COMPILER_LIST
-        ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
     )
 endif()
 
@@ -825,7 +760,6 @@ else()
     message(FATAL_ERROR "REACTOR_BACKEND must be 'LLVM' or 'Subzero'")
 endif()
 
-
 add_subdirectory(src/Common) # Add gl_common target
 add_subdirectory(src/Main) # Add gl_main target
 add_subdirectory(src/Shader) # Add gl_shader target
@@ -840,98 +774,19 @@ target_link_libraries(gl_swiftshader_core INTERFACE
     gl_renderer
 )
 
-add_library(GLCompiler STATIC EXCLUDE_FROM_ALL ${OPENGL_COMPILER_LIST})
-set_target_properties(GLCompiler PROPERTIES
-    INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-    POSITION_INDEPENDENT_CODE 1
-    FOLDER "OpenGL"
-    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-)
-target_link_libraries(GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(LIB_PREFIX "lib64")
-else()
-    set(LIB_PREFIX "lib")
-endif()
+add_subdirectory(src/OpenGL/common EXCLUDE_FROM_ALL) # Add libGLESCommon target
+add_subdirectory(src/OpenGL/compiler EXCLUDE_FROM_ALL) # Add GLCompiler target
 
 if(SWIFTSHADER_BUILD_EGL)
-    add_library(libEGL SHARED ${EGL_LIST})
-    set_target_properties(libEGL PROPERTIES
-        INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-        FOLDER "OpenGL"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        PREFIX ""
-    )
-    if(LINUX)
-        if(X11)
-            set_property(TARGET libEGL APPEND PROPERTY COMPILE_DEFINITIONS "USE_X11=1")
-        endif()
-    endif()
-    if (ANDROID)
-        set_target_properties(libEGL PROPERTIES SUFFIX "_swiftshader.so")
-    endif ()
-    set_shared_library_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
-    target_link_libraries(libEGL gl_swiftshader_core ${OS_LIBS} ${SWIFTSHADER_LIBS})
-    add_custom_command(
-        TARGET libEGL
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libEGL>/translator
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> $<TARGET_FILE_DIR:libEGL>/translator/${LIB_PREFIX}EGL_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-    )
+    add_subdirectory(src/OpenGL/libEGL) # Add libEGL target
 endif()
 
 if(SWIFTSHADER_BUILD_GLESv2)
-    add_library(libGLESv2 SHARED ${GLES2_LIST})
-    set_target_properties(libGLESv2 PROPERTIES
-        INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-        FOLDER "OpenGL"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        PREFIX ""
-    )
-    if (ANDROID)
-        set_target_properties(libGLESv2 PROPERTIES SUFFIX "_swiftshader.so")
-    endif ()
-    set_shared_library_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
-    target_link_libraries(libGLESv2 gl_swiftshader_core ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
-    add_custom_command(
-        TARGET libGLESv2
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLESv2>/translator
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> $<TARGET_FILE_DIR:libGLESv2>/translator/${LIB_PREFIX}GLES_V2_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-    )
+    add_subdirectory(src/OpenGL/libGLESv2) # Add libGLESv2 target
 endif()
 
 if(SWIFTSHADER_BUILD_GLES_CM)
-    add_library(libGLES_CM SHARED ${GLES_CM_LIST})
-    set_target_properties(libGLES_CM PROPERTIES
-        INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-        FOLDER "OpenGL"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        PREFIX ""
-    )
-    if (ANDROID)
-        set_target_properties(libGLES_CM PROPERTIES SUFFIX "_swiftshader.so")
-    endif ()
-    set_shared_library_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
-    target_link_libraries(libGLES_CM gl_swiftshader_core ${Reactor} GLCompiler ${OS_LIBS} ${SWIFTSHADER_LIBS})
-    add_custom_command(
-        TARGET libGLES_CM
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLES_CM>/translator
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLES_CM> $<TARGET_FILE_DIR:libGLES_CM>/translator/${LIB_PREFIX}GLES_CM_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
+    add_subdirectory(src/OpenGL/libGLES_CM) # Add libGLES_CM target
 endif(SWIFTSHADER_BUILD_GLES_CM)
 
 if(SWIFTSHADER_BUILD_VULKAN)
