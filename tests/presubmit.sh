@@ -80,6 +80,10 @@ function run_gofmt() {
   find ${SRC_DIR} ${TESTS_DIR} -name "*.go" | xargs $GOFMT -w
 }
 
+function run_check_build_files() {
+  go run ${TESTS_DIR}/check_build_files/main.go --root="${ROOT_DIR}"
+}
+
 # Ensure we are clean to start out with.
 check "git workspace must be clean" true
 
@@ -94,6 +98,9 @@ check clang-format run_clang_format
 
 # Check gofmt.
 check gofmt run_gofmt
+
+# Check build files.
+check "build files don't reference non-existent files" run_check_build_files
 
 echo
 echo "${green}All check completed successfully.${normal}"
