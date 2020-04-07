@@ -70,7 +70,7 @@ class WaitGroup {
 
     std::atomic<unsigned int> count = {0};
     ConditionVariable cv;
-    std::mutex mutex;
+    marl::mutex mutex;
   };
   const std::shared_ptr<Data> data;
 };
@@ -91,7 +91,7 @@ bool WaitGroup::done() const {
   MARL_ASSERT(data->count > 0, "marl::WaitGroup::done() called too many times");
   auto count = --data->count;
   if (count == 0) {
-    std::unique_lock<std::mutex> lock(data->mutex);
+    marl::lock lock(data->mutex);
     data->cv.notify_all();
     return true;
   }
@@ -99,7 +99,7 @@ bool WaitGroup::done() const {
 }
 
 void WaitGroup::wait() const {
-  std::unique_lock<std::mutex> lock(data->mutex);
+  marl::lock lock(data->mutex);
   data->cv.wait(lock, [this] { return data->count == 0; });
 }
 

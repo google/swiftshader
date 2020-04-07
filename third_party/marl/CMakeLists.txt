@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 project(Marl C CXX ASM)
+
+include(CheckCXXSourceCompiles)
 
 ###########################################################
 # Options
@@ -76,6 +78,32 @@ if(MARL_BUILD_BENCHMARKS)
 endif(MARL_BUILD_BENCHMARKS)
 
 ###########################################################
+# Compiler feature tests
+###########################################################
+# Check that the Clang Thread Safety Analysis' try_acquire_capability behaves
+# correctly. This is broken on some earlier versions of clang.
+# See: https://bugs.llvm.org/show_bug.cgi?id=32954
+set(SAVE_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+set(CMAKE_REQUIRED_FLAGS "-Wthread-safety -Werror")
+check_cxx_source_compiles(
+    "int main() {
+      struct __attribute__((capability(\"mutex\"))) Mutex {
+        void Unlock() __attribute__((release_capability)) {};
+        bool TryLock() __attribute__((try_acquire_capability(true))) { return true; };
+      };
+      Mutex m;
+      if (m.TryLock()) {
+        m.Unlock();  // Should not warn.
+      }
+      return 0;
+    }"
+    MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
+set(CMAKE_REQUIRED_FLAGS ${SAVE_CMAKE_REQUIRED_FLAGS})
+
+# Export MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED as this may be useful to parent projects
+set(MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED PARENT_SCOPE ${MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED})
+
+###########################################################
 # File lists
 ###########################################################
 set(MARL_LIST
@@ -111,6 +139,10 @@ find_package(Threads REQUIRED)
 # Functions
 ###########################################################
 function(marl_set_target_options target)
+    if (MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
+        target_compile_options(${target} PRIVATE "-Wthread-safety")
+    endif()
+
     # Enable all warnings
     if(MSVC)
         target_compile_options(${target} PRIVATE
@@ -137,13 +169,13 @@ function(marl_set_target_options target)
 
     if(MARL_ASAN)
         target_compile_options(${target} PUBLIC "-fsanitize=address")
-        target_link_libraries(${target} "-fsanitize=address")
+        target_link_libraries(${target} PUBLIC "-fsanitize=address")
     elseif(MARL_MSAN)
         target_compile_options(${target} PUBLIC "-fsanitize=memory")
-        target_link_libraries(${target} "-fsanitize=memory")
+        target_link_libraries(${target} PUBLIC "-fsanitize=memory")
     elseif(MARL_TSAN)
         target_compile_options(${target} PUBLIC "-fsanitize=thread")
-        target_link_libraries(${target} "-fsanitize=thread")
+        target_link_libraries(${target} PUBLIC "-fsanitize=thread")
     endif()
 
     target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${MARL_INCLUDE_DIR}>)
@@ -232,7 +264,7 @@ if(MARL_BUILD_TESTS)
 
     marl_set_target_options(marl-unittests)
 
-    target_link_libraries(marl-unittests marl)
+    target_link_libraries(marl-unittests PRIVATE marl)
 endif(MARL_BUILD_TESTS)
 
 # benchmarks
@@ -252,7 +284,7 @@ if(MARL_BUILD_BENCHMARKS)
 
     marl_set_target_options(marl-benchmarks)
 
-    target_link_libraries(marl-benchmarks benchmark::benchmark marl)
+    target_link_libraries(marl-benchmarks PRIVATE benchmark::benchmark marl)
 endif(MARL_BUILD_BENCHMARKS)
 
 # examples
@@ -263,7 +295,7 @@ if(MARL_BUILD_EXAMPLES)
             FOLDER "Examples"
         )
         marl_set_target_options(${target})
-        target_link_libraries(${target} marl)
+        target_link_libraries(${target} PRIVATE marl)
     endfunction(build_example)
 
     build_example(fractal)
