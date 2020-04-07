@@ -312,7 +312,33 @@ func (p *parser) parse() (*Tree, string, error) {
 	if p.err != nil {
 		return nil, "", p.err
 	}
+
+	p.populateAllSpans(&p.tree)
+
 	return &p.tree, p.revision, nil
+}
+
+// populateAllSpans() adds all the coverage spans to each treeFile.allSpans.
+func (p *parser) populateAllSpans(tree *Tree) {
+	spansByID := map[SpanID]Span{}
+	for span, id := range tree.spans {
+		spansByID[id] = span
+	}
+	for _, tf := range tree.files {
+		tf.tcm.traverse(func(tc *TestCoverage) {
+			for spanID := range tc.Spans {
+				span := spansByID[spanID]
+				tf.allSpans.Add(span)
+			}
+			if groupID := tc.Group; groupID != nil {
+				group := tf.spangroups[*groupID]
+				for spanID := range group.Spans {
+					span := spansByID[spanID]
+					tf.allSpans.Add(span)
+				}
+			}
+		})
+	}
 }
 
 func (p *parser) parseStrings() {
