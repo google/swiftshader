@@ -148,16 +148,8 @@ func (t *Tree) writeFilesJSON(spansByID map[SpanID]Span, sb *strings.Builder) {
 		file := t.files[path]
 
 		uncovered := append(SpanList{}, file.allSpans...)
-		file.tcm.traverse(func(tc *TestCoverage) {
-			for id := range tc.Spans {
-				uncovered.Remove(spansByID[id])
-			}
-		})
-
-		percentage := 0.0
-		if totalLines := file.allSpans.NumLines(); totalLines > 0 {
-			uncoveredLines := uncovered.NumLines()
-			percentage = 1.0 - (float64(uncoveredLines) / float64(totalLines))
+		for id := range t.allSpans(file, file.tcm) {
+			uncovered.Remove(spansByID[id])
 		}
 
 		if i > 0 {
@@ -167,9 +159,14 @@ func (t *Tree) writeFilesJSON(spansByID map[SpanID]Span, sb *strings.Builder) {
 		sb.WriteString(path)
 		sb.WriteString(`":`)
 		sb.WriteString(`{`)
-		sb.WriteString(`"p":`)
-		sb.WriteString(fmt.Sprintf("%v", percentage))
-		sb.WriteString(`,"g":`)
+		if totalLines := file.allSpans.NumLines(); totalLines > 0 {
+			uncoveredLines := uncovered.NumLines()
+			percentage := 1.0 - (float64(uncoveredLines) / float64(totalLines))
+			sb.WriteString(`"p":`)
+			sb.WriteString(fmt.Sprintf("%v", percentage))
+			sb.WriteString(`,`)
+		}
+		sb.WriteString(`"g":`)
 		t.writeSpanGroupsJSON(file.spangroups, sb)
 		sb.WriteString(`,"u":`)
 		t.writeUncoveredJSON(file, uncovered, sb)
@@ -324,20 +321,11 @@ func (p *parser) populateAllSpans(tree *Tree) {
 	for span, id := range tree.spans {
 		spansByID[id] = span
 	}
-	for _, tf := range tree.files {
-		tf.tcm.traverse(func(tc *TestCoverage) {
-			for spanID := range tc.Spans {
-				span := spansByID[spanID]
-				tf.allSpans.Add(span)
-			}
-			if groupID := tc.Group; groupID != nil {
-				group := tf.spangroups[*groupID]
-				for spanID := range group.Spans {
-					span := spansByID[spanID]
-					tf.allSpans.Add(span)
-				}
-			}
-		})
+	for _, file := range tree.files {
+		for spanID := range tree.allSpans(file, file.tcm) {
+			span := spansByID[spanID]
+			file.allSpans.Add(span)
+		}
 	}
 }
 

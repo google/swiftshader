@@ -170,6 +170,21 @@ nextFile:
 	}
 }
 
+// allSpans returns all the spans in use by the TestCoverageMap and its children.
+func (t *Tree) allSpans(tf *treeFile, tcm TestCoverageMap) SpanSet {
+	spans := SpanSet{}
+	for _, tc := range tcm {
+		for id := tc.Group; id != nil; id = tf.spangroups[*id].Extend {
+			group := tf.spangroups[*id]
+			spans = spans.addAll(group.Spans)
+		}
+		spans = spans.addAll(tc.Spans)
+
+		spans = spans.addAll(spans.invertAll(t.allSpans(tf, tc.Children)))
+	}
+	return spans
+}
+
 // StringID is an identifier of a string
 type StringID int
 
@@ -435,6 +450,21 @@ func (s SpanSet) invert(rhs SpanID) SpanSet {
 		return s.remove(rhs)
 	}
 	return s.add(rhs)
+}
+
+func (s SpanSet) invertAll(rhs SpanSet) SpanSet {
+	out := make(SpanSet, len(s)+len(rhs))
+	for span := range s {
+		if !rhs.contains(span) {
+			out[span] = struct{}{}
+		}
+	}
+	for span := range rhs {
+		if !s.contains(span) {
+			out[span] = struct{}{}
+		}
+	}
+	return out
 }
 
 // SpanGroupID is an identifier of a SpanGroup.
