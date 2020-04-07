@@ -216,6 +216,7 @@ func (c *Config) Run() (*Results, error) {
 
 	if c.CoverageEnv != nil {
 		out.Coverage = &cov.Tree{}
+		out.Coverage.Add(cov.Path{}, c.CoverageEnv.AllSourceFiles())
 	}
 
 	// Collect the results.

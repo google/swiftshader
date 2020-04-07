@@ -76,6 +76,9 @@ func (s Span) Compare(o Span) int {
 // Before returns true if span s comes before o.
 func (s Span) Before(o Span) bool { return s.Compare(o) == -1 }
 
+// Inside returns true if span s fits entirely inside o.
+func (s Span) Inside(o Span) bool { return s.Start.Compare(o.Start) >= 0 && s.End.Compare(o.End) <= 0 }
+
 // SpanList is a sorted list of spans. Use SpanList.Add() to insert new spans.
 type SpanList []Span
 
@@ -87,6 +90,11 @@ func (l *SpanList) Add(s Span) {
 	// [ 0 ] [ 1 ] [ 2 ] [ 3 ] | idxStart: 1 |  idxEnd: 2
 	// [0]  [1]  [2]  [3]  [4] | idxStart: 2 |  idxEnd: 2
 	idxStart := sort.Search(len(*l), func(i int) bool { return (*l)[i].End.Compare(s.Start) >= 0 })
+
+	if idxStart < len(*l) && s.Inside((*l)[idxStart]) {
+		return // No change.
+	}
+
 	idxEnd := sort.Search(len(*l), func(i int) bool { return (*l)[i].Start.Compare(s.End) > 0 })
 
 	if idxStart < idxEnd {

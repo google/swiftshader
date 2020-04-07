@@ -27,15 +27,6 @@ import (
 	"../llvm"
 )
 
-var ignorePaths = map[string]bool{
-	"src/Common":   true,
-	"src/Main":     true,
-	"src/OpenGL":   true,
-	"src/Renderer": true,
-	"src/Shader":   true,
-	"src/System":   true,
-}
-
 // File describes the coverage spans in a single source file.
 type File struct {
 	Path      string
@@ -61,6 +52,45 @@ type Env struct {
 // LLVM_PROFILE_FILE environment variable appended.
 func AppendRuntimeEnv(env []string, coverageFile string) []string {
 	return append(env, "LLVM_PROFILE_FILE="+coverageFile)
+}
+
+// AllSourceFiles returns a *Coverage containing all the source files without
+// coverage data. This populates the coverage view with files even if they
+// didn't get compiled.
+func (e Env) AllSourceFiles() *Coverage {
+	var ignorePaths = map[string]bool{
+		"src/Common":   true,
+		"src/Main":     true,
+		"src/OpenGL":   true,
+		"src/Renderer": true,
+		"src/Shader":   true,
+		"src/System":   true,
+	}
+
+	// Gather all the source files to include them even if there is no coverage
+	// information produced for these files. This highlights files that aren't
+	// even compiled.
+	cov := Coverage{}
+	allFiles := map[string]struct{}{}
+	filepath.Walk(filepath.Join(e.RootDir, "src"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(e.RootDir, path)
+		if err != nil || ignorePaths[rel] {
+			return filepath.SkipDir
+		}
+		if !info.IsDir() {
+			switch filepath.Ext(path) {
+			case ".h", ".c", ".cc", ".cpp", ".hpp":
+				if _, seen := allFiles[rel]; !seen {
+					cov.Files = append(cov.Files, File{Path: rel})
+				}
+			}
+		}
+		return nil
+	})
+	return &cov
 }
 
 // Import uses the llvm-profdata and llvm-cov tools to import the coverage
@@ -107,32 +137,6 @@ func (e Env) Import(profrawPath string) (*Coverage, error) {
 	if err != nil {
 		return nil, cause.Wrap(err, "Couldn't process turbo-cov output")
 	}
-
-	// Gather all the source files to include them even if there is no coverage
-	// information produced for these files. This highlights files that aren't
-	// even compiled.
-	allFiles := map[string]struct{}{}
-	for _, file := range cov.Files {
-		allFiles[file.Path] = struct{}{}
-	}
-	filepath.Walk(filepath.Join(e.RootDir, "src"), func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		rel, err := filepath.Rel(e.RootDir, path)
-		if err != nil || ignorePaths[rel] {
-			return filepath.SkipDir
-		}
-		if !info.IsDir() {
-			switch filepath.Ext(path) {
-			case ".h", ".c", ".cc", ".cpp", ".hpp":
-				if _, seen := allFiles[rel]; !seen {
-					cov.Files = append(cov.Files, File{Path: rel})
-				}
-			}
-		}
-		return nil
-	})
 
 	return cov, nil
 }
@@ -185,9 +189,9 @@ func (e Env) parseCov(raw []byte) (*Coverage, error) {
 			start := Location{(int)(f.Segments[sIdx][0].(float64)), (int)(f.Segments[sIdx][1].(float64))}
 			end := Location{(int)(f.Segments[sIdx+1][0].(float64)), (int)(f.Segments[sIdx+1][1].(float64))}
 			if covered := f.Segments[sIdx][2].(float64) != 0; covered {
-				file.Covered.Add(Span{start, end})
+				file.Covered = appendSpan(file.Covered, Span{start, end})
 			} else {
-				file.Uncovered.Add(Span{start, end})
+				file.Uncovered = appendSpan(file.Uncovered, Span{start, end})
 			}
 		}
 		if len(file.Covered) > 0 {
@@ -251,9 +255,9 @@ func (e Env) parseTurboCov(data []byte) (*Coverage, error) {
 			end := segments[sIdx+1].location
 			if segments[sIdx].covered {
 				if segments[sIdx].count > 0 {
-					file.Covered.Add(Span{start, end})
+					file.Covered = appendSpan(file.Covered, Span{start, end})
 				} else {
-					file.Uncovered.Add(Span{start, end})
+					file.Uncovered = appendSpan(file.Uncovered, Span{start, end})
 				}
 			}
 		}
