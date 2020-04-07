@@ -85,10 +85,10 @@ class OnNewThread<void> {
 //  void runABlockingFunctionOnATask()
 //  {
 //      // Schedule a task that calls a blocking, non-yielding function.
-//      yarn::schedule([=] {
+//      marl::schedule([=] {
 //          // call_blocking_function() may block indefinitely.
 //          // Ensure this call does not block other tasks from running.
-//          auto result = yarn::blocking_call(call_blocking_function);
+//          auto result = marl::blocking_call(call_blocking_function);
 //          // call_blocking_function() has now returned.
 //          // result holds the return value of the blocking function call.
 //      });

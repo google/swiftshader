@@ -113,7 +113,7 @@ class Event {
     inline bool wait_until(
         const std::chrono::time_point<Clock, Duration>& timeout);
 
-    std::mutex mutex;
+    marl::mutex mutex;
     ConditionVariable cv;
     const Mode mode;
     bool signalled;
@@ -127,7 +127,7 @@ Event::Shared::Shared(Allocator* allocator, Mode mode, bool initialState)
     : cv(allocator), mode(mode), signalled(initialState) {}
 
 void Event::Shared::signal() {
-  std::unique_lock<std::mutex> lock(mutex);
+  marl::lock lock(mutex);
   if (signalled) {
     return;
   }
@@ -143,7 +143,7 @@ void Event::Shared::signal() {
 }
 
 void Event::Shared::wait() {
-  std::unique_lock<std::mutex> lock(mutex);
+  marl::lock lock(mutex);
   cv.wait(lock, [&] { return signalled; });
   if (mode == Mode::Auto) {
     signalled = false;
@@ -153,7 +153,7 @@ void Event::Shared::wait() {
 template <typename Rep, typename Period>
 bool Event::Shared::wait_for(
     const std::chrono::duration<Rep, Period>& duration) {
-  std::unique_lock<std::mutex> lock(mutex);
+  marl::lock lock(mutex);
   if (!cv.wait_for(lock, duration, [&] { return signalled; })) {
     return false;
   }
@@ -166,7 +166,7 @@ bool Event::Shared::wait_for(
 template <typename Clock, typename Duration>
 bool Event::Shared::wait_until(
     const std::chrono::time_point<Clock, Duration>& timeout) {
-  std::unique_lock<std::mutex> lock(mutex);
+  marl::lock lock(mutex);
   if (!cv.wait_until(lock, timeout, [&] { return signalled; })) {
     return false;
   }
@@ -186,7 +186,7 @@ void Event::signal() const {
 }
 
 void Event::clear() const {
-  std::unique_lock<std::mutex> lock(shared->mutex);
+  marl::lock lock(shared->mutex);
   shared->signalled = false;
 }
 
@@ -206,7 +206,7 @@ bool Event::wait_until(
 }
 
 bool Event::test() const {
-  std::unique_lock<std::mutex> lock(shared->mutex);
+  marl::lock lock(shared->mutex);
   if (!shared->signalled) {
     return false;
   }
@@ -217,7 +217,7 @@ bool Event::test() const {
 }
 
 bool Event::isSignalled() const {
-  std::unique_lock<std::mutex> lock(shared->mutex);
+  marl::lock lock(shared->mutex);
   return shared->signalled;
 }
 
@@ -226,7 +226,7 @@ Event Event::any(Mode mode, const Iterator& begin, const Iterator& end) {
   Event any(mode, false);
   for (auto it = begin; it != end; it++) {
     auto s = it->shared;
-    std::unique_lock<std::mutex> lock(s->mutex);
+    marl::lock lock(s->mutex);
     if (s->signalled) {
       any.signal();
     }

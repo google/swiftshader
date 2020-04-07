@@ -17,7 +17,7 @@
 
 #include "debug.h"
 #include "memory.h"
-#include "sal.h"
+#include "mutex.h"
 #include "task.h"
 #include "thread.h"
 
@@ -28,7 +28,6 @@
 #include <deque>
 #include <functional>
 #include <map>
-#include <mutex>
 #include <set>
 #include <thread>
 #include <unordered_map>
@@ -104,8 +103,6 @@ class Scheduler {
   // thread that previously executed it.
   class Fiber {
    public:
-    using Lock = std::unique_lock<std::mutex>;
-
     // current() returns the currently executing fiber, or nullptr if called
     // without a bound scheduler.
     static Fiber* current();
@@ -122,8 +119,7 @@ class Scheduler {
     // will be locked before wait() returns.
     // pred will be always be called with the lock held.
     // wait() must only be called on the currently executing fiber.
-    _Requires_lock_held_(lock)
-    void wait(Lock& lock, const Predicate& pred);
+    void wait(marl::lock& lock, const Predicate& pred);
 
     // wait() suspends execution of this Fiber until the Fiber is woken up with
     // a call to notify() and the predicate pred returns true, or sometime after
@@ -139,9 +135,8 @@ class Scheduler {
     // will be locked before wait() returns.
     // pred will be always be called with the lock held.
     // wait() must only be called on the currently executing fiber.
-    _Requires_lock_held_(lock)
     template <typename Clock, typename Duration>
-    inline bool wait(Lock& lock,
+    inline bool wait(marl::lock& lock,
                      const std::chrono::time_point<Clock, Duration>& timeout,
                      const Predicate& pred);
 
@@ -307,56 +302,51 @@ class Scheduler {
     Worker(Scheduler* scheduler, Mode mode, uint32_t id);
 
     // start() begins execution of the worker.
-    void start();
+    void start() EXCLUDES(work.mutex);
 
     // stop() ceases execution of the worker, blocking until all pending
     // tasks have fully finished.
-    void stop();
+    void stop() EXCLUDES(work.mutex);
 
     // wait() suspends execution of the current task until the predicate pred
     // returns true or the optional timeout is reached.
     // See Fiber::wait() for more information.
-    _Requires_lock_held_(lock)
-    bool wait(Fiber::Lock& lock,
-              const TimePoint* timeout,
-              const Predicate& pred);
+    bool wait(marl::lock& lock, const TimePoint* timeout, const Predicate& pred)
+        EXCLUDES(work.mutex);
 
     // wait() suspends execution of the current task until the fiber is
     // notified, or the optional timeout is reached.
     // See Fiber::wait() for more information.
-    bool wait(const TimePoint* timeout);
+    bool wait(const TimePoint* timeout) EXCLUDES(work.mutex);
 
     // suspend() suspends the currenetly executing Fiber until the fiber is
     // woken with a call to enqueue(Fiber*), or automatically sometime after the
     // optional timeout.
-    _Requires_lock_held_(work.mutex)
-    void suspend(const TimePoint* timeout);
+    void suspend(const TimePoint* timeout) REQUIRES(work.mutex);
 
     // enqueue(Fiber*) enqueues resuming of a suspended fiber.
-    void enqueue(Fiber* fiber);
+    void enqueue(Fiber* fiber) EXCLUDES(work.mutex);
 
     // enqueue(Task&&) enqueues a new, unstarted task.
-    void enqueue(Task&& task);
+    void enqueue(Task&& task) EXCLUDES(work.mutex);
 
     // tryLock() attempts to lock the worker for task enqueing.
     // If the lock was successful then true is returned, and the caller must
     // call enqueueAndUnlock().
-    _When_(return == true, _Acquires_lock_(work.mutex))
-    bool tryLock();
+    bool tryLock() EXCLUDES(work.mutex) TRY_ACQUIRE(true, work.mutex);
 
     // enqueueAndUnlock() enqueues the task and unlocks the worker.
     // Must only be called after a call to tryLock() which returned true.
-    _Requires_lock_held_(work.mutex)
-    _Releases_lock_(work.mutex)
-    void enqueueAndUnlock(Task&& task);
+    // _Releases_lock_(work.mutex)
+    void enqueueAndUnlock(Task&& task) REQUIRES(work.mutex) RELEASE(work.mutex);
 
     // runUntilShutdown() processes all tasks and fibers until there are no more
     // and shutdown is true, upon runUntilShutdown() returns.
-    void runUntilShutdown();
+    void runUntilShutdown() REQUIRES(work.mutex);
 
     // steal() attempts to steal a Task from the worker for another worker.
     // Returns true if a task was taken and assigned to out, otherwise false.
-    bool steal(Task& out);
+    bool steal(Task& out) EXCLUDES(work.mutex);
 
     // getCurrent() returns the Worker currently bound to the current
     // thread.
@@ -371,27 +361,22 @@ class Scheduler {
    private:
     // run() is the task processing function for the worker.
     // run() processes tasks until stop() is called.
-    _Requires_lock_held_(work.mutex)
-    void run();
+    void run() REQUIRES(work.mutex);
 
     // createWorkerFiber() creates a new fiber that when executed calls
     // run().
-    _Requires_lock_held_(work.mutex)
-    Fiber* createWorkerFiber();
+    Fiber* createWorkerFiber() REQUIRES(work.mutex);
 
     // switchToFiber() switches execution to the given fiber. The fiber
     // must belong to this worker.
-    _Requires_lock_held_(work.mutex)
-    void switchToFiber(Fiber*);
+    void switchToFiber(Fiber*) REQUIRES(work.mutex);
 
     // runUntilIdle() executes all pending tasks and then returns.
-    _Requires_lock_held_(work.mutex)
-    void runUntilIdle();
+    void runUntilIdle() REQUIRES(work.mutex);
 
     // waitForWork() blocks until new work is available, potentially calling
     // spinForWork().
-    _Requires_lock_held_(work.mutex)
-    void waitForWork();
+    void waitForWork() REQUIRES(work.mutex);
 
     // spinForWork() attempts to steal work from another Worker, and keeps
     // the thread awake for a short duration. This reduces overheads of
@@ -400,31 +385,28 @@ class Scheduler {
 
     // enqueueFiberTimeouts() enqueues all the fibers that have finished
     // waiting.
-    _Requires_lock_held_(work.mutex)
-    void enqueueFiberTimeouts();
+    void enqueueFiberTimeouts() REQUIRES(work.mutex);
 
-    _Requires_lock_held_(work.mutex)
     inline void changeFiberState(Fiber* fiber,
                                  Fiber::State from,
-                                 Fiber::State to) const;
+                                 Fiber::State to) const REQUIRES(work.mutex);
 
-    _Requires_lock_held_(work.mutex)
-    inline void setFiberState(Fiber* fiber, Fiber::State to) const;
+    inline void setFiberState(Fiber* fiber, Fiber::State to) const
+        REQUIRES(work.mutex);
 
     // Work holds tasks and fibers that are enqueued on the Worker.
     struct Work {
       std::atomic<uint64_t> num = {0};  // tasks.size() + fibers.size()
-      _Guarded_by_(mutex) uint64_t numBlockedFibers = 0;
-      _Guarded_by_(mutex) TaskQueue tasks;
-      _Guarded_by_(mutex) FiberQueue fibers;
-      _Guarded_by_(mutex) WaitingFibers waiting;
-      _Guarded_by_(mutex) bool notifyAdded = true;
+      GUARDED_BY(mutex) uint64_t numBlockedFibers = 0;
+      GUARDED_BY(mutex) TaskQueue tasks;
+      GUARDED_BY(mutex) FiberQueue fibers;
+      GUARDED_BY(mutex) WaitingFibers waiting;
+      GUARDED_BY(mutex) bool notifyAdded = true;
       std::condition_variable added;
-      std::mutex mutex;
+      marl::mutex mutex;
 
-      _Requires_lock_held_(mutex)
       template <typename F>
-      inline void wait(F&&);
+      inline void wait(F&&) REQUIRES(mutex);
     };
 
     // https://en.wikipedia.org/wiki/Xorshift
@@ -472,7 +454,7 @@ class Scheduler {
   Allocator* const allocator;
 
   std::function<void()> threadInitFunc;
-  std::mutex threadInitFuncMutex;
+  mutex threadInitFuncMutex;
 
   std::array<std::atomic<int>, 8> spinningWorkers;
   std::atomic<unsigned int> nextSpinningWorkerIdx = {0x8000000};
@@ -484,17 +466,18 @@ class Scheduler {
   std::array<Worker*, MaxWorkerThreads> workerThreads;
 
   struct SingleThreadedWorkers {
-    std::mutex mutex;
-    std::condition_variable unbind;
-    std::unordered_map<std::thread::id, Allocator::unique_ptr<Worker>> byTid;
+    using WorkerByTid =
+        std::unordered_map<std::thread::id, Allocator::unique_ptr<Worker>>;
+    marl::mutex mutex;
+    GUARDED_BY(mutex) std::condition_variable unbind;
+    GUARDED_BY(mutex) WorkerByTid byTid;
   };
   SingleThreadedWorkers singleThreadedWorkers;
 };
 
-_Requires_lock_held_(lock)
 template <typename Clock, typename Duration>
 bool Scheduler::Fiber::wait(
-    Lock& lock,
+    marl::lock& lock,
     const std::chrono::time_point<Clock, Duration>& timeout,
     const Predicate& pred) {
   using ToDuration = typename TimePoint::duration;

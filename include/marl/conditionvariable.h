@@ -19,11 +19,12 @@
 #include "debug.h"
 #include "defer.h"
 #include "memory.h"
+#include "mutex.h"
 #include "scheduler.h"
+#include "tsa.h"
 
 #include <atomic>
 #include <condition_variable>
-#include <mutex>
 
 namespace marl {
 
@@ -47,14 +48,14 @@ class ConditionVariable {
   // wait() blocks the current fiber or thread until the predicate is satisfied
   // and the ConditionVariable is notified.
   template <typename Predicate>
-  inline void wait(std::unique_lock<std::mutex>& lock, Predicate&& pred);
+  inline void wait(marl::lock& lock, Predicate&& pred);
 
   // wait_for() blocks the current fiber or thread until the predicate is
   // satisfied, and the ConditionVariable is notified, or the timeout has been
   // reached. Returns false if pred still evaluates to false after the timeout
   // has been reached, otherwise true.
   template <typename Rep, typename Period, typename Predicate>
-  bool wait_for(std::unique_lock<std::mutex>& lock,
+  bool wait_for(marl::lock& lock,
                 const std::chrono::duration<Rep, Period>& duration,
                 Predicate&& pred);
 
@@ -63,7 +64,7 @@ class ConditionVariable {
   // reached. Returns false if pred still evaluates to false after the timeout
   // has been reached, otherwise true.
   template <typename Clock, typename Duration, typename Predicate>
-  bool wait_until(std::unique_lock<std::mutex>& lock,
+  bool wait_until(marl::lock& lock,
                   const std::chrono::time_point<Clock, Duration>& timeout,
                   Predicate&& pred);
 
@@ -73,7 +74,7 @@ class ConditionVariable {
   ConditionVariable& operator=(const ConditionVariable&) = delete;
   ConditionVariable& operator=(ConditionVariable&&) = delete;
 
-  std::mutex mutex;
+  marl::mutex mutex;
   containers::list<Scheduler::Fiber*> waiting;
   std::condition_variable condition;
   std::atomic<int> numWaiting = {0};
@@ -89,7 +90,7 @@ void ConditionVariable::notify_one() {
     return;
   }
   {
-    std::unique_lock<std::mutex> lock(mutex);
+    marl::lock lock(mutex);
     for (auto fiber : waiting) {
       fiber->notify();
     }
@@ -104,7 +105,7 @@ void ConditionVariable::notify_all() {
     return;
   }
   {
-    std::unique_lock<std::mutex> lock(mutex);
+    marl::lock lock(mutex);
     for (auto fiber : waiting) {
       fiber->notify();
     }
@@ -115,8 +116,7 @@ void ConditionVariable::notify_all() {
 }
 
 template <typename Predicate>
-void ConditionVariable::wait(std::unique_lock<std::mutex>& lock,
-                             Predicate&& pred) {
+void ConditionVariable::wait(marl::lock& lock, Predicate&& pred) {
   if (pred()) {
     return;
   }
@@ -137,7 +137,7 @@ void ConditionVariable::wait(std::unique_lock<std::mutex>& lock,
     // Currently running outside of the scheduler.
     // Delegate to the std::condition_variable.
     numWaitingOnCondition++;
-    condition.wait(lock, pred);
+    lock.wait(condition, pred);
     numWaitingOnCondition--;
   }
   numWaiting--;
@@ -145,7 +145,7 @@ void ConditionVariable::wait(std::unique_lock<std::mutex>& lock,
 
 template <typename Rep, typename Period, typename Predicate>
 bool ConditionVariable::wait_for(
-    std::unique_lock<std::mutex>& lock,
+    marl::lock& lock,
     const std::chrono::duration<Rep, Period>& duration,
     Predicate&& pred) {
   return wait_until(lock, std::chrono::system_clock::now() + duration, pred);
@@ -153,7 +153,7 @@ bool ConditionVariable::wait_for(
 
 template <typename Clock, typename Duration, typename Predicate>
 bool ConditionVariable::wait_until(
-    std::unique_lock<std::mutex>& lock,
+    marl::lock& lock,
     const std::chrono::time_point<Clock, Duration>& timeout,
     Predicate&& pred) {
   if (pred()) {
@@ -181,7 +181,7 @@ bool ConditionVariable::wait_until(
     // Delegate to the std::condition_variable.
     numWaitingOnCondition++;
     defer(numWaitingOnCondition--);
-    return condition.wait_until(lock, timeout, pred);
+    return lock.wait_until(condition, timeout, pred);
   }
 }
 
