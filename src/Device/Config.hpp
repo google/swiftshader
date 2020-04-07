@@ -15,35 +15,7 @@
 #ifndef sw_Config_hpp
 #define sw_Config_hpp
 
-#include "System/Types.hpp"
-
 namespace sw {
-
-enum
-{
-	PERF_PIXEL,
-	PERF_PIPE,
-	PERF_INTERP,
-	PERF_SHADER,
-	PERF_TEX,
-	PERF_ROP,
-
-	PERF_TIMERS
-};
-
-struct Profiler
-{
-	Profiler();
-
-	void reset();
-	void nextFrame();
-
-	int framesSec;
-	int framesTotal;
-	double FPS;
-};
-
-extern Profiler profiler;
 
 enum
 {

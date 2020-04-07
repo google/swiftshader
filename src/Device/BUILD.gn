@@ -40,7 +40,6 @@ swiftshader_source_set("Device") {
     "BC_Decoder.cpp",
     "Blitter.cpp",
     "Clipper.cpp",
-    "Config.cpp",
     "Context.cpp",
     "ETC_Decoder.cpp",
     "PixelProcessor.cpp",
