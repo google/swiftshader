@@ -17,10 +17,23 @@ package cause
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Wrap returns a new error wrapping cause with the additional message.
 func Wrap(cause error, msg string, args ...interface{}) error {
 	s := fmt.Sprintf(msg, args...)
 	return fmt.Errorf("%v. Cause: %w", s, cause)
+}
+
+// Merge merges all the errors into a single newline delimited error.
+func Merge(errs ...error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	strs := make([]string, len(errs))
+	for i, err := range errs {
+		strs[i] = err.Error()
+	}
+	return fmt.Errorf("%v", strings.Join(strs, "\n"))
 }

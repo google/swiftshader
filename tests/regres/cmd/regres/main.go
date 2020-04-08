@@ -632,24 +632,47 @@ func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, 
 		dailyHash = git.ParseHash(r.dailyChange)
 	}
 
+	test, testLists, results, err := r.runDailyTest(dailyHash, reactorBackend, genCov)
+	if err != nil {
+		return err
+	}
+
+	errs := []error{}
+
+	if err := r.postDailyResults(client, test, testLists, results, reactorBackend, dailyHash); err != nil {
+		errs = append(errs, err)
+	}
+
+	if genCov {
+		if err := r.postCoverageResults(results.Coverage, dailyHash); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return cause.Merge(errs...)
+}
+
+// runDailyTest performs the full deqp run on the HEAD change, returning the
+// results.
+func (r *regres) runDailyTest(dailyHash git.Hash, reactorBackend reactorBackend, genCov bool) (*test, testlist.Lists, *deqp.Results, error) {
 	// Get the full test results.
 	test := r.newTest(dailyHash).setReactorBackend(reactorBackend)
 	defer test.cleanup()
 
 	// Always need to checkout the change.
 	if err := test.checkout(); err != nil {
-		return cause.Wrap(err, "Failed to checkout '%s'", dailyHash)
+		return nil, nil, nil, cause.Wrap(err, "Failed to checkout '%s'", dailyHash)
 	}
 
 	d, err := r.getOrBuildDEQP(test)
 	if err != nil {
-		return cause.Wrap(err, "Failed to build deqp for '%s'", dailyHash)
+		return nil, nil, nil, cause.Wrap(err, "Failed to build deqp for '%s'", dailyHash)
 	}
 
 	// Load the test lists.
 	testLists, err := test.loadTestLists(fullTestListRelPath)
 	if err != nil {
-		return cause.Wrap(err, "Failed to load full test lists for '%s'", dailyHash)
+		return nil, nil, nil, cause.Wrap(err, "Failed to load full test lists for '%s'", dailyHash)
 	}
 
 	if genCov {
@@ -663,14 +686,29 @@ func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, 
 
 	// Build the change.
 	if err := test.build(); err != nil {
-		return cause.Wrap(err, "Failed to build '%s'", dailyHash)
+		return nil, nil, nil, cause.Wrap(err, "Failed to build '%s'", dailyHash)
 	}
 
 	// Run the tests on the change.
 	results, err := test.run(testLists, d)
 	if err != nil {
-		return cause.Wrap(err, "Failed to test '%s'", dailyHash)
+		return nil, nil, nil, cause.Wrap(err, "Failed to test '%s'", dailyHash)
 	}
+
+	return test, testLists, results, nil
+}
+
+// postDailyResults posts the results of the daily full deqp run to gerrit as
+// a new change, or reusing an old, unsubmitted change.
+// This change contains the updated test lists, along with a summary of the
+// test results.
+func (r *regres) postDailyResults(
+	client *gerrit.Client,
+	test *test,
+	testLists testlist.Lists,
+	results *deqp.Results,
+	reactorBackend reactorBackend,
+	dailyHash git.Hash) error {
 
 	// Write out the test list status files.
 	filePaths, err := test.writeTestListsByStatus(testLists, results)
@@ -738,16 +776,10 @@ func (r *regres) runDaily(client *gerrit.Client, reactorBackend reactorBackend, 
 		return err
 	}
 
-	if genCov {
-		if err := r.commitCoverage(results.Coverage, dailyHash); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
-func (r *regres) commitCoverage(cov *cov.Tree, revision git.Hash) error {
+func (r *regres) postCoverageResults(cov *cov.Tree, revision git.Hash) error {
 	log.Printf("Committing coverage for %v\n", revision.String())
 
 	url := coverageURL
