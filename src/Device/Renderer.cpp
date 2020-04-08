@@ -187,17 +187,6 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	auto id = nextDrawID++;
 	MARL_SCOPED_EVENT("draw %d", id);
 
-#ifndef NDEBUG
-	{
-		unsigned int minPrimitives = 1;
-		unsigned int maxPrimitives = 1 << 21;
-		if(count < minPrimitives || count > maxPrimitives)
-		{
-			return;
-		}
-	}
-#endif
-
 	int ms = context->sampleCount;
 
 	if(!context->multiSampleMask)
