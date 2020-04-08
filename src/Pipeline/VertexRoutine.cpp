@@ -269,10 +269,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-			if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
-			if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
-			if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
-			if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte));
+			if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+			if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+			if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
+			if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleSByte)), Float4(-1.0f));
 			break;
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8G8_SINT:
@@ -295,10 +295,10 @@ Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const St
 
 			transpose4xN(v.x, v.y, v.z, v.w, componentCount);
 
-			if(componentCount >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
-			if(componentCount >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
-			if(componentCount >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
-			if(componentCount >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort));
+			if(componentCount >= 1) v.x = Max(v.x * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+			if(componentCount >= 2) v.y = Max(v.y * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+			if(componentCount >= 3) v.z = Max(v.z * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
+			if(componentCount >= 4) v.w = Max(v.w * *Pointer<Float4>(constants + OFFSET(Constants, unscaleShort)), Float4(-1.0f));
 			break;
 		case VK_FORMAT_R16_SINT:
 		case VK_FORMAT_R16G16_SINT:

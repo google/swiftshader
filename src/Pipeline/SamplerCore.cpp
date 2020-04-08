@@ -183,10 +183,10 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvw[4], Float
 				case VK_FORMAT_R8G8_SNORM:
 				case VK_FORMAT_R8G8B8A8_SNORM:
 				case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-					c.x *= Float4(1.0f / 0x7F00);
-					c.y *= Float4(1.0f / 0x7F00);
-					c.z *= Float4(1.0f / 0x7F00);
-					c.w *= Float4(1.0f / 0x7F00);
+					c.x = Max(c.x * Float4(1.0f / 0x7F00), Float4(-1.0f));
+					c.y = Max(c.y * Float4(1.0f / 0x7F00), Float4(-1.0f));
+					c.z = Max(c.z * Float4(1.0f / 0x7F00), Float4(-1.0f));
+					c.w = Max(c.w * Float4(1.0f / 0x7F00), Float4(-1.0f));
 					break;
 				case VK_FORMAT_R8_UNORM:
 				case VK_FORMAT_R8G8_UNORM:
@@ -237,10 +237,10 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvw[4], Float
 			case VK_FORMAT_R8G8_SNORM:
 			case VK_FORMAT_R8G8B8A8_SNORM:
 			case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-				c.x = Float4(cs.x) * Float4(1.0f / 0x7F00);
-				c.y = Float4(cs.y) * Float4(1.0f / 0x7F00);
-				c.z = Float4(cs.z) * Float4(1.0f / 0x7F00);
-				c.w = Float4(cs.w) * Float4(1.0f / 0x7F00);
+				c.x = Max(Float4(cs.x) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.y = Max(Float4(cs.y) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.z = Max(Float4(cs.z) * Float4(1.0f / 0x7F00), Float4(-1.0f));
+				c.w = Max(Float4(cs.w) * Float4(1.0f / 0x7F00), Float4(-1.0f));
 				break;
 			case VK_FORMAT_R8_UNORM:
 			case VK_FORMAT_R8G8_UNORM:
