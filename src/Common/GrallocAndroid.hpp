@@ -16,17 +16,22 @@
 #define GRALLOC_ANDROID
 
 #include <hardware/gralloc.h>
-
-#ifdef HAVE_GRALLOC1
 #include <hardware/gralloc1.h>
+#ifdef HAVE_GRALLOC3
+#	include <android/hardware/graphics/mapper/3.0/IMapper.h>
+#	include <utils/StrongPointer.h>
 #endif
 
-#include <unistd.h> // for close()
+#include <unistd.h>  // for close()
 
 class GrallocModule
 {
 public:
 	static GrallocModule *getInstance();
+
+	int import(buffer_handle_t handle, buffer_handle_t *imported_handle);
+	int release(buffer_handle_t handle);
+
 	int lock(buffer_handle_t handle, int usage, int left, int top, int width, int height, void **vaddr);
 	int unlock(buffer_handle_t handle);
 
@@ -38,6 +43,9 @@ private:
 	gralloc1_device_t *m_gralloc1_device = nullptr;
 	GRALLOC1_PFN_LOCK m_gralloc1_lock = nullptr;
 	GRALLOC1_PFN_UNLOCK m_gralloc1_unlock = nullptr;
+#endif
+#ifdef HAVE_GRALLOC3
+	android::sp<android::hardware::graphics::mapper::V3_0::IMapper> m_gralloc3_mapper;
 #endif
 };
 

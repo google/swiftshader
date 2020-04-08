@@ -273,14 +273,19 @@ public:
 		  nativeBuffer(nativeBuffer)
 	{
 		nativeBuffer->common.incRef(&nativeBuffer->common);
+
+		GrallocModule::getInstance()->import(nativeBuffer->handle, &nativeBufferImportedHandle);
 	}
 
 private:
 	ANativeWindowBuffer *nativeBuffer;
+	buffer_handle_t nativeBufferImportedHandle;
 
 	~AndroidNativeImage() override
 	{
 		sync();   // Wait for any threads that use this image to finish.
+
+		GrallocModule::getInstance()->release(nativeBufferImportedHandle);
 
 		nativeBuffer->common.decRef(&nativeBuffer->common);
 	}
@@ -340,14 +345,14 @@ private:
 	void *lockNativeBuffer(int usage)
 	{
 		void *buffer = nullptr;
-		GrallocModule::getInstance()->lock(nativeBuffer->handle, usage, 0, 0, nativeBuffer->width, nativeBuffer->height, &buffer);
+		GrallocModule::getInstance()->lock(nativeBufferImportedHandle, usage, 0, 0, nativeBuffer->width, nativeBuffer->height, &buffer);
 
 		return buffer;
 	}
 
 	void unlockNativeBuffer()
 	{
-		GrallocModule::getInstance()->unlock(nativeBuffer->handle);
+		GrallocModule::getInstance()->unlock(nativeBufferImportedHandle);
 	}
 
 	void release() override

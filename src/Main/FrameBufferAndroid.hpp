@@ -15,6 +15,8 @@
 #ifndef sw_FrameBufferAndroid_hpp
 #define sw_FrameBufferAndroid_hpp
 
+#include <cutils/native_handle.h>
+
 #include "Main/FrameBuffer.hpp"
 #include "Common/Debug.hpp"
 
@@ -41,6 +43,7 @@ namespace sw
 	private:
 		ANativeWindow *nativeWindow;
 		ANativeWindowBuffer *buffer;
+		buffer_handle_t bufferImportedHandle;
 	};
 }
 

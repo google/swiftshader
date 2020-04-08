@@ -54,7 +54,7 @@ namespace sw
 
 	FrameBufferAndroid::FrameBufferAndroid(ANativeWindow* window, int width, int height)
 		: FrameBuffer(width, height, false, false),
-		  nativeWindow(window), buffer(nullptr)
+			nativeWindow(window), buffer(nullptr)
 	{
 #ifndef ANDROID_NDK_BUILD
 		nativeWindow->common.incRef(&nativeWindow->common);
@@ -101,7 +101,7 @@ namespace sw
 		if((surfaceBuffer.width < width) || (surfaceBuffer.height < height))
 		{
 			TRACE("lock failed: buffer of %dx%d too small for window of %dx%d",
-			      surfaceBuffer.width, surfaceBuffer.height, width, height);
+						surfaceBuffer.width, surfaceBuffer.height, width, height);
 			return nullptr;
 		}
 
@@ -126,9 +126,14 @@ namespace sw
 		{
 			return nullptr;
 		}
-		if(GrallocModule::getInstance()->lock(buffer->handle,
-		                 GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
-		                 0, 0, buffer->width, buffer->height, &framebuffer) != 0)
+		if(GrallocModule::getInstance()->import(buffer->handle, &bufferImportedHandle) != 0) {
+			TRACE("%s failed to import buffer %p", __FUNCTION__, buffer);
+			return nullptr;
+		}
+
+		if(GrallocModule::getInstance()->lock(bufferImportedHandle,
+										 GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
+										 0, 0, buffer->width, buffer->height, &framebuffer) != 0)
 		{
 			TRACE("%s failed to lock buffer %p", __FUNCTION__, buffer);
 			return nullptr;
@@ -137,7 +142,7 @@ namespace sw
 		if((buffer->width < width) || (buffer->height < height))
 		{
 			TRACE("lock failed: buffer of %dx%d too small for window of %dx%d",
-			      buffer->width, buffer->height, width, height);
+						buffer->width, buffer->height, width, height);
 			return nullptr;
 		}
 
@@ -179,9 +184,12 @@ namespace sw
 #ifdef ANDROID_NDK_BUILD
 		ANativeWindow_unlockAndPost(nativeWindow);
 #else
-		if(GrallocModule::getInstance()->unlock(buffer->handle) != 0)
+		if(GrallocModule::getInstance()->unlock(bufferImportedHandle) != 0)
 		{
 			TRACE("%s: badness unlock failed", __FUNCTION__);
+		}
+		if(GrallocModule::getInstance()->release(bufferImportedHandle) != 0) {
+			TRACE("%s: badness release failed", __FUNCTION__);
 		}
 #endif
 	}

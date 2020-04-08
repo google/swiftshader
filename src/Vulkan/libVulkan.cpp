@@ -64,6 +64,7 @@
 #	include "commit.h"
 #	include "System/GrallocAndroid.hpp"
 #	include <android/log.h>
+#	include <hardware/gralloc1.h>
 #	include <sync/sync.h>
 #endif
 

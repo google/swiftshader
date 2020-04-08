@@ -236,7 +236,17 @@ VkResult Image::prepareForExternalUseANDROID() const
 	void *nativeBuffer = nullptr;
 	VkExtent3D extent = getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 
-	if(GrallocModule::getInstance()->lock(backingMemory.nativeHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer) != 0)
+	buffer_handle_t importedBufferHandle = nullptr;
+	if(GrallocModule::getInstance()->import(backingMemory.nativeHandle, &importedBufferHandle) != 0)
+	{
+		return VK_ERROR_OUT_OF_DATE_KHR;
+	}
+	if(!importedBufferHandle)
+	{
+		return VK_ERROR_OUT_OF_DATE_KHR;
+	}
+
+	if(GrallocModule::getInstance()->lock(importedBufferHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, extent.width, extent.height, &nativeBuffer) != 0)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
@@ -257,7 +267,12 @@ VkResult Image::prepareForExternalUseANDROID() const
 		memcpy(dstBuffer + (i * bufferRowBytes), srcBuffer + (i * imageRowBytes), imageRowBytes);
 	}
 
-	if(GrallocModule::getInstance()->unlock(backingMemory.nativeHandle) != 0)
+	if(GrallocModule::getInstance()->unlock(importedBufferHandle) != 0)
+	{
+		return VK_ERROR_OUT_OF_DATE_KHR;
+	}
+
+	if(GrallocModule::getInstance()->release(importedBufferHandle) != 0)
 	{
 		return VK_ERROR_OUT_OF_DATE_KHR;
 	}
