@@ -23,6 +23,11 @@ using V3Error = android::hardware::graphics::mapper::V3_0::Error;
 using V3Mapper = android::hardware::graphics::mapper::V3_0::IMapper;
 using android::hardware::hidl_handle;
 #endif
+#ifdef HAVE_GRALLOC4
+using V4Error = android::hardware::graphics::mapper::V4_0::Error;
+using V4Mapper = android::hardware::graphics::mapper::V4_0::IMapper;
+using android::hardware::hidl_handle;
+#endif
 
 GrallocModule *GrallocModule::getInstance()
 {
@@ -32,6 +37,14 @@ GrallocModule *GrallocModule::getInstance()
 
 GrallocModule::GrallocModule()
 {
+#ifdef HAVE_GRALLOC4
+	m_gralloc4_mapper = V4Mapper::getService();
+	if(m_gralloc4_mapper != nullptr)
+	{
+		return;
+	}
+#endif
+
 #ifdef HAVE_GRALLOC3
 	m_gralloc3_mapper = V3Mapper::getService();
 	if(m_gralloc3_mapper != nullptr)
@@ -64,6 +77,22 @@ GrallocModule::GrallocModule()
 
 int GrallocModule::import(buffer_handle_t handle, buffer_handle_t *imported_handle)
 {
+#ifdef HAVE_GRALLOC4
+	if(m_gralloc4_mapper != nullptr)
+	{
+		V4Error error;
+		auto ret = m_gralloc4_mapper->importBuffer(handle,
+		                                           [&](const auto &tmp_err, const auto &tmp_buf) {
+			                                           error = tmp_err;
+			                                           if(error == V4Error::NONE)
+			                                           {
+				                                           *imported_handle = static_cast<buffer_handle_t>(tmp_buf);
+			                                           }
+		                                           });
+		return ret.isOk() && error == V4Error::NONE ? 0 : -1;
+	}
+#endif
+
 #ifdef HAVE_GRALLOC3
 	if(m_gralloc3_mapper != nullptr)
 	{
@@ -86,6 +115,14 @@ int GrallocModule::import(buffer_handle_t handle, buffer_handle_t *imported_hand
 
 int GrallocModule::release(buffer_handle_t handle)
 {
+#ifdef HAVE_GRALLOC4
+	if(m_gralloc4_mapper != nullptr)
+	{
+		native_handle_t *native_handle = const_cast<native_handle_t *>(handle);
+		return m_gralloc4_mapper->freeBuffer(native_handle).isOk() ? 0 : 1;
+	}
+#endif
+
 #ifdef HAVE_GRALLOC3
 	if(m_gralloc3_mapper != nullptr)
 	{
@@ -99,6 +136,32 @@ int GrallocModule::release(buffer_handle_t handle)
 
 int GrallocModule::lock(buffer_handle_t handle, int usage, int left, int top, int width, int height, void **vaddr)
 {
+#ifdef HAVE_GRALLOC4
+	if(m_gralloc4_mapper != nullptr)
+	{
+		native_handle_t *native_handle = const_cast<native_handle_t *>(handle);
+
+		V4Mapper::Rect rect;
+		rect.left = left;
+		rect.top = top;
+		rect.width = width;
+		rect.height = height;
+
+		hidl_handle empty_fence_handle;
+
+		V4Error error;
+		auto ret = m_gralloc4_mapper->lock(native_handle, usage, rect, empty_fence_handle,
+		                                   [&](const auto &tmp_err, const auto &tmp_vaddr) {
+			                                   error = tmp_err;
+			                                   if(tmp_err == V4Error::NONE)
+			                                   {
+				                                   *vaddr = tmp_vaddr;
+			                                   }
+		                                   });
+		return ret.isOk() && error == V4Error::NONE ? 0 : -1;
+	}
+#endif
+
 #ifdef HAVE_GRALLOC3
 	if(m_gralloc3_mapper != nullptr)
 	{
@@ -155,6 +218,20 @@ int GrallocModule::lock(buffer_handle_t handle, int usage, int left, int top, in
 
 int GrallocModule::unlock(buffer_handle_t handle)
 {
+#ifdef HAVE_GRALLOC4
+	if(m_gralloc4_mapper != nullptr)
+	{
+		native_handle_t *native_handle = const_cast<native_handle_t *>(handle);
+
+		V4Error error;
+		auto ret = m_gralloc4_mapper->unlock(native_handle,
+		                                     [&](const auto &tmp_err, const auto &) {
+			                                     error = tmp_err;
+		                                     });
+		return ret.isOk() && error == V4Error::NONE ? 0 : -1;
+	}
+#endif
+
 #ifdef HAVE_GRALLOC3
 	if(m_gralloc3_mapper != nullptr)
 	{

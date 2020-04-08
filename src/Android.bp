@@ -46,6 +46,7 @@ cc_defaults {
             cflags: [
                 "-DHAVE_GRALLOC1",
                 "-DHAVE_GRALLOC3",
+                "-DHAVE_GRALLOC4",
             ],
             relative_install_path: "egl",
             header_libs: [
@@ -54,6 +55,7 @@ cc_defaults {
             ],
             shared_libs: [
                 "android.hardware.graphics.mapper@3.0",
+                "android.hardware.graphics.mapper@4.0",
                 "libnativewindow",
                 "libhardware",
                 "libhidlbase",
@@ -546,6 +548,7 @@ cc_defaults {
         "-D__STDC_FORMAT_MACROS",
         "-DHAVE_GRALLOC1",
         "-DHAVE_GRALLOC3",
+        "-DHAVE_GRALLOC4",
         "-DNO_SANITIZE_FUNCTION=",
         // FIXME: Use <android/api-level.h> instead?
         "-DANDROID_PLATFORM_SDK_VERSION=10000",
@@ -584,6 +587,7 @@ cc_defaults {
             ],
             shared_libs: [
                 "android.hardware.graphics.mapper@3.0",
+                "android.hardware.graphics.mapper@4.0",
                 "libnativewindow",
                 "libhardware",
                 "libhidlbase",
