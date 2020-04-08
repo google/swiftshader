@@ -483,21 +483,10 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 
 		if(pPipelineCache)
 		{
-			PipelineCache &pipelineCache = *pPipelineCache;
-			{
-				std::unique_lock<std::mutex> lock(pipelineCache.getShaderMutex());
-				const std::shared_ptr<sw::SpirvShader> *spirvShader = pipelineCache[key];
-				if(!spirvShader)
-				{
-					auto shader = createShader(key, module, robustBufferAccess, device->getDebuggerContext());
-					setShader(pipelineStage, shader);
-					pipelineCache.insert(key, getShader(pipelineStage));
-				}
-				else
-				{
-					setShader(pipelineStage, *spirvShader);
-				}
-			}
+			auto shader = pPipelineCache->getOrCreateShader(key, [&] {
+				return createShader(key, module, robustBufferAccess, device->getDebuggerContext());
+			});
+			setShader(pipelineStage, shader);
 		}
 		else
 		{
@@ -583,35 +572,14 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 	    stage.stage, stage.pName, module->getCode(), nullptr, 0, stage.pSpecializationInfo);
 	if(pPipelineCache)
 	{
-		PipelineCache &pipelineCache = *pPipelineCache;
-		{
-			std::unique_lock<std::mutex> lock(pipelineCache.getShaderMutex());
-			const std::shared_ptr<sw::SpirvShader> *spirvShader = pipelineCache[shaderKey];
-			if(!spirvShader)
-			{
-				shader = createShader(shaderKey, module, robustBufferAccess, device->getDebuggerContext());
-				pipelineCache.insert(shaderKey, shader);
-			}
-			else
-			{
-				shader = *spirvShader;
-			}
-		}
+		shader = pPipelineCache->getOrCreateShader(shaderKey, [&] {
+			return createShader(shaderKey, module, robustBufferAccess, device->getDebuggerContext());
+		});
 
-		{
-			const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
-			std::unique_lock<std::mutex> lock(pipelineCache.getProgramMutex());
-			const std::shared_ptr<sw::ComputeProgram> *computeProgram = pipelineCache[programKey];
-			if(!computeProgram)
-			{
-				program = createProgram(programKey);
-				pipelineCache.insert(programKey, program);
-			}
-			else
-			{
-				program = *computeProgram;
-			}
-		}
+		const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
+		program = pPipelineCache->getOrCreateComputeProgram(programKey, [&] {
+			return createProgram(programKey);
+		});
 	}
 	else
 	{
