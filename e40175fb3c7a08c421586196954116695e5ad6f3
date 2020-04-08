@@ -46,6 +46,30 @@
       "revId": "e40175fb3c7a08c421586196954116695e5ad6f3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "27ad3374_2b1b2a90",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-04-08T13:10:44Z",
+      "side": 1,
+      "message": "\u003e Don\u0027t we already have a bug open for adding the android / chrome presubmits?\n\nWe do, but we don\u0027t have one to revert this Kokoro check when proper builds take over its duty.",
+      "parentUuid": "251e7992_17b75311",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 5
+      },
+      "revId": "e40175fb3c7a08c421586196954116695e5ad6f3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
