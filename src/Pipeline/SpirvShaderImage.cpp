@@ -119,7 +119,6 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	auto samplerDescriptor = (sampledImage.opcode() == spv::OpSampledImage) ? state->getPointer(sampledImage.definition.word(4)).base : imageDescriptor;
 
 	auto coordinate = Operand(this, state, coordinateId);
-	auto &coordinateType = getType(coordinate);
 
 	Pointer<Byte> sampler = samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler);  // vk::Sampler*
 	Pointer<Byte> texture = imageDescriptor + OFFSET(vk::SampledImageDescriptor, texture);    // sw::Texture*
@@ -204,7 +203,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 	Array<SIMD::Float> in(16);  // Maximum 16 input parameter components.
 
-	uint32_t coordinates = coordinateType.componentCount - instruction.isProj();
+	uint32_t coordinates = coordinate.componentCount - instruction.isProj();
 	instruction.coordinates = coordinates;
 
 	uint32_t i = 0;
@@ -246,17 +245,16 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	{
 		auto dxValue = Operand(this, state, gradDxId);
 		auto dyValue = Operand(this, state, gradDyId);
-		auto &dxyType = getType(dxValue);
-		ASSERT(dxyType.componentCount == getType(dyValue).componentCount);
+		ASSERT(dxValue.componentCount == dxValue.componentCount);
 
-		instruction.grad = dxyType.componentCount;
+		instruction.grad = dxValue.componentCount;
 
-		for(uint32_t j = 0; j < dxyType.componentCount; j++, i++)
+		for(uint32_t j = 0; j < dxValue.componentCount; j++, i++)
 		{
 			in[i] = dxValue.Float(j);
 		}
 
-		for(uint32_t j = 0; j < dxyType.componentCount; j++, i++)
+		for(uint32_t j = 0; j < dxValue.componentCount; j++, i++)
 		{
 			in[i] = dyValue.Float(j);
 		}
@@ -273,11 +271,9 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	if(constOffset)
 	{
 		auto offsetValue = Operand(this, state, offsetId);
-		auto &offsetType = getType(offsetValue);
+		instruction.offset = offsetValue.componentCount;
 
-		instruction.offset = offsetType.componentCount;
-
-		for(uint32_t j = 0; j < offsetType.componentCount; j++, i++)
+		for(uint32_t j = 0; j < offsetValue.componentCount; j++, i++)
 		{
 			in[i] = As<SIMD::Float>(offsetValue.Int(j));  // Integer values, but transfered as float.
 		}
@@ -383,7 +379,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 	if(lodId != 0)
 	{
 		auto lodVal = Operand(this, state, lodId);
-		ASSERT(getType(lodVal).componentCount == 1);
+		ASSERT(lodVal.componentCount == 1);
 		auto lod = lodVal.Int(0);
 		auto one = SIMD::Int(1);
 		for(uint32_t i = 0; i < dimensions; i++)
@@ -476,12 +472,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 	auto routine = state->routine;
 	bool isArrayed = imageType.definition.word(5) != 0;
 	auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
-	int dims = getType(coordinate).componentCount - (isArrayed ? 1 : 0);
+	int dims = coordinate.componentCount - (isArrayed ? 1 : 0);
 
 	SIMD::Int u = coordinate.Int(0);
 	SIMD::Int v = SIMD::Int(0);
 
-	if(getType(coordinate).componentCount > 1)
+	if(coordinate.componentCount > 1)
 	{
 		v = coordinate.Int(1);
 	}

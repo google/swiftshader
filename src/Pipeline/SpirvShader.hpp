@@ -72,10 +72,10 @@ class Intermediate
 {
 public:
 	Intermediate(uint32_t componentCount)
-	    : scalar(new rr::Value *[componentCount])
-	    , componentCount(componentCount)
+	    : componentCount(componentCount)
+	    , scalar(new rr::Value *[componentCount])
 	{
-		memset(scalar, 0, sizeof(rr::Value *) * componentCount);
+		for(auto i = 0u; i < componentCount; i++) { scalar[i] = nullptr; }
 	}
 
 	~Intermediate()
@@ -119,6 +119,8 @@ public:
 	Intermediate &operator=(Intermediate const &) = delete;
 	Intermediate &operator=(Intermediate &&) = delete;
 
+	const uint32_t componentCount;
+
 private:
 	void emplace(uint32_t i, rr::Value *value)
 	{
@@ -128,7 +130,6 @@ private:
 	}
 
 	rr::Value **const scalar;
-	uint32_t componentCount;
 };
 
 class SpirvShader
@@ -276,7 +277,7 @@ public:
 		Object::ID id() const { return definition.resultId(); }
 
 		InsnIterator definition;
-		std::unique_ptr<uint32_t[]> constantValue = nullptr;
+		std::vector<uint32_t> constantValue;
 
 		enum class Kind
 		{
@@ -989,11 +990,8 @@ private:
 	// significantly different based on whether the value is uniform across lanes.
 	class Operand
 	{
-		SpirvShader::Object const &obj;
-		Intermediate const *intermediate;
-
 	public:
-		Operand(SpirvShader const *shader, EmitState const *state, SpirvShader::Object::ID objId);
+		Operand(const SpirvShader *shader, const EmitState *state, SpirvShader::Object::ID objectId);
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
@@ -1005,9 +1003,7 @@ private:
 			// Constructing a constant SIMD::Float is not guaranteed to preserve the data's exact
 			// bit pattern, but SPIR-V provides 32-bit words representing "the bit pattern for the constant".
 			// Thus we must first construct an integer constant, and bitcast to float.
-			ASSERT(obj.kind == SpirvShader::Object::Kind::Constant);
-			auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
-			return As<SIMD::Float>(SIMD::UInt(constantValue[i]));
+			return As<SIMD::Float>(SIMD::UInt(constant[i]));
 		}
 
 		RValue<SIMD::Int> Int(uint32_t i) const
@@ -1016,9 +1012,8 @@ private:
 			{
 				return intermediate->Int(i);
 			}
-			ASSERT(obj.kind == SpirvShader::Object::Kind::Constant);
-			auto constantValue = reinterpret_cast<int *>(obj.constantValue.get());
-			return SIMD::Int(constantValue[i]);
+
+			return SIMD::Int(constant[i]);
 		}
 
 		RValue<SIMD::UInt> UInt(uint32_t i) const
@@ -1027,15 +1022,19 @@ private:
 			{
 				return intermediate->UInt(i);
 			}
-			ASSERT(obj.kind == SpirvShader::Object::Kind::Constant);
-			auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
-			return SIMD::UInt(constantValue[i]);
+
+			return SIMD::UInt(constant[i]);
 		}
 
-		Type::ID typeId() const
-		{
-			return obj.typeId();
-		}
+	private:
+		// Delegate constructor
+		Operand(const EmitState *state, const Object &object);
+
+		const uint32_t *constant;
+		const Intermediate *intermediate;
+
+	public:
+		const uint32_t componentCount;
 	};
 
 	Type const &getType(Type::ID id) const
@@ -1048,11 +1047,6 @@ private:
 	Type const &getType(const Object &object) const
 	{
 		return getType(object.typeId());
-	}
-
-	Type const &getType(const Operand &operand) const
-	{
-		return getType(operand.typeId());
 	}
 
 	Object const &getObject(Object::ID id) const

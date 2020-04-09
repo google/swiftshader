@@ -99,7 +99,7 @@ SpirvShader::EmitResult SpirvShader::EmitStore(InsnIterator insn, EmitState *sta
 	if(object.kind == Object::Kind::Constant)
 	{
 		// Constant source data.
-		const uint32_t *src = object.constantValue.get();
+		const uint32_t *src = object.constantValue.data();
 		VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
 			auto p = ptr + el.offset;
 			if(interleavedByLane) { p = InterleaveByLane(p); }

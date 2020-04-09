@@ -1153,11 +1153,12 @@ void SpirvShader::Impl::Debugger::exposeVariable(
     EmitState *state,
     int wordOffset /* = 0 */) const
 {
+	auto &obj = shader->getObject(id);
+
 	if(type != nullptr)
 	{
 		if(auto ty = debug::cast<debug::BasicType>(type))
 		{
-			auto &obj = shader->getObject(id);
 			SIMD::Int val;
 			switch(obj.kind)
 			{
@@ -1288,7 +1289,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 
 	// No debug type information. Derive from SPIR-V.
 	Operand val(shader, state, id);
-	switch(shader->getType(val).opcode())
+	switch(shader->getType(obj).opcode())
 	{
 		case spv::OpTypeInt:
 		{
@@ -1302,7 +1303,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 		break;
 		case spv::OpTypeVector:
 		{
-			auto count = shader->getType(val).definition.word(3);
+			auto count = shader->getType(obj).definition.word(3);
 			switch(count)
 			{
 				case 1:

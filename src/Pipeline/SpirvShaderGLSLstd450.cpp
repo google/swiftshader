@@ -338,12 +338,11 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto p0 = Operand(this, state, insn.word(5));
 			auto p1 = Operand(this, state, insn.word(6));
-			auto p0Type = getType(p0);
 
 			// sqrt(dot(p0-p1, p0-p1))
 			SIMD::Float d = (p0.Float(0) - p1.Float(0)) * (p0.Float(0) - p1.Float(0));
 
-			for(auto i = 1u; i < p0Type.componentCount; i++)
+			for(auto i = 1u; i < p0.componentCount; i++)
 			{
 				d += (p0.Float(i) - p1.Float(i)) * (p0.Float(i) - p1.Float(i));
 			}
@@ -378,14 +377,13 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450ModfStruct:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			auto valTy = getType(val);
 
-			for(auto i = 0u; i < valTy.componentCount; i++)
+			for(auto i = 0u; i < val.componentCount; i++)
 			{
 				SIMD::Float whole, frac;
 				std::tie(whole, frac) = Modf(val.Float(i));
 				dst.move(i, frac);
-				dst.move(i + valTy.componentCount, whole);
+				dst.move(i + val.componentCount, whole);
 			}
 			break;
 		}
@@ -527,12 +525,12 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FrexpStruct:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			auto numComponents = getType(val).componentCount;
-			for(auto i = 0u; i < numComponents; i++)
+
+			for(auto i = 0u; i < val.componentCount; i++)
 			{
 				auto significandAndExponent = Frexp(val.Float(i));
 				dst.move(i, significandAndExponent.first);
-				dst.move(i + numComponents, significandAndExponent.second);
+				dst.move(val.componentCount + i, significandAndExponent.second);
 			}
 			break;
 		}
@@ -785,8 +783,8 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Determinant:
 		{
 			auto mat = Operand(this, state, insn.word(5));
-			auto numComponents = getType(mat).componentCount;
-			switch(numComponents)
+
+			switch(mat.componentCount)
 			{
 				case 4:  // 2x2
 					dst.move(0, Determinant(
@@ -807,15 +805,15 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 					                mat.Float(12), mat.Float(13), mat.Float(14), mat.Float(15)));
 					break;
 				default:
-					UNREACHABLE("GLSLstd450Determinant can only operate with square matrices. Got %d elements", int(numComponents));
+					UNREACHABLE("GLSLstd450Determinant can only operate with square matrices. Got %d elements", int(mat.componentCount));
 			}
 			break;
 		}
 		case GLSLstd450MatrixInverse:
 		{
 			auto mat = Operand(this, state, insn.word(5));
-			auto numComponents = getType(mat).componentCount;
-			switch(numComponents)
+
+			switch(mat.componentCount)
 			{
 				case 4:  // 2x2
 				{
@@ -854,7 +852,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 					break;
 				}
 				default:
-					UNREACHABLE("GLSLstd450MatrixInverse can only operate with square matrices. Got %d elements", int(numComponents));
+					UNREACHABLE("GLSLstd450MatrixInverse can only operate with square matrices. Got %d elements", int(mat.componentCount));
 			}
 			break;
 		}

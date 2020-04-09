@@ -795,7 +795,7 @@ SpirvShader::Object &SpirvShader::CreateConstant(InsnIterator insn)
 	auto &objectTy = getType(typeId);
 	object.kind = Object::Kind::Constant;
 	object.definition = insn;
-	object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[objectTy.componentCount]);
+	object.constantValue.resize(objectTy.componentCount);
 
 	return object;
 }
@@ -2138,7 +2138,7 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 	auto &type = getType(insn.resultTypeId());
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto cond = Operand(this, state, insn.word(3));
-	auto condIsScalar = (getType(cond).componentCount == 1);
+	auto condIsScalar = (cond.componentCount == 1);
 	auto lhs = Operand(this, state, insn.word(4));
 	auto rhs = Operand(this, state, insn.word(5));
 
@@ -2419,10 +2419,17 @@ VkShaderStageFlagBits SpirvShader::executionModelToStage(spv::ExecutionModel mod
 	}
 }
 
-SpirvShader::Operand::Operand(SpirvShader const *shader, EmitState const *state, SpirvShader::Object::ID objId)
-    : obj(shader->getObject(objId))
-    , intermediate(obj.kind == SpirvShader::Object::Kind::Intermediate ? &state->getIntermediate(objId) : nullptr)
+SpirvShader::Operand::Operand(const SpirvShader *shader, const EmitState *state, SpirvShader::Object::ID objectId)
+    : Operand(state, shader->getObject(objectId))
 {}
+
+SpirvShader::Operand::Operand(const EmitState *state, const Object &object)
+    : constant(object.constantValue.data())
+    , intermediate(object.kind == SpirvShader::Object::Kind::Intermediate ? &state->getIntermediate(object.id()) : nullptr)
+    , componentCount(intermediate ? intermediate->componentCount : object.constantValue.size())
+{
+	ASSERT(intermediate || (object.kind == SpirvShader::Object::Kind::Constant));
+}
 
 SpirvRoutine::SpirvRoutine(vk::PipelineLayout const *pipelineLayout)
     : pipelineLayout(pipelineLayout)

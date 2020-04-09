@@ -41,12 +41,11 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, Em
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
-	auto rhsType = getType(rhs);
 
 	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		SIMD::Float v = lhs.Float(i) * rhs.Float(0);
-		for(auto j = 1u; j < rhsType.componentCount; j++)
+		for(auto j = 1u; j < rhs.componentCount; j++)
 		{
 			v += lhs.Float(i + type.componentCount * j) * rhs.Float(j);
 		}
@@ -62,14 +61,13 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, Em
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
-	auto lhsType = getType(lhs);
 
 	for(auto i = 0u; i < type.componentCount; i++)
 	{
-		SIMD::Float v = lhs.Float(0) * rhs.Float(i * lhsType.componentCount);
-		for(auto j = 1u; j < lhsType.componentCount; j++)
+		SIMD::Float v = lhs.Float(0) * rhs.Float(i * lhs.componentCount);
+		for(auto j = 1u; j < lhs.componentCount; j++)
 		{
-			v += lhs.Float(j) * rhs.Float(i * lhsType.componentCount + j);
+			v += lhs.Float(j) * rhs.Float(i * lhs.componentCount + j);
 		}
 		dst.move(i, v);
 	}
@@ -110,17 +108,9 @@ SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitSta
 	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
-	auto &lhsType = getType(lhs);
-	auto &rhsType = getType(rhs);
 
-	ASSERT(type.definition.opcode() == spv::OpTypeMatrix);
-	ASSERT(lhsType.definition.opcode() == spv::OpTypeVector);
-	ASSERT(rhsType.definition.opcode() == spv::OpTypeVector);
-	ASSERT(getType(lhsType.element).opcode() == spv::OpTypeFloat);
-	ASSERT(getType(rhsType.element).opcode() == spv::OpTypeFloat);
-
-	auto numRows = lhsType.definition.word(3);
-	auto numCols = rhsType.definition.word(3);
+	auto numRows = lhs.componentCount;
+	auto numCols = rhs.componentCount;
 
 	for(auto col = 0u; col < numCols; col++)
 	{
