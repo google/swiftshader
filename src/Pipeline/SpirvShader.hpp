@@ -992,6 +992,7 @@ private:
 	{
 	public:
 		Operand(const SpirvShader *shader, const EmitState *state, SpirvShader::Object::ID objectId);
+		Operand(const Intermediate &value);
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{

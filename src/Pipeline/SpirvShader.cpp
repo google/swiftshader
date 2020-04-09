@@ -2431,6 +2431,13 @@ SpirvShader::Operand::Operand(const EmitState *state, const Object &object)
 	ASSERT(intermediate || (object.kind == SpirvShader::Object::Kind::Constant));
 }
 
+SpirvShader::Operand::Operand(const Intermediate &value)
+    : constant(nullptr)
+    , intermediate(&value)
+    , componentCount(value.componentCount)
+{
+}
+
 SpirvRoutine::SpirvRoutine(vk::PipelineLayout const *pipelineLayout)
     : pipelineLayout(pipelineLayout)
 {
