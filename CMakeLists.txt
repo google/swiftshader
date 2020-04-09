@@ -18,16 +18,6 @@ set(CMAKE_CXX_STANDARD 14)
 
 project(SwiftShader C CXX ASM)
 
-# On Windows we use custom solution and project files, except for certain third-
-# party projects which use CMake-generated ones. They are manually (re)generated
-# and made path relative using build/cmake.sh, so they can be checked into the
-# repository. Therefore they should not be auto-regenerated and left using
-# absolute paths by CMake's ZERO_CHECK.
-if(WIN32)
-    # Disable automatically regenerating project files on CMakeLists.txt changes.
-    set(CMAKE_SUPPRESS_REGENERATION true)
-endif()
-
 ###########################################################
 # Detect system
 ###########################################################
@@ -311,9 +301,6 @@ endif()
 ###########################################################
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
-set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
-set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 set(HELLO2_DIR ${THIRD_PARTY_DIR}/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
@@ -571,6 +558,7 @@ if(NOT MSVC)
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-fno-exceptions")
     endif()
 endif()
+unset(USE_EXCEPTIONS)
 
 # Transform SWIFTSHADER_LINK_FLAGS from semicolon delimited to whitespace
 # delimited (what is expected by LINK_FLAGS)
@@ -634,108 +622,18 @@ endif()
 # Include Directories
 ###########################################################
 
-set(COMMON_INCLUDE_DIR
+set(VULKAN_INCLUDE_DIR
     ${SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-set(OPENGL_INCLUDE_DIR
-    ${OPENGL_DIR}
-    ${COMMON_INCLUDE_DIR}
-)
-
-set(VULKAN_INCLUDE_DIR
-    ${COMMON_INCLUDE_DIR}
 )
 
 ###########################################################
 # File Lists
 ###########################################################
 
-
-file(GLOB VULKAN_LIST
-    ${VULKAN_DIR}/*.cpp
-    ${VULKAN_DIR}/*.h
-    ${VULKAN_DIR}/*.hpp
-    ${SOURCE_DIR}/System/Build.cpp
-    ${SOURCE_DIR}/System/Build.hpp
-    ${SOURCE_DIR}/System/CPUID.cpp
-    ${SOURCE_DIR}/System/CPUID.hpp
-    ${SOURCE_DIR}/System/Configurator.cpp
-    ${SOURCE_DIR}/System/Configurator.hpp
-    ${SOURCE_DIR}/System/Debug.cpp
-    ${SOURCE_DIR}/System/Debug.hpp
-    ${SOURCE_DIR}/System/Half.cpp
-    ${SOURCE_DIR}/System/Half.hpp
-    ${SOURCE_DIR}/System/Math.cpp
-    ${SOURCE_DIR}/System/Math.hpp
-    ${SOURCE_DIR}/System/Memory.cpp
-    ${SOURCE_DIR}/System/Memory.hpp
-    ${SOURCE_DIR}/System/Socket.cpp
-    ${SOURCE_DIR}/System/Socket.hpp
-    ${SOURCE_DIR}/System/Synchronization.hpp
-    ${SOURCE_DIR}/System/Timer.cpp
-    ${SOURCE_DIR}/System/Timer.hpp
-    ${SOURCE_DIR}/Device/*.cpp
-    ${SOURCE_DIR}/Device/*.hpp
-    ${SOURCE_DIR}/Pipeline/*.cpp
-    ${SOURCE_DIR}/Pipeline/*.hpp
-    ${SOURCE_DIR}/WSI/VkSurfaceKHR.cpp
-    ${SOURCE_DIR}/WSI/VkSurfaceKHR.hpp
-    ${SOURCE_DIR}/WSI/VkSwapchainKHR.cpp
-    ${SOURCE_DIR}/WSI/VkSwapchainKHR.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h
-)
-
-if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
-    file(GLOB_RECURSE VULKAN_DEBUG_LIST
-        ${VULKAN_DIR}/Debug/*.cpp
-        ${VULKAN_DIR}/Debug/*.h
-        ${VULKAN_DIR}/Debug/*.hpp
-    )
-    list(APPEND VULKAN_LIST ${VULKAN_DEBUG_LIST})
-    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_VK_DEBUGGER")
-endif()
-
-if(LINUX OR ANDROID)
-    list(APPEND VULKAN_LIST
-        ${SOURCE_DIR}/System/Linux/MemFd.cpp
-        ${SOURCE_DIR}/System/Linux/MemFd.hpp
-    )
-endif()
-
 ###########################################################
 # Append OS specific files to lists
 ###########################################################
-
-if(WIN32)
-    list(APPEND VULKAN_LIST
-        ${VULKAN_DIR}/Vulkan.rc
-        ${SOURCE_DIR}/WSI/Win32SurfaceKHR.cpp
-        ${SOURCE_DIR}/WSI/Win32SurfaceKHR.hpp
-    )
-elseif(LINUX)
-    if(X11)
-        list(APPEND VULKAN_LIST
-            ${SOURCE_DIR}/WSI/XlibSurfaceKHR.cpp
-            ${SOURCE_DIR}/WSI/XlibSurfaceKHR.hpp
-            ${SOURCE_DIR}/WSI/libX11.cpp
-            ${SOURCE_DIR}/WSI/libX11.hpp
-        )
-    endif()
-
-    if(XCB)
-        list(APPEND VULKAN_LIST
-            ${SOURCE_DIR}/WSI/XcbSurfaceKHR.cpp
-            ${SOURCE_DIR}/WSI/XcbSurfaceKHR.hpp
-        )
-    endif()
-
-elseif(APPLE)
-    list(APPEND VULKAN_LIST
-        ${SOURCE_DIR}/WSI/MetalSurface.mm
-        ${SOURCE_DIR}/WSI/MetalSurface.h
-    )
-endif()
 
 if(WIN32)
     set(OS_LIBS odbc32 odbccp32 WS2_32 dxguid)
@@ -796,119 +694,44 @@ if(SWIFTSHADER_BUILD_GLES_CM)
 endif(SWIFTSHADER_BUILD_GLES_CM)
 
 if(SWIFTSHADER_BUILD_VULKAN)
-    add_library(vk_swiftshader SHARED ${VULKAN_LIST})
-
     if (NOT TARGET SPIRV-Tools)
         # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
         set(SPIRV-Headers_SOURCE_DIR "${THIRD_PARTY_DIR}/SPIRV-Headers")
-        list(APPEND VULKAN_INCLUDE_DIR "${SPIRV-Headers_SOURCE_DIR}/include")
         set(SPIRV_SKIP_TESTS TRUE CACHE BOOL "" FORCE)
-        add_subdirectory(third_party/SPIRV-Tools)
-
-        set_target_properties(core_tables PROPERTIES FOLDER "SPIRV-Tools build")
-        set_target_properties(enum_string_mapping PROPERTIES FOLDER "SPIRV-Tools build")
-        set_target_properties(extinst_tables PROPERTIES FOLDER "SPIRV-Tools build")
-        set_target_properties(spirv-tools-pkg-config PROPERTIES FOLDER "SPIRV-Tools build")
-        set_target_properties(spirv-tools-shared-pkg-config PROPERTIES FOLDER "SPIRV-Tools build")
+        add_subdirectory(third_party/SPIRV-Tools) # Add SPIRV-Tools target
     endif()
 
-    # Copy the OpenCLDebugInfo100.h header that's generated by SPIRV-Tools
-    # out to a separate directory that can be added to the include path.
-    # Ideally, this header would just be pre-built and part of SPIRV-Headers.
-    # See: https://github.com/KhronosGroup/SPIRV-Headers/issues/137
-    set(SPIRV_TOOLS_EXT_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/spirv-tools-ext/include)
-    add_custom_command(
-        OUTPUT "${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h"
-        DEPENDS spirv-tools-header-OpenCLDebugInfo100
-        COMMAND ${CMAKE_COMMAND} -E copy
-            "${spirv-tools_BINARY_DIR}/OpenCLDebugInfo100.h"
-            "${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h"
-    )
-    add_custom_target(spirv_tools_ext_includes
-        DEPENDS "${SPIRV_TOOLS_EXT_INC_DIR}/spirv-tools/ext/OpenCLDebugInfo100.h")
-    set_target_properties(spirv_tools_ext_includes PROPERTIES FOLDER "SPIRV-Tools build")
-    list(APPEND VULKAN_INCLUDE_DIR "${SPIRV_TOOLS_EXT_INC_DIR}")
-    add_dependencies(vk_swiftshader spirv_tools_ext_includes)
-
-    set(VULKAN_COMPILE_OPTIONS ${SWIFTSHADER_COMPILE_OPTIONS})
-    if(FUCHSIA)
-        # At the moment, the Fuchsia build uses unofficial VK_STRUCTURE_TYPE_XX
-        # constants that are defined as macros in <vulkan/fuchsia_extras.h>. When
-        # these appear in switch() cases, the compiler complains that the values
-        # are not part of the VkStructureType enum. Silence this warning, until
-        # the constants are upstreamed to the official Vulkan headers.
-        list(APPEND VULKAN_COMPILE_OPTIONS "-Wno-switch")
+    # Add a vk_base interface library for shared vulkan build options.
+    # TODO: Create src/Base and make this a lib target, and move stuff from
+    # src/Vulkan into it that is needed by vk_pipeline, vk_device, and vk_wsi.
+    add_library(vk_base INTERFACE)
+    
+    if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
+        target_compile_definitions(vk_base INTERFACE "ENABLE_VK_DEBUGGER")
     endif()
-    set_target_properties(vk_swiftshader PROPERTIES
-        INCLUDE_DIRECTORIES "${VULKAN_INCLUDE_DIR}"
-        FOLDER "Vulkan"
-        COMPILE_OPTIONS "${VULKAN_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "VK_EXPORT=;NO_SANITIZE_FUNCTION=;$<$<CONFIG:Debug>:DEBUGGER_WAIT_DIALOG>"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-    )
+
     if(WIN32)
-        set(VULKAN_API_LIBRARY_NAME "vulkan-1.dll")
-        set_property(TARGET vk_swiftshader APPEND
-                     PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_WIN32_KHR")
+        target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_WIN32_KHR")
     elseif(LINUX)
-        set(VULKAN_API_LIBRARY_NAME "libvulkan.so.1")
         if(X11)
-            set_property(TARGET vk_swiftshader APPEND
-                        PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XLIB_KHR")
+            target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_XLIB_KHR")
         endif()
         if(XCB)
-            set_property(TARGET vk_swiftshader APPEND
-                        PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XCB_KHR")
+            target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_XCB_KHR")
         endif()
     elseif(APPLE)
-        set(VULKAN_API_LIBRARY_NAME "libvulkan.dylib")
-        set_property(TARGET vk_swiftshader APPEND
-                     PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_MACOS_MVK")
+        target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_MACOS_MVK")
     elseif(FUCHSIA)
-        set(VULKAN_API_LIBRARY_NAME "libvulkan.so")
-        set_property(TARGET vk_swiftshader APPEND
-                     PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_FUCHSIA")
-        # On Fuchsia, the Vulkan ICD is loaded into a process sandbox that doesn't
-        # have system libraries available, so ensure it does not depend on libc++.so.
-        set_property(TARGET vk_swiftshader APPEND
-                     PROPERTY LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS} -static-libstdc++")
+        target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_FUCHSIA")
     else()
         message(FATAL_ERROR "Platform does not support Vulkan yet")
     endif()
 
-    set_shared_library_export_map(vk_swiftshader ${SOURCE_DIR}/Vulkan)
-
-    set(VK_SWIFTSHADER_LIBS ${Reactor} marl ${OS_LIBS} SPIRV-Tools SPIRV-Tools-opt ${SWIFTSHADER_LIBS})
-    if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
-        list(APPEND VK_SWIFTSHADER_LIBS cppdap)
-    endif()
-    if(SWIFTSHADER_ENABLE_ASTC)
-        list(APPEND VK_SWIFTSHADER_LIBS astc-encoder)
-    endif()
-    target_link_libraries(vk_swiftshader ${VK_SWIFTSHADER_LIBS})
-
-    add_custom_command(
-        TARGET vk_swiftshader
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/${VULKAN_API_LIBRARY_NAME}
-    )
-
-    # The vk_swiftshader_icd.json manifest file will point to ICD_LIBRARY_PATH.
-    # Set ICD_LIBRARY_PATH to be a relative path similar to "./libvk_swiftshader.so", so both files can be moved.
-    # A relative path is relative to the manifest file.
-    set(ICD_LIBRARY_PATH "${CMAKE_SHARED_LIBRARY_PREFIX}vk_swiftshader${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    if(WIN32)
-        # The path is output to a JSON file, which requires backslashes to be escaped.
-        set(ICD_LIBRARY_PATH ".\\\\${ICD_LIBRARY_PATH}")
-    else()
-        set(ICD_LIBRARY_PATH "./${ICD_LIBRARY_PATH}")
-    endif()
-    configure_file(
-        "${VULKAN_DIR}/vk_swiftshader_icd.json.tmpl"
-        "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/vk_swiftshader_icd.json"
-    )
+    add_subdirectory(src/System) # Add vk_system target
+    add_subdirectory(src/Pipeline) # Add vk_pipeline target
+    add_subdirectory(src/WSI) # Add vk_wsi target
+    add_subdirectory(src/Device) # Add vk_device target
+    add_subdirectory(src/Vulkan) # Add vk_swiftshader target
 
     if(SWIFTSHADER_EMIT_COVERAGE)
         add_executable(turbo-cov ${TESTS_DIR}/regres/cov/turbo-cov/main.cpp)
@@ -996,18 +819,6 @@ if(SWIFTSHADER_BUILD_TESTS)
         ${TESTS_DIR}/SystemUnitTests/unittests.cpp
     )
 
-    # TODO: Replace with dep on System static target
-    list(APPEND SYSTEM_UNITTESTS_LIST
-        ${SOURCE_DIR}/System/Debug.cpp
-        ${SOURCE_DIR}/System/Memory.cpp
-    )
-    if(LINUX OR ANDROID)
-        list(APPEND SYSTEM_UNITTESTS_LIST
-            ${SOURCE_DIR}/System/Linux/MemFd.cpp
-            ${SOURCE_DIR}/System/Linux/MemFd.hpp
-        )
-    endif()
-
     set(SYSTEM_UNITTESTS_INCLUDE_DIR
         ${CMAKE_CURRENT_SOURCE_DIR}/src/
     )
@@ -1020,7 +831,7 @@ if(SWIFTSHADER_BUILD_TESTS)
         LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     )
 
-    target_link_libraries(system-unittests gtest gmock)
+    target_link_libraries(system-unittests vk_system gtest gmock)
     if(NOT WIN32)
         target_link_libraries(system-unittests pthread ${SWIFTSHADER_LIBS})
     endif()
@@ -1048,8 +859,6 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
 
     # System benchmarks
     set(SYSTEM_BENCHMARKS_LIST
-        ${SOURCE_DIR}/System/Debug.cpp
-
         ${TESTS_DIR}/SystemBenchmarks/main.cpp
         ${TESTS_DIR}/SystemBenchmarks/LRUCacheBenchmarks.cpp
     )
@@ -1067,7 +876,7 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
         FOLDER "Benchmarks"
     )
 
-    target_link_libraries(system-benchmarks gtest gmock)
+    target_link_libraries(system-benchmarks vk_system gtest gmock)
     if(NOT WIN32)
         target_link_libraries(system-benchmarks pthread ${SWIFTSHADER_LIBS})
     endif()
