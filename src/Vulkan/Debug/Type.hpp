@@ -48,7 +48,6 @@ enum class Kind
 class Type
 {
 public:
-	Type() = default;
 	inline Type(Kind kind);
 	inline Type(Kind kind, const std::shared_ptr<const Type> &elem);
 
