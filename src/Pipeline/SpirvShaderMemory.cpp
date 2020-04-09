@@ -236,7 +236,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 			{
 				bool interleavedByLane = IsStorageInterleavedByLane(objectTy.storageClass);
 				auto ptr = GetPointerToData(resultId, 0, state);
-				GenericValue initialValue(this, state, initializerId);
+				Operand initialValue(this, state, initializerId);
 				VisitMemoryObject(resultId, [&](const MemoryElement &el) {
 					auto p = ptr + el.offset;
 					if(interleavedByLane) { p = InterleaveByLane(p); }

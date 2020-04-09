@@ -24,8 +24,8 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesScalar(InsnIterator insn, Em
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 
 	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
@@ -39,8 +39,8 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, Em
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 	auto rhsType = getType(rhs.type);
 
 	for(auto i = 0u; i < type.sizeInComponents; i++)
@@ -60,8 +60,8 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, Em
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 	auto lhsType = getType(lhs.type);
 
 	for(auto i = 0u; i < type.sizeInComponents; i++)
@@ -81,8 +81,8 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, Em
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 
 	auto numColumns = type.definition.word(3);
 	auto numRows = getType(type.definition.word(2)).definition.word(3);
@@ -108,8 +108,8 @@ SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitSta
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 	auto &lhsType = getType(lhs.type);
 	auto &rhsType = getType(rhs.type);
 
@@ -137,7 +137,7 @@ SpirvShader::EmitResult SpirvShader::EmitTranspose(InsnIterator insn, EmitState 
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto mat = GenericValue(this, state, insn.word(3));
+	auto mat = Operand(this, state, insn.word(3));
 
 	auto numCols = type.definition.word(3);
 	auto numRows = getType(type.definition.word(2)).sizeInComponents;
@@ -157,7 +157,7 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto src = GenericValue(this, state, insn.word(3));
+	auto src = Operand(this, state, insn.word(3));
 
 	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
@@ -169,9 +169,9 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 				break;
 			case spv::OpBitFieldInsert:
 			{
-				auto insert = GenericValue(this, state, insn.word(4)).UInt(i);
-				auto offset = GenericValue(this, state, insn.word(5)).UInt(0);
-				auto count = GenericValue(this, state, insn.word(6)).UInt(0);
+				auto insert = Operand(this, state, insn.word(4)).UInt(i);
+				auto offset = Operand(this, state, insn.word(5)).UInt(0);
+				auto count = Operand(this, state, insn.word(6)).UInt(0);
 				auto one = SIMD::UInt(1);
 				auto v = src.UInt(i);
 				auto mask = Bitmask32(offset + count) ^ Bitmask32(offset);
@@ -181,8 +181,8 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 			case spv::OpBitFieldSExtract:
 			case spv::OpBitFieldUExtract:
 			{
-				auto offset = GenericValue(this, state, insn.word(4)).UInt(0);
-				auto count = GenericValue(this, state, insn.word(5)).UInt(0);
+				auto offset = Operand(this, state, insn.word(4)).UInt(0);
+				auto count = Operand(this, state, insn.word(5)).UInt(0);
 				auto one = SIMD::UInt(1);
 				auto v = src.UInt(i);
 				SIMD::UInt out = (v >> offset) & Bitmask32(count);
@@ -320,8 +320,8 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto &lhsType = getType(getObject(insn.word(3)).type);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 
 	for(auto i = 0u; i < lhsType.sizeInComponents; i++)
 	{
@@ -524,14 +524,14 @@ SpirvShader::EmitResult SpirvShader::EmitDot(InsnIterator insn, EmitState *state
 	ASSERT(type.sizeInComponents == 1);
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto &lhsType = getType(getObject(insn.word(3)).type);
-	auto lhs = GenericValue(this, state, insn.word(3));
-	auto rhs = GenericValue(this, state, insn.word(4));
+	auto lhs = Operand(this, state, insn.word(3));
+	auto rhs = Operand(this, state, insn.word(4));
 
 	dst.move(0, Dot(lhsType.sizeInComponents, lhs, rhs));
 	return EmitResult::Continue;
 }
 
-SIMD::Float SpirvShader::Dot(unsigned numComponents, GenericValue const &x, GenericValue const &y) const
+SIMD::Float SpirvShader::Dot(unsigned numComponents, Operand const &x, Operand const &y) const
 {
 	SIMD::Float d = x.Float(0) * y.Float(0);
 

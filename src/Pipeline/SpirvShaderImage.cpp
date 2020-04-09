@@ -120,7 +120,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	auto &sampledImage = getObject(sampledImageId);
 	auto samplerDescriptor = (sampledImage.opcode() == spv::OpSampledImage) ? state->getPointer(sampledImage.definition.word(4)).base : imageDescriptor;
 
-	auto coordinate = GenericValue(this, state, coordinateId);
+	auto coordinate = Operand(this, state, coordinateId);
 	auto &coordinateType = getType(coordinate.type);
 
 	Pointer<Byte> sampler = samplerDescriptor + OFFSET(vk::SampledImageDescriptor, sampler);  // vk::Sampler*
@@ -224,7 +224,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 	if(instruction.isDref())
 	{
-		auto drefValue = GenericValue(this, state, insn.word(5));
+		auto drefValue = Operand(this, state, insn.word(5));
 
 		if(instruction.isProj())
 		{
@@ -240,14 +240,14 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 	if(lodOrBias)
 	{
-		auto lodValue = GenericValue(this, state, lodOrBiasId);
+		auto lodValue = Operand(this, state, lodOrBiasId);
 		in[i] = lodValue.Float(0);
 		i++;
 	}
 	else if(grad)
 	{
-		auto dxValue = GenericValue(this, state, gradDxId);
-		auto dyValue = GenericValue(this, state, gradDyId);
+		auto dxValue = Operand(this, state, gradDxId);
+		auto dyValue = Operand(this, state, gradDyId);
 		auto &dxyType = getType(dxValue.type);
 		ASSERT(dxyType.sizeInComponents == getType(dyValue.type).sizeInComponents);
 
@@ -274,7 +274,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 	if(constOffset)
 	{
-		auto offsetValue = GenericValue(this, state, offsetId);
+		auto offsetValue = Operand(this, state, offsetId);
 		auto &offsetType = getType(offsetValue.type);
 
 		instruction.offset = offsetType.sizeInComponents;
@@ -287,7 +287,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 	if(sample)
 	{
-		auto sampleValue = GenericValue(this, state, sampleId);
+		auto sampleValue = Operand(this, state, sampleId);
 		in[i] = As<SIMD::Float>(sampleValue.Int(0));
 	}
 
@@ -386,7 +386,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 	std::vector<Int> out;
 	if(lodId != 0)
 	{
-		auto lodVal = GenericValue(this, state, lodId);
+		auto lodVal = Operand(this, state, lodId);
 		ASSERT(getType(lodVal.type).sizeInComponents == 1);
 		auto lod = lodVal.Int(0);
 		auto one = SIMD::Int(1);
@@ -477,7 +477,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 	return EmitResult::Continue;
 }
 
-SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer ptr, GenericValue const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const
+SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer ptr, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const
 {
 	auto routine = state->routine;
 	bool isArrayed = imageType.definition.word(5) != 0;
@@ -532,7 +532,7 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 
 	if(sampleId.value())
 	{
-		GenericValue sample(this, state, sampleId);
+		Operand sample(this, state, sampleId);
 		ptr += sample.Int(0) * samplePitch;
 	}
 
@@ -566,7 +566,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
 	auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
 
-	auto coordinate = GenericValue(this, state, insn.word(4));
+	auto coordinate = Operand(this, state, insn.word(4));
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
 
 	// For subpass data, format in the instruction is spv::ImageFormatUnknown. Get it from
@@ -855,8 +855,8 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	// TODO(b/131171141): Not handling any image operands yet.
 	ASSERT(insn.wordCount() == 4);
 
-	auto coordinate = GenericValue(this, state, insn.word(2));
-	auto texel = GenericValue(this, state, insn.word(3));
+	auto coordinate = Operand(this, state, insn.word(2));
+	auto texel = Operand(this, state, insn.word(3));
 
 	Pointer<Byte> binding = state->getPointer(imageId).base;
 	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
@@ -1007,7 +1007,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, Em
 	ASSERT(resultType.storageClass == spv::StorageClassImage);
 	ASSERT(getType(resultType.element).opcode() == spv::OpTypeInt);
 
-	auto coordinate = GenericValue(this, state, insn.word(4));
+	auto coordinate = Operand(this, state, insn.word(4));
 
 	Pointer<Byte> binding = state->getPointer(imageId).base;
 	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));

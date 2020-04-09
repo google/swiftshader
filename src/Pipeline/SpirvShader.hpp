@@ -961,13 +961,13 @@ private:
 	// Constants are transparently widened to per-lane values in operator[].
 	// This is appropriate in most cases -- if we're not going to do something
 	// significantly different based on whether the value is uniform across lanes.
-	class GenericValue
+	class Operand
 	{
 		SpirvShader::Object const &obj;
 		Intermediate const *intermediate;
 
 	public:
-		GenericValue(SpirvShader const *shader, EmitState const *state, SpirvShader::Object::ID objId);
+		Operand(SpirvShader const *shader, EmitState const *state, SpirvShader::Object::ID objId);
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
@@ -1136,7 +1136,7 @@ private:
 	EmitResult EmitArrayLength(InsnIterator insn, EmitState *state) const;
 
 	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
-	SIMD::Pointer GetTexelAddress(EmitState const *state, SIMD::Pointer base, GenericValue const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
+	SIMD::Pointer GetTexelAddress(EmitState const *state, SIMD::Pointer base, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const;
 	uint32_t GetConstScalarInt(Object::ID id) const;
 	void EvalSpecConstantOp(InsnIterator insn);
 	void EvalSpecConstantUnaryOp(InsnIterator insn);
@@ -1168,7 +1168,7 @@ private:
 	static bool IsStatement(spv::Op op);
 
 	// Helper as we often need to take dot products as part of doing other things.
-	SIMD::Float Dot(unsigned numComponents, GenericValue const &x, GenericValue const &y) const;
+	SIMD::Float Dot(unsigned numComponents, Operand const &x, Operand const &y) const;
 
 	// Splits x into a floating-point significand in the range [0.5, 1.0)
 	// and an integral exponent of two, such that:

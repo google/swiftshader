@@ -1203,7 +1203,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 				case Object::Kind::Constant:
 				case Object::Kind::Intermediate:
 				{
-					auto val = GenericValue(shader, state, id).Int(wordOffset);
+					auto val = Operand(shader, state, id).Int(wordOffset);
 
 					switch(ty->encoding)
 					{
@@ -1287,7 +1287,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 	}
 
 	// No debug type information. Derive from SPIR-V.
-	GenericValue val(shader, state, id);
+	Operand val(shader, state, id);
 	switch(shader->getType(val.type).opcode())
 	{
 		case spv::OpTypeInt:

@@ -495,7 +495,7 @@ SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, Em
 	auto trueBlockId = Block::ID(block.branchInstruction.word(2));
 	auto falseBlockId = Block::ID(block.branchInstruction.word(3));
 
-	auto cond = GenericValue(this, state, condId);
+	auto cond = Operand(this, state, condId);
 	ASSERT_MSG(getType(cond.type).sizeInComponents == 1, "Condition must be a Boolean type scalar");
 
 	// TODO: Optimize for case where all lanes take same path.
@@ -514,7 +514,7 @@ SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *st
 
 	auto selId = Object::ID(block.branchInstruction.word(1));
 
-	auto sel = GenericValue(this, state, selId);
+	auto sel = Operand(this, state, selId);
 	ASSERT_MSG(getType(sel.type).sizeInComponents == 1, "Selector must be a scalar");
 
 	auto numCases = (block.branchInstruction.wordCount() - 3) / 2;
@@ -678,7 +678,7 @@ void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState 
 		}
 
 		auto mask = GetActiveLaneMaskEdge(state, blockId, currentBlock);
-		auto in = GenericValue(this, state, varId);
+		auto in = Operand(this, state, varId);
 
 		for(uint32_t i = 0; i < type.sizeInComponents; i++)
 		{
