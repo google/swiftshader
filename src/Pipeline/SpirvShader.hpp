@@ -1175,6 +1175,10 @@ private:
 	void EvalSpecConstantUnaryOp(InsnIterator insn);
 	void EvalSpecConstantBinaryOp(InsnIterator insn);
 
+	// Helper for implementing OpStore, which doesn't take an InsnIterator so it
+	// can also store independent operands.
+	void Store(Object::ID pointerId, const Operand &value, bool atomic, std::memory_order memoryOrder, EmitState *state) const;
+
 	// LoadPhi loads the phi values from the alloca storage and places the
 	// load values into the intermediate with the phi's result id.
 	void LoadPhi(InsnIterator insn, EmitState *state) const;

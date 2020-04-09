@@ -71,10 +71,6 @@ SpirvShader::EmitResult SpirvShader::EmitStore(InsnIterator insn, EmitState *sta
 	bool atomic = (insn.opcode() == spv::OpAtomicStore);
 	Object::ID pointerId = insn.word(1);
 	Object::ID objectId = insn.word(atomic ? 4 : 2);
-	auto &object = getObject(objectId);
-	auto &pointer = getObject(pointerId);
-	auto &pointerTy = getType(pointer);
-	auto &elementTy = getType(pointerTy.element);
 	std::memory_order memoryOrder = std::memory_order_relaxed;
 
 	if(atomic)
@@ -83,6 +79,19 @@ SpirvShader::EmitResult SpirvShader::EmitStore(InsnIterator insn, EmitState *sta
 		auto memorySemantics = static_cast<spv::MemorySemanticsMask>(getObject(semanticsId).constantValue[0]);
 		memoryOrder = MemoryOrder(memorySemantics);
 	}
+
+	const auto &value = Operand(this, state, objectId);
+
+	Store(pointerId, value, atomic, memoryOrder, state);
+
+	return EmitResult::Continue;
+}
+
+void SpirvShader::Store(Object::ID pointerId, const Operand &value, bool atomic, std::memory_order memoryOrder, EmitState *state) const
+{
+	auto &pointer = getObject(pointerId);
+	auto &pointerTy = getType(pointer);
+	auto &elementTy = getType(pointerTy.element);
 
 	ASSERT(!atomic || elementTy.opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
 
@@ -96,28 +105,11 @@ SpirvShader::EmitResult SpirvShader::EmitStore(InsnIterator insn, EmitState *sta
 		mask = mask & state->storesAndAtomicsMask();
 	}
 
-	if(object.kind == Object::Kind::Constant)
-	{
-		// Constant source data.
-		const uint32_t *src = object.constantValue.data();
-		VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
-			auto p = ptr + el.offset;
-			if(interleavedByLane) { p = InterleaveByLane(p); }
-			p.Store(SIMD::Int(src[el.index]), robustness, mask, atomic, memoryOrder);
-		});
-	}
-	else
-	{
-		// Intermediate source data.
-		auto &src = state->getIntermediate(objectId);
-		VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
-			auto p = ptr + el.offset;
-			if(interleavedByLane) { p = InterleaveByLane(p); }
-			p.Store(src.Float(el.index), robustness, mask, atomic, memoryOrder);
-		});
-	}
-
-	return EmitResult::Continue;
+	VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
+		auto p = ptr + el.offset;
+		if(interleavedByLane) { p = InterleaveByLane(p); }
+		p.Store(value.Float(el.index), robustness, mask, atomic, memoryOrder);
+	});
 }
 
 SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *state) const
