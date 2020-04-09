@@ -27,8 +27,8 @@ namespace sw {
 
 SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitState *state) const
 {
-	auto &type = getType(insn.word(1));
-	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
+	auto &type = getType(insn.resultTypeId());
+	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
 	auto extInstIndex = static_cast<GLSLstd450>(insn.word(4));
 
 	switch(extInstIndex)

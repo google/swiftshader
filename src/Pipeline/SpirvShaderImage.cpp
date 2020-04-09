@@ -107,13 +107,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageFetch(InsnIterator insn, EmitState
 
 SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const
 {
-	Type::ID resultTypeId = insn.word(1);
-	Object::ID resultId = insn.word(2);
 	Object::ID sampledImageId = insn.word(3);  // For OpImageFetch this is just an Image, not a SampledImage.
 	Object::ID coordinateId = insn.word(4);
-	auto &resultType = getType(resultTypeId);
+	auto &resultType = getType(insn.resultTypeId());
 
-	auto &result = state->createIntermediate(resultId, resultType.sizeInComponents);
+	auto &result = state->createIntermediate(insn.resultId(), resultType.sizeInComponents);
 	auto imageDescriptor = state->getPointer(sampledImageId).base;  // vk::SampledImageDescriptor*
 
 	// If using a separate sampler, look through the OpSampledImage instruction to find the sampler descriptor
@@ -291,7 +289,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 		in[i] = As<SIMD::Float>(sampleValue.Int(0));
 	}
 
-	auto cacheIt = state->routine->samplerCache.find(resultId);
+	auto cacheIt = state->routine->samplerCache.find(insn.resultId());
 	ASSERT(cacheIt != state->routine->samplerCache.end());
 	auto &cache = cacheIt->second;
 	auto cacheHit = cache.imageDescriptor == imageDescriptor && cache.sampler == sampler;
@@ -313,12 +311,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.word(1)));
-	auto resultId = Object::ID(insn.word(2));
+	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
 	auto imageId = Object::ID(insn.word(3));
 	auto lodId = Object::ID(insn.word(4));
 
-	auto &dst = state->createIntermediate(resultId, resultTy.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), resultTy.sizeInComponents);
 	GetImageDimensions(state, resultTy, imageId, lodId, dst);
 
 	return EmitResult::Continue;
@@ -326,12 +323,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, Em
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.word(1)));
-	auto resultId = Object::ID(insn.word(2));
+	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
 	auto imageId = Object::ID(insn.word(3));
 	auto lodId = Object::ID(0);
 
-	auto &dst = state->createIntermediate(resultId, resultTy.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), resultTy.sizeInComponents);
 	GetImageDimensions(state, resultTy, imageId, lodId, dst);
 
 	return EmitResult::Continue;
@@ -412,9 +408,8 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 
 SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.word(1)));
+	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
 	ASSERT(resultTy.sizeInComponents == 1);
-	auto resultId = Object::ID(insn.word(2));
 	auto imageId = Object::ID(insn.word(3));
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
@@ -434,7 +429,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
 	}
 
-	auto &dst = state->createIntermediate(resultId, 1);
+	auto &dst = state->createIntermediate(insn.resultId(), 1);
 	dst.move(0, SIMD::Int(mipLevels));
 
 	return EmitResult::Continue;
@@ -442,9 +437,8 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, EmitState *state) const
 {
-	auto &resultTy = getType(Type::ID(insn.word(1)));
+	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
 	ASSERT(resultTy.sizeInComponents == 1);
-	auto resultId = Object::ID(insn.word(2));
 	auto imageId = Object::ID(insn.word(3));
 	auto imageTy = getType(getObject(imageId));
 	ASSERT(imageTy.definition.opcode() == spv::OpTypeImage);
@@ -471,7 +465,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
 	}
 
-	auto &dst = state->createIntermediate(resultId, 1);
+	auto &dst = state->createIntermediate(insn.resultId(), 1);
 	dst.move(0, SIMD::Int(sampleCount));
 
 	return EmitResult::Continue;
@@ -545,7 +539,6 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	auto imageId = Object::ID(insn.word(3));
 	auto &image = getObject(imageId);
 	auto &imageType = getType(image);
-	Object::ID resultId = insn.word(2);
 
 	Object::ID sampleId = 0;
 
@@ -593,7 +586,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 
 	auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
-	auto &dst = state->createIntermediate(resultId, resultType.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), resultType.sizeInComponents);
 
 	auto texelSize = vk::Format(vkFormat).bytes();
 	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
