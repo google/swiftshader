@@ -41,7 +41,7 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, Em
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
-	auto rhsType = getType(rhs.type);
+	auto rhsType = getType(rhs);
 
 	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
@@ -62,7 +62,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, Em
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
-	auto lhsType = getType(lhs.type);
+	auto lhsType = getType(lhs);
 
 	for(auto i = 0u; i < type.sizeInComponents; i++)
 	{
@@ -86,7 +86,7 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, Em
 
 	auto numColumns = type.definition.word(3);
 	auto numRows = getType(type.definition.word(2)).definition.word(3);
-	auto numAdds = getType(getObject(insn.word(3)).type).definition.word(3);
+	auto numAdds = getType(getObject(insn.word(3))).definition.word(3);
 
 	for(auto row = 0u; row < numRows; row++)
 	{
@@ -110,8 +110,8 @@ SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitSta
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
-	auto &lhsType = getType(lhs.type);
-	auto &rhsType = getType(rhs.type);
+	auto &lhsType = getType(lhs);
+	auto &rhsType = getType(rhs);
 
 	ASSERT(type.definition.opcode() == spv::OpTypeMatrix);
 	ASSERT(lhsType.definition.opcode() == spv::OpTypeVector);
@@ -319,7 +319,7 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto &lhsType = getType(getObject(insn.word(3)).type);
+	auto &lhsType = getType(getObject(insn.word(3)));
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 
@@ -523,7 +523,7 @@ SpirvShader::EmitResult SpirvShader::EmitDot(InsnIterator insn, EmitState *state
 	auto &type = getType(insn.word(1));
 	ASSERT(type.sizeInComponents == 1);
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto &lhsType = getType(getObject(insn.word(3)).type);
+	auto &lhsType = getType(getObject(insn.word(3)));
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 

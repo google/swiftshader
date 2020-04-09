@@ -28,14 +28,14 @@ SpirvShader::EmitResult SpirvShader::EmitLoad(InsnIterator insn, EmitState *stat
 	Object::ID resultId = insn.word(2);
 	Object::ID pointerId = insn.word(3);
 	auto &result = getObject(resultId);
-	auto &resultTy = getType(result.type);
+	auto &resultTy = getType(result);
 	auto &pointer = getObject(pointerId);
-	auto &pointerTy = getType(pointer.type);
+	auto &pointerTy = getType(pointer);
 	std::memory_order memoryOrder = std::memory_order_relaxed;
 
-	ASSERT(getType(pointer.type).element == result.type);
-	ASSERT(Type::ID(insn.word(1)) == result.type);
-	ASSERT(!atomic || getType(getType(pointer.type).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
+	ASSERT(getType(pointer).element == result.typeId());
+	ASSERT(Type::ID(insn.word(1)) == result.typeId());
+	ASSERT(!atomic || getType(getType(pointer).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
 
 	if(pointerTy.storageClass == spv::StorageClassUniformConstant)
 	{
@@ -73,7 +73,7 @@ SpirvShader::EmitResult SpirvShader::EmitStore(InsnIterator insn, EmitState *sta
 	Object::ID objectId = insn.word(atomic ? 4 : 2);
 	auto &object = getObject(objectId);
 	auto &pointer = getObject(pointerId);
-	auto &pointerTy = getType(pointer.type);
+	auto &pointerTy = getType(pointer);
 	auto &elementTy = getType(pointerTy.element);
 	std::memory_order memoryOrder = std::memory_order_relaxed;
 
@@ -125,7 +125,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 	auto routine = state->routine;
 	Object::ID resultId = insn.word(2);
 	auto &object = getObject(resultId);
-	auto &objectTy = getType(object.type);
+	auto &objectTy = getType(object);
 
 	switch(objectTy.storageClass)
 	{
@@ -257,8 +257,8 @@ SpirvShader::EmitResult SpirvShader::EmitCopyMemory(InsnIterator insn, EmitState
 {
 	Object::ID dstPtrId = insn.word(1);
 	Object::ID srcPtrId = insn.word(2);
-	auto &dstPtrTy = getType(getObject(dstPtrId).type);
-	auto &srcPtrTy = getType(getObject(srcPtrId).type);
+	auto &dstPtrTy = getType(getObject(dstPtrId));
+	auto &srcPtrTy = getType(getObject(srcPtrId));
 	ASSERT(dstPtrTy.element == srcPtrTy.element);
 
 	bool dstInterleavedByLane = IsStorageInterleavedByLane(dstPtrTy.storageClass);
@@ -362,10 +362,11 @@ void SpirvShader::VisitMemoryObjectInner(sw::SpirvShader::Type::ID id, sw::Spirv
 	}
 }
 
-void SpirvShader::VisitMemoryObject(sw::SpirvShader::Object::ID id, const MemoryVisitor &f) const
+void SpirvShader::VisitMemoryObject(Object::ID id, const MemoryVisitor &f) const
 {
-	auto typeId = getObject(id).type;
+	auto typeId = getObject(id).typeId();
 	auto const &type = getType(typeId);
+
 	if(IsExplicitLayout(type.storageClass))
 	{
 		Decorations d{};

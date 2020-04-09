@@ -317,7 +317,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Length:
 		{
 			auto x = Operand(this, state, insn.word(5));
-			SIMD::Float d = Dot(getType(getObject(insn.word(5)).type).sizeInComponents, x, x);
+			SIMD::Float d = Dot(getType(getObject(insn.word(5))).sizeInComponents, x, x);
 
 			dst.move(0, Sqrt(d));
 			break;
@@ -325,7 +325,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Normalize:
 		{
 			auto x = Operand(this, state, insn.word(5));
-			SIMD::Float d = Dot(getType(getObject(insn.word(5)).type).sizeInComponents, x, x);
+			SIMD::Float d = Dot(getType(getObject(insn.word(5))).sizeInComponents, x, x);
 			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d);
 
 			for(auto i = 0u; i < type.sizeInComponents; i++)
@@ -338,7 +338,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto p0 = Operand(this, state, insn.word(5));
 			auto p1 = Operand(this, state, insn.word(6));
-			auto p0Type = getType(p0.type);
+			auto p0Type = getType(p0);
 
 			// sqrt(dot(p0-p1, p0-p1))
 			SIMD::Float d = (p0.Float(0) - p1.Float(0)) * (p0.Float(0) - p1.Float(0));
@@ -355,7 +355,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto val = Operand(this, state, insn.word(5));
 			auto ptrId = Object::ID(insn.word(6));
-			auto ptrTy = getType(getObject(ptrId).type);
+			auto ptrTy = getType(getObject(ptrId));
 			auto ptr = GetPointerToData(ptrId, 0, state);
 			bool interleavedByLane = IsStorageInterleavedByLane(ptrTy.storageClass);
 			// TODO: GLSL modf() takes an output parameter and thus the pointer is assumed
@@ -378,7 +378,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450ModfStruct:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			auto valTy = getType(val.type);
+			auto valTy = getType(val);
 
 			for(auto i = 0u; i < valTy.sizeInComponents; i++)
 			{
@@ -501,7 +501,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto val = Operand(this, state, insn.word(5));
 			auto ptrId = Object::ID(insn.word(6));
-			auto ptrTy = getType(getObject(ptrId).type);
+			auto ptrTy = getType(getObject(ptrId));
 			auto ptr = GetPointerToData(ptrId, 0, state);
 			bool interleavedByLane = IsStorageInterleavedByLane(ptrTy.storageClass);
 			// TODO: GLSL frexp() takes an output parameter and thus the pointer is assumed
@@ -527,7 +527,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FrexpStruct:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			auto numComponents = getType(val.type).sizeInComponents;
+			auto numComponents = getType(val).sizeInComponents;
 			for(auto i = 0u; i < numComponents; i++)
 			{
 				auto significandAndExponent = Frexp(val.Float(i));
@@ -785,7 +785,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Determinant:
 		{
 			auto mat = Operand(this, state, insn.word(5));
-			auto numComponents = getType(mat.type).sizeInComponents;
+			auto numComponents = getType(mat).sizeInComponents;
 			switch(numComponents)
 			{
 				case 4:  // 2x2
@@ -814,7 +814,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450MatrixInverse:
 		{
 			auto mat = Operand(this, state, insn.word(5));
-			auto numComponents = getType(mat.type).sizeInComponents;
+			auto numComponents = getType(mat).sizeInComponents;
 			switch(numComponents)
 			{
 				case 4:  // 2x2

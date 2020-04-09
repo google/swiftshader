@@ -496,7 +496,7 @@ SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, Em
 	auto falseBlockId = Block::ID(block.branchInstruction.word(3));
 
 	auto cond = Operand(this, state, condId);
-	ASSERT_MSG(getType(cond.type).sizeInComponents == 1, "Condition must be a Boolean type scalar");
+	ASSERT_MSG(getType(cond).sizeInComponents == 1, "Condition must be a Boolean type scalar");
 
 	// TODO: Optimize for case where all lanes take same path.
 
@@ -515,7 +515,7 @@ SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *st
 	auto selId = Object::ID(block.branchInstruction.word(1));
 
 	auto sel = Operand(this, state, selId);
-	ASSERT_MSG(getType(sel.type).sizeInComponents == 1, "Selector must be a scalar");
+	ASSERT_MSG(getType(sel).sizeInComponents == 1, "Selector must be a scalar");
 
 	auto numCases = (block.branchInstruction.wordCount() - 3) / 2;
 

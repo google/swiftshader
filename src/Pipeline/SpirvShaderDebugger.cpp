@@ -1165,7 +1165,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 				case Object::Kind::Pointer:
 				{
 					auto ptr = shader->GetPointerToData(id, 0, state) + sizeof(uint32_t) * wordOffset;
-					auto &ptrTy = shader->getType(obj.type);
+					auto &ptrTy = shader->getType(obj);
 					if(IsStorageInterleavedByLane(ptrTy.storageClass))
 					{
 						ptr = InterleaveByLane(ptr);
@@ -1288,7 +1288,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 
 	// No debug type information. Derive from SPIR-V.
 	Operand val(shader, state, id);
-	switch(shader->getType(val.type).opcode())
+	switch(shader->getType(val).opcode())
 	{
 		case spv::OpTypeInt:
 		{
@@ -1302,7 +1302,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 		break;
 		case spv::OpTypeVector:
 		{
-			auto count = shader->getType(val.type).definition.word(3);
+			auto count = shader->getType(val).definition.word(3);
 			switch(count)
 			{
 				case 1:
@@ -1331,7 +1331,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 		break;
 		case spv::OpTypePointer:
 		{
-			auto objectTy = shader->getType(shader->getObject(id).type);
+			auto objectTy = shader->getType(shader->getObject(id));
 			bool interleavedByLane = IsStorageInterleavedByLane(objectTy.storageClass);
 			auto ptr = state->getPointer(id);
 			auto ptrGroup = group.group<Key>(key);

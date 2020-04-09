@@ -276,7 +276,6 @@ public:
 		Object::ID id() const { return definition.resultId(); }
 
 		InsnIterator definition;
-		Type::ID type;  // TODO(b/129000021): Eliminate. Use typeId() instead.
 		std::unique_ptr<uint32_t[]> constantValue = nullptr;
 
 		enum class Kind
@@ -1032,8 +1031,6 @@ private:
 			auto constantValue = reinterpret_cast<uint32_t *>(obj.constantValue.get());
 			return SIMD::UInt(constantValue[i]);
 		}
-
-		SpirvShader::Type::ID const type;  // TODO(b/129000021): Eliminate. Use typeId() instead.
 
 		Type::ID typeId() const
 		{

@@ -182,7 +182,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		{
 			auto valueId = Object::ID(insn.word(4));
 			ASSERT(type.sizeInComponents == 1);
-			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			ASSERT(getType(getObject(valueId)).sizeInComponents == 4);
 			Operand value(this, state, valueId);
 			auto bit = (value.Int(0) >> SIMD::Int(0, 1, 2, 3)) & SIMD::Int(1);
 			dst.move(0, -bit);
@@ -194,8 +194,8 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 			auto valueId = Object::ID(insn.word(4));
 			auto indexId = Object::ID(insn.word(5));
 			ASSERT(type.sizeInComponents == 1);
-			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
-			ASSERT(getType(getObject(indexId).type).sizeInComponents == 1);
+			ASSERT(getType(getObject(valueId)).sizeInComponents == 4);
+			ASSERT(getType(getObject(indexId)).sizeInComponents == 1);
 			Operand value(this, state, valueId);
 			Operand index(this, state, indexId);
 			auto vecIdx = index.Int(0) / SIMD::Int(32);
@@ -213,7 +213,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 			auto operation = spv::GroupOperation(insn.word(4));
 			auto valueId = Object::ID(insn.word(5));
 			ASSERT(type.sizeInComponents == 1);
-			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			ASSERT(getType(getObject(valueId)).sizeInComponents == 4);
 			Operand value(this, state, valueId);
 			switch(operation)
 			{
@@ -236,7 +236,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		{
 			auto valueId = Object::ID(insn.word(4));
 			ASSERT(type.sizeInComponents == 1);
-			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			ASSERT(getType(getObject(valueId)).sizeInComponents == 4);
 			Operand value(this, state, valueId);
 			dst.move(0, Cttz(value.UInt(0) & SIMD::UInt(15), true));
 			break;
@@ -246,7 +246,7 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		{
 			auto valueId = Object::ID(insn.word(4));
 			ASSERT(type.sizeInComponents == 1);
-			ASSERT(getType(getObject(valueId).type).sizeInComponents == 4);
+			ASSERT(getType(getObject(valueId)).sizeInComponents == 4);
 			Operand value(this, state, valueId);
 			dst.move(0, SIMD::UInt(31) - Ctlz(value.UInt(0) & SIMD::UInt(15), false));
 			break;

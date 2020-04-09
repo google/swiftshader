@@ -239,7 +239,6 @@ SpirvShader::SpirvShader(
 				auto &object = defs[resultId];
 				object.kind = Object::Kind::Pointer;
 				object.definition = insn;
-				object.type = typeId;
 
 				ASSERT(getType(typeId).definition.opcode() == spv::OpTypePointer);
 				ASSERT(getType(typeId).storageClass == storageClass);
@@ -308,7 +307,7 @@ SpirvShader::SpirvShader(
 				// TODO: consider a real LLVM-level undef. For now, zero is a perfectly good value.
 				// OpConstantNull forms a constant of arbitrary type, all zeros.
 				auto &object = CreateConstant(insn);
-				auto &objectTy = getType(object.type);
+				auto &objectTy = getType(object);
 				for(auto i = 0u; i < objectTy.sizeInComponents; i++)
 				{
 					object.constantValue[i] = 0;
@@ -323,7 +322,7 @@ SpirvShader::SpirvShader(
 				for(auto i = 0u; i < insn.wordCount() - 3; i++)
 				{
 					auto &constituent = getObject(insn.word(i + 3));
-					auto &constituentTy = getType(constituent.type);
+					auto &constituentTy = getType(constituent);
 					for(auto j = 0u; j < constituentTy.sizeInComponents; j++)
 					{
 						object.constantValue[offset++] = constituent.constantValue[j];
@@ -343,7 +342,7 @@ SpirvShader::SpirvShader(
 					// any execution mode set for LocalSize.
 					// The object decorated with WorkgroupSize must be declared
 					// as a three-component vector of 32-bit integers.
-					ASSERT(getType(object.type).sizeInComponents == 3);
+					ASSERT(getType(object).sizeInComponents == 3);
 					modes.WorkgroupSizeX = object.constantValue[0];
 					modes.WorkgroupSizeY = object.constantValue[1];
 					modes.WorkgroupSizeZ = object.constantValue[2];
@@ -794,16 +793,16 @@ SpirvShader::Object &SpirvShader::CreateConstant(InsnIterator insn)
 	Object::ID resultId = insn.word(2);
 	auto &object = defs[resultId];
 	auto &objectTy = getType(typeId);
-	object.type = typeId;
 	object.kind = Object::Kind::Constant;
 	object.definition = insn;
 	object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[objectTy.sizeInComponents]);
+
 	return object;
 }
 
 void SpirvShader::ProcessInterfaceVariable(Object &object)
 {
-	auto &objectTy = getType(object.type);
+	auto &objectTy = getType(object);
 	ASSERT(objectTy.storageClass == spv::StorageClassInput || objectTy.storageClass == spv::StorageClassOutput);
 
 	ASSERT(objectTy.opcode() == spv::OpTypePointer);
@@ -1038,8 +1037,8 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 {
 	ApplyDecorationsForId(d, baseId);
 	auto &baseObject = getObject(baseId);
-	ApplyDecorationsForId(d, baseObject.type);
-	auto typeId = getType(baseObject.type).element;
+	ApplyDecorationsForId(d, baseObject.typeId());
+	auto typeId = getType(baseObject).element;
 
 	for(auto i = 0u; i < numIndexes; i++)
 	{
@@ -1080,9 +1079,9 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 	// Produce a offset into external memory in sizeof(float) units
 
 	auto &baseObject = getObject(baseId);
-	Type::ID typeId = getType(baseObject.type).element;
+	Type::ID typeId = getType(baseObject).element;
 	Decorations d = {};
-	ApplyDecorationsForId(&d, baseObject.type);
+	ApplyDecorationsForId(&d, baseObject.typeId());
 
 	uint32_t arrayIndex = 0;
 	if(baseObject.kind == Object::Kind::DescriptorSet)
@@ -1183,7 +1182,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 	// TODO: avoid doing per-lane work in some cases if we can?
 	auto routine = state->routine;
 	auto &baseObject = getObject(baseId);
-	Type::ID typeId = getType(baseObject.type).element;
+	Type::ID typeId = getType(baseObject).element;
 
 	auto ptr = state->getPointer(baseId);
 
@@ -1214,7 +1213,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 			case spv::OpTypeRuntimeArray:
 			{
 				// TODO: b/127950082: Check bounds.
-				if(getType(baseObject.type).storageClass == spv::StorageClassUniformConstant)
+				if(getType(baseObject).storageClass == spv::StorageClassUniformConstant)
 				{
 					// indexing into an array of descriptors.
 					auto &obj = getObject(indexIds[i]);
@@ -1453,7 +1452,6 @@ void SpirvShader::DefineResult(const InsnIterator &insn)
 	Type::ID typeId = insn.word(1);
 	Object::ID resultId = insn.word(2);
 	auto &object = defs[resultId];
-	object.type = typeId;
 
 	switch(getType(typeId).opcode())
 	{
@@ -2008,7 +2006,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeConstruct(InsnIterator insn, E
 	{
 		Object::ID srcObjectId = insn.word(3u + i);
 		auto &srcObject = getObject(srcObjectId);
-		auto &srcObjectTy = getType(srcObject.type);
+		auto &srcObjectTy = getType(srcObject);
 		Operand srcObjectAccess(this, state, srcObjectId);
 
 		for(auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
@@ -2026,7 +2024,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeInsert(InsnIterator insn, Emit
 	auto &type = getType(resultTypeId);
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto &newPartObject = getObject(insn.word(3));
-	auto &newPartObjectTy = getType(newPartObject.type);
+	auto &newPartObjectTy = getType(newPartObject);
 	auto firstNewComponent = WalkLiteralAccessChain(resultTypeId, insn.wordCount() - 5, insn.wordPointer(5));
 
 	Operand srcObjectAccess(this, state, insn.word(4));
@@ -2075,7 +2073,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitSt
 
 	// Note: number of components in result type, first half type, and second
 	// half type are all independent.
-	auto &firstHalfType = getType(getObject(insn.word(3)).type);
+	auto &firstHalfType = getType(getObject(insn.word(3)));
 
 	Operand firstHalfAccess(this, state, insn.word(3));
 	Operand secondHalfAccess(this, state, insn.word(4));
@@ -2106,7 +2104,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorExtractDynamic(InsnIterator insn,
 {
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto &srcType = getType(getObject(insn.word(3)).type);
+	auto &srcType = getType(getObject(insn.word(3)));
 
 	Operand src(this, state, insn.word(3));
 	Operand index(this, state, insn.word(4));
@@ -2144,7 +2142,7 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 	auto &type = getType(insn.word(1));
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
 	auto cond = Operand(this, state, insn.word(3));
-	auto condIsScalar = (getType(cond.type).sizeInComponents == 1);
+	auto condIsScalar = (getType(cond).sizeInComponents == 1);
 	auto lhs = Operand(this, state, insn.word(4));
 	auto rhs = Operand(this, state, insn.word(5));
 
@@ -2162,7 +2160,7 @@ SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state
 	auto &type = getType(insn.word(1));
 	ASSERT(type.sizeInComponents == 1);
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto &srcType = getType(getObject(insn.word(3)).type);
+	auto &srcType = getType(getObject(insn.word(3)));
 	auto src = Operand(this, state, insn.word(3));
 
 	SIMD::UInt result = src.UInt(0);
@@ -2181,7 +2179,7 @@ SpirvShader::EmitResult SpirvShader::EmitAll(InsnIterator insn, EmitState *state
 	auto &type = getType(insn.word(1));
 	ASSERT(type.sizeInComponents == 1);
 	auto &dst = state->createIntermediate(insn.word(2), type.sizeInComponents);
-	auto &srcType = getType(getObject(insn.word(3)).type);
+	auto &srcType = getType(getObject(insn.word(3)));
 	auto src = Operand(this, state, insn.word(3));
 
 	SIMD::UInt result = src.UInt(0);
@@ -2321,7 +2319,7 @@ SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitStat
 	ASSERT(resultType.sizeInComponents == 1);
 	ASSERT(resultType.definition.opcode() == spv::OpTypeInt);
 
-	auto &structPtrTy = getType(getObject(structPtrId).type);
+	auto &structPtrTy = getType(getObject(structPtrId));
 	auto &structTy = getType(structPtrTy.element);
 	auto arrayId = Type::ID(structTy.definition.word(2 + arrayFieldIdx));
 
@@ -2364,7 +2362,7 @@ uint32_t SpirvShader::GetConstScalarInt(Object::ID id) const
 {
 	auto &scopeObj = getObject(id);
 	ASSERT(scopeObj.kind == Object::Kind::Constant);
-	ASSERT(getType(scopeObj.type).sizeInComponents == 1);
+	ASSERT(getType(scopeObj).sizeInComponents == 1);
 	return scopeObj.constantValue[0];
 }
 
@@ -2378,7 +2376,7 @@ void SpirvShader::emitEpilog(SpirvRoutine *routine) const
 			{
 				Object::ID resultId = insn.word(2);
 				auto &object = getObject(resultId);
-				auto &objectTy = getType(object.type);
+				auto &objectTy = getType(object);
 				if(object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassOutput)
 				{
 					auto &dst = routine->getVariable(resultId);
@@ -2431,7 +2429,6 @@ VkShaderStageFlagBits SpirvShader::executionModelToStage(spv::ExecutionModel mod
 SpirvShader::Operand::Operand(SpirvShader const *shader, EmitState const *state, SpirvShader::Object::ID objId)
     : obj(shader->getObject(objId))
     , intermediate(obj.kind == SpirvShader::Object::Kind::Intermediate ? &state->getIntermediate(objId) : nullptr)
-    , type(obj.type)
 {}
 
 SpirvRoutine::SpirvRoutine(vk::PipelineLayout const *pipelineLayout)
