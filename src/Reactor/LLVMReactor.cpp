@@ -3412,7 +3412,7 @@ Value *Call(RValue<Pointer<Byte>> fptr, Type *retTy, std::initializer_list<Value
 
 	::llvm::SmallVector<::llvm::Value *, 8> arguments;
 	for(auto arg : args) { arguments.push_back(V(arg)); }
-	return V(jit->builder->CreateCall(funcPtr, arguments));
+	return V(jit->builder->CreateCall(funcTy, funcPtr, arguments));
 }
 
 void Breakpoint()
