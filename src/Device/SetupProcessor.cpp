@@ -52,14 +52,7 @@ bool SetupProcessor::State::operator==(const State &state) const
 
 SetupProcessor::SetupProcessor()
 {
-	routineCache = nullptr;
 	setRoutineCacheSize(1024);
-}
-
-SetupProcessor::~SetupProcessor()
-{
-	delete routineCache;
-	routineCache = nullptr;
 }
 
 SetupProcessor::State SetupProcessor::update(const sw::Context *context) const
@@ -117,8 +110,7 @@ SetupProcessor::RoutineType SetupProcessor::routine(const State &state)
 
 void SetupProcessor::setRoutineCacheSize(int cacheSize)
 {
-	delete routineCache;
-	routineCache = new RoutineCacheType(clamp(cacheSize, 1, 65536));
+	routineCache = std::make_unique<RoutineCacheType>(clamp(cacheSize, 1, 65536));
 }
 
 }  // namespace sw

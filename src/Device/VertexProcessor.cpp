@@ -57,20 +57,12 @@ bool VertexProcessor::State::operator==(const State &state) const
 
 VertexProcessor::VertexProcessor()
 {
-	routineCache = nullptr;
 	setRoutineCacheSize(1024);
-}
-
-VertexProcessor::~VertexProcessor()
-{
-	delete routineCache;
-	routineCache = nullptr;
 }
 
 void VertexProcessor::setRoutineCacheSize(int cacheSize)
 {
-	delete routineCache;
-	routineCache = new RoutineCacheType(clamp(cacheSize, 1, 65536));
+	routineCache = std::make_unique<RoutineCacheType>(clamp(cacheSize, 1, 65536));
 }
 
 const VertexProcessor::State VertexProcessor::update(const sw::Context *context)
