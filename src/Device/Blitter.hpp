@@ -186,9 +186,9 @@ private:
 	                  const VkImageSubresourceLayers &srcSubresourceLayers, Edge srcEdge);
 
 	std::mutex blitMutex;
-	RoutineCacheT<State, BlitFunction::CFunctionType> blitCache;  // guarded by blitMutex
+	RoutineCache<State, BlitFunction::CFunctionType> blitCache;  // guarded by blitMutex
 	std::mutex cornerUpdateMutex;
-	RoutineCacheT<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache;  // guarded by cornerUpdateMutex
+	RoutineCache<State, CornerUpdateFunction::CFunctionType> cornerUpdateCache;  // guarded by cornerUpdateMutex
 };
 
 }  // namespace sw

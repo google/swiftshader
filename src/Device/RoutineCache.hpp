@@ -23,11 +23,8 @@ namespace sw {
 
 using namespace rr;
 
-template<class State>
-using RoutineCache = LRUCache<State, std::shared_ptr<Routine>>;
-
 template<class State, class FunctionType>
-using RoutineCacheT = LRUCache<State, RoutineT<FunctionType>>;
+using RoutineCache = LRUCache<State, RoutineT<FunctionType>>;
 
 }  // namespace sw
 

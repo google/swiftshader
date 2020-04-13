@@ -159,7 +159,7 @@ public:
 	Factor factor;
 
 private:
-	using RoutineCacheType = RoutineCacheT<State, RasterizerFunction::CFunctionType>;
+	using RoutineCacheType = RoutineCache<State, RasterizerFunction::CFunctionType>;
 	RoutineCacheType *routineCache;
 };
 
