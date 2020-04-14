@@ -734,18 +734,7 @@ if(SWIFTSHADER_BUILD_VULKAN)
     add_subdirectory(src/Vulkan) # Add vk_swiftshader target
 
     if(SWIFTSHADER_EMIT_COVERAGE)
-        add_executable(turbo-cov ${TESTS_DIR}/regres/cov/turbo-cov/main.cpp)
-        target_link_libraries(turbo-cov llvm-with-cov)
-
-        # Emit a coverage-toolchain.txt file next to the vk_swiftshader_icd.json
-        # file so that regres can locate the LLVM toolchain used to build the
-        # .so file. With this, the correct llvm-cov and llvm-profdata tools
-        # from the same toolchain can be located.
-        get_filename_component(COMPILER_TOOLCHAIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
-        file(GENERATE
-            OUTPUT "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/coverage-toolchain.txt"
-            CONTENT "{\"llvm\": \"${COMPILER_TOOLCHAIN_DIR}\", \"turbo-cov\": \"$<TARGET_FILE:turbo-cov>\"}"
-        )
+        add_subdirectory(${TESTS_DIR}/regres/cov/turbo-cov)
     endif()
 
 endif()
