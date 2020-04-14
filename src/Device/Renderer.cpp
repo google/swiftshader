@@ -156,9 +156,9 @@ DrawCall::~DrawCall()
 Renderer::Renderer(vk::Device *device)
     : device(device)
 {
-	VertexProcessor::setRoutineCacheSize(1024);
-	PixelProcessor::setRoutineCacheSize(1024);
-	SetupProcessor::setRoutineCacheSize(1024);
+	vertexProcessor.setRoutineCacheSize(1024);
+	pixelProcessor.setRoutineCacheSize(1024);
+	setupProcessor.setRoutineCacheSize(1024);
 }
 
 Renderer::~Renderer()
@@ -204,13 +204,13 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	if(update)
 	{
 		MARL_SCOPED_EVENT("update");
-		vertexState = VertexProcessor::update(context);
-		setupState = SetupProcessor::update(context);
-		pixelState = PixelProcessor::update(context);
+		vertexState = vertexProcessor.update(context);
+		setupState = setupProcessor.update(context);
+		pixelState = pixelProcessor.update(context);
 
-		vertexRoutine = VertexProcessor::routine(vertexState, context->pipelineLayout, context->vertexShader, context->descriptorSets);
-		setupRoutine = SetupProcessor::routine(setupState);
-		pixelRoutine = PixelProcessor::routine(pixelState, context->pipelineLayout, context->pixelShader, context->descriptorSets);
+		vertexRoutine = vertexProcessor.routine(vertexState, context->pipelineLayout, context->vertexShader, context->descriptorSets);
+		setupRoutine = setupProcessor.routine(setupState);
+		pixelRoutine = pixelProcessor.routine(pixelState, context->pipelineLayout, context->pixelShader, context->descriptorSets);
 	}
 
 	DrawCall::SetupFunction setupPrimitives = nullptr;
@@ -285,7 +285,7 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 
 	data->lineWidth = context->lineWidth;
 
-	data->factor = factor;
+	data->factor = pixelProcessor.factor;
 
 	if(pixelState.alphaToCoverage)
 	{
@@ -1182,6 +1182,11 @@ void Renderer::setViewport(const VkViewport &viewport)
 void Renderer::setScissor(const VkRect2D &scissor)
 {
 	this->scissor = scissor;
+}
+
+void Renderer::setBlendConstant(const float4 &blendConstant)
+{
+	pixelProcessor.setBlendConstant(blendConstant);
 }
 
 }  // namespace sw

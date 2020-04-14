@@ -150,7 +150,6 @@ public:
 
 	void setBlendConstant(const float4 &blendConstant);
 
-protected:
 	const State update(const Context *context) const;
 	RoutineType routine(const State &state, vk::PipelineLayout const *pipelineLayout,
 	                    SpirvShader const *pixelShader, const vk::DescriptorSet::Bindings &descriptorSets);

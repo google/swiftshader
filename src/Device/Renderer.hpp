@@ -189,7 +189,7 @@ struct DrawCall
 	static bool setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
 };
 
-class alignas(16) Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor
+class alignas(16) Renderer
 {
 public:
 	Renderer(vk::Device *device);
@@ -208,6 +208,8 @@ public:
 	// Viewport & Clipper
 	void setViewport(const VkViewport &viewport);
 	void setScissor(const VkRect2D &scissor);
+
+	void setBlendConstant(const float4 &blendConstant);
 
 	void addQuery(vk::Query *query);
 	void removeQuery(vk::Query *query);
@@ -228,6 +230,10 @@ private:
 	vk::Query *occlusionQuery = nullptr;
 	marl::Ticket::Queue drawTickets;
 	marl::Ticket::Queue clusterQueues[MaxClusterCount];
+
+	VertexProcessor vertexProcessor;
+	PixelProcessor pixelProcessor;
+	SetupProcessor setupProcessor;
 
 	VertexProcessor::State vertexState;
 	SetupProcessor::State setupState;
