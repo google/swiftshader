@@ -705,7 +705,7 @@ if(SWIFTSHADER_BUILD_VULKAN)
     # TODO: Create src/Base and make this a lib target, and move stuff from
     # src/Vulkan into it that is needed by vk_pipeline, vk_device, and vk_wsi.
     add_library(vk_base INTERFACE)
-    
+
     if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
         target_compile_definitions(vk_base INTERFACE "ENABLE_VK_DEBUGGER")
     endif()

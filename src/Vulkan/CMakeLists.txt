@@ -98,24 +98,24 @@ endif()
 
 if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
     list(APPEND VULKAN_SRC_FILES
-        Context.cpp
-        Context.hpp
-        Debug.cpp
-        EventListener.hpp
-        File.cpp
-        File.hpp
-        ID.hpp
-        Location.hpp
-        Server.cpp
-        Server.hpp
-        Thread.cpp
-        Thread.hpp
-        Type.cpp
-        Type.hpp
-        Value.cpp
-        Value.hpp
-        Variable.hpp
-        WeakMap.hpp
+        Debug/Context.cpp
+        Debug/Context.hpp
+        Debug/Debug.cpp
+        Debug/EventListener.hpp
+        Debug/File.cpp
+        Debug/File.hpp
+        Debug/ID.hpp
+        Debug/Location.hpp
+        Debug/Server.cpp
+        Debug/Server.hpp
+        Debug/Thread.cpp
+        Debug/Thread.hpp
+        Debug/Type.cpp
+        Debug/Type.hpp
+        Debug/Value.cpp
+        Debug/Value.hpp
+        Debug/Variable.hpp
+        Debug/WeakMap.hpp
     )
 endif()
 
