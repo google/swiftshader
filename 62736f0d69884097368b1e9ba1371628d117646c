@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e44231c4_9665d705",
+        "filename": "src/Vulkan/VkDevice.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-04-14T19:49:21Z",
+      "side": 1,
+      "message": "Thanks for spotting that!",
+      "range": {
+        "startLine": 97,
+        "startChar": 68,
+        "endLine": 97,
+        "endChar": 70
+      },
+      "revId": "62736f0d69884097368b1e9ba1371628d117646c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
