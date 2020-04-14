@@ -755,88 +755,11 @@ endif()
 ###########################################################
 
 if(SWIFTSHADER_BUILD_TESTS)
-    set(REACTOR_UNIT_TESTS_LIST
-        ${SOURCE_DIR}/Reactor/ReactorUnitTests.cpp
-    )
-
-    add_executable(ReactorUnitTests ${REACTOR_UNIT_TESTS_LIST})
-    set_target_properties(ReactorUnitTests PROPERTIES
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        FOLDER "Tests"
-    )
-    target_link_libraries(ReactorUnitTests ${Reactor} ${OS_LIBS} gtest)
-
-    set(GLES_UNITTESTS_LIST
-        ${TESTS_DIR}/GLESUnitTests/main.cpp
-        ${TESTS_DIR}/GLESUnitTests/unittests.cpp
-    )
-
-    set(GLES_UNITTESTS_INCLUDE_DIR
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    )
-
-    add_executable(gles-unittests ${GLES_UNITTESTS_LIST})
-    set_target_properties(gles-unittests PROPERTIES
-        INCLUDE_DIRECTORIES "${GLES_UNITTESTS_INCLUDE_DIR}"
-        FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "STANDALONE"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-    )
-
-    target_link_libraries(gles-unittests libEGL libGLESv2 ${OS_LIBS} ${SWIFTSHADER_LIBS} gtest gmock)
-    if(ANDROID)
-        target_link_libraries(gles-unittests -landroid)
-    endif()
-
-    # Math unit tests
-    set(MATH_UNITTESTS_LIST
-        ${TESTS_DIR}/MathUnitTests/main.cpp
-        ${TESTS_DIR}/MathUnitTests/unittests.cpp
-    )
-
-    set(MATH_UNITTESTS_INCLUDE_DIR
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    )
-
-    add_executable(math-unittests ${MATH_UNITTESTS_LIST})
-    set_target_properties(math-unittests PROPERTIES
-        INCLUDE_DIRECTORIES "${MATH_UNITTESTS_INCLUDE_DIR}"
-        FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-    )
-
-    target_link_libraries(math-unittests gtest gmock)
-    if(NOT WIN32)
-        target_link_libraries(math-unittests pthread ${SWIFTSHADER_LIBS})
-    endif()
-
-    # System unit tests
-    set(SYSTEM_UNITTESTS_LIST
-        ${TESTS_DIR}/SystemUnitTests/main.cpp
-        ${TESTS_DIR}/SystemUnitTests/unittests.cpp
-    )
-
-    set(SYSTEM_UNITTESTS_INCLUDE_DIR
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    )
-
-    add_executable(system-unittests ${SYSTEM_UNITTESTS_LIST})
-    set_target_properties(system-unittests PROPERTIES
-        INCLUDE_DIRECTORIES "${SYSTEM_UNITTESTS_INCLUDE_DIR}"
-        FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-    )
-
-    target_link_libraries(system-unittests vk_system gtest gmock)
-    if(NOT WIN32)
-        target_link_libraries(system-unittests pthread ${SWIFTSHADER_LIBS})
-    endif()
-
-endif(SWIFTSHADER_BUILD_TESTS)
+    add_subdirectory(${TESTS_DIR}/ReactorUnitTests) # Add ReactorUnitTests target
+    add_subdirectory(${TESTS_DIR}/GLESUnitTests) # Add gles-unittests target
+    add_subdirectory(${TESTS_DIR}/MathUnitTests) # Add math-unittests target
+    add_subdirectory(${TESTS_DIR}/SystemUnitTests) # Add system-unittests target
+endif()
 
 if(SWIFTSHADER_BUILD_BENCHMARKS)
     if (NOT TARGET benchmark::benchmark)
@@ -844,70 +767,13 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark)
     endif()
 
-    # Reactor benchmarks
-    set(REACTOR_BENCHMARK_LIST
-        ${SOURCE_DIR}/Reactor/ReactorBenchmarks.cpp
-    )
-
-    add_executable(ReactorBenchmarks ${REACTOR_BENCHMARK_LIST})
-    target_link_libraries(ReactorBenchmarks benchmark::benchmark marl ${Reactor})
-    set_target_properties(ReactorBenchmarks PROPERTIES
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        FOLDER "Benchmarks"
-    )
-
-    # System benchmarks
-    set(SYSTEM_BENCHMARKS_LIST
-        ${TESTS_DIR}/SystemBenchmarks/main.cpp
-        ${TESTS_DIR}/SystemBenchmarks/LRUCacheBenchmarks.cpp
-    )
-
-    set(SYSTEM_BENCHMARKS_INCLUDE_DIR
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    )
-
-    add_executable(system-benchmarks ${SYSTEM_BENCHMARKS_LIST})
-    target_link_libraries(system-benchmarks benchmark::benchmark)
-    set_target_properties(system-benchmarks PROPERTIES
-        INCLUDE_DIRECTORIES "${SYSTEM_BENCHMARKS_INCLUDE_DIR}"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-        FOLDER "Benchmarks"
-    )
-
-    target_link_libraries(system-benchmarks vk_system gtest gmock)
-    if(NOT WIN32)
-        target_link_libraries(system-benchmarks pthread ${SWIFTSHADER_LIBS})
-    endif()
-endif(SWIFTSHADER_BUILD_BENCHMARKS)
+    add_subdirectory(${TESTS_DIR}/ReactorBenchmarks) # Add ReactorBenchmarks target
+    add_subdirectory(${TESTS_DIR}/SystemBenchmarks) # Add system-benchmarks target
+endif()
 
 if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
-    set(VK_UNITTESTS_LIST
-        ${TESTS_DIR}/VulkanUnitTests/Device.cpp
-        ${TESTS_DIR}/VulkanUnitTests/Driver.cpp
-        ${TESTS_DIR}/VulkanUnitTests/main.cpp
-        ${TESTS_DIR}/VulkanUnitTests/unittests.cpp
-    )
-
-    set(VK_UNITTESTS_INCLUDE_DIR
-        ${THIRD_PARTY_DIR}/SPIRV-Tools/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    )
-
-    add_executable(vk-unittests ${VK_UNITTESTS_LIST})
-    add_dependencies(vk-unittests vk_swiftshader)
-
-    set_target_properties(vk-unittests PROPERTIES
-        INCLUDE_DIRECTORIES "${VK_UNITTESTS_INCLUDE_DIR}"
-        FOLDER "Tests"
-        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};${WARNINGS_AS_ERRORS}"
-        COMPILE_DEFINITIONS "STANDALONE"
-        LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
-    )
-
-    target_link_libraries(vk-unittests SPIRV-Tools ${OS_LIBS} ${SWIFTSHADER_LIBS} gtest gmock)
-endif(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
+    add_subdirectory(${TESTS_DIR}/VulkanUnitTests) # Add VulkanUnitTests target
+endif()
 
 if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     if(UNIX AND NOT APPLE)
