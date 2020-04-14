@@ -91,6 +91,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     "VkSampler.hpp",
     "VkSemaphore.hpp",
     "VkShaderModule.hpp",
+    "VkSpecializationInfo.hpp",
     "VkStringify.hpp",
     "VulkanPlatform.h",
   ]
@@ -133,6 +134,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "VkSampler.cpp",
     "VkSemaphore.cpp",
     "VkShaderModule.cpp",
+    "VkSpecializationInfo.cpp",
     "VkStringify.cpp",
     "Vulkan.rc",
     "libVulkan.cpp",

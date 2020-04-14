@@ -16,6 +16,7 @@
 #define VK_PIPELINE_CACHE_HPP_
 
 #include "VkObject.hpp"
+#include "VkSpecializationInfo.hpp"
 
 #include <cstring>
 #include <functional>
@@ -51,29 +52,12 @@ public:
 
 	struct SpirvShaderKey
 	{
-		struct SpecializationInfo
-		{
-			SpecializationInfo(const VkSpecializationInfo *specializationInfo);
-
-			bool operator<(const SpecializationInfo &specializationInfo) const;
-
-			const VkSpecializationInfo *get() const { return info.get(); }
-
-		private:
-			struct Deleter
-			{
-				void operator()(VkSpecializationInfo *) const;
-			};
-
-			std::shared_ptr<VkSpecializationInfo> info;
-		};
-
 		SpirvShaderKey(const VkShaderStageFlagBits pipelineStage,
 		               const std::string &entryPointName,
 		               const std::vector<uint32_t> &insns,
 		               const vk::RenderPass *renderPass,
 		               const uint32_t subpassIndex,
-		               const VkSpecializationInfo *specializationInfo);
+		               const vk::SpecializationInfo &specializationInfo);
 
 		bool operator<(const SpirvShaderKey &other) const;
 
@@ -90,7 +74,7 @@ public:
 		const std::vector<uint32_t> insns;
 		const vk::RenderPass *renderPass;
 		const uint32_t subpassIndex;
-		const SpecializationInfo specializationInfo;
+		const vk::SpecializationInfo specializationInfo;
 	};
 
 	// getOrCreateShader() queries the cache for a shader with the given key.

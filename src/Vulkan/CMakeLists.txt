@@ -68,6 +68,8 @@ set(VULKAN_SRC_FILES
     VkPipeline.hpp
     VkPipelineCache.cpp
     VkPipelineCache.hpp
+    VkSpecializationInfo.cpp
+    VkSpecializationInfo.hpp
     VkPipelineLayout.cpp
     VkPipelineLayout.hpp
     VkPromotedExtensions.cpp
