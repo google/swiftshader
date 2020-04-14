@@ -77,7 +77,6 @@ public:
 		bool depthTestActive;
 		bool occlusionEnabled;
 		bool perspective;
-		bool depthClamp;
 
 		BlendState blendState[RENDERTARGETS];
 

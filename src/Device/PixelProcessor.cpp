@@ -123,7 +123,6 @@ const PixelProcessor::State PixelProcessor::update(const Context *context) const
 	}
 
 	state.occlusionEnabled = context->occlusionEnabled;
-	state.depthClamp = (context->depthBias != 0.0f) || (context->slopeDepthBias != 0.0f);
 
 	for(int i = 0; i < RENDERTARGETS; i++)
 	{
