@@ -28,7 +28,7 @@ namespace sw {
 SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto extInstIndex = static_cast<GLSLstd450>(insn.word(4));
 
 	switch(extInstIndex)
@@ -36,7 +36,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FAbs:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Abs(src.Float(i)));
 			}
@@ -45,7 +45,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450SAbs:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Abs(src.Int(i)));
 			}
@@ -63,7 +63,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Floor:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Floor(src.Float(i)));
 			}
@@ -72,7 +72,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Trunc:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Trunc(src.Float(i)));
 			}
@@ -81,7 +81,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Ceil:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Ceil(src.Float(i)));
 			}
@@ -90,7 +90,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Fract:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Frac(src.Float(i)));
 			}
@@ -99,7 +99,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Round:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Round(src.Float(i)));
 			}
@@ -108,7 +108,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450RoundEven:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto x = Round(src.Float(i));
 				// dst = round(src) + ((round(src) < src) * 2 - 1) * (fract(src) == 0.5) * isOdd(round(src));
@@ -121,7 +121,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto lhs = Operand(this, state, insn.word(5));
 			auto rhs = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Min(lhs.Float(i), rhs.Float(i)));
 			}
@@ -131,7 +131,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto lhs = Operand(this, state, insn.word(5));
 			auto rhs = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Max(lhs.Float(i), rhs.Float(i)));
 			}
@@ -141,7 +141,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto lhs = Operand(this, state, insn.word(5));
 			auto rhs = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Min(lhs.Int(i), rhs.Int(i)));
 			}
@@ -151,7 +151,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto lhs = Operand(this, state, insn.word(5));
 			auto rhs = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Max(lhs.Int(i), rhs.Int(i)));
 			}
@@ -161,7 +161,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto lhs = Operand(this, state, insn.word(5));
 			auto rhs = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Min(lhs.UInt(i), rhs.UInt(i)));
 			}
@@ -171,7 +171,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto lhs = Operand(this, state, insn.word(5));
 			auto rhs = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Max(lhs.UInt(i), rhs.UInt(i)));
 			}
@@ -181,7 +181,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto edge = Operand(this, state, insn.word(5));
 			auto x = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, CmpNLT(x.Float(i), edge.Float(i)) & As<SIMD::Int>(SIMD::Float(1.0f)));
 			}
@@ -192,7 +192,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto edge0 = Operand(this, state, insn.word(5));
 			auto edge1 = Operand(this, state, insn.word(6));
 			auto x = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto tx = Min(Max((x.Float(i) - edge0.Float(i)) /
 				                      (edge1.Float(i) - edge0.Float(i)),
@@ -207,7 +207,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
 			auto a = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, a.Float(i) * (y.Float(i) - x.Float(i)) + x.Float(i));
 			}
@@ -218,7 +218,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto x = Operand(this, state, insn.word(5));
 			auto minVal = Operand(this, state, insn.word(6));
 			auto maxVal = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Min(Max(x.Float(i), minVal.Float(i)), maxVal.Float(i)));
 			}
@@ -229,7 +229,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto x = Operand(this, state, insn.word(5));
 			auto minVal = Operand(this, state, insn.word(6));
 			auto maxVal = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Min(Max(x.Int(i), minVal.Int(i)), maxVal.Int(i)));
 			}
@@ -240,7 +240,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto x = Operand(this, state, insn.word(5));
 			auto minVal = Operand(this, state, insn.word(6));
 			auto maxVal = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Min(Max(x.UInt(i), minVal.UInt(i)), maxVal.UInt(i)));
 			}
@@ -249,7 +249,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FSign:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto neg = As<SIMD::Int>(CmpLT(src.Float(i), SIMD::Float(-0.0f))) & As<SIMD::Int>(SIMD::Float(-1.0f));
 				auto pos = As<SIMD::Int>(CmpNLE(src.Float(i), SIMD::Float(+0.0f))) & As<SIMD::Int>(SIMD::Float(1.0f));
@@ -260,7 +260,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450SSign:
 		{
 			auto src = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto neg = CmpLT(src.Int(i), SIMD::Int(0)) & SIMD::Int(-1);
 				auto pos = CmpNLE(src.Int(i), SIMD::Int(0)) & SIMD::Int(1);
@@ -273,9 +273,9 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto I = Operand(this, state, insn.word(5));
 			auto N = Operand(this, state, insn.word(6));
 
-			SIMD::Float d = Dot(type.sizeInComponents, I, N);
+			SIMD::Float d = Dot(type.componentCount, I, N);
 
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, I.Float(i) - SIMD::Float(2.0f) * d * N.Float(i));
 			}
@@ -287,12 +287,12 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto N = Operand(this, state, insn.word(6));
 			auto eta = Operand(this, state, insn.word(7));
 
-			SIMD::Float d = Dot(type.sizeInComponents, I, N);
+			SIMD::Float d = Dot(type.componentCount, I, N);
 			SIMD::Float k = SIMD::Float(1.0f) - eta.Float(0) * eta.Float(0) * (SIMD::Float(1.0f) - d * d);
 			SIMD::Int pos = CmpNLT(k, SIMD::Float(0.0f));
 			SIMD::Float t = (eta.Float(0) * d + Sqrt(k));
 
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, pos & As<SIMD::Int>(eta.Float(0) * I.Float(i) - t * N.Float(i)));
 			}
@@ -304,10 +304,10 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto I = Operand(this, state, insn.word(6));
 			auto Nref = Operand(this, state, insn.word(7));
 
-			SIMD::Float d = Dot(type.sizeInComponents, I, Nref);
+			SIMD::Float d = Dot(type.componentCount, I, Nref);
 			SIMD::Int neg = CmpLT(d, SIMD::Float(0.0f));
 
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto n = N.Float(i);
 				dst.move(i, (neg & As<SIMD::Int>(n)) | (~neg & As<SIMD::Int>(-n)));
@@ -317,7 +317,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Length:
 		{
 			auto x = Operand(this, state, insn.word(5));
-			SIMD::Float d = Dot(getType(getObject(insn.word(5))).sizeInComponents, x, x);
+			SIMD::Float d = Dot(getType(getObject(insn.word(5))).componentCount, x, x);
 
 			dst.move(0, Sqrt(d));
 			break;
@@ -325,10 +325,10 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Normalize:
 		{
 			auto x = Operand(this, state, insn.word(5));
-			SIMD::Float d = Dot(getType(getObject(insn.word(5))).sizeInComponents, x, x);
+			SIMD::Float d = Dot(getType(getObject(insn.word(5))).componentCount, x, x);
 			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d);
 
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, invLength * x.Float(i));
 			}
@@ -343,7 +343,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			// sqrt(dot(p0-p1, p0-p1))
 			SIMD::Float d = (p0.Float(0) - p1.Float(0)) * (p0.Float(0) - p1.Float(0));
 
-			for(auto i = 1u; i < p0Type.sizeInComponents; i++)
+			for(auto i = 1u; i < p0Type.componentCount; i++)
 			{
 				d += (p0.Float(i) - p1.Float(i)) * (p0.Float(i) - p1.Float(i));
 			}
@@ -364,7 +364,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			// - Eliminate lane masking and assume interleaving.
 			auto robustness = OutOfBoundsBehavior::UndefinedBehavior;
 
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				SIMD::Float whole, frac;
 				std::tie(whole, frac) = Modf(val.Float(i));
@@ -380,12 +380,12 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto val = Operand(this, state, insn.word(5));
 			auto valTy = getType(val);
 
-			for(auto i = 0u; i < valTy.sizeInComponents; i++)
+			for(auto i = 0u; i < valTy.componentCount; i++)
 			{
 				SIMD::Float whole, frac;
 				std::tie(whole, frac) = Modf(val.Float(i));
 				dst.move(i, frac);
-				dst.move(i + valTy.sizeInComponents, whole);
+				dst.move(i + valTy.componentCount, whole);
 			}
 			break;
 		}
@@ -491,7 +491,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto a = Operand(this, state, insn.word(5));
 			auto b = Operand(this, state, insn.word(6));
 			auto c = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, FMA(a.Float(i), b.Float(i), c.Float(i)));
 			}
@@ -510,7 +510,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			// - Eliminate lane masking and assume interleaving.
 			auto robustness = OutOfBoundsBehavior::UndefinedBehavior;
 
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				SIMD::Float significand;
 				SIMD::Int exponent;
@@ -527,7 +527,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FrexpStruct:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			auto numComponents = getType(val).sizeInComponents;
+			auto numComponents = getType(val).componentCount;
 			for(auto i = 0u; i < numComponents; i++)
 			{
 				auto significandAndExponent = Frexp(val.Float(i));
@@ -540,7 +540,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto significand = Operand(this, state, insn.word(5));
 			auto exponent = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				// Assumes IEEE 754
 				auto in = significand.Float(i);
@@ -573,7 +573,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Radians:
 		{
 			auto degrees = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, degrees.Float(i) * SIMD::Float(PI / 180.0f));
 			}
@@ -582,7 +582,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Degrees:
 		{
 			auto radians = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, radians.Float(i) * SIMD::Float(180.0f / PI));
 			}
@@ -591,7 +591,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Sin:
 		{
 			auto radians = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Sin(radians.Float(i)));
 			}
@@ -600,7 +600,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Cos:
 		{
 			auto radians = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Cos(radians.Float(i)));
 			}
@@ -609,7 +609,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Tan:
 		{
 			auto radians = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Tan(radians.Float(i)));
 			}
@@ -618,7 +618,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Asin:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Asin(val.Float(i)));
 			}
@@ -627,7 +627,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Acos:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Acos(val.Float(i)));
 			}
@@ -636,7 +636,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Atan:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Atan(val.Float(i)));
 			}
@@ -645,7 +645,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Sinh:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Sinh(val.Float(i)));
 			}
@@ -654,7 +654,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Cosh:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Cosh(val.Float(i)));
 			}
@@ -663,7 +663,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Tanh:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Tanh(val.Float(i)));
 			}
@@ -672,7 +672,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Asinh:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Asinh(val.Float(i)));
 			}
@@ -681,7 +681,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Acosh:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Acosh(val.Float(i)));
 			}
@@ -690,7 +690,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Atanh:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Atanh(val.Float(i)));
 			}
@@ -700,7 +700,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Atan2(x.Float(i), y.Float(i)));
 			}
@@ -710,7 +710,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Pow(x.Float(i), y.Float(i)));
 			}
@@ -719,7 +719,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Exp:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Exp(val.Float(i)));
 			}
@@ -728,7 +728,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Log:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Log(val.Float(i)));
 			}
@@ -737,7 +737,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Exp2:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Exp2(val.Float(i)));
 			}
@@ -746,7 +746,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Log2:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Log2(val.Float(i)));
 			}
@@ -755,7 +755,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Sqrt:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, Sqrt(val.Float(i)));
 			}
@@ -768,14 +768,14 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			ApplyDecorationsForId(&d, insn.word(5));
 			if(d.RelaxedPrecision)
 			{
-				for(auto i = 0u; i < type.sizeInComponents; i++)
+				for(auto i = 0u; i < type.componentCount; i++)
 				{
 					dst.move(i, RcpSqrt_pp(val.Float(i)));
 				}
 			}
 			else
 			{
-				for(auto i = 0u; i < type.sizeInComponents; i++)
+				for(auto i = 0u; i < type.componentCount; i++)
 				{
 					dst.move(i, SIMD::Float(1.0f) / Sqrt(val.Float(i)));
 				}
@@ -785,7 +785,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Determinant:
 		{
 			auto mat = Operand(this, state, insn.word(5));
-			auto numComponents = getType(mat).sizeInComponents;
+			auto numComponents = getType(mat).componentCount;
 			switch(numComponents)
 			{
 				case 4:  // 2x2
@@ -814,7 +814,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450MatrixInverse:
 		{
 			auto mat = Operand(this, state, insn.word(5));
-			auto numComponents = getType(mat).sizeInComponents;
+			auto numComponents = getType(mat).componentCount;
 			switch(numComponents)
 			{
 				case 4:  // 2x2
@@ -876,7 +876,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FindILsb:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto v = val.UInt(i);
 				dst.move(i, Cttz(v, true) | CmpEQ(v, SIMD::UInt(0)));
@@ -886,7 +886,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FindSMsb:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto v = val.UInt(i) ^ As<SIMD::UInt>(CmpLT(val.Int(i), SIMD::Int(0)));
 				dst.move(i, SIMD::UInt(31) - Ctlz(v, false));
@@ -896,7 +896,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450FindUMsb:
 		{
 			auto val = Operand(this, state, insn.word(5));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, SIMD::UInt(31) - Ctlz(val.UInt(i), false));
 			}
@@ -921,7 +921,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, NMin(x.Float(i), y.Float(i)));
 			}
@@ -931,7 +931,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		{
 			auto x = Operand(this, state, insn.word(5));
 			auto y = Operand(this, state, insn.word(6));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				dst.move(i, NMax(x.Float(i), y.Float(i)));
 			}
@@ -942,7 +942,7 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 			auto x = Operand(this, state, insn.word(5));
 			auto minVal = Operand(this, state, insn.word(6));
 			auto maxVal = Operand(this, state, insn.word(7));
-			for(auto i = 0u; i < type.sizeInComponents; i++)
+			for(auto i = 0u; i < type.componentCount; i++)
 			{
 				auto clamp = NMin(NMax(x.Float(i), minVal.Float(i)), maxVal.Float(i));
 				dst.move(i, clamp);

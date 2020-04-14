@@ -496,7 +496,7 @@ SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, Em
 	auto falseBlockId = Block::ID(block.branchInstruction.word(3));
 
 	auto cond = Operand(this, state, condId);
-	ASSERT_MSG(getType(cond).sizeInComponents == 1, "Condition must be a Boolean type scalar");
+	ASSERT_MSG(getType(cond).componentCount == 1, "Condition must be a Boolean type scalar");
 
 	// TODO: Optimize for case where all lanes take same path.
 
@@ -515,7 +515,7 @@ SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *st
 	auto selId = Object::ID(block.branchInstruction.word(1));
 
 	auto sel = Operand(this, state, selId);
-	ASSERT_MSG(getType(sel).sizeInComponents == 1, "Selector must be a scalar");
+	ASSERT_MSG(getType(sel).componentCount == 1, "Selector must be a scalar");
 
 	auto numCases = (block.branchInstruction.wordCount() - 3) / 2;
 
@@ -650,8 +650,8 @@ void SpirvShader::LoadPhi(InsnIterator insn, EmitState *state) const
 	ASSERT(storageIt != state->routine->phis.end());
 	auto &storage = storageIt->second;
 
-	auto &dst = state->createIntermediate(objectId, type.sizeInComponents);
-	for(uint32_t i = 0; i < type.sizeInComponents; i++)
+	auto &dst = state->createIntermediate(objectId, type.componentCount);
+	for(uint32_t i = 0; i < type.componentCount; i++)
 	{
 		dst.move(i, storage[i]);
 	}
@@ -680,7 +680,7 @@ void SpirvShader::StorePhi(Block::ID currentBlock, InsnIterator insn, EmitState 
 		auto mask = GetActiveLaneMaskEdge(state, blockId, currentBlock);
 		auto in = Operand(this, state, varId);
 
-		for(uint32_t i = 0; i < type.sizeInComponents; i++)
+		for(uint32_t i = 0; i < type.componentCount; i++)
 		{
 			storage[i] = As<SIMD::Float>((As<SIMD::Int>(storage[i]) & ~mask) | (in.Int(i) & mask));
 		}

@@ -23,11 +23,11 @@ namespace sw {
 SpirvShader::EmitResult SpirvShader::EmitVectorTimesScalar(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		dst.move(i, lhs.Float(i) * rhs.Float(0));
 	}
@@ -38,17 +38,17 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesScalar(InsnIterator insn, Em
 SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 	auto rhsType = getType(rhs);
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		SIMD::Float v = lhs.Float(i) * rhs.Float(0);
-		for(auto j = 1u; j < rhsType.sizeInComponents; j++)
+		for(auto j = 1u; j < rhsType.componentCount; j++)
 		{
-			v += lhs.Float(i + type.sizeInComponents * j) * rhs.Float(j);
+			v += lhs.Float(i + type.componentCount * j) * rhs.Float(j);
 		}
 		dst.move(i, v);
 	}
@@ -59,17 +59,17 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesVector(InsnIterator insn, Em
 SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 	auto lhsType = getType(lhs);
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
-		SIMD::Float v = lhs.Float(0) * rhs.Float(i * lhsType.sizeInComponents);
-		for(auto j = 1u; j < lhsType.sizeInComponents; j++)
+		SIMD::Float v = lhs.Float(0) * rhs.Float(i * lhsType.componentCount);
+		for(auto j = 1u; j < lhsType.componentCount; j++)
 		{
-			v += lhs.Float(j) * rhs.Float(i * lhsType.sizeInComponents + j);
+			v += lhs.Float(j) * rhs.Float(i * lhsType.componentCount + j);
 		}
 		dst.move(i, v);
 	}
@@ -80,7 +80,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorTimesMatrix(InsnIterator insn, Em
 SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 
@@ -107,7 +107,7 @@ SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, Em
 SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 	auto &lhsType = getType(lhs);
@@ -136,11 +136,11 @@ SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitSta
 SpirvShader::EmitResult SpirvShader::EmitTranspose(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto mat = Operand(this, state, insn.word(3));
 
 	auto numCols = type.definition.word(3);
-	auto numRows = getType(type.definition.word(2)).sizeInComponents;
+	auto numRows = getType(type.definition.word(2)).componentCount;
 
 	for(auto col = 0u; col < numCols; col++)
 	{
@@ -156,10 +156,10 @@ SpirvShader::EmitResult SpirvShader::EmitTranspose(InsnIterator insn, EmitState 
 SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto src = Operand(this, state, insn.word(3));
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		switch(insn.opcode())
 		{
@@ -318,12 +318,12 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &lhsType = getType(getObject(insn.word(3)));
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 
-	for(auto i = 0u; i < lhsType.sizeInComponents; i++)
+	for(auto i = 0u; i < lhsType.componentCount; i++)
 	{
 		switch(insn.opcode())
 		{
@@ -496,19 +496,19 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 				// In our flat view then, component i is the i'th component of the first member;
 				// component i + N is the i'th component of the second member.
 				dst.move(i, lhs.Int(i) * rhs.Int(i));
-				dst.move(i + lhsType.sizeInComponents, MulHigh(lhs.Int(i), rhs.Int(i)));
+				dst.move(i + lhsType.componentCount, MulHigh(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpUMulExtended:
 				dst.move(i, lhs.UInt(i) * rhs.UInt(i));
-				dst.move(i + lhsType.sizeInComponents, MulHigh(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i + lhsType.componentCount, MulHigh(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			case spv::OpIAddCarry:
 				dst.move(i, lhs.UInt(i) + rhs.UInt(i));
-				dst.move(i + lhsType.sizeInComponents, CmpLT(dst.UInt(i), lhs.UInt(i)) >> 31);
+				dst.move(i + lhsType.componentCount, CmpLT(dst.UInt(i), lhs.UInt(i)) >> 31);
 				break;
 			case spv::OpISubBorrow:
 				dst.move(i, lhs.UInt(i) - rhs.UInt(i));
-				dst.move(i + lhsType.sizeInComponents, CmpLT(lhs.UInt(i), rhs.UInt(i)) >> 31);
+				dst.move(i + lhsType.componentCount, CmpLT(lhs.UInt(i), rhs.UInt(i)) >> 31);
 				break;
 			default:
 				UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
@@ -521,13 +521,13 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 SpirvShader::EmitResult SpirvShader::EmitDot(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	ASSERT(type.sizeInComponents == 1);
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	ASSERT(type.componentCount == 1);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &lhsType = getType(getObject(insn.word(3)));
 	auto lhs = Operand(this, state, insn.word(3));
 	auto rhs = Operand(this, state, insn.word(4));
 
-	dst.move(0, Dot(lhsType.sizeInComponents, lhs, rhs));
+	dst.move(0, Dot(lhsType.componentCount, lhs, rhs));
 	return EmitResult::Continue;
 }
 

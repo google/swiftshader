@@ -264,7 +264,7 @@ SpirvShader::SpirvShader(
 					case spv::StorageClassWorkgroup:
 					{
 						auto &elTy = getType(getType(typeId).element);
-						auto sizeInBytes = elTy.sizeInComponents * static_cast<uint32_t>(sizeof(float));
+						auto sizeInBytes = elTy.componentCount * static_cast<uint32_t>(sizeof(float));
 						workgroupMemory.allocate(resultId, sizeInBytes);
 						object.kind = Object::Kind::Pointer;
 						break;
@@ -308,7 +308,7 @@ SpirvShader::SpirvShader(
 				// OpConstantNull forms a constant of arbitrary type, all zeros.
 				auto &object = CreateConstant(insn);
 				auto &objectTy = getType(object);
-				for(auto i = 0u; i < objectTy.sizeInComponents; i++)
+				for(auto i = 0u; i < objectTy.componentCount; i++)
 				{
 					object.constantValue[i] = 0;
 				}
@@ -323,7 +323,7 @@ SpirvShader::SpirvShader(
 				{
 					auto &constituent = getObject(insn.word(i + 3));
 					auto &constituentTy = getType(constituent);
-					for(auto j = 0u; j < constituentTy.sizeInComponents; j++)
+					for(auto j = 0u; j < constituentTy.componentCount; j++)
 					{
 						object.constantValue[offset++] = constituent.constantValue[j];
 					}
@@ -342,7 +342,7 @@ SpirvShader::SpirvShader(
 					// any execution mode set for LocalSize.
 					// The object decorated with WorkgroupSize must be declared
 					// as a three-component vector of 32-bit integers.
-					ASSERT(getType(object).sizeInComponents == 3);
+					ASSERT(getType(object).componentCount == 3);
 					modes.WorkgroupSizeX = object.constantValue[0];
 					modes.WorkgroupSizeY = object.constantValue[1];
 					modes.WorkgroupSizeZ = object.constantValue[2];
@@ -743,7 +743,7 @@ void SpirvShader::DeclareType(InsnIterator insn)
 
 	auto &type = types[resultId];
 	type.definition = insn;
-	type.sizeInComponents = ComputeTypeSize(insn);
+	type.componentCount = ComputeTypeSize(insn);
 
 	// A structure is a builtin block if it has a builtin
 	// member. All members of such a structure are builtins.
@@ -795,7 +795,7 @@ SpirvShader::Object &SpirvShader::CreateConstant(InsnIterator insn)
 	auto &objectTy = getType(typeId);
 	object.kind = Object::Kind::Constant;
 	object.definition = insn;
-	object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[objectTy.sizeInComponents]);
+	object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[objectTy.componentCount]);
 
 	return object;
 }
@@ -829,10 +829,10 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 
 			if(member.HasBuiltIn)
 			{
-				builtinInterface[member.BuiltIn] = { resultId, offset, memberType.sizeInComponents };
+				builtinInterface[member.BuiltIn] = { resultId, offset, memberType.componentCount };
 			}
 
-			offset += memberType.sizeInComponents;
+			offset += memberType.componentCount;
 			++memberIndex;
 		}
 
@@ -842,7 +842,7 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 	auto d = decorations.find(resultId);
 	if(d != decorations.end() && d->second.HasBuiltIn)
 	{
-		builtinInterface[d->second.BuiltIn] = { resultId, 0, pointeeTy.sizeInComponents };
+		builtinInterface[d->second.BuiltIn] = { resultId, 0, pointeeTy.componentCount };
 	}
 	else
 	{
@@ -924,13 +924,13 @@ uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 		case spv::OpTypeVector:
 		case spv::OpTypeMatrix:
 			// Vectors and matrices both consume element count * element size.
-			return getType(insn.word(2)).sizeInComponents * insn.word(3);
+			return getType(insn.word(2)).componentCount * insn.word(3);
 
 		case spv::OpTypeArray:
 		{
 			// Element count * element size. Array sizes come from constant ids.
 			auto arraySize = GetConstScalarInt(insn.word(3));
-			return getType(insn.word(2)).sizeInComponents * arraySize;
+			return getType(insn.word(2)).componentCount * arraySize;
 		}
 
 		case spv::OpTypeStruct:
@@ -938,7 +938,7 @@ uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 			uint32_t size = 0;
 			for(uint32_t i = 2u; i < insn.wordCount(); i++)
 			{
-				size += getType(insn.word(i)).sizeInComponents;
+				size += getType(insn.word(i)).componentCount;
 			}
 			return size;
 		}
@@ -1202,7 +1202,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 				for(auto j = 0; j < memberIndex; j++)
 				{
 					auto memberType = type.definition.word(2u + j);
-					offsetIntoStruct += getType(memberType).sizeInComponents * sizeof(float);
+					offsetIntoStruct += getType(memberType).componentCount * sizeof(float);
 				}
 				constantOffset += offsetIntoStruct;
 				typeId = type.definition.word(2u + memberIndex);
@@ -1233,7 +1233,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 				}
 				else
 				{
-					auto stride = getType(type.element).sizeInComponents * static_cast<uint32_t>(sizeof(float));
+					auto stride = getType(type.element).componentCount * static_cast<uint32_t>(sizeof(float));
 					auto &obj = getObject(indexIds[i]);
 					if(obj.kind == Object::Kind::Constant)
 					{
@@ -1276,7 +1276,7 @@ uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexe
 				for(auto j = 0; j < memberIndex; j++)
 				{
 					auto memberType = type.definition.word(2u + j);
-					offsetIntoStruct += getType(memberType).sizeInComponents;
+					offsetIntoStruct += getType(memberType).componentCount;
 				}
 				componentOffset += offsetIntoStruct;
 				typeId = type.definition.word(2u + memberIndex);
@@ -1288,7 +1288,7 @@ uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexe
 			case spv::OpTypeArray:
 			{
 				auto elementType = type.definition.word(2);
-				auto stride = getType(elementType).sizeInComponents;
+				auto stride = getType(elementType).componentCount;
 				componentOffset += stride * indexes[i];
 				typeId = elementType;
 				break;
@@ -1515,16 +1515,16 @@ void SpirvShader::emitProlog(SpirvRoutine *routine) const
 				auto resultPointerType = getType(insn.resultTypeId());
 				auto pointeeType = getType(resultPointerType.element);
 
-				if(pointeeType.sizeInComponents > 0)  // TODO: what to do about zero-slot objects?
+				if(pointeeType.componentCount > 0)  // TODO: what to do about zero-slot objects?
 				{
-					routine->createVariable(insn.resultId(), pointeeType.sizeInComponents);
+					routine->createVariable(insn.resultId(), pointeeType.componentCount);
 				}
 				break;
 			}
 			case spv::OpPhi:
 			{
 				auto type = getType(insn.resultTypeId());
-				routine->phis.emplace(insn.resultId(), SpirvRoutine::Variable(type.sizeInComponents));
+				routine->phis.emplace(insn.resultId(), SpirvRoutine::Variable(type.componentCount));
 				break;
 			}
 
@@ -1973,7 +1973,7 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 	uint32_t numIndexes = insn.wordCount() - 4;
 	const uint32_t *indexes = insn.wordPointer(4);
 	auto &type = getType(typeId);
-	ASSERT(type.sizeInComponents == 1);
+	ASSERT(type.componentCount == 1);
 	ASSERT(getObject(resultId).kind == Object::Kind::Pointer);
 
 	if(type.storageClass == spv::StorageClassPushConstant ||
@@ -1995,7 +1995,7 @@ SpirvShader::EmitResult SpirvShader::EmitAccessChain(InsnIterator insn, EmitStat
 SpirvShader::EmitResult SpirvShader::EmitCompositeConstruct(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto offset = 0u;
 
 	for(auto i = 0u; i < insn.wordCount() - 3; i++)
@@ -2005,7 +2005,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeConstruct(InsnIterator insn, E
 		auto &srcObjectTy = getType(srcObject);
 		Operand srcObjectAccess(this, state, srcObjectId);
 
-		for(auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
+		for(auto j = 0u; j < srcObjectTy.componentCount; j++)
 		{
 			dst.move(offset++, srcObjectAccess.Float(j));
 		}
@@ -2018,7 +2018,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeInsert(InsnIterator insn, Emit
 {
 	Type::ID resultTypeId = insn.word(1);
 	auto &type = getType(resultTypeId);
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &newPartObject = getObject(insn.word(3));
 	auto &newPartObjectTy = getType(newPartObject);
 	auto firstNewComponent = WalkLiteralAccessChain(resultTypeId, insn.wordCount() - 5, insn.wordPointer(5));
@@ -2032,12 +2032,12 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeInsert(InsnIterator insn, Emit
 		dst.move(i, srcObjectAccess.Float(i));
 	}
 	// new part
-	for(auto i = 0u; i < newPartObjectTy.sizeInComponents; i++)
+	for(auto i = 0u; i < newPartObjectTy.componentCount; i++)
 	{
 		dst.move(firstNewComponent + i, newPartObjectAccess.Float(i));
 	}
 	// old components after
-	for(auto i = firstNewComponent + newPartObjectTy.sizeInComponents; i < type.sizeInComponents; i++)
+	for(auto i = firstNewComponent + newPartObjectTy.componentCount; i < type.componentCount; i++)
 	{
 		dst.move(i, srcObjectAccess.Float(i));
 	}
@@ -2048,13 +2048,13 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeInsert(InsnIterator insn, Emit
 SpirvShader::EmitResult SpirvShader::EmitCompositeExtract(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &compositeObject = getObject(insn.word(3));
 	Type::ID compositeTypeId = compositeObject.definition.word(1);
 	auto firstComponent = WalkLiteralAccessChain(compositeTypeId, insn.wordCount() - 4, insn.wordPointer(4));
 
 	Operand compositeObjectAccess(this, state, insn.word(3));
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		dst.move(i, compositeObjectAccess.Float(firstComponent + i));
 	}
@@ -2065,7 +2065,7 @@ SpirvShader::EmitResult SpirvShader::EmitCompositeExtract(InsnIterator insn, Emi
 SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 
 	// Note: number of components in result type, first half type, and second
 	// half type are all independent.
@@ -2074,7 +2074,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitSt
 	Operand firstHalfAccess(this, state, insn.word(3));
 	Operand secondHalfAccess(this, state, insn.word(4));
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		auto selector = insn.word(5 + i);
 		if(selector == static_cast<uint32_t>(-1))
@@ -2083,13 +2083,13 @@ SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitSt
 			// a value as any
 			dst.move(i, RValue<SIMD::Float>(0.0f));
 		}
-		else if(selector < firstHalfType.sizeInComponents)
+		else if(selector < firstHalfType.componentCount)
 		{
 			dst.move(i, firstHalfAccess.Float(selector));
 		}
 		else
 		{
-			dst.move(i, secondHalfAccess.Float(selector - firstHalfType.sizeInComponents));
+			dst.move(i, secondHalfAccess.Float(selector - firstHalfType.componentCount));
 		}
 	}
 
@@ -2099,7 +2099,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorShuffle(InsnIterator insn, EmitSt
 SpirvShader::EmitResult SpirvShader::EmitVectorExtractDynamic(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &srcType = getType(getObject(insn.word(3)));
 
 	Operand src(this, state, insn.word(3));
@@ -2107,7 +2107,7 @@ SpirvShader::EmitResult SpirvShader::EmitVectorExtractDynamic(InsnIterator insn,
 
 	SIMD::UInt v = SIMD::UInt(0);
 
-	for(auto i = 0u; i < srcType.sizeInComponents; i++)
+	for(auto i = 0u; i < srcType.componentCount; i++)
 	{
 		v |= CmpEQ(index.UInt(0), SIMD::UInt(i)) & src.UInt(i);
 	}
@@ -2119,13 +2119,13 @@ SpirvShader::EmitResult SpirvShader::EmitVectorExtractDynamic(InsnIterator insn,
 SpirvShader::EmitResult SpirvShader::EmitVectorInsertDynamic(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 
 	Operand src(this, state, insn.word(3));
 	Operand component(this, state, insn.word(4));
 	Operand index(this, state, insn.word(5));
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		SIMD::UInt mask = CmpEQ(SIMD::UInt(i), index.UInt(0));
 		dst.move(i, (src.UInt(i) & ~mask) | (component.UInt(0) & mask));
@@ -2136,13 +2136,13 @@ SpirvShader::EmitResult SpirvShader::EmitVectorInsertDynamic(InsnIterator insn, 
 SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto cond = Operand(this, state, insn.word(3));
-	auto condIsScalar = (getType(cond).sizeInComponents == 1);
+	auto condIsScalar = (getType(cond).componentCount == 1);
 	auto lhs = Operand(this, state, insn.word(4));
 	auto rhs = Operand(this, state, insn.word(5));
 
-	for(auto i = 0u; i < type.sizeInComponents; i++)
+	for(auto i = 0u; i < type.componentCount; i++)
 	{
 		auto sel = cond.Int(condIsScalar ? 0 : i);
 		dst.move(i, (sel & lhs.Int(i)) | (~sel & rhs.Int(i)));  // TODO: IfThenElse()
@@ -2154,14 +2154,14 @@ SpirvShader::EmitResult SpirvShader::EmitSelect(InsnIterator insn, EmitState *st
 SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	ASSERT(type.sizeInComponents == 1);
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	ASSERT(type.componentCount == 1);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &srcType = getType(getObject(insn.word(3)));
 	auto src = Operand(this, state, insn.word(3));
 
 	SIMD::UInt result = src.UInt(0);
 
-	for(auto i = 1u; i < srcType.sizeInComponents; i++)
+	for(auto i = 1u; i < srcType.componentCount; i++)
 	{
 		result |= src.UInt(i);
 	}
@@ -2173,14 +2173,14 @@ SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state
 SpirvShader::EmitResult SpirvShader::EmitAll(InsnIterator insn, EmitState *state) const
 {
 	auto &type = getType(insn.resultTypeId());
-	ASSERT(type.sizeInComponents == 1);
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	ASSERT(type.componentCount == 1);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto &srcType = getType(getObject(insn.word(3)));
 	auto src = Operand(this, state, insn.word(3));
 
 	SIMD::UInt result = src.UInt(0);
 
-	for(auto i = 1u; i < srcType.sizeInComponents; i++)
+	for(auto i = 1u; i < srcType.componentCount; i++)
 	{
 		result &= src.UInt(i);
 	}
@@ -2198,7 +2198,7 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicOp(InsnIterator insn, EmitState *
 	auto memoryOrder = MemoryOrder(memorySemantics);
 	// Where no value is provided (increment/decrement) use an implicit value of 1.
 	auto value = (insn.wordCount() == 7) ? Operand(this, state, insn.word(6)).UInt(0) : RValue<SIMD::UInt>(1);
-	auto &dst = state->createIntermediate(resultId, resultType.sizeInComponents);
+	auto &dst = state->createIntermediate(resultId, resultType.componentCount);
 	auto ptr = state->getPointer(insn.word(3));
 	auto ptrOffsets = ptr.offsets();
 
@@ -2270,7 +2270,7 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicCompareExchange(InsnIterator insn
 
 	auto value = Operand(this, state, insn.word(7));
 	auto comparator = Operand(this, state, insn.word(8));
-	auto &dst = state->createIntermediate(resultId, resultType.sizeInComponents);
+	auto &dst = state->createIntermediate(resultId, resultType.componentCount);
 	auto ptr = state->getPointer(insn.word(3));
 	auto ptrOffsets = ptr.offsets();
 
@@ -2295,9 +2295,9 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicCompareExchange(InsnIterator insn
 SpirvShader::EmitResult SpirvShader::EmitCopyObject(InsnIterator insn, EmitState *state) const
 {
 	auto type = getType(insn.resultTypeId());
-	auto &dst = state->createIntermediate(insn.resultId(), type.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), type.componentCount);
 	auto src = Operand(this, state, insn.word(3));
-	for(uint32_t i = 0; i < type.sizeInComponents; i++)
+	for(uint32_t i = 0; i < type.componentCount; i++)
 	{
 		dst.move(i, src.Int(i));
 	}
@@ -2310,7 +2310,7 @@ SpirvShader::EmitResult SpirvShader::EmitArrayLength(InsnIterator insn, EmitStat
 	auto arrayFieldIdx = insn.word(4);
 
 	auto &resultType = getType(insn.resultTypeId());
-	ASSERT(resultType.sizeInComponents == 1);
+	ASSERT(resultType.componentCount == 1);
 	ASSERT(resultType.definition.opcode() == spv::OpTypeInt);
 
 	auto &structPtrTy = getType(getObject(structPtrId));
@@ -2356,7 +2356,7 @@ uint32_t SpirvShader::GetConstScalarInt(Object::ID id) const
 {
 	auto &scopeObj = getObject(id);
 	ASSERT(scopeObj.kind == Object::Kind::Constant);
-	ASSERT(getType(scopeObj).sizeInComponents == 1);
+	ASSERT(getType(scopeObj).componentCount == 1);
 	return scopeObj.constantValue[0];
 }
 

@@ -111,7 +111,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	Object::ID coordinateId = insn.word(4);
 	auto &resultType = getType(insn.resultTypeId());
 
-	auto &result = state->createIntermediate(insn.resultId(), resultType.sizeInComponents);
+	auto &result = state->createIntermediate(insn.resultId(), resultType.componentCount);
 	auto imageDescriptor = state->getPointer(sampledImageId).base;  // vk::SampledImageDescriptor*
 
 	// If using a separate sampler, look through the OpSampledImage instruction to find the sampler descriptor
@@ -204,7 +204,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 
 	Array<SIMD::Float> in(16);  // Maximum 16 input parameter components.
 
-	uint32_t coordinates = coordinateType.sizeInComponents - instruction.isProj();
+	uint32_t coordinates = coordinateType.componentCount - instruction.isProj();
 	instruction.coordinates = coordinates;
 
 	uint32_t i = 0;
@@ -247,16 +247,16 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 		auto dxValue = Operand(this, state, gradDxId);
 		auto dyValue = Operand(this, state, gradDyId);
 		auto &dxyType = getType(dxValue);
-		ASSERT(dxyType.sizeInComponents == getType(dyValue).sizeInComponents);
+		ASSERT(dxyType.componentCount == getType(dyValue).componentCount);
 
-		instruction.grad = dxyType.sizeInComponents;
+		instruction.grad = dxyType.componentCount;
 
-		for(uint32_t j = 0; j < dxyType.sizeInComponents; j++, i++)
+		for(uint32_t j = 0; j < dxyType.componentCount; j++, i++)
 		{
 			in[i] = dxValue.Float(j);
 		}
 
-		for(uint32_t j = 0; j < dxyType.sizeInComponents; j++, i++)
+		for(uint32_t j = 0; j < dxyType.componentCount; j++, i++)
 		{
 			in[i] = dyValue.Float(j);
 		}
@@ -275,9 +275,9 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 		auto offsetValue = Operand(this, state, offsetId);
 		auto &offsetType = getType(offsetValue);
 
-		instruction.offset = offsetType.sizeInComponents;
+		instruction.offset = offsetType.componentCount;
 
-		for(uint32_t j = 0; j < offsetType.sizeInComponents; j++, i++)
+		for(uint32_t j = 0; j < offsetType.componentCount; j++, i++)
 		{
 			in[i] = As<SIMD::Float>(offsetValue.Int(j));  // Integer values, but transfered as float.
 		}
@@ -304,7 +304,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instructio
 	Array<SIMD::Float> out(4);
 	Call<ImageSampler>(cache.function, texture, &in[0], &out[0], state->routine->constants);
 
-	for(auto i = 0u; i < resultType.sizeInComponents; i++) { result.move(i, out[i]); }
+	for(auto i = 0u; i < resultType.componentCount; i++) { result.move(i, out[i]); }
 
 	return EmitResult::Continue;
 }
@@ -315,7 +315,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySizeLod(InsnIterator insn, Em
 	auto imageId = Object::ID(insn.word(3));
 	auto lodId = Object::ID(insn.word(4));
 
-	auto &dst = state->createIntermediate(insn.resultId(), resultTy.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), resultTy.componentCount);
 	GetImageDimensions(state, resultTy, imageId, lodId, dst);
 
 	return EmitResult::Continue;
@@ -327,7 +327,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitS
 	auto imageId = Object::ID(insn.word(3));
 	auto lodId = Object::ID(0);
 
-	auto &dst = state->createIntermediate(insn.resultId(), resultTy.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), resultTy.componentCount);
 	GetImageDimensions(state, resultTy, imageId, lodId, dst);
 
 	return EmitResult::Continue;
@@ -378,12 +378,12 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
 	}
 
-	auto dimensions = resultTy.sizeInComponents - (isArrayed ? 1 : 0);
+	auto dimensions = resultTy.componentCount - (isArrayed ? 1 : 0);
 	std::vector<Int> out;
 	if(lodId != 0)
 	{
 		auto lodVal = Operand(this, state, lodId);
-		ASSERT(getType(lodVal).sizeInComponents == 1);
+		ASSERT(getType(lodVal).componentCount == 1);
 		auto lod = lodVal.Int(0);
 		auto one = SIMD::Int(1);
 		for(uint32_t i = 0; i < dimensions; i++)
@@ -409,7 +409,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, EmitState *state) const
 {
 	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
-	ASSERT(resultTy.sizeInComponents == 1);
+	ASSERT(resultTy.componentCount == 1);
 	auto imageId = Object::ID(insn.word(3));
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
@@ -438,7 +438,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, EmitState *state) const
 {
 	auto &resultTy = getType(Type::ID(insn.resultTypeId()));
-	ASSERT(resultTy.sizeInComponents == 1);
+	ASSERT(resultTy.componentCount == 1);
 	auto imageId = Object::ID(insn.word(3));
 	auto imageTy = getType(getObject(imageId));
 	ASSERT(imageTy.definition.opcode() == spv::OpTypeImage);
@@ -476,12 +476,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 	auto routine = state->routine;
 	bool isArrayed = imageType.definition.word(5) != 0;
 	auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
-	int dims = getType(coordinate).sizeInComponents - (isArrayed ? 1 : 0);
+	int dims = getType(coordinate).componentCount - (isArrayed ? 1 : 0);
 
 	SIMD::Int u = coordinate.Int(0);
 	SIMD::Int v = SIMD::Int(0);
 
-	if(getType(coordinate).sizeInComponents > 1)
+	if(getType(coordinate).componentCount > 1)
 	{
 		v = coordinate.Int(1);
 	}
@@ -586,7 +586,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 
 	auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
-	auto &dst = state->createIntermediate(insn.resultId(), resultType.sizeInComponents);
+	auto &dst = state->createIntermediate(insn.resultId(), resultType.componentCount);
 
 	auto texelSize = vk::Format(vkFormat).bytes();
 	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);

@@ -65,17 +65,17 @@ class SpirvRoutine;
 
 // Incrementally constructed complex bundle of rvalues
 // Effectively a restricted vector, supporting only:
-// - allocation to a (runtime-known) fixed size
+// - allocation to a (runtime-known) fixed component count
 // - in-place construction of elements
 // - const operator[]
 class Intermediate
 {
 public:
-	Intermediate(uint32_t size)
-	    : scalar(new rr::Value *[size])
-	    , size(size)
+	Intermediate(uint32_t componentCount)
+	    : scalar(new rr::Value *[componentCount])
+	    , componentCount(componentCount)
 	{
-		memset(scalar, 0, sizeof(rr::Value *) * size);
+		memset(scalar, 0, sizeof(rr::Value *) * componentCount);
 	}
 
 	~Intermediate()
@@ -94,21 +94,21 @@ public:
 	// Value retrieval functions.
 	RValue<SIMD::Float> Float(uint32_t i) const
 	{
-		ASSERT(i < size);
+		ASSERT(i < componentCount);
 		ASSERT(scalar[i] != nullptr);
 		return As<SIMD::Float>(scalar[i]);  // TODO(b/128539387): RValue<SIMD::Float>(scalar)
 	}
 
 	RValue<SIMD::Int> Int(uint32_t i) const
 	{
-		ASSERT(i < size);
+		ASSERT(i < componentCount);
 		ASSERT(scalar[i] != nullptr);
 		return As<SIMD::Int>(scalar[i]);  // TODO(b/128539387): RValue<SIMD::Int>(scalar)
 	}
 
 	RValue<SIMD::UInt> UInt(uint32_t i) const
 	{
-		ASSERT(i < size);
+		ASSERT(i < componentCount);
 		ASSERT(scalar[i] != nullptr);
 		return As<SIMD::UInt>(scalar[i]);  // TODO(b/128539387): RValue<SIMD::UInt>(scalar)
 	}
@@ -122,13 +122,13 @@ public:
 private:
 	void emplace(uint32_t i, rr::Value *value)
 	{
-		ASSERT(i < size);
+		ASSERT(i < componentCount);
 		ASSERT(scalar[i] == nullptr);
 		scalar[i] = value;
 	}
 
 	rr::Value **const scalar;
-	uint32_t size;
+	uint32_t componentCount;
 };
 
 class SpirvShader
@@ -259,7 +259,7 @@ public:
 
 		InsnIterator definition;
 		spv::StorageClass storageClass = static_cast<spv::StorageClass>(-1);
-		uint32_t sizeInComponents = 0;
+		uint32_t componentCount = 0;
 		bool isBuiltInBlock = false;
 
 		// Inner element type for pointers, arrays, vectors and matrices.
@@ -939,11 +939,11 @@ private:
 
 		OutOfBoundsBehavior getOutOfBoundsBehavior(spv::StorageClass storageClass) const;
 
-		Intermediate &createIntermediate(Object::ID id, uint32_t size)
+		Intermediate &createIntermediate(Object::ID id, uint32_t componentCount)
 		{
 			auto it = intermediates.emplace(std::piecewise_construct,
 			                                std::forward_as_tuple(id),
-			                                std::forward_as_tuple(size));
+			                                std::forward_as_tuple(componentCount));
 			ASSERT_MSG(it.second, "Intermediate %d created twice", id.value());
 			return it.first->second;
 		}
@@ -1336,9 +1336,9 @@ public:
 
 	Pointer<Byte> dbgState;  // Pointer to a debugger state.
 
-	void createVariable(SpirvShader::Object::ID id, uint32_t size)
+	void createVariable(SpirvShader::Object::ID id, uint32_t componentCount)
 	{
-		bool added = variables.emplace(id, Variable(size)).second;
+		bool added = variables.emplace(id, Variable(componentCount)).second;
 		ASSERT_MSG(added, "Variable %d created twice", id.value());
 	}
 

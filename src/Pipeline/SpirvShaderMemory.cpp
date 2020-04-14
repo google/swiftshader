@@ -54,7 +54,7 @@ SpirvShader::EmitResult SpirvShader::EmitLoad(InsnIterator insn, EmitState *stat
 
 	auto ptr = GetPointerToData(pointerId, 0, state);
 	bool interleavedByLane = IsStorageInterleavedByLane(pointerTy.storageClass);
-	auto &dst = state->createIntermediate(resultId, resultTy.sizeInComponents);
+	auto &dst = state->createIntermediate(resultId, resultTy.componentCount);
 	auto robustness = state->getOutOfBoundsBehavior(pointerTy.storageClass);
 
 	VisitMemoryObject(pointerId, [&](const MemoryElement &el) {
@@ -136,7 +136,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 			ASSERT(objectTy.opcode() == spv::OpTypePointer);
 			auto base = &routine->getVariable(resultId)[0];
 			auto elementTy = getType(objectTy.element);
-			auto size = elementTy.sizeInComponents * static_cast<uint32_t>(sizeof(float)) * SIMD::Width;
+			auto size = elementTy.componentCount * static_cast<uint32_t>(sizeof(float)) * SIMD::Width;
 			state->createPointer(resultId, SIMD::Pointer(base, size));
 			break;
 		}
@@ -163,7 +163,7 @@ SpirvShader::EmitResult SpirvShader::EmitVariable(InsnIterator insn, EmitState *
 			ASSERT(objectTy.opcode() == spv::OpTypePointer);
 			auto base = &routine->getVariable(resultId)[0];
 			auto elementTy = getType(objectTy.element);
-			auto size = elementTy.sizeInComponents * static_cast<uint32_t>(sizeof(float)) * SIMD::Width;
+			auto size = elementTy.componentCount * static_cast<uint32_t>(sizeof(float)) * SIMD::Width;
 			state->createPointer(resultId, SIMD::Pointer(base, size));
 			break;
 		}
@@ -378,7 +378,7 @@ void SpirvShader::VisitMemoryObject(Object::ID id, const MemoryVisitor &f) const
 	{
 		// Objects without explicit layout are tightly packed.
 		auto &elType = getType(type.element);
-		for(auto index = 0u; index < elType.sizeInComponents; index++)
+		for(auto index = 0u; index < elType.componentCount; index++)
 		{
 			auto offset = static_cast<uint32_t>(index * sizeof(float));
 			f({ index, offset, elType });
