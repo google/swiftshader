@@ -172,58 +172,66 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 
 ###########################################################
+# Directories
+###########################################################
+
+set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+###########################################################
 # Initialize submodules
 ###########################################################
 
 if (SWIFTSHADER_BUILD_TESTS)
     if (NOT TARGET gtest)
-        if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/.git)
+        if(NOT EXISTS ${THIRD_PARTY_DIR}/googletest/.git)
             message(WARNING "
-        third_party/googletest submodule missing.
+        googletest submodule missing.
         Running 'git submodule update --init' to download it:
             ")
 
-            execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest)
+            execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/googletest)
         endif()
     endif()
 endif()
 
 if(SWIFTSHADER_BUILD_BENCHMARKS)
     if (NOT TARGET benchmark::benchmark)
-        if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark/.git)
+        if(NOT EXISTS ${THIRD_PARTY_DIR}/benchmark/.git)
             message(WARNING "
-        third_party/benchmark submodule missing.
+        benchmark submodule missing.
         Running 'git submodule update --init' to download it:
             ")
 
-            execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark)
+            execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/benchmark)
         endif()
     endif()
 endif(SWIFTSHADER_BUILD_BENCHMARKS)
 
 if (NOT TARGET libbacktrace)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace/src/.git)
+    if(NOT EXISTS ${THIRD_PARTY_DIR}/libbacktrace/src/.git)
         message(WARNING "
-      third_party/libbacktrace/src submodule missing.
+      libbacktrace/src submodule missing.
       Running 'git submodule update --init' to download it:
         ")
 
-        execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace)
+        execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/libbacktrace)
     endif()
 endif()
 
 if(SWIFTSHADER_GET_PVR)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples/.git)
+    if(NOT EXISTS ${THIRD_PARTY_DIR}/PowerVR_Examples/.git)
         message(WARNING "
-        third_party/PowerVR_Examples submodule missing.
+        PowerVR_Examples submodule missing.
         Running 'git submodule update --init' to download it:
         ")
 
-        execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples)
+        execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/PowerVR_Examples)
     endif()
     set(SWIFTSHADER_GET_PVR FALSE CACHE BOOL "Check out the PowerVR submodule" FORCE)
 endif()
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples/.git)
+if(EXISTS ${THIRD_PARTY_DIR}/PowerVR_Examples/.git)
     set(HAVE_PVR_SUBMODULE TRUE)
 endif()
 
@@ -295,15 +303,6 @@ endmacro()
 if(SWIFTSHADER_USE_GROUP_SOURCES)
     group_all_sources(src)
 endif()
-
-###########################################################
-# Directories
-###########################################################
-
-set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-set(HELLO2_DIR ${THIRD_PARTY_DIR}/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
 
 ###########################################################
 # Compile flags
@@ -568,27 +567,27 @@ string(REPLACE ";" " " SWIFTSHADER_LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}")
 # libbacktrace and boost
 ###########################################################
 if(REACTOR_EMIT_DEBUG_INFO)
-    add_subdirectory(third_party/libbacktrace EXCLUDE_FROM_ALL)
-    add_subdirectory(third_party/boost EXCLUDE_FROM_ALL)
+    add_subdirectory(${THIRD_PARTY_DIR}/libbacktrace EXCLUDE_FROM_ALL)
+    add_subdirectory(${THIRD_PARTY_DIR}/boost EXCLUDE_FROM_ALL)
 endif()
 
 ###########################################################
 # LLVM
 ###########################################################
-add_subdirectory(third_party/llvm-${SWIFTSHADER_LLVM_VERSION} EXCLUDE_FROM_ALL)
+add_subdirectory(${THIRD_PARTY_DIR}/llvm-${SWIFTSHADER_LLVM_VERSION} EXCLUDE_FROM_ALL)
 
 ###########################################################
 # Subzero
 ###########################################################
-add_subdirectory(third_party/llvm-subzero EXCLUDE_FROM_ALL)
-add_subdirectory(third_party/subzero EXCLUDE_FROM_ALL)
+add_subdirectory(${THIRD_PARTY_DIR}/llvm-subzero EXCLUDE_FROM_ALL)
+add_subdirectory(${THIRD_PARTY_DIR}/subzero EXCLUDE_FROM_ALL)
 
 ###########################################################
 # marl
 ###########################################################
 if(BUILD_MARL)
     set(MARL_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
-    add_subdirectory(third_party/marl)
+    add_subdirectory(${THIRD_PARTY_DIR}/marl)
 endif()
 
 ###########################################################
@@ -596,14 +595,14 @@ endif()
 ###########################################################
 if(SWIFTSHADER_BUILD_CPPDAP)
     set(CPPDAP_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
-    add_subdirectory(third_party/cppdap)
+    add_subdirectory(${THIRD_PARTY_DIR}/cppdap)
 endif()
 
 ###########################################################
 # astc-encoder
 ###########################################################
 if(SWIFTSHADER_ENABLE_ASTC)
-    add_subdirectory(third_party/astc-encoder)
+    add_subdirectory(${THIRD_PARTY_DIR}/astc-encoder)
 endif()
 
 ###########################################################
@@ -612,7 +611,7 @@ endif()
 if(SWIFTSHADER_BUILD_TESTS)
     # For Win32, force gtest to match our CRT (shared)
     set(gtest_force_shared_crt TRUE CACHE BOOL "" FORCE)
-    add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
+    add_subdirectory(${THIRD_PARTY_DIR}/googletest EXCLUDE_FROM_ALL)
     # gtest finds python, which picks python 2 first, if present.
     # We need to undo this so that SPIR-V can later find python3.
     unset(PYTHON_EXECUTABLE CACHE)
@@ -698,7 +697,7 @@ if(SWIFTSHADER_BUILD_VULKAN)
         # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
         set(SPIRV-Headers_SOURCE_DIR "${THIRD_PARTY_DIR}/SPIRV-Headers")
         set(SPIRV_SKIP_TESTS TRUE CACHE BOOL "" FORCE)
-        add_subdirectory(third_party/SPIRV-Tools) # Add SPIRV-Tools target
+        add_subdirectory(${THIRD_PARTY_DIR}/SPIRV-Tools) # Add SPIRV-Tools target
     endif()
 
     # Add a vk_base interface library for shared vulkan build options.
@@ -753,7 +752,7 @@ endif()
 if(SWIFTSHADER_BUILD_BENCHMARKS)
     if (NOT TARGET benchmark::benchmark)
         set(BENCHMARK_ENABLE_TESTING FALSE CACHE BOOL FALSE FORCE)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/benchmark)
+        add_subdirectory(${THIRD_PARTY_DIR}/benchmark)
     endif()
 
     add_subdirectory(${TESTS_DIR}/ReactorBenchmarks) # Add ReactorBenchmarks target
@@ -774,7 +773,7 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     endif()
 
     set(PVR_BUILD_EXAMPLES TRUE CACHE BOOL "Build the PowerVR SDK Examples" FORCE)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_Examples)
+    add_subdirectory(${THIRD_PARTY_DIR}/PowerVR_Examples)
 
     if(NOT APPLE)
         # Copy the 'loader' library to the bin/ directory
