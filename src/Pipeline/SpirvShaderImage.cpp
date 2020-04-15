@@ -476,7 +476,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 	return EmitResult::Continue;
 }
 
-SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer ptr, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect) const
+SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer basePtr, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const
 {
 	auto routine = state->routine;
 	bool isArrayed = imageType.definition.word(5) != 0;
@@ -509,33 +509,69 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 	                                    ? OFFSET(vk::StorageImageDescriptor, stencilSamplePitchBytes)
 	                                    : OFFSET(vk::StorageImageDescriptor, samplePitchBytes))));
 
-	ptr += u * SIMD::Int(texelSize);
+	// If the out of bounds behavior is set to nullify, then out of bounds coordinates must be properly detected.
+	// Other out of bounds behaviors work properly without precise out of bounds coordinate detection.
+	bool nullifyOutOfBounds = (outOfBoundsBehavior == OutOfBoundsBehavior::Nullify);
+
+	SIMD::Int ptrOffset(0);
+	SIMD::Int oobMask(0);
+	if(nullifyOutOfBounds)
+	{
+		auto width = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.width)));
+		oobMask |= CmpLT(u, SIMD::Int(0)) | CmpNLT(u, width);
+	}
+	ptrOffset += u * SIMD::Int(texelSize);
 	if(dims > 1)
 	{
-		ptr += v * rowPitch;
+		if(nullifyOutOfBounds)
+		{
+			auto height = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.height)));
+			oobMask |= CmpLT(v, SIMD::Int(0)) | CmpNLT(v, height);
+		}
+		ptrOffset += v * rowPitch;
 	}
-	if(dims > 2)
+	if((dims > 2) || isArrayed)
 	{
-		ptr += coordinate.Int(2) * slicePitch;
-	}
-	if(isArrayed)
-	{
-		ptr += coordinate.Int(dims) * slicePitch;
+		SIMD::Int w(0);
+		if(dims > 2)
+		{
+			w += coordinate.Int(2);
+		}
+		if(isArrayed)
+		{
+			w += coordinate.Int(dims);
+		}
+		if(nullifyOutOfBounds)
+		{
+			auto depth = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.depth)));
+			auto arrayLayers = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, arrayLayers)));
+			oobMask |= CmpLT(w, SIMD::Int(0)) | CmpNLT(w, depth * arrayLayers);
+		}
+		ptrOffset += w * slicePitch;
 	}
 
 	if(dim == spv::DimSubpassData)
 	{
 		// Multiview input attachment access is to the layer corresponding to the current view
-		ptr += SIMD::Int(routine->viewID) * slicePitch;
+		ptrOffset += SIMD::Int(routine->viewID) * slicePitch;
 	}
 
 	if(sampleId.value())
 	{
 		Operand sample(this, state, sampleId);
-		ptr += sample.Int(0) * samplePitch;
+		ptrOffset += sample.Int(0) * samplePitch;
 	}
 
-	return ptr;
+	if(nullifyOutOfBounds)
+	{
+		// Because pointers can be 32b, using 0xFFFFFFFF would wrap around to about the same point,
+		// so use a smaller number
+		static constexpr int FORCE_OOB = 0x3FFFFFFF;  // ~1 Gb, should be larger than any allocated image
+		// Push pointers out of bounds if they are oob in any dimension
+		ptrOffset += (oobMask & SIMD::Int(FORCE_OOB));
+	}
+
+	return basePtr + ptrOffset;
 }
 
 SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState *state) const
@@ -593,14 +629,18 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 
 	auto &dst = state->createIntermediate(insn.resultId(), resultType.componentCount);
 
-	auto texelSize = vk::Format(vkFormat).bytes();
-	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, sampleId, useStencilAspect);
-
 	// "The value returned by a read of an invalid texel is undefined,
 	//  unless that read operation is from a buffer resource and the robustBufferAccess feature is enabled."
 	// TODO: Don't always assume a buffer resource.
-	auto robustness = OutOfBoundsBehavior::RobustBufferAccess;
+	//
+	// While we could be using OutOfBoundsBehavior::RobustBufferAccess for read operations from buffer resources,
+	// emulating the glsl function loadImage() requires that this function returns 0 when used with out of bounds
+	// coordinates, so we have to use OutOfBoundsBehavior::Nullify in that case.
+	auto robustness = OutOfBoundsBehavior::Nullify;
+
+	auto texelSize = vk::Format(vkFormat).bytes();
+	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
+	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, sampleId, useStencilAspect, robustness);
 
 	SIMD::Int packed[4];
 	// Round up texel size: for formats smaller than 32 bits per texel, we will emit a bunch
@@ -976,11 +1016,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 			break;
 	}
 
-	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, 0, false);
-
 	// SPIR-V 1.4: "If the coordinates are outside the image, the memory location that is accessed is undefined."
 	auto robustness = OutOfBoundsBehavior::UndefinedValue;
+
+	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
+	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, 0, false, robustness);
 
 	for(auto i = 0u; i < numPackedElements; i++)
 	{
@@ -1012,7 +1052,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, Em
 	auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-	auto ptr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, sizeof(uint32_t), 0, false);
+	auto ptr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, sizeof(uint32_t), 0, false, OutOfBoundsBehavior::UndefinedValue);
 
 	state->createPointer(resultId, ptr);
 
