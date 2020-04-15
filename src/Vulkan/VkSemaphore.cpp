@@ -141,11 +141,11 @@ void Semaphore::wait()
 			// call, it is assumed that this is negligible
 			// compared with the actual semaphore wait()
 			// operation.
-			marl::blocking_call([ext, &lock]() {
-				lock.unlock();
+			lock.unlock();
+			marl::blocking_call([ext]() {
 				ext->wait();
-				lock.lock();
 			});
+			lock.lock();
 		}
 
 		// If the import was temporary, reset the semaphore to its previous state.
@@ -187,6 +187,7 @@ Semaphore::Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const 
 
 void Semaphore::destroy(const VkAllocationCallbacks *pAllocator)
 {
+	std::unique_lock<std::mutex> lock(mutex);
 	while(tempExternal)
 	{
 		External *ext = tempExternal;
