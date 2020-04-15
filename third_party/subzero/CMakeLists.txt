@@ -76,7 +76,7 @@ elseif(ARCH STREQUAL "mipsel")
     )
     set(SUBZERO_TARGET_CPU MIPS32)
 else()
-    message(FATAL_ERROR "Architecture '${ARCH}' not supported by Subzero")
+    message(WARNING "Architecture '${ARCH}' not supported by Subzero")
 endif()
 
 if(WIN32)
