@@ -85,7 +85,7 @@ target_compile_definitions(ReactorSubzero
 )
 
 target_compile_options(ReactorSubzero
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
@@ -120,7 +120,7 @@ target_compile_definitions(ReactorLLVM
 )
 
 target_compile_options(ReactorLLVM
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 

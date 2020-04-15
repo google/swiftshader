@@ -69,7 +69,7 @@ target_include_directories(vk_device
 )
 
 target_compile_options(vk_device
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 

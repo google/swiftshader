@@ -65,6 +65,6 @@ target_include_directories(vk_system
 )
 
 target_compile_options(vk_system
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )

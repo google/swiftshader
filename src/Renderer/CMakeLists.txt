@@ -83,7 +83,7 @@ target_compile_definitions(gl_renderer
 )
 
 target_compile_options(gl_renderer
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 

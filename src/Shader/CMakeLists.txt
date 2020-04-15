@@ -67,7 +67,7 @@ target_compile_definitions(gl_shader
 )
 
 target_compile_options(gl_shader
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 

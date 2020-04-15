@@ -76,11 +76,11 @@ target_compile_definitions(gl_common
 )
 
 target_compile_options(gl_common
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
 target_link_libraries(gl_common
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_LINK_LIBRARIES}
 )

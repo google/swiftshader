@@ -58,11 +58,11 @@ target_compile_definitions(libGLESCommon
 )
 
 target_compile_options(libGLESCommon
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
 target_link_libraries(libGLESCommon
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_LINK_LIBRARIES}
 )

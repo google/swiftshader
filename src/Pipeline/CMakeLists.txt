@@ -99,7 +99,7 @@ target_include_directories(vk_pipeline
 )
 
 target_compile_options(vk_pipeline
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 

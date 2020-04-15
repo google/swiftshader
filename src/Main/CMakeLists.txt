@@ -77,7 +77,7 @@ target_compile_definitions(gl_main
 )
 
 target_compile_options(gl_main
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 

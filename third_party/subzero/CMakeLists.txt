@@ -105,7 +105,7 @@ target_include_directories(subzero
 )
 
 target_compile_options(subzero
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
         ${SUBZERO_COMPILE_OPTIONS}
 )

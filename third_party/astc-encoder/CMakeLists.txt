@@ -55,6 +55,6 @@ target_compile_definitions(astc-encoder
 )
 
 target_compile_options(astc-encoder
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )

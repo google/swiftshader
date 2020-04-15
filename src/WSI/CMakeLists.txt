@@ -70,7 +70,7 @@ target_include_directories(vk_wsi
 )
 
 target_compile_options(vk_wsi
-    PUBLIC
+    PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
