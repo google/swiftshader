@@ -184,57 +184,44 @@ set(TESTS_DIR ${SWIFTSHADER_DIR}/tests)
 # Initialize submodules
 ###########################################################
 
-if (SWIFTSHADER_BUILD_TESTS)
-    if (NOT TARGET gtest)
-        if(NOT EXISTS ${THIRD_PARTY_DIR}/googletest/.git)
+function(InitSubmodule target submodule_dir)
+    if (NOT TARGET ${target})
+        if(NOT EXISTS ${submodule_dir}/.git)
             message(WARNING "
-        googletest submodule missing.
+        Target ${target} from submodule ${submodule_dir} missing.
         Running 'git submodule update --init' to download it:
             ")
 
-            execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/googletest)
+            execute_process(COMMAND git -C ${SWIFTSHADER_DIR} submodule update --init ${submodule_dir})
         endif()
     endif()
+endfunction()
+
+if (SWIFTSHADER_BUILD_TESTS)
+    InitSubmodule(gtest ${THIRD_PARTY_DIR}/googletest)
 endif()
 
 if(SWIFTSHADER_BUILD_BENCHMARKS)
-    if (NOT TARGET benchmark::benchmark)
-        if(NOT EXISTS ${THIRD_PARTY_DIR}/benchmark/.git)
-            message(WARNING "
-        benchmark submodule missing.
-        Running 'git submodule update --init' to download it:
-            ")
+    InitSubmodule(benchmark::benchmark ${THIRD_PARTY_DIR}/benchmark)
+endif()
 
-            execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/benchmark)
-        endif()
-    endif()
-endif(SWIFTSHADER_BUILD_BENCHMARKS)
-
-if (NOT TARGET libbacktrace)
-    if(NOT EXISTS ${THIRD_PARTY_DIR}/libbacktrace/src/.git)
-        message(WARNING "
-      libbacktrace/src submodule missing.
-      Running 'git submodule update --init' to download it:
-        ")
-
-        execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/libbacktrace)
-    endif()
+if(REACTOR_EMIT_DEBUG_INFO)
+    InitSubmodule(libbacktrace ${THIRD_PARTY_DIR}/libbacktrace/src)
 endif()
 
 if(SWIFTSHADER_GET_PVR)
-    if(NOT EXISTS ${THIRD_PARTY_DIR}/PowerVR_Examples/.git)
-        message(WARNING "
-        PowerVR_Examples submodule missing.
-        Running 'git submodule update --init' to download it:
-        ")
-
-        execute_process(COMMAND git submodule update --init ${THIRD_PARTY_DIR}/PowerVR_Examples)
-    endif()
+    InitSubmodule(PVRCore ${THIRD_PARTY_DIR}/PowerVR_Examples)
     set(SWIFTSHADER_GET_PVR FALSE CACHE BOOL "Check out the PowerVR submodule" FORCE)
 endif()
 if(EXISTS ${THIRD_PARTY_DIR}/PowerVR_Examples/.git)
     set(HAVE_PVR_SUBMODULE TRUE)
 endif()
+
+if(SWIFTSHADER_BUILD_CPPDAP)
+    InitSubmodule(json ${THIRD_PARTY_DIR}/json)
+    InitSubmodule(cppdap ${THIRD_PARTY_DIR}/cppdap)
+endif()
+
 
 ###########################################################
 # Convenience macros
