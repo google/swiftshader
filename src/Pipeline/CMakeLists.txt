@@ -93,7 +93,7 @@ set_target_properties(vk_pipeline PROPERTIES
 target_include_directories(vk_pipeline
     PUBLIC
         ".."
-        "${CMAKE_SOURCE_DIR}/include"
+        "${SWIFTSHADER_DIR}/include"
         "${SPIRV-Headers_SOURCE_DIR}/include"
         "${SPIRV_TOOLS_EXT_INC_DIR}"
 )

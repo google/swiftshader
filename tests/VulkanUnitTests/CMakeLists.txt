@@ -50,7 +50,7 @@ set_target_properties(vk-unittests PROPERTIES
 
 target_include_directories(vk-unittests
     PRIVATE
-        "${CMAKE_SOURCE_DIR}/include"
+        "${SWIFTSHADER_DIR}/include"
 )
 
 target_compile_definitions(vk-unittests

@@ -155,7 +155,6 @@ set_target_properties(vk_swiftshader PROPERTIES
 target_include_directories(vk_swiftshader
     PRIVATE
         ".."
-        # "${CMAKE_SOURCE_DIR}/include"
 )
 
 target_compile_options(vk_swiftshader

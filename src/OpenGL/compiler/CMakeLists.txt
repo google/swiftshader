@@ -133,8 +133,8 @@ set_target_properties(GLCompiler PROPERTIES
 target_include_directories(GLCompiler
     PRIVATE
         ".."
-        "${CMAKE_SOURCE_DIR}/include"
-        "${CMAKE_SOURCE_DIR}/src"
+        "${SWIFTSHADER_DIR}/include"
+        "${SWIFTSHADER_DIR}/src"
 )
 
 target_compile_definitions(GLCompiler

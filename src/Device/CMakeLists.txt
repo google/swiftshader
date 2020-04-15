@@ -65,7 +65,7 @@ set_target_properties(vk_device PROPERTIES
 target_include_directories(vk_device
     PUBLIC
         ".."
-        "${CMAKE_SOURCE_DIR}/include"
+        "${SWIFTSHADER_DIR}/include"
 )
 
 target_compile_options(vk_device

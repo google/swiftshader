@@ -175,9 +175,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 # Directories
 ###########################################################
 
-set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
-set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+set(SWIFTSHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(SOURCE_DIR ${SWIFTSHADER_DIR}/src)
+set(THIRD_PARTY_DIR ${SWIFTSHADER_DIR}/third_party)
+set(TESTS_DIR ${SWIFTSHADER_DIR}/tests)
 
 ###########################################################
 # Initialize submodules
@@ -242,13 +243,13 @@ endif()
 # Recursively calls source_group on the files of the directory
 # so that Visual Studio has the files in a folder tree
 macro(group_all_sources directory)
-    file(GLOB files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${directory} ${CMAKE_CURRENT_SOURCE_DIR}/${directory}/*)
+    file(GLOB files RELATIVE ${SWIFTSHADER_DIR}/${directory} ${SWIFTSHADER_DIR}/${directory}/*)
     foreach(file ${files})
-        if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${directory}/${file})
+        if(IS_DIRECTORY ${SWIFTSHADER_DIR}/${directory}/${file})
             group_all_sources(${directory}/${file})
         else()
             string(REPLACE "/" "\\" groupname ${directory})
-            source_group(${groupname} FILES ${CMAKE_CURRENT_SOURCE_DIR}/${directory}/${file})
+            source_group(${groupname} FILES ${SWIFTSHADER_DIR}/${directory}/${file})
         endif()
     endforeach()
 endmacro()
@@ -616,15 +617,6 @@ if(SWIFTSHADER_BUILD_TESTS)
     # We need to undo this so that SPIR-V can later find python3.
     unset(PYTHON_EXECUTABLE CACHE)
 endif()
-
-###########################################################
-# Include Directories
-###########################################################
-
-set(VULKAN_INCLUDE_DIR
-    ${SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
 
 ###########################################################
 # File Lists

@@ -68,7 +68,7 @@ target_include_directories(gl_main
     PUBLIC
         ".."
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/include # For EGL
+        ${SWIFTSHADER_DIR}/include # For EGL
 )
 
 target_compile_definitions(gl_main

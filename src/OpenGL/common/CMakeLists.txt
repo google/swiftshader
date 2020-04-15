@@ -49,8 +49,8 @@ set_target_properties(libGLESCommon PROPERTIES
 target_include_directories(libGLESCommon
     PUBLIC
         ".."
-        "${CMAKE_SOURCE_DIR}/include"
-        "${CMAKE_SOURCE_DIR}/src"
+        "${SWIFTSHADER_DIR}/include"
+        "${SWIFTSHADER_DIR}/src"
 )
 
 target_compile_definitions(libGLESCommon

@@ -66,7 +66,7 @@ set_target_properties(vk_wsi PROPERTIES
 target_include_directories(vk_wsi
     PUBLIC
         ".."
-        "${CMAKE_SOURCE_DIR}/include"
+        "${SWIFTSHADER_DIR}/include"
 )
 
 target_compile_options(vk_wsi
