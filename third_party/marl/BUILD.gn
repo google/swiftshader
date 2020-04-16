@@ -31,6 +31,7 @@ swiftshader_source_set("Marl_headers") {
     "include/marl/finally.h",
     "include/marl/memory.h",
     "include/marl/mutex.h",
+    "include/marl/parallelize.h",
     "include/marl/pool.h",
     "include/marl/sanitizers.h",
     "include/marl/scheduler.h",
@@ -39,7 +40,6 @@ swiftshader_source_set("Marl_headers") {
     "include/marl/ticket.h",
     "include/marl/trace.h",
     "include/marl/tsa.h",
-    "include/marl/utils.h",
     "include/marl/waitgroup.h",
   ]
 
