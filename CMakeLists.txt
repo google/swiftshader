@@ -754,19 +754,6 @@ if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     set(PVR_BUILD_EXAMPLES TRUE CACHE BOOL "Build the PowerVR SDK Examples" FORCE)
     add_subdirectory(${THIRD_PARTY_DIR}/PowerVR_Examples)
 
-    if(NOT APPLE)
-        # Copy the 'loader' library to the bin/ directory
-        # where the PowerVR executables are placed.
-        if(SWIFTSHADER_BUILD_VULKAN)
-            add_custom_command(
-                TARGET vk_swiftshader
-                POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin
-                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/bin/${VULKAN_API_LIBRARY_NAME}
-            )
-        endif()
-    endif()
-
     # Samples known to work well
     set(PVR_VULKAN_TARGET_GOOD
         VulkanBumpmap
