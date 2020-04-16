@@ -46,9 +46,14 @@ TEST(LRUCache, Empty)
 	LRUCache<std::string, std::string> cache(8);
 	ASSERT_EQ(cache.lookup(""), "");
 	ASSERT_EQ(cache.lookup("123"), "");
+	bool looped = false;
 	for(auto ignored : cache)
 	{
 		(void)ignored;
+		looped = true;
+	}
+	if(looped)
+	{
 		FAIL() << "Should not loop on empty cache";
 	}
 }
