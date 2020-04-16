@@ -57,9 +57,9 @@ func ParseHash(s string) Hash {
 }
 
 // Add calls 'git add <file>'.
-func Add(project, file string) error {
-	if err := shell.Shell(gitTimeout, exe, project, "add", file); err != nil {
-		return err
+func Add(wd, file string) error {
+	if err := shell.Shell(gitTimeout, exe, wd, "add", file); err != nil {
+		return cause.Wrap(err, "`git add %v` in working directory %v failed", file, wd)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ type CommitFlags struct {
 }
 
 // Commit calls 'git commit -m <msg> --author <author>'.
-func Commit(project, msg string, flags CommitFlags) error {
+func Commit(wd, msg string, flags CommitFlags) error {
 	args := []string{}
 	if flags.Name != "" {
 		args = append(args, "-c", "user.name="+flags.Name)
@@ -80,7 +80,7 @@ func Commit(project, msg string, flags CommitFlags) error {
 		args = append(args, "-c", "user.email="+flags.Email)
 	}
 	args = append(args, "commit", "-m", msg)
-	return shell.Shell(gitTimeout, exe, project, args...)
+	return shell.Shell(gitTimeout, exe, wd, args...)
 }
 
 // PushFlags advanced flags for Commit
@@ -90,7 +90,7 @@ type PushFlags struct {
 }
 
 // Push pushes the local branch to remote.
-func Push(project, remote, localBranch, remoteBranch string, flags PushFlags) error {
+func Push(wd, remote, localBranch, remoteBranch string, flags PushFlags) error {
 	args := []string{}
 	if flags.Username != "" {
 		f, err := ioutil.TempFile("", "regres-cookies.txt")
@@ -108,7 +108,7 @@ func Push(project, remote, localBranch, remoteBranch string, flags PushFlags) er
 		args = append(args, "-c", "http.cookiefile="+f.Name())
 	}
 	args = append(args, "push", remote, localBranch+":"+remoteBranch)
-	return shell.Shell(gitTimeout, exe, project, args...)
+	return shell.Shell(gitTimeout, exe, wd, args...)
 }
 
 // CheckoutRemoteBranch performs a git fetch and checkout of the given branch into path.
