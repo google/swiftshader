@@ -33,31 +33,31 @@ int main() {
   constexpr int numTasks = 10;
 
   // Create an event that is manually reset.
-  marl::Event sayHellow(marl::Event::Mode::Manual);
+  marl::Event sayHello(marl::Event::Mode::Manual);
 
   // Create a WaitGroup with an initial count of numTasks.
-  marl::WaitGroup saidHellow(numTasks);
+  marl::WaitGroup saidHello(numTasks);
 
   // Schedule some tasks to run asynchronously.
   for (int i = 0; i < numTasks; i++) {
     // Each task will run on one of the 4 worker threads.
     marl::schedule([=] {  // All marl primitives are capture-by-value.
       // Decrement the WaitGroup counter when the task has finished.
-      defer(saidHellow.done());
+      defer(saidHello.done());
 
       printf("Task %d waiting to say hello...\n", i);
 
       // Blocking in a task?
       // The scheduler will find something else for this thread to do.
-      sayHellow.wait();
+      sayHello.wait();
 
       printf("Hello from task %d!\n", i);
     });
   }
 
-  sayHellow.signal();  // Unblock all the tasks.
+  sayHello.signal();  // Unblock all the tasks.
 
-  saidHellow.wait();  // Wait for all tasks to complete.
+  saidHello.wait();  // Wait for all tasks to complete.
 
   printf("All tasks said hello.\n");
 
@@ -122,6 +122,81 @@ set(MARL_THIRD_PARTY_DIR <third-party-root-directory>) # defaults to ${MARL_DIR}
 set(MARL_GOOGLETEST_DIR  <path-to-googletest>)         # defaults to ${MARL_THIRD_PARTY_DIR}/googletest
 add_subdirectory(${MARL_DIR})
 ```
+
+### Usage Recommendations
+
+#### Capture marl synchronization primitves by value
+
+All marl synchronization primitves aside from `marl::ConditionVariable` should be lambda-captured by **value**:
+
+```c++
+marl::Event event;
+marl::schedule([=]{ // [=] Good, [&] Bad.
+  event.signal();
+})
+```
+
+Internally, these primitives hold a shared pointer to the primitive state. By capturing by value we avoid common issues where the primitive may be destructed before the last reference is used.
+
+#### Create one instance of `marl::Scheduler`, use it for the lifetime of the process.
+
+`marl::Scheduler::setWorkerThreadCount()` is an expensive operation as it spawn a number of hardware threads. \
+Destructing the `marl::Scheduler` requires waiting on all tasks to complete.
+
+Multiple `marl::Scheduler`s may fight each other for hardware thread utilization.
+
+For these reasons, it is recommended to create a single `marl::Scheduler` for the lifetime of your process.
+
+For example:
+
+```c++
+int main() {
+  marl::Scheduler scheduler;
+  scheduler.bind();
+  scheduler.setWorkerThreadCount(marl::Thread::numLogicalCPUs());
+  defer(scheduler.unbind());
+
+  return do_program_stuff();
+}
+```
+
+#### Bind the scheduler to externally created threads
+
+In order to call `marl::schedule()` the scheduler must be bound to the calling thread. Failure to bind the scheduler to the thread before calling `marl::schedule()` will result in undefined behavior.
+
+`marl::Scheduler` may be simultaneously bound to any number of threads, and the scheduler can be retrieved from a bound thread with `marl::Scheduler::get()`.
+
+A typical way to pass the scheduler from one thread to another would be:
+
+```c++
+std::thread spawn_new_thread() {
+  // Grab the scheduler from the currently running thread.
+  marl::Scheduler* scheduler = marl::Scheduler::get();
+
+  // Spawn the new thread.
+  return std::thread([=] {
+    // Bind the scheduler to the new thread.
+    scheduler->bind();
+    defer(scheduler->unbind());
+
+    // You can now safely call `marl::schedule()`
+    run_thread_logic();
+  });
+}
+
+```
+
+Always remember to unbind the scheduler before terminating the thread. Forgetting to unbind will result in the `marl::Scheduler` destructor blocking indefinitely.
+
+#### Don't use externally blocking calls in marl tasks
+
+The `marl::Scheduler` internally holds a number of worker threads which will execute the scheduled tasks. If a marl task becomes blocked on a marl synchronization primitive, marl can yield from the blocked task and continue execution of other scheduled tasks.
+
+Calling a non-marl blocking function on a marl worker thread will prevent that worker thread from being able to switch to execute other tasks until the blocking function has returned. Examples of these non-marl blocking functions include: [`std::mutex::lock()`](https://en.cppreference.com/w/cpp/thread/mutex/lock), [`std::condition_variable::wait()`](https://en.cppreference.com/w/cpp/thread/condition_variable/wait), [`accept()`](http://man7.org/linux/man-pages/man2/accept.2.html).
+
+Short blocking calls are acceptable, such as a mutex lock to access a data structure. However be careful that you do not use a marl blocking call with a `std::mutex` lock held - the marl task may yield with the lock held, and block other tasks from re-locking the mutex. This sort of situation may end up with a deadlock.
+
+If you need to make a blocking call from a marl worker thread, you may wish to use [`marl::blocking_call()`](https://github.com/google/marl/blob/master/include/marl/blockingcall.h), which will spawn a new thread for performing the call, allowing the marl worker to continue processing other scheduled tasks.
 
 ---
 

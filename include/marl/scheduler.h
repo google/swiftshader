@@ -255,7 +255,7 @@ class Scheduler {
 
     // take() returns the next fiber that has exceeded its timeout, or nullptr
     // if there are no fibers that have yet exceeded their timeouts.
-    inline Fiber* take(const TimePoint& timepoint);
+    inline Fiber* take(const TimePoint& timeout);
 
     // next() returns the timepoint of the next fiber to timeout.
     // next() can only be called if operator bool() returns true.

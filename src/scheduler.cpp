@@ -120,7 +120,7 @@ void Scheduler::unbind() {
                 "singleThreadedWorker not found");
     MARL_ASSERT(it->second.get() == worker, "worker is not bound?");
     bound->singleThreadedWorkers.byTid.erase(it);
-    if (bound->singleThreadedWorkers.byTid.size() == 0) {
+    if (bound->singleThreadedWorkers.byTid.empty()) {
       bound->singleThreadedWorkers.unbind.notify_one();
     }
   }
@@ -140,7 +140,7 @@ Scheduler::~Scheduler() {
     marl::lock lock(singleThreadedWorkers.mutex);
     lock.wait(singleThreadedWorkers.unbind,
               [this]() REQUIRES(singleThreadedWorkers.mutex) {
-                return singleThreadedWorkers.byTid.size() == 0;
+                return singleThreadedWorkers.byTid.empty();
               });
   }
 
@@ -149,9 +149,9 @@ Scheduler::~Scheduler() {
   setWorkerThreadCount(0);
 }
 
-void Scheduler::setThreadInitializer(const std::function<void()>& func) {
+void Scheduler::setThreadInitializer(const std::function<void()>& init) {
   marl::lock lock(threadInitFuncMutex);
-  threadInitFunc = func;
+  threadInitFunc = init;
 }
 
 const std::function<void()>& Scheduler::getThreadInitializer() {
@@ -299,15 +299,15 @@ const char* Scheduler::Fiber::toString(State state) {
 // Scheduler::WaitingFibers
 ////////////////////////////////////////////////////////////////////////////////
 Scheduler::WaitingFibers::operator bool() const {
-  return fibers.size() > 0;
+  return !fibers.empty();
 }
 
-Scheduler::Fiber* Scheduler::WaitingFibers::take(const TimePoint& timepoint) {
+Scheduler::Fiber* Scheduler::WaitingFibers::take(const TimePoint& timeout) {
   if (!*this) {
     return nullptr;
   }
   auto it = timeouts.begin();
-  if (timepoint < it->timepoint) {
+  if (timeout < it->timepoint) {
     return nullptr;
   }
   auto fiber = it->fiber;
@@ -324,9 +324,9 @@ Scheduler::TimePoint Scheduler::WaitingFibers::next() const {
   return timeouts.begin()->timepoint;
 }
 
-void Scheduler::WaitingFibers::add(const TimePoint& timepoint, Fiber* fiber) {
-  timeouts.emplace(Timeout{timepoint, fiber});
-  bool added = fibers.emplace(fiber, timepoint).second;
+void Scheduler::WaitingFibers::add(const TimePoint& timeout, Fiber* fiber) {
+  timeouts.emplace(Timeout{timeout, fiber});
+  bool added = fibers.emplace(fiber, timeout).second;
   (void)added;
   MARL_ASSERT(added, "WaitingFibers::add() fiber already waiting");
 }
@@ -474,13 +474,13 @@ void Scheduler::Worker::suspend(
 
   work.numBlockedFibers++;
 
-  if (work.fibers.size() > 0) {
+  if (!work.fibers.empty()) {
     // There's another fiber that has become unblocked, resume that.
     work.num--;
     auto to = take(work.fibers);
     ASSERT_FIBER_STATE(to, Fiber::State::Queued);
     switchToFiber(to);
-  } else if (idleFibers.size() > 0) {
+  } else if (!idleFibers.empty()) {
     // There's an old fiber we can reuse, resume that.
     auto to = take(idleFibers);
     ASSERT_FIBER_STATE(to, Fiber::State::Idle);
@@ -518,7 +518,7 @@ void Scheduler::Worker::enqueue(Fiber* fiber) {
         break;
     }
     notify = work.notifyAdded;
-    work.fibers.push_back(std::move(fiber));
+    work.fibers.push_back(fiber);
     MARL_ASSERT(!work.waiting.contains(fiber),
                 "fiber is unexpectedly in the waiting list");
     setFiberState(fiber, Fiber::State::Queued);
@@ -552,8 +552,7 @@ bool Scheduler::Worker::steal(Task& out) {
   if (!work.mutex.try_lock()) {
     return false;
   }
-  if (work.tasks.size() == 0 ||
-      work.tasks.front().is(Task::Flags::SameThread)) {
+  if (work.tasks.empty() || work.tasks.front().is(Task::Flags::SameThread)) {
     work.mutex.unlock();
     return false;
   }
@@ -668,12 +667,12 @@ void Scheduler::Worker::runUntilIdle() {
   ASSERT_FIBER_STATE(currentFiber, Fiber::State::Running);
   MARL_ASSERT(work.num == work.fibers.size() + work.tasks.size(),
               "work.num out of sync");
-  while (work.fibers.size() > 0 || work.tasks.size() > 0) {
+  while (!work.fibers.empty() || !work.tasks.empty()) {
     // Note: we cannot take and store on the stack more than a single fiber
     // or task at a time, as the Fiber may yield and these items may get
     // held on suspended fiber stack.
 
-    while (work.fibers.size() > 0) {
+    while (!work.fibers.empty()) {
       work.num--;
       auto fiber = take(work.fibers);
       // Sanity checks,
@@ -690,7 +689,7 @@ void Scheduler::Worker::runUntilIdle() {
       changeFiberState(currentFiber, Fiber::State::Idle, Fiber::State::Running);
     }
 
-    if (work.tasks.size() > 0) {
+    if (!work.tasks.empty()) {
       work.num--;
       auto task = take(work.tasks);
       work.mutex.unlock();

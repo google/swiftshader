@@ -32,31 +32,31 @@ int main() {
   constexpr int numTasks = 10;
 
   // Create an event that is manually reset.
-  marl::Event sayHellow(marl::Event::Mode::Manual);
+  marl::Event sayHello(marl::Event::Mode::Manual);
 
   // Create a WaitGroup with an initial count of numTasks.
-  marl::WaitGroup saidHellow(numTasks);
+  marl::WaitGroup saidHello(numTasks);
 
   // Schedule some tasks to run asynchronously.
   for (int i = 0; i < numTasks; i++) {
     // Each task will run on one of the 4 worker threads.
     marl::schedule([=] {  // All marl primitives are capture-by-value.
       // Decrement the WaitGroup counter when the task has finished.
-      defer(saidHellow.done());
+      defer(saidHello.done());
 
       printf("Task %d waiting to say hello...\n", i);
 
       // Blocking in a task?
       // The scheduler will find something else for this thread to do.
-      sayHellow.wait();
+      sayHello.wait();
 
       printf("Hello from task %d!\n", i);
     });
   }
 
-  sayHellow.signal();  // Unblock all the tasks.
+  sayHello.signal();  // Unblock all the tasks.
 
-  saidHellow.wait();  // Wait for all tasks to complete.
+  saidHello.wait();  // Wait for all tasks to complete.
 
   printf("All tasks said hello.\n");
 
