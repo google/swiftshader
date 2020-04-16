@@ -126,6 +126,8 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 			0, 1,                                                                 // z0d, z1d
 
 			0, 0, 0,  // sWidth, sHeight, sDepth
+
+			false,  // filter3D
 		};
 
 		if(renderArea && dest->is3DSlice())
@@ -1739,6 +1741,8 @@ void Blitter::blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subres
 		static_cast<int>(extent.width),   // sWidth
 		static_cast<int>(extent.height),  // sHeight
 		static_cast<int>(extent.depth),   // sDepth
+
+		false,  // filter3D
 	};
 
 	VkImageSubresourceLayers srcSubresLayers = subresource;
@@ -1799,6 +1803,8 @@ void Blitter::blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subr
 		static_cast<int>(extent.width),   // sWidth
 		static_cast<int>(extent.height),  // sHeight;
 		static_cast<int>(extent.depth),   // sDepth;
+
+		false,  // filter3D
 	};
 
 	VkImageSubresourceLayers dstSubresLayers = subresource;
@@ -1911,6 +1917,8 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 		static_cast<int>(srcExtent.width),   // sWidth
 		static_cast<int>(srcExtent.height),  // sHeight
 		static_cast<int>(srcExtent.depth),   // sDepth
+
+		false,  // filter3D
 	};
 
 	VkImageSubresourceLayers srcSubresLayers = {
