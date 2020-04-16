@@ -240,10 +240,10 @@ uint32_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
 	return index;
 }
 
-VkDescriptorSetLayoutBinding const &DescriptorSetLayout::getBindingLayout(uint32_t binding) const
+VkDescriptorType DescriptorSetLayout::getDescriptorType(uint32_t binding) const
 {
 	uint32_t index = getBindingIndex(binding);
-	return bindings[index];
+	return bindings[index].descriptorType;
 }
 
 uint8_t *DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t *typeSize) const

@@ -346,14 +346,14 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
 	auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-	auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
+	auto descriptorType = setLayout->getDescriptorType(d.Binding);
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 
 	Pointer<Int> extent;
 	Int arrayLayers;
 
-	switch(bindingLayout.descriptorType)
+	switch(descriptorType)
 	{
 		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 		case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
@@ -371,7 +371,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 			break;
 		}
 		default:
-			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
+			UNREACHABLE("Image descriptorType: %d", int(descriptorType));
 	}
 
 	auto dimensions = resultTy.componentCount - (isArrayed ? 1 : 0);
@@ -410,11 +410,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
 	auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-	auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
+	auto descriptorType = setLayout->getDescriptorType(d.Binding);
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 	Int mipLevels = 0;
-	switch(bindingLayout.descriptorType)
+	switch(descriptorType)
 	{
 		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
@@ -422,7 +422,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 			mipLevels = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, mipLevels));  // uint32_t
 			break;
 		default:
-			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
+			UNREACHABLE("Image descriptorType: %d", int(descriptorType));
 	}
 
 	auto &dst = state->createIntermediate(insn.resultId(), 1);
@@ -443,11 +443,11 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
 	auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-	auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
+	auto descriptorType = setLayout->getDescriptorType(d.Binding);
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 	Int sampleCount = 0;
-	switch(bindingLayout.descriptorType)
+	switch(descriptorType)
 	{
 		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 			sampleCount = *Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));  // uint32_t
@@ -458,7 +458,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 			sampleCount = *Pointer<Int>(descriptor + OFFSET(vk::SampledImageDescriptor, sampleCount));  // uint32_t
 			break;
 		default:
-			UNREACHABLE("Image descriptorType: %d", int(bindingLayout.descriptorType));
+			UNREACHABLE("Image descriptorType: %d", int(descriptorType));
 	}
 
 	auto &dst = state->createIntermediate(insn.resultId(), 1);
