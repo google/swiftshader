@@ -106,7 +106,7 @@ func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) (
 	case <-time.NewTimer(timeout).C:
 		c.Process.Signal(syscall.SIGINT)
 		time.Sleep(time.Second * 3)
-		if !c.ProcessState.Exited() {
+		if c.ProcessState == nil || !c.ProcessState.Exited() {
 			log.Printf("Process %v still has not exited, killing\n", c.Process.Pid)
 			syscall.Kill(-c.Process.Pid, syscall.SIGKILL)
 		}
