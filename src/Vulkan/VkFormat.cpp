@@ -2601,7 +2601,6 @@ static constexpr uint8_t pack(VkFormat format)
 	return 0;
 }
 
-static_assert(VK_HEADER_VERSION == 128, "Update VkFormat to uint8_t mapping if needed");
 static_assert(pack(VK_FORMAT_UNDEFINED) == 0, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_ASTC_12x12_SRGB_BLOCK) == 184, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_G8B8G8R8_422_UNORM) == 185, "Incorrect VkFormat packed value");
@@ -2614,8 +2613,9 @@ static_assert(pack(VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT) == 240, "Incorrect VkF
 uint8_t Format::mapTo8bit(VkFormat format)
 {
 	ASSERT(format <= VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM);
-
-	return pack(format);
+	uint8_t packed = pack(format);
+	ASSERT_MSG(packed > 0, "Update VkFormat to uint8_t mapping");
+	return packed;
 }
 
 }  // namespace vk
