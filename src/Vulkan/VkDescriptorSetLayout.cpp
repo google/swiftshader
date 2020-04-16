@@ -19,9 +19,9 @@
 #include "VkDescriptorSet.hpp"
 #include "VkImageView.hpp"
 #include "VkSampler.hpp"
-#include "System/Types.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 
 namespace {
@@ -115,8 +115,8 @@ size_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 
 size_t DescriptorSetLayout::getDescriptorSetAllocationSize() const
 {
-	// vk::DescriptorSet has a layout member field.
-	return sw::align<alignof(DescriptorSet)>(OFFSET(DescriptorSet, data) + getDescriptorSetDataSize());
+	// vk::DescriptorSet has a header with a pointer to the layout.
+	return sw::align<alignof(DescriptorSet)>(offsetof(DescriptorSet, data) + getDescriptorSetDataSize());
 }
 
 size_t DescriptorSetLayout::getDescriptorSetDataSize() const
@@ -196,7 +196,7 @@ size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, size_t arrayEleme
 {
 	uint32_t index = getBindingIndex(binding);
 	auto typeSize = GetDescriptorSize(bindings[index].descriptorType);
-	return bindingOffsets[index] + OFFSET(DescriptorSet, data[0]) + (typeSize * arrayElement);
+	return bindingOffsets[index] + (typeSize * arrayElement);
 }
 
 bool DescriptorSetLayout::isDynamic(VkDescriptorType type)

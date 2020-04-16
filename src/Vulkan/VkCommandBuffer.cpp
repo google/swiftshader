@@ -1108,7 +1108,7 @@ public:
 		auto dynamicOffsetBase = pipelineLayout->getDynamicOffsetBase(set);
 		ASSERT_OR_RETURN(dynamicOffsetBase + dynamicOffsetCount <= vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
 
-		pipelineState.descriptorSets[set] = descriptorSet;
+		pipelineState.descriptorSets[set] = descriptorSet->data;
 		for(uint32_t i = 0; i < dynamicOffsetCount; i++)
 		{
 			pipelineState.descriptorDynamicOffsets[dynamicOffsetBase + i] = dynamicOffsets[i];

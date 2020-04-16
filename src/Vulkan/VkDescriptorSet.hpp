@@ -18,6 +18,7 @@
 // Intentionally not including VkObject.hpp here due to b/127920555
 
 #include <array>
+#include <cstdint>
 #include <memory>
 
 namespace vk {
@@ -37,7 +38,7 @@ public:
 		return static_cast<DescriptorSet *>(static_cast<void *>(object));
 	}
 
-	using Bindings = std::array<vk::DescriptorSet *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
+	using Bindings = std::array<uint8_t *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;
 
 	DescriptorSetHeader header;
