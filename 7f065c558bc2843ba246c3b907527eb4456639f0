@@ -46,6 +46,30 @@
       "revId": "7f065c558bc2843ba246c3b907527eb4456639f0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b794831c_c75766a7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-04-16T20:25:45Z",
+      "side": 1,
+      "message": "Bug: https://b.corp.google.com/issues/148666869",
+      "parentUuid": "4381a25e_3af1fd50",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "7f065c558bc2843ba246c3b907527eb4456639f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
