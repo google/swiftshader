@@ -69,7 +69,7 @@ public:
 		zx_status_t status = zx_handle_duplicate(handle, ZX_RIGHT_SAME_RIGHTS, &new_handle);
 		if(status != ZX_OK)
 		{
-			TRACE("zx_handle_duplicate() returned %d", status);
+			DABORT("zx_handle_duplicate() returned %d", status);
 			return VK_ERROR_INVALID_EXTERNAL_HANDLE;
 		}
 		*pHandle = new_handle;
@@ -83,17 +83,20 @@ public:
 		    handle, ZX_EVENT_SIGNALED, ZX_TIME_INFINITE, &observed);
 		if(status != ZX_OK)
 		{
-			ABORT("zx_object_wait_one() returned %d", status);
+			DABORT("zx_object_wait_one() returned %d", status);
+			return;
 		}
 		if(observed != ZX_EVENT_SIGNALED)
 		{
-			ABORT("zx_object_wait_one() returned observed %x (%x expected)", observed, ZX_EVENT_SIGNALED);
+			DABORT("zx_object_wait_one() returned observed %x (%x expected)", observed, ZX_EVENT_SIGNALED);
+			return;
 		}
 		// Need to unsignal the event now, as required by the Vulkan spec.
 		status = zx_object_signal(handle, ZX_EVENT_SIGNALED, 0);
 		if(status != ZX_OK)
 		{
-			ABORT("zx_object_signal() returned %d", status);
+			DABORT("zx_object_signal() returned %d", status);
+			return;
 		}
 	}
 
@@ -102,9 +105,10 @@ public:
 		zx_signals_t observed = 0;
 		zx_status_t status = zx_object_wait_one(
 		    handle, ZX_EVENT_SIGNALED, zx_clock_get_monotonic(), &observed);
-		if(status != ZX_OK)
+		if(status != ZX_OK && status != ZX_ERR_TIMED_OUT)
 		{
-			ABORT("zx_object_wait_one() returned %d", status);
+			DABORT("zx_object_wait_one() returned %d", status);
+			return false;
 		}
 		if(observed != ZX_EVENT_SIGNALED)
 		{
@@ -114,7 +118,8 @@ public:
 		status = zx_object_signal(handle, ZX_EVENT_SIGNALED, 0);
 		if(status != ZX_OK)
 		{
-			ABORT("zx_object_signal() returned %d", status);
+			DABORT("zx_object_signal() returned %d", status);
+			return false;
 		}
 		return true;
 	}
@@ -124,7 +129,7 @@ public:
 		zx_status_t status = zx_object_signal(handle, 0, ZX_EVENT_SIGNALED);
 		if(status != ZX_OK)
 		{
-			ABORT("zx_object_signal() returned %d", status);
+			DABORT("zx_object_signal() returned %d", status);
 		}
 	}
 
