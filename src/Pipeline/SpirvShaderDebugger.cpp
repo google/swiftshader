@@ -1288,21 +1288,23 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 	}
 
 	// No debug type information. Derive from SPIR-V.
-	Operand val(shader, state, id);
 	switch(shader->getType(obj).opcode())
 	{
 		case spv::OpTypeInt:
 		{
+			Operand val(shader, state, id);
 			group.put<Key, int>(key, Extract(val.Int(0), l));
 		}
 		break;
 		case spv::OpTypeFloat:
 		{
+			Operand val(shader, state, id);
 			group.put<Key, float>(key, Extract(val.Float(0), l));
 		}
 		break;
 		case spv::OpTypeVector:
 		{
+			Operand val(shader, state, id);
 			auto count = shader->getType(obj).definition.word(3);
 			switch(count)
 			{
