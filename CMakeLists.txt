@@ -32,7 +32,7 @@ elseif(APPLE)
 elseif(FUCHSIA)
     # NOTE: Building for Fuchsia requires a Fuchsia CMake-based SDK.
     # See https://fuchsia-review.googlesource.com/c/fuchsia/+/379673
-    find_package(FuchsiaSdk)
+    find_package(FuchsiaLibraries)
 else()
     message(FATAL_ERROR "Platform is not supported")
 endif()
@@ -406,6 +406,7 @@ else()
             "-Wno-undefined-var-template"         # instantiation of variable 'X' required here, but no definition is available
             "-Wno-extra-semi"                     # extra ';' after member function definition
             "-Wno-unused-parameter"               # unused parameter 'X'
+            "-Wno-deprecated-copy"                # implicit copy constructor for 'X' is deprecated because of user-declared copy assignment operator.
 
             # Silence errors caused by unknown warnings when building with older
             # versions of Clang. This demands checking that warnings added above
