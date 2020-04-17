@@ -634,7 +634,11 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 {
 	std::shared_ptr<Routine> routine;
 
-	auto acquire = [&]() {
+	auto acquire = [&](std::unique_ptr<rr::JITBuilder> jitBuilder) {
+		// ::jit is thread-local, so when this is executed on a separate thread (see JIT_IN_SEPARATE_THREAD)
+		// it needs to be assigned the value from the parent thread.
+		jit = std::move(jitBuilder);
+
 		auto cfg = cfgEdit.apply(jit->config);
 
 		if(jit->builder->GetInsertBlock()->empty() || !jit->builder->GetInsertBlock()->back().isTerminator())
@@ -691,10 +695,10 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 	// FIXME(b/149829034): This is not a long-term solution. Reactor has no control
 	// over the threading and stack sizes of its users, so this should be addressed
 	// at a higher level instead.
-	std::thread thread(acquire);
+	std::thread thread(acquire, std::move(jit));
 	thread.join();
 #else
-	acquire();
+	acquire(std::move(jit));
 #endif
 
 	return routine;
