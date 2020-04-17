@@ -45,10 +45,17 @@ import (
 	"../../util"
 )
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 var (
 	deqpVkBinary  = flag.String("deqp-vk", "deqp-vk", "path to the deqp-vk binary")
 	testList      = flag.String("test-list", "vk-master-PASS.txt", "path to a test list file")
-	numThreads    = flag.Int("num-threads", runtime.NumCPU(), "number of parallel test runner processes")
+	numThreads    = flag.Int("num-threads", min(runtime.NumCPU(), 100), "number of parallel test runner processes")
 	maxProcMemory = flag.Uint64("max-proc-mem", shell.MaxProcMemory, "maximum virtual memory per child process")
 	output        = flag.String("output", "results.json", "path to an output JSON results file")
 	filter        = flag.String("filter", "", "filter for test names. Start with a '/' to indicate regex")
