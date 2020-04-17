@@ -1,0 +1,20 @@
+# For Fuchsia, we must not export anything other than loader-related API
+# There is also the vk_icdInitializeConnectToServiceCallback entry point
+# that is specific to the Fuchsia Vulkan loader implementation.
+{
+global:
+	vkGetInstanceProcAddr;
+
+	# Loader-ICD interface functions
+	vk_icdGetInstanceProcAddr;
+	vk_icdNegotiateLoaderICDInterfaceVersion;
+	vk_icdInitializeConnectToServiceCallback;
+
+	# Type-strings and type-infos required by sanitizers
+	_ZTS*;
+	_ZTI*;
+
+local:
+	*;
+};
+

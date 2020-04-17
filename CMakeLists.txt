@@ -257,10 +257,18 @@ macro(set_shared_library_export_map TARGET DIR)
             set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
         endif()
     elseif(LINUX OR FUCHSIA)
+        # NOTE: The Fuchsia linker script is needed to export the vk_icdInitializeConnectToServiceCallback
+        # entry point (a private implementation detail betwen the Fuchsia Vulkan loader and the ICD).
+        if ((FUCHSIA) AND ("${TARGET}" STREQUAL "vk_swiftshader"))
+          set(LINKER_VERSION_SCRIPT "fuchsia_vk_swiftshader.lds")
+        else()
+          set(LINKER_VERSION_SCRIPT "${TARGET}.lds")
+        endif()
+
         # The version script only exports the API functions and
         # hides all the others.
-        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--version-script=${DIR}/${TARGET}.lds")
-        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_DEPENDS "${DIR}/${TARGET}.lds;")
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--version-script=${DIR}/${LINKER_VERSION_SCRIPT}")
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_DEPENDS "${DIR}/${LINKER_VERSION_SCRIPT};")
 
         # -Bsymbolic binds symbol references to their global definitions within
         # a shared object, thereby preventing symbol preemption.

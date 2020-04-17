@@ -517,4 +517,8 @@ extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM = {
 	}
 };
 
+#endif  // __ANDROID__
+
+#if VK_USE_PLATFORM_FUCHSIA
+PFN_vkConnectToService vk::icdFuchsiaServiceConnectCallback = nullptr;
 #endif

@@ -275,6 +275,26 @@ VK_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vk_icdNegotiateLoaderICDInterfaceVersio
 	return VK_SUCCESS;
 }
 
+#if VK_USE_PLATFORM_FUCHSIA
+
+// This symbol must be exported by a Fuchsia Vulkan ICD. The Vulkan loader will
+// call it, passing the address of a global function pointer that can later be
+// used at runtime to connect to Fuchsia FIDL services, as required by certain
+// extensions. See https://fxbug.dev/13095 for more details.
+//
+// NOTE: This entry point has not been upstreamed to Khronos yet, which reserves
+//       all symbols starting with vk_icd. See https://fxbug.dev/13074 which
+//       tracks upstreaming progress.
+VK_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vk_icdInitializeConnectToServiceCallback(
+    PFN_vkConnectToService callback)
+{
+	TRACE("(callback = %p)", callback);
+	vk::icdFuchsiaServiceConnectCallback = callback;
+	return VK_SUCCESS;
+}
+
+#endif  // VK_USE_PLATFORM_FUCHSIA
+
 static const VkExtensionProperties instanceExtensionProperties[] = {
 	{ VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME, VK_KHR_DEVICE_GROUP_CREATION_SPEC_VERSION },
 	{ VK_KHR_EXTERNAL_FENCE_CAPABILITIES_EXTENSION_NAME, VK_KHR_EXTERNAL_FENCE_CAPABILITIES_SPEC_VERSION },
