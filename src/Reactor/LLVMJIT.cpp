@@ -75,41 +75,6 @@ extern "C" signed __aeabi_idivmod();
 
 namespace {
 
-// Cache provides a simple, thread-safe key-value store.
-template<typename KEY, typename VALUE>
-class Cache
-{
-public:
-	Cache() = default;
-	Cache(const Cache &other);
-	VALUE getOrCreate(KEY key, std::function<VALUE()> create);
-
-private:
-	mutable std::mutex mutex;  // mutable required for copy constructor.
-	std::unordered_map<KEY, VALUE> map;
-};
-
-template<typename KEY, typename VALUE>
-Cache<KEY, VALUE>::Cache(const Cache &other)
-{
-	std::unique_lock<std::mutex> lock(other.mutex);
-	map = other.map;
-}
-
-template<typename KEY, typename VALUE>
-VALUE Cache<KEY, VALUE>::getOrCreate(KEY key, std::function<VALUE()> create)
-{
-	std::unique_lock<std::mutex> lock(mutex);
-	auto it = map.find(key);
-	if(it != map.end())
-	{
-		return it->second;
-	}
-	auto value = create();
-	map.emplace(key, value);
-	return value;
-}
-
 // JITGlobals is a singleton that holds all the immutable machine specific
 // information for the host device.
 class JITGlobals
@@ -125,7 +90,7 @@ public:
 	const llvm::TargetOptions targetOptions;
 	const llvm::DataLayout dataLayout;
 
-	TargetMachineSPtr getTargetMachine(rr::Optimization::Level optlevel);
+	TargetMachineSPtr createTargetMachine(rr::Optimization::Level optlevel);
 
 private:
 	static JITGlobals create();
@@ -136,8 +101,6 @@ private:
 	           const llvm::TargetOptions &targetOptions,
 	           const llvm::DataLayout &dataLayout);
 	JITGlobals(const JITGlobals &) = default;
-
-	Cache<rr::Optimization::Level, TargetMachineSPtr> targetMachines;
 };
 
 JITGlobals *JITGlobals::get()
@@ -146,7 +109,7 @@ JITGlobals *JITGlobals::get()
 	return &instance;
 }
 
-JITGlobals::TargetMachineSPtr JITGlobals::getTargetMachine(rr::Optimization::Level optlevel)
+JITGlobals::TargetMachineSPtr JITGlobals::createTargetMachine(rr::Optimization::Level optlevel)
 {
 #ifdef ENABLE_RR_DEBUG_INFO
 	auto llvmOptLevel = toLLVM(rr::Optimization::Level::None);
@@ -154,15 +117,13 @@ JITGlobals::TargetMachineSPtr JITGlobals::getTargetMachine(rr::Optimization::Lev
 	auto llvmOptLevel = toLLVM(optlevel);
 #endif  // ENABLE_RR_DEBUG_INFO
 
-	return targetMachines.getOrCreate(optlevel, [&]() {
-		return TargetMachineSPtr(llvm::EngineBuilder()
-		                             .setOptLevel(llvmOptLevel)
-		                             .setMCPU(mcpu)
-		                             .setMArch(march)
-		                             .setMAttrs(mattrs)
-		                             .setTargetOptions(targetOptions)
-		                             .selectTarget());
-	});
+	return TargetMachineSPtr(llvm::EngineBuilder()
+	                             .setOptLevel(llvmOptLevel)
+	                             .setMCPU(mcpu)
+	                             .setMArch(march)
+	                             .setMAttrs(mattrs)
+	                             .setTargetOptions(targetOptions)
+	                             .selectTarget());
 }
 
 JITGlobals JITGlobals::create()
@@ -618,7 +579,7 @@ public:
 			          return;
 		          }
 	          }))
-	    , targetMachine(JITGlobals::get()->getTargetMachine(config.getOptimization().getLevel()))
+	    , targetMachine(JITGlobals::get()->createTargetMachine(config.getOptimization().getLevel()))
 	    , compileLayer(objLayer, llvm::orc::SimpleCompiler(*targetMachine))
 	    , objLayer(
 	          session,
