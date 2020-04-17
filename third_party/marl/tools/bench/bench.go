@@ -69,7 +69,6 @@ func Parse(s string) (Benchmark, error) {
 		case nil:
 			return b, nil
 		case errWrongFormat:
-			break
 		default:
 			return Benchmark{}, err
 		}

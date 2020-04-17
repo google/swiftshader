@@ -242,6 +242,7 @@ if(MARL_BUILD_TESTS)
         ${MARL_SRC_DIR}/marl_test.h
         ${MARL_SRC_DIR}/memory_test.cpp
         ${MARL_SRC_DIR}/osfiber_test.cpp
+        ${MARL_SRC_DIR}/parallelize_test.cpp
         ${MARL_SRC_DIR}/pool_test.cpp
         ${MARL_SRC_DIR}/scheduler_test.cpp
         ${MARL_SRC_DIR}/ticket_test.cpp
