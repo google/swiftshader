@@ -977,14 +977,28 @@ elseif(FUCHSIA)
 endif()
 
 add_library(llvm STATIC EXCLUDE_FROM_ALL ${LLVM_LIST})
+
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     INCLUDE_DIRECTORIES "${LLVM_INCLUDE_DIR}"
-    COMPILE_OPTIONS "${LLVM_COMPILE_OPTIONS}"
-    COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
     FOLDER "LLVM"
 )
-target_include_directories(llvm PUBLIC "${LLVM_INCLUDE_DIR}")
+
+target_include_directories(llvm
+    PUBLIC
+        ${LLVM_INCLUDE_DIR}
+)
+
+target_compile_options(llvm
+    PUBLIC
+        ${LLVM_COMPILE_OPTIONS}
+)
+
+target_compile_definitions(llvm
+    PUBLIC
+        "__STDC_CONSTANT_MACROS"
+        "__STDC_LIMIT_MACROS"
+)
 
 # Add required libraries for LLVM
 if(LINUX)

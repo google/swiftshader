@@ -1202,13 +1202,27 @@ elseif(FUCHSIA)
 endif()
 
 add_library(llvm STATIC EXCLUDE_FROM_ALL ${LLVM_LIST})
+
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
-    COMPILE_OPTIONS "${LLVM_COMPILE_OPTIONS}"
-    COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
     FOLDER "LLVM"
 )
-target_include_directories(llvm PUBLIC "${LLVM_INCLUDE_DIR}")
+
+target_include_directories(llvm
+    PUBLIC
+        "${LLVM_INCLUDE_DIR}"
+)
+
+target_compile_options(llvm
+    PUBLIC
+        "${LLVM_COMPILE_OPTIONS}"
+)
+
+target_compile_definitions(llvm
+    PUBLIC
+        "__STDC_CONSTANT_MACROS"
+        "__STDC_LIMIT_MACROS"
+)
 
 # Add required libraries for LLVM
 if(LINUX OR APPLE)
@@ -1228,11 +1242,19 @@ if(SWIFTSHADER_EMIT_COVERAGE)
     )
     set_target_properties(llvm-with-cov PROPERTIES
         POSITION_INDEPENDENT_CODE 1
-        COMPILE_OPTIONS "${LLVM_COMPILE_OPTIONS}"
-        COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
         FOLDER "LLVM"
     )
-    target_include_directories(llvm-with-cov PUBLIC "${LLVM_INCLUDE_DIR}")
+
+    target_include_directories(llvm-with-cov
+        PUBLIC
+            ${LLVM_INCLUDE_DIR}
+    )
+
+    target_compile_options(llvm-with-cov
+        PUBLIC
+            "__STDC_CONSTANT_MACROS"
+            "__STDC_LIMIT_MACROS"
+    )
 
     if(LINUX OR APPLE)
         target_link_libraries(llvm-with-cov llvm pthread)
