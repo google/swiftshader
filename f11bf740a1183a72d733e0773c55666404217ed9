@@ -93,6 +93,30 @@
       "revId": "f11bf740a1183a72d733e0773c55666404217ed9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38822253_16376b43",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-04-20T14:10:04Z",
+      "side": 1,
+      "message": "I didn\u0027t mean the double negative, it should have been:\n\n  Disable `-Wunused-parameter`\n\nor\n\n  Enable `-Wno-unused-parameter`\n\n\u003e Is this warning part of -Wextra but it\u0027s too aggressive so we\u0027re suppressing it?\n\nYes. We have a lot of functions with named parameters that are unused.",
+      "parentUuid": "9128ebf1_3fb9f8d9",
+      "range": {
+        "startLine": 421,
+        "startChar": 12,
+        "endLine": 421,
+        "endChar": 72
+      },
+      "revId": "f11bf740a1183a72d733e0773c55666404217ed9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
