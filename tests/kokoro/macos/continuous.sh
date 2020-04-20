@@ -5,6 +5,8 @@ set -e
 # Display commands being run.
 set -x
 
+cmake --version
+
 cd git/SwiftShader
 
 mkdir -p build && cd build

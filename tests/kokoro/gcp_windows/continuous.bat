@@ -20,6 +20,10 @@ SET LESS_DEBUG_INFO=1
 cd %SRC%\build
 if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
+rem Update CMake
+choco upgrade cmake -y --limit-output --no-progress
+cmake --version
+
 cmake .. ^
     -G "Visual Studio 15 2017 Win64" ^
     -Thost=x64 ^
