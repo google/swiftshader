@@ -420,7 +420,7 @@ llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Value *offs
 	ASSERT(offsets->getType()->isVectorTy());
 	ASSERT(mask->getType()->isVectorTy());
 
-	auto numEls = mask->getType()->getVectorNumElements();
+	auto numEls = llvm::cast<llvm::VectorType>(mask->getType())->getNumElements();
 	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 	auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
@@ -445,13 +445,13 @@ void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, ll
 	ASSERT(offsets->getType()->isVectorTy());
 	ASSERT(mask->getType()->isVectorTy());
 
-	auto numEls = mask->getType()->getVectorNumElements();
+	auto numEls = llvm::cast<llvm::VectorType>(mask->getType())->getNumElements();
 	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 	auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 	auto i8PtrTy = i8Ty->getPointerTo();
 	auto elVecTy = val->getType();
-	auto elTy = elVecTy->getVectorElementType();
+	auto elTy = llvm::cast<llvm::VectorType>(elVecTy)->getElementType();
 	auto elPtrTy = elTy->getPointerTo();
 	auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
 	auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
@@ -1133,7 +1133,7 @@ Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned i
 	ASSERT(V(ptr)->getType()->isPointerTy());
 	ASSERT(V(mask)->getType()->isVectorTy());
 
-	auto numEls = V(mask)->getType()->getVectorNumElements();
+	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
 	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 	auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
@@ -1153,7 +1153,7 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	ASSERT(V(val)->getType()->isVectorTy());
 	ASSERT(V(mask)->getType()->isVectorTy());
 
-	auto numEls = V(mask)->getType()->getVectorNumElements();
+	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
 	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 	auto elVecTy = V(val)->getType();
