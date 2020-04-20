@@ -551,10 +551,6 @@ if(NOT MSVC)
 endif()
 unset(USE_EXCEPTIONS)
 
-# Transform SWIFTSHADER_LINK_FLAGS from semicolon delimited to whitespace
-# delimited (what is expected by LINK_FLAGS)
-string(REPLACE ";" " " SWIFTSHADER_LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}")
-
 ###########################################################
 # libbacktrace and boost
 ###########################################################

@@ -33,13 +33,17 @@ add_executable(system-benchmarks
 
 set_target_properties(system-benchmarks PROPERTIES
     FOLDER "Benchmarks"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 target_compile_options(system-benchmarks
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(system-benchmarks
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(system-benchmarks

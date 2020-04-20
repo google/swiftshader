@@ -87,7 +87,6 @@ add_dependencies(vk_pipeline spirv_tools_ext_includes)
 set_target_properties(vk_pipeline PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "SwiftShader VK"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
 
 target_include_directories(vk_pipeline
@@ -101,6 +100,11 @@ target_include_directories(vk_pipeline
 target_compile_options(vk_pipeline
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(vk_pipeline
+    PUBLIC
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(vk_pipeline

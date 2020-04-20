@@ -33,13 +33,17 @@ add_executable(ReactorUnitTests
 
 set_target_properties(ReactorUnitTests PROPERTIES
     FOLDER "Tests"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 target_compile_options(ReactorUnitTests
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(ReactorUnitTests
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(ReactorUnitTests

@@ -61,7 +61,6 @@ add_library(gl_main EXCLUDE_FROM_ALL
 set_target_properties(gl_main PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "SwiftShader GL"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
 
 target_include_directories(gl_main
@@ -79,6 +78,11 @@ target_compile_definitions(gl_main
 target_compile_options(gl_main
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(gl_main
+    PUBLIC
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(gl_main

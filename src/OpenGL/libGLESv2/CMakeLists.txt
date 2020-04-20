@@ -81,7 +81,6 @@ set_target_properties(libGLESv2 PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
     PREFIX ""
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
@@ -104,6 +103,11 @@ target_compile_definitions(libGLESv2
 target_compile_options(libGLESv2
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(libGLESv2
+    PUBLIC
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(libGLESv2

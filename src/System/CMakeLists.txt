@@ -56,7 +56,6 @@ add_library(vk_system EXCLUDE_FROM_ALL
 set_target_properties(vk_system PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "SwiftShader VK"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
 
 target_include_directories(vk_system
@@ -67,4 +66,9 @@ target_include_directories(vk_system
 target_compile_options(vk_system
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(vk_system
+    PUBLIC
+        ${SWIFTSHADER_LINK_FLAGS}
 )

@@ -44,7 +44,6 @@ add_dependencies(vk-unittests
 
 set_target_properties(vk-unittests PROPERTIES
     FOLDER "Tests"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
@@ -61,6 +60,11 @@ target_compile_definitions(vk-unittests
 target_compile_options(vk-unittests
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(vk-unittests
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(vk-unittests

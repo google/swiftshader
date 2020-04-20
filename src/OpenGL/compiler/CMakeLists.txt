@@ -127,7 +127,6 @@ add_library(GLCompiler
 set_target_properties(GLCompiler PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
 )
 
 target_include_directories(GLCompiler
@@ -144,6 +143,11 @@ target_compile_definitions(GLCompiler
 target_compile_options(GLCompiler
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(GLCompiler
+    PUBLIC
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(GLCompiler

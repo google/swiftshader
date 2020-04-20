@@ -137,8 +137,6 @@ if(FUCHSIA)
     # have system libraries available, so ensure it does not depend on libc++.so.
     list(APPEND VULKAN_LINKER_FLAGS "-static-libstdc++")
 endif()
-# Convert list to space-delimited string for LINK_FLAGS
-string(REPLACE ";" " " VULKAN_LINKER_FLAGS "${VULKAN_LINKER_FLAGS}")
 
 add_library(vk_swiftshader SHARED
     ${VULKAN_SRC_FILES}
@@ -147,7 +145,6 @@ add_library(vk_swiftshader SHARED
 set_target_properties(vk_swiftshader PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "SwiftShader VK"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS} ${VULKAN_LINKER_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
@@ -167,6 +164,12 @@ target_compile_definitions(vk_swiftshader
     PRIVATE
         "VK_EXPORT="
         $<$<CONFIG:Debug>:"DEBUGGER_WAIT_DIALOG">
+)
+
+target_link_options(vk_swiftshader
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
+        ${VULKAN_LINKER_FLAGS}
 )
 
 target_link_libraries(vk_swiftshader

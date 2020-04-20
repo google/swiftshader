@@ -34,13 +34,17 @@ add_executable(system-unittests
 
 set_target_properties(system-unittests PROPERTIES
     FOLDER "Tests"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 target_compile_options(system-unittests
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(system-unittests
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(system-unittests

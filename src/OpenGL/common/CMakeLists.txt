@@ -42,7 +42,6 @@ add_library(libGLESCommon
 set_target_properties(libGLESCommon PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     PREFIX ""
 )
 
@@ -60,6 +59,11 @@ target_compile_definitions(libGLESCommon
 target_compile_options(libGLESCommon
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(libGLESCommon
+    PUBLIC
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(libGLESCommon

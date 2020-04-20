@@ -33,7 +33,6 @@ add_executable(gles-unittests
 
 set_target_properties(gles-unittests PROPERTIES
     FOLDER "Tests"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
@@ -50,6 +49,11 @@ target_compile_definitions(gles-unittests
 target_compile_options(gles-unittests
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(gles-unittests
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(gles-unittests

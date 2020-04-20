@@ -33,13 +33,17 @@ add_executable(ReactorBenchmarks
 
 set_target_properties(ReactorBenchmarks PROPERTIES
     FOLDER "Benchmarks"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 target_compile_options(ReactorBenchmarks
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(ReactorBenchmarks
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(ReactorBenchmarks

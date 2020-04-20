@@ -33,13 +33,17 @@ add_executable(math-unittests
 
 set_target_properties(math-unittests PROPERTIES
     FOLDER "Tests"
-    LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 target_compile_options(math-unittests
     PRIVATE
         ${ROOT_PROJECT_COMPILE_OPTIONS}
+)
+
+target_link_options(math-unittests
+    PRIVATE
+        ${SWIFTSHADER_LINK_FLAGS}
 )
 
 target_link_libraries(math-unittests
