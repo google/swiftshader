@@ -46,6 +46,30 @@
       "revId": "f11bf740a1183a72d733e0773c55666404217ed9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0873c1fc_115b78ba",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-04-20T14:03:14Z",
+      "side": 1,
+      "message": "My confusion was due to removing a -Wno-* warning suppression, thus enabling the warning. \"Disable\" was the word that tripped me.",
+      "parentUuid": "c54a8748_d5107751",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 31
+      },
+      "revId": "f11bf740a1183a72d733e0773c55666404217ed9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
