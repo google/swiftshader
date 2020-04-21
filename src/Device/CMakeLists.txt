@@ -76,4 +76,5 @@ target_compile_options(vk_device
 target_link_libraries(vk_device
     PUBLIC
         vk_pipeline
+        $<$<BOOL:${SWIFTSHADER_ENABLE_ASTC}>:astc-encoder>
 )
