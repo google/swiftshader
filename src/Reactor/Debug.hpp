@@ -69,23 +69,15 @@ void trace_assert(const char *format, ...) CHECK_PRINTF_ARGS;
 // A macro to print a warning message to the debugging log and stderr.
 #define WARN(message, ...) rr::warn("%s:%d WARNING: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-// A macro that prints the message to the debugging log and stderr and
-// immediately aborts execution of the application.
-//
-// Note: This will terminate the application regardless of build flags!
-//       Use with extreme caution!
-#undef ABORT
-#define ABORT(message, ...) rr::abort("%s:%d ABORT: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
-
 // A macro that delegates to:
-//   ABORT() in debug builds (!NDEBUG || DCHECK_ALWAYS_ON)
+//   abort() in debug builds (!NDEBUG || DCHECK_ALWAYS_ON)
 // or
-//   WARN() in release builds (NDEBUG && !DCHECK_ALWAYS_ON)
+//   warn() in release builds (NDEBUG && !DCHECK_ALWAYS_ON)
 #undef DABORT
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-#	define DABORT(message, ...) ABORT(message, ##__VA_ARGS__)
+#	define DABORT(message, ...) rr::abort("%s:%d ABORT: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-#	define DABORT(message, ...) WARN(message, ##__VA_ARGS__)
+#	define DABORT(message, ...) rr::warn("%s:%d WARNING: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
 #endif
 
 // A macro asserting a condition.
