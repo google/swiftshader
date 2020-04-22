@@ -27,21 +27,29 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo);
 
-	size_t getNumDescriptorSets() const;
-	DescriptorSetLayout const *getDescriptorSetLayout(size_t descriptorSet) const;
+	size_t getDescriptorSetCount() const;
+	uint32_t getDynamicDescriptorCount(uint32_t setNumber) const;
 
-	// Returns the starting index into the pipeline's dynamic offsets array for
-	// the given descriptor set.
-	uint32_t getDynamicOffsetBase(size_t descriptorSet) const;
+	// Returns the index into the pipeline's dynamic offsets array for
+	// the given descriptor set (and binding number).
+	uint32_t getDynamicOffsetBaseIndex(uint32_t setNumber) const;
+	uint32_t getDynamicOffsetIndex(uint32_t setNumber, uint32_t bindingNumber) const;
+
+	uint32_t getBindingOffset(uint32_t setNumber, uint32_t bindingNumber) const;
+	VkDescriptorType getDescriptorType(uint32_t setNumber, uint32_t bindingNumber) const;
+	uint32_t getDescriptorSize(uint32_t setNumber, uint32_t bindingNumber) const;
+	bool isDescriptorDynamic(uint32_t setNumber, uint32_t bindingNumber) const;
 
 	const uint32_t identifier;
 
 private:
-	uint32_t setLayoutCount = 0;
-	DescriptorSetLayout **setLayouts = nullptr;
-	uint32_t pushConstantRangeCount = 0;
+	DescriptorSetLayout const *getDescriptorSetLayout(size_t descriptorSet) const;
+
+	const uint32_t descriptorSetCount = 0;
+	const DescriptorSetLayout **descriptorSetLayouts = nullptr;
+	const uint32_t pushConstantRangeCount = 0;
 	VkPushConstantRange *pushConstantRanges = nullptr;
-	uint32_t *dynamicOffsetBases = nullptr;  // Base offset per set layout.
+	uint32_t *dynamicOffsetBaseIndices = nullptr;  // Base index per descriptor set for dynamic buffer offsets.
 };
 
 static inline PipelineLayout *Cast(VkPipelineLayout object)

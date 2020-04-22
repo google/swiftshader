@@ -16,6 +16,7 @@
 #define VK_OBJECT_HPP_
 
 #include "VkMemory.h"
+
 #include "VkConfig.h"
 #include "System/Memory.hpp"
 

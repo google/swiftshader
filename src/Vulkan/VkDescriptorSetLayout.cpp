@@ -109,7 +109,7 @@ size_t DescriptorSetLayout::ComputeRequiredAllocationSize(const VkDescriptorSetL
 	       immutableSamplerCount * sizeof(VkSampler);
 }
 
-size_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
+uint32_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 {
 	switch(type)
 	{
@@ -117,20 +117,26 @@ size_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
 		case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-			return sizeof(SampledImageDescriptor);
+			return static_cast<uint32_t>(sizeof(SampledImageDescriptor));
 		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 		case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
 		case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-			return sizeof(StorageImageDescriptor);
+			return static_cast<uint32_t>(sizeof(StorageImageDescriptor));
 		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
 		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-			return sizeof(BufferDescriptor);
+			return static_cast<uint32_t>(sizeof(BufferDescriptor));
 		default:
 			UNSUPPORTED("Unsupported Descriptor Type");
 			return 0;
 	}
+}
+
+bool DescriptorSetLayout::IsDescriptorDynamic(VkDescriptorType type)
+{
+	return type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ||
+	       type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 }
 
 size_t DescriptorSetLayout::getDescriptorSetAllocationSize() const
@@ -176,29 +182,10 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 	}
 }
 
-size_t DescriptorSetLayout::getBindingStride(uint32_t binding) const
+uint32_t DescriptorSetLayout::getBindingOffset(uint32_t bindingNumber) const
 {
-	ASSERT(binding < bindingsArraySize);
-	return GetDescriptorSize(bindings[binding].descriptorType);
-}
-
-size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, size_t arrayElement) const
-{
-	ASSERT(binding < bindingsArraySize && arrayElement < bindings[binding].descriptorCount);
-	auto typeSize = GetDescriptorSize(bindings[binding].descriptorType);
-	return bindings[binding].offset + (typeSize * arrayElement);
-}
-
-bool DescriptorSetLayout::isDynamic(VkDescriptorType type)
-{
-	return type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ||
-	       type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-}
-
-bool DescriptorSetLayout::isBindingDynamic(uint32_t binding) const
-{
-	ASSERT(binding < bindingsArraySize);
-	return isDynamic(bindings[binding].descriptorType);
+	ASSERT(bindingNumber < bindingsArraySize);
+	return bindings[bindingNumber].offset;
 }
 
 uint32_t DescriptorSetLayout::getDynamicDescriptorCount() const
@@ -206,7 +193,7 @@ uint32_t DescriptorSetLayout::getDynamicDescriptorCount() const
 	uint32_t count = 0;
 	for(size_t i = 0; i < bindingsArraySize; i++)
 	{
-		if(isDynamic(bindings[i].descriptorType))
+		if(IsDescriptorDynamic(bindings[i].descriptorType))
 		{
 			count += bindings[i].descriptorCount;
 		}
@@ -215,15 +202,15 @@ uint32_t DescriptorSetLayout::getDynamicDescriptorCount() const
 	return count;
 }
 
-uint32_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
+uint32_t DescriptorSetLayout::getDynamicOffsetIndex(uint32_t bindingNumber) const
 {
-	ASSERT(binding < bindingsArraySize);
-	ASSERT(isDynamic(bindings[binding].descriptorType));
+	ASSERT(bindingNumber < bindingsArraySize);
+	ASSERT(IsDescriptorDynamic(bindings[bindingNumber].descriptorType));
 
 	uint32_t index = 0;
-	for(uint32_t i = 0; i < binding; i++)
+	for(uint32_t i = 0; i < bindingNumber; i++)
 	{
-		if(isDynamic(bindings[i].descriptorType))
+		if(IsDescriptorDynamic(bindings[i].descriptorType))
 		{
 			index += bindings[i].descriptorCount;
 		}
@@ -232,17 +219,17 @@ uint32_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
 	return index;
 }
 
-VkDescriptorType DescriptorSetLayout::getDescriptorType(uint32_t binding) const
+VkDescriptorType DescriptorSetLayout::getDescriptorType(uint32_t bindingNumber) const
 {
-	ASSERT(binding < bindingsArraySize);
-	return bindings[binding].descriptorType;
+	ASSERT(bindingNumber < bindingsArraySize);
+	return bindings[bindingNumber].descriptorType;
 }
 
-uint8_t *DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t *typeSize) const
+uint8_t *DescriptorSetLayout::getDescriptorPointer(DescriptorSet *descriptorSet, uint32_t bindingNumber, uint32_t arrayElement, uint32_t count, size_t *typeSize) const
 {
-	ASSERT(binding < bindingsArraySize);
-	*typeSize = GetDescriptorSize(bindings[binding].descriptorType);
-	size_t byteOffset = bindings[binding].offset + (*typeSize * arrayElement);
+	ASSERT(bindingNumber < bindingsArraySize);
+	*typeSize = GetDescriptorSize(bindings[bindingNumber].descriptorType);
+	size_t byteOffset = bindings[bindingNumber].offset + (*typeSize * arrayElement);
 	ASSERT(((*typeSize * count) + byteOffset) <= getDescriptorSetDataSize());  // Make sure the operation will not go out of bounds
 
 	return &descriptorSet->data[byteOffset];
@@ -261,7 +248,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 	ASSERT(binding.descriptorType == entry.descriptorType);
 
 	size_t typeSize = 0;
-	uint8_t *memToWrite = dstLayout->getOffsetPointer(dstSet, entry.dstBinding, entry.dstArrayElement, entry.descriptorCount, &typeSize);
+	uint8_t *memToWrite = dstLayout->getDescriptorPointer(dstSet, entry.dstBinding, entry.dstArrayElement, entry.descriptorCount, &typeSize);
 
 	ASSERT(reinterpret_cast<intptr_t>(memToWrite) % 16 == 0);  // Each descriptor must be 16-byte aligned.
 
@@ -629,10 +616,10 @@ void DescriptorSetLayout::CopyDescriptorSet(const VkCopyDescriptorSet &descripto
 	ASSERT(dstLayout);
 
 	size_t srcTypeSize = 0;
-	uint8_t *memToRead = srcLayout->getOffsetPointer(srcSet, descriptorCopies.srcBinding, descriptorCopies.srcArrayElement, descriptorCopies.descriptorCount, &srcTypeSize);
+	uint8_t *memToRead = srcLayout->getDescriptorPointer(srcSet, descriptorCopies.srcBinding, descriptorCopies.srcArrayElement, descriptorCopies.descriptorCount, &srcTypeSize);
 
 	size_t dstTypeSize = 0;
-	uint8_t *memToWrite = dstLayout->getOffsetPointer(dstSet, descriptorCopies.dstBinding, descriptorCopies.dstArrayElement, descriptorCopies.descriptorCount, &dstTypeSize);
+	uint8_t *memToWrite = dstLayout->getDescriptorPointer(dstSet, descriptorCopies.dstBinding, descriptorCopies.dstArrayElement, descriptorCopies.descriptorCount, &dstTypeSize);
 
 	ASSERT(srcTypeSize == dstTypeSize);
 	size_t writeSize = dstTypeSize * descriptorCopies.descriptorCount;

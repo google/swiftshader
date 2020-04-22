@@ -345,8 +345,7 @@ void SpirvShader::GetImageDimensions(EmitState const *state, Type const &resultT
 	bool isCubeMap = imageType.definition.word(3) == spv::DimCube;
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-	auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-	auto descriptorType = setLayout->getDescriptorType(d.Binding);
+	auto descriptorType = routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 
@@ -409,8 +408,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQueryLevels(InsnIterator insn, Emi
 	auto imageId = Object::ID(insn.word(3));
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-	auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-	auto descriptorType = setLayout->getDescriptorType(d.Binding);
+	auto descriptorType = state->routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 	Int mipLevels = 0;
@@ -442,8 +440,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 	ASSERT(imageTy.definition.word(6 /* MS */) == 1);
 
 	const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-	auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-	auto descriptorType = setLayout->getDescriptorType(d.Binding);
+	auto descriptorType = state->routine->pipelineLayout->getDescriptorType(d.DescriptorSet, d.Binding);
 
 	Pointer<Byte> descriptor = state->getPointer(imageId).base;
 	Int sampleCount = 0;

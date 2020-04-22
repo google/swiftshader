@@ -1236,9 +1236,8 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 					auto d = descriptorDecorations.at(baseId);
 					ASSERT(d.DescriptorSet >= 0);
 					ASSERT(d.Binding >= 0);
-					auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-					auto stride = static_cast<uint32_t>(setLayout->getBindingStride(d.Binding));
-					ptr.base += stride * GetConstScalarInt(indexIds[i]);
+					uint32_t descriptorSize = routine->pipelineLayout->getDescriptorSize(d.DescriptorSet, d.Binding);
+					ptr.base += descriptorSize * GetConstScalarInt(indexIds[i]);
 				}
 				else
 				{

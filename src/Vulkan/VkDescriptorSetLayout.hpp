@@ -21,6 +21,8 @@
 #include "Vulkan/VkImageView.hpp"
 #include "Vulkan/VkSampler.hpp"
 
+#include <cstdint>
+
 namespace vk {
 
 class DescriptorSet;
@@ -93,7 +95,9 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo *pCreateInfo);
 
-	static size_t GetDescriptorSize(VkDescriptorType type);
+	static uint32_t GetDescriptorSize(VkDescriptorType type);
+	static bool IsDescriptorDynamic(VkDescriptorType type);
+
 	static void WriteDescriptorSet(Device *device, const VkWriteDescriptorSet &descriptorWrites);
 	static void CopyDescriptorSet(const VkCopyDescriptorSet &descriptorCopies);
 
@@ -106,33 +110,23 @@ public:
 	size_t getDescriptorSetAllocationSize() const;
 
 	// Returns the byte offset from the base address of the descriptor set for
-	// the given binding and array element within that binding.
-	size_t getBindingOffset(uint32_t binding, size_t arrayElement) const;
+	// the given binding.
+	uint32_t getBindingOffset(uint32_t bindingNumber) const;
 
-	// Returns the stride of an array of descriptors
-	size_t getBindingStride(uint32_t binding) const;
-
-	// Returns the number of descriptors across all bindings that are dynamic
-	// (see isBindingDynamic).
+	// Returns the number of descriptors across all bindings that are dynamic.
 	uint32_t getDynamicDescriptorCount() const;
 
-	// Returns the relative offset into the pipeline's dynamic offsets array for
-	// the given binding. This offset should be added to the base offset
+	// Returns the relative index into the pipeline's dynamic offsets array for
+	// the given binding. This index should be added to the base index
 	// returned by PipelineLayout::getDynamicOffsetBase() to produce the
 	// starting index for dynamic descriptors.
-	uint32_t getDynamicDescriptorOffset(uint32_t binding) const;
-
-	// Returns true if the given binding is of type:
-	//  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC or
-	//  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
-	bool isBindingDynamic(uint32_t binding) const;
+	uint32_t getDynamicOffsetIndex(uint32_t bindingNumber) const;
 
 	// Returns the descriptor type for the given binding.
-	VkDescriptorType getDescriptorType(uint32_t binding) const;
-
-	uint8_t *getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t *typeSize) const;
+	VkDescriptorType getDescriptorType(uint32_t bindingNumber) const;
 
 private:
+	uint8_t *getDescriptorPointer(DescriptorSet *descriptorSet, uint32_t bindingNumber, uint32_t arrayElement, uint32_t count, size_t *typeSize) const;
 	size_t getDescriptorSetDataSize() const;
 	static bool isDynamic(VkDescriptorType type);
 
