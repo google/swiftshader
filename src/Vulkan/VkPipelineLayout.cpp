@@ -13,12 +13,17 @@
 // limitations under the License.
 
 #include "VkPipelineLayout.hpp"
+
+#include <atomic>
 #include <cstring>
 
 namespace vk {
 
+static std::atomic<uint32_t> layoutIdentifierSerial = { 1 };  // Start at 1. 0 is invalid/void layout.
+
 PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, void *mem)
-    : setLayoutCount(pCreateInfo->setLayoutCount)
+    : identifier(layoutIdentifierSerial++)
+    , setLayoutCount(pCreateInfo->setLayoutCount)
     , pushConstantRangeCount(pCreateInfo->pushConstantRangeCount)
 {
 	char *hostMem = reinterpret_cast<char *>(mem);

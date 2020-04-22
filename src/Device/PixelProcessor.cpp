@@ -19,6 +19,7 @@
 #include "Pipeline/PixelProgram.hpp"
 #include "System/Debug.hpp"
 #include "Vulkan/VkImageView.hpp"
+#include "Vulkan/VkPipelineLayout.hpp"
 
 #include <cstring>
 
@@ -99,10 +100,12 @@ const PixelProcessor::State PixelProcessor::update(const Context *context) const
 	if(context->pixelShader)
 	{
 		state.shaderID = context->pixelShader->getSerialID();
+		state.pipelineLayoutIdentifier = context->pipelineLayout->identifier;
 	}
 	else
 	{
 		state.shaderID = 0;
+		state.pipelineLayoutIdentifier = 0;
 	}
 
 	state.alphaToCoverage = context->alphaToCoverage;

@@ -18,6 +18,7 @@
 #include "Pipeline/VertexProgram.hpp"
 #include "System/Debug.hpp"
 #include "System/Math.hpp"
+#include "Vulkan/VkPipelineLayout.hpp"
 
 #include <cstring>
 
@@ -77,6 +78,7 @@ const VertexProcessor::State VertexProcessor::update(const sw::Context *context)
 	State state;
 
 	state.shaderID = context->vertexShader->getSerialID();
+	state.pipelineLayoutIdentifier = context->pipelineLayout->identifier;
 	state.robustBufferAccess = context->robustBufferAccess;
 	state.isPoint = context->topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 

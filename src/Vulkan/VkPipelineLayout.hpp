@@ -34,6 +34,8 @@ public:
 	// the given descriptor set.
 	uint32_t getDynamicOffsetBase(size_t descriptorSet) const;
 
+	const uint32_t identifier;
+
 private:
 	uint32_t setLayoutCount = 0;
 	DescriptorSetLayout **setLayouts = nullptr;

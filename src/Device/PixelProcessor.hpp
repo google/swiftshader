@@ -63,6 +63,7 @@ public:
 		uint32_t computeHash();
 
 		uint64_t shaderID;
+		uint32_t pipelineLayoutIdentifier;
 
 		unsigned int numClipDistances;
 		unsigned int numCullDistances;
