@@ -730,6 +730,14 @@ SpirvShader::SpirvShader(
 		it.second.AssignBlockFields();
 	}
 
+#ifdef SPIRV_SHADER_CFG_GRAPHVIZ_DOT_FILEPATH
+	{
+		char path[1024];
+		snprintf(path, sizeof(path), SPIRV_SHADER_CFG_GRAPHVIZ_DOT_FILEPATH, codeSerialID);
+		WriteCFGGraphVizDotFile(path);
+	}
+#endif
+
 	dbgCreateFile();
 }
 

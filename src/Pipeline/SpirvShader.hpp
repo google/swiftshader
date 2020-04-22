@@ -1214,6 +1214,10 @@ private:
 	// Helper for calling rr::Yield with res cast to an rr::Int.
 	void Yield(YieldResult res) const;
 
+	// WriteCFGGraphVizDotFile() writes a graphviz dot file of the shader's
+	// control flow to the given file path.
+	void WriteCFGGraphVizDotFile(const char *path) const;
+
 	// OpcodeName() returns the name of the opcode op.
 	// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
 	static std::string OpcodeName(spv::Op op);

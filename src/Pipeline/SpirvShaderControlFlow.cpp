@@ -23,6 +23,9 @@
 
 #include <queue>
 
+#include <fstream>
+#include <iostream>
+
 namespace sw {
 
 SpirvShader::Block::Block(InsnIterator begin, InsnIterator end)
@@ -727,6 +730,85 @@ void SpirvShader::SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) co
 {
 	state->activeLaneMaskValue = mask.value;
 	dbgUpdateActiveLaneMask(mask, state);
+}
+
+void SpirvShader::WriteCFGGraphVizDotFile(const char *path) const
+{
+	std::ofstream file(path);
+	file << "digraph D {" << std::endl;
+	for(auto &func : functions)
+	{
+		file << "  subgraph cluster_function_" << func.first.value() << " {"
+		     << std::endl;
+
+		file << "    label = \"function<" << func.first.value() << ">"
+		     << (func.first == entryPoint ? " (entry point)" : "")
+		     << "\"" << std::endl;
+
+		for(auto &block : func.second.blocks)
+		{
+			file << "    block_" << block.first.value() << " ["
+			     << "shape=circle "
+			     << "label=\"" << block.first.value() << "\""
+			     << "]" << std::endl;
+		}
+		file << std::endl;
+		for(auto &block : func.second.blocks)
+		{
+			file << "    block_" << block.first.value() << " -> {";
+			bool first = true;
+			for(auto outs : block.second.outs)
+			{
+				if(!first) { file << ", "; }
+				file << "block_" << outs.value();
+				first = false;
+			}
+			file << "}" << std::endl;
+		}
+		file << std::endl;
+		for(auto &block : func.second.blocks)
+		{
+			if(block.second.kind == Block::Loop)
+			{
+				if(block.second.mergeBlock != 0)
+				{
+					file << "    block_" << block.first.value() << " -> "
+					     << "block_" << block.second.mergeBlock.value()
+					     << "[label=\"M\" style=dashed color=blue]"
+					     << std::endl;
+				}
+				if(block.second.continueTarget != 0)
+				{
+					file << "    block_" << block.first.value() << " -> "
+					     << "block_" << block.second.continueTarget.value()
+					     << "[label=\"C\" style=dashed color=green]"
+					     << std::endl;
+				}
+			}
+		}
+
+		file << "  }" << std::endl;
+	}
+
+	for(auto &func : functions)
+	{
+		for(auto &block : func.second.blocks)
+		{
+			for(auto insn : block.second)
+			{
+				if(insn.opcode() == spv::OpFunctionCall)
+				{
+					auto target = getFunction(insn.word(3)).entry;
+					file << "    block_" << block.first.value() << " -> "
+					     << "block_" << target.value()
+					     << "[color=\"#00008050\"]"
+					     << std::endl;
+				}
+			}
+		}
+	}
+
+	file << "}" << std::endl;
 }
 
 }  // namespace sw

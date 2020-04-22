@@ -20,6 +20,13 @@
 // reduced to 1 and execution is deterministic.
 #define SPIRV_SHADER_ENABLE_DBG 0
 
+// Enable this to write a GraphViz dot file containing a graph of the shader's
+// control flow to the given file path. Helpful for diagnosing control-flow
+// related issues.
+#if 0
+#	define SPIRV_SHADER_CFG_GRAPHVIZ_DOT_FILEPATH "swiftshader_%d.dot"
+#endif
+
 #if SPIRV_SHADER_ENABLE_DBG
 #	define SPIRV_SHADER_DBG(fmt, ...) rr::Print(fmt "\n", ##__VA_ARGS__)
 #	include "spirv-tools/libspirv.h"
