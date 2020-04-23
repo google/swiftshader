@@ -126,6 +126,12 @@ std::vector<Frame> Thread::stack() const
 	return out;
 }
 
+size_t Thread::depth() const
+{
+	marl::lock lock(mutex);
+	return frames.size();
+}
+
 Thread::State Thread::state() const
 {
 	marl::lock lock(mutex);

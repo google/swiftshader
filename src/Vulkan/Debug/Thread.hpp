@@ -136,6 +136,9 @@ public:
 	// stack() returns a copy of the thread's current stack frames.
 	std::vector<Frame> stack() const;
 
+	// depth() returns the number of stack frames.
+	size_t depth() const;
+
 	// state() returns the current thread's state.
 	State state() const;
 

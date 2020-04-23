@@ -568,6 +568,8 @@ public:
 	Scopes rootScopes;                                                                        // Scopes for the root stack frame.
 	std::array<std::shared_ptr<vk::dbg::VariableContainer>, sw::SIMD::Width> builtinsByLane;  // Scopes for builtin varibles (shared by all shader frames).
 	debug::SourceScope *srcScope = nullptr;                                                   // Current source scope.
+
+	const size_t initialThreadDepth = 0;
 };
 
 SpirvShader::Impl::Debugger::State *SpirvShader::Impl::Debugger::State::create(const Debugger *debugger, const char *name)
@@ -584,6 +586,7 @@ void SpirvShader::Impl::Debugger::State::destroy(State *state)
 SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *stackBase, vk::dbg::Context::Lock &lock)
     : debugger(debugger)
     , thread(lock.currentThread())
+    , initialThreadDepth(thread->depth())
 {
 	enter(lock, stackBase);
 
@@ -607,7 +610,10 @@ SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *
 
 SpirvShader::Impl::Debugger::State::~State()
 {
-	exit();
+	for(auto depth = thread->depth(); depth > initialThreadDepth; depth--)
+	{
+		exit();
+	}
 }
 
 void SpirvShader::Impl::Debugger::State::enter(vk::dbg::Context::Lock &lock, const char *name)
