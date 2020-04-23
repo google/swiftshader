@@ -21,7 +21,7 @@ if [[ "${LLVM_VERSION}" == "10.0" ]]; then
 fi
 
 # Lower the amount of debug info, to reduce Kokoro build times.
-LESS_DEBUG_INFO=1
+SWIFTSHADER_LESS_DEBUG_INFO=1
 
 # Disable ASAN checks for debug builds, to reduce Kokoro build times.
 # ASAN builds are recommended to be optimized.
@@ -36,7 +36,7 @@ cmake .. \
     "-DREACTOR_BACKEND=${REACTOR_BACKEND}" \
     "-DSWIFTSHADER_LLVM_VERSION=${LLVM_VERSION}" \
     "-DREACTOR_VERIFY_LLVM_IR=1" \
-    "-DLESS_DEBUG_INFO=${LESS_DEBUG_INFO}"
+    "-DSWIFTSHADER_LESS_DEBUG_INFO=${SWIFTSHADER_LESS_DEBUG_INFO}"
 cmake --build . -- -j$(sysctl -n hw.logicalcpu)
 
 # Run unit tests
