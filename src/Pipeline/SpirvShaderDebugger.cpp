@@ -106,6 +106,7 @@ struct Object
 		Expression,
 		Function,
 		InlinedAt,
+		GlobalVariable,
 		LocalVariable,
 		Member,
 		Operation,
@@ -119,6 +120,7 @@ struct Object
 
 		// Types
 		BasicType,
+		ArrayType,
 		VectorType,
 		FunctionType,
 		CompositeType,
@@ -146,6 +148,7 @@ constexpr const char *cstr(Object::Kind k)
 		case Object::Kind::Expression: return "Expression";
 		case Object::Kind::Function: return "Function";
 		case Object::Kind::InlinedAt: return "InlinedAt";
+		case Object::Kind::GlobalVariable: return "GlobalVariable";
 		case Object::Kind::LocalVariable: return "LocalVariable";
 		case Object::Kind::Member: return "Member";
 		case Object::Kind::Operation: return "Operation";
@@ -155,6 +158,7 @@ constexpr const char *cstr(Object::Kind k)
 		case Object::Kind::CompilationUnit: return "CompilationUnit";
 		case Object::Kind::LexicalBlock: return "LexicalBlock";
 		case Object::Kind::BasicType: return "BasicType";
+		case Object::Kind::ArrayType: return "ArrayType";
 		case Object::Kind::VectorType: return "VectorType";
 		case Object::Kind::FunctionType: return "FunctionType";
 		case Object::Kind::CompositeType: return "CompositeType";
@@ -227,6 +231,7 @@ struct Type : public Object
 	static constexpr bool kindof(Kind kind)
 	{
 		return kind == Kind::BasicType ||
+		       kind == Kind::ArrayType ||
 		       kind == Kind::VectorType ||
 		       kind == Kind::FunctionType ||
 		       kind == Kind::CompositeType;
@@ -252,6 +257,12 @@ struct BasicType : ObjectImpl<BasicType, Type, Object::Kind::BasicType>
 	std::string name;
 	uint32_t size = 0;  // in bits.
 	OpenCLDebugInfo100DebugBaseTypeAttributeEncoding encoding = OpenCLDebugInfo100Unspecified;
+};
+
+struct ArrayType : ObjectImpl<ArrayType, Type, Object::Kind::ArrayType>
+{
+	Type *base = nullptr;
+	std::vector<uint32_t> dimensions;
 };
 
 struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
@@ -324,6 +335,19 @@ struct SourceScope : ObjectImpl<SourceScope, Object, Object::Kind::SourceScope>
 {
 	Scope *scope = nullptr;
 	InlinedAt *inlinedAt = nullptr;
+};
+
+struct GlobalVariable : ObjectImpl<GlobalVariable, Object, Object::Kind::GlobalVariable>
+{
+	std::string name;
+	Type *type = nullptr;
+	Source *source = nullptr;
+	uint32_t line = 0;
+	uint32_t column = 0;
+	Scope *parent = nullptr;
+	std::string linkage;
+	sw::SpirvShader::Object::ID variable;
+	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
 };
 
 struct LocalVariable : ObjectImpl<LocalVariable, Object, Object::Kind::LocalVariable>
@@ -889,6 +913,14 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				type->encoding = static_cast<OpenCLDebugInfo100DebugBaseTypeAttributeEncoding>(insn.word(7));
 			});
 			break;
+		case OpenCLDebugInfo100DebugTypeArray:
+			defineOrEmit(insn, pass, [&](debug::ArrayType *type) {
+				type->base = get(debug::Type::ID(insn.word(5)));
+				auto &components = shader->getObject(insn.word(6));
+				ASSERT(components.kind == SpirvShader::Object::Kind::Constant);
+				type->dimensions = components.constantValue;
+			});
+			break;
 		case OpenCLDebugInfo100DebugTypeVector:
 			defineOrEmit(insn, pass, [&](debug::VectorType *type) {
 				type->base = get(debug::Type::ID(insn.word(5)));
@@ -937,6 +969,22 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				member->offset = shader->GetConstScalarInt(insn.word(11));
 				member->size = shader->GetConstScalarInt(insn.word(12));
 				member->flags = insn.word(13);
+			});
+			break;
+		case OpenCLDebugInfo100DebugGlobalVariable:
+			defineOrEmit(insn, pass, [&](debug::GlobalVariable *var) {
+				var->name = shader->getString(insn.word(5));
+				var->type = get(debug::Type::ID(insn.word(6)));
+				var->source = get(debug::Source::ID(insn.word(7)));
+				var->line = insn.word(8);
+				var->column = insn.word(9);
+				var->parent = get(debug::Scope::ID(insn.word(10)));
+				var->linkage = shader->getString(insn.word(11));
+				var->variable = insn.word(12);
+				var->flags = insn.word(13);
+				// static member declaration: word(14)
+
+				exposeVariable(shader, var->name.c_str(), &debug::Scope::Root, var->type, var->variable, state);
 			});
 			break;
 		case OpenCLDebugInfo100DebugFunction:
@@ -1061,7 +1109,6 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 
 		case OpenCLDebugInfo100DebugTypePointer:
 		case OpenCLDebugInfo100DebugTypeQualifier:
-		case OpenCLDebugInfo100DebugTypeArray:
 		case OpenCLDebugInfo100DebugTypedef:
 		case OpenCLDebugInfo100DebugTypeEnum:
 		case OpenCLDebugInfo100DebugTypeInheritance:
@@ -1070,7 +1117,6 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 		case OpenCLDebugInfo100DebugTypeTemplateParameter:
 		case OpenCLDebugInfo100DebugTypeTemplateTemplateParameter:
 		case OpenCLDebugInfo100DebugTypeTemplateParameterPack:
-		case OpenCLDebugInfo100DebugGlobalVariable:
 		case OpenCLDebugInfo100DebugFunctionDeclaration:
 		case OpenCLDebugInfo100DebugLexicalBlockDiscriminator:
 		case OpenCLDebugInfo100DebugInlinedVariable:
@@ -1284,6 +1330,14 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 			}
 
 			return;
+		}
+		else if(auto ty = debug::cast<debug::ArrayType>(type))
+		{
+			// TODO(bclayton): Expose array types.
+		}
+		else
+		{
+			UNIMPLEMENTED("b/145351270: Debug type: %s", cstr(type->kind));
 		}
 	}
 
