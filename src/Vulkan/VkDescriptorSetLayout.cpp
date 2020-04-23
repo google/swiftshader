@@ -24,7 +24,7 @@
 #include <cstddef>
 #include <cstring>
 
-namespace {
+namespace vk {
 
 static bool UsesImmutableSamplers(const VkDescriptorSetLayoutBinding &binding)
 {
@@ -33,39 +33,56 @@ static bool UsesImmutableSamplers(const VkDescriptorSetLayoutBinding &binding)
 	        (binding.pImmutableSamplers != nullptr));
 }
 
-}  // anonymous namespace
-
-namespace vk {
-
 DescriptorSetLayout::DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo *pCreateInfo, void *mem)
     : flags(pCreateInfo->flags)
-    , bindingCount(pCreateInfo->bindingCount)
-    , bindings(reinterpret_cast<VkDescriptorSetLayoutBinding *>(mem))
+    , bindings(reinterpret_cast<Binding *>(mem))
 {
-	uint8_t *hostMemory = static_cast<uint8_t *>(mem) + bindingCount * sizeof(VkDescriptorSetLayoutBinding);
-	bindingOffsets = reinterpret_cast<size_t *>(hostMemory);
-	hostMemory += bindingCount * sizeof(size_t);
-
-	size_t offset = 0;
-	for(uint32_t i = 0; i < bindingCount; i++)
+	// The highest binding number determines the size of the direct-indexed array.
+	bindingsArraySize = 0;
+	for(uint32_t i = 0; i < pCreateInfo->bindingCount; i++)
 	{
-		bindings[i] = pCreateInfo->pBindings[i];
-		if(UsesImmutableSamplers(bindings[i]))
+		bindingsArraySize = std::max(bindingsArraySize, pCreateInfo->pBindings[i].binding + 1);
+	}
+
+	uint8_t *immutableSamplersStorage = static_cast<uint8_t *>(mem) + bindingsArraySize * sizeof(Binding);
+
+	// pCreateInfo->pBindings[] can have gaps in the binding numbers, so first initialize the entire bindings array.
+	// "Bindings that are not specified have a descriptorCount and stageFlags of zero, and the value of descriptorType is undefined."
+	for(uint32_t i = 0; i < bindingsArraySize; i++)
+	{
+		bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+		bindings[i].descriptorCount = 0;
+		bindings[i].immutableSamplers = nullptr;
+	}
+
+	for(uint32_t i = 0; i < pCreateInfo->bindingCount; i++)
+	{
+		const auto &srcBinding = pCreateInfo->pBindings[i];
+		auto &dstBinding = bindings[srcBinding.binding];
+
+		dstBinding.descriptorType = srcBinding.descriptorType;
+		dstBinding.descriptorCount = srcBinding.descriptorCount;
+
+		if(UsesImmutableSamplers(srcBinding))
 		{
-			size_t immutableSamplersSize = bindings[i].descriptorCount * sizeof(VkSampler);
-			bindings[i].pImmutableSamplers = reinterpret_cast<const VkSampler *>(hostMemory);
-			hostMemory += immutableSamplersSize;
-			memcpy(const_cast<VkSampler *>(bindings[i].pImmutableSamplers),
-			       pCreateInfo->pBindings[i].pImmutableSamplers,
-			       immutableSamplersSize);
+			size_t immutableSamplersSize = dstBinding.descriptorCount * sizeof(VkSampler);
+			dstBinding.immutableSamplers = reinterpret_cast<const vk::Sampler **>(immutableSamplersStorage);
+			immutableSamplersStorage += immutableSamplersSize;
+
+			for(uint32_t i = 0; i < dstBinding.descriptorCount; i++)
+			{
+				dstBinding.immutableSamplers[i] = vk::Cast(srcBinding.pImmutableSamplers[i]);
+			}
 		}
-		else
-		{
-			bindings[i].pImmutableSamplers = nullptr;
-		}
-		bindingOffsets[i] = offset;
+	}
+
+	uint32_t offset = 0;
+	for(uint32_t i = 0; i < bindingsArraySize; i++)
+	{
+		bindings[i].offset = offset;
 		offset += bindings[i].descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
 	}
+
 	ASSERT_MSG(offset == getDescriptorSetDataSize(), "offset: %d, size: %d", int(offset), int(getDescriptorSetDataSize()));
 }
 
@@ -76,17 +93,20 @@ void DescriptorSetLayout::destroy(const VkAllocationCallbacks *pAllocator)
 
 size_t DescriptorSetLayout::ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo *pCreateInfo)
 {
-	size_t allocationSize = pCreateInfo->bindingCount * (sizeof(VkDescriptorSetLayoutBinding) + sizeof(size_t));
-
+	uint32_t bindingsArraySize = 0;
+	uint32_t immutableSamplerCount = 0;
 	for(uint32_t i = 0; i < pCreateInfo->bindingCount; i++)
 	{
+		bindingsArraySize = std::max(bindingsArraySize, pCreateInfo->pBindings[i].binding + 1);
+
 		if(UsesImmutableSamplers(pCreateInfo->pBindings[i]))
 		{
-			allocationSize += pCreateInfo->pBindings[i].descriptorCount * sizeof(VkSampler);
+			immutableSamplerCount += pCreateInfo->pBindings[i].descriptorCount;
 		}
 	}
 
-	return allocationSize;
+	return bindingsArraySize * sizeof(Binding) +
+	       immutableSamplerCount * sizeof(VkSampler);
 }
 
 size_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
@@ -122,26 +142,12 @@ size_t DescriptorSetLayout::getDescriptorSetAllocationSize() const
 size_t DescriptorSetLayout::getDescriptorSetDataSize() const
 {
 	size_t size = 0;
-	for(uint32_t i = 0; i < bindingCount; i++)
+	for(uint32_t i = 0; i < bindingsArraySize; i++)
 	{
 		size += bindings[i].descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
 	}
 
 	return size;
-}
-
-uint32_t DescriptorSetLayout::getBindingIndex(uint32_t binding) const
-{
-	for(uint32_t i = 0; i < bindingCount; i++)
-	{
-		if(binding == bindings[i].binding)
-		{
-			return i;
-		}
-	}
-
-	DABORT("Invalid DescriptorSetLayout binding: %d", int(binding));
-	return 0;
 }
 
 void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
@@ -150,53 +156,37 @@ void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 	descriptorSet->header.layout = this;
 	uint8_t *mem = descriptorSet->data;
 
-	for(uint32_t i = 0; i < bindingCount; i++)
+	for(uint32_t i = 0; i < bindingsArraySize; i++)
 	{
-		size_t typeSize = GetDescriptorSize(bindings[i].descriptorType);
-		if(UsesImmutableSamplers(bindings[i]))
+		size_t descriptorSize = GetDescriptorSize(bindings[i].descriptorType);
+
+		if(bindings[i].immutableSamplers)
 		{
 			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 			{
 				SampledImageDescriptor *imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor *>(mem);
-				imageSamplerDescriptor->updateSampler(bindings[i].pImmutableSamplers[j]);
-				mem += typeSize;
+				imageSamplerDescriptor->updateSampler(bindings[i].immutableSamplers[j]);
+				mem += descriptorSize;
 			}
 		}
 		else
 		{
-			mem += bindings[i].descriptorCount * typeSize;
+			mem += bindings[i].descriptorCount * descriptorSize;
 		}
 	}
-}
-
-size_t DescriptorSetLayout::getBindingCount() const
-{
-	return bindingCount;
-}
-
-bool DescriptorSetLayout::hasBinding(uint32_t binding) const
-{
-	for(uint32_t i = 0; i < bindingCount; i++)
-	{
-		if(binding == bindings[i].binding)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 size_t DescriptorSetLayout::getBindingStride(uint32_t binding) const
 {
-	uint32_t index = getBindingIndex(binding);
-	return GetDescriptorSize(bindings[index].descriptorType);
+	ASSERT(binding < bindingsArraySize);
+	return GetDescriptorSize(bindings[binding].descriptorType);
 }
 
 size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, size_t arrayElement) const
 {
-	uint32_t index = getBindingIndex(binding);
-	auto typeSize = GetDescriptorSize(bindings[index].descriptorType);
-	return bindingOffsets[index] + (typeSize * arrayElement);
+	ASSERT(binding < bindingsArraySize && arrayElement < bindings[binding].descriptorCount);
+	auto typeSize = GetDescriptorSize(bindings[binding].descriptorType);
+	return bindings[binding].offset + (typeSize * arrayElement);
 }
 
 bool DescriptorSetLayout::isDynamic(VkDescriptorType type)
@@ -207,63 +197,66 @@ bool DescriptorSetLayout::isDynamic(VkDescriptorType type)
 
 bool DescriptorSetLayout::isBindingDynamic(uint32_t binding) const
 {
-	uint32_t index = getBindingIndex(binding);
-	return isDynamic(bindings[index].descriptorType);
+	ASSERT(binding < bindingsArraySize);
+	return isDynamic(bindings[binding].descriptorType);
 }
 
 uint32_t DescriptorSetLayout::getDynamicDescriptorCount() const
 {
 	uint32_t count = 0;
-	for(size_t i = 0; i < bindingCount; i++)
+	for(size_t i = 0; i < bindingsArraySize; i++)
 	{
 		if(isDynamic(bindings[i].descriptorType))
 		{
 			count += bindings[i].descriptorCount;
 		}
 	}
+
 	return count;
 }
 
 uint32_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
 {
-	uint32_t n = getBindingIndex(binding);
-	ASSERT(isDynamic(bindings[n].descriptorType));
+	ASSERT(binding < bindingsArraySize);
+	ASSERT(isDynamic(bindings[binding].descriptorType));
 
 	uint32_t index = 0;
-	for(uint32_t i = 0; i < n; i++)
+	for(uint32_t i = 0; i < binding; i++)
 	{
 		if(isDynamic(bindings[i].descriptorType))
 		{
 			index += bindings[i].descriptorCount;
 		}
 	}
+
 	return index;
 }
 
 VkDescriptorType DescriptorSetLayout::getDescriptorType(uint32_t binding) const
 {
-	uint32_t index = getBindingIndex(binding);
-	return bindings[index].descriptorType;
+	ASSERT(binding < bindingsArraySize);
+	return bindings[binding].descriptorType;
 }
 
 uint8_t *DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t *typeSize) const
 {
-	uint32_t index = getBindingIndex(binding);
-	*typeSize = GetDescriptorSize(bindings[index].descriptorType);
-	size_t byteOffset = bindingOffsets[index] + (*typeSize * arrayElement);
+	ASSERT(binding < bindingsArraySize);
+	*typeSize = GetDescriptorSize(bindings[binding].descriptorType);
+	size_t byteOffset = bindings[binding].offset + (*typeSize * arrayElement);
 	ASSERT(((*typeSize * count) + byteOffset) <= getDescriptorSetDataSize());  // Make sure the operation will not go out of bounds
+
 	return &descriptorSet->data[byteOffset];
 }
 
-void SampledImageDescriptor::updateSampler(const VkSampler newSampler)
+void SampledImageDescriptor::updateSampler(const vk::Sampler *newSampler)
 {
-	memcpy(reinterpret_cast<void *>(&sampler), vk::Cast(newSampler), sizeof(sampler));
+	memcpy(reinterpret_cast<void *>(&sampler), newSampler, sizeof(sampler));
 }
 
 void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
 {
 	DescriptorSetLayout *dstLayout = dstSet->header.layout;
-	auto &binding = dstLayout->bindings[dstLayout->getBindingIndex(entry.dstBinding)];
+	auto &binding = dstLayout->bindings[entry.dstBinding];
 	ASSERT(dstLayout);
 	ASSERT(binding.descriptorType == entry.descriptorType);
 
@@ -281,9 +274,9 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
 			// "All consecutive bindings updated via a single VkWriteDescriptorSet structure, except those with a
 			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
-			if(!binding.pImmutableSamplers)
+			if(!binding.immutableSamplers)
 			{
-				imageSampler[i].updateSampler(update->sampler);
+				imageSampler[i].updateSampler(vk::Cast(update->sampler));
 			}
 			imageSampler[i].device = device;
 		}
@@ -342,9 +335,9 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			{
 				// "All consecutive bindings updated via a single VkWriteDescriptorSet structure, except those with a
 				//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
-				if(!binding.pImmutableSamplers)
+				if(!binding.immutableSamplers)
 				{
-					imageSampler[i].updateSampler(update->sampler);
+					imageSampler[i].updateSampler(vk::Cast(update->sampler));
 				}
 			}
 

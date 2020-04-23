@@ -31,7 +31,7 @@ struct alignas(16) SampledImageDescriptor
 {
 	~SampledImageDescriptor() = delete;
 
-	void updateSampler(VkSampler sampler);
+	void updateSampler(const vk::Sampler *sampler);
 
 	// TODO(b/129523279): Minimize to the data actually needed.
 	vk::Sampler sampler;
@@ -78,6 +78,15 @@ struct alignas(16) BufferDescriptor
 
 class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLayout>
 {
+	struct Binding
+	{
+		VkDescriptorType descriptorType;
+		uint32_t descriptorCount;
+		const vk::Sampler **immutableSamplers;
+
+		uint32_t offset;  // Offset in bytes in the descriptor set data.
+	};
+
 public:
 	DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo *pCreateInfo, void *mem);
 	void destroy(const VkAllocationCallbacks *pAllocator);
@@ -95,12 +104,6 @@ public:
 
 	// Returns the total size of the descriptor set in bytes.
 	size_t getDescriptorSetAllocationSize() const;
-
-	// Returns the number of bindings in the descriptor set.
-	size_t getBindingCount() const;
-
-	// Returns true iff the given binding exists.
-	bool hasBinding(uint32_t binding) const;
 
 	// Returns the byte offset from the base address of the descriptor set for
 	// the given binding and array element within that binding.
@@ -131,13 +134,11 @@ public:
 
 private:
 	size_t getDescriptorSetDataSize() const;
-	uint32_t getBindingIndex(uint32_t binding) const;
 	static bool isDynamic(VkDescriptorType type);
 
-	VkDescriptorSetLayoutCreateFlags flags;
-	uint32_t bindingCount;
-	VkDescriptorSetLayoutBinding *bindings;
-	size_t *bindingOffsets;
+	const VkDescriptorSetLayoutCreateFlags flags;
+	uint32_t bindingsArraySize = 0;
+	Binding *const bindings;  // Direct-indexed array of bindings.
 };
 
 static inline DescriptorSetLayout *Cast(VkDescriptorSetLayout object)
