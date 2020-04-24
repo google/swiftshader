@@ -919,16 +919,36 @@ private:
 			ASSERT(executionModelToStage(executionModel) != VkShaderStageFlagBits(0));  // Must parse OpEntryPoint before emitting.
 		}
 
+		// Returns the mask describing the active lanes as updated by dynamic
+		// control flow. Active lanes include helper invocations, used for
+		// calculating fragment derivitives, which must not perform memory
+		// stores or atomic writes.
+		//
+		// Use activeStoresAndAtomicsMask() to consider both control flow and
+		// lanes which are permitted to perform memory stores and atomic
+		// operations
 		RValue<SIMD::Int> activeLaneMask() const
 		{
 			ASSERT(activeLaneMaskValue != nullptr);
 			return RValue<SIMD::Int>(activeLaneMaskValue);
 		}
 
+		// Returns the immutable lane mask that describes which lanes are
+		// permitted to perform memory stores and atomic operations.
+		// Note that unlike activeStoresAndAtomicsMask() this mask *does not*
+		// consider lanes that have been made inactive due to control flow.
 		RValue<SIMD::Int> storesAndAtomicsMask() const
 		{
 			ASSERT(storesAndAtomicsMaskValue != nullptr);
 			return RValue<SIMD::Int>(storesAndAtomicsMaskValue);
+		}
+
+		// Returns a lane mask that describes which lanes are permitted to
+		// perform memory stores and atomic operations, considering lanes that
+		// may have been made inactive due to control flow.
+		RValue<SIMD::Int> activeStoresAndAtomicsMask() const
+		{
+			return activeLaneMask() & storesAndAtomicsMask();
 		}
 
 		// Add a new active lane mask edge from the current block to out.
