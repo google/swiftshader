@@ -34,8 +34,6 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 		uint32_t bindingsArraySize = setLayout->getBindingsArraySize();
 		descriptorSets[i].bindings = bindingStorage;
 		bindingStorage += bindingsArraySize;
-
-		descriptorSets[i].dynamicDescriptorCount = setLayout->getDynamicDescriptorCount();
 		descriptorSets[i].bindingCount = bindingsArraySize;
 
 		for(uint32_t j = 0; j < bindingsArraySize; j++)
@@ -76,12 +74,6 @@ size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreat
 size_t PipelineLayout::getDescriptorSetCount() const
 {
 	return descriptorSetCount;
-}
-
-uint32_t PipelineLayout::getDynamicDescriptorCount(uint32_t setNumber) const
-{
-	ASSERT(setNumber < descriptorSetCount);
-	return descriptorSets[setNumber].dynamicDescriptorCount;
 }
 
 uint32_t PipelineLayout::getDynamicOffsetIndex(uint32_t setNumber, uint32_t bindingNumber) const

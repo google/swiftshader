@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #include "VkCommandBuffer.hpp"
+
 #include "VkBuffer.hpp"
+#include "VkConfig.h"
 #include "VkDevice.hpp"
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
@@ -1084,45 +1086,58 @@ private:
 	vk::Event *ev;
 };
 
-class CmdBindDescriptorSet : public vk::CommandBuffer::Command
+class CmdBindDescriptorSets : public vk::CommandBuffer::Command
 {
 public:
-	CmdBindDescriptorSet(VkPipelineBindPoint pipelineBindPoint, const vk::PipelineLayout *pipelineLayout, uint32_t setNumber, vk::DescriptorSet *descriptorSet,
-	                     uint32_t dynamicOffsetCount, uint32_t const *dynamicOffsets)
+	CmdBindDescriptorSets(VkPipelineBindPoint pipelineBindPoint,
+	                      uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet *pDescriptorSets,
+	                      uint32_t firstDynamicOffset, uint32_t dynamicOffsetCount, const uint32_t *pDynamicOffsets)
 	    : pipelineBindPoint(pipelineBindPoint)
-	    , pipelineLayout(pipelineLayout)
-	    , setNumber(setNumber)
-	    , descriptorSet(descriptorSet)
+	    , firstSet(firstSet)
+	    , descriptorSetCount(descriptorSetCount)
+	    , firstDynamicOffset(firstDynamicOffset)
 	    , dynamicOffsetCount(dynamicOffsetCount)
 	{
+		for(uint32_t i = 0; i < descriptorSetCount; i++)
+		{
+			descriptorSets[firstSet + i] = vk::Cast(pDescriptorSets[i])->data;
+		}
+
 		for(uint32_t i = 0; i < dynamicOffsetCount; i++)
 		{
-			this->dynamicOffsets[i] = dynamicOffsets[i];
+			dynamicOffsets[firstDynamicOffset + i] = pDynamicOffsets[i];
 		}
 	}
 
 	void play(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		ASSERT_OR_RETURN((pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE) && (setNumber < vk::MAX_BOUND_DESCRIPTOR_SETS));
-		auto &pipelineState = executionState.pipelineState[pipelineBindPoint];
-		pipelineState.descriptorSets[setNumber] = descriptorSet->data;
+		ASSERT(pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE);
+		ASSERT(firstSet + descriptorSetCount <= vk::MAX_BOUND_DESCRIPTOR_SETS);
+		ASSERT(firstDynamicOffset + dynamicOffsetCount <= vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
 
-		for(uint32_t i = 0; i < dynamicOffsetCount; i++)
+		auto &pipelineState = executionState.pipelineState[pipelineBindPoint];
+
+		for(uint32_t i = firstSet; i < firstSet + descriptorSetCount; i++)
 		{
-			auto dynamicBindingBaseIndex = pipelineLayout->getDynamicOffsetIndex(setNumber, 0);
-			ASSERT_OR_RETURN(dynamicBindingBaseIndex + dynamicOffsetCount <= vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
-			pipelineState.descriptorDynamicOffsets[dynamicBindingBaseIndex + i] = dynamicOffsets[i];
+			pipelineState.descriptorSets[i] = descriptorSets[i];
+		}
+
+		for(uint32_t i = firstDynamicOffset; i < firstDynamicOffset + dynamicOffsetCount; i++)
+		{
+			pipelineState.descriptorDynamicOffsets[i] = dynamicOffsets[i];
 		}
 	}
 
-	std::string description() override { return "vkCmdBindDescriptorSet()"; }
+	std::string description() override { return "vkCmdBindDescriptorSets()"; }
 
 private:
 	const VkPipelineBindPoint pipelineBindPoint;
-	const vk::PipelineLayout *const pipelineLayout;
-	const uint32_t setNumber;
-	vk::DescriptorSet *const descriptorSet;
+	const uint32_t firstSet;
+	const uint32_t descriptorSetCount;
+	const uint32_t firstDynamicOffset;
 	const uint32_t dynamicOffsetCount;
+
+	vk::DescriptorSet::Bindings descriptorSets;
 	vk::DescriptorSet::DynamicOffsets dynamicOffsets;
 };
 
@@ -1559,26 +1574,17 @@ void CommandBuffer::setStencilReference(VkStencilFaceFlags faceMask, uint32_t re
 	addCommand<::CmdSetStencilReference>(faceMask, reference);
 }
 
-void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout *layout,
+void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, const PipelineLayout *pipelineLayout,
                                        uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet *pDescriptorSets,
                                        uint32_t dynamicOffsetCount, const uint32_t *pDynamicOffsets)
 {
 	ASSERT(state == RECORDING);
 
-	for(uint32_t i = 0; i < descriptorSetCount; i++)
-	{
-		auto descriptorSetIndex = firstSet + i;
-		uint32_t numDynamicDescriptors = layout->getDynamicDescriptorCount(descriptorSetIndex);
-		ASSERT(numDynamicDescriptors == 0 || pDynamicOffsets != nullptr);
-		ASSERT(dynamicOffsetCount >= numDynamicDescriptors);
+	auto firstDynamicOffset = (dynamicOffsetCount != 0) ? pipelineLayout->getDynamicOffsetIndex(firstSet, 0) : 0;
 
-		addCommand<::CmdBindDescriptorSet>(
-		    pipelineBindPoint, layout, descriptorSetIndex, vk::Cast(pDescriptorSets[i]),
-		    dynamicOffsetCount, pDynamicOffsets);
-
-		pDynamicOffsets += numDynamicDescriptors;
-		dynamicOffsetCount -= numDynamicDescriptors;
-	}
+	addCommand<::CmdBindDescriptorSets>(
+	    pipelineBindPoint, firstSet, descriptorSetCount, pDescriptorSets,
+	    firstDynamicOffset, dynamicOffsetCount, pDynamicOffsets);
 }
 
 void CommandBuffer::bindIndexBuffer(Buffer *buffer, VkDeviceSize offset, VkIndexType indexType)
