@@ -15,6 +15,7 @@
 #ifndef VK_PIPELINE_LAYOUT_HPP_
 #define VK_PIPELINE_LAYOUT_HPP_
 
+#include "VkConfig.h"
 #include "VkDescriptorSetLayout.hpp"
 
 namespace vk {
@@ -31,8 +32,7 @@ public:
 	uint32_t getDynamicDescriptorCount(uint32_t setNumber) const;
 
 	// Returns the index into the pipeline's dynamic offsets array for
-	// the given descriptor set (and binding number).
-	uint32_t getDynamicOffsetBaseIndex(uint32_t setNumber) const;
+	// the given descriptor set and binding number.
 	uint32_t getDynamicOffsetIndex(uint32_t setNumber, uint32_t bindingNumber) const;
 
 	uint32_t getBindingOffset(uint32_t setNumber, uint32_t bindingNumber) const;
@@ -43,13 +43,25 @@ public:
 	const uint32_t identifier;
 
 private:
-	DescriptorSetLayout const *getDescriptorSetLayout(size_t descriptorSet) const;
+	struct Binding
+	{
+		VkDescriptorType descriptorType;
+		uint32_t offset;              // Offset in bytes in the descriptor set data.
+		uint32_t dynamicOffsetIndex;  // TODO(b/154914395): Debug only.
+	};
+
+	struct DescriptorSet
+	{
+		Binding *bindings;
+		uint32_t dynamicDescriptorCount;
+		uint32_t bindingCount;
+	};
+
+	DescriptorSet descriptorSets[MAX_BOUND_DESCRIPTOR_SETS];
 
 	const uint32_t descriptorSetCount = 0;
-	const DescriptorSetLayout **descriptorSetLayouts = nullptr;
 	const uint32_t pushConstantRangeCount = 0;
 	VkPushConstantRange *pushConstantRanges = nullptr;
-	uint32_t *dynamicOffsetBaseIndices = nullptr;  // Base index per descriptor set for dynamic buffer offsets.
 };
 
 static inline PipelineLayout *Cast(VkPipelineLayout object)

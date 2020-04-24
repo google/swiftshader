@@ -110,20 +110,27 @@ public:
 	size_t getDescriptorSetAllocationSize() const;
 
 	// Returns the byte offset from the base address of the descriptor set for
-	// the given binding.
+	// the given binding number.
 	uint32_t getBindingOffset(uint32_t bindingNumber) const;
+
+	// Returns the number of descriptors for the given binding number.
+	uint32_t getDescriptorCount(uint32_t bindingNumber) const;
 
 	// Returns the number of descriptors across all bindings that are dynamic.
 	uint32_t getDynamicDescriptorCount() const;
 
 	// Returns the relative index into the pipeline's dynamic offsets array for
-	// the given binding. This index should be added to the base index
+	// the given binding number. This index should be added to the base index
 	// returned by PipelineLayout::getDynamicOffsetBase() to produce the
 	// starting index for dynamic descriptors.
 	uint32_t getDynamicOffsetIndex(uint32_t bindingNumber) const;
 
-	// Returns the descriptor type for the given binding.
+	// Returns the descriptor type for the given binding number.
 	VkDescriptorType getDescriptorType(uint32_t bindingNumber) const;
+
+	// Returns the number of entries in the direct-indexed array of bindings.
+	// It equals the highest binding number + 1.
+	uint32_t getBindingsArraySize() const { return bindingsArraySize; }
 
 private:
 	uint8_t *getDescriptorPointer(DescriptorSet *descriptorSet, uint32_t bindingNumber, uint32_t arrayElement, uint32_t count, size_t *typeSize) const;

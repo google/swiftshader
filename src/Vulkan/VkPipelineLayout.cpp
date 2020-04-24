@@ -26,42 +26,51 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
     , descriptorSetCount(pCreateInfo->setLayoutCount)
     , pushConstantRangeCount(pCreateInfo->pushConstantRangeCount)
 {
-	char *hostMem = reinterpret_cast<char *>(mem);
-
-	size_t setLayoutsSize = pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout *);
-	descriptorSetLayouts = reinterpret_cast<const DescriptorSetLayout **>(hostMem);
+	Binding *bindingStorage = reinterpret_cast<Binding *>(mem);
+	uint32_t dynamicOffsetIndex = 0;
 	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
 	{
-		descriptorSetLayouts[i] = vk::Cast(pCreateInfo->pSetLayouts[i]);
+		const vk::DescriptorSetLayout *setLayout = vk::Cast(pCreateInfo->pSetLayouts[i]);
+		uint32_t bindingsArraySize = setLayout->getBindingsArraySize();
+		descriptorSets[i].bindings = bindingStorage;
+		bindingStorage += bindingsArraySize;
+
+		descriptorSets[i].dynamicDescriptorCount = setLayout->getDynamicDescriptorCount();
+		descriptorSets[i].bindingCount = bindingsArraySize;
+
+		for(uint32_t j = 0; j < bindingsArraySize; j++)
+		{
+			descriptorSets[i].bindings[j].descriptorType = setLayout->getDescriptorType(j);
+			descriptorSets[i].bindings[j].offset = setLayout->getBindingOffset(j);
+			descriptorSets[i].bindings[j].dynamicOffsetIndex = dynamicOffsetIndex;
+
+			if(DescriptorSetLayout::IsDescriptorDynamic(descriptorSets[i].bindings[j].descriptorType))
+			{
+				dynamicOffsetIndex += setLayout->getDescriptorCount(j);
+			}
+		}
 	}
-	hostMem += setLayoutsSize;
 
 	size_t pushConstantRangesSize = pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange);
-	pushConstantRanges = reinterpret_cast<VkPushConstantRange *>(hostMem);
+	pushConstantRanges = reinterpret_cast<VkPushConstantRange *>(bindingStorage);
 	memcpy(pushConstantRanges, pCreateInfo->pPushConstantRanges, pushConstantRangesSize);
-	hostMem += pushConstantRangesSize;
-
-	dynamicOffsetBaseIndices = reinterpret_cast<uint32_t *>(hostMem);
-	uint32_t dynamicOffsetBase = 0;
-	for(uint32_t i = 0; i < descriptorSetCount; i++)
-	{
-		uint32_t dynamicDescriptorCount = descriptorSetLayouts[i]->getDynamicDescriptorCount();
-		ASSERT_OR_RETURN((dynamicOffsetBase + dynamicDescriptorCount) <= MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
-		dynamicOffsetBaseIndices[i] = dynamicOffsetBase;
-		dynamicOffsetBase += dynamicDescriptorCount;
-	}
 }
 
 void PipelineLayout::destroy(const VkAllocationCallbacks *pAllocator)
 {
-	vk::deallocate(descriptorSetLayouts, pAllocator);  // pushConstantRanges are in the same allocation
+	vk::deallocate(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
 }
 
 size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo)
 {
-	return (pCreateInfo->setLayoutCount * sizeof(DescriptorSetLayout *)) +        // descriptorSetLayouts[]
-	       (pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange)) +  // pushConstantRanges[]
-	       (pCreateInfo->setLayoutCount * sizeof(uint32_t));                      // dynamicOffsetBaseIndices[]
+	uint32_t bindingsCount = 0;
+	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
+	{
+		bindingsCount += vk::Cast(pCreateInfo->pSetLayouts[i])->getBindingsArraySize();
+	}
+
+	return bindingsCount * sizeof(Binding) +                                   // descriptorSets[]
+	       pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange);  // pushConstantRanges[]
 }
 
 size_t PipelineLayout::getDescriptorSetCount() const
@@ -71,27 +80,26 @@ size_t PipelineLayout::getDescriptorSetCount() const
 
 uint32_t PipelineLayout::getDynamicDescriptorCount(uint32_t setNumber) const
 {
-	return getDescriptorSetLayout(setNumber)->getDynamicDescriptorCount();
-}
-
-uint32_t PipelineLayout::getDynamicOffsetBaseIndex(uint32_t setNumber) const
-{
-	return dynamicOffsetBaseIndices[setNumber];
+	ASSERT(setNumber < descriptorSetCount);
+	return descriptorSets[setNumber].dynamicDescriptorCount;
 }
 
 uint32_t PipelineLayout::getDynamicOffsetIndex(uint32_t setNumber, uint32_t bindingNumber) const
 {
-	return getDynamicOffsetBaseIndex(setNumber) + getDescriptorSetLayout(setNumber)->getDynamicOffsetIndex(bindingNumber);
+	ASSERT(setNumber < descriptorSetCount && bindingNumber < descriptorSets[setNumber].bindingCount);
+	return descriptorSets[setNumber].bindings[bindingNumber].dynamicOffsetIndex;
 }
 
 uint32_t PipelineLayout::getBindingOffset(uint32_t setNumber, uint32_t bindingNumber) const
 {
-	return getDescriptorSetLayout(setNumber)->getBindingOffset(bindingNumber);
+	ASSERT(setNumber < descriptorSetCount && bindingNumber < descriptorSets[setNumber].bindingCount);
+	return descriptorSets[setNumber].bindings[bindingNumber].offset;
 }
 
 VkDescriptorType PipelineLayout::getDescriptorType(uint32_t setNumber, uint32_t bindingNumber) const
 {
-	return getDescriptorSetLayout(setNumber)->getDescriptorType(bindingNumber);
+	ASSERT(setNumber < descriptorSetCount && bindingNumber < descriptorSets[setNumber].bindingCount);
+	return descriptorSets[setNumber].bindings[bindingNumber].descriptorType;
 }
 
 uint32_t PipelineLayout::getDescriptorSize(uint32_t setNumber, uint32_t bindingNumber) const
@@ -102,12 +110,6 @@ uint32_t PipelineLayout::getDescriptorSize(uint32_t setNumber, uint32_t bindingN
 bool PipelineLayout::isDescriptorDynamic(uint32_t setNumber, uint32_t bindingNumber) const
 {
 	return DescriptorSetLayout::IsDescriptorDynamic(getDescriptorType(setNumber, bindingNumber));
-}
-
-DescriptorSetLayout const *PipelineLayout::getDescriptorSetLayout(size_t descriptorSet) const
-{
-	ASSERT(descriptorSet < descriptorSetCount);
-	return descriptorSetLayouts[descriptorSet];
 }
 
 }  // namespace vk
