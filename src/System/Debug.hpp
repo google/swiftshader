@@ -64,10 +64,10 @@ void log_trap(const char *format, ...) CHECK_PRINTF_ARGS;
 
 // A macro to print a warning message to the debugging log and stderr to denote
 // an issue that needs fixing.
-#define FIXME(message, ...) sw::warn("%s:%d FIXME: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
+#define FIXME(message, ...) sw::warn("%s:%d FIXME: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 // A macro to print a warning message to the debugging log and stderr.
-#define WARN(message, ...) sw::warn("%s:%d WARNING: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
+#define WARN(message, ...) sw::warn("%s:%d WARNING: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 // A macro that prints the message to the debugging log and stderr and
 // immediately aborts execution of the application.
@@ -91,26 +91,46 @@ void log_trap(const char *format, ...) CHECK_PRINTF_ARGS;
 // A macro asserting a condition.
 // If the condition fails, the condition and message is passed to DABORT().
 #undef ASSERT_MSG
-#define ASSERT_MSG(expression, format, ...)                                 \
-	do                                                                      \
-	{                                                                       \
-		if(!(expression))                                                   \
-		{                                                                   \
-			DABORT("ASSERT(%s): " format "\n", #expression, ##__VA_ARGS__); \
-		}                                                                   \
-	} while(0)
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#	define ASSERT_MSG(expression, format, ...)                                 \
+		do                                                                      \
+		{                                                                       \
+			if(!(expression))                                                   \
+			{                                                                   \
+				DABORT("ASSERT(%s): " format "\n", #expression, ##__VA_ARGS__); \
+			}                                                                   \
+		} while(0)
+#else
+// Silence unused variable warnings without evaluating the expressions.
+// TODO(b/154914395): Also ignore variadic arguments (similar to RR_WATCH expansion)
+#	define ASSERT_MSG(expression, format, ...)    \
+		do                                         \
+		{                                          \
+			(void)sizeof((int)(bool)(expression)); \
+			(void)sizeof(format);                  \
+		} while(0)
+#endif
 
 // A macro asserting a condition.
 // If the condition fails, the condition is passed to DABORT().
 #undef ASSERT
-#define ASSERT(expression)                       \
-	do                                           \
-	{                                            \
-		if(!(expression))                        \
-		{                                        \
-			DABORT("ASSERT(%s)\n", #expression); \
-		}                                        \
-	} while(0)
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#	define ASSERT(expression)                       \
+		do                                           \
+		{                                            \
+			if(!(expression))                        \
+			{                                        \
+				DABORT("ASSERT(%s)\n", #expression); \
+			}                                        \
+		} while(0)
+#else
+// Silence unused variable warnings without evaluating the expressions.
+#	define ASSERT(expression)                     \
+		do                                         \
+		{                                          \
+			(void)sizeof((int)(bool)(expression)); \
+		} while(0)
+#endif
 
 // A macro to indicate functionality currently unimplemented, for a feature advertised
 // as supported. Since this is a bug, a bug ID must be provided, in b/### format.
@@ -133,7 +153,8 @@ void log_trap(const char *format, ...) CHECK_PRINTF_ARGS;
 #undef UNREACHABLE
 #define UNREACHABLE(format, ...) DABORT("UNREACHABLE: " format, ##__VA_ARGS__)
 
-// A macro asserting a condition and performing a return.
+// A macro asserting a condition and returning if false.
+// Note this macro always evaluates the expression and also returns in Release builds.
 #undef ASSERT_OR_RETURN
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #	define ASSERT_OR_RETURN(expression) ASSERT(expression)
