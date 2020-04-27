@@ -23,15 +23,15 @@ namespace vk {
 
 // Note: Constant array initialization requires a string literal.
 //       constexpr char* or char[] does not work for that purpose.
-#define SWIFTSHADER_DEVICE_NAME "SwiftShader Device" // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
-#define SWIFTSHADER_UUID "SwiftShaderUUID" // Max length: VK_UUID_SIZE (16)
+#define SWIFTSHADER_DEVICE_NAME "SwiftShader Device"  // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
+#define SWIFTSHADER_UUID "SwiftShaderUUID"            // Max length: VK_UUID_SIZE (16)
 
 enum
 {
 	API_VERSION = VK_API_VERSION_1_1,
 	DRIVER_VERSION = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION),
-	VENDOR_ID = 0x1AE0, // Google, Inc.: https://pcisig.com/google-inc-1
-	DEVICE_ID = 0xC0DE, // SwiftShader (placeholder)
+	VENDOR_ID = 0x1AE0,  // Google, Inc.: https://pcisig.com/google-inc-1
+	DEVICE_ID = 0xC0DE,  // SwiftShader (placeholder)
 };
 
 enum
@@ -43,7 +43,7 @@ enum
 	MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 256,
 	MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT = 256,
 
-	MEMORY_TYPE_GENERIC_BIT = 0x1, // Generic system memory.
+	MEMORY_TYPE_GENERIC_BIT = 0x1,  // Generic system memory.
 };
 
 enum
@@ -68,8 +68,8 @@ enum
 	MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC = 8,
 	MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC = 4,
 	MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC =
-			MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC +
-			MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC,
+	    MAX_DESCRIPTOR_SET_UNIFORM_BUFFERS_DYNAMIC +
+	    MAX_DESCRIPTOR_SET_STORAGE_BUFFERS_DYNAMIC,
 };
 
 enum
@@ -84,8 +84,8 @@ constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_B
 }  // namespace vk
 
 #if defined(__linux__) || defined(__ANDROID__)
-#define SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD        1
-#define SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD     1
+#	define SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD 1
+#	define SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD 1
 #endif
 
 constexpr VkDeviceSize MAX_MEMORY_ALLOCATION_SIZE = 0x40000000ull;  // 0x40000000 = 1 GiB
@@ -94,4 +94,4 @@ constexpr VkDeviceSize MAX_MEMORY_ALLOCATION_SIZE = 0x40000000ull;  // 0x4000000
 // Signed arithmetic further restricts it to 2 GiB.
 static_assert(MAX_MEMORY_ALLOCATION_SIZE <= 0x80000000ull, "maxMemoryAllocationSize must not exceed 2 GiB");
 
-#endif // VK_CONFIG_HPP_
+#endif  // VK_CONFIG_HPP_

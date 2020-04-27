@@ -15,8 +15,8 @@
 #ifndef SWIFTSHADER_METALSURFACE_HPP
 #define SWIFTSHADER_METALSURFACE_HPP
 
-#include "Vulkan/VkObject.hpp"
 #include "VkSurfaceKHR.hpp"
+#include "Vulkan/VkObject.hpp"
 #ifdef VK_USE_PLATFORM_MACOS_MVK
 #	include "vulkan/vulkan_macos.h"
 #endif
@@ -28,37 +28,40 @@ namespace vk {
 
 class MetalLayer;
 
-class MetalSurface : public SurfaceKHR {
+class MetalSurface : public SurfaceKHR
+{
 public:
-    MetalSurface(const void *pCreateInfo, void *mem);
+	MetalSurface(const void *pCreateInfo, void *mem);
 
-    void destroySurface(const VkAllocationCallbacks *pAllocator) override;
+	void destroySurface(const VkAllocationCallbacks *pAllocator) override;
 
-    static size_t ComputeRequiredAllocationSize(const void *pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const void *pCreateInfo);
 
-    void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
+	void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
-    virtual void attachImage(PresentImage* image) override {}
-    virtual void detachImage(PresentImage* image) override {}
-    VkResult present(PresentImage* image) override;
+	virtual void attachImage(PresentImage *image) override {}
+	virtual void detachImage(PresentImage *image) override {}
+	VkResult present(PresentImage *image) override;
 
 protected:
-    MetalLayer* metalLayer = nullptr;
+	MetalLayer *metalLayer = nullptr;
 };
 
 #ifdef VK_USE_PLATFORM_METAL_EXT
-class MetalSurfaceEXT : public MetalSurface, public ObjectBase<MetalSurfaceEXT, VkSurfaceKHR> {
+class MetalSurfaceEXT : public MetalSurface, public ObjectBase<MetalSurfaceEXT, VkSurfaceKHR>
+{
 public:
-    MetalSurfaceEXT(const VkMetalSurfaceCreateInfoEXT *pCreateInfo, void *mem);
+	MetalSurfaceEXT(const VkMetalSurfaceCreateInfoEXT *pCreateInfo, void *mem);
 };
 #endif
 
 #ifdef VK_USE_PLATFORM_MACOS_MVK
-class MacOSSurfaceMVK : public MetalSurface, public ObjectBase<MacOSSurfaceMVK, VkSurfaceKHR> {
+class MacOSSurfaceMVK : public MetalSurface, public ObjectBase<MacOSSurfaceMVK, VkSurfaceKHR>
+{
 public:
-    MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem);
+	MacOSSurfaceMVK(const VkMacOSSurfaceCreateInfoMVK *pCreateInfo, void *mem);
 };
 #endif
 
-}
-#endif //SWIFTSHADER_METALSURFACE_HPP
+}  // namespace vk
+#endif  //SWIFTSHADER_METALSURFACE_HPP

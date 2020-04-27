@@ -19,10 +19,11 @@
 #include <cstdint>
 #include <type_traits>
 
-template<typename T> class VkNonDispatchableHandle
+template<typename T>
+class VkNonDispatchableHandle
 {
 public:
-	operator void*() const
+	operator void *() const
 	{
 		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 
@@ -32,7 +33,7 @@ public:
 		static_assert(std::is_trivial<VkNonDispatchableHandle<T>>::value, "VkNonDispatchableHandle<T> is not trivial!");
 		static_assert(std::is_standard_layout<VkNonDispatchableHandle<T>>::value, "VkNonDispatchableHandle<T> is not standard layout!");
 
-		return reinterpret_cast<void*>(static_cast<uintptr_t>(handle));
+		return reinterpret_cast<void *>(static_cast<uintptr_t>(handle));
 	}
 
 	void operator=(uint64_t h)
@@ -43,17 +44,17 @@ public:
 	uint64_t handle;
 };
 
-#define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) \
-	typedef struct object##_T *object##Ptr; \
+#define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object)        \
+	typedef struct object##_T *object##Ptr;              \
 	typedef VkNonDispatchableHandle<object##Ptr> object; \
 	template class VkNonDispatchableHandle<object##Ptr>;
 
-#include <vulkan/vulkan.h>
 #include <vulkan/vk_ext_provoking_vertex.h>
+#include <vulkan/vulkan.h>
 
 #ifdef Bool
-#undef Bool // b/127920555
-#undef None
+#	undef Bool  // b/127920555
+#	undef None
 #endif
 
-#endif // VULKAN_PLATFORM
+#endif  // VULKAN_PLATFORM

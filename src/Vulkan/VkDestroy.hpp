@@ -24,16 +24,16 @@
 #include "VkImage.hpp"
 #include "VkImageView.hpp"
 #include "VkInstance.hpp"
+#include "VkPhysicalDevice.hpp"
 #include "VkPipeline.hpp"
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
-#include "VkPhysicalDevice.hpp"
 #include "VkQueryPool.hpp"
 #include "VkQueue.hpp"
+#include "VkRenderPass.hpp"
 #include "VkSampler.hpp"
 #include "VkSemaphore.hpp"
 #include "VkShaderModule.hpp"
-#include "VkRenderPass.hpp"
 #include "WSI/VkSurfaceKHR.hpp"
 #include "WSI/VkSwapchainKHR.hpp"
 
@@ -50,7 +50,7 @@ namespace vk {
 // destructor prior to releasing the object (by default,
 // VkObjectBase::destroy does nothing).
 template<typename VkT>
-inline void destroy(VkT vkObject, const VkAllocationCallbacks* pAllocator)
+inline void destroy(VkT vkObject, const VkAllocationCallbacks *pAllocator)
 {
 	auto object = Cast(vkObject);
 	if(object)

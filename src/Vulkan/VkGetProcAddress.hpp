@@ -22,8 +22,8 @@ namespace vk {
 class Device;
 class Instance;
 
-PFN_vkVoidFunction GetInstanceProcAddr(Instance* instance, const char* pName);
-PFN_vkVoidFunction GetDeviceProcAddr(Device* device, const char* pName);
+PFN_vkVoidFunction GetInstanceProcAddr(Instance *instance, const char *pName);
+PFN_vkVoidFunction GetDeviceProcAddr(Device *device, const char *pName);
 
 }  // namespace vk
 
@@ -32,11 +32,11 @@ PFN_vkVoidFunction GetDeviceProcAddr(Device* device, const char* pName);
 // about this global pointer. Since this is a private implementation detail
 // between the Vulkan loader and the ICDs, this type will never be part of
 // the <vulkan/vulkan_fuchsia.h> headers, so define the type here.
-typedef VkResult(VKAPI_PTR* PFN_vkConnectToService)(const char* pName, uint32_t handle);
+typedef VkResult(VKAPI_PTR *PFN_vkConnectToService)(const char *pName, uint32_t handle);
 
 namespace vk {
 extern PFN_vkConnectToService icdFuchsiaServiceConnectCallback;
 }
 #endif  // VK_USE_PLATFORM_FUCHSIA
 
-#endif // VK_UTILS_HPP_
+#endif  // VK_UTILS_HPP_

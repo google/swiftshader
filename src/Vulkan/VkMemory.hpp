@@ -19,16 +19,16 @@
 
 namespace vk {
 
-void* allocate(size_t count, size_t alignment, const VkAllocationCallbacks* pAllocator,
+void *allocate(size_t count, size_t alignment, const VkAllocationCallbacks *pAllocator,
                VkSystemAllocationScope allocationScope = VK_SYSTEM_ALLOCATION_SCOPE_OBJECT);
-void deallocate(void* ptr, const VkAllocationCallbacks* pAllocator);
+void deallocate(void *ptr, const VkAllocationCallbacks *pAllocator);
 
-template <typename T>
-T* allocate(size_t count, const VkAllocationCallbacks* pAllocator)
+template<typename T>
+T *allocate(size_t count, const VkAllocationCallbacks *pAllocator)
 {
-	return static_cast<T*>(allocate(count, alignof(T), pAllocator, T::GetAllocationScope()));
+	return static_cast<T *>(allocate(count, alignof(T), pAllocator, T::GetAllocationScope()));
 }
 
 }  // namespace vk
 
-#endif // VK_MEMORY_HPP_
+#endif  // VK_MEMORY_HPP_
