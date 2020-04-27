@@ -2951,8 +2951,8 @@ TEST(ReactorUnitTests, LoadFromConstantData)
 
 TEST(ReactorUnitTests, Multithreaded_Function)
 {
-	constexpr int numThreads = 32;
-	constexpr int numLoops = 64;
+	constexpr int numThreads = 8;
+	constexpr int numLoops = 16;
 
 	auto threads = std::unique_ptr<std::thread[]>(new std::thread[numThreads]);
 	auto results = std::unique_ptr<int[]>(new int[numThreads * numLoops]);
@@ -3000,8 +3000,8 @@ TEST(ReactorUnitTests, Multithreaded_Coroutine)
 		return;
 	}
 
-	constexpr int numThreads = 32;
-	constexpr int numLoops = 64;
+	constexpr int numThreads = 8;
+	constexpr int numLoops = 16;
 
 	struct Result
 	{
