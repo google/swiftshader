@@ -16,7 +16,7 @@
 #include "VkBuffer.hpp"
 #include "VkImage.hpp"
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 
 namespace vk {
 

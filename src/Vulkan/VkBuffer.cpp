@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "VkBuffer.hpp"
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkDeviceMemory.hpp"
 
 #include <cstring>

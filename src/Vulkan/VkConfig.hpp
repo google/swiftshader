@@ -15,9 +15,9 @@
 #ifndef VK_CONFIG_HPP_
 #define VK_CONFIG_HPP_
 
-#include "Version.h"
+#include "Version.hpp"
 
-#include <Vulkan/VulkanPlatform.h>
+#include "Vulkan/VulkanPlatform.hpp"
 
 namespace vk {
 

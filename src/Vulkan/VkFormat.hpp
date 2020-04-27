@@ -17,7 +17,7 @@
 
 #include "System/Types.hpp"
 
-#include <Vulkan/VulkanPlatform.h>
+#include "Vulkan/VulkanPlatform.hpp"
 
 namespace vk {
 

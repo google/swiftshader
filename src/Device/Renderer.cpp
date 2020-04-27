@@ -26,7 +26,7 @@
 #include "System/Math.hpp"
 #include "System/Memory.hpp"
 #include "System/Timer.hpp"
-#include "Vulkan/VkConfig.h"
+#include "Vulkan/VkConfig.hpp"
 #include "Vulkan/VkDevice.hpp"
 #include "Vulkan/VkFence.hpp"
 #include "Vulkan/VkImageView.hpp"

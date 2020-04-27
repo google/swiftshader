@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkFormat.h"
+#include "VkFormat.hpp"
 
 #include "System/Debug.hpp"
 #include "System/Math.hpp"

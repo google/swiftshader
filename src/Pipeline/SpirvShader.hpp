@@ -23,7 +23,7 @@
 #include "System/Debug.hpp"
 #include "System/Math.hpp"
 #include "System/Types.hpp"
-#include "Vulkan/VkConfig.h"
+#include "Vulkan/VkConfig.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 
 #define SPV_ENABLE_UTILITY_CODE

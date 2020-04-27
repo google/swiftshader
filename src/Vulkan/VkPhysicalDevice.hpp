@@ -15,7 +15,7 @@
 #ifndef VK_PHYSICAL_DEVICE_HPP_
 #define VK_PHYSICAL_DEVICE_HPP_
 
-#include "VkFormat.h"
+#include "VkFormat.hpp"
 #include "VkObject.hpp"
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR

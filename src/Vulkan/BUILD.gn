@@ -58,28 +58,28 @@ config("swiftshader_libvulkan_private_config") {
 
 swiftshader_source_set("swiftshader_libvulkan_headers") {
   sources = [
-    "Version.h",
+    "Version.hpp",
     "VkBuffer.hpp",
     "VkBufferView.hpp",
     "VkCommandBuffer.hpp",
     "VkCommandPool.hpp",
-    "VkConfig.h",
+    "VkConfig.hpp",
     "VkDescriptorPool.hpp",
     "VkDescriptorSet.hpp",
     "VkDescriptorSetLayout.hpp",
     "VkDescriptorUpdateTemplate.hpp",
-    "VkDestroy.h",
+    "VkDestroy.hpp",
     "VkDevice.hpp",
     "VkDeviceMemory.hpp",
     "VkEvent.hpp",
     "VkFence.hpp",
-    "VkFormat.h",
+    "VkFormat.hpp",
     "VkFramebuffer.hpp",
-    "VkGetProcAddress.h",
+    "VkGetProcAddress.hpp",
     "VkImage.hpp",
     "VkImageView.hpp",
     "VkInstance.hpp",
-    "VkMemory.h",
+    "VkMemory.hpp",
     "VkObject.hpp",
     "VkPhysicalDevice.hpp",
     "VkPipeline.hpp",
@@ -93,7 +93,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     "VkShaderModule.hpp",
     "VkSpecializationInfo.hpp",
     "VkStringify.hpp",
-    "VulkanPlatform.h",
+    "VulkanPlatform.hpp",
   ]
   if (is_linux || is_android) {
     sources += [

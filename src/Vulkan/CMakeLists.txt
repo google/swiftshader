@@ -21,7 +21,7 @@ set(VULKAN_SRC_FILES
     libVulkan.cpp
     main.cpp
     resource.h
-    Version.h
+    Version.hpp
     VkBuffer.cpp
     VkBuffer.hpp
     VkBufferView.cpp
@@ -30,7 +30,7 @@ set(VULKAN_SRC_FILES
     VkCommandBuffer.hpp
     VkCommandPool.cpp
     VkCommandPool.hpp
-    VkConfig.h
+    VkConfig.hpp
     VkDescriptorPool.cpp
     VkDescriptorPool.hpp
     VkDescriptorSet.hpp
@@ -38,7 +38,7 @@ set(VULKAN_SRC_FILES
     VkDescriptorSetLayout.hpp
     VkDescriptorUpdateTemplate.cpp
     VkDescriptorUpdateTemplate.hpp
-    VkDestroy.h
+    VkDestroy.hpp
     VkDevice.cpp
     VkDevice.hpp
     VkDeviceMemory.cpp
@@ -48,11 +48,11 @@ set(VULKAN_SRC_FILES
     VkEvent.hpp
     VkFence.hpp
     VkFormat.cpp
-    VkFormat.h
+    VkFormat.hpp
     VkFramebuffer.cpp
     VkFramebuffer.hpp
     VkGetProcAddress.cpp
-    VkGetProcAddress.h
+    VkGetProcAddress.hpp
     VkImage.cpp
     VkImage.hpp
     VkImageView.cpp
@@ -60,7 +60,7 @@ set(VULKAN_SRC_FILES
     VkInstance.cpp
     VkInstance.hpp
     VkMemory.cpp
-    VkMemory.h
+    VkMemory.hpp
     VkObject.hpp
     VkPhysicalDevice.cpp
     VkPhysicalDevice.hpp
@@ -89,7 +89,7 @@ set(VULKAN_SRC_FILES
     VkShaderModule.hpp
     VkStringify.cpp
     VkStringify.hpp
-    VulkanPlatform.h
+    VulkanPlatform.hpp
 )
 
 if(WIN32)

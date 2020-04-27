@@ -15,7 +15,7 @@
 #ifndef VK_IMAGE_VIEW_HPP_
 #define VK_IMAGE_VIEW_HPP_
 
-#include "VkFormat.h"
+#include "VkFormat.hpp"
 #include "VkImage.hpp"
 #include "VkObject.hpp"
 

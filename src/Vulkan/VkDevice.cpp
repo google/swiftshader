@@ -14,7 +14,7 @@
 
 #include "VkDevice.hpp"
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkDescriptorSetLayout.hpp"
 #include "VkFence.hpp"
 #include "VkQueue.hpp"

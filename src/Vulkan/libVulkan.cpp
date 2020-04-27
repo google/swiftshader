@@ -16,17 +16,17 @@
 #include "VkBufferView.hpp"
 #include "VkCommandBuffer.hpp"
 #include "VkCommandPool.hpp"
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkDescriptorPool.hpp"
 #include "VkDescriptorSetLayout.hpp"
 #include "VkDescriptorUpdateTemplate.hpp"
-#include "VkDestroy.h"
+#include "VkDestroy.hpp"
 #include "VkDevice.hpp"
 #include "VkDeviceMemory.hpp"
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
 #include "VkFramebuffer.hpp"
-#include "VkGetProcAddress.h"
+#include "VkGetProcAddress.hpp"
 #include "VkImage.hpp"
 #include "VkImageView.hpp"
 #include "VkInstance.hpp"
@@ -45,7 +45,7 @@
 #include "System/Debug.hpp"
 
 #if defined(VK_USE_PLATFORM_METAL_EXT) || defined(VK_USE_PLATFORM_MACOS_MVK)
-#	include "WSI/MetalSurface.h"
+#	include "WSI/MetalSurface.hpp"
 #endif
 
 #ifdef VK_USE_PLATFORM_XCB_KHR

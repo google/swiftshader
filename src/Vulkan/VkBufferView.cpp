@@ -14,7 +14,7 @@
 
 #include "VkBufferView.hpp"
 #include "VkBuffer.hpp"
-#include "VkFormat.h"
+#include "VkFormat.hpp"
 
 namespace vk {
 

@@ -40,7 +40,7 @@
 // VK_KHR_storage_buffer_storage_class (no functions in this extension)
 // VK_KHR_variable_pointers (no functions in this extension)
 
-#include <Vulkan/VulkanPlatform.h>
+#include "Vulkan/VulkanPlatform.hpp"
 
 extern "C" {
 

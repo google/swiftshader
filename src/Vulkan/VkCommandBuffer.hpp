@@ -15,7 +15,7 @@
 #ifndef VK_COMMAND_BUFFER_HPP_
 #define VK_COMMAND_BUFFER_HPP_
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkDescriptorSet.hpp"
 #include "VkObject.hpp"
 #include "Device/Context.hpp"

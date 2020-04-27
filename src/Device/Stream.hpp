@@ -15,7 +15,7 @@
 #ifndef sw_Stream_hpp
 #define sw_Stream_hpp
 
-#include <Vulkan/VulkanPlatform.h>
+#include "Vulkan/VulkanPlatform.hpp"
 
 namespace sw {
 

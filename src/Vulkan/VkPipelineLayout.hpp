@@ -15,7 +15,7 @@
 #ifndef VK_PIPELINE_LAYOUT_HPP_
 #define VK_PIPELINE_LAYOUT_HPP_
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkDescriptorSetLayout.hpp"
 
 namespace vk {

@@ -17,7 +17,7 @@
 
 #include "System/Math.hpp"
 #include "System/Types.hpp"
-#include "Vulkan/VkConfig.h"
+#include "Vulkan/VkConfig.hpp"
 
 namespace sw {
 

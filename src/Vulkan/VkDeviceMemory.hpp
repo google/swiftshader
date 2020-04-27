@@ -15,7 +15,7 @@
 #ifndef VK_DEVICE_MEMORY_HPP_
 #define VK_DEVICE_MEMORY_HPP_
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkObject.hpp"
 
 namespace vk {

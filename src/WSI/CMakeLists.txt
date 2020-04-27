@@ -49,7 +49,7 @@ elseif(LINUX)
 elseif(APPLE)
     list(APPEND WSI_SRC_FILES
         MetalSurface.mm
-        MetalSurface.h
+        MetalSurface.hpp
     )
 endif()
 

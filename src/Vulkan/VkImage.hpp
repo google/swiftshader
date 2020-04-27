@@ -15,7 +15,7 @@
 #ifndef VK_IMAGE_HPP_
 #define VK_IMAGE_HPP_
 
-#include "VkFormat.h"
+#include "VkFormat.hpp"
 #include "VkObject.hpp"
 
 #ifdef __ANDROID__

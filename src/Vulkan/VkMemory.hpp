@@ -15,7 +15,7 @@
 #ifndef VK_MEMORY_HPP_
 #define VK_MEMORY_HPP_
 
-#include <Vulkan/VulkanPlatform.h>
+#include "Vulkan/VulkanPlatform.hpp"
 
 namespace vk {
 

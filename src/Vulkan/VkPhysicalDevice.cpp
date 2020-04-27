@@ -14,7 +14,7 @@
 
 #include "VkPhysicalDevice.hpp"
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "Pipeline/SpirvShader.hpp"  // sw::SIMD::Width
 #include "Reactor/Reactor.hpp"
 

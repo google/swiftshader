@@ -17,7 +17,7 @@
 
 #include "Device/Config.hpp"
 #include "System/Types.hpp"
-#include "Vulkan/VkFormat.h"
+#include "Vulkan/VkFormat.hpp"
 
 namespace vk {
 class Image;

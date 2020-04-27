@@ -14,7 +14,7 @@
 
 #include "VkSemaphore.hpp"
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkStringify.hpp"
 
 #include "marl/blockingcall.h"

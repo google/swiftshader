@@ -17,7 +17,7 @@
 
 #include "Vulkan/VkImage.hpp"
 #include "Vulkan/VkObject.hpp"
-#include <Vulkan/VulkanPlatform.h>
+#include "Vulkan/VulkanPlatform.hpp"
 
 #include <vector>
 

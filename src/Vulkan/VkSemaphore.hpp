@@ -15,7 +15,7 @@
 #ifndef VK_SEMAPHORE_HPP_
 #define VK_SEMAPHORE_HPP_
 
-#include "VkConfig.h"
+#include "VkConfig.hpp"
 #include "VkObject.hpp"
 
 #include "marl/event.h"

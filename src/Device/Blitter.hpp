@@ -18,7 +18,7 @@
 #include "Memset.hpp"
 #include "RoutineCache.hpp"
 #include "Reactor/Reactor.hpp"
-#include "Vulkan/VkFormat.h"
+#include "Vulkan/VkFormat.hpp"
 
 #include "marl/mutex.h"
 #include "marl/tsa.h"
