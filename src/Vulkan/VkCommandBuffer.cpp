@@ -1111,7 +1111,7 @@ public:
 
 	void play(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		ASSERT(pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE);
+		ASSERT(pipelineBindPoint < vk::VK_PIPELINE_BIND_POINT_RANGE_SIZE);
 		ASSERT(firstSet + descriptorSetCount <= vk::MAX_BOUND_DESCRIPTOR_SETS);
 		ASSERT(firstDynamicOffset + dynamicOffsetCount <= vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
 
