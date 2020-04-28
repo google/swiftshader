@@ -133,7 +133,9 @@ private:
 	static void materializeAll();
 	static void killUnmaterialized();
 
-	static thread_local std::unordered_set<Variable *> unmaterializedVariables;
+	// This has to be a raw pointer because glibc 2.17 doesn't support __cxa_thread_atexit_impl
+	// for destructing objects at exit. See crbug.com/1074222
+	static thread_local std::unordered_set<Variable *> *unmaterializedVariables;
 
 	Type *const type;
 	mutable Value *rvalue = nullptr;

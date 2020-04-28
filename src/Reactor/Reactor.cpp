@@ -64,7 +64,7 @@ void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> &edits, s
 }
 
 // Set of variables that do not have a stack location yet.
-thread_local std::unordered_set<Variable *> Variable::unmaterializedVariables;
+thread_local std::unordered_set<Variable *> *Variable::unmaterializedVariables = nullptr;
 
 Variable::Variable(Type *type, int arraySize)
     : arraySize(arraySize)
@@ -73,28 +73,28 @@ Variable::Variable(Type *type, int arraySize)
 #if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
 	materialize();
 #else
-	unmaterializedVariables.emplace(this);
+	unmaterializedVariables->emplace(this);
 #endif
 }
 
 Variable::~Variable()
 {
-	unmaterializedVariables.erase(this);
+	unmaterializedVariables->erase(this);
 }
 
 void Variable::materializeAll()
 {
-	for(auto *var : unmaterializedVariables)
+	for(auto *var : *unmaterializedVariables)
 	{
 		var->materialize();
 	}
 
-	unmaterializedVariables.clear();
+	unmaterializedVariables->clear();
 }
 
 void Variable::killUnmaterialized()
 {
-	unmaterializedVariables.clear();
+	unmaterializedVariables->clear();
 }
 
 // NOTE: Only 12 bits out of 16 of the |select| value are used.

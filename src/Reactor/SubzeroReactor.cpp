@@ -855,7 +855,7 @@ void VPrintf(const std::vector<Value *> &vals)
 
 Nucleus::Nucleus()
 {
-	::codegenMutex.lock();  // Reactor is currently not thread safe
+	::codegenMutex.lock();  // SubzeroReactor is currently not thread safe
 
 	Ice::ClFlags &Flags = Ice::ClFlags::Flags;
 	Ice::ClFlags::getParsedClFlags(Flags);
@@ -901,10 +901,16 @@ Nucleus::Nucleus()
 		::context = new Ice::GlobalContext(&cout, &cout, &cerr, elfMemory);
 		::routine = elfMemory;
 	}
+
+	ASSERT(Variable::unmaterializedVariables == nullptr);
+	Variable::unmaterializedVariables = new std::unordered_set<Variable *>();
 }
 
 Nucleus::~Nucleus()
 {
+	delete Variable::unmaterializedVariables;
+	Variable::unmaterializedVariables = nullptr;
+
 	delete ::routine;
 	::routine = nullptr;
 

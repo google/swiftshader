@@ -65,7 +65,9 @@ extern "C" void X86CompilationCallback()
 
 namespace {
 
-thread_local std::unique_ptr<rr::JITBuilder> jit;
+// This has to be a raw pointer because glibc 2.17 doesn't support __cxa_thread_atexit_impl
+// for destructing objects at exit. See crbug.com/1074222
+thread_local rr::JITBuilder *jit = nullptr;
 
 // Default configuration settings. Must be accessed under mutex lock.
 std::mutex defaultConfigLock;
@@ -603,12 +605,19 @@ static ::llvm::Function *createFunction(const char *name, ::llvm::Type *retTy, c
 Nucleus::Nucleus()
 {
 	ASSERT(jit == nullptr);
-	jit.reset(new JITBuilder(Nucleus::getDefaultConfig()));
+	jit = new JITBuilder(Nucleus::getDefaultConfig());
+
+	ASSERT(Variable::unmaterializedVariables == nullptr);
+	Variable::unmaterializedVariables = new std::unordered_set<Variable *>();
 }
 
 Nucleus::~Nucleus()
 {
-	jit.reset();
+	delete Variable::unmaterializedVariables;
+	Variable::unmaterializedVariables = nullptr;
+
+	delete jit;
+	jit = nullptr;
 }
 
 void Nucleus::setDefaultConfig(const Config &cfg)
@@ -634,10 +643,10 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 {
 	std::shared_ptr<Routine> routine;
 
-	auto acquire = [&](std::unique_ptr<rr::JITBuilder> jitBuilder) {
+	auto acquire = [&](rr::JITBuilder *jitBuilder) {
 		// ::jit is thread-local, so when this is executed on a separate thread (see JIT_IN_SEPARATE_THREAD)
 		// it needs to be assigned the value from the parent thread.
-		jit = std::move(jitBuilder);
+		jit = jitBuilder;
 
 		auto cfg = cfgEdit.apply(jit->config);
 
@@ -687,7 +696,8 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 		}
 
 		routine = jit->acquireRoutine(&jit->function, 1, cfg);
-		jit.reset();
+		delete jit;
+		jit = nullptr;
 	};
 
 #ifdef JIT_IN_SEPARATE_THREAD
@@ -4288,7 +4298,8 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	funcs[Nucleus::CoroutineEntryAwait] = jit->coroutine.await;
 	funcs[Nucleus::CoroutineEntryDestroy] = jit->coroutine.destroy;
 	auto routine = jit->acquireRoutine(funcs, Nucleus::CoroutineEntryCount, cfg);
-	jit.reset();
+	delete jit;
+	jit = nullptr;
 
 	return routine;
 }
