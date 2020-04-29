@@ -201,7 +201,10 @@ inline constexpr float4 replicate(float f)
 	return vector(f, f, f, f);
 }
 
-#define OFFSET(s, m) (int)(size_t) & reinterpret_cast<const volatile char &>((((s *)0)->m))
+// The OFFSET macro is a generalization of the offsetof() macro defined in <cstddef>.
+// It allows e.g. getting the offset of array elements, even when indexed dynamically.
+// We cast the address '32' and subtract it again, because null-dereference is undefined behavior.
+#define OFFSET(s, m) ((int)(size_t) & reinterpret_cast<const volatile char &>((((s *)32)->m)) - 32)
 
 }  // namespace sw
 
