@@ -22,13 +22,13 @@ namespace marl {
 
 namespace detail {
 
-void parallelizeChain(WaitGroup*) {}
+void parallelizeChain(WaitGroup&) {}
 
 template <typename F, typename... L>
-void parallelizeChain(WaitGroup* wg, F&& f, L&&... l) {
+void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
   schedule([=] {
     f();
-    wg->done();
+    wg.done();
   });
   parallelizeChain(wg, std::forward<L>(l)...);
 }
@@ -41,7 +41,7 @@ void parallelizeChain(WaitGroup* wg, F&& f, L&&... l) {
 template <typename... FUNCTIONS>
 inline void parallelize(FUNCTIONS&&... functions) {
   WaitGroup wg(sizeof...(FUNCTIONS));
-  detail::parallelizeChain(&wg, functions...);
+  detail::parallelizeChain(wg, functions...);
   wg.wait();
 }
 

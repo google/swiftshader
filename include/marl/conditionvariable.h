@@ -17,7 +17,6 @@
 
 #include "containers.h"
 #include "debug.h"
-#include "defer.h"
 #include "memory.h"
 #include "mutex.h"
 #include "scheduler.h"
@@ -159,10 +158,10 @@ bool ConditionVariable::wait_until(
   if (pred()) {
     return true;
   }
-  numWaiting++;
-  defer(numWaiting--);
 
   if (auto fiber = Scheduler::Fiber::current()) {
+    numWaiting++;
+
     // Currently executing on a scheduler fiber.
     // Yield to let other tasks run that can unblock this fiber.
     mutex.lock();
@@ -175,14 +174,18 @@ bool ConditionVariable::wait_until(
     waiting.erase(it);
     mutex.unlock();
 
+    numWaiting--;
     return res;
-  } else {
-    // Currently running outside of the scheduler.
-    // Delegate to the std::condition_variable.
-    numWaitingOnCondition++;
-    defer(numWaitingOnCondition--);
-    return lock.wait_until(condition, timeout, pred);
   }
+
+  // Currently running outside of the scheduler.
+  // Delegate to the std::condition_variable.
+  numWaiting++;
+  numWaitingOnCondition++;
+  auto res = lock.wait_until(condition, timeout, pred);
+  numWaitingOnCondition--;
+  numWaiting--;
+  return res;
 }
 
 }  // namespace marl

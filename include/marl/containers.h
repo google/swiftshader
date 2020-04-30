@@ -292,6 +292,11 @@ class list {
   list& operator=(const list&) = delete;
   list& operator=(list&&) = delete;
 
+  struct AllocationChain {
+    Allocation allocation;
+    AllocationChain* next;
+  };
+
   void grow(size_t count);
 
   static void unlink(Entry* entry, Entry*& list);
@@ -300,7 +305,7 @@ class list {
   Allocator* const allocator;
   size_t size_ = 0;
   size_t capacity = 0;
-  vector<Allocation, 8> allocations;
+  AllocationChain* allocations = nullptr;
   Entry* free = nullptr;
   Entry* head = nullptr;
 };
@@ -336,17 +341,19 @@ bool list<T>::iterator::operator!=(const iterator& rhs) const {
 
 template <typename T>
 list<T>::list(Allocator* allocator /* = Allocator::Default */)
-    : allocator(allocator), allocations(allocator) {
-  grow(8);
-}
+    : allocator(allocator) {}
 
 template <typename T>
 list<T>::~list() {
   for (auto el = head; el != nullptr; el = el->next) {
     el->data.~T();
   }
-  for (auto alloc : allocations) {
-    allocator->free(alloc);
+
+  auto curr = allocations;
+  while (curr != nullptr) {
+    auto next = curr->next;
+    allocator->free(curr->allocation);
+    curr = next;
   }
 }
 
@@ -369,7 +376,7 @@ template <typename T>
 template <typename... Args>
 typename list<T>::iterator list<T>::emplace_front(Args&&... args) {
   if (free == nullptr) {
-    grow(capacity);
+    grow(std::max<size_t>(capacity, 8));
   }
 
   auto entry = free;
@@ -395,9 +402,13 @@ void list<T>::erase(iterator it) {
 
 template <typename T>
 void list<T>::grow(size_t count) {
+  auto const entriesSize = sizeof(Entry) * count;
+  auto const allocChainOffset = alignUp(entriesSize, alignof(AllocationChain));
+  auto const allocSize = allocChainOffset + sizeof(AllocationChain);
+
   Allocation::Request request;
-  request.size = sizeof(Entry) * count;
-  request.alignment = alignof(Entry);
+  request.size = allocSize;
+  request.alignment = std::max(alignof(Entry), alignof(AllocationChain));
   request.usage = Allocation::Usage::List;
   auto alloc = allocator->allocate(request);
 
@@ -412,7 +423,12 @@ void list<T>::grow(size_t count) {
     free = entry;
   }
 
-  allocations.emplace_back(std::move(alloc));
+  auto allocChain = reinterpret_cast<AllocationChain*>(
+      reinterpret_cast<uint8_t*>(alloc.ptr) + allocChainOffset);
+
+  allocChain->allocation = alloc;
+  allocChain->next = allocations;
+  allocations = allocChain;
 
   capacity += count;
 }

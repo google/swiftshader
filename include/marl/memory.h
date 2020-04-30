@@ -31,10 +31,15 @@ namespace marl {
 // system.
 size_t pageSize();
 
+template <typename T>
+inline T alignUp(T val, T alignment) {
+  return alignment * ((val + alignment - 1) / alignment);
+}
+
 // Allocation holds the result of a memory allocation from an Allocator.
 struct Allocation {
   // Intended usage of the allocation. Used for allocation trackers.
-  enum class Usage {
+  enum class Usage : uint8_t {
     Undefined = 0,
     Stack,   // Fiber stack
     Create,  // Allocator::create(), make_unique(), make_shared()

@@ -192,7 +192,7 @@ T* Pool<T>::Loan::operator->() const {
 
 template <typename T>
 T* Pool<T>::Loan::get() const {
-  return item->get();
+  return item ? item->get() : nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
