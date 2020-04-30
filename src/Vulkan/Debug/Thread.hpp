@@ -143,9 +143,14 @@ public:
 	State state() const;
 
 	// update() calls f to modify the top most frame of the stack.
-	// If the frame's location is changed, update() potentially blocks until the
-	// thread is resumed with one of the methods below.
-	void update(std::function<void(Frame &)> f);
+	// If the frame's location is changed and isStep is true, update()
+	// potentially blocks until the thread is resumed with one of the methods
+	// below.
+	// isStep is used to distinguish same-statement column position updates
+	// from full line updates. Note that we cannot simply examine line position
+	// changes as single-line loops such as `while(true) { foo(); }` would not
+	// be correctly steppable.
+	void update(bool isStep, std::function<void(Frame &)> f);
 
 	// resume() resumes execution of the thread by unblocking a call to
 	// update() and setting the thread's state to State::Running.

@@ -451,6 +451,7 @@ struct SpirvShader::Impl::Debugger
 
 	void process(const SpirvShader *shader, const InsnIterator &insn, EmitState *state, Pass pass);
 
+	void setNextSetLocationIsStep();
 	void setLocation(EmitState *state, const std::shared_ptr<vk::dbg::File> &, int line, int column);
 	void setLocation(EmitState *state, const std::string &path, int line, int column);
 
@@ -514,6 +515,8 @@ private:
 	void defineOrEmit(InsnIterator insn, Pass pass, F &&emit);
 
 	std::unordered_map<std::string, std::shared_ptr<vk::dbg::File>> files;
+	bool nextSetLocationIsStep = true;
+	int lastSetLocationLine = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -533,7 +536,7 @@ public:
 	void enter(vk::dbg::Context::Lock &lock, const char *name);
 	void exit();
 	void updateActiveLaneMask(int lane, bool enabled);
-	void updateLocation(vk::dbg::File::ID file, int line, int column);
+	void updateLocation(bool isStep, vk::dbg::File::ID file, int line, int column);
 	void createScope(const debug::Scope *);
 	void setScope(debug::SourceScope *newScope);
 
@@ -595,7 +598,7 @@ SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *
 		builtinsByLane[i] = lock.createVariableContainer();
 	}
 
-	thread->update([&](vk::dbg::Frame &frame) {
+	thread->update(true, [&](vk::dbg::Frame &frame) {
 		rootScopes.locals = frame.locals;
 		rootScopes.hovers = frame.hovers;
 		for(int i = 0; i < sw::SIMD::Width; i++)
@@ -631,10 +634,10 @@ void SpirvShader::Impl::Debugger::State::updateActiveLaneMask(int lane, bool ena
 	rootScopes.localsByLane[lane]->put("enabled", vk::dbg::make_constant(enabled));
 }
 
-void SpirvShader::Impl::Debugger::State::updateLocation(vk::dbg::File::ID fileID, int line, int column)
+void SpirvShader::Impl::Debugger::State::updateLocation(bool isStep, vk::dbg::File::ID fileID, int line, int column)
 {
 	auto file = debugger->ctx->lock().get(fileID);
-	thread->update([&](vk::dbg::Frame &frame) {
+	thread->update(isStep, [&](vk::dbg::Frame &frame) {
 		frame.location = { file, line, column };
 	});
 }
@@ -735,7 +738,7 @@ void SpirvShader::Impl::Debugger::State::setScope(debug::SourceScope *newSrcScop
 		}
 
 		auto dbgScope = getScopes(srcScope->scope);
-		thread->update([&](vk::dbg::Frame &frame) {
+		thread->update(true, [&](vk::dbg::Frame &frame) {
 			frame.locals = dbgScope.locals;
 			frame.hovers = dbgScope.hovers;
 		});
@@ -1137,9 +1140,21 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 	}
 }
 
+void SpirvShader::Impl::Debugger::setNextSetLocationIsStep()
+{
+	nextSetLocationIsStep = true;
+}
+
 void SpirvShader::Impl::Debugger::setLocation(EmitState *state, const std::shared_ptr<vk::dbg::File> &file, int line, int column)
 {
-	rr::Call(&State::updateLocation, state->routine->dbgState, file->id, line, column);
+	if(line != lastSetLocationLine)
+	{
+		// If the line number has changed, then this is always a step.
+		nextSetLocationIsStep = true;
+		lastSetLocationLine = line;
+	}
+	rr::Call(&State::updateLocation, state->routine->dbgState, nextSetLocationIsStep, file->id, line, column);
+	nextSetLocationIsStep = false;
 }
 
 void SpirvShader::Impl::Debugger::setLocation(EmitState *state, const std::string &path, int line, int column)
@@ -1579,6 +1594,16 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 
 	if(auto dbg = impl.debugger)
 	{
+		if(insn.opcode() == spv::OpLabel)
+		{
+			// Whenever we hit a label, force the next OpLine to be steppable.
+			// This handles the case where we have control flow on the same line
+			// For example:
+			//   while(true) { foo(); }
+			// foo() should be repeatedly steppable.
+			dbg->setNextSetLocationIsStep();
+		}
+
 		if(extensionsImported.count(Extension::OpenCLDebugInfo100) == 0)
 		{
 			// We're emitting debugger logic for SPIR-V.

@@ -96,15 +96,22 @@ void Thread::exit()
 	frames.pop_back();
 }
 
-void Thread::update(std::function<void(Frame &)> f)
+void Thread::update(bool isStep, std::function<void(Frame &)> f)
 {
 	marl::lock lock(mutex);
 	auto &frame = *frames.back();
-	auto oldLocation = frame.location;
-	f(frame);
-	if(frame.location != oldLocation)
+	if(isStep)
 	{
-		onLocationUpdate(lock);
+		auto oldLocation = frame.location;
+		f(frame);
+		if(frame.location != oldLocation)
+		{
+			onLocationUpdate(lock);
+		}
+	}
+	else
+	{
+		f(frame);
 	}
 }
 
