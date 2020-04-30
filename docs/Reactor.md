@@ -45,20 +45,20 @@ Concepts and Syntax
 
 ### Routine and Function<>
 
-Reactor allows you to create new functions at run-time. Their generation happens in C++, and after materializing them they can be called during the execution of the same C++ program. We call these dynamically generated functions "routines", to discern them from statically compiled functions and methods. Reactor's ```Routine``` class encapsulates a routine. Deleting a Routine object also frees the memory used to store the routine.
+Reactor allows you to create new functions at run-time. Their generation happens in C++, and after materializing them they can be called during the execution of the same C++ program. We call these dynamically generated functions "routines", to discern them from statically compiled functions and methods. Reactor's `Routine` class encapsulates a routine. Deleting a Routine object also frees the memory used to store the routine.
 
-To declare the function signature of a routine, use the ```Function<>``` template. The template argument is the signature of a function, using Reactor variable types. Here's a complete definition of a routine taking no arguments and returning an integer:
+To declare the function signature of a routine, use the `Function<>` template. The template argument is the signature of a function, using Reactor variable types. Here's a complete definition of a routine taking no arguments and returning an integer:
 
-```C++
+`C++
 Function<Int(Void)> function;
 {
     Return(1);
 }
-```
+`
 
 The braces are superfluous. They just make the syntax look more like regular C++, and they offer a new scope for Reactor variables.
 
-The Routine is obtained and materialized by "calling" the ```Function<>``` object to give it a name:
+The Routine is obtained and materialized by "calling" the `Function<>` object to give it a name:
 
 ```C++
 auto routine = function("one");
@@ -73,7 +73,7 @@ int result = callable();
 assert(result == 1);
 ```
 
-Note that ```Function<>``` objects are relatively heavyweight, since they have the entire JIT-compiler behind them, while ```Routine``` objects are lightweight and merely provide storage and lifetime management of generated routines. So we typically allow the ```Function<>``` object to be destroyed (by going out of scope), while the ```Routine``` object is retained until we no longer need to call the routine. Hence the distinction between them and the need for a couple of lines of boilerplate code.
+Note that `Function<>` objects are relatively heavyweight, since they have the entire JIT-compiler behind them, while `Routine` objects are lightweight and merely provide storage and lifetime management of generated routines. So we typically allow the `Function<>` object to be destroyed (by going out of scope), while the `Routine` object is retained until we no longer need to call the routine. Hence the distinction between them and the need for a couple of lines of boilerplate code.
 
 ### Arguments and Expressions
 
@@ -109,7 +109,7 @@ Note that bytes are unsigned unless prefixed with S, while larger integers are s
 
 These scalar types support all of the C++ arithmetic operations.
 
-Reactor also supports several vector types. For example ```Float4``` is a vector of four floats. They support a select number of C++ operators, and several "intrinsic" functions such as ```Max()``` to compute the element-wise maximum and return a bit mask. Check [Reactor.hpp](../src/Reactor/Reactor.hpp) for all the types, operators and intrinsics.
+Reactor also supports several vector types. For example `Float4` is a vector of four floats. They support a select number of C++ operators, and several "intrinsic" functions such as `Max()` to compute the element-wise maximum and return a bit mask. Check [Reactor.hpp](../src/Reactor/Reactor.hpp) for all the types, operators and intrinsics.
 
 ### Casting and Reinterpreting
 
@@ -126,7 +126,7 @@ Function<Int(Float)> function;
 }
 ```
 
-You can reinterpret-cast a variable using ```As<>```:
+You can reinterpret-cast a variable using `As<>`:
 
 ```C++
 Function<Int(Float)> function;
@@ -139,7 +139,7 @@ Function<Int(Float)> function;
 }
 ```
 
-Note that this is a bitwise cast. Unlike C++'s ```reinterpret_cast<>```, it does not allow casting between different sized types. Think of it as storing the value in memory and then loading from that same address into the casted type.
+Note that this is a bitwise cast. Unlike C++'s `reinterpret_cast<>`, it does not allow casting between different sized types. Think of it as storing the value in memory and then loading from that same address into the casted type.
 
 An important exception is that 16-, 8-, and 4-byte vectors can be cast to other vectors of one of these sizes. Casting to a longer vector leaves the upper contents undefined.
 
@@ -158,7 +158,7 @@ Function<Int(Pointer<Int>)> function;
 }
 ```
 
-Pointer arithmetic is only supported on ```Pointer<Byte>```, and can be used to access structure fields:
+Pointer arithmetic is only supported on `Pointer<Byte>`, and can be used to access structure fields:
 
 ```C++
 struct S
@@ -177,7 +177,7 @@ Function<Int(Pointer<Byte>)> function;
 }
 ```
 
-Reactor also defines an OFFSET() macro equivalent to the standard offsetof() macro.
+Reactor also defines an `OFFSET()` macro, which is a generalization of the `offsetof()` macro defined in `<cstddef>`. It allows e.g. getting the offset of array elements, even when indexed dynamically.
 
 ### Conditionals
 
@@ -227,7 +227,7 @@ Function<Int(Pointer<Int>, Int)> function;
 
 Note the use of commas instead of semicolons to separate the loop expressions.
 
-```While(expr) {}``` also works as expected, but there is no ```Do {} While(expr)``` equivalent because we can't discern between them. Instead, there's a ```Do {} Until(expr)``` where you can use the inverse expression to exit the loop.
+`While(expr) {}` also works as expected, but there is no `Do {} While(expr)` equivalent because we can't discern between them. Instead, there's a `Do {} Until(expr)` where you can use the inverse expression to exit the loop.
 
 Specialization
 --------------
@@ -265,7 +265,7 @@ Function<Int(Pointer<Int>, Int)> function;
 }
 ```
 
-Note that this example uses regular C++ ```if``` and ```else``` constructs. They only determine which code ends up in the generated routine, and don't end up in the generated code themselves. Thus the routine contains a loop with just one arithmetic or logical operation, making it more efficient than if this was written in regular C++.
+Note that this example uses regular C++ `if` and `else` constructs. They only determine which code ends up in the generated routine, and don't end up in the generated code themselves. Thus the routine contains a loop with just one arithmetic or logical operation, making it more efficient than if this was written in regular C++.
 
 Of course one could write an equivalent efficient function in regular C++ like this:
 
