@@ -104,7 +104,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_TRUE,   // shaderUniformBufferArrayDynamicIndexing
 		VK_TRUE,   // shaderSampledImageArrayDynamicIndexing
 		VK_TRUE,   // shaderStorageBufferArrayDynamicIndexing
-		VK_FALSE,  // shaderStorageImageArrayDynamicIndexing
+		VK_TRUE,   // shaderStorageImageArrayDynamicIndexing
 		VK_TRUE,   // shaderClipDistance
 		VK_TRUE,   // shaderCullDistance
 		VK_FALSE,  // shaderFloat64
