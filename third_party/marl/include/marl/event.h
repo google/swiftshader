@@ -26,7 +26,7 @@ namespace marl {
 // Event is a synchronization primitive used to block until a signal is raised.
 class Event {
  public:
-  enum class Mode {
+  enum class Mode : uint8_t {
     // The event signal will be automatically reset when a call to wait()
     // returns.
     // A single call to signal() will only unblock a single (possibly
@@ -115,9 +115,9 @@ class Event {
 
     marl::mutex mutex;
     ConditionVariable cv;
+    containers::vector<std::shared_ptr<Shared>, 1> deps;
     const Mode mode;
     bool signalled;
-    containers::vector<std::shared_ptr<Shared>, 2> deps;
   };
 
   const std::shared_ptr<Shared> shared;

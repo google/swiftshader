@@ -26,6 +26,16 @@ TEST_P(WithBoundScheduler, BoundedPool_ConstructDestruct) {
   marl::BoundedPool<int, 10> pool;
 }
 
+TEST_P(WithBoundScheduler, UnboundedPoolLoan_GetNull) {
+  marl::UnboundedPool<int>::Loan loan;
+  ASSERT_EQ(loan.get(), nullptr);
+}
+
+TEST_P(WithBoundScheduler, BoundedPoolLoan_GetNull) {
+  marl::BoundedPool<int, 10>::Loan loan;
+  ASSERT_EQ(loan.get(), nullptr);
+}
+
 TEST_P(WithBoundScheduler, UnboundedPool_Borrow) {
   marl::UnboundedPool<int> pool;
   for (int i = 0; i < 100; i++) {

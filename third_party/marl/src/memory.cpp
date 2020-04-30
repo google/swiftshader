@@ -129,11 +129,6 @@ inline void protectPage(void* addr) {
 
 namespace {
 
-template <typename T>
-inline T alignUp(T val, T alignment) {
-  return alignment * ((val + alignment - 1) / alignment);
-}
-
 // pagedMalloc() allocates size bytes of uninitialized storage with the
 // specified minimum byte alignment using OS specific page mapping calls.
 // If guardLow is true then reads or writes to the page below the returned
@@ -188,8 +183,8 @@ void pagedFree(void* ptr,
 inline void* alignedMalloc(size_t alignment, size_t size) {
   size_t allocSize = size + alignment + sizeof(void*);
   auto allocation = malloc(allocSize);
-  auto aligned = reinterpret_cast<uint8_t*>(
-      alignUp(reinterpret_cast<uintptr_t>(allocation), alignment));  // align
+  auto aligned = reinterpret_cast<uint8_t*>(marl::alignUp(
+      reinterpret_cast<uintptr_t>(allocation), alignment));  // align
   memcpy(aligned + size, &allocation, sizeof(void*));  // pointer-to-allocation
   return aligned;
 }

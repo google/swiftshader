@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "marl/event.h"
+#include "marl/defer.h"
 #include "marl/waitgroup.h"
 
 #include "marl_test.h"

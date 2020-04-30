@@ -16,9 +16,14 @@
 
 #include "marl_test.h"
 
+namespace {
+
+auto constexpr fiberStackSize = 8 * 1024;
+
+}  // anonymous namespace
+
 TEST_F(WithoutBoundScheduler, OSFiber) {
   std::string str;
-  auto constexpr fiberStackSize = 8 * 1024;
   auto main = marl::OSFiber::createFiberFromCurrentThread(allocator);
   marl::Allocator::unique_ptr<marl::OSFiber> fiberA, fiberB, fiberC;
   fiberC = marl::OSFiber::createFiber(allocator, fiberStackSize, [&] {
@@ -37,4 +42,27 @@ TEST_F(WithoutBoundScheduler, OSFiber) {
   main->switchTo(fiberC.get());
 
   ASSERT_EQ(str, "CBA");
+}
+
+TEST_F(WithoutBoundScheduler, StackAlignment) {
+  uintptr_t address = 0;
+
+  struct alignas(16) AlignTo16Bytes {
+    uint64_t a, b;
+  };
+
+  auto main = marl::OSFiber::createFiberFromCurrentThread(allocator);
+  marl::Allocator::unique_ptr<marl::OSFiber> fiber;
+  fiber = marl::OSFiber::createFiber(allocator, fiberStackSize, [&] {
+    AlignTo16Bytes stack_var;
+
+    address = reinterpret_cast<uintptr_t>(&stack_var);
+
+    fiber->switchTo(main.get());
+  });
+
+  main->switchTo(fiber.get());
+
+  ASSERT_TRUE((address & 15) == 0)
+      << "Stack variable had unaligned address: 0x" << std::hex << address;
 }
