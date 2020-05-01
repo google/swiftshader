@@ -1015,7 +1015,7 @@ func (r *regres) newTest(commit git.Hash) *test {
 		checkoutDir:    checkoutDir,
 		resDir:         resDir,
 		buildDir:       filepath.Join(checkoutDir, "build"),
-		reactorBackend: backendLLVM,
+		reactorBackend: backendSubzero,
 	}
 }
 
