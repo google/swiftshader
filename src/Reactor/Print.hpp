@@ -316,13 +316,13 @@ template<>
 struct PrintValue::Ty<Long>
 {
 	static std::string fmt(const RValue<Long> &v) { return "%lld"; }
-	static std::vector<Value *> val(const RValue<Long> &v) { return { v.value }; }
+	static std::vector<Value *> val(const RValue<Long> &v) { return { v.value() }; }
 };
 template<typename T>
 struct PrintValue::Ty<Pointer<T>>
 {
 	static std::string fmt(const RValue<Pointer<T>> &v) { return "%p"; }
-	static std::vector<Value *> val(const RValue<Pointer<T>> &v) { return { v.value }; }
+	static std::vector<Value *> val(const RValue<Pointer<T>> &v) { return { v.value() }; }
 };
 template<typename T>
 struct PrintValue::Ty<Reference<T>>

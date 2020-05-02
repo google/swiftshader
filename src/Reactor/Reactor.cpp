@@ -170,7 +170,7 @@ static Value *createMask4(Value *lhs, Value *rhs, uint16_t select)
 
 Bool::Bool(Argument<Bool> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 Bool::Bool(bool x)
@@ -210,51 +210,51 @@ RValue<Bool> Bool::operator=(const Reference<Bool> &rhs)
 
 RValue<Bool> operator!(RValue<Bool> val)
 {
-	return RValue<Bool>(Nucleus::createNot(val.value));
+	return RValue<Bool>(Nucleus::createNot(val.value()));
 }
 
 RValue<Bool> operator&&(RValue<Bool> lhs, RValue<Bool> rhs)
 {
-	return RValue<Bool>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator||(RValue<Bool> lhs, RValue<Bool> rhs)
 {
-	return RValue<Bool>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<Bool> lhs, RValue<Bool> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<Bool> lhs, RValue<Bool> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 Byte::Byte(Argument<Byte> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 Byte::Byte(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Byte::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), Byte::type());
 
 	storeValue(integer);
 }
 
 Byte::Byte(RValue<UInt> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Byte::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), Byte::type());
 
 	storeValue(integer);
 }
 
 Byte::Byte(RValue<UShort> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Byte::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), Byte::type());
 
 	storeValue(integer);
 }
@@ -301,52 +301,52 @@ RValue<Byte> Byte::operator=(const Reference<Byte> &rhs)
 
 RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator-(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator*(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator/(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createUDiv(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createUDiv(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator%(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createURem(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createURem(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator&(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator|(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator^(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator<<(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator>>(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Byte>(Nucleus::createLShr(lhs.value, rhs.value));
+	return RValue<Byte>(Nucleus::createLShr(lhs.value(), rhs.value()));
 }
 
 RValue<Byte> operator+=(Byte &lhs, RValue<Byte> rhs)
@@ -406,19 +406,19 @@ RValue<Byte> operator+(RValue<Byte> val)
 
 RValue<Byte> operator-(RValue<Byte> val)
 {
-	return RValue<Byte>(Nucleus::createNeg(val.value));
+	return RValue<Byte>(Nucleus::createNeg(val.value()));
 }
 
 RValue<Byte> operator~(RValue<Byte> val)
 {
-	return RValue<Byte>(Nucleus::createNot(val.value));
+	return RValue<Byte>(Nucleus::createNot(val.value()));
 }
 
 RValue<Byte> operator++(Byte &val, int)  // Post-increment
 {
 	RValue<Byte> res = val;
 
-	Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantByte((unsigned char)1));
+	Value *inc = Nucleus::createAdd(res.value(), Nucleus::createConstantByte((unsigned char)1));
 	val.storeValue(inc);
 
 	return res;
@@ -436,7 +436,7 @@ RValue<Byte> operator--(Byte &val, int)  // Post-decrement
 {
 	RValue<Byte> res = val;
 
-	Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantByte((unsigned char)1));
+	Value *inc = Nucleus::createSub(res.value(), Nucleus::createConstantByte((unsigned char)1));
 	val.storeValue(inc);
 
 	return res;
@@ -452,49 +452,49 @@ const Byte &operator--(Byte &val)  // Pre-decrement
 
 RValue<Bool> operator<(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpULT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpULT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpULE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpULE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpUGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpUGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpUGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpUGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<Byte> lhs, RValue<Byte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 SByte::SByte(Argument<SByte> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 SByte::SByte(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, SByte::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), SByte::type());
 
 	storeValue(integer);
 }
 
 SByte::SByte(RValue<Short> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, SByte::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), SByte::type());
 
 	storeValue(integer);
 }
@@ -536,52 +536,52 @@ RValue<SByte> SByte::operator=(const Reference<SByte> &rhs)
 
 RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator-(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator*(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator/(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createSDiv(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator%(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createSRem(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createSRem(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator&(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator|(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator^(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator<<(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator>>(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<SByte>(Nucleus::createAShr(lhs.value, rhs.value));
+	return RValue<SByte>(Nucleus::createAShr(lhs.value(), rhs.value()));
 }
 
 RValue<SByte> operator+=(SByte &lhs, RValue<SByte> rhs)
@@ -641,19 +641,19 @@ RValue<SByte> operator+(RValue<SByte> val)
 
 RValue<SByte> operator-(RValue<SByte> val)
 {
-	return RValue<SByte>(Nucleus::createNeg(val.value));
+	return RValue<SByte>(Nucleus::createNeg(val.value()));
 }
 
 RValue<SByte> operator~(RValue<SByte> val)
 {
-	return RValue<SByte>(Nucleus::createNot(val.value));
+	return RValue<SByte>(Nucleus::createNot(val.value()));
 }
 
 RValue<SByte> operator++(SByte &val, int)  // Post-increment
 {
 	RValue<SByte> res = val;
 
-	Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantByte((signed char)1));
+	Value *inc = Nucleus::createAdd(res.value(), Nucleus::createConstantByte((signed char)1));
 	val.storeValue(inc);
 
 	return res;
@@ -671,7 +671,7 @@ RValue<SByte> operator--(SByte &val, int)  // Post-decrement
 {
 	RValue<SByte> res = val;
 
-	Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantByte((signed char)1));
+	Value *inc = Nucleus::createSub(res.value(), Nucleus::createConstantByte((signed char)1));
 	val.storeValue(inc);
 
 	return res;
@@ -687,42 +687,42 @@ const SByte &operator--(SByte &val)  // Pre-decrement
 
 RValue<Bool> operator<(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSLT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSLT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSLE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSLE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<SByte> lhs, RValue<SByte> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 Short::Short(Argument<Short> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 Short::Short(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Short::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), Short::type());
 
 	storeValue(integer);
 }
@@ -764,52 +764,52 @@ RValue<Short> Short::operator=(const Reference<Short> &rhs)
 
 RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator-(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator*(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator/(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createSDiv(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator%(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createSRem(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createSRem(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator&(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator|(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator^(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator<<(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator>>(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Short>(Nucleus::createAShr(lhs.value, rhs.value));
+	return RValue<Short>(Nucleus::createAShr(lhs.value(), rhs.value()));
 }
 
 RValue<Short> operator+=(Short &lhs, RValue<Short> rhs)
@@ -869,19 +869,19 @@ RValue<Short> operator+(RValue<Short> val)
 
 RValue<Short> operator-(RValue<Short> val)
 {
-	return RValue<Short>(Nucleus::createNeg(val.value));
+	return RValue<Short>(Nucleus::createNeg(val.value()));
 }
 
 RValue<Short> operator~(RValue<Short> val)
 {
-	return RValue<Short>(Nucleus::createNot(val.value));
+	return RValue<Short>(Nucleus::createNot(val.value()));
 }
 
 RValue<Short> operator++(Short &val, int)  // Post-increment
 {
 	RValue<Short> res = val;
 
-	Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantShort((short)1));
+	Value *inc = Nucleus::createAdd(res.value(), Nucleus::createConstantShort((short)1));
 	val.storeValue(inc);
 
 	return res;
@@ -899,7 +899,7 @@ RValue<Short> operator--(Short &val, int)  // Post-decrement
 {
 	RValue<Short> res = val;
 
-	Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantShort((short)1));
+	Value *inc = Nucleus::createSub(res.value(), Nucleus::createConstantShort((short)1));
 	val.storeValue(inc);
 
 	return res;
@@ -915,49 +915,49 @@ const Short &operator--(Short &val)  // Pre-decrement
 
 RValue<Bool> operator<(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSLT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSLT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSLE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSLE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<Short> lhs, RValue<Short> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 UShort::UShort(Argument<UShort> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 UShort::UShort(RValue<UInt> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, UShort::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), UShort::type());
 
 	storeValue(integer);
 }
 
 UShort::UShort(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, UShort::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), UShort::type());
 
 	storeValue(integer);
 }
@@ -999,52 +999,52 @@ RValue<UShort> UShort::operator=(const Reference<UShort> &rhs)
 
 RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator-(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator*(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator/(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createUDiv(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createUDiv(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator%(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createURem(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createURem(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator&(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator|(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator^(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator<<(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator>>(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<UShort>(Nucleus::createLShr(lhs.value, rhs.value));
+	return RValue<UShort>(Nucleus::createLShr(lhs.value(), rhs.value()));
 }
 
 RValue<UShort> operator+=(UShort &lhs, RValue<UShort> rhs)
@@ -1104,19 +1104,19 @@ RValue<UShort> operator+(RValue<UShort> val)
 
 RValue<UShort> operator-(RValue<UShort> val)
 {
-	return RValue<UShort>(Nucleus::createNeg(val.value));
+	return RValue<UShort>(Nucleus::createNeg(val.value()));
 }
 
 RValue<UShort> operator~(RValue<UShort> val)
 {
-	return RValue<UShort>(Nucleus::createNot(val.value));
+	return RValue<UShort>(Nucleus::createNot(val.value()));
 }
 
 RValue<UShort> operator++(UShort &val, int)  // Post-increment
 {
 	RValue<UShort> res = val;
 
-	Value *inc = Nucleus::createAdd(res.value, Nucleus::createConstantShort((unsigned short)1));
+	Value *inc = Nucleus::createAdd(res.value(), Nucleus::createConstantShort((unsigned short)1));
 	val.storeValue(inc);
 
 	return res;
@@ -1134,7 +1134,7 @@ RValue<UShort> operator--(UShort &val, int)  // Post-decrement
 {
 	RValue<UShort> res = val;
 
-	Value *inc = Nucleus::createSub(res.value, Nucleus::createConstantShort((unsigned short)1));
+	Value *inc = Nucleus::createSub(res.value(), Nucleus::createConstantShort((unsigned short)1));
 	val.storeValue(inc);
 
 	return res;
@@ -1150,37 +1150,37 @@ const UShort &operator--(UShort &val)  // Pre-decrement
 
 RValue<Bool> operator<(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpULT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpULT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpULE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpULE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpUGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpUGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpUGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpUGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<UShort> lhs, RValue<UShort> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 Byte4::Byte4(RValue<Byte8> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, type()));
+	storeValue(Nucleus::createBitCast(cast.value(), type()));
 }
 
 Byte4::Byte4(RValue<UShort4> cast)
@@ -1270,52 +1270,52 @@ RValue<Byte8> Byte8::operator=(const Reference<Byte8> &rhs)
 
 RValue<Byte8> operator+(RValue<Byte8> lhs, RValue<Byte8> rhs)
 {
-	return RValue<Byte8>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Byte8>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Byte8> operator-(RValue<Byte8> lhs, RValue<Byte8> rhs)
 {
-	return RValue<Byte8>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Byte8>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 //	RValue<Byte8> operator*(RValue<Byte8> lhs, RValue<Byte8> rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createMul(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createMul(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<Byte8> operator/(RValue<Byte8> lhs, RValue<Byte8> rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createUDiv(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createUDiv(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<Byte8> operator%(RValue<Byte8> lhs, RValue<Byte8> rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createURem(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createURem(lhs.value(), rhs.value()));
 //	}
 
 RValue<Byte8> operator&(RValue<Byte8> lhs, RValue<Byte8> rhs)
 {
-	return RValue<Byte8>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Byte8>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Byte8> operator|(RValue<Byte8> lhs, RValue<Byte8> rhs)
 {
-	return RValue<Byte8>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Byte8>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Byte8> operator^(RValue<Byte8> lhs, RValue<Byte8> rhs)
 {
-	return RValue<Byte8>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Byte8>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 //	RValue<Byte8> operator<<(RValue<Byte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createShl(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createShl(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<Byte8> operator>>(RValue<Byte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createLShr(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createLShr(lhs.value(), rhs.value()));
 //	}
 
 RValue<Byte8> operator+=(Byte8 &lhs, RValue<Byte8> rhs)
@@ -1375,12 +1375,12 @@ RValue<Byte8> operator^=(Byte8 &lhs, RValue<Byte8> rhs)
 
 //	RValue<Byte8> operator-(RValue<Byte8> val)
 //	{
-//		return RValue<Byte8>(Nucleus::createNeg(val.value));
+//		return RValue<Byte8>(Nucleus::createNeg(val.value()));
 //	}
 
 RValue<Byte8> operator~(RValue<Byte8> val)
 {
-	return RValue<Byte8>(Nucleus::createNot(val.value));
+	return RValue<Byte8>(Nucleus::createNot(val.value()));
 }
 
 RValue<Byte8> Swizzle(RValue<Byte8> x, uint32_t select)
@@ -1406,14 +1406,14 @@ RValue<Byte8> Swizzle(RValue<Byte8> x, uint32_t select)
 		static_cast<int>((select >> 0) & 0x07),
 	};
 
-	return As<Byte8>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
+	return As<Byte8>(Nucleus::createShuffleVector(x.value(), x.value(), shuffle));
 }
 
 RValue<Short4> Unpack(RValue<Byte4> x)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };  // Real type is v16i8
-	return As<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
+	return As<Short4>(Nucleus::createShuffleVector(x.value(), x.value(), shuffle));
 }
 
 RValue<Short4> Unpack(RValue<Byte4> x, RValue<Byte4> y)
@@ -1425,14 +1425,14 @@ RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
-	return As<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return As<Short4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
-	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Short4>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
 
@@ -1476,52 +1476,52 @@ RValue<SByte8> SByte8::operator=(const Reference<SByte8> &rhs)
 
 RValue<SByte8> operator+(RValue<SByte8> lhs, RValue<SByte8> rhs)
 {
-	return RValue<SByte8>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<SByte8>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<SByte8> operator-(RValue<SByte8> lhs, RValue<SByte8> rhs)
 {
-	return RValue<SByte8>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<SByte8>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 //	RValue<SByte8> operator*(RValue<SByte8> lhs, RValue<SByte8> rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createMul(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createMul(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<SByte8> operator/(RValue<SByte8> lhs, RValue<SByte8> rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createSDiv(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<SByte8> operator%(RValue<SByte8> lhs, RValue<SByte8> rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createSRem(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createSRem(lhs.value(), rhs.value()));
 //	}
 
 RValue<SByte8> operator&(RValue<SByte8> lhs, RValue<SByte8> rhs)
 {
-	return RValue<SByte8>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<SByte8>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<SByte8> operator|(RValue<SByte8> lhs, RValue<SByte8> rhs)
 {
-	return RValue<SByte8>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<SByte8>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<SByte8> operator^(RValue<SByte8> lhs, RValue<SByte8> rhs)
 {
-	return RValue<SByte8>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<SByte8>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 //	RValue<SByte8> operator<<(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createShl(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createShl(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createAShr(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createAShr(lhs.value(), rhs.value()));
 //	}
 
 RValue<SByte8> operator+=(SByte8 &lhs, RValue<SByte8> rhs)
@@ -1581,26 +1581,26 @@ RValue<SByte8> operator^=(SByte8 &lhs, RValue<SByte8> rhs)
 
 //	RValue<SByte8> operator-(RValue<SByte8> val)
 //	{
-//		return RValue<SByte8>(Nucleus::createNeg(val.value));
+//		return RValue<SByte8>(Nucleus::createNeg(val.value()));
 //	}
 
 RValue<SByte8> operator~(RValue<SByte8> val)
 {
-	return RValue<SByte8>(Nucleus::createNot(val.value));
+	return RValue<SByte8>(Nucleus::createNot(val.value()));
 }
 
 RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
-	return As<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return As<Short4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };  // Real type is v16i8
-	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	auto lowHigh = RValue<Byte16>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Short4>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
 
@@ -1655,25 +1655,25 @@ RValue<Byte16> Swizzle(RValue<Byte16> x, uint64_t select)
 		static_cast<int>((select >> 0) & 0x0F),
 	};
 
-	return As<Byte16>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
+	return As<Byte16>(Nucleus::createShuffleVector(x.value(), x.value(), shuffle));
 }
 
 Short2::Short2(RValue<Short4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, type()));
+	storeValue(Nucleus::createBitCast(cast.value(), type()));
 }
 
 UShort2::UShort2(RValue<UShort4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, type()));
+	storeValue(Nucleus::createBitCast(cast.value(), type()));
 }
 
 Short4::Short4(RValue<Int> cast)
 {
 	Value *vector = loadValue();
-	Value *element = Nucleus::createTrunc(cast.value, Short::type());
+	Value *element = Nucleus::createTrunc(cast.value(), Short::type());
 	Value *insert = Nucleus::createInsertElement(vector, element, 0);
-	Value *swizzle = Swizzle(RValue<Short4>(insert), 0x0000).value;
+	Value *swizzle = Swizzle(RValue<Short4>(insert), 0x0000).value();
 
 	storeValue(swizzle);
 }
@@ -1711,7 +1711,7 @@ Short4::Short4(const Reference<Short4> &rhs)
 
 Short4::Short4(RValue<UShort4> rhs)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 }
 
 Short4::Short4(const UShort4 &rhs)
@@ -1741,7 +1741,7 @@ RValue<Short4> Short4::operator=(const Reference<Short4> &rhs)
 
 RValue<Short4> Short4::operator=(RValue<UShort4> rhs)
 {
-	return RValue<Short4>(storeValue(rhs.value));
+	return RValue<Short4>(storeValue(rhs.value()));
 }
 
 RValue<Short4> Short4::operator=(const UShort4 &rhs)
@@ -1756,42 +1756,42 @@ RValue<Short4> Short4::operator=(const Reference<UShort4> &rhs)
 
 RValue<Short4> operator+(RValue<Short4> lhs, RValue<Short4> rhs)
 {
-	return RValue<Short4>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Short4>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Short4> operator-(RValue<Short4> lhs, RValue<Short4> rhs)
 {
-	return RValue<Short4>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Short4>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<Short4> operator*(RValue<Short4> lhs, RValue<Short4> rhs)
 {
-	return RValue<Short4>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<Short4>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 //	RValue<Short4> operator/(RValue<Short4> lhs, RValue<Short4> rhs)
 //	{
-//		return RValue<Short4>(Nucleus::createSDiv(lhs.value, rhs.value));
+//		return RValue<Short4>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<Short4> operator%(RValue<Short4> lhs, RValue<Short4> rhs)
 //	{
-//		return RValue<Short4>(Nucleus::createSRem(lhs.value, rhs.value));
+//		return RValue<Short4>(Nucleus::createSRem(lhs.value(), rhs.value()));
 //	}
 
 RValue<Short4> operator&(RValue<Short4> lhs, RValue<Short4> rhs)
 {
-	return RValue<Short4>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Short4>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Short4> operator|(RValue<Short4> lhs, RValue<Short4> rhs)
 {
-	return RValue<Short4>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Short4>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Short4> operator^(RValue<Short4> lhs, RValue<Short4> rhs)
 {
-	return RValue<Short4>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Short4>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<Short4> operator+=(Short4 &lhs, RValue<Short4> rhs)
@@ -1851,12 +1851,12 @@ RValue<Short4> operator>>=(Short4 &lhs, unsigned char rhs)
 
 RValue<Short4> operator-(RValue<Short4> val)
 {
-	return RValue<Short4>(Nucleus::createNeg(val.value));
+	return RValue<Short4>(Nucleus::createNeg(val.value()));
 }
 
 RValue<Short4> operator~(RValue<Short4> val)
 {
-	return RValue<Short4>(Nucleus::createNot(val.value));
+	return RValue<Short4>(Nucleus::createNot(val.value()));
 }
 
 RValue<Short4> RoundShort4(RValue<Float4> cast)
@@ -1868,14 +1868,14 @@ RValue<Short4> RoundShort4(RValue<Float4> cast)
 RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y)
 {
 	int shuffle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
-	return As<Int2>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return As<Int2>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };  // Real type is v8i16
-	auto lowHigh = RValue<Short8>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	auto lowHigh = RValue<Short8>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Int2>(Swizzle(As<Int4>(lowHigh), 0x2323));
 }
 
@@ -1894,17 +1894,17 @@ RValue<Short4> Swizzle(RValue<Short4> x, uint16_t select)
 		(select >> 0) & 0x03,
 	};
 
-	return As<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
+	return As<Short4>(Nucleus::createShuffleVector(x.value(), x.value(), shuffle));
 }
 
 RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i)
 {
-	return RValue<Short4>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<Short4>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 RValue<Short> Extract(RValue<Short4> val, int i)
 {
-	return RValue<Short>(Nucleus::createExtractElement(val.value, Short::type(), i));
+	return RValue<Short>(Nucleus::createExtractElement(val.value(), Short::type(), i));
 }
 
 UShort4::UShort4(RValue<Int4> cast)
@@ -1941,7 +1941,7 @@ UShort4::UShort4(const Reference<UShort4> &rhs)
 
 UShort4::UShort4(RValue<Short4> rhs)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 }
 
 UShort4::UShort4(const Short4 &rhs)
@@ -1971,7 +1971,7 @@ RValue<UShort4> UShort4::operator=(const Reference<UShort4> &rhs)
 
 RValue<UShort4> UShort4::operator=(RValue<Short4> rhs)
 {
-	return RValue<UShort4>(storeValue(rhs.value));
+	return RValue<UShort4>(storeValue(rhs.value()));
 }
 
 RValue<UShort4> UShort4::operator=(const Short4 &rhs)
@@ -1986,32 +1986,32 @@ RValue<UShort4> UShort4::operator=(const Reference<Short4> &rhs)
 
 RValue<UShort4> operator+(RValue<UShort4> lhs, RValue<UShort4> rhs)
 {
-	return RValue<UShort4>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<UShort4>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<UShort4> operator-(RValue<UShort4> lhs, RValue<UShort4> rhs)
 {
-	return RValue<UShort4>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<UShort4>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<UShort4> operator*(RValue<UShort4> lhs, RValue<UShort4> rhs)
 {
-	return RValue<UShort4>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<UShort4>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs)
 {
-	return RValue<UShort4>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<UShort4>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs)
 {
-	return RValue<UShort4>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<UShort4>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs)
 {
-	return RValue<UShort4>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<UShort4>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<UShort4> operator<<=(UShort4 &lhs, unsigned char rhs)
@@ -2026,7 +2026,7 @@ RValue<UShort4> operator>>=(UShort4 &lhs, unsigned char rhs)
 
 RValue<UShort4> operator~(RValue<UShort4> val)
 {
-	return RValue<UShort4>(Nucleus::createNot(val.value));
+	return RValue<UShort4>(Nucleus::createNot(val.value()));
 }
 
 Short8::Short8(short c)
@@ -2054,7 +2054,7 @@ Short8::Short8(const Reference<Short8> &rhs)
 Short8::Short8(RValue<Short4> lo, RValue<Short4> hi)
 {
 	int shuffle[8] = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
-	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
+	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
 }
@@ -2076,12 +2076,12 @@ RValue<Short8> Short8::operator=(const Reference<Short8> &rhs)
 
 RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs)
 {
-	return RValue<Short8>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Short8>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Short8> operator&(RValue<Short8> lhs, RValue<Short8> rhs)
 {
-	return RValue<Short8>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Short8>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> Abs(RValue<Int4> x)
@@ -2116,7 +2116,7 @@ UShort8::UShort8(const Reference<UShort8> &rhs)
 UShort8::UShort8(RValue<UShort4> lo, RValue<UShort4> hi)
 {
 	int shuffle[8] = { 0, 1, 2, 3, 8, 9, 10, 11 };  // Real type is v8i16
-	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
+	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
 }
@@ -2138,17 +2138,17 @@ RValue<UShort8> UShort8::operator=(const Reference<UShort8> &rhs)
 
 RValue<UShort8> operator&(RValue<UShort8> lhs, RValue<UShort8> rhs)
 {
-	return RValue<UShort8>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<UShort8>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs)
 {
-	return RValue<UShort8>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<UShort8>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<UShort8> operator*(RValue<UShort8> lhs, RValue<UShort8> rhs)
 {
-	return RValue<UShort8>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<UShort8>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<UShort8> operator+=(UShort8 &lhs, RValue<UShort8> rhs)
@@ -2158,7 +2158,7 @@ RValue<UShort8> operator+=(UShort8 &lhs, RValue<UShort8> rhs)
 
 RValue<UShort8> operator~(RValue<UShort8> val)
 {
-	return RValue<UShort8>(Nucleus::createNot(val.value));
+	return RValue<UShort8>(Nucleus::createNot(val.value()));
 }
 
 RValue<UShort8> Swizzle(RValue<UShort8> x, uint32_t select)
@@ -2174,38 +2174,38 @@ RValue<UShort8> Swizzle(RValue<UShort8> x, uint32_t select)
 		static_cast<int>((select >> 0) & 0x07),
 	};
 
-	return RValue<UShort8>(Nucleus::createShuffleVector(x.value, x.value, swizzle));
+	return RValue<UShort8>(Nucleus::createShuffleVector(x.value(), x.value(), swizzle));
 }
 
 Int::Int(Argument<Int> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 Int::Int(RValue<Byte> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, Int::type());
+	Value *integer = Nucleus::createZExt(cast.value(), Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<SByte> cast)
 {
-	Value *integer = Nucleus::createSExt(cast.value, Int::type());
+	Value *integer = Nucleus::createSExt(cast.value(), Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<Short> cast)
 {
-	Value *integer = Nucleus::createSExt(cast.value, Int::type());
+	Value *integer = Nucleus::createSExt(cast.value(), Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<UShort> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, Int::type());
+	Value *integer = Nucleus::createZExt(cast.value(), Int::type());
 
 	storeValue(integer);
 }
@@ -2217,14 +2217,14 @@ Int::Int(RValue<Int2> cast)
 
 Int::Int(RValue<Long> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Int::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<Float> cast)
 {
-	Value *integer = Nucleus::createFPToSI(cast.value, Int::type());
+	Value *integer = Nucleus::createFPToSI(cast.value(), Int::type());
 
 	storeValue(integer);
 }
@@ -2241,7 +2241,7 @@ Int::Int(RValue<Int> rhs)
 
 Int::Int(RValue<UInt> rhs)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 }
 
 Int::Int(const Int &rhs)
@@ -2276,7 +2276,7 @@ RValue<Int> Int::operator=(RValue<Int> rhs)
 
 RValue<Int> Int::operator=(RValue<UInt> rhs)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 
 	return RValue<Int>(rhs);
 }
@@ -2303,52 +2303,52 @@ RValue<Int> Int::operator=(const Reference<UInt> &rhs)
 
 RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator-(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator*(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator/(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createSDiv(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator%(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createSRem(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createSRem(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator&(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator|(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator^(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator<<(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator>>(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Int>(Nucleus::createAShr(lhs.value, rhs.value));
+	return RValue<Int>(Nucleus::createAShr(lhs.value(), rhs.value()));
 }
 
 RValue<Int> operator+=(Int &lhs, RValue<Int> rhs)
@@ -2408,42 +2408,42 @@ RValue<Int> operator+(RValue<Int> val)
 
 RValue<Int> operator-(RValue<Int> val)
 {
-	return RValue<Int>(Nucleus::createNeg(val.value));
+	return RValue<Int>(Nucleus::createNeg(val.value()));
 }
 
 RValue<Int> operator~(RValue<Int> val)
 {
-	return RValue<Int>(Nucleus::createNot(val.value));
+	return RValue<Int>(Nucleus::createNot(val.value()));
 }
 
 RValue<Bool> operator<(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSLT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSLT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSLE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSLE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpSGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpSGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<Int> lhs, RValue<Int> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 RValue<Int> Max(RValue<Int> x, RValue<Int> y)
@@ -2463,14 +2463,14 @@ RValue<Int> Clamp(RValue<Int> x, RValue<Int> min, RValue<Int> max)
 
 Long::Long(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createSExt(cast.value, Long::type());
+	Value *integer = Nucleus::createSExt(cast.value(), Long::type());
 
 	storeValue(integer);
 }
 
 Long::Long(RValue<UInt> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, Long::type());
+	Value *integer = Nucleus::createZExt(cast.value(), Long::type());
 
 	storeValue(integer);
 }
@@ -2502,22 +2502,22 @@ RValue<Long> Long::operator=(const Reference<Long> &rhs)
 
 RValue<Long> operator+(RValue<Long> lhs, RValue<Long> rhs)
 {
-	return RValue<Long>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Long>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Long> operator-(RValue<Long> lhs, RValue<Long> rhs)
 {
-	return RValue<Long>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Long>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<Long> operator*(RValue<Long> lhs, RValue<Long> rhs)
 {
-	return RValue<Long>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<Long>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<Long> operator>>(RValue<Long> lhs, RValue<Long> rhs)
 {
-	return RValue<Long>(Nucleus::createAShr(lhs.value, rhs.value));
+	return RValue<Long>(Nucleus::createAShr(lhs.value(), rhs.value()));
 }
 
 RValue<Long> operator+=(Long &lhs, RValue<Long> rhs)
@@ -2532,59 +2532,59 @@ RValue<Long> operator-=(Long &lhs, RValue<Long> rhs)
 
 RValue<Long> AddAtomic(RValue<Pointer<Long>> x, RValue<Long> y)
 {
-	return RValue<Long>(Nucleus::createAtomicAdd(x.value, y.value));
+	return RValue<Long>(Nucleus::createAtomicAdd(x.value(), y.value()));
 }
 
 RValue<UInt> AddAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
-	return RValue<UInt>(Nucleus::createAtomicAdd(x.value, y.value, memoryOrder));
+	return RValue<UInt>(Nucleus::createAtomicAdd(x.value(), y.value(), memoryOrder));
 }
 
 RValue<UInt> SubAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
-	return RValue<UInt>(Nucleus::createAtomicSub(x.value, y.value, memoryOrder));
+	return RValue<UInt>(Nucleus::createAtomicSub(x.value(), y.value(), memoryOrder));
 }
 
 RValue<UInt> AndAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
-	return RValue<UInt>(Nucleus::createAtomicAnd(x.value, y.value, memoryOrder));
+	return RValue<UInt>(Nucleus::createAtomicAnd(x.value(), y.value(), memoryOrder));
 }
 
 RValue<UInt> OrAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
-	return RValue<UInt>(Nucleus::createAtomicOr(x.value, y.value, memoryOrder));
+	return RValue<UInt>(Nucleus::createAtomicOr(x.value(), y.value(), memoryOrder));
 }
 
 RValue<UInt> XorAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
-	return RValue<UInt>(Nucleus::createAtomicXor(x.value, y.value, memoryOrder));
+	return RValue<UInt>(Nucleus::createAtomicXor(x.value(), y.value(), memoryOrder));
 }
 
 RValue<UInt> ExchangeAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_order memoryOrder)
 {
-	return RValue<UInt>(Nucleus::createAtomicExchange(x.value, y.value, memoryOrder));
+	return RValue<UInt>(Nucleus::createAtomicExchange(x.value(), y.value(), memoryOrder));
 }
 
 RValue<UInt> CompareExchangeAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, RValue<UInt> compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
 {
-	return RValue<UInt>(Nucleus::createAtomicCompareExchange(x.value, y.value, compare.value, memoryOrderEqual, memoryOrderUnequal));
+	return RValue<UInt>(Nucleus::createAtomicCompareExchange(x.value(), y.value(), compare.value(), memoryOrderEqual, memoryOrderUnequal));
 }
 
 UInt::UInt(Argument<UInt> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 UInt::UInt(RValue<UShort> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, UInt::type());
+	Value *integer = Nucleus::createZExt(cast.value(), UInt::type());
 
 	storeValue(integer);
 }
 
 UInt::UInt(RValue<Long> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, UInt::type());
+	Value *integer = Nucleus::createTrunc(cast.value(), UInt::type());
 
 	storeValue(integer);
 }
@@ -2606,7 +2606,7 @@ UInt::UInt(RValue<UInt> rhs)
 
 UInt::UInt(RValue<Int> rhs)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 }
 
 UInt::UInt(const UInt &rhs)
@@ -2641,7 +2641,7 @@ RValue<UInt> UInt::operator=(RValue<UInt> rhs)
 
 RValue<UInt> UInt::operator=(RValue<Int> rhs)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 
 	return RValue<UInt>(rhs);
 }
@@ -2668,52 +2668,52 @@ RValue<UInt> UInt::operator=(const Reference<Int> &rhs)
 
 RValue<UInt> operator+(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator-(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator*(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator/(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createUDiv(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createUDiv(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator%(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createURem(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createURem(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator&(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator|(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator^(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator<<(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator>>(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<UInt>(Nucleus::createLShr(lhs.value, rhs.value));
+	return RValue<UInt>(Nucleus::createLShr(lhs.value(), rhs.value()));
 }
 
 RValue<UInt> operator+=(UInt &lhs, RValue<UInt> rhs)
@@ -2773,12 +2773,12 @@ RValue<UInt> operator+(RValue<UInt> val)
 
 RValue<UInt> operator-(RValue<UInt> val)
 {
-	return RValue<UInt>(Nucleus::createNeg(val.value));
+	return RValue<UInt>(Nucleus::createNeg(val.value()));
 }
 
 RValue<UInt> operator~(RValue<UInt> val)
 {
-	return RValue<UInt>(Nucleus::createNot(val.value));
+	return RValue<UInt>(Nucleus::createNot(val.value()));
 }
 
 RValue<UInt> Max(RValue<UInt> x, RValue<UInt> y)
@@ -2798,37 +2798,37 @@ RValue<UInt> Clamp(RValue<UInt> x, RValue<UInt> min, RValue<UInt> max)
 
 RValue<Bool> operator<(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpULT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpULT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpULE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpULE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpUGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpUGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpUGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpUGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpNE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<UInt> lhs, RValue<UInt> rhs)
 {
-	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createICmpEQ(lhs.value(), rhs.value()));
 }
 
 Int2::Int2(RValue<Int4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, type()));
+	storeValue(Nucleus::createBitCast(cast.value(), type()));
 }
 
 Int2::Int2(int x, int y)
@@ -2877,42 +2877,42 @@ RValue<Int2> Int2::operator=(const Reference<Int2> &rhs)
 
 RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs)
 {
-	return RValue<Int2>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Int2>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Int2> operator-(RValue<Int2> lhs, RValue<Int2> rhs)
 {
-	return RValue<Int2>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Int2>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 //	RValue<Int2> operator*(RValue<Int2> lhs, RValue<Int2> rhs)
 //	{
-//		return RValue<Int2>(Nucleus::createMul(lhs.value, rhs.value));
+//		return RValue<Int2>(Nucleus::createMul(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<Int2> operator/(RValue<Int2> lhs, RValue<Int2> rhs)
 //	{
-//		return RValue<Int2>(Nucleus::createSDiv(lhs.value, rhs.value));
+//		return RValue<Int2>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<Int2> operator%(RValue<Int2> lhs, RValue<Int2> rhs)
 //	{
-//		return RValue<Int2>(Nucleus::createSRem(lhs.value, rhs.value));
+//		return RValue<Int2>(Nucleus::createSRem(lhs.value(), rhs.value()));
 //	}
 
 RValue<Int2> operator&(RValue<Int2> lhs, RValue<Int2> rhs)
 {
-	return RValue<Int2>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Int2>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Int2> operator|(RValue<Int2> lhs, RValue<Int2> rhs)
 {
-	return RValue<Int2>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Int2>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Int2> operator^(RValue<Int2> lhs, RValue<Int2> rhs)
 {
-	return RValue<Int2>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Int2>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<Int2> operator+=(Int2 &lhs, RValue<Int2> rhs)
@@ -2972,37 +2972,37 @@ RValue<Int2> operator>>=(Int2 &lhs, unsigned char rhs)
 
 //	RValue<Int2> operator-(RValue<Int2> val)
 //	{
-//		return RValue<Int2>(Nucleus::createNeg(val.value));
+//		return RValue<Int2>(Nucleus::createNeg(val.value()));
 //	}
 
 RValue<Int2> operator~(RValue<Int2> val)
 {
-	return RValue<Int2>(Nucleus::createNot(val.value));
+	return RValue<Int2>(Nucleus::createNot(val.value()));
 }
 
 RValue<Short4> UnpackLow(RValue<Int2> x, RValue<Int2> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[4] = { 0, 4, 1, 5 };  // Real type is v4i32
-	return As<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return As<Short4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 {
 	// TODO(b/148379603): Optimize narrowing swizzle.
 	int shuffle[4] = { 0, 4, 1, 5 };  // Real type is v4i32
-	auto lowHigh = RValue<Int4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	auto lowHigh = RValue<Int4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 	return As<Short4>(Swizzle(lowHigh, 0x2323));
 }
 
 RValue<Int> Extract(RValue<Int2> val, int i)
 {
-	return RValue<Int>(Nucleus::createExtractElement(val.value, Int::type(), i));
+	return RValue<Int>(Nucleus::createExtractElement(val.value(), Int::type(), i));
 }
 
 RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
 {
-	return RValue<Int2>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<Int2>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 UInt2::UInt2(unsigned int x, unsigned int y)
@@ -3043,42 +3043,42 @@ RValue<UInt2> UInt2::operator=(const Reference<UInt2> &rhs)
 
 RValue<UInt2> operator+(RValue<UInt2> lhs, RValue<UInt2> rhs)
 {
-	return RValue<UInt2>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<UInt2>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<UInt2> operator-(RValue<UInt2> lhs, RValue<UInt2> rhs)
 {
-	return RValue<UInt2>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<UInt2>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 //	RValue<UInt2> operator*(RValue<UInt2> lhs, RValue<UInt2> rhs)
 //	{
-//		return RValue<UInt2>(Nucleus::createMul(lhs.value, rhs.value));
+//		return RValue<UInt2>(Nucleus::createMul(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<UInt2> operator/(RValue<UInt2> lhs, RValue<UInt2> rhs)
 //	{
-//		return RValue<UInt2>(Nucleus::createUDiv(lhs.value, rhs.value));
+//		return RValue<UInt2>(Nucleus::createUDiv(lhs.value(), rhs.value()));
 //	}
 
 //	RValue<UInt2> operator%(RValue<UInt2> lhs, RValue<UInt2> rhs)
 //	{
-//		return RValue<UInt2>(Nucleus::createURem(lhs.value, rhs.value));
+//		return RValue<UInt2>(Nucleus::createURem(lhs.value(), rhs.value()));
 //	}
 
 RValue<UInt2> operator&(RValue<UInt2> lhs, RValue<UInt2> rhs)
 {
-	return RValue<UInt2>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<UInt2>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<UInt2> operator|(RValue<UInt2> lhs, RValue<UInt2> rhs)
 {
-	return RValue<UInt2>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<UInt2>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<UInt2> operator^(RValue<UInt2> lhs, RValue<UInt2> rhs)
 {
-	return RValue<UInt2>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<UInt2>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<UInt2> operator+=(UInt2 &lhs, RValue<UInt2> rhs)
@@ -3138,22 +3138,22 @@ RValue<UInt2> operator>>=(UInt2 &lhs, unsigned char rhs)
 
 //	RValue<UInt2> operator-(RValue<UInt2> val)
 //	{
-//		return RValue<UInt2>(Nucleus::createNeg(val.value));
+//		return RValue<UInt2>(Nucleus::createNeg(val.value()));
 //	}
 
 RValue<UInt2> operator~(RValue<UInt2> val)
 {
-	return RValue<UInt2>(Nucleus::createNot(val.value));
+	return RValue<UInt2>(Nucleus::createNot(val.value()));
 }
 
 RValue<UInt> Extract(RValue<UInt2> val, int i)
 {
-	return RValue<UInt>(Nucleus::createExtractElement(val.value, UInt::type(), i));
+	return RValue<UInt>(Nucleus::createExtractElement(val.value(), UInt::type(), i));
 }
 
 RValue<UInt2> Insert(RValue<UInt2> val, RValue<UInt> element, int i)
 {
-	return RValue<UInt2>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<UInt2>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 Int4::Int4()
@@ -3164,7 +3164,7 @@ Int4::Int4()
 Int4::Int4(RValue<Float4> cast)
     : XYZW(this)
 {
-	Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::type());
+	Value *xyzw = Nucleus::createFPToSI(cast.value(), Int4::type());
 
 	storeValue(xyzw);
 }
@@ -3220,7 +3220,7 @@ Int4::Int4(const Reference<Int4> &rhs)
 Int4::Int4(RValue<UInt4> rhs)
     : XYZW(this)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 }
 
 Int4::Int4(const UInt4 &rhs)
@@ -3239,7 +3239,7 @@ Int4::Int4(RValue<Int2> lo, RValue<Int2> hi)
     : XYZW(this)
 {
 	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
-	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
+	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
 }
@@ -3273,52 +3273,52 @@ RValue<Int4> Int4::operator=(const Reference<Int4> &rhs)
 
 RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator-(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator*(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator/(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createSDiv(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createSDiv(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator%(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createSRem(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createSRem(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator&(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator|(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator^(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator<<(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator>>(RValue<Int4> lhs, RValue<Int4> rhs)
 {
-	return RValue<Int4>(Nucleus::createAShr(lhs.value, rhs.value));
+	return RValue<Int4>(Nucleus::createAShr(lhs.value(), rhs.value()));
 }
 
 RValue<Int4> operator+=(Int4 &lhs, RValue<Int4> rhs)
@@ -3378,32 +3378,32 @@ RValue<Int4> operator+(RValue<Int4> val)
 
 RValue<Int4> operator-(RValue<Int4> val)
 {
-	return RValue<Int4>(Nucleus::createNeg(val.value));
+	return RValue<Int4>(Nucleus::createNeg(val.value()));
 }
 
 RValue<Int4> operator~(RValue<Int4> val)
 {
-	return RValue<Int4>(Nucleus::createNot(val.value));
+	return RValue<Int4>(Nucleus::createNot(val.value()));
 }
 
 RValue<Int> Extract(RValue<Int4> x, int i)
 {
-	return RValue<Int>(Nucleus::createExtractElement(x.value, Int::type(), i));
+	return RValue<Int>(Nucleus::createExtractElement(x.value(), Int::type(), i));
 }
 
 RValue<Int4> Insert(RValue<Int4> x, RValue<Int> element, int i)
 {
-	return RValue<Int4>(Nucleus::createInsertElement(x.value, element.value, i));
+	return RValue<Int4>(Nucleus::createInsertElement(x.value(), element.value(), i));
 }
 
 RValue<Int4> Swizzle(RValue<Int4> x, uint16_t select)
 {
-	return RValue<Int4>(createSwizzle4(x.value, select));
+	return RValue<Int4>(createSwizzle4(x.value(), select));
 }
 
 RValue<Int4> Shuffle(RValue<Int4> x, RValue<Int4> y, unsigned short select)
 {
-	return RValue<Int4>(createShuffle4(x.value, y.value, select));
+	return RValue<Int4>(createShuffle4(x.value(), y.value(), select));
 }
 
 UInt4::UInt4()
@@ -3462,7 +3462,7 @@ UInt4::UInt4(const Reference<UInt4> &rhs)
 UInt4::UInt4(RValue<Int4> rhs)
     : XYZW(this)
 {
-	storeValue(rhs.value);
+	storeValue(rhs.value());
 }
 
 UInt4::UInt4(const Int4 &rhs)
@@ -3481,7 +3481,7 @@ UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi)
     : XYZW(this)
 {
 	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
-	Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
+	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
 
 	storeValue(packed);
 }
@@ -3515,52 +3515,52 @@ RValue<UInt4> UInt4::operator=(const Reference<UInt4> &rhs)
 
 RValue<UInt4> operator+(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createAdd(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createAdd(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator-(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createSub(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createSub(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator*(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createMul(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createMul(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator/(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createUDiv(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createUDiv(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator%(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createURem(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createURem(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator&(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createAnd(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createAnd(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator|(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createOr(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createOr(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator^(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createXor(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createXor(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator<<(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createShl(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createShl(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator>>(RValue<UInt4> lhs, RValue<UInt4> rhs)
 {
-	return RValue<UInt4>(Nucleus::createLShr(lhs.value, rhs.value));
+	return RValue<UInt4>(Nucleus::createLShr(lhs.value(), rhs.value()));
 }
 
 RValue<UInt4> operator+=(UInt4 &lhs, RValue<UInt4> rhs)
@@ -3620,32 +3620,32 @@ RValue<UInt4> operator+(RValue<UInt4> val)
 
 RValue<UInt4> operator-(RValue<UInt4> val)
 {
-	return RValue<UInt4>(Nucleus::createNeg(val.value));
+	return RValue<UInt4>(Nucleus::createNeg(val.value()));
 }
 
 RValue<UInt4> operator~(RValue<UInt4> val)
 {
-	return RValue<UInt4>(Nucleus::createNot(val.value));
+	return RValue<UInt4>(Nucleus::createNot(val.value()));
 }
 
 RValue<UInt> Extract(RValue<UInt4> x, int i)
 {
-	return RValue<UInt>(Nucleus::createExtractElement(x.value, Int::type(), i));
+	return RValue<UInt>(Nucleus::createExtractElement(x.value(), Int::type(), i));
 }
 
 RValue<UInt4> Insert(RValue<UInt4> x, RValue<UInt> element, int i)
 {
-	return RValue<UInt4>(Nucleus::createInsertElement(x.value, element.value, i));
+	return RValue<UInt4>(Nucleus::createInsertElement(x.value(), element.value(), i));
 }
 
 RValue<UInt4> Swizzle(RValue<UInt4> x, uint16_t select)
 {
-	return RValue<UInt4>(createSwizzle4(x.value, select));
+	return RValue<UInt4>(createSwizzle4(x.value(), select));
 }
 
 RValue<UInt4> Shuffle(RValue<UInt4> x, RValue<UInt4> y, unsigned short select)
 {
-	return RValue<UInt4>(createShuffle4(x.value, y.value, select));
+	return RValue<UInt4>(createShuffle4(x.value(), y.value(), select));
 }
 
 Half::Half(RValue<Float> cast)
@@ -3678,7 +3678,7 @@ Half::Half(RValue<Float> cast)
 
 Float::Float(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createSIToFP(cast.value, Float::type());
+	Value *integer = Nucleus::createSIToFP(cast.value(), Float::type());
 
 	storeValue(integer);
 }
@@ -3688,7 +3688,7 @@ Float::Float(RValue<UInt> cast)
 	RValue<Float> result = Float(Int(cast & UInt(0x7FFFFFFF))) +
 	                       As<Float>((As<Int>(cast) >> 31) & As<Int>(Float(0x80000000u)));
 
-	storeValue(result.value);
+	storeValue(result.value());
 }
 
 Float::Float(RValue<Half> cast)
@@ -3718,7 +3718,7 @@ Float::Float(RValue<Half> cast)
 		fp32i |= As<UInt>(((e + (127 - 15)) << 23) | (m << 13));
 	}
 
-	storeValue(As<Float>(fp32i).value);
+	storeValue(As<Float>(fp32i).value());
 }
 
 Float::Float(float x)
@@ -3776,7 +3776,7 @@ Float::Float(const Reference<Float> &rhs)
 
 Float::Float(Argument<Float> argument)
 {
-	storeValue(argument.value);
+	store(argument.rvalue());
 }
 
 RValue<Float> Float::operator=(RValue<Float> rhs)
@@ -3796,22 +3796,22 @@ RValue<Float> Float::operator=(const Reference<Float> &rhs)
 
 RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Float>(Nucleus::createFAdd(lhs.value, rhs.value));
+	return RValue<Float>(Nucleus::createFAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Float> operator-(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Float>(Nucleus::createFSub(lhs.value, rhs.value));
+	return RValue<Float>(Nucleus::createFSub(lhs.value(), rhs.value()));
 }
 
 RValue<Float> operator*(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Float>(Nucleus::createFMul(lhs.value, rhs.value));
+	return RValue<Float>(Nucleus::createFMul(lhs.value(), rhs.value()));
 }
 
 RValue<Float> operator/(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Float>(Nucleus::createFDiv(lhs.value, rhs.value));
+	return RValue<Float>(Nucleus::createFDiv(lhs.value(), rhs.value()));
 }
 
 RValue<Float> operator+=(Float &lhs, RValue<Float> rhs)
@@ -3841,37 +3841,37 @@ RValue<Float> operator+(RValue<Float> val)
 
 RValue<Float> operator-(RValue<Float> val)
 {
-	return RValue<Float>(Nucleus::createFNeg(val.value));
+	return RValue<Float>(Nucleus::createFNeg(val.value()));
 }
 
 RValue<Bool> operator<(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Bool>(Nucleus::createFCmpOLT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createFCmpOLT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator<=(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Bool>(Nucleus::createFCmpOLE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createFCmpOLE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Bool>(Nucleus::createFCmpOGT(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createFCmpOGT(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator>=(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Bool>(Nucleus::createFCmpOGE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createFCmpOGE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator!=(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Bool>(Nucleus::createFCmpONE(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createFCmpONE(lhs.value(), rhs.value()));
 }
 
 RValue<Bool> operator==(RValue<Float> lhs, RValue<Float> rhs)
 {
-	return RValue<Bool>(Nucleus::createFCmpOEQ(lhs.value, rhs.value));
+	return RValue<Bool>(Nucleus::createFCmpOEQ(lhs.value(), rhs.value()));
 }
 
 RValue<Float> Abs(RValue<Float> x)
@@ -3891,7 +3891,7 @@ RValue<Float> Min(RValue<Float> x, RValue<Float> y)
 
 Float2::Float2(RValue<Float4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, type()));
+	storeValue(Nucleus::createBitCast(cast.value(), type()));
 }
 
 Float4::Float4(RValue<Byte4> cast)
@@ -3916,20 +3916,20 @@ Float4::Float4(RValue<Short4> cast)
     : XYZW(this)
 {
 	Int4 c(cast);
-	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::type()));
+	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value(), Float4::type()));
 }
 
 Float4::Float4(RValue<UShort4> cast)
     : XYZW(this)
 {
 	Int4 c(cast);
-	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::type()));
+	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value(), Float4::type()));
 }
 
 Float4::Float4(RValue<Int4> cast)
     : XYZW(this)
 {
-	Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::type());
+	Value *xyzw = Nucleus::createSIToFP(cast.value(), Float4::type());
 
 	storeValue(xyzw);
 }
@@ -3940,7 +3940,7 @@ Float4::Float4(RValue<UInt4> cast)
 	RValue<Float4> result = Float4(Int4(cast & UInt4(0x7FFFFFFF))) +
 	                        As<Float4>((As<Int4>(cast) >> 31) & As<Int4>(Float4(0x80000000u)));
 
-	storeValue(result.value);
+	storeValue(result.value());
 }
 
 Float4::Float4()
@@ -4059,22 +4059,22 @@ RValue<Float4> Float4::operator=(const Reference<Float> &rhs)
 
 RValue<Float4> operator+(RValue<Float4> lhs, RValue<Float4> rhs)
 {
-	return RValue<Float4>(Nucleus::createFAdd(lhs.value, rhs.value));
+	return RValue<Float4>(Nucleus::createFAdd(lhs.value(), rhs.value()));
 }
 
 RValue<Float4> operator-(RValue<Float4> lhs, RValue<Float4> rhs)
 {
-	return RValue<Float4>(Nucleus::createFSub(lhs.value, rhs.value));
+	return RValue<Float4>(Nucleus::createFSub(lhs.value(), rhs.value()));
 }
 
 RValue<Float4> operator*(RValue<Float4> lhs, RValue<Float4> rhs)
 {
-	return RValue<Float4>(Nucleus::createFMul(lhs.value, rhs.value));
+	return RValue<Float4>(Nucleus::createFMul(lhs.value(), rhs.value()));
 }
 
 RValue<Float4> operator/(RValue<Float4> lhs, RValue<Float4> rhs)
 {
-	return RValue<Float4>(Nucleus::createFDiv(lhs.value, rhs.value));
+	return RValue<Float4>(Nucleus::createFDiv(lhs.value(), rhs.value()));
 }
 
 RValue<Float4> operator+=(Float4 &lhs, RValue<Float4> rhs)
@@ -4109,13 +4109,13 @@ RValue<Float4> operator+(RValue<Float4> val)
 
 RValue<Float4> operator-(RValue<Float4> val)
 {
-	return RValue<Float4>(Nucleus::createFNeg(val.value));
+	return RValue<Float4>(Nucleus::createFNeg(val.value()));
 }
 
 RValue<Float4> Abs(RValue<Float4> x)
 {
 	// TODO: Optimize.
-	Value *vector = Nucleus::createBitCast(x.value, Int4::type());
+	Value *vector = Nucleus::createBitCast(x.value(), Int4::type());
 	int64_t constantVector[4] = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
 	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::type()));
 
@@ -4124,22 +4124,22 @@ RValue<Float4> Abs(RValue<Float4> x)
 
 RValue<Float4> Insert(RValue<Float4> x, RValue<Float> element, int i)
 {
-	return RValue<Float4>(Nucleus::createInsertElement(x.value, element.value, i));
+	return RValue<Float4>(Nucleus::createInsertElement(x.value(), element.value(), i));
 }
 
 RValue<Float> Extract(RValue<Float4> x, int i)
 {
-	return RValue<Float>(Nucleus::createExtractElement(x.value, Float::type(), i));
+	return RValue<Float>(Nucleus::createExtractElement(x.value(), Float::type(), i));
 }
 
 RValue<Float4> Swizzle(RValue<Float4> x, uint16_t select)
 {
-	return RValue<Float4>(createSwizzle4(x.value, select));
+	return RValue<Float4>(createSwizzle4(x.value(), select));
 }
 
 RValue<Float4> Shuffle(RValue<Float4> x, RValue<Float4> y, uint16_t select)
 {
-	return RValue<Float4>(createShuffle4(x.value, y.value, select));
+	return RValue<Float4>(createShuffle4(x.value(), y.value(), select));
 }
 
 RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
@@ -4151,25 +4151,25 @@ RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, uint16_t imm)
 		((imm >> 0) & 0x03) + 4,
 	};
 
-	return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return RValue<Float4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y)
 {
 	int shuffle[4] = { 0, 4, 1, 5 };
-	return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return RValue<Float4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y)
 {
 	int shuffle[4] = { 2, 6, 3, 7 };
-	return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
+	return RValue<Float4>(Nucleus::createShuffleVector(x.value(), y.value(), shuffle));
 }
 
 RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, uint16_t select)
 {
 	Value *vector = lhs.loadValue();
-	Value *result = createMask4(vector, rhs.value, select);
+	Value *result = createMask4(vector, rhs.value(), select);
 	lhs.storeValue(result);
 
 	return RValue<Float4>(result);
@@ -4192,12 +4192,12 @@ RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset)
 
 RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<Int> offset)
 {
-	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::type(), offset.value, false));
+	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value(), Byte::type(), offset.value(), false));
 }
 
 RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<UInt> offset)
 {
-	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::type(), offset.value, true));
+	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value(), Byte::type(), offset.value(), true));
 }
 
 RValue<Pointer<Byte>> operator+=(Pointer<Byte> &lhs, int offset)
@@ -4254,28 +4254,28 @@ void Return()
 
 void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
 {
-	Nucleus::createCondBr(cmp.value, bodyBB, endBB);
+	Nucleus::createCondBr(cmp.value(), bodyBB, endBB);
 	Nucleus::setInsertBlock(bodyBB);
 }
 
 RValue<Float4> MaskedLoad(RValue<Pointer<Float4>> base, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return RValue<Float4>(Nucleus::createMaskedLoad(base.value, Float::type(), mask.value, alignment, zeroMaskedLanes));
+	return RValue<Float4>(Nucleus::createMaskedLoad(base.value(), Float::type(), mask.value(), alignment, zeroMaskedLanes));
 }
 
 RValue<Int4> MaskedLoad(RValue<Pointer<Int4>> base, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return RValue<Int4>(Nucleus::createMaskedLoad(base.value, Int::type(), mask.value, alignment, zeroMaskedLanes));
+	return RValue<Int4>(Nucleus::createMaskedLoad(base.value(), Int::type(), mask.value(), alignment, zeroMaskedLanes));
 }
 
 void MaskedStore(RValue<Pointer<Float4>> base, RValue<Float4> val, RValue<Int4> mask, unsigned int alignment)
 {
-	Nucleus::createMaskedStore(base.value, val.value, mask.value, alignment);
+	Nucleus::createMaskedStore(base.value(), val.value(), mask.value(), alignment);
 }
 
 void MaskedStore(RValue<Pointer<Int4>> base, RValue<Int4> val, RValue<Int4> mask, unsigned int alignment)
 {
-	Nucleus::createMaskedStore(base.value, val.value, mask.value, alignment);
+	Nucleus::createMaskedStore(base.value(), val.value(), mask.value(), alignment);
 }
 
 void Fence(std::memory_order memoryOrder)
@@ -4393,77 +4393,77 @@ std::vector<Value *> PrintValue::Ty<Bool>::val(const RValue<Bool> &v)
 {
 	auto t = Nucleus::createConstantString("true");
 	auto f = Nucleus::createConstantString("false");
-	return { Nucleus::createSelect(v.value, t, f) };
+	return { Nucleus::createSelect(v.value(), t, f) };
 }
 
 std::vector<Value *> PrintValue::Ty<Byte>::val(const RValue<Byte> &v)
 {
-	return toInt({ v.value }, false);
+	return toInt({ v.value() }, false);
 }
 
 std::vector<Value *> PrintValue::Ty<Byte4>::val(const RValue<Byte4> &v)
 {
-	return toInt(extractAll(v.value, 4), false);
+	return toInt(extractAll(v.value(), 4), false);
 }
 
 std::vector<Value *> PrintValue::Ty<Int>::val(const RValue<Int> &v)
 {
-	return toInt({ v.value }, true);
+	return toInt({ v.value() }, true);
 }
 
 std::vector<Value *> PrintValue::Ty<Int2>::val(const RValue<Int2> &v)
 {
-	return toInt(extractAll(v.value, 2), true);
+	return toInt(extractAll(v.value(), 2), true);
 }
 
 std::vector<Value *> PrintValue::Ty<Int4>::val(const RValue<Int4> &v)
 {
-	return toInt(extractAll(v.value, 4), true);
+	return toInt(extractAll(v.value(), 4), true);
 }
 
 std::vector<Value *> PrintValue::Ty<UInt>::val(const RValue<UInt> &v)
 {
-	return toInt({ v.value }, false);
+	return toInt({ v.value() }, false);
 }
 
 std::vector<Value *> PrintValue::Ty<UInt2>::val(const RValue<UInt2> &v)
 {
-	return toInt(extractAll(v.value, 2), false);
+	return toInt(extractAll(v.value(), 2), false);
 }
 
 std::vector<Value *> PrintValue::Ty<UInt4>::val(const RValue<UInt4> &v)
 {
-	return toInt(extractAll(v.value, 4), false);
+	return toInt(extractAll(v.value(), 4), false);
 }
 
 std::vector<Value *> PrintValue::Ty<Short>::val(const RValue<Short> &v)
 {
-	return toInt({ v.value }, true);
+	return toInt({ v.value() }, true);
 }
 
 std::vector<Value *> PrintValue::Ty<Short4>::val(const RValue<Short4> &v)
 {
-	return toInt(extractAll(v.value, 4), true);
+	return toInt(extractAll(v.value(), 4), true);
 }
 
 std::vector<Value *> PrintValue::Ty<UShort>::val(const RValue<UShort> &v)
 {
-	return toInt({ v.value }, false);
+	return toInt({ v.value() }, false);
 }
 
 std::vector<Value *> PrintValue::Ty<UShort4>::val(const RValue<UShort4> &v)
 {
-	return toInt(extractAll(v.value, 4), false);
+	return toInt(extractAll(v.value(), 4), false);
 }
 
 std::vector<Value *> PrintValue::Ty<Float>::val(const RValue<Float> &v)
 {
-	return toFloat({ v.value });
+	return toFloat({ v.value() });
 }
 
 std::vector<Value *> PrintValue::Ty<Float4>::val(const RValue<Float4> &v)
 {
-	return toFloat(extractAll(v.value, 4));
+	return toFloat(extractAll(v.value(), 4));
 }
 
 std::vector<Value *> PrintValue::Ty<const char *>::val(const char *v)

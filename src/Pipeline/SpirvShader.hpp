@@ -92,13 +92,13 @@ public:
 		UInt
 	};
 
-	void move(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value, TypeHint::Float); }
-	void move(uint32_t i, RValue<SIMD::Int> &&scalar) { emplace(i, scalar.value, TypeHint::Int); }
-	void move(uint32_t i, RValue<SIMD::UInt> &&scalar) { emplace(i, scalar.value, TypeHint::UInt); }
+	void move(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value(), TypeHint::Float); }
+	void move(uint32_t i, RValue<SIMD::Int> &&scalar) { emplace(i, scalar.value(), TypeHint::Int); }
+	void move(uint32_t i, RValue<SIMD::UInt> &&scalar) { emplace(i, scalar.value(), TypeHint::UInt); }
 
-	void move(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value, TypeHint::Float); }
-	void move(uint32_t i, const RValue<SIMD::Int> &scalar) { emplace(i, scalar.value, TypeHint::Int); }
-	void move(uint32_t i, const RValue<SIMD::UInt> &scalar) { emplace(i, scalar.value, TypeHint::UInt); }
+	void move(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value(), TypeHint::Float); }
+	void move(uint32_t i, const RValue<SIMD::Int> &scalar) { emplace(i, scalar.value(), TypeHint::Int); }
+	void move(uint32_t i, const RValue<SIMD::UInt> &scalar) { emplace(i, scalar.value(), TypeHint::UInt); }
 
 	// Value retrieval functions.
 	RValue<SIMD::Float> Float(uint32_t i) const
@@ -912,8 +912,8 @@ private:
 		          spv::ExecutionModel executionModel)
 		    : routine(routine)
 		    , function(function)
-		    , activeLaneMaskValue(activeLaneMask.value)
-		    , storesAndAtomicsMaskValue(storesAndAtomicsMask.value)
+		    , activeLaneMaskValue(activeLaneMask.value())
+		    , storesAndAtomicsMaskValue(storesAndAtomicsMask.value())
 		    , descriptorSets(descriptorSets)
 		    , robustBufferAccess(robustBufferAccess)
 		    , executionModel(executionModel)

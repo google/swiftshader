@@ -2213,12 +2213,12 @@ RValue<Byte> SaturateUnsigned(RValue<Short> x)
 
 RValue<Byte> Extract(RValue<Byte8> val, int i)
 {
-	return RValue<Byte>(Nucleus::createExtractElement(val.value, Byte::type(), i));
+	return RValue<Byte>(Nucleus::createExtractElement(val.value(), Byte::type(), i));
 }
 
 RValue<Byte8> Insert(RValue<Byte8> val, RValue<Byte> element, int i)
 {
-	return RValue<Byte8>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<Byte8>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 }  // namespace
 
@@ -2245,8 +2245,8 @@ RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AddSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto paddusb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddusb->addArg(x.value);
-		paddusb->addArg(y.value);
+		paddusb->addArg(x.value());
+		paddusb->addArg(y.value());
 		::basicBlock->appendInst(paddusb);
 
 		return RValue<Byte8>(V(result));
@@ -2276,8 +2276,8 @@ RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SubtractSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto psubusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubusw->addArg(x.value);
-		psubusw->addArg(y.value);
+		psubusw->addArg(x.value());
+		psubusw->addArg(y.value());
 		::basicBlock->appendInst(psubusw);
 
 		return RValue<Byte8>(V(result));
@@ -2287,13 +2287,13 @@ RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 RValue<SByte> Extract(RValue<SByte8> val, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<SByte>(Nucleus::createExtractElement(val.value, SByte::type(), i));
+	return RValue<SByte>(Nucleus::createExtractElement(val.value(), SByte::type(), i));
 }
 
 RValue<SByte8> Insert(RValue<SByte8> val, RValue<SByte> element, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<SByte8>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<SByte8>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
@@ -2322,7 +2322,7 @@ RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
 
 		return As<SByte8>(hi | lo);
 #else
-		return RValue<SByte8>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<SByte8>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 #endif
 	}
 }
@@ -2341,7 +2341,7 @@ RValue<Int> SignMask(RValue<Byte8> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
+		movmsk->addArg(x.value());
 		::basicBlock->appendInst(movmsk);
 
 		return RValue<Int>(V(result)) & 0xFF;
@@ -2350,13 +2350,13 @@ RValue<Int> SignMask(RValue<Byte8> x)
 
 //	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y)
 //	{
-//		return RValue<Byte8>(createIntCompare(Ice::InstIcmp::Ugt, x.value, y.value));
+//		return RValue<Byte8>(createIntCompare(Ice::InstIcmp::Ugt, x.value(), y.value()));
 //	}
 
 RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Byte8>(Nucleus::createICmpEQ(x.value, y.value));
+	return RValue<Byte8>(Nucleus::createICmpEQ(x.value(), y.value()));
 }
 
 Type *Byte8::type()
@@ -2366,12 +2366,12 @@ Type *Byte8::type()
 
 //	RValue<SByte8> operator<<(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+//		return RValue<SByte8>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 //	}
 
 //	RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+//		return RValue<SByte8>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 //	}
 
 RValue<SByte> SaturateSigned(RValue<Short> x)
@@ -2403,8 +2403,8 @@ RValue<SByte8> AddSat(RValue<SByte8> x, RValue<SByte8> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AddSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto paddsb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddsb->addArg(x.value);
-		paddsb->addArg(y.value);
+		paddsb->addArg(x.value());
+		paddsb->addArg(y.value());
 		::basicBlock->appendInst(paddsb);
 
 		return RValue<SByte8>(V(result));
@@ -2434,8 +2434,8 @@ RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SubtractSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto psubsb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubsb->addArg(x.value);
-		psubsb->addArg(y.value);
+		psubsb->addArg(x.value());
+		psubsb->addArg(y.value());
 		::basicBlock->appendInst(psubsb);
 
 		return RValue<SByte8>(V(result));
@@ -2456,7 +2456,7 @@ RValue<Int> SignMask(RValue<SByte8> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
+		movmsk->addArg(x.value());
 		::basicBlock->appendInst(movmsk);
 
 		return RValue<Int>(V(result)) & 0xFF;
@@ -2466,13 +2466,13 @@ RValue<Int> SignMask(RValue<SByte8> x)
 RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Byte8>(createIntCompare(Ice::InstIcmp::Sgt, x.value, y.value));
+	return RValue<Byte8>(createIntCompare(Ice::InstIcmp::Sgt, x.value(), y.value()));
 }
 
 RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Byte8>(Nucleus::createICmpEQ(x.value, y.value));
+	return RValue<Byte8>(Nucleus::createICmpEQ(x.value(), y.value()));
 }
 
 Type *SByte8::type()
@@ -2503,10 +2503,10 @@ Type *UShort2::type()
 Short4::Short4(RValue<Int4> cast)
 {
 	int select[8] = { 0, 2, 4, 6, 0, 2, 4, 6 };
-	Value *short8 = Nucleus::createBitCast(cast.value, Short8::type());
+	Value *short8 = Nucleus::createBitCast(cast.value(), Short8::type());
 	Value *packed = Nucleus::createShuffleVector(short8, short8, select);
 
-	Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value;
+	Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value();
 	Value *short4 = Nucleus::createBitCast(int2, Short4::type());
 
 	storeValue(short4);
@@ -2539,7 +2539,7 @@ RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Short4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Short4>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -2558,7 +2558,7 @@ RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Short4>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Short4>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -2566,11 +2566,11 @@ RValue<Short4> Max(RValue<Short4> x, RValue<Short4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v8i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sle, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sle, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<Short4>(V(result));
@@ -2580,11 +2580,11 @@ RValue<Short4> Min(RValue<Short4> x, RValue<Short4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v8i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sgt, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sgt, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<Short4>(V(result));
@@ -2615,8 +2615,8 @@ RValue<Short4> AddSat(RValue<Short4> x, RValue<Short4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AddSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto paddsw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddsw->addArg(x.value);
-		paddsw->addArg(y.value);
+		paddsw->addArg(x.value());
+		paddsw->addArg(y.value());
 		::basicBlock->appendInst(paddsw);
 
 		return RValue<Short4>(V(result));
@@ -2642,8 +2642,8 @@ RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SubtractSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto psubsw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubsw->addArg(x.value);
-		psubsw->addArg(y.value);
+		psubsw->addArg(x.value());
+		psubsw->addArg(y.value());
 		::basicBlock->appendInst(psubsw);
 
 		return RValue<Short4>(V(result));
@@ -2669,8 +2669,8 @@ RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::MultiplyHighSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pmulhw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pmulhw->addArg(x.value);
-		pmulhw->addArg(y.value);
+		pmulhw->addArg(x.value());
+		pmulhw->addArg(y.value());
 		::basicBlock->appendInst(pmulhw);
 
 		return RValue<Short4>(V(result));
@@ -2694,8 +2694,8 @@ RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::MultiplyAddPairs, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pmaddwd = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pmaddwd->addArg(x.value);
-		pmaddwd->addArg(y.value);
+		pmaddwd->addArg(x.value());
+		pmaddwd->addArg(y.value());
 		::basicBlock->appendInst(pmaddwd);
 
 		return As<Int2>(V(result));
@@ -2725,8 +2725,8 @@ RValue<SByte8> PackSigned(RValue<Short4> x, RValue<Short4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::VectorPackSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pack->addArg(x.value);
-		pack->addArg(y.value);
+		pack->addArg(x.value());
+		pack->addArg(y.value());
 		::basicBlock->appendInst(pack);
 
 		return As<SByte8>(Swizzle(As<Int4>(V(result)), 0x0202));
@@ -2756,8 +2756,8 @@ RValue<Byte8> PackUnsigned(RValue<Short4> x, RValue<Short4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::VectorPackUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pack->addArg(x.value);
-		pack->addArg(y.value);
+		pack->addArg(x.value());
+		pack->addArg(y.value());
 		::basicBlock->appendInst(pack);
 
 		return As<Byte8>(Swizzle(As<Int4>(V(result)), 0x0202));
@@ -2767,13 +2767,13 @@ RValue<Byte8> PackUnsigned(RValue<Short4> x, RValue<Short4> y)
 RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Short4>(createIntCompare(Ice::InstIcmp::Sgt, x.value, y.value));
+	return RValue<Short4>(createIntCompare(Ice::InstIcmp::Sgt, x.value(), y.value()));
 }
 
 RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Short4>(Nucleus::createICmpEQ(x.value, y.value));
+	return RValue<Short4>(Nucleus::createICmpEQ(x.value(), y.value()));
 }
 
 Type *Short4::type()
@@ -2811,12 +2811,12 @@ UShort4::UShort4(RValue<Float4> cast, bool saturate)
 
 RValue<UShort> Extract(RValue<UShort4> val, int i)
 {
-	return RValue<UShort>(Nucleus::createExtractElement(val.value, UShort::type(), i));
+	return RValue<UShort>(Nucleus::createExtractElement(val.value(), UShort::type(), i));
 }
 
 RValue<UShort4> Insert(RValue<UShort4> val, RValue<UShort> element, int i)
 {
-	return RValue<UShort4>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<UShort4>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)
@@ -2835,7 +2835,7 @@ RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UShort4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UShort4>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -2854,7 +2854,7 @@ RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UShort4>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UShort4>(Nucleus::createLShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -2862,11 +2862,11 @@ RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v8i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ule, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ule, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<UShort4>(V(result));
@@ -2875,11 +2875,11 @@ RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y)
 RValue<UShort4> Min(RValue<UShort4> x, RValue<UShort4> y)
 {
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v8i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ugt, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ugt, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<UShort4>(V(result));
@@ -2910,8 +2910,8 @@ RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::AddSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto paddusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddusw->addArg(x.value);
-		paddusw->addArg(y.value);
+		paddusw->addArg(x.value());
+		paddusw->addArg(y.value());
 		::basicBlock->appendInst(paddusw);
 
 		return RValue<UShort4>(V(result));
@@ -2937,8 +2937,8 @@ RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SubtractSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto psubusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubusw->addArg(x.value);
-		psubusw->addArg(y.value);
+		psubusw->addArg(x.value());
+		psubusw->addArg(y.value());
 		::basicBlock->appendInst(psubusw);
 
 		return RValue<UShort4>(V(result));
@@ -2964,8 +2964,8 @@ RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::MultiplyHighUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pmulhuw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pmulhuw->addArg(x.value);
-		pmulhuw->addArg(y.value);
+		pmulhuw->addArg(x.value());
+		pmulhuw->addArg(y.value());
 		::basicBlock->appendInst(pmulhuw);
 
 		return RValue<UShort4>(V(result));
@@ -3035,13 +3035,13 @@ Type *UShort4::type()
 RValue<Short> Extract(RValue<Short8> val, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Short>(Nucleus::createExtractElement(val.value, Short::type(), i));
+	return RValue<Short>(Nucleus::createExtractElement(val.value(), Short::type(), i));
 }
 
 RValue<Short8> Insert(RValue<Short8> val, RValue<Short> element, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Short8>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<Short8>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs)
@@ -3063,7 +3063,7 @@ RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Short8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Short8>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3086,7 +3086,7 @@ RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Short8>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Short8>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3112,13 +3112,13 @@ Type *Short8::type()
 RValue<UShort> Extract(RValue<UShort8> val, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UShort>(Nucleus::createExtractElement(val.value, UShort::type(), i));
+	return RValue<UShort>(Nucleus::createExtractElement(val.value(), UShort::type(), i));
 }
 
 RValue<UShort8> Insert(RValue<UShort8> val, RValue<UShort> element, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UShort8>(Nucleus::createInsertElement(val.value, element.value, i));
+	return RValue<UShort8>(Nucleus::createInsertElement(val.value(), element.value(), i));
 }
 
 RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
@@ -3140,7 +3140,7 @@ RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UShort8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UShort8>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3163,7 +3163,7 @@ RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UShort8>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UShort8>(Nucleus::createLShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3223,7 +3223,7 @@ RValue<Int> RoundInt(RValue<Float> cast)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		nearbyint->addArg(cast.value);
+		nearbyint->addArg(cast.value());
 		::basicBlock->appendInst(nearbyint);
 
 		return RValue<Int>(V(result));
@@ -3255,7 +3255,7 @@ UInt::UInt(RValue<Float> cast)
 	                       As<Int>(As<UInt>(Int(cast - Float(ustartf))) + UInt(ustart)),
 	                       // Otherwise, just convert normally
 	                       Int(cast)))
-	               .value);
+	               .value());
 }
 
 RValue<UInt> operator++(UInt &val, int)  // Post-increment
@@ -3300,7 +3300,7 @@ Type *UInt::type()
 
 //	Int2::Int2(RValue<Int> cast)
 //	{
-//		Value *extend = Nucleus::createZExt(cast.value, Long::type());
+//		Value *extend = Nucleus::createZExt(cast.value(), Long::type());
 //		Value *vector = Nucleus::createBitCast(extend, Int2::type());
 //
 //		Constant *shuffle[2];
@@ -3325,7 +3325,7 @@ RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Int2>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Int2>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3342,7 +3342,7 @@ RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Int2>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Int2>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3364,7 +3364,7 @@ RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UInt2>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UInt2>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3381,7 +3381,7 @@ RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UInt2>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UInt2>(Nucleus::createLShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3394,7 +3394,7 @@ Int4::Int4(RValue<Byte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *x = Nucleus::createBitCast(cast.value, Int::type());
+	Value *x = Nucleus::createBitCast(cast.value(), Int::type());
 	Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
 
 	Value *e;
@@ -3414,7 +3414,7 @@ Int4::Int4(RValue<SByte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *x = Nucleus::createBitCast(cast.value, Int::type());
+	Value *x = Nucleus::createBitCast(cast.value(), Int::type());
 	Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
 
 	int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
@@ -3433,7 +3433,7 @@ Int4::Int4(RValue<Short4> cast)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	int swizzle[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
-	Value *c = Nucleus::createShuffleVector(cast.value, cast.value, swizzle);
+	Value *c = Nucleus::createShuffleVector(cast.value(), cast.value(), swizzle);
 
 	*this = As<Int4>(c) >> 16;
 }
@@ -3443,7 +3443,7 @@ Int4::Int4(RValue<UShort4> cast)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	int swizzle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
-	Value *c = Nucleus::createShuffleVector(cast.value, Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
+	Value *c = Nucleus::createShuffleVector(cast.value(), Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
 	Value *d = Nucleus::createBitCast(c, Int4::type());
 	storeValue(d);
 }
@@ -3452,7 +3452,7 @@ Int4::Int4(RValue<Int> rhs)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *vector = Nucleus::createBitCast(rhs.value, Int4::type());
+	Value *vector = Nucleus::createBitCast(rhs.value(), Int4::type());
 
 	int swizzle[4] = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
@@ -3475,7 +3475,7 @@ RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Int4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Int4>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3494,55 +3494,55 @@ RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<Int4>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<Int4>(Nucleus::createAShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
 RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createICmpEQ(x.value, y.value));
+	return RValue<Int4>(Nucleus::createICmpEQ(x.value(), y.value()));
 }
 
 RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createICmpSLT(x.value, y.value));
+	return RValue<Int4>(Nucleus::createICmpSLT(x.value(), y.value()));
 }
 
 RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createICmpSLE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createICmpSLE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createICmpNE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createICmpNE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createICmpSGE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createICmpSGE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createICmpSGT(x.value, y.value));
+	return RValue<Int4>(Nucleus::createICmpSGT(x.value(), y.value()));
 }
 
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sle, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sle, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<Int4>(V(result));
@@ -3552,11 +3552,11 @@ RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sgt, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Sgt, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<Int4>(V(result));
@@ -3576,7 +3576,7 @@ RValue<Int4> RoundInt(RValue<Float4> cast)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		nearbyint->addArg(cast.value);
+		nearbyint->addArg(cast.value());
 		::basicBlock->appendInst(nearbyint);
 
 		return RValue<Int4>(V(result));
@@ -3606,8 +3606,8 @@ RValue<Short8> PackSigned(RValue<Int4> x, RValue<Int4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::VectorPackSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pack->addArg(x.value);
-		pack->addArg(y.value);
+		pack->addArg(x.value());
+		pack->addArg(y.value());
 		::basicBlock->appendInst(pack);
 
 		return RValue<Short8>(V(result));
@@ -3633,8 +3633,8 @@ RValue<UShort8> PackUnsigned(RValue<Int4> x, RValue<Int4> y)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::VectorPackUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pack->addArg(x.value);
-		pack->addArg(y.value);
+		pack->addArg(x.value());
+		pack->addArg(y.value());
 		::basicBlock->appendInst(pack);
 
 		return RValue<UShort8>(V(result));
@@ -3655,7 +3655,7 @@ RValue<Int> SignMask(RValue<Int4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
+		movmsk->addArg(x.value());
 		::basicBlock->appendInst(movmsk);
 
 		return RValue<Int>(V(result));
@@ -3682,14 +3682,14 @@ UInt4::UInt4(RValue<Float4> cast)
 	          // Otherwise, just convert normally
 	          (~uiValue & Int4(cast));
 	// If the value is negative, store 0, otherwise store the result of the conversion
-	storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
+	storeValue((~(As<Int4>(cast) >> 31) & uiValue).value());
 }
 
 UInt4::UInt4(RValue<UInt> rhs)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *vector = Nucleus::createBitCast(rhs.value, UInt4::type());
+	Value *vector = Nucleus::createBitCast(rhs.value(), UInt4::type());
 
 	int swizzle[4] = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
@@ -3712,7 +3712,7 @@ RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UInt4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UInt4>(Nucleus::createShl(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
@@ -3731,55 +3731,55 @@ RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 	}
 	else
 	{
-		return RValue<UInt4>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
+		return RValue<UInt4>(Nucleus::createLShr(lhs.value(), V(::context->getConstantInt32(rhs))));
 	}
 }
 
 RValue<UInt4> CmpEQ(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createICmpEQ(x.value, y.value));
+	return RValue<UInt4>(Nucleus::createICmpEQ(x.value(), y.value()));
 }
 
 RValue<UInt4> CmpLT(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createICmpULT(x.value, y.value));
+	return RValue<UInt4>(Nucleus::createICmpULT(x.value(), y.value()));
 }
 
 RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createICmpULE(x.value, y.value));
+	return RValue<UInt4>(Nucleus::createICmpULE(x.value(), y.value()));
 }
 
 RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createICmpNE(x.value, y.value));
+	return RValue<UInt4>(Nucleus::createICmpNE(x.value(), y.value()));
 }
 
 RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createICmpUGE(x.value, y.value));
+	return RValue<UInt4>(Nucleus::createICmpUGE(x.value(), y.value()));
 }
 
 RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createICmpUGT(x.value, y.value));
+	return RValue<UInt4>(Nucleus::createICmpUGT(x.value(), y.value()));
 }
 
 RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ule, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ule, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<UInt4>(V(result));
@@ -3789,11 +3789,11 @@ RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ugt, condition, x.value, y.value);
+	auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Ugt, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
-	auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, y.value(), x.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<UInt4>(V(result));
@@ -3828,7 +3828,7 @@ RValue<Float> Sqrt(RValue<Float> x)
 	const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 	auto target = ::context->getConstantUndef(Ice::IceType_i32);
 	auto sqrt = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-	sqrt->addArg(x.value);
+	sqrt->addArg(x.value());
 	::basicBlock->appendInst(sqrt);
 
 	return RValue<Float>(V(result));
@@ -3878,7 +3878,7 @@ Float4::Float4(RValue<Float> rhs)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *vector = Nucleus::createBitCast(rhs.value, Float4::type());
+	Value *vector = Nucleus::createBitCast(rhs.value(), Float4::type());
 
 	int swizzle[4] = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
@@ -3890,11 +3890,11 @@ RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-	auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Ogt, condition, x.value, y.value);
+	auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Ogt, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
-	auto select = Ice::InstSelect::create(::function, result, condition, x.value, y.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, x.value(), y.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<Float4>(V(result));
@@ -3904,11 +3904,11 @@ RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-	auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Olt, condition, x.value, y.value);
+	auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Olt, condition, x.value(), y.value());
 	::basicBlock->appendInst(cmp);
 
 	Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
-	auto select = Ice::InstSelect::create(::function, result, condition, x.value, y.value);
+	auto select = Ice::InstSelect::create(::function, result, condition, x.value(), y.value());
 	::basicBlock->appendInst(select);
 
 	return RValue<Float4>(V(result));
@@ -3945,7 +3945,7 @@ RValue<Float4> Sqrt(RValue<Float4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto sqrt = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		sqrt->addArg(x.value);
+		sqrt->addArg(x.value());
 		::basicBlock->appendInst(sqrt);
 
 		return RValue<Float4>(V(result));
@@ -3966,7 +3966,7 @@ RValue<Int> SignMask(RValue<Float4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
+		movmsk->addArg(x.value());
 		::basicBlock->appendInst(movmsk);
 
 		return RValue<Int>(V(result));
@@ -3976,73 +3976,73 @@ RValue<Int> SignMask(RValue<Float4> x)
 RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpOEQ(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpOEQ(x.value(), y.value()));
 }
 
 RValue<Int4> CmpLT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpOLT(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpOLT(x.value(), y.value()));
 }
 
 RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpOLE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpOLE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpONE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpONE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpOGE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpOGE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpOGT(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpOGT(x.value(), y.value()));
 }
 
 RValue<Int4> CmpUEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpUEQ(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpUEQ(x.value(), y.value()));
 }
 
 RValue<Int4> CmpULT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpULT(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpULT(x.value(), y.value()));
 }
 
 RValue<Int4> CmpULE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpULE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpULE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpUNEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpUNE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpUNE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpUNLT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpUGE(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpUGE(x.value(), y.value()));
 }
 
 RValue<Int4> CmpUNLE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createFCmpUGT(x.value, y.value));
+	return RValue<Int4>(Nucleus::createFCmpUGT(x.value(), y.value()));
 }
 
 RValue<Float4> Round(RValue<Float4> x)
@@ -4059,7 +4059,7 @@ RValue<Float4> Round(RValue<Float4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		round->addArg(x.value);
+		round->addArg(x.value());
 		round->addArg(::context->getConstantInt32(0));
 		::basicBlock->appendInst(round);
 
@@ -4080,7 +4080,7 @@ RValue<Float4> Trunc(RValue<Float4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		round->addArg(x.value);
+		round->addArg(x.value());
 		round->addArg(::context->getConstantInt32(3));
 		::basicBlock->appendInst(round);
 
@@ -4122,7 +4122,7 @@ RValue<Float4> Floor(RValue<Float4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		round->addArg(x.value);
+		round->addArg(x.value());
 		round->addArg(::context->getConstantInt32(1));
 		::basicBlock->appendInst(round);
 
@@ -4143,7 +4143,7 @@ RValue<Float4> Ceil(RValue<Float4> x)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		round->addArg(x.value);
+		round->addArg(x.value());
 		round->addArg(::context->getConstantInt32(2));
 		::basicBlock->appendInst(round);
 
@@ -4182,7 +4182,7 @@ RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
 Value *Call(RValue<Pointer<Byte>> fptr, Type *retTy, std::initializer_list<Value *> args, std::initializer_list<Type *> argTys)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(sz::Call(::function, ::basicBlock, T(retTy), V(fptr.value), V(args), false));
+	return V(sz::Call(::function, ::basicBlock, T(retTy), V(fptr.value()), V(args), false));
 }
 
 void Breakpoint()
@@ -4375,7 +4375,7 @@ RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Ctlz, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto ctlz = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		ctlz->addArg(x.value);
+		ctlz->addArg(x.value());
 		::basicBlock->appendInst(ctlz);
 
 		return RValue<UInt>(V(result));
@@ -4416,7 +4416,7 @@ RValue<UInt> Cttz(RValue<UInt> x, bool isZeroUndef)
 		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Cttz, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
 		auto target = ::context->getConstantUndef(Ice::IceType_i32);
 		auto ctlz = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		ctlz->addArg(x.value);
+		ctlz->addArg(x.value());
 		::basicBlock->appendInst(ctlz);
 
 		return RValue<UInt>(V(result));

@@ -481,7 +481,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	// Loop body now done.
 	// If any lanes are still active, jump back to the loop header,
 	// otherwise jump to the merge block.
-	Nucleus::createCondBr(AnyTrue(loopActiveLaneMask).value, headerBasicBlock, mergeBasicBlock);
+	Nucleus::createCondBr(AnyTrue(loopActiveLaneMask).value(), headerBasicBlock, mergeBasicBlock);
 
 	// Continue emitting from the merge block.
 	Nucleus::setInsertBlock(mergeBasicBlock);
@@ -728,7 +728,7 @@ void SpirvShader::Yield(YieldResult res) const
 
 void SpirvShader::SetActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const
 {
-	state->activeLaneMaskValue = mask.value;
+	state->activeLaneMaskValue = mask.value();
 	dbgUpdateActiveLaneMask(mask, state);
 }
 

@@ -152,7 +152,7 @@ public:
 
 	RValue<T> store(RValue<T> rvalue) const
 	{
-		Variable::storeValue(rvalue.value);
+		Variable::storeValue(rvalue.value());
 
 		return rvalue;
 	}
@@ -261,17 +261,24 @@ public:
 	// Rvalues cannot be assigned to: "(a + b) = c;"
 	RValue<T> &operator=(const RValue<T> &) = delete;
 
-	Value *value;  // FIXME: Make private
+	Value *value() const { return val; }
+
+private:
+	Value *const val;
 };
 
 template<typename T>
-struct Argument
+class Argument
 {
-	explicit Argument(Value *value)
-	    : value(value)
+public:
+	explicit Argument(Value *val)
+	    : val(val)
 	{}
 
-	Value *value;
+	RValue<T> rvalue() const { return RValue<T>(val); }
+
+private:
+	Value *const val;
 };
 
 class Bool : public LValue<Bool>
@@ -2385,7 +2392,7 @@ public:
 	Pointer(RValue<Pointer<S>> pointerS, int alignment = 1)
 	    : alignment(alignment)
 	{
-		Value *pointerT = Nucleus::createBitCast(pointerS.value, Nucleus::getPointerType(T::type()));
+		Value *pointerT = Nucleus::createBitCast(pointerS.value(), Nucleus::getPointerType(T::type()));
 		LValue<Pointer<T>>::storeValue(pointerT);
 	}
 
@@ -2446,7 +2453,7 @@ RValue<Bool> operator==(const Pointer<T> &lhs, const Pointer<T> &rhs)
 template<typename T>
 RValue<T> Load(RValue<Pointer<T>> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
 {
-	return RValue<T>(Nucleus::createLoad(pointer.value, T::type(), false, alignment, atomic, memoryOrder));
+	return RValue<T>(Nucleus::createLoad(pointer.value(), T::type(), false, alignment, atomic, memoryOrder));
 }
 
 template<typename T>
@@ -2469,7 +2476,7 @@ void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, 
 template<typename T>
 void Store(RValue<T> value, RValue<Pointer<T>> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
 {
-	Nucleus::createStore(value.value, pointer.value, T::type(), false, alignment, atomic, memoryOrder);
+	Nucleus::createStore(value.value(), pointer.value(), T::type(), false, alignment, atomic, memoryOrder);
 }
 
 template<typename T>
@@ -2689,7 +2696,7 @@ Reference<T>::Reference(Value *pointer, int alignment)
 template<class T>
 RValue<T> Reference<T>::operator=(RValue<T> rhs) const
 {
-	Nucleus::createStore(rhs.value, address, T::type(), false, alignment);
+	Nucleus::createStore(rhs.value(), address, T::type(), false, alignment);
 
 	return rhs;
 }
@@ -2730,54 +2737,53 @@ int Reference<T>::getAlignment() const
 #ifdef ENABLE_RR_DEBUG_INFO
 template<class T>
 RValue<T>::RValue(const RValue<T> &rvalue)
-    : value(rvalue.value)
+    : val(rvalue.val)
 {
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 #endif  // ENABLE_RR_DEBUG_INFO
 
 template<class T>
-RValue<T>::RValue(Value *rvalue)
+RValue<T>::RValue(Value *value)
+    : val(value)
 {
-	assert(Nucleus::createBitCast(rvalue, T::type()) == rvalue);  // Run-time type should match T, so bitcast is no-op.
-
-	value = rvalue;
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	assert(Nucleus::createBitCast(value, T::type()) == value);  // Run-time type should match T, so bitcast is no-op.
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class T>
 RValue<T>::RValue(const T &lvalue)
+    : val(lvalue.loadValue())
 {
-	value = lvalue.loadValue();
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class T>
 RValue<T>::RValue(typename BoolLiteral<T>::type i)
+    : val(Nucleus::createConstantBool(i))
 {
-	value = Nucleus::createConstantBool(i);
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class T>
 RValue<T>::RValue(typename IntLiteral<T>::type i)
+    : val(Nucleus::createConstantInt(i))
 {
-	value = Nucleus::createConstantInt(i);
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class T>
 RValue<T>::RValue(typename FloatLiteral<T>::type f)
+    : val(Nucleus::createConstantFloat(f))
 {
-	value = Nucleus::createConstantFloat(f);
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class T>
 RValue<T>::RValue(const Reference<T> &ref)
+    : val(ref.loadValue())
 {
-	value = ref.loadValue();
-	RR_DEBUG_INFO_EMIT_VAR(value);
+	RR_DEBUG_INFO_EMIT_VAR(val);
 }
 
 template<class Vector4, int T>
@@ -2954,7 +2960,7 @@ template<class T>
 Pointer<T>::Pointer(Argument<Pointer<T>> argument)
     : alignment(1)
 {
-	LValue<Pointer<T>>::storeValue(argument.value);
+	LValue<Pointer<T>>::store(argument.rvalue());
 }
 
 template<class T>
@@ -2966,7 +2972,7 @@ template<class T>
 Pointer<T>::Pointer(RValue<Pointer<T>> rhs)
     : alignment(1)
 {
-	LValue<Pointer<T>>::storeValue(rhs.value);
+	LValue<Pointer<T>>::storeValue(rhs.value());
 }
 
 template<class T>
@@ -2996,7 +3002,7 @@ Pointer<T>::Pointer(std::nullptr_t)
 template<class T>
 RValue<Pointer<T>> Pointer<T>::operator=(RValue<Pointer<T>> rhs)
 {
-	LValue<Pointer<T>>::storeValue(rhs.value);
+	LValue<Pointer<T>>::storeValue(rhs.value());
 
 	return rhs;
 }
@@ -3056,7 +3062,7 @@ template<class T>
 Reference<T> Pointer<T>::operator[](RValue<Int> index)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), index.value, false);
+	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), index.value(), false);
 
 	return Reference<T>(element, alignment);
 }
@@ -3065,7 +3071,7 @@ template<class T>
 Reference<T> Pointer<T>::operator[](RValue<UInt> index)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), index.value, true);
+	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), index.value(), true);
 
 	return Reference<T>(element, alignment);
 }
@@ -3103,7 +3109,7 @@ Reference<T> Array<T, S>::operator[](unsigned int index)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](RValue<Int> index)
 {
-	Value *element = LValue<T>::getElementPointer(index.value, false);
+	Value *element = LValue<T>::getElementPointer(index.value(), false);
 
 	return Reference<T>(element);
 }
@@ -3111,7 +3117,7 @@ Reference<T> Array<T, S>::operator[](RValue<Int> index)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](RValue<UInt> index)
 {
-	Value *element = LValue<T>::getElementPointer(index.value, true);
+	Value *element = LValue<T>::getElementPointer(index.value(), true);
 
 	return Reference<T>(element);
 }
@@ -3144,7 +3150,7 @@ template<class T>
 RValue<T> IfThenElse(RValue<Bool> condition, RValue<T> ifTrue, RValue<T> ifFalse)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<T>(Nucleus::createSelect(condition.value, ifTrue.value, ifFalse.value));
+	return RValue<T>(Nucleus::createSelect(condition.value(), ifTrue.value(), ifFalse.value()));
 }
 
 template<class T>
@@ -3153,7 +3159,7 @@ RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, RValue<T> ifFalse)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Value *trueValue = ifTrue.loadValue();
 
-	return RValue<T>(Nucleus::createSelect(condition.value, trueValue, ifFalse.value));
+	return RValue<T>(Nucleus::createSelect(condition.value(), trueValue, ifFalse.value()));
 }
 
 template<class T>
@@ -3162,7 +3168,7 @@ RValue<T> IfThenElse(RValue<Bool> condition, RValue<T> ifTrue, const T &ifFalse)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	Value *falseValue = ifFalse.loadValue();
 
-	return RValue<T>(Nucleus::createSelect(condition.value, ifTrue.value, falseValue));
+	return RValue<T>(Nucleus::createSelect(condition.value(), ifTrue.value(), falseValue));
 }
 
 template<class T>
@@ -3172,7 +3178,7 @@ RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, const T &ifFalse)
 	Value *trueValue = ifTrue.loadValue();
 	Value *falseValue = ifFalse.loadValue();
 
-	return RValue<T>(Nucleus::createSelect(condition.value, trueValue, falseValue));
+	return RValue<T>(Nucleus::createSelect(condition.value(), trueValue, falseValue));
 }
 
 template<typename Return, typename... Arguments>
@@ -3228,7 +3234,7 @@ template<class T, class S>
 RValue<T> ReinterpretCast(RValue<S> val)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<T>(Nucleus::createBitCast(val.value, T::type()));
+	return RValue<T>(Nucleus::createBitCast(val.value(), T::type()));
 }
 
 template<class T, class S>
@@ -3445,7 +3451,7 @@ public:
 		BasicBlock *bodyBB = Nucleus::createBasicBlock();
 		endBB = Nucleus::createBasicBlock();
 
-		Nucleus::createCondBr(cmp.value, bodyBB, endBB);
+		Nucleus::createCondBr(cmp.value(), bodyBB, endBB);
 		Nucleus::setInsertBlock(bodyBB);
 
 		return true;
@@ -3469,7 +3475,7 @@ public:
 	IfElseData(RValue<Bool> cmp)
 	    : iteration(0)
 	{
-		condition = cmp.value;
+		condition = cmp.value();
 
 		beginBB = Nucleus::getInsertBlock();
 		trueBB = Nucleus::createBasicBlock();
@@ -3530,13 +3536,13 @@ private:
 		Nucleus::createBr(body__);                        \
 		Nucleus::setInsertBlock(body__);
 
-#define Until(cond)                                     \
-	BasicBlock *end__ = Nucleus::createBasicBlock();    \
-	Nucleus::createCondBr((cond).value, end__, body__); \
-	Nucleus::setInsertBlock(end__);                     \
-	}                                                   \
-	do                                                  \
-	{                                                   \
+#define Until(cond)                                       \
+	BasicBlock *end__ = Nucleus::createBasicBlock();      \
+	Nucleus::createCondBr((cond).value(), end__, body__); \
+	Nucleus::setInsertBlock(end__);                       \
+	}                                                     \
+	do                                                    \
+	{                                                     \
 	} while(false)  // Require a semi-colon at the end of the Until()
 
 enum
