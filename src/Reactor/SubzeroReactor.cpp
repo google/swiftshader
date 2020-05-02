@@ -903,7 +903,7 @@ Nucleus::Nucleus()
 	}
 
 	ASSERT(Variable::unmaterializedVariables == nullptr);
-	Variable::unmaterializedVariables = new std::unordered_set<Variable *>();
+	Variable::unmaterializedVariables = new std::unordered_set<const Variable *>();
 }
 
 Nucleus::~Nucleus()

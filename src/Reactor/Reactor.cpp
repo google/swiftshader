@@ -64,11 +64,10 @@ void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> &edits, s
 }
 
 // Set of variables that do not have a stack location yet.
-thread_local std::unordered_set<Variable *> *Variable::unmaterializedVariables = nullptr;
+thread_local std::unordered_set<const Variable *> *Variable::unmaterializedVariables = nullptr;
 
-Variable::Variable(Type *type, int arraySize)
+Variable::Variable(int arraySize)
     : arraySize(arraySize)
-    , type(type)
 {
 #if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
 	materialize();

@@ -102,7 +102,6 @@ class Pointer;
 class Variable
 {
 	friend class Nucleus;
-	friend class PrintValue;
 
 	Variable() = delete;
 	Variable &operator=(const Variable &) = delete;
@@ -116,13 +115,14 @@ public:
 	Value *getBaseAddress() const;
 	Value *getElementPointer(Value *index, bool unsignedIndex) const;
 
+	virtual Type *getType() const = 0;
+	int getArraySize() const { return arraySize; }
+
 protected:
-	Variable(Type *type, int arraySize);
+	Variable(int arraySize);
 	Variable(const Variable &) = default;
 
-	~Variable();
-
-	const int arraySize;
+	virtual ~Variable();
 
 private:
 	static void materializeAll();
@@ -130,9 +130,9 @@ private:
 
 	// This has to be a raw pointer because glibc 2.17 doesn't support __cxa_thread_atexit_impl
 	// for destructing objects at exit. See crbug.com/1074222
-	static thread_local std::unordered_set<Variable *> *unmaterializedVariables;
+	static thread_local std::unordered_set<const Variable *> *unmaterializedVariables;
 
-	Type *const type;
+	const int arraySize;
 	mutable Value *rvalue = nullptr;
 	mutable Value *address = nullptr;
 };
@@ -144,6 +144,11 @@ public:
 	LValue(int arraySize = 0);
 
 	RValue<Pointer<T>> operator&();
+
+	Type *getType() const override
+	{
+		return T::type();
+	}
 
 	// self() returns the this pointer to this LValue<T> object.
 	// This function exists because operator&() is overloaded.
@@ -240,6 +245,7 @@ public:
 	RValue(typename FloatLiteral<T>::type f);
 	RValue(const Reference<T> &rhs);
 
+	// Rvalues cannot be assigned to: "(a + b) = c;"
 	RValue<T> &operator=(const RValue<T> &) = delete;
 
 	Value *value;  // FIXME: Make private
@@ -2592,7 +2598,7 @@ namespace rr {
 
 template<class T>
 LValue<T>::LValue(int arraySize)
-    : Variable(T::type(), arraySize)
+    : Variable(arraySize)
 {
 #ifdef ENABLE_RR_DEBUG_INFO
 	materialize();
@@ -2603,7 +2609,7 @@ inline void Variable::materialize() const
 {
 	if(!address)
 	{
-		address = Nucleus::allocateStackVariable(type, arraySize);
+		address = Nucleus::allocateStackVariable(getType(), arraySize);
 		RR_DEBUG_INFO_EMIT_VAR(address);
 
 		if(rvalue)
@@ -2627,14 +2633,14 @@ inline Value *Variable::loadValue() const
 		materialize();
 	}
 
-	return Nucleus::createLoad(address, type, false, 0);
+	return Nucleus::createLoad(address, getType(), false, 0);
 }
 
 inline Value *Variable::storeValue(Value *value) const
 {
 	if(address)
 	{
-		return Nucleus::createStore(value, address, type, false, 0);
+		return Nucleus::createStore(value, address, getType(), false, 0);
 	}
 
 	rvalue = value;
@@ -2651,7 +2657,7 @@ inline Value *Variable::getBaseAddress() const
 
 inline Value *Variable::getElementPointer(Value *index, bool unsignedIndex) const
 {
-	return Nucleus::createGEP(getBaseAddress(), type, index, unsignedIndex);
+	return Nucleus::createGEP(getBaseAddress(), getType(), index, unsignedIndex);
 }
 
 template<class T>
@@ -3060,7 +3066,7 @@ Array<T, S>::Array(int size)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](int index)
 {
-	assert(index < Variable::arraySize);
+	assert(index < Variable::getArraySize());
 	Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), false);
 
 	return Reference<T>(element);
@@ -3069,7 +3075,7 @@ Reference<T> Array<T, S>::operator[](int index)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](unsigned int index)
 {
-	assert(index < static_cast<unsigned int>(Variable::arraySize));
+	assert(index < static_cast<unsigned int>(Variable::getArraySize()));
 	Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), true);
 
 	return Reference<T>(element);
