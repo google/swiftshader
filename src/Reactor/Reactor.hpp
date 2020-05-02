@@ -145,6 +145,18 @@ public:
 
 	RValue<Pointer<T>> operator&();
 
+	RValue<T> load() const
+	{
+		return RValue<T>(Variable::loadValue());
+	}
+
+	RValue<T> store(RValue<T> rvalue) const
+	{
+		Variable::storeValue(rvalue.value);
+
+		return rvalue;
+	}
+
 	Type *getType() const override
 	{
 		return T::type();
