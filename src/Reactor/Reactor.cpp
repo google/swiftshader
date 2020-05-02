@@ -185,12 +185,12 @@ Bool::Bool(RValue<Bool> rhs)
 
 Bool::Bool(const Bool &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Bool::Bool(const Reference<Bool> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<Bool> Bool::operator=(RValue<Bool> rhs)
@@ -200,12 +200,12 @@ RValue<Bool> Bool::operator=(RValue<Bool> rhs)
 
 RValue<Bool> Bool::operator=(const Bool &rhs)
 {
-	return RValue<Bool>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Bool> Bool::operator=(const Reference<Bool> &rhs)
 {
-	return RValue<Bool>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Bool> operator!(RValue<Bool> val)
@@ -276,12 +276,12 @@ Byte::Byte(RValue<Byte> rhs)
 
 Byte::Byte(const Byte &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Byte::Byte(const Reference<Byte> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<Byte> Byte::operator=(RValue<Byte> rhs)
@@ -291,12 +291,12 @@ RValue<Byte> Byte::operator=(RValue<Byte> rhs)
 
 RValue<Byte> Byte::operator=(const Byte &rhs)
 {
-	return RValue<Byte>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Byte> Byte::operator=(const Reference<Byte> &rhs)
 {
-	return RValue<Byte>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs)
@@ -511,12 +511,12 @@ SByte::SByte(RValue<SByte> rhs)
 
 SByte::SByte(const SByte &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 SByte::SByte(const Reference<SByte> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<SByte> SByte::operator=(RValue<SByte> rhs)
@@ -526,12 +526,12 @@ RValue<SByte> SByte::operator=(RValue<SByte> rhs)
 
 RValue<SByte> SByte::operator=(const SByte &rhs)
 {
-	return RValue<SByte>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<SByte> SByte::operator=(const Reference<SByte> &rhs)
 {
-	return RValue<SByte>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs)
@@ -739,12 +739,12 @@ Short::Short(RValue<Short> rhs)
 
 Short::Short(const Short &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Short::Short(const Reference<Short> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<Short> Short::operator=(RValue<Short> rhs)
@@ -754,12 +754,12 @@ RValue<Short> Short::operator=(RValue<Short> rhs)
 
 RValue<Short> Short::operator=(const Short &rhs)
 {
-	return RValue<Short>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Short> Short::operator=(const Reference<Short> &rhs)
 {
-	return RValue<Short>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs)
@@ -974,12 +974,12 @@ UShort::UShort(RValue<UShort> rhs)
 
 UShort::UShort(const UShort &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UShort::UShort(const Reference<UShort> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<UShort> UShort::operator=(RValue<UShort> rhs)
@@ -989,12 +989,12 @@ RValue<UShort> UShort::operator=(RValue<UShort> rhs)
 
 RValue<UShort> UShort::operator=(const UShort &rhs)
 {
-	return RValue<UShort>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UShort> UShort::operator=(const Reference<UShort> &rhs)
 {
-	return RValue<UShort>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs)
@@ -1214,12 +1214,12 @@ Byte4::Byte4(RValue<Byte4> rhs)
 
 Byte4::Byte4(const Byte4 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Byte4::Byte4(const Reference<Byte4> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<Byte4> Byte4::operator=(RValue<Byte4> rhs)
@@ -1229,7 +1229,7 @@ RValue<Byte4> Byte4::operator=(RValue<Byte4> rhs)
 
 RValue<Byte4> Byte4::operator=(const Byte4 &rhs)
 {
-	return RValue<Byte4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
@@ -1245,12 +1245,12 @@ Byte8::Byte8(RValue<Byte8> rhs)
 
 Byte8::Byte8(const Byte8 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Byte8::Byte8(const Reference<Byte8> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<Byte8> Byte8::operator=(RValue<Byte8> rhs)
@@ -1260,12 +1260,12 @@ RValue<Byte8> Byte8::operator=(RValue<Byte8> rhs)
 
 RValue<Byte8> Byte8::operator=(const Byte8 &rhs)
 {
-	return RValue<Byte8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Byte8> Byte8::operator=(const Reference<Byte8> &rhs)
 {
-	return RValue<Byte8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Byte8> operator+(RValue<Byte8> lhs, RValue<Byte8> rhs)
@@ -1451,12 +1451,12 @@ SByte8::SByte8(RValue<SByte8> rhs)
 
 SByte8::SByte8(const SByte8 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 SByte8::SByte8(const Reference<SByte8> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<SByte8> SByte8::operator=(RValue<SByte8> rhs)
@@ -1466,12 +1466,12 @@ RValue<SByte8> SByte8::operator=(RValue<SByte8> rhs)
 
 RValue<SByte8> SByte8::operator=(const SByte8 &rhs)
 {
-	return RValue<SByte8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<SByte8> SByte8::operator=(const Reference<SByte8> &rhs)
 {
-	return RValue<SByte8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<SByte8> operator+(RValue<SByte8> lhs, RValue<SByte8> rhs)
@@ -1611,12 +1611,12 @@ Byte16::Byte16(RValue<Byte16> rhs)
 
 Byte16::Byte16(const Byte16 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Byte16::Byte16(const Reference<Byte16> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<Byte16> Byte16::operator=(RValue<Byte16> rhs)
@@ -1626,12 +1626,12 @@ RValue<Byte16> Byte16::operator=(RValue<Byte16> rhs)
 
 RValue<Byte16> Byte16::operator=(const Byte16 &rhs)
 {
-	return RValue<Byte16>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Byte16> Byte16::operator=(const Reference<Byte16> &rhs)
 {
-	return RValue<Byte16>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Byte16> Swizzle(RValue<Byte16> x, uint64_t select)
@@ -1701,12 +1701,12 @@ Short4::Short4(RValue<Short4> rhs)
 
 Short4::Short4(const Short4 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Short4::Short4(const Reference<Short4> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Short4::Short4(RValue<UShort4> rhs)
@@ -1731,12 +1731,12 @@ RValue<Short4> Short4::operator=(RValue<Short4> rhs)
 
 RValue<Short4> Short4::operator=(const Short4 &rhs)
 {
-	return RValue<Short4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Short4> Short4::operator=(const Reference<Short4> &rhs)
 {
-	return RValue<Short4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Short4> Short4::operator=(RValue<UShort4> rhs)
@@ -1931,12 +1931,12 @@ UShort4::UShort4(RValue<UShort4> rhs)
 
 UShort4::UShort4(const UShort4 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UShort4::UShort4(const Reference<UShort4> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UShort4::UShort4(RValue<Short4> rhs)
@@ -1966,7 +1966,7 @@ RValue<UShort4> UShort4::operator=(const UShort4 &rhs)
 
 RValue<UShort4> UShort4::operator=(const Reference<UShort4> &rhs)
 {
-	return RValue<UShort4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UShort4> UShort4::operator=(RValue<Short4> rhs)
@@ -2048,7 +2048,7 @@ Short8::Short8(RValue<Short8> rhs)
 
 Short8::Short8(const Reference<Short8> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Short8::Short8(RValue<Short4> lo, RValue<Short4> hi)
@@ -2066,12 +2066,12 @@ RValue<Short8> Short8::operator=(RValue<Short8> rhs)
 
 RValue<Short8> Short8::operator=(const Short8 &rhs)
 {
-	return RValue<Short8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Short8> Short8::operator=(const Reference<Short8> &rhs)
 {
-	return RValue<Short8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs)
@@ -2110,7 +2110,7 @@ UShort8::UShort8(RValue<UShort8> rhs)
 
 UShort8::UShort8(const Reference<UShort8> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UShort8::UShort8(RValue<UShort4> lo, RValue<UShort4> hi)
@@ -2128,12 +2128,12 @@ RValue<UShort8> UShort8::operator=(RValue<UShort8> rhs)
 
 RValue<UShort8> UShort8::operator=(const UShort8 &rhs)
 {
-	return RValue<UShort8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UShort8> UShort8::operator=(const Reference<UShort8> &rhs)
 {
-	return RValue<UShort8>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UShort8> operator&(RValue<UShort8> lhs, RValue<UShort8> rhs)
@@ -2246,12 +2246,12 @@ Int::Int(RValue<UInt> rhs)
 
 Int::Int(const Int &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Int::Int(const Reference<Int> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Int::Int(const UInt &rhs)
@@ -2283,12 +2283,12 @@ RValue<Int> Int::operator=(RValue<UInt> rhs)
 
 RValue<Int> Int::operator=(const Int &rhs)
 {
-	return RValue<Int>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Int> Int::operator=(const Reference<Int> &rhs)
 {
-	return RValue<Int>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Int> Int::operator=(const UInt &rhs)
@@ -2492,12 +2492,12 @@ RValue<Long> Long::operator=(RValue<Long> rhs)
 
 RValue<Long> Long::operator=(const Long &rhs)
 {
-	return RValue<Long>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Long> Long::operator=(const Reference<Long> &rhs)
 {
-	return RValue<Long>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Long> operator+(RValue<Long> lhs, RValue<Long> rhs)
@@ -2611,12 +2611,12 @@ UInt::UInt(RValue<Int> rhs)
 
 UInt::UInt(const UInt &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UInt::UInt(const Reference<UInt> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UInt::UInt(const Int &rhs)
@@ -2648,12 +2648,12 @@ RValue<UInt> UInt::operator=(RValue<Int> rhs)
 
 RValue<UInt> UInt::operator=(const UInt &rhs)
 {
-	return RValue<UInt>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UInt> UInt::operator=(const Reference<UInt> &rhs)
 {
-	return RValue<UInt>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UInt> UInt::operator=(const Int &rhs)
@@ -2844,12 +2844,12 @@ Int2::Int2(RValue<Int2> rhs)
 
 Int2::Int2(const Int2 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Int2::Int2(const Reference<Int2> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Int2::Int2(RValue<Int> lo, RValue<Int> hi)
@@ -2867,12 +2867,12 @@ RValue<Int2> Int2::operator=(RValue<Int2> rhs)
 
 RValue<Int2> Int2::operator=(const Int2 &rhs)
 {
-	return RValue<Int2>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Int2> Int2::operator=(const Reference<Int2> &rhs)
 {
-	return RValue<Int2>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs)
@@ -3018,12 +3018,12 @@ UInt2::UInt2(RValue<UInt2> rhs)
 
 UInt2::UInt2(const UInt2 &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UInt2::UInt2(const Reference<UInt2> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 RValue<UInt2> UInt2::operator=(RValue<UInt2> rhs)
@@ -3033,12 +3033,12 @@ RValue<UInt2> UInt2::operator=(RValue<UInt2> rhs)
 
 RValue<UInt2> UInt2::operator=(const UInt2 &rhs)
 {
-	return RValue<UInt2>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UInt2> UInt2::operator=(const Reference<UInt2> &rhs)
 {
-	return RValue<UInt2>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UInt2> operator+(RValue<UInt2> lhs, RValue<UInt2> rhs)
@@ -3208,13 +3208,13 @@ Int4::Int4(RValue<Int4> rhs)
 Int4::Int4(const Int4 &rhs)
     : XYZW(this)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Int4::Int4(const Reference<Int4> &rhs)
     : XYZW(this)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Int4::Int4(RValue<UInt4> rhs)
@@ -3263,12 +3263,12 @@ RValue<Int4> Int4::operator=(RValue<Int4> rhs)
 
 RValue<Int4> Int4::operator=(const Int4 &rhs)
 {
-	return RValue<Int4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Int4> Int4::operator=(const Reference<Int4> &rhs)
 {
-	return RValue<Int4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int4> rhs)
@@ -3450,13 +3450,13 @@ UInt4::UInt4(RValue<UInt4> rhs)
 UInt4::UInt4(const UInt4 &rhs)
     : XYZW(this)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UInt4::UInt4(const Reference<UInt4> &rhs)
     : XYZW(this)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 UInt4::UInt4(RValue<Int4> rhs)
@@ -3505,12 +3505,12 @@ RValue<UInt4> UInt4::operator=(RValue<UInt4> rhs)
 
 RValue<UInt4> UInt4::operator=(const UInt4 &rhs)
 {
-	return RValue<UInt4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UInt4> UInt4::operator=(const Reference<UInt4> &rhs)
 {
-	return RValue<UInt4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<UInt4> operator+(RValue<UInt4> lhs, RValue<UInt4> rhs)
@@ -3766,12 +3766,12 @@ Float::Float(RValue<Float> rhs)
 
 Float::Float(const Float &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Float::Float(const Reference<Float> &rhs)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Float::Float(Argument<Float> argument)
@@ -3786,12 +3786,12 @@ RValue<Float> Float::operator=(RValue<Float> rhs)
 
 RValue<Float> Float::operator=(const Float &rhs)
 {
-	return RValue<Float>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Float> Float::operator=(const Reference<Float> &rhs)
 {
-	return RValue<Float>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs)
@@ -4001,13 +4001,13 @@ Float4::Float4(RValue<Float4> rhs)
 Float4::Float4(const Float4 &rhs)
     : XYZW(this)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Float4::Float4(const Reference<Float4> &rhs)
     : XYZW(this)
 {
-	storeValue(rhs.loadValue());
+	store(rhs.load());
 }
 
 Float4::Float4(const Float &rhs)
@@ -4034,12 +4034,12 @@ RValue<Float4> Float4::operator=(RValue<Float4> rhs)
 
 RValue<Float4> Float4::operator=(const Float4 &rhs)
 {
-	return RValue<Float4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Float4> Float4::operator=(const Reference<Float4> &rhs)
 {
-	return RValue<Float4>(storeValue(rhs.loadValue()));
+	return store(rhs.load());
 }
 
 RValue<Float4> Float4::operator=(RValue<Float> rhs)

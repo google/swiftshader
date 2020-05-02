@@ -183,6 +183,7 @@ public:
 	RValue<Pointer<T>> operator&() const { return RValue<Pointer<T>>(address); }
 
 	Value *loadValue() const;
+	RValue<T> load() const;
 	int getAlignment() const;
 
 private:
@@ -2712,6 +2713,12 @@ template<class T>
 Value *Reference<T>::loadValue() const
 {
 	return Nucleus::createLoad(address, T::type(), false, alignment);
+}
+
+template<class T>
+RValue<T> Reference<T>::load() const
+{
+	return RValue<T>(loadValue());
 }
 
 template<class T>
