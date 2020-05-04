@@ -10,10 +10,6 @@ global:
 	vk_icdNegotiateLoaderICDInterfaceVersion;
 	vk_icdInitializeConnectToServiceCallback;
 
-	# Type-strings and type-infos required by sanitizers
-	_ZTS*;
-	_ZTI*;
-
 local:
 	*;
 };
