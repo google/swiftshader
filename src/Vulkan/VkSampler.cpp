@@ -16,7 +16,7 @@
 
 namespace vk {
 
-SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion)
+SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion, VkSamplerFilteringPrecisionModeGOOGLE filteringPrecision)
     : Memset(this, 0)
     , magFilter(pCreateInfo->magFilter)
     , minFilter(pCreateInfo->minFilter)
@@ -33,6 +33,7 @@ SamplerState::SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::Sam
     , maxLod(ClampLod(pCreateInfo->maxLod))
     , borderColor(pCreateInfo->borderColor)
     , unnormalizedCoordinates(pCreateInfo->unnormalizedCoordinates)
+    , filteringPrecision(filteringPrecision)
 {
 	if(ycbcrConversion)
 	{

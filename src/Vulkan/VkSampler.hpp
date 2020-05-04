@@ -26,7 +26,7 @@ namespace vk {
 
 struct SamplerState : sw::Memset<SamplerState>
 {
-	SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion);
+	SamplerState(const VkSamplerCreateInfo *pCreateInfo, const vk::SamplerYcbcrConversion *ycbcrConversion, VkSamplerFilteringPrecisionModeGOOGLE filteringPrecision);
 
 	// Prevents accessing mipmap levels out of range.
 	static float ClampLod(float lod)
@@ -51,6 +51,7 @@ struct SamplerState : sw::Memset<SamplerState>
 	const VkBool32 unnormalizedCoordinates = VK_FALSE;
 
 	VkSamplerYcbcrModelConversion ycbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
+	const VkSamplerFilteringPrecisionModeGOOGLE filteringPrecision = VK_SAMPLER_FILTERING_PRECISION_MODE_LOW_GOOGLE;
 	bool studioSwing = false;    // Narrow range
 	bool swappedChroma = false;  // Cb/Cr components in reverse order
 };

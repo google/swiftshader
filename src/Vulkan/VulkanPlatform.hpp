@@ -50,6 +50,7 @@ public:
 	template class VkNonDispatchableHandle<object##Ptr>;
 
 #include <vulkan/vk_ext_provoking_vertex.h>
+#include <vulkan/vk_google_filtering_precision.h>
 #include <vulkan/vulkan.h>
 
 #ifdef Bool
