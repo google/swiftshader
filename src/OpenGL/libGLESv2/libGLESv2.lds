@@ -298,10 +298,6 @@ global:
 	# Table of function pointers to disambiguate between libraries
 	libGLESv2_swiftshader;
 
-	# Type-strings and type-infos required by sanitizers
-	_ZTS*;
-	_ZTI*;
-
 local:
 	*;
 };
