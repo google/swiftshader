@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aeb2ebf_6e983386",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-05-04T19:04:08Z",
+      "side": 1,
+      "message": "Any specific examples that can be shared publicly? (Just so we can test it when refactoring)",
+      "range": {
+        "startLine": 9,
+        "startChar": 6,
+        "endLine": 9,
+        "endChar": 10
+      },
+      "revId": "4e882a6b4ca1fe70774a4b87bfbed3a7407a57f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "218b4fc8_51e99f99",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-05-04T19:04:08Z",
+      "side": 1,
+      "message": "Looks like this could be moved into a common function shared with storeValue(). Anyway, that can be a follow-up refactoring.",
+      "range": {
+        "startLine": 470,
+        "startChar": 2,
+        "endLine": 475,
+        "endChar": 74
+      },
+      "revId": "4e882a6b4ca1fe70774a4b87bfbed3a7407a57f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
