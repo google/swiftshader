@@ -723,7 +723,9 @@ if(SWIFTSHADER_BUILD_VULKAN)
     add_subdirectory(src/Device) # Add vk_device target
     add_subdirectory(src/Vulkan) # Add vk_swiftshader target
 
-    if(SWIFTSHADER_EMIT_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND # turbo-cov is only useful for clang coverage info
+       SWIFTSHADER_LLVM_VERSION EQUAL "10.0" AND # turbo-cov does not build with earlier llvm versions
+       SWIFTSHADER_EMIT_COVERAGE)
         add_subdirectory(${TESTS_DIR}/regres/cov/turbo-cov)
     endif()
 
