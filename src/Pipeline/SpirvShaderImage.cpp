@@ -1017,7 +1017,10 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	}
 
 	// SPIR-V 1.4: "If the coordinates are outside the image, the memory location that is accessed is undefined."
-	auto robustness = OutOfBoundsBehavior::UndefinedValue;
+
+	// Emulating the glsl function imageStore() requires that this function is noop when used with out of bounds
+	// coordinates, so we have to use OutOfBoundsBehavior::Nullify in that case.
+	auto robustness = OutOfBoundsBehavior::Nullify;
 
 	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
 	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, 0, false, robustness);
