@@ -356,6 +356,7 @@ if(MSVC)
 
     # Treat specific warnings as errors
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+        "/we4265" # class has virtual functions, but its non-trivial destructor is not virtual; instances of this class may not be destructed correctly
         "/we4018" # 'expression' : signed/unsigned mismatch
         "/we4471" # 'enumeration': a forward declaration of an unscoped enumeration must have an underlying type (int assumed)
         "/we4838" # conversion from 'type_1' to 'type_2' requires a narrowing conversion
