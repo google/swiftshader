@@ -429,9 +429,6 @@ else()
         "-fno-operator-names"
     )
 
-    # LLVM headers requires these flags to be set
-    set_cpp_flag("-D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS")
-
     if(ARCH STREQUAL "x86")
         set_cpp_flag("-m32")
         set_cpp_flag("-msse2")

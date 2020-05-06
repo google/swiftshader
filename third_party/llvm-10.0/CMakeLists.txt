@@ -1250,7 +1250,7 @@ if(SWIFTSHADER_EMIT_COVERAGE)
             ${LLVM_INCLUDE_DIR}
     )
 
-    target_compile_options(llvm-with-cov
+    target_compile_definitions(llvm-with-cov
         PUBLIC
             "__STDC_CONSTANT_MACROS"
             "__STDC_LIMIT_MACROS"
