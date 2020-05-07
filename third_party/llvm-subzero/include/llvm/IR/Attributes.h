@@ -16,12 +16,11 @@
 #ifndef LLVM_IR_ATTRIBUTES_H
 #define LLVM_IR_ATTRIBUTES_H
 
+#include "llvm-c/Types.h"
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/PointerLikeTypeTraits.h"
-#include "llvm-c/Types.h"
 #include <bitset>
 #include <cassert>
 #include <map>
@@ -166,10 +165,6 @@ public:
 
   /// \brief Less-than operator. Useful for sorting the attributes list.
   bool operator<(Attribute A) const;
-
-  void Profile(FoldingSetNodeID &ID) const {
-    ID.AddPointer(pImpl);
-  }
 
   /// \brief Return a raw pointer that uniquely identifies this attribute.
   void *getRawPointer() const {
