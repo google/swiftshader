@@ -1213,7 +1213,7 @@ private:
 	void EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 
 	void GetImageDimensions(EmitState const *state, Type const &resultTy, Object::ID imageId, Object::ID lodId, Intermediate &dst) const;
-	SIMD::Pointer GetTexelAddress(EmitState const *state, SIMD::Pointer base, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const;
+	SIMD::Pointer GetTexelAddress(EmitState const *state, Pointer<Byte> imageBase, Int imageSizeInBytes, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const;
 	uint32_t GetConstScalarInt(Object::ID id) const;
 	void EvalSpecConstantOp(InsnIterator insn);
 	void EvalSpecConstantUnaryOp(InsnIterator insn);

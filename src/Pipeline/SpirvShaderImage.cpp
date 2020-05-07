@@ -476,7 +476,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageQuerySamples(InsnIterator insn, Em
 	return EmitResult::Continue;
 }
 
-SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer basePtr, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const
+SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte> imageBase, Int imageSizeInBytes, Operand const &coordinate, Type const &imageType, Pointer<Byte> descriptor, int texelSize, Object::ID sampleId, bool useStencilAspect, OutOfBoundsBehavior outOfBoundsBehavior) const
 {
 	auto routine = state->routine;
 	bool isArrayed = imageType.definition.word(5) != 0;
@@ -564,14 +564,13 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, SIMD::Pointer
 
 	if(nullifyOutOfBounds)
 	{
-		// Because pointers can be 32b, using 0xFFFFFFFF would wrap around to about the same point,
-		// so use a smaller number
-		static constexpr int FORCE_OOB = 0x3FFFFFFF;  // ~1 Gb, should be larger than any allocated image
-		// Push pointers out of bounds if they are oob in any dimension
-		ptrOffset += (oobMask & SIMD::Int(FORCE_OOB));
+		constexpr int32_t OOB_OFFSET = 0x7FFFFFFF - 16;  // SIMD pointer offsets are signed 32-bit, so this is the largest offset (for 16-byte texels).
+		static_assert(OOB_OFFSET >= MAX_MEMORY_ALLOCATION_SIZE, "the largest offset must be guaranteed to be out-of-bounds");
+
+		ptrOffset = (ptrOffset & ~oobMask) | (oobMask & SIMD::Int(OOB_OFFSET));  // oob ? OOB_OFFSET : ptrOffset  // TODO: IfThenElse()
 	}
 
-	return basePtr + ptrOffset;
+	return SIMD::Pointer(imageBase, imageSizeInBytes, ptrOffset);
 }
 
 SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState *state) const
@@ -639,8 +638,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
 	auto texelSize = vk::Format(vkFormat).bytes();
-	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, sampleId, useStencilAspect, robustness);
+	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, texelSize, sampleId, useStencilAspect, robustness);
 
 	SIMD::Int packed[4];
 	// Round up texel size: for formats smaller than 32 bits per texel, we will emit a bunch
@@ -1022,8 +1020,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	// coordinates, so we have to use OutOfBoundsBehavior::Nullify in that case.
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
-	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-	auto texelPtr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, texelSize, 0, false, robustness);
+	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, texelSize, 0, false, robustness);
 
 	for(auto i = 0u; i < numPackedElements; i++)
 	{
@@ -1054,8 +1051,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, Em
 	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 	auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
-	auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-	auto ptr = GetTexelAddress(state, basePtr, coordinate, imageType, binding, sizeof(uint32_t), 0, false, OutOfBoundsBehavior::UndefinedValue);
+	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, sizeof(uint32_t), 0, false, OutOfBoundsBehavior::UndefinedValue);
 
 	state->createPointer(resultId, ptr);
 
