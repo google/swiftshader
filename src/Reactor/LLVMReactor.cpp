@@ -537,12 +537,12 @@ llvm::Type *T(Type *t)
 	// Use 128-bit vectors to implement logically shorter ones.
 	switch(asInternalType(t))
 	{
-		case Type_v2i32: return T(Int4::getType());
-		case Type_v4i16: return T(Short8::getType());
-		case Type_v2i16: return T(Short8::getType());
-		case Type_v8i8: return T(Byte16::getType());
-		case Type_v4i8: return T(Byte16::getType());
-		case Type_v2f32: return T(Float4::getType());
+		case Type_v2i32: return T(Int4::type());
+		case Type_v4i16: return T(Short8::type());
+		case Type_v2i16: return T(Short8::type());
+		case Type_v8i8: return T(Byte16::type());
+		case Type_v4i8: return T(Byte16::type());
+		case Type_v2f32: return T(Float4::type());
 		case Type_LLVM: return reinterpret_cast<llvm::Type *>(t);
 		default:
 			UNREACHABLE("asInternalType(t): %d", int(asInternalType(t)));
@@ -808,7 +808,7 @@ void Nucleus::createRetVoid()
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 
-	ASSERT_MSG(jit->function->getReturnType() == T(Void::getType()), "Return type mismatch");
+	ASSERT_MSG(jit->function->getReturnType() == T(Void::type()), "Return type mismatch");
 
 	// Code generated after this point is unreachable, so any variables
 	// being read can safely return an undefined value. We have to avoid
@@ -989,17 +989,17 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 		case Type_v2f32:
 			return createBitCast(
 			    createInsertElement(
-			        V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2))),
-			        createLoad(createBitCast(ptr, Pointer<Long>::getType()), Long::getType(), isVolatile, alignment, atomic, memoryOrder),
+			        V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2))),
+			        createLoad(createBitCast(ptr, Pointer<Long>::type()), Long::type(), isVolatile, alignment, atomic, memoryOrder),
 			        0),
 			    type);
 		case Type_v2i16:
 		case Type_v4i8:
 			if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
 			{
-				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2)));
-				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::getType()), Int::getType(), isVolatile, alignment, atomic, memoryOrder);
-				i = createZExt(i, Long::getType());
+				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2)));
+				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::type()), Int::type(), isVolatile, alignment, atomic, memoryOrder);
+				i = createZExt(i, Long::type());
 				Value *v = createInsertElement(u, i, 0);
 				return createBitCast(v, type);
 			}
@@ -1073,18 +1073,18 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 		case Type_v2f32:
 			createStore(
 			    createExtractElement(
-			        createBitCast(value, T(llvm::VectorType::get(T(Long::getType()), 2))), Long::getType(), 0),
-			    createBitCast(ptr, Pointer<Long>::getType()),
-			    Long::getType(), isVolatile, alignment, atomic, memoryOrder);
+			        createBitCast(value, T(llvm::VectorType::get(T(Long::type()), 2))), Long::type(), 0),
+			    createBitCast(ptr, Pointer<Long>::type()),
+			    Long::type(), isVolatile, alignment, atomic, memoryOrder);
 			return value;
 		case Type_v2i16:
 		case Type_v4i8:
 			if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
 			{
 				createStore(
-				    createExtractElement(createBitCast(value, Int4::getType()), Int::getType(), 0),
-				    createBitCast(ptr, Pointer<Int>::getType()),
-				    Int::getType(), isVolatile, alignment, atomic, memoryOrder);
+				    createExtractElement(createBitCast(value, Int4::type()), Int::type(), 0),
+				    createBitCast(ptr, Pointer<Int>::type()),
+				    Int::type(), isVolatile, alignment, atomic, memoryOrder);
 				return value;
 			}
 			// Fallthrough to non-emulated case.
@@ -1231,12 +1231,12 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 
 RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return As<Float4>(V(createGather(V(base.value), T(Float::getType()), V(offsets.value), V(mask.value), alignment, zeroMaskedLanes)));
+	return As<Float4>(V(createGather(V(base.value), T(Float::type()), V(offsets.value), V(mask.value), alignment, zeroMaskedLanes)));
 }
 
 RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return As<Int4>(V(createGather(V(base.value), T(Float::getType()), V(offsets.value), V(mask.value), alignment, zeroMaskedLanes)));
+	return As<Int4>(V(createGather(V(base.value), T(Float::type()), V(offsets.value), V(mask.value), alignment, zeroMaskedLanes)));
 }
 
 void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
@@ -1274,7 +1274,7 @@ Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedInd
 		// x86 supports automatic zero-extending of 32-bit registers to
 		// 64-bit. Thus when indexing into an array using a uint32 is
 		// actually faster than an int32.
-		index = unsignedIndex ? createZExt(index, Long::getType()) : createSExt(index, Long::getType());
+		index = unsignedIndex ? createZExt(index, Long::type()) : createSExt(index, Long::type());
 	}
 
 	// For non-emulated types we can rely on LLVM's GEP to calculate the
@@ -1291,7 +1291,7 @@ Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedInd
 	// Cast to a byte pointer, apply the byte offset, and cast back to the
 	// original pointer type.
 	return createBitCast(
-	    V(jit->builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::getType()), 0)))), V(index))),
+	    V(jit->builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::type()), 0)))), V(index))),
 	    T(llvm::PointerType::get(T(type), 0)));
 }
 
@@ -1736,7 +1736,7 @@ Value *Nucleus::createConstantShort(unsigned short i)
 Value *Nucleus::createConstantFloat(float x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantFP::get(T(Float::getType()), x));
+	return V(llvm::ConstantFP::get(T(Float::type()), x));
 }
 
 Value *Nucleus::createNullPointer(Type *Ty)
@@ -1786,42 +1786,42 @@ Value *Nucleus::createConstantString(const char *v)
 	return V(ptr);
 }
 
-Type *Void::getType()
+Type *Void::type()
 {
 	return T(llvm::Type::getVoidTy(jit->context));
 }
 
-Type *Bool::getType()
+Type *Bool::type()
 {
 	return T(llvm::Type::getInt1Ty(jit->context));
 }
 
-Type *Byte::getType()
+Type *Byte::type()
 {
 	return T(llvm::Type::getInt8Ty(jit->context));
 }
 
-Type *SByte::getType()
+Type *SByte::type()
 {
 	return T(llvm::Type::getInt8Ty(jit->context));
 }
 
-Type *Short::getType()
+Type *Short::type()
 {
 	return T(llvm::Type::getInt16Ty(jit->context));
 }
 
-Type *UShort::getType()
+Type *UShort::type()
 {
 	return T(llvm::Type::getInt16Ty(jit->context));
 }
 
-Type *Byte4::getType()
+Type *Byte4::type()
 {
 	return T(Type_v4i8);
 }
 
-Type *SByte4::getType()
+Type *SByte4::type()
 {
 	return T(Type_v4i8);
 }
@@ -1852,7 +1852,7 @@ RValue<Int> SignMask(RValue<Byte8> x)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pmovmskb(x);
 #else
-	return As<Int>(V(lowerSignMask(V(x.value), T(Int::getType()))));
+	return As<Int>(V(lowerSignMask(V(x.value), T(Int::type()))));
 #endif
 }
 
@@ -1861,7 +1861,7 @@ RValue<Int> SignMask(RValue<Byte8> x)
 //#if defined(__i386__) || defined(__x86_64__)
 //		return x86::pcmpgtb(x, y);   // FIXME: Signedness
 //#else
-//		return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
+//		return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::type()))));
 //#endif
 //	}
 
@@ -1871,11 +1871,11 @@ RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pcmpeqb(x, y);
 #else
-	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
+	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::type()))));
 #endif
 }
 
-Type *Byte8::getType()
+Type *Byte8::type()
 {
 	return T(Type_v8i8);
 }
@@ -1906,7 +1906,7 @@ RValue<Int> SignMask(RValue<SByte8> x)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pmovmskb(As<Byte8>(x));
 #else
-	return As<Int>(V(lowerSignMask(V(x.value), T(Int::getType()))));
+	return As<Int>(V(lowerSignMask(V(x.value), T(Int::type()))));
 #endif
 }
 
@@ -1916,7 +1916,7 @@ RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pcmpgtb(x, y);
 #else
-	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
+	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::type()))));
 #endif
 }
 
@@ -1926,31 +1926,31 @@ RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pcmpeqb(As<Byte8>(x), As<Byte8>(y));
 #else
-	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
+	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::type()))));
 #endif
 }
 
-Type *SByte8::getType()
+Type *SByte8::type()
 {
 	return T(Type_v8i8);
 }
 
-Type *Byte16::getType()
+Type *Byte16::type()
 {
-	return T(llvm::VectorType::get(T(Byte::getType()), 16));
+	return T(llvm::VectorType::get(T(Byte::type()), 16));
 }
 
-Type *SByte16::getType()
+Type *SByte16::type()
 {
-	return T(llvm::VectorType::get(T(SByte::getType()), 16));
+	return T(llvm::VectorType::get(T(SByte::type()), 16));
 }
 
-Type *Short2::getType()
+Type *Short2::type()
 {
 	return T(Type_v2i16);
 }
 
-Type *UShort2::getType()
+Type *UShort2::type()
 {
 	return T(Type_v2i16);
 }
@@ -1959,7 +1959,7 @@ Short4::Short4(RValue<Int4> cast)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	int select[8] = { 0, 2, 4, 6, 0, 2, 4, 6 };
-	Value *short8 = Nucleus::createBitCast(cast.value, Short8::getType());
+	Value *short8 = Nucleus::createBitCast(cast.value, Short8::type());
 
 	Value *packed = Nucleus::createShuffleVector(short8, short8, select);
 	Value *short4 = As<Short4>(Int2(As<Int4>(packed))).value;
@@ -2095,7 +2095,7 @@ RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pcmpgtw(x, y);
 #else
-	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::getType()))));
+	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::type()))));
 #endif
 }
 
@@ -2105,11 +2105,11 @@ RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::pcmpeqw(x, y);
 #else
-	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::getType()))));
+	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::type()))));
 #endif
 }
 
-Type *Short4::getType()
+Type *Short4::type()
 {
 	return T(Type_v4i16);
 }
@@ -2213,7 +2213,7 @@ RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
 #endif
 }
 
-Type *UShort4::getType()
+Type *UShort4::type()
 {
 	return T(Type_v4i16);
 }
@@ -2258,9 +2258,9 @@ RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 #endif
 }
 
-Type *Short8::getType()
+Type *Short8::type()
 {
-	return T(llvm::VectorType::get(T(Short::getType()), 8));
+	return T(llvm::VectorType::get(T(Short::type()), 8));
 }
 
 RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
@@ -2293,9 +2293,9 @@ RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 #endif
 }
 
-Type *UShort8::getType()
+Type *UShort8::type()
 {
-	return T(llvm::VectorType::get(T(UShort::getType()), 8));
+	return T(llvm::VectorType::get(T(UShort::type()), 8));
 }
 
 RValue<Int> operator++(Int &val, int)  // Post-increment
@@ -2344,16 +2344,16 @@ RValue<Int> RoundInt(RValue<Float> cast)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::cvtss2si(cast);
 #else
-	return RValue<Int>(V(lowerRoundInt(V(cast.value), T(Int::getType()))));
+	return RValue<Int>(V(lowerRoundInt(V(cast.value), T(Int::type()))));
 #endif
 }
 
-Type *Int::getType()
+Type *Int::type()
 {
 	return T(llvm::Type::getInt32Ty(jit->context));
 }
 
-Type *Long::getType()
+Type *Long::type()
 {
 	return T(llvm::Type::getInt64Ty(jit->context));
 }
@@ -2361,7 +2361,7 @@ Type *Long::getType()
 UInt::UInt(RValue<Float> cast)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *integer = Nucleus::createFPToUI(cast.value, UInt::getType());
+	Value *integer = Nucleus::createFPToUI(cast.value, UInt::type());
 	storeValue(integer);
 }
 
@@ -2414,15 +2414,15 @@ const UInt &operator--(UInt &val)  // Pre-decrement
 //#endif
 //	}
 
-Type *UInt::getType()
+Type *UInt::type()
 {
 	return T(llvm::Type::getInt32Ty(jit->context));
 }
 
 //	Int2::Int2(RValue<Int> cast)
 //	{
-//		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
-//		Value *vector = Nucleus::createBitCast(extend, Int2::getType());
+//		Value *extend = Nucleus::createZExt(cast.value, Long::type());
+//		Value *vector = Nucleus::createBitCast(extend, Int2::type());
 //
 //		int shuffle[2] = {0, 0};
 //		Value *replicate = Nucleus::createShuffleVector(vector, vector, shuffle);
@@ -2454,7 +2454,7 @@ RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 #endif
 }
 
-Type *Int2::getType()
+Type *Int2::type()
 {
 	return T(Type_v2i32);
 }
@@ -2483,7 +2483,7 @@ RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 #endif
 }
 
-Type *UInt2::getType()
+Type *UInt2::type()
 {
 	return T(Type_v2i32);
 }
@@ -2501,12 +2501,12 @@ Int4::Int4(RValue<Byte4> cast)
 #endif
 	{
 		int swizzle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
-		Value *a = Nucleus::createBitCast(cast.value, Byte16::getType());
-		Value *b = Nucleus::createShuffleVector(a, Nucleus::createNullValue(Byte16::getType()), swizzle);
+		Value *a = Nucleus::createBitCast(cast.value, Byte16::type());
+		Value *b = Nucleus::createShuffleVector(a, Nucleus::createNullValue(Byte16::type()), swizzle);
 
 		int swizzle2[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
-		Value *c = Nucleus::createBitCast(b, Short8::getType());
-		Value *d = Nucleus::createShuffleVector(c, Nucleus::createNullValue(Short8::getType()), swizzle2);
+		Value *c = Nucleus::createBitCast(b, Short8::type());
+		Value *d = Nucleus::createShuffleVector(c, Nucleus::createNullValue(Short8::type()), swizzle2);
 
 		*this = As<Int4>(d);
 	}
@@ -2525,11 +2525,11 @@ Int4::Int4(RValue<SByte4> cast)
 #endif
 	{
 		int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
-		Value *a = Nucleus::createBitCast(cast.value, Byte16::getType());
+		Value *a = Nucleus::createBitCast(cast.value, Byte16::type());
 		Value *b = Nucleus::createShuffleVector(a, a, swizzle);
 
 		int swizzle2[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
-		Value *c = Nucleus::createBitCast(b, Short8::getType());
+		Value *c = Nucleus::createBitCast(b, Short8::type());
 		Value *d = Nucleus::createShuffleVector(c, c, swizzle2);
 
 		*this = As<Int4>(d) >> 24;
@@ -2608,37 +2608,37 @@ RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLT(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLT(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGT(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGT(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y)
@@ -2679,7 +2679,7 @@ RValue<Int4> RoundInt(RValue<Float4> cast)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::cvtps2dq(cast);
 #else
-	return As<Int4>(V(lowerRoundInt(V(cast.value), T(Int4::getType()))));
+	return As<Int4>(V(lowerRoundInt(V(cast.value), T(Int4::type()))));
 #endif
 }
 
@@ -2723,20 +2723,20 @@ RValue<Int> SignMask(RValue<Int4> x)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::movmskps(As<Float4>(x));
 #else
-	return As<Int>(V(lowerSignMask(V(x.value), T(Int::getType()))));
+	return As<Int>(V(lowerSignMask(V(x.value), T(Int::type()))));
 #endif
 }
 
-Type *Int4::getType()
+Type *Int4::type()
 {
-	return T(llvm::VectorType::get(T(Int::getType()), 4));
+	return T(llvm::VectorType::get(T(Int::type()), 4));
 }
 
 UInt4::UInt4(RValue<Float4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *xyzw = Nucleus::createFPToUI(cast.value, UInt4::getType());
+	Value *xyzw = Nucleus::createFPToUI(cast.value, UInt4::type());
 	storeValue(xyzw);
 }
 
@@ -2776,37 +2776,37 @@ RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 RValue<UInt4> CmpEQ(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::type()));
 }
 
 RValue<UInt4> CmpLT(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULT(x.value, y.value), Int4::getType()));
+	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULT(x.value, y.value), Int4::type()));
 }
 
 RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULE(x.value, y.value), Int4::getType()));
+	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULE(x.value, y.value), Int4::type()));
 }
 
 RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::getType()));
+	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::type()));
 }
 
 RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGE(x.value, y.value), Int4::getType()));
+	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGE(x.value, y.value), Int4::type()));
 }
 
 RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGT(x.value, y.value), Int4::getType()));
+	return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGT(x.value, y.value), Int4::type()));
 }
 
 RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y)
@@ -2841,12 +2841,12 @@ RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y)
 	}
 }
 
-Type *UInt4::getType()
+Type *UInt4::type()
 {
-	return T(llvm::VectorType::get(T(UInt::getType()), 4));
+	return T(llvm::VectorType::get(T(UInt::type()), 4));
 }
 
-Type *Half::getType()
+Type *Half::type()
 {
 	return T(llvm::Type::getInt16Ty(jit->context));
 }
@@ -2972,25 +2972,25 @@ RValue<Float> Ceil(RValue<Float> x)
 	}
 }
 
-Type *Float::getType()
+Type *Float::type()
 {
 	return T(llvm::Type::getFloatTy(jit->context));
 }
 
-Type *Float2::getType()
+Type *Float2::type()
 {
 	return T(Type_v2f32);
 }
 
 RValue<Float> Exp2(RValue<Float> v)
 {
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp2, { T(Float::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp2, { T(Float::type()) });
 	return RValue<Float>(V(jit->builder->CreateCall(func, V(v.value))));
 }
 
 RValue<Float> Log2(RValue<Float> v)
 {
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log2, { T(Float::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log2, { T(Float::type()) });
 	return RValue<Float>(V(jit->builder->CreateCall(func, V(v.value))));
 }
 
@@ -3069,7 +3069,7 @@ RValue<Int> SignMask(RValue<Float4> x)
 #if defined(__i386__) || defined(__x86_64__)
 	return x86::movmskps(x);
 #else
-	return As<Int>(V(lowerFPSignMask(V(x.value), T(Int::getType()))));
+	return As<Int>(V(lowerFPSignMask(V(x.value), T(Int::type()))));
 #endif
 }
 
@@ -3077,78 +3077,78 @@ RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	//	return As<Int4>(x86::cmpeqps(x, y));
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOEQ(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOEQ(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpLT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	//	return As<Int4>(x86::cmpltps(x, y));
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOLT(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOLT(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	//	return As<Int4>(x86::cmpleps(x, y));
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOLE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOLE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	//	return As<Int4>(x86::cmpneqps(x, y));
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpONE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpONE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	//	return As<Int4>(x86::cmpnltps(x, y));
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	//	return As<Int4>(x86::cmpnleps(x, y));
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGT(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGT(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpUEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUEQ(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUEQ(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpULT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpULT(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpULT(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpULE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpULE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpULE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpUNEQ(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUNE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUNE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpUNLT(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUGE(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUGE(x.value, y.value), Int4::type()));
 }
 
 RValue<Int4> CmpUNLE(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUGT(x.value, y.value), Int4::getType()));
+	return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUGT(x.value, y.value), Int4::type()));
 }
 
 RValue<Float4> Round(RValue<Float4> x)
@@ -3264,12 +3264,12 @@ RValue<Float4> Tan(RValue<Float4> v)
 
 static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char *name)
 {
-	auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), ::llvm::ArrayRef<llvm::Type *>(T(Float::getType())), false);
+	auto funcTy = ::llvm::FunctionType::get(T(Float::type()), ::llvm::ArrayRef<llvm::Type *>(T(Float::type())), false);
 	auto func = jit->module->getOrInsertFunction(name, funcTy);
-	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
+	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::type()));
 	for(uint64_t i = 0; i < 4; i++)
 	{
-		auto el = jit->builder->CreateCall(func, V(Nucleus::createExtractElement(v.value, Float::getType(), i)));
+		auto el = jit->builder->CreateCall(func, V(Nucleus::createExtractElement(v.value, Float::type(), i)));
 		out = V(Nucleus::createInsertElement(V(out), V(el), i));
 	}
 	return RValue<Float4>(V(out));
@@ -3333,16 +3333,16 @@ RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	::llvm::SmallVector<::llvm::Type *, 2> paramTys;
-	paramTys.push_back(T(Float::getType()));
-	paramTys.push_back(T(Float::getType()));
-	auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), paramTys, false);
+	paramTys.push_back(T(Float::type()));
+	paramTys.push_back(T(Float::type()));
+	auto funcTy = ::llvm::FunctionType::get(T(Float::type()), paramTys, false);
 	auto func = jit->module->getOrInsertFunction("atan2f", funcTy);
-	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
+	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::type()));
 	for(uint64_t i = 0; i < 4; i++)
 	{
 		auto el = jit->builder->CreateCall2(func, ARGS(
-		                                              V(Nucleus::createExtractElement(x.value, Float::getType(), i)),
-		                                              V(Nucleus::createExtractElement(y.value, Float::getType(), i))));
+		                                              V(Nucleus::createExtractElement(x.value, Float::type(), i)),
+		                                              V(Nucleus::createExtractElement(y.value, Float::type(), i))));
 		out = V(Nucleus::createInsertElement(V(out), V(el), i));
 	}
 	return RValue<Float4>(V(out));
@@ -3351,42 +3351,42 @@ RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::pow, { T(Float4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::pow, { T(Float4::type()) });
 	return RValue<Float4>(V(jit->builder->CreateCall2(func, ARGS(V(x.value), V(y.value)))));
 }
 
 RValue<Float4> Exp(RValue<Float4> v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp, { T(Float4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp, { T(Float4::type()) });
 	return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 }
 
 RValue<Float4> Log(RValue<Float4> v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log, { T(Float4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log, { T(Float4::type()) });
 	return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 }
 
 RValue<Float4> Exp2(RValue<Float4> v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp2, { T(Float4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::exp2, { T(Float4::type()) });
 	return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 }
 
 RValue<Float4> Log2(RValue<Float4> v)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log2, { T(Float4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::log2, { T(Float4::type()) });
 	return RValue<Float4>(V(jit->builder->CreateCall(func, V(v.value))));
 }
 
 RValue<UInt> Ctlz(RValue<UInt> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt::type()) });
 	return RValue<UInt>(V(jit->builder->CreateCall2(func, ARGS(
 	                                                          V(v.value),
 	                                                          isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
@@ -3395,7 +3395,7 @@ RValue<UInt> Ctlz(RValue<UInt> v, bool isZeroUndef)
 RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt4::type()) });
 	return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
 	                                                           V(v.value),
 	                                                           isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
@@ -3404,7 +3404,7 @@ RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 RValue<UInt> Cttz(RValue<UInt> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt::type()) });
 	return RValue<UInt>(V(jit->builder->CreateCall2(func, ARGS(
 	                                                          V(v.value),
 	                                                          isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
@@ -3413,7 +3413,7 @@ RValue<UInt> Cttz(RValue<UInt> v, bool isZeroUndef)
 RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt4::getType()) });
+	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt4::type()) });
 	return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
 	                                                           V(v.value),
 	                                                           isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
@@ -3439,9 +3439,9 @@ RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_orde
 	return RValue<UInt>(Nucleus::createAtomicUMax(x.value, y.value, memoryOrder));
 }
 
-Type *Float4::getType()
+Type *Float4::type()
 {
-	return T(llvm::VectorType::get(T(Float::getType()), 4));
+	return T(llvm::VectorType::get(T(Float::type()), 4));
 }
 
 RValue<Long> Ticks()
@@ -3458,7 +3458,7 @@ RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
 	// Note: this should work for 32-bit pointers as well because 'inttoptr'
 	// is defined to truncate (and zero extend) if necessary.
 	auto ptrAsInt = ::llvm::ConstantInt::get(::llvm::Type::getInt64Ty(jit->context), reinterpret_cast<uintptr_t>(ptr));
-	return RValue<Pointer<Byte>>(V(jit->builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::getType()))));
+	return RValue<Pointer<Byte>>(V(jit->builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::type()))));
 }
 
 RValue<Pointer<Byte>> ConstantData(void const *data, size_t size)
@@ -3520,9 +3520,9 @@ RValue<Float> rcpss(RValue<Float> val)
 {
 	llvm::Function *rcpss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rcp_ss);
 
-	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
+	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::type()))), val.value, 0);
 
-	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rcpss, ARGS(V(vector)))), Float::getType(), 0));
+	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rcpss, ARGS(V(vector)))), Float::type(), 0));
 }
 
 RValue<Float> sqrtss(RValue<Float> val)
@@ -3535,9 +3535,9 @@ RValue<Float> rsqrtss(RValue<Float> val)
 {
 	llvm::Function *rsqrtss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rsqrt_ss);
 
-	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
+	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::type()))), val.value, 0);
 
-	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rsqrtss, ARGS(V(vector)))), Float::getType(), 0));
+	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rsqrtss, ARGS(V(vector)))), Float::type(), 0));
 }
 
 RValue<Float4> rcpps(RValue<Float4> val)
@@ -3579,10 +3579,10 @@ RValue<Float> roundss(RValue<Float> val, unsigned char imm)
 {
 	llvm::Function *roundss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_round_ss);
 
-	Value *undef = V(llvm::UndefValue::get(T(Float4::getType())));
+	Value *undef = V(llvm::UndefValue::get(T(Float4::type())));
 	Value *vector = Nucleus::createInsertElement(undef, val.value, 0);
 
-	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall3(roundss, ARGS(V(undef), V(vector), V(Nucleus::createConstantInt(imm))))), Float::getType(), 0));
+	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall3(roundss, ARGS(V(undef), V(vector), V(Nucleus::createConstantInt(imm))))), Float::type(), 0));
 }
 
 RValue<Float> floorss(RValue<Float> val)
@@ -3722,22 +3722,22 @@ RValue<Short4> pminsw(RValue<Short4> x, RValue<Short4> y)
 
 RValue<Short4> pcmpgtw(RValue<Short4> x, RValue<Short4> y)
 {
-	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::getType()))));
+	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::type()))));
 }
 
 RValue<Short4> pcmpeqw(RValue<Short4> x, RValue<Short4> y)
 {
-	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::getType()))));
+	return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::type()))));
 }
 
 RValue<Byte8> pcmpgtb(RValue<SByte8> x, RValue<SByte8> y)
 {
-	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
+	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::type()))));
 }
 
 RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y)
 {
-	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
+	return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::type()))));
 }
 
 RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y)
@@ -3947,22 +3947,22 @@ RValue<Int> pmovmskb(RValue<Byte8> x)
 
 RValue<Int4> pmovzxbd(RValue<Byte16> x)
 {
-	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), false)));
+	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::type()), false)));
 }
 
 RValue<Int4> pmovsxbd(RValue<SByte16> x)
 {
-	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), true)));
+	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::type()), true)));
 }
 
 RValue<Int4> pmovzxwd(RValue<UShort8> x)
 {
-	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), false)));
+	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::type()), false)));
 }
 
 RValue<Int4> pmovsxwd(RValue<Short8> x)
 {
-	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), true)));
+	return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::type()), true)));
 }
 
 }  // namespace x86

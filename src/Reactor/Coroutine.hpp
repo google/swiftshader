@@ -157,16 +157,16 @@ Coroutine<Return(Arguments...)>::Coroutine()
 {
 	core.reset(new Nucleus());
 
-	std::vector<Type *> types = { CToReactorT<Arguments>::getType()... };
+	std::vector<Type *> types = { CToReactorT<Arguments>::type()... };
 	for(auto type : types)
 	{
-		if(type != Void::getType())
+		if(type != Void::type())
 		{
 			arguments.push_back(type);
 		}
 	}
 
-	Nucleus::createCoroutine(CToReactorT<Return>::getType(), arguments);
+	Nucleus::createCoroutine(CToReactorT<Return>::type(), arguments);
 }
 
 template<typename Return, typename... Arguments>

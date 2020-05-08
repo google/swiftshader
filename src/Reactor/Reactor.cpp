@@ -251,21 +251,21 @@ Byte::Byte(Argument<Byte> argument)
 
 Byte::Byte(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, Byte::type());
 
 	storeValue(integer);
 }
 
 Byte::Byte(RValue<UInt> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, Byte::type());
 
 	storeValue(integer);
 }
 
 Byte::Byte(RValue<UShort> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, Byte::type());
 
 	storeValue(integer);
 }
@@ -508,14 +508,14 @@ SByte::SByte(Argument<SByte> argument)
 
 SByte::SByte(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, SByte::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, SByte::type());
 
 	storeValue(integer);
 }
 
 SByte::SByte(RValue<Short> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, SByte::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, SByte::type());
 
 	storeValue(integer);
 }
@@ -753,7 +753,7 @@ Short::Short(Argument<Short> argument)
 
 Short::Short(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Short::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, Short::type());
 
 	storeValue(integer);
 }
@@ -991,14 +991,14 @@ UShort::UShort(Argument<UShort> argument)
 
 UShort::UShort(RValue<UInt> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, UShort::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, UShort::type());
 
 	storeValue(integer);
 }
 
 UShort::UShort(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, UShort::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, UShort::type());
 
 	storeValue(integer);
 }
@@ -1231,7 +1231,7 @@ RValue<Bool> operator==(RValue<UShort> lhs, RValue<UShort> rhs)
 
 Byte4::Byte4(RValue<Byte8> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, getType()));
+	storeValue(Nucleus::createBitCast(cast.value, type()));
 }
 
 Byte4::Byte4(RValue<UShort4> cast)
@@ -1293,7 +1293,7 @@ RValue<Byte4> Byte4::operator=(const Byte4 &rhs)
 Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 {
 	int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Byte8::Byte8(RValue<Byte8> rhs)
@@ -1507,9 +1507,9 @@ RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y)
 SByte8::SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 {
 	int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
-	Value *vector = Nucleus::createConstantVector(constantVector, getType());
+	Value *vector = Nucleus::createConstantVector(constantVector, type());
 
-	storeValue(Nucleus::createBitCast(vector, getType()));
+	storeValue(Nucleus::createBitCast(vector, type()));
 }
 
 SByte8::SByte8(RValue<SByte8> rhs)
@@ -1748,18 +1748,18 @@ RValue<Byte16> Swizzle(RValue<Byte16> x, uint64_t select)
 
 Short2::Short2(RValue<Short4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, getType()));
+	storeValue(Nucleus::createBitCast(cast.value, type()));
 }
 
 UShort2::UShort2(RValue<UShort4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, getType()));
+	storeValue(Nucleus::createBitCast(cast.value, type()));
 }
 
 Short4::Short4(RValue<Int> cast)
 {
 	Value *vector = loadValue();
-	Value *element = Nucleus::createTrunc(cast.value, Short::getType());
+	Value *element = Nucleus::createTrunc(cast.value, Short::type());
 	Value *insert = Nucleus::createInsertElement(vector, element, 0);
 	Value *swizzle = Swizzle(RValue<Short4>(insert), 0x0000).value;
 
@@ -1773,13 +1773,13 @@ Short4::Short4(RValue<Int> cast)
 Short4::Short4(short xyzw)
 {
 	int64_t constantVector[4] = { xyzw, xyzw, xyzw, xyzw };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Short4::Short4(short x, short y, short z, short w)
 {
 	int64_t constantVector[4] = { x, y, z, w };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Short4::Short4(RValue<Short4> rhs)
@@ -2010,7 +2010,7 @@ RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i)
 
 RValue<Short> Extract(RValue<Short4> val, int i)
 {
-	return RValue<Short>(Nucleus::createExtractElement(val.value, Short::getType(), i));
+	return RValue<Short>(Nucleus::createExtractElement(val.value, Short::type(), i));
 }
 
 UShort4::UShort4(RValue<Int4> cast)
@@ -2021,13 +2021,13 @@ UShort4::UShort4(RValue<Int4> cast)
 UShort4::UShort4(unsigned short xyzw)
 {
 	int64_t constantVector[4] = { xyzw, xyzw, xyzw, xyzw };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 {
 	int64_t constantVector[4] = { x, y, z, w };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UShort4::UShort4(RValue<UShort4> rhs)
@@ -2158,13 +2158,13 @@ RValue<UShort4> operator~(RValue<UShort4> val)
 Short8::Short8(short c)
 {
 	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 {
 	int64_t constantVector[8] = { c0, c1, c2, c3, c4, c5, c6, c7 };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Short8::Short8(RValue<Short8> rhs)
@@ -2229,13 +2229,13 @@ RValue<Int4> Abs(RValue<Int4> x)
 UShort8::UShort8(unsigned short c)
 {
 	int64_t constantVector[8] = { c, c, c, c, c, c, c, c };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)
 {
 	int64_t constantVector[8] = { c0, c1, c2, c3, c4, c5, c6, c7 };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UShort8::UShort8(RValue<UShort8> rhs)
@@ -2328,28 +2328,28 @@ Int::Int(Argument<Int> argument)
 
 Int::Int(RValue<Byte> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, Int::getType());
+	Value *integer = Nucleus::createZExt(cast.value, Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<SByte> cast)
 {
-	Value *integer = Nucleus::createSExt(cast.value, Int::getType());
+	Value *integer = Nucleus::createSExt(cast.value, Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<Short> cast)
 {
-	Value *integer = Nucleus::createSExt(cast.value, Int::getType());
+	Value *integer = Nucleus::createSExt(cast.value, Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<UShort> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, Int::getType());
+	Value *integer = Nucleus::createZExt(cast.value, Int::type());
 
 	storeValue(integer);
 }
@@ -2361,14 +2361,14 @@ Int::Int(RValue<Int2> cast)
 
 Int::Int(RValue<Long> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, Int::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, Int::type());
 
 	storeValue(integer);
 }
 
 Int::Int(RValue<Float> cast)
 {
-	Value *integer = Nucleus::createFPToSI(cast.value, Int::getType());
+	Value *integer = Nucleus::createFPToSI(cast.value, Int::type());
 
 	storeValue(integer);
 }
@@ -2625,14 +2625,14 @@ RValue<Int> Clamp(RValue<Int> x, RValue<Int> min, RValue<Int> max)
 
 Long::Long(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createSExt(cast.value, Long::getType());
+	Value *integer = Nucleus::createSExt(cast.value, Long::type());
 
 	storeValue(integer);
 }
 
 Long::Long(RValue<UInt> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, Long::getType());
+	Value *integer = Nucleus::createZExt(cast.value, Long::type());
 
 	storeValue(integer);
 }
@@ -2747,14 +2747,14 @@ UInt::UInt(Argument<UInt> argument)
 
 UInt::UInt(RValue<UShort> cast)
 {
-	Value *integer = Nucleus::createZExt(cast.value, UInt::getType());
+	Value *integer = Nucleus::createZExt(cast.value, UInt::type());
 
 	storeValue(integer);
 }
 
 UInt::UInt(RValue<Long> cast)
 {
-	Value *integer = Nucleus::createTrunc(cast.value, UInt::getType());
+	Value *integer = Nucleus::createTrunc(cast.value, UInt::type());
 
 	storeValue(integer);
 }
@@ -3016,13 +3016,13 @@ RValue<Bool> operator==(RValue<UInt> lhs, RValue<UInt> rhs)
 
 Int2::Int2(RValue<Int4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, getType()));
+	storeValue(Nucleus::createBitCast(cast.value, type()));
 }
 
 Int2::Int2(int x, int y)
 {
 	int64_t constantVector[2] = { x, y };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Int2::Int2(RValue<Int2> rhs)
@@ -3047,7 +3047,7 @@ Int2::Int2(RValue<Int> lo, RValue<Int> hi)
 	int shuffle[4] = { 0, 4, 1, 5 };
 	Value *packed = Nucleus::createShuffleVector(Int4(lo).loadValue(), Int4(hi).loadValue(), shuffle);
 
-	storeValue(Nucleus::createBitCast(packed, Int2::getType()));
+	storeValue(Nucleus::createBitCast(packed, Int2::type()));
 }
 
 RValue<Int2> Int2::operator=(RValue<Int2> rhs)
@@ -3195,7 +3195,7 @@ RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 
 RValue<Int> Extract(RValue<Int2> val, int i)
 {
-	return RValue<Int>(Nucleus::createExtractElement(val.value, Int::getType(), i));
+	return RValue<Int>(Nucleus::createExtractElement(val.value, Int::type(), i));
 }
 
 RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
@@ -3206,7 +3206,7 @@ RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
 UInt2::UInt2(unsigned int x, unsigned int y)
 {
 	int64_t constantVector[2] = { x, y };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UInt2::UInt2(RValue<UInt2> rhs)
@@ -3356,7 +3356,7 @@ RValue<UInt2> operator~(RValue<UInt2> val)
 
 RValue<UInt> Extract(RValue<UInt2> val, int i)
 {
-	return RValue<UInt>(Nucleus::createExtractElement(val.value, UInt::getType(), i));
+	return RValue<UInt>(Nucleus::createExtractElement(val.value, UInt::type(), i));
 }
 
 RValue<UInt2> Insert(RValue<UInt2> val, RValue<UInt> element, int i)
@@ -3372,7 +3372,7 @@ Int4::Int4()
 Int4::Int4(RValue<Float4> cast)
     : XYZW(this)
 {
-	Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::getType());
+	Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::type());
 
 	storeValue(xyzw);
 }
@@ -3404,7 +3404,7 @@ Int4::Int4(int x, int y, int z, int w)
 void Int4::constant(int x, int y, int z, int w)
 {
 	int64_t constantVector[4] = { x, y, z, w };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Int4::Int4(RValue<Int4> rhs)
@@ -3608,7 +3608,7 @@ RValue<Int4> operator~(RValue<Int4> val)
 
 RValue<Int> Extract(RValue<Int4> x, int i)
 {
-	return RValue<Int>(Nucleus::createExtractElement(x.value, Int::getType(), i));
+	return RValue<Int>(Nucleus::createExtractElement(x.value, Int::type(), i));
 }
 
 RValue<Int4> Insert(RValue<Int4> x, RValue<Int> element, int i)
@@ -3658,7 +3658,7 @@ UInt4::UInt4(int x, int y, int z, int w)
 void UInt4::constant(int x, int y, int z, int w)
 {
 	int64_t constantVector[4] = { x, y, z, w };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 UInt4::UInt4(RValue<UInt4> rhs)
@@ -3862,7 +3862,7 @@ RValue<UInt4> operator~(RValue<UInt4> val)
 
 RValue<UInt> Extract(RValue<UInt4> x, int i)
 {
-	return RValue<UInt>(Nucleus::createExtractElement(x.value, Int::getType(), i));
+	return RValue<UInt>(Nucleus::createExtractElement(x.value, Int::type(), i));
 }
 
 RValue<UInt4> Insert(RValue<UInt4> x, RValue<UInt> element, int i)
@@ -3910,7 +3910,7 @@ Half::Half(RValue<Float> cast)
 
 Float::Float(RValue<Int> cast)
 {
-	Value *integer = Nucleus::createSIToFP(cast.value, Float::getType());
+	Value *integer = Nucleus::createSIToFP(cast.value, Float::type());
 
 	storeValue(integer);
 }
@@ -4133,14 +4133,14 @@ RValue<Float> Min(RValue<Float> x, RValue<Float> y)
 
 Float2::Float2(RValue<Float4> cast)
 {
-	storeValue(Nucleus::createBitCast(cast.value, getType()));
+	storeValue(Nucleus::createBitCast(cast.value, type()));
 }
 
 Float4::Float4(RValue<Byte4> cast)
     : XYZW(this)
 {
 	Value *a = Int4(cast).loadValue();
-	Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
+	Value *xyzw = Nucleus::createSIToFP(a, Float4::type());
 
 	storeValue(xyzw);
 }
@@ -4149,7 +4149,7 @@ Float4::Float4(RValue<SByte4> cast)
     : XYZW(this)
 {
 	Value *a = Int4(cast).loadValue();
-	Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
+	Value *xyzw = Nucleus::createSIToFP(a, Float4::type());
 
 	storeValue(xyzw);
 }
@@ -4158,20 +4158,20 @@ Float4::Float4(RValue<Short4> cast)
     : XYZW(this)
 {
 	Int4 c(cast);
-	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
+	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::type()));
 }
 
 Float4::Float4(RValue<UShort4> cast)
     : XYZW(this)
 {
 	Int4 c(cast);
-	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
+	storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::type()));
 }
 
 Float4::Float4(RValue<Int4> cast)
     : XYZW(this)
 {
-	Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());
+	Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::type());
 
 	storeValue(xyzw);
 }
@@ -4220,7 +4220,7 @@ Float4 Float4::infinity()
 
 	constexpr double inf = std::numeric_limits<double>::infinity();
 	double constantVector[4] = { inf, inf, inf, inf };
-	result.storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	result.storeValue(Nucleus::createConstantVector(constantVector, type()));
 
 	return result;
 }
@@ -4231,7 +4231,7 @@ void Float4::constant(float x, float y, float z, float w)
 	ASSERT(std::isfinite(x) && std::isfinite(y) && std::isfinite(z) && std::isfinite(w));
 
 	double constantVector[4] = { x, y, z, w };
-	storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	storeValue(Nucleus::createConstantVector(constantVector, type()));
 }
 
 Float4::Float4(RValue<Float4> rhs)
@@ -4367,9 +4367,9 @@ RValue<Float4> operator-(RValue<Float4> val)
 RValue<Float4> Abs(RValue<Float4> x)
 {
 	// TODO: Optimize.
-	Value *vector = Nucleus::createBitCast(x.value, Int4::getType());
+	Value *vector = Nucleus::createBitCast(x.value, Int4::type());
 	int64_t constantVector[4] = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
-	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::getType()));
+	Value *result = Nucleus::createAnd(vector, Nucleus::createConstantVector(constantVector, Int4::type()));
 
 	return As<Float4>(result);
 }
@@ -4381,7 +4381,7 @@ RValue<Float4> Insert(RValue<Float4> x, RValue<Float> element, int i)
 
 RValue<Float> Extract(RValue<Float4> x, int i)
 {
-	return RValue<Float>(Nucleus::createExtractElement(x.value, Float::getType(), i));
+	return RValue<Float>(Nucleus::createExtractElement(x.value, Float::type(), i));
 }
 
 RValue<Float4> Swizzle(RValue<Float4> x, uint16_t select)
@@ -4444,12 +4444,12 @@ RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset)
 
 RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<Int> offset)
 {
-	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value, false));
+	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::type(), offset.value, false));
 }
 
 RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<UInt> offset)
 {
-	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value, true));
+	return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::type(), offset.value, true));
 }
 
 RValue<Pointer<Byte>> operator+=(Pointer<Byte> &lhs, int offset)
@@ -4512,12 +4512,12 @@ void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
 
 RValue<Float4> MaskedLoad(RValue<Pointer<Float4>> base, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return RValue<Float4>(Nucleus::createMaskedLoad(base.value, Float::getType(), mask.value, alignment, zeroMaskedLanes));
+	return RValue<Float4>(Nucleus::createMaskedLoad(base.value, Float::type(), mask.value, alignment, zeroMaskedLanes));
 }
 
 RValue<Int4> MaskedLoad(RValue<Pointer<Int4>> base, RValue<Int4> mask, unsigned int alignment, bool zeroMaskedLanes /* = false */)
 {
-	return RValue<Int4>(Nucleus::createMaskedLoad(base.value, Int::getType(), mask.value, alignment, zeroMaskedLanes));
+	return RValue<Int4>(Nucleus::createMaskedLoad(base.value, Int::type(), mask.value, alignment, zeroMaskedLanes));
 }
 
 void MaskedStore(RValue<Pointer<Float4>> base, RValue<Float4> val, RValue<Int4> mask, unsigned int alignment)
@@ -4611,7 +4611,7 @@ static std::vector<Value *> extractAll(Value *vec, int n)
 // toInt returns all the integer values in vals extended to a printf-required storage value
 static std::vector<Value *> toInt(const std::vector<Value *> &vals, bool isSigned)
 {
-	auto storageTy = Nucleus::getPrintfStorageType(Int::getType());
+	auto storageTy = Nucleus::getPrintfStorageType(Int::type());
 	std::vector<Value *> elements;
 	elements.reserve(vals.size());
 	for(auto v : vals)
@@ -4631,7 +4631,7 @@ static std::vector<Value *> toInt(const std::vector<Value *> &vals, bool isSigne
 // toFloat returns all the float values in vals extended to extended to a printf-required storage value
 static std::vector<Value *> toFloat(const std::vector<Value *> &vals)
 {
-	auto storageTy = Nucleus::getPrintfStorageType(Float::getType());
+	auto storageTy = Nucleus::getPrintfStorageType(Float::type());
 	std::vector<Value *> elements;
 	elements.reserve(vals.size());
 	for(auto v : vals)

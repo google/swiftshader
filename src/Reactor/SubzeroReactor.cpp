@@ -165,7 +165,7 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 {
 	static_assert(sizeof...(CArgs) == sizeof...(RArgs), "Expected number of args don't match");
 
-	Ice::Type retTy = T(rr::CToReactorT<Return>::getType());
+	Ice::Type retTy = T(rr::CToReactorT<Return>::type());
 	std::vector<Ice::Operand *> iceArgs{ std::forward<RArgs>(args)... };
 	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs, false);
 }
@@ -2165,42 +2165,42 @@ Value *Nucleus::createConstantString(const char *v)
 	return V(IceConstantData(v, strlen(v) + 1));
 }
 
-Type *Void::getType()
+Type *Void::type()
 {
 	return T(Ice::IceType_void);
 }
 
-Type *Bool::getType()
+Type *Bool::type()
 {
 	return T(Ice::IceType_i1);
 }
 
-Type *Byte::getType()
+Type *Byte::type()
 {
 	return T(Ice::IceType_i8);
 }
 
-Type *SByte::getType()
+Type *SByte::type()
 {
 	return T(Ice::IceType_i8);
 }
 
-Type *Short::getType()
+Type *Short::type()
 {
 	return T(Ice::IceType_i16);
 }
 
-Type *UShort::getType()
+Type *UShort::type()
 {
 	return T(Ice::IceType_i16);
 }
 
-Type *Byte4::getType()
+Type *Byte4::type()
 {
 	return T(Type_v4i8);
 }
 
-Type *SByte4::getType()
+Type *SByte4::type()
 {
 	return T(Type_v4i8);
 }
@@ -2213,7 +2213,7 @@ RValue<Byte> SaturateUnsigned(RValue<Short> x)
 
 RValue<Byte> Extract(RValue<Byte8> val, int i)
 {
-	return RValue<Byte>(Nucleus::createExtractElement(val.value, Byte::getType(), i));
+	return RValue<Byte>(Nucleus::createExtractElement(val.value, Byte::type(), i));
 }
 
 RValue<Byte8> Insert(RValue<Byte8> val, RValue<Byte> element, int i)
@@ -2287,7 +2287,7 @@ RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 RValue<SByte> Extract(RValue<SByte8> val, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<SByte>(Nucleus::createExtractElement(val.value, SByte::getType(), i));
+	return RValue<SByte>(Nucleus::createExtractElement(val.value, SByte::type(), i));
 }
 
 RValue<SByte8> Insert(RValue<SByte8> val, RValue<SByte> element, int i)
@@ -2359,7 +2359,7 @@ RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 	return RValue<Byte8>(Nucleus::createICmpEQ(x.value, y.value));
 }
 
-Type *Byte8::getType()
+Type *Byte8::type()
 {
 	return T(Type_v8i8);
 }
@@ -2475,27 +2475,27 @@ RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 	return RValue<Byte8>(Nucleus::createICmpEQ(x.value, y.value));
 }
 
-Type *SByte8::getType()
+Type *SByte8::type()
 {
 	return T(Type_v8i8);
 }
 
-Type *Byte16::getType()
+Type *Byte16::type()
 {
 	return T(Ice::IceType_v16i8);
 }
 
-Type *SByte16::getType()
+Type *SByte16::type()
 {
 	return T(Ice::IceType_v16i8);
 }
 
-Type *Short2::getType()
+Type *Short2::type()
 {
 	return T(Type_v2i16);
 }
 
-Type *UShort2::getType()
+Type *UShort2::type()
 {
 	return T(Type_v2i16);
 }
@@ -2503,11 +2503,11 @@ Type *UShort2::getType()
 Short4::Short4(RValue<Int4> cast)
 {
 	int select[8] = { 0, 2, 4, 6, 0, 2, 4, 6 };
-	Value *short8 = Nucleus::createBitCast(cast.value, Short8::getType());
+	Value *short8 = Nucleus::createBitCast(cast.value, Short8::type());
 	Value *packed = Nucleus::createShuffleVector(short8, short8, select);
 
 	Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value;
-	Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
+	Value *short4 = Nucleus::createBitCast(int2, Short4::type());
 
 	storeValue(short4);
 }
@@ -2776,7 +2776,7 @@ RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y)
 	return RValue<Short4>(Nucleus::createICmpEQ(x.value, y.value));
 }
 
-Type *Short4::getType()
+Type *Short4::type()
 {
 	return T(Type_v4i16);
 }
@@ -2811,7 +2811,7 @@ UShort4::UShort4(RValue<Float4> cast, bool saturate)
 
 RValue<UShort> Extract(RValue<UShort4> val, int i)
 {
-	return RValue<UShort>(Nucleus::createExtractElement(val.value, UShort::getType(), i));
+	return RValue<UShort>(Nucleus::createExtractElement(val.value, UShort::type(), i));
 }
 
 RValue<UShort4> Insert(RValue<UShort4> val, RValue<UShort> element, int i)
@@ -3027,7 +3027,7 @@ RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
 	return UShort4(0);
 }
 
-Type *UShort4::getType()
+Type *UShort4::type()
 {
 	return T(Type_v4i16);
 }
@@ -3035,7 +3035,7 @@ Type *UShort4::getType()
 RValue<Short> Extract(RValue<Short8> val, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<Short>(Nucleus::createExtractElement(val.value, Short::getType(), i));
+	return RValue<Short>(Nucleus::createExtractElement(val.value, Short::type(), i));
 }
 
 RValue<Short8> Insert(RValue<Short8> val, RValue<Short> element, int i)
@@ -3104,7 +3104,7 @@ RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 	return Short8(0);
 }
 
-Type *Short8::getType()
+Type *Short8::type()
 {
 	return T(Ice::IceType_v8i16);
 }
@@ -3112,7 +3112,7 @@ Type *Short8::getType()
 RValue<UShort> Extract(RValue<UShort8> val, int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return RValue<UShort>(Nucleus::createExtractElement(val.value, UShort::getType(), i));
+	return RValue<UShort>(Nucleus::createExtractElement(val.value, UShort::type(), i));
 }
 
 RValue<UShort8> Insert(RValue<UShort8> val, RValue<UShort> element, int i)
@@ -3174,7 +3174,7 @@ RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 	return UShort8(0);
 }
 
-Type *UShort8::getType()
+Type *UShort8::type()
 {
 	return T(Ice::IceType_v8i16);
 }
@@ -3230,12 +3230,12 @@ RValue<Int> RoundInt(RValue<Float> cast)
 	}
 }
 
-Type *Int::getType()
+Type *Int::type()
 {
 	return T(Ice::IceType_i32);
 }
 
-Type *Long::getType()
+Type *Long::type()
 {
 	return T(Ice::IceType_i64);
 }
@@ -3293,21 +3293,21 @@ const UInt &operator--(UInt &val)  // Pre-decrement
 //		ASSERT(false && "UNIMPLEMENTED"); return RValue<UInt>(V(nullptr));
 //	}
 
-Type *UInt::getType()
+Type *UInt::type()
 {
 	return T(Ice::IceType_i32);
 }
 
 //	Int2::Int2(RValue<Int> cast)
 //	{
-//		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
-//		Value *vector = Nucleus::createBitCast(extend, Int2::getType());
+//		Value *extend = Nucleus::createZExt(cast.value, Long::type());
+//		Value *vector = Nucleus::createBitCast(extend, Int2::type());
 //
 //		Constant *shuffle[2];
 //		shuffle[0] = Nucleus::createConstantInt(0);
 //		shuffle[1] = Nucleus::createConstantInt(0);
 //
-//		Value *replicate = Nucleus::createShuffleVector(vector, UndefValue::get(Int2::getType()), Nucleus::createConstantVector(shuffle, 2));
+//		Value *replicate = Nucleus::createShuffleVector(vector, UndefValue::get(Int2::type()), Nucleus::createConstantVector(shuffle, 2));
 //
 //		storeValue(replicate);
 //	}
@@ -3346,7 +3346,7 @@ RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 	}
 }
 
-Type *Int2::getType()
+Type *Int2::type()
 {
 	return T(Type_v2i32);
 }
@@ -3385,7 +3385,7 @@ RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 	}
 }
 
-Type *UInt2::getType()
+Type *UInt2::type()
 {
 	return T(Type_v2i32);
 }
@@ -3394,19 +3394,19 @@ Int4::Int4(RValue<Byte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *x = Nucleus::createBitCast(cast.value, Int::getType());
+	Value *x = Nucleus::createBitCast(cast.value, Int::type());
 	Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
 
 	Value *e;
 	int swizzle[16] = { 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23 };
-	Value *b = Nucleus::createBitCast(a, Byte16::getType());
-	Value *c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Byte16::getType()), swizzle);
+	Value *b = Nucleus::createBitCast(a, Byte16::type());
+	Value *c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Byte16::type()), swizzle);
 
 	int swizzle2[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
-	Value *d = Nucleus::createBitCast(c, Short8::getType());
-	e = Nucleus::createShuffleVector(d, Nucleus::createNullValue(Short8::getType()), swizzle2);
+	Value *d = Nucleus::createBitCast(c, Short8::type());
+	e = Nucleus::createShuffleVector(d, Nucleus::createNullValue(Short8::type()), swizzle2);
 
-	Value *f = Nucleus::createBitCast(e, Int4::getType());
+	Value *f = Nucleus::createBitCast(e, Int4::type());
 	storeValue(f);
 }
 
@@ -3414,15 +3414,15 @@ Int4::Int4(RValue<SByte4> cast)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *x = Nucleus::createBitCast(cast.value, Int::getType());
+	Value *x = Nucleus::createBitCast(cast.value, Int::type());
 	Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
 
 	int swizzle[16] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
-	Value *b = Nucleus::createBitCast(a, Byte16::getType());
+	Value *b = Nucleus::createBitCast(a, Byte16::type());
 	Value *c = Nucleus::createShuffleVector(b, b, swizzle);
 
 	int swizzle2[8] = { 0, 0, 1, 1, 2, 2, 3, 3 };
-	Value *d = Nucleus::createBitCast(c, Short8::getType());
+	Value *d = Nucleus::createBitCast(c, Short8::type());
 	Value *e = Nucleus::createShuffleVector(d, d, swizzle2);
 
 	*this = As<Int4>(e) >> 24;
@@ -3444,7 +3444,7 @@ Int4::Int4(RValue<UShort4> cast)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	int swizzle[8] = { 0, 8, 1, 9, 2, 10, 3, 11 };
 	Value *c = Nucleus::createShuffleVector(cast.value, Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
-	Value *d = Nucleus::createBitCast(c, Int4::getType());
+	Value *d = Nucleus::createBitCast(c, Int4::type());
 	storeValue(d);
 }
 
@@ -3452,7 +3452,7 @@ Int4::Int4(RValue<Int> rhs)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *vector = Nucleus::createBitCast(rhs.value, Int4::getType());
+	Value *vector = Nucleus::createBitCast(rhs.value, Int4::type());
 
 	int swizzle[4] = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
@@ -3662,7 +3662,7 @@ RValue<Int> SignMask(RValue<Int4> x)
 	}
 }
 
-Type *Int4::getType()
+Type *Int4::type()
 {
 	return T(Ice::IceType_v4i32);
 }
@@ -3689,7 +3689,7 @@ UInt4::UInt4(RValue<UInt> rhs)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *vector = Nucleus::createBitCast(rhs.value, UInt4::getType());
+	Value *vector = Nucleus::createBitCast(rhs.value, UInt4::type());
 
 	int swizzle[4] = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
@@ -3799,12 +3799,12 @@ RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y)
 	return RValue<UInt4>(V(result));
 }
 
-Type *UInt4::getType()
+Type *UInt4::type()
 {
 	return T(Ice::IceType_v4i32);
 }
 
-Type *Half::getType()
+Type *Half::type()
 {
 	return T(Ice::IceType_i16);
 }
@@ -3864,12 +3864,12 @@ RValue<Float> Ceil(RValue<Float> x)
 	return Float4(Ceil(Float4(x))).x;
 }
 
-Type *Float::getType()
+Type *Float::type()
 {
 	return T(Ice::IceType_f32);
 }
 
-Type *Float2::getType()
+Type *Float2::type()
 {
 	return T(Type_v2f32);
 }
@@ -3878,7 +3878,7 @@ Float4::Float4(RValue<Float> rhs)
     : XYZW(this)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *vector = Nucleus::createBitCast(rhs.value, Float4::getType());
+	Value *vector = Nucleus::createBitCast(rhs.value, Float4::type());
 
 	int swizzle[4] = { 0, 0, 0, 0 };
 	Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
@@ -4155,7 +4155,7 @@ RValue<Float4> Ceil(RValue<Float4> x)
 	}
 }
 
-Type *Float4::getType()
+Type *Float4::type()
 {
 	return T(Ice::IceType_v4f32);
 }
