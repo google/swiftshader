@@ -889,6 +889,14 @@ const Image *Image::getSampledImage(const vk::Format &imageViewFormat) const
 void Image::blit(Image *dstImage, const VkImageBlit &region, VkFilter filter) const
 {
 	device->getBlitter()->blit(this, dstImage, region, filter);
+	VkImageSubresourceRange subresourceRange = {
+		region.dstSubresource.aspectMask,
+		region.dstSubresource.mipLevel,
+		1,
+		region.dstSubresource.baseArrayLayer,
+		region.dstSubresource.layerCount
+	};
+	dstImage->prepareForSampling(subresourceRange);
 }
 
 void Image::blitToBuffer(VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch) const
