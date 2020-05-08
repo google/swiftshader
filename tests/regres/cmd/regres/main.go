@@ -371,6 +371,13 @@ func (r *regres) run() error {
 		// already got a test result.
 		msg = reportHeader + "\n\n" + msg
 
+		// Limit the message length to prevent '400 Bad Request' response.
+		maxMsgLength := 16000
+		if len(msg) > maxMsgLength {
+			trunc := " [truncated]\n"
+			msg = msg[0:maxMsgLength-len(trunc)] + trunc
+		}
+
 		if r.dryRun {
 			log.Printf("DRY RUN: add review to change '%v':\n%v\n", change.id, msg)
 		} else {
