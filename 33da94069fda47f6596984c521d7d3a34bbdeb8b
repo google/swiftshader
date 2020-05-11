@@ -46,6 +46,30 @@
       "revId": "33da94069fda47f6596984c521d7d3a34bbdeb8b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b424d4e_1d60e2dc",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1930,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-05-11T14:51:06Z",
+      "side": 1,
+      "message": "Oh, so if you have a value that you want a case for that isn\u0027t a part of the enum, like VK_STRUCTURE_TYPE_FILTERING_PRECISION_GOOGLE, then you can\u0027t actually include it in the switch statement. So if/when our extension is added to Vulkan\u0027s official spec and is a part of the enum, then we can just switch on the enum value itself. Until then we need to cast it to an integer type.",
+      "parentUuid": "3a24f4a8_28ce2815",
+      "range": {
+        "startLine": 1930,
+        "startChar": 9,
+        "endLine": 1930,
+        "endChar": 26
+      },
+      "revId": "33da94069fda47f6596984c521d7d3a34bbdeb8b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
