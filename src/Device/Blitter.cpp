@@ -58,7 +58,7 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 	}
 
 	float *pPixel = static_cast<float *>(pixel);
-	if(viewFormat.isUnsignedNormalized())
+	if(viewFormat.isUnsignedNormalized() || viewFormat.isSRGBformat())
 	{
 		pPixel[0] = sw::clamp(pPixel[0], 0.0f, 1.0f);
 		pPixel[1] = sw::clamp(pPixel[1], 0.0f, 1.0f);
