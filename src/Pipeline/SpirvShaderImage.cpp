@@ -509,44 +509,26 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 	                                    ? OFFSET(vk::StorageImageDescriptor, stencilSamplePitchBytes)
 	                                    : OFFSET(vk::StorageImageDescriptor, samplePitchBytes))));
 
-	// If the out of bounds behavior is set to nullify, then out of bounds coordinates must be properly detected.
-	// Other out of bounds behaviors work properly without precise out of bounds coordinate detection.
-	bool nullifyOutOfBounds = (outOfBoundsBehavior == OutOfBoundsBehavior::Nullify);
+	SIMD::Int ptrOffset = u * SIMD::Int(texelSize);
 
-	SIMD::Int ptrOffset(0);
-	SIMD::Int oobMask(0);
-	if(nullifyOutOfBounds)
-	{
-		auto width = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.width)));
-		oobMask |= CmpLT(u, SIMD::Int(0)) | CmpNLT(u, width);
-	}
-	ptrOffset += u * SIMD::Int(texelSize);
 	if(dims > 1)
 	{
-		if(nullifyOutOfBounds)
-		{
-			auto height = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.height)));
-			oobMask |= CmpLT(v, SIMD::Int(0)) | CmpNLT(v, height);
-		}
 		ptrOffset += v * rowPitch;
 	}
+
+	SIMD::Int w = 0;
 	if((dims > 2) || isArrayed)
 	{
-		SIMD::Int w(0);
 		if(dims > 2)
 		{
 			w += coordinate.Int(2);
 		}
+
 		if(isArrayed)
 		{
 			w += coordinate.Int(dims);
 		}
-		if(nullifyOutOfBounds)
-		{
-			auto depth = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.depth)));
-			auto arrayLayers = SIMD::Int(*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, arrayLayers)));
-			oobMask |= CmpLT(w, SIMD::Int(0)) | CmpNLT(w, depth * arrayLayers);
-		}
+
 		ptrOffset += w * slicePitch;
 	}
 
@@ -562,8 +544,26 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 		ptrOffset += sample.Int(0) * samplePitch;
 	}
 
-	if(nullifyOutOfBounds)
+	// If the out-of-bounds behavior is set to nullify, then each coordinate must be tested individually.
+	// Other out-of-bounds behaviors work properly by just comparing the offset against the total size.
+	if(outOfBoundsBehavior == OutOfBoundsBehavior::Nullify)
 	{
+		auto width = SIMD::UInt(*Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.width)));
+		SIMD::Int oobMask = As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(u), width));
+
+		if(dims > 1)
+		{
+			auto height = SIMD::UInt(*Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.height)));
+			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(v), height));
+		}
+
+		if((dims > 2) || isArrayed)
+		{
+			auto depth = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.depth));
+			auto arrayLayers = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, arrayLayers));
+			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(w), SIMD::UInt(depth * arrayLayers)));
+		}
+
 		constexpr int32_t OOB_OFFSET = 0x7FFFFFFF - 16;  // SIMD pointer offsets are signed 32-bit, so this is the largest offset (for 16-byte texels).
 		static_assert(OOB_OFFSET >= MAX_MEMORY_ALLOCATION_SIZE, "the largest offset must be guaranteed to be out-of-bounds");
 
