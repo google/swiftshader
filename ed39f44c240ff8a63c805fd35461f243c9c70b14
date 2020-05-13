@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14cbacaa_a454fa16",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 570,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-05-13T12:29:11Z",
+      "side": 1,
+      "message": "Why aren\u0027t we just using MAX_MEMORY_ALLOCATION_SIZE directly, then?",
+      "range": {
+        "startLine": 570,
+        "startChar": 60,
+        "endLine": 570,
+        "endChar": 70
+      },
+      "revId": "ed39f44c240ff8a63c805fd35461f243c9c70b14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
