@@ -247,10 +247,7 @@ public:
 
 	explicit RValue(Value *rvalue);
 
-#ifdef ENABLE_RR_DEBUG_INFO
 	RValue(const RValue<T> &rvalue);
-#endif  // ENABLE_RR_DEBUG_INFO
-
 	RValue(const T &lvalue);
 	RValue(typename BoolLiteral<T>::type i);
 	RValue(typename IntLiteral<T>::type i);
@@ -2737,14 +2734,12 @@ int Reference<T>::getAlignment() const
 	return alignment;
 }
 
-#ifdef ENABLE_RR_DEBUG_INFO
 template<class T>
 RValue<T>::RValue(const RValue<T> &rvalue)
     : val(rvalue.val)
 {
 	RR_DEBUG_INFO_EMIT_VAR(val);
 }
-#endif  // ENABLE_RR_DEBUG_INFO
 
 template<class T>
 RValue<T>::RValue(Value *value)
