@@ -146,12 +146,12 @@ public:
 
 	RValue<T> load() const
 	{
-		return RValue<T>(Variable::loadValue());
+		return RValue<T>(this->loadValue());
 	}
 
 	RValue<T> store(RValue<T> rvalue) const
 	{
-		Variable::storeValue(rvalue.value());
+		this->storeValue(rvalue.value());
 
 		return rvalue;
 	}
@@ -2392,7 +2392,7 @@ public:
 	    : alignment(alignment)
 	{
 		Value *pointerT = Nucleus::createBitCast(pointerS.value(), Nucleus::getPointerType(T::type()));
-		LValue<Pointer<T>>::storeValue(pointerT);
+		this->storeValue(pointerT);
 	}
 
 	template<class S>
@@ -2401,7 +2401,7 @@ public:
 	{
 		Value *pointerS = pointer.loadValue();
 		Value *pointerT = Nucleus::createBitCast(pointerS, Nucleus::getPointerType(T::type()));
-		LValue<Pointer<T>>::storeValue(pointerT);
+		this->storeValue(pointerT);
 	}
 
 	Pointer(Argument<Pointer<T>> argument);
@@ -2686,7 +2686,7 @@ inline Value *Variable::getElementPointer(Value *index, bool unsignedIndex) cons
 template<class T>
 RValue<Pointer<T>> LValue<T>::operator&()
 {
-	return RValue<Pointer<T>>(getBaseAddress());
+	return RValue<Pointer<T>>(this->getBaseAddress());
 }
 
 template<class T>
@@ -2963,7 +2963,7 @@ template<class T>
 Pointer<T>::Pointer(Argument<Pointer<T>> argument)
     : alignment(1)
 {
-	LValue<Pointer<T>>::store(argument.rvalue());
+	this->store(argument.rvalue());
 }
 
 template<class T>
@@ -2975,23 +2975,21 @@ template<class T>
 Pointer<T>::Pointer(RValue<Pointer<T>> rhs)
     : alignment(1)
 {
-	LValue<Pointer<T>>::storeValue(rhs.value());
+	this->store(rhs);
 }
 
 template<class T>
 Pointer<T>::Pointer(const Pointer<T> &rhs)
     : alignment(rhs.alignment)
 {
-	Value *value = rhs.loadValue();
-	LValue<Pointer<T>>::storeValue(value);
+	this->store(rhs.load());
 }
 
 template<class T>
 Pointer<T>::Pointer(const Reference<Pointer<T>> &rhs)
     : alignment(rhs.getAlignment())
 {
-	Value *value = rhs.loadValue();
-	LValue<Pointer<T>>::storeValue(value);
+	this->store(rhs.load());
 }
 
 template<class T>
@@ -2999,40 +2997,32 @@ Pointer<T>::Pointer(std::nullptr_t)
     : alignment(1)
 {
 	Value *value = Nucleus::createNullPointer(T::type());
-	LValue<Pointer<T>>::storeValue(value);
+	this->storeValue(value);
 }
 
 template<class T>
 RValue<Pointer<T>> Pointer<T>::operator=(RValue<Pointer<T>> rhs)
 {
-	LValue<Pointer<T>>::storeValue(rhs.value());
-
-	return rhs;
+	return this->store(rhs);
 }
 
 template<class T>
 RValue<Pointer<T>> Pointer<T>::operator=(const Pointer<T> &rhs)
 {
-	Value *value = rhs.loadValue();
-	LValue<Pointer<T>>::storeValue(value);
-
-	return RValue<Pointer<T>>(value);
+	return this->store(rhs.load());
 }
 
 template<class T>
 RValue<Pointer<T>> Pointer<T>::operator=(const Reference<Pointer<T>> &rhs)
 {
-	Value *value = rhs.loadValue();
-	LValue<Pointer<T>>::storeValue(value);
-
-	return RValue<Pointer<T>>(value);
+	return this->store(rhs.load());
 }
 
 template<class T>
 RValue<Pointer<T>> Pointer<T>::operator=(std::nullptr_t)
 {
 	Value *value = Nucleus::createNullPointer(T::type());
-	LValue<Pointer<T>>::storeValue(value);
+	this->storeValue(value);
 
 	return RValue<Pointer<T>>(this);
 }
@@ -3040,14 +3030,14 @@ RValue<Pointer<T>> Pointer<T>::operator=(std::nullptr_t)
 template<class T>
 Reference<T> Pointer<T>::operator*()
 {
-	return Reference<T>(LValue<Pointer<T>>::loadValue(), alignment);
+	return Reference<T>(this->loadValue(), alignment);
 }
 
 template<class T>
 Reference<T> Pointer<T>::operator[](int index)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), Nucleus::createConstantInt(index), false);
+	Value *element = Nucleus::createGEP(this->loadValue(), T::type(), Nucleus::createConstantInt(index), false);
 
 	return Reference<T>(element, alignment);
 }
@@ -3056,7 +3046,7 @@ template<class T>
 Reference<T> Pointer<T>::operator[](unsigned int index)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), Nucleus::createConstantInt(index), true);
+	Value *element = Nucleus::createGEP(this->loadValue(), T::type(), Nucleus::createConstantInt(index), true);
 
 	return Reference<T>(element, alignment);
 }
@@ -3065,7 +3055,7 @@ template<class T>
 Reference<T> Pointer<T>::operator[](RValue<Int> index)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), index.value(), false);
+	Value *element = Nucleus::createGEP(this->loadValue(), T::type(), index.value(), false);
 
 	return Reference<T>(element, alignment);
 }
@@ -3074,7 +3064,7 @@ template<class T>
 Reference<T> Pointer<T>::operator[](RValue<UInt> index)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::type(), index.value(), true);
+	Value *element = Nucleus::createGEP(this->loadValue(), T::type(), index.value(), true);
 
 	return Reference<T>(element, alignment);
 }
@@ -3101,7 +3091,7 @@ template<class T, int S>
 Reference<T> Array<T, S>::operator[](int index)
 {
 	assert(index < arraySize);
-	Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), false);
+	Value *element = this->getElementPointer(Nucleus::createConstantInt(index), false);
 
 	return Reference<T>(element);
 }
@@ -3110,7 +3100,7 @@ template<class T, int S>
 Reference<T> Array<T, S>::operator[](unsigned int index)
 {
 	assert(index < static_cast<unsigned int>(arraySize));
-	Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), true);
+	Value *element = this->getElementPointer(Nucleus::createConstantInt(index), true);
 
 	return Reference<T>(element);
 }
@@ -3118,7 +3108,7 @@ Reference<T> Array<T, S>::operator[](unsigned int index)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](RValue<Int> index)
 {
-	Value *element = LValue<T>::getElementPointer(index.value(), false);
+	Value *element = this->getElementPointer(index.value(), false);
 
 	return Reference<T>(element);
 }
@@ -3126,7 +3116,7 @@ Reference<T> Array<T, S>::operator[](RValue<Int> index)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](RValue<UInt> index)
 {
-	Value *element = LValue<T>::getElementPointer(index.value(), true);
+	Value *element = this->getElementPointer(index.value(), true);
 
 	return Reference<T>(element);
 }
