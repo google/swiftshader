@@ -103,7 +103,6 @@ class Variable
 {
 	friend class Nucleus;
 
-	Variable() = delete;
 	Variable &operator=(const Variable &) = delete;
 
 public:
@@ -116,10 +115,9 @@ public:
 	Value *getElementPointer(Value *index, bool unsignedIndex) const;
 
 	virtual Type *getType() const = 0;
-	int getArraySize() const { return arraySize; }
 
 protected:
-	Variable(int arraySize);
+	Variable();
 	Variable(const Variable &) = default;
 
 	virtual ~Variable();
@@ -128,11 +126,12 @@ private:
 	static void materializeAll();
 	static void killUnmaterialized();
 
+	virtual Value *allocate() const;
+
 	// This has to be a raw pointer because glibc 2.17 doesn't support __cxa_thread_atexit_impl
 	// for destructing objects at exit. See crbug.com/1074222
 	static thread_local std::unordered_set<const Variable *> *unmaterializedVariables;
 
-	const int arraySize;
 	mutable Value *rvalue = nullptr;
 	mutable Value *address = nullptr;
 };
@@ -141,7 +140,7 @@ template<class T>
 class LValue : public Variable
 {
 public:
-	LValue(int arraySize = 0);
+	LValue();
 
 	RValue<Pointer<T>> operator&();
 
@@ -2511,6 +2510,11 @@ public:
 	// self() returns the this pointer to this Array object.
 	// This function exists because operator&() is overloaded by LValue<T>.
 	inline Array *self() { return this; }
+
+private:
+	Value *allocate() const override;
+
+	const int arraySize;
 };
 
 //	RValue<Array<T>> operator++(Array<T> &val, int);   // Post-increment
@@ -2617,8 +2621,7 @@ RValue<Long> Ticks();
 namespace rr {
 
 template<class T>
-LValue<T>::LValue(int arraySize)
-    : Variable(arraySize)
+LValue<T>::LValue()
 {
 #ifdef ENABLE_RR_DEBUG_INFO
 	materialize();
@@ -2629,7 +2632,7 @@ inline void Variable::materialize() const
 {
 	if(!address)
 	{
-		address = Nucleus::allocateStackVariable(getType(), arraySize);
+		address = allocate();
 		RR_DEBUG_INFO_EMIT_VAR(address);
 
 		if(rvalue)
@@ -3084,14 +3087,20 @@ Type *Pointer<T>::type()
 
 template<class T, int S>
 Array<T, S>::Array(int size)
-    : LValue<T>(size)
+    : arraySize(size)
 {
+}
+
+template<class T, int S>
+Value *Array<T, S>::allocate() const
+{
+	return Nucleus::allocateStackVariable(T::type(), arraySize);
 }
 
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](int index)
 {
-	assert(index < Variable::getArraySize());
+	assert(index < arraySize);
 	Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), false);
 
 	return Reference<T>(element);
@@ -3100,7 +3109,7 @@ Reference<T> Array<T, S>::operator[](int index)
 template<class T, int S>
 Reference<T> Array<T, S>::operator[](unsigned int index)
 {
-	assert(index < static_cast<unsigned int>(Variable::getArraySize()));
+	assert(index < static_cast<unsigned int>(arraySize));
 	Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), true);
 
 	return Reference<T>(element);

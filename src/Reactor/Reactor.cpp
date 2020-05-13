@@ -20,12 +20,6 @@
 #include <algorithm>
 #include <cmath>
 
-// Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
-// variables have a stack location obtained throuch alloca().
-#ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
-#	define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
-#endif
-
 namespace rr {
 
 const Config::Edit Config::Edit::None = {};
@@ -66,19 +60,19 @@ void rr::Config::Edit::apply(const std::vector<std::pair<ListEdit, T>> &edits, s
 // Set of variables that do not have a stack location yet.
 thread_local std::unordered_set<const Variable *> *Variable::unmaterializedVariables = nullptr;
 
-Variable::Variable(int arraySize)
-    : arraySize(arraySize)
+Variable::Variable()
 {
-#if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
-	materialize();
-#else
 	unmaterializedVariables->emplace(this);
-#endif
 }
 
 Variable::~Variable()
 {
 	unmaterializedVariables->erase(this);
+}
+
+Value *Variable::allocate() const
+{
+	return Nucleus::allocateStackVariable(getType());
 }
 
 void Variable::materializeAll()
