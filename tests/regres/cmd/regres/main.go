@@ -295,10 +295,10 @@ func (r *regres) run() error {
 	for {
 		if now := time.Now(); toDate(now) != lastUpdatedTestLists {
 			lastUpdatedTestLists = toDate(now)
-			if err := r.runDaily(client, backendSubzero, true); err != nil {
+			if err := r.runDaily(client, backendLLVM, false); err != nil {
 				log.Println(err.Error())
 			}
-			if err := r.runDaily(client, backendLLVM, false); err != nil {
+			if err := r.runDaily(client, backendSubzero, true); err != nil {
 				log.Println(err.Error())
 			}
 		}
