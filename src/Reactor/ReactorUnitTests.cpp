@@ -25,75 +25,6 @@
 
 using namespace rr;
 
-constexpr float PI = 3.141592653589793f;
-
-using float4 = float[4];
-using int4 = int[4];
-
-// TODO: Move to Reactor.hpp
-template<>
-struct rr::CToReactor<int[4]>
-{
-	using type = Int4;
-	static Int4 cast(float[4]);
-};
-
-// Value type wrapper around a <type>[4] (i.e. float4, int4)
-template<typename T>
-struct type4_value
-{
-	using E = typename std::remove_pointer_t<std::decay_t<T>>;
-
-	type4_value() = default;
-	explicit type4_value(E rep)
-	    : v{ rep, rep, rep, rep }
-	{}
-	type4_value(E x, E y, E z, E w)
-	    : v{ x, y, z, w }
-	{}
-
-	bool operator==(const type4_value &rhs) const
-	{
-		return std::equal(std::begin(v), std::end(v), rhs.v);
-	}
-
-	// For gtest printing
-	friend std::ostream &operator<<(std::ostream &os, const type4_value &value)
-	{
-		return os << "[" << value.v[0] << ", " << value.v[1] << ", " << value.v[2] << ", " << value.v[3] << "]";
-	}
-
-	T v;
-};
-
-using float4_value = type4_value<float4>;
-using int4_value = type4_value<int4>;
-
-// Invoke a void(type4_value<T>*) routine on &v.v, returning wrapped result in v
-template<typename RoutineType, typename T>
-type4_value<T> invokeRoutine(RoutineType &routine, type4_value<T> v)
-{
-	routine(&v.v);
-	return v;
-}
-
-// Invoke a void(type4_value<T>*, type4_value<T>*) routine on &v1.v, &v2.v returning wrapped result in v1
-template<typename RoutineType, typename T>
-type4_value<T> invokeRoutine(RoutineType &routine, type4_value<T> v1, type4_value<T> v2)
-{
-	routine(&v1.v, &v2.v);
-	return v1;
-}
-
-// For gtest printing of pairs
-namespace std {
-template<typename T, typename U>
-std::ostream &operator<<(std::ostream &os, const std::pair<T, U> &value)
-{
-	return os << "{ " << value.first << ", " << value.second << " }";
-}
-}  // namespace std
-
 int reference(int *p, int y)
 {
 	int x = p[-1];
@@ -107,238 +38,6 @@ int reference(int *p, int y)
 	int sum = x + y + z;
 
 	return sum;
-}
-
-class StdOutCapture
-{
-public:
-	~StdOutCapture()
-	{
-		stopIfCapturing();
-	}
-
-	void start()
-	{
-		stopIfCapturing();
-		capturing = true;
-		testing::internal::CaptureStdout();
-	}
-
-	std::string stop()
-	{
-		assert(capturing);
-		capturing = false;
-		return testing::internal::GetCapturedStdout();
-	}
-
-private:
-	void stopIfCapturing()
-	{
-		if(capturing)
-		{
-			// This stops the capture
-			testing::internal::GetCapturedStdout();
-		}
-	}
-
-	bool capturing = false;
-};
-
-std::vector<std::string> split(const std::string &s)
-{
-	std::vector<std::string> result;
-	std::istringstream iss(s);
-	for(std::string line; std::getline(iss, line);)
-	{
-		result.push_back(line);
-	}
-	return result;
-}
-
-static const std::vector<int> fibonacci = {
-	0,
-	1,
-	1,
-	2,
-	3,
-	5,
-	8,
-	13,
-	21,
-	34,
-	55,
-	89,
-	144,
-	233,
-	377,
-	610,
-	987,
-	1597,
-	2584,
-	4181,
-	6765,
-	10946,
-	17711,
-	28657,
-	46368,
-	75025,
-	121393,
-	196418,
-	317811,
-};
-
-TEST(ReactorUnitTests, PrintPrimitiveTypes)
-{
-#if defined(ENABLE_RR_PRINT) && !defined(ENABLE_RR_EMIT_PRINT_LOCATION)
-	FunctionT<void()> function;
-	{
-		bool b(true);
-		int8_t i8(-1);
-		uint8_t ui8(1);
-		int16_t i16(-1);
-		uint16_t ui16(1);
-		int32_t i32(-1);
-		uint32_t ui32(1);
-		int64_t i64(-1);
-		uint64_t ui64(1);
-		float f(1);
-		double d(2);
-		const char *cstr = "const char*";
-		std::string str = "std::string";
-		int *p = nullptr;
-
-		RR_WATCH(b);
-		RR_WATCH(i8);
-		RR_WATCH(ui8);
-		RR_WATCH(i16);
-		RR_WATCH(ui16);
-		RR_WATCH(i32);
-		RR_WATCH(ui32);
-		RR_WATCH(i64);
-		RR_WATCH(ui64);
-		RR_WATCH(f);
-		RR_WATCH(d);
-		RR_WATCH(cstr);
-		RR_WATCH(str);
-		RR_WATCH(p);
-	}
-
-	auto routine = function("one");
-
-	char pNullptr[64];
-	snprintf(pNullptr, sizeof(pNullptr), "  p: %p", nullptr);
-
-	const char *expected[] = {
-		"  b: true",
-		"  i8: -1",
-		"  ui8: 1",
-		"  i16: -1",
-		"  ui16: 1",
-		"  i32: -1",
-		"  ui32: 1",
-		"  i64: -1",
-		"  ui64: 1",
-		"  f: 1.000000",
-		"  d: 2.000000",
-		"  cstr: const char*",
-		"  str: std::string",
-		pNullptr,
-	};
-	constexpr size_t expectedSize = sizeof(expected) / sizeof(expected[0]);
-
-	StdOutCapture capture;
-	capture.start();
-	routine();
-	auto output = split(capture.stop());
-	for(size_t i = 0, j = 1; i < expectedSize; ++i, j += 2)
-	{
-		ASSERT_EQ(expected[i], output[j]);
-	}
-
-#endif
-}
-
-TEST(ReactorUnitTests, PrintReactorTypes)
-{
-#if defined(ENABLE_RR_PRINT) && !defined(ENABLE_RR_EMIT_PRINT_LOCATION)
-	FunctionT<void()> function;
-	{
-		Bool b(true);
-		Int i(-1);
-		Int2 i2(-1, -2);
-		Int4 i4(-1, -2, -3, -4);
-		UInt ui(1);
-		UInt2 ui2(1, 2);
-		UInt4 ui4(1, 2, 3, 4);
-		Short s(-1);
-		Short4 s4(-1, -2, -3, -4);
-		UShort us(1);
-		UShort4 us4(1, 2, 3, 4);
-		Float f(1);
-		Float4 f4(1, 2, 3, 4);
-		Long l(i);
-		Pointer<Int> pi = nullptr;
-		RValue<Int> rvi = i;
-		Byte by('a');
-		Byte4 by4(i4);
-
-		RR_WATCH(b);
-		RR_WATCH(i);
-		RR_WATCH(i2);
-		RR_WATCH(i4);
-		RR_WATCH(ui);
-		RR_WATCH(ui2);
-		RR_WATCH(ui4);
-		RR_WATCH(s);
-		RR_WATCH(s4);
-		RR_WATCH(us);
-		RR_WATCH(us4);
-		RR_WATCH(f);
-		RR_WATCH(f4);
-		RR_WATCH(l);
-		RR_WATCH(pi);
-		RR_WATCH(rvi);
-		RR_WATCH(by);
-		RR_WATCH(by4);
-	}
-
-	auto routine = function("one");
-
-	char piNullptr[64];
-	snprintf(piNullptr, sizeof(piNullptr), "  pi: %p", nullptr);
-
-	const char *expected[] = {
-		"  b: true",
-		"  i: -1",
-		"  i2: [-1, -2]",
-		"  i4: [-1, -2, -3, -4]",
-		"  ui: 1",
-		"  ui2: [1, 2]",
-		"  ui4: [1, 2, 3, 4]",
-		"  s: -1",
-		"  s4: [-1, -2, -3, -4]",
-		"  us: 1",
-		"  us4: [1, 2, 3, 4]",
-		"  f: 1.000000",
-		"  f4: [1.000000, 2.000000, 3.000000, 4.000000]",
-		"  l: -1",
-		piNullptr,
-		"  rvi: -1",
-		"  by: 97",
-		"  by4: [255, 254, 253, 252]",
-	};
-	constexpr size_t expectedSize = sizeof(expected) / sizeof(expected[0]);
-
-	StdOutCapture capture;
-	capture.start();
-	routine();
-	auto output = split(capture.stop());
-	for(size_t i = 0, j = 1; i < expectedSize; ++i, j += 2)
-	{
-		ASSERT_EQ(expected[i], output[j]);
-	}
-
-#endif
 }
 
 TEST(ReactorUnitTests, Sample)
@@ -2102,6 +1801,38 @@ TYPED_TEST(GEPTest, PtrOffsets)
 	}
 }
 
+static const std::vector<int> fibonacci = {
+	0,
+	1,
+	1,
+	2,
+	3,
+	5,
+	8,
+	13,
+	21,
+	34,
+	55,
+	89,
+	144,
+	233,
+	377,
+	610,
+	987,
+	1597,
+	2584,
+	4181,
+	6765,
+	10946,
+	17711,
+	28657,
+	46368,
+	75025,
+	121393,
+	196418,
+	317811,
+};
+
 TEST(ReactorUnitTests, Fibonacci)
 {
 	FunctionT<int(int)> function;
@@ -2338,6 +2069,64 @@ struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_F
 	}
 };
 
+using float4 = float[4];
+using int4 = int[4];
+
+// TODO: Move to Reactor.hpp
+template<>
+struct rr::CToReactor<int[4]>
+{
+	using type = Int4;
+	static Int4 cast(float[4]);
+};
+
+// Value type wrapper around a <type>[4] (i.e. float4, int4)
+template<typename T>
+struct type4_value
+{
+	using E = typename std::remove_pointer_t<std::decay_t<T>>;
+
+	type4_value() = default;
+	explicit type4_value(E rep)
+	    : v{ rep, rep, rep, rep }
+	{}
+	type4_value(E x, E y, E z, E w)
+	    : v{ x, y, z, w }
+	{}
+
+	bool operator==(const type4_value &rhs) const
+	{
+		return std::equal(std::begin(v), std::end(v), rhs.v);
+	}
+
+	// For gtest printing
+	friend std::ostream &operator<<(std::ostream &os, const type4_value &value)
+	{
+		return os << "[" << value.v[0] << ", " << value.v[1] << ", " << value.v[2] << ", " << value.v[3] << "]";
+	}
+
+	T v;
+};
+
+using float4_value = type4_value<float4>;
+using int4_value = type4_value<int4>;
+
+// Invoke a void(type4_value<T>*) routine on &v.v, returning wrapped result in v
+template<typename RoutineType, typename T>
+type4_value<T> invokeRoutine(RoutineType &routine, type4_value<T> v)
+{
+	routine(&v.v);
+	return v;
+}
+
+// Invoke a void(type4_value<T>*, type4_value<T>*) routine on &v1.v, &v2.v returning wrapped result in v1
+template<typename RoutineType, typename T>
+type4_value<T> invokeRoutine(RoutineType &routine, type4_value<T> v1, type4_value<T> v2)
+{
+	routine(&v1.v, &v2.v);
+	return v1;
+}
+
 struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_Float4>
 {
 	void test()
@@ -2410,6 +2199,7 @@ float vulkan_coshf(float a)
 }
 
 // clang-format off
+constexpr float PI = 3.141592653589793f;
 INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(
 	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); },   sinf,   {0.f, 1.f, PI, 12345.f}  },
 	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); },   cosf,   {0.f, 1.f, PI, 12345.f}  },
@@ -3055,6 +2845,215 @@ TEST(ReactorUnitTests, Multithreaded_Coroutine)
 			EXPECT_EQ(result.yieldValues[2], 0);
 		}
 	}
+}
+
+// For gtest printing of pairs
+namespace std {
+template<typename T, typename U>
+std::ostream &operator<<(std::ostream &os, const std::pair<T, U> &value)
+{
+	return os << "{ " << value.first << ", " << value.second << " }";
+}
+}  // namespace std
+
+class StdOutCapture
+{
+public:
+	~StdOutCapture()
+	{
+		stopIfCapturing();
+	}
+
+	void start()
+	{
+		stopIfCapturing();
+		capturing = true;
+		testing::internal::CaptureStdout();
+	}
+
+	std::string stop()
+	{
+		assert(capturing);
+		capturing = false;
+		return testing::internal::GetCapturedStdout();
+	}
+
+private:
+	void stopIfCapturing()
+	{
+		if(capturing)
+		{
+			// This stops the capture
+			testing::internal::GetCapturedStdout();
+		}
+	}
+
+	bool capturing = false;
+};
+
+std::vector<std::string> split(const std::string &s)
+{
+	std::vector<std::string> result;
+	std::istringstream iss(s);
+	for(std::string line; std::getline(iss, line);)
+	{
+		result.push_back(line);
+	}
+	return result;
+}
+
+TEST(ReactorUnitTests, PrintPrimitiveTypes)
+{
+#if defined(ENABLE_RR_PRINT) && !defined(ENABLE_RR_EMIT_PRINT_LOCATION)
+	FunctionT<void()> function;
+	{
+		bool b(true);
+		int8_t i8(-1);
+		uint8_t ui8(1);
+		int16_t i16(-1);
+		uint16_t ui16(1);
+		int32_t i32(-1);
+		uint32_t ui32(1);
+		int64_t i64(-1);
+		uint64_t ui64(1);
+		float f(1);
+		double d(2);
+		const char *cstr = "const char*";
+		std::string str = "std::string";
+		int *p = nullptr;
+
+		RR_WATCH(b);
+		RR_WATCH(i8);
+		RR_WATCH(ui8);
+		RR_WATCH(i16);
+		RR_WATCH(ui16);
+		RR_WATCH(i32);
+		RR_WATCH(ui32);
+		RR_WATCH(i64);
+		RR_WATCH(ui64);
+		RR_WATCH(f);
+		RR_WATCH(d);
+		RR_WATCH(cstr);
+		RR_WATCH(str);
+		RR_WATCH(p);
+	}
+
+	auto routine = function("one");
+
+	char pNullptr[64];
+	snprintf(pNullptr, sizeof(pNullptr), "  p: %p", nullptr);
+
+	const char *expected[] = {
+		"  b: true",
+		"  i8: -1",
+		"  ui8: 1",
+		"  i16: -1",
+		"  ui16: 1",
+		"  i32: -1",
+		"  ui32: 1",
+		"  i64: -1",
+		"  ui64: 1",
+		"  f: 1.000000",
+		"  d: 2.000000",
+		"  cstr: const char*",
+		"  str: std::string",
+		pNullptr,
+	};
+	constexpr size_t expectedSize = sizeof(expected) / sizeof(expected[0]);
+
+	StdOutCapture capture;
+	capture.start();
+	routine();
+	auto output = split(capture.stop());
+	for(size_t i = 0, j = 1; i < expectedSize; ++i, j += 2)
+	{
+		ASSERT_EQ(expected[i], output[j]);
+	}
+
+#endif
+}
+
+TEST(ReactorUnitTests, PrintReactorTypes)
+{
+#if defined(ENABLE_RR_PRINT) && !defined(ENABLE_RR_EMIT_PRINT_LOCATION)
+	FunctionT<void()> function;
+	{
+		Bool b(true);
+		Int i(-1);
+		Int2 i2(-1, -2);
+		Int4 i4(-1, -2, -3, -4);
+		UInt ui(1);
+		UInt2 ui2(1, 2);
+		UInt4 ui4(1, 2, 3, 4);
+		Short s(-1);
+		Short4 s4(-1, -2, -3, -4);
+		UShort us(1);
+		UShort4 us4(1, 2, 3, 4);
+		Float f(1);
+		Float4 f4(1, 2, 3, 4);
+		Long l(i);
+		Pointer<Int> pi = nullptr;
+		RValue<Int> rvi = i;
+		Byte by('a');
+		Byte4 by4(i4);
+
+		RR_WATCH(b);
+		RR_WATCH(i);
+		RR_WATCH(i2);
+		RR_WATCH(i4);
+		RR_WATCH(ui);
+		RR_WATCH(ui2);
+		RR_WATCH(ui4);
+		RR_WATCH(s);
+		RR_WATCH(s4);
+		RR_WATCH(us);
+		RR_WATCH(us4);
+		RR_WATCH(f);
+		RR_WATCH(f4);
+		RR_WATCH(l);
+		RR_WATCH(pi);
+		RR_WATCH(rvi);
+		RR_WATCH(by);
+		RR_WATCH(by4);
+	}
+
+	auto routine = function("one");
+
+	char piNullptr[64];
+	snprintf(piNullptr, sizeof(piNullptr), "  pi: %p", nullptr);
+
+	const char *expected[] = {
+		"  b: true",
+		"  i: -1",
+		"  i2: [-1, -2]",
+		"  i4: [-1, -2, -3, -4]",
+		"  ui: 1",
+		"  ui2: [1, 2]",
+		"  ui4: [1, 2, 3, 4]",
+		"  s: -1",
+		"  s4: [-1, -2, -3, -4]",
+		"  us: 1",
+		"  us4: [1, 2, 3, 4]",
+		"  f: 1.000000",
+		"  f4: [1.000000, 2.000000, 3.000000, 4.000000]",
+		"  l: -1",
+		piNullptr,
+		"  rvi: -1",
+		"  by: 97",
+		"  by4: [255, 254, 253, 252]",
+	};
+	constexpr size_t expectedSize = sizeof(expected) / sizeof(expected[0]);
+
+	StdOutCapture capture;
+	capture.start();
+	routine();
+	auto output = split(capture.stop());
+	for(size_t i = 0, j = 1; i < expectedSize; ++i, j += 2)
+	{
+		ASSERT_EQ(expected[i], output[j]);
+	}
+
+#endif
 }
 
 int main(int argc, char **argv)
