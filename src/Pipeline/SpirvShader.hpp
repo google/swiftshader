@@ -555,7 +555,9 @@ public:
 		bool NeedsCentroid : 1;
 
 		// Compute workgroup dimensions
-		int WorkgroupSizeX = 1, WorkgroupSizeY = 1, WorkgroupSizeZ = 1;
+		int WorkgroupSizeX = 1;
+		int WorkgroupSizeY = 1;
+		int WorkgroupSizeZ = 1;
 	};
 
 	Modes const &getModes() const

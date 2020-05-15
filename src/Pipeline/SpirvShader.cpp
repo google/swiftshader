@@ -189,7 +189,7 @@ SpirvShader::SpirvShader(
 			case spv::OpBranchConditional:
 			case spv::OpSwitch:
 			case spv::OpReturn:
-			// fallthrough
+				// [[fallthrough]]
 
 			// Termination instruction:
 			case spv::OpKill:
@@ -874,6 +874,12 @@ void SpirvShader::ProcessInterfaceVariable(Object &object)
 
 void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 {
+	Function::ID function = insn.word(1);
+	if(function != entryPoint)
+	{
+		return;
+	}
+
 	auto mode = static_cast<spv::ExecutionMode>(insn.word(2));
 	switch(mode)
 	{
