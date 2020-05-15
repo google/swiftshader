@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0dc4b79e_d0723624",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-05-15T14:11:59Z",
+      "side": 1,
+      "message": "Nothing material (pun unintended). It just ensures the variables exist on the stack instead of sometimes in registers only. When debugging the raw assembly code it allows putting a breakpoint on a data change, for example. But we have better debugging tools now, and as noted we can easily materialize on first use, which is actually what ENABLE_RR_DEBUG_INFO already does in the LValue\u003c\u003e constructor.\n\nThe feature was also useful in the early days of implementing delayed materialization, to check whether a bug was caused by it or not. We\u0027ve been using delayed materialization for many months now, so if we ever encounter a bug that\u0027s potentially related to it, we can easily confirm that at that time using materialization on first. No need for keeping this define around for that unlikely event.",
+      "parentUuid": "7f609567_414ac014",
+      "range": {
+        "startLine": 16,
+        "startChar": 22,
+        "endLine": 16,
+        "endChar": 69
+      },
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d177887_7b6a7176",
         "filename": "src/Reactor/Reactor.hpp",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c930d39_8061ce6d",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3112,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-05-15T14:11:59Z",
+      "side": 1,
+      "message": "No, we only support indexing into arrays by 32-bit indices at this point because that\u0027s what GPUs support, and that\u0027s unlikely to change any time soon. Note vk::MAX_MEMORY_ALLOCATION_SIZE is specifically less than 2 GiB for this reason, too. We\u0027ll want to make more use of AVX2 and AVX-512 gather/scatter instructions in the future, and those are also most efficient with 32-bit indices.",
+      "parentUuid": "2d177887_7b6a7176",
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
