@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f609567_414ac014",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-05-15T13:47:31Z",
+      "side": 1,
+      "message": "What did this feature do? What are we losing?",
+      "range": {
+        "startLine": 16,
+        "startChar": 22,
+        "endLine": 16,
+        "endChar": 69
+      },
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d177887_7b6a7176",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3112,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-05-15T13:47:31Z",
+      "side": 1,
+      "message": "We should follow-up with a change that makes the size and indices all size_t instead of \u0027int\u0027 and \u0027unsigned int\u0027.",
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
