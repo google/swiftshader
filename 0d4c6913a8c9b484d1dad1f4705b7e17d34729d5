@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "553c9e30_46b4b736",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-05-15T14:16:38Z",
+      "side": 1,
+      "message": "Cool.",
+      "parentUuid": "0dc4b79e_d0723624",
+      "range": {
+        "startLine": 16,
+        "startChar": 22,
+        "endLine": 16,
+        "endChar": 69
+      },
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d177887_7b6a7176",
         "filename": "src/Reactor/Reactor.hpp",
         "patchSetId": 2
@@ -78,6 +102,24 @@
       "side": 1,
       "message": "No, we only support indexing into arrays by 32-bit indices at this point because that\u0027s what GPUs support, and that\u0027s unlikely to change any time soon. Note vk::MAX_MEMORY_ALLOCATION_SIZE is specifically less than 2 GiB for this reason, too. We\u0027ll want to make more use of AVX2 and AVX-512 gather/scatter instructions in the future, and those are also most efficient with 32-bit indices.",
       "parentUuid": "2d177887_7b6a7176",
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "166c63ff_c8b6c46b",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3112,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-05-15T14:16:38Z",
+      "side": 1,
+      "message": "Interesting. Well, we should at least be consistent and use \u0027unsigned int\u0027 (or uint32_t) everywhere (right now, have \u0027int\u0027 and \u0027unsigned int\u0027).",
+      "parentUuid": "9c930d39_8061ce6d",
       "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
