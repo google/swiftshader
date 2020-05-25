@@ -54,7 +54,6 @@
                 "VERIFY_LLVM_IR=1"
             ],
             "includePath": [
-                "${workspaceFolder}/build/spirv-tools-ext/include",
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/third_party/benchmark/include",

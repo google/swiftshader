@@ -26,7 +26,7 @@
 #	include "Vulkan/Debug/Thread.hpp"
 #	include "Vulkan/Debug/Variable.hpp"
 
-#	include "spirv-tools/ext/OpenCLDebugInfo100.h"
+#	include "spirv/unified1/OpenCLDebugInfo100.h"
 #	include "spirv-tools/libspirv.h"
 
 #	include <algorithm>

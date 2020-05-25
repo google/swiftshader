@@ -63,23 +63,6 @@ genrule {
         "$(location) --extinst-glsl-grammar=$(location :swiftshader_spirv_headers_unified1_extinst.glsl.std.450.grammar.json) --glsl-insts-output=$(location glsl.std.450.insts.inc); "
 }
 
-
-genrule {
-    name: "swiftshader_spvtools_generate_language_headers",
-    out: [
-        "DebugInfo.h",
-        "OpenCLDebugInfo100.h",
-    ],
-    srcs: [
-        "source/extinst.debuginfo.grammar.json",
-        "source/extinst.opencl.debuginfo.100.grammar.json",
-    ],
-    tool_files: ["utils/generate_language_headers.py"],
-    cmd: 
-        "$(location) --extinst-grammar=$(location source/extinst.debuginfo.grammar.json) --extinst-output-path=$(location DebugInfo.h); "+
-        "$(location) --extinst-grammar=$(location source/extinst.opencl.debuginfo.100.grammar.json) --extinst-output-path=$(location OpenCLDebugInfo100.h); "
-}
-
 genrule {
     name: "swiftshader_spvtools_generate_registry_tables",
     out: [
@@ -117,11 +100,11 @@ cc_library_static {
         "include",
     ],
     include_dirs: [
-        "external/swiftshader/third_party/SPIRV-Headers/include"
+        "external/swiftshader/third_party/SPIRV-Headers/include/",
+        "external/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/",
     ],
     generated_headers: [
         "swiftshader_spvtools_generate_grammar_tables",
-        "swiftshader_spvtools_generate_language_headers",
         "swiftshader_spvtools_update_build_version",
         "swiftshader_spvtools_generate_registry_tables",
     ],
