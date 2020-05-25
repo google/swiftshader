@@ -123,6 +123,24 @@
       "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7212ae8e_5ec2be39",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3112,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-05-25T21:40:51Z",
+      "side": 1,
+      "message": "Both LLVM and Subzero take a signed int as the array size for local variables. In addition, it\u0027s a signed integer in the C spec (but using a negative amount is undefined behavior). Note this only affects stack allocations, so the number of elements is very limited either way. So I\u0027m inclined to leave this as-is unless it causes us issues in practice.",
+      "parentUuid": "166c63ff_c8b6c46b",
+      "revId": "0d4c6913a8c9b484d1dad1f4705b7e17d34729d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
