@@ -45,13 +45,16 @@ TEST(TransformationAddTypeVectorTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Id already in use
-  ASSERT_FALSE(TransformationAddTypeVector(4, 6, 2).IsApplicable(context.get(),
-                                                                 fact_manager));
+  ASSERT_FALSE(TransformationAddTypeVector(4, 6, 2).IsApplicable(
+      context.get(), transformation_context));
   // %1 is not a type
   ASSERT_FALSE(TransformationAddTypeVector(100, 1, 2).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 
   TransformationAddTypeVector transformations[] = {
       // %100 = OpTypeVector %6 2
@@ -67,8 +70,9 @@ TEST(TransformationAddTypeVectorTest, BasicTest) {
       TransformationAddTypeVector(103, 9, 2)};
 
   for (auto& transformation : transformations) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
   }
   ASSERT_TRUE(IsValid(env, context.get()));
 

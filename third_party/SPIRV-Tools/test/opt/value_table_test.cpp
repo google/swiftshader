@@ -684,6 +684,50 @@ TEST_F(ValueTableTest, EmptyPhiTest) {
   vtable.GetValueNumber(inst);
 }
 
+TEST_F(ValueTableTest, RedundantSampledImageLoad) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %gl_FragColor
+               OpExecutionMode %main OriginLowerLeft
+               OpSource GLSL 330
+               OpName %main "main"
+               OpName %tex0 "tex0"
+               OpName %gl_FragColor "gl_FragColor"
+               OpDecorate %tex0 Location 0
+               OpDecorate %tex0 DescriptorSet 0
+               OpDecorate %tex0 Binding 0
+               OpDecorate %gl_FragColor Location 0
+       %void = OpTypeVoid
+          %6 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+          %9 = OpTypeImage %float 2D 0 0 0 1 Unknown
+         %10 = OpTypeSampledImage %9
+%_ptr_UniformConstant_10 = OpTypePointer UniformConstant %10
+       %tex0 = OpVariable %_ptr_UniformConstant_10 UniformConstant
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+         %13 = OpConstantNull %v4float
+%gl_FragColor = OpVariable %_ptr_Output_v4float Output
+         %14 = OpUndef %v4float
+       %main = OpFunction %void None %6
+         %15 = OpLabel
+         %16 = OpLoad %10 %tex0
+         %17 = OpImageSampleProjImplicitLod %v4float %16 %13
+         %18 = OpImageSampleProjImplicitLod %v4float %16 %13
+         %19 = OpFAdd %v4float %18 %17
+               OpStore %gl_FragColor %19
+               OpReturn
+               OpFunctionEnd
+  )";
+  auto context = BuildModule(SPV_ENV_UNIVERSAL_1_2, nullptr, text);
+  ValueNumberTable vtable(context.get());
+  Instruction* load1 = context->get_def_use_mgr()->GetDef(17);
+  Instruction* load2 = context->get_def_use_mgr()->GetDef(18);
+  EXPECT_EQ(vtable.GetValueNumber(load1), vtable.GetValueNumber(load2));
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

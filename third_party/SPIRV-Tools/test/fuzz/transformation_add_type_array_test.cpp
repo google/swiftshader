@@ -54,37 +54,40 @@ TEST(TransformationAddTypeArrayTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Id already in use
   ASSERT_FALSE(TransformationAddTypeArray(4, 10, 16).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
   // %1 is not a type
   ASSERT_FALSE(TransformationAddTypeArray(100, 1, 16)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %3 is a function type
   ASSERT_FALSE(TransformationAddTypeArray(100, 3, 16)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %2 is not a constant
   ASSERT_FALSE(TransformationAddTypeArray(100, 11, 2)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %18 is not an integer
   ASSERT_FALSE(TransformationAddTypeArray(100, 11, 18)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %13 is signed 0
   ASSERT_FALSE(TransformationAddTypeArray(100, 11, 13)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %14 is negative
   ASSERT_FALSE(TransformationAddTypeArray(100, 11, 14)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %17 is unsigned 0
   ASSERT_FALSE(TransformationAddTypeArray(100, 11, 17)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   TransformationAddTypeArray transformations[] = {
       // %100 = OpTypeArray %10 %16
@@ -94,8 +97,9 @@ TEST(TransformationAddTypeArrayTest, BasicTest) {
       TransformationAddTypeArray(101, 7, 12)};
 
   for (auto& transformation : transformations) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
   }
   ASSERT_TRUE(IsValid(env, context.get()));
 

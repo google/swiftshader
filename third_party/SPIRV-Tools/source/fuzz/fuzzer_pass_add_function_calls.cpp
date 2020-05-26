@@ -24,10 +24,11 @@ namespace spvtools {
 namespace fuzz {
 
 FuzzerPassAddFunctionCalls::FuzzerPassAddFunctionCalls(
-    opt::IRContext* ir_context, FactManager* fact_manager,
+    opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
     protobufs::TransformationSequence* transformations)
-    : FuzzerPass(ir_context, fact_manager, fuzzer_context, transformations) {}
+    : FuzzerPass(ir_context, transformation_context, fuzzer_context,
+                 transformations) {}
 
 FuzzerPassAddFunctionCalls::~FuzzerPassAddFunctionCalls() = default;
 
@@ -74,8 +75,9 @@ void FuzzerPassAddFunctionCalls::Apply() {
         while (!candidate_functions.empty()) {
           opt::Function* candidate_function =
               GetFuzzerContext()->RemoveAtRandomIndex(&candidate_functions);
-          if (!GetFactManager()->BlockIsDead(block->id()) &&
-              !GetFactManager()->FunctionIsLivesafe(
+          if (!GetTransformationContext()->GetFactManager()->BlockIsDead(
+                  block->id()) &&
+              !GetTransformationContext()->GetFactManager()->FunctionIsLivesafe(
                   candidate_function->result_id())) {
             // Unless in a dead block, only livesafe functions can be invoked
             continue;
@@ -132,9 +134,11 @@ FuzzerPassAddFunctionCalls::GetAvailableInstructionsSuitableForActualParameters(
                 default:
                   return false;
               }
-              if (!GetFactManager()->BlockIsDead(block->id()) &&
-                  !GetFactManager()->PointeeValueIsIrrelevant(
-                      inst->result_id())) {
+              if (!GetTransformationContext()->GetFactManager()->BlockIsDead(
+                      block->id()) &&
+                  !GetTransformationContext()
+                       ->GetFactManager()
+                       ->PointeeValueIsIrrelevant(inst->result_id())) {
                 // We can only pass a pointer as an actual parameter
                 // if the pointee value for the pointer is irrelevant,
                 // or if the block from which we would make the
@@ -210,8 +214,9 @@ std::vector<uint32_t> FuzzerPassAddFunctionCalls::ChooseFunctionCallArguments(
         result.push_back(fresh_variable_id);
 
         // Now bring the variable into existence.
-        if (type_instruction->GetSingleWordInOperand(0) ==
-            SpvStorageClassFunction) {
+        auto storage_class = static_cast<SpvStorageClass>(
+            type_instruction->GetSingleWordInOperand(0));
+        if (storage_class == SpvStorageClassFunction) {
           // Add a new zero-initialized local variable to the current
           // function, noting that its pointee value is irrelevant.
           ApplyTransformation(TransformationAddLocalVariable(
@@ -220,16 +225,19 @@ std::vector<uint32_t> FuzzerPassAddFunctionCalls::ChooseFunctionCallArguments(
                   type_instruction->GetSingleWordInOperand(1)),
               true));
         } else {
-          assert(type_instruction->GetSingleWordInOperand(0) ==
-                     SpvStorageClassPrivate &&
-                 "Only Function and Private storage classes are "
+          assert((storage_class == SpvStorageClassPrivate ||
+                  storage_class == SpvStorageClassWorkgroup) &&
+                 "Only Function, Private and Workgroup storage classes are "
                  "supported at present.");
-          // Add a new zero-initialized global variable to the module,
-          // noting that its pointee value is irrelevant.
+          // Add a new global variable to the module, zero-initializing it if
+          // it has Private storage class, and noting that its pointee value is
+          // irrelevant.
           ApplyTransformation(TransformationAddGlobalVariable(
-              fresh_variable_id, arg_type_id,
-              FindOrCreateZeroConstant(
-                  type_instruction->GetSingleWordInOperand(1)),
+              fresh_variable_id, arg_type_id, storage_class,
+              storage_class == SpvStorageClassPrivate
+                  ? FindOrCreateZeroConstant(
+                        type_instruction->GetSingleWordInOperand(1))
+                  : 0,
               true));
         }
       } else {

@@ -114,6 +114,10 @@ Options (in lexicographical order):)",
                and VK_AMD_shader_trinary_minmax with equivalent code using core
                instructions and capabilities.)");
   printf(R"(
+  --before-hlsl-legalization
+               Forwards this option to the validator.  See the validator help
+               for details.)");
+  printf(R"(
   --ccp
                Apply the conditional constant propagation transform.  This will
                propagate constant values throughout the program, and simplify
@@ -403,14 +407,21 @@ Options (in lexicographical order):)",
                Looks for instructions in the same function that compute the
                same value, and deletes the redundant ones.)");
   printf(R"(
+  --relax-block-layout
+               Forwards this option to the validator.  See the validator help
+               for details.)");
+  printf(R"(
   --relax-float-ops
                Decorate all float operations with RelaxedPrecision if not already
                so decorated. This does not decorate types or variables.)");
   printf(R"(
+  --relax-logical-pointer
+               Forwards this option to the validator.  See the validator help
+               for details.)");
+  printf(R"(
   --relax-struct-store
-               Allow store from one struct type to a different type with
-               compatible layout and members. This option is forwarded to the
-               validator.)");
+               Forwards this option to the validator.  See the validator help
+               for details.)");
   printf(R"(
   --remove-duplicates
                Removes duplicate types, decorations, capabilities and extension
@@ -424,6 +435,10 @@ Options (in lexicographical order):)",
   --ssa-rewrite
                Replace loads and stores to function local variables with
                operations on SSA IDs.)");
+  printf(R"(
+  --scalar-block-layout
+               Forwards this option to the validator.  See the validator help
+               for details.)");
   printf(R"(
   --scalar-replacement[=<n>]
                Replace aggregate function scope variables that are only accessed
@@ -443,6 +458,10 @@ Options (in lexicographical order):)",
   --simplify-instructions
                Will simplify all instructions in the function as much as
                possible.)");
+  printf(R"(
+  --skip-block-layout
+               Forwards this option to the validator.  See the validator help
+               for details.)");
   printf(R"(
   --split-invalid-unreachable
                Attempts to legalize for WebGPU cases where an unreachable
@@ -822,6 +841,18 @@ OptStatus ParseFlags(int argc, const char** argv,
         optimizer->RegisterWebGPUToVulkanPasses();
       } else if (0 == strcmp(cur_arg, "--validate-after-all")) {
         optimizer->SetValidateAfterAll(true);
+      } else if (0 == strcmp(cur_arg, "--before-hlsl-legalization")) {
+        validator_options->SetBeforeHlslLegalization(true);
+      } else if (0 == strcmp(cur_arg, "--relax-logical-pointer")) {
+        validator_options->SetRelaxLogicalPointer(true);
+      } else if (0 == strcmp(cur_arg, "--relax-block-layout")) {
+        validator_options->SetRelaxBlockLayout(true);
+      } else if (0 == strcmp(cur_arg, "--scalar-block-layout")) {
+        validator_options->SetScalarBlockLayout(true);
+      } else if (0 == strcmp(cur_arg, "--skip-block-layout")) {
+        validator_options->SetSkipBlockLayout(true);
+      } else if (0 == strcmp(cur_arg, "--relax-struct-store")) {
+        validator_options->SetRelaxStructStore(true);
       } else {
         // Some passes used to accept the form '--pass arg', canonicalize them
         // to '--pass=arg'.

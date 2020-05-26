@@ -21,10 +21,11 @@ namespace spvtools {
 namespace fuzz {
 
 FuzzerPassAddStores::FuzzerPassAddStores(
-    opt::IRContext* ir_context, FactManager* fact_manager,
+    opt::IRContext* ir_context, TransformationContext* transformation_context,
     FuzzerContext* fuzzer_context,
     protobufs::TransformationSequence* transformations)
-    : FuzzerPass(ir_context, fact_manager, fuzzer_context, transformations) {}
+    : FuzzerPass(ir_context, transformation_context, fuzzer_context,
+                 transformations) {}
 
 FuzzerPassAddStores::~FuzzerPassAddStores() = default;
 
@@ -67,12 +68,11 @@ void FuzzerPassAddStores::Apply() {
                     // Not a pointer.
                     return false;
                   }
-                  if (type_inst->GetSingleWordInOperand(0) ==
-                      SpvStorageClassInput) {
-                    // Read-only: cannot store to it.
+                  if (instruction->IsReadOnlyPointer()) {
+                    // Read only: cannot store to it.
                     return false;
                   }
-                  switch (instruction->result_id()) {
+                  switch (instruction->opcode()) {
                     case SpvOpConstantNull:
                     case SpvOpUndef:
                       // Do not allow storing to a null or undefined pointer;
@@ -82,9 +82,13 @@ void FuzzerPassAddStores::Apply() {
                     default:
                       break;
                   }
-                  return GetFactManager()->BlockIsDead(block->id()) ||
-                         GetFactManager()->PointeeValueIsIrrelevant(
-                             instruction->result_id());
+                  return GetTransformationContext()
+                             ->GetFactManager()
+                             ->BlockIsDead(block->id()) ||
+                         GetTransformationContext()
+                             ->GetFactManager()
+                             ->PointeeValueIsIrrelevant(
+                                 instruction->result_id());
                 });
 
         // At this point, |relevant_pointers| contains all the pointers we might

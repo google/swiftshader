@@ -70,6 +70,7 @@ OpCapability Shader
 %subgroup = OpConstant %u32 3
 %invocation = OpConstant %u32 4
 %queuefamily = OpConstant %u32 5
+%shadercall = OpConstant %u32 6
 
 %none = OpConstant %u32 0
 %acquire = OpConstant %u32 2
@@ -1584,6 +1585,79 @@ OpFunctionEnd
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("Memory Semantics must be a constant instruction when "
                         "CooperativeMatrixNV capability is present"));
+}
+
+TEST_F(ValidateBarriers, OpMemoryBarrierShaderCallRayGenSuccess) {
+  const std::string body =
+      "OpMemoryBarrier %shadercall %release_uniform_workgroup";
+
+  CompileSuccessfully(GenerateShaderCodeImpl(body,
+                                             // capabilities_and_extensions
+                                             R"(
+                                               OpCapability VulkanMemoryModelKHR
+                                               OpCapability RayTracingProvisionalKHR
+                                               OpExtension "SPV_KHR_vulkan_memory_model"
+                                               OpExtension "SPV_KHR_ray_tracing"
+                                             )",
+                                             // definitions
+                                             "",
+                                             // execution_model
+                                             "RayGenerationKHR",
+                                             // memory_model
+                                             "OpMemoryModel Logical VulkanKHR"),
+                      SPV_ENV_VULKAN_1_1);
+
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_1));
+}
+
+TEST_F(ValidateBarriers, OpMemoryBarrierShaderCallComputeFailure) {
+  const std::string body =
+      "OpMemoryBarrier %shadercall %release_uniform_workgroup";
+
+  CompileSuccessfully(GenerateShaderCodeImpl(body,
+                                             // capabilities_and_extensions
+                                             R"(
+                                               OpCapability VulkanMemoryModelKHR
+                                               OpExtension "SPV_KHR_vulkan_memory_model"
+                                             )",
+                                             // definitions
+                                             "",
+                                             // execution_model
+                                             "GLCompute",
+                                             // memory_model
+                                             "OpMemoryModel Logical VulkanKHR"),
+                      SPV_ENV_VULKAN_1_1);
+
+  ASSERT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions(SPV_ENV_VULKAN_1_1));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr(
+          "ShaderCallKHR Memory Scope requires a ray tracing execution model"));
+}
+
+TEST_F(ValidateBarriers, OpControlBarrierShaderCallRayGenFailure) {
+  const std::string body = "OpControlBarrier %shadercall %shadercall %none";
+
+  CompileSuccessfully(GenerateShaderCodeImpl(body,
+                                             // capabilities_and_extensions
+                                             R"(
+                                               OpCapability VulkanMemoryModelKHR
+                                               OpCapability RayTracingProvisionalKHR
+                                               OpExtension "SPV_KHR_vulkan_memory_model"
+                                               OpExtension "SPV_KHR_ray_tracing"
+                                             )",
+                                             // definitions
+                                             "",
+                                             // execution_model
+                                             "RayGenerationKHR",
+                                             // memory_model
+                                             "OpMemoryModel Logical VulkanKHR"),
+                      SPV_ENV_VULKAN_1_1);
+
+  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_VULKAN_1_1));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("in Vulkan environment Execution Scope is limited to "
+                        "Workgroup and Subgroup"));
 }
 
 }  // namespace

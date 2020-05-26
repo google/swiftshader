@@ -118,169 +118,194 @@ TEST(TransformationAccessChainTest, BasicTest) {
   // Indices 0-5 are in ids 80-85
 
   FactManager fact_manager;
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(54);
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      54);
 
   // Bad: id is not fresh
   ASSERT_FALSE(TransformationAccessChain(
                    43, 43, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer id does not exist
   ASSERT_FALSE(TransformationAccessChain(
                    100, 1000, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer id is not a type
   ASSERT_FALSE(TransformationAccessChain(
                    100, 5, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer id is not a pointer
   ASSERT_FALSE(TransformationAccessChain(
                    100, 23, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: index id does not exist
   ASSERT_FALSE(TransformationAccessChain(
                    100, 43, {1000}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: index id is not a constant
   ASSERT_FALSE(TransformationAccessChain(
                    100, 43, {24}, MakeInstructionDescriptor(25, SpvOpIAdd, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: too many indices
   ASSERT_FALSE(
       TransformationAccessChain(100, 43, {80, 80, 80},
                                 MakeInstructionDescriptor(24, SpvOpLoad, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Bad: index id is out of bounds
   ASSERT_FALSE(
       TransformationAccessChain(100, 43, {80, 83},
                                 MakeInstructionDescriptor(24, SpvOpLoad, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Bad: attempt to insert before variable
   ASSERT_FALSE(TransformationAccessChain(
                    100, 34, {}, MakeInstructionDescriptor(36, SpvOpVariable, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer not available
   ASSERT_FALSE(
       TransformationAccessChain(
           100, 43, {80}, MakeInstructionDescriptor(21, SpvOpAccessChain, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Bad: instruction descriptor does not identify anything
   ASSERT_FALSE(TransformationAccessChain(
                    100, 43, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 100))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer is null
   ASSERT_FALSE(TransformationAccessChain(
                    100, 45, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer is undef
   ASSERT_FALSE(TransformationAccessChain(
                    100, 46, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Bad: pointer to result type does not exist
   ASSERT_FALSE(TransformationAccessChain(
                    100, 52, {0}, MakeInstructionDescriptor(24, SpvOpLoad, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   {
     TransformationAccessChain transformation(
         100, 43, {80}, MakeInstructionDescriptor(24, SpvOpLoad, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(100));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(100));
   }
 
   {
     TransformationAccessChain transformation(
         101, 28, {81}, MakeInstructionDescriptor(42, SpvOpReturn, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(101));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(101));
   }
 
   {
     TransformationAccessChain transformation(
         102, 36, {80, 81}, MakeInstructionDescriptor(37, SpvOpStore, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(102));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(102));
   }
 
   {
     TransformationAccessChain transformation(
         103, 44, {}, MakeInstructionDescriptor(44, SpvOpStore, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(103));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(103));
   }
 
   {
     TransformationAccessChain transformation(
         104, 13, {80}, MakeInstructionDescriptor(21, SpvOpAccessChain, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(104));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(104));
   }
 
   {
     TransformationAccessChain transformation(
         105, 34, {}, MakeInstructionDescriptor(44, SpvOpStore, 1));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(105));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(105));
   }
 
   {
     TransformationAccessChain transformation(
         106, 38, {}, MakeInstructionDescriptor(40, SpvOpFunctionCall, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(106));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(106));
   }
 
   {
     TransformationAccessChain transformation(
         107, 14, {}, MakeInstructionDescriptor(24, SpvOpLoad, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(107));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(107));
   }
 
   {
     TransformationAccessChain transformation(
         108, 54, {85, 81, 81}, MakeInstructionDescriptor(24, SpvOpLoad, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(108));
+    ASSERT_TRUE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(108));
   }
 
   {
     TransformationAccessChain transformation(
         109, 48, {80, 80}, MakeInstructionDescriptor(24, SpvOpLoad, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(109));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(109));
   }
 
   std::string after_transformation = R"(
@@ -401,19 +426,24 @@ TEST(TransformationAccessChainTest, IsomorphicStructs) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   {
     TransformationAccessChain transformation(
         100, 11, {}, MakeInstructionDescriptor(5, SpvOpReturn, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
     TransformationAccessChain transformation(
         101, 12, {}, MakeInstructionDescriptor(5, SpvOpReturn, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
 

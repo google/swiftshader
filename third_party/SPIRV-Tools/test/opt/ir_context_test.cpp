@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>
 
+#include "OpenCLDebugInfo100.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "source/opt/pass.h"
@@ -370,6 +371,123 @@ TEST_F(IRContextTest, KillDecorationGroup) {
 
   // Check the OpDecorationGroup Instruction is still there.
   EXPECT_TRUE(context->annotations().empty());
+}
+
+TEST_F(IRContextTest, KillFunctionFromDebugFunction) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+          %3 = OpString "ps.hlsl"
+          %4 = OpString "foo"
+               OpSource HLSL 600
+       %void = OpTypeVoid
+          %6 = OpTypeFunction %void
+          %7 = OpExtInst %void %1 DebugSource %3
+          %8 = OpExtInst %void %1 DebugCompilationUnit 1 4 %7 HLSL
+          %9 = OpExtInst %void %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %void
+         %10 = OpExtInst %void %1 DebugFunction %4 %9 %7 1 1 %8 %4 FlagIsProtected|FlagIsPrivate 1 %11
+          %2 = OpFunction %void None %6
+         %12 = OpLabel
+               OpReturn
+               OpFunctionEnd
+         %11 = OpFunction %void None %6
+         %13 = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_2, nullptr, text);
+
+  // Delete the second variable.
+  context->KillDef(11);
+
+  // Get DebugInfoNone id.
+  uint32_t debug_info_none_id = 0;
+  for (auto it = context->ext_inst_debuginfo_begin();
+       it != context->ext_inst_debuginfo_end(); ++it) {
+    if (it->GetOpenCL100DebugOpcode() == OpenCLDebugInfo100DebugInfoNone) {
+      debug_info_none_id = it->result_id();
+    }
+  }
+  EXPECT_NE(0, debug_info_none_id);
+
+  // Check the Function operand of DebugFunction is DebugInfoNone.
+  const uint32_t kDebugFunctionOperandFunctionIndex = 13;
+  bool checked = false;
+  for (auto it = context->ext_inst_debuginfo_begin();
+       it != context->ext_inst_debuginfo_end(); ++it) {
+    if (it->GetOpenCL100DebugOpcode() == OpenCLDebugInfo100DebugFunction) {
+      EXPECT_FALSE(checked);
+      EXPECT_EQ(it->GetOperand(kDebugFunctionOperandFunctionIndex).words[0],
+                debug_info_none_id);
+      checked = true;
+    }
+  }
+  EXPECT_TRUE(checked);
+}
+
+TEST_F(IRContextTest, KillVariableFromDebugGlobalVariable) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+          %3 = OpString "ps.hlsl"
+          %4 = OpString "foo"
+          %5 = OpString "int"
+               OpSource HLSL 600
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_ptr_Private_uint = OpTypePointer Private %uint
+       %void = OpTypeVoid
+         %10 = OpTypeFunction %void
+         %11 = OpVariable %_ptr_Private_uint Private
+         %12 = OpExtInst %void %1 DebugSource %3
+         %13 = OpExtInst %void %1 DebugCompilationUnit 1 4 %12 HLSL
+         %14 = OpExtInst %void %1 DebugTypeBasic %5 %uint_32 Signed
+         %15 = OpExtInst %void %1 DebugGlobalVariable %4 %14 %12 1 12 %13 %4 %11 FlagIsDefinition
+          %2 = OpFunction %void None %10
+         %16 = OpLabel
+               OpReturn
+               OpFunctionEnd
+)";
+
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_2, nullptr, text);
+
+  // Delete the second variable.
+  context->KillDef(11);
+
+  // Get DebugInfoNone id.
+  uint32_t debug_info_none_id = 0;
+  for (auto it = context->ext_inst_debuginfo_begin();
+       it != context->ext_inst_debuginfo_end(); ++it) {
+    if (it->GetOpenCL100DebugOpcode() == OpenCLDebugInfo100DebugInfoNone) {
+      debug_info_none_id = it->result_id();
+    }
+  }
+  EXPECT_NE(0, debug_info_none_id);
+
+  // Check the Function operand of DebugFunction is DebugInfoNone.
+  const uint32_t kDebugGlobalVariableOperandVariableIndex = 11;
+  bool checked = false;
+  for (auto it = context->ext_inst_debuginfo_begin();
+       it != context->ext_inst_debuginfo_end(); ++it) {
+    if (it->GetOpenCL100DebugOpcode() ==
+        OpenCLDebugInfo100DebugGlobalVariable) {
+      EXPECT_FALSE(checked);
+      EXPECT_EQ(
+          it->GetOperand(kDebugGlobalVariableOperandVariableIndex).words[0],
+          debug_info_none_id);
+      checked = true;
+    }
+  }
+  EXPECT_TRUE(checked);
 }
 
 TEST_F(IRContextTest, BasicVisitFromEntryPoint) {

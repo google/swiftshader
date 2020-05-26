@@ -5004,6 +5004,70 @@ TEST_F(ValidateImage, SparseReadLodAMDNeedCapability) {
                         "opcodes and OpImageFetch"));
 }
 
+TEST_F(ValidateImage, GatherBiasAMDSuccess) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0001 %uniform_image_f32_2d_0001
+%sampler = OpLoad %type_sampler %uniform_sampler
+%simg = OpSampledImage %type_sampled_image_f32_2d_0001 %img %sampler
+%res1 = OpImageGather %f32vec4 %simg %f32vec4_0000 %u32_1 Bias %f32_1
+)";
+
+  const std::string extra = R"(
+OpCapability ImageGatherBiasLodAMD
+OpExtension "SPV_AMD_texture_gather_bias_lod"
+)";
+  CompileSuccessfully(GenerateShaderCode(body, extra).c_str());
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateImage, GatherLodAMDSuccess) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0001 %uniform_image_f32_2d_0001
+%sampler = OpLoad %type_sampler %uniform_sampler
+%simg = OpSampledImage %type_sampled_image_f32_2d_0001 %img %sampler
+%res1 = OpImageGather %f32vec4 %simg %f32vec4_0000 %u32_1 Lod %f32_1
+)";
+
+  const std::string extra = R"(
+OpCapability ImageGatherBiasLodAMD
+OpExtension "SPV_AMD_texture_gather_bias_lod"
+)";
+  CompileSuccessfully(GenerateShaderCode(body, extra).c_str());
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateImage, SparseGatherBiasAMDSuccess) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0001 %uniform_image_f32_2d_0001
+%sampler = OpLoad %type_sampler %uniform_sampler
+%simg = OpSampledImage %type_sampled_image_f32_2d_0001 %img %sampler
+%res1 = OpImageSparseGather %struct_u32_f32vec4 %simg %f32vec4_0000 %u32_1 Bias %f32_1
+)";
+
+  const std::string extra = R"(
+OpCapability ImageGatherBiasLodAMD
+OpExtension "SPV_AMD_texture_gather_bias_lod"
+)";
+  CompileSuccessfully(GenerateShaderCode(body, extra).c_str());
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
+TEST_F(ValidateImage, SparseGatherLodAMDSuccess) {
+  const std::string body = R"(
+%img = OpLoad %type_image_f32_2d_0001 %uniform_image_f32_2d_0001
+%sampler = OpLoad %type_sampler %uniform_sampler
+%simg = OpSampledImage %type_sampled_image_f32_2d_0001 %img %sampler
+%res1 = OpImageSparseGather %struct_u32_f32vec4 %simg %f32vec4_0000 %u32_1 Lod %f32_1
+)";
+
+  const std::string extra = R"(
+OpCapability ImageGatherBiasLodAMD
+OpExtension "SPV_AMD_texture_gather_bias_lod"
+)";
+  CompileSuccessfully(GenerateShaderCode(body, extra).c_str());
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 // No negative tests for ZeroExtend since we don't truly know the
 // texel format.
 

@@ -47,6 +47,10 @@ TEST(EquivalenceRelationTest, BasicTest) {
   EquivalenceRelation<uint32_t, UInt32Hash, UInt32Equals> relation;
   ASSERT_TRUE(relation.GetAllKnownValues().empty());
 
+  for (uint32_t element = 0; element < 100; element++) {
+    relation.Register(element);
+  }
+
   for (uint32_t element = 2; element < 80; element += 2) {
     relation.MakeEquivalent(0, element);
     relation.MakeEquivalent(element - 1, element + 1);
@@ -121,6 +125,11 @@ TEST(EquivalenceRelationTest, BasicTest) {
 TEST(EquivalenceRelationTest, DeterministicEquivalenceClassOrder) {
   EquivalenceRelation<uint32_t, UInt32Hash, UInt32Equals> relation1;
   EquivalenceRelation<uint32_t, UInt32Hash, UInt32Equals> relation2;
+
+  for (uint32_t i = 0; i < 1000; ++i) {
+    relation1.Register(i);
+    relation2.Register(i);
+  }
 
   for (uint32_t i = 0; i < 1000; ++i) {
     if (i >= 10) {

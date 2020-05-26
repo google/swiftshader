@@ -64,19 +64,22 @@ TEST(TransformationAddConstantCompositeTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Too few ids
   ASSERT_FALSE(TransformationAddConstantComposite(103, 8, {100, 101})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Too many ids
   ASSERT_FALSE(TransformationAddConstantComposite(101, 7, {14, 15, 14})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Id already in use
   ASSERT_FALSE(TransformationAddConstantComposite(40, 7, {11, 12})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // %39 is not a type
   ASSERT_FALSE(TransformationAddConstantComposite(100, 39, {11, 12})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   TransformationAddConstantComposite transformations[] = {
       // %100 = OpConstantComposite %7 %11 %12
@@ -101,8 +104,9 @@ TEST(TransformationAddConstantCompositeTest, BasicTest) {
       TransformationAddConstantComposite(106, 35, {38, 39, 40})};
 
   for (auto& transformation : transformations) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
   }
   ASSERT_TRUE(IsValid(env, context.get()));
 

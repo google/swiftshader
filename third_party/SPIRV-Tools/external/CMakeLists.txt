@@ -25,7 +25,17 @@ else()
 endif()
 
 if (IS_DIRECTORY ${SPIRV_HEADER_DIR})
+  # TODO(dneto): We should not be modifying the parent scope.
   set(SPIRV_HEADER_INCLUDE_DIR ${SPIRV_HEADER_DIR}/include PARENT_SCOPE)
+
+  # Add SPIRV-Headers as a sub-project if it isn't already defined.
+  # Do this so enclosing projects can use SPIRV-Headers_SOURCE_DIR to find
+  # headers to include.
+  if (NOT DEFINED SPIRV-Headers_SOURCE_DIR)
+    set(SPIRV_HEADERS_SKIP_INSTALL ON)
+    set(SPIRV_HEADERS_SKIP_EXAMPLES ON)
+    add_subdirectory(${SPIRV_HEADER_DIR})
+  endif()
 else()
   message(FATAL_ERROR
     "SPIRV-Headers was not found - please checkout a copy under external/.")
@@ -78,7 +88,7 @@ if (NOT ${SPIRV_SKIP_TESTS})
     set(RE2_BUILD_TESTING OFF CACHE STRING "Run RE2 Tests")
     if (NOT RE2_SOURCE_DIR)
       if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/re2)
-	set(RE2_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/re2" CACHE STRING "RE2 source dir" )
+        set(RE2_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/re2" CACHE STRING "RE2 source dir" )
       endif()
     endif()
   endif()
@@ -88,13 +98,17 @@ if (NOT ${SPIRV_SKIP_TESTS})
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/effcee)
       # If we're configuring RE2 (via Effcee), then turn off RE2 testing.
       if (NOT TARGET re2)
-	set(RE2_BUILD_TESTING OFF)
+        set(RE2_BUILD_TESTING OFF)
       endif()
       if (MSVC)
-	# SPIRV-Tools uses the shared CRT with MSVC.  Tell Effcee to do the same.
-	set(EFFCEE_ENABLE_SHARED_CRT ON)
+        # SPIRV-Tools uses the shared CRT with MSVC.  Tell Effcee to do the same.
+        set(EFFCEE_ENABLE_SHARED_CRT ON)
       endif()
-      add_subdirectory(effcee)
+      set(EFFCEE_BUILD_SAMPLES OFF CACHE BOOL "Do not build Effcee examples")
+      if (NOT TARGET effcee)
+        set(EFFCEE_BUILD_TESTING OFF CACHE BOOL "Do not build Effcee test suite")
+      endif()
+      add_subdirectory(effcee EXCLUDE_FROM_ALL)
       set_property(TARGET effcee PROPERTY FOLDER Effcee)
       # Turn off warnings for effcee and re2
       set_property(TARGET effcee APPEND PROPERTY COMPILE_OPTIONS -w)

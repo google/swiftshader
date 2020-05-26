@@ -97,6 +97,7 @@ const (
 	OperandCategoryComposite = "Composite"
 )
 
+// OpcodeMap is a map of opcode name to Opcode type.
 type OpcodeMap map[string]*Opcode
 
 var (
@@ -467,11 +468,41 @@ var (
 		"OpGroupNonUniformPartitionNV": OpGroupNonUniformPartitionNV,
 		"OpWritePackedPrimitiveIndices4x8NV": OpWritePackedPrimitiveIndices4x8NV,
 		"OpReportIntersectionNV": OpReportIntersectionNV,
+		"OpReportIntersectionKHR": OpReportIntersectionKHR,
 		"OpIgnoreIntersectionNV": OpIgnoreIntersectionNV,
+		"OpIgnoreIntersectionKHR": OpIgnoreIntersectionKHR,
 		"OpTerminateRayNV": OpTerminateRayNV,
+		"OpTerminateRayKHR": OpTerminateRayKHR,
 		"OpTraceNV": OpTraceNV,
+		"OpTraceRayKHR": OpTraceRayKHR,
 		"OpTypeAccelerationStructureNV": OpTypeAccelerationStructureNV,
+		"OpTypeAccelerationStructureKHR": OpTypeAccelerationStructureKHR,
+		"OpTypeRayQueryProvisionalKHR": OpTypeRayQueryProvisionalKHR,
+		"OpRayQueryInitializeKHR": OpRayQueryInitializeKHR,
+		"OpRayQueryTerminateKHR": OpRayQueryTerminateKHR,
+		"OpRayQueryGenerateIntersectionKHR": OpRayQueryGenerateIntersectionKHR,
+		"OpRayQueryConfirmIntersectionKHR": OpRayQueryConfirmIntersectionKHR,
+		"OpRayQueryProceedKHR": OpRayQueryProceedKHR,
+		"OpRayQueryGetIntersectionTypeKHR": OpRayQueryGetIntersectionTypeKHR,
+		"OpRayQueryGetRayTMinKHR": OpRayQueryGetRayTMinKHR,
+		"OpRayQueryGetRayFlagsKHR": OpRayQueryGetRayFlagsKHR,
+		"OpRayQueryGetIntersectionTKHR": OpRayQueryGetIntersectionTKHR,
+		"OpRayQueryGetIntersectionInstanceCustomIndexKHR": OpRayQueryGetIntersectionInstanceCustomIndexKHR,
+		"OpRayQueryGetIntersectionInstanceIdKHR": OpRayQueryGetIntersectionInstanceIdKHR,
+		"OpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetKHR": OpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetKHR,
+		"OpRayQueryGetIntersectionGeometryIndexKHR": OpRayQueryGetIntersectionGeometryIndexKHR,
+		"OpRayQueryGetIntersectionPrimitiveIndexKHR": OpRayQueryGetIntersectionPrimitiveIndexKHR,
+		"OpRayQueryGetIntersectionBarycentricsKHR": OpRayQueryGetIntersectionBarycentricsKHR,
+		"OpRayQueryGetIntersectionFrontFaceKHR": OpRayQueryGetIntersectionFrontFaceKHR,
+		"OpRayQueryGetIntersectionCandidateAABBOpaqueKHR": OpRayQueryGetIntersectionCandidateAABBOpaqueKHR,
+		"OpRayQueryGetIntersectionObjectRayDirectionKHR": OpRayQueryGetIntersectionObjectRayDirectionKHR,
+		"OpRayQueryGetIntersectionObjectRayOriginKHR": OpRayQueryGetIntersectionObjectRayOriginKHR,
+		"OpRayQueryGetWorldRayDirectionKHR": OpRayQueryGetWorldRayDirectionKHR,
+		"OpRayQueryGetWorldRayOriginKHR": OpRayQueryGetWorldRayOriginKHR,
+		"OpRayQueryGetIntersectionObjectToWorldKHR": OpRayQueryGetIntersectionObjectToWorldKHR,
+		"OpRayQueryGetIntersectionWorldToObjectKHR": OpRayQueryGetIntersectionWorldToObjectKHR,
 		"OpExecuteCallableNV": OpExecuteCallableNV,
+		"OpExecuteCallableKHR": OpExecuteCallableKHR,
 		"OpTypeCooperativeMatrixNV": OpTypeCooperativeMatrixNV,
 		"OpCooperativeMatrixLoadNV": OpCooperativeMatrixLoadNV,
 		"OpCooperativeMatrixStoreNV": OpCooperativeMatrixStoreNV,
@@ -10573,8 +10604,42 @@ var (
 			}, 
 		},
 	}
+	OpReportIntersectionKHR = &Opcode {
+		Opname:   "OpReportIntersectionKHR",
+		Class:    "Reserved",
+		Opcode:   5334,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Hit'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'HitKind'",
+				Quantifier: "",
+			}, 
+		},
+	}
 	OpIgnoreIntersectionNV = &Opcode {
 		Opname:   "OpIgnoreIntersectionNV",
+		Class:    "Reserved",
+		Opcode:   5335,
+		Operands: []Operand {
+		},
+	}
+	OpIgnoreIntersectionKHR = &Opcode {
+		Opname:   "OpIgnoreIntersectionKHR",
 		Class:    "Reserved",
 		Opcode:   5335,
 		Operands: []Operand {
@@ -10587,8 +10652,77 @@ var (
 		Operands: []Operand {
 		},
 	}
+	OpTerminateRayKHR = &Opcode {
+		Opname:   "OpTerminateRayKHR",
+		Class:    "Reserved",
+		Opcode:   5336,
+		Operands: []Operand {
+		},
+	}
 	OpTraceNV = &Opcode {
 		Opname:   "OpTraceNV",
+		Class:    "Reserved",
+		Opcode:   5337,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Accel'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Ray Flags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Cull Mask'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'SBT Offset'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'SBT Stride'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Miss Index'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Ray Origin'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Ray Tmin'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Ray Direction'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Ray Tmax'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'PayloadId'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpTraceRayKHR = &Opcode {
+		Opname:   "OpTraceRayKHR",
 		Class:    "Reserved",
 		Opcode:   5337,
 		Operands: []Operand {
@@ -10661,8 +10795,620 @@ var (
 			}, 
 		},
 	}
+	OpTypeAccelerationStructureKHR = &Opcode {
+		Opname:   "OpTypeAccelerationStructureKHR",
+		Class:    "Reserved",
+		Opcode:   5341,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpTypeRayQueryProvisionalKHR = &Opcode {
+		Opname:   "OpTypeRayQueryProvisionalKHR",
+		Class:    "Reserved",
+		Opcode:   4472,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryInitializeKHR = &Opcode {
+		Opname:   "OpRayQueryInitializeKHR",
+		Class:    "Reserved",
+		Opcode:   4473,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Accel'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayFlags'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'CullMask'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayOrigin'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayTMin'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayDirection'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayTMax'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryTerminateKHR = &Opcode {
+		Opname:   "OpRayQueryTerminateKHR",
+		Class:    "Reserved",
+		Opcode:   4474,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGenerateIntersectionKHR = &Opcode {
+		Opname:   "OpRayQueryGenerateIntersectionKHR",
+		Class:    "Reserved",
+		Opcode:   4475,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'HitT'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryConfirmIntersectionKHR = &Opcode {
+		Opname:   "OpRayQueryConfirmIntersectionKHR",
+		Class:    "Reserved",
+		Opcode:   4476,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryProceedKHR = &Opcode {
+		Opname:   "OpRayQueryProceedKHR",
+		Class:    "Reserved",
+		Opcode:   4477,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionTypeKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionTypeKHR",
+		Class:    "Reserved",
+		Opcode:   4479,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetRayTMinKHR = &Opcode {
+		Opname:   "OpRayQueryGetRayTMinKHR",
+		Class:    "Reserved",
+		Opcode:   6016,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetRayFlagsKHR = &Opcode {
+		Opname:   "OpRayQueryGetRayFlagsKHR",
+		Class:    "Reserved",
+		Opcode:   6017,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionTKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionTKHR",
+		Class:    "Reserved",
+		Opcode:   6018,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionInstanceCustomIndexKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionInstanceCustomIndexKHR",
+		Class:    "Reserved",
+		Opcode:   6019,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionInstanceIdKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionInstanceIdKHR",
+		Class:    "Reserved",
+		Opcode:   6020,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffsetKHR",
+		Class:    "Reserved",
+		Opcode:   6021,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionGeometryIndexKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionGeometryIndexKHR",
+		Class:    "Reserved",
+		Opcode:   6022,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionPrimitiveIndexKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionPrimitiveIndexKHR",
+		Class:    "Reserved",
+		Opcode:   6023,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionBarycentricsKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionBarycentricsKHR",
+		Class:    "Reserved",
+		Opcode:   6024,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionFrontFaceKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionFrontFaceKHR",
+		Class:    "Reserved",
+		Opcode:   6025,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionCandidateAABBOpaqueKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionCandidateAABBOpaqueKHR",
+		Class:    "Reserved",
+		Opcode:   6026,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionObjectRayDirectionKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionObjectRayDirectionKHR",
+		Class:    "Reserved",
+		Opcode:   6027,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionObjectRayOriginKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionObjectRayOriginKHR",
+		Class:    "Reserved",
+		Opcode:   6028,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetWorldRayDirectionKHR = &Opcode {
+		Opname:   "OpRayQueryGetWorldRayDirectionKHR",
+		Class:    "Reserved",
+		Opcode:   6029,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetWorldRayOriginKHR = &Opcode {
+		Opname:   "OpRayQueryGetWorldRayOriginKHR",
+		Class:    "Reserved",
+		Opcode:   6030,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionObjectToWorldKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionObjectToWorldKHR",
+		Class:    "Reserved",
+		Opcode:   6031,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpRayQueryGetIntersectionWorldToObjectKHR = &Opcode {
+		Opname:   "OpRayQueryGetIntersectionWorldToObjectKHR",
+		Class:    "Reserved",
+		Opcode:   6032,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdResultType,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdResult,
+				Name:       "",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'RayQuery'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Intersection'",
+				Quantifier: "",
+			}, 
+		},
+	}
 	OpExecuteCallableNV = &Opcode {
 		Opname:   "OpExecuteCallableNV",
+		Class:    "Reserved",
+		Opcode:   5344,
+		Operands: []Operand {
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'SBT Index'",
+				Quantifier: "",
+			}, 
+			Operand {
+				Kind:       OperandKindIdRef,
+				Name:       "'Callable DataId'",
+				Quantifier: "",
+			}, 
+		},
+	}
+	OpExecuteCallableKHR = &Opcode {
+		Opname:   "OpExecuteCallableKHR",
 		Class:    "Reserved",
 		Opcode:   5344,
 		Operands: []Operand {
@@ -19430,6 +20176,90 @@ var (
 		},
 		Bases:      []*OperandKind {},
 	}
+	OperandKindRayFlags = &OperandKind {
+		Kind:       "RayFlags",
+		Category:   "BitEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "NoneKHR",
+				Value:        0x0000,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "OpaqueKHR",
+				Value:        0x0001,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "NoOpaqueKHR",
+				Value:        0x0002,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "TerminateOnFirstHitKHR",
+				Value:        0x0004,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "SkipClosestHitShaderKHR",
+				Value:        0x0008,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "CullBackFacingTrianglesKHR",
+				Value:        0x0010,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "CullFrontFacingTrianglesKHR",
+				Value:        0x0020,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "CullOpaqueKHR",
+				Value:        0x0040,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "CullNoOpaqueKHR",
+				Value:        0x0080,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "SkipTrianglesKHR",
+				Value:        0x0100,
+				Capabilities: []string{"RayTraversalPrimitiveCullingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "SkipAABBsKHR",
+				Value:        0x0200,
+				Capabilities: []string{"RayTraversalPrimitiveCullingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
 	OperandKindSourceLanguage = &OperandKind {
 		Kind:       "SourceLanguage",
 		Category:   "ValueEnum",
@@ -19549,42 +20379,84 @@ var (
 			Enumerant{
 				Enumerant:    "RayGenerationNV",
 				Value:        5313,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "RayGenerationKHR",
+				Value:        5313,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "IntersectionNV",
 				Value:        5314,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "IntersectionKHR",
+				Value:        5314,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "AnyHitNV",
 				Value:        5315,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "AnyHitKHR",
+				Value:        5315,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "ClosestHitNV",
 				Value:        5316,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "ClosestHitKHR",
+				Value:        5316,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "MissNV",
 				Value:        5317,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "MissKHR",
+				Value:        5317,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "CallableNV",
 				Value:        5318,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "CallableKHR",
+				Value:        5318,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
@@ -20172,42 +21044,84 @@ var (
 			Enumerant{
 				Enumerant:    "CallableDataNV",
 				Value:        5328,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "CallableDataKHR",
+				Value:        5328,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "IncomingCallableDataNV",
 				Value:        5329,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "IncomingCallableDataKHR",
+				Value:        5329,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "RayPayloadNV",
 				Value:        5338,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "RayPayloadKHR",
+				Value:        5338,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "HitAttributeNV",
 				Value:        5339,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "HitAttributeKHR",
+				Value:        5339,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "IncomingRayPayloadNV",
 				Value:        5342,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "IncomingRayPayloadKHR",
+				Value:        5342,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "ShaderRecordBufferNV",
 				Value:        5343,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "ShaderRecordBufferKHR",
+				Value:        5343,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
@@ -21593,7 +22507,7 @@ var (
 			Enumerant{
 				Enumerant:    "PrimitiveId",
 				Value:        7,
-				Capabilities: []string{"Geometry","Tessellation","RayTracingNV",},
+				Capabilities: []string{"Geometry","Tessellation","RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "",
 			},
@@ -22139,98 +23053,203 @@ var (
 			Enumerant{
 				Enumerant:    "LaunchIdNV",
 				Value:        5319,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "LaunchIdKHR",
+				Value:        5319,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "LaunchSizeNV",
 				Value:        5320,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "LaunchSizeKHR",
+				Value:        5320,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "WorldRayOriginNV",
 				Value:        5321,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "WorldRayOriginKHR",
+				Value:        5321,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "WorldRayDirectionNV",
 				Value:        5322,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "WorldRayDirectionKHR",
+				Value:        5322,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "ObjectRayOriginNV",
 				Value:        5323,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "ObjectRayOriginKHR",
+				Value:        5323,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "ObjectRayDirectionNV",
 				Value:        5324,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "ObjectRayDirectionKHR",
+				Value:        5324,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "RayTminNV",
 				Value:        5325,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "RayTminKHR",
+				Value:        5325,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "RayTmaxNV",
 				Value:        5326,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "RayTmaxKHR",
+				Value:        5326,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "InstanceCustomIndexNV",
 				Value:        5327,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "InstanceCustomIndexKHR",
+				Value:        5327,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "ObjectToWorldNV",
 				Value:        5330,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "ObjectToWorldKHR",
+				Value:        5330,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "WorldToObjectNV",
 				Value:        5331,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "WorldToObjectKHR",
+				Value:        5331,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "HitTNV",
 				Value:        5332,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "HitTKHR",
+				Value:        5332,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "HitKindNV",
 				Value:        5333,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "HitKindKHR",
+				Value:        5333,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
 			Enumerant{
 				Enumerant:    "IncomingRayFlagsNV",
 				Value:        5351,
-				Capabilities: []string{"RayTracingNV",},
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "IncomingRayFlagsKHR",
+				Value:        5351,
+				Capabilities: []string{"RayTracingNV","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "RayGeometryIndexKHR",
+				Value:        5352,
+				Capabilities: []string{"RayTracingProvisionalKHR",},
 				Parameters:   []Parameter{},
 				Version:      "None",
 			},
@@ -22317,6 +23336,13 @@ var (
 				Capabilities: []string{"VulkanMemoryModel",},
 				Parameters:   []Parameter{},
 				Version:      "1.5",
+			},
+			Enumerant{
+				Enumerant:    "ShaderCallKHR",
+				Value:        6,
+				Capabilities: []string{"RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
 			},
 		},
 		Bases:      []*OperandKind {},
@@ -23054,6 +24080,20 @@ var (
 				Version:      "1.4",
 			},
 			Enumerant{
+				Enumerant:    "RayQueryProvisionalKHR",
+				Value:        4471,
+				Capabilities: []string{"Shader",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
+				Enumerant:    "RayTraversalPrimitiveCullingProvisionalKHR",
+				Value:        4478,
+				Capabilities: []string{"RayQueryProvisionalKHR","RayTracingProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
 				Enumerant:    "Float16ImageAMD",
 				Value:        5008,
 				Capabilities: []string{"Shader",},
@@ -23425,6 +24465,13 @@ var (
 				Version:      "None",
 			},
 			Enumerant{
+				Enumerant:    "RayTracingProvisionalKHR",
+				Value:        5353,
+				Capabilities: []string{"Shader",},
+				Parameters:   []Parameter{},
+				Version:      "None",
+			},
+			Enumerant{
 				Enumerant:    "CooperativeMatrixNV",
 				Value:        5357,
 				Capabilities: []string{"Shader",},
@@ -23521,6 +24568,76 @@ var (
 				Capabilities: []string{},
 				Parameters:   []Parameter{},
 				Version:      "None",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindRayQueryIntersection = &OperandKind {
+		Kind:       "RayQueryIntersection",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "RayQueryCandidateIntersectionKHR",
+				Value:        0,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "RayQueryCommittedIntersectionKHR",
+				Value:        1,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindRayQueryCommittedIntersectionType = &OperandKind {
+		Kind:       "RayQueryCommittedIntersectionType",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "RayQueryCommittedIntersectionNoneKHR",
+				Value:        0,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "RayQueryCommittedIntersectionTriangleKHR",
+				Value:        1,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "RayQueryCommittedIntersectionGeneratedKHR",
+				Value:        2,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+		},
+		Bases:      []*OperandKind {},
+	}
+	OperandKindRayQueryCandidateIntersectionType = &OperandKind {
+		Kind:       "RayQueryCandidateIntersectionType",
+		Category:   "ValueEnum",
+		Enumerants: []Enumerant {
+			Enumerant{
+				Enumerant:    "RayQueryCandidateIntersectionTriangleKHR",
+				Value:        0,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
+			},
+			Enumerant{
+				Enumerant:    "RayQueryCandidateIntersectionAABBKHR",
+				Value:        1,
+				Capabilities: []string{"RayQueryProvisionalKHR",},
+				Parameters:   []Parameter{},
+				Version:      "",
 			},
 		},
 		Bases:      []*OperandKind {},

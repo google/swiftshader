@@ -1998,6 +1998,32 @@ OpFunctionEnd
   EXPECT_EQ(Pass::Status::Failure, std::get<1>(result));
 }
 
+TEST_F(LocalSSAElimTest, OpConstantNull) {
+  const std::string text = R"(
+OpCapability Addresses
+OpCapability Kernel
+OpCapability Int64
+OpMemoryModel Physical64 OpenCL
+OpEntryPoint Kernel %4 "A"
+OpSource OpenCL_C 200000
+%2 = OpTypeVoid
+%3 = OpTypeFunction %2
+%6 = OpTypeInt 32 0
+%11 = OpTypePointer CrossWorkgroup %6
+%16 = OpConstantNull %11
+%20 = OpConstant %6 269484031
+%4 = OpFunction %2 None %3
+%17 = OpLabel
+%18 = OpLoad %6 %16 Aligned 536870912
+%19 = OpBitwiseXor %6 %18 %20
+OpStore %16 %19 Aligned 536870912
+OpReturn
+OpFunctionEnd
+  )";
+
+  SinglePassRunToBinary<SSARewritePass>(text, false);
+}
+
 // TODO(greg-lunarg): Add tests to verify handling of these cases:
 //
 //    No optimization in the presence of

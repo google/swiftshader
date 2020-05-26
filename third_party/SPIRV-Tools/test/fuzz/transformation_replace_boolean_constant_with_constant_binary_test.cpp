@@ -163,6 +163,9 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   std::vector<protobufs::IdUseDescriptor> uses_of_true = {
       MakeIdUseDescriptor(41, MakeInstructionDescriptor(44, SpvOpStore, 12), 1),
@@ -197,10 +200,10 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
 #define CHECK_OPERATOR(USE_DESCRIPTOR, LHS_ID, RHS_ID, OPCODE, FRESH_ID) \
   ASSERT_TRUE(TransformationReplaceBooleanConstantWithConstantBinary(    \
                   USE_DESCRIPTOR, LHS_ID, RHS_ID, OPCODE, FRESH_ID)      \
-                  .IsApplicable(context.get(), fact_manager));           \
+                  .IsApplicable(context.get(), transformation_context)); \
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(   \
                    USE_DESCRIPTOR, RHS_ID, LHS_ID, OPCODE, FRESH_ID)     \
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
 #define CHECK_TRANSFORMATION_APPLICABILITY(GT_OPCODES, LT_OPCODES, SMALL_ID, \
                                            LARGE_ID)                         \
@@ -252,27 +255,27 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
   // Target id is not fresh
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                    uses_of_true[0], 15, 17, SpvOpFOrdLessThan, 15)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // LHS id does not exist
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                    uses_of_true[0], 300, 17, SpvOpFOrdLessThan, 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // RHS id does not exist
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                    uses_of_true[0], 15, 300, SpvOpFOrdLessThan, 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // LHS and RHS ids do not match type
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                    uses_of_true[0], 11, 17, SpvOpFOrdLessThan, 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Opcode not appropriate
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                    uses_of_true[0], 15, 17, SpvOpFDiv, 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   auto replace_true_with_double_comparison =
       TransformationReplaceBooleanConstantWithConstantBinary(
@@ -287,21 +290,25 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
       TransformationReplaceBooleanConstantWithConstantBinary(
           uses_of_false[1], 33, 31, SpvOpSLessThan, 103);
 
-  ASSERT_TRUE(replace_true_with_double_comparison.IsApplicable(context.get(),
-                                                               fact_manager));
-  replace_true_with_double_comparison.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(replace_true_with_double_comparison.IsApplicable(
+      context.get(), transformation_context));
+  replace_true_with_double_comparison.Apply(context.get(),
+                                            &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
-  ASSERT_TRUE(replace_true_with_uint32_comparison.IsApplicable(context.get(),
-                                                               fact_manager));
-  replace_true_with_uint32_comparison.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(replace_true_with_uint32_comparison.IsApplicable(
+      context.get(), transformation_context));
+  replace_true_with_uint32_comparison.Apply(context.get(),
+                                            &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
-  ASSERT_TRUE(replace_false_with_float_comparison.IsApplicable(context.get(),
-                                                               fact_manager));
-  replace_false_with_float_comparison.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(replace_false_with_float_comparison.IsApplicable(
+      context.get(), transformation_context));
+  replace_false_with_float_comparison.Apply(context.get(),
+                                            &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
-  ASSERT_TRUE(replace_false_with_sint64_comparison.IsApplicable(context.get(),
-                                                                fact_manager));
-  replace_false_with_sint64_comparison.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(replace_false_with_sint64_comparison.IsApplicable(
+      context.get(), transformation_context));
+  replace_false_with_sint64_comparison.Apply(context.get(),
+                                             &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after = R"(
@@ -419,7 +426,7 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
     // The transformation is not applicable because %200 is NaN.
     ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                      uses_of_true[0], 11, 200, SpvOpFOrdLessThan, 300)
-                     .IsApplicable(context.get(), fact_manager));
+                     .IsApplicable(context.get(), transformation_context));
   }
   if (std::numeric_limits<double>::has_infinity) {
     double positive_infinity_double = std::numeric_limits<double>::infinity();
@@ -436,7 +443,7 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
     // transformation is restricted to only apply to finite values.
     ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                      uses_of_true[0], 11, 201, SpvOpFOrdLessThan, 300)
-                     .IsApplicable(context.get(), fact_manager));
+                     .IsApplicable(context.get(), transformation_context));
   }
   if (std::numeric_limits<float>::has_infinity) {
     float positive_infinity_float = std::numeric_limits<float>::infinity();
@@ -461,7 +468,7 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
     // values.
     ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                      uses_of_true[0], 203, 202, SpvOpFOrdLessThan, 300)
-                     .IsApplicable(context.get(), fact_manager));
+                     .IsApplicable(context.get(), transformation_context));
   }
 }
 
@@ -531,6 +538,9 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto use_of_true_in_if = MakeIdUseDescriptor(
       13, MakeInstructionDescriptor(10, SpvOpBranchConditional, 0), 0);
@@ -542,12 +552,14 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
   auto replacement_2 = TransformationReplaceBooleanConstantWithConstantBinary(
       use_of_false_in_while, 9, 11, SpvOpSGreaterThanEqual, 101);
 
-  ASSERT_TRUE(replacement_1.IsApplicable(context.get(), fact_manager));
-  replacement_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_1.IsApplicable(context.get(), transformation_context));
+  replacement_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(replacement_2.IsApplicable(context.get(), fact_manager));
-  replacement_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_2.IsApplicable(context.get(), transformation_context));
+  replacement_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after = R"(
@@ -642,12 +654,15 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest, OpPhi) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto replacement = TransformationReplaceBooleanConstantWithConstantBinary(
       MakeIdUseDescriptor(9, MakeInstructionDescriptor(23, SpvOpPhi, 0), 0), 13,
       15, SpvOpSLessThan, 100);
 
-  ASSERT_FALSE(replacement.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(replacement.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
@@ -681,12 +696,15 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   ASSERT_FALSE(TransformationReplaceBooleanConstantWithConstantBinary(
                    MakeIdUseDescriptor(
                        9, MakeInstructionDescriptor(50, SpvOpVariable, 0), 1),
                    13, 15, SpvOpSLessThan, 100)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

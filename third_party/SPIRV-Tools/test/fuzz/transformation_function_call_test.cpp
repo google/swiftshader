@@ -134,24 +134,36 @@ TEST(TransformationFunctionCallTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  fact_manager.AddFactBlockIsDead(59);
-  fact_manager.AddFactBlockIsDead(11);
-  fact_manager.AddFactBlockIsDead(18);
-  fact_manager.AddFactBlockIsDead(25);
-  fact_manager.AddFactBlockIsDead(96);
-  fact_manager.AddFactBlockIsDead(205);
-  fact_manager.AddFactFunctionIsLivesafe(21);
-  fact_manager.AddFactFunctionIsLivesafe(200);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(71);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(72);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(19);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(20);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(23);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(44);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(46);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(51);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(52);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(59);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(11);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(18);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(25);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(96);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(205);
+  transformation_context.GetFactManager()->AddFactFunctionIsLivesafe(21);
+  transformation_context.GetFactManager()->AddFactFunctionIsLivesafe(200);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      71);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      72);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      19);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      20);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      23);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      44);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      46);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      51);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      52);
 
   // Livesafe functions with argument types: 21(7, 13), 200(7, 13)
   // Non-livesafe functions with argument types: 4(), 10(7), 17(7, 13), 24(7)
@@ -164,127 +176,133 @@ TEST(TransformationFunctionCallTest, BasicTest) {
   ASSERT_FALSE(
       TransformationFunctionCall(100, 21, {71, 72, 71},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Too few arguments
   ASSERT_FALSE(TransformationFunctionCall(
                    100, 21, {71}, MakeInstructionDescriptor(59, SpvOpBranch, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Arguments are the wrong way around (types do not match)
   ASSERT_FALSE(
       TransformationFunctionCall(100, 21, {72, 71},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // 21 is not an appropriate argument
   ASSERT_FALSE(
       TransformationFunctionCall(100, 21, {21, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // 300 does not exist
   ASSERT_FALSE(
       TransformationFunctionCall(100, 21, {300, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // 71 is not a function
   ASSERT_FALSE(
       TransformationFunctionCall(100, 71, {71, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // 500 does not exist
   ASSERT_FALSE(
       TransformationFunctionCall(100, 500, {71, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Id is not fresh
   ASSERT_FALSE(
       TransformationFunctionCall(21, 21, {71, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Access chain as pointer parameter
   ASSERT_FALSE(
       TransformationFunctionCall(100, 21, {98, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Copied object as pointer parameter
   ASSERT_FALSE(
       TransformationFunctionCall(100, 21, {99, 72},
                                  MakeInstructionDescriptor(59, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Non-livesafe called from original live block
   ASSERT_FALSE(
       TransformationFunctionCall(
           100, 10, {71}, MakeInstructionDescriptor(99, SpvOpSelectionMerge, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Non-livesafe called from livesafe function
   ASSERT_FALSE(
       TransformationFunctionCall(
           100, 10, {19}, MakeInstructionDescriptor(38, SpvOpConvertFToS, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Livesafe function called with pointer to non-arbitrary local variable
   ASSERT_FALSE(
       TransformationFunctionCall(
           100, 21, {61, 72}, MakeInstructionDescriptor(38, SpvOpConvertFToS, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // Direct recursion
   ASSERT_FALSE(TransformationFunctionCall(
                    100, 4, {}, MakeInstructionDescriptor(59, SpvOpBranch, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Indirect recursion
   ASSERT_FALSE(TransformationFunctionCall(
                    100, 24, {9}, MakeInstructionDescriptor(96, SpvOpBranch, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Parameter 23 is not available at the call site
   ASSERT_FALSE(
       TransformationFunctionCall(104, 10, {23},
                                  MakeInstructionDescriptor(205, SpvOpBranch, 0))
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Good transformations
   {
     // Livesafe called from dead block: fine
     TransformationFunctionCall transformation(
         100, 21, {71, 72}, MakeInstructionDescriptor(59, SpvOpBranch, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
     // Livesafe called from original live block: fine
     TransformationFunctionCall transformation(
         101, 21, {71, 72}, MakeInstructionDescriptor(98, SpvOpAccessChain, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
     // Livesafe called from livesafe function: fine
     TransformationFunctionCall transformation(
         102, 200, {19, 20}, MakeInstructionDescriptor(36, SpvOpLoad, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
     // Dead called from dead block in injected function: fine
     TransformationFunctionCall transformation(
         103, 10, {23}, MakeInstructionDescriptor(45, SpvOpLoad, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
     // Non-livesafe called from dead block in livesafe function: OK
     TransformationFunctionCall transformation(
         104, 10, {201}, MakeInstructionDescriptor(205, SpvOpBranch, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
     // Livesafe called from dead block with non-arbitrary parameter
     TransformationFunctionCall transformation(
         105, 21, {62, 65}, MakeInstructionDescriptor(59, SpvOpBranch, 0));
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
 
@@ -429,13 +447,16 @@ TEST(TransformationFunctionCallTest, DoNotInvokeEntryPoint) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  fact_manager.AddFactBlockIsDead(11);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(11);
 
   // 4 is an entry point, so it is not legal for it to be the target of a call.
   ASSERT_FALSE(TransformationFunctionCall(
                    100, 4, {}, MakeInstructionDescriptor(11, SpvOpReturn, 0))
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

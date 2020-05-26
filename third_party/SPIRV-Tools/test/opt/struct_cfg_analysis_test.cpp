@@ -1369,6 +1369,35 @@ TEST_F(StructCFGAnalysisTest, FuncCallInContinueIndirect) {
   auto c = analysis.FindFuncsCalledFromContinue();
   EXPECT_THAT(c, UnorderedElementsAre(14u, 16u, 21u));
 }
+
+TEST_F(StructCFGAnalysisTest, SingleBlockLoop) {
+  const std::string text = R"(
+              OpCapability Shader
+              OpCapability Linkage
+              OpMemoryModel Logical GLSL450
+      %void = OpTypeVoid
+      %bool = OpTypeBool
+     %undef = OpUndef %bool
+   %void_fn = OpTypeFunction %void
+      %main = OpFunction %void None %void_fn
+         %2 = OpLabel
+              OpBranch %3
+         %3 = OpLabel
+              OpLoopMerge %4 %3 None
+              OpBranchConditional %undef %3 %4
+         %4 = OpLabel
+              OpReturn
+              OpFunctionEnd
+)";
+
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+
+  StructuredCFGAnalysis analysis(context.get());
+
+  EXPECT_TRUE(analysis.IsInContinueConstruct(3));
+}
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

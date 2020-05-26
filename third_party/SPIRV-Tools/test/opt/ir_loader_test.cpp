@@ -948,6 +948,42 @@ OpFunctionEnd
   EXPECT_EQ(text, disassembled_text);
 }
 
+TEST(IrBuilder, DebugInfoForTerminationInsts) {
+  // Check that DebugScope instructions for termination instructions are
+  // preserved.
+  DoRoundTripCheck(R"(OpCapability Shader
+%1 = OpExtInstImport "OpenCL.DebugInfo.100"
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+%3 = OpString "simple_vs.hlsl"
+OpSource HLSL 600 %3
+OpName %main "main"
+%void = OpTypeVoid
+%5 = OpTypeFunction %void
+%6 = OpExtInst %void %1 DebugSource %3
+%7 = OpExtInst %void %1 DebugCompilationUnit 2 4 %6 HLSL
+%main = OpFunction %void None %5
+%8 = OpLabel
+%20 = OpExtInst %void %1 DebugScope %7
+OpBranch %10
+%21 = OpExtInst %void %1 DebugNoScope
+%10 = OpLabel
+%22 = OpExtInst %void %1 DebugScope %7
+OpKill
+%23 = OpExtInst %void %1 DebugNoScope
+%14 = OpLabel
+%24 = OpExtInst %void %1 DebugScope %7
+OpUnreachable
+%25 = OpExtInst %void %1 DebugNoScope
+%17 = OpLabel
+%26 = OpExtInst %void %1 DebugScope %7
+OpReturn
+%27 = OpExtInst %void %1 DebugNoScope
+OpFunctionEnd
+)");
+}
+
 TEST(IrBuilder, LocalGlobalVariables) {
   // #version 310 es
   //

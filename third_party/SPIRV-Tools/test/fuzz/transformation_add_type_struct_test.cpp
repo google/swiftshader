@@ -47,17 +47,20 @@ TEST(TransformationAddTypeStructTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Id already in use
-  ASSERT_FALSE(TransformationAddTypeStruct(4, {}).IsApplicable(context.get(),
-                                                               fact_manager));
+  ASSERT_FALSE(TransformationAddTypeStruct(4, {}).IsApplicable(
+      context.get(), transformation_context));
   // %1 is not a type
   ASSERT_FALSE(TransformationAddTypeStruct(100, {1}).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 
   // %3 is a function type
   ASSERT_FALSE(TransformationAddTypeStruct(100, {3}).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 
   TransformationAddTypeStruct transformations[] = {
       // %100 = OpTypeStruct %6 %7 %8 %9 %10 %11
@@ -73,8 +76,9 @@ TEST(TransformationAddTypeStructTest, BasicTest) {
       TransformationAddTypeStruct(103, {6, 6})};
 
   for (auto& transformation : transformations) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
   }
   ASSERT_TRUE(IsValid(env, context.get()));
 

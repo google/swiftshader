@@ -123,13 +123,24 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
-  fact_manager.AddFact(MakeSynonymFact(12, {}, 100, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(13, {}, 100, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(22, {}, 100, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(28, {}, 101, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(23, {}, 101, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(32, {}, 101, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(23, {}, 101, {3}), context.get());
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(12, {}, 100, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(13, {}, 100, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(22, {}, 100, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(28, {}, 101, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(23, {}, 101, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(32, {}, 101, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(23, {}, 101, {3}), context.get());
 
   // Replace %12 with %100[0] in '%25 = OpAccessChain %24 %20 %12'
   auto instruction_descriptor_1 =
@@ -139,13 +150,16 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
   // Bad: id already in use
   auto bad_extract_1 = TransformationCompositeExtract(
       MakeInstructionDescriptor(25, SpvOpAccessChain, 0), 25, 100, {0});
-  ASSERT_TRUE(good_extract_1.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(bad_extract_1.IsApplicable(context.get(), fact_manager));
-  good_extract_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_1.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      bad_extract_1.IsApplicable(context.get(), transformation_context));
+  good_extract_1.Apply(context.get(), &transformation_context);
   auto replacement_1 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(12, instruction_descriptor_1, 1), 102);
-  ASSERT_TRUE(replacement_1.IsApplicable(context.get(), fact_manager));
-  replacement_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_1.IsApplicable(context.get(), transformation_context));
+  replacement_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %13 with %100[1] in 'OpStore %15 %13'
@@ -153,12 +167,14 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
   auto good_extract_2 =
       TransformationCompositeExtract(instruction_descriptor_2, 103, 100, {1});
   // No bad example provided here.
-  ASSERT_TRUE(good_extract_2.IsApplicable(context.get(), fact_manager));
-  good_extract_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_2.IsApplicable(context.get(), transformation_context));
+  good_extract_2.Apply(context.get(), &transformation_context);
   auto replacement_2 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(13, instruction_descriptor_2, 1), 103);
-  ASSERT_TRUE(replacement_2.IsApplicable(context.get(), fact_manager));
-  replacement_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_2.IsApplicable(context.get(), transformation_context));
+  replacement_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %22 with %100[2] in '%23 = OpConvertSToF %16 %22'
@@ -166,16 +182,19 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
       MakeInstructionDescriptor(23, SpvOpConvertSToF, 0);
   auto good_extract_3 =
       TransformationCompositeExtract(instruction_descriptor_3, 104, 100, {2});
-  ASSERT_TRUE(good_extract_3.IsApplicable(context.get(), fact_manager));
-  good_extract_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_3.IsApplicable(context.get(), transformation_context));
+  good_extract_3.Apply(context.get(), &transformation_context);
   auto replacement_3 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(22, instruction_descriptor_3, 0), 104);
   // Bad: wrong input operand index
   auto bad_replacement_3 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(22, instruction_descriptor_3, 1), 104);
-  ASSERT_TRUE(replacement_3.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(bad_replacement_3.IsApplicable(context.get(), fact_manager));
-  replacement_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_3.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      bad_replacement_3.IsApplicable(context.get(), transformation_context));
+  replacement_3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %28 with %101[0] in 'OpStore %33 %28'
@@ -185,13 +204,16 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
   // Bad: instruction descriptor does not identify an appropriate instruction
   auto bad_extract_4 = TransformationCompositeExtract(
       MakeInstructionDescriptor(33, SpvOpCopyObject, 0), 105, 101, {0});
-  ASSERT_TRUE(good_extract_4.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(bad_extract_4.IsApplicable(context.get(), fact_manager));
-  good_extract_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_4.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      bad_extract_4.IsApplicable(context.get(), transformation_context));
+  good_extract_4.Apply(context.get(), &transformation_context);
   auto replacement_4 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(28, instruction_descriptor_4, 1), 105);
-  ASSERT_TRUE(replacement_4.IsApplicable(context.get(), fact_manager));
-  replacement_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_4.IsApplicable(context.get(), transformation_context));
+  replacement_4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %23 with %101[1] in '%50 = OpCopyObject %16 %23'
@@ -199,16 +221,19 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
       MakeInstructionDescriptor(50, SpvOpCopyObject, 0);
   auto good_extract_5 =
       TransformationCompositeExtract(instruction_descriptor_5, 106, 101, {1});
-  ASSERT_TRUE(good_extract_5.IsApplicable(context.get(), fact_manager));
-  good_extract_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_5.IsApplicable(context.get(), transformation_context));
+  good_extract_5.Apply(context.get(), &transformation_context);
   auto replacement_5 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(23, instruction_descriptor_5, 0), 106);
   // Bad: wrong synonym fact being used
   auto bad_replacement_5 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(23, instruction_descriptor_5, 0), 105);
-  ASSERT_TRUE(replacement_5.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(bad_replacement_5.IsApplicable(context.get(), fact_manager));
-  replacement_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_5.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      bad_replacement_5.IsApplicable(context.get(), transformation_context));
+  replacement_5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %32 with %101[2] in 'OpStore %33 %32'
@@ -218,13 +243,16 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
   // Bad: id 1001 does not exist
   auto bad_extract_6 =
       TransformationCompositeExtract(instruction_descriptor_6, 107, 1001, {2});
-  ASSERT_TRUE(good_extract_6.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(bad_extract_6.IsApplicable(context.get(), fact_manager));
-  good_extract_6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_6.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      bad_extract_6.IsApplicable(context.get(), transformation_context));
+  good_extract_6.Apply(context.get(), &transformation_context);
   auto replacement_6 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(32, instruction_descriptor_6, 1), 107);
-  ASSERT_TRUE(replacement_6.IsApplicable(context.get(), fact_manager));
-  replacement_6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_6.IsApplicable(context.get(), transformation_context));
+  replacement_6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %23 with %101[3] in '%51 = OpCopyObject %16 %23'
@@ -232,16 +260,19 @@ TEST(DataSynonymTransformationTest, ArrayCompositeSynonyms) {
       MakeInstructionDescriptor(51, SpvOpCopyObject, 0);
   auto good_extract_7 =
       TransformationCompositeExtract(instruction_descriptor_7, 108, 101, {3});
-  ASSERT_TRUE(good_extract_7.IsApplicable(context.get(), fact_manager));
-  good_extract_7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      good_extract_7.IsApplicable(context.get(), transformation_context));
+  good_extract_7.Apply(context.get(), &transformation_context);
   auto replacement_7 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(23, instruction_descriptor_7, 0), 108);
   // Bad: use id 0 is invalid
   auto bad_replacement_7 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(0, instruction_descriptor_7, 0), 108);
-  ASSERT_TRUE(replacement_7.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(bad_replacement_7.IsApplicable(context.get(), fact_manager));
-  replacement_7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_7.IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      bad_replacement_7.IsApplicable(context.get(), transformation_context));
+  replacement_7.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   const std::string after_transformation = R"(
@@ -380,32 +411,41 @@ TEST(DataSynonymTransformationTest, MatrixCompositeSynonyms) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
-  fact_manager.AddFact(MakeSynonymFact(23, {}, 100, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(25, {}, 100, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(50, {}, 100, {2}), context.get());
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(23, {}, 100, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(25, {}, 100, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(50, {}, 100, {2}), context.get());
 
   // Replace %23 with %100[0] in '%26 = OpFAdd %7 %23 %25'
   auto instruction_descriptor_1 = MakeInstructionDescriptor(26, SpvOpFAdd, 0);
   auto extract_1 =
       TransformationCompositeExtract(instruction_descriptor_1, 101, 100, {0});
-  ASSERT_TRUE(extract_1.IsApplicable(context.get(), fact_manager));
-  extract_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_1.IsApplicable(context.get(), transformation_context));
+  extract_1.Apply(context.get(), &transformation_context);
   auto replacement_1 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(23, instruction_descriptor_1, 0), 101);
-  ASSERT_TRUE(replacement_1.IsApplicable(context.get(), fact_manager));
-  replacement_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_1.IsApplicable(context.get(), transformation_context));
+  replacement_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %25 with %100[1] in '%26 = OpFAdd %7 %23 %25'
   auto instruction_descriptor_2 = MakeInstructionDescriptor(26, SpvOpFAdd, 0);
   auto extract_2 =
       TransformationCompositeExtract(instruction_descriptor_2, 102, 100, {1});
-  ASSERT_TRUE(extract_2.IsApplicable(context.get(), fact_manager));
-  extract_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_2.IsApplicable(context.get(), transformation_context));
+  extract_2.Apply(context.get(), &transformation_context);
   auto replacement_2 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(25, instruction_descriptor_2, 1), 102);
-  ASSERT_TRUE(replacement_2.IsApplicable(context.get(), fact_manager));
-  replacement_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_2.IsApplicable(context.get(), transformation_context));
+  replacement_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   const std::string after_transformation = R"(
@@ -541,26 +581,37 @@ TEST(DataSynonymTransformationTest, StructCompositeSynonyms) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  fact_manager.AddFact(MakeSynonymFact(16, {}, 100, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(45, {}, 100, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(27, {}, 101, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(36, {}, 101, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(27, {}, 101, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(22, {}, 102, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(15, {}, 102, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(16, {}, 100, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(45, {}, 100, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(27, {}, 101, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(36, {}, 101, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(27, {}, 101, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(22, {}, 102, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(15, {}, 102, {1}), context.get());
 
   // Replace %45 with %100[1] in '%46 = OpCompositeConstruct %32 %35 %45'
   auto instruction_descriptor_1 =
       MakeInstructionDescriptor(46, SpvOpCompositeConstruct, 0);
   auto extract_1 =
       TransformationCompositeExtract(instruction_descriptor_1, 201, 100, {1});
-  ASSERT_TRUE(extract_1.IsApplicable(context.get(), fact_manager));
-  extract_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_1.IsApplicable(context.get(), transformation_context));
+  extract_1.Apply(context.get(), &transformation_context);
   auto replacement_1 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(45, instruction_descriptor_1, 1), 201);
-  ASSERT_TRUE(replacement_1.IsApplicable(context.get(), fact_manager));
-  replacement_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_1.IsApplicable(context.get(), transformation_context));
+  replacement_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace second occurrence of %27 with %101[0] in '%28 =
@@ -569,12 +620,13 @@ TEST(DataSynonymTransformationTest, StructCompositeSynonyms) {
       MakeInstructionDescriptor(28, SpvOpCompositeConstruct, 0);
   auto extract_2 =
       TransformationCompositeExtract(instruction_descriptor_2, 202, 101, {0});
-  ASSERT_TRUE(extract_2.IsApplicable(context.get(), fact_manager));
-  extract_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_2.IsApplicable(context.get(), transformation_context));
+  extract_2.Apply(context.get(), &transformation_context);
   auto replacement_2 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(27, instruction_descriptor_2, 1), 202);
-  ASSERT_TRUE(replacement_2.IsApplicable(context.get(), fact_manager));
-  replacement_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_2.IsApplicable(context.get(), transformation_context));
+  replacement_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %36 with %101[1] in '%45 = OpCompositeConstruct %31 %36 %41 %44'
@@ -582,12 +634,13 @@ TEST(DataSynonymTransformationTest, StructCompositeSynonyms) {
       MakeInstructionDescriptor(45, SpvOpCompositeConstruct, 0);
   auto extract_3 =
       TransformationCompositeExtract(instruction_descriptor_3, 203, 101, {1});
-  ASSERT_TRUE(extract_3.IsApplicable(context.get(), fact_manager));
-  extract_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_3.IsApplicable(context.get(), transformation_context));
+  extract_3.Apply(context.get(), &transformation_context);
   auto replacement_3 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(36, instruction_descriptor_3, 0), 203);
-  ASSERT_TRUE(replacement_3.IsApplicable(context.get(), fact_manager));
-  replacement_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_3.IsApplicable(context.get(), transformation_context));
+  replacement_3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace first occurrence of %27 with %101[2] in '%28 = OpCompositeConstruct
@@ -596,24 +649,26 @@ TEST(DataSynonymTransformationTest, StructCompositeSynonyms) {
       MakeInstructionDescriptor(28, SpvOpCompositeConstruct, 0);
   auto extract_4 =
       TransformationCompositeExtract(instruction_descriptor_4, 204, 101, {2});
-  ASSERT_TRUE(extract_4.IsApplicable(context.get(), fact_manager));
-  extract_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_4.IsApplicable(context.get(), transformation_context));
+  extract_4.Apply(context.get(), &transformation_context);
   auto replacement_4 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(27, instruction_descriptor_4, 0), 204);
-  ASSERT_TRUE(replacement_4.IsApplicable(context.get(), fact_manager));
-  replacement_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_4.IsApplicable(context.get(), transformation_context));
+  replacement_4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %22 with %102[0] in 'OpStore %23 %22'
   auto instruction_descriptor_5 = MakeInstructionDescriptor(23, SpvOpStore, 0);
   auto extract_5 =
       TransformationCompositeExtract(instruction_descriptor_5, 205, 102, {0});
-  ASSERT_TRUE(extract_5.IsApplicable(context.get(), fact_manager));
-  extract_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_5.IsApplicable(context.get(), transformation_context));
+  extract_5.Apply(context.get(), &transformation_context);
   auto replacement_5 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(22, instruction_descriptor_5, 1), 205);
-  ASSERT_TRUE(replacement_5.IsApplicable(context.get(), fact_manager));
-  replacement_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_5.IsApplicable(context.get(), transformation_context));
+  replacement_5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   const std::string after_transformation = R"(
@@ -816,38 +871,65 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
-  fact_manager.AddFact(MakeSynonymFact(20, {0}, 100, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(20, {1}, 100, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(20, {2}, 100, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(54, {}, 100, {3}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(15, {0}, 101, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(15, {1}, 101, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(19, {0}, 101, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(19, {1}, 101, {3}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(27, {}, 102, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(15, {0}, 102, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(15, {1}, 102, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(33, {}, 103, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(47, {0}, 103, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(47, {1}, 103, {2}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(47, {2}, 103, {3}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(42, {}, 104, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(45, {}, 104, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(38, {0}, 105, {0}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(38, {1}, 105, {1}), context.get());
-  fact_manager.AddFact(MakeSynonymFact(46, {}, 105, {2}), context.get());
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(20, {0}, 100, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(20, {1}, 100, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(20, {2}, 100, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(54, {}, 100, {3}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(15, {0}, 101, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(15, {1}, 101, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(19, {0}, 101, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(19, {1}, 101, {3}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(27, {}, 102, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(15, {0}, 102, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(15, {1}, 102, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(33, {}, 103, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(47, {0}, 103, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(47, {1}, 103, {2}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(47, {2}, 103, {3}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(42, {}, 104, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(45, {}, 104, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(38, {0}, 105, {0}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(38, {1}, 105, {1}), context.get());
+  transformation_context.GetFactManager()->AddFact(
+      MakeSynonymFact(46, {}, 105, {2}), context.get());
 
   // Replace %20 with %100[0:2] in '%80 = OpCopyObject %16 %20'
   auto instruction_descriptor_1 =
       MakeInstructionDescriptor(80, SpvOpCopyObject, 0);
   auto shuffle_1 = TransformationVectorShuffle(instruction_descriptor_1, 200,
                                                100, 100, {0, 1, 2});
-  ASSERT_TRUE(shuffle_1.IsApplicable(context.get(), fact_manager));
-  shuffle_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(shuffle_1.IsApplicable(context.get(), transformation_context));
+  shuffle_1.Apply(context.get(), &transformation_context);
+  fact_manager.ComputeClosureOfFacts(context.get(), 100);
+
   auto replacement_1 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(20, instruction_descriptor_1, 0), 200);
-  ASSERT_TRUE(replacement_1.IsApplicable(context.get(), fact_manager));
-  replacement_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_1.IsApplicable(context.get(), transformation_context));
+  replacement_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %54 with %100[3] in '%56 = OpFOrdNotEqual %30 %54 %55'
@@ -856,24 +938,28 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
   auto extract_2 =
       TransformationCompositeExtract(instruction_descriptor_2, 201, 100, {3});
 
-  ASSERT_TRUE(extract_2.IsApplicable(context.get(), fact_manager));
-  extract_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_2.IsApplicable(context.get(), transformation_context));
+  extract_2.Apply(context.get(), &transformation_context);
   auto replacement_2 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(54, instruction_descriptor_2, 0), 201);
-  ASSERT_TRUE(replacement_2.IsApplicable(context.get(), fact_manager));
-  replacement_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_2.IsApplicable(context.get(), transformation_context));
+  replacement_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %15 with %101[0:1] in 'OpStore %12 %15'
   auto instruction_descriptor_3 = MakeInstructionDescriptor(64, SpvOpStore, 0);
   auto shuffle_3 = TransformationVectorShuffle(instruction_descriptor_3, 202,
                                                101, 101, {0, 1});
-  ASSERT_TRUE(shuffle_3.IsApplicable(context.get(), fact_manager));
-  shuffle_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(shuffle_3.IsApplicable(context.get(), transformation_context));
+  shuffle_3.Apply(context.get(), &transformation_context);
+  fact_manager.ComputeClosureOfFacts(context.get(), 100);
+
   auto replacement_3 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(15, instruction_descriptor_3, 1), 202);
-  ASSERT_TRUE(replacement_3.IsApplicable(context.get(), fact_manager));
-  replacement_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_3.IsApplicable(context.get(), transformation_context));
+  replacement_3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %19 with %101[2:3] in '%81 = OpVectorShuffle %16 %19 %19 0 0 1'
@@ -881,12 +967,15 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(81, SpvOpVectorShuffle, 0);
   auto shuffle_4 = TransformationVectorShuffle(instruction_descriptor_4, 203,
                                                101, 101, {2, 3});
-  ASSERT_TRUE(shuffle_4.IsApplicable(context.get(), fact_manager));
-  shuffle_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(shuffle_4.IsApplicable(context.get(), transformation_context));
+  shuffle_4.Apply(context.get(), &transformation_context);
+  fact_manager.ComputeClosureOfFacts(context.get(), 100);
+
   auto replacement_4 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(19, instruction_descriptor_4, 0), 203);
-  ASSERT_TRUE(replacement_4.IsApplicable(context.get(), fact_manager));
-  replacement_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_4.IsApplicable(context.get(), transformation_context));
+  replacement_4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %27 with %102[0] in '%82 = OpCompositeConstruct %21 %26 %27 %28
@@ -896,12 +985,13 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
   auto extract_5 =
       TransformationCompositeExtract(instruction_descriptor_5, 204, 102, {0});
 
-  ASSERT_TRUE(extract_5.IsApplicable(context.get(), fact_manager));
-  extract_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_5.IsApplicable(context.get(), transformation_context));
+  extract_5.Apply(context.get(), &transformation_context);
   auto replacement_5 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(27, instruction_descriptor_5, 1), 204);
-  ASSERT_TRUE(replacement_5.IsApplicable(context.get(), fact_manager));
-  replacement_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_5.IsApplicable(context.get(), transformation_context));
+  replacement_5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %15 with %102[1:2] in '%83 = OpCopyObject %10 %15'
@@ -909,12 +999,15 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(83, SpvOpCopyObject, 0);
   auto shuffle_6 = TransformationVectorShuffle(instruction_descriptor_6, 205,
                                                102, 102, {1, 2});
-  ASSERT_TRUE(shuffle_6.IsApplicable(context.get(), fact_manager));
-  shuffle_6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(shuffle_6.IsApplicable(context.get(), transformation_context));
+  shuffle_6.Apply(context.get(), &transformation_context);
+  fact_manager.ComputeClosureOfFacts(context.get(), 100);
+
   auto replacement_6 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(15, instruction_descriptor_6, 0), 205);
-  ASSERT_TRUE(replacement_6.IsApplicable(context.get(), fact_manager));
-  replacement_6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_6.IsApplicable(context.get(), transformation_context));
+  replacement_6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %33 with %103[0] in '%86 = OpCopyObject %30 %33'
@@ -922,12 +1015,13 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(86, SpvOpCopyObject, 0);
   auto extract_7 =
       TransformationCompositeExtract(instruction_descriptor_7, 206, 103, {0});
-  ASSERT_TRUE(extract_7.IsApplicable(context.get(), fact_manager));
-  extract_7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_7.IsApplicable(context.get(), transformation_context));
+  extract_7.Apply(context.get(), &transformation_context);
   auto replacement_7 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(33, instruction_descriptor_7, 0), 206);
-  ASSERT_TRUE(replacement_7.IsApplicable(context.get(), fact_manager));
-  replacement_7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_7.IsApplicable(context.get(), transformation_context));
+  replacement_7.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %47 with %103[1:3] in '%84 = OpCopyObject %39 %47'
@@ -935,12 +1029,15 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(84, SpvOpCopyObject, 0);
   auto shuffle_8 = TransformationVectorShuffle(instruction_descriptor_8, 207,
                                                103, 103, {1, 2, 3});
-  ASSERT_TRUE(shuffle_8.IsApplicable(context.get(), fact_manager));
-  shuffle_8.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(shuffle_8.IsApplicable(context.get(), transformation_context));
+  shuffle_8.Apply(context.get(), &transformation_context);
+  fact_manager.ComputeClosureOfFacts(context.get(), 100);
+
   auto replacement_8 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(47, instruction_descriptor_8, 0), 207);
-  ASSERT_TRUE(replacement_8.IsApplicable(context.get(), fact_manager));
-  replacement_8.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_8.IsApplicable(context.get(), transformation_context));
+  replacement_8.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %42 with %104[0] in '%85 = OpCopyObject %30 %42'
@@ -948,12 +1045,13 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(85, SpvOpCopyObject, 0);
   auto extract_9 =
       TransformationCompositeExtract(instruction_descriptor_9, 208, 104, {0});
-  ASSERT_TRUE(extract_9.IsApplicable(context.get(), fact_manager));
-  extract_9.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_9.IsApplicable(context.get(), transformation_context));
+  extract_9.Apply(context.get(), &transformation_context);
   auto replacement_9 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(42, instruction_descriptor_9, 0), 208);
-  ASSERT_TRUE(replacement_9.IsApplicable(context.get(), fact_manager));
-  replacement_9.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_9.IsApplicable(context.get(), transformation_context));
+  replacement_9.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %45 with %104[1] in '%63 = OpLogicalOr %30 %45 %46'
@@ -961,24 +1059,28 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(63, SpvOpLogicalOr, 0);
   auto extract_10 =
       TransformationCompositeExtract(instruction_descriptor_10, 209, 104, {1});
-  ASSERT_TRUE(extract_10.IsApplicable(context.get(), fact_manager));
-  extract_10.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_10.IsApplicable(context.get(), transformation_context));
+  extract_10.Apply(context.get(), &transformation_context);
   auto replacement_10 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(45, instruction_descriptor_10, 0), 209);
-  ASSERT_TRUE(replacement_10.IsApplicable(context.get(), fact_manager));
-  replacement_10.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_10.IsApplicable(context.get(), transformation_context));
+  replacement_10.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %38 with %105[0:1] in 'OpStore %36 %38'
   auto instruction_descriptor_11 = MakeInstructionDescriptor(85, SpvOpStore, 0);
   auto shuffle_11 = TransformationVectorShuffle(instruction_descriptor_11, 210,
                                                 105, 105, {0, 1});
-  ASSERT_TRUE(shuffle_11.IsApplicable(context.get(), fact_manager));
-  shuffle_11.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(shuffle_11.IsApplicable(context.get(), transformation_context));
+  shuffle_11.Apply(context.get(), &transformation_context);
+  fact_manager.ComputeClosureOfFacts(context.get(), 100);
+
   auto replacement_11 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(38, instruction_descriptor_11, 1), 210);
-  ASSERT_TRUE(replacement_11.IsApplicable(context.get(), fact_manager));
-  replacement_11.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_11.IsApplicable(context.get(), transformation_context));
+  replacement_11.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Replace %46 with %105[2] in '%62 = OpLogicalAnd %30 %45 %46'
@@ -986,12 +1088,13 @@ TEST(DataSynonymTransformationTest, VectorCompositeSynonyms) {
       MakeInstructionDescriptor(62, SpvOpLogicalAnd, 0);
   auto extract_12 =
       TransformationCompositeExtract(instruction_descriptor_12, 211, 105, {2});
-  ASSERT_TRUE(extract_12.IsApplicable(context.get(), fact_manager));
-  extract_12.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(extract_12.IsApplicable(context.get(), transformation_context));
+  extract_12.Apply(context.get(), &transformation_context);
   auto replacement_12 = TransformationReplaceIdWithSynonym(
       MakeIdUseDescriptor(46, instruction_descriptor_12, 1), 211);
-  ASSERT_TRUE(replacement_12.IsApplicable(context.get(), fact_manager));
-  replacement_12.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      replacement_12.IsApplicable(context.get(), transformation_context));
+  replacement_12.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   const std::string after_transformation = R"(
