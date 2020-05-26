@@ -65,4 +65,22 @@ inline void destroy(VkT vkObject, const VkAllocationCallbacks *pAllocator)
 	}
 }
 
+template<typename VkT>
+inline void release(VkT vkObject, const VkAllocationCallbacks *pAllocator)
+{
+	auto object = Cast(vkObject);
+	if(object)
+	{
+		using T = typename std::remove_pointer<decltype(object)>::type;
+		if(object->release(pAllocator))
+		{
+			object->~T();
+			// object may not point to the same pointer as vkObject, for dispatchable objects,
+			// for example, so make sure to deallocate based on the vkObject pointer, which
+			// should always point to the beginning of the allocated memory
+			vk::deallocate(vkObject, pAllocator);
+		}
+	}
+}
+
 }  // namespace vk

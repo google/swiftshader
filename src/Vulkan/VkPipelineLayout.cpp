@@ -55,11 +55,23 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 	size_t pushConstantRangesSize = pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange);
 	pushConstantRanges = reinterpret_cast<VkPushConstantRange *>(bindingStorage);
 	memcpy(pushConstantRanges, pCreateInfo->pPushConstantRanges, pushConstantRangesSize);
+
+	incRefCount();
 }
 
 void PipelineLayout::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	vk::deallocate(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
+}
+
+bool PipelineLayout::release(const VkAllocationCallbacks *pAllocator)
+{
+	if(decRefCount() == 0)
+	{
+		vk::deallocate(descriptorSets[0].bindings, pAllocator);  // pushConstantRanges are in the same allocation
+		return true;
+	}
+	return false;
 }
 
 size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo)
@@ -105,6 +117,16 @@ uint32_t PipelineLayout::getDescriptorSize(uint32_t setNumber, uint32_t bindingN
 bool PipelineLayout::isDescriptorDynamic(uint32_t setNumber, uint32_t bindingNumber) const
 {
 	return DescriptorSetLayout::IsDescriptorDynamic(getDescriptorType(setNumber, bindingNumber));
+}
+
+uint32_t PipelineLayout::incRefCount()
+{
+	return ++refCount;
+}
+
+uint32_t PipelineLayout::decRefCount()
+{
+	return --refCount;
 }
 
 }  // namespace vk

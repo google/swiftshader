@@ -42,7 +42,7 @@ class Device;
 class Pipeline
 {
 public:
-	Pipeline(PipelineLayout const *layout, const Device *device);
+	Pipeline(PipelineLayout *layout, const Device *device);
 	virtual ~Pipeline() = default;
 
 	operator VkPipeline()
@@ -55,23 +55,20 @@ public:
 		return vk::VkTtoT<Pipeline, VkPipeline>(object);
 	}
 
-	void destroy(const VkAllocationCallbacks *pAllocator)
-	{
-		destroyPipeline(pAllocator);
-	}
+	void destroy(const VkAllocationCallbacks *pAllocator);
 
 	virtual void destroyPipeline(const VkAllocationCallbacks *pAllocator) = 0;
 #ifndef NDEBUG
 	virtual VkPipelineBindPoint bindPoint() const = 0;
 #endif
 
-	PipelineLayout const *getLayout() const
+	PipelineLayout *getLayout() const
 	{
 		return layout;
 	}
 
 protected:
-	PipelineLayout const *layout = nullptr;
+	PipelineLayout *layout = nullptr;
 	Device const *const device;
 
 	const bool robustBufferAccess = true;

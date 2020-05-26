@@ -14,6 +14,7 @@
 
 #include "VkPipeline.hpp"
 
+#include "VkDestroy.hpp"
 #include "VkDevice.hpp"
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
@@ -137,11 +138,19 @@ std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::Compu
 
 namespace vk {
 
-Pipeline::Pipeline(PipelineLayout const *layout, const Device *device)
+Pipeline::Pipeline(PipelineLayout *layout, const Device *device)
     : layout(layout)
     , device(device)
     , robustBufferAccess(device->getEnabledFeatures().robustBufferAccess)
 {
+	layout->incRefCount();
+}
+
+void Pipeline::destroy(const VkAllocationCallbacks *pAllocator)
+{
+	destroyPipeline(pAllocator);
+
+	vk::release(static_cast<VkPipelineLayout>(*layout), pAllocator);
 }
 
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, const Device *device)

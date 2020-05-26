@@ -25,6 +25,7 @@ class PipelineLayout : public Object<PipelineLayout, VkPipelineLayout>
 public:
 	PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, void *mem);
 	void destroy(const VkAllocationCallbacks *pAllocator);
+	bool release(const VkAllocationCallbacks *pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo);
 
@@ -40,6 +41,9 @@ public:
 	bool isDescriptorDynamic(uint32_t setNumber, uint32_t bindingNumber) const;
 
 	const uint32_t identifier;
+
+	uint32_t incRefCount();
+	uint32_t decRefCount();
 
 private:
 	struct Binding
@@ -60,6 +64,8 @@ private:
 	const uint32_t descriptorSetCount = 0;
 	const uint32_t pushConstantRangeCount = 0;
 	VkPushConstantRange *pushConstantRanges = nullptr;
+
+	std::atomic<uint32_t> refCount{ 0 };
 };
 
 static inline PipelineLayout *Cast(VkPipelineLayout object)
