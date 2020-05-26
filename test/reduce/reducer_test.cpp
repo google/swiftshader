@@ -16,7 +16,7 @@
 
 #include "source/opt/build_module.h"
 #include "source/reduce/operand_to_const_reduction_opportunity_finder.h"
-#include "source/reduce/remove_unreferenced_instruction_reduction_opportunity_finder.h"
+#include "source/reduce/remove_unused_instruction_reduction_opportunity_finder.h"
 #include "test/reduce/reduce_test_util.h"
 
 namespace spvtools {
@@ -157,35 +157,17 @@ TEST(ReducerTest, ExprToConstantAndRemoveUnreferenced) {
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
-               OpEntryPoint Fragment %4 "main" %60
+               OpEntryPoint Fragment %4 "main"
                OpExecutionMode %4 OriginUpperLeft
-               OpMemberDecorate %16 0 Offset 0
-               OpDecorate %16 Block
-               OpDecorate %18 DescriptorSet 0
-               OpDecorate %18 Binding 2
-               OpMemberDecorate %25 0 Offset 0
-               OpDecorate %25 Block
-               OpDecorate %27 DescriptorSet 0
-               OpDecorate %27 Binding 1
-               OpDecorate %60 Location 0
           %2 = OpTypeVoid
           %3 = OpTypeFunction %2
           %6 = OpTypeInt 32 1
           %9 = OpConstant %6 0
-         %16 = OpTypeStruct %6
-         %17 = OpTypePointer Uniform %16
-         %18 = OpVariable %17 Uniform
          %22 = OpTypeBool
         %100 = OpConstantTrue %22
          %24 = OpTypeFloat 32
-         %25 = OpTypeStruct %24
-         %26 = OpTypePointer Uniform %25
-         %27 = OpVariable %26 Uniform
          %31 = OpConstant %24 2
          %56 = OpConstant %6 1
-         %58 = OpTypeVector %24 4
-         %59 = OpTypePointer Output %58
-         %60 = OpVariable %59 Output
          %72 = OpUndef %24
          %74 = OpUndef %6
           %4 = OpFunction %2 None %3
@@ -218,8 +200,7 @@ TEST(ReducerTest, ExprToConstantAndRemoveUnreferenced) {
         return ping_pong_interesting.IsInteresting(binary);
       });
   reducer.AddReductionPass(
-      MakeUnique<RemoveUnreferencedInstructionReductionOpportunityFinder>(
-          false));
+      MakeUnique<RemoveUnusedInstructionReductionOpportunityFinder>(false));
   reducer.AddReductionPass(
       MakeUnique<OperandToConstReductionOpportunityFinder>());
 

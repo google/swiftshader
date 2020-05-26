@@ -118,41 +118,48 @@ TEST(TransformationSetFunctionControlTest, VariousScenarios) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // %36 is not a function
   ASSERT_FALSE(TransformationSetFunctionControl(36, SpvFunctionControlMaskNone)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Cannot add the Pure function control to %4 as it did not already have it
   ASSERT_FALSE(TransformationSetFunctionControl(4, SpvFunctionControlPureMask)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Cannot add the Const function control to %21 as it did not already
   // have it
   ASSERT_FALSE(TransformationSetFunctionControl(21, SpvFunctionControlConstMask)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Set to None, removing Const
   TransformationSetFunctionControl transformation1(11,
                                                    SpvFunctionControlMaskNone);
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
 
   // Set to Inline; silly to do it on an entry point, but it is allowed
   TransformationSetFunctionControl transformation2(
       4, SpvFunctionControlInlineMask);
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
 
   // Set to Pure, removing DontInline
   TransformationSetFunctionControl transformation3(17,
                                                    SpvFunctionControlPureMask);
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
 
   // Change from Inline to DontInline
   TransformationSetFunctionControl transformation4(
       13, SpvFunctionControlDontInlineMask);
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
 
   std::string after_transformation = R"(
                OpCapability Shader

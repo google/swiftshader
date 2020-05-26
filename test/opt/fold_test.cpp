@@ -3297,7 +3297,16 @@ INSTANTIATE_TEST_SUITE_P(IntegerArithmeticTestCases, GeneralInstructionFoldingTe
             "%2 = OpIMul %int %3 %int_1\n" +
             "OpReturn\n" +
             "OpFunctionEnd",
-        2, 3)
+        2, 3),
+    // Test case 42: Don't fold comparisons of 64-bit types
+    // (https://github.com/KhronosGroup/SPIRV-Tools/issues/3343).
+    InstructionFoldingCase<uint32_t>(
+        Header() + "%main = OpFunction %void None %void_func\n" +
+          "%main_lab = OpLabel\n" +
+          "%2 = OpSLessThan %bool %long_0 %long_2\n" +
+          "OpReturn\n" +
+          "OpFunctionEnd",
+        2, 0)
 ));
 
 INSTANTIATE_TEST_SUITE_P(CompositeExtractFoldingTest, GeneralInstructionFoldingTest,

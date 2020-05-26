@@ -1553,6 +1553,47 @@ const std::string kTestShader5 = R"(
                OpFunctionEnd
   )";
 
+// Some miscellaneous SPIR-V.
+
+const std::string kTestShader6 = R"(
+               OpCapability Shader
+               OpCapability SampledBuffer
+               OpCapability ImageBuffer
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main" %40 %41
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource GLSL 450
+               OpDecorate %40 DescriptorSet 0
+               OpDecorate %40 Binding 69
+               OpDecorate %41 DescriptorSet 0
+               OpDecorate %41 Binding 1
+         %54 = OpTypeFloat 32
+         %76 = OpTypeVector %54 4
+         %55 = OpConstant %54 0
+         %56 = OpTypeVector %54 3
+         %94 = OpTypeVector %54 2
+        %112 = OpConstantComposite %94 %55 %55
+         %57 = OpConstantComposite %56 %55 %55 %55
+         %15 = OpTypeImage %54 2D 2 0 0 1 Unknown
+        %114 = OpTypePointer UniformConstant %15
+         %38 = OpTypeSampler
+        %125 = OpTypePointer UniformConstant %38
+        %132 = OpTypeVoid
+        %133 = OpTypeFunction %132
+         %45 = OpTypeSampledImage %15
+         %40 = OpVariable %114 UniformConstant
+         %41 = OpVariable %125 UniformConstant
+          %2 = OpFunction %132 None %133
+        %164 = OpLabel
+        %184 = OpLoad %15 %40
+	%213 = OpLoad %38 %41
+        %216 = OpSampledImage %45 %184 %213
+        %217 = OpImageSampleImplicitLod %76 %216 %112 Bias %55
+               OpReturn
+               OpFunctionEnd
+  )";
+
 void AddConstantUniformFact(protobufs::FactSequence* facts,
                             uint32_t descriptor_set, uint32_t binding,
                             std::vector<uint32_t>&& indices, uint32_t value) {
@@ -1591,7 +1632,7 @@ void RunFuzzerAndReplayer(const std::string& shader,
 
   std::vector<fuzzerutil::ModuleSupplier> donor_suppliers;
   for (auto donor : {&kTestShader1, &kTestShader2, &kTestShader3, &kTestShader4,
-                     &kTestShader5}) {
+                     &kTestShader5, &kTestShader6}) {
     donor_suppliers.emplace_back([donor]() {
       return BuildModule(env, kConsoleMessageConsumer, *donor,
                          kFuzzAssembleOption);
@@ -1602,8 +1643,9 @@ void RunFuzzerAndReplayer(const std::string& shader,
     std::vector<uint32_t> fuzzer_binary_out;
     protobufs::TransformationSequence fuzzer_transformation_sequence_out;
 
-    Fuzzer fuzzer(env, seed, true);
-    fuzzer.SetMessageConsumer(kSilentConsumer);
+    spvtools::ValidatorOptions validator_options;
+    Fuzzer fuzzer(env, seed, true, validator_options);
+    fuzzer.SetMessageConsumer(kConsoleMessageConsumer);
     auto fuzzer_result_status =
         fuzzer.Run(binary_in, initial_facts, donor_suppliers,
                    &fuzzer_binary_out, &fuzzer_transformation_sequence_out);
@@ -1613,8 +1655,8 @@ void RunFuzzerAndReplayer(const std::string& shader,
     std::vector<uint32_t> replayer_binary_out;
     protobufs::TransformationSequence replayer_transformation_sequence_out;
 
-    Replayer replayer(env, false);
-    replayer.SetMessageConsumer(kSilentConsumer);
+    Replayer replayer(env, false, validator_options);
+    replayer.SetMessageConsumer(kConsoleMessageConsumer);
     auto replayer_result_status = replayer.Run(
         binary_in, initial_facts, fuzzer_transformation_sequence_out,
         &replayer_binary_out, &replayer_transformation_sequence_out);
@@ -1678,6 +1720,13 @@ TEST(FuzzerReplayerTest, Miscellaneous5) {
   // Do some fuzzer runs, starting from an initial seed of 29 (seed value chosen
   // arbitrarily).
   RunFuzzerAndReplayer(kTestShader5, protobufs::FactSequence(), 29,
+                       kNumFuzzerRuns);
+}
+
+TEST(FuzzerReplayerTest, Miscellaneous6) {
+  // Do some fuzzer runs, starting from an initial seed of 57 (seed value chosen
+  // arbitrarily).
+  RunFuzzerAndReplayer(kTestShader6, protobufs::FactSequence(), 57,
                        kNumFuzzerRuns);
 }
 

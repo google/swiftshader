@@ -51,77 +51,92 @@ TEST(TransformationCopyObjectTest, CopyBooleanConstants) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  ASSERT_EQ(0,
-            fact_manager.GetIdsForWhichSynonymsAreKnown(context.get()).size());
+  ASSERT_EQ(0, transformation_context.GetFactManager()
+                   ->GetIdsForWhichSynonymsAreKnown()
+                   .size());
 
   {
     TransformationCopyObject copy_true(
         7, MakeInstructionDescriptor(5, SpvOpReturn, 0), 100);
-    ASSERT_TRUE(copy_true.IsApplicable(context.get(), fact_manager));
-    copy_true.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(copy_true.IsApplicable(context.get(), transformation_context));
+    copy_true.Apply(context.get(), &transformation_context);
 
     std::vector<uint32_t> ids_for_which_synonyms_are_known =
-        fact_manager.GetIdsForWhichSynonymsAreKnown(context.get());
+        transformation_context.GetFactManager()
+            ->GetIdsForWhichSynonymsAreKnown();
     ASSERT_EQ(2, ids_for_which_synonyms_are_known.size());
     ASSERT_TRUE(std::find(ids_for_which_synonyms_are_known.begin(),
                           ids_for_which_synonyms_are_known.end(),
                           7) != ids_for_which_synonyms_are_known.end());
-    ASSERT_EQ(2, fact_manager.GetSynonymsForId(7, context.get()).size());
+    ASSERT_EQ(
+        2, transformation_context.GetFactManager()->GetSynonymsForId(7).size());
     protobufs::DataDescriptor descriptor_100 = MakeDataDescriptor(100, {});
-    ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(7, {}),
-                                          descriptor_100, context.get()));
+    ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+        MakeDataDescriptor(7, {}), descriptor_100));
   }
 
   {
     TransformationCopyObject copy_false(
         8, MakeInstructionDescriptor(100, SpvOpReturn, 0), 101);
-    ASSERT_TRUE(copy_false.IsApplicable(context.get(), fact_manager));
-    copy_false.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(copy_false.IsApplicable(context.get(), transformation_context));
+    copy_false.Apply(context.get(), &transformation_context);
     std::vector<uint32_t> ids_for_which_synonyms_are_known =
-        fact_manager.GetIdsForWhichSynonymsAreKnown(context.get());
+        transformation_context.GetFactManager()
+            ->GetIdsForWhichSynonymsAreKnown();
     ASSERT_EQ(4, ids_for_which_synonyms_are_known.size());
     ASSERT_TRUE(std::find(ids_for_which_synonyms_are_known.begin(),
                           ids_for_which_synonyms_are_known.end(),
                           8) != ids_for_which_synonyms_are_known.end());
-    ASSERT_EQ(2, fact_manager.GetSynonymsForId(8, context.get()).size());
+    ASSERT_EQ(
+        2, transformation_context.GetFactManager()->GetSynonymsForId(8).size());
     protobufs::DataDescriptor descriptor_101 = MakeDataDescriptor(101, {});
-    ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(8, {}),
-                                          descriptor_101, context.get()));
+    ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+        MakeDataDescriptor(8, {}), descriptor_101));
   }
 
   {
     TransformationCopyObject copy_false_again(
         101, MakeInstructionDescriptor(5, SpvOpReturn, 0), 102);
-    ASSERT_TRUE(copy_false_again.IsApplicable(context.get(), fact_manager));
-    copy_false_again.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        copy_false_again.IsApplicable(context.get(), transformation_context));
+    copy_false_again.Apply(context.get(), &transformation_context);
     std::vector<uint32_t> ids_for_which_synonyms_are_known =
-        fact_manager.GetIdsForWhichSynonymsAreKnown(context.get());
+        transformation_context.GetFactManager()
+            ->GetIdsForWhichSynonymsAreKnown();
     ASSERT_EQ(5, ids_for_which_synonyms_are_known.size());
     ASSERT_TRUE(std::find(ids_for_which_synonyms_are_known.begin(),
                           ids_for_which_synonyms_are_known.end(),
                           101) != ids_for_which_synonyms_are_known.end());
-    ASSERT_EQ(3, fact_manager.GetSynonymsForId(101, context.get()).size());
+    ASSERT_EQ(
+        3,
+        transformation_context.GetFactManager()->GetSynonymsForId(101).size());
     protobufs::DataDescriptor descriptor_102 = MakeDataDescriptor(102, {});
-    ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(101, {}),
-                                          descriptor_102, context.get()));
+    ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+        MakeDataDescriptor(101, {}), descriptor_102));
   }
 
   {
     TransformationCopyObject copy_true_again(
         7, MakeInstructionDescriptor(102, SpvOpReturn, 0), 103);
-    ASSERT_TRUE(copy_true_again.IsApplicable(context.get(), fact_manager));
-    copy_true_again.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        copy_true_again.IsApplicable(context.get(), transformation_context));
+    copy_true_again.Apply(context.get(), &transformation_context);
     std::vector<uint32_t> ids_for_which_synonyms_are_known =
-        fact_manager.GetIdsForWhichSynonymsAreKnown(context.get());
+        transformation_context.GetFactManager()
+            ->GetIdsForWhichSynonymsAreKnown();
     ASSERT_EQ(6, ids_for_which_synonyms_are_known.size());
     ASSERT_TRUE(std::find(ids_for_which_synonyms_are_known.begin(),
                           ids_for_which_synonyms_are_known.end(),
                           7) != ids_for_which_synonyms_are_known.end());
-    ASSERT_EQ(3, fact_manager.GetSynonymsForId(7, context.get()).size());
+    ASSERT_EQ(
+        3, transformation_context.GetFactManager()->GetSynonymsForId(7).size());
     protobufs::DataDescriptor descriptor_103 = MakeDataDescriptor(103, {});
-    ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(7, {}),
-                                          descriptor_103, context.get()));
+    ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+        MakeDataDescriptor(7, {}), descriptor_103));
   }
 
   std::string after_transformation = R"(
@@ -340,116 +355,119 @@ TEST(TransformationCopyObjectTest, CheckIllegalCases) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Inapplicable because %18 is decorated.
   ASSERT_FALSE(TransformationCopyObject(
                    18, MakeInstructionDescriptor(21, SpvOpAccessChain, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because %77 is decorated.
   ASSERT_FALSE(TransformationCopyObject(
                    77, MakeInstructionDescriptor(77, SpvOpBranch, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because %80 is decorated.
   ASSERT_FALSE(TransformationCopyObject(
                    80, MakeInstructionDescriptor(77, SpvOpIAdd, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because %84 is not available at the requested point
   ASSERT_FALSE(
       TransformationCopyObject(
           84, MakeInstructionDescriptor(32, SpvOpCompositeExtract, 0), 200)
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Fine because %84 is available at the requested point
   ASSERT_TRUE(
       TransformationCopyObject(
           84, MakeInstructionDescriptor(32, SpvOpCompositeConstruct, 0), 200)
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because id %9 is already in use
   ASSERT_FALSE(
       TransformationCopyObject(
           84, MakeInstructionDescriptor(32, SpvOpCompositeConstruct, 0), 9)
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because the requested point does not exist
   ASSERT_FALSE(TransformationCopyObject(
                    84, MakeInstructionDescriptor(86, SpvOpReturn, 2), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because %9 is not in a function
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(9, SpvOpTypeInt, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because the insert point is right before, or inside, a chunk
   // of OpPhis
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(30, SpvOpPhi, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(99, SpvOpPhi, 1), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // OK, because the insert point is just after a chunk of OpPhis.
   ASSERT_TRUE(TransformationCopyObject(
                   9, MakeInstructionDescriptor(96, SpvOpAccessChain, 0), 200)
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because the insert point is right after an OpSelectionMerge
   ASSERT_FALSE(
       TransformationCopyObject(
           9, MakeInstructionDescriptor(58, SpvOpBranchConditional, 0), 200)
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // OK, because the insert point is right before the OpSelectionMerge
   ASSERT_TRUE(TransformationCopyObject(
                   9, MakeInstructionDescriptor(58, SpvOpSelectionMerge, 0), 200)
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because the insert point is right after an OpSelectionMerge
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(43, SpvOpSwitch, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // OK, because the insert point is right before the OpSelectionMerge
   ASSERT_TRUE(TransformationCopyObject(
                   9, MakeInstructionDescriptor(43, SpvOpSelectionMerge, 0), 200)
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because the insert point is right after an OpLoopMerge
   ASSERT_FALSE(
       TransformationCopyObject(
           9, MakeInstructionDescriptor(40, SpvOpBranchConditional, 0), 200)
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // OK, because the insert point is right before the OpLoopMerge
   ASSERT_TRUE(TransformationCopyObject(
                   9, MakeInstructionDescriptor(40, SpvOpLoopMerge, 0), 200)
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because id %300 does not exist
   ASSERT_FALSE(TransformationCopyObject(
                    300, MakeInstructionDescriptor(40, SpvOpLoopMerge, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable because the following instruction is OpVariable
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(180, SpvOpVariable, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(181, SpvOpVariable, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(182, SpvOpVariable, 0), 200)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // OK, because this is just past the group of OpVariable instructions.
   ASSERT_TRUE(TransformationCopyObject(
                   9, MakeInstructionDescriptor(182, SpvOpAccessChain, 0), 200)
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationCopyObjectTest, MiscellaneousCopies) {
@@ -515,6 +533,9 @@ TEST(TransformationCopyObjectTest, MiscellaneousCopies) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   std::vector<TransformationCopyObject> transformations = {
       TransformationCopyObject(19, MakeInstructionDescriptor(22, SpvOpStore, 0),
@@ -533,8 +554,9 @@ TEST(TransformationCopyObjectTest, MiscellaneousCopies) {
           17, MakeInstructionDescriptor(22, SpvOpCopyObject, 0), 106)};
 
   for (auto& transformation : transformations) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
   }
 
   ASSERT_TRUE(IsValid(env, context.get()));
@@ -614,16 +636,19 @@ TEST(TransformationCopyObjectTest, DoNotCopyNullOrUndefPointers) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Illegal to copy null.
   ASSERT_FALSE(TransformationCopyObject(
                    8, MakeInstructionDescriptor(5, SpvOpReturn, 0), 100)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Illegal to copy an OpUndef of pointer type.
   ASSERT_FALSE(TransformationCopyObject(
                    9, MakeInstructionDescriptor(5, SpvOpReturn, 0), 100)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationCopyObjectTest, PropagateIrrelevantPointeeFact) {
@@ -655,7 +680,11 @@ TEST(TransformationCopyObjectTest, PropagateIrrelevantPointeeFact) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(8);
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(8);
 
   TransformationCopyObject transformation1(
       8, MakeInstructionDescriptor(9, SpvOpReturn, 0), 100);
@@ -664,18 +693,84 @@ TEST(TransformationCopyObjectTest, PropagateIrrelevantPointeeFact) {
   TransformationCopyObject transformation3(
       100, MakeInstructionDescriptor(9, SpvOpReturn, 0), 102);
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
 
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(8));
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(100));
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(102));
-  ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(9));
-  ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(101));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(8));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(100));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(102));
+  ASSERT_FALSE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(9));
+  ASSERT_FALSE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(101));
+}
+
+TEST(TransformationCopyObject, DoNotCopyOpSampledImage) {
+  // This checks that we do not try to copy the result id of an OpSampledImage
+  // instruction.
+  std::string shader = R"(
+               OpCapability Shader
+               OpCapability SampledBuffer
+               OpCapability ImageBuffer
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main" %40 %41
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource GLSL 450
+               OpDecorate %40 DescriptorSet 0
+               OpDecorate %40 Binding 69
+               OpDecorate %41 DescriptorSet 0
+               OpDecorate %41 Binding 1
+         %54 = OpTypeFloat 32
+         %76 = OpTypeVector %54 4
+         %55 = OpConstant %54 0
+         %56 = OpTypeVector %54 3
+         %94 = OpTypeVector %54 2
+        %112 = OpConstantComposite %94 %55 %55
+         %57 = OpConstantComposite %56 %55 %55 %55
+         %15 = OpTypeImage %54 2D 2 0 0 1 Unknown
+        %114 = OpTypePointer UniformConstant %15
+         %38 = OpTypeSampler
+        %125 = OpTypePointer UniformConstant %38
+        %132 = OpTypeVoid
+        %133 = OpTypeFunction %132
+         %45 = OpTypeSampledImage %15
+         %40 = OpVariable %114 UniformConstant
+         %41 = OpVariable %125 UniformConstant
+          %2 = OpFunction %132 None %133
+        %164 = OpLabel
+        %184 = OpLoad %15 %40
+        %213 = OpLoad %38 %41
+        %216 = OpSampledImage %45 %184 %213
+        %217 = OpImageSampleImplicitLod %76 %216 %112 Bias %55
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  ASSERT_FALSE(
+      TransformationCopyObject(
+          216, MakeInstructionDescriptor(217, SpvOpImageSampleImplicitLod, 0),
+          500)
+          .IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

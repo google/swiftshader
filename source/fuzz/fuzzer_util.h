@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
+#include "source/fuzz/transformation_context.h"
 #include "source/opt/basic_block.h"
 #include "source/opt/instruction.h"
 #include "source/opt/ir_context.h"
@@ -132,8 +133,9 @@ uint32_t GetNumberOfStructMembers(
 uint32_t GetArraySize(const opt::Instruction& array_type_instruction,
                       opt::IRContext* context);
 
-// Returns true if and only if |context| is valid, according to the validator.
-bool IsValid(opt::IRContext* context);
+// Returns true if and only if |context| is valid, according to the validator
+// instantiated with |validator_options|.
+bool IsValid(opt::IRContext* context, spv_validator_options validator_options);
 
 // Returns a clone of |context|, by writing |context| to a binary and then
 // parsing it again.
@@ -208,6 +210,10 @@ SpvStorageClass GetStorageClassFromPointerType(opt::IRContext* context,
 // class |storage_class|, if it exists, and 0 otherwise.
 uint32_t MaybeGetPointerType(opt::IRContext* context, uint32_t pointee_type_id,
                              SpvStorageClass storage_class);
+
+// Returns true if and only if |type| is one of the types for which it is legal
+// to have an OpConstantNull value.
+bool IsNullConstantSupported(const opt::analysis::Type& type);
 
 }  // namespace fuzzerutil
 

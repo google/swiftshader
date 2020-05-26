@@ -1229,14 +1229,18 @@ std::make_pair(std::string(kOpenCLMemoryModel) +
           "%intt = OpTypeInt 32 0\n" + std::string(kVoidFVoid),
           ShaderDependencies()),
 std::make_pair(std::string(kOpenCLMemoryModel) +
+          // Block applies to struct type.
           "OpEntryPoint Kernel %func \"compute\" \n"
-          "OpDecorate %intt Block\n"
-          "%intt = OpTypeInt 32 0\n" + std::string(kVoidFVoid),
+          "OpDecorate %block Block\n"
+          "%intt = OpTypeInt 32 0\n"
+          "%block = OpTypeStruct %intt\n" + std::string(kVoidFVoid),
           ShaderDependencies()),
 std::make_pair(std::string(kOpenCLMemoryModel) +
+          // BufferBlock applies to struct type.
           "OpEntryPoint Kernel %func \"compute\" \n"
-          "OpDecorate %intt BufferBlock\n"
-          "%intt = OpTypeInt 32 0\n" + std::string(kVoidFVoid),
+          "OpDecorate %block BufferBlock\n"
+          "%intt = OpTypeInt 32 0\n"
+          "%block = OpTypeStruct %intt\n" + std::string(kVoidFVoid),
           ShaderDependencies()),
 std::make_pair(std::string(kOpenCLMemoryModel) +
           "OpEntryPoint Kernel %func \"compute\" \n"

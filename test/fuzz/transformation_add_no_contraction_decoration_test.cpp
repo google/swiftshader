@@ -94,23 +94,27 @@ TEST(TransformationAddNoContractionDecorationTest, BasicScenarios) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Invalid: 200 is not an id
   ASSERT_FALSE(TransformationAddNoContractionDecoration(200).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
   // Invalid: 17 is a block id
   ASSERT_FALSE(TransformationAddNoContractionDecoration(17).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
   // Invalid: 24 is not arithmetic
   ASSERT_FALSE(TransformationAddNoContractionDecoration(24).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 
   // It is valid to add NoContraction to each of these ids (and it's fine to
   // have duplicates of the decoration, in the case of 32).
   for (uint32_t result_id : {32u, 32u, 27u, 29u, 39u}) {
     TransformationAddNoContractionDecoration transformation(result_id);
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
 

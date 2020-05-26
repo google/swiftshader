@@ -40,7 +40,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
   set(SPIRV_TIMER_ENABLED ${SPIRV_ALLOW_TIMERS})
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
     add_definitions(-DSPIRV_EMSCRIPTEN)
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+elseif("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
   add_definitions(-DSPIRV_WINDOWS)
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "CYGWIN")
   add_definitions(-DSPIRV_WINDOWS)
@@ -249,7 +249,7 @@ endif()
 
 # Precompiled header macro. Parameters are source file list and filename for pch cpp file.
 macro(spvtools_pch SRCS PCHPREFIX)
-  if(MSVC AND CMAKE_GENERATOR MATCHES "^Visual Studio")
+  if(MSVC AND CMAKE_GENERATOR MATCHES "^Visual Studio" AND NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(PCH_NAME "$(IntDir)\\${PCHPREFIX}.pch")
     # make source files use/depend on PCH_NAME
     set_source_files_properties(${${SRCS}} PROPERTIES COMPILE_FLAGS "/Yu${PCHPREFIX}.h /FI${PCHPREFIX}.h /Fp${PCH_NAME} /Zm300" OBJECT_DEPENDS "${PCH_NAME}")

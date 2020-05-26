@@ -111,113 +111,140 @@ TEST(TransformationSwapCommutableOperandsTest, IsApplicableTest) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  FactManager factManager;
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Tests existing commutative instructions
   auto instructionDescriptor = MakeInstructionDescriptor(22, SpvOpIAdd, 0);
   auto transformation =
       TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(28, SpvOpIMul, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(42, SpvOpFAdd, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(48, SpvOpFMul, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(66, SpvOpDot, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests existing non-commutative instructions
   instructionDescriptor = MakeInstructionDescriptor(1, SpvOpExtInstImport, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(5, SpvOpLabel, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(8, SpvOpConstant, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(11, SpvOpVariable, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(14, SpvOpConstantComposite, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests the base instruction id not existing
   instructionDescriptor = MakeInstructionDescriptor(67, SpvOpIAddCarry, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(68, SpvOpIEqual, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(69, SpvOpINotEqual, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(70, SpvOpFOrdEqual, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(71, SpvOpPtrEqual, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests there being no instruction with the desired opcode after the base
   // instruction id
   instructionDescriptor = MakeInstructionDescriptor(24, SpvOpIAdd, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(38, SpvOpIMul, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(45, SpvOpFAdd, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(66, SpvOpFMul, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests there being an instruction with the desired opcode after the base
   // instruction id, but the skip count associated with the instruction
   // descriptor being so high.
   instructionDescriptor = MakeInstructionDescriptor(11, SpvOpIAdd, 100);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(16, SpvOpIMul, 100);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(23, SpvOpFAdd, 100);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(32, SpvOpFMul, 100);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(37, SpvOpDot, 100);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationSwapCommutableOperandsTest, ApplyTest) {
@@ -311,28 +338,31 @@ TEST(TransformationSwapCommutableOperandsTest, ApplyTest) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  FactManager factManager;
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto instructionDescriptor = MakeInstructionDescriptor(22, SpvOpIAdd, 0);
   auto transformation =
       TransformationSwapCommutableOperands(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(28, SpvOpIMul, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(42, SpvOpFAdd, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(48, SpvOpFMul, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(66, SpvOpDot, 0);
   transformation = TransformationSwapCommutableOperands(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   std::string variantShader = R"(
                OpCapability Shader

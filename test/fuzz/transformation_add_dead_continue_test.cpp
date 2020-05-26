@@ -97,57 +97,63 @@ TEST(TransformationAddDeadContinueTest, SimpleExample) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // These are all possibilities.
   ASSERT_TRUE(TransformationAddDeadContinue(11, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadContinue(11, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadContinue(12, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadContinue(12, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadContinue(40, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadContinue(40, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 100 is not a block id.
   ASSERT_FALSE(TransformationAddDeadContinue(100, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 10 is not in a loop.
   ASSERT_FALSE(TransformationAddDeadContinue(10, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 15 does not branch unconditionally to a single successor.
   ASSERT_FALSE(TransformationAddDeadContinue(15, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 13 is not in a loop and has no successor.
   ASSERT_FALSE(TransformationAddDeadContinue(13, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 14 is the loop continue target, so it's not OK to jump to
   // the loop continue from there.
   ASSERT_FALSE(TransformationAddDeadContinue(14, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // These are the transformations we will apply.
   auto transformation1 = TransformationAddDeadContinue(11, true, {});
   auto transformation2 = TransformationAddDeadContinue(12, false, {});
   auto transformation3 = TransformationAddDeadContinue(40, true, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -365,19 +371,24 @@ TEST(TransformationAddDeadContinueTest, LoopNest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   std::vector<uint32_t> good = {6, 7, 18, 20, 34, 40, 45, 46, 47, 56, 57};
   std::vector<uint32_t> bad = {5, 8, 9, 19, 21, 22, 33, 41, 58, 59, 60};
 
   for (uint32_t from_block : bad) {
     ASSERT_FALSE(TransformationAddDeadContinue(from_block, true, {})
-                     .IsApplicable(context.get(), fact_manager));
+                     .IsApplicable(context.get(), transformation_context));
   }
   for (uint32_t from_block : good) {
     const TransformationAddDeadContinue transformation(from_block, true, {});
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
-    ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
+    ASSERT_FALSE(
+        transformation.IsApplicable(context.get(), transformation_context));
   }
 
   std::string after_transformation = R"(
@@ -600,19 +611,24 @@ TEST(TransformationAddDeadConditionalTest, LoopInContinueConstruct) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   std::vector<uint32_t> good = {32, 33, 46, 52, 101};
   std::vector<uint32_t> bad = {5, 34, 36, 35, 47, 49, 48};
 
   for (uint32_t from_block : bad) {
     ASSERT_FALSE(TransformationAddDeadContinue(from_block, false, {})
-                     .IsApplicable(context.get(), fact_manager));
+                     .IsApplicable(context.get(), transformation_context));
   }
   for (uint32_t from_block : good) {
     const TransformationAddDeadContinue transformation(from_block, false, {});
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
-    ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
+    ASSERT_FALSE(
+        transformation.IsApplicable(context.get(), transformation_context));
   }
 
   std::string after_transformation = R"(
@@ -806,6 +822,9 @@ TEST(TransformationAddDeadContinueTest, PhiInstructions) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   std::vector<uint32_t> bad = {5, 19, 20, 23, 31, 32, 33, 70};
 
@@ -813,24 +832,28 @@ TEST(TransformationAddDeadContinueTest, PhiInstructions) {
 
   for (uint32_t from_block : bad) {
     ASSERT_FALSE(TransformationAddDeadContinue(from_block, true, {})
-                     .IsApplicable(context.get(), fact_manager));
+                     .IsApplicable(context.get(), transformation_context));
   }
   auto transformation1 = TransformationAddDeadContinue(29, true, {13, 21});
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
 
   auto transformation2 = TransformationAddDeadContinue(30, true, {22, 46});
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
 
   // 75 already has the continue block as a successor, so we should not provide
   // phi ids.
   auto transformationBad = TransformationAddDeadContinue(75, true, {27, 46});
-  ASSERT_FALSE(transformationBad.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformationBad.IsApplicable(context.get(), transformation_context));
 
   auto transformation3 = TransformationAddDeadContinue(75, true, {});
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -974,26 +997,33 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules1) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // This transformation is not applicable because the dead continue from the
   // loop body prevents the definition of %23 later in the loop body from
   // dominating its use in the loop's continue target.
   auto bad_transformation = TransformationAddDeadContinue(13, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 
   auto good_transformation_1 = TransformationAddDeadContinue(7, false, {});
-  ASSERT_TRUE(good_transformation_1.IsApplicable(context.get(), fact_manager));
-  good_transformation_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(good_transformation_1.IsApplicable(context.get(),
+                                                 transformation_context));
+  good_transformation_1.Apply(context.get(), &transformation_context);
 
   auto good_transformation_2 = TransformationAddDeadContinue(22, false, {});
-  ASSERT_TRUE(good_transformation_2.IsApplicable(context.get(), fact_manager));
-  good_transformation_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(good_transformation_2.IsApplicable(context.get(),
+                                                 transformation_context));
+  good_transformation_2.Apply(context.get(), &transformation_context);
 
   // This transformation is OK, because the definition of %21 in the loop body
   // is only used in an OpPhi in the loop's continue target.
   auto good_transformation_3 = TransformationAddDeadContinue(6, false, {11});
-  ASSERT_TRUE(good_transformation_3.IsApplicable(context.get(), fact_manager));
-  good_transformation_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(good_transformation_3.IsApplicable(context.get(),
+                                                 transformation_context));
+  good_transformation_3.Apply(context.get(), &transformation_context);
 
   std::string after_transformations = R"(
                OpCapability Shader
@@ -1083,11 +1113,15 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules2) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // This transformation would shortcut the part of the loop body that defines
   // an id used after the loop.
   auto bad_transformation = TransformationAddDeadContinue(100, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, RespectDominanceRules3) {
@@ -1131,11 +1165,15 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules3) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // This transformation would shortcut the part of the loop body that defines
   // an id used after the loop.
   auto bad_transformation = TransformationAddDeadContinue(100, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, Miscellaneous1) {
@@ -1270,11 +1308,15 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous1) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // This transformation would shortcut the part of the loop body that defines
   // an id used in the continue target.
   auto bad_transformation = TransformationAddDeadContinue(165, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, Miscellaneous2) {
@@ -1336,11 +1378,15 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous2) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // This transformation would introduce a branch from a continue target to
   // itself.
   auto bad_transformation = TransformationAddDeadContinue(1554, true, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, Miscellaneous3) {
@@ -1394,13 +1440,17 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous3) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadContinue(299, false, {});
 
   // The continue edge would connect %299 to the previously-unreachable %236,
   // making %299 dominate %236, and breaking the rule that block ordering must
   // respect dominance.
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, Miscellaneous4) {
@@ -1454,13 +1504,17 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous4) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadContinue(10, false, {});
 
   // The continue edge would connect %10 to the previously-unreachable %13,
   // making %10 dominate %13, and breaking the rule that block ordering must
   // respect dominance.
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, Miscellaneous5) {
@@ -1506,12 +1560,16 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous5) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadContinue(110, true, {});
 
   // The continue edge would lead to the use of %200 in block %101 no longer
   // being dominated by its definition in block %111.
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadContinueTest, Miscellaneous6) {
@@ -1551,10 +1609,14 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous6) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadContinue(10, true, {});
 
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

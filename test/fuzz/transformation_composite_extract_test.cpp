@@ -96,100 +96,103 @@ TEST(TransformationCompositeExtractTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Instruction does not exist.
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(36, SpvOpIAdd, 0), 200, 101, {0})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Id for composite is not a composite.
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(36, SpvOpIAdd, 0), 200, 27, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Composite does not dominate instruction being inserted before.
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(37, SpvOpAccessChain, 0), 200, 101, {0})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Too many indices for extraction from struct composite.
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(24, SpvOpAccessChain, 0), 200, 101, {0, 0})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Too many indices for extraction from struct composite.
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(13, SpvOpIEqual, 0), 200, 104, {0, 0, 0})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Out of bounds index for extraction from struct composite.
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(13, SpvOpIEqual, 0), 200, 104, {0, 3})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Result id already used.
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(35, SpvOpFAdd, 0), 80, 103, {0})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   TransformationCompositeExtract transformation_1(
       MakeInstructionDescriptor(36, SpvOpConvertFToS, 0), 201, 100, {2});
-  ASSERT_TRUE(transformation_1.IsApplicable(context.get(), fact_manager));
-  transformation_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation_1.IsApplicable(context.get(), transformation_context));
+  transformation_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   TransformationCompositeExtract transformation_2(
       MakeInstructionDescriptor(37, SpvOpAccessChain, 0), 202, 104, {0, 2});
-  ASSERT_TRUE(transformation_2.IsApplicable(context.get(), fact_manager));
-  transformation_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation_2.IsApplicable(context.get(), transformation_context));
+  transformation_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   TransformationCompositeExtract transformation_3(
       MakeInstructionDescriptor(29, SpvOpAccessChain, 0), 203, 104, {0});
-  ASSERT_TRUE(transformation_3.IsApplicable(context.get(), fact_manager));
-  transformation_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation_3.IsApplicable(context.get(), transformation_context));
+  transformation_3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   TransformationCompositeExtract transformation_4(
       MakeInstructionDescriptor(24, SpvOpStore, 0), 204, 101, {0});
-  ASSERT_TRUE(transformation_4.IsApplicable(context.get(), fact_manager));
-  transformation_4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation_4.IsApplicable(context.get(), transformation_context));
+  transformation_4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   TransformationCompositeExtract transformation_5(
       MakeInstructionDescriptor(29, SpvOpBranch, 0), 205, 102, {2});
-  ASSERT_TRUE(transformation_5.IsApplicable(context.get(), fact_manager));
-  transformation_5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation_5.IsApplicable(context.get(), transformation_context));
+  transformation_5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   TransformationCompositeExtract transformation_6(
       MakeInstructionDescriptor(37, SpvOpReturn, 0), 206, 103, {1});
-  ASSERT_TRUE(transformation_6.IsApplicable(context.get(), fact_manager));
-  transformation_6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation_6.IsApplicable(context.get(), transformation_context));
+  transformation_6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(201, {}),
-                                        MakeDataDescriptor(100, {2}),
-                                        context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(202, {}),
-                                        MakeDataDescriptor(104, {0, 2}),
-                                        context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(203, {}),
-                                        MakeDataDescriptor(104, {0}),
-                                        context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(204, {}),
-                                        MakeDataDescriptor(101, {0}),
-                                        context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(205, {}),
-                                        MakeDataDescriptor(102, {2}),
-                                        context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(206, {}),
-                                        MakeDataDescriptor(103, {1}),
-                                        context.get()));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(201, {}), MakeDataDescriptor(100, {2})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(202, {}), MakeDataDescriptor(104, {0, 2})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(203, {}), MakeDataDescriptor(104, {0})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(204, {}), MakeDataDescriptor(101, {0})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(205, {}), MakeDataDescriptor(102, {2})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(206, {}), MakeDataDescriptor(103, {1})));
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -348,49 +351,52 @@ TEST(TransformationCompositeExtractTest, IllegalInsertionPoints) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Cannot insert before the OpVariables of a function.
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(101, SpvOpVariable, 0), 200, 14, {0})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(101, SpvOpVariable, 1), 200, 14, {1})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(102, SpvOpVariable, 0), 200, 14, {1})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   // OK to insert right after the OpVariables.
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(102, SpvOpBranch, 1), 200, 14, {1})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Cannot insert before the OpPhis of a block.
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(60, SpvOpPhi, 0), 200, 14, {2})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(59, SpvOpPhi, 0), 200, 14, {3})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // OK to insert after the OpPhis.
   ASSERT_TRUE(
       TransformationCompositeExtract(
           MakeInstructionDescriptor(59, SpvOpAccessChain, 0), 200, 14, {3})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Cannot insert before OpLoopMerge
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(33, SpvOpBranchConditional, 0),
                    200, 14, {3})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Cannot insert before OpSelectionMerge
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(21, SpvOpBranchConditional, 0),
                    200, 14, {2})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

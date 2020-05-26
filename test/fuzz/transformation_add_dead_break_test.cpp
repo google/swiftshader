@@ -100,44 +100,47 @@ TEST(TransformationAddDeadBreakTest, BreaksOutOfSimpleIf) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   const uint32_t merge_block = 16;
 
   // These are all possibilities.
   ASSERT_TRUE(TransformationAddDeadBreak(15, merge_block, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(15, merge_block, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(21, merge_block, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(21, merge_block, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(22, merge_block, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(22, merge_block, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(19, merge_block, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(19, merge_block, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(23, merge_block, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(23, merge_block, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(24, merge_block, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(24, merge_block, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 100 is not a block id.
   ASSERT_FALSE(TransformationAddDeadBreak(100, merge_block, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(15, 100, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Inapplicable: 24 is not a merge block.
   ASSERT_FALSE(TransformationAddDeadBreak(15, 24, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // These are the transformations we will apply.
   auto transformation1 = TransformationAddDeadBreak(15, merge_block, true, {});
@@ -147,28 +150,34 @@ TEST(TransformationAddDeadBreakTest, BreaksOutOfSimpleIf) {
   auto transformation5 = TransformationAddDeadBreak(23, merge_block, true, {});
   auto transformation6 = TransformationAddDeadBreak(24, merge_block, false, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation5.IsApplicable(context.get(), fact_manager));
-  transformation5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation5.IsApplicable(context.get(), transformation_context));
+  transformation5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation6.IsApplicable(context.get(), fact_manager));
-  transformation6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation6.IsApplicable(context.get(), transformation_context));
+  transformation6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -333,6 +342,9 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfNestedIfs) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // The header and merge blocks
   const uint32_t header_inner = 34;
@@ -354,53 +366,53 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfNestedIfs) {
 
   // Fine to break from a construct to its merge
   ASSERT_TRUE(TransformationAddDeadBreak(inner_block_1, merge_inner, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(inner_block_2, merge_inner, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(outer_block_1, merge_outer, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(outer_block_2, merge_outer, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(outer_block_3, merge_outer, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(outer_block_4, merge_outer, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(after_block_1, merge_after, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(after_block_2, merge_after, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break to the wrong merge (whether enclosing or not)
   ASSERT_FALSE(TransformationAddDeadBreak(inner_block_1, merge_outer, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(inner_block_2, merge_after, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(outer_block_1, merge_inner, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(outer_block_2, merge_after, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(after_block_1, merge_inner, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(after_block_2, merge_outer, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break from header (as it does not branch unconditionally)
   ASSERT_FALSE(TransformationAddDeadBreak(header_inner, merge_inner, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(header_outer, merge_outer, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(header_after, merge_after, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break to non-merge
   ASSERT_FALSE(
       TransformationAddDeadBreak(inner_block_1, inner_block_2, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(outer_block_2, after_block_1, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(outer_block_1, header_after, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   auto transformation1 =
       TransformationAddDeadBreak(inner_block_1, merge_inner, true, {});
@@ -419,36 +431,44 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfNestedIfs) {
   auto transformation8 =
       TransformationAddDeadBreak(after_block_2, merge_after, false, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation5.IsApplicable(context.get(), fact_manager));
-  transformation5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation5.IsApplicable(context.get(), transformation_context));
+  transformation5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation6.IsApplicable(context.get(), fact_manager));
-  transformation6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation6.IsApplicable(context.get(), transformation_context));
+  transformation6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation7.IsApplicable(context.get(), fact_manager));
-  transformation7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation7.IsApplicable(context.get(), transformation_context));
+  transformation7.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation8.IsApplicable(context.get(), fact_manager));
-  transformation8.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation8.IsApplicable(context.get(), transformation_context));
+  transformation8.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -685,6 +705,9 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfNestedSwitches) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // The header and merge blocks
   const uint32_t header_outer_if = 5;
@@ -715,63 +738,63 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfNestedSwitches) {
   // Fine to branch straight to direct merge block for a construct
   ASSERT_TRUE(TransformationAddDeadBreak(then_outer_switch_block_1,
                                          merge_then_outer_switch, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(then_inner_switch_block_1,
                                          merge_then_inner_switch, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(then_inner_switch_block_2,
                                          merge_then_inner_switch, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(then_inner_switch_block_3,
                                          merge_then_inner_switch, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(else_switch_block_1, merge_else_switch,
                                          false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(else_switch_block_2, merge_else_switch,
                                          true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(else_switch_block_3, merge_else_switch,
                                          false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(
       TransformationAddDeadBreak(inner_if_1_block_1, merge_inner_if_1, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(inner_if_1_block_2, merge_inner_if_1,
                                          false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(
       TransformationAddDeadBreak(inner_if_2_block_1, merge_inner_if_2, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break out of a switch from a selection construct inside the
   // switch.
   ASSERT_FALSE(TransformationAddDeadBreak(inner_if_1_block_1,
                                           merge_then_outer_switch, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(inner_if_1_block_2,
                                           merge_then_outer_switch, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(inner_if_2_block_1,
                                           merge_then_outer_switch, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Some miscellaneous inapplicable cases.
   ASSERT_FALSE(
       TransformationAddDeadBreak(header_outer_if, merge_outer_if, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(header_inner_if_1, inner_if_1_block_2,
                                           false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(header_then_inner_switch,
                                           header_then_outer_switch, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(header_else_switch,
                                           then_inner_switch_block_3, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(header_inner_if_2, header_inner_if_2,
                                           false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   auto transformation1 = TransformationAddDeadBreak(
       then_outer_switch_block_1, merge_then_outer_switch, true, {});
@@ -794,44 +817,54 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfNestedSwitches) {
   auto transformation10 = TransformationAddDeadBreak(
       inner_if_2_block_1, merge_inner_if_2, true, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation5.IsApplicable(context.get(), fact_manager));
-  transformation5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation5.IsApplicable(context.get(), transformation_context));
+  transformation5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation6.IsApplicable(context.get(), fact_manager));
-  transformation6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation6.IsApplicable(context.get(), transformation_context));
+  transformation6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation7.IsApplicable(context.get(), fact_manager));
-  transformation7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation7.IsApplicable(context.get(), transformation_context));
+  transformation7.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation8.IsApplicable(context.get(), fact_manager));
-  transformation8.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation8.IsApplicable(context.get(), transformation_context));
+  transformation8.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation9.IsApplicable(context.get(), fact_manager));
-  transformation9.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation9.IsApplicable(context.get(), transformation_context));
+  transformation9.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation10.IsApplicable(context.get(), fact_manager));
-  transformation10.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation10.IsApplicable(context.get(), transformation_context));
+  transformation10.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1094,6 +1127,9 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfLoopNest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // The header and merge blocks
   const uint32_t header_do_while = 6;
@@ -1123,75 +1159,75 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfLoopNest) {
   // Fine to break from any loop header to its merge
   ASSERT_TRUE(
       TransformationAddDeadBreak(header_do_while, merge_do_while, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(header_for_i, merge_for_i, false, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddDeadBreak(header_for_j, merge_for_j, true, {})
-                  .IsApplicable(context.get(), fact_manager));
+                  .IsApplicable(context.get(), transformation_context));
 
   // Fine to break from any of the blocks in constructs in the "for j" loop to
   // that loop's merge
   ASSERT_TRUE(
       TransformationAddDeadBreak(block_in_inner_if, merge_for_j, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(
       TransformationAddDeadBreak(block_switch_case, merge_for_j, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_TRUE(
       TransformationAddDeadBreak(block_switch_default, merge_for_j, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Fine to break from the body of the "for i" loop to that loop's merge
   ASSERT_TRUE(
       TransformationAddDeadBreak(block_in_for_i_loop, merge_for_i, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break from multiple loops
   ASSERT_FALSE(
       TransformationAddDeadBreak(block_in_inner_if, merge_do_while, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(block_switch_case, merge_do_while, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(block_switch_default, merge_do_while,
                                           false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(header_for_j, merge_do_while, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break loop from its continue construct
   ASSERT_FALSE(
       TransformationAddDeadBreak(continue_do_while, merge_do_while, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(continue_for_j, merge_for_j, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(continue_for_i, merge_for_i, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Not OK to break out of multiple non-loop constructs if not breaking to a
   // loop merge
   ASSERT_FALSE(
       TransformationAddDeadBreak(block_in_inner_if, merge_if_x_eq_y, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(block_switch_case, merge_if_x_eq_y, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(block_switch_default, merge_if_x_eq_y,
                                           false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Some miscellaneous inapplicable transformations
   ASSERT_FALSE(
       TransformationAddDeadBreak(header_if_x_eq_2, header_if_x_eq_y, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(merge_if_x_eq_2, merge_switch, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(header_switch, header_switch, false, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   auto transformation1 =
       TransformationAddDeadBreak(header_do_while, merge_do_while, true, {});
@@ -1208,32 +1244,39 @@ TEST(TransformationAddDeadBreakTest, BreakOutOfLoopNest) {
   auto transformation7 =
       TransformationAddDeadBreak(block_in_for_i_loop, merge_for_i, true, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation5.IsApplicable(context.get(), fact_manager));
-  transformation5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation5.IsApplicable(context.get(), transformation_context));
+  transformation5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation6.IsApplicable(context.get(), fact_manager));
-  transformation6.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation6.IsApplicable(context.get(), transformation_context));
+  transformation6.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation7.IsApplicable(context.get(), fact_manager));
-  transformation7.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation7.IsApplicable(context.get(), transformation_context));
+  transformation7.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1421,12 +1464,15 @@ TEST(TransformationAddDeadBreakTest, NoBreakFromContinueConstruct) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Not OK to break loop from its continue construct
   ASSERT_FALSE(TransformationAddDeadBreak(13, 12, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(23, 12, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest, SelectionInContinueConstruct) {
@@ -1509,6 +1555,9 @@ TEST(TransformationAddDeadBreakTest, SelectionInContinueConstruct) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   const uint32_t loop_merge = 12;
   const uint32_t selection_merge = 24;
@@ -1520,13 +1569,13 @@ TEST(TransformationAddDeadBreakTest, SelectionInContinueConstruct) {
   // Not OK to jump from the selection to the loop merge, as this would break
   // from the loop's continue construct.
   ASSERT_FALSE(TransformationAddDeadBreak(in_selection_1, loop_merge, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(in_selection_2, loop_merge, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(in_selection_3, loop_merge, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddDeadBreak(in_selection_4, loop_merge, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // But fine to jump from the selection to its merge.
 
@@ -1539,20 +1588,24 @@ TEST(TransformationAddDeadBreakTest, SelectionInContinueConstruct) {
   auto transformation4 =
       TransformationAddDeadBreak(in_selection_4, selection_merge, true, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1720,6 +1773,9 @@ TEST(TransformationAddDeadBreakTest, LoopInContinueConstruct) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   const uint32_t outer_loop_merge = 34;
   const uint32_t outer_loop_block = 33;
@@ -1729,22 +1785,24 @@ TEST(TransformationAddDeadBreakTest, LoopInContinueConstruct) {
   // Some inapplicable cases
   ASSERT_FALSE(
       TransformationAddDeadBreak(inner_loop_block, outer_loop_merge, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
   ASSERT_FALSE(
       TransformationAddDeadBreak(outer_loop_block, inner_loop_merge, true, {})
-          .IsApplicable(context.get(), fact_manager));
+          .IsApplicable(context.get(), transformation_context));
 
   auto transformation1 =
       TransformationAddDeadBreak(inner_loop_block, inner_loop_merge, true, {});
   auto transformation2 =
       TransformationAddDeadBreak(outer_loop_block, outer_loop_merge, true, {});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1936,36 +1994,39 @@ TEST(TransformationAddDeadBreakTest, PhiInstructions) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Some inapplicable transformations
   // Not applicable because there is already an edge 19->20, so the OpPhis at 20
   // do not need to be updated
   ASSERT_FALSE(TransformationAddDeadBreak(19, 20, true, {13, 21})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Not applicable because two OpPhis (not zero) need to be updated at 20
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Not applicable because two OpPhis (not just one) need to be updated at 20
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {13})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Not applicable because the given ids do not have types that match the
   // OpPhis at 20, in order
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {21, 13})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Not applicable because id 23 is a label
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {21, 23})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Not applicable because 101 is not an id
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {21, 101})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // Not applicable because ids 51 and 47 are not available at the end of block
   // 23
   ASSERT_FALSE(TransformationAddDeadBreak(23, 20, true, {51, 47})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // Not applicable because OpConstantFalse is not present in the module
   ASSERT_FALSE(TransformationAddDeadBreak(19, 20, false, {})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   auto transformation1 = TransformationAddDeadBreak(19, 20, true, {});
   auto transformation2 = TransformationAddDeadBreak(23, 20, true, {13, 21});
@@ -1973,24 +2034,29 @@ TEST(TransformationAddDeadBreakTest, PhiInstructions) {
   auto transformation4 = TransformationAddDeadBreak(30, 31, true, {21, 13});
   auto transformation5 = TransformationAddDeadBreak(75, 31, true, {47, 51});
 
-  ASSERT_TRUE(transformation1.IsApplicable(context.get(), fact_manager));
-  transformation1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  transformation1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation2.IsApplicable(context.get(), fact_manager));
-  transformation2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  transformation2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation3.IsApplicable(context.get(), fact_manager));
-  transformation3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  transformation3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation4.IsApplicable(context.get(), fact_manager));
-  transformation4.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  transformation4.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(transformation5.IsApplicable(context.get(), fact_manager));
-  transformation5.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation5.IsApplicable(context.get(), transformation_context));
+  transformation5.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -2119,9 +2185,13 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules1) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadBreak(100, 101, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest, RespectDominanceRules2) {
@@ -2172,9 +2242,13 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules2) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadBreak(102, 101, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest, RespectDominanceRules3) {
@@ -2219,11 +2293,15 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules3) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto good_transformation = TransformationAddDeadBreak(100, 101, false, {11});
-  ASSERT_TRUE(good_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_TRUE(
+      good_transformation.IsApplicable(context.get(), transformation_context));
 
-  good_transformation.Apply(context.get(), &fact_manager);
+  good_transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -2307,11 +2385,15 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules4) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto good_transformation = TransformationAddDeadBreak(102, 101, false, {11});
-  ASSERT_TRUE(good_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_TRUE(
+      good_transformation.IsApplicable(context.get(), transformation_context));
 
-  good_transformation.Apply(context.get(), &fact_manager);
+  good_transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -2389,9 +2471,13 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules5) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadBreak(100, 101, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest, RespectDominanceRules6) {
@@ -2446,9 +2532,13 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules6) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadBreak(102, 101, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest, RespectDominanceRules7) {
@@ -2505,9 +2595,13 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules7) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadBreak(102, 101, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest, RespectDominanceRules8) {
@@ -2551,9 +2645,13 @@ TEST(TransformationAddDeadBreakTest, RespectDominanceRules8) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto bad_transformation = TransformationAddDeadBreak(102, 101, false, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationAddDeadBreakTest,
@@ -2597,12 +2695,16 @@ TEST(TransformationAddDeadBreakTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Bad because 14 comes before 12 in the module, and 14 has no predecessors.
   // This means that an edge from 12 to 14 will lead to 12 dominating 14, which
   // is illegal if 12 appears after 14.
   auto bad_transformation = TransformationAddDeadBreak(12, 14, true, {});
-  ASSERT_FALSE(bad_transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_transformation.IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

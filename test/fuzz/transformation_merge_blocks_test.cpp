@@ -45,11 +45,14 @@ TEST(TransformationMergeBlocksTest, BlockDoesNotExist) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  ASSERT_FALSE(
-      TransformationMergeBlocks(3).IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(
-      TransformationMergeBlocks(7).IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(TransformationMergeBlocks(3).IsApplicable(
+      context.get(), transformation_context));
+  ASSERT_FALSE(TransformationMergeBlocks(7).IsApplicable(
+      context.get(), transformation_context));
 }
 
 TEST(TransformationMergeBlocksTest, DoNotMergeFirstBlockHasMultipleSuccessors) {
@@ -84,9 +87,12 @@ TEST(TransformationMergeBlocksTest, DoNotMergeFirstBlockHasMultipleSuccessors) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  ASSERT_FALSE(
-      TransformationMergeBlocks(6).IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(TransformationMergeBlocks(6).IsApplicable(
+      context.get(), transformation_context));
 }
 
 TEST(TransformationMergeBlocksTest,
@@ -122,9 +128,12 @@ TEST(TransformationMergeBlocksTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
-  ASSERT_FALSE(
-      TransformationMergeBlocks(10).IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(TransformationMergeBlocks(10).IsApplicable(
+      context.get(), transformation_context));
 }
 
 TEST(TransformationMergeBlocksTest, MergeWhenSecondBlockIsSelectionMerge) {
@@ -161,10 +170,14 @@ TEST(TransformationMergeBlocksTest, MergeWhenSecondBlockIsSelectionMerge) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationMergeBlocks transformation(10);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -231,10 +244,14 @@ TEST(TransformationMergeBlocksTest, MergeWhenSecondBlockIsLoopMerge) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationMergeBlocks transformation(10);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -306,10 +323,14 @@ TEST(TransformationMergeBlocksTest, MergeWhenSecondBlockIsLoopContinue) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationMergeBlocks transformation(11);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -377,10 +398,14 @@ TEST(TransformationMergeBlocksTest, MergeWhenSecondBlockStartsWithOpPhi) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationMergeBlocks transformation(6);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -454,12 +479,16 @@ TEST(TransformationMergeBlocksTest, BasicMerge) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   for (auto& transformation :
        {TransformationMergeBlocks(100), TransformationMergeBlocks(101),
         TransformationMergeBlocks(102), TransformationMergeBlocks(103)}) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
 
@@ -542,11 +571,15 @@ TEST(TransformationMergeBlocksTest, MergeWhenSecondBlockIsSelectionHeader) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   for (auto& transformation :
        {TransformationMergeBlocks(101), TransformationMergeBlocks(100)}) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
 
@@ -629,10 +662,14 @@ TEST(TransformationMergeBlocksTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationMergeBlocks transformation(101);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(

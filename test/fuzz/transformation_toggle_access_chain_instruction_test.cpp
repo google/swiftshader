@@ -111,78 +111,93 @@ TEST(TransformationToggleAccessChainInstructionTest, IsApplicableTest) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  FactManager factManager;
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Tests existing access chain instructions
   auto instructionDescriptor =
       MakeInstructionDescriptor(18, SpvOpAccessChain, 0);
   auto transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(20, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(24, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(26, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests existing non-access chain instructions
   instructionDescriptor = MakeInstructionDescriptor(1, SpvOpExtInstImport, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(5, SpvOpLabel, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(14, SpvOpConstantComposite, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests the base instruction id not existing
   instructionDescriptor = MakeInstructionDescriptor(67, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor = MakeInstructionDescriptor(68, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(69, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests there being no instruction with the desired opcode after the base
   // instruction id
   instructionDescriptor = MakeInstructionDescriptor(65, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(66, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   // Tests there being an instruction with the desired opcode after the base
   // instruction id, but the skip count associated with the instruction
@@ -190,13 +205,15 @@ TEST(TransformationToggleAccessChainInstructionTest, IsApplicableTest) {
   instructionDescriptor = MakeInstructionDescriptor(11, SpvOpAccessChain, 100);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 
   instructionDescriptor =
       MakeInstructionDescriptor(16, SpvOpInBoundsAccessChain, 100);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), factManager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationToggleAccessChainInstructionTest, ApplyTest) {
@@ -290,35 +307,38 @@ TEST(TransformationToggleAccessChainInstructionTest, ApplyTest) {
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  FactManager factManager;
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   auto instructionDescriptor =
       MakeInstructionDescriptor(18, SpvOpAccessChain, 0);
   auto transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor =
       MakeInstructionDescriptor(20, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(24, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor =
       MakeInstructionDescriptor(26, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(38, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &factManager);
+  transformation.Apply(context.get(), &transformation_context);
 
   std::string variantShader = R"(
                OpCapability Shader

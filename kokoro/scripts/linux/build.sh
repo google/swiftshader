@@ -46,7 +46,7 @@ fi
 ADDITIONAL_CMAKE_FLAGS=""
 if [ $CONFIG = "ASAN" ]
 then
-  ADDITIONAL_CMAKE_FLAGS="SPIRV_USE_SANITIZER=address"
+  ADDITIONAL_CMAKE_FLAGS="SPIRV_USE_SANITIZER=address,bounds,null"
   [ $COMPILER = "clang" ] || { echo "$CONFIG requires clang"; exit 1; }
 elif [ $CONFIG = "COVERAGE" ]
 then

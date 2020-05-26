@@ -44,12 +44,16 @@ TEST(TransformationOutlineFunctionTest, TrivialOutline) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(5, 5, /* not relevant */ 200,
                                                100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -105,11 +109,15 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(5, 5, /* not relevant */ 200,
                                                100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, OutlineInterestingControlFlowNoState) {
@@ -158,12 +166,16 @@ TEST(TransformationOutlineFunctionTest, OutlineInterestingControlFlowNoState) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 13, /* not relevant */
                                                200, 100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -243,12 +255,16 @@ TEST(TransformationOutlineFunctionTest, OutlineCodeThatGeneratesUnusedIds) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 6, /* not relevant */ 200,
                                                100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -317,11 +333,15 @@ TEST(TransformationOutlineFunctionTest, OutlineCodeThatGeneratesSingleUsedId) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 6, 99, 100, 101, 102, 103,
                                                105, {}, {{9, 104}});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -412,12 +432,16 @@ TEST(TransformationOutlineFunctionTest, OutlineDiamondThatGeneratesSeveralIds) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       6, 80, 100, 101, 102, 103, 104, 105, {},
       {{15, 106}, {9, 107}, {7, 108}, {8, 109}});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -508,11 +532,15 @@ TEST(TransformationOutlineFunctionTest, OutlineCodeThatUsesASingleId) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 6, 100, 101, 102, 103, 104,
                                                105, {{7, 106}}, {});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -582,11 +610,15 @@ TEST(TransformationOutlineFunctionTest, OutlineCodeThatUsesAVariable) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 6, 100, 101, 102, 103, 104,
                                                105, {{13, 106}}, {});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -666,11 +698,15 @@ TEST(TransformationOutlineFunctionTest, OutlineCodeThatUsesAParameter) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(11, 11, 100, 101, 102, 103, 104,
                                                105, {{9, 106}}, {{14, 107}});
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -752,10 +788,14 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 8, 100, 101, 102, 103, 104,
                                                105, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, DoNotOutlineIfRegionInvolvesReturn) {
@@ -798,11 +838,15 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineIfRegionInvolvesReturn) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 11, /* not relevant */ 200,
                                                100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, DoNotOutlineIfRegionInvolvesKill) {
@@ -845,11 +889,15 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineIfRegionInvolvesKill) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 11, /* not relevant */ 200,
                                                100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -893,11 +941,15 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 11, /* not relevant */ 200,
                                                100, 101, 102, 103,
                                                /* not relevant */ 201, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -933,10 +985,14 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 8, 100, 101, 102, 103, 104,
                                                105, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, DoNotOutlineIfLoopHeadIsOutsideRegion) {
@@ -973,10 +1029,14 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineIfLoopHeadIsOutsideRegion) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(7, 8, 100, 101, 102, 103, 104,
                                                105, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1012,10 +1072,14 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 7, 100, 101, 102, 103, 104,
                                                105, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1053,10 +1117,14 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(6, 7, 100, 101, 102, 103, 104,
                                                105, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1094,10 +1162,14 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(8, 11, 100, 101, 102, 103, 104,
                                                105, {}, {});
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, OutlineRegionEndingWithReturnVoid) {
@@ -1132,6 +1204,9 @@ TEST(TransformationOutlineFunctionTest, OutlineRegionEndingWithReturnVoid) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 54,
@@ -1145,8 +1220,9 @@ TEST(TransformationOutlineFunctionTest, OutlineRegionEndingWithReturnVoid) {
       /*input_id_to_fresh_id*/ {{22, 206}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1219,6 +1295,9 @@ TEST(TransformationOutlineFunctionTest, OutlineRegionEndingWithReturnValue) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 9,
@@ -1232,8 +1311,9 @@ TEST(TransformationOutlineFunctionTest, OutlineRegionEndingWithReturnValue) {
       /*input_id_to_fresh_id*/ {{31, 206}},
       /*output_id_to_fresh_id*/ {{32, 207}});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1310,6 +1390,9 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 54,
@@ -1323,8 +1406,9 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {{}},
       /*output_id_to_fresh_id*/ {{6, 206}});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1396,6 +1480,9 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 54,
@@ -1409,8 +1496,9 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1478,6 +1566,9 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineRegionThatStartsWithOpPhi) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 21,
@@ -1491,7 +1582,8 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineRegionThatStartsWithOpPhi) {
       /*input_id_to_fresh_id*/ {{22, 207}},
       /*output_id_to_fresh_id*/ {{23, 208}});
 
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1531,6 +1623,9 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 21,
@@ -1544,7 +1639,8 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1584,6 +1680,9 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 5,
@@ -1597,7 +1696,8 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, DoNotOutlineRegionThatUsesAccessChain) {
@@ -1640,6 +1740,9 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineRegionThatUsesAccessChain) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 13,
@@ -1653,7 +1756,8 @@ TEST(TransformationOutlineFunctionTest, DoNotOutlineRegionThatUsesAccessChain) {
       /*input_id_to_fresh_id*/ {{12, 207}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1698,6 +1802,9 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 13,
@@ -1711,7 +1818,8 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {{20, 207}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest,
@@ -1761,6 +1869,9 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 11,
@@ -1774,8 +1885,9 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {{9, 207}},
       /*output_id_to_fresh_id*/ {{14, 208}});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -1913,9 +2025,15 @@ TEST(TransformationOutlineFunctionTest, OutlineLivesafe) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
-  fact_manager.AddFactFunctionIsLivesafe(30);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(200);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(201);
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFactFunctionIsLivesafe(30);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      200);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      201);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 198,
@@ -1929,24 +2047,31 @@ TEST(TransformationOutlineFunctionTest, OutlineLivesafe) {
       /*input_id_to_fresh_id*/ {{100, 407}, {200, 408}, {201, 409}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // The original function should still be livesafe.
-  ASSERT_TRUE(fact_manager.FunctionIsLivesafe(30));
+  ASSERT_TRUE(transformation_context.GetFactManager()->FunctionIsLivesafe(30));
   // The outlined function should be livesafe.
-  ASSERT_TRUE(fact_manager.FunctionIsLivesafe(402));
+  ASSERT_TRUE(transformation_context.GetFactManager()->FunctionIsLivesafe(402));
   // The variable and parameter that were originally irrelevant should still be.
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(200));
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(201));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(200));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(201));
   // The loop limiter should still be non-irrelevant.
-  ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(100));
+  ASSERT_FALSE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(100));
   // The parameters for the original irrelevant variables should be irrelevant.
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(408));
-  ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(409));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(408));
+  ASSERT_TRUE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(409));
   // The parameter for the loop limiter should not be irrelevant.
-  ASSERT_FALSE(fact_manager.PointeeValueIsIrrelevant(407));
+  ASSERT_FALSE(
+      transformation_context.GetFactManager()->PointeeValueIsIrrelevant(407));
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -2129,8 +2254,12 @@ TEST(TransformationOutlineFunctionTest, OutlineWithDeadBlocks1) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
   for (uint32_t block_id : {16u, 23u, 24u, 26u, 27u, 34u, 35u, 50u}) {
-    fact_manager.AddFactBlockIsDead(block_id);
+    transformation_context.GetFactManager()->AddFactBlockIsDead(block_id);
   }
 
   TransformationOutlineFunction transformation(
@@ -2145,12 +2274,13 @@ TEST(TransformationOutlineFunctionTest, OutlineWithDeadBlocks1) {
       /*input_id_to_fresh_id*/ {{9, 206}, {12, 207}, {21, 208}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
   // All the original blocks, plus the new function entry block, should be dead.
   for (uint32_t block_id : {16u, 23u, 24u, 26u, 27u, 34u, 35u, 50u, 203u}) {
-    ASSERT_TRUE(fact_manager.BlockIsDead(block_id));
+    ASSERT_TRUE(transformation_context.GetFactManager()->BlockIsDead(block_id));
   }
 }
 
@@ -2208,8 +2338,12 @@ TEST(TransformationOutlineFunctionTest, OutlineWithDeadBlocks2) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
   for (uint32_t block_id : {32u, 34u, 35u}) {
-    fact_manager.AddFactBlockIsDead(block_id);
+    transformation_context.GetFactManager()->AddFactBlockIsDead(block_id);
   }
 
   TransformationOutlineFunction transformation(
@@ -2224,15 +2358,17 @@ TEST(TransformationOutlineFunctionTest, OutlineWithDeadBlocks2) {
       /*input_id_to_fresh_id*/ {{11, 206}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
   // The blocks that were originally dead, but not others, should be dead.
   for (uint32_t block_id : {32u, 34u, 35u}) {
-    ASSERT_TRUE(fact_manager.BlockIsDead(block_id));
+    ASSERT_TRUE(transformation_context.GetFactManager()->BlockIsDead(block_id));
   }
   for (uint32_t block_id : {5u, 30u, 31u, 33u, 36u, 37u, 203u}) {
-    ASSERT_FALSE(fact_manager.BlockIsDead(block_id));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->BlockIsDead(block_id));
   }
 }
 
@@ -2287,8 +2423,13 @@ TEST(TransformationOutlineFunctionTest,
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(9);
-  fact_manager.AddFactValueOfPointeeIsIrrelevant(14);
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(9);
+  transformation_context.GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+      14);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 50,
@@ -2302,17 +2443,139 @@ TEST(TransformationOutlineFunctionTest,
       /*input_id_to_fresh_id*/ {{9, 206}, {10, 207}, {14, 208}, {20, 209}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
   // The variables that were originally irrelevant, plus input parameters
   // corresponding to them, should be irrelevant.  The rest should not be.
   for (uint32_t variable_id : {9u, 14u, 206u, 208u}) {
-    ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(variable_id));
+    ASSERT_TRUE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(
+            variable_id));
   }
   for (uint32_t variable_id : {10u, 20u, 207u, 209u}) {
-    ASSERT_FALSE(fact_manager.BlockIsDead(variable_id));
+    ASSERT_FALSE(
+        transformation_context.GetFactManager()->BlockIsDead(variable_id));
   }
+}
+
+TEST(TransformationOutlineFunctionTest,
+     DoNotOutlineCodeThatProducesUsedPointer) {
+  // This checks that we cannot outline a region of code if it produces a
+  // pointer result id that gets used outside the region.  This avoids creating
+  // a struct with a pointer member.
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %6 "main"
+               OpExecutionMode %6 OriginUpperLeft
+               OpSource ESSL 310
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+         %21 = OpTypeBool
+        %100 = OpTypeInt 32 0
+         %99 = OpConstant %100 0
+        %101 = OpTypeVector %100 2
+        %102 = OpTypePointer Function %100
+        %103 = OpTypePointer Function %101
+          %6 = OpFunction %2 None %3
+          %7 = OpLabel
+        %104 = OpVariable %103 Function
+               OpBranch %80
+         %80 = OpLabel
+        %105 = OpAccessChain %102 %104 %99
+               OpBranch %106
+        %106 = OpLabel
+               OpStore %105 %99
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  TransformationOutlineFunction transformation(
+      /*entry_block*/ 80,
+      /*exit_block*/ 80,
+      /*new_function_struct_return_type_id*/ 300,
+      /*new_function_type_id*/ 301,
+      /*new_function_id*/ 302,
+      /*new_function_region_entry_block*/ 304,
+      /*new_caller_result_id*/ 305,
+      /*new_callee_result_id*/ 306,
+      /*input_id_to_fresh_id*/ {{104, 307}},
+      /*output_id_to_fresh_id*/ {{105, 308}});
+
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
+}
+
+TEST(TransformationOutlineFunctionTest, ExitBlockHeadsLoop) {
+  // This checks that it is not possible outline a region that ends in a loop
+  // head.
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+         %15 = OpTypeInt 32 1
+         %35 = OpTypeBool
+         %39 = OpConstant %15 1
+         %40 = OpConstantTrue %35
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpBranch %22
+         %22 = OpLabel
+               OpBranch %23
+         %23 = OpLabel
+         %24 = OpPhi %15 %39 %22 %39 %25
+               OpLoopMerge %26 %25 None
+               OpBranchConditional %40 %25 %26
+         %25 = OpLabel
+               OpBranch %23
+         %26 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  TransformationOutlineFunction transformation(
+      /*entry_block*/ 22,
+      /*exit_block*/ 23,
+      /*new_function_struct_return_type_id*/ 200,
+      /*new_function_type_id*/ 201,
+      /*new_function_id*/ 202,
+      /*new_function_region_entry_block*/ 203,
+      /*new_caller_result_id*/ 204,
+      /*new_callee_result_id*/ 205,
+      /*input_id_to_fresh_id*/ {},
+      /*output_id_to_fresh_id*/ {});
+
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
 }
 
 TEST(TransformationOutlineFunctionTest, Miscellaneous1) {
@@ -2423,6 +2686,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous1) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 150,
@@ -2436,8 +2702,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous1) {
       /*input_id_to_fresh_id*/ {{102, 300}, {103, 301}, {40, 302}},
       /*output_id_to_fresh_id*/ {{106, 400}, {107, 401}});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -2588,6 +2855,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous2) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 38,
@@ -2601,7 +2871,8 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous2) {
       /*input_id_to_fresh_id*/ {},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_FALSE(transformation.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
 }
 
 TEST(TransformationOutlineFunctionTest, Miscellaneous3) {
@@ -2643,6 +2914,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous3) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 80,
@@ -2656,8 +2930,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous3) {
       /*input_id_to_fresh_id*/ {},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -2732,6 +3007,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous4) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   TransformationOutlineFunction transformation(
       /*entry_block*/ 80,
@@ -2745,8 +3023,9 @@ TEST(TransformationOutlineFunctionTest, Miscellaneous4) {
       /*input_id_to_fresh_id*/ {{104, 307}},
       /*output_id_to_fresh_id*/ {});
 
-  ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-  transformation.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(

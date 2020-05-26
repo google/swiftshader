@@ -62,6 +62,9 @@ TEST(TransformationAddConstantScalarTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   const float float_values[2] = {3.0, 30.0};
   uint32_t uint_for_float[2];
@@ -87,55 +90,62 @@ TEST(TransformationAddConstantScalarTest, BasicTest) {
   auto bad_type_id_is_pointer = TransformationAddConstantScalar(111, 11, {0});
 
   // Id is already in use.
-  ASSERT_FALSE(bad_id_already_used.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_id_already_used.IsApplicable(context.get(), transformation_context));
 
   // At least one word of data must be provided.
-  ASSERT_FALSE(bad_no_data.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(bad_no_data.IsApplicable(context.get(), transformation_context));
 
   // Cannot give two data words for a 32-bit type.
-  ASSERT_FALSE(bad_too_much_data.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_too_much_data.IsApplicable(context.get(), transformation_context));
 
   // Type id does not exist
-  ASSERT_FALSE(
-      bad_type_id_does_not_exist.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(bad_type_id_does_not_exist.IsApplicable(context.get(),
+                                                       transformation_context));
 
   // Type id is not a type
-  ASSERT_FALSE(
-      bad_type_id_is_not_a_type.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(bad_type_id_is_not_a_type.IsApplicable(context.get(),
+                                                      transformation_context));
 
   // Type id is void
-  ASSERT_FALSE(bad_type_id_is_void.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(
+      bad_type_id_is_void.IsApplicable(context.get(), transformation_context));
 
   // Type id is pointer
-  ASSERT_FALSE(
-      bad_type_id_is_pointer.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(bad_type_id_is_pointer.IsApplicable(context.get(),
+                                                   transformation_context));
 
-  ASSERT_TRUE(add_signed_int_1.IsApplicable(context.get(), fact_manager));
-  add_signed_int_1.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      add_signed_int_1.IsApplicable(context.get(), transformation_context));
+  add_signed_int_1.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(add_signed_int_10.IsApplicable(context.get(), fact_manager));
-  add_signed_int_10.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      add_signed_int_10.IsApplicable(context.get(), transformation_context));
+  add_signed_int_10.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(add_unsigned_int_2.IsApplicable(context.get(), fact_manager));
-  add_unsigned_int_2.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      add_unsigned_int_2.IsApplicable(context.get(), transformation_context));
+  add_unsigned_int_2.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(add_unsigned_int_20.IsApplicable(context.get(), fact_manager));
-  add_unsigned_int_20.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      add_unsigned_int_20.IsApplicable(context.get(), transformation_context));
+  add_unsigned_int_20.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(add_float_3.IsApplicable(context.get(), fact_manager));
-  add_float_3.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(add_float_3.IsApplicable(context.get(), transformation_context));
+  add_float_3.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(add_float_30.IsApplicable(context.get(), fact_manager));
-  add_float_30.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(add_float_30.IsApplicable(context.get(), transformation_context));
+  add_float_30.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_FALSE(bad_add_float_30_id_already_used.IsApplicable(context.get(),
-                                                             fact_manager));
+  ASSERT_FALSE(bad_add_float_30_id_already_used.IsApplicable(
+      context.get(), transformation_context));
 
   std::string after_transformation = R"(
                OpCapability Shader

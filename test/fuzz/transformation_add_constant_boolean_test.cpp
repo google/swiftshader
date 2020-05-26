@@ -43,42 +43,47 @@ TEST(TransformationAddConstantBooleanTest, NeitherPresentInitiallyAddBoth) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // True and false can both be added as neither is present.
   ASSERT_TRUE(TransformationAddConstantBoolean(7, true).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
   ASSERT_TRUE(TransformationAddConstantBoolean(7, false).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 
   // Id 5 is already taken.
   ASSERT_FALSE(TransformationAddConstantBoolean(5, true).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 
   auto add_true = TransformationAddConstantBoolean(7, true);
   auto add_false = TransformationAddConstantBoolean(8, false);
 
-  ASSERT_TRUE(add_true.IsApplicable(context.get(), fact_manager));
-  add_true.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(add_true.IsApplicable(context.get(), transformation_context));
+  add_true.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Having added true, we cannot add it again with the same id.
-  ASSERT_FALSE(add_true.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(add_true.IsApplicable(context.get(), transformation_context));
   // But we can add it with a different id.
   auto add_true_again = TransformationAddConstantBoolean(100, true);
-  ASSERT_TRUE(add_true_again.IsApplicable(context.get(), fact_manager));
-  add_true_again.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      add_true_again.IsApplicable(context.get(), transformation_context));
+  add_true_again.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(add_false.IsApplicable(context.get(), fact_manager));
-  add_false.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(add_false.IsApplicable(context.get(), transformation_context));
+  add_false.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Having added false, we cannot add it again with the same id.
-  ASSERT_FALSE(add_false.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(add_false.IsApplicable(context.get(), transformation_context));
   // But we can add it with a different id.
   auto add_false_again = TransformationAddConstantBoolean(101, false);
-  ASSERT_TRUE(add_false_again.IsApplicable(context.get(), fact_manager));
-  add_false_again.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(
+      add_false_again.IsApplicable(context.get(), transformation_context));
+  add_false_again.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   std::string after_transformation = R"(
@@ -128,12 +133,15 @@ TEST(TransformationAddConstantBooleanTest, NoOpTypeBoolPresent) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Neither true nor false can be added as OpTypeBool is not present.
   ASSERT_FALSE(TransformationAddConstantBoolean(6, true).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
   ASSERT_FALSE(TransformationAddConstantBoolean(6, false).IsApplicable(
-      context.get(), fact_manager));
+      context.get(), transformation_context));
 }
 
 }  // namespace

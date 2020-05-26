@@ -42,10 +42,13 @@ TEST(TransformationAddTypeIntTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Not applicable because id 1 is already in use.
   ASSERT_FALSE(TransformationAddTypeInt(1, 32, false)
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   auto add_type_signed_int_32 = TransformationAddTypeInt(100, 32, true);
   auto add_type_unsigned_int_32 = TransformationAddTypeInt(101, 32, false);
@@ -53,20 +56,21 @@ TEST(TransformationAddTypeIntTest, BasicTest) {
   auto add_type_unsigned_int_32_again =
       TransformationAddTypeInt(103, 32, false);
 
-  ASSERT_TRUE(add_type_signed_int_32.IsApplicable(context.get(), fact_manager));
-  add_type_signed_int_32.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(add_type_signed_int_32.IsApplicable(context.get(),
+                                                  transformation_context));
+  add_type_signed_int_32.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
-  ASSERT_TRUE(
-      add_type_unsigned_int_32.IsApplicable(context.get(), fact_manager));
-  add_type_unsigned_int_32.Apply(context.get(), &fact_manager);
+  ASSERT_TRUE(add_type_unsigned_int_32.IsApplicable(context.get(),
+                                                    transformation_context));
+  add_type_unsigned_int_32.Apply(context.get(), &transformation_context);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   // Not applicable as we already have these types now.
-  ASSERT_FALSE(
-      add_type_signed_int_32_again.IsApplicable(context.get(), fact_manager));
-  ASSERT_FALSE(
-      add_type_unsigned_int_32_again.IsApplicable(context.get(), fact_manager));
+  ASSERT_FALSE(add_type_signed_int_32_again.IsApplicable(
+      context.get(), transformation_context));
+  ASSERT_FALSE(add_type_unsigned_int_32_again.IsApplicable(
+      context.get(), transformation_context));
 
   std::string after_transformation = R"(
                OpCapability Shader

@@ -59,21 +59,24 @@ TEST(TransformationAddTypeFunctionTest, BasicTest) {
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
 
   // Id already in use
   ASSERT_FALSE(TransformationAddTypeFunction(4, 12, {12, 16, 14})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
   // %1 is not a type
   ASSERT_FALSE(TransformationAddTypeFunction(100, 1, {12, 16, 14})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // %18 is a function type
   ASSERT_FALSE(TransformationAddTypeFunction(100, 12, {18})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   // A function of this signature already exists
   ASSERT_FALSE(TransformationAddTypeFunction(100, 17, {14, 16})
-                   .IsApplicable(context.get(), fact_manager));
+                   .IsApplicable(context.get(), transformation_context));
 
   TransformationAddTypeFunction transformations[] = {
       // %100 = OpTypeFunction %12 %12 %16 %14
@@ -86,8 +89,9 @@ TEST(TransformationAddTypeFunctionTest, BasicTest) {
       TransformationAddTypeFunction(102, 17, {200, 16})};
 
   for (auto& transformation : transformations) {
-    ASSERT_TRUE(transformation.IsApplicable(context.get(), fact_manager));
-    transformation.Apply(context.get(), &fact_manager);
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
   }
   ASSERT_TRUE(IsValid(env, context.get()));
 

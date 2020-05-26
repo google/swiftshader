@@ -889,6 +889,31 @@ TEST_F(ValidateOpenCL100DebugInfo, DebugScopeBeforeOpVariableInFunction) {
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
 }
 
+TEST_F(ValidateOpenCL100DebugInfo, DebugTypeCompositeSizeDebugInfoNone) {
+  const std::string src = R"(
+%src = OpString "simple.hlsl"
+%code = OpString "OpaqueType foo;
+main() {}
+"
+%ty_name = OpString "struct VS_OUTPUT"
+)";
+
+  const std::string dbg_inst_header = R"(
+%dbg_none = OpExtInst %void %DbgExt DebugInfoNone
+%dbg_src = OpExtInst %void %DbgExt DebugSource %src %code
+%comp_unit = OpExtInst %void %DbgExt DebugCompilationUnit 2 4 %dbg_src HLSL
+%opaque = OpExtInst %void %DbgExt DebugTypeComposite %ty_name Class %dbg_src 1 1 %comp_unit %ty_name %dbg_none FlagIsPublic
+)";
+
+  const std::string extension = R"(
+%DbgExt = OpExtInstImport "OpenCL.DebugInfo.100"
+)";
+
+  CompileSuccessfully(GenerateShaderCodeForDebugInfo(src, "", dbg_inst_header,
+                                                     "", extension, "Vertex"));
+  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions());
+}
+
 TEST_F(ValidateOpenCL100DebugInfo, DebugTypeCompositeForwardReference) {
   const std::string src = R"(
 %src = OpString "simple.hlsl"
