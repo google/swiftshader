@@ -513,6 +513,10 @@ private:
 	// addNone() registers given id as a None value or type.
 	void addNone(debug::Object::ID id);
 
+	// isNone() returns true if the given id was registered as none with
+	// addNone().
+	bool isNone(debug::Object::ID id) const;
+
 	// get() returns the debug object with the given id.
 	// The object must exist and be of type (or derive from type) T.
 	// A returned nullptr represents a None value or type.
@@ -976,7 +980,7 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				type->column = insn.word(9);
 				type->parent = get(debug::Object::ID(insn.word(10)));
 				type->linkage = shader->getString(insn.word(11));
-				type->size = shader->GetConstScalarInt(insn.word(12));
+				type->size = isNone(insn.word(12)) ? 0 : shader->GetConstScalarInt(insn.word(12));
 				type->flags = insn.word(13);
 				for(uint32_t i = 14; i < insn.wordCount(); i++)
 				{
@@ -1216,6 +1220,13 @@ void SpirvShader::Impl::Debugger::addNone(debug::Object::ID id)
 {
 	bool added = objects.emplace(debug::Object::ID(id.value()), nullptr).second;
 	ASSERT_MSG(added, "Debug object with %d already exists", id.value());
+}
+
+bool SpirvShader::Impl::Debugger::isNone(debug::Object::ID id) const
+{
+	auto it = objects.find(debug::Object::ID(id.value()));
+	if(it == objects.end()) { return false; }
+	return it->second.get() == nullptr;
 }
 
 template<typename T>
