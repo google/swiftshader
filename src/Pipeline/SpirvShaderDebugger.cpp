@@ -1622,11 +1622,18 @@ void SpirvShader::dbgEndEmitInstruction(InsnIterator insn, EmitState *state) con
 	auto dbg = impl.debugger;
 	if(!dbg) { return; }
 
-	auto resIt = dbg->results.find(insn.wordPointer(0));
-	if(resIt != dbg->results.end())
+	// Don't display SSA values if rich debug info is available
+	if(extensionsImported.count(Extension::OpenCLDebugInfo100) == 0)
 	{
-		auto id = resIt->second;
-		dbgExposeIntermediate(id, state);
+		// We're emitting debugger logic for SPIR-V.
+		// Does this instruction emit a result that should be exposed to the
+		// debugger?
+		auto resIt = dbg->results.find(insn.wordPointer(0));
+		if(resIt != dbg->results.end())
+		{
+			auto id = resIt->second;
+			dbgExposeIntermediate(id, state);
+		}
 	}
 }
 
