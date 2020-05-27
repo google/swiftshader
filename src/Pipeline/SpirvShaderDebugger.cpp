@@ -132,7 +132,9 @@ struct Object
 	static constexpr auto KIND = Kind::Object;
 	inline Object(Kind kind)
 	    : kind(kind)
-	{}
+	{
+		(void)KIND;  // Used in debug builds. Avoid unused variable warnings in NDEBUG builds.
+	}
 	const Kind kind;
 
 	// kindof() returns true iff kind is of this type, or any type deriving from
