@@ -1355,6 +1355,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 		else if(auto ty = debug::cast<debug::ArrayType>(type))
 		{
 			// TODO(bclayton): Expose array types.
+			return;
 		}
 		else
 		{
