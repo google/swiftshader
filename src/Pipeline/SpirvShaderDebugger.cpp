@@ -113,6 +113,7 @@ struct Object
 		Source,
 		SourceScope,
 		Value,
+		TemplateParameter,
 
 		// Scopes
 		CompilationUnit,
@@ -124,6 +125,7 @@ struct Object
 		VectorType,
 		FunctionType,
 		CompositeType,
+		TemplateType,
 	};
 
 	using ID = sw::SpirvID<Object>;
@@ -155,6 +157,7 @@ constexpr const char *cstr(Object::Kind k)
 		case Object::Kind::Source: return "Source";
 		case Object::Kind::SourceScope: return "SourceScope";
 		case Object::Kind::Value: return "Value";
+		case Object::Kind::TemplateParameter: return "TemplateParameter";
 		case Object::Kind::CompilationUnit: return "CompilationUnit";
 		case Object::Kind::LexicalBlock: return "LexicalBlock";
 		case Object::Kind::BasicType: return "BasicType";
@@ -162,6 +165,7 @@ constexpr const char *cstr(Object::Kind k)
 		case Object::Kind::VectorType: return "VectorType";
 		case Object::Kind::FunctionType: return "FunctionType";
 		case Object::Kind::CompositeType: return "CompositeType";
+		case Object::Kind::TemplateType: return "TemplateType";
 	}
 	return "<unknown>";
 }
@@ -234,7 +238,8 @@ struct Type : public Object
 		       kind == Kind::ArrayType ||
 		       kind == Kind::VectorType ||
 		       kind == Kind::FunctionType ||
-		       kind == Kind::CompositeType;
+		       kind == Kind::CompositeType ||
+		       kind == Kind::TemplateType;
 	}
 };
 
@@ -290,6 +295,22 @@ struct CompositeType : ObjectImpl<CompositeType, Type, Object::Kind::CompositeTy
 	uint32_t size = 0;   // in bits.
 	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
 	std::vector<Member *> members;
+};
+
+struct TemplateParameter : ObjectImpl<TemplateParameter, Object, Object::Kind::TemplateParameter>
+{
+	std::string name;
+	Type *type = nullptr;
+	uint32_t value = 0;
+	Source *source = nullptr;
+	uint32_t line = 0;
+	uint32_t column = 0;
+};
+
+struct TemplateType : ObjectImpl<TemplateType, Type, Object::Kind::TemplateType>
+{
+	Type *target = nullptr;  // Class, struct or function.
+	std::vector<TemplateParameter *> parameters;
 };
 
 struct Member : ObjectImpl<Member, Object, Object::Kind::Member>
@@ -980,6 +1001,25 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				member->flags = insn.word(13);
 			});
 			break;
+		case OpenCLDebugInfo100DebugTypeTemplate:
+			defineOrEmit(insn, pass, [&](debug::TemplateType *tpl) {
+				tpl->target = get(debug::Type::ID(insn.word(5)));
+				for(size_t i = 6, c = insn.wordCount(); i < c; i++)
+				{
+					tpl->parameters.emplace_back(get(debug::TemplateParameter::ID(insn.word(i))));
+				}
+			});
+			break;
+		case OpenCLDebugInfo100DebugTypeTemplateParameter:
+			defineOrEmit(insn, pass, [&](debug::TemplateParameter *param) {
+				param->name = shader->getString(insn.word(5));
+				param->type = get(debug::Type::ID(insn.word(6)));
+				param->value = 0;  // TODO: Get value from OpConstant if "a template value parameter".
+				param->source = get(debug::Source::ID(insn.word(8)));
+				param->line = insn.word(9);
+				param->column = insn.word(10);
+			});
+			break;
 		case OpenCLDebugInfo100DebugGlobalVariable:
 			defineOrEmit(insn, pass, [&](debug::GlobalVariable *var) {
 				var->name = shader->getString(insn.word(5));
@@ -1122,8 +1162,6 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 		case OpenCLDebugInfo100DebugTypeEnum:
 		case OpenCLDebugInfo100DebugTypeInheritance:
 		case OpenCLDebugInfo100DebugTypePtrToMember:
-		case OpenCLDebugInfo100DebugTypeTemplate:
-		case OpenCLDebugInfo100DebugTypeTemplateParameter:
 		case OpenCLDebugInfo100DebugTypeTemplateTemplateParameter:
 		case OpenCLDebugInfo100DebugTypeTemplateParameterPack:
 		case OpenCLDebugInfo100DebugFunctionDeclaration:
