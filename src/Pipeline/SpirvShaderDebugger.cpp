@@ -204,8 +204,8 @@ const TO *cast(const FROM *obj)
 
 struct Scope : public Object
 {
-	// Root represents the root stack frame scope.
-	static const Scope Root;
+	// Global represents the global scope.
+	static const Scope Global;
 
 	using ID = sw::SpirvID<Scope>;
 	inline Scope(Kind kind)
@@ -412,7 +412,7 @@ struct Value : ObjectImpl<Value, Object, Object::Kind::Value>
 	std::vector<uint32_t> indexes;
 };
 
-const Scope Scope::Root = CompilationUnit{};
+const Scope Scope::Global = CompilationUnit{};
 
 // find<T>() searches the nested scopes, returning for the first scope that is
 // castable to type T. If no scope can be found of type T, then nullptr is
@@ -569,7 +569,6 @@ public:
 
 	vk::dbg::VariableContainer *hovers(const debug::Scope *);
 	vk::dbg::VariableContainer *localsLane(const debug::Scope *, int lane);
-	vk::dbg::VariableContainer *builtinsLane(int lane);
 
 	template<typename K>
 	vk::dbg::VariableContainer *group(vk::dbg::VariableContainer *vc, K key);
@@ -595,9 +594,8 @@ public:
 	const Debugger *debugger;
 	const std::shared_ptr<vk::dbg::Thread> thread;
 	std::unordered_map<const debug::Scope *, Scopes> scopes;
-	Scopes rootScopes;                                                                        // Scopes for the root stack frame.
-	std::array<std::shared_ptr<vk::dbg::VariableContainer>, sw::SIMD::Width> builtinsByLane;  // Scopes for builtin varibles (shared by all shader frames).
-	debug::SourceScope *srcScope = nullptr;                                                   // Current source scope.
+	Scopes globals;                          // Scope for globals.
+	debug::SourceScope *srcScope = nullptr;  // Current source scope.
 
 	const size_t initialThreadDepth = 0;
 };
@@ -620,20 +618,14 @@ SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *
 {
 	enter(lock, stackBase);
 
-	for(int i = 0; i < sw::SIMD::Width; i++)
-	{
-		builtinsByLane[i] = lock.createVariableContainer();
-	}
-
 	thread->update(true, [&](vk::dbg::Frame &frame) {
-		rootScopes.locals = frame.locals;
-		rootScopes.hovers = frame.hovers;
+		globals.locals = frame.locals;
+		globals.hovers = frame.hovers;
 		for(int i = 0; i < sw::SIMD::Width; i++)
 		{
 			auto locals = lock.createVariableContainer();
-			locals->extend(builtinsByLane[i]);
 			frame.locals->variables->put(laneNames[i], locals);
-			rootScopes.localsByLane[i] = locals;
+			globals.localsByLane[i] = locals;
 		}
 	});
 }
@@ -658,7 +650,7 @@ void SpirvShader::Impl::Debugger::State::exit()
 
 void SpirvShader::Impl::Debugger::State::updateActiveLaneMask(int lane, bool enabled)
 {
-	rootScopes.localsByLane[lane]->put("enabled", vk::dbg::make_constant(enabled));
+	globals.localsByLane[lane]->put("enabled", vk::dbg::make_constant(enabled));
 }
 
 void SpirvShader::Impl::Debugger::State::updateLocation(bool isStep, vk::dbg::File::ID fileID, int line, int column)
@@ -677,11 +669,6 @@ vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::hovers(const deb
 vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::localsLane(const debug::Scope *scope, int i)
 {
 	return getScopes(scope).localsByLane[i].get();
-}
-
-vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::builtinsLane(int i)
-{
-	return builtinsByLane[i].get();
 }
 
 template<typename K>
@@ -735,9 +722,18 @@ void SpirvShader::Impl::Debugger::State::createScope(const debug::Scope *spirvSc
 	}
 	else
 	{
+		// Scope has no parent. Ensure the globals are inherited for this stack
+		// frame.
+		//
+		// Note: We're combining globals with locals as DAP doesn't have a
+		// 'globals' enum value for Scope::presentationHint.
+		// TODO(bclayton): We should probably keep globals separate from locals
+		// and combine them at the server interface. That way we can easily
+		// provide globals if DAP later supports it as a Scope::presentationHint
+		// type.
 		for(int i = 0; i < sw::SIMD::Width; i++)
 		{
-			s.localsByLane[i]->extend(builtinsByLane[i]);
+			s.localsByLane[i]->extend(globals.localsByLane[i]);
 		}
 	}
 
@@ -774,9 +770,9 @@ void SpirvShader::Impl::Debugger::State::setScope(debug::SourceScope *newSrcScop
 
 const SpirvShader::Impl::Debugger::State::Scopes &SpirvShader::Impl::Debugger::State::getScopes(const debug::Scope *scope)
 {
-	if(scope == &debug::Scope::Root)
+	if(scope == &debug::Scope::Global)
 	{
-		return rootScopes;
+		return globals;
 	}
 
 	auto dbgScopeIt = scopes.find(scope);
@@ -800,7 +796,7 @@ public:
 	static Group hovers(Ptr state, const debug::Scope *scope);
 	static Group locals(Ptr state, const debug::Scope *scope);
 	static Group localsLane(Ptr state, const debug::Scope *scope, int lane);
-	static Group builtinsLane(Ptr state, int lane);
+	static Group globals(Ptr state, int lane);
 
 	Group(Ptr state, Ptr group);
 
@@ -843,9 +839,9 @@ SpirvShader::Impl::Debugger::Group::localsLane(Ptr state, const debug::Scope *sc
 }
 
 SpirvShader::Impl::Debugger::Group
-SpirvShader::Impl::Debugger::Group::builtinsLane(Ptr state, int lane)
+SpirvShader::Impl::Debugger::Group::globals(Ptr state, int lane)
 {
-	return Group(state, rr::Call(&State::builtinsLane, state, lane));
+	return localsLane(state, &debug::Scope::Global, lane);
 }
 
 SpirvShader::Impl::Debugger::Group::Group(Ptr state, Ptr group)
@@ -1039,7 +1035,7 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				var->flags = insn.word(13);
 				// static member declaration: word(14)
 
-				exposeVariable(shader, var->name.c_str(), &debug::Scope::Root, var->type, var->variable, state);
+				exposeVariable(shader, var->name.c_str(), &debug::Scope::Global, var->type, var->variable, state);
 			});
 			break;
 		case OpenCLDebugInfo100DebugFunction:
@@ -1554,50 +1550,50 @@ void SpirvShader::dbgBeginEmit(EmitState *state) const
 
 	for(int i = 0; i < SIMD::Width; i++)
 	{
-		auto builtins = Group::builtinsLane(dbgState, i);
-		builtins.put<const char *, int>("subgroupSize", routine->invocationsPerSubgroup);
+		auto globals = Group::globals(dbgState, i);
+		globals.put<const char *, int>("subgroupSize", routine->invocationsPerSubgroup);
 
 		switch(executionModel)
 		{
 			case spv::ExecutionModelGLCompute:
-				builtins.putVec3<const char *, int>("numWorkgroups", routine->numWorkgroups);
-				builtins.putVec3<const char *, int>("workgroupID", routine->workgroupID);
-				builtins.putVec3<const char *, int>("workgroupSize", routine->workgroupSize);
-				builtins.put<const char *, int>("numSubgroups", routine->subgroupsPerWorkgroup);
-				builtins.put<const char *, int>("subgroupIndex", routine->subgroupIndex);
+				globals.putVec3<const char *, int>("numWorkgroups", routine->numWorkgroups);
+				globals.putVec3<const char *, int>("workgroupID", routine->workgroupID);
+				globals.putVec3<const char *, int>("workgroupSize", routine->workgroupSize);
+				globals.put<const char *, int>("numSubgroups", routine->subgroupsPerWorkgroup);
+				globals.put<const char *, int>("subgroupIndex", routine->subgroupIndex);
 
-				builtins.put<const char *, int>("globalInvocationId",
-				                                rr::Extract(routine->globalInvocationID[0], i),
-				                                rr::Extract(routine->globalInvocationID[1], i),
-				                                rr::Extract(routine->globalInvocationID[2], i));
-				builtins.put<const char *, int>("localInvocationId",
-				                                rr::Extract(routine->localInvocationID[0], i),
-				                                rr::Extract(routine->localInvocationID[1], i),
-				                                rr::Extract(routine->localInvocationID[2], i));
-				builtins.put<const char *, int>("localInvocationIndex", rr::Extract(routine->localInvocationIndex, i));
+				globals.put<const char *, int>("globalInvocationId",
+				                               rr::Extract(routine->globalInvocationID[0], i),
+				                               rr::Extract(routine->globalInvocationID[1], i),
+				                               rr::Extract(routine->globalInvocationID[2], i));
+				globals.put<const char *, int>("localInvocationId",
+				                               rr::Extract(routine->localInvocationID[0], i),
+				                               rr::Extract(routine->localInvocationID[1], i),
+				                               rr::Extract(routine->localInvocationID[2], i));
+				globals.put<const char *, int>("localInvocationIndex", rr::Extract(routine->localInvocationIndex, i));
 				break;
 
 			case spv::ExecutionModelFragment:
-				builtins.put<const char *, int>("viewIndex", routine->viewID);
-				builtins.put<const char *, float>("fragCoord",
-				                                  rr::Extract(routine->fragCoord[0], i),
-				                                  rr::Extract(routine->fragCoord[1], i),
-				                                  rr::Extract(routine->fragCoord[2], i),
-				                                  rr::Extract(routine->fragCoord[3], i));
-				builtins.put<const char *, float>("pointCoord",
-				                                  rr::Extract(routine->pointCoord[0], i),
-				                                  rr::Extract(routine->pointCoord[1], i));
-				builtins.put<const char *, int>("windowSpacePosition",
-				                                rr::Extract(routine->windowSpacePosition[0], i),
-				                                rr::Extract(routine->windowSpacePosition[1], i));
-				builtins.put<const char *, int>("helperInvocation", rr::Extract(routine->helperInvocation, i));
+				globals.put<const char *, int>("viewIndex", routine->viewID);
+				globals.put<const char *, float>("fragCoord",
+				                                 rr::Extract(routine->fragCoord[0], i),
+				                                 rr::Extract(routine->fragCoord[1], i),
+				                                 rr::Extract(routine->fragCoord[2], i),
+				                                 rr::Extract(routine->fragCoord[3], i));
+				globals.put<const char *, float>("pointCoord",
+				                                 rr::Extract(routine->pointCoord[0], i),
+				                                 rr::Extract(routine->pointCoord[1], i));
+				globals.put<const char *, int>("windowSpacePosition",
+				                               rr::Extract(routine->windowSpacePosition[0], i),
+				                               rr::Extract(routine->windowSpacePosition[1], i));
+				globals.put<const char *, int>("helperInvocation", rr::Extract(routine->helperInvocation, i));
 				break;
 
 			case spv::ExecutionModelVertex:
-				builtins.put<const char *, int>("viewIndex", routine->viewID);
-				builtins.put<const char *, int>("instanceIndex", routine->instanceID);
-				builtins.put<const char *, int>("vertexIndex",
-				                                rr::Extract(routine->vertexIndex, i));
+				globals.put<const char *, int>("viewIndex", routine->viewID);
+				globals.put<const char *, int>("instanceIndex", routine->instanceID);
+				globals.put<const char *, int>("vertexIndex",
+				                               rr::Extract(routine->vertexIndex, i));
 				break;
 
 			default:
@@ -1694,7 +1690,7 @@ void SpirvShader::dbgExposeIntermediate(Object::ID id, EmitState *state) const
 	auto dbg = impl.debugger;
 	if(!dbg) { return; }
 
-	dbg->exposeVariable(this, id, &debug::Scope::Root, nullptr, id, state);
+	dbg->exposeVariable(this, id, &debug::Scope::Global, nullptr, id, state);
 }
 
 void SpirvShader::dbgUpdateActiveLaneMask(RValue<SIMD::Int> mask, EmitState *state) const
