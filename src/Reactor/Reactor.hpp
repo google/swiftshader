@@ -2625,61 +2625,6 @@ LValue<T>::LValue()
 #endif  // ENABLE_RR_DEBUG_INFO
 }
 
-inline void Variable::materialize() const
-{
-	if(!address)
-	{
-		address = allocate();
-		RR_DEBUG_INFO_EMIT_VAR(address);
-
-		if(rvalue)
-		{
-			storeValue(rvalue);
-			rvalue = nullptr;
-		}
-	}
-}
-
-inline Value *Variable::loadValue() const
-{
-	if(rvalue)
-	{
-		return rvalue;
-	}
-
-	if(!address)
-	{
-		// TODO: Return undef instead.
-		materialize();
-	}
-
-	return Nucleus::createLoad(address, getType(), false, 0);
-}
-
-inline Value *Variable::storeValue(Value *value) const
-{
-	if(address)
-	{
-		return Nucleus::createStore(value, address, getType(), false, 0);
-	}
-
-	rvalue = value;
-
-	return value;
-}
-
-inline Value *Variable::getBaseAddress() const
-{
-	materialize();
-
-	return address;
-}
-
-inline Value *Variable::getElementPointer(Value *index, bool unsignedIndex) const
-{
-	return Nucleus::createGEP(getBaseAddress(), getType(), index, unsignedIndex);
-}
-
 template<class T>
 RValue<Pointer<T>> LValue<T>::operator&()
 {

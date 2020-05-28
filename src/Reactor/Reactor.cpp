@@ -70,6 +70,61 @@ Variable::~Variable()
 	unmaterializedVariables->erase(this);
 }
 
+void Variable::materialize() const
+{
+	if(!address)
+	{
+		address = allocate();
+		RR_DEBUG_INFO_EMIT_VAR(address);
+
+		if(rvalue)
+		{
+			storeValue(rvalue);
+			rvalue = nullptr;
+		}
+	}
+}
+
+Value *Variable::loadValue() const
+{
+	if(rvalue)
+	{
+		return rvalue;
+	}
+
+	if(!address)
+	{
+		// TODO: Return undef instead.
+		materialize();
+	}
+
+	return Nucleus::createLoad(address, getType(), false, 0);
+}
+
+Value *Variable::storeValue(Value *value) const
+{
+	if(address)
+	{
+		return Nucleus::createStore(value, address, getType(), false, 0);
+	}
+
+	rvalue = value;
+
+	return value;
+}
+
+Value *Variable::getBaseAddress() const
+{
+	materialize();
+
+	return address;
+}
+
+Value *Variable::getElementPointer(Value *index, bool unsignedIndex) const
+{
+	return Nucleus::createGEP(getBaseAddress(), getType(), index, unsignedIndex);
+}
+
 Value *Variable::allocate() const
 {
 	return Nucleus::allocateStackVariable(getType());
