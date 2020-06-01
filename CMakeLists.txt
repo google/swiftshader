@@ -747,6 +747,7 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
 
     add_subdirectory(${TESTS_DIR}/ReactorBenchmarks) # Add ReactorBenchmarks target
     add_subdirectory(${TESTS_DIR}/SystemBenchmarks) # Add system-benchmarks target
+    add_subdirectory(${TESTS_DIR}/VulkanBenchmarks) # Add VulkanBenchmarks target
 endif()
 
 if(SWIFTSHADER_BUILD_TESTS AND SWIFTSHADER_BUILD_VULKAN)
