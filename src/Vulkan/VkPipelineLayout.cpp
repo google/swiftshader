@@ -44,6 +44,7 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 			descriptorSets[i].bindings[j].descriptorType = setLayout->getDescriptorType(j);
 			descriptorSets[i].bindings[j].offset = setLayout->getBindingOffset(j);
 			descriptorSets[i].bindings[j].dynamicOffsetIndex = dynamicOffsetIndex;
+			descriptorSets[i].bindings[j].descriptorCount = setLayout->getDescriptorCount(j);
 
 			if(DescriptorSetLayout::IsDescriptorDynamic(descriptorSets[i].bindings[j].descriptorType))
 			{
@@ -95,6 +96,12 @@ uint32_t PipelineLayout::getDynamicOffsetIndex(uint32_t setNumber, uint32_t bind
 {
 	ASSERT(setNumber < descriptorSetCount && bindingNumber < descriptorSets[setNumber].bindingCount);
 	return descriptorSets[setNumber].bindings[bindingNumber].dynamicOffsetIndex;
+}
+
+uint32_t PipelineLayout::getDescriptorCount(uint32_t setNumber, uint32_t bindingNumber) const
+{
+	ASSERT(setNumber < descriptorSetCount && bindingNumber < descriptorSets[setNumber].bindingCount);
+	return descriptorSets[setNumber].bindings[bindingNumber].descriptorCount;
 }
 
 uint32_t PipelineLayout::getBindingOffset(uint32_t setNumber, uint32_t bindingNumber) const
