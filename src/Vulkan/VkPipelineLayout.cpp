@@ -28,6 +28,9 @@ PipelineLayout::PipelineLayout(const VkPipelineLayoutCreateInfo *pCreateInfo, vo
 {
 	Binding *bindingStorage = reinterpret_cast<Binding *>(mem);
 	uint32_t dynamicOffsetIndex = 0;
+
+	descriptorSets[0].bindings = bindingStorage;  // Used in destroy() for deallocation.
+
 	for(uint32_t i = 0; i < pCreateInfo->setLayoutCount; i++)
 	{
 		const vk::DescriptorSetLayout *setLayout = vk::Cast(pCreateInfo->pSetLayouts[i]);
