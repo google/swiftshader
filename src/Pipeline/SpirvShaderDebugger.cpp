@@ -18,6 +18,9 @@
 #define PRINT_EACH_PROCESSED_INSTRUCTION 0
 // If enabled, each instruction will be printed before executing.
 #define PRINT_EACH_EXECUTED_INSTRUCTION 0
+// If enabled, debugger variables will contain debug information (addresses,
+// byte offset, etc).
+#define DEBUG_ANNOTATE_VARIABLE_KEYS 0
 
 #ifdef ENABLE_VK_DEBUGGER
 
@@ -85,9 +88,16 @@ std::string tostring(const char *s)
 {
 	return s;
 }
+template<typename T>
+std::string tostring(T *s)
+{
+	char buf[32];
+	snprintf(buf, sizeof(buf), "%p", s);
+	return buf;
+}
 std::string tostring(sw::SpirvShader::Object::ID id)
 {
-	return "%" + std::to_string(id.value());
+	return "%" + tostring(id.value());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -243,6 +253,13 @@ struct Type : public Object
 		       kind == Kind::CompositeType ||
 		       kind == Kind::TemplateType;
 	}
+
+	// sizeInBytes() returns the number of bytes of the given debug type.
+	virtual uint32_t sizeInBytes() const = 0;
+
+	// value() returns a shared pointer to a vk::dbg::Value that views the data
+	// at ptr of this type.
+	virtual std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const = 0;
 };
 
 struct CompilationUnit : ObjectImpl<CompilationUnit, Scope, Object::Kind::CompilationUnit>
@@ -264,18 +281,170 @@ struct BasicType : ObjectImpl<BasicType, Type, Object::Kind::BasicType>
 	std::string name;
 	uint32_t size = 0;  // in bits.
 	OpenCLDebugInfo100DebugBaseTypeAttributeEncoding encoding = OpenCLDebugInfo100Unspecified;
+
+	uint32_t sizeInBytes() const override { return size / 8; }
+
+	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	{
+		switch(encoding)
+		{
+			case OpenCLDebugInfo100Address:
+				// return vk::dbg::make_reference(*static_cast<void **>(ptr));
+				UNIMPLEMENTED("b/148401179 OpenCLDebugInfo100 OpenCLDebugInfo100Address BasicType");
+				return nullptr;
+			case OpenCLDebugInfo100Boolean:
+				return vk::dbg::make_reference(*static_cast<bool *>(ptr));
+			case OpenCLDebugInfo100Float:
+				return vk::dbg::make_reference(*static_cast<float *>(ptr));
+			case OpenCLDebugInfo100Signed:
+				return vk::dbg::make_reference(*static_cast<int32_t *>(ptr));
+			case OpenCLDebugInfo100SignedChar:
+				return vk::dbg::make_reference(*static_cast<int8_t *>(ptr));
+			case OpenCLDebugInfo100Unsigned:
+				return vk::dbg::make_reference(*static_cast<uint32_t *>(ptr));
+			case OpenCLDebugInfo100UnsignedChar:
+				return vk::dbg::make_reference(*static_cast<uint8_t *>(ptr));
+			default:
+				UNIMPLEMENTED("b/148401179 OpenCLDebugInfo100 encoding %d", int(encoding));
+				return nullptr;
+		}
+	}
 };
 
 struct ArrayType : ObjectImpl<ArrayType, Type, Object::Kind::ArrayType>
 {
 	Type *base = nullptr;
 	std::vector<uint32_t> dimensions;
+
+	// build() loops over each element of the multi-dimensional array, calling
+	// enter() for building each new dimension group, and element() for each
+	// inner-most dimension element.
+	//
+	// enter must be a function of the signature:
+	//   std::shared_ptr<vk::dbg::VariableContainer>
+	//       (std::shared_ptr<vk::dbg::VariableContainer>& parent, uint32_t idx)
+	// where:
+	//   parent is the outer dimension group
+	//   idx is the index of the next deepest dimension.
+	//
+	// element must be a function of the signature:
+	//   void(std::shared_ptr<vk::dbg::VariableContainer> &parent,
+	//        uint32_t idx, uint32_t offset)
+	// where:
+	//   parent is the penultimate deepest dimension group
+	//   idx is the index of the element in parent group
+	//   offset is the 'flattened array' index for the element.
+	template<typename GROUP, typename ENTER_FUNC, typename ELEMENT_FUNC>
+	void build(const GROUP &group, ENTER_FUNC &&enter, ELEMENT_FUNC &&element) const
+	{
+		if(dimensions.size() == 0) { return; }
+
+		struct Dimension
+		{
+			uint32_t idx = 0;
+			GROUP group;
+			bool built = false;
+		};
+
+		std::vector<Dimension> dims;
+		dims.resize(dimensions.size());
+
+		uint32_t offset = 0;
+
+		int dimIdx = 0;
+		const int n = static_cast<int>(dimensions.size()) - 1;
+		while(dimIdx >= 0)
+		{
+			// (Re)build groups to inner dimensions.
+			for(; dimIdx <= n; dimIdx++)
+			{
+				if(!dims[dimIdx].built)
+				{
+					dims[dimIdx].group = (dimIdx == 0)
+					                         ? group
+					                         : enter(dims[dimIdx - 1].group, dims[dimIdx - 1].idx);
+					dims[dimIdx].built = true;
+				}
+			}
+
+			// Emit each of the inner-most dimension elements.
+			for(dims[n].idx = 0; dims[n].idx < dimensions[n]; dims[n].idx++)
+			{
+				ASSERT(dims[n].built);
+				element(dims[n].group, dims[n].idx, offset++);
+			}
+
+			dimIdx = n;
+			while(dims[dimIdx].idx == dimensions[dimIdx])
+			{
+				dims[dimIdx] = {};  // Clear the the current dimension
+				dimIdx--;           // Step up a dimension
+				if(dimIdx < 0) { break; }
+				dims[dimIdx].idx++;  // Increment the next dimension index
+			}
+		}
+	}
+
+	uint32_t sizeInBytes() const override
+	{
+		auto numBytes = base->sizeInBytes();
+		for(auto dim : dimensions)
+		{
+			numBytes *= dim;
+		}
+		return numBytes;
+	}
+
+	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	{
+		auto vc = lock.createVariableContainer();
+		build(
+		    vc,
+		    [&](std::shared_ptr<vk::dbg::VariableContainer> &parent, uint32_t idx) {
+			    auto child = lock.createVariableContainer();
+			    parent->put(tostring(idx), child);
+			    return child;
+		    },
+		    [&](std::shared_ptr<vk::dbg::VariableContainer> &parent, uint32_t idx, uint32_t offset) {
+			    offset = offset * base->sizeInBytes() * (interleaved ? sw::SIMD::Width : 1);
+			    auto addr = static_cast<uint8_t *>(ptr) + offset;
+			    auto child = base->value(lock, addr, interleaved);
+			    auto key = tostring(idx);
+#	if DEBUG_ANNOTATE_VARIABLE_KEYS
+			    key += " (" + tostring(addr) + " +" + tostring(offset) + ", idx: " + tostring(idx) + ")" + (interleaved ? "I" : "F");
+#	endif
+			    parent->put(key, child);
+		    });
+		return vc;
+	}
 };
 
 struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
 {
 	Type *base = nullptr;
 	uint32_t components = 0;
+
+	uint32_t sizeInBytes() const override
+	{
+		return base->sizeInBytes() * components;
+	}
+
+	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	{
+		const auto elSize = base->sizeInBytes();
+		auto vc = lock.createVariableContainer();
+		for(uint32_t i = 0; i < components; i++)
+		{
+			auto offset = elSize * i * (interleaved ? sw::SIMD::Width : 1);
+			auto elPtr = static_cast<uint8_t *>(ptr) + offset;
+			auto elKey = tostring(i);
+#	if DEBUG_ANNOTATE_VARIABLE_KEYS
+			elKey += " (" + tostring(elPtr) + " +" + tostring(offset) + ")" + (interleaved ? "I" : "F");
+#	endif
+			vc->put(elKey, base->value(lock, elPtr, interleaved));
+		}
+		return vc;
+	}
 };
 
 struct FunctionType : ObjectImpl<FunctionType, Type, Object::Kind::FunctionType>
@@ -283,6 +452,22 @@ struct FunctionType : ObjectImpl<FunctionType, Type, Object::Kind::FunctionType>
 	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
 	Type *returnTy = nullptr;
 	std::vector<Type *> paramTys;
+
+	uint32_t sizeInBytes() const override { return 0; }
+	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override { return nullptr; }
+};
+
+struct Member : ObjectImpl<Member, Object, Object::Kind::Member>
+{
+	std::string name;
+	Type *type = nullptr;
+	Source *source = nullptr;
+	uint32_t line = 0;
+	uint32_t column = 0;
+	struct CompositeType *parent = nullptr;
+	uint32_t offset = 0;  // in bits
+	uint32_t size = 0;    // in bits
+	uint32_t flags = 0;   // OR'd from OpenCLDebugInfo100DebugInfoFlags
 };
 
 struct CompositeType : ObjectImpl<CompositeType, Type, Object::Kind::CompositeType>
@@ -297,6 +482,23 @@ struct CompositeType : ObjectImpl<CompositeType, Type, Object::Kind::CompositeTy
 	uint32_t size = 0;   // in bits.
 	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
 	std::vector<Member *> members;
+
+	uint32_t sizeInBytes() const override { return size / 8; }
+	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	{
+		auto vc = lock.createVariableContainer();
+		for(auto &member : members)
+		{
+			auto offset = (member->offset / 8) * (interleaved ? sw::SIMD::Width : 1);
+			auto elPtr = static_cast<uint8_t *>(ptr) + offset;
+			auto elKey = member->name;
+#	if DEBUG_ANNOTATE_VARIABLE_KEYS
+			// elKey += " (" + tostring(elPtr) + " +" + tostring(offset) + ")" + (interleaved ? "I" : "F");
+#	endif
+			vc->put(elKey, member->type->value(lock, elPtr, interleaved));
+		}
+		return vc;
+	}
 };
 
 struct TemplateParameter : ObjectImpl<TemplateParameter, Object, Object::Kind::TemplateParameter>
@@ -313,19 +515,12 @@ struct TemplateType : ObjectImpl<TemplateType, Type, Object::Kind::TemplateType>
 {
 	Type *target = nullptr;  // Class, struct or function.
 	std::vector<TemplateParameter *> parameters;
-};
 
-struct Member : ObjectImpl<Member, Object, Object::Kind::Member>
-{
-	std::string name;
-	Type *type = nullptr;
-	Source *source = nullptr;
-	uint32_t line = 0;
-	uint32_t column = 0;
-	CompositeType *parent = nullptr;
-	uint32_t offset = 0;  // in bits
-	uint32_t size = 0;    // in bits
-	uint32_t flags = 0;   // OR'd from OpenCLDebugInfo100DebugInfoFlags
+	uint32_t sizeInBytes() const override { return target->sizeInBytes(); }
+	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	{
+		return target->value(lock, ptr, interleaved);
+	}
 };
 
 struct Function : ObjectImpl<Function, Scope, Object::Kind::Function>
@@ -576,6 +771,9 @@ public:
 	template<typename K, typename V>
 	void putVal(vk::dbg::VariableContainer *vc, K key, V value);
 
+	template<typename K>
+	void putPtr(vk::dbg::VariableContainer *vc, K key, void *ptr, bool interleaved, const debug::Type *type);
+
 	template<typename K, typename V>
 	void putRef(vk::dbg::VariableContainer *vc, K key, V *ptr);
 
@@ -683,6 +881,13 @@ template<typename K, typename V>
 void SpirvShader::Impl::Debugger::State::putVal(vk::dbg::VariableContainer *vc, K key, V value)
 {
 	vc->put(tostring(key), vk::dbg::make_constant(value));
+}
+
+template<typename K>
+void SpirvShader::Impl::Debugger::State::putPtr(vk::dbg::VariableContainer *vc, K key, void *ptr, bool interleaved, const debug::Type *type)
+{
+	auto lock = debugger->ctx->lock();
+	vc->put(tostring(key), type->value(lock, ptr, interleaved));
 }
 
 template<typename K, typename V>
@@ -798,13 +1003,19 @@ public:
 	static Group localsLane(Ptr state, const debug::Scope *scope, int lane);
 	static Group globals(Ptr state, int lane);
 
-	Group(Ptr state, Ptr group);
+	inline Group();
+	inline Group(Ptr state, Ptr group);
+
+	inline bool isValid() const;
 
 	template<typename K, typename RK>
 	Group group(RK key) const;
 
 	template<typename K, typename V, typename RK, typename RV>
 	void put(RK key, RV value) const;
+
+	template<typename K, typename RK>
+	void putPtr(RK key, RValue<Pointer<Byte>> ptr, bool interleaved, const debug::Type *type) const;
 
 	template<typename K, typename V, typename RK>
 	void putRef(RK key, RValue<Pointer<Byte>> ref) const;
@@ -824,6 +1035,7 @@ public:
 private:
 	Ptr state;
 	Ptr ptr;
+	bool valid = false;
 };
 
 SpirvShader::Impl::Debugger::Group
@@ -844,26 +1056,44 @@ SpirvShader::Impl::Debugger::Group::globals(Ptr state, int lane)
 	return localsLane(state, &debug::Scope::Global, lane);
 }
 
+SpirvShader::Impl::Debugger::Group::Group() {}
+
 SpirvShader::Impl::Debugger::Group::Group(Ptr state, Ptr group)
     : state(state)
     , ptr(group)
+    , valid(true)
 {}
+
+bool SpirvShader::Impl::Debugger::Group::isValid() const
+{
+	return valid;
+}
 
 template<typename K, typename RK>
 SpirvShader::Impl::Debugger::Group SpirvShader::Impl::Debugger::Group::group(RK key) const
 {
+	ASSERT(isValid());
 	return Group(state, rr::Call(&State::group<K>, state, ptr, key));
 }
 
 template<typename K, typename V, typename RK, typename RV>
 void SpirvShader::Impl::Debugger::Group::put(RK key, RV value) const
 {
+	ASSERT(isValid());
 	rr::Call(&State::putVal<K, V>, state, ptr, key, value);
+}
+
+template<typename K, typename RK>
+void SpirvShader::Impl::Debugger::Group::putPtr(RK key, RValue<Pointer<Byte>> addr, bool interleaved, const debug::Type *type) const
+{
+	ASSERT(isValid());
+	rr::Call(&State::putPtr<K>, state, ptr, key, addr, interleaved, type);
 }
 
 template<typename K, typename V, typename RK>
 void SpirvShader::Impl::Debugger::Group::putRef(RK key, RValue<Pointer<Byte>> ref) const
 {
+	ASSERT(isValid());
 	rr::Call(&State::putRef<K, V>, state, ptr, key, ref);
 }
 
@@ -948,9 +1178,10 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 		case OpenCLDebugInfo100DebugTypeArray:
 			defineOrEmit(insn, pass, [&](debug::ArrayType *type) {
 				type->base = get(debug::Type::ID(insn.word(5)));
-				auto &components = shader->getObject(insn.word(6));
-				ASSERT(components.kind == SpirvShader::Object::Kind::Constant);
-				type->dimensions = components.constantValue;
+				for(uint32_t i = 6; i < insn.wordCount(); i++)
+				{
+					type->dimensions.emplace_back(shader->GetConstScalarInt(insn.word(i)));
+				}
 			});
 			break;
 		case OpenCLDebugInfo100DebugTypeVector:
@@ -1260,7 +1491,7 @@ template<typename Key>
 void SpirvShader::Impl::Debugger::exposeVariable(
     const SpirvShader *shader,
     const Group &group,
-    int l,
+    int lane,
     const Key &key,
     const debug::Type *type,
     Object::ID id,
@@ -1271,55 +1502,31 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 
 	if(type != nullptr)
 	{
-		if(auto ty = debug::cast<debug::BasicType>(type))
+		switch(obj.kind)
 		{
-			SIMD::Int val;
-			switch(obj.kind)
+			case Object::Kind::InterfaceVariable:
+			case Object::Kind::Pointer:
+			case Object::Kind::DescriptorSet:
 			{
-				case Object::Kind::InterfaceVariable:
-				case Object::Kind::Pointer:
+				ASSERT(wordOffset == 0);                            // TODO.
+				auto ptr = shader->GetPointerToData(id, 0, state);  //  + sizeof(uint32_t) * wordOffset;
+				auto &ptrTy = shader->getType(obj);
+				auto interleaved = IsStorageInterleavedByLane(ptrTy.storageClass);
+				if(interleaved)
 				{
-					auto ptr = shader->GetPointerToData(id, 0, state) + sizeof(uint32_t) * wordOffset;
-					auto &ptrTy = shader->getType(obj);
-					if(IsStorageInterleavedByLane(ptrTy.storageClass))
-					{
-						ptr = InterleaveByLane(ptr);
-					}
-					auto addr = &ptr.base[Extract(ptr.offsets(), l)];
-					switch(ty->encoding)
-					{
-						case OpenCLDebugInfo100Address:
-							// TODO: This function takes a SIMD vector, and pointers cannot
-							// be held in them.
-							break;
-						case OpenCLDebugInfo100Boolean:
-							group.putRef<Key, bool>(key, addr);
-							break;
-						case OpenCLDebugInfo100Float:
-							group.putRef<Key, float>(key, addr);
-							break;
-						case OpenCLDebugInfo100Signed:
-							group.putRef<Key, int>(key, addr);
-							break;
-						case OpenCLDebugInfo100SignedChar:
-							group.putRef<Key, int8_t>(key, addr);
-							break;
-						case OpenCLDebugInfo100Unsigned:
-							group.putRef<Key, unsigned int>(key, addr);
-							break;
-						case OpenCLDebugInfo100UnsignedChar:
-							group.putRef<Key, uint8_t>(key, addr);
-							break;
-						default:
-							break;
-					}
+					ptr = InterleaveByLane(ptr);
 				}
-				break;
-				case Object::Kind::Constant:
-				case Object::Kind::Intermediate:
+				auto addr = &ptr.base[Extract(ptr.offsets(), lane)];
+				group.putPtr<Key>(key, addr, interleaved, type);
+			}
+			break;
+
+			case Object::Kind::Constant:
+			case Object::Kind::Intermediate:
+			{
+				if(auto ty = debug::cast<debug::BasicType>(type))
 				{
 					auto val = Operand(shader, state, id).Int(wordOffset);
-
 					switch(ty->encoding)
 					{
 						case OpenCLDebugInfo100Address:
@@ -1327,87 +1534,92 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 							// be held in them.
 							break;
 						case OpenCLDebugInfo100Boolean:
-							group.put<Key, bool>(key, Extract(val, l) != 0);
+							group.put<Key, bool>(key, Extract(val, lane) != 0);
 							break;
 						case OpenCLDebugInfo100Float:
-							group.put<Key, float>(key, Extract(As<SIMD::Float>(val), l));
+							group.put<Key, float>(key, Extract(As<SIMD::Float>(val), lane));
 							break;
 						case OpenCLDebugInfo100Signed:
-							group.put<Key, int>(key, Extract(val, l));
+							group.put<Key, int>(key, Extract(val, lane));
 							break;
 						case OpenCLDebugInfo100SignedChar:
-							group.put<Key, int8_t>(key, SByte(Extract(val, l)));
+							group.put<Key, int8_t>(key, SByte(Extract(val, lane)));
 							break;
 						case OpenCLDebugInfo100Unsigned:
-							group.put<Key, unsigned int>(key, Extract(val, l));
+							group.put<Key, unsigned int>(key, Extract(val, lane));
 							break;
 						case OpenCLDebugInfo100UnsignedChar:
-							group.put<Key, uint8_t>(key, Byte(Extract(val, l)));
+							group.put<Key, uint8_t>(key, Byte(Extract(val, lane)));
 							break;
 						default:
 							break;
 					}
 				}
-				break;
-				default:
-					break;
-			}
-			return;
-		}
-		else if(auto ty = debug::cast<debug::VectorType>(type))
-		{
-			auto elWords = 1;  // Currently vector elements must only be basic types, 32-bit wide
-			auto elTy = ty->base;
-			auto vecGroup = group.group<Key>(key);
-			switch(ty->components)
-			{
-				case 1:
-					exposeVariable(shader, vecGroup, l, "x", elTy, id, state, wordOffset + 0 * elWords);
-					break;
-				case 2:
-					exposeVariable(shader, vecGroup, l, "x", elTy, id, state, wordOffset + 0 * elWords);
-					exposeVariable(shader, vecGroup, l, "y", elTy, id, state, wordOffset + 1 * elWords);
-					break;
-				case 3:
-					exposeVariable(shader, vecGroup, l, "x", elTy, id, state, wordOffset + 0 * elWords);
-					exposeVariable(shader, vecGroup, l, "y", elTy, id, state, wordOffset + 1 * elWords);
-					exposeVariable(shader, vecGroup, l, "z", elTy, id, state, wordOffset + 2 * elWords);
-					break;
-				case 4:
-					exposeVariable(shader, vecGroup, l, "x", elTy, id, state, wordOffset + 0 * elWords);
-					exposeVariable(shader, vecGroup, l, "y", elTy, id, state, wordOffset + 1 * elWords);
-					exposeVariable(shader, vecGroup, l, "z", elTy, id, state, wordOffset + 2 * elWords);
-					exposeVariable(shader, vecGroup, l, "w", elTy, id, state, wordOffset + 3 * elWords);
-					break;
-				default:
-					for(uint32_t i = 0; i < ty->components; i++)
+				else if(auto ty = debug::cast<debug::VectorType>(type))
+				{
+					auto elWords = 1;  // Currently vector elements must only be basic types, 32-bit wide
+					auto elTy = ty->base;
+					auto vecGroup = group.group<Key>(key);
+					switch(ty->components)
 					{
-						exposeVariable(shader, vecGroup, l, std::to_string(i).c_str(), elTy, id, state, wordOffset + i * elWords);
+						case 1:
+							exposeVariable(shader, vecGroup, lane, "x", elTy, id, state, wordOffset + 0 * elWords);
+							break;
+						case 2:
+							exposeVariable(shader, vecGroup, lane, "x", elTy, id, state, wordOffset + 0 * elWords);
+							exposeVariable(shader, vecGroup, lane, "y", elTy, id, state, wordOffset + 1 * elWords);
+							break;
+						case 3:
+							exposeVariable(shader, vecGroup, lane, "x", elTy, id, state, wordOffset + 0 * elWords);
+							exposeVariable(shader, vecGroup, lane, "y", elTy, id, state, wordOffset + 1 * elWords);
+							exposeVariable(shader, vecGroup, lane, "z", elTy, id, state, wordOffset + 2 * elWords);
+							break;
+						case 4:
+							exposeVariable(shader, vecGroup, lane, "x", elTy, id, state, wordOffset + 0 * elWords);
+							exposeVariable(shader, vecGroup, lane, "y", elTy, id, state, wordOffset + 1 * elWords);
+							exposeVariable(shader, vecGroup, lane, "z", elTy, id, state, wordOffset + 2 * elWords);
+							exposeVariable(shader, vecGroup, lane, "w", elTy, id, state, wordOffset + 3 * elWords);
+							break;
+						default:
+							for(uint32_t i = 0; i < ty->components; i++)
+							{
+								exposeVariable(shader, vecGroup, lane, tostring(i).c_str(), elTy, id, state, wordOffset + i * elWords);
+							}
+							break;
 					}
-					break;
-			}
-			return;
-		}
-		else if(auto ty = debug::cast<debug::CompositeType>(type))
-		{
-			auto objectGroup = group.group<Key>(key);
+				}
+				else if(auto ty = debug::cast<debug::CompositeType>(type))
+				{
+					auto objectGroup = group.group<Key>(key);
 
-			for(auto member : ty->members)
-			{
-				exposeVariable(shader, objectGroup, l, member->name.c_str(), member->type, id, state, member->offset / 32);
+					for(auto member : ty->members)
+					{
+						exposeVariable(shader, objectGroup, lane, member->name.c_str(), member->type, id, state, member->offset / 32);
+					}
+				}
+				else if(auto ty = debug::cast<debug::ArrayType>(type))
+				{
+					ty->build(
+					    group.group<Key>(key),
+					    [&](Debugger::Group &parent, uint32_t idx) {
+						    return parent.template group<int>(idx);
+					    },
+					    [&](Debugger::Group &parent, uint32_t idx, uint32_t offset) {
+						    exposeVariable(shader, parent, lane, idx, ty->base, id, state, offset);
+					    });
+				}
+				else
+				{
+					UNIMPLEMENTED("b/145351270: Debug type: %s", cstr(type->kind));
+				}
+				return;
 			}
+			break;
 
-			return;
+			case Object::Kind::Unknown:
+				UNIMPLEMENTED("b/145351270: Object kind: %d", (int)obj.kind);
 		}
-		else if(auto ty = debug::cast<debug::ArrayType>(type))
-		{
-			// TODO(bclayton): Expose array types.
-			return;
-		}
-		else
-		{
-			UNIMPLEMENTED("b/145351270: Debug type: %s", cstr(type->kind));
-		}
+		return;
 	}
 
 	// No debug type information. Derive from SPIR-V.
@@ -1416,13 +1628,13 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 		case spv::OpTypeInt:
 		{
 			Operand val(shader, state, id);
-			group.put<Key, int>(key, Extract(val.Int(0), l));
+			group.put<Key, int>(key, Extract(val.Int(0), lane));
 		}
 		break;
 		case spv::OpTypeFloat:
 		{
 			Operand val(shader, state, id);
-			group.put<Key, float>(key, Extract(val.Float(0), l));
+			group.put<Key, float>(key, Extract(val.Float(0), lane));
 		}
 		break;
 		case spv::OpTypeVector:
@@ -1432,23 +1644,23 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 			switch(count)
 			{
 				case 1:
-					group.put<Key, float>(key, Extract(val.Float(0), l));
+					group.put<Key, float>(key, Extract(val.Float(0), lane));
 					break;
 				case 2:
-					group.put<Key, float>(key, Extract(val.Float(0), l), Extract(val.Float(1), l));
+					group.put<Key, float>(key, Extract(val.Float(0), lane), Extract(val.Float(1), lane));
 					break;
 				case 3:
-					group.put<Key, float>(key, Extract(val.Float(0), l), Extract(val.Float(1), l), Extract(val.Float(2), l));
+					group.put<Key, float>(key, Extract(val.Float(0), lane), Extract(val.Float(1), lane), Extract(val.Float(2), lane));
 					break;
 				case 4:
-					group.put<Key, float>(key, Extract(val.Float(0), l), Extract(val.Float(1), l), Extract(val.Float(2), l), Extract(val.Float(3), l));
+					group.put<Key, float>(key, Extract(val.Float(0), lane), Extract(val.Float(1), lane), Extract(val.Float(2), lane), Extract(val.Float(3), lane));
 					break;
 				default:
 				{
 					auto vec = group.group<Key>(key);
 					for(uint32_t i = 0; i < count; i++)
 					{
-						vec.template put<int, float>(i, Extract(val.Float(i), l));
+						vec.template put<int, float>(i, Extract(val.Float(i), lane));
 					}
 				}
 				break;
@@ -1465,7 +1677,7 @@ void SpirvShader::Impl::Debugger::exposeVariable(
 				auto p = ptr + el.offset;
 				if(interleavedByLane) { p = InterleaveByLane(p); }  // TODO: Interleave once, then add offset?
 				auto simd = p.Load<SIMD::Float>(sw::OutOfBoundsBehavior::Nullify, state->activeLaneMask());
-				ptrGroup.template put<int, float>(el.index, Extract(simd, l));
+				ptrGroup.template put<int, float>(el.index, Extract(simd, lane));
 			});
 		}
 		break;
@@ -1521,7 +1733,7 @@ void SpirvShader::dbgCreateFile()
 		default: name = "SPIR-V Shader"; break;
 	}
 	static std::atomic<int> id = { 0 };
-	name += std::to_string(id++) + ".spvasm";
+	name += tostring(id++) + ".spvasm";
 	dbg->spirvFile = dbg->ctx->lock().createVirtualFile(name.c_str(), source.c_str());
 }
 
