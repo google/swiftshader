@@ -63,7 +63,7 @@
 #define LLVM_USE_PERF 0
 
 /* Major version of the LLVM API */
-#define LLVM_VERSION_MAJOR 11
+#define LLVM_VERSION_MAJOR 10
 
 /* Minor version of the LLVM API */
 #define LLVM_VERSION_MINOR 0

@@ -41,3 +41,13 @@ cc_binary(
         "//:marl",
     ],
 )
+
+cc_binary(
+    name = "tasks_in_tasks",
+    srcs = [
+        "tasks_in_tasks.cpp",
+    ],
+    deps = [
+        "//:marl",
+    ],
+)

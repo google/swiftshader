@@ -22,14 +22,14 @@ TEST_F(WithoutBoundScheduler, WaitGroupDone) {
   wg.done();
 }
 
-#if MARL_DEBUG_ENABLED
+#if MARL_DEBUG_ENABLED && GTEST_HAS_DEATH_TEST
 TEST_F(WithoutBoundScheduler, WaitGroupDoneTooMany) {
   marl::WaitGroup wg(2);  // Should not require a scheduler.
   wg.done();
   wg.done();
   EXPECT_DEATH(wg.done(), "done\\(\\) called too many times");
 }
-#endif  // MARL_DEBUG_ENABLED
+#endif  // MARL_DEBUG_ENABLED && GTEST_HAS_DEATH_TEST
 
 TEST_P(WithBoundScheduler, WaitGroup_OneTask) {
   marl::WaitGroup wg(1);
