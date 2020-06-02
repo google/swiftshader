@@ -16,6 +16,7 @@
 #define marl_scheduler_h
 
 #include "debug.h"
+#include "deprecated.h"
 #include "memory.h"
 #include "mutex.h"
 #include "task.h"
@@ -50,8 +51,33 @@ class Scheduler {
  public:
   using TimePoint = std::chrono::system_clock::time_point;
   using Predicate = std::function<bool()>;
+  using ThreadInitializer = std::function<void(int workerId)>;
 
-  Scheduler(Allocator* allocator = Allocator::Default);
+  // Config holds scheduler configuration settings that can be passed to the
+  // Scheduler constructor.
+  struct Config {
+    // Per-worker-thread settings.
+    struct WorkerThread {
+      int count = 0;
+      ThreadInitializer initializer;
+    };
+    WorkerThread workerThread;
+
+    // Memory allocator to use for the scheduler and internal allocations.
+    Allocator* allocator = Allocator::Default;
+
+    // allCores() returns a Config with a worker thread for each of the logical
+    // cpus available to the process.
+    static Config allCores();
+
+    // Fluent setters that return this Config so set calls can be chained.
+    inline Config& setAllocator(Allocator*);
+    inline Config& setWorkerThreadCount(int);
+    inline Config& setWorkerThreadInitializer(const ThreadInitializer&);
+  };
+
+  // Constructor.
+  Scheduler(const Config&);
 
   // Destructor.
   // Blocks until the scheduler is unbound from all threads before returning.
@@ -73,24 +99,36 @@ class Scheduler {
   // enqueue() queues the task for asynchronous execution.
   void enqueue(Task&& task);
 
+  // config() returns the Config that was used to build the schededuler.
+  const Config& config() const;
+
+#if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
+  MARL_DEPRECATED("use Scheduler::Scheduler(const Config&)")
+  Scheduler(Allocator* allocator = Allocator::Default);
+
   // setThreadInitializer() sets the worker thread initializer function which
   // will be called for each new worker thread spawned.
   // The initializer will only be called on newly created threads (call
   // setThreadInitializer() before setWorkerThreadCount()).
+  MARL_DEPRECATED("use Config::setWorkerThreadInitializer()")
   void setThreadInitializer(const std::function<void()>& init);
 
   // getThreadInitializer() returns the thread initializer function set by
   // setThreadInitializer().
-  const std::function<void()>& getThreadInitializer();
+  MARL_DEPRECATED("use config().workerThread.initializer")
+  std::function<void()> getThreadInitializer();
 
   // setWorkerThreadCount() adjusts the number of dedicated worker threads.
   // A count of 0 puts the scheduler into single-threaded mode.
   // Note: Currently the number of threads cannot be adjusted once tasks
   // have been enqueued. This restriction may be lifted at a later time.
+  MARL_DEPRECATED("use Config::setWorkerThreadCount()")
   void setWorkerThreadCount(int count);
 
   // getWorkerThreadCount() returns the number of worker threads.
+  MARL_DEPRECATED("use config().workerThread.count")
   int getWorkerThreadCount();
+#endif  // MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
 
   // Fibers expose methods to perform cooperative multitasking and are
   // automatically created by the Scheduler.
@@ -451,18 +489,17 @@ class Scheduler {
   // The scheduler currently bound to the current thread.
   static thread_local Scheduler* bound;
 
-  Allocator* const allocator;
-
-  std::function<void()> threadInitFunc;
+#if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
+  Config cfg;
   mutex threadInitFuncMutex;
+#else
+  const Config cfg;
+#endif
 
   std::array<std::atomic<int>, 8> spinningWorkers;
   std::atomic<unsigned int> nextSpinningWorkerIdx = {0x8000000};
 
-  // TODO: Make this lot thread-safe so setWorkerThreadCount() can be called
-  // during execution of tasks.
   std::atomic<unsigned int> nextEnqueueIndex = {0};
-  unsigned int numWorkerThreads = 0;
   std::array<Worker*, MaxWorkerThreads> workerThreads;
 
   struct SingleThreadedWorkers {
@@ -475,6 +512,28 @@ class Scheduler {
   SingleThreadedWorkers singleThreadedWorkers;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Scheduler::Config
+////////////////////////////////////////////////////////////////////////////////
+Scheduler::Config& Scheduler::Config::setAllocator(Allocator* alloc) {
+  allocator = alloc;
+  return *this;
+}
+
+Scheduler::Config& Scheduler::Config::setWorkerThreadCount(int count) {
+  workerThread.count = count;
+  return *this;
+}
+
+Scheduler::Config& Scheduler::Config::setWorkerThreadInitializer(
+    const ThreadInitializer& initializer) {
+  workerThread.initializer = initializer;
+  return *this;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Scheduler::Fiber
+////////////////////////////////////////////////////////////////////////////////
 template <typename Clock, typename Duration>
 bool Scheduler::Fiber::wait(
     marl::lock& lock,

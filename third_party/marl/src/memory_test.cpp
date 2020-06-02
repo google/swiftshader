@@ -78,6 +78,7 @@ TEST_F(AllocatorTest, Create) {
   allocator->destroy(s16);
 }
 
+#if GTEST_HAS_DEATH_TEST
 TEST_F(AllocatorTest, Guards) {
   marl::Allocation::Request request;
   request.alignment = 16;
@@ -88,3 +89,4 @@ TEST_F(AllocatorTest, Guards) {
   EXPECT_DEATH(ptr[-1] = 1, "");
   EXPECT_DEATH(ptr[marl::pageSize()] = 1, "");
 }
+#endif

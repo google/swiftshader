@@ -22,10 +22,10 @@ namespace marl {
 
 namespace detail {
 
-void parallelizeChain(WaitGroup&) {}
+inline void parallelizeChain(WaitGroup&) {}
 
 template <typename F, typename... L>
-void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
+inline void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
   schedule([=] {
     f();
     wg.done();
@@ -35,13 +35,26 @@ void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
 
 }  // namespace detail
 
-// parallelize() schedules all the function parameters and waits for them to
-// complete. These functions may execute concurrently.
+// parallelize() invokes all the function parameters, potentially concurrently,
+// and waits for them all to complete before returning.
+//
 // Each function must take no parameters.
-template <typename... FUNCTIONS>
-inline void parallelize(FUNCTIONS&&... functions) {
-  WaitGroup wg(sizeof...(FUNCTIONS));
-  detail::parallelizeChain(wg, functions...);
+//
+// parallelize() does the following:
+//   (1) Schedules the function parameters in the parameter pack fn.
+//   (2) Calls f0 on the current thread.
+//   (3) Once f0 returns, waits for the scheduled functions in fn to all
+//   complete.
+// As the fn functions are scheduled before running f0, it is recommended to
+// pass the function that'll take the most time as the first argument. That way
+// you'll be more likely to avoid the cost of a fiber switch.
+template <typename F0, typename... FN>
+inline void parallelize(F0&& f0, FN&&... fn) {
+  WaitGroup wg(sizeof...(FN));
+  // Schedule all the functions in fn.
+  detail::parallelizeChain(wg, std::forward<FN>(fn)...);
+  // While we wait for fn to complete, run the first function on this thread.
+  f0();
   wg.wait();
 }
 
