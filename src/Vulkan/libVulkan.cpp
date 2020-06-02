@@ -147,12 +147,13 @@ std::shared_ptr<marl::Scheduler> getOrCreateScheduler()
 	auto sptr = scheduler.weakptr.lock();
 	if(!sptr)
 	{
-		sptr = std::make_shared<marl::Scheduler>();
-		sptr->setThreadInitializer([] {
+		marl::Scheduler::Config cfg;
+		cfg.setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+		cfg.setWorkerThreadInitializer([](int) {
 			sw::CPUID::setFlushToZero(true);
 			sw::CPUID::setDenormalsAreZero(true);
 		});
-		sptr->setWorkerThreadCount(std::min<size_t>(marl::Thread::numLogicalCPUs(), 16));
+		sptr = std::make_shared<marl::Scheduler>(cfg);
 		scheduler.weakptr = sptr;
 	}
 	return sptr;
