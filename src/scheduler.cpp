@@ -100,8 +100,8 @@ void Scheduler::bind() {
   bound = this;
   {
     marl::lock lock(singleThreadedWorkers.mutex);
-    auto worker =
-        allocator->make_unique<Worker>(this, Worker::Mode::SingleThreaded, -1);
+    auto worker = cfg.allocator->make_unique<Worker>(
+        this, Worker::Mode::SingleThreaded, -1);
     worker->start();
     auto tid = std::this_thread::get_id();
     singleThreadedWorkers.byTid.emplace(tid, std::move(worker));
@@ -110,7 +110,7 @@ void Scheduler::bind() {
 
 void Scheduler::unbind() {
   MARL_ASSERT(bound != nullptr, "No scheduler bound");
-  auto worker = Scheduler::Worker::getCurrent();
+  auto worker = Worker::getCurrent();
   worker->stop();
   {
     marl::lock lock(bound->singleThreadedWorkers.mutex);
@@ -127,10 +127,16 @@ void Scheduler::unbind() {
   bound = nullptr;
 }
 
-Scheduler::Scheduler(Allocator* allocator /* = Allocator::Default */)
-    : allocator(allocator), workerThreads{} {
+Scheduler::Scheduler(const Config& config) : cfg(config), workerThreads{} {
   for (size_t i = 0; i < spinningWorkers.size(); i++) {
     spinningWorkers[i] = -1;
+  }
+  for (int i = 0; i < cfg.workerThread.count; i++) {
+    workerThreads[i] =
+        cfg.allocator->create<Worker>(this, Worker::Mode::MultiThreaded, i);
+  }
+  for (int i = 0; i < cfg.workerThread.count; i++) {
+    workerThreads[i]->start();
   }
 }
 
@@ -146,17 +152,35 @@ Scheduler::~Scheduler() {
 
   // Release all worker threads.
   // This will wait for all in-flight tasks to complete before returning.
-  setWorkerThreadCount(0);
+  for (int i = cfg.workerThread.count - 1; i >= 0; i--) {
+    workerThreads[i]->stop();
+  }
+  for (int i = cfg.workerThread.count - 1; i >= 0; i--) {
+    cfg.allocator->destroy(workerThreads[i]);
+  }
+}
+
+#if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
+Scheduler::Scheduler(Allocator* allocator /* = Allocator::Default */)
+    : workerThreads{} {
+  cfg.allocator = allocator;
+  for (size_t i = 0; i < spinningWorkers.size(); i++) {
+    spinningWorkers[i] = -1;
+  }
 }
 
 void Scheduler::setThreadInitializer(const std::function<void()>& init) {
   marl::lock lock(threadInitFuncMutex);
-  threadInitFunc = init;
+  cfg.workerThread.initializer = [=](int) { init(); };
 }
 
-const std::function<void()>& Scheduler::getThreadInitializer() {
+std::function<void()> Scheduler::getThreadInitializer() {
   marl::lock lock(threadInitFuncMutex);
-  return threadInitFunc;
+  if (!cfg.workerThread.initializer) {
+    return {};
+  }
+  auto init = cfg.workerThread.initializer;
+  return [=]() { init(0); };
 }
 
 void Scheduler::setWorkerThreadCount(int newCount) {
@@ -169,33 +193,34 @@ void Scheduler::setWorkerThreadCount(int newCount) {
         newCount, int(MaxWorkerThreads), int(MaxWorkerThreads));
     newCount = MaxWorkerThreads;
   }
-  auto oldCount = numWorkerThreads;
+  auto oldCount = cfg.workerThread.count;
   for (int idx = oldCount - 1; idx >= newCount; idx--) {
     workerThreads[idx]->stop();
   }
   for (int idx = oldCount - 1; idx >= newCount; idx--) {
-    allocator->destroy(workerThreads[idx]);
+    cfg.allocator->destroy(workerThreads[idx]);
   }
   for (int idx = oldCount; idx < newCount; idx++) {
     workerThreads[idx] =
-        allocator->create<Worker>(this, Worker::Mode::MultiThreaded, idx);
+        cfg.allocator->create<Worker>(this, Worker::Mode::MultiThreaded, idx);
   }
-  numWorkerThreads = newCount;
+  cfg.workerThread.count = newCount;
   for (int idx = oldCount; idx < newCount; idx++) {
     workerThreads[idx]->start();
   }
 }
 
 int Scheduler::getWorkerThreadCount() {
-  return numWorkerThreads;
+  return cfg.workerThread.count;
 }
+#endif  // MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
 
 void Scheduler::enqueue(Task&& task) {
   if (task.is(Task::Flags::SameThread)) {
-    Scheduler::Worker::getCurrent()->enqueue(std::move(task));
+    Worker::getCurrent()->enqueue(std::move(task));
     return;
   }
-  if (numWorkerThreads > 0) {
+  if (cfg.workerThread.count > 0) {
     while (true) {
       // Prioritize workers that have recently started spinning.
       auto i = --nextSpinningWorkerIdx % spinningWorkers.size();
@@ -203,7 +228,7 @@ void Scheduler::enqueue(Task&& task) {
       if (idx < 0) {
         // If a spinning worker couldn't be found, round-robin the
         // workers.
-        idx = nextEnqueueIndex++ % numWorkerThreads;
+        idx = nextEnqueueIndex++ % cfg.workerThread.count;
       }
 
       auto worker = workerThreads[idx];
@@ -213,15 +238,23 @@ void Scheduler::enqueue(Task&& task) {
       }
     }
   } else {
-    auto worker = Worker::getCurrent();
-    MARL_ASSERT(worker, "singleThreadedWorker not found");
-    worker->enqueue(std::move(task));
+    if (auto worker = Worker::getCurrent()) {
+      worker->enqueue(std::move(task));
+    } else {
+      MARL_FATAL(
+          "singleThreadedWorker not found. Did you forget to call "
+          "marl::Scheduler::bind()?");
+    }
   }
 }
 
+const Scheduler::Config& Scheduler::config() const {
+  return cfg;
+}
+
 bool Scheduler::stealWork(Worker* thief, uint64_t from, Task& out) {
-  if (numWorkerThreads > 0) {
-    auto thread = workerThreads[from % numWorkerThreads];
+  if (cfg.workerThread.count > 0) {
+    auto thread = workerThreads[from % cfg.workerThread.count];
     if (thread != thief) {
       if (thread->steal(out)) {
         return true;
@@ -237,15 +270,22 @@ void Scheduler::onBeginSpinning(int workerId) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Fiber
+// Scheduler::Config
+////////////////////////////////////////////////////////////////////////////////
+Scheduler::Config Scheduler::Config::allCores() {
+  return Config().setWorkerThreadCount(Thread::numLogicalCPUs());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Scheduler::Fiber
 ////////////////////////////////////////////////////////////////////////////////
 Scheduler::Fiber::Fiber(Allocator::unique_ptr<OSFiber>&& impl, uint32_t id)
-    : id(id), impl(std::move(impl)), worker(Scheduler::Worker::getCurrent()) {
+    : id(id), impl(std::move(impl)), worker(Worker::getCurrent()) {
   MARL_ASSERT(worker != nullptr, "No Scheduler::Worker bound");
 }
 
 Scheduler::Fiber* Scheduler::Fiber::current() {
-  auto worker = Scheduler::Worker::getCurrent();
+  auto worker = Worker::getCurrent();
   return worker != nullptr ? worker->getCurrentFiber() : nullptr;
 }
 
@@ -367,13 +407,13 @@ void Scheduler::Worker::start() {
       thread = Thread(id, [=] {
         Thread::setName("Thread<%.2d>", int(id));
 
-        if (auto const& initFunc = scheduler->getThreadInitializer()) {
-          initFunc();
+        if (auto const& initFunc = scheduler->cfg.workerThread.initializer) {
+          initFunc(id);
         }
 
         Scheduler::bound = scheduler;
         Worker::current = this;
-        mainFiber = Fiber::createFromCurrentThread(scheduler->allocator, 0);
+        mainFiber = Fiber::createFromCurrentThread(scheduler->cfg.allocator, 0);
         currentFiber = mainFiber.get();
         {
           marl::lock lock(work.mutex);
@@ -386,7 +426,7 @@ void Scheduler::Worker::start() {
 
     case Mode::SingleThreaded:
       Worker::current = this;
-      mainFiber = Fiber::createFromCurrentThread(scheduler->allocator, 0);
+      mainFiber = Fiber::createFromCurrentThread(scheduler->cfg.allocator, 0);
       currentFiber = mainFiber.get();
       break;
 
@@ -709,7 +749,7 @@ void Scheduler::Worker::runUntilIdle() {
 Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
   auto fiberId = static_cast<uint32_t>(workerFibers.size() + 1);
   DBG_LOG("%d: CREATE(%d)", (int)id, (int)fiberId);
-  auto fiber = Fiber::create(scheduler->allocator, fiberId, FiberStackSize,
+  auto fiber = Fiber::create(scheduler->cfg.allocator, fiberId, FiberStackSize,
                              [&]() REQUIRES(work.mutex) { run(); });
   auto ptr = fiber.get();
   workerFibers.push_back(std::move(fiber));

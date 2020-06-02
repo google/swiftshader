@@ -20,6 +20,12 @@ project(Marl C CXX ASM)
 
 include(CheckCXXSourceCompiles)
 
+# MARL_IS_SUBPROJECT is 1 if added via add_subdirectory() from another project.
+get_directory_property(MARL_IS_SUBPROJECT PARENT_DIRECTORY)
+if(MARL_IS_SUBPROJECT)
+    set(MARL_IS_SUBPROJECT 1)
+endif()
+
 ###########################################################
 # Options
 ###########################################################
@@ -100,8 +106,10 @@ check_cxx_source_compiles(
     MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
 set(CMAKE_REQUIRED_FLAGS ${SAVE_CMAKE_REQUIRED_FLAGS})
 
-# Export MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED as this may be useful to parent projects
-set(MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED PARENT_SCOPE ${MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED})
+if(MARL_IS_SUBPROJECT)
+    # Export MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED as this may be useful to parent projects
+    set(MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED PARENT_SCOPE ${MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED})
+endif()
 
 ###########################################################
 # File lists
