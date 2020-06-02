@@ -989,8 +989,11 @@ func (c *changeInfo) update(client *gerrit.Client) error {
 		c.priority++
 	}
 
-	// Is the change from a Googler?
-	canTest := strings.HasSuffix(current.Commit.Committer.Email, "@google.com")
+	// Is the change from a Googler or reviewed by a Googler?
+	canTest := strings.HasSuffix(current.Commit.Committer.Email, "@google.com") ||
+		strings.HasSuffix(change.Labels["Code-Review"].Approved.Email, "@google.com") ||
+		strings.HasSuffix(change.Labels["Code-Review"].Recommended.Email, "@google.com") ||
+		strings.HasSuffix(change.Labels["Presubmit-Ready"].Approved.Email, "@google.com")
 
 	// Has the latest patchset already been tested?
 	if canTest {
