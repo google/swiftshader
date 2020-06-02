@@ -1853,6 +1853,12 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 		std::swap(region.dstOffsets[0].y, region.dstOffsets[1].y);
 	}
 
+	if(region.dstOffsets[0].z > region.dstOffsets[1].z)
+	{
+		std::swap(region.srcOffsets[0].z, region.srcOffsets[1].z);
+		std::swap(region.dstOffsets[0].z, region.dstOffsets[1].z);
+	}
+
 	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(region.srcSubresource.aspectMask);
 	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
 	VkExtent3D srcExtent = src->getMipLevelExtent(srcAspect, region.srcSubresource.mipLevel);
