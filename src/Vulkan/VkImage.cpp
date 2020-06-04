@@ -91,8 +91,8 @@ int GetBCn(const vk::Format &format)
 }
 
 // Returns true for BC1 if we have an RGB format, false for RGBA
-// Returns true for BC4 and BC5 if we have an unsigned format, false for signed
-// Ignored by BC2, BC3, BC6 and BC7
+// Returns true for BC4, BC5, BC6H if we have an unsigned format, false for signed
+// Ignored by BC2, BC3, and BC7
 bool GetNoAlphaOrUnsigned(const vk::Format &format)
 {
 	switch(format)
@@ -101,6 +101,7 @@ bool GetNoAlphaOrUnsigned(const vk::Format &format)
 		case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
 		case VK_FORMAT_BC4_UNORM_BLOCK:
 		case VK_FORMAT_BC5_UNORM_BLOCK:
+		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
 			return true;
 		case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
 		case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
@@ -110,7 +111,6 @@ bool GetNoAlphaOrUnsigned(const vk::Format &format)
 		case VK_FORMAT_BC3_SRGB_BLOCK:
 		case VK_FORMAT_BC4_SNORM_BLOCK:
 		case VK_FORMAT_BC5_SNORM_BLOCK:
-		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
 		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
 		case VK_FORMAT_BC7_SRGB_BLOCK:
 		case VK_FORMAT_BC7_UNORM_BLOCK:

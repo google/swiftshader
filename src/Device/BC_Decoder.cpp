@@ -15,10 +15,12 @@
 #include "BC_Decoder.hpp"
 
 #include "System/Debug.hpp"
+#include "System/Math.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <vector>
 
 #include <assert.h>
 #include <stdint.h>
@@ -218,6 +220,846 @@ private:
 
 	uint64_t data;
 };
+
+namespace BC6H {
+
+static constexpr int MaxPartitions = 64;
+
+static constexpr uint8_t PartitionTable2[MaxPartitions][16] = {
+	{ 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1 },
+	{ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+	{ 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1 },
+	{ 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1 },
+	{ 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1 },
+	{ 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1 },
+	{ 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
+	{ 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1 },
+	{ 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0 },
+	{ 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0 },
+	{ 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0 },
+	{ 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1 },
+	{ 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0 },
+	{ 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0 },
+	{ 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0 },
+	{ 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0 },
+	{ 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+	{ 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0 },
+	{ 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0 },
+	{ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
+	{ 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1 },
+	{ 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0 },
+	{ 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0 },
+	{ 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0 },
+	{ 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0 },
+	{ 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1 },
+	{ 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1 },
+	{ 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0 },
+	{ 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0 },
+	{ 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0 },
+	{ 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0 },
+	{ 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 },
+	{ 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1 },
+	{ 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1 },
+	{ 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+	{ 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0 },
+	{ 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0 },
+	{ 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1 },
+	{ 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1 },
+	{ 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 },
+	{ 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0 },
+	{ 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1 },
+	{ 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1 },
+	{ 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
+	{ 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1 },
+	{ 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1 },
+	{ 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+	{ 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0 },
+	{ 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 },
+};
+
+static constexpr uint8_t AnchorTable2[MaxPartitions] = {
+	// clang-format off
+	0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf,
+	0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf, 0xf,
+	0xf, 0x2, 0x8, 0x2, 0x2, 0x8, 0x8, 0xf,
+	0x2, 0x8, 0x2, 0x2, 0x8, 0x8, 0x2, 0x2,
+	0xf, 0xf, 0x6, 0x8, 0x2, 0x8, 0xf, 0xf,
+	0x2, 0x8, 0x2, 0x2, 0x2, 0xf, 0xf, 0x6,
+	0x6, 0x2, 0x6, 0x8, 0xf, 0xf, 0x2, 0x2,
+	0xf, 0xf, 0xf, 0xf, 0xf, 0x2, 0x2, 0xf,
+	// clang-format on
+};
+
+// 1.0f in half-precision floating point format
+static constexpr uint16_t halfFloat1 = 0x3C00;
+union Color
+{
+	struct RGBA
+	{
+		uint16_t r = 0;
+		uint16_t g = 0;
+		uint16_t b = 0;
+		const uint16_t a = halfFloat1;
+
+		RGBA(uint16_t r, uint16_t g, uint16_t b)
+		    : r(r)
+		    , g(g)
+		    , b(b)
+		{
+		}
+
+		RGBA &operator=(const RGBA &other)
+		{
+			if(this != &other)
+			{
+				this->r = other.r;
+				this->g = other.g;
+				this->b = other.b;
+			}
+
+			return *this;
+		}
+	};
+
+	Color(uint16_t r, uint16_t g, uint16_t b)
+	    : rgba(r, g, b)
+	{
+	}
+
+	Color(int r, int g, int b)
+	    : rgba((uint16_t)r, (uint16_t)g, (uint16_t)b)
+	{
+	}
+
+	Color()
+	{
+	}
+
+	Color &operator=(const Color &other)
+	{
+		if(this != &other)
+		{
+			this->rgba = other.rgba;
+		}
+		return *this;
+	}
+
+	RGBA rgba;
+	uint16_t channel[4];
+};
+static_assert(sizeof(Color) == 8, "BC6h::Color must be 8 bytes long");
+
+inline int32_t extendSign(int32_t val, size_t size)
+{
+	// Suppose we have a 2-bit integer being stored in 4 bit variable:
+	//    x = 0b00AB
+	//
+	// In order to sign extend x, we need to turn the 0s into A's:
+	//    x_extend = 0bAAAB
+	//
+	// We can do that by flipping A in x then subtracting 0b0010 from x.
+	// Suppose A is 1:
+	//    x       = 0b001B
+	//    x_flip  = 0b000B
+	//    x_minus = 0b111B
+	// Since A is flipped to 0, subtracting the mask sets it and all the bits above it to 1.
+	// And if A is 0:
+	//    x       = 0b000B
+	//    x_flip  = 0b001B
+	//    x_minus = 0b000B
+	// We unset the bit we flipped, and touch no other bit
+	uint16_t mask = 1u << (size - 1);
+	return (val ^ mask) - mask;
+}
+
+static int constexpr RGBfChannels = 3;
+struct RGBf
+{
+	uint16_t channel[RGBfChannels];
+	size_t size[RGBfChannels];
+	bool isSigned;
+
+	RGBf()
+	{
+		static_assert(RGBfChannels == 3, "RGBf must have exactly 3 channels");
+		static_assert(sizeof(channel) / sizeof(channel[0]) == RGBfChannels, "RGBf must have exactly 3 channels");
+		static_assert(sizeof(channel) / sizeof(channel[0]) == sizeof(size) / sizeof(size[0]), "RGBf requires equally sized arrays for channels and channel sizes");
+
+		for(int i = 0; i < RGBfChannels; i++)
+		{
+			channel[i] = 0;
+			size[i] = 0;
+		}
+
+		isSigned = false;
+	}
+
+	void extendSign()
+	{
+		for(int i = 0; i < RGBfChannels; i++)
+		{
+			channel[i] = BC6H::extendSign(channel[i], size[i]);
+		}
+	}
+
+	// Assuming this is the delta, take the base-endpoint and transform this into
+	// a proper endpoint.
+	//
+	// The final computed endpoint is truncated to the base-endpoint's size;
+	void resolveDelta(RGBf base)
+	{
+		for(int i = 0; i < RGBfChannels; i++)
+		{
+			size[i] = base.size[i];
+			channel[i] = (base.channel[i] + channel[i]) & ((1 << base.size[i]) - 1);
+		}
+
+		// Per the spec:
+		// "For signed formats, the results of the delta calculation must be sign
+		// extended as well."
+		if(isSigned)
+		{
+			extendSign();
+		}
+	}
+
+	void unquantize()
+	{
+		if(isSigned)
+		{
+			unquantizeSigned();
+		}
+		else
+		{
+			unquantizeUnsigned();
+		}
+	}
+
+	void unquantizeUnsigned()
+	{
+		for(int i = 0; i < RGBfChannels; i++)
+		{
+			if(size[i] >= 15 || channel[i] == 0)
+			{
+				continue;
+			}
+			else if(channel[i] == ((1u << size[i]) - 1))
+			{
+				channel[i] = 0xFFFFu;
+			}
+			else
+			{
+				// Need 32 bits to avoid overflow
+				uint32_t tmp = channel[i];
+				channel[i] = (uint16_t)(((tmp << 16) + 0x8000) >> size[i]);
+			}
+			size[i] = 16;
+		}
+	}
+
+	void unquantizeSigned()
+	{
+		for(int i = 0; i < RGBfChannels; i++)
+		{
+			if(size[i] >= 16 || channel[i] == 0)
+			{
+				continue;
+			}
+
+			int16_t value = sw::bit_cast<int16_t>(channel[i]);
+			int32_t result = value;
+			bool signBit = value < 0;
+			if(signBit)
+			{
+				value = -value;
+			}
+
+			if(value >= ((1 << (size[i] - 1)) - 1))
+			{
+				result = 0x7FFF;
+			}
+			else
+			{
+				// Need 32 bits to avoid overflow
+				int32_t tmp = value;
+				result = (((tmp << 15) + 0x4000) >> (size[i] - 1));
+			}
+
+			if(signBit)
+			{
+				result = -result;
+			}
+
+			channel[i] = (uint16_t)result;
+			size[i] = 16;
+		}
+	}
+};
+
+struct Data
+{
+	uint64_t low64;
+	uint64_t high64;
+
+	Data() = default;
+	Data(uint64_t low64, uint64_t high64)
+	    : low64(low64)
+	    , high64(high64)
+	{
+	}
+
+	// Consumes the lowest N bits from from low64 and high64 where N is:
+	//      abs(MSB - LSB)
+	// MSB and LSB come from the block description of the BC6h spec and specify
+	// the location of the bits in the returned bitstring.
+	//
+	// If MSB < LSB, then the bits are reversed. Otherwise, the bitstring is read and
+	// shifted without further modification.
+	//
+	uint32_t consumeBits(uint32_t MSB, uint32_t LSB)
+	{
+		bool reversed = MSB < LSB;
+		if(reversed)
+		{
+			std::swap(MSB, LSB);
+		}
+		ASSERT(MSB - LSB + 1 < sizeof(uint32_t) * 8);
+
+		uint32_t numBits = MSB - LSB + 1;
+		uint32_t mask = (1 << numBits) - 1;
+		// Read the low N bits
+		uint32_t bits = (low64 & mask);
+
+		low64 >>= numBits;
+		// Put the low N bits of high64 into the high 64-N bits of low64
+		low64 |= (high64 & mask) << (sizeof(high64) * 8 - numBits);
+		high64 >>= numBits;
+
+		if(reversed)
+		{
+			uint32_t tmp = 0;
+			for(uint32_t numSwaps = 0; numSwaps < numBits; numSwaps++)
+			{
+				tmp <<= 1;
+				tmp |= (bits & 1);
+				bits >>= 1;
+			}
+
+			bits = tmp;
+		}
+
+		return bits << LSB;
+	}
+};
+
+struct IndexInfo
+{
+	uint64_t value;
+	int numBits;
+};
+
+// Interpolates between two endpoints, then does a final unquantization step
+Color interpolate(RGBf e0, RGBf e1, const IndexInfo &index, bool isSigned)
+{
+	static constexpr uint32_t weights3[] = { 0, 9, 18, 27, 37, 46, 55, 64 };
+	static constexpr uint32_t weights4[] = { 0, 4, 9, 13, 17, 21, 26, 30,
+		                                     34, 38, 43, 47, 51, 55, 60, 64 };
+	static constexpr uint32_t const *weightsN[] = {
+		nullptr, nullptr, nullptr, weights3, weights4
+	};
+	auto weights = weightsN[index.numBits];
+	ASSERT_MSG(weights != nullptr, "Unexpected number of index bits: %d", (int)index.numBits);
+	Color color;
+	uint32_t e0Weight = 64 - weights[index.value];
+	uint32_t e1Weight = weights[index.value];
+
+	for(int i = 0; i < RGBfChannels; i++)
+	{
+		int32_t e0Channel = e0.channel[i];
+		int32_t e1Channel = e1.channel[i];
+
+		if(isSigned)
+		{
+			e0Channel = extendSign(e0Channel, 16);
+			e1Channel = extendSign(e1Channel, 16);
+		}
+
+		int32_t e0Value = e0Channel * e0Weight;
+		int32_t e1Value = e1Channel * e1Weight;
+
+		uint32_t tmp = ((e0Value + e1Value + 32) >> 6);
+
+		// Need to unquantize value to limit it to the legal range of half-precision
+		// floats. We do this by scaling by 31/32 or 31/64 depending on if the value
+		// is signed or unsigned.
+		if(isSigned)
+		{
+			tmp = ((tmp & 0x80000000) != 0) ? (((~tmp + 1) * 31) >> 5) | 0x8000 : (tmp * 31) >> 5;
+			// Don't return -0.0f, just normalize it to 0.0f.
+			if(tmp == 0x8000)
+				tmp = 0;
+		}
+		else
+		{
+			tmp = (tmp * 31) >> 6;
+		}
+
+		color.channel[i] = (uint16_t)tmp;
+	}
+
+	return color;
+}
+
+enum DataType
+{
+	// Endpoints
+	EP0 = 0,
+	EP1 = 1,
+	EP2 = 2,
+	EP3 = 3,
+	Mode,
+	Partition,
+};
+
+enum Channel
+{
+	R = 0,
+	G = 1,
+	B = 2,
+	None,
+};
+
+struct DeltaBits
+{
+	size_t channel[3];
+
+	DeltaBits()
+	{
+		channel[R] = 0;
+		channel[G] = 0;
+		channel[B] = 0;
+	}
+
+	DeltaBits(int r, int g, int b)
+	{
+		channel[R] = r;
+		channel[G] = g;
+		channel[B] = b;
+	}
+};
+
+struct ModeDesc
+{
+	int number;
+	bool hasDelta;
+	int partitionCount;
+	int endpointBits;
+	int numEndpoints;
+	DeltaBits deltaBits;
+
+	ModeDesc()
+	    : number(-1)
+	    , hasDelta(false)
+	    , partitionCount(0)
+	    , endpointBits(0)
+	    , numEndpoints(0)
+	{
+	}
+
+	ModeDesc(int number, bool hasDelta, int partitionCount, int endpointBits, DeltaBits deltaBits)
+	    : number(number)
+	    , hasDelta(hasDelta)
+	    , partitionCount(partitionCount)
+	    , endpointBits(endpointBits)
+	    , deltaBits(deltaBits)
+	{
+		numEndpoints = partitionCount * 2;
+	}
+};
+
+struct BlockDesc
+{
+	DataType type;
+	Channel channel;
+	int MSB;
+	int LSB;
+	ModeDesc modeDesc;
+
+	BlockDesc() = default;
+
+	BlockDesc(DataType type, Channel channel, int MSB, int LSB, ModeDesc modeDesc)
+	    : type(type)
+	    , channel(channel)
+	    , MSB(MSB)
+	    , LSB(LSB)
+	    , modeDesc(modeDesc)
+	{
+	}
+
+	BlockDesc(DataType type, Channel channel, int MSB, int LSB)
+	    : type(type)
+	    , channel(channel)
+	    , MSB(MSB)
+	    , LSB(LSB)
+	{
+	}
+};
+
+// Table describing the bitfields for each mode from the LSB to the MSB before
+// the index data starts.
+//
+// The numbers come from the BC6h block description. The basic format is a list of bitfield
+// descriptors of the form:
+//   {Type, Channel, MSB, LSB}
+//   * Type describes which endpoint this is, or if this is a mode or a partition number.
+//   * Channel describes one of the 3 color channels within an endpoint
+//   * MSB and LSB specificy:
+//      * The size of the bitfield being read
+//      * The position of the bitfield within the variable it is being read to
+//      * And if the bitfield is stored in reverse bit order
+//     If MSB < LSB then the bitfield is stored in reverse order. The size of the bitfield
+//     is abs(MSB-LSB+1). And the position of the bitfield within the variable is
+//     min(LSB, MSB).
+//
+// Invalid or reserved modes do not have any fields within them.
+static const std::vector<BlockDesc> blockDescs[32] = {
+	// clang-format off
+	// Mode 0
+	{ { Mode, None, 1, 0, { 0, true, 2, 10, { 5, 5, 5 } } },
+	  { EP2, G, 4, 4 }, { EP2, B, 4, 4 }, { EP3, B, 4, 4 },
+	  { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	  { EP1, R, 4, 0 }, { EP3, G, 4, 4 }, { EP2, G, 3, 0 },
+	  { EP1, G, 4, 0 }, { EP3, B, 0, 0 }, { EP3, G, 3, 0 },
+	  { EP1, B, 4, 0 }, { EP3, B, 1, 1 }, { EP2, B, 3, 0 },
+	  { EP2, R, 4, 0 }, { EP3, B, 2, 2 }, { EP3, R, 4, 0 },
+	  { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 1
+	{ { Mode, None, 1, 0, { 1, true, 2, 7, { 6, 6, 6 } } },
+	  { EP2, G, 5, 5 }, { EP3, G, 5, 4 }, { EP0, R, 6, 0 },
+	  { EP3, B, 1, 0 }, { EP2, B, 4, 4 }, { EP0, G, 6, 0 },
+	  { EP2, B, 5, 5 }, { EP3, B, 2, 2 }, { EP2, G, 4, 4 },
+	  { EP0, B, 6, 0 }, { EP3, B, 3, 3 }, { EP3, B, 5, 5 },
+      { EP3, B, 4, 4 }, { EP1, R, 5, 0 }, { EP2, G, 3, 0 },
+      { EP1, G, 5, 0 }, { EP3, G, 3, 0 }, { EP1, B, 5, 0 },
+      { EP2, B, 3, 0 }, { EP2, R, 5, 0 }, { EP3, R, 5, 0 },
+	  { Partition, None, 4, 0 } },
+	// Mode 2
+	{ { Mode, None, 4, 0, { 2, true, 2, 11, { 5, 4, 4 } } },
+	  { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	  { EP1, R, 4, 0 }, { EP0, R, 10, 10 }, { EP2, G, 3, 0 },
+	  { EP1, G, 3, 0 }, { EP0, G, 10, 10 }, { EP3, B, 0, 0 },
+	  { EP3, G, 3, 0 }, { EP1, B, 3, 0 }, { EP0, B, 10, 10 },
+	  { EP3, B, 1, 1 }, { EP2, B, 3, 0 }, { EP2, R, 4, 0 },
+	  { EP3, B, 2, 2 }, { EP3, R, 4, 0 }, { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 3
+	{
+	    { Mode, None, 4, 0, { 3, false, 1, 10, { 0, 0, 0 } } },
+	    { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	    { EP1, R, 9, 0 }, { EP1, G, 9, 0 }, { EP1, B, 9, 0 },
+	},
+	// Mode 4: Illegal
+	{},
+	// Mode 5: Illegal
+	{},
+	// Mode 6
+	{ { Mode, None, 4, 0, { 6, true, 2, 11, { 4, 5, 4 } } },
+	  { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	  { EP1, R, 3, 0 }, { EP0, R, 10, 10 }, { EP3, G, 4, 4 },
+	  { EP2, G, 3, 0 }, { EP1, G, 4, 0 }, { EP0, G, 10, 10 },
+	  { EP3, G, 3, 0 }, { EP1, B, 3, 0 }, { EP0, B, 10, 10 },
+	  { EP3, B, 1, 1 }, { EP2, B, 3, 0 }, { EP2, R, 3, 0 },
+	  { EP3, B, 0, 0 }, { EP3, B, 2, 2 }, { EP3, R, 3, 0 },
+	  { EP2, G, 4, 4 }, { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 7
+	{
+	    { Mode, None, 4, 0, { 7, true, 1, 11, { 9, 9, 9 } } },
+	    { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	    { EP1, R, 8, 0 }, { EP0, R, 10, 10 }, { EP1, G, 8, 0 },
+	    { EP0, G, 10, 10 }, { EP1, B, 8, 0 }, { EP0, B, 10, 10 },
+	},
+	// Mode 8: Illegal
+	{},
+	// Mode 9: Illegal
+	{},
+	// Mode 10
+	{ { Mode, None, 4, 0, { 10, true, 2, 11, { 4, 4, 5 } } },
+	  { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	  { EP1, R, 3, 0 }, { EP0, R, 10, 10 }, { EP2, B, 4, 4 },
+	  { EP2, G, 3, 0 }, { EP1, G, 3, 0 }, { EP0, G, 10, 10 },
+	  { EP3, B, 0, 0 }, { EP3, G, 3, 0 }, { EP1, B, 4, 0 },
+	  { EP0, B, 10, 10 }, { EP2, B, 3, 0 }, { EP2, R, 3, 0 },
+	  { EP3, B, 1, 1 }, { EP3, B, 2, 2 }, { EP3, R, 3, 0 },
+      { EP3, B, 4, 4 }, { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 11
+	{
+	    { Mode, None, 4, 0, { 11, true, 1, 12, { 8, 8, 8 } } },
+	    { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	    { EP1, R, 7, 0 }, { EP0, R, 10, 11 }, { EP1, G, 7, 0 },
+	    { EP0, G, 10, 11 }, { EP1, B, 7, 0 }, { EP0, B, 10, 11 },
+	},
+	// Mode 12: Illegal
+	{},
+	// Mode 13: Illegal
+	{},
+	// Mode 14
+	{ { Mode, None, 4, 0, { 14, true, 2, 9, { 5, 5, 5 } } },
+	  { EP0, R, 8, 0 }, { EP2, B, 4, 4 }, { EP0, G, 8, 0 },
+	  { EP2, G, 4, 4 }, { EP0, B, 8, 0 }, { EP3, B, 4, 4 },
+	  { EP1, R, 4, 0 }, { EP3, G, 4, 4 }, { EP2, G, 3, 0 },
+	  { EP1, G, 4, 0 }, { EP3, B, 0, 0 }, { EP3, G, 3, 0 },
+	  { EP1, B, 4, 0 }, { EP3, B, 1, 1 }, { EP2, B, 3, 0 },
+	  { EP2, R, 4, 0 }, { EP3, B, 2, 2 }, { EP3, R, 4, 0 },
+	  { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 15
+	{
+	    { Mode, None, 4, 0, { 15, true, 1, 16, { 4, 4, 4 } } },
+	    { EP0, R, 9, 0 }, { EP0, G, 9, 0 }, { EP0, B, 9, 0 },
+	    { EP1, R, 3, 0 }, { EP0, R, 10, 15 }, { EP1, G, 3, 0 },
+	    { EP0, G, 10, 15 }, { EP1, B, 3, 0 }, { EP0, B, 10, 15 },
+	},
+	// Mode 16: Illegal
+	{},
+	// Mode 17: Illegal
+	{},
+	// Mode 18
+	{ { Mode, None, 4, 0, { 18, true, 2, 8, { 6, 5, 5 } } },
+	  { EP0, R, 7, 0 }, { EP3, G, 4, 4 }, { EP2, B, 4, 4 },
+	  { EP0, G, 7, 0 }, { EP3, B, 2, 2 }, { EP2, G, 4, 4 },
+	  { EP0, B, 7, 0 }, { EP3, B, 3, 3 }, { EP3, B, 4, 4 },
+      { EP1, R, 5, 0 }, { EP2, G, 3, 0 }, { EP1, G, 4, 0 },
+      { EP3, B, 0, 0 }, { EP3, G, 3, 0 }, { EP1, B, 4, 0 },
+      { EP3, B, 1, 1 }, { EP2, B, 3, 0 }, { EP2, R, 5, 0 },
+      { EP3, R, 5, 0 },
+	  { Partition, None, 4, 0 } },
+	// Mode 19: Reserved
+	{},
+	// Mode 20: Illegal
+	{},
+	// Mode 21: Illegal
+	{},
+	// Mode 22:
+	{ { Mode, None, 4, 0, { 22, true, 2, 8, { 5, 6, 5 } } },
+	  { EP0, R, 7, 0 }, { EP3, B, 0, 0 }, { EP2, B, 4, 4 },
+	  { EP0, G, 7, 0 }, { EP2, G, 5, 5 }, { EP2, G, 4, 4 },
+      { EP0, B, 7, 0 }, { EP3, G, 5, 5 }, { EP3, B, 4, 4 },
+      { EP1, R, 4, 0 }, { EP3, G, 4, 4 }, { EP2, G, 3, 0 },
+      { EP1, G, 5, 0 }, { EP3, G, 3, 0 }, { EP1, B, 4, 0 },
+      { EP3, B, 1, 1 }, { EP2, B, 3, 0 }, { EP2, R, 4, 0 },
+      { EP3, B, 2, 2 }, { EP3, R, 4, 0 }, { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 23: Reserved
+	{},
+	// Mode 24: Illegal
+	{},
+	// Mode 25: Illegal
+	{},
+	// Mode 26
+	{ { Mode, None, 4, 0, { 26, true, 2, 8, { 5, 5, 6 } } },
+	  { EP0, R, 7, 0 }, { EP3, B, 1, 1 }, { EP2, B, 4, 4 },
+	  { EP0, G, 7, 0 }, { EP2, B, 5, 5 }, { EP2, G, 4, 4 },
+	  { EP0, B, 7, 0 }, { EP3, B, 5, 5 }, { EP3, B, 4, 4 },
+      { EP1, R, 4, 0 }, { EP3, G, 4, 4 }, { EP2, G, 3, 0 },
+      { EP1, G, 4, 0 }, { EP3, B, 0, 0 }, { EP3, G, 3, 0 },
+      { EP1, B, 5, 0 }, { EP2, B, 3, 0 }, { EP2, R, 4, 0 },
+      { EP3, B, 2, 2 }, { EP3, R, 4, 0 }, { EP3, B, 3, 3 },
+	  { Partition, None, 4, 0 } },
+	// Mode 27: Reserved
+	{},
+	// Mode 28: Illegal
+	{},
+	// Mode 29: Illegal
+	{},
+	// Mode 30
+	{ { Mode, None, 4, 0, { 30, false, 2, 6, { 0, 0, 0 } } },
+	  { EP0, R, 5, 0 }, { EP3, G, 4, 4 }, { EP3, B, 0, 0 },
+      { EP3, B, 1, 1 }, { EP2, B, 4, 4 }, { EP0, G, 5, 0 },
+      { EP2, G, 5, 5 }, { EP2, B, 5, 5 }, { EP3, B, 2, 2 },
+      { EP2, G, 4, 4 }, { EP0, B, 5, 0 }, { EP3, G, 5, 5 },
+      { EP3, B, 3, 3 }, { EP3, B, 5, 5 }, { EP3, B, 4, 4 },
+      { EP1, R, 5, 0 }, { EP2, G, 3, 0 }, { EP1, G, 5, 0 },
+      { EP3, G, 3, 0 }, { EP1, B, 5, 0 }, { EP2, B, 3, 0 },
+      { EP2, R, 5, 0 }, { EP3, R, 5, 0 },
+	  { Partition, None, 4, 0 } },
+	// Mode 31: Reserved
+	{},
+	// clang-format on
+};
+
+struct Block
+{
+	uint64_t low64;
+	uint64_t high64;
+
+	void decode(uint8_t *dst, int dstX, int dstY, int dstWidth, int dstHeight, size_t dstPitch, size_t dstBpp, bool isSigned) const
+	{
+		uint8_t mode = 0;
+		Data data(low64, high64);
+		ASSERT(dstBpp == sizeof(Color));
+
+		if((data.low64 & 0x2) == 0)
+		{
+			mode = data.consumeBits(1, 0);
+		}
+		else
+		{
+			mode = data.consumeBits(4, 0);
+		}
+
+		// Illegal or reserved mode
+		if(blockDescs[mode].size() == 0)
+		{
+			for(int y = 0; y < 4 && y + dstY < dstHeight; y++)
+			{
+				for(int x = 0; x < 4 && x + dstX < dstWidth; x++)
+				{
+					auto out = reinterpret_cast<Color *>(dst + sizeof(Color) * x + dstPitch * y);
+					out->rgba = { 0, 0, 0 };
+				}
+			}
+			return;
+		}
+
+		RGBf e[4];
+		e[0].isSigned = e[1].isSigned = e[2].isSigned = e[3].isSigned = isSigned;
+
+		int partition = 0;
+		ModeDesc modeDesc;
+		// For sanity checks
+		modeDesc.number = -1;
+		for(auto desc : blockDescs[mode])
+		{
+			switch(desc.type)
+			{
+				case Mode:
+					modeDesc = desc.modeDesc;
+					// Sanity check
+					ASSERT(modeDesc.number == mode);
+
+					e[0].size[0] = e[0].size[1] = e[0].size[2] = modeDesc.endpointBits;
+					for(int i = 0; i < RGBfChannels; i++)
+					{
+						if(modeDesc.hasDelta)
+						{
+							e[1].size[i] = e[2].size[i] = e[3].size[i] = modeDesc.deltaBits.channel[i];
+						}
+						else
+						{
+							e[1].size[i] = e[2].size[i] = e[3].size[i] = modeDesc.endpointBits;
+						}
+					}
+					break;
+				case Partition:
+					partition |= data.consumeBits(desc.MSB, desc.LSB);
+					break;
+				case EP0:
+				case EP1:
+				case EP2:
+				case EP3:
+					e[desc.type].channel[desc.channel] |= data.consumeBits(desc.MSB, desc.LSB);
+					break;
+				default:
+					ASSERT_MSG(false, "Unexpected enum value: %d", (int)desc.type);
+					return;
+			}
+		}
+
+		ASSERT_MSG(modeDesc.number != -1, "Failed to decode mode %d", mode);
+
+		// Sign extension
+		if(isSigned)
+		{
+			for(int ep = 0; ep < modeDesc.numEndpoints; ep++)
+			{
+				e[ep].extendSign();
+			}
+		}
+		else if(modeDesc.hasDelta)
+		{
+			// Don't sign-extend the base endpoint in an unsigned format.
+			for(int ep = 1; ep < modeDesc.numEndpoints; ep++)
+			{
+				e[ep].extendSign();
+			}
+		}
+
+		// Turn the deltas into endpoints
+		if(modeDesc.hasDelta)
+		{
+			for(int ep = 1; ep < modeDesc.numEndpoints; ep++)
+			{
+				e[ep].resolveDelta(e[0]);
+			}
+		}
+
+		for(int ep = 0; ep < modeDesc.numEndpoints; ep++)
+		{
+			e[ep].unquantize();
+		}
+
+		// Get the indices, calculate final colors, and output
+		for(int y = 0; y < 4; y++)
+		{
+			for(int x = 0; x < 4; x++)
+			{
+				int pixelNum = x + y * 4;
+				IndexInfo idx;
+				bool isAnchor = false;
+				int firstEndpoint = 0;
+				// Bc6H can have either 1 or 2 petitions depending on the mode.
+				// The number of petitions affects the number of indices with implicit
+				// leading 0 bits and the number of bits per index.
+				if(modeDesc.partitionCount == 1)
+				{
+					idx.numBits = 4;
+					// There's an implicit leading 0 bit for the first idx
+					isAnchor = (pixelNum == 0);
+				}
+				else
+				{
+					idx.numBits = 3;
+					// There are 2 indices with implicit leading 0-bits.
+					isAnchor = ((pixelNum == 0) || (pixelNum == AnchorTable2[partition]));
+					firstEndpoint = PartitionTable2[partition][pixelNum] * 2;
+				}
+
+				idx.value = data.consumeBits(idx.numBits - isAnchor - 1, 0);
+
+				// Don't exit the loop early, we need to consume these index bits regardless if
+				// we actually output them or not.
+				if((y + dstY >= dstHeight) || (x + dstX >= dstWidth))
+				{
+					continue;
+				}
+
+				Color color = interpolate(e[firstEndpoint], e[firstEndpoint + 1], idx, isSigned);
+				auto out = reinterpret_cast<Color *>(dst + dstBpp * x + dstPitch * y);
+				*out = color;
+			}
+		}
+	}
+};
+
+}  // namespace BC6H
 
 namespace BC7 {
 // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_texture_compression_bptc.txt
@@ -869,6 +1711,19 @@ bool BC_Decoder::Decode(const uint8_t *src, uint8_t *dst, int w, int h, int dstP
 				{
 					red->decode(dstRow, x, y, w, h, dstPitch, dstBpp, 0, isSigned);
 					green->decode(dstRow, x, y, w, h, dstPitch, dstBpp, 1, isSigned);
+				}
+			}
+		}
+		break;
+		case 6:  // BC6H
+		{
+			const BC6H::Block *block = reinterpret_cast<const BC6H::Block *>(src);
+			for(int y = 0; y < h; y += BlockHeight, dst += dy)
+			{
+				uint8_t *dstRow = dst;
+				for(int x = 0; x < w; x += BlockWidth, ++block, dstRow += dx)
+				{
+					block->decode(dstRow, x, y, w, h, dstPitch, dstBpp, isSigned);
 				}
 			}
 		}

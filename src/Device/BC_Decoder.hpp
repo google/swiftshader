@@ -23,7 +23,7 @@ public:
 	/// @param dstPitch       dst image pitch (bytes per row)
 	/// @param dstBpp         dst image bytes per pixel
 	/// @param n              n in BCn format
-	/// @param isNoAlphaU     BC1: true if RGB, BC2/BC3: unused, BC4/BC5: true if unsigned
+	/// @param isNoAlphaU     BC1: true if RGB, BC2/BC3: unused, BC4/BC5/BC6H: true if unsigned
 	/// @return               true if the decoding was performed
 
 	static bool Decode(const unsigned char *src, unsigned char *dst, int w, int h, int dstPitch, int dstBpp, int n, bool isNoAlphaU);

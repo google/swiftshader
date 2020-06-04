@@ -626,7 +626,7 @@ VkFormat Format::getDecompressedFormat() const
 			return VK_FORMAT_R8G8B8A8_SRGB;
 		case VK_FORMAT_BC6H_UFLOAT_BLOCK:
 		case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-			return VK_FORMAT_R32G32B32A32_SFLOAT;
+			return VK_FORMAT_R16G16B16A16_SFLOAT;
 		default:
 			UNSUPPORTED("format: %d", int(format));
 			return VK_FORMAT_UNDEFINED;
