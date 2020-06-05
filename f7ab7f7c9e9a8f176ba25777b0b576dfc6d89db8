@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0e89774_6d8a5ee7",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1830,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-06-05T16:03:17Z",
+      "side": 1,
+      "message": "Why do you need to do this? Your Block::decode function is const.",
+      "range": {
+        "startLine": 1829,
+        "startChar": 0,
+        "endLine": 1830,
+        "endChar": 28
+      },
+      "revId": "f7ab7f7c9e9a8f176ba25777b0b576dfc6d89db8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
