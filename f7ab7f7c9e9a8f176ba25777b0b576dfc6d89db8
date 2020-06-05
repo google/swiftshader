@@ -22,6 +22,30 @@
       "revId": "f7ab7f7c9e9a8f176ba25777b0b576dfc6d89db8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "655a6d27_2f3f2de1",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1830,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-06-05T20:15:13Z",
+      "side": 1,
+      "message": "Ah it\u0027s a relic from one of my attempts to get this working without having to copy the data elsewhere. It should have been removed but I forgot to do so.",
+      "parentUuid": "e0e89774_6d8a5ee7",
+      "range": {
+        "startLine": 1829,
+        "startChar": 0,
+        "endLine": 1830,
+        "endChar": 28
+      },
+      "revId": "f7ab7f7c9e9a8f176ba25777b0b576dfc6d89db8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
