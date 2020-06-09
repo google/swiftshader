@@ -439,7 +439,7 @@ struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
 		{
 			auto offset = elSize * i * (interleaved ? sw::SIMD::Width : 1);
 			auto elPtr = static_cast<uint8_t *>(ptr) + offset;
-			auto elKey = tostring(i);
+			auto elKey = (components > 4) ? tostring(i) : &"x\0y\0z\0w\0"[i * 2];
 #	if DEBUG_ANNOTATE_VARIABLE_KEYS
 			elKey += " (" + tostring(elPtr) + " +" + tostring(offset) + ")" + (interleaved ? "I" : "F");
 #	endif
