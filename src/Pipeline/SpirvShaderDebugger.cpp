@@ -150,6 +150,8 @@ struct Object
 	// kindof() returns true iff kind is of this type, or any type deriving from
 	// this type.
 	static constexpr bool kindof(Object::Kind kind) { return true; }
+
+	virtual ~Object() = default;
 };
 
 // cstr() returns the c-string name of the given Object::Kind.
@@ -704,8 +706,8 @@ struct SpirvShader::Impl::Debugger
 
 private:
 	// add() registers the debug object with the given id.
-	template<typename ID, typename T>
-	void add(ID id, T *);
+	template<typename ID>
+	void add(ID id, std::unique_ptr<debug::Object> &&);
 
 	// addNone() registers given id as a None value or type.
 	void addNone(debug::Object::ID id);
@@ -1143,7 +1145,7 @@ void SpirvShader::Impl::Debugger::defineOrEmit(InsnIterator insn, Pass pass, F &
 	switch(pass)
 	{
 		case Pass::Define:
-			add(id, new T());
+			add(id, std::unique_ptr<debug::Object>(new T()));
 			break;
 		case Pass::Emit:
 			emit(get<T>(id));
@@ -1437,11 +1439,11 @@ void SpirvShader::Impl::Debugger::setLocation(EmitState *state, const std::strin
 	}
 }
 
-template<typename ID, typename T>
-void SpirvShader::Impl::Debugger::add(ID id, T *obj)
+template<typename ID>
+void SpirvShader::Impl::Debugger::add(ID id, std::unique_ptr<debug::Object> &&obj)
 {
 	ASSERT_MSG(obj != nullptr, "add() called with nullptr obj");
-	bool added = objects.emplace(debug::Object::ID(id.value()), obj).second;
+	bool added = objects.emplace(debug::Object::ID(id.value()), std::move(obj)).second;
 	ASSERT_MSG(added, "Debug object with %d already exists", id.value());
 }
 
