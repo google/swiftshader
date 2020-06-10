@@ -970,7 +970,7 @@ public:
 
 	void play(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		srcImage->blit(dstImage, region, filter);
+		srcImage->blitTo(dstImage, region, filter);
 	}
 
 	std::string description() override { return "vkCmdBlitImage()"; }
@@ -994,7 +994,7 @@ public:
 
 	void play(vk::CommandBuffer::ExecutionState &executionState) override
 	{
-		srcImage->resolve(dstImage, region);
+		srcImage->resolveTo(dstImage, region);
 	}
 
 	std::string description() override { return "vkCmdBlitImage()"; }

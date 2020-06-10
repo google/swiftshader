@@ -886,9 +886,10 @@ const Image *Image::getSampledImage(const vk::Format &imageViewFormat) const
 	return (decompressedImage && isImageViewCompressed) ? decompressedImage : this;
 }
 
-void Image::blit(Image *dstImage, const VkImageBlit &region, VkFilter filter) const
+void Image::blitTo(Image *dstImage, const VkImageBlit &region, VkFilter filter) const
 {
 	device->getBlitter()->blit(this, dstImage, region, filter);
+
 	VkImageSubresourceRange subresourceRange = {
 		region.dstSubresource.aspectMask,
 		region.dstSubresource.mipLevel,
@@ -899,12 +900,12 @@ void Image::blit(Image *dstImage, const VkImageBlit &region, VkFilter filter) co
 	dstImage->prepareForSampling(subresourceRange);
 }
 
-void Image::blitToBuffer(VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch) const
+void Image::copyTo(uint8_t *dst, unsigned int dstPitch) const
 {
-	device->getBlitter()->blitToBuffer(this, subresource, offset, extent, dst, bufferRowPitch, bufferSlicePitch);
+	device->getBlitter()->copy(this, dst, dstPitch);
 }
 
-void Image::resolve(Image *dstImage, const VkImageResolve &region) const
+void Image::resolveTo(Image *dstImage, const VkImageResolve &region) const
 {
 	VkImageBlit blitRegion;
 

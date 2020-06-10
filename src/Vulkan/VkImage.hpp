@@ -58,9 +58,9 @@ public:
 	void copyTo(Buffer *dstBuffer, const VkBufferImageCopy &region);
 	void copyFrom(Buffer *srcBuffer, const VkBufferImageCopy &region);
 
-	void blit(Image *dstImage, const VkImageBlit &region, VkFilter filter) const;
-	void blitToBuffer(VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch) const;
-	void resolve(Image *dstImage, const VkImageResolve &region) const;
+	void blitTo(Image *dstImage, const VkImageBlit &region, VkFilter filter) const;
+	void copyTo(uint8_t *dst, unsigned int dstPitch) const;
+	void resolveTo(Image *dstImage, const VkImageResolve &region) const;
 	void clear(const VkClearValue &clearValue, const vk::Format &viewFormat, const VkRect2D &renderArea, const VkImageSubresourceRange &subresourceRange);
 	void clear(const VkClearColorValue &color, const VkImageSubresourceRange &subresourceRange);
 	void clear(const VkClearDepthStencilValue &color, const VkImageSubresourceRange &subresourceRange);

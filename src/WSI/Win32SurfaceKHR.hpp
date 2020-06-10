@@ -55,7 +55,7 @@ private:
 	VkExtent2D windowExtent = {};
 
 	HBITMAP bitmap = {};
-	int bitmapRowPitch = 0;
+	unsigned int bitmapRowPitch = 0;
 	void *framebuffer = nullptr;
 };
 
