@@ -203,6 +203,7 @@ endif()
 
 if(SWIFTSHADER_BUILD_BENCHMARKS)
     InitSubmodule(benchmark::benchmark ${THIRD_PARTY_DIR}/benchmark)
+    InitSubmodule(glslang ${THIRD_PARTY_DIR}/glslang)
 endif()
 
 if(REACTOR_EMIT_DEBUG_INFO)
@@ -862,6 +863,10 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
     if (NOT TARGET benchmark::benchmark)
         set(BENCHMARK_ENABLE_TESTING FALSE CACHE BOOL FALSE FORCE)
         add_subdirectory(${THIRD_PARTY_DIR}/benchmark)
+    endif()
+
+    if (NOT TARGET glslang)
+        add_subdirectory(${THIRD_PARTY_DIR}/glslang)
     endif()
 
     add_subdirectory(${TESTS_DIR}/ReactorBenchmarks) # Add ReactorBenchmarks target
