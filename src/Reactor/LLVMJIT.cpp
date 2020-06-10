@@ -434,6 +434,9 @@ void *resolveExternalSymbol(const char *name)
 
 		Resolver()
 		{
+#ifdef ENABLE_RR_PRINT
+			functions.emplace("rr::DebugPrintf", reinterpret_cast<void *>(rr::DebugPrintf));
+#endif
 			functions.emplace("nop", reinterpret_cast<void *>(F::nop));
 			functions.emplace("floorf", reinterpret_cast<void *>(floorf));
 			functions.emplace("nearbyintf", reinterpret_cast<void *>(nearbyintf));

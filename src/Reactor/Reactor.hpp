@@ -48,6 +48,12 @@ void FlushDebug();
 #	define RR_DEBUG_INFO_FLUSH()
 #endif  // ENABLE_RR_DEBUG_INFO
 
+#ifdef ENABLE_RR_PRINT
+namespace rr {
+int DebugPrintf(const char *format, ...);
+}
+#endif
+
 namespace rr {
 
 std::string BackendName();

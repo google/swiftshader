@@ -849,7 +849,7 @@ private:
 #ifdef ENABLE_RR_PRINT
 void VPrintf(const std::vector<Value *> &vals)
 {
-	sz::Call(::function, ::basicBlock, Ice::IceType_i32, reinterpret_cast<const void *>(::printf), V(vals), true);
+	sz::Call(::function, ::basicBlock, Ice::IceType_i32, reinterpret_cast<const void *>(rr::DebugPrintf), V(vals), true);
 }
 #endif  // ENABLE_RR_PRINT
 

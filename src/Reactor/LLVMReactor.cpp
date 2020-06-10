@@ -3985,7 +3985,7 @@ void VPrintf(const std::vector<Value *> &vals)
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 	auto i8PtrTy = ::llvm::Type::getInt8PtrTy(jit->context);
 	auto funcTy = ::llvm::FunctionType::get(i32Ty, { i8PtrTy }, true);
-	auto func = jit->module->getOrInsertFunction("printf", funcTy);
+	auto func = jit->module->getOrInsertFunction("rr::DebugPrintf", funcTy);
 	jit->builder->CreateCall(func, V(vals));
 }
 #endif  // ENABLE_RR_PRINT
