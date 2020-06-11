@@ -22,6 +22,30 @@
       "revId": "ec654942cba9371760e56282195c12218efd38b0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42e7707b_4fc963b5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-06-11T15:10:27Z",
+      "side": 1,
+      "message": "Ack. Will investigate.",
+      "parentUuid": "f98a2baa_f20a17be",
+      "range": {
+        "startLine": 9,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 6
+      },
+      "revId": "ec654942cba9371760e56282195c12218efd38b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
