@@ -117,7 +117,8 @@ option_if_not_defined(SWIFTSHADER_GET_PVR "Check out the PowerVR submodule" FALS
 
 option_if_not_defined(SWIFTSHADER_USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" TRUE)
 
-option_if_not_defined(SWIFTSHADER_BUILD_TESTS "Build unit tests" TRUE)
+option_if_not_defined(SWIFTSHADER_BUILD_SAMPLES "Build sample programs" TRUE)
+option_if_not_defined(SWIFTSHADER_BUILD_TESTS "Build test programs" TRUE)
 option_if_not_defined(SWIFTSHADER_BUILD_BENCHMARKS "Build benchmarks" FALSE)
 
 option_if_not_defined(SWIFTSHADER_MSAN "Build with memory sanitizer" FALSE)
@@ -179,6 +180,7 @@ set(SWIFTSHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCE_DIR ${SWIFTSHADER_DIR}/src)
 set(THIRD_PARTY_DIR ${SWIFTSHADER_DIR}/third_party)
 set(TESTS_DIR ${SWIFTSHADER_DIR}/tests)
+set(POWERVR_DIR ${THIRD_PARTY_DIR}/PowerVR_SDK)
 
 ###########################################################
 # Initialize submodules
@@ -732,6 +734,51 @@ endif()
 ###########################################################
 # Sample programs and tests
 ###########################################################
+
+if(SWIFTSHADER_BUILD_SAMPLES)
+    if(WIN32)
+        add_executable(BasicTnL
+            ${POWERVR_DIR}/Examples/Beginner/04_BasicTnL/OGLES/OGLESBasicTnL.cpp
+            ${POWERVR_DIR}/Shell/PVRShell.cpp
+            ${POWERVR_DIR}/Shell/OS/Windows/PVRShellOS.cpp
+            ${POWERVR_DIR}/Shell/API/KEGL/PVRShellAPI.cpp
+        )
+        target_include_directories(BasicTnL PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${POWERVR_DIR}/Shell
+            ${POWERVR_DIR}/Shell/OS/Windows
+            ${POWERVR_DIR}/Shell/API/KEGL
+            ${POWERVR_DIR}/Builds/Include
+        )
+        set_target_properties(BasicTnL PROPERTIES
+            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+            FOLDER "Samples"
+        )
+        target_link_libraries(BasicTnL libEGL libGLES_CM)
+        set_property(TARGET BasicTnL APPEND_STRING PROPERTY LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+        set(CMAKE_DEFAULT_STARTUP_PROJECT BasicTnL)
+    elseif(LINUX)
+        add_executable(BasicTnL
+            ${POWERVR_DIR}/Examples/Beginner/04_BasicTnL/OGLES/OGLESBasicTnL.cpp
+            ${POWERVR_DIR}/Shell/PVRShell.cpp
+            ${POWERVR_DIR}/Shell/OS/LinuxX11/PVRShellOS.cpp
+            ${POWERVR_DIR}/Shell/API/KEGL/PVRShellAPI.cpp
+        )
+        target_include_directories(BasicTnL PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${POWERVR_DIR}/Shell
+            ${POWERVR_DIR}/Shell/OS/LinuxX11
+            ${POWERVR_DIR}/Shell/API/KEGL
+            ${POWERVR_DIR}/Builds/Include
+        )
+        set_target_properties(BasicTnL PROPERTIES
+            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
+            COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+            LINK_FLAGS "${SWIFTSHADER_LINK_FLAGS}"
+        )
+        target_link_libraries(BasicTnL dl ${X11} libEGL libGLES_CM)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLES_CM"
+    endif()
+endif(SWIFTSHADER_BUILD_SAMPLES)
 
 if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     if(UNIX AND NOT APPLE)
