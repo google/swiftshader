@@ -60,6 +60,8 @@ public:
 
 	sw::float4 getScale() const;
 
+	bool supportsColorAttachmentBlend() const;
+
 	// Texture sampling utilities
 	bool has16bitPackedTextureFormat() const;
 	bool has8bitTextureComponents() const;

@@ -1098,7 +1098,7 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 		}
 		break;
 		default:
-			UNSUPPORTED("VkFormat %d", state.targetFormat[index]);
+			UNSUPPORTED("VkFormat %d", int(state.targetFormat[index]));
 	}
 
 	if(isSRGB(index))
@@ -1109,10 +1109,12 @@ void PixelRoutine::readPixel(int index, const Pointer<Byte> &cBuffer, const Int 
 
 void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4s &current, const Int &x)
 {
-	if(!state.blendState[index].alphaBlendEnable || vk::Format(state.targetFormat[index]).isUnnormalizedInteger())
+	if(!state.blendState[index].alphaBlendEnable)
 	{
 		return;
 	}
+
+	ASSERT(state.targetFormat[index].supportsColorAttachmentBlend());
 
 	Vector4s pixel;
 	readPixel(index, cBuffer, x, pixel);
@@ -1869,10 +1871,13 @@ void PixelRoutine::blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, c
 
 void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f &oC, const Int &x)
 {
-	if(!state.blendState[index].alphaBlendEnable || vk::Format(state.targetFormat[index]).isUnnormalizedInteger())
+	if(!state.blendState[index].alphaBlendEnable)
 	{
 		return;
 	}
+
+	vk::Format format = state.targetFormat[index];
+	ASSERT(format.supportsColorAttachmentBlend());
 
 	Pointer<Byte> buffer = cBuffer;
 	Int pitchB = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1888,7 +1893,6 @@ void PixelRoutine::alphaBlend(int index, const Pointer<Byte> &cBuffer, Vector4f 
 	Short4 c23;
 
 	Float4 one;
-	vk::Format format(state.targetFormat[index]);
 	if(format.isFloatFormat())
 	{
 		one = Float4(1.0f);

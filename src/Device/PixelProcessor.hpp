@@ -18,6 +18,7 @@
 #include "Context.hpp"
 #include "Memset.hpp"
 #include "RoutineCache.hpp"
+#include "Vulkan/VkFormat.hpp"
 
 #include <memory>
 
@@ -84,7 +85,7 @@ public:
 		BlendState blendState[RENDERTARGETS];
 
 		unsigned int colorWriteMask;
-		VkFormat targetFormat[RENDERTARGETS];
+		vk::Format targetFormat[RENDERTARGETS];
 		unsigned int multiSampleCount;
 		unsigned int multiSampleMask;
 		bool enableMultiSampling;
