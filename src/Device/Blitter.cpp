@@ -154,53 +154,77 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 	}
 }
 
-bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
+bool Blitter::fastClear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
 {
-	if(format != VK_FORMAT_R32G32B32A32_SFLOAT)
+	if(clearFormat != VK_FORMAT_R32G32B32A32_SFLOAT &&
+	   clearFormat != VK_FORMAT_D32_SFLOAT &&
+	   clearFormat != VK_FORMAT_S8_UINT)
 	{
 		return false;
 	}
 
-	float *color = (float *)pixel;
-	float r = color[0];
-	float g = color[1];
-	float b = color[2];
-	float a = color[3];
+	union ClearValue
+	{
+		struct
+		{
+			float r;
+			float g;
+			float b;
+			float a;
+		};
 
-	uint32_t packed;
+		float rgb[3];
+
+		float d;
+		uint32_t d_as_u32;
+
+		uint32_t s;
+	};
+
+	ClearValue &c = *reinterpret_cast<ClearValue *>(clearValue);
+
+	uint32_t packed = 0;
 
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
 	switch(viewFormat)
 	{
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-			packed = ((uint16_t)(31 * b + 0.5f) << 0) |
-			         ((uint16_t)(63 * g + 0.5f) << 5) |
-			         ((uint16_t)(31 * r + 0.5f) << 11);
+			packed = ((uint16_t)(31 * c.b + 0.5f) << 0) |
+			         ((uint16_t)(63 * c.g + 0.5f) << 5) |
+			         ((uint16_t)(31 * c.r + 0.5f) << 11);
 			break;
 		case VK_FORMAT_B5G6R5_UNORM_PACK16:
-			packed = ((uint16_t)(31 * r + 0.5f) << 0) |
-			         ((uint16_t)(63 * g + 0.5f) << 5) |
-			         ((uint16_t)(31 * b + 0.5f) << 11);
+			packed = ((uint16_t)(31 * c.r + 0.5f) << 0) |
+			         ((uint16_t)(63 * c.g + 0.5f) << 5) |
+			         ((uint16_t)(31 * c.b + 0.5f) << 11);
 			break;
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		case VK_FORMAT_R8G8B8A8_UNORM:
-			packed = ((uint32_t)(255 * a + 0.5f) << 24) |
-			         ((uint32_t)(255 * b + 0.5f) << 16) |
-			         ((uint32_t)(255 * g + 0.5f) << 8) |
-			         ((uint32_t)(255 * r + 0.5f) << 0);
+			packed = ((uint32_t)(255 * c.a + 0.5f) << 24) |
+			         ((uint32_t)(255 * c.b + 0.5f) << 16) |
+			         ((uint32_t)(255 * c.g + 0.5f) << 8) |
+			         ((uint32_t)(255 * c.r + 0.5f) << 0);
 			break;
 		case VK_FORMAT_B8G8R8A8_UNORM:
-			packed = ((uint32_t)(255 * a + 0.5f) << 24) |
-			         ((uint32_t)(255 * r + 0.5f) << 16) |
-			         ((uint32_t)(255 * g + 0.5f) << 8) |
-			         ((uint32_t)(255 * b + 0.5f) << 0);
+			packed = ((uint32_t)(255 * c.a + 0.5f) << 24) |
+			         ((uint32_t)(255 * c.r + 0.5f) << 16) |
+			         ((uint32_t)(255 * c.g + 0.5f) << 8) |
+			         ((uint32_t)(255 * c.b + 0.5f) << 0);
 			break;
 		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-			packed = R11G11B10F(color);
+			packed = R11G11B10F(c.rgb);
 			break;
 		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-			packed = RGB9E5(color);
+			packed = RGB9E5(c.rgb);
+			break;
+		case VK_FORMAT_D32_SFLOAT:
+			ASSERT(clearFormat == VK_FORMAT_D32_SFLOAT);
+			packed = c.d_as_u32;  // float reinterpreted as uint32
+			break;
+		case VK_FORMAT_S8_UINT:
+			ASSERT(clearFormat == VK_FORMAT_S8_UINT);
+			packed = static_cast<uint8_t>(c.s);
 			break;
 		default:
 			return false;
@@ -249,6 +273,14 @@ bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const v
 
 					switch(viewFormat.bytes())
 					{
+						case 4:
+							for(uint32_t i = 0; i < area.extent.height; i++)
+							{
+								ASSERT(d < dest->end());
+								sw::clear((uint32_t *)d, packed, area.extent.width);
+								d += rowPitchBytes;
+							}
+							break;
 						case 2:
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
@@ -257,11 +289,11 @@ bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const v
 								d += rowPitchBytes;
 							}
 							break;
-						case 4:
+						case 1:
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
 								ASSERT(d < dest->end());
-								sw::clear((uint32_t *)d, packed, area.extent.width);
+								memset(d, packed, area.extent.width);
 								d += rowPitchBytes;
 							}
 							break;
