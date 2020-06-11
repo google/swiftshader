@@ -154,20 +154,22 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 	}
 }
 
-bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
+bool Blitter::fastClear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
 {
-	if(format != VK_FORMAT_R32G32B32A32_SFLOAT)
+	if(clearFormat != VK_FORMAT_R32G32B32A32_SFLOAT &&
+	   clearFormat != VK_FORMAT_D32_SFLOAT &&
+	   clearFormat != VK_FORMAT_S8_UINT)
 	{
 		return false;
 	}
 
-	float *color = (float *)pixel;
+	float *color = reinterpret_cast<float *>(clearValue);
 	float r = color[0];
 	float g = color[1];
 	float b = color[2];
 	float a = color[3];
 
-	uint32_t packed;
+	uint32_t packed = 0;
 
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
 	switch(viewFormat)
@@ -201,6 +203,14 @@ bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const v
 			break;
 		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 			packed = RGB9E5(color);
+			break;
+		case VK_FORMAT_D32_SFLOAT:
+			ASSERT(clearFormat == VK_FORMAT_D32_SFLOAT);
+			packed = *reinterpret_cast<uint32_t *>(clearValue);  // float reinterpreted as uint32
+			break;
+		case VK_FORMAT_S8_UINT:
+			ASSERT(clearFormat == VK_FORMAT_S8_UINT);
+			packed = *reinterpret_cast<uint8_t *>(clearValue);
 			break;
 		default:
 			return false;
@@ -249,6 +259,14 @@ bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const v
 
 					switch(viewFormat.bytes())
 					{
+						case 4:
+							for(uint32_t i = 0; i < area.extent.height; i++)
+							{
+								ASSERT(d < dest->end());
+								sw::clear((uint32_t *)d, packed, area.extent.width);
+								d += rowPitchBytes;
+							}
+							break;
 						case 2:
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
@@ -257,11 +275,11 @@ bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const v
 								d += rowPitchBytes;
 							}
 							break;
-						case 4:
+						case 1:
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
 								ASSERT(d < dest->end());
-								sw::clear((uint32_t *)d, packed, area.extent.width);
+								memset(d, packed, area.extent.width);
 								d += rowPitchBytes;
 							}
 							break;
