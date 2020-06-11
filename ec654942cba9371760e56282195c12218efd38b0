@@ -46,6 +46,30 @@
       "revId": "ec654942cba9371760e56282195c12218efd38b0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09e8a2aa_bb8c283f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-06-11T16:44:38Z",
+      "side": 1,
+      "message": "The commit message could have used an update. Anyway, no biggie.",
+      "parentUuid": "42e7707b_4fc963b5",
+      "range": {
+        "startLine": 9,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 6
+      },
+      "revId": "ec654942cba9371760e56282195c12218efd38b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
