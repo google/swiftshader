@@ -24,11 +24,6 @@
 
 namespace sw {
 
-Context::Context()
-{
-	init();
-}
-
 bool Context::isDrawPoint(bool polygonModeAware) const
 {
 	switch(topology)
@@ -83,55 +78,6 @@ bool Context::isDrawTriangle(bool polygonModeAware) const
 			UNSUPPORTED("topology %d", int(topology));
 	}
 	return false;
-}
-
-void Context::init()
-{
-	for(int i = 0; i < RENDERTARGETS; ++i)
-	{
-		renderTarget[i] = nullptr;
-	}
-
-	depthBuffer = nullptr;
-	stencilBuffer = nullptr;
-
-	stencilEnable = false;
-	frontStencil = {};
-	backStencil = {};
-
-	robustBufferAccess = false;
-
-	rasterizerDiscard = false;
-
-	depthCompareMode = VK_COMPARE_OP_LESS;
-	depthBoundsTestEnable = false;
-	depthBufferEnable = false;
-	depthWriteEnable = false;
-
-	cullMode = VK_CULL_MODE_FRONT_BIT;
-	frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	provokingVertexMode = VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
-	lineRasterizationMode = VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT;
-
-	depthBias = 0.0f;
-	slopeDepthBias = 0.0f;
-
-	for(int i = 0; i < RENDERTARGETS; i++)
-	{
-		colorWriteMask[i] = 0x0000000F;
-	}
-
-	pipelineLayout = nullptr;
-
-	pixelShader = nullptr;
-	vertexShader = nullptr;
-
-	occlusionEnabled = false;
-
-	lineWidth = 1.0f;
-
-	sampleMask = 0xFFFFFFFF;
-	alphaToCoverage = false;
 }
 
 bool Context::depthWriteActive() const

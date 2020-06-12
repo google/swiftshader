@@ -187,13 +187,6 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	auto id = nextDrawID++;
 	MARL_SCOPED_EVENT("draw %d", id);
 
-	int ms = context->sampleCount;
-
-	if(!context->multiSampleMask)
-	{
-		return;
-	}
-
 	marl::Pool<sw::DrawCall>::Loan draw;
 	{
 		MARL_SCOPED_EVENT("drawCallPool.borrow()");
@@ -214,6 +207,7 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	}
 
 	DrawCall::SetupFunction setupPrimitives = nullptr;
+	int ms = context->sampleCount;
 	unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
 
 	if(context->isDrawTriangle(false))

@@ -73,9 +73,7 @@ struct BlendState : Memset<BlendState>
 class Context
 {
 public:
-	Context();
-
-	void init();
+	Context() = default;
 
 	bool isDrawPoint(bool polygonModeAware) const;
 	bool isDrawLine(bool polygonModeAware) const;
