@@ -29,10 +29,10 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 #include <cassert>
 #include <vector>
 
-class VulkanBenchmark : public benchmark::Fixture
+class VulkanBenchmark
 {
 public:
-	void SetUp(::benchmark::State &state) override
+	VulkanBenchmark()
 	{
 		// TODO(b/158231104): Other platforms
 		dl = std::make_unique<vk::DynamicLoader>("./vk_swiftshader.dll");
@@ -63,7 +63,7 @@ public:
 		queue = device.getQueue(queueFamilyIndex, 0);
 	}
 
-	void TearDown(const ::benchmark::State &state) override
+	virtual ~VulkanBenchmark()
 	{
 		device.waitIdle();
 		device.destroy();
@@ -101,133 +101,122 @@ private:
 	std::unique_ptr<vk::DynamicLoader> dl;
 };
 
-struct ClearBenchmarkVariant
-{
-	vk::Format format;
-	const char *formatName;
-	vk::ImageAspectFlags aspect;
-};
-
-const std::vector<ClearBenchmarkVariant> clearBenchmarkVariants = {
-	{ vk::Format::eR8G8B8A8Unorm, "VK_FORMAT_R8G8B8A8_UNORM", vk::ImageAspectFlagBits::eColor },
-	{ vk::Format::eR32Sfloat, "VK_FORMAT_R32_SFLOAT", vk::ImageAspectFlagBits::eColor },
-	{ vk::Format::eD32Sfloat, "VK_FORMAT_D32_SFLOAT", vk::ImageAspectFlagBits::eDepth },
-};
-
 class ClearImageBenchmark : public VulkanBenchmark
 {
 public:
-	void SetUp(::benchmark::State &state) override
+	ClearImageBenchmark(vk::Format clearFormat, vk::ImageAspectFlagBits clearAspect)
 	{
-		VulkanBenchmark::SetUp(state);
+		vk::ImageCreateInfo imageInfo;
+		imageInfo.imageType = vk::ImageType::e2D;
+		imageInfo.format = clearFormat;
+		imageInfo.tiling = vk::ImageTiling::eOptimal;
+		imageInfo.initialLayout = vk::ImageLayout::eGeneral;
+		imageInfo.usage = vk::ImageUsageFlagBits::eTransferDst;
+		imageInfo.samples = vk::SampleCountFlagBits::e4;
+		imageInfo.extent = { 1024, 1024, 1 };
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
 
-		benchmark = clearBenchmarkVariants[state.range(0)];
-		state.counters[benchmark.formatName] = 1;  // Small hack to display the format's name.
+		image = device.createImage(imageInfo);
+
+		vk::MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(image);
+
+		vk::MemoryAllocateInfo allocateInfo;
+		allocateInfo.allocationSize = memoryRequirements.size;
+		allocateInfo.memoryTypeIndex = 0;
+
+		memory = device.allocateMemory(allocateInfo);
+
+		device.bindImageMemory(image, memory, 0);
+
+		vk::CommandPoolCreateInfo commandPoolCreateInfo;
+		commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndex;
+
+		commandPool = device.createCommandPool(commandPoolCreateInfo);
+
+		vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
+		commandBufferAllocateInfo.commandPool = commandPool;
+		commandBufferAllocateInfo.commandBufferCount = 1;
+
+		commandBuffer = device.allocateCommandBuffers(commandBufferAllocateInfo)[0];
+
+		vk::CommandBufferBeginInfo commandBufferBeginInfo;
+		commandBufferBeginInfo.flags = {};
+
+		commandBuffer.begin(commandBufferBeginInfo);
+
+		vk::ImageSubresourceRange range;
+		range.aspectMask = clearAspect;
+		range.baseMipLevel = 0;
+		range.levelCount = 1;
+		range.baseArrayLayer = 0;
+		range.layerCount = 1;
+
+		if(clearAspect == vk::ImageAspectFlagBits::eColor)
+		{
+			vk::ClearColorValue clearColorValue;
+			clearColorValue.float32[0] = 0.0f;
+			clearColorValue.float32[1] = 1.0f;
+			clearColorValue.float32[2] = 0.0f;
+			clearColorValue.float32[3] = 1.0f;
+
+			commandBuffer.clearColorImage(image, vk::ImageLayout::eGeneral, &clearColorValue, 1, &range);
+		}
+		else if(clearAspect == vk::ImageAspectFlagBits::eDepth)
+		{
+			vk::ClearDepthStencilValue clearDepthStencilValue;
+			clearDepthStencilValue.depth = 1.0f;
+			clearDepthStencilValue.stencil = 0xFF;
+
+			commandBuffer.clearDepthStencilImage(image, vk::ImageLayout::eGeneral, &clearDepthStencilValue, 1, &range);
+		}
+		else
+			assert(false);
+
+		commandBuffer.end();
 	}
 
-	void TearDown(const ::benchmark::State &state) override
+	~ClearImageBenchmark()
 	{
-		VulkanBenchmark::TearDown(state);
+		device.freeCommandBuffers(commandPool, { commandBuffer });
+		device.destroyCommandPool(commandPool);
+		device.freeMemory(memory);
+		device.destroyImage(image);
 	}
 
-protected:
-	ClearBenchmarkVariant benchmark;
-};
-
-BENCHMARK_DEFINE_F(ClearImageBenchmark, Clear)
-(benchmark::State &state)
-{
-	vk::ImageCreateInfo imageInfo;
-	imageInfo.imageType = vk::ImageType::e2D;
-	imageInfo.format = benchmark.format;
-	imageInfo.tiling = vk::ImageTiling::eOptimal;
-	imageInfo.initialLayout = vk::ImageLayout::eGeneral;
-	imageInfo.usage = vk::ImageUsageFlagBits::eTransferDst;
-	imageInfo.samples = vk::SampleCountFlagBits::e4;
-	imageInfo.extent = { 1024, 1024, 1 };
-	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
-
-	vk::Image image = device.createImage(imageInfo);
-
-	vk::MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(image);
-
-	vk::MemoryAllocateInfo allocateInfo;
-	allocateInfo.allocationSize = memoryRequirements.size;
-	allocateInfo.memoryTypeIndex = 0;
-
-	vk::DeviceMemory memory = device.allocateMemory(allocateInfo);
-
-	device.bindImageMemory(image, memory, 0);
-
-	vk::CommandPoolCreateInfo commandPoolCreateInfo;
-	commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndex;
-
-	vk::CommandPool commandPool = device.createCommandPool(commandPoolCreateInfo);
-
-	vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
-	commandBufferAllocateInfo.commandPool = commandPool;
-	commandBufferAllocateInfo.commandBufferCount = 1;
-
-	vk::CommandBuffer commandBuffer = device.allocateCommandBuffers(commandBufferAllocateInfo)[0];
-
-	vk::CommandBufferBeginInfo commandBufferBeginInfo;
-	commandBufferBeginInfo.flags = {};
-
-	commandBuffer.begin(commandBufferBeginInfo);
-
-	vk::ImageSubresourceRange range;
-	range.aspectMask = benchmark.aspect;
-	range.baseMipLevel = 0;
-	range.levelCount = 1;
-	range.baseArrayLayer = 0;
-	range.layerCount = 1;
-
-	if(benchmark.aspect == vk::ImageAspectFlagBits::eColor)
+	void clear()
 	{
-		vk::ClearColorValue clearColorValue;
-		clearColorValue.float32[0] = 0.0f;
-		clearColorValue.float32[1] = 1.0f;
-		clearColorValue.float32[2] = 0.0f;
-		clearColorValue.float32[3] = 1.0f;
+		vk::SubmitInfo submitInfo;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
 
-		commandBuffer.clearColorImage(image, vk::ImageLayout::eGeneral, &clearColorValue, 1, &range);
-	}
-	else if(benchmark.aspect == vk::ImageAspectFlagBits::eDepth)
-	{
-		vk::ClearDepthStencilValue clearDepthStencilValue;
-		clearDepthStencilValue.depth = 1.0f;
-		clearDepthStencilValue.stencil = 0xFF;
-
-		commandBuffer.clearDepthStencilImage(image, vk::ImageLayout::eGeneral, &clearDepthStencilValue, 1, &range);
-	}
-	else
-		assert(false);
-
-	commandBuffer.end();
-
-	vk::SubmitInfo submitInfo;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
-
-	// Execute once to have the Reactor routine generated.
-	queue.submit(1, &submitInfo, nullptr);
-	queue.waitIdle();
-
-	for(auto _ : state)
-	{
 		queue.submit(1, &submitInfo, nullptr);
 		queue.waitIdle();
 	}
 
-	device.freeCommandBuffers(commandPool, { commandBuffer });
-	device.destroyCommandPool(commandPool);
-	device.freeMemory(memory);
-	device.destroyImage(image);
+private:
+	vk::CommandPool commandPool;
+	vk::CommandBuffer commandBuffer;
+
+	vk::Image image;
+	vk::DeviceMemory memory;
+};
+
+static void ClearImage(benchmark::State &state, vk::Format clearFormat, vk::ImageAspectFlagBits clearAspect)
+{
+	ClearImageBenchmark benchmark(clearFormat, clearAspect);
+
+	// Execute once to have the Reactor routine generated.
+	benchmark.clear();
+
+	for(auto _ : state)
+	{
+		benchmark.clear();
+	}
 }
-BENCHMARK_REGISTER_F(ClearImageBenchmark, Clear)
-    ->Unit(benchmark::kMillisecond)
-    ->DenseRange(0, clearBenchmarkVariants.size() - 1, 1);
+BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R8G8B8A8_UNORM, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R32_SFLOAT, vk::Format::eR32Sfloat, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_D32_SFLOAT, vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth)->Unit(benchmark::kMillisecond);
 
 class Window
 {
@@ -541,10 +530,9 @@ static std::vector<uint32_t> compileGLSLtoSPIRV(const char *glslSource, EShLangu
 class TriangleBenchmark : public VulkanBenchmark
 {
 public:
-	void SetUp(::benchmark::State &state) override
+	TriangleBenchmark(bool multisample)
+	    : multisample(multisample)
 	{
-		VulkanBenchmark::SetUp(state);
-
 		window = new Window(instance, windowSize);
 		swapchain = new Swapchain(physicalDevice, device, window);
 
@@ -560,7 +548,7 @@ public:
 		createCommandBuffers(renderPass);
 	}
 
-	void TearDown(const ::benchmark::State &state) override
+	~TriangleBenchmark()
 	{
 		device.destroyPipelineLayout(pipelineLayout);
 		device.destroyPipelineCache(pipelineCache);
@@ -588,8 +576,34 @@ public:
 
 		delete swapchain;
 		delete window;
+	}
 
-		VulkanBenchmark::TearDown(state);
+	void renderFrame()
+	{
+		swapchain->acquireNextImage(presentCompleteSemaphore, currentFrameBuffer);
+
+		device.waitForFences(1, &waitFences[currentFrameBuffer], VK_TRUE, UINT64_MAX);
+		device.resetFences(1, &waitFences[currentFrameBuffer]);
+
+		vk::PipelineStageFlags waitStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+		vk::SubmitInfo submitInfo;
+		submitInfo.pWaitDstStageMask = &waitStageMask;
+		submitInfo.pWaitSemaphores = &presentCompleteSemaphore;
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &renderCompleteSemaphore;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffers[currentFrameBuffer];
+		submitInfo.commandBufferCount = 1;
+
+		queue.submit(1, &submitInfo, waitFences[currentFrameBuffer]);
+
+		swapchain->queuePresent(queue, currentFrameBuffer, renderCompleteSemaphore);
+	}
+
+	void show()
+	{
+		window->show();
 	}
 
 protected:
@@ -655,29 +669,6 @@ protected:
 			commandBuffers[i].endRenderPass();
 			commandBuffers[i].end();
 		}
-	}
-
-	void renderFrame()
-	{
-		swapchain->acquireNextImage(presentCompleteSemaphore, currentFrameBuffer);
-
-		device.waitForFences(1, &waitFences[currentFrameBuffer], VK_TRUE, UINT64_MAX);
-		device.resetFences(1, &waitFences[currentFrameBuffer]);
-
-		vk::PipelineStageFlags waitStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-
-		vk::SubmitInfo submitInfo;
-		submitInfo.pWaitDstStageMask = &waitStageMask;
-		submitInfo.pWaitSemaphores = &presentCompleteSemaphore;
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &renderCompleteSemaphore;
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[currentFrameBuffer];
-		submitInfo.commandBufferCount = 1;
-
-		queue.submit(1, &submitInfo, waitFences[currentFrameBuffer]);
-
-		swapchain->queuePresent(queue, currentFrameBuffer, renderCompleteSemaphore);
 	}
 
 	void prepareVertices()
@@ -933,7 +924,7 @@ protected:
 	}
 
 	const vk::Extent2D windowSize = { 1280, 720 };
-	const bool multisample = false;
+	const bool multisample;
 	Window *window = nullptr;
 
 	Swapchain *swapchain = nullptr;
@@ -965,18 +956,19 @@ protected:
 	std::vector<vk::Fence> waitFences;
 };
 
-BENCHMARK_DEFINE_F(TriangleBenchmark, Triangle)
-(benchmark::State &state)
+static void Triangle(benchmark::State &state, bool multisample)
 {
-	if(false) window->show();  // Enable for visual verification.
+	TriangleBenchmark benchmark(multisample);
+
+	if(false) benchmark.show();  // Enable for visual verification.
 
 	// Warmup
-	renderFrame();
+	benchmark.renderFrame();
 
 	for(auto _ : state)
 	{
-		renderFrame();
+		benchmark.renderFrame();
 	}
 }
-BENCHMARK_REGISTER_F(TriangleBenchmark, Triangle)
-    ->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Hello, false)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Multisample, true)->Unit(benchmark::kMillisecond);
