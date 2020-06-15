@@ -9,7 +9,7 @@ if [ ! -z "$REASON" ]; then
   REASON="\n$REASON\n"
 fi
 
-git subtree pull --prefix third_party/marl https://github.com/google/marl master --squash -m "Update marl"
+git subtree pull --prefix third_party/marl https://github.com/google/marl main --squash -m "Update marl"
 
 ALL_CHANGES=`git log -n 1 HEAD^2 | egrep '^(\s{4}[0-9a-f]{9}\s*.*)$'`
 HEAD_CHANGE=`echo "$ALL_CHANGES" | egrep '[0-9a-f]{9}' -o -m 1`
