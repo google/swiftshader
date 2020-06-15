@@ -296,14 +296,13 @@ void *ImageView::getOffsetPointer(const VkOffset3D &offset, VkImageAspectFlagBit
 {
 	ASSERT(mipLevel < subresourceRange.levelCount);
 
-	VkImageSubresourceLayers imageSubresourceLayers = {
+	VkImageSubresource imageSubresource = {
 		static_cast<VkImageAspectFlags>(aspect),
 		subresourceRange.baseMipLevel + mipLevel,
 		subresourceRange.baseArrayLayer + layer,
-		subresourceRange.layerCount
 	};
 
-	return getImage(usage)->getTexelPointer(offset, imageSubresourceLayers);
+	return getImage(usage)->getTexelPointer(offset, imageSubresource);
 }
 
 }  // namespace vk

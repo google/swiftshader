@@ -147,7 +147,7 @@ public:
 	void blitToBuffer(const vk::Image *src, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *dst, int bufferRowPitch, int bufferSlicePitch);
 	void blitFromBuffer(const vk::Image *dst, VkImageSubresourceLayers subresource, VkOffset3D offset, VkExtent3D extent, uint8_t *src, int bufferRowPitch, int bufferSlicePitch);
 
-	void updateBorders(vk::Image *image, const VkImageSubresourceLayers &subresourceLayers);
+	void updateBorders(vk::Image *image, const VkImageSubresource &subresource);
 
 private:
 	enum Edge
@@ -185,8 +185,8 @@ private:
 	void computeCubeCorner(Pointer<Byte> &layer, Int &x0, Int &x1, Int &y0, Int &y1, Int &pitchB, const State &state);
 
 	void copyCubeEdge(vk::Image *image,
-	                  const VkImageSubresourceLayers &dstSubresourceLayers, Edge dstEdge,
-	                  const VkImageSubresourceLayers &srcSubresourceLayers, Edge srcEdge);
+	                  const VkImageSubresource &dstSubresource, Edge dstEdge,
+	                  const VkImageSubresource &srcSubresource, Edge srcEdge);
 
 	marl::mutex blitMutex;
 	RoutineCache<State, BlitFunction::CFunctionType> blitCache GUARDED_BY(blitMutex);
