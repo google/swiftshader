@@ -405,6 +405,102 @@ private:
 	std::vector<vk::ImageView> imageViews;
 };
 
+struct Image
+{
+	vk::Image image;
+	vk::DeviceMemory imageMemory;
+	vk::ImageView imageView;
+};
+
+class Framebuffer
+{
+public:
+	Framebuffer(vk::Device device, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, uint32_t width, uint32_t height, bool multisample)
+	    : device(device)
+	{
+		std::vector<vk::ImageView> attachments(multisample ? 2 : 1);
+
+		if(multisample)
+		{
+			// Create multisample images
+			vk::ImageCreateInfo imageInfo;
+			imageInfo.imageType = vk::ImageType::e2D;
+			imageInfo.format = colorFormat;
+			imageInfo.tiling = vk::ImageTiling::eOptimal;
+			imageInfo.initialLayout = vk::ImageLayout::eGeneral;
+			imageInfo.usage = vk::ImageUsageFlagBits::eColorAttachment;
+			imageInfo.samples = vk::SampleCountFlagBits::e4;
+			imageInfo.extent = { width, height, 1 };
+			imageInfo.mipLevels = 1;
+			imageInfo.arrayLayers = 1;
+
+			multisampleImage.image = device.createImage(imageInfo);
+
+			vk::MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(multisampleImage.image);
+
+			vk::MemoryAllocateInfo allocateInfo;
+			allocateInfo.allocationSize = memoryRequirements.size;
+			allocateInfo.memoryTypeIndex = 0;  //getMemoryTypeIndex(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+			multisampleImage.imageMemory = device.allocateMemory(allocateInfo);
+
+			device.bindImageMemory(multisampleImage.image, multisampleImage.imageMemory, 0);
+
+			vk::ImageViewCreateInfo colorAttachmentView;
+			colorAttachmentView.image = multisampleImage.image;
+			colorAttachmentView.viewType = vk::ImageViewType::e2D;
+			colorAttachmentView.format = colorFormat;
+			colorAttachmentView.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+			colorAttachmentView.subresourceRange.baseMipLevel = 0;
+			colorAttachmentView.subresourceRange.levelCount = 1;
+			colorAttachmentView.subresourceRange.baseArrayLayer = 0;
+			colorAttachmentView.subresourceRange.layerCount = 1;
+
+			multisampleImage.imageView = device.createImageView(colorAttachmentView);
+
+			// We'll be rendering to attachment location 0
+			attachments[0] = multisampleImage.imageView;
+			attachments[1] = attachment;  // Resolve attachment
+		}
+		else
+		{
+			attachments[0] = attachment;
+		}
+
+		vk::FramebufferCreateInfo framebufferCreateInfo;
+
+		framebufferCreateInfo.renderPass = renderPass;
+		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferCreateInfo.pAttachments = attachments.data();
+		framebufferCreateInfo.width = width;
+		framebufferCreateInfo.height = height;
+		framebufferCreateInfo.layers = 1;
+
+		framebuffer = device.createFramebuffer(framebufferCreateInfo);
+	}
+
+	~Framebuffer()
+	{
+		device.destroyFramebuffer(framebuffer);
+
+		device.destroyImage(multisampleImage.image);
+		device.destroyImageView(multisampleImage.imageView);
+		device.freeMemory(multisampleImage.imageMemory);
+	}
+
+	vk::Framebuffer getFramebuffer()
+	{
+		return framebuffer;
+	}
+
+private:
+	vk::Device device;
+
+	vk::Framebuffer framebuffer;
+
+	Image multisampleImage;
+};
+
 static std::vector<uint32_t> compileGLSLtoSPIRV(const char *glslSource, EShLanguage glslLanguage)
 {
 	// glslang requires one-time initialization.
@@ -480,13 +576,9 @@ public:
 			device.destroyFence(fence);
 		}
 
-		for(auto &framebuffer : framebuffers)
+		for(auto *framebuffer : framebuffers)
 		{
-			device.destroyFramebuffer(framebuffer.framebuffer);
-
-			device.destroyImage(framebuffer.multisampleImage.image);
-			device.destroyImageView(framebuffer.multisampleImage.imageView);
-			device.freeMemory(framebuffer.multisampleImage.imageMemory);
+			delete framebuffer;
 		}
 
 		device.destroyRenderPass(renderPass);
@@ -539,7 +631,7 @@ protected:
 			clearValues[0].color = vk::ClearColorValue(std::array<float, 4>{ 0.5f, 0.5f, 0.5f, 1.0f });
 
 			vk::RenderPassBeginInfo renderPassBeginInfo;
-			renderPassBeginInfo.framebuffer = framebuffers[i].framebuffer;
+			renderPassBeginInfo.framebuffer = framebuffers[i]->getFramebuffer();
 			renderPassBeginInfo.renderPass = renderPass;
 			renderPassBeginInfo.renderArea.offset.x = 0;
 			renderPassBeginInfo.renderArea.offset.y = 0;
@@ -637,65 +729,7 @@ protected:
 
 		for(size_t i = 0; i < framebuffers.size(); i++)
 		{
-			std::vector<vk::ImageView> attachments(multisample ? 2 : 1);
-
-			if(multisample)
-			{
-				// Create multisample images
-				vk::ImageCreateInfo imageInfo;
-				imageInfo.imageType = vk::ImageType::e2D;
-				imageInfo.format = swapchain->colorFormat;
-				imageInfo.tiling = vk::ImageTiling::eOptimal;
-				imageInfo.initialLayout = vk::ImageLayout::eGeneral;
-				imageInfo.usage = vk::ImageUsageFlagBits::eColorAttachment;
-				imageInfo.samples = vk::SampleCountFlagBits::e4;
-				imageInfo.extent = { windowSize.width, windowSize.height, 1 };
-				imageInfo.mipLevels = 1;
-				imageInfo.arrayLayers = 1;
-
-				framebuffers[i].multisampleImage.image = device.createImage(imageInfo);
-
-				vk::MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(framebuffers[i].multisampleImage.image);
-
-				vk::MemoryAllocateInfo allocateInfo;
-				allocateInfo.allocationSize = memoryRequirements.size;
-				allocateInfo.memoryTypeIndex = getMemoryTypeIndex(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-				framebuffers[i].multisampleImage.imageMemory = device.allocateMemory(allocateInfo);
-
-				device.bindImageMemory(framebuffers[i].multisampleImage.image, framebuffers[i].multisampleImage.imageMemory, 0);
-
-				vk::ImageViewCreateInfo colorAttachmentView;
-				colorAttachmentView.image = framebuffers[i].multisampleImage.image;
-				colorAttachmentView.viewType = vk::ImageViewType::e2D;
-				colorAttachmentView.format = swapchain->colorFormat;
-				colorAttachmentView.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-				colorAttachmentView.subresourceRange.baseMipLevel = 0;
-				colorAttachmentView.subresourceRange.levelCount = 1;
-				colorAttachmentView.subresourceRange.baseArrayLayer = 0;
-				colorAttachmentView.subresourceRange.layerCount = 1;
-
-				framebuffers[i].multisampleImage.imageView = device.createImageView(colorAttachmentView);
-
-				// We'll be rendering to attachment location 0
-				attachments[0] = framebuffers[i].multisampleImage.imageView;
-				attachments[1] = swapchain->getImageView(i);  // Resolve attachment
-			}
-			else
-			{
-				attachments[0] = swapchain->getImageView(i);
-			}
-
-			vk::FramebufferCreateInfo framebufferCreateInfo;
-
-			framebufferCreateInfo.renderPass = renderPass;
-			framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-			framebufferCreateInfo.pAttachments = attachments.data();
-			framebufferCreateInfo.width = windowSize.width;
-			framebufferCreateInfo.height = windowSize.height;
-			framebufferCreateInfo.layers = 1;
-
-			framebuffers[i].framebuffer = device.createFramebuffer(framebufferCreateInfo);
+			framebuffers[i] = new Framebuffer(device, swapchain->getImageView(i), swapchain->colorFormat, renderPass, windowSize.width, windowSize.height, multisample);
 		}
 	}
 
@@ -705,6 +739,7 @@ protected:
 
 		if(multisample)
 		{
+			// Color attachment
 			attachments[0].format = colorFormat;
 			attachments[0].samples = vk::SampleCountFlagBits::e4;
 			attachments[0].loadOp = vk::AttachmentLoadOp::eClear;
@@ -714,6 +749,7 @@ protected:
 			attachments[0].initialLayout = vk::ImageLayout::eUndefined;
 			attachments[0].finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
+			// Resolve attachment
 			attachments[1].format = colorFormat;
 			attachments[1].samples = vk::SampleCountFlagBits::e1;
 			attachments[1].loadOp = vk::AttachmentLoadOp::eDontCare;
@@ -902,22 +938,8 @@ protected:
 
 	Swapchain *swapchain = nullptr;
 
-	struct Image
-	{
-		vk::Image image;
-		vk::DeviceMemory imageMemory;
-		vk::ImageView imageView;
-	};
-
-	struct Framebuffer
-	{
-		vk::Framebuffer framebuffer;
-
-		Image multisampleImage;
-	};
-
 	vk::RenderPass renderPass;
-	std::vector<Framebuffer> framebuffers;
+	std::vector<Framebuffer *> framebuffers;
 	uint32_t currentFrameBuffer = 0;
 
 	struct VertexBuffer
