@@ -782,6 +782,8 @@ public:
 	void emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, RValue<SIMD::Int> const &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets) const;
 	void emitEpilog(SpirvRoutine *routine) const;
 
+	bool containsImageWrite() const { return imageWriteEmitted; }
+
 	using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
 	std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
 	std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
@@ -798,6 +800,7 @@ private:
 	HandleMap<Extension> extensionsByID;
 	std::unordered_set<Extension::Name> extensionsImported;
 	Function::ID entryPoint;
+	mutable bool imageWriteEmitted = false;
 
 	const bool robustBufferAccess = true;
 	spv::ExecutionModel executionModel = spv::ExecutionModelMax;  // Invalid prior to OpEntryPoint parsing.

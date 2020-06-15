@@ -18,9 +18,13 @@
 #include "VkFormat.hpp"
 #include "VkObject.hpp"
 
+#include "marl/mutex.h"
+
 #ifdef __ANDROID__
 #	include <vulkan/vk_android_native_buffer.h>  // For VkSwapchainImageUsageFlagsANDROID and buffer_handle_t
 #endif
+
+#include <unordered_set>
 
 namespace vk {
 
@@ -90,6 +94,12 @@ public:
 	bool canBindToMemory(DeviceMemory *pDeviceMemory) const;
 
 	void prepareForSampling(const VkImageSubresourceRange &subresourceRange);
+	enum ContentsChangedContext
+	{
+		DIRECT_MEMORY_ACCESS = 0,
+		USING_STORAGE = 1
+	};
+	void contentsChanged(const VkImageSubresourceRange &subresourceRange, ContentsChangedContext contentsChangedContext = DIRECT_MEMORY_ACCESS);
 	const Image *getSampledImage(const vk::Format &imageViewFormat) const;
 
 #ifdef __ANDROID__
@@ -116,8 +126,9 @@ private:
 	VkFormat getClearFormat() const;
 	void clear(void *pixelData, VkFormat pixelFormat, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D &renderArea);
 	int borderSize() const;
+	bool requiresPreprocessing() const;
 	void decompress(const VkImageSubresource &subresource);
-	void updateCube(const VkImageSubresource &subresource);
+	bool updateCube(const VkImageSubresource &subresource);
 	void decodeETC2(const VkImageSubresource &subresource);
 	void decodeBC(const VkImageSubresource &subresource);
 	void decodeASTC(const VkImageSubresource &subresource);
@@ -140,6 +151,39 @@ private:
 #endif
 
 	VkExternalMemoryHandleTypeFlags supportedExternalMemoryHandleTypes = (VkExternalMemoryHandleTypeFlags)0;
+
+	// VkImageSubresource wrapper for use in unordered_set
+	class Subresource
+	{
+	public:
+		Subresource()
+		    : subresource{ (VkImageAspectFlags)0, 0, 0 }
+		{}
+		Subresource(const VkImageSubresource &subres)
+		    : subresource(subres)
+		{}
+		inline operator VkImageSubresource() const { return subresource; }
+
+		bool operator==(const Subresource &other) const
+		{
+			return (subresource.aspectMask == other.subresource.aspectMask) &&
+			       (subresource.mipLevel == other.subresource.mipLevel) &&
+			       (subresource.arrayLayer == other.subresource.arrayLayer);
+		};
+
+		size_t operator()(const Subresource &other) const
+		{
+			return static_cast<size_t>(other.subresource.aspectMask) ^
+			       static_cast<size_t>(other.subresource.mipLevel) ^
+			       static_cast<size_t>(other.subresource.arrayLayer);
+		};
+
+	private:
+		VkImageSubresource subresource;
+	};
+
+	marl::mutex mutex;
+	std::unordered_set<Subresource, Subresource> dirtySubresources GUARDED_BY(mutex);
 };
 
 static inline Image *Cast(VkImage object)

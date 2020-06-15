@@ -152,6 +152,7 @@ void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::F
 			}
 		}
 	}
+	dest->contentsChanged(subresourceRange);
 }
 
 bool Blitter::fastClear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea)
@@ -306,6 +307,7 @@ bool Blitter::fastClear(void *clearValue, vk::Format clearFormat, vk::Image *des
 			}
 		}
 	}
+	dest->contentsChanged(subresourceRange);
 
 	return true;
 }
@@ -1889,6 +1891,8 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 
 		blitRoutine(&data);
 	}
+
+	dst->contentsChanged(dstSubresRange);
 }
 
 void Blitter::computeCubeCorner(Pointer<Byte> &layer, Int &x0, Int &x1, Int &y0, Int &y1, Int &pitchB, const State &state)

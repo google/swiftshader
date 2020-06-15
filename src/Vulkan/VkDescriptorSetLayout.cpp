@@ -20,6 +20,8 @@
 #include "VkImageView.hpp"
 #include "VkSampler.hpp"
 
+#include "Reactor/Reactor.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -128,7 +130,7 @@ uint32_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
 			return static_cast<uint32_t>(sizeof(BufferDescriptor));
 		default:
-			UNSUPPORTED("Unsupported Descriptor Type");
+			UNSUPPORTED("Unsupported Descriptor Type: %d", int(type));
 			return 0;
 	}
 }
@@ -142,7 +144,7 @@ bool DescriptorSetLayout::IsDescriptorDynamic(VkDescriptorType type)
 size_t DescriptorSetLayout::getDescriptorSetAllocationSize() const
 {
 	// vk::DescriptorSet has a header with a pointer to the layout.
-	return sw::align<alignof(DescriptorSet)>(offsetof(DescriptorSet, data) + getDescriptorSetDataSize());
+	return sw::align<alignof(DescriptorSet)>(OFFSET(DescriptorSet, data) + getDescriptorSetDataSize());
 }
 
 size_t DescriptorSetLayout::getDescriptorSetDataSize() const
@@ -158,6 +160,8 @@ size_t DescriptorSetLayout::getDescriptorSetDataSize() const
 
 void DescriptorSetLayout::initialize(DescriptorSet *descriptorSet)
 {
+	ASSERT(descriptorSet->header.layout == nullptr);
+
 	// Use a pointer to this descriptor set layout as the descriptor set's header
 	descriptorSet->header.layout = this;
 	uint8_t *mem = descriptorSet->data;
@@ -343,6 +347,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			imageSampler[i].swizzle = imageView->getComponentMapping();
 			imageSampler[i].format = format;
 			imageSampler[i].device = device;
+			imageSampler[i].memoryOwner = imageView;
 
 			auto &subresourceRange = imageView->getSubresourceRange();
 
@@ -436,6 +441,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 			descriptor[i].sampleCount = imageView->getSampleCount();
 			descriptor[i].sizeInBytes = static_cast<int>(imageView->getSizeInBytes());
+			descriptor[i].memoryOwner = imageView;
 
 			if(imageView->getFormat().isStencil())
 			{

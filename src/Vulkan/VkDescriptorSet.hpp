@@ -16,6 +16,9 @@
 #define VK_DESCRIPTOR_SET_HPP_
 
 // Intentionally not including VkObject.hpp here due to b/127920555
+#include "VkConfig.hpp"
+
+#include "marl/mutex.h"
 
 #include <array>
 #include <cstdint>
@@ -24,10 +27,12 @@
 namespace vk {
 
 class DescriptorSetLayout;
+class PipelineLayout;
 
 struct alignas(16) DescriptorSetHeader
 {
 	DescriptorSetLayout *layout;
+	marl::mutex mutex;
 };
 
 class alignas(16) DescriptorSet
@@ -38,11 +43,28 @@ public:
 		return static_cast<DescriptorSet *>(static_cast<void *>(object));
 	}
 
+	operator VkDescriptorSet()
+	{
+		return { static_cast<uint64_t>(reinterpret_cast<uintptr_t>(this)) };
+	}
+
+	using Array = std::array<DescriptorSet *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using Bindings = std::array<uint8_t *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;
 
+	static void ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout);
+	static void PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout);
+
 	DescriptorSetHeader header;
 	alignas(16) uint8_t data[1];
+
+private:
+	enum NotificationType
+	{
+		CONTENTS_CHANGED,
+		PREPARE_FOR_SAMPLING
+	};
+	static void ParseDescriptors(const Array &descriptorSets, const PipelineLayout *layout, NotificationType notificationType);
 };
 
 inline DescriptorSet *Cast(VkDescriptorSet object)

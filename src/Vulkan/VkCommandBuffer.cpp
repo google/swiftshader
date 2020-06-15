@@ -186,6 +186,7 @@ public:
 		vk::ComputePipeline *pipeline = static_cast<vk::ComputePipeline *>(pipelineState.pipeline);
 		pipeline->run(baseGroupX, baseGroupY, baseGroupZ,
 		              groupCountX, groupCountY, groupCountZ,
+		              pipelineState.descriptorSetObjects,
 		              pipelineState.descriptorSets,
 		              pipelineState.descriptorDynamicOffsets,
 		              executionState.pushConstants);
@@ -219,6 +220,7 @@ public:
 
 		auto pipeline = static_cast<vk::ComputePipeline *>(pipelineState.pipeline);
 		pipeline->run(0, 0, 0, cmd->x, cmd->y, cmd->z,
+		              pipelineState.descriptorSetObjects,
 		              pipelineState.descriptorSets,
 		              pipelineState.descriptorDynamicOffsets,
 		              executionState.pushConstants);
@@ -534,6 +536,7 @@ public:
 
 		executionState.bindVertexInputs(context, firstInstance);
 
+		context.descriptorSetObjects = pipelineState.descriptorSetObjects;
 		context.descriptorSets = pipelineState.descriptorSets;
 		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
 
@@ -1100,6 +1103,8 @@ public:
 	{
 		for(uint32_t i = 0; i < descriptorSetCount; i++)
 		{
+			// We need both a descriptor set object for updates and a descriptor set data pointer for routines
+			descriptorSetObjects[firstSet + i] = vk::Cast(pDescriptorSets[i]);
 			descriptorSets[firstSet + i] = vk::Cast(pDescriptorSets[i])->data;
 		}
 
@@ -1119,6 +1124,7 @@ public:
 
 		for(uint32_t i = firstSet; i < firstSet + descriptorSetCount; i++)
 		{
+			pipelineState.descriptorSetObjects[i] = descriptorSetObjects[i];
 			pipelineState.descriptorSets[i] = descriptorSets[i];
 		}
 
@@ -1137,6 +1143,7 @@ private:
 	const uint32_t firstDynamicOffset;
 	const uint32_t dynamicOffsetCount;
 
+	vk::DescriptorSet::Array descriptorSetObjects;
 	vk::DescriptorSet::Bindings descriptorSets;
 	vk::DescriptorSet::DynamicOffsets dynamicOffsets;
 };

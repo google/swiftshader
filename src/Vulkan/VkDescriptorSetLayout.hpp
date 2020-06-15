@@ -48,6 +48,8 @@ struct alignas(16) SampledImageDescriptor
 	int arrayLayers;
 	int mipLevels;
 	int sampleCount;
+
+	ImageView *memoryOwner;  // Pointer to the view which owns the memory used by the descriptor set
 };
 
 struct alignas(16) StorageImageDescriptor
@@ -67,6 +69,8 @@ struct alignas(16) StorageImageDescriptor
 	int stencilRowPitchBytes;
 	int stencilSlicePitchBytes;
 	int stencilSamplePitchBytes;
+
+	ImageView *memoryOwner;  // Pointer to the view which owns the memory used by the descriptor set
 };
 
 struct alignas(16) BufferDescriptor

@@ -30,6 +30,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo *pCreateInfo);
 
 	size_t getDescriptorSetCount() const;
+	uint32_t getBindingCount(uint32_t setNumber) const;
 
 	// Returns the index into the pipeline's dynamic offsets array for
 	// the given descriptor set and binding number.

@@ -107,6 +107,7 @@ public:
 	VkFormat renderTargetInternalFormat(int index) const;
 	int colorWriteActive(int index) const;
 
+	vk::DescriptorSet::Array descriptorSetObjects = {};
 	vk::DescriptorSet::Bindings descriptorSets = {};
 	vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 	Stream input[MAX_INTERFACE_COMPONENTS / 4];

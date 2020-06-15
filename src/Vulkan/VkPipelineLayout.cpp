@@ -92,6 +92,11 @@ size_t PipelineLayout::getDescriptorSetCount() const
 	return descriptorSetCount;
 }
 
+uint32_t PipelineLayout::getBindingCount(uint32_t setNumber) const
+{
+	return descriptorSets[setNumber].bindingCount;
+}
+
 uint32_t PipelineLayout::getDynamicOffsetIndex(uint32_t setNumber, uint32_t bindingNumber) const
 {
 	ASSERT(setNumber < descriptorSetCount && bindingNumber < descriptorSets[setNumber].bindingCount);
