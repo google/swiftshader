@@ -132,7 +132,54 @@ TEST_F(ContainersVectorTest, CopyConstruct) {
   vectorA[1] = "B";
   vectorA[2] = "C";
 
+  marl::containers::vector<std::string, 4> vectorB(vectorA, allocator);
+  ASSERT_EQ(vectorB.size(), size_t(3));
+  ASSERT_EQ(vectorB[0], "A");
+  ASSERT_EQ(vectorB[1], "B");
+  ASSERT_EQ(vectorB[2], "C");
+}
+
+TEST_F(ContainersVectorTest, CopyConstructDifferentBaseCapacity) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
+
+  vectorA.resize(3);
+  vectorA[0] = "A";
+  vectorA[1] = "B";
+  vectorA[2] = "C";
+
   marl::containers::vector<std::string, 2> vectorB(vectorA, allocator);
+  ASSERT_EQ(vectorB.size(), size_t(3));
+  ASSERT_EQ(vectorB[0], "A");
+  ASSERT_EQ(vectorB[1], "B");
+  ASSERT_EQ(vectorB[2], "C");
+}
+
+TEST_F(ContainersVectorTest, CopyAssignment) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
+
+  vectorA.resize(3);
+  vectorA[0] = "A";
+  vectorA[1] = "B";
+  vectorA[2] = "C";
+
+  marl::containers::vector<std::string, 4> vectorB(allocator);
+  vectorB = vectorA;
+  ASSERT_EQ(vectorB.size(), size_t(3));
+  ASSERT_EQ(vectorB[0], "A");
+  ASSERT_EQ(vectorB[1], "B");
+  ASSERT_EQ(vectorB[2], "C");
+}
+
+TEST_F(ContainersVectorTest, CopyAssignmentDifferentBaseCapacity) {
+  marl::containers::vector<std::string, 4> vectorA(allocator);
+
+  vectorA.resize(3);
+  vectorA[0] = "A";
+  vectorA[1] = "B";
+  vectorA[2] = "C";
+
+  marl::containers::vector<std::string, 2> vectorB(allocator);
+  vectorB = vectorA;
   ASSERT_EQ(vectorB.size(), size_t(3));
   ASSERT_EQ(vectorB[0], "A");
   ASSERT_EQ(vectorB[1], "B");

@@ -22,14 +22,11 @@ class AllocatorTest : public testing::Test {
 };
 
 TEST_F(AllocatorTest, AlignedAllocate) {
-  std::vector<bool> guards = {false, true};
-  std::vector<size_t> sizes = {1,   2,   3,   4,   5,   7,   8,   14,  16,  17,
-                               31,  34,  50,  63,  64,  65,  100, 127, 128, 129,
-                               200, 255, 256, 257, 500, 511, 512, 513};
-  std::vector<size_t> alignments = {1, 2, 4, 8, 16, 32, 64, 128};
-  for (auto useGuards : guards) {
-    for (auto alignment : alignments) {
-      for (auto size : sizes) {
+  for (auto useGuards : {false, true}) {
+    for (auto alignment : {1, 2, 4, 8, 16, 32, 64, 128}) {
+      for (auto size : {1,   2,   3,   4,   5,   7,   8,   14,  16,  17,
+                        31,  34,  50,  63,  64,  65,  100, 127, 128, 129,
+                        200, 255, 256, 257, 500, 511, 512, 513}) {
         marl::Allocation::Request request;
         request.alignment = alignment;
         request.size = size;

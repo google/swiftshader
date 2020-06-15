@@ -39,7 +39,8 @@ if [ "$BUILD_SYSTEM" == "cmake" ]; then
             -DMARL_BUILD_EXAMPLES=1 \
             -DMARL_BUILD_TESTS=1 \
             -DMARL_BUILD_BENCHMARKS=1 \
-            -DMARL_WARNINGS_AS_ERRORS=1
+            -DMARL_WARNINGS_AS_ERRORS=1 \
+            -DMARL_DEBUG_ENABLED=1
 
     make --jobs=$(nproc)
 

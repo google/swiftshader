@@ -14,20 +14,22 @@
 
 #include "marl_bench.h"
 
+#include "marl/containers.h"
 #include "marl/event.h"
 
 #include "benchmark/benchmark.h"
 
-#include <vector>
-
 BENCHMARK_DEFINE_F(Schedule, Event)(benchmark::State& state) {
   run(state, [&](int numTasks) {
     for (auto _ : state) {
-      std::vector<marl::Event> events(numTasks + 1);
+      marl::containers::vector<marl::Event, 1> events;
+      events.resize(numTasks + 1);
       for (auto i = 0; i < numTasks; i++) {
+        marl::Event prev = events[i];
+        marl::Event next = events[i + 1];
         marl::schedule([=] {
-          events[i].wait();
-          events[i + 1].signal();
+          prev.wait();
+          next.signal();
         });
       }
       events.front().signal();
@@ -69,4 +71,4 @@ BENCHMARK_DEFINE_F(Schedule, EventBaton)(benchmark::State& state) {
     }
   });
 }
-BENCHMARK_REGISTER_F(Schedule, EventBaton)->Apply(Schedule::args<1000000>);
+BENCHMARK_REGISTER_F(Schedule, EventBaton)->Apply(Schedule::args<262144>);

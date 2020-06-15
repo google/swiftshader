@@ -24,9 +24,11 @@
 int main() {
   // Create a marl scheduler using the 4 hardware threads.
   // Bind this scheduler to the main thread so we can call marl::schedule()
-  marl::Scheduler scheduler;
+  marl::Scheduler::Config cfg;
+  cfg.setWorkerThreadCount(4);
+
+  marl::Scheduler scheduler(cfg);
   scheduler.bind();
-  scheduler.setWorkerThreadCount(4);
   defer(scheduler.unbind());  // Automatically unbind before returning.
 
   constexpr int numTasks = 10;

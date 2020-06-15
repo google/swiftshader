@@ -17,35 +17,66 @@
 
 #include "benchmark/benchmark.h"
 
+// Define MARL_FULL_BENCHMARK to 1 if you want to run benchmarks for every
+// available logical CPU core.
+#ifndef MARL_FULL_BENCHMARK
+#define MARL_FULL_BENCHMARK 0
+#endif
+
 class Schedule : public benchmark::Fixture {
  public:
   void SetUp(const ::benchmark::State&) {}
 
   void TearDown(const ::benchmark::State&) {}
 
-  // run() creates a scheduler, sets the number of worker threads from the
-  // benchmark arguments, calls f, then unbinds and destructs the scheduler.
+  // run() creates a scheduler using the config cfg, sets the number of worker
+  // threads from the benchmark arguments, calls f, then unbinds and destructs
+  // the scheduler.
   // F must be a function of the signature: void(int numTasks)
   template <typename F>
-  void run(const ::benchmark::State& state, F&& f) {
-    marl::Scheduler scheduler;
-    scheduler.setWorkerThreadCount(numThreads(state));
+  void run(const ::benchmark::State& state,
+           marl::Scheduler::Config cfg,
+           F&& f) {
+    cfg.setWorkerThreadCount(numThreads(state));
+
+    marl::Scheduler scheduler(cfg);
     scheduler.bind();
     f(numTasks(state));
     scheduler.unbind();
   }
 
-  // args() sets up the benchmark to run from [1 .. NumTasks] tasks (in 8^n
-  // steps) across 0 worker threads to numLogicalCPUs.
+  // run() creates a scheduler, sets the number of worker threads from the
+  // benchmark arguments, calls f, then unbinds and destructs the scheduler.
+  // F must be a function of the signature: void(int numTasks)
+  template <typename F>
+  void run(const ::benchmark::State& state, F&& f) {
+    run(state, marl::Scheduler::Config{}, f);
+  }
+
+  // args() sets up the benchmark to run a number of tasks over a number of
+  // threads.
+  // If MARL_FULL_BENCHMARK is enabled, then NumTasks tasks will be run
+  // across from 0 to numLogicalCPUs worker threads.
+  // If MARL_FULL_BENCHMARK is not enabled, then NumTasks tasks will be run
+  // across [0 .. numLogicalCPUs] worker threads in 2^n steps.
   template <int NumTasks = 0x40000>
   static void args(benchmark::internal::Benchmark* b) {
     b->ArgNames({"tasks", "threads"});
-    for (unsigned int tasks = 1U; tasks <= NumTasks; tasks *= 8) {
-      for (unsigned int threads = 0U; threads <= marl::Thread::numLogicalCPUs();
-           ++threads) {
-        b->Args({tasks, threads});
-      }
+    b->Args({NumTasks, 0});
+    auto numLogicalCPUs = marl::Thread::numLogicalCPUs();
+#if MARL_FULL_BENCHMARK
+    for (unsigned int threads = 1U; threads <= numLogicalCPUs; threads++) {
+      b->Args({NumTasks, threads});
     }
+#else
+    for (unsigned int threads = 1U; threads <= numLogicalCPUs; threads *= 2) {
+      b->Args({NumTasks, threads});
+    }
+    if ((numLogicalCPUs & (numLogicalCPUs - 1)) != 0) {
+      // numLogicalCPUs is not a power-of-two. Also test with numLogicalCPUs.
+      b->Args({NumTasks, numLogicalCPUs});
+    }
+#endif
   }
 
   // numThreads() return the number of threads in the benchmark run from the
