@@ -22,18 +22,66 @@
 #include <cstddef>    // size_t
 #include <utility>    // std::move
 
+#include <deque>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+
 namespace marl {
 namespace containers {
+
+////////////////////////////////////////////////////////////////////////////////
+// STL wrappers
+// STL containers that use a marl::StlAllocator backed by a marl::Allocator.
+// Note: These may be re-implemented to optimize for marl's usage cases.
+// See: https://github.com/google/marl/issues/129
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+using deque = std::deque<T, StlAllocator<T>>;
+
+template <typename K, typename V, typename C = std::less<K>>
+using map = std::map<K, V, C, StlAllocator<std::pair<const K, V>>>;
+
+template <typename K, typename C = std::less<K>>
+using set = std::set<K, C, StlAllocator<K>>;
+
+template <typename K,
+          typename V,
+          typename H = std::hash<K>,
+          typename E = std::equal_to<K>>
+using unordered_map =
+    std::unordered_map<K, V, H, E, StlAllocator<std::pair<const K, V>>>;
+
+template <typename K, typename H = std::hash<K>, typename E = std::equal_to<K>>
+using unordered_set = std::unordered_set<K, H, E, StlAllocator<K>>;
+
+// take() takes and returns the front value from the deque.
+template <typename T>
+inline T take(deque<T>& queue) {
+  auto out = std::move(queue.front());
+  queue.pop_front();
+  return out;
+}
+
+// take() takes and returns the first value from the unordered_set.
+template <typename T, typename H, typename E>
+inline T take(unordered_set<T, H, E>& set) {
+  auto it = set.begin();
+  auto out = std::move(*it);
+  set.erase(it);
+  return out;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // vector<T, BASE_CAPACITY>
 ////////////////////////////////////////////////////////////////////////////////
 
 // vector is a container of contiguously stored elements.
-// Unlike std::vector, marl::containers::vector keeps the first BASE_CAPACITY
-// elements internally, which will avoid dynamic heap allocations.
-// Once the vector exceeds BASE_CAPACITY elements, vector will allocate storage
-// from the heap.
+// Unlike std::vector, marl::containers::vector keeps the first
+// BASE_CAPACITY elements internally, which will avoid dynamic heap
+// allocations. Once the vector exceeds BASE_CAPACITY elements, vector will
+// allocate storage from the heap.
 template <typename T, int BASE_CAPACITY>
 class vector {
  public:
@@ -49,6 +97,8 @@ class vector {
 
   inline ~vector();
 
+  inline vector& operator=(const vector&);
+
   template <int BASE_CAPACITY_2>
   inline vector<T, BASE_CAPACITY>& operator=(const vector<T, BASE_CAPACITY_2>&);
 
@@ -60,21 +110,30 @@ class vector {
   inline void pop_back();
   inline T& front();
   inline T& back();
+  inline const T& front() const;
+  inline const T& back() const;
   inline T* begin();
   inline T* end();
+  inline const T* begin() const;
+  inline const T* end() const;
   inline T& operator[](size_t i);
   inline const T& operator[](size_t i) const;
   inline size_t size() const;
   inline size_t cap() const;
   inline void resize(size_t n);
   inline void reserve(size_t n);
+  inline T* data();
+  inline const T* data() const;
+
+  Allocator* const allocator;
 
  private:
   using TStorage = typename marl::aligned_storage<sizeof(T), alignof(T)>::type;
 
+  vector(const vector&) = delete;
+
   inline void free();
 
-  Allocator* const allocator;
   size_t count = 0;
   size_t capacity = BASE_CAPACITY;
   TStorage buffer[BASE_CAPACITY];
@@ -108,6 +167,18 @@ vector<T, BASE_CAPACITY>::vector(
 template <typename T, int BASE_CAPACITY>
 vector<T, BASE_CAPACITY>::~vector() {
   free();
+}
+
+template <typename T, int BASE_CAPACITY>
+vector<T, BASE_CAPACITY>& vector<T, BASE_CAPACITY>::operator=(
+    const vector& other) {
+  free();
+  reserve(other.size());
+  count = other.size();
+  for (size_t i = 0; i < count; i++) {
+    new (&reinterpret_cast<T*>(elements)[i]) T(other[i]);
+  }
+  return *this;
 }
 
 template <typename T, int BASE_CAPACITY>
@@ -171,12 +242,34 @@ T& vector<T, BASE_CAPACITY>::back() {
 }
 
 template <typename T, int BASE_CAPACITY>
+const T& vector<T, BASE_CAPACITY>::front() const {
+  MARL_ASSERT(count > 0, "front() called on empty vector");
+  return reinterpret_cast<T*>(elements)[0];
+}
+
+template <typename T, int BASE_CAPACITY>
+const T& vector<T, BASE_CAPACITY>::back() const {
+  MARL_ASSERT(count > 0, "back() called on empty vector");
+  return reinterpret_cast<T*>(elements)[count - 1];
+}
+
+template <typename T, int BASE_CAPACITY>
 T* vector<T, BASE_CAPACITY>::begin() {
   return reinterpret_cast<T*>(elements);
 }
 
 template <typename T, int BASE_CAPACITY>
 T* vector<T, BASE_CAPACITY>::end() {
+  return reinterpret_cast<T*>(elements) + count;
+}
+
+template <typename T, int BASE_CAPACITY>
+const T* vector<T, BASE_CAPACITY>::begin() const {
+  return reinterpret_cast<T*>(elements);
+}
+
+template <typename T, int BASE_CAPACITY>
+const T* vector<T, BASE_CAPACITY>::end() const {
   return reinterpret_cast<T*>(elements) + count;
 }
 
@@ -231,6 +324,16 @@ void vector<T, BASE_CAPACITY>::reserve(size_t n) {
 }
 
 template <typename T, int BASE_CAPACITY>
+T* vector<T, BASE_CAPACITY>::data() {
+  return elements;
+}
+
+template <typename T, int BASE_CAPACITY>
+const T* vector<T, BASE_CAPACITY>::data() const {
+  return elements;
+}
+
+template <typename T, int BASE_CAPACITY>
 void vector<T, BASE_CAPACITY>::free() {
   for (size_t i = 0; i < count; i++) {
     reinterpret_cast<T*>(elements)[i].~T();
@@ -238,6 +341,7 @@ void vector<T, BASE_CAPACITY>::free() {
 
   if (allocation.ptr != nullptr) {
     allocator->free(allocation);
+    allocation = {};
     elements = nullptr;
   }
 }

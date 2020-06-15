@@ -17,26 +17,109 @@
 
 #include <functional>
 
+#include "containers.h"
+
 namespace marl {
 
 // Thread provides an OS abstraction for threads of execution.
-// Thread is used by marl instead of std::thread as Windows does not naturally
-// scale beyond 64 logical threads on a single CPU, unless you use the Win32
-// API.
-// Thread alsocontains static methods that abstract OS-specific thread / cpu
-// queries and control.
 class Thread {
  public:
   using Func = std::function<void()>;
+
+  // Core identifies a logical processor unit.
+  // How a core is identified varies by platform.
+  struct Core {
+    struct Windows {
+      uint8_t group;  // Group number
+      uint8_t index;  // Core within the processor group
+    };
+    struct Pthread {
+      uint16_t index;  // Core number
+    };
+    union {
+      Windows windows;
+      Pthread pthread;
+    };
+
+    // Comparison functions
+    inline bool operator==(const Core&) const;
+    inline bool operator<(const Core&) const;
+  };
+
+  // Affinity holds the affinity mask for a thread - a description of what cores
+  // the thread is allowed to run on.
+  struct Affinity {
+    // supported is true if marl supports controlling thread affinity for this
+    // platform.
+#if defined(_WIN32) || defined(__linux__) || defined(__FreeBSD__)
+    static constexpr bool supported = true;
+#else
+    static constexpr bool supported = false;
+#endif
+
+    // Policy is an interface that provides a get() method for returning an
+    // Affinity for the given thread by id.
+    class Policy {
+     public:
+      virtual ~Policy(){};
+
+      // anyOf() returns a Policy that returns an Affinity for a number of
+      // available cores in affinity.
+      //
+      // Windows requires that each thread is only associated with a
+      // single affinity group, so the Policy's returned affinity will contain
+      // cores all from the same group.
+      static std::shared_ptr<Policy> anyOf(
+          Affinity&& affinity,
+          Allocator* allocator = Allocator::Default);
+
+      // oneOf() returns a Policy that returns an affinity with a single enabled
+      // core from affinity. The single enabled core in the Policy's returned
+      // affinity is:
+      //      affinity[threadId % affinity.count()]
+      static std::shared_ptr<Policy> oneOf(
+          Affinity&& affinity,
+          Allocator* allocator = Allocator::Default);
+
+      // get() returns the thread Affinity for the for the given thread by id.
+      virtual Affinity get(uint32_t threadId, Allocator* allocator) const = 0;
+    };
+
+    Affinity(Allocator*);
+    Affinity(Affinity&&);
+    Affinity(const Affinity&, Allocator* allocator);
+
+    // all() returns an Affinity with all the cores available to the process.
+    static Affinity all(Allocator* allocator = Allocator::Default);
+
+    Affinity(std::initializer_list<Core>, Allocator* allocator);
+
+    // count() returns the number of enabled cores in the affinity.
+    size_t count() const;
+
+    // operator[] returns the i'th enabled core from this affinity.
+    Core operator[](size_t index) const;
+
+    // add() adds the cores from the given affinity to this affinity.
+    // This affinity is returned to allow for fluent calls.
+    Affinity& add(const Affinity&);
+
+    // remove() removes the cores from the given affinity from this affinity.
+    // This affinity is returned to allow for fluent calls.
+    Affinity& remove(const Affinity&);
+
+   private:
+    Affinity(const Affinity&) = delete;
+
+    containers::vector<Core, 32> cores;
+  };
 
   Thread() = default;
   Thread(Thread&&);
   Thread& operator=(Thread&&);
 
-  // Start a new thread that calls func.
-  // logicalCpuHint is a hint to run the thread on the specified logical CPU.
-  // logicalCpuHint may be entirely ignored.
-  Thread(unsigned int logicalCpuHint, const Func& func);
+  // Start a new thread using the given affinity that calls func.
+  Thread(Affinity&& affinity, Func&& func);
 
   ~Thread();
 
@@ -58,6 +141,18 @@ class Thread {
   class Impl;
   Impl* impl = nullptr;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// Thread::Core
+////////////////////////////////////////////////////////////////////////////////
+// Comparison functions
+bool Thread::Core::operator==(const Core& other) const {
+  return pthread.index == other.pthread.index;
+}
+
+bool Thread::Core::operator<(const Core& other) const {
+  return pthread.index < other.pthread.index;
+}
 
 }  // namespace marl
 

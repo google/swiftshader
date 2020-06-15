@@ -14,9 +14,15 @@
 
 cmake_minimum_required(VERSION 3.0)
 
+include(cmake/parse_version.cmake)
+parse_version("${CMAKE_CURRENT_SOURCE_DIR}/VERSION" MARL)
+
 set(CMAKE_CXX_STANDARD 11)
 
-project(Marl C CXX ASM)
+project(Marl
+    VERSION   "${MARL_VERSION_MAJOR}.${MARL_VERSION_MINOR}.${MARL_VERSION_PATCH}"
+    LANGUAGES C CXX ASM
+)
 
 include(CheckCXXSourceCompiles)
 
@@ -29,7 +35,7 @@ endif()
 ###########################################################
 # Options
 ###########################################################
-function (option_if_not_defined name description default)
+function(option_if_not_defined name description default)
     if(NOT DEFINED ${name})
         option(${name} ${description} ${default})
     endif()
@@ -39,15 +45,18 @@ option_if_not_defined(MARL_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option_if_not_defined(MARL_BUILD_EXAMPLES "Build example applications" OFF)
 option_if_not_defined(MARL_BUILD_TESTS "Build tests" OFF)
 option_if_not_defined(MARL_BUILD_BENCHMARKS "Build benchmarks" OFF)
+option_if_not_defined(MARL_BUILD_SHARED "Build marl as a shared / dynamic library (default static)" OFF)
 option_if_not_defined(MARL_ASAN "Build marl with address sanitizer" OFF)
 option_if_not_defined(MARL_MSAN "Build marl with memory sanitizer" OFF)
 option_if_not_defined(MARL_TSAN "Build marl with thread sanitizer" OFF)
 option_if_not_defined(MARL_INSTALL "Create marl install target" OFF)
+option_if_not_defined(MARL_FULL_BENCHMARK "Run benchmarks for [0 .. numLogicalCPUs] with no stepping" OFF)
+option_if_not_defined(MARL_DEBUG_ENABLED "Enable debug checks even in release builds" OFF)
 
 ###########################################################
 # Directories
 ###########################################################
-function (set_if_not_defined name value)
+function(set_if_not_defined name value)
     if(NOT DEFINED ${name})
         set(${name} ${value} PARENT_SCOPE)
     endif()
@@ -147,7 +156,7 @@ find_package(Threads REQUIRED)
 # Functions
 ###########################################################
 function(marl_set_target_options target)
-    if (MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
+    if(MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
         target_compile_options(${target} PRIVATE "-Wthread-safety")
     endif()
 
@@ -186,6 +195,10 @@ function(marl_set_target_options target)
         target_link_libraries(${target} PUBLIC "-fsanitize=thread")
     endif()
 
+    if(MARL_DEBUG_ENABLED)
+        target_compile_definitions(${target} PRIVATE "MARL_DEBUG_ENABLED=1")
+    endif()
+
     target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${MARL_INCLUDE_DIR}>)
 endfunction(marl_set_target_options)
 
@@ -194,9 +207,16 @@ endfunction(marl_set_target_options)
 ###########################################################
 
 # marl
-add_library(marl STATIC ${MARL_LIST})
+if(MARL_BUILD_SHARED) # Can also be controlled by BUILD_SHARED_LIBS
+    add_library(marl SHARED ${MARL_LIST})
+else()
+    add_library(marl ${MARL_LIST})
+endif()
+
 set_target_properties(marl PROPERTIES
     POSITION_INDEPENDENT_CODE 1
+    VERSION ${MARL_VERSION}
+    SOVERSION "${MARL_VERSION_MAJOR}"
 )
 
 marl_set_target_options(marl)
@@ -253,6 +273,7 @@ if(MARL_BUILD_TESTS)
         ${MARL_SRC_DIR}/parallelize_test.cpp
         ${MARL_SRC_DIR}/pool_test.cpp
         ${MARL_SRC_DIR}/scheduler_test.cpp
+        ${MARL_SRC_DIR}/thread_test.cpp
         ${MARL_SRC_DIR}/ticket_test.cpp
         ${MARL_SRC_DIR}/waitgroup_test.cpp
         ${MARL_GOOGLETEST_DIR}/googletest/src/gtest-all.cc
@@ -292,6 +313,10 @@ if(MARL_BUILD_BENCHMARKS)
     add_executable(marl-benchmarks ${MARL_BENCHMARK_LIST})
 
     marl_set_target_options(marl-benchmarks)
+
+    target_compile_definitions(marl-benchmarks PRIVATE
+        "MARL_FULL_BENCHMARK=${MARL_FULL_BENCHMARK}"
+    )
 
     target_link_libraries(marl-benchmarks PRIVATE benchmark::benchmark marl)
 endif(MARL_BUILD_BENCHMARKS)

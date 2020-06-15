@@ -18,6 +18,8 @@
 
 #include "marl_test.h"
 
+#include <array>
+
 namespace std {
 namespace chrono {
 template <typename Rep, typename Period>
@@ -28,9 +30,7 @@ std::ostream& operator<<(std::ostream& os, const duration<Rep, Period>& d) {
 }  // namespace std
 
 TEST_P(WithBoundScheduler, EventIsSignalled) {
-  std::vector<marl::Event::Mode> modes = {marl::Event::Mode::Manual,
-                                          marl::Event::Mode::Auto};
-  for (auto mode : modes) {
+  for (auto mode : {marl::Event::Mode::Manual, marl::Event::Mode::Auto}) {
     auto event = marl::Event(mode);
     ASSERT_EQ(event.isSignalled(), false);
     event.signal();
@@ -99,9 +99,7 @@ TEST_P(WithBoundScheduler, EventManualWait) {
 }
 
 TEST_P(WithBoundScheduler, EventSequence) {
-  std::vector<marl::Event::Mode> modes = {marl::Event::Mode::Manual,
-                                          marl::Event::Mode::Auto};
-  for (auto mode : modes) {
+  for (auto mode : {marl::Event::Mode::Manual, marl::Event::Mode::Auto}) {
     std::string sequence;
     auto eventA = marl::Event(mode);
     auto eventB = marl::Event(mode);
@@ -216,7 +214,7 @@ TEST_P(WithBoundScheduler, EventWaitStressTest) {
 
 TEST_P(WithBoundScheduler, EventAny) {
   for (int i = 0; i < 3; i++) {
-    std::vector<marl::Event> events = {
+    std::array<marl::Event, 3> events = {
         marl::Event(marl::Event::Mode::Auto),
         marl::Event(marl::Event::Mode::Auto),
         marl::Event(marl::Event::Mode::Auto),

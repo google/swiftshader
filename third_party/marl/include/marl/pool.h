@@ -363,7 +363,7 @@ class UnboundedPool : public Pool<T> {
 
     Allocator* allocator;
     marl::mutex mutex;
-    std::vector<Item*> items;
+    containers::vector<Item*, 4> items;
     Item* free = nullptr;
   };
 
@@ -373,7 +373,7 @@ class UnboundedPool : public Pool<T> {
 
 template <typename T, PoolPolicy POLICY>
 UnboundedPool<T, POLICY>::Storage::Storage(Allocator* allocator)
-    : allocator(allocator) {}
+    : allocator(allocator), items(allocator) {}
 
 template <typename T, PoolPolicy POLICY>
 UnboundedPool<T, POLICY>::Storage::~Storage() {

@@ -82,7 +82,7 @@ The scheduler holds a number of `marl::Scheduler::Worker`s. Each worker holds:
 
 When a task is scheduled with a call to `marl::schedule()`, a worker is picked, and the task is placed on to the worker's `work.tasks` queue. The worker is picked using the following rules:
 
-- If the scheduler has no dedicated worker threads (`marl::Scheduler::getWorkerThreadCount() == 0`), then the task is queued on to the [Single-Threaded-Worker](#single-threaded-workers) for the currently executing thread.
+- If the scheduler has no dedicated worker threads (`marl::Scheduler::config().workerThreads.count == 0`), then the task is queued on to the [Single-Threaded-Worker](#single-threaded-workers) for the currently executing thread.
 - Otherwise one of the [Multi-Threaded-Workers](#multi-threaded-workers) is picked. If any workers have entered a [spin-for-work](#marlschedulerworkerspinforwork) state, then these will be prioritized, otherwise a [Multi-Threaded-Worker](#multi-threaded-workers) is picked in a round-robin fashion.
 
 ### `marl::Scheduler::Worker::run()`
@@ -188,15 +188,17 @@ The most significant difference is that the Multi-Threaded-Worker spawns a dedic
 
 A single-threaded-worker (STW) is created for each thread that is bound with a call to `marl::Scheduler::bind()`.
 
-If the scheduler has no dedicated worker threads (`marl::Scheduler::getWorkerThreadCount() == 0`), then scheduled tasks are queued on to the STW for the currently executing thread.
+If the scheduler has no dedicated worker threads (`marl::Scheduler::config().workerThreads.count == 0`), then scheduled tasks are queued on to the STW for the currently executing thread.
 
 Because in this mode there are no worker threads, the tasks queued on the STW are not automatically background executed. Instead, tasks are only executed whenever there's a call to [`marl::Scheduler::Worker::suspend()`](#marlschedulerworkersuspend).
 The logic for [`suspend()`](#marlschedulerworkersuspend) is common for STWs and MTWs, spawning new fibers that call [`marl::Scheduler::Worker::run()`](#marlschedulerworkerrun) whenever all other fibers are blocked.
 
 ```c++
 void SingleThreadedWorkerExample() {
-  marl::Scheduler scheduler;
-  scheduler.setWorkerThreadCount(0); // STW mode.
+  marl::Scheduler::Config cfg;
+  cfg.setWorkerThreadCount(0); // STW mode.
+
+  marl::Scheduler scheduler(cfg);
   scheduler.bind();
   defer(scheduler.unbind());
 
@@ -219,7 +221,7 @@ void SingleThreadedWorkerExample() {
 
 ### Multi-Threaded-Workers
 
-Multi-Threaded-Workers are created when `marl::Scheduler::setWorkerThreadCount()` is called with a positive number.
+Multi-Threaded-Workers are created when the `marl::Scheduler` is constructed with a positive number of worker threads (`marl::Scheduler::Config::workerThread::count > 0`).
 
 Each MTW is paired with a new `std::thread` that begins by calling `marl::Scheduler::Worker::run()`.
 

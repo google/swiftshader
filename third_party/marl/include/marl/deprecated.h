@@ -24,13 +24,23 @@
 #endif  // MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
 
 #ifndef MARL_WARN_DEPRECATED
-#define MARL_WARN_DEPRECATED 0
+#define MARL_WARN_DEPRECATED 1
 #endif  // MARL_WARN_DEPRECATED
 
 #if MARL_WARN_DEPRECATED
-#define MARL_DEPRECATED(message) __attribute__((deprecated(message)))
+#if defined(_WIN32)
+#define MARL_DEPRECATED(issue_num, message)                              \
+  __declspec(deprecated(                                                 \
+      message "\nSee: https://github.com/google/marl/issues/" #issue_num \
+              " for more information"))
 #else
-#define MARL_DEPRECATED(message)
+#define MARL_DEPRECATED(issue_num, message)                              \
+  __attribute__((deprecated(                                             \
+      message "\nSee: https://github.com/google/marl/issues/" #issue_num \
+              " for more information")))
+#endif
+#else
+#define MARL_DEPRECATED(issue_num, message)
 #endif
 
 #endif  // marl_deprecated_h

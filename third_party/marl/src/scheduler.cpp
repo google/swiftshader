@@ -59,21 +59,6 @@ inline uint64_t threadID() {
 }
 #endif
 
-template <typename T>
-inline T take(std::deque<T>& queue) {
-  auto out = std::move(queue.front());
-  queue.pop_front();
-  return out;
-}
-
-template <typename T>
-inline T take(std::unordered_set<T>& set) {
-  auto it = set.begin();
-  auto out = std::move(*it);
-  set.erase(it);
-  return out;
-}
-
 inline void nop() {
 #if defined(_WIN32)
   __nop();
@@ -127,7 +112,12 @@ void Scheduler::unbind() {
   bound = nullptr;
 }
 
-Scheduler::Scheduler(const Config& config) : cfg(config), workerThreads{} {
+Scheduler::Scheduler(const Config& config)
+    : cfg(config), workerThreads{}, singleThreadedWorkers(config.allocator) {
+  if (cfg.workerThread.count > 0 && !cfg.workerThread.affinityPolicy) {
+    cfg.workerThread.affinityPolicy = Thread::Affinity::Policy::anyOf(
+        Thread::Affinity::all(cfg.allocator), cfg.allocator);
+  }
   for (size_t i = 0; i < spinningWorkers.size(); i++) {
     spinningWorkers[i] = -1;
   }
@@ -162,7 +152,7 @@ Scheduler::~Scheduler() {
 
 #if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
 Scheduler::Scheduler(Allocator* allocator /* = Allocator::Default */)
-    : workerThreads{} {
+    : workerThreads{}, singleThreadedWorkers(allocator) {
   cfg.allocator = allocator;
   for (size_t i = 0; i < spinningWorkers.size(); i++) {
     spinningWorkers[i] = -1;
@@ -338,6 +328,9 @@ const char* Scheduler::Fiber::toString(State state) {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::WaitingFibers
 ////////////////////////////////////////////////////////////////////////////////
+Scheduler::WaitingFibers::WaitingFibers(Allocator* allocator)
+    : timeouts(allocator), fibers(allocator) {}
+
 Scheduler::WaitingFibers::operator bool() const {
   return !fibers.empty();
 }
@@ -399,12 +392,19 @@ bool Scheduler::WaitingFibers::Timeout::operator<(const Timeout& o) const {
 thread_local Scheduler::Worker* Scheduler::Worker::current = nullptr;
 
 Scheduler::Worker::Worker(Scheduler* scheduler, Mode mode, uint32_t id)
-    : id(id), mode(mode), scheduler(scheduler) {}
+    : id(id),
+      mode(mode),
+      scheduler(scheduler),
+      work(scheduler->cfg.allocator),
+      idleFibers(scheduler->cfg.allocator) {}
 
 void Scheduler::Worker::start() {
   switch (mode) {
-    case Mode::MultiThreaded:
-      thread = Thread(id, [=] {
+    case Mode::MultiThreaded: {
+      auto allocator = scheduler->cfg.allocator;
+      auto& affinityPolicy = scheduler->cfg.workerThread.affinityPolicy;
+      auto affinity = affinityPolicy->get(id, allocator);
+      thread = Thread(std::move(affinity), [=] {
         Thread::setName("Thread<%.2d>", int(id));
 
         if (auto const& initFunc = scheduler->cfg.workerThread.initializer) {
@@ -423,13 +423,13 @@ void Scheduler::Worker::start() {
         Worker::current = nullptr;
       });
       break;
-
-    case Mode::SingleThreaded:
+    }
+    case Mode::SingleThreaded: {
       Worker::current = this;
       mainFiber = Fiber::createFromCurrentThread(scheduler->cfg.allocator, 0);
       currentFiber = mainFiber.get();
       break;
-
+    }
     default:
       MARL_ASSERT(false, "Unknown mode: %d", int(mode));
   }
@@ -517,12 +517,12 @@ void Scheduler::Worker::suspend(
   if (!work.fibers.empty()) {
     // There's another fiber that has become unblocked, resume that.
     work.num--;
-    auto to = take(work.fibers);
+    auto to = containers::take(work.fibers);
     ASSERT_FIBER_STATE(to, Fiber::State::Queued);
     switchToFiber(to);
   } else if (!idleFibers.empty()) {
     // There's an old fiber we can reuse, resume that.
-    auto to = take(idleFibers);
+    auto to = containers::take(idleFibers);
     ASSERT_FIBER_STATE(to, Fiber::State::Idle);
     switchToFiber(to);
   } else {
@@ -597,7 +597,7 @@ bool Scheduler::Worker::steal(Task& out) {
     return false;
   }
   work.num--;
-  out = take(work.tasks);
+  out = containers::take(work.tasks);
   work.mutex.unlock();
   return true;
 }
@@ -714,7 +714,7 @@ void Scheduler::Worker::runUntilIdle() {
 
     while (!work.fibers.empty()) {
       work.num--;
-      auto fiber = take(work.fibers);
+      auto fiber = containers::take(work.fibers);
       // Sanity checks,
       MARL_ASSERT(idleFibers.count(fiber) == 0, "dequeued fiber is idle");
       MARL_ASSERT(fiber != currentFiber, "dequeued fiber is currently running");
@@ -731,7 +731,7 @@ void Scheduler::Worker::runUntilIdle() {
 
     if (!work.tasks.empty()) {
       work.num--;
-      auto task = take(work.tasks);
+      auto task = containers::take(work.tasks);
       work.mutex.unlock();
 
       // Run the task.
@@ -752,7 +752,7 @@ Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
   auto fiber = Fiber::create(scheduler->cfg.allocator, fiberId, FiberStackSize,
                              [&]() REQUIRES(work.mutex) { run(); });
   auto ptr = fiber.get();
-  workerFibers.push_back(std::move(fiber));
+  workerFibers.emplace_back(std::move(fiber));
   return ptr;
 }
 
@@ -768,6 +768,9 @@ void Scheduler::Worker::switchToFiber(Fiber* to) {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::Worker::Work
 ////////////////////////////////////////////////////////////////////////////////
+Scheduler::Worker::Work::Work(Allocator* allocator)
+    : tasks(allocator), fibers(allocator), waiting(allocator) {}
+
 template <typename F>
 void Scheduler::Worker::Work::wait(F&& f) {
   notifyAdded = true;
@@ -778,5 +781,11 @@ void Scheduler::Worker::Work::wait(F&& f) {
   }
   notifyAdded = false;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Scheduler::Worker::Work
+////////////////////////////////////////////////////////////////////////////////
+Scheduler::SingleThreadedWorkers::SingleThreadedWorkers(Allocator* allocator)
+    : byTid(allocator) {}
 
 }  // namespace marl
