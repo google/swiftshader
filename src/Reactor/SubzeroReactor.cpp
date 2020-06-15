@@ -244,9 +244,9 @@ std::shared_ptr<rr::CoroutineGenerator> coroGen;
 marl::Scheduler &getOrCreateScheduler()
 {
 	static auto scheduler = [] {
-		auto s = std::make_unique<marl::Scheduler>();
-		s->setWorkerThreadCount(8);
-		return s;
+		marl::Scheduler::Config cfg;
+		cfg.setWorkerThreadCount(8);
+		return std::make_unique<marl::Scheduler>(cfg);
 	}();
 
 	return *scheduler;
