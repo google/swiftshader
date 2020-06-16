@@ -29,6 +29,7 @@
 #include <array>
 #include <cstdlib>  // mbstowcs
 #include <limits>   // std::numeric_limits
+#include <vector>
 #undef max
 #elif defined(__APPLE__)
 #include <mach/thread_act.h>
