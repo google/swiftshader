@@ -51,7 +51,8 @@ class Thread {
   struct Affinity {
     // supported is true if marl supports controlling thread affinity for this
     // platform.
-#if defined(_WIN32) || defined(__linux__) || defined(__FreeBSD__)
+#if defined(_WIN32) || (defined(__linux__) && !defined(__ANDROID__)) || \
+    defined(__FreeBSD__)
     static constexpr bool supported = true;
 #else
     static constexpr bool supported = false;
