@@ -22,6 +22,30 @@
       "revId": "913559eb5f3483f7fd41bb20043d0834c380ca79",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6e35609_4b492049",
+        "filename": "src/Pipeline/SpirvShaderDebugger.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 442,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-06-16T13:27:06Z",
+      "side": 1,
+      "message": "Thanks 😊",
+      "parentUuid": "5a33ef8d_6a73b1c5",
+      "range": {
+        "startLine": 442,
+        "startChar": 49,
+        "endLine": 442,
+        "endChar": 71
+      },
+      "revId": "913559eb5f3483f7fd41bb20043d0834c380ca79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
