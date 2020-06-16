@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3da428d8_f7d6ae64",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-06-16T21:18:00Z",
+      "side": 1,
+      "message": "Note: you shouldn\u0027t use a minus operator on an unsigned type",
+      "range": {
+        "startLine": 619,
+        "startChar": 36,
+        "endLine": 619,
+        "endChar": 40
+      },
+      "revId": "9b72ce71e7a4ccae251a62e4d435caad923fbbeb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d139eae_eec3f766",
+        "filename": "src/Vulkan/VkFormat.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-06-16T21:18:00Z",
+      "side": 1,
+      "message": "You know this already, but VK_FORMAT_BC6H_UFLOAT_BLOCK will have to be decoded to VK_FORMAT_R32G32B32A32_SFLOAT.",
+      "range": {
+        "startLine": 656,
+        "startChar": 7,
+        "endLine": 656,
+        "endChar": 35
+      },
+      "revId": "9b72ce71e7a4ccae251a62e4d435caad923fbbeb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
