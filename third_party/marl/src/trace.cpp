@@ -28,7 +28,6 @@
 
 #include <atomic>
 #include <fstream>
-#include <unordered_set>
 
 namespace {
 

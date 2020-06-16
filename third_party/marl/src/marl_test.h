@@ -54,9 +54,12 @@ class WithBoundScheduler : public testing::TestWithParam<SchedulerParams> {
 
     auto& params = GetParam();
 
-    auto scheduler = new marl::Scheduler(allocator);
+    marl::Scheduler::Config cfg;
+    cfg.setAllocator(allocator);
+    cfg.setWorkerThreadCount(params.numWorkerThreads);
+
+    auto scheduler = new marl::Scheduler(cfg);
     scheduler->bind();
-    scheduler->setWorkerThreadCount(params.numWorkerThreads);
   }
 
   void TearDown() override {

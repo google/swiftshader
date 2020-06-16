@@ -14,7 +14,30 @@
 
 #include "marl_bench.h"
 
-BENCHMARK_MAIN();
+#include "marl/sanitizers.h"
+
+int main(int argc, char** argv) {
+#if ADDRESS_SANITIZER_ENABLED
+  printf(
+      "***WARNING*** Marl built with address sanitizer enabled. "
+      "Timings will be affected\n");
+#endif
+#if MEMORY_SANITIZER_ENABLED
+  printf(
+      "***WARNING*** Marl built with memory sanitizer enabled. "
+      "Timings will be affected\n");
+#endif
+#if THREAD_SANITIZER_ENABLED
+  printf(
+      "***WARNING*** Marl built with thread sanitizer enabled. "
+      "Timings will be affected\n");
+#endif
+  ::benchmark::Initialize(&argc, argv);
+  if (::benchmark::ReportUnrecognizedArguments(argc, argv))
+    return 1;
+  ::benchmark::RunSpecifiedBenchmarks();
+  return 0;
+}
 
 uint32_t Schedule::doSomeWork(uint32_t x) {
   uint32_t q = x;

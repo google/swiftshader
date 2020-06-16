@@ -15,6 +15,7 @@
 #ifndef marl_scheduler_h
 #define marl_scheduler_h
 
+#include "containers.h"
 #include "debug.h"
 #include "deprecated.h"
 #include "memory.h"
@@ -26,14 +27,8 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <deque>
 #include <functional>
-#include <map>
-#include <set>
 #include <thread>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 namespace marl {
 
@@ -60,6 +55,7 @@ class Scheduler {
     struct WorkerThread {
       int count = 0;
       ThreadInitializer initializer;
+      std::shared_ptr<Thread::Affinity::Policy> affinityPolicy;
     };
     WorkerThread workerThread;
 
@@ -74,6 +70,8 @@ class Scheduler {
     inline Config& setAllocator(Allocator*);
     inline Config& setWorkerThreadCount(int);
     inline Config& setWorkerThreadInitializer(const ThreadInitializer&);
+    inline Config& setWorkerThreadAffinityPolicy(
+        const std::shared_ptr<Thread::Affinity::Policy>&);
   };
 
   // Constructor.
@@ -103,30 +101,30 @@ class Scheduler {
   const Config& config() const;
 
 #if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
-  MARL_DEPRECATED("use Scheduler::Scheduler(const Config&)")
+  MARL_DEPRECATED(139, "use Scheduler::Scheduler(const Config&)")
   Scheduler(Allocator* allocator = Allocator::Default);
 
   // setThreadInitializer() sets the worker thread initializer function which
   // will be called for each new worker thread spawned.
   // The initializer will only be called on newly created threads (call
   // setThreadInitializer() before setWorkerThreadCount()).
-  MARL_DEPRECATED("use Config::setWorkerThreadInitializer()")
+  MARL_DEPRECATED(139, "use Config::setWorkerThreadInitializer()")
   void setThreadInitializer(const std::function<void()>& init);
 
   // getThreadInitializer() returns the thread initializer function set by
   // setThreadInitializer().
-  MARL_DEPRECATED("use config().workerThread.initializer")
+  MARL_DEPRECATED(139, "use config().workerThread.initializer")
   std::function<void()> getThreadInitializer();
 
   // setWorkerThreadCount() adjusts the number of dedicated worker threads.
   // A count of 0 puts the scheduler into single-threaded mode.
   // Note: Currently the number of threads cannot be adjusted once tasks
   // have been enqueued. This restriction may be lifted at a later time.
-  MARL_DEPRECATED("use Config::setWorkerThreadCount()")
+  MARL_DEPRECATED(139, "use Config::setWorkerThreadCount()")
   void setWorkerThreadCount(int count);
 
   // getWorkerThreadCount() returns the number of worker threads.
-  MARL_DEPRECATED("use config().workerThread.count")
+  MARL_DEPRECATED(139, "use config().workerThread.count")
   int getWorkerThreadCount();
 #endif  // MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
 
@@ -288,6 +286,8 @@ class Scheduler {
 
   // WaitingFibers holds all the fibers waiting on a timeout.
   struct WaitingFibers {
+    inline WaitingFibers(Allocator*);
+
     // operator bool() returns true iff there are any wait fibers.
     inline operator bool() const;
 
@@ -314,15 +314,15 @@ class Scheduler {
       Fiber* fiber;
       inline bool operator<(const Timeout&) const;
     };
-    std::set<Timeout> timeouts;
-    std::unordered_map<Fiber*, TimePoint> fibers;
+    containers::set<Timeout, std::less<Timeout>> timeouts;
+    containers::unordered_map<Fiber*, TimePoint> fibers;
   };
 
   // TODO: Implement a queue that recycles elements to reduce number of
   // heap allocations.
-  using TaskQueue = std::deque<Task>;
-  using FiberQueue = std::deque<Fiber*>;
-  using FiberSet = std::unordered_set<Fiber*>;
+  using TaskQueue = containers::deque<Task>;
+  using FiberQueue = containers::deque<Fiber*>;
+  using FiberSet = containers::unordered_set<Fiber*>;
 
   // Workers executes Tasks on a single thread.
   // Once a task is started, it may yield to other tasks on the same Worker.
@@ -434,6 +434,8 @@ class Scheduler {
 
     // Work holds tasks and fibers that are enqueued on the Worker.
     struct Work {
+      inline Work(Allocator*);
+
       std::atomic<uint64_t> num = {0};  // tasks.size() + fibers.size()
       GUARDED_BY(mutex) uint64_t numBlockedFibers = 0;
       GUARDED_BY(mutex) TaskQueue tasks;
@@ -471,7 +473,7 @@ class Scheduler {
     Thread thread;
     Work work;
     FiberSet idleFibers;  // Fibers that have completed which can be reused.
-    std::vector<Allocator::unique_ptr<Fiber>>
+    containers::vector<Allocator::unique_ptr<Fiber>, 16>
         workerFibers;  // All fibers created by this worker.
     FastRnd rng;
     bool shutdown = false;
@@ -503,8 +505,11 @@ class Scheduler {
   std::array<Worker*, MaxWorkerThreads> workerThreads;
 
   struct SingleThreadedWorkers {
+    inline SingleThreadedWorkers(Allocator*);
+
     using WorkerByTid =
-        std::unordered_map<std::thread::id, Allocator::unique_ptr<Worker>>;
+        containers::unordered_map<std::thread::id,
+                                  Allocator::unique_ptr<Worker>>;
     marl::mutex mutex;
     GUARDED_BY(mutex) std::condition_variable unbind;
     GUARDED_BY(mutex) WorkerByTid byTid;
@@ -528,6 +533,12 @@ Scheduler::Config& Scheduler::Config::setWorkerThreadCount(int count) {
 Scheduler::Config& Scheduler::Config::setWorkerThreadInitializer(
     const ThreadInitializer& initializer) {
   workerThread.initializer = initializer;
+  return *this;
+}
+
+Scheduler::Config& Scheduler::Config::setWorkerThreadAffinityPolicy(
+    const std::shared_ptr<Thread::Affinity::Policy>& policy) {
+  workerThread.affinityPolicy = policy;
   return *this;
 }
 

@@ -46,3 +46,25 @@ BENCHMARK_DEFINE_F(Schedule, SomeWork)
   });
 }
 BENCHMARK_REGISTER_F(Schedule, SomeWork)->Apply(Schedule::args);
+
+BENCHMARK_DEFINE_F(Schedule, SomeWorkWorkerAffinityOneOf)
+(benchmark::State& state) {
+  marl::Scheduler::Config cfg;
+  cfg.setWorkerThreadAffinityPolicy(
+      marl::Thread::Affinity::Policy::oneOf(marl::Thread::Affinity::all()));
+  run(state, cfg, [&](int numTasks) {
+    for (auto _ : state) {
+      marl::WaitGroup wg;
+      wg.add(numTasks);
+      for (auto i = 0; i < numTasks; i++) {
+        marl::schedule([=] {
+          benchmark::DoNotOptimize(doSomeWork(i));
+          wg.done();
+        });
+      }
+      wg.wait();
+    }
+  });
+}
+BENCHMARK_REGISTER_F(Schedule, SomeWorkWorkerAffinityOneOf)
+    ->Apply(Schedule::args);
