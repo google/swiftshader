@@ -22,6 +22,30 @@
       "revId": "33dccae31935c99e5eeb2fcc4cc6cbe65d4a185b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0816f79_3287973f",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-06-17T17:55:19Z",
+      "side": 1,
+      "message": "No, basePtr has 0 offsets, that\u0027s why it\u0027s called the base pointer. See https://swiftshader-review.googlesource.com/c/SwiftShader/+/45091/3/src/Pipeline/SpirvShaderImage.cpp#642 and other call sites. Anyway, we can make this clearer and more explicit by using an rr::Pointer instead of a SIMD::Pointer for it and constructing the SIMD::Pointer from the base and offsets here.",
+      "parentUuid": "b5df7d80_277b0b42",
+      "range": {
+        "startLine": 573,
+        "startChar": 8,
+        "endLine": 573,
+        "endChar": 28
+      },
+      "revId": "33dccae31935c99e5eeb2fcc4cc6cbe65d4a185b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
