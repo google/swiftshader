@@ -902,7 +902,9 @@ Nucleus::Nucleus()
 		::routine = elfMemory;
 	}
 
+#if defined(_WIN32)  // TODO(b/157525646): Initialization of thread_local variables in shared libraries may not be supported on all platforms.
 	ASSERT(Variable::unmaterializedVariables == nullptr);
+#endif
 	Variable::unmaterializedVariables = new std::unordered_set<const Variable *>();
 }
 
