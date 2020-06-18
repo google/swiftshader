@@ -94,6 +94,30 @@
       "revId": "33dccae31935c99e5eeb2fcc4cc6cbe65d4a185b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4083d5b7_aec89605",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-06-18T13:31:45Z",
+      "side": 1,
+      "message": "Ok, this makes more sense, the operator+ adding to dynamicOffsets rather than basePtr was confusing.",
+      "parentUuid": "7bb73ff2_8007b4c3",
+      "range": {
+        "startLine": 573,
+        "startChar": 8,
+        "endLine": 573,
+        "endChar": 28
+      },
+      "revId": "33dccae31935c99e5eeb2fcc4cc6cbe65d4a185b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
