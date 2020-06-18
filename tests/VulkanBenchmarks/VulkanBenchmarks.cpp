@@ -394,8 +394,63 @@ private:
 	std::vector<vk::ImageView> imageViews;
 };
 
-struct Image
+class Image
 {
+public:
+	Image(vk::Device device, uint32_t width, uint32_t height, vk::Format format, vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1)
+	    : device(device)
+	{
+		vk::ImageCreateInfo imageInfo;
+		imageInfo.imageType = vk::ImageType::e2D;
+		imageInfo.format = format;
+		imageInfo.tiling = vk::ImageTiling::eOptimal;
+		imageInfo.initialLayout = vk::ImageLayout::eGeneral;
+		imageInfo.usage = vk::ImageUsageFlagBits::eColorAttachment;
+		imageInfo.samples = sampleCount;
+		imageInfo.extent = vk::Extent3D(width, height, 1);
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+
+		image = device.createImage(imageInfo);
+
+		vk::MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(image);
+
+		vk::MemoryAllocateInfo allocateInfo;
+		allocateInfo.allocationSize = memoryRequirements.size;
+		allocateInfo.memoryTypeIndex = 0;  //getMemoryTypeIndex(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+		imageMemory = device.allocateMemory(allocateInfo);
+
+		device.bindImageMemory(image, imageMemory, 0);
+
+		vk::ImageViewCreateInfo imageViewInfo;
+		imageViewInfo.image = image;
+		imageViewInfo.viewType = vk::ImageViewType::e2D;
+		imageViewInfo.format = format;
+		imageViewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		imageViewInfo.subresourceRange.baseMipLevel = 0;
+		imageViewInfo.subresourceRange.levelCount = 1;
+		imageViewInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewInfo.subresourceRange.layerCount = 1;
+
+		imageView = device.createImageView(imageViewInfo);
+	}
+
+	~Image()
+	{
+		device.destroyImage(image);
+		device.destroyImageView(imageView);
+		device.freeMemory(imageMemory);
+	}
+
+	vk::ImageView getImageView()
+	{
+		return imageView;
+	}
+
+private:
+	const vk::Device device;
+
 	vk::Image image;
 	vk::DeviceMemory imageMemory;
 	vk::ImageView imageView;
@@ -411,44 +466,10 @@ public:
 
 		if(multisample)
 		{
-			// Create multisample images
-			vk::ImageCreateInfo imageInfo;
-			imageInfo.imageType = vk::ImageType::e2D;
-			imageInfo.format = colorFormat;
-			imageInfo.tiling = vk::ImageTiling::eOptimal;
-			imageInfo.initialLayout = vk::ImageLayout::eGeneral;
-			imageInfo.usage = vk::ImageUsageFlagBits::eColorAttachment;
-			imageInfo.samples = vk::SampleCountFlagBits::e4;
-			imageInfo.extent = vk::Extent3D(width, height, 1);
-			imageInfo.mipLevels = 1;
-			imageInfo.arrayLayers = 1;
-
-			multisampleImage.image = device.createImage(imageInfo);
-
-			vk::MemoryRequirements memoryRequirements = device.getImageMemoryRequirements(multisampleImage.image);
-
-			vk::MemoryAllocateInfo allocateInfo;
-			allocateInfo.allocationSize = memoryRequirements.size;
-			allocateInfo.memoryTypeIndex = 0;  //getMemoryTypeIndex(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-			multisampleImage.imageMemory = device.allocateMemory(allocateInfo);
-
-			device.bindImageMemory(multisampleImage.image, multisampleImage.imageMemory, 0);
-
-			vk::ImageViewCreateInfo colorAttachmentView;
-			colorAttachmentView.image = multisampleImage.image;
-			colorAttachmentView.viewType = vk::ImageViewType::e2D;
-			colorAttachmentView.format = colorFormat;
-			colorAttachmentView.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-			colorAttachmentView.subresourceRange.baseMipLevel = 0;
-			colorAttachmentView.subresourceRange.levelCount = 1;
-			colorAttachmentView.subresourceRange.baseArrayLayer = 0;
-			colorAttachmentView.subresourceRange.layerCount = 1;
-
-			multisampleImage.imageView = device.createImageView(colorAttachmentView);
+			multisampleImage = new Image(device, width, height, colorFormat, vk::SampleCountFlagBits::e4);
 
 			// We'll be rendering to attachment location 0
-			attachments[0] = multisampleImage.imageView;
+			attachments[0] = multisampleImage->getImageView();
 			attachments[1] = attachment;  // Resolve attachment
 		}
 		else
@@ -470,11 +491,9 @@ public:
 
 	~Framebuffer()
 	{
-		device.destroyFramebuffer(framebuffer, nullptr);
+		device.destroyFramebuffer(framebuffer);
 
-		device.destroyImage(multisampleImage.image, nullptr);
-		device.destroyImageView(multisampleImage.imageView, nullptr);
-		device.freeMemory(multisampleImage.imageMemory, nullptr);
+		delete multisampleImage;
 	}
 
 	vk::Framebuffer getFramebuffer()
@@ -483,11 +502,11 @@ public:
 	}
 
 private:
-	vk::Device device;
+	const vk::Device device;
 
 	vk::Framebuffer framebuffer;
 
-	Image multisampleImage;
+	Image *multisampleImage = nullptr;
 };
 
 static std::vector<uint32_t> compileGLSLtoSPIRV(const char *glslSource, EShLanguage glslLanguage)
