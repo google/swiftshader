@@ -70,6 +70,30 @@
       "revId": "33dccae31935c99e5eeb2fcc4cc6cbe65d4a185b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7bb73ff2_8007b4c3",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-06-18T04:28:17Z",
+      "side": 1,
+      "message": "Please see the new Patchset. The base pointer and the offsets are separate, and the latter are bounds checked before the actual load/store operations, so there\u0027s never any overflow.",
+      "parentUuid": "c46886d4_f2428bff",
+      "range": {
+        "startLine": 573,
+        "startChar": 8,
+        "endLine": 573,
+        "endChar": 28
+      },
+      "revId": "33dccae31935c99e5eeb2fcc4cc6cbe65d4a185b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
