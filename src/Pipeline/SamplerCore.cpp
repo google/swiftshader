@@ -1521,9 +1521,13 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 						c.w = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.w));
 						break;
 					case VK_FORMAT_R8G8B8A8_UNORM:
-					case VK_FORMAT_R8G8B8A8_SINT:
 					case VK_FORMAT_R8G8B8A8_SNORM:
+					case VK_FORMAT_R8G8B8A8_SINT:
 					case VK_FORMAT_R8G8B8A8_SRGB:
+					case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+					case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+					case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+					case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 						c.z = As<Short4>(UnpackHigh(c.x, c.y));
 						c.x = As<Short4>(UnpackLow(c.x, c.y));
 						c.y = c.x;
@@ -1533,7 +1537,8 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 						c.z = UnpackLow(As<Byte8>(Short4(0)), As<Byte8>(c.z));
 						c.w = UnpackHigh(As<Byte8>(Short4(0)), As<Byte8>(c.w));
 						// Propagate sign bit
-						if(state.textureFormat == VK_FORMAT_R8G8B8A8_SINT)
+						if(state.textureFormat == VK_FORMAT_R8G8B8A8_SINT ||
+						   state.textureFormat == VK_FORMAT_A8B8G8R8_SINT_PACK32)
 						{
 							c.x >>= 8;
 							c.y >>= 8;
@@ -1542,6 +1547,7 @@ Vector4s SamplerCore::sampleTexel(UInt index[4], Pointer<Byte> buffer)
 						}
 						break;
 					case VK_FORMAT_R8G8B8A8_UINT:
+					case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 						c.z = As<Short4>(UnpackHigh(c.x, c.y));
 						c.x = As<Short4>(UnpackLow(c.x, c.y));
 						c.y = c.x;
