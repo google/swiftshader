@@ -14,7 +14,19 @@
 
 #include "benchmark/benchmark.h"
 
-#define VK_USE_PLATFORM_WIN32_KHR
+#if !defined(USE_HEADLESS_SURFACE)
+#	define USE_HEADLESS_SURFACE 0
+#endif
+
+#if !defined(_WIN32)
+// @TODO: implement native Window support for current platform. For now, always use HeadlessSurface.
+#	undef USE_HEADLESS_SURFACE
+#	define USE_HEADLESS_SURFACE 1
+#endif
+
+#if defined(_WIN32)
+#	define VK_USE_PLATFORM_WIN32_KHR
+#endif
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
@@ -23,11 +35,134 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 #include "StandAlone/ResourceLimits.h"
 #include "glslang/Public/ShaderLang.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#if defined(_WIN32)
+#	define WIN32_LEAN_AND_MEAN
+#	include <Windows.h>
+#endif
 
 #include <cassert>
 #include <vector>
+
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
+namespace {
+uint32_t getMemoryTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t typeBits, vk::MemoryPropertyFlags properties)
+{
+	vk::PhysicalDeviceMemoryProperties deviceMemoryProperties = physicalDevice.getMemoryProperties();
+	for(uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; i++)
+	{
+		if((typeBits & 1) == 1)
+		{
+			if((deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+			{
+				return i;
+			}
+		}
+		typeBits >>= 1;
+	}
+
+	assert(false);
+	return -1;
+}
+
+vk::CommandBuffer beginSingleTimeCommands(vk::Device device, vk::CommandPool commandPool)
+{
+	vk::CommandBufferAllocateInfo allocInfo{};
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandPool = commandPool;
+	allocInfo.commandBufferCount = 1;
+
+	auto commandBuffer = device.allocateCommandBuffers(allocInfo);
+
+	vk::CommandBufferBeginInfo beginInfo{};
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+	commandBuffer[0].begin(beginInfo);
+
+	return commandBuffer[0];
+}
+
+void endSingleTimeCommands(vk::Device device, vk::CommandPool commandPool, vk::Queue queue, vk::CommandBuffer commandBuffer)
+{
+	commandBuffer.end();
+
+	vk::SubmitInfo submitInfo{};
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vk::Fence fence = {};  // TODO: pass in fence?
+	queue.submit(1, &submitInfo, fence);
+	queue.waitIdle();
+
+	device.freeCommandBuffers(commandPool, 1, &commandBuffer);
+}
+
+void transitionImageLayout(vk::Device device, vk::CommandPool commandPool, vk::Queue queue, vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
+{
+	vk::CommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+	vk::ImageMemoryBarrier barrier{};
+	barrier.oldLayout = oldLayout;
+	barrier.newLayout = newLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	vk::PipelineStageFlags sourceStage;
+	vk::PipelineStageFlags destinationStage;
+
+	if(oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal)
+	{
+		barrier.srcAccessMask = {};
+		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+		sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+		destinationStage = vk::PipelineStageFlagBits::eTransfer;
+	}
+	else if(oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)
+	{
+		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+
+		sourceStage = vk::PipelineStageFlagBits::eTransfer;
+		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+	}
+	else
+	{
+		assert(!"unsupported layout transition!");
+	}
+
+	commandBuffer.pipelineBarrier(sourceStage, destinationStage, vk::DependencyFlags{}, 0, nullptr, 0, nullptr, 1, &barrier);
+
+	endSingleTimeCommands(device, commandPool, queue, commandBuffer);
+}
+
+void copyBufferToImage(vk::Device device, vk::CommandPool commandPool, vk::Queue queue, vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
+{
+	vk::CommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+	vk::BufferImageCopy region{};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+	region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+	region.imageOffset = vk::Offset3D{ 0, 0, 0 };
+	region.imageExtent = vk::Extent3D{ width, height, 1 };
+
+	commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+
+	endSingleTimeCommands(device, commandPool, queue, commandBuffer);
+}
+
+}  // namespace
 
 class VulkanBenchmark
 {
@@ -35,7 +170,13 @@ public:
 	VulkanBenchmark()
 	{
 		// TODO(b/158231104): Other platforms
+#if defined(_WIN32)
 		dl = std::make_unique<vk::DynamicLoader>("./vk_swiftshader.dll");
+#elif defined(__linux__)
+		dl = std::make_unique<vk::DynamicLoader>("./libvk_swiftshader.so");
+#else
+#	error Unimplemented platform
+#endif
 		assert(dl->success());
 
 		PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dl->getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
@@ -71,25 +212,6 @@ public:
 	}
 
 protected:
-	uint32_t getMemoryTypeIndex(uint32_t typeBits, vk::MemoryPropertyFlags properties)
-	{
-		vk::PhysicalDeviceMemoryProperties deviceMemoryProperties = physicalDevice.getMemoryProperties();
-		for(uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; i++)
-		{
-			if((typeBits & 1) == 1)
-			{
-				if((deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-				{
-					return i;
-				}
-			}
-			typeBits >>= 1;
-		}
-
-		assert(false);
-		return -1;
-	}
-
 	const uint32_t queueFamilyIndex = 0;
 
 	vk::Instance instance;
@@ -178,7 +300,7 @@ public:
 
 	~ClearImageBenchmark()
 	{
-		device.freeCommandBuffers(commandPool, { commandBuffer });
+		device.freeCommandBuffers(commandPool, 1, &commandBuffer);
 		device.destroyCommandPool(commandPool, nullptr);
 		device.freeMemory(memory, nullptr);
 		device.destroyImage(image, nullptr);
@@ -214,17 +336,42 @@ static void ClearImage(benchmark::State &state, vk::Format clearFormat, vk::Imag
 		benchmark.clear();
 	}
 }
-BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R8G8B8A8_UNORM, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
-BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R32_SFLOAT, vk::Format::eR32Sfloat, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
-BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_D32_SFLOAT, vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth)->Unit(benchmark::kMillisecond);
 
+#if USE_HEADLESS_SURFACE
 class Window
 {
 public:
 	Window(vk::Instance instance, vk::Extent2D windowSize)
 	{
-		moduleInstance = GetModuleHandle(NULL);
+		vk::HeadlessSurfaceCreateInfoEXT surfaceCreateInfo;
+		surface = instance.createHeadlessSurfaceEXT(surfaceCreateInfo);
+		assert(surface);
+	}
 
+	~Window()
+	{
+		instance.destroySurfaceKHR(surface, nullptr);
+	}
+
+	vk::SurfaceKHR getSurface()
+	{
+		return surface;
+	}
+
+	void show()
+	{
+	}
+
+private:
+	const vk::Instance instance;
+	vk::SurfaceKHR surface;
+};
+#elif defined(_WIN32)
+class Window
+{
+public:
+	Window(vk::Instance instance, vk::Extent2D windowSize)
+	{
 		windowClass.cbSize = sizeof(WNDCLASSEX);
 		windowClass.style = CS_HREDRAW | CS_VREDRAW;
 		windowClass.lpfnWndProc = DefWindowProc;
@@ -274,7 +421,6 @@ public:
 	~Window()
 	{
 		instance.destroySurfaceKHR(surface, nullptr);
-
 		DestroyWindow(window);
 		UnregisterClass("Window", moduleInstance);
 	}
@@ -293,10 +439,12 @@ private:
 	HWND window;
 	HINSTANCE moduleInstance;
 	WNDCLASSEX windowClass;
-
 	const vk::Instance instance;
 	vk::SurfaceKHR surface;
 };
+#else
+#	error Window class unimplemented for this platform
+#endif
 
 class Swapchain
 {
@@ -308,13 +456,14 @@ public:
 
 		// Create the swapchain
 		vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
+		extent = surfaceCapabilities.currentExtent;
 
 		vk::SwapchainCreateInfoKHR swapchainCreateInfo;
 		swapchainCreateInfo.surface = surface;
 		swapchainCreateInfo.minImageCount = 2;  // double-buffered
 		swapchainCreateInfo.imageFormat = colorFormat;
 		swapchainCreateInfo.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
-		swapchainCreateInfo.imageExtent = surfaceCapabilities.currentExtent;
+		swapchainCreateInfo.imageExtent = extent;
 		swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 		swapchainCreateInfo.preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
 		swapchainCreateInfo.imageArrayLayers = 1;
@@ -383,15 +532,73 @@ public:
 		return imageViews[i];
 	}
 
+	vk::Extent2D getExtent() const
+	{
+		return extent;
+	}
+
 	const vk::Format colorFormat = vk::Format::eB8G8R8A8Unorm;
 
 private:
 	const vk::Device device;
 
 	vk::SwapchainKHR swapchain;
+	vk::Extent2D extent;
 
 	std::vector<vk::Image> images;  // Weak pointers. Presentable images owned by swapchain object.
 	std::vector<vk::ImageView> imageViews;
+};
+
+class Buffer
+{
+public:
+	Buffer(vk::Device device, vk::DeviceSize size, vk::BufferUsageFlags usage)
+	    : device(device)
+	    , size(size)
+	{
+		vk::BufferCreateInfo bufferInfo{};
+		bufferInfo.size = size;
+		bufferInfo.usage = usage;
+		bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+		buffer = device.createBuffer(bufferInfo);
+
+		auto memRequirements = device.getBufferMemoryRequirements(buffer);
+
+		vk::MemoryAllocateInfo allocInfo{};
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = 0;  //TODO: getMemoryTypeIndex(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+		bufferMemory = device.allocateMemory(allocInfo);
+		device.bindBufferMemory(buffer, bufferMemory, 0);
+	}
+
+	~Buffer()
+	{
+		device.freeMemory(bufferMemory);
+		device.destroyBuffer(buffer);
+	}
+
+	vk::Buffer getBuffer()
+	{
+		return buffer;
+	}
+
+	void *mapMemory()
+	{
+		return device.mapMemory(bufferMemory, 0, size);
+	}
+
+	void unmapMemory()
+	{
+		device.unmapMemory(bufferMemory);
+	}
+
+private:
+	const vk::Device device;
+	vk::DeviceSize size;
+	vk::Buffer buffer;
+	vk::DeviceMemory bufferMemory;
 };
 
 class Image
@@ -443,6 +650,11 @@ public:
 		device.freeMemory(imageMemory);
 	}
 
+	vk::Image getImage()
+	{
+		return image;
+	}
+
 	vk::ImageView getImageView()
 	{
 		return imageView;
@@ -459,14 +671,14 @@ private:
 class Framebuffer
 {
 public:
-	Framebuffer(vk::Device device, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, uint32_t width, uint32_t height, bool multisample)
+	Framebuffer(vk::Device device, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, vk::Extent2D extent, bool multisample)
 	    : device(device)
 	{
 		std::vector<vk::ImageView> attachments(multisample ? 2 : 1);
 
 		if(multisample)
 		{
-			multisampleImage = new Image(device, width, height, colorFormat, vk::SampleCountFlagBits::e4);
+			multisampleImage = new Image(device, extent.width, extent.height, colorFormat, vk::SampleCountFlagBits::e4);
 
 			// We'll be rendering to attachment location 0
 			attachments[0] = multisampleImage->getImageView();
@@ -482,8 +694,8 @@ public:
 		framebufferCreateInfo.renderPass = renderPass;
 		framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferCreateInfo.pAttachments = attachments.data();
-		framebufferCreateInfo.width = width;
-		framebufferCreateInfo.height = height;
+		framebufferCreateInfo.width = extent.width;
+		framebufferCreateInfo.height = extent.height;
 		framebufferCreateInfo.layers = 1;
 
 		framebuffer = device.createFramebuffer(framebufferCreateInfo);
@@ -569,6 +781,12 @@ public:
 
 	~TriangleBenchmark()
 	{
+		delete texture;
+
+		device.destroyDescriptorPool(descriptorPool);
+
+		device.destroySampler(sampler, nullptr);
+
 		device.destroyPipelineLayout(pipelineLayout, nullptr);
 		device.destroyPipelineCache(pipelineCache, nullptr);
 
@@ -648,9 +866,72 @@ protected:
 		commandPoolCreateInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 		commandPool = device.createCommandPool(commandPoolCreateInfo);
 
+		texture = new Image(device, 16, 16, vk::Format::eR8G8B8A8Unorm);
+
+		// Fill texture with white
+		vk::DeviceSize bufferSize = 16 * 16 * 4;
+		Buffer buffer(device, bufferSize, vk::BufferUsageFlagBits::eTransferSrc);
+		void *data = buffer.mapMemory();
+		memset(data, 255, bufferSize);
+		buffer.unmapMemory();
+
+		transitionImageLayout(device, commandPool, queue, texture->getImage(), vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		copyBufferToImage(device, commandPool, queue, buffer.getBuffer(), texture->getImage(), 16, 16);
+		transitionImageLayout(device, commandPool, queue, texture->getImage(), vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+
+		vk::SamplerCreateInfo samplerInfo;
+		samplerInfo.magFilter = vk::Filter::eLinear;
+		samplerInfo.minFilter = vk::Filter::eLinear;
+		samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.anisotropyEnable = VK_FALSE;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 0.0f;
+
+		sampler = device.createSampler(samplerInfo);
+
+		std::array<vk::DescriptorPoolSize, 1> poolSizes = {};
+		poolSizes[0].type = vk::DescriptorType::eCombinedImageSampler;
+		poolSizes[0].descriptorCount = 1;
+
+		vk::DescriptorPoolCreateInfo poolInfo;
+		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+		poolInfo.pPoolSizes = poolSizes.data();
+		poolInfo.maxSets = 1;
+
+		descriptorPool = device.createDescriptorPool(poolInfo);
+
+		std::vector<vk::DescriptorSetLayout> layouts(1, descriptorSetLayout);
+		vk::DescriptorSetAllocateInfo allocInfo;
+		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = layouts.data();
+
+		std::vector<vk::DescriptorSet> descriptorSets = device.allocateDescriptorSets(allocInfo);
+
+		vk::DescriptorImageInfo imageInfo;
+		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		imageInfo.imageView = texture->getImageView();
+		imageInfo.sampler = sampler;
+
+		std::array<vk::WriteDescriptorSet, 1> descriptorWrites = {};
+
+		descriptorWrites[0].dstSet = descriptorSets[0];
+		descriptorWrites[0].dstBinding = 1;
+		descriptorWrites[0].dstArrayElement = 0;
+		descriptorWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pImageInfo = &imageInfo;
+
+		device.updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
 		vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
 		commandBufferAllocateInfo.commandPool = commandPool;
-		commandBufferAllocateInfo.commandBufferCount = swapchain->imageCount();
+		commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(swapchain->imageCount());
 		commandBufferAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
 
 		commandBuffers = device.allocateCommandBuffers(commandBufferAllocateInfo);
@@ -669,20 +950,23 @@ protected:
 			renderPassBeginInfo.renderArea.offset.x = 0;
 			renderPassBeginInfo.renderArea.offset.y = 0;
 			renderPassBeginInfo.renderArea.extent = windowSize;
-			renderPassBeginInfo.clearValueCount = 2;
+			renderPassBeginInfo.clearValueCount = ARRAY_SIZE(clearValues);
 			renderPassBeginInfo.pClearValues = clearValues;
 			commandBuffers[i].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
 			// Set dynamic state
-			vk::Viewport viewport(0.0f, 0.0f, windowSize.width, windowSize.height, 0.0f, 1.0f);
+			vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(windowSize.width), static_cast<float>(windowSize.height), 0.0f, 1.0f);
 			commandBuffers[i].setViewport(0, 1, &viewport);
 
 			vk::Rect2D scissor(vk::Offset2D(0, 0), windowSize);
 			commandBuffers[i].setScissor(0, 1, &scissor);
 
+			commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, 1, &descriptorSets[0], 0, nullptr);
+
 			// Draw a triangle
 			commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
-			commandBuffers[i].bindVertexBuffers(0, { vertices.buffer }, { 0 });
+			VULKAN_HPP_NAMESPACE::DeviceSize offset = 0;
+			commandBuffers[i].bindVertexBuffers(0, 1, &vertices.buffer, &offset);
 			commandBuffers[i].draw(3, 1, 0, 0);
 
 			commandBuffers[i].endRenderPass();
@@ -696,12 +980,13 @@ protected:
 		{
 			float position[3];
 			float color[3];
+			float texCoord[2];
 		};
 
 		Vertex vertexBufferData[] = {
-			{ { 1.0f, 1.0f, 0.05f }, { 1.0f, 0.0f, 0.0f } },
-			{ { -1.0f, 1.0f, 0.5f }, { 0.0f, 1.0f, 0.0f } },
-			{ { 0.0f, -1.0f, 0.5f }, { 0.0f, 0.0f, 1.0f } }
+			{ { 1.0f, 1.0f, 0.05f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } },
+			{ { -1.0f, 1.0f, 0.5f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } },
+			{ { 0.0f, -1.0f, 0.5f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } }
 		};
 
 		vk::BufferCreateInfo vertexBufferInfo;
@@ -712,7 +997,7 @@ protected:
 		vk::MemoryAllocateInfo memoryAllocateInfo;
 		vk::MemoryRequirements memoryRequirements = device.getBufferMemoryRequirements(vertices.buffer);
 		memoryAllocateInfo.allocationSize = memoryRequirements.size;
-		memoryAllocateInfo.memoryTypeIndex = getMemoryTypeIndex(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		memoryAllocateInfo.memoryTypeIndex = getMemoryTypeIndex(physicalDevice, memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 		vk::DeviceMemory vertexBufferMemory = device.allocateMemory(memoryAllocateInfo);
 
 		void *data = device.mapMemory(vertexBufferMemory, 0, VK_WHOLE_SIZE);
@@ -726,6 +1011,7 @@ protected:
 
 		vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
 		vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)));
+		vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texCoord)));
 
 		vertices.inputState.vertexBindingDescriptionCount = 1;
 		vertices.inputState.pVertexBindingDescriptions = &vertices.inputBinding;
@@ -739,7 +1025,7 @@ protected:
 
 		for(size_t i = 0; i < framebuffers.size(); i++)
 		{
-			framebuffers[i] = new Framebuffer(device, swapchain->getImageView(i), swapchain->colorFormat, renderPass, windowSize.width, windowSize.height, multisample);
+			framebuffers[i] = new Framebuffer(device, swapchain->getImageView(i), swapchain->colorFormat, renderPass, swapchain->getExtent(), multisample);
 		}
 	}
 
@@ -837,9 +1123,26 @@ protected:
 
 	vk::UniquePipeline createGraphicsPipeline(vk::RenderPass renderPass)
 	{
-		vk::PipelineLayoutCreateInfo pPipelineLayoutCreateInfo;
-		pPipelineLayoutCreateInfo.setLayoutCount = 0;
-		pipelineLayout = device.createPipelineLayout(pPipelineLayoutCreateInfo);
+		vk::DescriptorSetLayoutBinding samplerLayoutBinding;
+		samplerLayoutBinding.binding = 1;
+		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		samplerLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+		std::array<vk::DescriptorSetLayoutBinding, 1> bindings = { samplerLayoutBinding };
+		vk::DescriptorSetLayoutCreateInfo layoutInfo;
+		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+		layoutInfo.pBindings = bindings.data();
+
+		descriptorSetLayout = device.createDescriptorSetLayout(layoutInfo);
+
+		std::vector<vk::DescriptorSetLayout> setLayouts(1, descriptorSetLayout);
+
+		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+		pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+		pipelineLayoutCreateInfo.pSetLayouts = setLayouts.data();
+		pipelineLayout = device.createPipelineLayout(pipelineLayoutCreateInfo);
 
 		vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
 		pipelineCreateInfo.layout = pipelineLayout;
@@ -893,12 +1196,15 @@ protected:
 		const char *vertexShader = R"(#version 310 es
 			layout(location = 0) in vec3 inPos;
 			layout(location = 1) in vec3 inColor;
+
 			layout(location = 0) out vec3 outColor;
+			layout(location = 1) out vec2 fragTexCoord;
 
 			void main()
 			{
 				outColor = inColor;
 				gl_Position = vec4(inPos.xyz, 1.0);
+				fragTexCoord = inPos.xy;
 			}
 		)";
 
@@ -906,11 +1212,15 @@ protected:
 			precision highp float;
 
 			layout(location = 0) in vec3 inColor;
+			layout(location = 1) in vec2 fragTexCoord;
+
 			layout(location = 0) out vec4 outColor;
+
+			layout(binding = 0) uniform sampler2D texSampler;
 
 			void main()
 			{
-				outColor = vec4(inColor, 1.0);
+				outColor = texture(texSampler, fragTexCoord) * vec4(inColor, 1.0);
 			}
 		)";
 
@@ -962,9 +1272,13 @@ protected:
 		std::vector<vk::VertexInputAttributeDescription> inputAttributes;
 	} vertices;
 
+	vk::DescriptorPool descriptorPool;
+	vk::DescriptorSetLayout descriptorSetLayout;
 	vk::PipelineLayout pipelineLayout;
 	vk::PipelineCache pipelineCache;
 	vk::UniquePipeline pipeline;
+
+	vk::Sampler sampler;
 
 	vk::CommandPool commandPool;
 	std::vector<vk::CommandBuffer> commandBuffers;
@@ -973,6 +1287,8 @@ protected:
 	vk::Semaphore renderCompleteSemaphore;
 
 	std::vector<vk::Fence> waitFences;
+
+	Image *texture = nullptr;
 };
 
 static void Triangle(benchmark::State &state, bool multisample)
@@ -989,5 +1305,9 @@ static void Triangle(benchmark::State &state, bool multisample)
 		benchmark.renderFrame();
 	}
 }
+
+BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R8G8B8A8_UNORM, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R32_SFLOAT, vk::Format::eR32Sfloat, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_D32_SFLOAT, vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth)->Unit(benchmark::kMillisecond);
 BENCHMARK_CAPTURE(Triangle, Hello, false)->Unit(benchmark::kMillisecond);
 BENCHMARK_CAPTURE(Triangle, Multisample, true)->Unit(benchmark::kMillisecond);
