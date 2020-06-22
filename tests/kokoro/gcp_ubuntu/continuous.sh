@@ -52,3 +52,17 @@ cmake .. "-DREACTOR_ENABLE_PRINT=1"
 cmake --build . --target ReactorUnitTests -- -j $(nproc)
 cd ..
 build/ReactorUnitTests --gtest_filter=ReactorUnitTests.Print*
+
+if [ "${LLVM_VERSION}" -ne "10.0" ]; then
+  # Incrementally build with REACTOR_EMIT_DEBUG_INFO to ensure it builds
+  cd build
+  cmake .. "-DREACTOR_EMIT_DEBUG_INFO=1"
+  cmake --build . --target ReactorUnitTests -- -j $(nproc)
+  cd ..
+
+  # Incrementally build with REACTOR_EMIT_PRINT_LOCATION to ensure it builds
+  cd build
+  cmake .. "-DREACTOR_EMIT_PRINT_LOCATION=1"
+  cmake --build . --target ReactorUnitTests -- -j $(nproc)
+  cd ..
+fi
