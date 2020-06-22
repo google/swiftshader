@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b368efea_230eabf6",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-06-22T15:14:33Z",
+      "side": 1,
+      "message": "Reads out of bounds when clearValue isn\u0027t a 4-component color. Fixed in https://swiftshader-review.googlesource.com/c/SwiftShader/+/45949",
+      "range": {
+        "startLine": 168,
+        "startChar": 0,
+        "endLine": 170,
+        "endChar": 20
+      },
+      "revId": "af1f215923f24825443ef14adf6f58aff53893b8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
