@@ -4472,10 +4472,8 @@ RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_orde
 void EmitDebugLocation()
 {
 #ifdef ENABLE_RR_DEBUG_INFO
-#	ifdef ENABLE_RR_EMIT_PRINT_LOCATION
 	emitPrintLocation(getCallerBacktrace());
-#	endif  // ENABLE_RR_EMIT_PRINT_LOCATION
-#endif      // ENABLE_RR_DEBUG_INFO
+#endif  // ENABLE_RR_DEBUG_INFO
 }
 void EmitDebugVariable(Value *value) {}
 void FlushDebug() {}
