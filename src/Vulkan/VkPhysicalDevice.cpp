@@ -791,6 +791,7 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 
 	switch(format)
 	{
+		// Vulkan 1.1 mandatory
 		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_R8_SNORM:
 		case VK_FORMAT_R8_UINT:
@@ -810,8 +811,6 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 		case VK_FORMAT_R16_UINT:
 		case VK_FORMAT_R16_SINT:
 		case VK_FORMAT_R16_SFLOAT:
@@ -831,6 +830,9 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_R32G32B32A32_SINT:
 		case VK_FORMAT_R32G32B32A32_SFLOAT:
 		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+		// Optional
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
 			pFormatProperties->bufferFeatures |=
 			    VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;
 			break;

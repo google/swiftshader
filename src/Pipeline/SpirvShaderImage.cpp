@@ -872,6 +872,12 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(2, SIMD::Float((packed[0]) & SIMD::Int(0x1F)) * SIMD::Float(1.0f / 0x1F));
 			dst.move(3, SIMD::Float((packed[0] >> 15) & SIMD::Int(0x1)));
 			break;
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+			dst.move(0, halfToFloatBits((packed[0] << 4) & SIMD::Int(0x7FF0)));
+			dst.move(1, halfToFloatBits((packed[0] >> 7) & SIMD::Int(0x7FF0)));
+			dst.move(2, halfToFloatBits((packed[0] >> 17) & SIMD::Int(0x7FE0)));
+			dst.move(3, SIMD::Float(1));
+			break;
 		default:
 			UNSUPPORTED("VkFormat %d", int(vkFormat));
 			break;
