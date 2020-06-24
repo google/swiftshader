@@ -705,6 +705,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(3, halfToFloatBits((As<SIMD::UInt>(packed[1]) & SIMD::UInt(0xFFFF0000)) >> 16));
 			break;
 		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
 			dst.move(0, Min(Max(SIMD::Float(((packed[0] << 24) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			dst.move(1, Min(Max(SIMD::Float(((packed[0] << 16) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			dst.move(2, Min(Max(SIMD::Float(((packed[0] << 8) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
@@ -756,6 +757,12 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(2, SIMD::Float(0));
 			dst.move(3, SIMD::Float(1));
 			break;
+		case VK_FORMAT_R8_SNORM:
+			dst.move(0, Max(SIMD::Float((packed[0] << 24) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
+			dst.move(1, SIMD::Float(0));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_S8_UINT:
 			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
@@ -772,6 +779,12 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 		case VK_FORMAT_R8G8_UNORM:
 			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(1, SIMD::Float(((packed[0] >> 8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
+		case VK_FORMAT_R8G8_SNORM:
+			dst.move(0, Max(SIMD::Float((packed[0] << 24) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
+			dst.move(1, Max(SIMD::Float((packed[0] << 16) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
 			dst.move(2, SIMD::Float(0));
 			dst.move(3, SIMD::Float(1));
 			break;
