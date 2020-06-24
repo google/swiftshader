@@ -676,27 +676,27 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 		case VK_FORMAT_D32_SFLOAT_S8_UINT:
 			dst.move(0, packed[0]);
 			// Fill remaining channels with 0,0,1 (of the correct type)
-			dst.move(1, SIMD::Float(0));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(1, SIMD::Float(0.0f));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_D16_UNORM:
-			dst.move(0, SIMD::Float(packed[0] & SIMD::Int(0xffff)) * SIMD::Float(1.0f / 65535.0f));
-			dst.move(1, SIMD::Float(0));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(0, SIMD::Float(packed[0] & SIMD::Int(0xFFFF)) * SIMD::Float(1.0f / 0xFFFF));
+			dst.move(1, SIMD::Float(0.0f));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
 			dst.move(0, (packed[0] << 16) >> 16);
-			dst.move(1, (packed[0]) >> 16);
+			dst.move(1, packed[0] >> 16);
 			dst.move(2, (packed[1] << 16) >> 16);
-			dst.move(3, (packed[1]) >> 16);
+			dst.move(3, packed[1] >> 16);
 			break;
 		case VK_FORMAT_R16G16B16A16_UINT:
-			dst.move(0, packed[0] & SIMD::Int(0xffff));
-			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xffff));
-			dst.move(2, packed[1] & SIMD::Int(0xffff));
-			dst.move(3, (packed[1] >> 16) & SIMD::Int(0xffff));
+			dst.move(0, packed[0] & SIMD::Int(0xFFFF));
+			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xFFFF));
+			dst.move(2, packed[1] & SIMD::Int(0xFFFF));
+			dst.move(3, (packed[1] >> 16) & SIMD::Int(0xFFFF));
 			break;
 		case VK_FORMAT_R16G16B16A16_SFLOAT:
 			dst.move(0, halfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
@@ -706,66 +706,66 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			break;
 		case VK_FORMAT_R8G8B8A8_SNORM:
 		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-			dst.move(0, Min(Max(SIMD::Float(((packed[0] << 24) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
-			dst.move(1, Min(Max(SIMD::Float(((packed[0] << 16) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
-			dst.move(2, Min(Max(SIMD::Float(((packed[0] << 8) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
-			dst.move(3, Min(Max(SIMD::Float(((packed[0]) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(0, Max(SIMD::Float((packed[0] << 24) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
+			dst.move(1, Max(SIMD::Float((packed[0] << 16) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
+			dst.move(2, Max(SIMD::Float((packed[0] << 8) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
+			dst.move(3, Max(SIMD::Float((packed[0]) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
 			break;
 		case VK_FORMAT_R8G8B8A8_UNORM:
 		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(1, SIMD::Float(((packed[0] >> 8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(2, SIMD::Float(((packed[0] >> 16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(3, SIMD::Float(((packed[0] >> 24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(0, SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(1, SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(2, SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 			break;
 		case VK_FORMAT_R8G8B8A8_SRGB:
 		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-			dst.move(0, ::sRGBtoLinear(SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
-			dst.move(1, ::sRGBtoLinear(SIMD::Float(((packed[0] >> 8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
-			dst.move(2, ::sRGBtoLinear(SIMD::Float(((packed[0] >> 16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
-			dst.move(3, SIMD::Float(((packed[0] >> 24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(0, ::sRGBtoLinear(SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+			dst.move(1, ::sRGBtoLinear(SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+			dst.move(2, ::sRGBtoLinear(SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+			dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 			break;
 		case VK_FORMAT_B8G8R8A8_UNORM:
-			dst.move(0, SIMD::Float(((packed[0] >> 16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(1, SIMD::Float(((packed[0] >> 8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(2, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(3, SIMD::Float(((packed[0] >> 24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(0, SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(1, SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(2, SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 			break;
 		case VK_FORMAT_B8G8R8A8_SRGB:
-			dst.move(0, ::sRGBtoLinear(SIMD::Float(((packed[0] >> 16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
-			dst.move(1, ::sRGBtoLinear(SIMD::Float(((packed[0] >> 8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
-			dst.move(2, ::sRGBtoLinear(SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
-			dst.move(3, SIMD::Float(((packed[0] >> 24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(0, ::sRGBtoLinear(SIMD::Float((packed[0] >> 16) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+			dst.move(1, ::sRGBtoLinear(SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+			dst.move(2, ::sRGBtoLinear(SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF)));
+			dst.move(3, SIMD::Float((packed[0] >> 24) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
 			break;
 		case VK_FORMAT_R8G8B8A8_UINT:
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
-			dst.move(1, ((As<SIMD::UInt>(packed[0]) >> 8) & SIMD::UInt(0xFF)));
-			dst.move(2, ((As<SIMD::UInt>(packed[0]) >> 16) & SIMD::UInt(0xFF)));
-			dst.move(3, ((As<SIMD::UInt>(packed[0]) >> 24) & SIMD::UInt(0xFF)));
+			dst.move(0, As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF));
+			dst.move(1, (As<SIMD::UInt>(packed[0]) >> 8) & SIMD::UInt(0xFF));
+			dst.move(2, (As<SIMD::UInt>(packed[0]) >> 16) & SIMD::UInt(0xFF));
+			dst.move(3, (As<SIMD::UInt>(packed[0]) >> 24) & SIMD::UInt(0xFF));
 			break;
 		case VK_FORMAT_R8G8B8A8_SINT:
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			dst.move(0, (packed[0] << 24) >> 24);
 			dst.move(1, (packed[0] << 16) >> 24);
 			dst.move(2, (packed[0] << 8) >> 24);
-			dst.move(3, (packed[0]) >> 24);
+			dst.move(3, packed[0] >> 24);
 			break;
 		case VK_FORMAT_R8_UNORM:
-			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(1, SIMD::Float(0));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 0xFF));
+			dst.move(1, SIMD::Float(0.0f));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R8_SNORM:
 			dst.move(0, Max(SIMD::Float((packed[0] << 24) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
-			dst.move(1, SIMD::Float(0));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(1, SIMD::Float(0.0f));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_S8_UINT:
-			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
+			dst.move(0, As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF));
 			dst.move(1, SIMD::UInt(0));
 			dst.move(2, SIMD::UInt(0));
 			dst.move(3, SIMD::UInt(1));
@@ -777,20 +777,20 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(3, SIMD::Int(1));
 			break;
 		case VK_FORMAT_R8G8_UNORM:
-			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(1, SIMD::Float(((packed[0] >> 8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(0, SIMD::Float(packed[0] & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(1, SIMD::Float((packed[0] >> 8) & SIMD::Int(0xFF)) * SIMD::Float(1.0f / 0xFF));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R8G8_SNORM:
 			dst.move(0, Max(SIMD::Float((packed[0] << 24) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
 			dst.move(1, Max(SIMD::Float((packed[0] << 16) & SIMD::Int(0xFF000000)) * SIMD::Float(1.0f / 0x7F000000), SIMD::Float(-1.0f)));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R8G8_UINT:
-			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
-			dst.move(1, ((As<SIMD::UInt>(packed[0]) >> 8) & SIMD::UInt(0xFF)));
+			dst.move(0, As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF));
+			dst.move(1, (As<SIMD::UInt>(packed[0]) >> 8) & SIMD::UInt(0xFF));
 			dst.move(2, SIMD::UInt(0));
 			dst.move(3, SIMD::UInt(1));
 			break;
@@ -802,12 +802,12 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			break;
 		case VK_FORMAT_R16_SFLOAT:
 			dst.move(0, halfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
-			dst.move(1, SIMD::Float(0));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(1, SIMD::Float(0.0f));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R16_UINT:
-			dst.move(0, packed[0] & SIMD::Int(0xffff));
+			dst.move(0, packed[0] & SIMD::Int(0xFFFF));
 			dst.move(1, SIMD::UInt(0));
 			dst.move(2, SIMD::UInt(0));
 			dst.move(3, SIMD::UInt(1));
@@ -821,18 +821,18 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 		case VK_FORMAT_R16G16_SFLOAT:
 			dst.move(0, halfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
 			dst.move(1, halfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_R16G16_UINT:
-			dst.move(0, packed[0] & SIMD::Int(0xffff));
-			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xffff));
+			dst.move(0, packed[0] & SIMD::Int(0xFFFF));
+			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xFFFF));
 			dst.move(2, SIMD::UInt(0));
 			dst.move(3, SIMD::UInt(1));
 			break;
 		case VK_FORMAT_R16G16_SINT:
 			dst.move(0, (packed[0] << 16) >> 16);
-			dst.move(1, (packed[0]) >> 16);
+			dst.move(1, packed[0] >> 16);
 			dst.move(2, SIMD::Int(0));
 			dst.move(3, SIMD::Int(1));
 			break;
@@ -846,17 +846,17 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 		case VK_FORMAT_R32G32_SFLOAT:
 			dst.move(0, packed[0]);
 			dst.move(1, packed[1]);
-			dst.move(2, SIMD::Float(0));
-			dst.move(3, SIMD::Float(1));
+			dst.move(2, SIMD::Float(0.0f));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-			dst.move(0, (packed[0]) & SIMD::Int(0x3FF));
+			dst.move(0, packed[0] & SIMD::Int(0x3FF));
 			dst.move(1, (packed[0] >> 10) & SIMD::Int(0x3FF));
 			dst.move(2, (packed[0] >> 20) & SIMD::Int(0x3FF));
 			dst.move(3, (packed[0] >> 30) & SIMD::Int(0x3));
 			break;
 		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-			dst.move(2, (packed[0]) & SIMD::Int(0x3FF));
+			dst.move(2, packed[0] & SIMD::Int(0x3FF));
 			dst.move(1, (packed[0] >> 10) & SIMD::Int(0x3FF));
 			dst.move(0, (packed[0] >> 20) & SIMD::Int(0x3FF));
 			dst.move(3, (packed[0] >> 30) & SIMD::Int(0x3));
@@ -877,7 +877,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(0, SIMD::Float((packed[0] >> 11) & SIMD::Int(0x1F)) * SIMD::Float(1.0f / 0x1F));
 			dst.move(1, SIMD::Float((packed[0] >> 5) & SIMD::Int(0x3F)) * SIMD::Float(1.0f / 0x3F));
 			dst.move(2, SIMD::Float((packed[0]) & SIMD::Int(0x1F)) * SIMD::Float(1.0f / 0x1F));
-			dst.move(3, SIMD::Float(1));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 			dst.move(0, SIMD::Float((packed[0] >> 10) & SIMD::Int(0x1F)) * SIMD::Float(1.0f / 0x1F));
@@ -889,7 +889,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 			dst.move(0, halfToFloatBits((packed[0] << 4) & SIMD::Int(0x7FF0)));
 			dst.move(1, halfToFloatBits((packed[0] >> 7) & SIMD::Int(0x7FF0)));
 			dst.move(2, halfToFloatBits((packed[0] >> 17) & SIMD::Int(0x7FE0)));
-			dst.move(3, SIMD::Float(1));
+			dst.move(3, SIMD::Float(1.0f));
 			break;
 		default:
 			UNSUPPORTED("VkFormat %d", int(vkFormat));
@@ -981,8 +981,8 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 		case spv::ImageFormatRgba16i:
 		case spv::ImageFormatRgba16ui:
 			texelSize = 8;
-			packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xffff)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xffff)) << 16);
-			packed[1] = SIMD::UInt(texel.UInt(2) & SIMD::UInt(0xffff)) | (SIMD::UInt(texel.UInt(3) & SIMD::UInt(0xffff)) << 16);
+			packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xFFFF)) << 16);
+			packed[1] = SIMD::UInt(texel.UInt(2) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(texel.UInt(3) & SIMD::UInt(0xFFFF)) << 16);
 			numPackedElements = 2;
 			break;
 		case spv::ImageFormatRg32f:
@@ -1001,7 +1001,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 		case spv::ImageFormatRg16i:
 		case spv::ImageFormatRg16ui:
 			texelSize = 4;
-			packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xffff)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xffff)) << 16);
+			packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xFFFF)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xFFFF)) << 16);
 			numPackedElements = 1;
 			break;
 
