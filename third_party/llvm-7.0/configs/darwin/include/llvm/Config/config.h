@@ -293,6 +293,8 @@
 /* Doesn't use `cmakedefine` because it is allowed to be empty. */
 #if defined(__x86_64__)
 #define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-apple-darwin"
+#elif defined(__aarch64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "arm64-apple-darwin"
 #else
 #error "unknown architecture"
 #endif
