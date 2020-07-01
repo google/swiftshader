@@ -29,7 +29,7 @@ half::half(float fp32)
 	else if(abs < 0x38800000)  // Denormal
 	{
 		unsigned int mantissa = (abs & 0x007FFFFF) | 0x00800000;
-		int e = 113 - (abs >> 23);
+		unsigned int e = 113 - (abs >> 23);
 
 		if(e < 24)
 		{

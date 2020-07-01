@@ -569,29 +569,27 @@ SIMD::UInt halfToFloatBits(SIMD::UInt halfBits)
 
 SIMD::UInt floatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits)
 {
-	static const uint32_t mask_sign = 0x80000000u;
-	static const uint32_t mask_round = ~0xfffu;
-	static const uint32_t c_f32infty = 255 << 23;
-	static const uint32_t c_magic = 15 << 23;
-	static const uint32_t c_nanbit = 0x200;
-	static const uint32_t c_infty_as_fp16 = 0x7c00;
-	static const uint32_t c_clamp = (31 << 23) - 0x1000;
+	SIMD::UInt sign = floatBits & SIMD::UInt(0x80000000);
+	SIMD::UInt abs = floatBits & SIMD::UInt(0x7FFFFFFF);
 
-	SIMD::UInt justsign = SIMD::UInt(mask_sign) & floatBits;
-	SIMD::UInt absf = floatBits ^ justsign;
-	SIMD::UInt b_isnormal = CmpNLE(SIMD::UInt(c_f32infty), absf);
+	SIMD::UInt normal = CmpNLE(abs, SIMD::UInt(0x38800000));
 
-	// Note: this version doesn't round to the nearest even in case of a tie as defined by IEEE 754-2008, it rounds to +inf
-	//       instead of nearest even, since that's fine for GLSL ES 3.0's needs (see section 2.1.1 Floating-Point Computation)
-	SIMD::UInt joined = ((((As<SIMD::UInt>(Min(As<SIMD::Float>(absf & SIMD::UInt(mask_round)) * As<SIMD::Float>(SIMD::UInt(c_magic)),
-	                                           As<SIMD::Float>(SIMD::UInt(c_clamp))))) -
-	                       SIMD::UInt(mask_round)) >>
-	                      13) &
-	                     b_isnormal) |
-	                    ((b_isnormal ^ SIMD::UInt(0xFFFFFFFF)) &
-	                     ((CmpNLE(absf, SIMD::UInt(c_f32infty)) & SIMD::UInt(c_nanbit)) | SIMD::UInt(c_infty_as_fp16)));
+	SIMD::UInt mantissa = (abs & SIMD::UInt(0x007FFFFF)) | SIMD::UInt(0x00800000);
+	SIMD::UInt e = SIMD::UInt(113) - (abs >> 23);
+	SIMD::UInt denormal = CmpLT(e, SIMD::UInt(24)) & (mantissa >> e);
 
-	return storeInUpperBits ? ((joined << 16) | justsign) : joined | (justsign >> 16);
+	SIMD::UInt base = (normal & abs) | (~normal & denormal);  // TODO: IfThenElse()
+
+	// float exponent bias is 127, half bias is 15, so adjust by -112
+	SIMD::UInt bias = normal & SIMD::UInt(0xC8000000);
+
+	SIMD::UInt rounded = base + bias + SIMD::UInt(0x00000FFF) + ((base >> 13) & SIMD::UInt(1));
+	SIMD::UInt fp16u = rounded >> 13;
+
+	// Infinity
+	fp16u |= CmpNLE(abs, SIMD::UInt(0x47FFEFFF)) & SIMD::UInt(0x7FFF);
+
+	return storeInUpperBits ? (sign | (fp16u << 16)) : ((sign >> 16) | fp16u);
 }
 
 Float4 r11g11b10Unpack(UInt r11g11b10bits)
