@@ -370,6 +370,7 @@ Float4 Blitter::readFloat4(Pointer<Byte> element, const State &state)
 			c = Float4(*Pointer<Byte4>(element));
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16B16A16_SNORM:
 			c = Float4(*Pointer<Short4>(element));
 			break;
 		case VK_FORMAT_R16G16B16A16_UNORM:

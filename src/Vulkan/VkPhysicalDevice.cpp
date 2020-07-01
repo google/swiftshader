@@ -97,7 +97,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_TRUE,   // fragmentStoresAndAtomics
 		VK_FALSE,  // shaderTessellationAndGeometryPointSize
 		VK_FALSE,  // shaderImageGatherExtended
-		VK_FALSE,  // shaderStorageImageExtendedFormats
+		VK_TRUE,   // shaderStorageImageExtendedFormats
 		VK_FALSE,  // shaderStorageImageMultisample
 		VK_FALSE,  // shaderStorageImageReadWithoutFormat
 		VK_FALSE,  // shaderStorageImageWriteWithoutFormat
@@ -647,9 +647,30 @@ void PhysicalDevice::getFormatProperties(Format format, VkFormatProperties *pFor
 		case VK_FORMAT_R32G32B32A32_UINT:
 		case VK_FORMAT_R32G32B32A32_SINT:
 		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16_SINT:
+		// shaderStorageImageExtendedFormats
 		case VK_FORMAT_R16G16_SFLOAT:
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+		case VK_FORMAT_R16_SFLOAT:
+		case VK_FORMAT_R16G16B16A16_UNORM:
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R8_UINT:
 			pFormatProperties->optimalTilingFeatures |=
 			    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
 			// [[fallthrough]]
