@@ -320,7 +320,7 @@ endmacro()
 
 macro(set_linker_flag FLAG)
     if(${ARGC} GREATER 1)
-        set(CMAKE_EXE_LINKER_FLAGS ${ARGV1} "${CMAKE_EXE_LINKER_FLAGS ${ARGV1}} ${FLAG}")
+        set(CMAKE_EXE_LINKER_FLAGS_${ARGV1} "${CMAKE_EXE_LINKER_FLAGS_${ARGV1}} ${FLAG}")
     else()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAG}")
     endif()
@@ -333,8 +333,8 @@ if(MSVC)
     add_definitions(-D_SBCS)  # Single Byte Character Set (ASCII)
     add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)  # Disable MSVC warnings about std::aligned_storage being broken before VS 2017 15.8
 
-    set_cpp_flag("/DEBUG:FASTLINK" DEBUG)
-    set_cpp_flag("/DEBUG:FASTLINK" RELWITHDEBINFO)
+    set_linker_flag("/DEBUG:FASTLINK" DEBUG)
+    set_linker_flag("/DEBUG:FASTLINK" RELWITHDEBINFO)
 
     # Disable specific warnings
     # TODO: Not all of these should be disabled, but for now, we want a warning-free msvc build. Remove these one by one
