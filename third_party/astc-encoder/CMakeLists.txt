@@ -28,7 +28,6 @@ set(ASTC_ENCODER_SRC_FILES
     Source/astc_mathlib.h
     Source/astc_mathlib_softfloat.cpp
     Source/astc_partition_tables.cpp
-    Source/astc_percentile_tables.cpp
     Source/astc_quantization.cpp
     Source/astc_symbolic_physical.cpp
     Source/astc_weight_quant_xfer_tables.cpp

@@ -56,7 +56,6 @@ swiftshader_source_set("Device") {
     "../../third_party/astc-encoder/Source/astc_mathlib.cpp",
     "../../third_party/astc-encoder/Source/astc_mathlib_softfloat.cpp",
     "../../third_party/astc-encoder/Source/astc_partition_tables.cpp",
-    "../../third_party/astc-encoder/Source/astc_percentile_tables.cpp",
     "../../third_party/astc-encoder/Source/astc_quantization.cpp",
     "../../third_party/astc-encoder/Source/astc_symbolic_physical.cpp",
     "../../third_party/astc-encoder/Source/astc_weight_quant_xfer_tables.cpp",

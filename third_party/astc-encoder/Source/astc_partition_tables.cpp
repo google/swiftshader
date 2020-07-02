@@ -249,11 +249,8 @@ static void generate_one_partition_table(
 	for (i = 0; i < texels_per_block; i++)
 	{
 		int partition = pt->partition_of_texel[i];
-		pt->texels_of_partition[partition][counts[partition]++] = i;
+		counts[partition]++;
 	}
-
-	for (i = 0; i < 4; i++)
-		pt->texels_per_partition[i] = counts[i];
 
 	if (counts[0] == 0)
 		pt->partition_count = 0;
@@ -265,16 +262,6 @@ static void generate_one_partition_table(
 		pt->partition_count = 3;
 	else
 		pt->partition_count = 4;
-
-	for (i = 0; i < 4; i++)
-		pt->coverage_bitmaps[i] = 0ULL;
-
-	int texels_to_process = bsd->texelcount_for_bitmap_partitioning;
-	for (i = 0; i < texels_to_process; i++)
-	{
-		int idx = bsd->texels_for_bitmap_partitioning[i];
-		pt->coverage_bitmaps[pt->partition_of_texel[idx]] |= 1ULL << i;
-	}
 }
 
 /* Public function, see header file for detailed documentation */

@@ -64,10 +64,7 @@ enum astc_decode_mode
 struct partition_info
 {
 	int partition_count;
-	uint8_t texels_per_partition[4];
 	uint8_t partition_of_texel[MAX_TEXELS_PER_BLOCK];
-	uint8_t texels_of_partition[4][MAX_TEXELS_PER_BLOCK];
-	uint64_t coverage_bitmaps[4];
 };
 
 /*
@@ -80,22 +77,10 @@ struct partition_info
 */
 struct decimation_table
 {
-	int num_texels;
 	int num_weights;
 	uint8_t texel_num_weights[MAX_TEXELS_PER_BLOCK];	// number of indices that go into the calculation for a texel
 	uint8_t texel_weights_int[MAX_TEXELS_PER_BLOCK][4];	// the weight to assign to each weight
-	float texel_weights_float[MAX_TEXELS_PER_BLOCK][4];	// the weight to assign to each weight
 	uint8_t texel_weights[MAX_TEXELS_PER_BLOCK][4];	// the weights that go into a texel calculation
-	uint8_t weight_num_texels[MAX_WEIGHTS_PER_BLOCK];	// the number of texels that a given weight contributes to
-	uint8_t weight_texel[MAX_WEIGHTS_PER_BLOCK][MAX_TEXELS_PER_BLOCK];	// the texels that the weight contributes to
-	uint8_t weights_int[MAX_WEIGHTS_PER_BLOCK][MAX_TEXELS_PER_BLOCK];	// the weights that the weight contributes to a texel.
-	float weights_flt[MAX_WEIGHTS_PER_BLOCK][MAX_TEXELS_PER_BLOCK];	// the weights that the weight contributes to a texel.
-
-	// folded data structures:
-	//  * texel_weights_texel[i][j] = texel_weights[weight_texel[i][j]];
-	//  * texel_weights_float_texel[i][j] = texel_weights_float[weight_texel[i][j]
-	uint8_t texel_weights_texel[MAX_WEIGHTS_PER_BLOCK][MAX_TEXELS_PER_BLOCK][4];
-	float texel_weights_float_texel[MAX_WEIGHTS_PER_BLOCK][MAX_TEXELS_PER_BLOCK][4];
 };
 
 /*
@@ -106,9 +91,7 @@ struct block_mode
 	int8_t decimation_mode;
 	int8_t quantization_mode;
 	int8_t is_dual_plane;
-	int8_t permit_encode;
 	int8_t permit_decode;
-	float percentile;
 };
 
 struct block_size_descriptor
@@ -119,19 +102,8 @@ struct block_size_descriptor
 	int texel_count;
 
 	int decimation_mode_count;
-	int decimation_mode_samples[MAX_DECIMATION_MODES];
-	int decimation_mode_maxprec_1plane[MAX_DECIMATION_MODES];
-	int decimation_mode_maxprec_2planes[MAX_DECIMATION_MODES];
-	float decimation_mode_percentile[MAX_DECIMATION_MODES];
-	int permit_encode[MAX_DECIMATION_MODES];
 	const decimation_table *decimation_tables[MAX_DECIMATION_MODES];
 	block_mode block_modes[MAX_WEIGHT_MODES];
-
-	// for the k-means bed bitmap partitioning algorithm, we don't
-	// want to consider more than 64 texels; this array specifies
-	// which 64 texels (if that many) to consider.
-	int texelcount_for_bitmap_partitioning;
-	int texels_for_bitmap_partitioning[64];
 
 	// All the partitioning information for this block size
 	partition_info partitions[(3*PARTITION_COUNT)+1];
@@ -217,25 +189,8 @@ enum quantization_method
 */
 struct quantization_and_transfer_table
 {
-	/** The quantization level used */
-	quantization_method method;
-	/** The unscrambled unquantized value. */
-	// TODO: Converted to floats to support AVX gathers
-	float unquantized_value_unsc[33];
-	/** The scrambling order: value[map[i]] == value_unsc[i] */
-	// TODO: Converted to u32 to support AVX gathers
-	int32_t scramble_map[32];
 	/** The scrambled unquantized values. */
 	uint8_t unquantized_value[32];
-	/**
-	 * An encoded table of previous-and-next weight values, indexed by the
-	 * current unquantized value.
-	 *  * bits 7:0 = previous-index, unquantized
-	 *  * bits 15:8 = next-index, unquantized
-	 *  * bits 23:16 = previous-index, quantized
-	 *  * bits 31:24 = next-index, quantized
-	 */
-	uint32_t prev_next_values[65];
 };
 
 extern const quantization_and_transfer_table quant_and_xfer_tables[12];
@@ -326,23 +281,6 @@ static inline const partition_info *get_partition_table(
 	int index = (partition_count - 2) * PARTITION_COUNT;
 	return bsd->partitions + index;
 }
-
-/**
- * @brief Get the percentile table for 2D block modes.
- *
- * This is an empirically determined prioritization of which block modes to
- * use in the search in terms of their centile (lower centiles = more useful).
- *
- * Returns a dynamically allocated array; caller must free with delete[].
- *
- * @param xdim The block x size.
- * @param ydim The block y size.
- *
- * @return The unpacked table.
- */
-const float *get_2d_percentile_table(
-	int xdim,
-	int ydim);
 
 // ***********************************************************
 // functions and data pertaining to quantization and encoding
