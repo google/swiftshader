@@ -181,7 +181,7 @@ void ImageView::resolve(ImageView *resolveAttachment, int layer)
 		UNIMPLEMENTED("b/148242443: levelCount != 1");  // FIXME(b/148242443)
 	}
 
-	VkImageCopy region;
+	VkImageResolve region;
 	region.srcSubresource = {
 		subresourceRange.aspectMask,
 		subresourceRange.baseMipLevel,
@@ -199,7 +199,7 @@ void ImageView::resolve(ImageView *resolveAttachment, int layer)
 	region.extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
 	                                         subresourceRange.baseMipLevel);
 
-	image->copyTo(resolveAttachment->image, region);
+	image->resolveTo(resolveAttachment->image, region);
 }
 
 void ImageView::resolve(ImageView *resolveAttachment)
@@ -209,7 +209,7 @@ void ImageView::resolve(ImageView *resolveAttachment)
 		UNIMPLEMENTED("b/148242443: levelCount != 1");  // FIXME(b/148242443)
 	}
 
-	VkImageCopy region;
+	VkImageResolve region;
 	region.srcSubresource = {
 		subresourceRange.aspectMask,
 		subresourceRange.baseMipLevel,
@@ -227,7 +227,7 @@ void ImageView::resolve(ImageView *resolveAttachment)
 	region.extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
 	                                         subresourceRange.baseMipLevel);
 
-	image->copyTo(resolveAttachment->image, region);
+	image->resolveTo(resolveAttachment->image, region);
 }
 
 void ImageView::resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask)

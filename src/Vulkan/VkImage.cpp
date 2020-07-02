@@ -322,28 +322,9 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 
 	Format srcFormat = getFormat(srcAspect);
 	Format dstFormat = dstImage->getFormat(dstAspect);
-
-	if((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isUnnormalizedInteger())
-	{
-		// Requires multisampling resolve
-		VkImageBlit blitRegion;
-		blitRegion.srcSubresource = region.srcSubresource;
-		blitRegion.srcOffsets[0] = region.srcOffset;
-		blitRegion.srcOffsets[1].x = blitRegion.srcOffsets[0].x + region.extent.width;
-		blitRegion.srcOffsets[1].y = blitRegion.srcOffsets[0].y + region.extent.height;
-		blitRegion.srcOffsets[1].z = blitRegion.srcOffsets[0].z + region.extent.depth;
-
-		blitRegion.dstSubresource = region.dstSubresource;
-		blitRegion.dstOffsets[0] = region.dstOffset;
-		blitRegion.dstOffsets[1].x = blitRegion.dstOffsets[0].x + region.extent.width;
-		blitRegion.dstOffsets[1].y = blitRegion.dstOffsets[0].y + region.extent.height;
-		blitRegion.dstOffsets[1].z = blitRegion.dstOffsets[0].z + region.extent.depth;
-
-		return device->getBlitter()->blit(this, dstImage, blitRegion, VK_FILTER_NEAREST);
-	}
-
 	int bytesPerBlock = srcFormat.bytesPerBlock();
 	ASSERT(bytesPerBlock == dstFormat.bytesPerBlock());
+	ASSERT(samples == dstImage->samples);
 
 	const uint8_t *srcMem = static_cast<const uint8_t *>(getTexelPointer(region.srcOffset, { region.srcSubresource.aspectMask, region.srcSubresource.mipLevel, region.srcSubresource.baseArrayLayer }));
 	uint8_t *dstMem = static_cast<uint8_t *>(dstImage->getTexelPointer(region.dstOffset, { region.dstSubresource.aspectMask, region.dstSubresource.mipLevel, region.dstSubresource.baseArrayLayer }));
@@ -357,7 +338,11 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	VkExtent3D dstExtent = dstImage->getMipLevelExtent(dstAspect, region.dstSubresource.mipLevel);
 	VkExtent3D copyExtent = imageExtentInBlocks(region.extent, srcAspect);
 
-	bool isSingleSlice = (copyExtent.depth == 1);
+	// Multisample images are currently implemented similar to 3D images by storing one sample per slice.
+	// TODO(b/160600347): Store samples consecutively.
+	uint32_t sliceCount = copyExtent.depth * samples;
+
+	bool isSingleSlice = (sliceCount == 1);
 	bool isSingleLine = (copyExtent.height == 1) && isSingleSlice;
 	// In order to copy multiple lines using a single memcpy call, we
 	// have to make sure that we need to copy the entire line and that
@@ -397,7 +382,7 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	}
 	else if(isEntireSlice)  // Copy multiple slices
 	{
-		size_t copySize = copyExtent.depth * srcSlicePitchBytes;
+		size_t copySize = sliceCount * srcSlicePitchBytes;
 		ASSERT((srcMem + copySize) < end());
 		ASSERT((dstMem + copySize) < dstImage->end());
 		memcpy(dstMem, srcMem, copySize);
@@ -406,7 +391,7 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	{
 		size_t copySize = copyExtent.height * srcRowPitchBytes;
 
-		for(uint32_t z = 0; z < copyExtent.depth; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
+		for(uint32_t z = 0; z < sliceCount; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
 		{
 			ASSERT((srcMem + copySize) < end());
 			ASSERT((dstMem + copySize) < dstImage->end());
@@ -417,7 +402,7 @@ void Image::copyTo(Image *dstImage, const VkImageCopy &region) const
 	{
 		size_t copySize = copyExtent.width * bytesPerBlock;
 
-		for(uint32_t z = 0; z < copyExtent.depth; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
+		for(uint32_t z = 0; z < sliceCount; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
 		{
 			const uint8_t *srcSlice = srcMem;
 			uint8_t *dstSlice = dstMem;
@@ -458,6 +443,7 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsS
 	int bytesPerBlock = copyFormat.bytesPerBlock();
 	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
 	int bufferSlicePitchBytes = bufferExtent.height * bufferRowPitchBytes;
+	ASSERT(samples == 1);
 
 	uint8_t *bufferMemory = static_cast<uint8_t *>(buffer->getOffsetPointer(region.bufferOffset));
 	uint8_t *imageMemory = static_cast<uint8_t *>(getTexelPointer(region.imageOffset, { region.imageSubresource.aspectMask, region.imageSubresource.mipLevel, region.imageSubresource.baseArrayLayer }));
