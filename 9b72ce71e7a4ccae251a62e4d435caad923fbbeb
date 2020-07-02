@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d55fffae_1043be98",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-02T17:42:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3da428d8_f7d6ae64",
+      "range": {
+        "startLine": 619,
+        "startChar": 36,
+        "endLine": 619,
+        "endChar": 40
+      },
+      "revId": "9b72ce71e7a4ccae251a62e4d435caad923fbbeb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d139eae_eec3f766",
         "filename": "src/Vulkan/VkFormat.cpp",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "9b72ce71e7a4ccae251a62e4d435caad923fbbeb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da3ec69d_53966ea3",
+        "filename": "src/Vulkan/VkFormat.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-02T17:42:52Z",
+      "side": 1,
+      "message": "Upon rereading the BC6H spec I realized that it actually limits the unsigned floats to fit within a signed 16-bit float. So I can use R16G16B16A16_SFLOAT.",
+      "parentUuid": "7d139eae_eec3f766",
+      "range": {
+        "startLine": 656,
+        "startChar": 7,
+        "endLine": 656,
+        "endChar": 35
+      },
+      "revId": "9b72ce71e7a4ccae251a62e4d435caad923fbbeb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
