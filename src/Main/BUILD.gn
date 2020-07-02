@@ -76,7 +76,7 @@ swiftshader_source_set("swiftshader_main") {
 
   if (is_mac) {
     include_dirs += [ "../../include" ]
-    libs = [
+    frameworks = [
       "Quartz.framework",
       "Cocoa.framework",
     ]

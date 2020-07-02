@@ -67,7 +67,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
 
   if (is_mac) {
     sources += [ "OSXUtils.mm" ]
-    libs = [
+    frameworks = [
       "Quartz.framework",
       "Cocoa.framework",
       "CoreFoundation.framework",

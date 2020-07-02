@@ -54,7 +54,7 @@ swiftshader_source_set("WSI") {
       "MetalSurface.hpp",
       "MetalSurface.mm",
     ]
-    libs = [
+    frameworks = [
       "Cocoa.framework",
       "QuartzCore.framework",
     ]

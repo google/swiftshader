@@ -93,7 +93,7 @@ swiftshader_static_library("swiftshader_libGLESv2_static") {
   ]
 
   if (is_mac) {
-    libs = [
+    frameworks = [
       "CoreFoundation.framework",
       "IOSurface.framework",
     ]

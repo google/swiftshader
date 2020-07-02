@@ -54,7 +54,7 @@ if (build_with_chromium) {
         "-rpath",
         "@executable_path/",
       ]
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "IOSurface.framework",
       ]
