@@ -53,7 +53,6 @@ union Identifier
 		uint32_t g : 3;
 		uint32_t b : 3;
 		uint32_t a : 3;
-		uint32_t large : 1;  // Has dimension larger than SHRT_MAX (see b/133429305).
 	};
 };
 

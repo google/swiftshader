@@ -106,7 +106,6 @@ struct Sampler
 	VkCompareOp compareOp;
 	VkBorderColor border;
 	bool unnormalizedCoordinates;
-	bool largeTexture;
 
 	VkSamplerYcbcrModelConversion ycbcrModel;
 	bool studioSwing;    // Narrow range

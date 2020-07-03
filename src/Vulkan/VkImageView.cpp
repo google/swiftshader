@@ -64,12 +64,6 @@ Identifier::Identifier(const Image *image, VkImageViewType type, VkFormat fmt, V
 	g = mapping.g;
 	b = mapping.b;
 	a = mapping.a;
-
-	// TODO(b/152224843): eliminate
-	auto extent = image->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-	large = (extent.width > SHRT_MAX) ||
-	        (extent.height > SHRT_MAX) ||
-	        (extent.depth > SHRT_MAX);
 }
 
 Identifier::Identifier(VkFormat fmt)

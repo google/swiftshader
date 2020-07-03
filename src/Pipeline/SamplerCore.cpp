@@ -151,8 +151,8 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvw[4], Float
 	bool force32BitFiltering = state.highPrecisionFiltering && !isYcbcrFormat() && (state.textureFilter != FILTER_POINT);
 	bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 	bool use32BitFiltering = hasFloatTexture() || hasUnnormalizedIntegerTexture() || force32BitFiltering ||
-	                         seamlessCube || state.unnormalizedCoordinates || state.compareEnable || state.largeTexture ||
-	                         borderModeActive() || (function == Gather);
+	                         seamlessCube || state.unnormalizedCoordinates || state.compareEnable ||
+	                         borderModeActive() || (function == Gather) || (function == Fetch);
 
 	if(use32BitFiltering)
 	{
@@ -520,11 +520,9 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 	Pointer<Byte> buffer;
 	selectMipmap(texture, mipmap, buffer, lod, secondLOD);
 
-	bool texelFetch = (function == Fetch);
-
-	Short4 uuuu = texelFetch ? Short4(As<Int4>(u)) : address(u, state.addressingModeU, mipmap);
-	Short4 vvvv = texelFetch ? Short4(As<Int4>(v)) : address(v, state.addressingModeV, mipmap);
-	Short4 wwww = texelFetch ? Short4(As<Int4>(w)) : address(w, state.addressingModeW, mipmap);
+	Short4 uuuu = address(u, state.addressingModeU, mipmap);
+	Short4 vvvv = address(v, state.addressingModeV, mipmap);
+	Short4 wwww = address(w, state.addressingModeW, mipmap);
 
 	Short4 cubeArrayId(0);
 	if(state.textureType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
@@ -532,7 +530,7 @@ Vector4s SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Float4 &u, Float4 &v,
 		cubeArrayId = address(cubeArrayCoord, state.addressingModeY, mipmap);
 	}
 
-	if(state.textureFilter == FILTER_POINT || texelFetch)
+	if(state.textureFilter == FILTER_POINT)
 	{
 		c = sampleTexel(uuuu, vvvv, wwww, offset, mipmap, cubeArrayId, sampleId, buffer, function);
 	}
@@ -729,11 +727,9 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 	Pointer<Byte> buffer;
 	selectMipmap(texture, mipmap, buffer, lod, secondLOD);
 
-	bool texelFetch = (function == Fetch);
-
-	Short4 uuuu = texelFetch ? Short4(As<Int4>(u_)) : address(u_, state.addressingModeU, mipmap);
-	Short4 vvvv = texelFetch ? Short4(As<Int4>(v_)) : address(v_, state.addressingModeV, mipmap);
-	Short4 wwww = texelFetch ? Short4(As<Int4>(w_)) : address(w_, state.addressingModeW, mipmap);
+	Short4 uuuu = address(u_, state.addressingModeU, mipmap);
+	Short4 vvvv = address(v_, state.addressingModeV, mipmap);
+	Short4 wwww = address(w_, state.addressingModeW, mipmap);
 
 	Short4 cubeArrayId(0);
 	if(state.textureType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
@@ -741,7 +737,7 @@ Vector4s SamplerCore::sample3D(Pointer<Byte> &texture, Float4 &u_, Float4 &v_, F
 		cubeArrayId = address(cubeArrayCoord, state.addressingModeY, mipmap);
 	}
 
-	if(state.textureFilter == FILTER_POINT || texelFetch)
+	if(state.textureFilter == FILTER_POINT)
 	{
 		c_ = sampleTexel(uuuu, vvvv, wwww, offset, mipmap, cubeArrayId, sampleId, buffer, function);
 	}
@@ -1355,8 +1351,6 @@ Short4 SamplerCore::applyOffset(Short4 &uvw, Float4 &offset, const Int4 &whd, Ad
 		case AddressingMode::ADDRESSING_BORDER:  // FIXME: Implement and test ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE, ADDRESSING_BORDER
 			tmp = Min(Max(tmp, Int4(0)), whd - Int4(1));
 			break;
-		case ADDRESSING_TEXELFETCH:
-			break;
 		case AddressingMode::ADDRESSING_SEAMLESS:
 			ASSERT(false);  // Cube sampling doesn't support offset.
 		default:
@@ -1368,21 +1362,15 @@ Short4 SamplerCore::applyOffset(Short4 &uvw, Float4 &offset, const Int4 &whd, Ad
 
 void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, const Short4 &cubeArrayId, const Int4 &sampleId, SamplerFunction function)
 {
-	bool texelFetch = (function == Fetch);
 	bool hasOffset = (function.offset != 0);
 
-	if(!texelFetch)
-	{
-		uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width))));
-		vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
-	}
+	uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width))));
+	vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
 
 	if(hasOffset)
 	{
-		uuuu = applyOffset(uuuu, offset.x, *Pointer<Int4>(mipmap + OFFSET(Mipmap, width)),
-		                   texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
-		vvvv = applyOffset(vvvv, offset.y, *Pointer<Int4>(mipmap + OFFSET(Mipmap, height)),
-		                   texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
+		uuuu = applyOffset(uuuu, offset.x, *Pointer<Int4>(mipmap + OFFSET(Mipmap, width)), state.addressingModeU);
+		vvvv = applyOffset(vvvv, offset.y, *Pointer<Int4>(mipmap + OFFSET(Mipmap, height)), state.addressingModeV);
 	}
 
 	Short4 uuu2 = uuuu;
@@ -1395,15 +1383,11 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 	{
 		if(state.textureType == VK_IMAGE_VIEW_TYPE_3D)
 		{
-			if(!texelFetch)
-			{
-				wwww = MulHigh(As<UShort4>(wwww), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, depth))));
-			}
+			wwww = MulHigh(As<UShort4>(wwww), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, depth))));
 
 			if(hasOffset)
 			{
-				wwww = applyOffset(wwww, offset.z, *Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)),
-				                   texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeW);
+				wwww = applyOffset(wwww, offset.z, *Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)), state.addressingModeW);
 			}
 		}
 
@@ -1421,22 +1405,6 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 		index[1] = Extract(As<Int2>(uuuu), 1);
 		index[2] = Extract(As<Int2>(uuu2), 0);
 		index[3] = Extract(As<Int2>(uuu2), 1);
-	}
-
-	if(texelFetch)
-	{
-		Int size = *Pointer<Int>(mipmap + OFFSET(Mipmap, sliceP));
-		if(hasThirdCoordinate())
-		{
-			size *= *Pointer<Int>(mipmap + OFFSET(Mipmap, depth));
-		}
-		UInt min = 0;
-		UInt max = size - 1;
-
-		for(int i = 0; i < 4; i++)
-		{
-			index[i] = Min(Max(index[i], min), max);
-		}
 	}
 
 	if(function.sample)
