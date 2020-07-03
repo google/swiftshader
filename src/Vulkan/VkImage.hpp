@@ -65,14 +65,18 @@ public:
 	void clear(const VkClearColorValue &color, const VkImageSubresourceRange &subresourceRange);
 	void clear(const VkClearDepthStencilValue &color, const VkImageSubresourceRange &subresourceRange);
 
+	// Get the last layer and mipmap level, handling VK_REMAINING_ARRAY_LAYERS and
+	// VK_REMAINING_MIP_LEVELS, respectively. Note VkImageSubresourceLayers does not
+	// allow these symbolic values, so only VkImageSubresourceRange is accepted.
+	uint32_t getLastLayerIndex(const VkImageSubresourceRange &subresourceRange) const;
+	uint32_t getLastMipLevel(const VkImageSubresourceRange &subresourceRange) const;
+
 	VkImageType getImageType() const { return imageType; }
 	const Format &getFormat() const { return format; }
 	Format getFormat(VkImageAspectFlagBits aspect) const;
 	uint32_t getArrayLayers() const { return arrayLayers; }
 	uint32_t getMipLevels() const { return mipLevels; }
 	VkImageUsageFlags getUsage() const { return usage; }
-	uint32_t getLastLayerIndex(const VkImageSubresourceRange &subresourceRange) const;
-	uint32_t getLastMipLevel(const VkImageSubresourceRange &subresourceRange) const;
 	VkSampleCountFlagBits getSampleCountFlagBits() const { return samples; }
 	VkExtent3D getMipLevelExtent(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
