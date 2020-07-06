@@ -7,12 +7,7 @@ SET SRC=%cd%\git\SwiftShader
 
 cd %SRC% || goto :error
 
-IF "%LLVM_VERSION%"=="10.0" (
-  ECHO "TODO(b/152339534): LLVM 10 migration is still in progress"
-  EXIT 0
-)
-
-# Lower the amount of debug info, to reduce Kokoro build times.
+REM Lower the amount of debug info, to reduce Kokoro build times.
 SET LESS_DEBUG_INFO=1
 
 cd %SRC%\build || goto :error
