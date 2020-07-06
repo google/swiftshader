@@ -12540,7 +12540,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
       GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
       GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/0, /*OpIdx*/1, /*SubRegIdx*/1, // src
-      GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC GPR32*/8,
+      GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC DSPR*/5,
       GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, /*RC GPR64*/38,
       GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::SLL,
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -13276,7 +13276,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC GPR32*/8,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC DSPR*/5,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, /*RC GPR64*/38,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DSLLV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -14052,7 +14052,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC GPR32*/8,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC DSPR*/5,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, /*RC GPR64*/38,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DSRLV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
@@ -14808,7 +14808,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_BuildMI, /*InsnID*/1, /*Opcode*/TargetOpcode::COPY,
         GIR_AddTempRegister, /*InsnID*/1, /*TempRegID*/0, /*TempRegFlags*/RegState::Define,
         GIR_CopySubReg, /*NewInsnID*/1, /*OldInsnID*/1, /*OpIdx*/1, /*SubRegIdx*/1, // rs
-        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC GPR32*/8,
+        GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/0, /*RC DSPR*/5,
         GIR_ConstrainOperandRC, /*InsnID*/1, /*Op*/1, /*RC GPR64*/38,
         GIR_BuildMI, /*InsnID*/0, /*Opcode*/Mips::DSRAV,
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/0, // rd
