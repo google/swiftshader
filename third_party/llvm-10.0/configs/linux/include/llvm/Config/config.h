@@ -8,18 +8,18 @@
 #define BUG_REPORT_URL "https://bugs.llvm.org/"
 
 /* Define to 1 to enable backtraces, and to 0 otherwise. */
-#define ENABLE_BACKTRACES 1
+/* #undef ENABLE_BACKTRACES */
 
 /* Define to 1 to enable crash overrides, and to 0 otherwise. */
-#define ENABLE_CRASH_OVERRIDES 1
+/* #undef ENABLE_CRASH_OVERRIDES */
 
 /* Define to 1 to enable crash memory dumps, and to 0 otherwise. */
 #define LLVM_ENABLE_CRASH_DUMPS 0
 
 /* Define to 1 if you have the `backtrace' function. */
-#define HAVE_BACKTRACE TRUE
+/* #undef HAVE_BACKTRACE */
 
-#define BACKTRACE_HEADER <execinfo.h>
+/* #undef BACKTRACE_HEADER */
 
 /* Define to 1 if you have the <CrashReporterClient.h> header file. */
 /* #undef HAVE_CRASHREPORTERCLIENT_H */
@@ -104,13 +104,13 @@
 #define HAVE_LIBPTHREAD 1
 
 /* Define to 1 if you have the `pthread_getname_np' function. */
-#define HAVE_PTHREAD_GETNAME_NP 1
+/* #undef HAVE_PTHREAD_GETNAME_NP */
 
 /* Define to 1 if you have the `pthread_setname_np' function. */
-#define HAVE_PTHREAD_SETNAME_NP 1
+/* #undef HAVE_PTHREAD_SETNAME_NP */
 
 /* Define to 1 if you have the `z' library (-lz). */
-#define HAVE_LIBZ 1
+/* #undef HAVE_LIBZ */
 
 /* Define to 1 if you have the <link.h> header file. */
 #define HAVE_LINK_H 1
@@ -137,7 +137,7 @@
 #define HAVE_POSIX_FALLOCATE 1
 
 /* Define to 1 if you have the `posix_spawn' function. */
-#define HAVE_POSIX_SPAWN 1
+/* #undef HAVE_POSIX_SPAWN */
 
 /* Define to 1 if you have the `pread' function. */
 #define HAVE_PREAD 1
@@ -218,7 +218,7 @@
 /* #undef HAVE_LIBXAR */
 
 /* Define to 1 if you have the <termios.h> header file. */
-#define HAVE_TERMIOS_H 1
+/* #undef HAVE_TERMIOS_H */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
@@ -227,7 +227,7 @@
 /* #undef HAVE_VALGRIND_VALGRIND_H */
 
 /* Define to 1 if you have the <zlib.h> header file. */
-#define HAVE_ZLIB_H 1
+/* #undef HAVE_ZLIB_H */
 
 /* Have host's _alloca */
 /* #undef HAVE__ALLOCA */
@@ -236,7 +236,7 @@
 /* #undef HAVE__CHSIZE_S */
 
 /* Define to 1 if you have the `_Unwind_Backtrace' function. */
-#define HAVE__UNWIND_BACKTRACE 1
+/* #undef HAVE__UNWIND_BACKTRACE */
 
 /* Have host's __alloca */
 /* #undef HAVE___ALLOCA */
@@ -294,10 +294,26 @@
 
 /* Target triple LLVM will generate code for by default */
 /* Doesn't use `cmakedefine` because it is allowed to be empty. */
+#if defined(__x86_64__)
 #define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-unknown-linux-gnu"
+#elif defined(__i386__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "i686-pc-linux-gnu"
+#elif defined(__arm__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "armv7-linux-gnueabihf"
+#elif defined(__aarch64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "aarch64-linux-gnu"
+#elif defined(__mips__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "mipsel-linux-gnu"
+#elif defined(__mips64)
+#define LLVM_DEFAULT_TARGET_TRIPLE "mips64el-linux-gnuabi64"
+#elif defined(__powerpc64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "powerpc64le-unknown-linux-gnu"
+#else
+#error "unknown architecture"
+#endif
 
 /* Define if zlib compression is available */
-#define LLVM_ENABLE_ZLIB 1
+#define LLVM_ENABLE_ZLIB 0
 
 /* Define if overriding target triple is enabled */
 /* #undef LLVM_TARGET_TRIPLE_ENV */
@@ -309,7 +325,7 @@
 #define LLVM_VERSION_PRINTER_SHOW_HOST_TARGET_INFO 1
 
 /* Define if libxml2 is supported on this platform. */
-#define LLVM_LIBXML2_ENABLED 1
+/* #undef LLVM_LIBXML2_ENABLED */
 
 /* Define to the extension used for shared libraries, say, ".so". */
 #define LTDL_SHLIB_EXT ".so"
@@ -345,7 +361,7 @@
 #define LLVM_GISEL_COV_ENABLED 0
 
 /* Define if we have z3 and want to build it */
-/* #undef LLVM_WITH_Z3 */
+#define LLVM_WITH_Z3 1
 
 /* Define to the default GlobalISel coverage file prefix */
 /* #undef LLVM_GISEL_COV_PREFIX */
