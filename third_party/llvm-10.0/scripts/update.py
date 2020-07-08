@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import argparse
 import contextlib
 import multiprocessing
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -39,6 +39,7 @@ LLVM_DIR = path.abspath(path.join(LLVM_STAGING_DIR, "llvm"))
 LLVM_OBJS = path.join(LLVM_STAGING_DIR, "build")
 LLVM_CONFIGS = path.abspath(path.join(SCRIPT_DIR, '..', 'configs'))
 
+# List of all arches SwiftShader supports
 LLVM_TARGETS = [
     ('AArch64', ('__aarch64__',)),
     ('ARM', ('__arm__',)),
@@ -47,6 +48,7 @@ LLVM_TARGETS = [
     ('PowerPC', ('__powerpc64__',)),
 ]
 
+# Per-platform arches
 LLVM_TRIPLES = {
     'android': [
         ('__x86_64__', 'x86_64-linux-android'),
@@ -76,9 +78,31 @@ LLVM_TRIPLES = {
     ],
 }
 
-LLVM_OPTIONS = [
+# Mapping of target platform to the host it must be built on
+LLVM_PLATFORM_TO_HOST_SYSTEM = {
+    'android': 'Linux',
+    'darwin': 'Darwin',
+    'linux': 'Linux',
+    'windows': 'Windows',
+}
+
+# LLVM configurations to be undefined.
+LLVM_UNDEF_MACROS = [
+    'BACKTRACE_HEADER',
+    'ENABLE_BACKTRACES',
+    'ENABLE_CRASH_OVERRIDES',
+    'HAVE_BACKTRACE',
+    'HAVE_POSIX_SPAWN',
+    'HAVE_PTHREAD_GETNAME_NP',
+    'HAVE_PTHREAD_SETNAME_NP',
+    'HAVE_TERMIOS_H',
+    'HAVE_ZLIB_H',
+    'HAVE__UNWIND_BACKTRACE',
+]
+
+# General CMake options for building LLVM
+LLVM_CMAKE_OPTIONS = [
     '-DCMAKE_BUILD_TYPE=Release',
-    '-DLLVM_TARGETS_TO_BUILD=' + ';'.join(t[0] for t in LLVM_TARGETS),
     '-DLLVM_ENABLE_THREADS=ON',
     '-DLLVM_ENABLE_TERMINFO=OFF',
     '-DLLVM_ENABLE_LIBXML2=OFF',
@@ -121,6 +145,33 @@ def _parse_args():
     return parser.parse_args()
 
 
+def validate_args(args):
+    host = platform.system()
+    if host not in LLVM_PLATFORM_TO_HOST_SYSTEM.values():
+        raise Exception(f"Host system not supported: '{host}'")
+
+    if args.name not in LLVM_PLATFORM_TO_HOST_SYSTEM.keys():
+        raise Exception(f"Unknown target platform: '{args.name}'")
+
+    expected_host = LLVM_PLATFORM_TO_HOST_SYSTEM[args.name]
+    if LLVM_PLATFORM_TO_HOST_SYSTEM[args.name] != host:
+        raise Exception(
+            f"Target platform '{args.name}' must be built on '{expected_host}', not on '{host}'")
+
+
+def get_cmake_targets_to_build(platform):
+    """Returns list of LLVM targets to build for the input platform"""
+    targets = set()
+    for arch_def, triplet in LLVM_TRIPLES[platform]:
+        for arch, defs in LLVM_TARGETS:
+            if arch_def in defs:
+                targets.add(arch)
+
+    # Maintain the sort order of LLVM_TARGETS as this affects how config
+    # headers are generated
+    return [t[0] for t in LLVM_TARGETS if t[0] in targets]
+
+
 def clone_llvm():
     log("Cloning/Updating LLVM", 1)
     # Clone or update staging directory
@@ -150,9 +201,12 @@ def build_llvm(name, num_jobs):
     Visual Studio host toolchain."""
     host = '-Thost=x64' if name == 'windows' else ''
 
+    cmake_options = LLVM_CMAKE_OPTIONS + ['-DLLVM_TARGETS_TO_BUILD=' +
+                                          ';'.join(t for t in get_cmake_targets_to_build(name))]
+
     os.makedirs(LLVM_OBJS, exist_ok=True)
     run_subprocess(['cmake', host, LLVM_DIR] +
-                   LLVM_OPTIONS, log_level=2, cwd=LLVM_OBJS)
+                   cmake_options, log_level=2, cwd=LLVM_OBJS)
     run_subprocess(['cmake', '--build', '.', '-j',
                     str(num_jobs)], log_level=2, cwd=LLVM_OBJS)
 
@@ -178,13 +232,8 @@ def copy_common_generated_files(dst_base):
         path.join('include', 'llvm', 'IR'),
         path.join('include', 'llvm', 'Support'),
         path.join('lib', 'IR'),
-        path.join('lib', 'Target', 'AArch64'),
-        path.join('lib', 'Target', 'ARM'),
-        path.join('lib', 'Target', 'X86'),
-        path.join('lib', 'Target', 'Mips'),
-        path.join('lib', 'Target', 'PowerPC'),
         path.join('lib', 'Transforms', 'InstCombine'),
-    ]
+    ] + [path.join('lib', 'Target', arch) for arch, defs in LLVM_TARGETS]
     for subdir in subdirs:
         for src, dst in list_files(LLVM_OBJS, subdir, dst_base, suffixes):
             log('{} -> {}'.format(src, dst), 2)
@@ -202,20 +251,6 @@ def copy_platform_file(platform, src, dst):
         '^#define LLVM_NATIVE_([A-Z]+) (LLVMInitialize)?(.*)$')
     llvm_triple_pattern = re.compile('^#define (LLVM_[A-Z_]+_TRIPLE) "(.*)"$')
     llvm_define_pattern = re.compile('^#define ([A-Za-z0-9_]+) (.*)$')
-
-    # LLVM configurations to be undefined.
-    undef_names = [
-        'BACKTRACE_HEADER',
-        'ENABLE_BACKTRACES',
-        'ENABLE_CRASH_OVERRIDES',
-        'HAVE_BACKTRACE',
-        'HAVE_POSIX_SPAWN',
-        'HAVE_PTHREAD_GETNAME_NP',
-        'HAVE_PTHREAD_SETNAME_NP',
-        'HAVE_TERMIOS_H',
-        'HAVE_ZLIB_H',
-        'HAVE__UNWIND_BACKTRACE',
-    ]
 
     # Build architecture-specific conditions.
     conds = {}
@@ -286,7 +321,7 @@ def copy_platform_file(platform, src, dst):
                     continue
 
                 match = llvm_define_pattern.match(line)
-                if match and match.group(1) in undef_names:
+                if match and match.group(1) in LLVM_UNDEF_MACROS:
                     print('/* #undef ' + match.group(1) + ' */', file=dst_file)
                     continue
 
@@ -305,6 +340,7 @@ def copy_platform_generated_files(platform, dst_base):
 
 def main():
     args = _parse_args()
+    validate_args(args)
     clone_llvm()
     build_llvm(args.name, args.jobs)
     copy_common_generated_files(path.join(LLVM_CONFIGS, 'common'))
