@@ -8,18 +8,18 @@
 #define BUG_REPORT_URL "https://bugs.llvm.org/"
 
 /* Define to 1 to enable backtraces, and to 0 otherwise. */
-#define ENABLE_BACKTRACES 1
+/* #undef ENABLE_BACKTRACES */
 
 /* Define to 1 to enable crash overrides, and to 0 otherwise. */
-#define ENABLE_CRASH_OVERRIDES 1
+/* #undef ENABLE_CRASH_OVERRIDES */
 
 /* Define to 1 to enable crash memory dumps, and to 0 otherwise. */
 #define LLVM_ENABLE_CRASH_DUMPS 0
 
 /* Define to 1 if you have the `backtrace' function. */
-#define HAVE_BACKTRACE TRUE
+/* #undef HAVE_BACKTRACE */
 
-#define BACKTRACE_HEADER <execinfo.h>
+/* #undef BACKTRACE_HEADER */
 
 /* Define to 1 if you have the <CrashReporterClient.h> header file. */
 /* #undef HAVE_CRASHREPORTERCLIENT_H */
@@ -92,7 +92,7 @@
 #define HAVE_ISATTY 1
 
 /* Define to 1 if you have the `edit' library (-ledit). */
-#define HAVE_LIBEDIT 1
+/* #undef HAVE_LIBEDIT */
 
 /* Define to 1 if you have the `pfm' library (-lpfm). */
 /* #undef HAVE_LIBPFM */
@@ -104,13 +104,13 @@
 #define HAVE_LIBPTHREAD 1
 
 /* Define to 1 if you have the `pthread_getname_np' function. */
-#define HAVE_PTHREAD_GETNAME_NP 1
+/* #undef HAVE_PTHREAD_GETNAME_NP */
 
 /* Define to 1 if you have the `pthread_setname_np' function. */
-#define HAVE_PTHREAD_SETNAME_NP 1
+/* #undef HAVE_PTHREAD_SETNAME_NP */
 
 /* Define to 1 if you have the `z' library (-lz). */
-#define HAVE_LIBZ 1
+/* #undef HAVE_LIBZ */
 
 /* Define to 1 if you have the <link.h> header file. */
 /* #undef HAVE_LINK_H */
@@ -137,7 +137,7 @@
 /* #undef HAVE_POSIX_FALLOCATE */
 
 /* Define to 1 if you have the `posix_spawn' function. */
-#define HAVE_POSIX_SPAWN 1
+/* #undef HAVE_POSIX_SPAWN */
 
 /* Define to 1 if you have the `pread' function. */
 #define HAVE_PREAD 1
@@ -212,13 +212,13 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define if the setupterm() function is supported this platform. */
-/* #define HAVE_TERMINFO 1 */
+/* #undef HAVE_TERMINFO */
 
 /* Define if the xar_open() function is supported this platform. */
 #define HAVE_LIBXAR 1
 
 /* Define to 1 if you have the <termios.h> header file. */
-#define HAVE_TERMIOS_H 1
+/* #undef HAVE_TERMIOS_H */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
@@ -227,7 +227,7 @@
 /* #undef HAVE_VALGRIND_VALGRIND_H */
 
 /* Define to 1 if you have the <zlib.h> header file. */
-#define HAVE_ZLIB_H 1
+/* #undef HAVE_ZLIB_H */
 
 /* Have host's _alloca */
 /* #undef HAVE__ALLOCA */
@@ -236,7 +236,7 @@
 /* #undef HAVE__CHSIZE_S */
 
 /* Define to 1 if you have the `_Unwind_Backtrace' function. */
-#define HAVE__UNWIND_BACKTRACE 1
+/* #undef HAVE__UNWIND_BACKTRACE */
 
 /* Have host's __alloca */
 /* #undef HAVE___ALLOCA */
@@ -294,10 +294,14 @@
 
 /* Target triple LLVM will generate code for by default */
 /* Doesn't use `cmakedefine` because it is allowed to be empty. */
-#define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-apple-darwin19.3.0"
+#if defined(__x86_64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-apple-darwin"
+#else
+#error "unknown architecture"
+#endif
 
 /* Define if zlib compression is available */
-#define LLVM_ENABLE_ZLIB 1
+#define LLVM_ENABLE_ZLIB 0
 
 /* Define if overriding target triple is enabled */
 /* #undef LLVM_TARGET_TRIPLE_ENV */
@@ -309,7 +313,7 @@
 #define LLVM_VERSION_PRINTER_SHOW_HOST_TARGET_INFO 1
 
 /* Define if libxml2 is supported on this platform. */
-#define LLVM_LIBXML2_ENABLED 1
+/* #undef LLVM_LIBXML2_ENABLED */
 
 /* Define to the extension used for shared libraries, say, ".so". */
 #define LTDL_SHLIB_EXT ".dylib"
@@ -321,10 +325,10 @@
 #define PACKAGE_NAME "LLVM"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LLVM 11.0.0git"
+#define PACKAGE_STRING "LLVM 10.0.0"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "11.0.0git"
+#define PACKAGE_VERSION "10.0.0"
 
 /* Define to the vendor of this package. */
 /* #undef PACKAGE_VENDOR */
@@ -351,6 +355,6 @@
 /* #undef LLVM_GISEL_COV_PREFIX */
 
 /* Whether Timers signpost passes in Xcode Instruments */
-#define LLVM_SUPPORT_XCODE_SIGNPOSTS 1
+#define LLVM_SUPPORT_XCODE_SIGNPOSTS 0
 
 #endif
