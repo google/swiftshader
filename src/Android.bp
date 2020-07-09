@@ -197,7 +197,7 @@ cc_defaults {
     ],
 
     static_libs: [
-        "libLLVM7_swiftshader",
+        "libLLVM10_swiftshader",
     ],
 
     shared_libs: [
@@ -228,7 +228,7 @@ cc_defaults {
     ],
 
     static_libs: [
-        "libLLVM7_swiftshader",
+        "libLLVM10_swiftshader",
     ],
 
     shared_libs: [
@@ -346,7 +346,7 @@ cc_defaults {
     defaults: [ "libswiftshader_release" ],
     static_libs: [
         "libswiftshader_llvm",
-        "libLLVM7_swiftshader",
+        "libLLVM10_swiftshader",
     ],
 }
 
@@ -356,7 +356,7 @@ cc_defaults {
     defaults: [ "libswiftshader_debug" ],
     static_libs: [
         "libswiftshader_llvm_debug",
-        "libLLVM7_swiftshader",
+        "libLLVM10_swiftshader",
     ],
 }
 
@@ -654,7 +654,7 @@ cc_library_shared {
 
     static_libs: [
         "libswiftshadervk_llvm_debug",
-        "libLLVM7_swiftshader",
+        "libLLVM10_swiftshader",
     ],
 
     defaults: [
@@ -668,7 +668,7 @@ cc_library_shared {
 
     static_libs: [
         "libswiftshadervk_llvm_debug",
-        "libLLVM7_swiftshader",
+        "libLLVM10_swiftshader",
     ],
 
     cflags: [
