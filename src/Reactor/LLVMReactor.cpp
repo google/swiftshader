@@ -171,6 +171,7 @@ llvm::Value *lowerTrunc(llvm::Value *x)
 	return jit->builder->CreateCall(trunc, ARGS(x));
 }
 
+#	if LLVM_VERSION_MAJOR < 8
 // Packed add/sub with saturation
 llvm::Value *lowerPSAT(llvm::Value *x, llvm::Value *y, bool isAdd, bool isSigned)
 {
@@ -205,6 +206,7 @@ llvm::Value *lowerPSAT(llvm::Value *x, llvm::Value *y, bool isAdd, bool isSigned
 
 	return jit->builder->CreateTrunc(res, ty);
 }
+#	endif  // LLVM_VERSION_MAJOR < 8
 
 llvm::Value *lowerSQRT(llvm::Value *x)
 {
