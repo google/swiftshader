@@ -27,17 +27,8 @@
 #if defined(__aarch64__)
 LLVM_DISASSEMBLER(AArch64)
 #endif
-#if defined(__arm__)
-LLVM_DISASSEMBLER(ARM)
-#endif
 #if defined(__i386__) || defined(__x86_64__)
 LLVM_DISASSEMBLER(X86)
-#endif
-#if defined(__mips__)
-LLVM_DISASSEMBLER(Mips)
-#endif
-#if defined(__powerpc64__)
-LLVM_DISASSEMBLER(PowerPC)
 #endif
 
 

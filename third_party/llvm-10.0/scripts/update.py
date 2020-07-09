@@ -67,6 +67,7 @@ LLVM_TRIPLES = {
     ],
     'darwin': [
         ('__x86_64__', 'x86_64-apple-darwin'),
+        ('__aarch64__', 'arm64-apple-darwin'),
     ],
     'windows': [
         ('__x86_64__', 'x86_64-pc-win32'),

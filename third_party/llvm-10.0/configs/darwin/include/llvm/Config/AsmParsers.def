@@ -27,17 +27,8 @@
 #if defined(__aarch64__)
 LLVM_ASM_PARSER(AArch64)
 #endif
-#if defined(__arm__)
-LLVM_ASM_PARSER(ARM)
-#endif
 #if defined(__i386__) || defined(__x86_64__)
 LLVM_ASM_PARSER(X86)
-#endif
-#if defined(__mips__)
-LLVM_ASM_PARSER(Mips)
-#endif
-#if defined(__powerpc64__)
-LLVM_ASM_PARSER(PowerPC)
 #endif
 
 
