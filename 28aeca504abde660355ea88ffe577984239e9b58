@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "195f2999_4aecc7ce",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "Awesome! Just a few nits:",
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c36cf1be_78d0acfd",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "static const",
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36a7d358_0b86b3d8",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "nit: stray blank line",
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41436d6f_b8fcdb88",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "You can write \"const uint16_t a \u003d halfFloat1;\" and not need the comment since it\u0027s self-enforcing.",
+      "range": {
+        "startLine": 318,
+        "startChar": 2,
+        "endLine": 319,
+        "endChar": 13
+      },
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4f3f244_21a2dfa0",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "style-nit: Start method names with lower case.",
+      "range": {
+        "startLine": 402,
+        "startChar": 6,
+        "endLine": 402,
+        "endChar": 7
+      },
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f4fad15_56247ac3",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 979,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "I\u0027m not sure there\u0027s much value in zeroing out the result in this case. Does the spec mandate it? It\u0027s going to be unexpected result, and this is dead code for correct input.",
+      "range": {
+        "startLine": 972,
+        "startChar": 5,
+        "endLine": 979,
+        "endChar": 6
+      },
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44145223_fd983f5d",
+        "filename": "src/Vulkan/VkFormat.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 641,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "Bad merge, remove again",
+      "range": {
+        "startLine": 627,
+        "startChar": 0,
+        "endLine": 641,
+        "endChar": 40
+      },
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af60e3d5_84239512",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-11T09:11:22Z",
+      "side": 1,
+      "message": "VK_TRUE",
+      "range": {
+        "startLine": 93,
+        "startChar": 2,
+        "endLine": 93,
+        "endChar": 10
+      },
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
