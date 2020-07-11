@@ -24,7 +24,7 @@
 namespace sw
 {
 class FrameBuffer;
-enum Format : unsigned char;
+enum Format ENUM_UNDERLYING_TYPE_UNSIGNED_INT;
 }
 
 namespace egl

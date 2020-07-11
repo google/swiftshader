@@ -20,11 +20,11 @@
 #include <EGL/egl.h>
 
 #include "Common/SharedLibrary.hpp"
+#include "Renderer/Surface.hpp"
 
 namespace sw
 {
 class FrameBuffer;
-enum Format : unsigned char;
 }
 
 namespace egl

@@ -60,7 +60,7 @@ namespace sw
 	typedef SliceRectT<int> SliceRect;
 	typedef SliceRectT<float> SliceRectF;
 
-	enum Format : unsigned char
+	enum Format ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		FORMAT_NULL,
 
@@ -137,34 +137,6 @@ namespace sw
 		FORMAT_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2,
 		FORMAT_RGBA8_ETC2_EAC,
 		FORMAT_SRGB8_ALPHA8_ETC2_EAC,
-		FORMAT_RGBA_ASTC_4x4_KHR,
-		FORMAT_RGBA_ASTC_5x4_KHR,
-		FORMAT_RGBA_ASTC_5x5_KHR,
-		FORMAT_RGBA_ASTC_6x5_KHR,
-		FORMAT_RGBA_ASTC_6x6_KHR,
-		FORMAT_RGBA_ASTC_8x5_KHR,
-		FORMAT_RGBA_ASTC_8x6_KHR,
-		FORMAT_RGBA_ASTC_8x8_KHR,
-		FORMAT_RGBA_ASTC_10x5_KHR,
-		FORMAT_RGBA_ASTC_10x6_KHR,
-		FORMAT_RGBA_ASTC_10x8_KHR,
-		FORMAT_RGBA_ASTC_10x10_KHR,
-		FORMAT_RGBA_ASTC_12x10_KHR,
-		FORMAT_RGBA_ASTC_12x12_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_4x4_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_5x4_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_5x5_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_6x5_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_6x6_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_8x5_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_8x6_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_8x8_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_10x5_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_10x6_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_10x8_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_10x10_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_12x10_KHR,
-		FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR,
 		// Floating-point formats
 		FORMAT_A16F,
 		FORMAT_R16F,
@@ -479,7 +451,6 @@ namespace sw
 		static void decodeATI2(Buffer &internal, Buffer &external);
 		static void decodeEAC(Buffer &internal, Buffer &external, int nbChannels, bool isSigned);
 		static void decodeETC2(Buffer &internal, Buffer &external, int nbAlphaBits, bool isSRGB);
-		static void decodeASTC(Buffer &internal, Buffer &external, int xSize, int ySize, int zSize, bool isSRGB);
 
 		static void update(Buffer &destination, Buffer &source);
 		static void genericUpdate(Buffer &destination, Buffer &source);
