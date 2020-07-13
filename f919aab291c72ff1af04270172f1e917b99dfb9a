@@ -223,6 +223,30 @@
     },
     {
       "key": {
+        "uuid": "58d9ab6d_0ee30f8f",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 748,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-13T17:07:42Z",
+      "side": 1,
+      "message": "Note that construction and destruction of non-trivial globals can cause issues: https://swiftshader-review.googlesource.com/c/SwiftShader/+/44428",
+      "parentUuid": "a5d9c33a_5378f7d9",
+      "range": {
+        "startLine": 748,
+        "startChar": 0,
+        "endLine": 748,
+        "endChar": 22
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c63628ec_903cb632",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 10
