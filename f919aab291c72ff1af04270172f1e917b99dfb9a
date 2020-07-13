@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "b985badf_29caec6a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-13T16:03:10Z",
+      "side": 1,
+      "message": "LGTM with Alexis\u0027 remarks resolved. I\u0027ll let him +2.",
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f1722aa_dc99d90e",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 10
@@ -62,6 +79,29 @@
       "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d79675c7_81e55261",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-13T16:03:10Z",
+      "side": 1,
+      "message": "nit: This can be removed if you do in-class initialization of the r, b, g members.",
+      "range": {
+        "startLine": 326,
+        "startChar": 2,
+        "endLine": 331,
+        "endChar": 3
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
