@@ -16,8 +16,6 @@
 
 #include "Common/SharedLibrary.hpp"
 
-#define Bool int
-
 LibX11exports::LibX11exports(void *libX11, void *libXext)
 {
 	XOpenDisplay = (Display *(*)(char*))getProcAddress(libX11, "XOpenDisplay");

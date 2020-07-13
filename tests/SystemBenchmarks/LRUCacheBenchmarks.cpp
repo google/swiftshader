@@ -160,7 +160,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheHit)
 		ComplexKey key;
 		for(size_t w = 0; w < key.words.size(); w++)
 		{
-			key.words[w] = (1U << w);
+			key.words[w] = (1ull << w);
 		}
 		cache.add(key, i);
 	}
@@ -172,7 +172,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheHit)
 		ComplexKey key;
 		for(size_t w = 0; w < key.words.size(); w++)
 		{
-			key.words[w] = i & (1U << w);
+			key.words[w] = i & (1ull << w);
 		}
 		cache.lookup(key);
 	}
@@ -190,7 +190,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheMiss)
 		ComplexKey key;
 		for(size_t w = 0; w < key.words.size(); w++)
 		{
-			key.words[w] = 8 + (1U << w);
+			key.words[w] = 8 + (1ull << w);
 		}
 		cache.add(key, i);
 	}
@@ -202,7 +202,7 @@ BENCHMARK_DEFINE_F(LRUCacheBenchmark, GetComplexKeyCacheMiss)
 		ComplexKey key;
 		for(size_t w = 0; w < key.words.size(); w++)
 		{
-			key.words[w] = i & (1U << w);
+			key.words[w] = i & (1ull << w);
 		}
 		cache.lookup(key);
 	}

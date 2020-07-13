@@ -26,8 +26,6 @@
 #include <tuple>
 #include <unordered_set>
 
-#undef Bool  // b/127920555
-
 #ifdef ENABLE_RR_DEBUG_INFO
 // Functions used for generating JIT debug info.
 // See docs/ReactorDebugInfo.md for more information.

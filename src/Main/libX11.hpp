@@ -48,8 +48,6 @@ struct LibX11exports
 	int (*XShmPutImage)(Display *display, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height, bool send_event);
 };
 
-#undef Bool // b/127920555
-
 class LibX11
 {
 public:

@@ -18,7 +18,8 @@
 #include "VkSurfaceKHR.hpp"
 #include "libX11.hpp"
 #include "Vulkan/VkObject.hpp"
-#include "vulkan/vulkan_xlib.h"
+
+#include <vulkan/vulkan_xlib.h>
 
 #include <unordered_map>
 

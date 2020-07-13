@@ -27,8 +27,8 @@ public:
 	{
 		static_assert(sizeof(VkNonDispatchableHandle) == sizeof(uint64_t), "Size is not 64 bits!");
 
-		// VkNonDispatchabbleHandle must be POD to ensure it gets passed by value the same way as a uint64_t,
-		// which is the upstream header's handle type when compiled for 32b architectures. On 64b architectures,
+		// VkNonDispatchableHandle must be POD to ensure it gets passed by value the same way as a uint64_t,
+		// which is the upstream header's handle type when compiled for 32-bit architectures. On 64-bit architectures,
 		// the upstream header's handle type is a pointer type.
 		static_assert(std::is_trivial<VkNonDispatchableHandle<T>>::value, "VkNonDispatchableHandle<T> is not trivial!");
 		static_assert(std::is_standard_layout<VkNonDispatchableHandle<T>>::value, "VkNonDispatchableHandle<T> is not standard layout!");
@@ -51,12 +51,7 @@ public:
 
 #include <vulkan/vk_ext_provoking_vertex.h>
 #include <vulkan/vk_google_filtering_precision.h>
-#include <vulkan/vulkan.h>
-
-#ifdef Bool
-#	undef Bool  // b/127920555
-#	undef None
-#endif
+#include <vulkan/vulkan_core.h>
 
 namespace vk {
 // Here we define constants that used to be in the Vulkan headers, but are not part of the spec.

@@ -15,9 +15,7 @@
 #ifndef VK_DESCRIPTOR_SET_HPP_
 #define VK_DESCRIPTOR_SET_HPP_
 
-// Intentionally not including VkObject.hpp here due to b/127920555
-#include "VkConfig.hpp"
-
+#include "VkObject.hpp"
 #include "marl/mutex.h"
 
 #include <array>
@@ -35,19 +33,9 @@ struct alignas(16) DescriptorSetHeader
 	marl::mutex mutex;
 };
 
-class alignas(16) DescriptorSet
+class alignas(16) DescriptorSet : public Object<DescriptorSet, VkDescriptorSet>
 {
 public:
-	static inline DescriptorSet *Cast(VkDescriptorSet object)
-	{
-		return static_cast<DescriptorSet *>(static_cast<void *>(object));
-	}
-
-	operator VkDescriptorSet()
-	{
-		return { static_cast<uint64_t>(reinterpret_cast<uintptr_t>(this)) };
-	}
-
 	using Array = std::array<DescriptorSet *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using Bindings = std::array<uint8_t *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;

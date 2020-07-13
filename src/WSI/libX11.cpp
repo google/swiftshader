@@ -16,8 +16,6 @@
 
 #include "System/SharedLibrary.hpp"
 
-#define Bool int
-
 namespace {
 
 template<typename FPTR>

@@ -17,10 +17,9 @@
 
 #include "VkObject.hpp"
 #include "Device/Renderer.hpp"
-#include <vulkan/vk_icd.h>
-#include <thread>
-
 #include "System/Synchronization.hpp"
+
+#include <thread>
 
 namespace marl {
 class Scheduler;

@@ -18,10 +18,6 @@
 #include <stdint.h>
 #include <type_traits>
 
-#ifdef Bool
-#	undef Bool  // b/127920555
-#endif
-
 namespace rr {
 
 // Forward declarations

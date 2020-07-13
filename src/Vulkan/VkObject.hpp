@@ -20,8 +20,10 @@
 
 #include "System/Debug.hpp"
 
-#include "Vulkan/VulkanPlatform.hpp"
 #include <vulkan/vk_icd.h>
+#undef None
+#undef Bool
+
 #include <new>
 
 namespace vk {

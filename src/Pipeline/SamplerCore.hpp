@@ -20,10 +20,6 @@
 #include "Reactor/Print.hpp"
 #include "Reactor/Reactor.hpp"
 
-#ifdef None
-#	undef None  // b/127920555
-#endif
-
 namespace sw {
 
 using namespace rr;
