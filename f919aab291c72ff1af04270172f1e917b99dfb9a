@@ -152,6 +152,30 @@
     },
     {
       "key": {
+        "uuid": "daab03d3_b4d75919",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T17:51:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e432cf5_3d4b556e",
+      "range": {
+        "startLine": 398,
+        "startChar": 0,
+        "endLine": 398,
+        "endChar": 16
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "931ef8c8_e22c2c5d",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 10
