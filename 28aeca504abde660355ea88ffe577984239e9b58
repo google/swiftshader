@@ -122,6 +122,30 @@
     },
     {
       "key": {
+        "uuid": "fd66b7db_e53ffce4",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 979,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T15:34:26Z",
+      "side": 1,
+      "message": "The spec only demands this happens for the reserved modes. So yeah, I could just get rid of this code since it\u0027ll only ever trigger if somehow an unhandled enum value is added to my table.",
+      "parentUuid": "8f4fad15_56247ac3",
+      "range": {
+        "startLine": 972,
+        "startChar": 5,
+        "endLine": 979,
+        "endChar": 6
+      },
+      "revId": "28aeca504abde660355ea88ffe577984239e9b58",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "44145223_fd983f5d",
         "filename": "src/Vulkan/VkFormat.cpp",
         "patchSetId": 8
