@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0bdc92f2_29f83909",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "Nice to see this work! Some minor comments:",
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8f1722aa_dc99d90e",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "Maybe not necessary? (see comment below)",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 17
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e616348_0c29ac92",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "Just curious why everything else is constexpr and this is const",
+      "range": {
+        "startLine": 309,
+        "startChar": 7,
+        "endLine": 309,
+        "endChar": 12
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "931ef8c8_e22c2c5d",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "uber nit: lowercase e? (e0, e1)\nIgnore if uppercase E makes more sense",
+      "range": {
+        "startLine": 585,
+        "startChar": 18,
+        "endLine": 585,
+        "endChar": 34
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb439015_966b2709",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 748,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "Why is this using an std::vector? Is this not a constant array?",
+      "range": {
+        "startLine": 748,
+        "startChar": 0,
+        "endLine": 748,
+        "endChar": 22
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c63628ec_903cb632",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 950,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "uber nit: lowercase e?\nIgnore if uppercase E makes more sense",
+      "range": {
+        "startLine": 950,
+        "startChar": 7,
+        "endLine": 950,
+        "endChar": 8
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51f56405_8018147e",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-13T15:55:36Z",
+      "side": 1,
+      "message": "uber nit: extra comma",
+      "range": {
+        "startLine": 95,
+        "startChar": 22,
+        "endLine": 95,
+        "endChar": 23
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
