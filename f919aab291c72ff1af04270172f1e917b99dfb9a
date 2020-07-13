@@ -82,6 +82,30 @@
     },
     {
       "key": {
+        "uuid": "6a910176_7c03f595",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T16:59:46Z",
+      "side": 1,
+      "message": "I didn\u0027t realize everything else was using constexpr or that there was a functional difference.",
+      "parentUuid": "1e616348_0c29ac92",
+      "range": {
+        "startLine": 309,
+        "startChar": 7,
+        "endLine": 309,
+        "endChar": 12
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d79675c7_81e55261",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 10
@@ -128,6 +152,30 @@
     },
     {
       "key": {
+        "uuid": "25df99ff_8e7e1212",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T16:59:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "931ef8c8_e22c2c5d",
+      "range": {
+        "startLine": 585,
+        "startChar": 18,
+        "endLine": 585,
+        "endChar": 34
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb439015_966b2709",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 10
@@ -139,6 +187,30 @@
       "writtenOn": "2020-07-13T15:55:36Z",
       "side": 1,
       "message": "Why is this using an std::vector? Is this not a constant array?",
+      "range": {
+        "startLine": 748,
+        "startChar": 0,
+        "endLine": 748,
+        "endChar": 22
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5d9c33a_5378f7d9",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 748,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T16:59:46Z",
+      "side": 1,
+      "message": "It\u0027s a 2d array with variable sizes on each row. Each mode has a different number of bitfields it needs to read, which would make a constant 2d array annoying. I feel that using an array of vectors makes the data-management simple for an otherwise complicated table.\n\nThough I did miss that this should be a static const std::vector since nothing should modify it once it\u0027s created. And not a constexpr because it\u0027s initializing data that can only be set at runtime.",
+      "parentUuid": "eb439015_966b2709",
       "range": {
         "startLine": 748,
         "startChar": 0,
@@ -174,6 +246,30 @@
     },
     {
       "key": {
+        "uuid": "8b7dfc8f_4e99fce6",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 950,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T16:59:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c63628ec_903cb632",
+      "range": {
+        "startLine": 950,
+        "startChar": 7,
+        "endLine": 950,
+        "endChar": 8
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51f56405_8018147e",
         "filename": "src/Vulkan/VkImage.cpp",
         "patchSetId": 10
@@ -194,6 +290,30 @@
       "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37d41200_64242a72",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-07-13T16:59:46Z",
+      "side": 1,
+      "message": "English style guides fall into two camps on this. This is known as the Oxford comma and helps prevent sentences like \"I love my parents, Elmo and Big Bird\" where people can read this sentence to mean that you\u0027re saying your parents are Elmo and Big Bird.\n\nI prefer always using it because that\u0027s just how I was taught.",
+      "parentUuid": "51f56405_8018147e",
+      "range": {
+        "startLine": 95,
+        "startChar": 22,
+        "endLine": 95,
+        "endChar": 23
+      },
+      "revId": "f919aab291c72ff1af04270172f1e917b99dfb9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
