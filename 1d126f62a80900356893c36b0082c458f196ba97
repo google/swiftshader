@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce06fc0d_2492bf13",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-14T14:28:12Z",
+      "side": 1,
+      "message": "Kokoro failure was another timeout during toolchain update. We\u0027ll want to look into using updated images.",
+      "revId": "1d126f62a80900356893c36b0082c458f196ba97",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
