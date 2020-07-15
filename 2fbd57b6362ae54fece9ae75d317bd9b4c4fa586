@@ -22,6 +22,30 @@
       "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a6acfea_6263ada6",
+        "filename": "tests/regres/cmd/regres/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-15T14:48:40Z",
+      "side": 1,
+      "message": "Approved corresponds with +2 only, Recommended is +1, while a -2 vote goes in the Rejected field, and -1 is Disliked.\n\nA change could have both positive and negative votes, in which case it would still go through testing, which is okay when there\u0027s a benign difference of opinion, or we can remove the positive vote if Regres shouldn\u0027t pick it up.\n\nThat said, I haven\u0027t actually seen this work. Will attempt to debug it next time a non-@google.com contributor\u0027s change needs regression testing.",
+      "parentUuid": "0944cc31_9ab87655",
+      "range": {
+        "startLine": 994,
+        "startChar": 2,
+        "endLine": 995,
+        "endChar": 83
+      },
+      "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
