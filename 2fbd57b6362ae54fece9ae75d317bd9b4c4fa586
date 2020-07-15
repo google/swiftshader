@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0944cc31_9ab87655",
+        "filename": "tests/regres/cmd/regres/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-07-15T11:20:47Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this trigger a test if you gave the change a -1 or -2?\nIsn\u0027t that the natural thing to do if the change contained something nasty?",
+      "range": {
+        "startLine": 994,
+        "startChar": 2,
+        "endLine": 995,
+        "endChar": 83
+      },
+      "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
