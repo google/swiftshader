@@ -46,6 +46,30 @@
       "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e565fb63_dfc574e1",
+        "filename": "tests/regres/cmd/regres/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-07-15T15:03:18Z",
+      "side": 1,
+      "message": "Ah okay, the whole gerrit API around labelling is nuts. I suppose you could have a +1 on Presubmit-Ready and a -2 on Code-Review, and still trigger. Not that likely a problem, but might be worth explicitly setting canTest to false if codeReviewScore is negative.\n\nAnyway, ignorable. Thanks for the quick response.",
+      "parentUuid": "0a6acfea_6263ada6",
+      "range": {
+        "startLine": 994,
+        "startChar": 2,
+        "endLine": 995,
+        "endChar": 83
+      },
+      "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
