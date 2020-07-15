@@ -294,7 +294,13 @@
 
 /* Target triple LLVM will generate code for by default */
 /* Doesn't use `cmakedefine` because it is allowed to be empty. */
-#define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-unknown-linux-gnu"
+#if defined(__x86_64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-unknown-fuchsia"
+#elif defined(__aarch64__)
+#define LLVM_DEFAULT_TARGET_TRIPLE "aarch64-unknown-fuchsia"
+#else
+#error "unknown architecture"
+#endif
 
 /* Define if zlib compression is available */
 #define LLVM_ENABLE_ZLIB 0
@@ -321,10 +327,10 @@
 #define PACKAGE_NAME "LLVM"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LLVM 10.0.1"
+#define PACKAGE_STRING "LLVM 10.0.0"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "10.0.1"
+#define PACKAGE_VERSION "10.0.0"
 
 /* Define to the vendor of this package. */
 /* #undef PACKAGE_VENDOR */

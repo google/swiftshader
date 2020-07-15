@@ -77,6 +77,10 @@ LLVM_TRIPLES = {
         ('__mips__', 'mipsel-pc-win32'),
         ('__mips64', 'mips64el-pc-win32'),
     ],
+    'fuchsia': [
+        ('__x86_64__', 'x86_64-unknown-fuchsia'),
+        ('__aarch64__', 'aarch64-unknown-fuchsia'),
+    ]
 }
 
 # Mapping of target platform to the host it must be built on
@@ -85,6 +89,7 @@ LLVM_PLATFORM_TO_HOST_SYSTEM = {
     'darwin': 'Darwin',
     'linux': 'Linux',
     'windows': 'Windows',
+    'fuchsia': 'Linux'
 }
 
 # LLVM configurations to be undefined.
@@ -141,7 +146,7 @@ def run_subprocess(*popenargs, log_level=1, cwd=None):
 def _parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('name', help='destination name',
-                        choices=['android', 'linux', 'darwin', 'windows'])
+                        choices=['android', 'linux', 'darwin', 'windows', 'fuchsia'])
     parser.add_argument('-j', '--jobs', help='parallel compilation', type=int)
     return parser.parse_args()
 
