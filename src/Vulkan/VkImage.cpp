@@ -524,36 +524,30 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsS
 	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
 
 	VkDeviceSize copySize = 0;
-	VkDeviceSize bufferLayerSize = 0;
 	if(isSingleRow)
 	{
 		copySize = imageExtent.width * bytesPerBlock;
-		bufferLayerSize = copySize;
 	}
 	else if(isEntireRow && isSingleSlice)
 	{
 		copySize = imageExtent.height * imageRowPitchBytes;
-		bufferLayerSize = copySize;
 	}
 	else if(isEntireSlice)
 	{
 		copySize = imageExtent.depth * imageSlicePitchBytes;  // Copy multiple slices
-		bufferLayerSize = copySize;
 	}
 	else if(isEntireRow)  // Copy slice by slice
 	{
 		copySize = imageExtent.height * imageRowPitchBytes;
-		bufferLayerSize = copySize * imageExtent.depth;
 	}
 	else  // Copy row by row
 	{
 		copySize = imageExtent.width * bytesPerBlock;
-		bufferLayerSize = copySize * imageExtent.depth * imageExtent.height;
 	}
 
 	VkDeviceSize imageLayerSize = getLayerSize(aspect);
-	VkDeviceSize srcLayerSize = bufferIsSource ? bufferLayerSize : imageLayerSize;
-	VkDeviceSize dstLayerSize = bufferIsSource ? imageLayerSize : bufferLayerSize;
+	VkDeviceSize srcLayerSize = bufferIsSource ? bufferSlicePitchBytes : imageLayerSize;
+	VkDeviceSize dstLayerSize = bufferIsSource ? imageLayerSize : bufferSlicePitchBytes;
 
 	for(uint32_t i = 0; i < region.imageSubresource.layerCount; i++)
 	{
