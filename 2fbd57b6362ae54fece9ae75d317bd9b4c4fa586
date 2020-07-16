@@ -70,6 +70,30 @@
       "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7e54660_fb7c80bc",
+        "filename": "tests/regres/cmd/regres/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-16T21:21:14Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/c/SwiftShader/+/46548",
+      "parentUuid": "e565fb63_dfc574e1",
+      "range": {
+        "startLine": 994,
+        "startChar": 2,
+        "endLine": 995,
+        "endChar": 83
+      },
+      "revId": "2fbd57b6362ae54fece9ae75d317bd9b4c4fa586",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
