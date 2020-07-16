@@ -976,6 +976,7 @@ func (c *changeInfo) update(client *gerrit.Client) error {
 	codeReviewScore := change.Labels["Code-Review"].Value
 	codeReviewApproved := change.Labels["Code-Review"].Approved.AccountID != 0
 	presubmitReady := change.Labels["Presubmit-Ready"].Approved.AccountID != 0
+	verifiedScore := change.Labels["Verified"].Value
 
 	c.priority = 0
 	if presubmitReady {
@@ -994,6 +995,13 @@ func (c *changeInfo) update(client *gerrit.Client) error {
 		strings.HasSuffix(change.Labels["Code-Review"].Approved.Email, "@google.com") ||
 		strings.HasSuffix(change.Labels["Code-Review"].Recommended.Email, "@google.com") ||
 		strings.HasSuffix(change.Labels["Presubmit-Ready"].Approved.Email, "@google.com")
+
+	// Don't test if the change has negative scores.
+	if canTest {
+		if codeReviewScore < 0 || verifiedScore < 0 {
+			canTest = false
+		}
+	}
 
 	// Has the latest patchset already been tested?
 	if canTest {
