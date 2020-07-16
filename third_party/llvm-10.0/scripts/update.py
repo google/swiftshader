@@ -118,6 +118,8 @@ LLVM_CMAKE_OPTIONS = [
     '-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON'
 ]
 
+# Used when building LLVM for darwin. Affects values set in the generated config files.
+MIN_MACOS_VERSION = '10.10'
 
 @contextlib.contextmanager
 def pushd(new_dir):
@@ -209,6 +211,9 @@ def build_llvm(name, num_jobs):
 
     cmake_options = LLVM_CMAKE_OPTIONS + ['-DLLVM_TARGETS_TO_BUILD=' +
                                           ';'.join(t for t in get_cmake_targets_to_build(name))]
+
+    if name == 'darwin':
+        cmake_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET={}'.format(MIN_MACOS_VERSION))
 
     os.makedirs(LLVM_OBJS, exist_ok=True)
     run_subprocess(['cmake', host, LLVM_DIR] +
