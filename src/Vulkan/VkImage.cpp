@@ -497,6 +497,12 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsS
 	Format copyFormat = getFormat(aspect);
 
 	VkExtent3D imageExtent = imageExtentInBlocks(region.imageExtent, aspect);
+
+	if(imageExtent.width == 0 || imageExtent.height == 0 || imageExtent.depth == 0)
+	{
+		return;
+	}
+
 	VkExtent2D bufferExtent = bufferExtentInBlocks({ imageExtent.width, imageExtent.height }, region);
 	int bytesPerBlock = copyFormat.bytesPerBlock();
 	int bufferRowPitchBytes = bufferExtent.width * bytesPerBlock;
@@ -530,15 +536,15 @@ void Image::copy(Buffer *buffer, const VkBufferImageCopy &region, bool bufferIsS
 	}
 	else if(isEntireRow && isSingleSlice)
 	{
-		copySize = imageExtent.height * imageRowPitchBytes;
+		copySize = (imageExtent.height - 1) * imageRowPitchBytes + imageExtent.width * bytesPerBlock;
 	}
 	else if(isEntireSlice)
 	{
-		copySize = imageExtent.depth * imageSlicePitchBytes;  // Copy multiple slices
+		copySize = (imageExtent.depth - 1) * imageSlicePitchBytes + (imageExtent.height - 1) * imageRowPitchBytes + imageExtent.width * bytesPerBlock;  // Copy multiple slices
 	}
 	else if(isEntireRow)  // Copy slice by slice
 	{
-		copySize = imageExtent.height * imageRowPitchBytes;
+		copySize = (imageExtent.height - 1) * imageRowPitchBytes + imageExtent.width * bytesPerBlock;
 	}
 	else  // Copy row by row
 	{
