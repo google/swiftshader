@@ -21,6 +21,7 @@ config("swiftshader_llvm_private_config") {
   if (is_win) {
     cflags += [
       "/wd4005",
+      "/wd4018",
       "/wd4065",
       "/wd4141",
       "/wd4146",
