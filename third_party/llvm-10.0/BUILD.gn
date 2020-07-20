@@ -894,6 +894,7 @@ swiftshader_llvm_source_set("swiftshader_llvm_support") {
     "llvm/lib/Support/Program.cpp",
     "llvm/lib/Support/RandomNumberGenerator.cpp",
     "llvm/lib/Support/Regex.cpp",
+    "llvm/lib/Support/RWMutex.cpp",
     "llvm/lib/Support/SHA1.cpp",
     "llvm/lib/Support/ScaledNumber.cpp",
     "llvm/lib/Support/ScopedPrinter.cpp",
