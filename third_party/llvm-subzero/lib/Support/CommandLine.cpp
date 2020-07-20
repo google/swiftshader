@@ -2053,69 +2053,6 @@ static void (*OverrideVersionPrinter)() = nullptr;
 
 static std::vector<void (*)()> *ExtraVersionPrinters = nullptr;
 
-namespace {
-class VersionPrinter {
-public:
-  void print() {
-    raw_ostream &OS = outs();
-#ifdef PACKAGE_VENDOR
-    OS << PACKAGE_VENDOR << " ";
-#else
-    OS << "LLVM (http://llvm.org/):\n  ";
-#endif
-    OS << PACKAGE_NAME << " version " << PACKAGE_VERSION;
-#ifdef LLVM_VERSION_INFO
-    OS << " " << LLVM_VERSION_INFO;
-#endif
-    OS << "\n  ";
-#ifndef __OPTIMIZE__
-    OS << "DEBUG build";
-#else
-    OS << "Optimized build";
-#endif
-#ifndef NDEBUG
-    OS << " with assertions";
-#endif
-    std::string CPU = sys::getHostCPUName();
-    if (CPU == "generic")
-      CPU = "(unknown)";
-    OS << ".\n"
-       << "  Default target: " << sys::getDefaultTargetTriple() << '\n'
-       << "  Host CPU: " << CPU << '\n';
-  }
-  void operator=(bool OptionWasSpecified) {
-    if (!OptionWasSpecified)
-      return;
-
-    if (OverrideVersionPrinter != nullptr) {
-      (*OverrideVersionPrinter)();
-      exit(0);
-    }
-    print();
-
-    // Iterate over any registered extra printers and call them to add further
-    // information.
-    if (ExtraVersionPrinters != nullptr) {
-      outs() << '\n';
-      for (std::vector<void (*)()>::iterator I = ExtraVersionPrinters->begin(),
-                                             E = ExtraVersionPrinters->end();
-           I != E; ++I)
-        (*I)();
-    }
-
-    exit(0);
-  }
-};
-} // End anonymous namespace
-
-// Define the --version option that prints out the LLVM version for the tool
-static VersionPrinter VersionPrinterInstance;
-
-static cl::opt<VersionPrinter, true, parser<bool>>
-    VersOp("version", cl::desc("Display the version of this program"),
-           cl::location(VersionPrinterInstance), cl::ValueDisallowed,
-           cl::cat(GenericCategory));
-
 // Utility function for printing the help message.
 void cl::PrintHelpMessage(bool Hidden, bool Categorized) {
   // This looks weird, but it actually prints the help message. The Printers are
@@ -2134,9 +2071,6 @@ void cl::PrintHelpMessage(bool Hidden, bool Categorized) {
   else
     CategorizedHiddenPrinter = true;
 }
-
-/// Utility function for printing version number.
-void cl::PrintVersionMessage() { VersionPrinterInstance.print(); }
 
 void cl::SetVersionPrinter(void (*func)()) { OverrideVersionPrinter = func; }
 

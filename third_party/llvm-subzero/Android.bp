@@ -49,7 +49,6 @@ cc_library_static {
         "lib/Support/ErrorHandling.cpp",
         "lib/Support/FoldingSet.cpp",
         "lib/Support/Hashing.cpp",
-        "lib/Support/Host.cpp",
         "lib/Support/ManagedStatic.cpp",
         "lib/Support/MemoryBuffer.cpp",
         "lib/Support/Mutex.cpp",
@@ -72,10 +71,8 @@ cc_library_static {
         "lib/Support/StringMap.cpp",
         "lib/Support/StringRef.cpp",
         "lib/Support/StringSaver.cpp",
-        "lib/Support/TargetParser.cpp",
         "lib/Support/Threading.cpp",
         "lib/Support/Timer.cpp",
-        "lib/Support/Triple.cpp",
         "lib/Support/Twine.cpp",
     ],
 
