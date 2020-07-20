@@ -254,11 +254,7 @@ public:
 		// Round down base address to align with a page boundary. This matches
 		// DefaultMMapper behavior.
 		void *addr = block.base();
-#if LLVM_VERSION_MAJOR >= 9
 		size_t size = block.allocatedSize();
-#else
-		size_t size = block.size();
-#endif
 		size_t pageSize = rr::memoryPageSize();
 		addr = reinterpret_cast<void *>(
 		    reinterpret_cast<uintptr_t>(addr) & ~(pageSize - 1));
@@ -271,11 +267,7 @@ public:
 
 	std::error_code releaseMappedMemory(llvm::sys::MemoryBlock &block)
 	{
-#if LLVM_VERSION_MAJOR >= 9
 		size_t size = block.allocatedSize();
-#else
-		size_t size = block.size();
-#endif
 
 		rr::deallocateMemoryPages(block.base(), size);
 		return std::error_code();
@@ -540,13 +532,8 @@ void *resolveExternalSymbol(const char *name)
 // settings and no Reactor routine directly links against another.
 class JITRoutine : public rr::Routine
 {
-#if LLVM_VERSION_MAJOR >= 8
 	using ObjLayer = llvm::orc::LegacyRTDyldObjectLinkingLayer;
 	using CompileLayer = llvm::orc::LegacyIRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
-#else
-	using ObjLayer = llvm::orc::RTDyldObjectLinkingLayer;
-	using CompileLayer = llvm::orc::IRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
-#endif
 
 public:
 #if defined(__clang__)

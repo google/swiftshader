@@ -147,9 +147,9 @@ set(DEFAULT_REACTOR_BACKEND "LLVM")
 set(REACTOR_BACKEND ${DEFAULT_REACTOR_BACKEND} CACHE STRING "JIT compiler back-end used by Reactor")
 set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
 
-set(DEFAULT_SWIFTSHADER_LLVM_VERSION "7.0")
+set(DEFAULT_SWIFTSHADER_LLVM_VERSION "10.0")
 set(SWIFTSHADER_LLVM_VERSION ${DEFAULT_SWIFTSHADER_LLVM_VERSION} CACHE STRING "LLVM version to use")
-set_property(CACHE SWIFTSHADER_LLVM_VERSION PROPERTY STRINGS "7.0" "10.0")
+set_property(CACHE SWIFTSHADER_LLVM_VERSION PROPERTY STRINGS "10.0")
 
 # If defined, overrides the default optimization level of the current reactor backend.
 # Set to one of the rr::Optimization::Level enum values.
@@ -722,7 +722,6 @@ if(SWIFTSHADER_BUILD_VULKAN)
     add_subdirectory(src/Vulkan) # Add vk_swiftshader target
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND # turbo-cov is only useful for clang coverage info
-       SWIFTSHADER_LLVM_VERSION EQUAL "10.0" AND # turbo-cov does not build with earlier llvm versions
        SWIFTSHADER_EMIT_COVERAGE)
         add_subdirectory(${TESTS_DIR}/regres/cov/turbo-cov)
     endif()
