@@ -384,6 +384,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/DebugInfo/DWARF/DWARFVerifier.cpp
     ${LLVM_DIR}/lib/Demangle/ItaniumDemangle.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/ExecutionEngine.cpp
+    ${LLVM_DIR}/lib/ExecutionEngine/GDBRegistrationListener.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/Orc/CompileUtils.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/Orc/Core.cpp
     ${LLVM_DIR}/lib/ExecutionEngine/Orc/IRCompileLayer.cpp

@@ -97,17 +97,15 @@ DebugInfo::DebugInfo(
 
 	auto file = getOrCreateFile(location.function.file.c_str());
 	auto sp = diBuilder->createFunction(
-	    file,                    // scope
-	    "ReactorFunction",       // function name
-	    "ReactorFunction",       // linkage
-	    file,                    // file
-	    location.line,           // line
-	    funcTy,                  // type
-	    false,                   // internal linkage
-	    true,                    // definition
-	    location.line,           // scope line
-	    DINode::FlagPrototyped,  // flags
-	    false                    // is optimized
+	    file,                           // scope
+	    "ReactorFunction",              // function name
+	    "ReactorFunction",              // linkage
+	    file,                           // file
+	    location.line,                  // line
+	    funcTy,                         // type
+	    location.line,                  // scope line
+	    DINode::FlagPrototyped,         // flags
+	    DISubprogram::SPFlagDefinition  // subprogram flags
 	);
 	diSubprogram = sp;
 	function->setSubprogram(sp);
@@ -142,6 +140,8 @@ void DebugInfo::Flush()
 
 void DebugInfo::syncScope(Backtrace const &backtrace)
 {
+	using namespace ::llvm;
+
 	auto shrink = [this](size_t newsize) {
 		while(diScope.size() > newsize)
 		{
@@ -204,17 +204,15 @@ void DebugInfo::syncScope(Backtrace const &backtrace)
 		auto name = "jit!" + (status == 0 ? std::string(buf) : location.function.name);
 
 		auto func = diBuilder->createFunction(
-		    file,                          // scope
-		    name,                          // function name
-		    "",                            // linkage
-		    file,                          // file
-		    location.line,                 // line
-		    funcTy,                        // type
-		    false,                         // internal linkage
-		    true,                          // definition
-		    location.line,                 // scope line
-		    llvm::DINode::FlagPrototyped,  // flags
-		    false                          // is optimized
+		    file,                           // scope
+		    name,                           // function name
+		    "",                             // linkage
+		    file,                           // file
+		    location.line,                  // line
+		    funcTy,                         // type
+		    location.line,                  // scope line
+		    DINode::FlagPrototyped,         // flags
+		    DISubprogram::SPFlagDefinition  // subprogram flags
 		);
 		diScope.push_back({ location, func });
 		LOG("+ STACK(%d): di: %p, location: %s:%d", int(i), di,
@@ -381,13 +379,15 @@ void DebugInfo::emitPending(Scope &scope, IRBuilder *builder)
 void DebugInfo::NotifyObjectEmitted(const llvm::object::ObjectFile &Obj, const llvm::LoadedObjectInfo &L)
 {
 	std::unique_lock<std::mutex> lock(jitEventListenerMutex);
-	jitEventListener->NotifyObjectEmitted(Obj, static_cast<const llvm::RuntimeDyld::LoadedObjectInfo &>(L));
+	auto key = reinterpret_cast<llvm::JITEventListener::ObjectKey>(&Obj);
+	jitEventListener->notifyObjectLoaded(key, Obj, static_cast<const llvm::RuntimeDyld::LoadedObjectInfo &>(L));
 }
 
 void DebugInfo::NotifyFreeingObject(const llvm::object::ObjectFile &Obj)
 {
 	std::unique_lock<std::mutex> lock(jitEventListenerMutex);
-	jitEventListener->NotifyFreeingObject(Obj);
+	auto key = reinterpret_cast<llvm::JITEventListener::ObjectKey>(&Obj);
+	jitEventListener->notifyFreeingObject(key);
 }
 
 void DebugInfo::registerBasicTypes()
