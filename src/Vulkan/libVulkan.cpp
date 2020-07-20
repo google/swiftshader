@@ -57,6 +57,10 @@
 #	include "WSI/XlibSurfaceKHR.hpp"
 #endif
 
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+#	include "WSI/WaylandSurfaceKHR.hpp"
+#endif
+
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 #	include "WSI/Win32SurfaceKHR.hpp"
 #endif
@@ -313,6 +317,9 @@ static const VkExtensionProperties instanceExtensionProperties[] = {
 #endif
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 	{ VK_KHR_XLIB_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_SPEC_VERSION },
+#endif
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+	{ VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME, VK_KHR_WAYLAND_SURFACE_SPEC_VERSION },
 #endif
 #ifdef VK_USE_PLATFORM_MACOS_MVK
 	{ VK_MVK_MACOS_SURFACE_EXTENSION_NAME, VK_MVK_MACOS_SURFACE_SPEC_VERSION },
@@ -3483,6 +3490,24 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceXlibPresentationSupportKHR(VkP
 {
 	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t queueFamilyIndex = %d, Display* dpy = %p, VisualID visualID = %lu)",
 	      physicalDevice, int(queueFamilyIndex), dpy, visualID);
+
+	return VK_TRUE;
+}
+#endif
+
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateWaylandSurfaceKHR(VkInstance instance, const VkWaylandSurfaceCreateInfoKHR *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkSurfaceKHR *pSurface)
+{
+	TRACE("(VkInstance instance = %p, VkWaylandSurfaceCreateInfoKHR* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
+	      instance, pCreateInfo, pAllocator, pSurface);
+
+	return vk::WaylandSurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceWaylandPresentationSupportKHR(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, struct wl_display *display)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t queueFamilyIndex = %d, struct wl_display* display = %p)",
+	      physicalDevice, int(queueFamilyIndex), display);
 
 	return VK_TRUE;
 }

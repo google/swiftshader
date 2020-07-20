@@ -46,6 +46,12 @@ elseif(LINUX)
         )
     endif()
 
+    if(WAYLAND)
+        list(APPEND WSI_SRC_FILES
+            WaylandSurfaceKHR.cpp
+            WaylandSurfaceKHR.hpp
+        )
+    endif()
 elseif(APPLE)
     list(APPEND WSI_SRC_FILES
         MetalSurface.mm
