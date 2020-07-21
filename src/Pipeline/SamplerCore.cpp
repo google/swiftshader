@@ -2257,7 +2257,6 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 		xyz0 = Min(Max(xyz, Int4(0)), maxXYZ);
 
 		// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
-		// TODO(b/159329067): Claim VK_EXT_image_robustness
 		// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 		// If the above clamping altered the result, the access is out-of-bounds.
 		// In that case set the coordinate to -1 to perform texel replacement later.

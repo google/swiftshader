@@ -1511,7 +1511,6 @@ OutOfBoundsBehavior SpirvShader::EmitState::getOutOfBoundsBehavior(spv::StorageC
 
 		case spv::StorageClassImage:
 			// VK_EXT_image_robustness requires nullifying out-of-bounds accesses.
-			// TODO(b/159329067): Claim VK_EXT_image_robustness
 			// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 			return OutOfBoundsBehavior::Nullify;
 

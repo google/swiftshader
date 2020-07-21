@@ -45,6 +45,7 @@ public:
 	void getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT *features) const;
 	void getFeatures(VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR *features) const;
 	void getFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT *features) const;
+	void getFeatures(VkPhysicalDeviceImageRobustnessFeaturesEXT *features) const;
 	bool hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatures) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;

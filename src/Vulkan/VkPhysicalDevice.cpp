@@ -191,6 +191,11 @@ void PhysicalDevice::getFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT *fea
 	features->provokingVertexLast = VK_TRUE;
 }
 
+void PhysicalDevice::getFeatures(VkPhysicalDeviceImageRobustnessFeaturesEXT *features) const
+{
+	features->robustImageAccess = VK_TRUE;
+}
+
 VkSampleCountFlags PhysicalDevice::getSampleCounts() const
 {
 	return VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT;

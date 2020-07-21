@@ -100,19 +100,6 @@ void logBuildVersionInformation()
 }
 #endif  // __ANDROID__ && ENABLE_BUILD_VERSION_OUTPUT
 
-bool HasExtensionProperty(const char *extensionName, const VkExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
-{
-	for(uint32_t j = 0; j < extensionPropertiesCount; ++j)
-	{
-		if(strcmp(extensionName, extensionProperties[j].extensionName) == 0)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 // setReactorDefaultConfig() sets the default configuration for Vulkan's use of
 // Reactor.
 void setReactorDefaultConfig()
@@ -362,6 +349,7 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 	{ VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME, VK_EXT_LINE_RASTERIZATION_SPEC_VERSION },
 	// The following extension is used by ANGLE to emulate blitting the stencil buffer
 	{ VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME, VK_EXT_SHADER_STENCIL_EXPORT_SPEC_VERSION },
+	{ VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME, VK_EXT_IMAGE_ROBUSTNESS_SPEC_VERSION },
 #ifndef __ANDROID__
 	// We fully support the KHR_swapchain v70 additions, so just track the spec version.
 	{ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_SPEC_VERSION },
@@ -393,6 +381,29 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 	{ VK_GOOGLE_SAMPLER_FILTERING_PRECISION_EXTENSION_NAME, VK_GOOGLE_SAMPLER_FILTERING_PRECISION_SPEC_VERSION },
 };
 
+static bool hasExtension(const char *extensionName, const VkExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
+{
+	for(uint32_t i = 0; i < extensionPropertiesCount; i++)
+	{
+		if(strcmp(extensionName, extensionProperties[i].extensionName) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool hasInstanceExtension(const char *extensionName)
+{
+	return hasExtension(extensionName, instanceExtensionProperties, sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]));
+}
+
+static bool hasDeviceExtension(const char *extensionName)
+{
+	return hasExtension(extensionName, deviceExtensionProperties, sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]));
+}
+
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkInstance *pInstance)
 {
 	TRACE("(const VkInstanceCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkInstance* pInstance = %p)",
@@ -411,10 +422,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 		UNIMPLEMENTED("b/148240133: pCreateInfo->enabledLayerCount != 0");  // FIXME(b/148240133)
 	}
 
-	uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
 	for(uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		if(!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], instanceExtensionProperties, extensionPropertiesCount))
+		if(!hasInstanceExtension(pCreateInfo->ppEnabledExtensionNames[i]))
 		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
@@ -670,10 +680,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		UNSUPPORTED("pCreateInfo->enabledLayerCount != 0");
 	}
 
-	uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
 	for(uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		if(!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], deviceExtensionProperties, extensionPropertiesCount))
+		if(!hasDeviceExtension(pCreateInfo->ppEnabledExtensionNames[i]))
 		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
@@ -804,6 +813,20 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				(void)provokingVertexFeatures->provokingVertexLast;
 			}
 			break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
+			{
+				const VkPhysicalDeviceImageRobustnessFeaturesEXT *imageRobustnessFeatures = reinterpret_cast<const VkPhysicalDeviceImageRobustnessFeaturesEXT *>(extensionCreateInfo);
+
+				// We currently always provide robust image accesses. When the feature is disabled, results are
+				// undefined (for images with Dim != Buffer), so providing robustness is also acceptable.
+				// TODO(b/159329067): Only provide robustness when requested.
+				(void)imageRobustnessFeatures->robustImageAccess;
+			}
+			break;
+			// For unsupported structures, check that we don't expose the corresponding extension string:
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
+				ASSERT(!hasDeviceExtension(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME));
+				break;
 			default:
 				// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 				LOG_TRAP("pCreateInfo->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
@@ -2936,21 +2959,27 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 				vk::Cast(physicalDevice)->getFeatures(features);
 			}
 			break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
+			{
+				auto features = reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT *>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(features);
+			}
+			break;
+			// For unsupported structures, check that we don't expose the corresponding extension string:
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT:
-				ASSERT(!HasExtensionProperty(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME));
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES_EXT:
-				ASSERT(!HasExtensionProperty(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME));
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR:
-				ASSERT(!HasExtensionProperty(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME));
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR:
-				ASSERT(!HasExtensionProperty(VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
+				ASSERT(!hasDeviceExtension(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME));
 				break;
 			default:
 				LOG_TRAP("pFeatures->pNext sType = %s", vk::Stringify(extensionFeatures->sType).c_str());
@@ -3014,8 +3043,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 			break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT:
 				// Explicitly ignored, since VK_EXT_sample_locations is not supported
-				ASSERT(!HasExtensionProperty(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME));
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT:
 			{
@@ -3091,15 +3119,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 			case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR:
 			{
 				// Explicitly ignored, since VK_KHR_image_format_list is not supported
-				ASSERT(!HasExtensionProperty(VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME));
 			}
 			break;
 			case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT:
 			{
 				// Explicitly ignored, since VK_EXT_separate_stencil_usage is not supported
-				ASSERT(!HasExtensionProperty(VK_EXT_SEPARATE_STENCIL_USAGE_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_EXT_SEPARATE_STENCIL_USAGE_EXTENSION_NAME));
 			}
 			break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO:
@@ -3111,8 +3137,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT:
 			{
 				// Explicitly ignored, since VK_EXT_image_drm_format_modifier is not supported
-				ASSERT(!HasExtensionProperty(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME));
 			}
 			break;
 			default:
@@ -3144,8 +3169,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 			case VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD:
 			{
 				// Explicitly ignored, since VK_AMD_texture_gather_bias_lod is not supported
-				ASSERT(!HasExtensionProperty(VK_AMD_TEXTURE_GATHER_BIAS_LOD_EXTENSION_NAME, deviceExtensionProperties,
-				                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+				ASSERT(!hasDeviceExtension(VK_AMD_TEXTURE_GATHER_BIAS_LOD_EXTENSION_NAME));
 			}
 			break;
 			default:

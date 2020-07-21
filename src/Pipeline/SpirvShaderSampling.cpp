@@ -82,7 +82,6 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		{
 			// OpImageFetch does not take a sampler descriptor, but for VK_EXT_image_robustness
 			// requires replacing invalid texels with zero.
-			// TODO(b/159329067): Claim VK_EXT_image_robustness
 			// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 			samplerState.border = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 		}
@@ -366,7 +365,6 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 
 		// VK_EXT_image_robustness requires nullifying out-of-bounds accesses.
 		// ADDRESSING_BORDER causes texel replacement to be performed.
-		// TODO(b/159329067): Claim VK_EXT_image_robustness
 		// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 		return ADDRESSING_BORDER;
 	}
