@@ -76,7 +76,7 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 		VK_TRUE,   // multiDrawIndirect
 		VK_TRUE,   // drawIndirectFirstInstance
 		VK_FALSE,  // depthClamp
-		VK_FALSE,  // depthBiasClamp
+		VK_TRUE,   // depthBiasClamp
 		VK_TRUE,   // fillModeNonSolid
 		VK_FALSE,  // depthBounds
 		VK_FALSE,  // wideLines

@@ -338,6 +338,7 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 		data->halfPixelY = float4(0.5f / H);
 		data->viewportHeight = abs(viewport.height);
 		data->slopeDepthBias = context->slopeDepthBias;
+		data->depthBiasClamp = context->depthBiasClamp;
 		data->depthRange = Z;
 		data->depthNear = N;
 	}

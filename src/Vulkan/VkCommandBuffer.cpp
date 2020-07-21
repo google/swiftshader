@@ -547,11 +547,9 @@ public:
 
 		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
 		{
-			// If the depth bias clamping feature is not enabled, depthBiasClamp must be 0.0
-			ASSERT(executionState.dynamicState.depthBiasClamp == 0.0f);
-
 			context.depthBias = executionState.dynamicState.depthBiasConstantFactor;
 			context.slopeDepthBias = executionState.dynamicState.depthBiasSlopeFactor;
+			context.depthBiasClamp = executionState.dynamicState.depthBiasClamp;
 		}
 
 		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)

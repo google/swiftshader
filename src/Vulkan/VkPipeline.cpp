@@ -260,6 +260,21 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	context.polygonMode = rasterizationState->polygonMode;
 	context.depthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
 	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
+	context.depthBiasClamp = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasClamp : 0.0f;
+
+	// From the Vulkan spec for vkCmdSetDepthBias:
+	//    The bias value O for a polygon is:
+	//        O = dbclamp(...)
+	//    where dbclamp(x) =
+	//        * x                       depthBiasClamp = 0 or NaN
+	//        * min(x, depthBiasClamp)  depthBiasClamp > 0
+	//        * max(x, depthBiasClamp)  depthBiasClamp < 0
+	// So it should be safe to resolve NaNs to 0.0f.
+	if(std::isnan(context.depthBiasClamp))
+	{
+		context.depthBiasClamp = 0.0f;
+	}
+
 	context.lineWidth = rasterizationState->lineWidth;
 
 	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(rasterizationState->pNext);

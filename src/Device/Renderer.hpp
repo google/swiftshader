@@ -90,6 +90,7 @@ struct DrawData
 	float slopeDepthBias;
 	float depthRange;
 	float depthNear;
+	float depthBiasClamp;
 
 	unsigned int *colorBuffer[RENDERTARGETS];
 	int colorPitchB[RENDERTARGETS];
