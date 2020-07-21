@@ -49,6 +49,8 @@ bool endswith_lower(const std::string &str, const std::string &suffix)
 
 Backtrace getCallerBacktrace(size_t limit /* = 0 */)
 {
+	namespace bs = boost::stacktrace;
+
 	auto shouldSkipFile = [](const std::string &fileSR) {
 		return fileSR.empty() ||
 		       endswith_lower(fileSR, "ReactorDebugInfo.cpp") ||
@@ -58,15 +60,31 @@ Backtrace getCallerBacktrace(size_t limit /* = 0 */)
 		       endswith_lower(fileSR, "stacktrace.hpp");
 	};
 
-	std::vector<Location> locations;
+	auto offsetStackFrames = [](const bs::stacktrace &st) {
+		// Return a stack trace with every stack frame address offset by -1. We do this so that we get
+		// back the location of the function call, and not the location following it. We need this since
+		// all debug info emits are the result of a function call. Note that technically we shouldn't
+		// perform this offsetting on the top-most stack frame, but it doesn't matter as we discard it
+		// anyway (see shouldSkipFile).
 
-	namespace bs = boost::stacktrace;
+		std::vector<bs::frame> result;
+		result.reserve(st.size());
+
+		for(bs::frame frame : st)
+		{
+			result.emplace_back(reinterpret_cast<void *>(reinterpret_cast<size_t>(frame.address()) - 1));
+		}
+
+		return result;
+	};
+
+	std::vector<Location> locations;
 
 	// Cache to avoid expensive stacktrace lookups, especially since our use-case results in looking up the
 	// same call stack addresses many times.
 	static std::unordered_map<bs::frame::native_frame_ptr_t, Location> cache;
 
-	for(bs::frame frame : bs::stacktrace())
+	for(bs::frame frame : offsetStackFrames(bs::stacktrace()))
 	{
 		Location location;
 
