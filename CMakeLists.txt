@@ -732,6 +732,12 @@ endif()
 # Sample programs and tests
 ###########################################################
 
+# TODO(b/161976310): Add support for building PowerVR on MacOS
+if(APPLE AND HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
+    message(WARNING "Building PowerVR examples for SwiftShader is not yet supported on Apple platforms.")
+    set(SWIFTSHADER_BUILD_PVR FALSE)
+endif()
+
 if(HAVE_PVR_SUBMODULE AND SWIFTSHADER_BUILD_PVR)
     if(UNIX AND NOT APPLE)
         set(PVR_WINDOW_SYSTEM XCB)
