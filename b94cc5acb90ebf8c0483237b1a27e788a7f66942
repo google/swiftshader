@@ -33,6 +33,29 @@
       "revId": "b94cc5acb90ebf8c0483237b1a27e788a7f66942",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e4914bd7_e3ca4eaa",
+        "filename": "src/WSI/WaylandSurfaceKHR.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-23T02:14:04Z",
+      "side": 1,
+      "message": "Nit: \"erase(it)\" should be a bit more efficient than \"erase(image)\"",
+      "range": {
+        "startLine": 95,
+        "startChar": 17,
+        "endLine": 95,
+        "endChar": 22
+      },
+      "revId": "b94cc5acb90ebf8c0483237b1a27e788a7f66942",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
