@@ -31,13 +31,6 @@
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Scalar.h"
 
-#define ARGS(...)   \
-	{               \
-		__VA_ARGS__ \
-	}
-#define CreateCall2 CreateCall
-#define CreateCall3 CreateCall
-
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -145,7 +138,7 @@ llvm::Value *lowerRound(llvm::Value *x)
 {
 	llvm::Function *nearbyint = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::nearbyint, { x->getType() });
-	return jit->builder->CreateCall(nearbyint, ARGS(x));
+	return jit->builder->CreateCall(nearbyint, { x });
 }
 
 llvm::Value *lowerRoundInt(llvm::Value *x, llvm::Type *ty)
@@ -157,21 +150,21 @@ llvm::Value *lowerFloor(llvm::Value *x)
 {
 	llvm::Function *floor = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::floor, { x->getType() });
-	return jit->builder->CreateCall(floor, ARGS(x));
+	return jit->builder->CreateCall(floor, { x });
 }
 
 llvm::Value *lowerTrunc(llvm::Value *x)
 {
 	llvm::Function *trunc = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::trunc, { x->getType() });
-	return jit->builder->CreateCall(trunc, ARGS(x));
+	return jit->builder->CreateCall(trunc, { x });
 }
 
 llvm::Value *lowerSQRT(llvm::Value *x)
 {
 	llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(
 	    jit->module.get(), llvm::Intrinsic::sqrt, { x->getType() });
-	return jit->builder->CreateCall(sqrt, ARGS(x));
+	return jit->builder->CreateCall(sqrt, { x });
 }
 
 llvm::Value *lowerRCP(llvm::Value *x)
@@ -3292,9 +3285,8 @@ RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 	llvm::Value *out = ::llvm::UndefValue::get(T(Float4::type()));
 	for(uint64_t i = 0; i < 4; i++)
 	{
-		auto el = jit->builder->CreateCall2(func, ARGS(
-		                                              V(Nucleus::createExtractElement(x.value(), Float::type(), i)),
-		                                              V(Nucleus::createExtractElement(y.value(), Float::type(), i))));
+		auto el = jit->builder->CreateCall(func, { V(Nucleus::createExtractElement(x.value(), Float::type(), i)),
+		                                           V(Nucleus::createExtractElement(y.value(), Float::type(), i)) });
 		out = V(Nucleus::createInsertElement(V(out), V(el), i));
 	}
 	return RValue<Float4>(V(out));
@@ -3304,7 +3296,7 @@ RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::pow, { T(Float4::type()) });
-	return RValue<Float4>(V(jit->builder->CreateCall2(func, ARGS(V(x.value()), V(y.value())))));
+	return RValue<Float4>(V(jit->builder->CreateCall(func, { V(x.value()), V(y.value()) })));
 }
 
 RValue<Float4> Exp(RValue<Float4> v)
@@ -3339,36 +3331,32 @@ RValue<UInt> Ctlz(RValue<UInt> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt::type()) });
-	return RValue<UInt>(V(jit->builder->CreateCall2(func, ARGS(
-	                                                          V(v.value()),
-	                                                          isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
+	return RValue<UInt>(V(jit->builder->CreateCall(func, { V(v.value()),
+	                                                       isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context) })));
 }
 
 RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt4::type()) });
-	return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
-	                                                           V(v.value()),
-	                                                           isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
+	return RValue<UInt4>(V(jit->builder->CreateCall(func, { V(v.value()),
+	                                                        isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context) })));
 }
 
 RValue<UInt> Cttz(RValue<UInt> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt::type()) });
-	return RValue<UInt>(V(jit->builder->CreateCall2(func, ARGS(
-	                                                          V(v.value()),
-	                                                          isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
+	return RValue<UInt>(V(jit->builder->CreateCall(func, { V(v.value()),
+	                                                       isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context) })));
 }
 
 RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt4::type()) });
-	return RValue<UInt4>(V(jit->builder->CreateCall2(func, ARGS(
-	                                                           V(v.value()),
-	                                                           isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context)))));
+	return RValue<UInt4>(V(jit->builder->CreateCall(func, { V(v.value()),
+	                                                        isZeroUndef ? ::llvm::ConstantInt::getTrue(jit->context) : ::llvm::ConstantInt::getFalse(jit->context) })));
 }
 
 RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
@@ -3451,80 +3439,79 @@ namespace rr {
 #if defined(__i386__) || defined(__x86_64__)
 namespace x86 {
 
+// Differs from IRBuilder<>::CreateUnaryIntrinsic() in that it only accepts native instruction intrinsics which have
+// implicit types, such as 'x86_sse_rcp_ps' operating on v4f32, while 'sqrt' requires explicitly specifying the operand type.
+static Value *createInstruction(llvm::Intrinsic::ID id, Value *x)
+{
+	llvm::Function *intrinsic = llvm::Intrinsic::getDeclaration(jit->module.get(), id);
+
+	return V(jit->builder->CreateCall(intrinsic, V(x)));
+}
+
+// Differs from IRBuilder<>::CreateBinaryIntrinsic() in that it only accepts native instruction intrinsics which have
+// implicit types, such as 'x86_sse_max_ps' operating on v4f32, while 'sadd_sat' requires explicitly specifying the operand types.
+static Value *createInstruction(llvm::Intrinsic::ID id, Value *x, Value *y)
+{
+	llvm::Function *intrinsic = llvm::Intrinsic::getDeclaration(jit->module.get(), id);
+
+	return V(jit->builder->CreateCall(intrinsic, { V(x), V(y) }));
+}
+
 RValue<Int> cvtss2si(RValue<Float> val)
 {
-	llvm::Function *cvtss2si = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_cvtss2si);
-
 	Float4 vector;
 	vector.x = val;
 
-	return RValue<Int>(V(jit->builder->CreateCall(cvtss2si, ARGS(V(RValue<Float4>(vector).value())))));
+	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse_cvtss2si, RValue<Float4>(vector).value()));
 }
 
 RValue<Int4> cvtps2dq(RValue<Float4> val)
 {
-	llvm::Function *cvtps2dq = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_cvtps2dq);
-
-	return RValue<Int4>(V(jit->builder->CreateCall(cvtps2dq, ARGS(V(val.value())))));
+	return RValue<Int4>(createInstruction(llvm::Intrinsic::x86_sse2_cvtps2dq, val.value()));
 }
 
 RValue<Float> rcpss(RValue<Float> val)
 {
-	llvm::Function *rcpss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rcp_ss);
-
 	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::type()))), val.value(), 0);
 
-	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rcpss, ARGS(V(vector)))), Float::type(), 0));
+	return RValue<Float>(Nucleus::createExtractElement(createInstruction(llvm::Intrinsic::x86_sse_rcp_ss, vector), Float::type(), 0));
 }
 
 RValue<Float> sqrtss(RValue<Float> val)
 {
-	llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::sqrt, { V(val.value())->getType() });
-	return RValue<Float>(V(jit->builder->CreateCall(sqrt, ARGS(V(val.value())))));
+	return RValue<Float>(V(jit->builder->CreateUnaryIntrinsic(llvm::Intrinsic::sqrt, V(val.value()))));
 }
 
 RValue<Float> rsqrtss(RValue<Float> val)
 {
-	llvm::Function *rsqrtss = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rsqrt_ss);
-
 	Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::type()))), val.value(), 0);
 
-	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(rsqrtss, ARGS(V(vector)))), Float::type(), 0));
+	return RValue<Float>(Nucleus::createExtractElement(createInstruction(llvm::Intrinsic::x86_sse_rsqrt_ss, vector), Float::type(), 0));
 }
 
 RValue<Float4> rcpps(RValue<Float4> val)
 {
-	llvm::Function *rcpps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rcp_ps);
-
-	return RValue<Float4>(V(jit->builder->CreateCall(rcpps, ARGS(V(val.value())))));
+	return RValue<Float4>(createInstruction(llvm::Intrinsic::x86_sse_rcp_ps, val.value()));
 }
 
 RValue<Float4> sqrtps(RValue<Float4> val)
 {
-	llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::sqrt, { V(val.value())->getType() });
-
-	return RValue<Float4>(V(jit->builder->CreateCall(sqrtps, ARGS(V(val.value())))));
+	return RValue<Float4>(V(jit->builder->CreateUnaryIntrinsic(llvm::Intrinsic::sqrt, V(val.value()))));
 }
 
 RValue<Float4> rsqrtps(RValue<Float4> val)
 {
-	llvm::Function *rsqrtps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_rsqrt_ps);
-
-	return RValue<Float4>(V(jit->builder->CreateCall(rsqrtps, ARGS(V(val.value())))));
+	return RValue<Float4>(createInstruction(llvm::Intrinsic::x86_sse_rsqrt_ps, val.value()));
 }
 
 RValue<Float4> maxps(RValue<Float4> x, RValue<Float4> y)
 {
-	llvm::Function *maxps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_max_ps);
-
-	return RValue<Float4>(V(jit->builder->CreateCall2(maxps, ARGS(V(x.value()), V(y.value())))));
+	return RValue<Float4>(createInstruction(llvm::Intrinsic::x86_sse_max_ps, x.value(), y.value()));
 }
 
 RValue<Float4> minps(RValue<Float4> x, RValue<Float4> y)
 {
-	llvm::Function *minps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_min_ps);
-
-	return RValue<Float4>(V(jit->builder->CreateCall2(minps, ARGS(V(x.value()), V(y.value())))));
+	return RValue<Float4>(createInstruction(llvm::Intrinsic::x86_sse_min_ps, x.value(), y.value()));
 }
 
 RValue<Float> roundss(RValue<Float> val, unsigned char imm)
@@ -3534,7 +3521,7 @@ RValue<Float> roundss(RValue<Float> val, unsigned char imm)
 	Value *undef = V(llvm::UndefValue::get(T(Float4::type())));
 	Value *vector = Nucleus::createInsertElement(undef, val.value(), 0);
 
-	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall3(roundss, ARGS(V(undef), V(vector), V(Nucleus::createConstantInt(imm))))), Float::type(), 0));
+	return RValue<Float>(Nucleus::createExtractElement(V(jit->builder->CreateCall(roundss, { V(undef), V(vector), V(Nucleus::createConstantInt(imm)) })), Float::type(), 0));
 }
 
 RValue<Float> floorss(RValue<Float> val)
@@ -3549,9 +3536,7 @@ RValue<Float> ceilss(RValue<Float> val)
 
 RValue<Float4> roundps(RValue<Float4> val, unsigned char imm)
 {
-	llvm::Function *roundps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_round_ps);
-
-	return RValue<Float4>(V(jit->builder->CreateCall2(roundps, ARGS(V(val.value()), V(Nucleus::createConstantInt(imm))))));
+	return RValue<Float4>(createInstruction(llvm::Intrinsic::x86_sse41_round_ps, val.value(), Nucleus::createConstantInt(imm)));
 }
 
 RValue<Float4> floorps(RValue<Float4> val)
@@ -3646,39 +3631,29 @@ RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y)
 
 RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y)
 {
-	llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packssdw_128);
-
-	return As<Short4>(V(jit->builder->CreateCall2(packssdw, ARGS(V(x.value()), V(y.value())))));
+	return As<Short4>(createInstruction(llvm::Intrinsic::x86_sse2_packssdw_128, x.value(), y.value()));
 }
 
 RValue<Short8> packssdw(RValue<Int4> x, RValue<Int4> y)
 {
-	llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packssdw_128);
-
-	return RValue<Short8>(V(jit->builder->CreateCall2(packssdw, ARGS(V(x.value()), V(y.value())))));
+	return RValue<Short8>(createInstruction(llvm::Intrinsic::x86_sse2_packssdw_128, x.value(), y.value()));
 }
 
 RValue<SByte8> packsswb(RValue<Short4> x, RValue<Short4> y)
 {
-	llvm::Function *packsswb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packsswb_128);
-
-	return As<SByte8>(V(jit->builder->CreateCall2(packsswb, ARGS(V(x.value()), V(y.value())))));
+	return As<SByte8>(createInstruction(llvm::Intrinsic::x86_sse2_packsswb_128, x.value(), y.value()));
 }
 
 RValue<Byte8> packuswb(RValue<Short4> x, RValue<Short4> y)
 {
-	llvm::Function *packuswb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_packuswb_128);
-
-	return As<Byte8>(V(jit->builder->CreateCall2(packuswb, ARGS(V(x.value()), V(y.value())))));
+	return As<Byte8>(createInstruction(llvm::Intrinsic::x86_sse2_packuswb_128, x.value(), y.value()));
 }
 
 RValue<UShort8> packusdw(RValue<Int4> x, RValue<Int4> y)
 {
 	if(CPUID::supportsSSE4_1())
 	{
-		llvm::Function *packusdw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse41_packusdw);
-
-		return RValue<UShort8>(V(jit->builder->CreateCall2(packusdw, ARGS(V(x.value()), V(y.value())))));
+		return RValue<UShort8>(createInstruction(llvm::Intrinsic::x86_sse41_packusdw, x.value(), y.value()));
 	}
 	else
 	{
@@ -3691,86 +3666,62 @@ RValue<UShort8> packusdw(RValue<Int4> x, RValue<Int4> y)
 
 RValue<UShort4> psrlw(RValue<UShort4> x, unsigned char y)
 {
-	llvm::Function *psrlw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_w);
-
-	return As<UShort4>(V(jit->builder->CreateCall2(psrlw, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return As<UShort4>(createInstruction(llvm::Intrinsic::x86_sse2_psrli_w, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<UShort8> psrlw(RValue<UShort8> x, unsigned char y)
 {
-	llvm::Function *psrlw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_w);
-
-	return RValue<UShort8>(V(jit->builder->CreateCall2(psrlw, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return RValue<UShort8>(createInstruction(llvm::Intrinsic::x86_sse2_psrli_w, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Short4> psraw(RValue<Short4> x, unsigned char y)
 {
-	llvm::Function *psraw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_w);
-
-	return As<Short4>(V(jit->builder->CreateCall2(psraw, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return As<Short4>(createInstruction(llvm::Intrinsic::x86_sse2_psrai_w, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Short8> psraw(RValue<Short8> x, unsigned char y)
 {
-	llvm::Function *psraw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_w);
-
-	return RValue<Short8>(V(jit->builder->CreateCall2(psraw, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return RValue<Short8>(createInstruction(llvm::Intrinsic::x86_sse2_psrai_w, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Short4> psllw(RValue<Short4> x, unsigned char y)
 {
-	llvm::Function *psllw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_w);
-
-	return As<Short4>(V(jit->builder->CreateCall2(psllw, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return As<Short4>(createInstruction(llvm::Intrinsic::x86_sse2_pslli_w, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Short8> psllw(RValue<Short8> x, unsigned char y)
 {
-	llvm::Function *psllw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_w);
-
-	return RValue<Short8>(V(jit->builder->CreateCall2(psllw, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return RValue<Short8>(createInstruction(llvm::Intrinsic::x86_sse2_pslli_w, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Int2> pslld(RValue<Int2> x, unsigned char y)
 {
-	llvm::Function *pslld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_d);
-
-	return As<Int2>(V(jit->builder->CreateCall2(pslld, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return As<Int2>(createInstruction(llvm::Intrinsic::x86_sse2_pslli_d, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Int4> pslld(RValue<Int4> x, unsigned char y)
 {
-	llvm::Function *pslld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pslli_d);
-
-	return RValue<Int4>(V(jit->builder->CreateCall2(pslld, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return RValue<Int4>(createInstruction(llvm::Intrinsic::x86_sse2_pslli_d, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Int2> psrad(RValue<Int2> x, unsigned char y)
 {
-	llvm::Function *psrad = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_d);
-
-	return As<Int2>(V(jit->builder->CreateCall2(psrad, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return As<Int2>(createInstruction(llvm::Intrinsic::x86_sse2_psrai_d, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Int4> psrad(RValue<Int4> x, unsigned char y)
 {
-	llvm::Function *psrad = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrai_d);
-
-	return RValue<Int4>(V(jit->builder->CreateCall2(psrad, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return RValue<Int4>(createInstruction(llvm::Intrinsic::x86_sse2_psrai_d, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<UInt2> psrld(RValue<UInt2> x, unsigned char y)
 {
-	llvm::Function *psrld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_d);
-
-	return As<UInt2>(V(jit->builder->CreateCall2(psrld, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return As<UInt2>(createInstruction(llvm::Intrinsic::x86_sse2_psrli_d, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<UInt4> psrld(RValue<UInt4> x, unsigned char y)
 {
-	llvm::Function *psrld = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_psrli_d);
-
-	return RValue<UInt4>(V(jit->builder->CreateCall2(psrld, ARGS(V(x.value()), V(Nucleus::createConstantInt(y))))));
+	return RValue<UInt4>(createInstruction(llvm::Intrinsic::x86_sse2_psrli_d, x.value(), Nucleus::createConstantInt(y)));
 }
 
 RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
@@ -3795,58 +3746,42 @@ RValue<UInt4> pminud(RValue<UInt4> x, RValue<UInt4> y)
 
 RValue<Short4> pmulhw(RValue<Short4> x, RValue<Short4> y)
 {
-	llvm::Function *pmulhw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulh_w);
-
-	return As<Short4>(V(jit->builder->CreateCall2(pmulhw, ARGS(V(x.value()), V(y.value())))));
+	return As<Short4>(createInstruction(llvm::Intrinsic::x86_sse2_pmulh_w, x.value(), y.value()));
 }
 
 RValue<UShort4> pmulhuw(RValue<UShort4> x, RValue<UShort4> y)
 {
-	llvm::Function *pmulhuw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulhu_w);
-
-	return As<UShort4>(V(jit->builder->CreateCall2(pmulhuw, ARGS(V(x.value()), V(y.value())))));
+	return As<UShort4>(createInstruction(llvm::Intrinsic::x86_sse2_pmulhu_w, x.value(), y.value()));
 }
 
 RValue<Int2> pmaddwd(RValue<Short4> x, RValue<Short4> y)
 {
-	llvm::Function *pmaddwd = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmadd_wd);
-
-	return As<Int2>(V(jit->builder->CreateCall2(pmaddwd, ARGS(V(x.value()), V(y.value())))));
+	return As<Int2>(createInstruction(llvm::Intrinsic::x86_sse2_pmadd_wd, x.value(), y.value()));
 }
 
 RValue<Short8> pmulhw(RValue<Short8> x, RValue<Short8> y)
 {
-	llvm::Function *pmulhw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulh_w);
-
-	return RValue<Short8>(V(jit->builder->CreateCall2(pmulhw, ARGS(V(x.value()), V(y.value())))));
+	return RValue<Short8>(createInstruction(llvm::Intrinsic::x86_sse2_pmulh_w, x.value(), y.value()));
 }
 
 RValue<UShort8> pmulhuw(RValue<UShort8> x, RValue<UShort8> y)
 {
-	llvm::Function *pmulhuw = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmulhu_w);
-
-	return RValue<UShort8>(V(jit->builder->CreateCall2(pmulhuw, ARGS(V(x.value()), V(y.value())))));
+	return RValue<UShort8>(createInstruction(llvm::Intrinsic::x86_sse2_pmulhu_w, x.value(), y.value()));
 }
 
 RValue<Int4> pmaddwd(RValue<Short8> x, RValue<Short8> y)
 {
-	llvm::Function *pmaddwd = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmadd_wd);
-
-	return RValue<Int4>(V(jit->builder->CreateCall2(pmaddwd, ARGS(V(x.value()), V(y.value())))));
+	return RValue<Int4>(createInstruction(llvm::Intrinsic::x86_sse2_pmadd_wd, x.value(), y.value()));
 }
 
 RValue<Int> movmskps(RValue<Float4> x)
 {
-	llvm::Function *movmskps = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse_movmsk_ps);
-
-	return RValue<Int>(V(jit->builder->CreateCall(movmskps, ARGS(V(x.value())))));
+	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse_movmsk_ps, x.value()));
 }
 
 RValue<Int> pmovmskb(RValue<Byte8> x)
 {
-	llvm::Function *pmovmskb = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::x86_sse2_pmovmskb_128);
-
-	return RValue<Int>(V(jit->builder->CreateCall(pmovmskb, ARGS(V(x.value()))))) & 0xFF;
+	return RValue<Int>(createInstruction(llvm::Intrinsic::x86_sse2_pmovmskb_128, x.value())) & 0xFF;
 }
 
 RValue<Int4> pmovzxbd(RValue<Byte16> x)
