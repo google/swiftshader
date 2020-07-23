@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21504f23_98cd505c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-23T00:54:23Z",
+      "side": 1,
+      "message": "Looks good! The Kokoro CI failure was a negligible clang-format difference.\n\nFeel free to manually add a Verified +1 vote through the Reply button, and a Submit button should appear to land this.\n\nThanks for your contribution!",
+      "revId": "b94cc5acb90ebf8c0483237b1a27e788a7f66942",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
