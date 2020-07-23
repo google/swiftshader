@@ -56,6 +56,10 @@ public:
 	VkResult present(const VkPresentInfoKHR *presentInfo);
 #endif
 
+	void beginDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo);
+	void endDebugUtilsLabel();
+	void insertDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo);
+
 private:
 	struct Task
 	{

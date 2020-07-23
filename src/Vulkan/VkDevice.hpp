@@ -160,6 +160,9 @@ public:
 #endif  // ENABLE_VK_DEBUGGER
 	}
 
+	VkResult setDebugUtilsObjectName(const VkDebugUtilsObjectNameInfoEXT *pNameInfo);
+	VkResult setDebugUtilsObjectTag(const VkDebugUtilsObjectTagInfoEXT *pTagInfo);
+
 private:
 	PhysicalDevice *const physicalDevice = nullptr;
 	Queue *const queues = nullptr;

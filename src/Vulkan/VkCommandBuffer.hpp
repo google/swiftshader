@@ -133,6 +133,10 @@ public:
 	void drawIndirect(Buffer *buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride);
 	void drawIndexedIndirect(Buffer *buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride);
 
+	void beginDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo);
+	void endDebugUtilsLabel();
+	void insertDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo);
+
 	// TODO(sugoi): Move ExecutionState out of CommandBuffer (possibly into Device)
 	struct ExecutionState
 	{

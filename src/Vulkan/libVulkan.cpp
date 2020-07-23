@@ -17,6 +17,7 @@
 #include "VkCommandBuffer.hpp"
 #include "VkCommandPool.hpp"
 #include "VkConfig.hpp"
+#include "VkDebugUtilsMessenger.hpp"
 #include "VkDescriptorPool.hpp"
 #include "VkDescriptorSetLayout.hpp"
 #include "VkDescriptorUpdateTemplate.hpp"
@@ -303,6 +304,7 @@ static const VkExtensionProperties instanceExtensionProperties[] = {
 	{ VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_SPEC_VERSION },
 	{ VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_SPEC_VERSION },
 	{ VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_SPEC_VERSION },
+	{ VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_DEBUG_UTILS_SPEC_VERSION },
 #ifndef __ANDROID__
 	{ VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_SPEC_VERSION },
 #endif
@@ -411,11 +413,22 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 		}
 	}
 
+	VkDebugUtilsMessengerEXT messenger = { VK_NULL_HANDLE };
 	if(pCreateInfo->pNext)
 	{
 		const VkBaseInStructure *createInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
 		switch(createInfo->sType)
 		{
+			case VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT:
+			{
+				const VkDebugUtilsMessengerCreateInfoEXT *debugUtilsMessengerCreateInfoEXT = reinterpret_cast<const VkDebugUtilsMessengerCreateInfoEXT *>(createInfo);
+				VkResult result = vk::DebugUtilsMessenger::Create(pAllocator, debugUtilsMessengerCreateInfoEXT, &messenger);
+				if(result != VK_SUCCESS)
+				{
+					return result;
+				}
+			}
+			break;
 			case VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO:
 				// According to the Vulkan spec, section 2.7.2. Implicit Valid Usage:
 				// "The values VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO and
@@ -435,12 +448,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo *pCre
 	VkResult result = vk::DispatchablePhysicalDevice::Create(pAllocator, pCreateInfo, &physicalDevice);
 	if(result != VK_SUCCESS)
 	{
+		vk::destroy(messenger, pAllocator);
 		return result;
 	}
 
-	result = vk::DispatchableInstance::Create(pAllocator, pCreateInfo, pInstance, physicalDevice);
+	result = vk::DispatchableInstance::Create(pAllocator, pCreateInfo, pInstance, physicalDevice, vk::Cast(messenger));
 	if(result != VK_SUCCESS)
 	{
+		vk::destroy(messenger, pAllocator);
 		vk::destroy(physicalDevice, pAllocator);
 		return result;
 	}
@@ -3339,10 +3354,102 @@ VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, cons
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t lineStippleFactor = %u, uint16_t lineStipplePattern = %u",
+	TRACE("(VkCommandBuffer commandBuffer = %p, uint32_t lineStippleFactor = %u, uint16_t lineStipplePattern = %u)",
 	      commandBuffer, lineStippleFactor, lineStipplePattern);
 
 	UNSUPPORTED("VkPhysicalDeviceLineRasterizationFeaturesEXT::stippled*Lines");
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginDebugUtilsLabelEXT(VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT *pLabelInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkDebugUtilsLabelEXT* pLabelInfo = %p)",
+	      commandBuffer, pLabelInfo);
+
+	vk::Cast(commandBuffer)->beginDebugUtilsLabel(pLabelInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdEndDebugUtilsLabelEXT(VkCommandBuffer commandBuffer)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p)", commandBuffer);
+
+	vk::Cast(commandBuffer)->endDebugUtilsLabel();
+}
+
+VKAPI_ATTR void VKAPI_CALL vkCmdInsertDebugUtilsLabelEXT(VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT *pLabelInfo)
+{
+	TRACE("(VkCommandBuffer commandBuffer = %p, const VkDebugUtilsLabelEXT* pLabelInfo = %p)",
+	      commandBuffer, pLabelInfo);
+
+	vk::Cast(commandBuffer)->insertDebugUtilsLabel(pLabelInfo);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pMessenger)
+{
+	TRACE("(VkInstance instance = %p, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkDebugUtilsMessengerEXT* pMessenger = %p)",
+	      instance, pCreateInfo, pAllocator, pMessenger);
+
+	if(pCreateInfo->flags != 0)
+	{
+		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
+		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
+	}
+
+	return vk::DebugUtilsMessenger::Create(pAllocator, pCreateInfo, pMessenger);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT messenger, const VkAllocationCallbacks *pAllocator)
+{
+	TRACE("(VkInstance instance = %p, VkDebugUtilsMessengerEXT messenger = %p, const VkAllocationCallbacks* pAllocator = %p)",
+	      instance, static_cast<void *>(messenger), pAllocator);
+
+	vk::destroy(messenger, pAllocator);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkQueueBeginDebugUtilsLabelEXT(VkQueue queue, const VkDebugUtilsLabelEXT *pLabelInfo)
+{
+	TRACE("(VkQueue queue = %p, const VkDebugUtilsLabelEXT* pLabelInfo = %p)",
+	      queue, pLabelInfo);
+
+	vk::Cast(queue)->beginDebugUtilsLabel(pLabelInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkQueueEndDebugUtilsLabelEXT(VkQueue queue)
+{
+	TRACE("(VkQueue queue = %p)", queue);
+
+	vk::Cast(queue)->endDebugUtilsLabel();
+}
+
+VKAPI_ATTR void VKAPI_CALL vkQueueInsertDebugUtilsLabelEXT(VkQueue queue, const VkDebugUtilsLabelEXT *pLabelInfo)
+{
+	TRACE("(VkQueue queue = %p, const VkDebugUtilsLabelEXT* pLabelInfo = %p)",
+	      queue, pLabelInfo);
+
+	vk::Cast(queue)->insertDebugUtilsLabel(pLabelInfo);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkSetDebugUtilsObjectNameEXT(VkDevice device, const VkDebugUtilsObjectNameInfoEXT *pNameInfo)
+{
+	TRACE("(VkDevice device = %p, const VkDebugUtilsObjectNameInfoEXT* pNameInfo = %p)",
+	      device, pNameInfo);
+
+	return vk::Cast(device)->setDebugUtilsObjectName(pNameInfo);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkSetDebugUtilsObjectTagEXT(VkDevice device, const VkDebugUtilsObjectTagInfoEXT *pTagInfo)
+{
+	TRACE("(VkDevice device = %p, const VkDebugUtilsObjectTagInfoEXT* pTagInfo = %p)",
+	      device, pTagInfo);
+
+	return vk::Cast(device)->setDebugUtilsObjectTag(pTagInfo);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkSubmitDebugUtilsMessageEXT(VkInstance instance, VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData)
+{
+	TRACE("(VkInstance instance = %p, VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity = %d, VkDebugUtilsMessageTypeFlagsEXT messageTypes = %d, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData = %p)",
+	      instance, messageSeverity, messageTypes, pCallbackData);
+
+	vk::Cast(instance)->submitDebugUtilsMessage(messageSeverity, messageTypes, pCallbackData);
 }
 
 #ifdef VK_USE_PLATFORM_XCB_KHR

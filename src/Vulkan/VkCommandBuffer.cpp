@@ -1785,6 +1785,21 @@ void CommandBuffer::drawIndexedIndirect(Buffer *buffer, VkDeviceSize offset, uin
 	addCommand<::CmdDrawIndexedIndirect>(buffer, offset, drawCount, stride);
 }
 
+void CommandBuffer::beginDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo)
+{
+	// Optional debug label region
+}
+
+void CommandBuffer::endDebugUtilsLabel()
+{
+	// Close debug label region opened with beginDebugUtilsLabel()
+}
+
+void CommandBuffer::insertDebugUtilsLabel(const VkDebugUtilsLabelEXT *pLabelInfo)
+{
+	// Optional single debug label
+}
+
 void CommandBuffer::submit(CommandBuffer::ExecutionState &executionState)
 {
 	// Perform recorded work

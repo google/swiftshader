@@ -313,4 +313,16 @@ void Device::removeSampler(const SamplerState &samplerState)
 	samplerIndexer->remove(samplerState);
 }
 
+VkResult Device::setDebugUtilsObjectName(const VkDebugUtilsObjectNameInfoEXT *pNameInfo)
+{
+	// Optionally maps user-friendly name to an object
+	return VK_SUCCESS;
+}
+
+VkResult Device::setDebugUtilsObjectTag(const VkDebugUtilsObjectTagInfoEXT *pTagInfo)
+{
+	// Optionally attach arbitrary data to an object
+	return VK_SUCCESS;
+}
+
 }  // namespace vk
