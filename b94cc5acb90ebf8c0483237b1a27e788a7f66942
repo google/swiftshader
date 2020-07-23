@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "323ca5d1_e55a5495",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-07-23T11:47:07Z",
+      "side": 1,
+      "message": "\u003e Patch Set 3:\n\u003e \n\u003e Yes, but since it\u0027s the same in XcbSurfaceKHR.cpp and\n\u003e XlibSurfaceKHR.cpp, the code is aligned for all WSI platforms.\n\nOk. You can either fix all 3 cases or land as is.",
+      "revId": "b94cc5acb90ebf8c0483237b1a27e788a7f66942",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4914bd7_e3ca4eaa",
         "filename": "src/WSI/WaylandSurfaceKHR.cpp",
         "patchSetId": 3
