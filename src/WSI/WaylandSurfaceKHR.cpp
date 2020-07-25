@@ -18,8 +18,8 @@
 #include "Vulkan/VkImage.hpp"
 
 #include <string.h>
-#include <unistd.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 namespace vk {
 
@@ -28,7 +28,7 @@ static void wl_registry_handle_global(void *data, struct wl_registry *registry, 
 	struct wl_shm **pshm = (struct wl_shm **)data;
 	if(!strcmp(interface, "wl_shm"))
 	{
-		*pshm = static_cast<struct wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
+		*pshm = static_cast<struct wl_shm *>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
 	}
 }
 

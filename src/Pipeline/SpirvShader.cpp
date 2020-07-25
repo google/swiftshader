@@ -1510,7 +1510,10 @@ OutOfBoundsBehavior SpirvShader::EmitState::getOutOfBoundsBehavior(spv::StorageC
 			                          : OutOfBoundsBehavior::UndefinedBehavior;
 
 		case spv::StorageClassImage:
-			return OutOfBoundsBehavior::UndefinedValue;  // "The value returned by a read of an invalid texel is undefined"
+			// VK_EXT_image_robustness requires nullifying out-of-bounds accesses.
+			// TODO(b/159329067): Claim VK_EXT_image_robustness
+			// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
+			return OutOfBoundsBehavior::Nullify;
 
 		case spv::StorageClassInput:
 			if(executionModel == spv::ExecutionModelVertex)
@@ -2238,17 +2241,24 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicOp(InsnIterator insn, EmitState *
 {
 	auto &resultType = getType(Type::ID(insn.word(1)));
 	Object::ID resultId = insn.word(2);
+	Object::ID pointerId = insn.word(3);
 	Object::ID semanticsId = insn.word(5);
 	auto memorySemantics = static_cast<spv::MemorySemanticsMask>(getObject(semanticsId).constantValue[0]);
 	auto memoryOrder = MemoryOrder(memorySemantics);
 	// Where no value is provided (increment/decrement) use an implicit value of 1.
 	auto value = (insn.wordCount() == 7) ? Operand(this, state, insn.word(6)).UInt(0) : RValue<SIMD::UInt>(1);
 	auto &dst = state->createIntermediate(resultId, resultType.componentCount);
-	auto ptr = state->getPointer(insn.word(3));
+	auto ptr = state->getPointer(pointerId);
 	auto ptrOffsets = ptr.offsets();
 
-	SIMD::UInt x(0);
-	auto mask = state->activeLaneMask() & state->storesAndAtomicsMask();
+	SIMD::Int mask = state->activeLaneMask() & state->storesAndAtomicsMask();
+
+	if(getObject(pointerId).opcode() == spv::OpImageTexelPointer)
+	{
+		mask &= ptr.isInBounds(sizeof(int32_t), OutOfBoundsBehavior::Nullify);
+	}
+
+	SIMD::UInt result(0);
 	for(int j = 0; j < SIMD::Width; j++)
 	{
 		If(Extract(mask, j) != 0)
@@ -2294,11 +2304,11 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicOp(InsnIterator insn, EmitState *
 					UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
 					break;
 			}
-			x = Insert(x, v, j);
+			result = Insert(result, v, j);
 		}
 	}
 
-	dst.move(0, x);
+	dst.move(0, result);
 	return EmitResult::Continue;
 }
 

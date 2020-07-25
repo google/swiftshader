@@ -656,6 +656,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	// emulating the glsl function loadImage() requires that this function returns 0 when used with out of bounds
 	// coordinates, so we have to use OutOfBoundsBehavior::Nullify in that case.
 	// TODO(b/159329067): Claim VK_EXT_image_robustness
+	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
 	auto texelSize = vk::Format(vkFormat).bytes();
@@ -1182,6 +1183,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	// Emulating the glsl function imageStore() requires that this function is noop when used with out of bounds
 	// coordinates, so we have to use OutOfBoundsBehavior::Nullify in that case.
 	// TODO(b/159329067): Claim VK_EXT_image_robustness
+	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
 	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, texelSize, 0, false, robustness);
@@ -1248,7 +1250,12 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, Em
 	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 	auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
-	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, sizeof(uint32_t), 0, false, OutOfBoundsBehavior::UndefinedValue);
+	// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
+	// TODO(b/159329067): Claim VK_EXT_image_robustness
+	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
+	auto robustness = OutOfBoundsBehavior::Nullify;
+
+	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, sizeof(uint32_t), 0, false, robustness);
 
 	state->createPointer(resultId, ptr);
 
