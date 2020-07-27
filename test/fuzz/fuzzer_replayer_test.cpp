@@ -1659,6 +1659,8 @@ void RunFuzzerAndReplayer(const std::string& shader,
     replayer.SetMessageConsumer(kConsoleMessageConsumer);
     auto replayer_result_status = replayer.Run(
         binary_in, initial_facts, fuzzer_transformation_sequence_out,
+        static_cast<uint32_t>(
+            fuzzer_transformation_sequence_out.transformation_size()),
         &replayer_binary_out, &replayer_transformation_sequence_out);
     ASSERT_EQ(Replayer::ReplayerResultStatus::kComplete,
               replayer_result_status);

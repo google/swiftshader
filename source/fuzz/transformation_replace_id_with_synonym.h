@@ -64,6 +64,13 @@ class TransformationReplaceIdWithSynonym : public Transformation {
                                           opt::Instruction* use_instruction,
                                           uint32_t use_in_operand_index);
 
+  // Returns true if the instruction with opcode |opcode| does not change its
+  // behaviour depending on the signedness of the operand at
+  // |use_in_operand_index|.
+  // Assumes that the operand must be the id of an integer scalar or vector.
+  static bool IsAgnosticToSignednessOfOperand(SpvOp opcode,
+                                              uint32_t use_in_operand_index);
+
  private:
   protobufs::TransformationReplaceIdWithSynonym message_;
 };

@@ -73,10 +73,9 @@ void FuzzerPassApplyIdSynonyms::Apply() {
         continue;
       }
       // |use_index| is the absolute index of the operand.  We require
-      // the index of the operand restricted to input operands only, so
-      // we subtract the number of non-input operands from |use_index|.
+      // the index of the operand restricted to input operands only.
       uint32_t use_in_operand_index =
-          use_index - use_inst->NumOperands() + use_inst->NumInOperands();
+          fuzzerutil::InOperandIndexFromOperandIndex(*use_inst, use_index);
       if (!TransformationReplaceIdWithSynonym::UseCanBeReplacedWithSynonym(
               GetIRContext(), use_inst, use_in_operand_index)) {
         continue;
@@ -143,6 +142,9 @@ void FuzzerPassApplyIdSynonyms::Apply() {
                                                : parent_block->terminator();
           }
 
+          assert(!GetTransformationContext()->GetFactManager()->IdIsIrrelevant(
+                     synonym_to_try->object()) &&
+                 "Irrelevant ids can't participate in DataSynonym facts");
           ApplyTransformation(TransformationCompositeExtract(
               MakeInstructionDescriptor(GetIRContext(),
                                         instruction_to_insert_before),

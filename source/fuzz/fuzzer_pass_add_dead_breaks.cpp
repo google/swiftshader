@@ -68,19 +68,16 @@ void FuzzerPassAddDeadBreaks::Apply() {
           merge_block->ForEachPhiInst([this, &phi_ids](opt::Instruction* phi) {
             // Add an additional operand for OpPhi instruction.
             //
-            // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3177):
-            // If we have a way to communicate to the fact manager
-            // that a specific id use is irrelevant and could be replaced with
-            // something else, we should add such a fact about the zero
-            // provided as an OpPhi operand
-            phi_ids.push_back(FindOrCreateZeroConstant(phi->type_id()));
+            // We mark the constant as irrelevant so that we can replace it with
+            // a more interesting value later.
+            phi_ids.push_back(FindOrCreateZeroConstant(phi->type_id(), true));
           });
         }
 
         // Make sure the module has a required boolean constant to be used in
         // OpBranchConditional instruction.
         auto break_condition = GetFuzzerContext()->ChooseEven();
-        FindOrCreateBoolConstant(break_condition);
+        FindOrCreateBoolConstant(break_condition, false);
 
         auto candidate_transformation = TransformationAddDeadBreak(
             block.id(), merge_block->id(), break_condition, std::move(phi_ids));
@@ -114,12 +111,9 @@ void FuzzerPassAddDeadBreaks::Apply() {
     candidate_transformations.erase(candidate_transformations.begin() + index);
     // Probabilistically decide whether to try to apply it vs. ignore it, in the
     // case that it is applicable.
-    if (transformation.IsApplicable(GetIRContext(),
-                                    *GetTransformationContext()) &&
-        GetFuzzerContext()->ChoosePercentage(
+    if (GetFuzzerContext()->ChoosePercentage(
             GetFuzzerContext()->GetChanceOfAddingDeadBreak())) {
-      transformation.Apply(GetIRContext(), GetTransformationContext());
-      *GetTransformations()->add_transformation() = transformation.ToMessage();
+      MaybeApplyTransformation(transformation);
     }
   }
 }

@@ -26,6 +26,9 @@
 #include "test/opt/pass_fixture.h"
 #include "test/opt/pass_utils.h"
 
+static const uint32_t kDebugDeclareOperandVariableIndex = 5;
+static const uint32_t kDebugValueOperandValueIndex = 5;
+
 namespace spvtools {
 namespace opt {
 namespace {
@@ -865,6 +868,235 @@ TEST_F(IRContextTest, AsanErrorTest) {
   auto bb = dom->ImmediateDominator(5);
   std::cout
       << bb->id();  // Make sure asan does not complain about use after free.
+}
+
+TEST_F(IRContextTest, DebugInstructionReplaceSingleUse) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+%1 = OpExtInstImport "OpenCL.DebugInfo.100"
+OpMemoryModel Logical GLSL450
+%2 = OpString "test"
+%3 = OpTypeVoid
+%4 = OpTypeFunction %3
+%5 = OpTypeFloat 32
+%6 = OpTypePointer Function %5
+%7 = OpConstant %5 0
+%8 = OpTypeInt 32 0
+%9 = OpConstant %8 32
+%10 = OpExtInst %3 %1 DebugExpression
+%11 = OpExtInst %3 %1 DebugSource %2
+%12 = OpExtInst %3 %1 DebugCompilationUnit 1 4 %11 HLSL
+%13 = OpExtInst %3 %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %3
+%14 = OpExtInst %3 %1 DebugFunction %2 %13 %11 0 0 %12 %2 FlagIsProtected|FlagIsPrivate 0 %17
+%15 = OpExtInst %3 %1 DebugTypeBasic %2 %9 Float
+%16 = OpExtInst %3 %1 DebugLocalVariable %2 %15 %11 0 0 %14 FlagIsLocal
+%17 = OpFunction %3 None %4
+%18 = OpLabel
+%19 = OpExtInst %3 %1 DebugScope %14
+%20 = OpVariable %6 Function
+%26 = OpVariable %6 Function
+OpBranch %21
+%21 = OpLabel
+%22 = OpPhi %5 %7 %18
+OpBranch %23
+%23 = OpLabel
+OpLine %2 0 0
+OpStore %20 %7
+%24 = OpExtInst %3 %1 DebugValue %16 %22 %10
+%25 = OpExtInst %3 %1 DebugDeclare %16 %26 %10
+OpReturn
+OpFunctionEnd)";
+
+  std::unique_ptr<IRContext> ctx =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
+  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  pass.Run(ctx.get());
+  EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
+
+  auto* dbg_value = ctx->get_def_use_mgr()->GetDef(24);
+  EXPECT_TRUE(dbg_value->GetSingleWordOperand(kDebugValueOperandValueIndex) ==
+              22);
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(22, 7));
+  dbg_value = ctx->get_def_use_mgr()->GetDef(24);
+  EXPECT_TRUE(dbg_value->GetSingleWordOperand(kDebugValueOperandValueIndex) ==
+              7);
+
+  auto* dbg_decl = ctx->get_def_use_mgr()->GetDef(25);
+  EXPECT_TRUE(
+      dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 26);
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(26, 20));
+  dbg_decl = ctx->get_def_use_mgr()->GetDef(25);
+  EXPECT_TRUE(
+      dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 20);
+}
+
+TEST_F(IRContextTest, DebugInstructionReplaceAllUses) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+%1 = OpExtInstImport "OpenCL.DebugInfo.100"
+OpMemoryModel Logical GLSL450
+%2 = OpString "test"
+%3 = OpTypeVoid
+%4 = OpTypeFunction %3
+%5 = OpTypeFloat 32
+%6 = OpTypePointer Function %5
+%7 = OpConstant %5 0
+%8 = OpTypeInt 32 0
+%9 = OpConstant %8 32
+%10 = OpExtInst %3 %1 DebugExpression
+%11 = OpExtInst %3 %1 DebugSource %2
+%12 = OpExtInst %3 %1 DebugCompilationUnit 1 4 %11 HLSL
+%13 = OpExtInst %3 %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %3
+%14 = OpExtInst %3 %1 DebugFunction %2 %13 %11 0 0 %12 %2 FlagIsProtected|FlagIsPrivate 0 %17
+%15 = OpExtInst %3 %1 DebugTypeBasic %2 %9 Float
+%16 = OpExtInst %3 %1 DebugLocalVariable %2 %15 %11 0 0 %14 FlagIsLocal
+%27 = OpExtInst %3 %1 DebugLocalVariable %2 %15 %11 1 0 %14 FlagIsLocal
+%17 = OpFunction %3 None %4
+%18 = OpLabel
+%19 = OpExtInst %3 %1 DebugScope %14
+%20 = OpVariable %6 Function
+%26 = OpVariable %6 Function
+OpBranch %21
+%21 = OpLabel
+%22 = OpPhi %5 %7 %18
+OpBranch %23
+%23 = OpLabel
+OpLine %2 0 0
+OpStore %20 %7
+%24 = OpExtInst %3 %1 DebugValue %16 %22 %10
+%25 = OpExtInst %3 %1 DebugDeclare %16 %26 %10
+%28 = OpExtInst %3 %1 DebugValue %27 %22 %10
+%29 = OpExtInst %3 %1 DebugDeclare %27 %26 %10
+OpReturn
+OpFunctionEnd)";
+
+  std::unique_ptr<IRContext> ctx =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
+  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  pass.Run(ctx.get());
+  EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
+
+  auto* dbg_value0 = ctx->get_def_use_mgr()->GetDef(24);
+  auto* dbg_value1 = ctx->get_def_use_mgr()->GetDef(28);
+  EXPECT_TRUE(dbg_value0->GetSingleWordOperand(kDebugValueOperandValueIndex) ==
+              22);
+  EXPECT_TRUE(dbg_value1->GetSingleWordOperand(kDebugValueOperandValueIndex) ==
+              22);
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(22, 7));
+  dbg_value0 = ctx->get_def_use_mgr()->GetDef(24);
+  dbg_value1 = ctx->get_def_use_mgr()->GetDef(28);
+  EXPECT_TRUE(dbg_value0->GetSingleWordOperand(kDebugValueOperandValueIndex) ==
+              7);
+  EXPECT_TRUE(dbg_value1->GetSingleWordOperand(kDebugValueOperandValueIndex) ==
+              7);
+
+  auto* dbg_decl0 = ctx->get_def_use_mgr()->GetDef(25);
+  auto* dbg_decl1 = ctx->get_def_use_mgr()->GetDef(29);
+  EXPECT_TRUE(
+      dbg_decl0->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 26);
+  EXPECT_TRUE(
+      dbg_decl1->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 26);
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(26, 20));
+  dbg_decl0 = ctx->get_def_use_mgr()->GetDef(25);
+  dbg_decl1 = ctx->get_def_use_mgr()->GetDef(29);
+  EXPECT_TRUE(
+      dbg_decl0->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 20);
+  EXPECT_TRUE(
+      dbg_decl1->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 20);
+}
+
+TEST_F(IRContextTest, AddDebugValueAfterReplaceUse) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+%1 = OpExtInstImport "OpenCL.DebugInfo.100"
+OpMemoryModel Logical GLSL450
+%2 = OpString "test"
+%3 = OpTypeVoid
+%4 = OpTypeFunction %3
+%5 = OpTypeFloat 32
+%6 = OpTypePointer Function %5
+%7 = OpConstant %5 0
+%8 = OpTypeInt 32 0
+%9 = OpConstant %8 32
+%10 = OpExtInst %3 %1 DebugExpression
+%11 = OpExtInst %3 %1 DebugSource %2
+%12 = OpExtInst %3 %1 DebugCompilationUnit 1 4 %11 HLSL
+%13 = OpExtInst %3 %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %3
+%14 = OpExtInst %3 %1 DebugFunction %2 %13 %11 0 0 %12 %2 FlagIsProtected|FlagIsPrivate 0 %17
+%15 = OpExtInst %3 %1 DebugTypeBasic %2 %9 Float
+%16 = OpExtInst %3 %1 DebugLocalVariable %2 %15 %11 0 0 %14 FlagIsLocal
+%17 = OpFunction %3 None %4
+%18 = OpLabel
+%19 = OpExtInst %3 %1 DebugScope %14
+%20 = OpVariable %6 Function
+%26 = OpVariable %6 Function
+OpBranch %21
+%21 = OpLabel
+%27 = OpExtInst %3 %1 DebugScope %14
+%22 = OpPhi %5 %7 %18
+OpBranch %23
+%23 = OpLabel
+%28 = OpExtInst %3 %1 DebugScope %14
+OpLine %2 0 0
+OpStore %20 %7
+%24 = OpExtInst %3 %1 DebugValue %16 %22 %10
+%25 = OpExtInst %3 %1 DebugDeclare %16 %26 %10
+OpReturn
+OpFunctionEnd)";
+
+  std::unique_ptr<IRContext> ctx =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
+  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  pass.Run(ctx.get());
+  EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
+
+  // Replace all uses of result it '26' with '20'
+  auto* dbg_decl = ctx->get_def_use_mgr()->GetDef(25);
+  EXPECT_EQ(dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex),
+            26);
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(26, 20));
+  dbg_decl = ctx->get_def_use_mgr()->GetDef(25);
+  EXPECT_EQ(dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex),
+            20);
+
+  // No DebugValue should be added because result id '26' is not used for
+  // DebugDeclare.
+  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 26, 22, dbg_decl);
+  EXPECT_EQ(dbg_decl->NextNode()->opcode(), SpvOpReturn);
+
+  // DebugValue should be added because result id '20' is used for DebugDeclare.
+  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 20, 22, dbg_decl);
+  EXPECT_EQ(dbg_decl->NextNode()->GetOpenCL100DebugOpcode(),
+            OpenCLDebugInfo100DebugValue);
+
+  // Replace all uses of result it '20' with '26'
+  EXPECT_EQ(dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex),
+            20);
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(20, 26));
+  EXPECT_EQ(dbg_decl->GetSingleWordOperand(kDebugDeclareOperandVariableIndex),
+            26);
+
+  // No DebugValue should be added because result id '20' is not used for
+  // DebugDeclare.
+  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 20, 7, dbg_decl);
+  Instruction* dbg_value = dbg_decl->NextNode();
+  EXPECT_EQ(dbg_value->GetOpenCL100DebugOpcode(), OpenCLDebugInfo100DebugValue);
+  EXPECT_EQ(dbg_value->GetSingleWordOperand(kDebugValueOperandValueIndex), 22);
+
+  // DebugValue should be added because result id '26' is used for DebugDeclare.
+  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 26, 7, dbg_decl);
+  dbg_value = dbg_decl->NextNode();
+  EXPECT_EQ(dbg_value->GetOpenCL100DebugOpcode(), OpenCLDebugInfo100DebugValue);
+  EXPECT_EQ(dbg_value->GetSingleWordOperand(kDebugValueOperandValueIndex), 7);
 }
 
 }  // namespace

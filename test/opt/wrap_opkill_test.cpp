@@ -193,6 +193,310 @@ TEST_F(WrapOpKillTest, MultipleOpKillInDifferentFunc) {
   SinglePassRunAndMatch<WrapOpKill>(text, true);
 }
 
+TEST_F(WrapOpKillTest, SingleOpTerminateInvocation) {
+  const std::string text = R"(
+; CHECK: OpEntryPoint Fragment [[main:%\w+]]
+; CHECK: [[main]] = OpFunction
+; CHECK: OpFunctionCall %void [[orig_kill:%\w+]]
+; CHECK: [[orig_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[new_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpTerminateInvocation
+; CHECK-NEXT: OpFunctionEnd
+               OpCapability Shader
+               OpExtension "SPV_KHR_terminate_invocation"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 330
+               OpName %main "main"
+       %void = OpTypeVoid
+          %5 = OpTypeFunction %void
+       %bool = OpTypeBool
+       %true = OpConstantTrue %bool
+       %main = OpFunction %void None %5
+          %8 = OpLabel
+               OpBranch %9
+          %9 = OpLabel
+               OpLoopMerge %10 %11 None
+               OpBranch %12
+         %12 = OpLabel
+               OpBranchConditional %true %13 %10
+         %13 = OpLabel
+               OpBranch %11
+         %11 = OpLabel
+         %14 = OpFunctionCall %void %kill_
+               OpBranch %9
+         %10 = OpLabel
+               OpReturn
+               OpFunctionEnd
+      %kill_ = OpFunction %void None %5
+         %15 = OpLabel
+               OpTerminateInvocation
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<WrapOpKill>(text, true);
+}
+
+TEST_F(WrapOpKillTest, MultipleTerminateInvocationInSameFunc) {
+  const std::string text = R"(
+; CHECK: OpEntryPoint Fragment [[main:%\w+]]
+; CHECK: [[main]] = OpFunction
+; CHECK: OpFunctionCall %void [[orig_kill:%\w+]]
+; CHECK: [[orig_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpSelectionMerge
+; CHECK-NEXT: OpBranchConditional
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[new_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpTerminateInvocation
+; CHECK-NEXT: OpFunctionEnd
+               OpCapability Shader
+               OpExtension "SPV_KHR_terminate_invocation"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 330
+               OpName %main "main"
+       %void = OpTypeVoid
+          %5 = OpTypeFunction %void
+       %bool = OpTypeBool
+       %true = OpConstantTrue %bool
+       %main = OpFunction %void None %5
+          %8 = OpLabel
+               OpBranch %9
+          %9 = OpLabel
+               OpLoopMerge %10 %11 None
+               OpBranch %12
+         %12 = OpLabel
+               OpBranchConditional %true %13 %10
+         %13 = OpLabel
+               OpBranch %11
+         %11 = OpLabel
+         %14 = OpFunctionCall %void %kill_
+               OpBranch %9
+         %10 = OpLabel
+               OpReturn
+               OpFunctionEnd
+      %kill_ = OpFunction %void None %5
+         %15 = OpLabel
+               OpSelectionMerge %16 None
+               OpBranchConditional %true %17 %18
+         %17 = OpLabel
+               OpTerminateInvocation
+         %18 = OpLabel
+               OpTerminateInvocation
+         %16 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<WrapOpKill>(text, true);
+}
+
+TEST_F(WrapOpKillTest, MultipleOpTerminateInvocationDifferentFunc) {
+  const std::string text = R"(
+; CHECK: OpEntryPoint Fragment [[main:%\w+]]
+; CHECK: [[main]] = OpFunction
+; CHECK: OpFunctionCall %void [[orig_kill1:%\w+]]
+; CHECK-NEXT: OpFunctionCall %void [[orig_kill2:%\w+]]
+; CHECK: [[orig_kill1]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[orig_kill2]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[new_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpTerminateInvocation
+; CHECK-NEXT: OpFunctionEnd
+               OpCapability Shader
+               OpExtension "SPV_KHR_terminate_invocation"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 330
+               OpName %main "main"
+       %void = OpTypeVoid
+          %4 = OpTypeFunction %void
+       %bool = OpTypeBool
+       %true = OpConstantTrue %bool
+       %main = OpFunction %void None %4
+          %7 = OpLabel
+               OpBranch %8
+          %8 = OpLabel
+               OpLoopMerge %9 %10 None
+               OpBranch %11
+         %11 = OpLabel
+               OpBranchConditional %true %12 %9
+         %12 = OpLabel
+               OpBranch %10
+         %10 = OpLabel
+         %13 = OpFunctionCall %void %14
+         %15 = OpFunctionCall %void %16
+               OpBranch %8
+          %9 = OpLabel
+               OpReturn
+               OpFunctionEnd
+         %14 = OpFunction %void None %4
+         %17 = OpLabel
+               OpTerminateInvocation
+               OpFunctionEnd
+         %16 = OpFunction %void None %4
+         %18 = OpLabel
+               OpTerminateInvocation
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<WrapOpKill>(text, true);
+}
+
+TEST_F(WrapOpKillTest, KillAndTerminateInvocationSameFunc) {
+  const std::string text = R"(
+; CHECK: OpEntryPoint Fragment [[main:%\w+]]
+; CHECK: [[main]] = OpFunction
+; CHECK: OpFunctionCall %void [[orig_kill:%\w+]]
+; CHECK: [[orig_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpSelectionMerge
+; CHECK-NEXT: OpBranchConditional
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_terminate:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[new_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpKill
+; CHECK-NEXT: OpFunctionEnd
+; CHECK-NEXT: [[new_terminate]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpTerminateInvocation
+; CHECK-NEXT: OpFunctionEnd
+               OpCapability Shader
+               OpExtension "SPV_KHR_terminate_invocation"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 330
+               OpName %main "main"
+       %void = OpTypeVoid
+          %5 = OpTypeFunction %void
+       %bool = OpTypeBool
+       %true = OpConstantTrue %bool
+       %main = OpFunction %void None %5
+          %8 = OpLabel
+               OpBranch %9
+          %9 = OpLabel
+               OpLoopMerge %10 %11 None
+               OpBranch %12
+         %12 = OpLabel
+               OpBranchConditional %true %13 %10
+         %13 = OpLabel
+               OpBranch %11
+         %11 = OpLabel
+         %14 = OpFunctionCall %void %kill_
+               OpBranch %9
+         %10 = OpLabel
+               OpReturn
+               OpFunctionEnd
+      %kill_ = OpFunction %void None %5
+         %15 = OpLabel
+               OpSelectionMerge %16 None
+               OpBranchConditional %true %17 %18
+         %17 = OpLabel
+               OpKill
+         %18 = OpLabel
+               OpTerminateInvocation
+         %16 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<WrapOpKill>(text, true);
+}
+
+TEST_F(WrapOpKillTest, KillAndTerminateInvocationDifferentFunc) {
+  const std::string text = R"(
+; CHECK: OpEntryPoint Fragment [[main:%\w+]]
+; CHECK: [[main]] = OpFunction
+; CHECK: OpFunctionCall %void [[orig_kill1:%\w+]]
+; CHECK-NEXT: OpFunctionCall %void [[orig_kill2:%\w+]]
+; CHECK: [[orig_kill1]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_terminate:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[orig_kill2]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpFunctionCall %void [[new_kill:%\w+]]
+; CHECK-NEXT: OpReturn
+; CHECK: [[new_kill]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpKill
+; CHECK-NEXT: OpFunctionEnd
+; CHECK-NEXT: [[new_terminate]] = OpFunction
+; CHECK-NEXT: OpLabel
+; CHECK-NEXT: OpTerminateInvocation
+; CHECK-NEXT: OpFunctionEnd
+               OpCapability Shader
+               OpExtension "SPV_KHR_terminate_invocation"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main"
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 330
+               OpName %main "main"
+       %void = OpTypeVoid
+          %4 = OpTypeFunction %void
+       %bool = OpTypeBool
+       %true = OpConstantTrue %bool
+       %main = OpFunction %void None %4
+          %7 = OpLabel
+               OpBranch %8
+          %8 = OpLabel
+               OpLoopMerge %9 %10 None
+               OpBranch %11
+         %11 = OpLabel
+               OpBranchConditional %true %12 %9
+         %12 = OpLabel
+               OpBranch %10
+         %10 = OpLabel
+         %13 = OpFunctionCall %void %14
+         %15 = OpFunctionCall %void %16
+               OpBranch %8
+          %9 = OpLabel
+               OpReturn
+               OpFunctionEnd
+         %14 = OpFunction %void None %4
+         %17 = OpLabel
+               OpTerminateInvocation
+               OpFunctionEnd
+         %16 = OpFunction %void None %4
+         %18 = OpLabel
+               OpKill
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<WrapOpKill>(text, true);
+}
+
 TEST_F(WrapOpKillTest, FuncWithReturnValue) {
   const std::string text = R"(
 ; CHECK: OpEntryPoint Fragment [[main:%\w+]]
