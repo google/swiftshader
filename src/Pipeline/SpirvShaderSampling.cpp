@@ -78,6 +78,14 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 			samplerState.minLod = sampler->minLod;
 			samplerState.maxLod = sampler->maxLod;
 		}
+		else
+		{
+			// OpImageFetch does not take a sampler descriptor, but for VK_EXT_image_robustness
+			// requires replacing invalid texels with zero.
+			// TODO(b/159329067): Claim VK_EXT_image_robustness
+			// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
+			samplerState.border = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+		}
 
 		return emitSamplerRoutine(instruction, samplerState);
 	};
@@ -349,14 +357,18 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 
 	if(!sampler)
 	{
-		// OpImageFetch does not take a sampler descriptor, but still needs a valid,
-		// arbitrary addressing mode that prevents out-of-bounds accesses:
+		// OpImageFetch does not take a sampler descriptor, but still needs a valid
+		// addressing mode that prevents out-of-bounds accesses:
 		// "The value returned by a read of an invalid texel is undefined, unless that
 		//  read operation is from a buffer resource and the robustBufferAccess feature
 		//  is enabled. In that case, an invalid texel is replaced as described by the
 		//  robustBufferAccess feature." - Vulkan 1.1
 
-		return ADDRESSING_WRAP;
+		// VK_EXT_image_robustness requires nullifying out-of-bounds accesses.
+		// ADDRESSING_BORDER causes texel replacement to be performed.
+		// TODO(b/159329067): Claim VK_EXT_image_robustness
+		// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
+		return ADDRESSING_BORDER;
 	}
 
 	VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;

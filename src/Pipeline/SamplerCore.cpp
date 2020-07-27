@@ -1888,9 +1888,10 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z,
 	{
 		// Valid texels have positive coordinates.
 		Int4 negative = Int4(0);
-		if(state.addressingModeU == ADDRESSING_BORDER) negative |= uuuu;
-		if(state.addressingModeV == ADDRESSING_BORDER) negative |= vvvv;
-		if(state.addressingModeW == ADDRESSING_BORDER) negative |= wwww;
+		if(state.addressingModeU != ADDRESSING_UNUSED) negative |= uuuu;
+		if(state.addressingModeV != ADDRESSING_UNUSED) negative |= vvvv;
+		if(state.addressingModeW != ADDRESSING_UNUSED) negative |= wwww;
+		if(state.addressingModeY != ADDRESSING_UNUSED) negative |= cubeArrayId;
 		valid = CmpNLT(negative, Int4(0));
 	}
 
@@ -2123,7 +2124,7 @@ Vector4f SamplerCore::replaceBorderTexel(const Vector4f &c, Int4 valid)
 	}
 
 	Vector4f out;
-	out.x = As<Float4>((valid & As<Int4>(c.x)) | (~valid & borderRGB));
+	out.x = As<Float4>((valid & As<Int4>(c.x)) | (~valid & borderRGB));  // TODO: IfThenElse()
 	out.y = As<Float4>((valid & As<Int4>(c.y)) | (~valid & borderRGB));
 	out.z = As<Float4>((valid & As<Int4>(c.z)) | (~valid & borderRGB));
 	out.w = As<Float4>((valid & As<Int4>(c.w)) | (~valid & borderA));
@@ -2252,7 +2253,16 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 
 	if(function == Fetch)
 	{
-		xyz0 = Min(Max(((function.offset != 0) && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw), Int4(0)), maxXYZ);
+		Int4 xyz = (function.offset && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw);
+		xyz0 = Min(Max(xyz, Int4(0)), maxXYZ);
+
+		// VK_EXT_image_robustness requires checking for out-of-bounds accesses.
+		// TODO(b/159329067): Claim VK_EXT_image_robustness
+		// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
+		// If the above clamping altered the result, the access is out-of-bounds.
+		// In that case set the coordinate to -1 to perform texel replacement later.
+		Int4 outOfBounds = CmpNEQ(xyz, xyz0);
+		xyz0 |= outOfBounds;
 	}
 	else if(addressingMode == ADDRESSING_LAYER)  // Note: Offset does not apply to array layers
 	{
