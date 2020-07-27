@@ -1,0 +1,2 @@
+set VK_ICD_FILENAMES=${CMAKE_BINARY_DIR}\${CMAKE_SYSTEM_NAME}\vk_swiftshader_icd.json
+set ANGLE_DEFAULT_PLATFORM=vulkan
