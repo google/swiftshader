@@ -80,7 +80,7 @@ enum OperandClass {
     OperandMemorySemantics,
     OperandMemoryOperands,
     OperandScope,
-	OperandGroupOperation,
+    OperandGroupOperation,
     OperandKernelEnqueueFlags,
     OperandKernelProfilingInfo,
     OperandCapability,
