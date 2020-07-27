@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4e4f527f_0792cdb5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2020-07-27T17:47:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "827219ad_a8897e47",
+      "revId": "5549df63f868ff490272678e8245c665eee30402",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b287722d_c95015b0",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
@@ -59,6 +77,30 @@
     },
     {
       "key": {
+        "uuid": "16d0242f_cd4c7d58",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2020-07-27T17:47:05Z",
+      "side": 1,
+      "message": "OK, the SWIFTSHADER_BUILD_WSI_WAYLAND option (default is FALSE) is now present.\nThe changes have been uploaded to Gerrit here: https://swiftshader-review.googlesource.com/c/SwiftShader/+/46808",
+      "parentUuid": "a5406e16_8857a6d3",
+      "range": {
+        "startLine": 630,
+        "startChar": 16,
+        "endLine": 630,
+        "endChar": 28
+      },
+      "revId": "5549df63f868ff490272678e8245c665eee30402",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f5356326_0ed93a71",
         "filename": "CMakeLists.txt",
         "patchSetId": 1
@@ -82,6 +124,30 @@
     },
     {
       "key": {
+        "uuid": "61ad346a_42f89efa",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 711,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2020-07-27T17:47:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f5356326_0ed93a71",
+      "range": {
+        "startLine": 711,
+        "startChar": 8,
+        "endLine": 711,
+        "endChar": 19
+      },
+      "revId": "5549df63f868ff490272678e8245c665eee30402",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa77a518_2e8f9dea",
         "filename": "src/WSI/WaylandSurfaceKHR.cpp",
         "patchSetId": 1
@@ -102,6 +168,30 @@
       "revId": "5549df63f868ff490272678e8245c665eee30402",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "034c763e_30614caa",
+        "filename": "src/WSI/WaylandSurfaceKHR.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2020-07-27T17:47:05Z",
+      "side": 1,
+      "message": "OK, I agree !\nThe changes have also been uploaded to Gerrit here: https://swiftshader-review.googlesource.com/c/SwiftShader/+/46808",
+      "parentUuid": "fa77a518_2e8f9dea",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 1
+      },
+      "revId": "5549df63f868ff490272678e8245c665eee30402",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
