@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_permute_function_parameters.h"
+
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -73,7 +74,6 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %18 = OpTypeFunction %8 %7 %15 %17
          %24 = OpTypeBool
          %25 = OpTypeFunction %24 %15 %7
-         %105 = OpTypeFunction %24 %7 %15    ; predefined type for %28
          %31 = OpConstant %6 255
          %33 = OpConstant %6 0
          %34 = OpConstant %6 1
@@ -90,6 +90,11 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %84 = OpConstant %14 5
          %90 = OpConstant %6 3
          %98 = OpConstant %6 4
+        %206 = OpTypeFunction %2 %14 %16
+        %223 = OpTypeFunction %2 %6 %8
+        %224 = OpTypeFunction %2 %8 %6
+        %233 = OpTypeFunction %2 %42 %24
+        %234 = OpTypeFunction %2 %24 %42
           %4 = OpFunction %2 None %3
           %5 = OpLabel
          %66 = OpVariable %15 Function
@@ -148,6 +153,8 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %70 = OpLabel
                OpReturn
                OpFunctionEnd
+
+         ; adjust type of the function in-place
          %12 = OpFunction %8 None %9
          %10 = OpFunctionParameter %7
          %11 = OpFunctionParameter %7
@@ -192,6 +199,53 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
                OpReturnValue %61
                OpFunctionEnd
 
+        ; create a new function type
+        %200 = OpFunction %2 None %206
+        %207 = OpFunctionParameter %14
+        %208 = OpFunctionParameter %16
+        %202 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %203 = OpFunction %2 None %206
+        %209 = OpFunctionParameter %14
+        %210 = OpFunctionParameter %16
+        %205 = OpLabel
+               OpReturn
+               OpFunctionEnd
+
+        ; reuse an existing function type
+        %211 = OpFunction %2 None %223
+        %212 = OpFunctionParameter %6
+        %213 = OpFunctionParameter %8
+        %214 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %215 = OpFunction %2 None %224
+        %216 = OpFunctionParameter %8
+        %217 = OpFunctionParameter %6
+        %218 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %219 = OpFunction %2 None %224
+        %220 = OpFunctionParameter %8
+        %221 = OpFunctionParameter %6
+        %222 = OpLabel
+               OpReturn
+               OpFunctionEnd
+
+        ; don't adjust the type of the function if it creates a duplicate
+        %225 = OpFunction %2 None %233
+        %226 = OpFunctionParameter %42
+        %227 = OpFunctionParameter %24
+        %228 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %229 = OpFunction %2 None %234
+        %230 = OpFunctionParameter %24
+        %231 = OpFunctionParameter %42
+        %232 = OpLabel
+               OpReturn
+               OpFunctionEnd
   )";
 
   const auto env = SPV_ENV_UNIVERSAL_1_3;
@@ -205,49 +259,67 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
                                                validator_options);
 
   // Can't permute main function
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(4, 0, {}).IsApplicable(
-      context.get(), transformation_context));
+  ASSERT_FALSE(TransformationPermuteFunctionParameters(4, 105, {})
+                   .IsApplicable(context.get(), transformation_context));
 
   // Can't permute invalid instruction
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(101, 0, {})
+  ASSERT_FALSE(TransformationPermuteFunctionParameters(101, 105, {})
                    .IsApplicable(context.get(), transformation_context));
 
   // Permutation has too many values
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 0, {2, 1, 0, 3})
+  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 105, {2, 1, 0, 3})
                    .IsApplicable(context.get(), transformation_context));
 
   // Permutation has too few values
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 0, {0, 1})
+  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 105, {0, 1})
                    .IsApplicable(context.get(), transformation_context));
 
-  // Permutation has invalid values
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 0, {3, 1, 0})
+  // Permutation has invalid values 1
+  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 105, {3, 1, 0})
                    .IsApplicable(context.get(), transformation_context));
 
-  // Type id is not an OpTypeFunction instruction
+#ifndef NDEBUG
+  // Permutation has invalid values 2
+  ASSERT_DEATH(TransformationPermuteFunctionParameters(22, 105, {2, 2, 1})
+                   .IsApplicable(context.get(), transformation_context),
+               "Permutation has duplicates");
+#endif
+
+  // Result id for new function type is not fresh.
   ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 42, {2, 1, 0})
-                   .IsApplicable(context.get(), transformation_context));
-
-  // Type id has incorrect number of operands
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 9, {2, 1, 0})
-                   .IsApplicable(context.get(), transformation_context));
-
-  // OpTypeFunction has operands out of order
-  ASSERT_FALSE(TransformationPermuteFunctionParameters(22, 18, {2, 1, 0})
                    .IsApplicable(context.get(), transformation_context));
 
   // Successful transformations
   {
-    // Function has two operands of the same type:
-    // initial OpTypeFunction should be enough
-    TransformationPermuteFunctionParameters transformation(12, 9, {1, 0});
+    TransformationPermuteFunctionParameters transformation(12, 105, {1, 0});
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
     transformation.Apply(context.get(), &transformation_context);
     ASSERT_TRUE(IsValid(env, context.get()));
   }
   {
-    TransformationPermuteFunctionParameters transformation(28, 105, {1, 0});
+    TransformationPermuteFunctionParameters transformation(28, 106, {1, 0});
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
+    ASSERT_TRUE(IsValid(env, context.get()));
+  }
+  {
+    TransformationPermuteFunctionParameters transformation(200, 107, {1, 0});
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
+    ASSERT_TRUE(IsValid(env, context.get()));
+  }
+  {
+    TransformationPermuteFunctionParameters transformation(219, 108, {1, 0});
+    ASSERT_TRUE(
+        transformation.IsApplicable(context.get(), transformation_context));
+    transformation.Apply(context.get(), &transformation_context);
+    ASSERT_TRUE(IsValid(env, context.get()));
+  }
+  {
+    TransformationPermuteFunctionParameters transformation(229, 109, {1, 0});
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
     transformation.Apply(context.get(), &transformation_context);
@@ -306,8 +378,6 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %17 = OpTypePointer Function %16
          %18 = OpTypeFunction %8 %7 %15 %17
          %24 = OpTypeBool
-         %25 = OpTypeFunction %24 %15 %7
-         %105 = OpTypeFunction %24 %7 %15    ; predefined type for %28
          %31 = OpConstant %6 255
          %33 = OpConstant %6 0
          %34 = OpConstant %6 1
@@ -324,6 +394,12 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %84 = OpConstant %14 5
          %90 = OpConstant %6 3
          %98 = OpConstant %6 4
+        %206 = OpTypeFunction %2 %14 %16
+        %223 = OpTypeFunction %2 %6 %8
+        %224 = OpTypeFunction %2 %8 %6
+        %233 = OpTypeFunction %2 %42 %24
+         %25 = OpTypeFunction %24 %7 %15
+        %107 = OpTypeFunction %2 %16 %14
           %4 = OpFunction %2 None %3
           %5 = OpLabel
          %66 = OpVariable %15 Function
@@ -415,7 +491,7 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %55 = OpFunctionCall %8 %12 %54 %53
                OpReturnValue %55
                OpFunctionEnd
-         %28 = OpFunction %24 None %105
+         %28 = OpFunction %24 None %25
          %27 = OpFunctionParameter %7
          %26 = OpFunctionParameter %15
          %29 = OpLabel
@@ -424,6 +500,48 @@ TEST(TransformationPermuteFunctionParametersTest, BasicTest) {
          %60 = OpLoad %6 %27
          %61 = OpFOrdLessThan %24 %59 %60
                OpReturnValue %61
+               OpFunctionEnd
+        %200 = OpFunction %2 None %107
+        %208 = OpFunctionParameter %16
+        %207 = OpFunctionParameter %14
+        %202 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %203 = OpFunction %2 None %206
+        %209 = OpFunctionParameter %14
+        %210 = OpFunctionParameter %16
+        %205 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %211 = OpFunction %2 None %223
+        %212 = OpFunctionParameter %6
+        %213 = OpFunctionParameter %8
+        %214 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %215 = OpFunction %2 None %224
+        %216 = OpFunctionParameter %8
+        %217 = OpFunctionParameter %6
+        %218 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %219 = OpFunction %2 None %223
+        %221 = OpFunctionParameter %6
+        %220 = OpFunctionParameter %8
+        %222 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %225 = OpFunction %2 None %233
+        %226 = OpFunctionParameter %42
+        %227 = OpFunctionParameter %24
+        %228 = OpLabel
+               OpReturn
+               OpFunctionEnd
+        %229 = OpFunction %2 None %233
+        %231 = OpFunctionParameter %42
+        %230 = OpFunctionParameter %24
+        %232 = OpLabel
+               OpReturn
                OpFunctionEnd
   )";
 

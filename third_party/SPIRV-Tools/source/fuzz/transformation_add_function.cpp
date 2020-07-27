@@ -794,8 +794,8 @@ bool TransformationAddFunction::TryToClampAccessChainIndices(
 
     // Get the bound for the composite being indexed into; e.g. the number of
     // columns of matrix or the size of an array.
-    uint32_t bound =
-        GetBoundForCompositeIndex(ir_context, *should_be_composite_type);
+    uint32_t bound = fuzzerutil::GetBoundForCompositeIndex(
+        *should_be_composite_type, ir_context);
 
     // Get the instruction associated with the index and figure out its integer
     // type.
@@ -871,28 +871,6 @@ bool TransformationAddFunction::TryToClampAccessChainIndices(
         FollowCompositeIndex(ir_context, *should_be_composite_type, index_id);
   }
   return true;
-}
-
-uint32_t TransformationAddFunction::GetBoundForCompositeIndex(
-    opt::IRContext* ir_context, const opt::Instruction& composite_type_inst) {
-  switch (composite_type_inst.opcode()) {
-    case SpvOpTypeArray:
-      return fuzzerutil::GetArraySize(composite_type_inst, ir_context);
-    case SpvOpTypeMatrix:
-    case SpvOpTypeVector:
-      return composite_type_inst.GetSingleWordInOperand(1);
-    case SpvOpTypeStruct: {
-      return fuzzerutil::GetNumberOfStructMembers(composite_type_inst);
-    }
-    case SpvOpTypeRuntimeArray:
-      assert(false &&
-             "GetBoundForCompositeIndex should not be invoked with an "
-             "OpTypeRuntimeArray, which does not have a static bound.");
-      return 0;
-    default:
-      assert(false && "Unknown composite type.");
-      return 0;
-  }
 }
 
 opt::Instruction* TransformationAddFunction::FollowCompositeIndex(

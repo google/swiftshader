@@ -413,6 +413,7 @@ bool spvOpcodeIsAtomicWithLoad(const SpvOp opcode) {
     case SpvOpAtomicIIncrement:
     case SpvOpAtomicIDecrement:
     case SpvOpAtomicIAdd:
+    case SpvOpAtomicFAddEXT:
     case SpvOpAtomicISub:
     case SpvOpAtomicSMin:
     case SpvOpAtomicUMin:
@@ -445,7 +446,7 @@ bool spvOpcodeIsReturn(SpvOp opcode) {
 
 bool spvOpcodeIsReturnOrAbort(SpvOp opcode) {
   return spvOpcodeIsReturn(opcode) || opcode == SpvOpKill ||
-         opcode == SpvOpUnreachable;
+         opcode == SpvOpUnreachable || opcode == SpvOpTerminateInvocation;
 }
 
 bool spvOpcodeIsBlockTerminator(SpvOp opcode) {
@@ -650,6 +651,42 @@ bool spvOpcodeIsCommutativeBinaryOperator(SpvOp opcode) {
   }
 }
 
+bool spvOpcodeIsLinearAlgebra(SpvOp opcode) {
+  switch (opcode) {
+    case SpvOpTranspose:
+    case SpvOpVectorTimesScalar:
+    case SpvOpMatrixTimesScalar:
+    case SpvOpVectorTimesMatrix:
+    case SpvOpMatrixTimesVector:
+    case SpvOpMatrixTimesMatrix:
+    case SpvOpOuterProduct:
+    case SpvOpDot:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool spvOpcodeIsImageSample(const SpvOp opcode) {
+  switch (opcode) {
+    case SpvOpImageSampleImplicitLod:
+    case SpvOpImageSampleExplicitLod:
+    case SpvOpImageSampleDrefImplicitLod:
+    case SpvOpImageSampleDrefExplicitLod:
+    case SpvOpImageSampleProjImplicitLod:
+    case SpvOpImageSampleProjExplicitLod:
+    case SpvOpImageSampleProjDrefImplicitLod:
+    case SpvOpImageSampleProjDrefExplicitLod:
+    case SpvOpImageSparseSampleImplicitLod:
+    case SpvOpImageSparseSampleExplicitLod:
+    case SpvOpImageSparseSampleDrefImplicitLod:
+    case SpvOpImageSparseSampleDrefExplicitLod:
+      return true;
+    default:
+      return false;
+  }
+}
+
 std::vector<uint32_t> spvOpcodeMemorySemanticsOperandIndices(SpvOp opcode) {
   switch (opcode) {
     case SpvOpMemoryBarrier:
@@ -664,6 +701,7 @@ std::vector<uint32_t> spvOpcodeMemorySemanticsOperandIndices(SpvOp opcode) {
     case SpvOpAtomicIIncrement:
     case SpvOpAtomicIDecrement:
     case SpvOpAtomicIAdd:
+    case SpvOpAtomicFAddEXT:
     case SpvOpAtomicISub:
     case SpvOpAtomicSMin:
     case SpvOpAtomicUMin:

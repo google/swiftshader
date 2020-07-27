@@ -431,6 +431,74 @@ void main(float in_var_color : COLOR) {
   EXPECT_EQ(inst, before_100);
 }
 
+TEST(DebugInfoManager, KillDebugDeclares) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %in_var_COLOR
+               OpExecutionMode %main OriginUpperLeft
+          %5 = OpString "ps.hlsl"
+         %14 = OpString "#line 1 \"ps.hlsl\"
+void main(float in_var_color : COLOR) {
+  float color = in_var_color;
+}
+"
+         %17 = OpString "float"
+         %21 = OpString "main"
+         %24 = OpString "color"
+               OpName %in_var_COLOR "in.var.COLOR"
+               OpName %main "main"
+               OpDecorate %in_var_COLOR Location 0
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+      %float = OpTypeFloat 32
+%_ptr_Input_float = OpTypePointer Input %float
+       %void = OpTypeVoid
+         %27 = OpTypeFunction %void
+%_ptr_Function_float = OpTypePointer Function %float
+%in_var_COLOR = OpVariable %_ptr_Input_float Input
+         %13 = OpExtInst %void %1 DebugExpression
+         %15 = OpExtInst %void %1 DebugSource %5 %14
+         %16 = OpExtInst %void %1 DebugCompilationUnit 1 4 %15 HLSL
+         %18 = OpExtInst %void %1 DebugTypeBasic %17 %uint_32 Float
+         %20 = OpExtInst %void %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %18 %18
+         %22 = OpExtInst %void %1 DebugFunction %21 %20 %15 1 1 %16 %21 FlagIsProtected|FlagIsPrivate 1 %main
+         %12 = OpExtInst %void %1 DebugInfoNone
+         %25 = OpExtInst %void %1 DebugLocalVariable %24 %18 %15 1 20 %22 FlagIsLocal 0
+       %main = OpFunction %void None %27
+         %28 = OpLabel
+        %100 = OpVariable %_ptr_Function_float Function
+         %31 = OpLoad %float %in_var_COLOR
+               OpStore %100 %31
+         %36 = OpExtInst %void %1 DebugDeclare %25 %100 %13
+         %37 = OpExtInst %void %1 DebugDeclare %25 %100 %13
+         %38 = OpExtInst %void %1 DebugDeclare %25 %100 %13
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  auto* dbg_info_mgr = context->get_debug_info_mgr();
+  auto* def_use_mgr = context->get_def_use_mgr();
+
+  EXPECT_TRUE(dbg_info_mgr->IsDebugDeclared(100));
+  EXPECT_EQ(def_use_mgr->GetDef(36)->GetOpenCL100DebugOpcode(),
+            OpenCLDebugInfo100DebugDeclare);
+  EXPECT_EQ(def_use_mgr->GetDef(37)->GetOpenCL100DebugOpcode(),
+            OpenCLDebugInfo100DebugDeclare);
+  EXPECT_EQ(def_use_mgr->GetDef(38)->GetOpenCL100DebugOpcode(),
+            OpenCLDebugInfo100DebugDeclare);
+
+  dbg_info_mgr->KillDebugDeclares(100);
+  EXPECT_EQ(def_use_mgr->GetDef(36), nullptr);
+  EXPECT_EQ(def_use_mgr->GetDef(37), nullptr);
+  EXPECT_EQ(def_use_mgr->GetDef(38), nullptr);
+  EXPECT_FALSE(dbg_info_mgr->IsDebugDeclared(100));
+}
+
 }  // namespace
 }  // namespace analysis
 }  // namespace opt

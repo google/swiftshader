@@ -1450,6 +1450,271 @@ TEST(TransformationReplaceIdWithSynonymTest,
           .IsApplicable(context.get(), transformation_context));
 }
 
+TEST(TransformationReplaceIdWithSynonymTest, EquivalentIntegerConstants) {
+  // This checks that replacing an integer constant with an equivalent one with
+  // different signedness is allowed only when valid.
+  const std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %2 "main"
+               OpName %3 "a"
+               OpDecorate %3 RelaxedPrecision
+          %4 = OpTypeVoid
+          %5 = OpTypeBool
+          %6 = OpConstantTrue %5
+          %7 = OpTypeFunction %4
+          %8 = OpTypeInt 32 1
+          %9 = OpTypePointer Function %8
+         %10 = OpConstant %8 1
+         %11 = OpTypeInt 32 0
+         %12 = OpTypePointer Function %11
+         %13 = OpConstant %11 1
+          %2 = OpFunction %4 None %7
+         %14 = OpLabel
+          %3 = OpVariable %9 Function
+         %15 = OpSNegate %8 %10
+         %16 = OpIAdd %8 %10 %10
+         %17 = OpSDiv %8 %10 %10
+         %18 = OpUDiv %11 %13 %13
+         %19 = OpBitwiseAnd %8 %10 %10
+         %20 = OpSelect %8 %6 %10 %17
+         %21 = OpIEqual %5 %10 %10
+               OpStore %3 %10
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  // Add synonym fact relating %10 and %13 (equivalent integer constant with
+  // different signedness).
+  transformation_context.GetFactManager()->AddFact(MakeSynonymFact(10, 13),
+                                                   context.get());
+
+  // Legal because OpSNegate always considers the integer as signed
+  auto replacement1 = TransformationReplaceIdWithSynonym(
+      MakeIdUseDescriptor(10, MakeInstructionDescriptor(15, SpvOpSNegate, 0),
+                          0),
+      13);
+  ASSERT_TRUE(replacement1.IsApplicable(context.get(), transformation_context));
+  replacement1.Apply(context.get(), &transformation_context);
+
+  // Legal because OpIAdd does not care about the signedness of the operands
+  auto replacement2 = TransformationReplaceIdWithSynonym(
+      MakeIdUseDescriptor(10, MakeInstructionDescriptor(16, SpvOpIAdd, 0), 0),
+      13);
+  ASSERT_TRUE(replacement2.IsApplicable(context.get(), transformation_context));
+  replacement2.Apply(context.get(), &transformation_context);
+
+  // Legal because OpSDiv does not care about the signedness of the operands
+  auto replacement3 = TransformationReplaceIdWithSynonym(
+      MakeIdUseDescriptor(10, MakeInstructionDescriptor(17, SpvOpSDiv, 0), 0),
+      13);
+  ASSERT_TRUE(replacement3.IsApplicable(context.get(), transformation_context));
+  replacement3.Apply(context.get(), &transformation_context);
+
+  // Not legal because OpUDiv requires unsigned integers
+  ASSERT_FALSE(TransformationReplaceIdWithSynonym(
+                   MakeIdUseDescriptor(
+                       13, MakeInstructionDescriptor(18, SpvOpUDiv, 0), 0),
+                   10)
+                   .IsApplicable(context.get(), transformation_context));
+
+  // Legal because OpSDiv does not care about the signedness of the operands
+  auto replacement4 = TransformationReplaceIdWithSynonym(
+      MakeIdUseDescriptor(10, MakeInstructionDescriptor(19, SpvOpBitwiseAnd, 0),
+                          0),
+      13);
+  ASSERT_TRUE(replacement4.IsApplicable(context.get(), transformation_context));
+  replacement4.Apply(context.get(), &transformation_context);
+
+  // Not legal because OpSelect requires both operands to have the same type as
+  // the result type
+  ASSERT_FALSE(TransformationReplaceIdWithSynonym(
+                   MakeIdUseDescriptor(
+                       10, MakeInstructionDescriptor(20, SpvOpUDiv, 0), 1),
+                   13)
+                   .IsApplicable(context.get(), transformation_context));
+
+  // Not legal because OpStore requires the object to match the type pointed
+  // to by the pointer.
+  ASSERT_FALSE(TransformationReplaceIdWithSynonym(
+                   MakeIdUseDescriptor(
+                       10, MakeInstructionDescriptor(21, SpvOpStore, 0), 1),
+                   13)
+                   .IsApplicable(context.get(), transformation_context));
+
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  const std::string after_transformation = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %2 "main"
+               OpName %3 "a"
+               OpDecorate %3 RelaxedPrecision
+          %4 = OpTypeVoid
+          %5 = OpTypeBool
+          %6 = OpConstantTrue %5
+          %7 = OpTypeFunction %4
+          %8 = OpTypeInt 32 1
+          %9 = OpTypePointer Function %8
+         %10 = OpConstant %8 1
+         %11 = OpTypeInt 32 0
+         %12 = OpTypePointer Function %11
+         %13 = OpConstant %11 1
+          %2 = OpFunction %4 None %7
+         %14 = OpLabel
+          %3 = OpVariable %9 Function
+         %15 = OpSNegate %8 %13
+         %16 = OpIAdd %8 %13 %10
+         %17 = OpSDiv %8 %13 %10
+         %18 = OpUDiv %11 %13 %13
+         %19 = OpBitwiseAnd %8 %13 %10
+         %20 = OpSelect %8 %6 %10 %17
+         %21 = OpIEqual %5 %10 %10
+               OpStore %3 %10
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  ASSERT_TRUE(IsEqual(env, after_transformation, context.get()));
+}
+
+TEST(TransformationReplaceIdWithSynonymTest, EquivalentIntegerVectorConstants) {
+  // This checks that replacing an integer constant with an equivalent one with
+  // different signedness is allowed only when valid.
+  const std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %2 "main"
+               OpName %3 "a"
+               OpDecorate %3 RelaxedPrecision
+               OpDecorate %4 RelaxedPrecision
+          %5 = OpTypeVoid
+          %6 = OpTypeFunction %5
+          %7 = OpTypeInt 32 1
+          %8 = OpTypeInt 32 0
+          %9 = OpTypeVector %7 4
+         %10 = OpTypeVector %8 4
+         %11 = OpTypePointer Function %9
+         %12 = OpConstant %7 1
+         %13 = OpConstant %8 1
+         %14 = OpConstantComposite %9 %12 %12 %12 %12
+         %15 = OpConstantComposite %10 %13 %13 %13 %13
+         %16 = OpTypePointer Function %7
+          %2 = OpFunction %5 None %6
+         %17 = OpLabel
+          %3 = OpVariable %11 Function
+         %18 = OpIAdd %9 %14 %14
+               OpStore %3 %14
+         %19 = OpAccessChain %16 %3 %13
+          %4 = OpLoad %7 %19
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  // Add synonym fact relating %10 and %13 (equivalent integer vectors with
+  // different signedness).
+  transformation_context.GetFactManager()->AddFact(MakeSynonymFact(14, 15),
+                                                   context.get());
+
+  // Legal because OpIAdd does not consider the signedness of the operands
+  auto replacement1 = TransformationReplaceIdWithSynonym(
+      MakeIdUseDescriptor(14, MakeInstructionDescriptor(18, SpvOpIAdd, 0), 0),
+      15);
+  ASSERT_TRUE(replacement1.IsApplicable(context.get(), transformation_context));
+  replacement1.Apply(context.get(), &transformation_context);
+
+  // Not legal because OpStore requires the object to match the type pointed
+  // to by the pointer.
+  ASSERT_FALSE(TransformationReplaceIdWithSynonym(
+                   MakeIdUseDescriptor(
+                       14, MakeInstructionDescriptor(18, SpvOpStore, 0), 1),
+                   15)
+                   .IsApplicable(context.get(), transformation_context));
+
+  // Add synonym fact relating %12 and %13 (equivalent integer constants with
+  // different signedness).
+  transformation_context.GetFactManager()->AddFact(MakeSynonymFact(12, 13),
+                                                   context.get());
+
+  // Legal because the indices of OpAccessChain are always treated as signed
+  auto replacement2 = TransformationReplaceIdWithSynonym(
+      MakeIdUseDescriptor(
+          13, MakeInstructionDescriptor(19, SpvOpAccessChain, 0), 1),
+      12);
+  ASSERT_TRUE(replacement2.IsApplicable(context.get(), transformation_context));
+  replacement2.Apply(context.get(), &transformation_context);
+
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  const std::string after_transformation = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %2 "main"
+               OpName %3 "a"
+               OpDecorate %3 RelaxedPrecision
+               OpDecorate %4 RelaxedPrecision
+          %5 = OpTypeVoid
+          %6 = OpTypeFunction %5
+          %7 = OpTypeInt 32 1
+          %8 = OpTypeInt 32 0
+          %9 = OpTypeVector %7 4
+         %10 = OpTypeVector %8 4
+         %11 = OpTypePointer Function %9
+         %12 = OpConstant %7 1
+         %13 = OpConstant %8 1
+         %14 = OpConstantComposite %9 %12 %12 %12 %12
+         %15 = OpConstantComposite %10 %13 %13 %13 %13
+         %16 = OpTypePointer Function %7
+          %2 = OpFunction %5 None %6
+         %17 = OpLabel
+          %3 = OpVariable %11 Function
+         %18 = OpIAdd %9 %15 %14
+               OpStore %3 %14
+         %19 = OpAccessChain %16 %3 %12
+          %4 = OpLoad %7 %19
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  ASSERT_TRUE(IsEqual(env, after_transformation, context.get()));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

@@ -24,19 +24,25 @@ if (${SPIRV_BUILD_FUZZER})
           fuzzer_pass_construct_composites_test.cpp
           fuzzer_pass_donate_modules_test.cpp
           instruction_descriptor_test.cpp
+          replayer_test.cpp
           transformation_access_chain_test.cpp
           transformation_add_constant_boolean_test.cpp
           transformation_add_constant_composite_test.cpp
           transformation_add_constant_null_test.cpp
           transformation_add_constant_scalar_test.cpp
+          transformation_add_copy_memory_test.cpp
           transformation_add_dead_block_test.cpp
           transformation_add_dead_break_test.cpp
           transformation_add_dead_continue_test.cpp
           transformation_add_function_test.cpp
           transformation_add_global_undef_test.cpp
           transformation_add_global_variable_test.cpp
+          transformation_add_image_sample_unused_components_test.cpp
           transformation_add_local_variable_test.cpp
           transformation_add_no_contraction_decoration_test.cpp
+          transformation_add_parameter_test.cpp
+          transformation_add_relaxed_decoration_test.cpp
+          transformation_add_synonym_test.cpp
           transformation_add_type_array_test.cpp
           transformation_add_type_boolean_test.cpp
           transformation_add_type_float_test.cpp
@@ -50,17 +56,25 @@ if (${SPIRV_BUILD_FUZZER})
           transformation_composite_construct_test.cpp
           transformation_composite_extract_test.cpp
           transformation_compute_data_synonym_fact_closure_test.cpp
-          transformation_copy_object_test.cpp
           transformation_equation_instruction_test.cpp
           transformation_function_call_test.cpp
+          transformation_invert_comparison_operator_test.cpp
           transformation_load_test.cpp
           transformation_merge_blocks_test.cpp
           transformation_move_block_down_test.cpp
           transformation_outline_function_test.cpp
           transformation_permute_function_parameters_test.cpp
+          transformation_permute_phi_operands_test.cpp
+          transformation_push_id_through_variable_test.cpp
+          transformation_replace_parameter_with_global_test.cpp
           transformation_replace_boolean_constant_with_constant_binary_test.cpp
+          transformation_replace_copy_object_with_store_load_test.cpp
           transformation_replace_constant_with_uniform_test.cpp
+          transformation_replace_copy_memory_with_load_store_test.cpp
           transformation_replace_id_with_synonym_test.cpp
+          transformation_replace_linear_algebra_instruction_test.cpp
+          transformation_replace_load_store_with_copy_memory_test.cpp
+          transformation_replace_params_with_struct_test.cpp
           transformation_set_function_control_test.cpp
           transformation_set_loop_control_test.cpp
           transformation_set_memory_operands_mask_test.cpp
@@ -68,7 +82,9 @@ if (${SPIRV_BUILD_FUZZER})
           transformation_split_block_test.cpp
           transformation_store_test.cpp
           transformation_swap_commutable_operands_test.cpp
+          transformation_swap_conditional_branch_operands_test.cpp
           transformation_toggle_access_chain_instruction_test.cpp
+          transformation_record_synonymous_constants_test.cpp
           transformation_vector_shuffle_test.cpp
           uniform_buffer_element_descriptor_test.cpp)
 

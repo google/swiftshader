@@ -3,10 +3,10 @@ use_relative_paths = True
 vars = {
   'github': 'https://github.com',
 
-  'effcee_revision': 'cd25ec17e9382f99a895b9ef53ff3c277464d07d',
-  'googletest_revision': 'f2fb48c3b3d79a75a88a99fba6576b25d42ec528',
-  're2_revision': '5bd613749fd530b576b890283bfb6bc6ea6246cb',
-  'spirv_headers_revision': 'f8bf11a0253a32375c32cad92c841237b96696c0',
+  'effcee_revision': '5af957bbfc7da4e9f7aa8cac11379fa36dd79b84',
+  'googletest_revision': '011959aafddcd30611003de96cfd8d7a7685c700',
+  're2_revision': 'aecba11114cf1fac5497aeb844b6966106de3eb6',
+  'spirv_headers_revision': 'ac638f1815425403e946d0ab78bac71d2bdbf3be',
 }
 
 deps = {

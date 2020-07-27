@@ -121,6 +121,18 @@ Options (in lexicographical order):
   --replay
                File from which to read a sequence of transformations to replay
                (instead of fuzzing)
+  --replay-range=
+               Signed 32-bit integer.  If set to a positive value N, only the
+               first N transformations will be applied during replay.  If set to
+               a negative value -N, all but the final N transformations will be
+               applied during replay.  If set to 0 (the default), all
+               transformations will be applied during replay.  Ignored unless
+               --replay is used.
+  --replay-validation
+               Run the validator after applying each transformation during
+               replay (including the replay that occurs during shrinking).
+               Aborts if an invalid binary is created.  Useful for debugging
+               spirv-fuzz.
   --seed=
                Unsigned 32-bit integer seed to control random number
                generation.
@@ -137,11 +149,6 @@ Options (in lexicographical order):
                extension will be added.  The default is "temp_", which will
                cause files like "temp_0001.spv" to be output to the current
                directory.  Ignored unless --shrink is used.
-  --replay-validation
-               Run the validator after applying each transformation during
-               replay (including the replay that occurs during shrinking).
-               Aborts if an invalid binary is created.  Useful for debugging
-               spirv-fuzz.
   --version
                Display fuzzer version information.
 
@@ -208,6 +215,15 @@ FuzzStatus ParseFlags(int argc, const char** argv, std::string* in_binary_file,
       } else if (0 == strncmp(cur_arg, "--replay=", sizeof("--replay=") - 1)) {
         const auto split_flag = spvtools::utils::SplitFlagArgs(cur_arg);
         *replay_transformations_file = std::string(split_flag.second);
+      } else if (0 == strncmp(cur_arg, "--replay-range=",
+                              sizeof("--replay-range=") - 1)) {
+        const auto split_flag = spvtools::utils::SplitFlagArgs(cur_arg);
+        char* end = nullptr;
+        errno = 0;
+        const auto replay_range =
+            static_cast<int32_t>(strtol(split_flag.second.c_str(), &end, 10));
+        assert(end != split_flag.second.c_str() && errno == 0);
+        fuzzer_options->set_replay_range(replay_range);
       } else if (0 == strncmp(cur_arg, "--replay-validation",
                               sizeof("--replay-validation") - 1)) {
         fuzzer_options->enable_replay_validation();
@@ -392,9 +408,27 @@ bool Replay(const spv_target_env& target_env,
   spvtools::fuzz::Replayer replayer(
       target_env, fuzzer_options->replay_validation_enabled, validator_options);
   replayer.SetMessageConsumer(spvtools::utils::CLIMessageConsumer);
-  auto replay_result_status =
-      replayer.Run(binary_in, initial_facts, transformation_sequence,
-                   binary_out, transformations_applied);
+
+  uint32_t num_transformations_to_apply;
+  if (fuzzer_options->replay_range > 0) {
+    // We have a positive replay range, N.  We would like transformations
+    // [0, N), truncated to the number of available transformations if N is too
+    // large.
+    num_transformations_to_apply = static_cast<uint32_t>(
+        std::min(fuzzer_options->replay_range,
+                 transformation_sequence.transformation_size()));
+  } else {
+    // We have non-positive replay range, -N (where N may be 0).  We would like
+    // transformations [0, num_transformations - N), or no transformations if N
+    // is too large.
+    num_transformations_to_apply = static_cast<uint32_t>(
+        std::max(0, transformation_sequence.transformation_size() +
+                        fuzzer_options->replay_range));
+  }
+
+  auto replay_result_status = replayer.Run(
+      binary_in, initial_facts, transformation_sequence,
+      num_transformations_to_apply, binary_out, transformations_applied);
   return !(replay_result_status !=
            spvtools::fuzz::Replayer::ReplayerResultStatus::kComplete);
 }

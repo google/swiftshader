@@ -27,6 +27,7 @@
 #include "source/fuzz/transformation_add_function.h"
 #include "source/fuzz/transformation_add_global_undef.h"
 #include "source/fuzz/transformation_add_global_variable.h"
+#include "source/fuzz/transformation_add_spec_constant_op.h"
 #include "source/fuzz/transformation_add_type_array.h"
 #include "source/fuzz/transformation_add_type_boolean.h"
 #include "source/fuzz/transformation_add_type_float.h"
@@ -326,8 +327,9 @@ void FuzzerPassDonateModules::HandleTypeOrValue(
       new_result_id = GetFuzzerContext()->GetFreshId();
       ApplyTransformation(TransformationAddTypeArray(
           new_result_id, original_id_to_donated_id->at(component_type_id),
-          FindOrCreate32BitIntegerConstant(
-              GetFuzzerContext()->GetRandomSizeForNewArray(), false)));
+          FindOrCreateIntegerConstant(
+              {GetFuzzerContext()->GetRandomSizeForNewArray()}, 32, false,
+              false)));
     } break;
     case SpvOpTypeStruct: {
       // Similar to SpvOpTypeArray.
@@ -413,14 +415,41 @@ void FuzzerPassDonateModules::HandleTypeOrValue(
             argument_type_ids));
       }
     } break;
+    case SpvOpSpecConstantOp: {
+      new_result_id = GetFuzzerContext()->GetFreshId();
+      auto type_id = original_id_to_donated_id->at(type_or_value.type_id());
+      auto opcode = static_cast<SpvOp>(type_or_value.GetSingleWordInOperand(0));
+
+      // Make sure we take into account |original_id_to_donated_id| when
+      // computing operands for OpSpecConstantOp.
+      opt::Instruction::OperandList operands;
+      for (uint32_t i = 1; i < type_or_value.NumInOperands(); ++i) {
+        const auto& operand = type_or_value.GetInOperand(i);
+        auto data =
+            operand.type == SPV_OPERAND_TYPE_ID
+                ? opt::Operand::OperandData{original_id_to_donated_id->at(
+                      operand.words[0])}
+                : operand.words;
+
+        operands.push_back({operand.type, std::move(data)});
+      }
+
+      ApplyTransformation(TransformationAddSpecConstantOp(
+          new_result_id, type_id, opcode, std::move(operands)));
+    } break;
+    case SpvOpSpecConstantTrue:
+    case SpvOpSpecConstantFalse:
     case SpvOpConstantTrue:
     case SpvOpConstantFalse: {
       // It is OK to have duplicate definitions of True and False, so add
       // these to the module, using a remapped Bool type.
       new_result_id = GetFuzzerContext()->GetFreshId();
-      ApplyTransformation(TransformationAddConstantBoolean(
-          new_result_id, type_or_value.opcode() == SpvOpConstantTrue));
+      auto value = type_or_value.opcode() == SpvOpConstantTrue ||
+                   type_or_value.opcode() == SpvOpSpecConstantTrue;
+      ApplyTransformation(
+          TransformationAddConstantBoolean(new_result_id, value, false));
     } break;
+    case SpvOpSpecConstant:
     case SpvOpConstant: {
       // It is OK to have duplicate constant definitions, so add this to the
       // module using a remapped result type.
@@ -431,8 +460,9 @@ void FuzzerPassDonateModules::HandleTypeOrValue(
       });
       ApplyTransformation(TransformationAddConstantScalar(
           new_result_id, original_id_to_donated_id->at(type_or_value.type_id()),
-          data_words));
+          data_words, false));
     } break;
+    case SpvOpSpecConstantComposite:
     case SpvOpConstantComposite: {
       assert(original_id_to_donated_id->count(type_or_value.type_id()) &&
              "Composite types for which it is possible to create a constant "
@@ -453,7 +483,7 @@ void FuzzerPassDonateModules::HandleTypeOrValue(
       });
       ApplyTransformation(TransformationAddConstantComposite(
           new_result_id, original_id_to_donated_id->at(type_or_value.type_id()),
-          constituent_ids));
+          constituent_ids, false));
     } break;
     case SpvOpConstantNull: {
       if (!original_id_to_donated_id->count(type_or_value.type_id())) {
@@ -515,7 +545,8 @@ void FuzzerPassDonateModules::HandleTypeOrValue(
                              ? 0
                              : FindOrCreateZeroConstant(
                                    fuzzerutil::GetPointeeTypeIdFromPointerType(
-                                       GetIRContext(), remapped_pointer_type));
+                                       GetIRContext(), remapped_pointer_type),
+                                   false);
       } else {
         // The variable already had an initializer; use its remapped id.
         initializer_id = original_id_to_donated_id->at(
@@ -890,11 +921,10 @@ void FuzzerPassDonateModules::HandleDifficultInstruction(
 
   // We find or add a zero constant to the receiving module for the type in
   // question, and add an OpCopyObject instruction that copies this zero.
-  // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3177):
-  //  Using this particular constant is arbitrary, so if we have a
-  //  mechanism for noting that an id use is arbitrary and could be
-  //  fuzzed we should use it here.
-  auto zero_constant = FindOrCreateZeroConstant(remapped_type_id);
+  //
+  // We mark the constant as irrelevant so that we can replace it with a
+  // more interesting value later.
+  auto zero_constant = FindOrCreateZeroConstant(remapped_type_id, true);
   donated_instructions->push_back(MakeInstructionMessage(
       SpvOpCopyObject, remapped_type_id,
       original_id_to_donated_id->at(instruction.result_id()),
@@ -951,9 +981,11 @@ void FuzzerPassDonateModules::PrepareInstructionForDonation(
     // This is an uninitialized local variable.  Initialize it to zero.
     input_operands.push_back(
         {SPV_OPERAND_TYPE_ID,
-         {FindOrCreateZeroConstant(fuzzerutil::GetPointeeTypeIdFromPointerType(
-             GetIRContext(),
-             original_id_to_donated_id->at(instruction.type_id())))}});
+         {FindOrCreateZeroConstant(
+             fuzzerutil::GetPointeeTypeIdFromPointerType(
+                 GetIRContext(),
+                 original_id_to_donated_id->at(instruction.type_id())),
+             false)}});
   }
 
   if (instruction.result_id() &&
@@ -982,19 +1014,19 @@ void FuzzerPassDonateModules::AddLivesafeFunction(
   // Various types and constants must be in place for a function to be made
   // live-safe.  Add them if not already present.
   FindOrCreateBoolType();  // Needed for comparisons
-  FindOrCreatePointerTo32BitIntegerType(
-      false, SpvStorageClassFunction);  // Needed for adding loop limiters
-  FindOrCreate32BitIntegerConstant(
-      0, false);  // Needed for initializing loop limiters
-  FindOrCreate32BitIntegerConstant(
-      1, false);  // Needed for incrementing loop limiters
+  FindOrCreatePointerToIntegerType(
+      32, false, SpvStorageClassFunction);  // Needed for adding loop limiters
+  FindOrCreateIntegerConstant({0}, 32, false,
+                              false);  // Needed for initializing loop limiters
+  FindOrCreateIntegerConstant({1}, 32, false,
+                              false);  // Needed for incrementing loop limiters
 
   // Get a fresh id for the variable that will be used as a loop limiter.
   const uint32_t loop_limiter_variable_id = GetFuzzerContext()->GetFreshId();
   // Choose a random loop limit, and add the required constant to the
   // module if not already there.
-  const uint32_t loop_limit = FindOrCreate32BitIntegerConstant(
-      GetFuzzerContext()->GetRandomLoopLimit(), false);
+  const uint32_t loop_limit = FindOrCreateIntegerConstant(
+      {GetFuzzerContext()->GetRandomLoopLimit()}, 32, false, false);
 
   // Consider every loop header in the function to donate, and create a
   // structure capturing the ids to be used for manipulating the loop
@@ -1068,11 +1100,11 @@ void FuzzerPassDonateModules::AddLivesafeFunction(
                      "A runtime array type in the donor should have been "
                      "replaced by a fixed-sized array in the recipient.");
               // The size of this fixed-size array is a suitable bound.
-              bound = TransformationAddFunction::GetBoundForCompositeIndex(
-                  GetIRContext(), *fixed_size_array_type);
+              bound = fuzzerutil::GetBoundForCompositeIndex(
+                  *fixed_size_array_type, GetIRContext());
             } else {
-              bound = TransformationAddFunction::GetBoundForCompositeIndex(
-                  donor_ir_context, *should_be_composite_type);
+              bound = fuzzerutil::GetBoundForCompositeIndex(
+                  *should_be_composite_type, donor_ir_context);
             }
             const uint32_t index_id = inst.GetSingleWordInOperand(index);
             auto index_inst =
@@ -1080,7 +1112,6 @@ void FuzzerPassDonateModules::AddLivesafeFunction(
             auto index_type_inst = donor_ir_context->get_def_use_mgr()->GetDef(
                 index_inst->type_id());
             assert(index_type_inst->opcode() == SpvOpTypeInt);
-            assert(index_type_inst->GetSingleWordInOperand(0) == 32);
             opt::analysis::Integer* index_int_type =
                 donor_ir_context->get_type_mgr()
                     ->GetType(index_type_inst->result_id())
@@ -1089,8 +1120,8 @@ void FuzzerPassDonateModules::AddLivesafeFunction(
               // We will have to clamp this index, so we need a constant
               // whose value is one less than the bound, to compare
               // against and to use as the clamped value.
-              FindOrCreate32BitIntegerConstant(bound - 1,
-                                               index_int_type->IsSigned());
+              FindOrCreateIntegerConstant({bound - 1}, 32,
+                                          index_int_type->IsSigned(), false);
             }
             should_be_composite_type =
                 TransformationAddFunction::FollowCompositeIndex(
@@ -1119,7 +1150,8 @@ void FuzzerPassDonateModules::AddLivesafeFunction(
     assert(function_return_type_inst->opcode() != SpvOpTypePointer &&
            "Function return type must not be a pointer.");
     kill_unreachable_return_value_id = FindOrCreateZeroConstant(
-        original_id_to_donated_id.at(function_return_type_inst->result_id()));
+        original_id_to_donated_id.at(function_return_type_inst->result_id()),
+        false);
   }
   // Add the function in a livesafe manner.
   ApplyTransformation(TransformationAddFunction(

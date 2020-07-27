@@ -20,6 +20,7 @@
 #include "source/fuzz/instruction_descriptor.h"
 #include "source/fuzz/transformation_add_constant_boolean.h"
 #include "source/fuzz/transformation_add_constant_composite.h"
+#include "source/fuzz/transformation_add_constant_null.h"
 #include "source/fuzz/transformation_add_constant_scalar.h"
 #include "source/fuzz/transformation_add_global_undef.h"
 #include "source/fuzz/transformation_add_type_boolean.h"
@@ -28,6 +29,7 @@
 #include "source/fuzz/transformation_add_type_int.h"
 #include "source/fuzz/transformation_add_type_matrix.h"
 #include "source/fuzz/transformation_add_type_pointer.h"
+#include "source/fuzz/transformation_add_type_struct.h"
 #include "source/fuzz/transformation_add_type_vector.h"
 
 namespace spvtools {
@@ -151,9 +153,7 @@ void FuzzerPass::ForEachInstructionWithInstructionDescriptor(
 }
 
 uint32_t FuzzerPass::FindOrCreateBoolType() {
-  opt::analysis::Bool bool_type;
-  auto existing_id = GetIRContext()->get_type_mgr()->GetId(&bool_type);
-  if (existing_id) {
+  if (auto existing_id = fuzzerutil::MaybeGetBoolType(GetIRContext())) {
     return existing_id;
   }
   auto result = GetFuzzerContext()->GetFreshId();
@@ -161,25 +161,25 @@ uint32_t FuzzerPass::FindOrCreateBoolType() {
   return result;
 }
 
-uint32_t FuzzerPass::FindOrCreate32BitIntegerType(bool is_signed) {
-  opt::analysis::Integer int_type(32, is_signed);
+uint32_t FuzzerPass::FindOrCreateIntegerType(uint32_t width, bool is_signed) {
+  opt::analysis::Integer int_type(width, is_signed);
   auto existing_id = GetIRContext()->get_type_mgr()->GetId(&int_type);
   if (existing_id) {
     return existing_id;
   }
   auto result = GetFuzzerContext()->GetFreshId();
-  ApplyTransformation(TransformationAddTypeInt(result, 32, is_signed));
+  ApplyTransformation(TransformationAddTypeInt(result, width, is_signed));
   return result;
 }
 
-uint32_t FuzzerPass::FindOrCreate32BitFloatType() {
-  opt::analysis::Float float_type(32);
+uint32_t FuzzerPass::FindOrCreateFloatType(uint32_t width) {
+  opt::analysis::Float float_type(width);
   auto existing_id = GetIRContext()->get_type_mgr()->GetId(&float_type);
   if (existing_id) {
     return existing_id;
   }
   auto result = GetFuzzerContext()->GetFreshId();
-  ApplyTransformation(TransformationAddTypeFloat(result, 32));
+  ApplyTransformation(TransformationAddTypeFloat(result, width));
   return result;
 }
 
@@ -228,7 +228,7 @@ uint32_t FuzzerPass::FindOrCreateMatrixType(uint32_t column_count,
   assert(row_count >= 2 && row_count <= 4 &&
          "Precondition: row count must be in range [2, 4].");
   uint32_t column_type_id =
-      FindOrCreateVectorType(FindOrCreate32BitFloatType(), row_count);
+      FindOrCreateVectorType(FindOrCreateFloatType(32), row_count);
   opt::analysis::Type* column_type =
       GetIRContext()->get_type_mgr()->GetType(column_type_id);
   opt::analysis::Matrix matrix_type(column_type, column_count);
@@ -240,6 +240,17 @@ uint32_t FuzzerPass::FindOrCreateMatrixType(uint32_t column_count,
   ApplyTransformation(
       TransformationAddTypeMatrix(result, column_type_id, column_count));
   return result;
+}
+
+uint32_t FuzzerPass::FindOrCreateStructType(
+    const std::vector<uint32_t>& component_type_ids) {
+  if (auto existing_id =
+          fuzzerutil::MaybeGetStructType(GetIRContext(), component_type_ids)) {
+    return existing_id;
+  }
+  auto new_id = GetFuzzerContext()->GetFreshId();
+  ApplyTransformation(TransformationAddTypeStruct(new_id, component_type_ids));
+  return new_id;
 }
 
 uint32_t FuzzerPass::FindOrCreatePointerType(uint32_t base_type_id,
@@ -257,70 +268,59 @@ uint32_t FuzzerPass::FindOrCreatePointerType(uint32_t base_type_id,
   return result;
 }
 
-uint32_t FuzzerPass::FindOrCreatePointerTo32BitIntegerType(
-    bool is_signed, SpvStorageClass storage_class) {
-  return FindOrCreatePointerType(FindOrCreate32BitIntegerType(is_signed),
+uint32_t FuzzerPass::FindOrCreatePointerToIntegerType(
+    uint32_t width, bool is_signed, SpvStorageClass storage_class) {
+  return FindOrCreatePointerType(FindOrCreateIntegerType(width, is_signed),
                                  storage_class);
 }
 
-uint32_t FuzzerPass::FindOrCreate32BitIntegerConstant(uint32_t word,
-                                                      bool is_signed) {
-  auto uint32_type_id = FindOrCreate32BitIntegerType(is_signed);
-  opt::analysis::IntConstant int_constant(
-      GetIRContext()->get_type_mgr()->GetType(uint32_type_id)->AsInteger(),
-      {word});
-  auto existing_constant =
-      GetIRContext()->get_constant_mgr()->FindConstant(&int_constant);
-  if (existing_constant) {
-    return GetIRContext()
-        ->get_constant_mgr()
-        ->GetDefiningInstruction(existing_constant)
-        ->result_id();
+uint32_t FuzzerPass::FindOrCreateIntegerConstant(
+    const std::vector<uint32_t>& words, uint32_t width, bool is_signed,
+    bool is_irrelevant) {
+  auto int_type_id = FindOrCreateIntegerType(width, is_signed);
+  if (auto constant_id = fuzzerutil::MaybeGetScalarConstant(
+          GetIRContext(), *GetTransformationContext(), words, int_type_id,
+          is_irrelevant)) {
+    return constant_id;
   }
   auto result = GetFuzzerContext()->GetFreshId();
-  ApplyTransformation(
-      TransformationAddConstantScalar(result, uint32_type_id, {word}));
+  ApplyTransformation(TransformationAddConstantScalar(result, int_type_id,
+                                                      words, is_irrelevant));
   return result;
 }
 
-uint32_t FuzzerPass::FindOrCreate32BitFloatConstant(uint32_t word) {
-  auto float_type_id = FindOrCreate32BitFloatType();
+uint32_t FuzzerPass::FindOrCreateFloatConstant(
+    const std::vector<uint32_t>& words, uint32_t width, bool is_irrelevant) {
+  auto float_type_id = FindOrCreateFloatType(width);
   opt::analysis::FloatConstant float_constant(
-      GetIRContext()->get_type_mgr()->GetType(float_type_id)->AsFloat(),
-      {word});
-  auto existing_constant =
-      GetIRContext()->get_constant_mgr()->FindConstant(&float_constant);
-  if (existing_constant) {
-    return GetIRContext()
-        ->get_constant_mgr()
-        ->GetDefiningInstruction(existing_constant)
-        ->result_id();
+      GetIRContext()->get_type_mgr()->GetType(float_type_id)->AsFloat(), words);
+  if (auto constant_id = fuzzerutil::MaybeGetScalarConstant(
+          GetIRContext(), *GetTransformationContext(), words, float_type_id,
+          is_irrelevant)) {
+    return constant_id;
   }
   auto result = GetFuzzerContext()->GetFreshId();
-  ApplyTransformation(
-      TransformationAddConstantScalar(result, float_type_id, {word}));
+  ApplyTransformation(TransformationAddConstantScalar(result, float_type_id,
+                                                      words, is_irrelevant));
   return result;
 }
 
-uint32_t FuzzerPass::FindOrCreateBoolConstant(bool value) {
+uint32_t FuzzerPass::FindOrCreateBoolConstant(bool value, bool is_irrelevant) {
   auto bool_type_id = FindOrCreateBoolType();
-  opt::analysis::BoolConstant bool_constant(
-      GetIRContext()->get_type_mgr()->GetType(bool_type_id)->AsBool(), value);
-  auto existing_constant =
-      GetIRContext()->get_constant_mgr()->FindConstant(&bool_constant);
-  if (existing_constant) {
-    return GetIRContext()
-        ->get_constant_mgr()
-        ->GetDefiningInstruction(existing_constant)
-        ->result_id();
+  if (auto constant_id = fuzzerutil::MaybeGetScalarConstant(
+          GetIRContext(), *GetTransformationContext(), {value ? 1u : 0u},
+          bool_type_id, is_irrelevant)) {
+    return constant_id;
   }
   auto result = GetFuzzerContext()->GetFreshId();
-  ApplyTransformation(TransformationAddConstantBoolean(result, value));
+  ApplyTransformation(
+      TransformationAddConstantBoolean(result, value, is_irrelevant));
   return result;
 }
 
 uint32_t FuzzerPass::FindOrCreateConstant(const std::vector<uint32_t>& words,
-                                          uint32_t type_id) {
+                                          uint32_t type_id,
+                                          bool is_irrelevant) {
   assert(type_id && "Constant's type id can't be 0.");
 
   const auto* type = GetIRContext()->get_type_mgr()->GetType(type_id);
@@ -328,24 +328,32 @@ uint32_t FuzzerPass::FindOrCreateConstant(const std::vector<uint32_t>& words,
 
   if (type->AsBool()) {
     assert(words.size() == 1);
-    return FindOrCreateBoolConstant(words[0]);
+    return FindOrCreateBoolConstant(words[0], is_irrelevant);
   } else if (const auto* integer = type->AsInteger()) {
-    assert(integer->width() == 32 && words.size() == 1 &&
-           "Integer must have 32-bit width");
-    return FindOrCreate32BitIntegerConstant(words[0], integer->IsSigned());
+    return FindOrCreateIntegerConstant(words, integer->width(),
+                                       integer->IsSigned(), is_irrelevant);
   } else if (const auto* floating = type->AsFloat()) {
-    // Assertions are not evaluated in release builds so |floating|
-    // variable will be unused.
-    (void)floating;
-    assert(floating->width() == 32 && words.size() == 1 &&
-           "Floating point number must have 32-bit width");
-    return FindOrCreate32BitFloatConstant(words[0]);
+    return FindOrCreateFloatConstant(words, floating->width(), is_irrelevant);
   }
 
   // This assertion will fail in debug build but not in release build
   // so we return 0 to make compiler happy.
   assert(false && "Constant type is not supported");
   return 0;
+}
+
+uint32_t FuzzerPass::FindOrCreateCompositeConstant(
+    const std::vector<uint32_t>& component_ids, uint32_t type_id,
+    bool is_irrelevant) {
+  if (auto existing_constant = fuzzerutil::MaybeGetCompositeConstant(
+          GetIRContext(), *GetTransformationContext(), component_ids, type_id,
+          is_irrelevant)) {
+    return existing_constant;
+  }
+  uint32_t result = GetFuzzerContext()->GetFreshId();
+  ApplyTransformation(TransformationAddConstantComposite(
+      result, type_id, component_ids, is_irrelevant));
+  return result;
 }
 
 uint32_t FuzzerPass::FindOrCreateGlobalUndef(uint32_t type_id) {
@@ -356,6 +364,27 @@ uint32_t FuzzerPass::FindOrCreateGlobalUndef(uint32_t type_id) {
   }
   auto result = GetFuzzerContext()->GetFreshId();
   ApplyTransformation(TransformationAddGlobalUndef(result, type_id));
+  return result;
+}
+
+uint32_t FuzzerPass::FindOrCreateNullConstant(uint32_t type_id) {
+  // Find existing declaration
+  opt::analysis::NullConstant null_constant(
+      GetIRContext()->get_type_mgr()->GetType(type_id));
+  auto existing_constant =
+      GetIRContext()->get_constant_mgr()->FindConstant(&null_constant);
+
+  // Return if found
+  if (existing_constant) {
+    return GetIRContext()
+        ->get_constant_mgr()
+        ->GetDefiningInstruction(existing_constant)
+        ->result_id();
+  }
+
+  // Create new if not found
+  auto result = GetFuzzerContext()->GetFreshId();
+  ApplyTransformation(TransformationAddConstantNull(result, type_id));
   return result;
 }
 
@@ -429,105 +458,60 @@ FuzzerPass::GetAvailableBasicTypesAndPointers(
 }
 
 uint32_t FuzzerPass::FindOrCreateZeroConstant(
-    uint32_t scalar_or_composite_type_id) {
+    uint32_t scalar_or_composite_type_id, bool is_irrelevant) {
   auto type_instruction =
       GetIRContext()->get_def_use_mgr()->GetDef(scalar_or_composite_type_id);
   assert(type_instruction && "The type instruction must exist.");
   switch (type_instruction->opcode()) {
     case SpvOpTypeBool:
-      return FindOrCreateBoolConstant(false);
-    case SpvOpTypeFloat:
-      return FindOrCreate32BitFloatConstant(0);
-    case SpvOpTypeInt:
-      return FindOrCreate32BitIntegerConstant(
-          0, type_instruction->GetSingleWordInOperand(1) != 0);
+      return FindOrCreateBoolConstant(false, is_irrelevant);
+    case SpvOpTypeFloat: {
+      auto width = type_instruction->GetSingleWordInOperand(0);
+      auto num_words = (width + 32 - 1) / 32;
+      return FindOrCreateFloatConstant(std::vector<uint32_t>(num_words, 0),
+                                       width, is_irrelevant);
+    }
+    case SpvOpTypeInt: {
+      auto width = type_instruction->GetSingleWordInOperand(0);
+      auto num_words = (width + 32 - 1) / 32;
+      return FindOrCreateIntegerConstant(
+          std::vector<uint32_t>(num_words, 0), width,
+          type_instruction->GetSingleWordInOperand(1), is_irrelevant);
+    }
     case SpvOpTypeArray: {
-      return GetZeroConstantForHomogeneousComposite(
-          *type_instruction, type_instruction->GetSingleWordInOperand(0),
-          fuzzerutil::GetArraySize(*type_instruction, GetIRContext()));
+      auto component_type_id = type_instruction->GetSingleWordInOperand(0);
+      auto num_components =
+          fuzzerutil::GetArraySize(*type_instruction, GetIRContext());
+      return FindOrCreateCompositeConstant(
+          std::vector<uint32_t>(
+              num_components,
+              FindOrCreateZeroConstant(component_type_id, is_irrelevant)),
+          scalar_or_composite_type_id, is_irrelevant);
     }
     case SpvOpTypeMatrix:
     case SpvOpTypeVector: {
-      return GetZeroConstantForHomogeneousComposite(
-          *type_instruction, type_instruction->GetSingleWordInOperand(0),
-          type_instruction->GetSingleWordInOperand(1));
+      auto component_type_id = type_instruction->GetSingleWordInOperand(0);
+      auto num_components = type_instruction->GetSingleWordInOperand(1);
+      return FindOrCreateCompositeConstant(
+          std::vector<uint32_t>(
+              num_components,
+              FindOrCreateZeroConstant(component_type_id, is_irrelevant)),
+          scalar_or_composite_type_id, is_irrelevant);
     }
     case SpvOpTypeStruct: {
-      std::vector<const opt::analysis::Constant*> field_zero_constants;
       std::vector<uint32_t> field_zero_ids;
       for (uint32_t index = 0; index < type_instruction->NumInOperands();
            index++) {
-        uint32_t field_constant_id = FindOrCreateZeroConstant(
-            type_instruction->GetSingleWordInOperand(index));
-        field_zero_ids.push_back(field_constant_id);
-        field_zero_constants.push_back(
-            GetIRContext()->get_constant_mgr()->FindDeclaredConstant(
-                field_constant_id));
+        field_zero_ids.push_back(FindOrCreateZeroConstant(
+            type_instruction->GetSingleWordInOperand(index), is_irrelevant));
       }
       return FindOrCreateCompositeConstant(
-          *type_instruction, field_zero_constants, field_zero_ids);
+          field_zero_ids, scalar_or_composite_type_id, is_irrelevant);
     }
     default:
       assert(false && "Unknown type.");
       return 0;
   }
-}
-
-uint32_t FuzzerPass::FindOrCreateCompositeConstant(
-    const opt::Instruction& composite_type_instruction,
-    const std::vector<const opt::analysis::Constant*>& constants,
-    const std::vector<uint32_t>& constant_ids) {
-  assert(constants.size() == constant_ids.size() &&
-         "Precondition: |constants| and |constant_ids| must be in "
-         "correspondence.");
-
-  opt::analysis::Type* composite_type = GetIRContext()->get_type_mgr()->GetType(
-      composite_type_instruction.result_id());
-  std::unique_ptr<opt::analysis::Constant> composite_constant;
-  if (composite_type->AsArray()) {
-    composite_constant = MakeUnique<opt::analysis::ArrayConstant>(
-        composite_type->AsArray(), constants);
-  } else if (composite_type->AsMatrix()) {
-    composite_constant = MakeUnique<opt::analysis::MatrixConstant>(
-        composite_type->AsMatrix(), constants);
-  } else if (composite_type->AsStruct()) {
-    composite_constant = MakeUnique<opt::analysis::StructConstant>(
-        composite_type->AsStruct(), constants);
-  } else if (composite_type->AsVector()) {
-    composite_constant = MakeUnique<opt::analysis::VectorConstant>(
-        composite_type->AsVector(), constants);
-  } else {
-    assert(false &&
-           "Precondition: |composite_type| must declare a composite type.");
-    return 0;
-  }
-
-  uint32_t existing_constant =
-      GetIRContext()->get_constant_mgr()->FindDeclaredConstant(
-          composite_constant.get(), composite_type_instruction.result_id());
-  if (existing_constant) {
-    return existing_constant;
-  }
-  uint32_t result = GetFuzzerContext()->GetFreshId();
-  ApplyTransformation(TransformationAddConstantComposite(
-      result, composite_type_instruction.result_id(), constant_ids));
-  return result;
-}
-
-uint32_t FuzzerPass::GetZeroConstantForHomogeneousComposite(
-    const opt::Instruction& composite_type_instruction,
-    uint32_t component_type_id, uint32_t num_components) {
-  std::vector<const opt::analysis::Constant*> zero_constants;
-  std::vector<uint32_t> zero_ids;
-  uint32_t zero_component = FindOrCreateZeroConstant(component_type_id);
-  const opt::analysis::Constant* registered_zero_component =
-      GetIRContext()->get_constant_mgr()->FindDeclaredConstant(zero_component);
-  for (uint32_t i = 0; i < num_components; i++) {
-    zero_constants.push_back(registered_zero_component);
-    zero_ids.push_back(zero_component);
-  }
-  return FindOrCreateCompositeConstant(composite_type_instruction,
-                                       zero_constants, zero_ids);
 }
 
 }  // namespace fuzz
