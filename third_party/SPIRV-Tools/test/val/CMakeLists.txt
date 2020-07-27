@@ -38,6 +38,7 @@ add_spvtools_unittest(TARGET val_abcde
        val_entry_point.cpp
        val_explicit_reserved_test.cpp
        val_extensions_test.cpp
+       val_extension_spv_khr_terminate_invocation.cpp
        val_ext_inst_test.cpp
        ${VAL_TEST_COMMON_SRCS}
   LIBS ${SPIRV_TOOLS}

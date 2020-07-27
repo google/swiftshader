@@ -1111,6 +1111,18 @@ TEST(FuzzerShrinkerTest, Miscellaneous3) {
     *temp.mutable_constant_uniform_fact() = resolution_y_eq_100;
     *facts.mutable_fact()->Add() = temp;
   }
+  // Also add an invalid fact, which should be ignored.
+  {
+    protobufs::FactConstantUniform bad_fact;
+    // The descriptor set, binding and indices used here deliberately make no
+    // sense.
+    *bad_fact.mutable_uniform_buffer_element_descriptor() =
+        MakeUniformBufferElementDescriptor(22, 33, {44, 55});
+    *bad_fact.mutable_constant_word()->Add() = 100;
+    protobufs::Fact temp;
+    *temp.mutable_constant_uniform_fact() = bad_fact;
+    *facts.mutable_fact()->Add() = temp;
+  }
 
   // Do 2 fuzzer runs, starting from an initial seed of 194 (seed value chosen
   // arbitrarily).

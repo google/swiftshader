@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_composite_construct.h"
+
 #include "source/fuzz/data_descriptor.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
@@ -1356,6 +1357,176 @@ TEST(TransformationCompositeConstructTest, ConstructVectors) {
   )";
 
   ASSERT_TRUE(IsEqual(env, after_transformation, context.get()));
+}
+
+TEST(TransformationCompositeConstructTest, AddSynonymsForRelevantIds) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeFloat 32
+          %7 = OpTypeVector %6 3
+          %8 = OpTypePointer Function %7
+         %10 = OpConstant %6 1
+         %11 = OpConstantComposite %7 %10 %10 %10
+         %17 = OpTypeVector %6 4
+         %18 = OpTypePointer Function %17
+         %21 = OpConstant %6 2
+         %32 = OpTypeMatrix %17 3
+         %33 = OpTypePointer Private %32
+         %34 = OpVariable %33 Private
+         %35 = OpTypeMatrix %7 4
+         %36 = OpTypePointer Private %35
+         %37 = OpVariable %36 Private
+         %38 = OpTypeVector %6 2
+         %39 = OpTypeInt 32 0
+         %40 = OpConstant %39 3
+         %41 = OpTypeArray %38 %40
+         %42 = OpTypePointer Private %41
+         %43 = OpVariable %42 Private
+        %100 = OpUndef %7
+        %101 = OpUndef %17
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %9 = OpVariable %8 Function
+         %12 = OpVariable %8 Function
+         %14 = OpVariable %8 Function
+         %19 = OpVariable %18 Function
+         %26 = OpVariable %18 Function
+         %29 = OpVariable %18 Function
+               OpStore %9 %11
+         %13 = OpLoad %7 %9
+               OpStore %12 %13
+         %15 = OpLoad %7 %12
+         %16 = OpVectorShuffle %7 %15 %15 2 1 0
+               OpStore %14 %16
+         %20 = OpLoad %7 %14
+         %22 = OpCompositeExtract %6 %20 0
+         %23 = OpCompositeExtract %6 %20 1
+         %24 = OpCompositeExtract %6 %20 2
+         %25 = OpCompositeConstruct %17 %22 %23 %24 %21
+               OpStore %19 %25
+         %27 = OpLoad %17 %19
+         %28 = OpVectorShuffle %17 %27 %27 3 2 1 0
+               OpStore %26 %28
+         %30 = OpLoad %7 %9
+         %31 = OpVectorShuffle %17 %30 %30 0 0 1 1
+               OpStore %29 %31
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  TransformationCompositeConstruct transformation(
+      32, {25, 28, 31}, MakeInstructionDescriptor(31, SpvOpReturn, 0), 200);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
+  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(25, {}),
+                                        MakeDataDescriptor(200, {0})));
+  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(28, {}),
+                                        MakeDataDescriptor(200, {1})));
+}
+
+TEST(TransformationCompositeConstructTest, DontAddSynonymsForIrrelevantIds) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeFloat 32
+          %7 = OpTypeVector %6 3
+          %8 = OpTypePointer Function %7
+         %10 = OpConstant %6 1
+         %11 = OpConstantComposite %7 %10 %10 %10
+         %17 = OpTypeVector %6 4
+         %18 = OpTypePointer Function %17
+         %21 = OpConstant %6 2
+         %32 = OpTypeMatrix %17 3
+         %33 = OpTypePointer Private %32
+         %34 = OpVariable %33 Private
+         %35 = OpTypeMatrix %7 4
+         %36 = OpTypePointer Private %35
+         %37 = OpVariable %36 Private
+         %38 = OpTypeVector %6 2
+         %39 = OpTypeInt 32 0
+         %40 = OpConstant %39 3
+         %41 = OpTypeArray %38 %40
+         %42 = OpTypePointer Private %41
+         %43 = OpVariable %42 Private
+        %100 = OpUndef %7
+        %101 = OpUndef %17
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %9 = OpVariable %8 Function
+         %12 = OpVariable %8 Function
+         %14 = OpVariable %8 Function
+         %19 = OpVariable %18 Function
+         %26 = OpVariable %18 Function
+         %29 = OpVariable %18 Function
+               OpStore %9 %11
+         %13 = OpLoad %7 %9
+               OpStore %12 %13
+         %15 = OpLoad %7 %12
+         %16 = OpVectorShuffle %7 %15 %15 2 1 0
+               OpStore %14 %16
+         %20 = OpLoad %7 %14
+         %22 = OpCompositeExtract %6 %20 0
+         %23 = OpCompositeExtract %6 %20 1
+         %24 = OpCompositeExtract %6 %20 2
+         %25 = OpCompositeConstruct %17 %22 %23 %24 %21
+               OpStore %19 %25
+         %27 = OpLoad %17 %19
+         %28 = OpVectorShuffle %17 %27 %27 3 2 1 0
+               OpStore %26 %28
+         %30 = OpLoad %7 %9
+         %31 = OpVectorShuffle %17 %30 %30 0 0 1 1
+               OpStore %29 %31
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  fact_manager.AddFactIdIsIrrelevant(25);
+
+  TransformationCompositeConstruct transformation(
+      32, {25, 28, 31}, MakeInstructionDescriptor(31, SpvOpReturn, 0), 200);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
+  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_FALSE(fact_manager.IsSynonymous(MakeDataDescriptor(25, {}),
+                                         MakeDataDescriptor(200, {0})));
+  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(28, {}),
+                                        MakeDataDescriptor(200, {1})));
 }
 
 }  // namespace

@@ -2998,6 +2998,76 @@ TEST_F(PassClassTest, OpPhiSelfReference) {
                                            kUnrollFactor);
 }
 
+// Test that a loop containing an unreachable merge block can still be unrolled
+// correctly.
+TEST_F(PassClassTest, UnreachableMerge) {
+  const std::string text = R"(
+; Identify the first iteration of the unrolled loop, and make sure it contains
+; the unreachable merge block.
+; The first SelectionMerge corresponds to the original loop merge.
+; The second is the branch in the loop.
+; CHECK: OpSelectionMerge {{%\w+}} None
+; CHECK: OpSelectionMerge [[unrch1:%\w+]] None
+; CHECK: [[unrch1]] = OpLabel
+; CHECK-NEXT: OpUnreachable
+; Identify the second iteration of the unrolled loop, and make sure it contains
+; the unreachable merge block.
+; The first SelectionMerge corresponds to the original loop merge
+; The second is the branch in the loop.
+; CHECK: OpSelectionMerge {{%\w+}} None
+; CHECK: OpSelectionMerge [[unrch2:%\w+]] None
+; CHECK: [[unrch2]] = OpLabel
+; CHECK-NEXT: OpUnreachable
+
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main"
+               OpExecutionMode %main LocalSize 64 1 1
+               OpSource HLSL 600
+               OpName %main "main"
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %uint_2 = OpConstant %uint 2
+     %uint_1 = OpConstant %uint 1
+       %bool = OpTypeBool
+       %void = OpTypeVoid
+         %18 = OpTypeFunction %void
+       %main = OpFunction %void None %18
+         %23 = OpLabel
+               OpBranch %24
+         %24 = OpLabel
+         %28 = OpPhi %uint %uint_0 %23 %29 %27
+         %30 = OpULessThan %bool %28 %uint_2
+               OpLoopMerge %31 %27 Unroll
+               OpBranchConditional %30 %32 %31
+         %32 = OpLabel
+               OpSelectionMerge %33 None
+               OpSwitch %uint_0 %34
+         %34 = OpLabel
+         %35 = OpUndef %bool
+               OpSelectionMerge %36 None
+               OpBranchConditional %35 %37 %38
+         %38 = OpLabel
+               OpBranch %33
+         %37 = OpLabel
+               OpBranch %33
+         %36 = OpLabel
+               OpUnreachable
+         %33 = OpLabel
+               OpBranch %27
+         %27 = OpLabel
+         %29 = OpIAdd %uint %28 %uint_1
+               OpBranch %24
+         %31 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const bool kFullyUnroll = true;
+  const uint32_t kUnrollFactor = 0;
+  SinglePassRunAndMatch<opt::LoopUnroller>(text, true, kFullyUnroll,
+                                           kUnrollFactor);
+}
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

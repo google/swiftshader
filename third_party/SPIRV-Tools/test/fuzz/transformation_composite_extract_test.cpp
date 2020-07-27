@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_composite_extract.h"
+
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -397,6 +398,185 @@ TEST(TransformationCompositeExtractTest, IllegalInsertionPoints) {
                    MakeInstructionDescriptor(21, SpvOpBranchConditional, 0),
                    200, 14, {2})
                    .IsApplicable(context.get(), transformation_context));
+}
+
+TEST(TransformationCompositeExtractTest, AddSynonymsForRelevantIds) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %4 "main"
+               OpName %8 "a"
+               OpName %10 "b"
+               OpName %17 "FunnyPoint"
+               OpMemberName %17 0 "x"
+               OpMemberName %17 1 "y"
+               OpMemberName %17 2 "z"
+               OpName %19 "p"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypePointer Function %6
+         %12 = OpTypeBool
+         %16 = OpTypeFloat 32
+         %17 = OpTypeStruct %16 %16 %6
+         %81 = OpTypeStruct %17 %16
+         %18 = OpTypePointer Function %17
+         %20 = OpConstant %6 0
+         %23 = OpTypePointer Function %16
+         %26 = OpConstant %6 1
+         %30 = OpConstant %6 2
+         %80 = OpUndef %16
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %8 = OpVariable %7 Function
+         %10 = OpVariable %7 Function
+         %19 = OpVariable %18 Function
+          %9 = OpLoad %6 %8
+         %11 = OpLoad %6 %10
+        %100 = OpCompositeConstruct %17 %80 %80 %26
+        %104 = OpCompositeConstruct %81 %100 %80
+         %13 = OpIEqual %12 %9 %11
+               OpSelectionMerge %15 None
+               OpBranchConditional %13 %14 %25
+         %14 = OpLabel
+         %21 = OpLoad %6 %8
+         %22 = OpConvertSToF %16 %21
+        %101 = OpCompositeConstruct %17 %22 %80 %30
+         %24 = OpAccessChain %23 %19 %20
+               OpStore %24 %22
+               OpBranch %15
+         %25 = OpLabel
+         %27 = OpLoad %6 %10
+         %28 = OpConvertSToF %16 %27
+        %102 = OpCompositeConstruct %17 %80 %28 %27
+         %29 = OpAccessChain %23 %19 %26
+               OpStore %29 %28
+               OpBranch %15
+         %15 = OpLabel
+         %31 = OpAccessChain %23 %19 %20
+         %32 = OpLoad %16 %31
+         %33 = OpAccessChain %23 %19 %26
+         %34 = OpLoad %16 %33
+        %103 = OpCompositeConstruct %17 %34 %32 %9
+         %35 = OpFAdd %16 %32 %34
+         %36 = OpConvertFToS %6 %35
+         %37 = OpAccessChain %7 %19 %30
+               OpStore %37 %36
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_4;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  TransformationCompositeExtract transformation(
+      MakeInstructionDescriptor(36, SpvOpConvertFToS, 0), 201, 100, {2});
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
+  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(201, {}),
+                                        MakeDataDescriptor(100, {2})));
+}
+
+TEST(TransformationCompositeExtractTest, DontAddSynonymsForIrrelevantIds) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 310
+               OpName %4 "main"
+               OpName %8 "a"
+               OpName %10 "b"
+               OpName %17 "FunnyPoint"
+               OpMemberName %17 0 "x"
+               OpMemberName %17 1 "y"
+               OpMemberName %17 2 "z"
+               OpName %19 "p"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypePointer Function %6
+         %12 = OpTypeBool
+         %16 = OpTypeFloat 32
+         %17 = OpTypeStruct %16 %16 %6
+         %81 = OpTypeStruct %17 %16
+         %18 = OpTypePointer Function %17
+         %20 = OpConstant %6 0
+         %23 = OpTypePointer Function %16
+         %26 = OpConstant %6 1
+         %30 = OpConstant %6 2
+         %80 = OpUndef %16
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %8 = OpVariable %7 Function
+         %10 = OpVariable %7 Function
+         %19 = OpVariable %18 Function
+          %9 = OpLoad %6 %8
+         %11 = OpLoad %6 %10
+        %100 = OpCompositeConstruct %17 %80 %80 %26
+        %104 = OpCompositeConstruct %81 %100 %80
+         %13 = OpIEqual %12 %9 %11
+               OpSelectionMerge %15 None
+               OpBranchConditional %13 %14 %25
+         %14 = OpLabel
+         %21 = OpLoad %6 %8
+         %22 = OpConvertSToF %16 %21
+        %101 = OpCompositeConstruct %17 %22 %80 %30
+         %24 = OpAccessChain %23 %19 %20
+               OpStore %24 %22
+               OpBranch %15
+         %25 = OpLabel
+         %27 = OpLoad %6 %10
+         %28 = OpConvertSToF %16 %27
+        %102 = OpCompositeConstruct %17 %80 %28 %27
+         %29 = OpAccessChain %23 %19 %26
+               OpStore %29 %28
+               OpBranch %15
+         %15 = OpLabel
+         %31 = OpAccessChain %23 %19 %20
+         %32 = OpLoad %16 %31
+         %33 = OpAccessChain %23 %19 %26
+         %34 = OpLoad %16 %33
+        %103 = OpCompositeConstruct %17 %34 %32 %9
+         %35 = OpFAdd %16 %32 %34
+         %36 = OpConvertFToS %6 %35
+         %37 = OpAccessChain %7 %19 %30
+               OpStore %37 %36
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_4;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  ASSERT_TRUE(IsValid(env, context.get()));
+
+  FactManager fact_manager;
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(&fact_manager,
+                                               validator_options);
+
+  fact_manager.AddFactIdIsIrrelevant(100);
+  TransformationCompositeExtract transformation(
+      MakeInstructionDescriptor(36, SpvOpConvertFToS, 0), 201, 100, {2});
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
+  ASSERT_FALSE(fact_manager.IsSynonymous(MakeDataDescriptor(201, {}),
+                                         MakeDataDescriptor(100, {2})));
 }
 
 }  // namespace

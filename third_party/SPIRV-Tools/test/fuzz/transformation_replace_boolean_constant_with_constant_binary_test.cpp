@@ -616,41 +616,41 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest, OpPhi) {
   // Hand-written SPIR-V to check applicability of the transformation on an
   // OpPhi argument.
 
-  std::string shader = R"(
+  std::string reference_shader = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
-               OpEntryPoint Fragment %4 "main"
-               OpExecutionMode %4 OriginUpperLeft
-               OpSource ESSL 310
-               OpName %4 "main"
+               OpEntryPoint Vertex %10 "main"
+
+; Types
           %2 = OpTypeVoid
           %3 = OpTypeFunction %2
-          %6 = OpTypeBool
-          %7 = OpTypePointer Function %6
-          %9 = OpConstantTrue %6
-         %16 = OpConstantFalse %6
-         %10 = OpTypeInt 32 1
-         %11 = OpTypePointer Function %10
-         %13 = OpConstant %10 0
-         %15 = OpConstant %10 1
-          %4 = OpFunction %2 None %3
-          %5 = OpLabel
-               OpSelectionMerge %20 None
-               OpBranchConditional %9 %21 %22
-         %21 = OpLabel
-               OpBranch %20
-         %22 = OpLabel
-               OpBranch %20
-         %20 = OpLabel
-         %23 = OpPhi %6 %9 %21 %16 %22
+          %4 = OpTypeInt 32 0
+          %5 = OpTypeBool
+
+; Constants
+          %6 = OpConstant %4 0
+          %7 = OpConstant %4 1
+          %8 = OpConstantTrue %5
+          %9 = OpConstantFalse %5
+
+; main function
+         %10 = OpFunction %2 None %3
+         %11 = OpLabel
+               OpSelectionMerge %13 None
+               OpBranchConditional %8 %12 %13
+         %12 = OpLabel
+               OpBranch %13
+         %13 = OpLabel
+         %14 = OpPhi %5 %8 %11 %9 %12
                OpReturn
                OpFunctionEnd
   )";
 
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
-  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  const auto context =
+      BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
   ASSERT_TRUE(IsValid(env, context.get()));
 
   FactManager fact_manager;
@@ -658,11 +658,48 @@ TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest, OpPhi) {
   TransformationContext transformation_context(&fact_manager,
                                                validator_options);
 
-  auto replacement = TransformationReplaceBooleanConstantWithConstantBinary(
-      MakeIdUseDescriptor(9, MakeInstructionDescriptor(23, SpvOpPhi, 0), 0), 13,
-      15, SpvOpSLessThan, 100);
+  auto instruction_descriptor = MakeInstructionDescriptor(14, SpvOpPhi, 0);
+  auto id_use_descriptor = MakeIdUseDescriptor(8, instruction_descriptor, 0);
+  auto transformation = TransformationReplaceBooleanConstantWithConstantBinary(
+      id_use_descriptor, 6, 7, SpvOpULessThan, 15);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  transformation.Apply(context.get(), &transformation_context);
 
-  ASSERT_FALSE(replacement.IsApplicable(context.get(), transformation_context));
+  std::string variant_shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %10 "main"
+
+; Types
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %4 = OpTypeInt 32 0
+          %5 = OpTypeBool
+
+; Constants
+          %6 = OpConstant %4 0
+          %7 = OpConstant %4 1
+          %8 = OpConstantTrue %5
+          %9 = OpConstantFalse %5
+
+; main function
+         %10 = OpFunction %2 None %3
+         %11 = OpLabel
+         %15 = OpULessThan %5 %6 %7
+               OpSelectionMerge %13 None
+               OpBranchConditional %8 %12 %13
+         %12 = OpLabel
+               OpBranch %13
+         %13 = OpLabel
+         %14 = OpPhi %5 %15 %11 %9 %12
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 
 TEST(TransformationReplaceBooleanConstantWithConstantBinaryTest,

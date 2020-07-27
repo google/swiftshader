@@ -925,6 +925,137 @@ TEST_F(CCPTest, FoldWithDecoration) {
   SinglePassRunAndMatch<CCPPass>(text, true);
 }
 
+TEST_F(CCPTest, DebugSimpleFoldConstant) {
+  const std::string text = R"(
+               OpCapability Shader
+               OpCapability Linkage
+        %ext = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+  %file_name = OpString "test"
+ %float_name = OpString "float"
+  %main_name = OpString "main"
+     %f_name = OpString "f"
+               OpDecorate %1 LinkageAttributes "func" Export
+       %void = OpTypeVoid
+       %bool = OpTypeBool
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+
+; CHECK: [[float1:%\w+]] = OpConstant {{%\w+}} 1
+    %float_1 = OpConstant %float 1
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+          %8 = OpTypeFunction %float
+  %null_expr = OpExtInst %void %ext DebugExpression
+        %src = OpExtInst %void %ext DebugSource %file_name
+         %cu = OpExtInst %void %ext DebugCompilationUnit 1 4 %src HLSL
+     %dbg_tf = OpExtInst %void %ext DebugTypeBasic %float_name %uint_32 Float
+    %main_ty = OpExtInst %void %ext DebugTypeFunction FlagIsProtected|FlagIsPrivate %dbg_tf
+   %dbg_main = OpExtInst %void %ext DebugFunction %main_name %main_ty %src 0 0 %cu %main_name FlagIsProtected|FlagIsPrivate 10 %1
+      %dbg_f = OpExtInst %void %ext DebugLocalVariable %f_name %dbg_tf %src 0 0 %dbg_main FlagIsLocal
+          %1 = OpFunction %float None %8
+         %10 = OpLabel
+
+; CHECK: OpExtInst %void [[ext:%\w+]] DebugScope
+; CHECK: OpLine [[file:%\w+]] 1 0
+; CHECK: OpExtInst %void [[ext]] DebugValue {{%\w+}} %float_1
+         %s0 = OpExtInst %void %ext DebugScope %dbg_main
+               OpLine %file_name 1 0
+         %17 = OpFAdd %float %float_0 %float_1
+        %val = OpExtInst %void %ext DebugValue %dbg_f %17 %null_expr
+
+; CHECK: OpLine [[file]] 2 0
+; CHECK: OpReturnValue [[float1]]
+               OpLine %file_name 2 0
+               OpReturnValue %17
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<CCPPass>(text, true);
+}
+
+TEST_F(CCPTest, DebugFoldMultipleForSingleConstant) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+        %ext = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %outparm
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 450
+  %file_name = OpString "test"
+ %float_name = OpString "float"
+  %main_name = OpString "main"
+     %f_name = OpString "f"
+               OpName %main "main"
+               OpName %outparm "outparm"
+               OpDecorate %outparm Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+        %int = OpTypeInt 32 1
+       %bool = OpTypeBool
+%_ptr_Function_int = OpTypePointer Function %int
+      %int_4 = OpConstant %int 4
+      %int_3 = OpConstant %int 3
+      %int_1 = OpConstant %int 1
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_ptr_Output_int = OpTypePointer Output %int
+    %outparm = OpVariable %_ptr_Output_int Output
+  %null_expr = OpExtInst %void %ext DebugExpression
+        %src = OpExtInst %void %ext DebugSource %file_name
+         %cu = OpExtInst %void %ext DebugCompilationUnit 1 4 %src HLSL
+     %dbg_tf = OpExtInst %void %ext DebugTypeBasic %float_name %uint_32 Float
+    %main_ty = OpExtInst %void %ext DebugTypeFunction FlagIsProtected|FlagIsPrivate %dbg_tf
+   %dbg_main = OpExtInst %void %ext DebugFunction %main_name %main_ty %src 0 0 %cu %main_name FlagIsProtected|FlagIsPrivate 10 %main
+        %bb0 = OpExtInst %void %ext DebugLexicalBlock %src 0 0 %dbg_main
+        %bb1 = OpExtInst %void %ext DebugLexicalBlock %src 1 0 %dbg_main
+        %bb2 = OpExtInst %void %ext DebugLexicalBlock %src 2 0 %dbg_main
+        %bb3 = OpExtInst %void %ext DebugLexicalBlock %src 3 0 %dbg_main
+      %dbg_f0 = OpExtInst %void %ext DebugLocalVariable %f_name %dbg_tf %src 0 0 %dbg_main FlagIsLocal
+      %dbg_f1 = OpExtInst %void %ext DebugLocalVariable %f_name %dbg_tf %src 1 0 %dbg_main FlagIsLocal
+      %dbg_f2 = OpExtInst %void %ext DebugLocalVariable %f_name %dbg_tf %src 2 0 %dbg_main FlagIsLocal
+       %main = OpFunction %void None %3
+          %4 = OpLabel
+
+; CHECK: OpExtInst %void [[ext:%\w+]] DebugScope
+; CHECK: OpLine [[file:%\w+]] 1 0
+; CHECK: OpIAdd %int %int_4 %int_3
+; CHECK: OpExtInst %void [[ext]] DebugValue {{%\w+}} %int_7
+         %s0 = OpExtInst %void %ext DebugScope %bb0
+               OpLine %file_name 1 0
+          %9 = OpIAdd %int %int_4 %int_3
+       %val0 = OpExtInst %void %ext DebugValue %dbg_f0 %9 %null_expr
+
+; CHECK: OpLine [[file]] 2 0
+; CHECK: OpSGreaterThan %bool %int_7 %int_3
+; CHECK: OpExtInst %void [[ext]] DebugValue {{%\w+}} %true
+               OpLine %file_name 2 0
+          %6 = OpSGreaterThan %bool %9 %int_3
+       %val1 = OpExtInst %void %ext DebugValue %dbg_f1 %6 %null_expr
+
+               OpSelectionMerge %25 None
+               OpBranchConditional %6 %22 %23
+         %22 = OpLabel
+         %s1 = OpExtInst %void %ext DebugScope %bb1
+          %7 = OpCopyObject %int %9
+       %val2 = OpExtInst %void %ext DebugValue %dbg_f2 %7 %null_expr
+               OpBranch %25
+         %23 = OpLabel
+         %s2 = OpExtInst %void %ext DebugScope %bb2
+          %8 = OpCopyObject %int %int_4
+               OpBranch %25
+         %25 = OpLabel
+         %s3 = OpExtInst %void %ext DebugScope %bb3
+         %35 = OpPhi %int %7 %22 %8 %23
+               OpStore %outparm %35
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<CCPPass>(text, true);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools

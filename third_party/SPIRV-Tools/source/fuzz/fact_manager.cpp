@@ -457,6 +457,18 @@ class FactManager::DataSynonymAndIdEquationFacts {
                                    const protobufs::DataDescriptor& dd2,
                                    opt::IRContext* context);
 
+  // Computes various corollary facts from the data descriptor |dd| if members
+  // of its equivalence class participate in equation facts with OpConvert*
+  // opcodes. The descriptor should be registered in the equivalence relation.
+  void ComputeConversionDataSynonymFacts(const protobufs::DataDescriptor& dd,
+                                         opt::IRContext* context);
+
+  // Recurses into sub-components of the data descriptors, if they are
+  // composites, to record that their components are pairwise-synonymous.
+  void ComputeCompositeDataSynonymFacts(const protobufs::DataDescriptor& dd1,
+                                        const protobufs::DataDescriptor& dd2,
+                                        opt::IRContext* context);
+
   // Records the fact that |dd1| and |dd2| are equivalent, and merges the sets
   // of equations that are known about them.
   void MakeEquivalent(const protobufs::DataDescriptor& dd1,
@@ -588,9 +600,13 @@ void FactManager::DataSynonymAndIdEquationFacts::AddEquationFactRecursive(
   // Now try to work out corollaries implied by the new equation and existing
   // facts.
   switch (opcode) {
+    case SpvOpConvertSToF:
+    case SpvOpConvertUToF:
+      ComputeConversionDataSynonymFacts(*rhs_dds[0], context);
+      break;
     case SpvOpIAdd: {
       // Equation form: "a = b + c"
-      for (auto equation : GetEquations(rhs_dds[0])) {
+      for (const auto& equation : GetEquations(rhs_dds[0])) {
         if (equation.opcode == SpvOpISub) {
           // Equation form: "a = (d - e) + c"
           if (synonymous_.IsEquivalent(*equation.operands[1], *rhs_dds[1])) {
@@ -606,7 +622,7 @@ void FactManager::DataSynonymAndIdEquationFacts::AddEquationFactRecursive(
           }
         }
       }
-      for (auto equation : GetEquations(rhs_dds[1])) {
+      for (const auto& equation : GetEquations(rhs_dds[1])) {
         if (equation.opcode == SpvOpISub) {
           // Equation form: "a = b + (d - e)"
           if (synonymous_.IsEquivalent(*equation.operands[1], *rhs_dds[0])) {
@@ -620,7 +636,7 @@ void FactManager::DataSynonymAndIdEquationFacts::AddEquationFactRecursive(
     }
     case SpvOpISub: {
       // Equation form: "a = b - c"
-      for (auto equation : GetEquations(rhs_dds[0])) {
+      for (const auto& equation : GetEquations(rhs_dds[0])) {
         if (equation.opcode == SpvOpIAdd) {
           // Equation form: "a = (d + e) - c"
           if (synonymous_.IsEquivalent(*equation.operands[0], *rhs_dds[1])) {
@@ -646,7 +662,7 @@ void FactManager::DataSynonymAndIdEquationFacts::AddEquationFactRecursive(
         }
       }
 
-      for (auto equation : GetEquations(rhs_dds[1])) {
+      for (const auto& equation : GetEquations(rhs_dds[1])) {
         if (equation.opcode == SpvOpIAdd) {
           // Equation form: "a = b - (d + e)"
           if (synonymous_.IsEquivalent(*equation.operands[0], *rhs_dds[0])) {
@@ -676,7 +692,7 @@ void FactManager::DataSynonymAndIdEquationFacts::AddEquationFactRecursive(
     case SpvOpLogicalNot:
     case SpvOpSNegate: {
       // Equation form: "a = !b" or "a = -b"
-      for (auto equation : GetEquations(rhs_dds[0])) {
+      for (const auto& equation : GetEquations(rhs_dds[0])) {
         if (equation.opcode == opcode) {
           // Equation form: "a = !!b" or "a = -(-b)"
           // We can thus infer "a = b"
@@ -698,7 +714,69 @@ void FactManager::DataSynonymAndIdEquationFacts::AddDataSynonymFactRecursive(
   // Record that the data descriptors provided in the fact are equivalent.
   MakeEquivalent(dd1, dd2);
 
-  // We now check whether this is a synonym about composite objects.  If it is,
+  // Compute various corollary facts.
+  ComputeConversionDataSynonymFacts(dd1, context);
+  ComputeCompositeDataSynonymFacts(dd1, dd2, context);
+}
+
+void FactManager::DataSynonymAndIdEquationFacts::
+    ComputeConversionDataSynonymFacts(const protobufs::DataDescriptor& dd,
+                                      opt::IRContext* context) {
+  assert(synonymous_.Exists(dd) &&
+         "|dd| should've been registered in the equivalence relation");
+
+  const auto* representative = synonymous_.Find(&dd);
+  assert(representative &&
+         "Representative can't be null for a registered descriptor");
+
+  const auto* type =
+      context->get_type_mgr()->GetType(fuzzerutil::WalkCompositeTypeIndices(
+          context, fuzzerutil::GetTypeId(context, representative->object()),
+          representative->index()));
+  assert(type && "Data descriptor has invalid type");
+
+  if ((type->AsVector() && type->AsVector()->element_type()->AsInteger()) ||
+      type->AsInteger()) {
+    // If there exist equation facts of the form |%a = opcode %representative|
+    // and |%b = opcode %representative| where |opcode| is either OpConvertSToF
+    // or OpConvertUToF, then |a| and |b| are synonymous.
+    std::vector<const protobufs::DataDescriptor*> convert_s_to_f_lhs;
+    std::vector<const protobufs::DataDescriptor*> convert_u_to_f_lhs;
+
+    for (const auto& fact : id_equations_) {
+      for (const auto& equation : fact.second) {
+        if (synonymous_.IsEquivalent(*equation.operands[0], *representative)) {
+          if (equation.opcode == SpvOpConvertSToF) {
+            convert_s_to_f_lhs.push_back(fact.first);
+          } else if (equation.opcode == SpvOpConvertUToF) {
+            convert_u_to_f_lhs.push_back(fact.first);
+          }
+        }
+      }
+    }
+
+    for (const auto& synonyms :
+         {std::move(convert_s_to_f_lhs), std::move(convert_u_to_f_lhs)}) {
+      for (const auto* synonym_a : synonyms) {
+        for (const auto* synonym_b : synonyms) {
+          if (!synonymous_.IsEquivalent(*synonym_a, *synonym_b) &&
+              DataDescriptorsAreWellFormedAndComparable(context, *synonym_a,
+                                                        *synonym_b)) {
+            // |synonym_a| and |synonym_b| have compatible types - they are
+            // synonymous.
+            AddDataSynonymFactRecursive(*synonym_a, *synonym_b, context);
+          }
+        }
+      }
+    }
+  }
+}
+
+void FactManager::DataSynonymAndIdEquationFacts::
+    ComputeCompositeDataSynonymFacts(const protobufs::DataDescriptor& dd1,
+                                     const protobufs::DataDescriptor& dd2,
+                                     opt::IRContext* context) {
+  // Check whether this is a synonym about composite objects.  If it is,
   // we can recursively add synonym facts about their associated sub-components.
 
   // Get the type of the object referred to by the first data descriptor in the
@@ -813,8 +891,10 @@ void FactManager::DataSynonymAndIdEquationFacts::ComputeClosureOfFacts(
   struct DataDescriptorPairEquals {
     bool operator()(const DataDescriptorPair& first,
                     const DataDescriptorPair& second) const {
-      return DataDescriptorEquals()(&first.first, &second.first) &&
-             DataDescriptorEquals()(&first.second, &second.second);
+      return (DataDescriptorEquals()(&first.first, &second.first) &&
+              DataDescriptorEquals()(&first.second, &second.second)) ||
+             (DataDescriptorEquals()(&first.first, &second.second) &&
+              DataDescriptorEquals()(&first.second, &second.first));
     }
   };
 
@@ -1263,30 +1343,47 @@ bool FactManager::LivesafeFunctionFacts::FunctionIsLivesafe(
 //==============================
 
 //==============================
-// Irrelevant pointee value facts
+// Irrelevant value facts
 
 // The purpose of this class is to group the fields and data used to represent
-// facts about pointers whose pointee values are irrelevant.
-class FactManager::IrrelevantPointeeValueFacts {
+// facts about various irrelevant values in the module.
+class FactManager::IrrelevantValueFacts {
  public:
   // See method in FactManager which delegates to this method.
   void AddFact(const protobufs::FactPointeeValueIsIrrelevant& fact);
 
   // See method in FactManager which delegates to this method.
+  void AddFact(const protobufs::FactIdIsIrrelevant& fact);
+
+  // See method in FactManager which delegates to this method.
   bool PointeeValueIsIrrelevant(uint32_t pointer_id) const;
 
+  // See method in FactManager which delegates to this method.
+  bool IdIsIrrelevant(uint32_t pointer_id) const;
+
  private:
-  std::set<uint32_t> pointers_to_irrelevant_pointees_ids_;
+  std::unordered_set<uint32_t> pointers_to_irrelevant_pointees_ids_;
+  std::unordered_set<uint32_t> irrelevant_ids_;
 };
 
-void FactManager::IrrelevantPointeeValueFacts::AddFact(
+void FactManager::IrrelevantValueFacts::AddFact(
     const protobufs::FactPointeeValueIsIrrelevant& fact) {
   pointers_to_irrelevant_pointees_ids_.insert(fact.pointer_id());
 }
 
-bool FactManager::IrrelevantPointeeValueFacts::PointeeValueIsIrrelevant(
+void FactManager::IrrelevantValueFacts::AddFact(
+    const protobufs::FactIdIsIrrelevant& fact) {
+  irrelevant_ids_.insert(fact.result_id());
+}
+
+bool FactManager::IrrelevantValueFacts::PointeeValueIsIrrelevant(
     uint32_t pointer_id) const {
   return pointers_to_irrelevant_pointees_ids_.count(pointer_id) != 0;
+}
+
+bool FactManager::IrrelevantValueFacts::IdIsIrrelevant(
+    uint32_t pointer_id) const {
+  return irrelevant_ids_.count(pointer_id) != 0;
 }
 
 // End of arbitrarily-valued variable facts
@@ -1298,8 +1395,7 @@ FactManager::FactManager()
           MakeUnique<DataSynonymAndIdEquationFacts>()),
       dead_block_facts_(MakeUnique<DeadBlockFacts>()),
       livesafe_function_facts_(MakeUnique<LivesafeFunctionFacts>()),
-      irrelevant_pointee_value_facts_(
-          MakeUnique<IrrelevantPointeeValueFacts>()) {}
+      irrelevant_value_facts_(MakeUnique<IrrelevantValueFacts>()) {}
 
 FactManager::~FactManager() = default;
 
@@ -1340,6 +1436,8 @@ bool FactManager::AddFact(const fuzz::protobufs::Fact& fact,
 void FactManager::AddFactDataSynonym(const protobufs::DataDescriptor& data1,
                                      const protobufs::DataDescriptor& data2,
                                      opt::IRContext* context) {
+  // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3550):
+  //  assert that neither |data1| nor |data2| are irrelevant.
   protobufs::FactDataSynonym fact;
   *fact.mutable_data1() = data1;
   *fact.mutable_data2() = data2;
@@ -1420,18 +1518,32 @@ void FactManager::AddFactFunctionIsLivesafe(uint32_t function_id) {
 }
 
 bool FactManager::PointeeValueIsIrrelevant(uint32_t pointer_id) const {
-  return irrelevant_pointee_value_facts_->PointeeValueIsIrrelevant(pointer_id);
+  return irrelevant_value_facts_->PointeeValueIsIrrelevant(pointer_id);
+}
+
+bool FactManager::IdIsIrrelevant(uint32_t result_id) const {
+  return irrelevant_value_facts_->IdIsIrrelevant(result_id);
 }
 
 void FactManager::AddFactValueOfPointeeIsIrrelevant(uint32_t pointer_id) {
   protobufs::FactPointeeValueIsIrrelevant fact;
   fact.set_pointer_id(pointer_id);
-  irrelevant_pointee_value_facts_->AddFact(fact);
+  irrelevant_value_facts_->AddFact(fact);
+}
+
+void FactManager::AddFactIdIsIrrelevant(uint32_t result_id) {
+  // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3550):
+  //  assert that |result_id| is not a part of any DataSynonym fact.
+  protobufs::FactIdIsIrrelevant fact;
+  fact.set_result_id(result_id);
+  irrelevant_value_facts_->AddFact(fact);
 }
 
 void FactManager::AddFactIdEquation(uint32_t lhs_id, SpvOp opcode,
                                     const std::vector<uint32_t>& rhs_id,
                                     opt::IRContext* context) {
+  // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3550):
+  //  assert that elements of |rhs_id| and |lhs_id| are not irrelevant.
   protobufs::FactIdEquation fact;
   fact.set_lhs_id(lhs_id);
   fact.set_opcode(opcode);
