@@ -88,6 +88,23 @@
     },
     {
       "key": {
+        "uuid": "3feb03bb_d8d57395",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-07-27T13:56:49Z",
+      "side": 1,
+      "message": "This can land as-is. You should have the privileges, but let us know if you encounter problems adding Verified+1 and submitting.",
+      "revId": "b94cc5acb90ebf8c0483237b1a27e788a7f66942",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4914bd7_e3ca4eaa",
         "filename": "src/WSI/WaylandSurfaceKHR.cpp",
         "patchSetId": 3
