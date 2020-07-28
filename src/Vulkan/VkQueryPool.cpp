@@ -192,7 +192,8 @@ void QueryPool::begin(uint32_t query, VkQueryControlFlags flags)
 {
 	ASSERT(query < count);
 
-	if(flags != 0)
+	// Only accept flags with valid bits set.
+	if(flags & ~(VK_QUERY_CONTROL_PRECISE_BIT))
 	{
 		UNSUPPORTED("vkCmdBeginQuery::flags %d", int(flags));
 	}
