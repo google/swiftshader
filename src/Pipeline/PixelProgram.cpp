@@ -155,6 +155,10 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 		c[i].y = routine.outputs[i * 4 + 1];
 		c[i].z = routine.outputs[i * 4 + 2];
 		c[i].w = routine.outputs[i * 4 + 3];
+		outputMasks[i] = ((spirvShader->outputs[i * 4 + 0].Type != SpirvShader::ATTRIBTYPE_UNUSED) ? 0x1 : 0x0) |
+		                 ((spirvShader->outputs[i * 4 + 1].Type != SpirvShader::ATTRIBTYPE_UNUSED) ? 0x2 : 0x0) |
+		                 ((spirvShader->outputs[i * 4 + 2].Type != SpirvShader::ATTRIBTYPE_UNUSED) ? 0x4 : 0x0) |
+		                 ((spirvShader->outputs[i * 4 + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED) ? 0x8 : 0x0);
 	}
 
 	clampColor(c);
