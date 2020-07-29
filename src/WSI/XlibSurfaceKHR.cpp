@@ -77,7 +77,7 @@ void XlibSurfaceKHR::detachImage(PresentImage *image)
 		XImage *xImage = it->second;
 		xImage->data = nullptr;  // the XImage does not actually own the buffer
 		XDestroyImage(xImage);
-		imageMap.erase(image);
+		imageMap.erase(it);
 	}
 }
 

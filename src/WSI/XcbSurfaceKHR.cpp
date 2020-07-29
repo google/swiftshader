@@ -151,7 +151,7 @@ void XcbSurfaceKHR::detachImage(PresentImage *image)
 	if(it != graphicsContexts.end())
 	{
 		libXcb->xcb_free_gc(connection, it->second);
-		graphicsContexts.erase(image);
+		graphicsContexts.erase(it);
 	}
 }
 

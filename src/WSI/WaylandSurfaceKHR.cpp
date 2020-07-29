@@ -92,7 +92,7 @@ void WaylandSurfaceKHR::detachImage(PresentImage *image)
 		munmap(wlImage->data, extent.height * stride);
 		wl_buffer_destroy(wlImage->buffer);
 		delete wlImage;
-		imageMap.erase(image);
+		imageMap.erase(it);
 	}
 }
 
