@@ -1436,13 +1436,6 @@ void SamplerCore::computeIndices(UInt index[4], Int4 uuuu, Int4 vvvv, Int4 wwww,
 		indices += As<UInt4>(wwww);
 	}
 
-	if(borderModeActive())
-	{
-		// Texels out of range are still sampled before being replaced
-		// with the border color, so sample them at linear index 0.
-		indices &= As<UInt4>(valid);
-	}
-
 	if(function.sample)
 	{
 		indices += Min(As<UInt4>(sampleId), *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sampleMax), 16)) *
@@ -1452,6 +1445,13 @@ void SamplerCore::computeIndices(UInt index[4], Int4 uuuu, Int4 vvvv, Int4 wwww,
 	if(state.textureType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
 	{
 		indices += As<UInt4>(cubeArrayId) * *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP)) * UInt4(6);
+	}
+
+	if(borderModeActive())
+	{
+		// Texels out of range are still sampled before being replaced
+		// with the border color, so sample them at linear index 0.
+		indices &= As<UInt4>(valid);
 	}
 
 	for(int i = 0; i < 4; i++)
