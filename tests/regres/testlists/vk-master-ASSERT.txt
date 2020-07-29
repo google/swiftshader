@@ -1,6 +1,2 @@
-dEQP-VK.graphicsfuzz.always-false-if-in-do-while
-dEQP-VK.graphicsfuzz.cov-single-store-elim-assume-store
-dEQP-VK.graphicsfuzz.do-while-with-always-true-if
-dEQP-VK.graphicsfuzz.return-before-writing-wrong-color
 dEQP-VK.wsi.xlib.swapchain.acquire.too_many
 dEQP-VK.wsi.xlib.swapchain.acquire.too_many_timeout
