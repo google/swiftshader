@@ -59,6 +59,22 @@ public:
 	Float4 w;
 };
 
+class Vector4i
+{
+public:
+	Vector4i();
+	Vector4i(int x, int y, int z, int w);
+	Vector4i(const Vector4i &rhs);
+
+	Int4 &operator[](int i);
+	Vector4i &operator=(const Vector4i &rhs);
+
+	Int4 x;
+	Int4 y;
+	Int4 z;
+	Int4 w;
+};
+
 enum class OutOfBoundsBehavior
 {
 	Nullify,             // Loads become zero, stores are elided.

@@ -107,6 +107,49 @@ Float4 &Vector4f::operator[](int i)
 	return x;
 }
 
+Vector4i::Vector4i()
+{
+}
+
+Vector4i::Vector4i(int x, int y, int z, int w)
+{
+	this->x = Int4(x);
+	this->y = Int4(y);
+	this->z = Int4(z);
+	this->w = Int4(w);
+}
+
+Vector4i::Vector4i(const Vector4i &rhs)
+{
+	x = rhs.x;
+	y = rhs.y;
+	z = rhs.z;
+	w = rhs.w;
+}
+
+Vector4i &Vector4i::operator=(const Vector4i &rhs)
+{
+	x = rhs.x;
+	y = rhs.y;
+	z = rhs.z;
+	w = rhs.w;
+
+	return *this;
+}
+
+Int4 &Vector4i::operator[](int i)
+{
+	switch(i)
+	{
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		case 3: return w;
+	}
+
+	return x;
+}
+
 Float4 exponential2(RValue<Float4> x, bool pp)
 {
 	// This implementation is based on 2^(i + f) = 2^i * 2^f,

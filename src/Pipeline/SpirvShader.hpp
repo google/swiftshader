@@ -511,12 +511,12 @@ public:
 				uint32_t gatherComponent : 2;
 
 				// Parameters are passed to the sampling routine in this order:
-				uint32_t coordinates : 3;  // 1-4 (does not contain projection component)
-				                           //	uint32_t dref : 1;              // Indicated by Variant::ProjDref|Dref
-				                           //	uint32_t lodOrBias : 1;         // Indicated by SamplerMethod::Lod|Bias|Fetch
-				uint32_t grad : 2;         // 0-3 components (for each of dx / dy)
-				uint32_t offset : 2;       // 0-3 components
-				uint32_t sample : 1;       // 0-1 scalar integer
+				uint32_t coordinates : 3;       // 1-4 (does not contain projection component)
+				/*	uint32_t dref : 1; */       // Indicated by Variant::ProjDref|Dref
+				/*	uint32_t lodOrBias : 1; */  // Indicated by SamplerMethod::Lod|Bias|Fetch
+				uint32_t grad : 2;              // 0-3 components (for each of dx / dy)
+				uint32_t offset : 2;            // 0-3 components
+				uint32_t sample : 1;            // 0-1 scalar integer
 			};
 
 			uint32_t parameters;

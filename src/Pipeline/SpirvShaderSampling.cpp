@@ -51,7 +51,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
 		samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
 		samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
-		samplerState.addressingModeY = convertAddressingMode(3, sampler, type);
+		samplerState.addressingModeA = convertAddressingMode(3, sampler, type);
 
 		samplerState.mipmapFilter = convertMipmapMode(sampler);
 		samplerState.swizzle = imageDescriptor->swizzle;
@@ -104,24 +104,24 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 		Pointer<SIMD::Float> out = function.Arg<2>();
 		Pointer<Byte> constants = function.Arg<3>();
 
-		SIMD::Float uvw[4] = { 0, 0, 0, 0 };
-		SIMD::Float q = 0;
+		SIMD::Float uvwa[4] = { 0, 0, 0, 0 };
+		SIMD::Float dRef = 0;
 		SIMD::Float lodOrBias = 0;  // Explicit level-of-detail, or bias added to the implicit level-of-detail (depending on samplerMethod).
 		Vector4f dsx = { 0, 0, 0, 0 };
 		Vector4f dsy = { 0, 0, 0, 0 };
-		Vector4f offset = { 0, 0, 0, 0 };
+		Vector4i offset = { 0, 0, 0, 0 };
 		SIMD::Int sampleId = 0;
 		SamplerFunction samplerFunction = instruction.getSamplerFunction();
 
 		uint32_t i = 0;
 		for(; i < instruction.coordinates; i++)
 		{
-			uvw[i] = in[i];
+			uvwa[i] = in[i];
 		}
 
 		if(instruction.isDref())
 		{
-			q = in[i];
+			dRef = in[i];
 			i++;
 		}
 
@@ -129,12 +129,12 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 		// Implement optimized 1D sampling.
 		if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D)
 		{
-			uvw[1] = SIMD::Float(0);
+			uvwa[1] = SIMD::Float(0);
 		}
 		else if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
 		{
-			uvw[1] = SIMD::Float(0);
-			uvw[2] = in[1];  // Move 1D layer coordinate to 2D layer coordinate index.
+			uvwa[1] = SIMD::Float(0);
+			uvwa[2] = in[1];  // Move 1D layer coordinate to 2D layer coordinate index.
 		}
 
 		if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias || instruction.samplerMethod == Fetch)
@@ -157,7 +157,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 
 		for(uint32_t j = 0; j < instruction.offset; j++, i++)
 		{
-			offset[j] = in[i];
+			offset[j] = As<SIMD::Int>(in[i]);
 		}
 
 		if(instruction.sample)
@@ -193,7 +193,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 					dPdy.y = Float(0.0f);
 				}
 
-				Vector4f sample = s.sampleTexture(texture, uvw, q, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
+				Vector4f sample = s.sampleTexture(texture, uvwa, dRef, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
 
 				Pointer<Float> rgba = out;
 				rgba[0 * SIMD::Width + i] = Pointer<Float>(&sample.x)[i];
@@ -204,7 +204,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 		}
 		else
 		{
-			Vector4f sample = s.sampleTexture(texture, uvw, q, lodOrBias.x, (dsx.x), (dsy.x), offset, sampleId, samplerFunction);
+			Vector4f sample = s.sampleTexture(texture, uvwa, dRef, lodOrBias.x, (dsx.x), (dsy.x), offset, sampleId, samplerFunction);
 
 			Pointer<SIMD::Float> rgba = out;
 			rgba[0] = sample.x;

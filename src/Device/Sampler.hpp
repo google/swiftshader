@@ -97,7 +97,7 @@ struct Sampler
 	AddressingMode addressingModeU;
 	AddressingMode addressingModeV;
 	AddressingMode addressingModeW;
-	AddressingMode addressingModeY;
+	AddressingMode addressingModeA;
 	MipmapType mipmapFilter;
 	VkComponentMapping swizzle;
 	int gatherComponent;
