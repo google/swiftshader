@@ -830,7 +830,7 @@ private:
     // At this point in the assembler, we have encoded regs, so it is not
     // possible to distinguish between the "new" low byte registers introduced
     // in x86-64 and the legacy [abcd]h registers. Because x86, we may still
-    // see ah (div) in the assembler, so we whitelist it here.
+    // see ah (div) in the assembler, so we allow it here.
     //
     // The "local" uint32_t Encoded_Reg_ah is needed because RegType is an
     // enum that is not necessarily the same type of

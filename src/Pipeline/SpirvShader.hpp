@@ -439,7 +439,7 @@ public:
 	};
 
 	struct TypeOrObject
-	{};  // Dummy struct to represent a Type or Object.
+	{};
 
 	// TypeOrObjectID is an identifier that represents a Type or an Object,
 	// and supports implicit casting to and from Type::ID or Object::ID.

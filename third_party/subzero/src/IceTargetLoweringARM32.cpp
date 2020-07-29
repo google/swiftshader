@@ -3098,7 +3098,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     default:
       UnimplementedLoweringError(this, Instr);
       return;
-    // Explicitly whitelist vector instructions we have implemented/enabled.
+    // Explicitly allow vector instructions we have implemented/enabled.
     case InstArithmetic::Add:
     case InstArithmetic::And:
     case InstArithmetic::Ashr:

@@ -61,8 +61,8 @@ public:
 };
 
 /// This is the part of SmallVectorTemplateBase which does not depend on whether
-/// the type T is a POD. The extra dummy template argument is used by ArrayRef
-/// to avoid unnecessarily requiring T to be complete.
+/// the type T is a POD. The extra template argument is used by ArrayRef to
+/// avoid unnecessarily requiring T to be complete.
 template <typename T, typename = void>
 class SmallVectorTemplateCommon : public SmallVectorBase {
 private:

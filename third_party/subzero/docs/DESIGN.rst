@@ -1430,11 +1430,10 @@ this happens, we need to narrow it down to a single function (or small set of
 functions) that yield incorrect behavior.  For this, we have a bisection
 debugging framework.  Here, we initially translate the entire application once
 with Subzero and once with ``pnacl-llc``.  We then use ``objdump`` to
-selectively weaken symbols based on a whitelist or blacklist provided on the
-command line.  The two object files can then be linked together without link
-errors, with the desired version of each method "winning".  Then the binary is
-tested, and bisection proceeds based on whether the binary produces correct
-output.
+selectively weaken symbols based on a list provided on the command line. The
+two object files can then be linked together without link errors, with the
+desired version of each method "winning".  Then the binary is tested, and
+bisection proceeds based on whether the binary produces correct output.
 
 When the bisection completes, we are left with a minimal set of
 Subzero-translated functions that cause the failure.  Usually it is a single
@@ -1442,7 +1441,7 @@ function, though sometimes it might require a combination of several functions
 to cause a failure; this may be due to an incorrect call ABI, for example.
 However, Murphy's Law implies that the single failing function is enormous and
 impractical to debug.  In that case, we can restart the bisection, explicitly
-blacklisting the enormous function, and try to find another candidate to debug.
+ignoring the enormous function, and try to find another candidate to debug.
 (Future work is to automate this to find all minimal sets of functions, so that
 debugging can focus on the simplest example.)
 

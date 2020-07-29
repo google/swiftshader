@@ -54,7 +54,7 @@ const StringMap FuncSubstitutions = {{"malloc", "__asan_malloc"},
                                      {"calloc", "__asan_calloc"},
                                      {"__asan_dummy_calloc", "__asan_calloc"},
                                      {"realloc", "__asan_realloc"}};
-const StringSet FuncBlackList = {"_Balloc"};
+const StringSet FuncIgnoreList = {"_Balloc"};
 
 llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
   llvm::NaClBitcodeRecord::RecordVector SizeContents;
@@ -75,8 +75,8 @@ ICE_TLS_DEFINE_FIELD(VarSizeMap *, ASanInstrumentation, CheckedVars);
 
 bool ASanInstrumentation::isInstrumentable(Cfg *Func) {
   std::string FuncName = Func->getFunctionName().toStringOrEmpty();
-  return FuncName == "" ||
-         (FuncBlackList.count(FuncName) == 0 && FuncName.find(ASanPrefix) != 0);
+  return FuncName == "" || (FuncIgnoreList.count(FuncName) == 0 &&
+                            FuncName.find(ASanPrefix) != 0);
 }
 
 // Create redzones around all global variables, ensuring that the initializer

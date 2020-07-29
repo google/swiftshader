@@ -944,7 +944,7 @@ struct Block
 
 		int partition = 0;
 		ModeDesc modeDesc;
-		// For sanity checks
+		// For assertion checks
 		modeDesc.number = -1;
 		for(auto desc : blockDescs[mode])
 		{
@@ -952,7 +952,6 @@ struct Block
 			{
 				case Mode:
 					modeDesc = desc.modeDesc;
-					// Sanity check
 					ASSERT(modeDesc.number == mode);
 
 					e[0].size[0] = e[0].size[1] = e[0].size[2] = modeDesc.endpointBits;
@@ -1146,18 +1145,18 @@ static constexpr Mode Modes[] = {
 	/**/ { -1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x00, 0x0 },
 };
 
-static_assert(Modes[0].NumColors() == 6, "BC7 sanity checks failed");
-static_assert(Modes[0].Partition() == Bitfield{ 1, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].Red(0) == Bitfield{ 5, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].Red(5) == Bitfield{ 25, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].Green(0) == Bitfield{ 29, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].Green(5) == Bitfield{ 49, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].Blue(0) == Bitfield{ 53, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].Blue(5) == Bitfield{ 73, 4 }, "BC7 sanity checks failed");
-static_assert(Modes[0].EndpointPBit(0) == Bitfield{ 77, 1 }, "BC7 sanity checks failed");
-static_assert(Modes[0].EndpointPBit(5) == Bitfield{ 82, 1 }, "BC7 sanity checks failed");
-static_assert(Modes[0].PrimaryIndex(0, 2) == Bitfield{ 83, 2 }, "BC7 sanity checks failed");
-static_assert(Modes[0].PrimaryIndex(43, 1) == Bitfield{ 126, 1 }, "BC7 sanity checks failed");
+static_assert(Modes[0].NumColors() == 6, "BC7 static assertion failed");
+static_assert(Modes[0].Partition() == Bitfield{ 1, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].Red(0) == Bitfield{ 5, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].Red(5) == Bitfield{ 25, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].Green(0) == Bitfield{ 29, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].Green(5) == Bitfield{ 49, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].Blue(0) == Bitfield{ 53, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].Blue(5) == Bitfield{ 73, 4 }, "BC7 static assertion failed");
+static_assert(Modes[0].EndpointPBit(0) == Bitfield{ 77, 1 }, "BC7 static assertion failed");
+static_assert(Modes[0].EndpointPBit(5) == Bitfield{ 82, 1 }, "BC7 static assertion failed");
+static_assert(Modes[0].PrimaryIndex(0, 2) == Bitfield{ 83, 2 }, "BC7 static asassertionsert failed");
+static_assert(Modes[0].PrimaryIndex(43, 1) == Bitfield{ 126, 1 }, "BC7 static assertion failed");
 
 static constexpr int MaxPartitions = 64;
 static constexpr int MaxSubsets = 3;

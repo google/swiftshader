@@ -28,14 +28,6 @@ namespace vk {
 std::string Stringify(VkStructureType value)
 {
 #ifndef NDEBUG
-	// Since C++ hasn't given us introspection on enums, we can't just "get" an
-	// enum name from an enum value (at least not without some crazy header
-	// file hacks). So I copied the entire list of VK_STRUCTURE_TYPE defined in
-	// vulkan/vulkan_core.h.
-	//
-	// If vulkan_core.h is updated to include new structure types, and this list
-	// becomes out of date, then this function will throw a warning if someone
-	// tries to stringify that enum value.
 	static const std::map<VkStructureType, const char *> strings = {
 #	define INSERT_ELEMENT(p) std::make_pair(p, #    p)
 		INSERT_ELEMENT(VK_STRUCTURE_TYPE_APPLICATION_INFO),
