@@ -24,7 +24,7 @@ def run():
     args = parser.parse_args()
 
     with open(args.input) as infile:
-        with open(args.output, 'wb') as outfile:
+        with open(args.output, 'w') as outfile:
             data = json.load(infile)
             data['ICD']['library_path'] = args.library_path
             json.dump(data, outfile)
