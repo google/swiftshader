@@ -62,8 +62,9 @@ TEST_F(BasicTest, ICD_Check)
 TEST_F(BasicTest, Version)
 {
 	uint32_t apiVersion = 0;
+	uint32_t expectedVersion = static_cast<uint32_t>(VK_API_VERSION_1_2);
 	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
-	EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
+	EXPECT_EQ(apiVersion, expectedVersion);
 
 	const VkInstanceCreateInfo createInfo = {
 		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
@@ -93,7 +94,7 @@ TEST_F(BasicTest, Version)
 
 	VkPhysicalDeviceProperties physicalDeviceProperties;
 	driver.vkGetPhysicalDeviceProperties(pPhysicalDevice, &physicalDeviceProperties);
-	EXPECT_EQ(physicalDeviceProperties.apiVersion, (uint32_t)VK_API_VERSION_1_1);
+	EXPECT_EQ(physicalDeviceProperties.apiVersion, expectedVersion);
 	EXPECT_EQ(physicalDeviceProperties.deviceID, 0xC0DEU);
 	EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
 
@@ -116,7 +117,6 @@ TEST_F(BasicTest, UnsupportedDeviceExtension_DISABLED)
 {
 	uint32_t apiVersion = 0;
 	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
-	EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
 
 	const VkInstanceCreateInfo createInfo = {
 		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
