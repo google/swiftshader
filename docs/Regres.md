@@ -18,7 +18,7 @@ Regres provides:
   efficiently running a number of dEQP tests based wildcard or regex name
   matching.
 
-The Regres source root directory is at [`<swiftshader>/tests/regres/`](https://github.com/google/swiftshader/tree/master/tests/regres).
+The Regres source root directory is at [`<swiftshader>/tests/regres/`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/).
 
 ## Presubmit testing
 
@@ -50,14 +50,14 @@ land', which is determined by the change's `Kokoro-Presubmit`, `Code-Review` and
 ### Test Filtering
 
 By default, Regres will run all the test lists declared in the
-[`<swiftshader>/tests/regres/ci-tests.json`](https://github.com/google/swiftshader/blob/master/tests/regres/ci-tests.json) file.\
+[`<swiftshader>/tests/regres/ci-tests.json`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/ci-tests.json) file.\
 As new functionally is being implemented, the test lists in `ci-tests.json` may
 reference known-passing test lists updated by the [daily run](#daily-run-continuous-integration-testing),
 so that failing tests for incomplete functionality are skipped, but tests that
 pass for new functionality *are tested* to ensure they do not regres.
 
 Additional tests names found in the files referenced by
-[`<swiftshader>/tests/regres/full-tests.json`](https://github.com/google/swiftshader/blob/master/tests/regres/full-tests.json)
+[`<swiftshader>/tests/regres/full-tests.json`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/full-tests.json)
 can be explicitly included in the change's presubmit run
 by including a line in the change description with the signature:
 
@@ -84,7 +84,7 @@ Change-Id: I9d33444d67792274d8027b7d1632235533cfc079
 
 ## Daily-run continuous integration testing
 
-Once a day, regres will also test another set of tests from [`<swiftshader>/tests/regres/full-tests.json`](https://github.com/google/swiftshader/blob/master/tests/regres/full-tests.json),
+Once a day, regres will also test another set of tests from [`<swiftshader>/tests/regres/full-tests.json`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/full-tests.json),
 and post the test result lists as a Gerrit changelist
 [[example]](https://swiftshader-review.googlesource.com/c/SwiftShader/+/46448).
 
@@ -99,7 +99,7 @@ local dEQP test runner with a wild-card / regex based test name matcher.
 
 The local test runner can be run with:
 
-[`<swiftshader>/tests/regres/run_testlist.sh`](https://github.com/google/swiftshader/blob/master/tests/regres/run_testlist.sh) `--deqp-vk=<path to deqp-vk> [--filter=<test name filter>]`
+[`<swiftshader>/tests/regres/run_testlist.sh`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/run_testlist.sh) `--deqp-vk=<path to deqp-vk> [--filter=<test name filter>]`
 
 `<test name filter>` can be a single dEQP test name, or you can use wildcards
 [as documented here](https://golang.org/pkg/path/filepath/#Match).
@@ -120,7 +120,7 @@ Other useful flags:
         path to a test list file (default "vk-master-PASS.txt")
 ```
 
-Run [`<swiftshader>/tests/regres/run_testlist.sh`](https://github.com/google/swiftshader/blob/master/tests/regres/run_testlist.sh) with `--help` to see all available flags.
+Run [`<swiftshader>/tests/regres/run_testlist.sh`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/run_testlist.sh) with `--help` to see all available flags.
 
 ## Process sandboxing
 
@@ -154,7 +154,7 @@ Regres runs until stopped, and will:
   following is performed for the change:
   1. The change is `git fetch`ed into a temporary directory.
   2. If not already cached, the dEQP version described in the
-     change's [`<swiftshader>/tests/regres/deqp.json`](https://github.com/google/swiftshader/blob/master/tests/regres/deqp.json) file is downloaded and built the into a cached directory.
+     change's [`<swiftshader>/tests/regres/deqp.json`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/deqp.json) file is downloaded and built the into a cached directory.
   3. The source for the change is built into a temporary build directory.
   4. The built dEQP binaries are used to test the change. The full test results
      are stored in a cached directory.
@@ -165,12 +165,12 @@ Regres runs until stopped, and will:
 * The above is repeated until it is time to perform a daily run, upon which:
   1. The `HEAD` change of `master` is fetched into a temporary directory.
   2. If not already cached, the dEQP version described in the
-     change's [`<swiftshader>/tests/regres/deqp.json`](https://github.com/google/swiftshader/blob/master/tests/regres/deqp.json) file is downloaded and built the into a cached directory.
+     change's [`<swiftshader>/tests/regres/deqp.json`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/deqp.json) file is downloaded and built the into a cached directory.
   3. The `HEAD` change is built into a temporary directory, optionally with code
      coverage instrumenting.
   4. The build dEQP binaries are used to test the change.  The full test results
      are stored in a cached directory, and the each test is binned by status and
-     written to the [`<swiftshader>/tests/regres/testlists`](https://github.com/google/swiftshader/blob/master/tests/regres/testlists) directory.
+     written to the [`<swiftshader>/tests/regres/testlists`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/testlists) directory.
   5. A new Gerrit change is created containing the updated test lists and put up
      for review, along with a summary of test result changes [[example]](https://swiftshader-review.googlesource.com/c/SwiftShader/+/46448).
      If there's an existing daily test change up for review then this is reused
@@ -228,13 +228,13 @@ multiple, concurrent dEQP test processes.
 `llvm-cov` provides many options, including emitting an pretty HTML file, but is
 remarkably slow at producing easily machine-parsable data. Fortunately the core
 of `llvm-cov` is [a few hundreds of lines of code](https://github.com/llvm/llvm-project/tree/master/llvm/tools/llvm-cov), as it relies on LLVM libraries to do the heavy lifting. Regres
-replaces `llvm-cov` with ["`turbo-cov`"](https://github.com/google/swiftshader/tree/master/tests/regres/cov/turbo-cov) which efficiently converts a `.profdata` into a simple binary stream which can
+replaces `llvm-cov` with ["`turbo-cov`"](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/cov/turbo-cov/) which efficiently converts a `.profdata` into a simple binary stream which can
 be consumed by Regres.
 
 #### Processing
 
 At the time of writing there are over 560,000 individual dEQP tests, and around
-176,000 lines of C++ code in [`<swiftshader>/src`](https://github.com/google/swiftshader/tree/master/src).
+176,000 lines of C++ code in [`<swiftshader>/src`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:src/).
 If you used 1 bit for each source line, per-line source coverage for all dEQP
 tests would require over 11GiB of storage. That's just for one snapshot.
 
@@ -394,7 +394,7 @@ leaf in order to know whether a given span is in use for the leaf node (test):
 * If the span is encountered an **even** number of times during traversal, then
   the span is **not covered**.
 
-See [`tests/regres/cov/coverage_test.go`](https://github.com/google/swiftshader/blob/master/tests/regres/cov/coverage_test.go) for more examples of this optimization.
+See [`tests/regres/cov/coverage_test.go`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/cov/coverage_test.go) for more examples of this optimization.
 
 ##### Optimization 3: Common span grouping
 
@@ -409,7 +409,7 @@ grouped.
 All spans, span-groups and strings are stored in de-duplicated tables, and are
 indexed wherever possible.
 
-The final serialization is performed by [`tests/regres/cov/serialization.go`](https://github.com/google/swiftshader/blob/master/tests/regres/cov/serialization.go).
+The final serialization is performed by [`tests/regres/cov/serialization.go`](https://cs.opensource.google/swiftshader/SwiftShader/+/master:tests/regres/cov/serialization.go).
 
 ##### Optimization 5: zlib compression
 
