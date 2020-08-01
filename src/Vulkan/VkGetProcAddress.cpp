@@ -119,6 +119,11 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateWaylandSurfaceKHR),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceWaylandPresentationSupportKHR),
 #endif
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+	// VK_EXT_directfb_surface
+	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateDirectFBSurfaceEXT),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceDirectFBPresentationSupportEXT),
+#endif
 #ifdef VK_USE_PLATFORM_MACOS_MVK
 	// VK_MVK_macos_surface
 	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateMacOSSurfaceMVK),
