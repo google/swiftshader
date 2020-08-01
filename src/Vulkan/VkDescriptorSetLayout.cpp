@@ -410,9 +410,10 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 
 					int width = extent.width;
 					int height = extent.height;
-					int bytes = format.bytes();
-					int layers = imageView->getSubresourceRange().layerCount;  // TODO(b/129523279): Untangle depth vs layers throughout the sampler
+					int layers = imageView->getSubresourceRange().layerCount;
 					int depth = layers > 1 ? layers : extent.depth;
+					if(imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY) depth /= 6;
+					int bytes = format.bytes();
 					int pitchP = imageView->rowPitchBytes(aspect, level, ImageView::SAMPLING) / bytes;
 					int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect, ImageView::SAMPLING) : imageView->slicePitchBytes(aspect, level, ImageView::SAMPLING)) / bytes;
 					int samplePitchP = imageView->getMipLevelSize(aspect, level, ImageView::SAMPLING) / bytes;
@@ -492,25 +493,14 @@ void DescriptorSetLayout::WriteTextureLevelInfo(sw::Texture *texture, int level,
 {
 	if(level == 0)
 	{
-		texture->widthWidthHeightHeight[0] =
-		    texture->widthWidthHeightHeight[1] = static_cast<float>(width);
-		texture->widthWidthHeightHeight[2] =
-		    texture->widthWidthHeightHeight[3] = static_cast<float>(height);
+		texture->widthWidthHeightHeight[0] = static_cast<float>(width);
+		texture->widthWidthHeightHeight[1] = static_cast<float>(width);
+		texture->widthWidthHeightHeight[2] = static_cast<float>(height);
+		texture->widthWidthHeightHeight[3] = static_cast<float>(height);
 
-		texture->width[0] =
-		    texture->width[1] =
-		        texture->width[2] =
-		            texture->width[3] = static_cast<float>(width);
-
-		texture->height[0] =
-		    texture->height[1] =
-		        texture->height[2] =
-		            texture->height[3] = static_cast<float>(height);
-
-		texture->depth[0] =
-		    texture->depth[1] =
-		        texture->depth[2] =
-		            texture->depth[3] = static_cast<float>(depth);
+		texture->width = sw::float4(static_cast<float>(width));
+		texture->height = sw::float4(static_cast<float>(height));
+		texture->depth = sw::float4(static_cast<float>(depth));
 	}
 
 	sw::Mipmap &mipmap = texture->mipmap[level];
@@ -519,60 +509,23 @@ void DescriptorSetLayout::WriteTextureLevelInfo(sw::Texture *texture, int level,
 	short halfTexelV = 0x8000 / height;
 	short halfTexelW = 0x8000 / depth;
 
-	mipmap.uHalf[0] =
-	    mipmap.uHalf[1] =
-	        mipmap.uHalf[2] =
-	            mipmap.uHalf[3] = halfTexelU;
+	mipmap.uHalf = sw::short4(halfTexelU);
+	mipmap.vHalf = sw::short4(halfTexelV);
+	mipmap.wHalf = sw::short4(halfTexelW);
 
-	mipmap.vHalf[0] =
-	    mipmap.vHalf[1] =
-	        mipmap.vHalf[2] =
-	            mipmap.vHalf[3] = halfTexelV;
-
-	mipmap.wHalf[0] =
-	    mipmap.wHalf[1] =
-	        mipmap.wHalf[2] =
-	            mipmap.wHalf[3] = halfTexelW;
-
-	mipmap.width[0] =
-	    mipmap.width[1] =
-	        mipmap.width[2] =
-	            mipmap.width[3] = width;
-
-	mipmap.height[0] =
-	    mipmap.height[1] =
-	        mipmap.height[2] =
-	            mipmap.height[3] = height;
-
-	mipmap.depth[0] =
-	    mipmap.depth[1] =
-	        mipmap.depth[2] =
-	            mipmap.depth[3] = depth;
+	mipmap.width = sw::int4(width);
+	mipmap.height = sw::int4(height);
+	mipmap.depth = sw::int4(depth);
 
 	mipmap.onePitchP[0] = 1;
 	mipmap.onePitchP[1] = static_cast<short>(pitchP);
 	mipmap.onePitchP[2] = 1;
 	mipmap.onePitchP[3] = static_cast<short>(pitchP);
 
-	mipmap.pitchP[0] = pitchP;
-	mipmap.pitchP[1] = pitchP;
-	mipmap.pitchP[2] = pitchP;
-	mipmap.pitchP[3] = pitchP;
-
-	mipmap.sliceP[0] = sliceP;
-	mipmap.sliceP[1] = sliceP;
-	mipmap.sliceP[2] = sliceP;
-	mipmap.sliceP[3] = sliceP;
-
-	mipmap.samplePitchP[0] = samplePitchP;
-	mipmap.samplePitchP[1] = samplePitchP;
-	mipmap.samplePitchP[2] = samplePitchP;
-	mipmap.samplePitchP[3] = samplePitchP;
-
-	mipmap.sampleMax[0] = sampleMax;
-	mipmap.sampleMax[1] = sampleMax;
-	mipmap.sampleMax[2] = sampleMax;
-	mipmap.sampleMax[3] = sampleMax;
+	mipmap.pitchP = sw::int4(pitchP);
+	mipmap.sliceP = sw::int4(sliceP);
+	mipmap.samplePitchP = sw::int4(samplePitchP);
+	mipmap.sampleMax = sw::int4(sampleMax);
 }
 
 void DescriptorSetLayout::WriteDescriptorSet(Device *device, const VkWriteDescriptorSet &writeDescriptorSet)

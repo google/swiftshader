@@ -83,7 +83,6 @@ enum AddressingMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	ADDRESSING_BORDER,    // Single color
 	ADDRESSING_SEAMLESS,  // Border of pixels
 	ADDRESSING_CUBEFACE,  // Cube face layer
-	ADDRESSING_LAYER,     // Array layer
 	ADDRESSING_TEXELFETCH,
 
 	ADDRESSING_LAST = ADDRESSING_TEXELFETCH
@@ -97,7 +96,6 @@ struct Sampler
 	AddressingMode addressingModeU;
 	AddressingMode addressingModeV;
 	AddressingMode addressingModeW;
-	AddressingMode addressingModeA;
 	MipmapType mipmapFilter;
 	VkComponentMapping swizzle;
 	int gatherComponent;
@@ -115,6 +113,26 @@ struct Sampler
 	float maxAnisotropy = 0.0f;
 	float minLod = 0.0f;
 	float maxLod = 0.0f;
+
+	bool isArrayed() const
+	{
+		switch(textureType)
+		{
+			case VK_IMAGE_VIEW_TYPE_1D:
+			case VK_IMAGE_VIEW_TYPE_2D:
+			case VK_IMAGE_VIEW_TYPE_3D:
+			case VK_IMAGE_VIEW_TYPE_CUBE:
+				return false;
+			case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+			case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+			case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+				return true;
+			default:
+				UNSUPPORTED("VkImageViewType %d", (int)textureType);
+		}
+
+		return false;
+	}
 };
 
 }  // namespace sw

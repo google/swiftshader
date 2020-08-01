@@ -51,7 +51,6 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
 		samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
 		samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
-		samplerState.addressingModeA = convertAddressingMode(3, sampler, type);
 
 		samplerState.mipmapFilter = convertMipmapMode(sampler);
 		samplerState.swizzle = imageDescriptor->swizzle;
@@ -281,13 +280,26 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 {
 	switch(imageViewType)
 	{
-		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-			if(coordinateIndex == 3)
+		case VK_IMAGE_VIEW_TYPE_1D:  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
+		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+			if(coordinateIndex == 1)
 			{
-				return ADDRESSING_LAYER;
+				return ADDRESSING_WRAP;
 			}
-			// Fall through to CUBE case:
+			// Fall through to 2D case:
+		case VK_IMAGE_VIEW_TYPE_2D:
+		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+			if(coordinateIndex == 2)
+			{
+				return ADDRESSING_UNUSED;
+			}
+			break;
+
+		case VK_IMAGE_VIEW_TYPE_3D:
+			break;
+
 		case VK_IMAGE_VIEW_TYPE_CUBE:
+		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
 			if(coordinateIndex <= 1)  // Cube faces themselves are addressed as 2D images.
 			{
 				// Vulkan 1.1 spec:
@@ -297,55 +309,10 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 				// This corresponds with our 'SEAMLESS' addressing mode.
 				return ADDRESSING_SEAMLESS;
 			}
-			else if(coordinateIndex == 2)
+			else  // coordinateIndex == 2
 			{
-				// The cube face is an index into array layers.
+				// The cube face is an index into 2D array layers.
 				return ADDRESSING_CUBEFACE;
-			}
-			else
-			{
-				return ADDRESSING_UNUSED;
-			}
-			break;
-
-		case VK_IMAGE_VIEW_TYPE_1D:  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
-			if(coordinateIndex == 1)
-			{
-				return ADDRESSING_WRAP;
-			}
-			else if(coordinateIndex >= 2)
-			{
-				return ADDRESSING_UNUSED;
-			}
-			break;
-
-		case VK_IMAGE_VIEW_TYPE_3D:
-			if(coordinateIndex >= 3)
-			{
-				return ADDRESSING_UNUSED;
-			}
-			break;
-
-		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
-			if(coordinateIndex == 1)
-			{
-				return ADDRESSING_WRAP;
-			}
-			// Fall through to 2D_ARRAY case:
-		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
-			if(coordinateIndex == 2)
-			{
-				return ADDRESSING_LAYER;
-			}
-			else if(coordinateIndex >= 3)
-			{
-				return ADDRESSING_UNUSED;
-			}
-			// Fall through to 2D case:
-		case VK_IMAGE_VIEW_TYPE_2D:
-			if(coordinateIndex >= 2)
-			{
-				return ADDRESSING_UNUSED;
 			}
 			break;
 
