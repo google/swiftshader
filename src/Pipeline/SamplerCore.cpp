@@ -38,15 +38,10 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	Float4 a;  // Array layer coordinate
 	switch(state.textureType)
 	{
-		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:  // Treated as 2D array
-		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
-			a = uvwa[2];
-			break;
-		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-			a = uvwa[3];
-			break;
-		default:
-			break;
+		case VK_IMAGE_VIEW_TYPE_1D_ARRAY: a = uvwa[1]; break;
+		case VK_IMAGE_VIEW_TYPE_2D_ARRAY: a = uvwa[2]; break;
+		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: a = uvwa[3]; break;
+		default: break;
 	}
 
 	Float lod;
@@ -1388,21 +1383,30 @@ Short4 SamplerCore::applyOffset(Short4 &uvw, Int4 &offset, const Int4 &whd, Addr
 void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, const Short4 &layerIndex, Vector4i &offset, const Int4 &sample, const Pointer<Byte> &mipmap, SamplerFunction function)
 {
 	uuuu = MulHigh(As<UShort4>(uuuu), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, width))));
-	vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
 
 	if(function.offset)
 	{
 		uuuu = applyOffset(uuuu, offset.x, *Pointer<Int4>(mipmap + OFFSET(Mipmap, width)), state.addressingModeU);
-		vvvv = applyOffset(vvvv, offset.y, *Pointer<Int4>(mipmap + OFFSET(Mipmap, height)), state.addressingModeV);
 	}
 
-	Short4 uuu2 = uuuu;
-	uuuu = As<Short4>(UnpackLow(uuuu, vvvv));
-	uuu2 = As<Short4>(UnpackHigh(uuu2, vvvv));
-	uuuu = As<Short4>(MulAdd(uuuu, *Pointer<Short4>(mipmap + OFFSET(Mipmap, onePitchP))));
-	uuu2 = As<Short4>(MulAdd(uuu2, *Pointer<Short4>(mipmap + OFFSET(Mipmap, onePitchP))));
+	UInt4 indices = Int4(uuuu);
 
-	UInt4 uv(As<UInt2>(uuuu), As<UInt2>(uuu2));
+	if(state.addressingModeV != ADDRESSING_UNUSED)
+	{
+		vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
+
+		if(function.offset)
+		{
+			vvvv = applyOffset(vvvv, offset.y, *Pointer<Int4>(mipmap + OFFSET(Mipmap, height)), state.addressingModeV);
+		}
+
+		Short4 uv0uv1 = As<Short4>(UnpackLow(uuuu, vvvv));
+		Short4 uv2uv3 = As<Short4>(UnpackHigh(uuuu, vvvv));
+		Int2 i01 = MulAdd(uv0uv1, *Pointer<Short4>(mipmap + OFFSET(Mipmap, onePitchP)));
+		Int2 i23 = MulAdd(uv2uv3, *Pointer<Short4>(mipmap + OFFSET(Mipmap, onePitchP)));
+
+		indices = UInt4(As<UInt2>(i01), As<UInt2>(i23));
+	}
 
 	if(state.textureType == VK_IMAGE_VIEW_TYPE_3D)
 	{
@@ -1413,7 +1417,7 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 			wwww = applyOffset(wwww, offset.z, *Pointer<Int4>(mipmap + OFFSET(Mipmap, depth)), state.addressingModeW);
 		}
 
-		uv += As<UInt4>(Int4(As<UShort4>(wwww))) * *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP));
+		indices += As<UInt4>(Int4(As<UShort4>(wwww))) * *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP));
 	}
 
 	if(state.isArrayed())
@@ -1427,25 +1431,30 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 
 		UInt4 layerOffset = As<UInt4>(layer) * *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sliceP));
 
-		uv += layerOffset;
+		indices += layerOffset;
 	}
 
 	if(function.sample)
 	{
 		UInt4 sampleOffset = Min(As<UInt4>(sample), *Pointer<UInt4>(mipmap + OFFSET(Mipmap, sampleMax), 16)) *
 		                     *Pointer<UInt4>(mipmap + OFFSET(Mipmap, samplePitchP), 16);
-		uv += sampleOffset;
+		indices += sampleOffset;
 	}
 
-	index[0] = Extract(As<Int4>(uv), 0);
-	index[1] = Extract(As<Int4>(uv), 1);
-	index[2] = Extract(As<Int4>(uv), 2);
-	index[3] = Extract(As<Int4>(uv), 3);
+	index[0] = Extract(indices, 0);
+	index[1] = Extract(indices, 1);
+	index[2] = Extract(indices, 2);
+	index[3] = Extract(indices, 3);
 }
 
 void SamplerCore::computeIndices(UInt index[4], Int4 uuuu, Int4 vvvv, Int4 wwww, const Int4 &sample, Int4 valid, const Pointer<Byte> &mipmap, SamplerFunction function)
 {
-	UInt4 indices = uuuu + vvvv;
+	UInt4 indices = uuuu;
+
+	if(state.addressingModeV != ADDRESSING_UNUSED)
+	{
+		indices += As<UInt4>(vvvv);
+	}
 
 	if(state.addressingModeW != ADDRESSING_UNUSED || state.isArrayed())
 	{
@@ -2192,7 +2201,7 @@ Short4 SamplerCore::address(const Float4 &uw, AddressingMode addressingMode, Poi
 {
 	if(addressingMode == ADDRESSING_UNUSED)
 	{
-		return Short4();
+		return Short4(0);  // TODO(b/134669567): Optimize for 1D filtering
 	}
 	else if(addressingMode == ADDRESSING_CLAMP || addressingMode == ADDRESSING_BORDER)
 	{
@@ -2256,6 +2265,7 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 {
 	if(addressingMode == ADDRESSING_UNUSED)
 	{
+		f = Float4(0.0f);  // TODO(b/134669567): Optimize for 1D filtering
 		return;
 	}
 
@@ -2301,8 +2311,8 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 					// Don't map to a valid range here.
 					break;
 				default:
-					// If unnormalizedCoordinates is VK_TRUE, addressModeU and addressModeV must each be
-					// either VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE or VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
+					// "If unnormalizedCoordinates is VK_TRUE, addressModeU and addressModeV must each be
+					//  either VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE or VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER"
 					UNREACHABLE("addressingMode %d", int(addressingMode));
 					break;
 			}
@@ -2539,13 +2549,6 @@ bool SamplerCore::hasUnsignedTextureComponent(int component) const
 int SamplerCore::textureComponentCount() const
 {
 	return state.textureFormat.componentCount();
-}
-
-bool SamplerCore::hasThirdCoordinate() const
-{
-	return (state.textureType == VK_IMAGE_VIEW_TYPE_3D) ||
-	       (state.textureType == VK_IMAGE_VIEW_TYPE_2D_ARRAY) ||
-	       (state.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY);  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
 }
 
 bool SamplerCore::has16bitPackedTextureFormat() const

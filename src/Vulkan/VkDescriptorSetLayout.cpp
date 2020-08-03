@@ -311,7 +311,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			mipmap.pitchP.x = mipmap.pitchP.y = mipmap.pitchP.z = mipmap.pitchP.w = numElements;
 			mipmap.sliceP.x = mipmap.sliceP.y = mipmap.sliceP.z = mipmap.sliceP.w = 0;
 			mipmap.onePitchP[0] = mipmap.onePitchP[2] = 1;
-			mipmap.onePitchP[1] = mipmap.onePitchP[3] = static_cast<short>(numElements);
+			mipmap.onePitchP[1] = mipmap.onePitchP[3] = 0;
 		}
 	}
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||

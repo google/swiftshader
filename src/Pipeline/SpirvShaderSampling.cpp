@@ -124,18 +124,6 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 			i++;
 		}
 
-		// TODO(b/134669567): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
-		// Implement optimized 1D sampling.
-		if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D)
-		{
-			uvwa[1] = SIMD::Float(0);
-		}
-		else if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
-		{
-			uvwa[1] = SIMD::Float(0);
-			uvwa[2] = in[1];  // Move 1D layer coordinate to 2D layer coordinate index.
-		}
-
 		if(instruction.samplerMethod == Lod || instruction.samplerMethod == Bias || instruction.samplerMethod == Fetch)
 		{
 			lodOrBias = in[i];
@@ -289,13 +277,13 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 {
 	switch(imageViewType)
 	{
-		case VK_IMAGE_VIEW_TYPE_1D:  // Treated as 2D texture with second coordinate 0. TODO(b/134669567)
+		case VK_IMAGE_VIEW_TYPE_1D:
 		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-			if(coordinateIndex == 1)
+			if(coordinateIndex >= 1)
 			{
-				return ADDRESSING_WRAP;
+				return ADDRESSING_UNUSED;
 			}
-			// Fall through to 2D case:
+			break;
 		case VK_IMAGE_VIEW_TYPE_2D:
 		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 			if(coordinateIndex == 2)
