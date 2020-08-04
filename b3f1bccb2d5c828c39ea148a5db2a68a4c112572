@@ -34,6 +34,24 @@
       "revId": "b3f1bccb2d5c828c39ea148a5db2a68a4c112572",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4578f896_b84994d5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 87761
+      },
+      "writtenOn": "2020-08-04T17:14:57Z",
+      "side": 1,
+      "message": "No problem. I don\u0027t have permission to submit this, so can you do that? \n\nAnd, I assume there\u0027s an auto-roller set up to roll this into Chromium?",
+      "parentUuid": "161e18ff_e21179f2",
+      "revId": "b3f1bccb2d5c828c39ea148a5db2a68a4c112572",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
