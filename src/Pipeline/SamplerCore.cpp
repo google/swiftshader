@@ -50,7 +50,7 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	Float4 vDelta;
 	Float4 M;  // Major axis
 
-	if(isCube())
+	if(state.isCube())
 	{
 		Int4 face = cubeFace(u, v, uvwa[0], uvwa[1], uvwa[2], M);
 		w = As<Float4>(face);
@@ -58,15 +58,15 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 
 	if(function == Implicit || function == Bias || function == Grad || function == Query)
 	{
-		if(state.addressingModeV == ADDRESSING_UNUSED)
+		if(state.is1D())
 		{
 			computeLod1D(texture, lod, u, dsx, dsy, function);
 		}
-		else if(state.addressingModeW == ADDRESSING_UNUSED)
+		else if(state.is2D())
 		{
 			computeLod2D(texture, lod, anisotropy, uDelta, vDelta, u, v, dsx, dsy, function);
 		}
-		else if(isCube())
+		else if(state.isCube())
 		{
 			computeLodCube(texture, lod, uvwa[0], uvwa[1], uvwa[2], dsx, dsy, M, function);
 		}
@@ -128,9 +128,8 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 	}
 
 	bool force32BitFiltering = state.highPrecisionFiltering && !isYcbcrFormat() && (state.textureFilter != FILTER_POINT);
-	bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 	bool use32BitFiltering = hasFloatTexture() || hasUnnormalizedIntegerTexture() || force32BitFiltering ||
-	                         seamlessCube || state.unnormalizedCoordinates || state.compareEnable ||
+	                         state.isCube() || state.unnormalizedCoordinates || state.compareEnable ||
 	                         borderModeActive() || (function == Gather) || (function == Fetch);
 
 	if(use32BitFiltering)
@@ -978,7 +977,7 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	y0 *= pitchP;
 
 	Int4 z;
-	if(state.addressingModeW == ADDRESSING_CUBEFACE || state.isArrayed())
+	if(state.isCube() || state.isArrayed())
 	{
 		Int4 face = As<Int4>(w);
 		Int4 layerIndex = computeLayerIndex(a, mipmap, function);
@@ -989,7 +988,7 @@ Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 			layerIndex *= Int4(6);
 		}
 
-		z = (state.addressingModeW == ADDRESSING_CUBEFACE) ? face : layerIndex;
+		z = state.isCube() ? face : layerIndex;
 
 		if(state.textureType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
 		{
@@ -1391,7 +1390,7 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 
 	UInt4 indices = Int4(uuuu);
 
-	if(state.addressingModeV != ADDRESSING_UNUSED)
+	if(state.is2D() || state.is3D() || state.isCube())
 	{
 		vvvv = MulHigh(As<UShort4>(vvvv), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, height))));
 
@@ -1408,7 +1407,7 @@ void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4
 		indices = UInt4(As<UInt2>(i01), As<UInt2>(i23));
 	}
 
-	if(state.textureType == VK_IMAGE_VIEW_TYPE_3D)
+	if(state.is3D())
 	{
 		wwww = MulHigh(As<UShort4>(wwww), UShort4(*Pointer<Int4>(mipmap + OFFSET(Mipmap, depth))));
 
@@ -1451,12 +1450,12 @@ void SamplerCore::computeIndices(UInt index[4], Int4 uuuu, Int4 vvvv, Int4 wwww,
 {
 	UInt4 indices = uuuu;
 
-	if(state.addressingModeV != ADDRESSING_UNUSED)
+	if(state.is2D() || state.is3D() || state.isCube())
 	{
 		indices += As<UInt4>(vvvv);
 	}
 
-	if(state.addressingModeW != ADDRESSING_UNUSED || state.isArrayed())
+	if(state.is3D() || state.isCube() || state.isArrayed())
 	{
 		indices += As<UInt4>(wwww);
 	}
@@ -1908,8 +1907,8 @@ Vector4f SamplerCore::sampleTexel(Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &dR
 	{
 		// Valid texels have positive coordinates.
 		Int4 negative = uuuu;
-		if(state.addressingModeV != ADDRESSING_UNUSED) negative |= vvvv;
-		if(state.addressingModeW != ADDRESSING_UNUSED || state.isArrayed()) negative |= wwww;
+		if(state.is2D() || state.is3D() || state.isCube()) negative |= vvvv;
+		if(state.is3D() || state.isCube() || state.isArrayed()) negative |= wwww;
 		valid = CmpNLT(negative, Int4(0));
 	}
 
@@ -2586,12 +2585,6 @@ bool SamplerCore::borderModeActive() const
 	return state.addressingModeU == ADDRESSING_BORDER ||
 	       state.addressingModeV == ADDRESSING_BORDER ||
 	       state.addressingModeW == ADDRESSING_BORDER;
-}
-
-bool SamplerCore::isCube() const
-{
-	return state.textureType == VK_IMAGE_VIEW_TYPE_CUBE ||
-	       state.textureType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
 }
 
 VkComponentSwizzle SamplerCore::gatherSwizzle() const

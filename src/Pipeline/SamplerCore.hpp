@@ -107,7 +107,6 @@ private:
 	bool isYcbcrFormat() const;
 	bool isRGBComponent(int component) const;
 	bool borderModeActive() const;
-	bool isCube() const;
 	VkComponentSwizzle gatherSwizzle() const;
 
 	Pointer<Byte> &constants;
