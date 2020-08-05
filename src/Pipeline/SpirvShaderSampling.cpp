@@ -58,7 +58,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 
 		if(sampler)
 		{
-			samplerState.textureFilter = (instruction.samplerMethod == Gather) ? FILTER_GATHER : convertFilterMode(sampler);
+			samplerState.textureFilter = convertFilterMode(sampler, type, instruction);
 			samplerState.border = sampler->borderColor;
 
 			samplerState.mipmapFilter = convertMipmapMode(sampler);
@@ -185,13 +185,6 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 				dPdy.y = Pointer<Float>(&dsy.y)[i];
 				dPdy.z = Pointer<Float>(&dsy.z)[i];
 
-				// 1D textures are treated as 2D texture with second coordinate 0, so we also need to zero out the second grad component. TODO(b/134669567)
-				if(samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D || samplerState.textureType == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
-				{
-					dPdx.y = Float(0.0f);
-					dPdy.y = Float(0.0f);
-				}
-
 				Vector4f sample = s.sampleTexture(texture, uvwa, dRef, lod[i], dPdx, dPdy, offset, sampleId, samplerFunction);
 
 				Pointer<Float> rgba = out;
@@ -216,11 +209,27 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 	return function("sampler");
 }
 
-sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
+sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImageViewType imageViewType, ImageInstruction instruction)
 {
+	if(instruction.samplerMethod == Gather)
+	{
+		return FILTER_GATHER;
+	}
+
+	if(instruction.samplerMethod == Fetch)
+	{
+		return FILTER_POINT;
+	}
+
 	if(sampler->anisotropyEnable != VK_FALSE)
 	{
-		return FILTER_ANISOTROPIC;
+		if(imageViewType == VK_IMAGE_VIEW_TYPE_2D || imageViewType == VK_IMAGE_VIEW_TYPE_2D_ARRAY)
+		{
+			if(instruction.samplerMethod != Lod)  // TODO(b/162926129): Support anisotropic filtering with explicit LOD.
+			{
+				return FILTER_ANISOTROPIC;
+			}
+		}
 	}
 
 	switch(sampler->magFilter)

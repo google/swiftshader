@@ -63,16 +63,17 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 
 	if(function == Implicit || function == Bias || function == Grad || function == Query)
 	{
-		if(state.textureType != VK_IMAGE_VIEW_TYPE_3D)
+		if(state.addressingModeV == ADDRESSING_UNUSED)
 		{
-			if(!isCube())
-			{
-				computeLod(texture, lod, anisotropy, uDelta, vDelta, u, v, dsx, dsy, function);
-			}
-			else
-			{
-				computeLodCube(texture, lod, uvwa[0], uvwa[1], uvwa[2], dsx, dsy, M, function);
-			}
+			computeLod1D(texture, lod, u, dsx, dsy, function);
+		}
+		else if(state.addressingModeW == ADDRESSING_UNUSED)
+		{
+			computeLod2D(texture, lod, anisotropy, uDelta, vDelta, u, v, dsx, dsy, function);
+		}
+		else if(isCube())
+		{
+			computeLodCube(texture, lod, uvwa[0], uvwa[1], uvwa[2], dsx, dsy, M, function);
 		}
 		else
 		{
@@ -423,7 +424,7 @@ Vector4s SamplerCore::sampleAniso(Pointer<Byte> &texture, Float4 &u, Float4 &v, 
 {
 	Vector4s c;
 
-	if(state.textureFilter != FILTER_ANISOTROPIC || function == Lod || function == Fetch)
+	if(state.textureFilter != FILTER_ANISOTROPIC)
 	{
 		c = sampleQuad(texture, u, v, w, a, offset, sample, lod, secondLOD, function);
 	}
@@ -895,7 +896,7 @@ Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4
 {
 	Vector4f c;
 
-	if(state.textureFilter != FILTER_ANISOTROPIC || function == Lod || function == Fetch)
+	if(state.textureFilter != FILTER_ANISOTROPIC)
 	{
 		c = sampleFloat(texture, u, v, w, a, dRef, offset, sample, lod, secondLOD, function);
 	}
@@ -1137,9 +1138,9 @@ Vector4f SamplerCore::sampleFloat3D(Pointer<Byte> &texture, Float4 &u, Float4 &v
 	return c;
 }
 
-Float SamplerCore::log2sqrt(Float lod)
+static Float log2sqrt(Float lod)
 {
-	// log2(sqrt(lod))                               // Equals 0.25 * log2(lod^2).
+	// log2(sqrt(lod))                              // Equals 0.25 * log2(lod^2).
 	lod *= lod;                                     // Squaring doubles the exponent and produces an extra bit of precision.
 	lod = Float(As<Int>(lod)) - Float(0x3F800000);  // Interpret as integer and subtract the exponent bias.
 	lod *= As<Float>(Int(0x33000000));              // Scale by 0.25 * 2^-23 (mantissa length).
@@ -1147,7 +1148,7 @@ Float SamplerCore::log2sqrt(Float lod)
 	return lod;
 }
 
-Float SamplerCore::log2(Float lod)
+static Float log2(Float lod)
 {
 	lod *= lod;                                     // Squaring doubles the exponent and produces an extra bit of precision.
 	lod = Float(As<Int>(lod)) - Float(0x3F800000);  // Interpret as integer and subtract the exponent bias.
@@ -1156,7 +1157,31 @@ Float SamplerCore::log2(Float lod)
 	return lod;
 }
 
-void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float4 &dsx, Float4 &dsy, SamplerFunction function)
+void SamplerCore::computeLod1D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &dsx, Float4 &dsy, SamplerFunction function)
+{
+	Float4 dudxy;
+
+	if(function != Grad)  // Implicit
+	{
+		dudxy = uuuu.yz - uuuu.xx;
+	}
+	else
+	{
+		dudxy = UnpackLow(dsx, dsy);
+	}
+
+	// Scale by texture dimensions.
+	Float4 dUdxy = dudxy * *Pointer<Float4>(texture + OFFSET(Texture, widthWidthHeightHeight));
+
+	// Note we could take the absolute value here and omit the square root below,
+	// but this is more consistent with the 2D calculation and still cheap.
+	Float4 dU2dxy = dUdxy * dUdxy;
+
+	lod = Max(Float(dU2dxy.x), Float(dU2dxy.y));
+	lod = log2sqrt(lod);
+}
+
+void SamplerCore::computeLod2D(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, Float4 &dsx, Float4 &dsy, SamplerFunction function)
 {
 	Float4 duvdxy;
 
