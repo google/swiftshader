@@ -147,7 +147,7 @@ VkResult DescriptorPool::allocateSets(size_t *sizes, uint32_t numAllocs, VkDescr
 		}
 	}
 
-	// Atttempt to allocate each descriptor set separately
+	// Attempt to allocate each descriptor set separately
 	for(uint32_t i = 0; i < numAllocs; i++)
 	{
 		uint8_t *memory = findAvailableMemory(sizes[i]);
@@ -205,7 +205,7 @@ size_t DescriptorPool::computeTotalFreeSize() const
 
 	// Compute space at the end of the pool
 	const auto itLast = nodes.rbegin();
-	totalFreeSize += poolSize - (itLast->set - pool) + itLast->size;
+	totalFreeSize += poolSize - ((itLast->set - pool) + itLast->size);
 
 	// Compute space at the beginning of the pool
 	const auto itBegin = nodes.begin();
