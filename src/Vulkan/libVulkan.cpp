@@ -1771,7 +1771,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
-	return vk::ImageView::Create(pAllocator, pCreateInfo, pView, ycbcrConversion);
+	VkResult result = vk::ImageView::Create(pAllocator, pCreateInfo, pView, ycbcrConversion);
+	if(result == VK_SUCCESS)
+	{
+		vk::Cast(device)->registerImageView(vk::Cast(*pView));
+	}
+
+	return result;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallbacks *pAllocator)
@@ -1779,6 +1785,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImageView(VkDevice device, VkImageView image
 	TRACE("(VkDevice device = %p, VkImageView imageView = %p, const VkAllocationCallbacks* pAllocator = %p)",
 	      device, static_cast<void *>(imageView), pAllocator);
 
+	vk::Cast(device)->unregisterImageView(vk::Cast(imageView));
 	vk::destroy(imageView, pAllocator);
 }
 

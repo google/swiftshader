@@ -164,6 +164,7 @@ struct DrawCall
 	SetupFunction setupPrimitives;
 	SetupProcessor::State setupState;
 
+	vk::Device *device;
 	vk::ImageView *renderTarget[RENDERTARGETS];
 	vk::ImageView *depthBuffer;
 	vk::ImageView *stencilBuffer;

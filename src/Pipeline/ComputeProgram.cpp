@@ -37,8 +37,9 @@ enum
 
 namespace sw {
 
-ComputeProgram::ComputeProgram(SpirvShader const *shader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets)
-    : shader(shader)
+ComputeProgram::ComputeProgram(vk::Device *device, SpirvShader const *shader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets)
+    : device(device)
+    , shader(shader)
     , pipelineLayout(pipelineLayout)
     , descriptorSets(descriptorSets)
 {
@@ -301,7 +302,7 @@ void ComputeProgram::run(
 
 	if(shader->containsImageWrite())
 	{
-		vk::DescriptorSet::ContentsChanged(descriptorSetObjects, pipelineLayout);
+		vk::DescriptorSet::ContentsChanged(descriptorSetObjects, pipelineLayout, device);
 	}
 }
 

@@ -245,6 +245,7 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	}
 
 	DrawData *data = draw->data;
+	draw->device = device;
 	draw->occlusionQuery = occlusionQuery;
 	draw->batchDataPool = &batchDataPool;
 	draw->numPrimitives = count;
@@ -390,7 +391,7 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 
 	draw->events = events;
 
-	vk::DescriptorSet::PrepareForSampling(draw->descriptorSetObjects, draw->pipelineLayout);
+	vk::DescriptorSet::PrepareForSampling(draw->descriptorSetObjects, draw->pipelineLayout, device);
 
 	DrawCall::run(draw, &drawTickets, clusterQueues);
 }
@@ -439,7 +440,7 @@ void DrawCall::teardown()
 
 	if(containsImageWrite)
 	{
-		vk::DescriptorSet::ContentsChanged(descriptorSetObjects, pipelineLayout);
+		vk::DescriptorSet::ContentsChanged(descriptorSetObjects, pipelineLayout, device);
 	}
 }
 

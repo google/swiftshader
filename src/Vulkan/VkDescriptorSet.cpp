@@ -13,12 +13,13 @@
 // limitations under the License.
 
 #include "VkDescriptorSet.hpp"
+#include "VkDevice.hpp"
 #include "VkImageView.hpp"
 #include "VkPipelineLayout.hpp"
 
 namespace vk {
 
-void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const PipelineLayout *layout, NotificationType notificationType)
+void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const PipelineLayout *layout, Device *device, NotificationType notificationType)
 {
 	if(layout)
 	{
@@ -62,11 +63,11 @@ void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const Pipeline
 					{
 						if(notificationType == PREPARE_FOR_SAMPLING)
 						{
-							memoryOwner->prepareForSampling();
+							device->prepareForSampling(memoryOwner);
 						}
 						else if((notificationType == CONTENTS_CHANGED) && (type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE))
 						{
-							memoryOwner->contentsChanged();
+							device->contentsChanged(memoryOwner);
 						}
 					}
 					descriptorMemory += descriptorSize;
@@ -76,14 +77,14 @@ void DescriptorSet::ParseDescriptors(const Array &descriptorSets, const Pipeline
 	}
 }
 
-void DescriptorSet::ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout)
+void DescriptorSet::ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout, Device *device)
 {
-	ParseDescriptors(descriptorSets, layout, CONTENTS_CHANGED);
+	ParseDescriptors(descriptorSets, layout, device, CONTENTS_CHANGED);
 }
 
-void DescriptorSet::PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout)
+void DescriptorSet::PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout, Device *device)
 {
-	ParseDescriptors(descriptorSets, layout, PREPARE_FOR_SAMPLING);
+	ParseDescriptors(descriptorSets, layout, device, PREPARE_FOR_SAMPLING);
 }
 
 }  // namespace vk

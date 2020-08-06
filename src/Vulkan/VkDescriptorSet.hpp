@@ -25,6 +25,7 @@
 namespace vk {
 
 class DescriptorSetLayout;
+class Device;
 class PipelineLayout;
 
 struct alignas(16) DescriptorSetHeader
@@ -40,8 +41,8 @@ public:
 	using Bindings = std::array<uint8_t *, vk::MAX_BOUND_DESCRIPTOR_SETS>;
 	using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;
 
-	static void ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout);
-	static void PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout);
+	static void ContentsChanged(const Array &descriptorSets, const PipelineLayout *layout, Device *device);
+	static void PrepareForSampling(const Array &descriptorSets, const PipelineLayout *layout, Device *device);
 
 	DescriptorSetHeader header;
 	alignas(16) uint8_t data[1];
@@ -52,7 +53,7 @@ private:
 		CONTENTS_CHANGED,
 		PREPARE_FOR_SAMPLING
 	};
-	static void ParseDescriptors(const Array &descriptorSets, const PipelineLayout *layout, NotificationType notificationType);
+	static void ParseDescriptors(const Array &descriptorSets, const PipelineLayout *layout, Device *device, NotificationType notificationType);
 };
 
 inline DescriptorSet *Cast(VkDescriptorSet object)

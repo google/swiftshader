@@ -24,8 +24,9 @@
 #include <functional>
 
 namespace vk {
+class Device;
 class PipelineLayout;
-}
+}  // namespace vk
 
 namespace sw {
 
@@ -45,7 +46,7 @@ class ComputeProgram : public Coroutine<SpirvShader::YieldResult(
                            int32_t subgroupCount)>
 {
 public:
-	ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
+	ComputeProgram(vk::Device *device, SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
 
 	virtual ~ComputeProgram();
 
@@ -79,6 +80,7 @@ protected:
 		const Constants *constants;
 	};
 
+	vk::Device *const device;
 	SpirvShader const *const shader;
 	vk::PipelineLayout const *const pipelineLayout;
 	const vk::DescriptorSet::Bindings &descriptorSets;

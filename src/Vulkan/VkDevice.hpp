@@ -15,7 +15,7 @@
 #ifndef VK_DEVICE_HPP_
 #define VK_DEVICE_HPP_
 
-#include "VkObject.hpp"
+#include "VkImageView.hpp"
 #include "VkSampler.hpp"
 #include "Reactor/Routine.hpp"
 #include "System/LRUCache.hpp"
@@ -26,6 +26,7 @@
 #include <map>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace marl {
 class Scheduler;
@@ -66,6 +67,11 @@ public:
 	void getRequirements(VkMemoryDedicatedRequirements *requirements) const;
 	const VkPhysicalDeviceFeatures &getEnabledFeatures() const { return enabledFeatures; }
 	sw::Blitter *getBlitter() const { return blitter.get(); }
+
+	void registerImageView(ImageView *imageView);
+	void unregisterImageView(ImageView *imageView);
+	void prepareForSampling(ImageView *imageView);
+	void contentsChanged(ImageView *imageView);
 
 	class SamplingRoutineCache
 	{
@@ -176,6 +182,9 @@ private:
 	std::shared_ptr<marl::Scheduler> scheduler;
 	std::unique_ptr<SamplingRoutineCache> samplingRoutineCache;
 	std::unique_ptr<SamplerIndexer> samplerIndexer;
+
+	marl::mutex imageViewSetMutex;
+	std::unordered_set<ImageView *> imageViewSet GUARDED_BY(imageViewSetMutex);
 
 #ifdef ENABLE_VK_DEBUGGER
 	struct

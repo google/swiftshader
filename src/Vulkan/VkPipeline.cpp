@@ -122,13 +122,13 @@ std::shared_ptr<sw::SpirvShader> createShader(
 	                                         code, key.getRenderPass(), key.getSubpassIndex(), robustBufferAccess, dbgctx);
 }
 
-std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::ComputeProgramKey &key)
+std::shared_ptr<sw::ComputeProgram> createProgram(vk::Device *device, const vk::PipelineCache::ComputeProgramKey &key)
 {
 	MARL_SCOPED_EVENT("createProgram");
 
 	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
 	// TODO(b/119409619): use allocator.
-	auto program = std::make_shared<sw::ComputeProgram>(key.getShader(), key.getLayout(), descriptorSets);
+	auto program = std::make_shared<sw::ComputeProgram>(device, key.getShader(), key.getLayout(), descriptorSets);
 	program->generate();
 	program->finalize();
 	return program;
@@ -138,7 +138,7 @@ std::shared_ptr<sw::ComputeProgram> createProgram(const vk::PipelineCache::Compu
 
 namespace vk {
 
-Pipeline::Pipeline(PipelineLayout *layout, const Device *device)
+Pipeline::Pipeline(PipelineLayout *layout, Device *device)
     : layout(layout)
     , device(device)
     , robustBufferAccess(device->getEnabledFeatures().robustBufferAccess)
@@ -153,7 +153,7 @@ void Pipeline::destroy(const VkAllocationCallbacks *pAllocator)
 	vk::release(static_cast<VkPipelineLayout>(*layout), pAllocator);
 }
 
-GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, const Device *device)
+GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, Device *device)
     : Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
 	context.robustBufferAccess = robustBufferAccess;
@@ -581,7 +581,7 @@ bool GraphicsPipeline::hasDynamicState(VkDynamicState dynamicState) const
 	return (dynamicStateFlags & (1 << dynamicState)) != 0;
 }
 
-ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo *pCreateInfo, void *mem, const Device *device)
+ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo *pCreateInfo, void *mem, Device *device)
     : Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
 }
@@ -615,14 +615,14 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks *pAllocator, co
 
 		const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
 		program = pPipelineCache->getOrCreateComputeProgram(programKey, [&] {
-			return createProgram(programKey);
+			return createProgram(device, programKey);
 		});
 	}
 	else
 	{
 		shader = createShader(shaderKey, module, robustBufferAccess, device->getDebuggerContext());
 		const PipelineCache::ComputeProgramKey programKey(shader.get(), layout);
-		program = createProgram(programKey);
+		program = createProgram(device, programKey);
 	}
 }
 
