@@ -59,7 +59,7 @@ struct alignas(16) StorageImageDescriptor
 	void *ptr;
 	VkExtent3D extent;
 	int rowPitchBytes;
-	int slicePitchBytes;
+	int slicePitchBytes;  // Layer pitch in case of array image
 	int samplePitchBytes;
 	int arrayLayers;
 	int sampleCount;
@@ -67,7 +67,7 @@ struct alignas(16) StorageImageDescriptor
 
 	void *stencilPtr;
 	int stencilRowPitchBytes;
-	int stencilSlicePitchBytes;
+	int stencilSlicePitchBytes;  // Layer pitch in case of array image
 	int stencilSamplePitchBytes;
 
 	ImageView *memoryOwner;  // Pointer to the view which owns the memory used by the descriptor set

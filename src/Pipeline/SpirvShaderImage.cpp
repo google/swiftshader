@@ -115,7 +115,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(Variant variant,
 		return EmitImageSample({ variant, Grad }, insn, state);
 	}
 	else
-		UNSUPPORTED("Image Operands %x", imageOperands);
+		UNSUPPORTED("Image operands 0x%08X", imageOperands);
 
 	return EmitResult::Continue;
 }
@@ -234,7 +234,7 @@ void SpirvShader::EmitImageSampleUnconditional(Array<SIMD::Float> &out, ImageIns
 
 		if(imageOperands != 0)
 		{
-			UNSUPPORTED("Image operand %x", imageOperands);
+			UNSUPPORTED("Image operands 0x%08X", imageOperands);
 		}
 	}
 
@@ -558,10 +558,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 		ptrOffset += SIMD::Int(routine->viewID) * slicePitch;
 	}
 
+	SIMD::Int n = 0;
 	if(sampleId.value())
 	{
 		Operand sample(this, state, sampleId);
-		ptrOffset += sample.Int(0) * samplePitch;
+		n = sample.Int(0);
+		ptrOffset += n * samplePitch;
 	}
 
 	// If the out-of-bounds behavior is set to nullify, then each coordinate must be tested individually.
@@ -581,7 +583,13 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 		{
 			auto depth = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, extent.depth));
 			auto arrayLayers = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, arrayLayers));
-			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(w), SIMD::UInt(depth * arrayLayers)));
+			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(w), SIMD::UInt(depth * arrayLayers)));  // TODO: Precompute extent. 3D image can't have layers.
+		}
+
+		if(sampleId.value())
+		{
+			SIMD::UInt sampleCount = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));
+			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(n), sampleCount));
 		}
 
 		constexpr int32_t OOB_OFFSET = 0x7FFFFFFF - 16;  // SIMD pointer offsets are signed 32-bit, so this is the largest offset (for 16-byte texels).
@@ -605,7 +613,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 	if(insn.wordCount() > 5)
 	{
 		int operand = 6;
-		auto imageOperands = insn.word(5);
+		uint32_t imageOperands = insn.word(5);
 		if(imageOperands & spv::ImageOperandsSampleMask)
 		{
 			sampleId = insn.word(operand++);
@@ -613,7 +621,10 @@ SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState 
 		}
 
 		// Should be no remaining image operands.
-		ASSERT(!imageOperands);
+		if(imageOperands != 0)
+		{
+			UNSUPPORTED("Image operands 0x%08X", imageOperands);
+		}
 	}
 
 	ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
@@ -990,8 +1001,24 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 
 	ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
 
-	// TODO(b/131171141): Not handling any image operands yet.
-	ASSERT(insn.wordCount() == 4);
+	Object::ID sampleId = 0;
+
+	if(insn.wordCount() > 4)
+	{
+		int operand = 5;
+		uint32_t imageOperands = insn.word(4);
+		if(imageOperands & spv::ImageOperandsSampleMask)
+		{
+			sampleId = insn.word(operand++);
+			imageOperands &= ~spv::ImageOperandsSampleMask;
+		}
+
+		// Should be no remaining image operands.
+		if(imageOperands != 0)
+		{
+			UNSUPPORTED("Image operands 0x%08X", (int)imageOperands);
+		}
+	}
 
 	auto coordinate = Operand(this, state, insn.word(2));
 	auto texel = Operand(this, state, insn.word(3));
@@ -1176,7 +1203,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState
 	// - https://www.khronos.org/registry/vulkan/specs/1.2/html/chap16.html#textures-output-coordinate-validation
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
-	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, texelSize, 0, false, robustness);
+	auto texelPtr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, texelSize, sampleId, false, robustness);
 
 	// Scatter packed texel data.
 	// TODO(b/160531165): Provide scatter abstractions for various element sizes.
@@ -1235,6 +1262,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, Em
 	ASSERT(getType(resultType.element).opcode() == spv::OpTypeInt);
 
 	auto coordinate = Operand(this, state, insn.word(4));
+	Object::ID sampleId = insn.word(5);
 
 	Pointer<Byte> binding = state->getPointer(imageId).base;
 	Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
@@ -1244,7 +1272,7 @@ SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, Em
 	// TODO(b/162327166): Only perform bounds checks when VK_EXT_image_robustness is enabled.
 	auto robustness = OutOfBoundsBehavior::Nullify;
 
-	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, sizeof(uint32_t), 0, false, robustness);
+	auto ptr = GetTexelAddress(state, imageBase, imageSizeInBytes, coordinate, imageType, binding, sizeof(uint32_t), sampleId, false, robustness);
 
 	state->createPointer(resultId, ptr);
 

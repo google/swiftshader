@@ -569,15 +569,17 @@ public:
 	{
 		bool Matrix : 1;
 		bool Shader : 1;
+		bool StorageImageMultisample : 1;
 		bool ClipDistance : 1;
 		bool CullDistance : 1;
+		bool ImageCubeArray : 1;
 		bool InputAttachment : 1;
 		bool Sampled1D : 1;
 		bool Image1D : 1;
-		bool ImageCubeArray : 1;
 		bool SampledBuffer : 1;
 		bool SampledCubeArray : 1;
 		bool ImageBuffer : 1;
+		bool ImageMSArray : 1;
 		bool StorageImageExtendedFormats : 1;
 		bool ImageQuery : 1;
 		bool DerivativeControl : 1;

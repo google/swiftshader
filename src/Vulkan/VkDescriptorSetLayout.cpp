@@ -435,10 +435,10 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			descriptor[i].ptr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, 0);
 			descriptor[i].extent = imageView->getMipLevelExtent(0);
 			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].samplePitchBytes = imageView->getSubresourceRange().layerCount > 1
-			                                     ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
-			                                     : imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].slicePitchBytes = descriptor[i].samplePitchBytes * imageView->getSampleCount();
+			descriptor[i].samplePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			descriptor[i].slicePitchBytes = imageView->getSubresourceRange().layerCount > 1
+			                                    ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
+			                                    : imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 			descriptor[i].sampleCount = imageView->getSampleCount();
 			descriptor[i].sizeInBytes = static_cast<int>(imageView->getSizeInBytes());
@@ -448,10 +448,10 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			{
 				descriptor[i].stencilPtr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, 0);
 				descriptor[i].stencilRowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-				descriptor[i].stencilSamplePitchBytes = (imageView->getSubresourceRange().layerCount > 1)
-				                                            ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT)
-				                                            : imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-				descriptor[i].stencilSlicePitchBytes = descriptor[i].stencilSamplePitchBytes * imageView->getSampleCount();
+				descriptor[i].stencilSamplePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				descriptor[i].stencilSlicePitchBytes = (imageView->getSubresourceRange().layerCount > 1)
+				                                           ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT)
+				                                           : imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
 			}
 		}
 	}
