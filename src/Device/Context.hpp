@@ -104,6 +104,7 @@ public:
 	float depthBias;
 	float slopeDepthBias;
 	float depthBiasClamp;
+	bool depthRangeUnrestricted;
 
 	VkFormat renderTargetInternalFormat(int index) const;
 	int colorWriteActive(int index) const;

@@ -261,6 +261,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateIn
 	context.depthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
 	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
 	context.depthBiasClamp = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasClamp : 0.0f;
+	context.depthRangeUnrestricted = device->hasExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
 
 	// From the Vulkan spec for vkCmdSetDepthBias:
 	//    The bias value O for a polygon is:

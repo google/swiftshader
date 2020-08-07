@@ -378,6 +378,7 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 #endif
 	{ VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, VK_EXT_PROVOKING_VERTEX_SPEC_VERSION },
 	{ VK_GOOGLE_SAMPLER_FILTERING_PRECISION_EXTENSION_NAME, VK_GOOGLE_SAMPLER_FILTERING_PRECISION_SPEC_VERSION },
+	{ VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, VK_EXT_DEPTH_RANGE_UNRESTRICTED_SPEC_VERSION }
 };
 
 static bool hasExtension(const char *extensionName, const VkExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)

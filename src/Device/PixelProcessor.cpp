@@ -115,6 +115,10 @@ const PixelProcessor::State PixelProcessor::update(const Context *context) const
 		state.depthTestActive = true;
 		state.depthCompareMode = context->depthCompareMode;
 		state.depthFormat = context->depthBuffer->getFormat();
+
+		// "For fixed-point depth buffers, fragment depth values are always limited to the range [0,1] by clamping after depth bias addition is performed.
+		//  Unless the VK_EXT_depth_range_unrestricted extension is enabled, fragment depth values are clamped even when the depth buffer uses a floating-point representation."
+		state.depthClamp = !state.depthFormat.isFloatFormat() || !context->depthRangeUnrestricted;
 	}
 
 	state.occlusionEnabled = context->occlusionEnabled;
