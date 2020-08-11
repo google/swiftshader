@@ -1018,8 +1018,9 @@ int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, const Interface
 			// iterate over members, which may themselves have Location/Component decorations
 			for(auto i = 0u; i < obj.definition.wordCount() - 2; i++)
 			{
-				ApplyDecorationsForIdMember(&d, id, i);
-				d.Location = VisitInterfaceInner(obj.definition.word(i + 2), d, f);
+				Decorations dMember = d;
+				ApplyDecorationsForIdMember(&dMember, id, i);
+				d.Location = VisitInterfaceInner(obj.definition.word(i + 2), dMember, f);
 				d.Component = 0;  // Implicit locations always have component=0
 			}
 			return d.Location;
