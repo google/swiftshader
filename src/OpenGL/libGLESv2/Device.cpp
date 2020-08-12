@@ -575,7 +575,7 @@ namespace es2
 		bool fullCopy = (sRect.x0 == 0.0f) && (sRect.y0 == 0.0f) && (dRect.x0 == 0) && (dRect.y0 == 0) &&
 		                (sRect.x1 == (float)sWidth) && (sRect.y1 == (float)sHeight) && (dRect.x1 == dWidth) && (dRect.y1 == dHeight);
 		bool alpha0xFF = false;
-		bool equalSlice = sourceSliceB == destSliceB;
+		bool equalSlice = (sourceSliceB == destSliceB) && (source->getBorder() == 0) && (dest->getBorder() == 0);
 		bool smallMargin = sourcePitchB <= source->getWidth() * Surface::bytes(source->getInternalFormat()) + 16;
 
 		if((source->getInternalFormat() == FORMAT_A8R8G8B8 && dest->getInternalFormat() == FORMAT_X8R8G8B8) ||
