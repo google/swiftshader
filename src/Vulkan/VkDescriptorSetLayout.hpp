@@ -44,8 +44,9 @@ struct alignas(16) SampledImageDescriptor
 	VkFormat format;
 	VkComponentMapping swizzle;
 	alignas(16) sw::Texture texture;
-	VkExtent3D extent;  // Of base mip-level.
-	int arrayLayers;
+	int width;  // Of base mip-level.
+	int height;
+	int depth;  // Layer/cube count for arrayed images
 	int mipLevels;
 	int sampleCount;
 
@@ -57,11 +58,12 @@ struct alignas(16) StorageImageDescriptor
 	~StorageImageDescriptor() = delete;
 
 	void *ptr;
-	VkExtent3D extent;
+	int width;
+	int height;
+	int depth;  // Layer/cube count for arrayed images
 	int rowPitchBytes;
 	int slicePitchBytes;  // Layer pitch in case of array image
 	int samplePitchBytes;
-	int arrayLayers;
 	int sampleCount;
 	int sizeInBytes;
 

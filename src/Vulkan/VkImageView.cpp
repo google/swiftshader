@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkImageView.hpp"
+
 #include "VkImage.hpp"
 #include "System/Math.hpp"
 
@@ -284,6 +285,22 @@ VkExtent3D ImageView::getMipLevelExtent(uint32_t mipLevel) const
 {
 	return image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
 	                                subresourceRange.baseMipLevel + mipLevel);
+}
+
+int ImageView::getDepthOrLayerCount(uint32_t mipLevel) const
+{
+	VkExtent3D extent = getMipLevelExtent(mipLevel);
+	int layers = subresourceRange.layerCount;
+	int depthOrLayers = layers > 1 ? layers : extent.depth;
+
+	// For cube images the number of whole cubes is returned
+	if(viewType == VK_IMAGE_VIEW_TYPE_CUBE ||
+	   viewType == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
+	{
+		depthOrLayers /= 6;
+	}
+
+	return depthOrLayers;
 }
 
 void *ImageView::getOffsetPointer(const VkOffset3D &offset, VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer, Usage usage) const

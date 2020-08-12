@@ -264,7 +264,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 
 	if(entry.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER)
 	{
-		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor *>(memToWrite);
+		SampledImageDescriptor *sampledImage = reinterpret_cast<SampledImageDescriptor *>(memToWrite);
 
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
@@ -273,37 +273,38 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
 			if(!binding.immutableSamplers)
 			{
-				imageSampler[i].updateSampler(vk::Cast(update->sampler));
+				sampledImage[i].updateSampler(vk::Cast(update->sampler));
 			}
-			imageSampler[i].device = device;
+			sampledImage[i].device = device;
 		}
 	}
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER)
 	{
-		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor *>(memToWrite);
+		SampledImageDescriptor *sampledImage = reinterpret_cast<SampledImageDescriptor *>(memToWrite);
 
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
 			auto bufferView = vk::Cast(*update);
 
-			imageSampler[i].type = VK_IMAGE_VIEW_TYPE_1D;
-			imageSampler[i].imageViewId = bufferView->id;
-			imageSampler[i].swizzle = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-			imageSampler[i].format = bufferView->getFormat();
+			sampledImage[i].type = VK_IMAGE_VIEW_TYPE_1D;
+			sampledImage[i].imageViewId = bufferView->id;
+			sampledImage[i].swizzle = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			sampledImage[i].format = bufferView->getFormat();
 
 			auto numElements = bufferView->getElementCount();
-			imageSampler[i].extent = { numElements, 1, 1 };
-			imageSampler[i].arrayLayers = 1;
-			imageSampler[i].mipLevels = 1;
-			imageSampler[i].sampleCount = 1;
-			imageSampler[i].texture.widthWidthHeightHeight = sw::float4(static_cast<float>(numElements), static_cast<float>(numElements), 1, 1);
-			imageSampler[i].texture.width = sw::float4(static_cast<float>(numElements));
-			imageSampler[i].texture.height = sw::float4(1);
-			imageSampler[i].texture.depth = sw::float4(1);
-			imageSampler[i].device = device;
+			sampledImage[i].width = numElements;
+			sampledImage[i].height = 1;
+			sampledImage[i].depth = 1;
+			sampledImage[i].mipLevels = 1;
+			sampledImage[i].sampleCount = 1;
+			sampledImage[i].texture.widthWidthHeightHeight = sw::float4(static_cast<float>(numElements), static_cast<float>(numElements), 1, 1);
+			sampledImage[i].texture.width = sw::float4(static_cast<float>(numElements));
+			sampledImage[i].texture.height = sw::float4(1);
+			sampledImage[i].texture.depth = sw::float4(1);
+			sampledImage[i].device = device;
 
-			sw::Mipmap &mipmap = imageSampler[i].texture.mipmap[0];
+			sw::Mipmap &mipmap = sampledImage[i].texture.mipmap[0];
 			mipmap.buffer = bufferView->getPointer();
 			mipmap.width[0] = mipmap.width[1] = mipmap.width[2] = mipmap.width[3] = numElements;
 			mipmap.height[0] = mipmap.height[1] = mipmap.height[2] = mipmap.height[3] = 1;
@@ -317,16 +318,16 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
 	        entry.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
 	{
-		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor *>(memToWrite);
+		SampledImageDescriptor *sampledImage = reinterpret_cast<SampledImageDescriptor *>(memToWrite);
 
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
-			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
+			auto *update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
 
 			vk::ImageView *imageView = vk::Cast(update->imageView);
 			Format format = imageView->getFormat(ImageView::SAMPLING);
 
-			sw::Texture *texture = &imageSampler[i].texture;
+			sw::Texture *texture = &sampledImage[i].texture;
 
 			if(entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 			{
@@ -334,20 +335,23 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 				//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
 				if(!binding.immutableSamplers)
 				{
-					imageSampler[i].updateSampler(vk::Cast(update->sampler));
+					sampledImage[i].updateSampler(vk::Cast(update->sampler));
 				}
 			}
 
-			imageSampler[i].imageViewId = imageView->id;
-			imageSampler[i].extent = imageView->getMipLevelExtent(0);
-			imageSampler[i].arrayLayers = imageView->getSubresourceRange().layerCount;
-			imageSampler[i].mipLevels = imageView->getSubresourceRange().levelCount;
-			imageSampler[i].sampleCount = imageView->getSampleCount();
-			imageSampler[i].type = imageView->getType();
-			imageSampler[i].swizzle = imageView->getComponentMapping();
-			imageSampler[i].format = format;
-			imageSampler[i].device = device;
-			imageSampler[i].memoryOwner = imageView;
+			const auto &extent = imageView->getMipLevelExtent(0);
+
+			sampledImage[i].imageViewId = imageView->id;
+			sampledImage[i].width = extent.width;
+			sampledImage[i].height = extent.height;
+			sampledImage[i].depth = imageView->getDepthOrLayerCount(0);
+			sampledImage[i].mipLevels = imageView->getSubresourceRange().levelCount;
+			sampledImage[i].sampleCount = imageView->getSampleCount();
+			sampledImage[i].type = imageView->getType();
+			sampledImage[i].swizzle = imageView->getComponentMapping();
+			sampledImage[i].format = format;
+			sampledImage[i].device = device;
+			sampledImage[i].memoryOwner = imageView;
 
 			auto &subresourceRange = imageView->getSubresourceRange();
 
@@ -410,12 +414,11 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 
 					int width = extent.width;
 					int height = extent.height;
-					int layers = imageView->getSubresourceRange().layerCount;
-					int depth = layers > 1 ? layers : extent.depth;
-					if(imageView->getType() == VK_IMAGE_VIEW_TYPE_CUBE_ARRAY) depth /= 6;
+					int layerCount = imageView->getSubresourceRange().layerCount;
+					int depth = imageView->getDepthOrLayerCount(level);
 					int bytes = format.bytes();
 					int pitchP = imageView->rowPitchBytes(aspect, level, ImageView::SAMPLING) / bytes;
-					int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect, ImageView::SAMPLING) : imageView->slicePitchBytes(aspect, level, ImageView::SAMPLING)) / bytes;
+					int sliceP = (layerCount > 1 ? imageView->layerPitchBytes(aspect, ImageView::SAMPLING) : imageView->slicePitchBytes(aspect, level, ImageView::SAMPLING)) / bytes;
 					int samplePitchP = imageView->getMipLevelSize(aspect, level, ImageView::SAMPLING) / bytes;
 					int sampleMax = imageView->getSampleCount() - 1;
 
@@ -427,49 +430,54 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
 	        entry.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
 	{
-		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
+		auto storageImage = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
-			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
-			auto imageView = vk::Cast(update->imageView);
-			descriptor[i].ptr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, 0);
-			descriptor[i].extent = imageView->getMipLevelExtent(0);
-			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].samplePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].slicePitchBytes = imageView->getSubresourceRange().layerCount > 1
-			                                    ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
-			                                    : imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
-			descriptor[i].sampleCount = imageView->getSampleCount();
-			descriptor[i].sizeInBytes = static_cast<int>(imageView->getSizeInBytes());
-			descriptor[i].memoryOwner = imageView;
+			auto *update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
+			auto *imageView = vk::Cast(update->imageView);
+			const auto &extent = imageView->getMipLevelExtent(0);
+			auto layerCount = imageView->getSubresourceRange().layerCount;
+
+			storageImage[i].ptr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, 0);
+			storageImage[i].width = extent.width;
+			storageImage[i].height = extent.height;
+			storageImage[i].depth = imageView->getDepthOrLayerCount(0);
+			storageImage[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			storageImage[i].samplePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			storageImage[i].slicePitchBytes = layerCount > 1
+			                                      ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
+			                                      : imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			storageImage[i].sampleCount = imageView->getSampleCount();
+			storageImage[i].sizeInBytes = static_cast<int>(imageView->getSizeInBytes());
+			storageImage[i].memoryOwner = imageView;
 
 			if(imageView->getFormat().isStencil())
 			{
-				descriptor[i].stencilPtr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, 0);
-				descriptor[i].stencilRowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-				descriptor[i].stencilSamplePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-				descriptor[i].stencilSlicePitchBytes = (imageView->getSubresourceRange().layerCount > 1)
-				                                           ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT)
-				                                           : imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				storageImage[i].stencilPtr = imageView->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, 0);
+				storageImage[i].stencilRowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				storageImage[i].stencilSamplePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+				storageImage[i].stencilSlicePitchBytes = (imageView->getSubresourceRange().layerCount > 1)
+				                                             ? imageView->layerPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT)
+				                                             : imageView->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
 			}
 		}
 	}
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER)
 	{
-		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
+		auto *storageImage = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
 			auto bufferView = vk::Cast(*update);
-			descriptor[i].ptr = bufferView->getPointer();
-			descriptor[i].extent = { bufferView->getElementCount(), 1, 1 };
-			descriptor[i].rowPitchBytes = 0;
-			descriptor[i].slicePitchBytes = 0;
-			descriptor[i].samplePitchBytes = 0;
-			descriptor[i].arrayLayers = 1;
-			descriptor[i].sampleCount = 1;
-			descriptor[i].sizeInBytes = bufferView->getRangeInBytes();
+			storageImage[i].ptr = bufferView->getPointer();
+			storageImage[i].width = bufferView->getElementCount();
+			storageImage[i].height = 1;
+			storageImage[i].depth = 1;
+			storageImage[i].rowPitchBytes = 0;
+			storageImage[i].slicePitchBytes = 0;
+			storageImage[i].samplePitchBytes = 0;
+			storageImage[i].sampleCount = 1;
+			storageImage[i].sizeInBytes = bufferView->getRangeInBytes();
 		}
 	}
 	else if(entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
@@ -477,14 +485,14 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 	        entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER ||
 	        entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC)
 	{
-		auto descriptor = reinterpret_cast<BufferDescriptor *>(memToWrite);
+		auto *bufferDescriptor = reinterpret_cast<BufferDescriptor *>(memToWrite);
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkDescriptorBufferInfo const *>(src + entry.offset + entry.stride * i);
 			auto buffer = vk::Cast(update->buffer);
-			descriptor[i].ptr = buffer->getOffsetPointer(update->offset);
-			descriptor[i].sizeInBytes = static_cast<int>((update->range == VK_WHOLE_SIZE) ? buffer->getSize() - update->offset : update->range);
-			descriptor[i].robustnessSize = static_cast<int>(buffer->getSize() - update->offset);
+			bufferDescriptor[i].ptr = buffer->getOffsetPointer(update->offset);
+			bufferDescriptor[i].sizeInBytes = static_cast<int>((update->range == VK_WHOLE_SIZE) ? buffer->getSize() - update->offset : update->range);
+			bufferDescriptor[i].robustnessSize = static_cast<int>(buffer->getSize() - update->offset);
 		}
 	}
 }
