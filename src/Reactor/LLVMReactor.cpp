@@ -367,12 +367,12 @@ llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Value *offs
 	auto i8Ty = ::llvm::Type::getInt8Ty(jit->context);
 	auto i8PtrTy = i8Ty->getPointerTo();
 	auto elPtrTy = elTy->getPointerTo();
-	auto elVecTy = ::llvm::VectorType::get(elTy, numEls);
-	auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
+	auto elVecTy = ::llvm::VectorType::get(elTy, numEls, false);
+	auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls, false);
 	auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
 	auto i8Ptrs = jit->builder->CreateGEP(i8Base, offsets);
 	auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
-	auto i8Mask = jit->builder->CreateIntCast(mask, ::llvm::VectorType::get(i1Ty, numEls), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
+	auto i8Mask = jit->builder->CreateIntCast(mask, ::llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
 	auto passthrough = zeroMaskedLanes ? ::llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
 	auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
 	auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy });
@@ -394,11 +394,11 @@ void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, ll
 	auto elVecTy = val->getType();
 	auto elTy = llvm::cast<llvm::VectorType>(elVecTy)->getElementType();
 	auto elPtrTy = elTy->getPointerTo();
-	auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
+	auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls, false);
 	auto i8Base = jit->builder->CreatePointerCast(base, i8PtrTy);
 	auto i8Ptrs = jit->builder->CreateGEP(i8Base, offsets);
 	auto elPtrs = jit->builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
-	auto i1Mask = jit->builder->CreateIntCast(mask, ::llvm::VectorType::get(i1Ty, numEls), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
+	auto i1Mask = jit->builder->CreateIntCast(mask, ::llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
 	auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
 	auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_scatter, { elVecTy, elPtrVecTy });
 	jit->builder->CreateCall(func, { val, elPtrs, align, i1Mask });
@@ -934,7 +934,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 		case Type_v2f32:
 			return createBitCast(
 			    createInsertElement(
-			        V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2))),
+			        V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2, false))),
 			        createLoad(createBitCast(ptr, Pointer<Long>::type()), Long::type(), isVolatile, alignment, atomic, memoryOrder),
 			        0),
 			    type);
@@ -942,7 +942,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 		case Type_v4i8:
 			if(alignment != 0)  // Not a local variable (all vectors are 128-bit).
 			{
-				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2)));
+				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::type()), 2, false)));
 				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::type()), Int::type(), isVolatile, alignment, atomic, memoryOrder);
 				i = createZExt(i, Long::type());
 				Value *v = createInsertElement(u, i, 0);
@@ -1018,7 +1018,7 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 		case Type_v2f32:
 			createStore(
 			    createExtractElement(
-			        createBitCast(value, T(llvm::VectorType::get(T(Long::type()), 2))), Long::type(), 0),
+			        createBitCast(value, T(llvm::VectorType::get(T(Long::type()), 2, false))), Long::type(), 0),
 			    createBitCast(ptr, Pointer<Long>::type()),
 			    Long::type(), isVolatile, alignment, atomic, memoryOrder);
 			return value;
@@ -1117,9 +1117,9 @@ Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned i
 	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
 	auto i1Ty = ::llvm::Type::getInt1Ty(jit->context);
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
-	auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
+	auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls, false);
 	auto elVecPtrTy = elVecTy->getPointerTo();
-	auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
+	auto i8Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
 	auto passthrough = zeroMaskedLanes ? ::llvm::Constant::getNullValue(elVecTy) : llvm::UndefValue::get(elVecTy);
 	auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
 	auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_load, { elVecTy, elVecPtrTy });
@@ -1139,7 +1139,7 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	auto i32Ty = ::llvm::Type::getInt32Ty(jit->context);
 	auto elVecTy = V(val)->getType();
 	auto elVecPtrTy = elVecTy->getPointerTo();
-	auto i1Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
+	auto i1Mask = jit->builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
 	auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
 	auto func = ::llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_store, { elVecTy, elVecPtrTy });
 	jit->builder->CreateCall(func, { V(val), V(ptr), align, i1Mask });
@@ -1882,12 +1882,12 @@ Type *SByte8::type()
 
 Type *Byte16::type()
 {
-	return T(llvm::VectorType::get(T(Byte::type()), 16));
+	return T(llvm::VectorType::get(T(Byte::type()), 16, false));
 }
 
 Type *SByte16::type()
 {
-	return T(llvm::VectorType::get(T(SByte::type()), 16));
+	return T(llvm::VectorType::get(T(SByte::type()), 16, false));
 }
 
 Type *Short2::type()
@@ -2205,7 +2205,7 @@ RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 
 Type *Short8::type()
 {
-	return T(llvm::VectorType::get(T(Short::type()), 8));
+	return T(llvm::VectorType::get(T(Short::type()), 8, false));
 }
 
 RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
@@ -2240,7 +2240,7 @@ RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 
 Type *UShort8::type()
 {
-	return T(llvm::VectorType::get(T(UShort::type()), 8));
+	return T(llvm::VectorType::get(T(UShort::type()), 8, false));
 }
 
 RValue<Int> operator++(Int &val, int)  // Post-increment
@@ -2674,7 +2674,7 @@ RValue<Int> SignMask(RValue<Int4> x)
 
 Type *Int4::type()
 {
-	return T(llvm::VectorType::get(T(Int::type()), 4));
+	return T(llvm::VectorType::get(T(Int::type()), 4, false));
 }
 
 UInt4::UInt4(RValue<Float4> cast)
@@ -2788,7 +2788,7 @@ RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y)
 
 Type *UInt4::type()
 {
-	return T(llvm::VectorType::get(T(UInt::type()), 4));
+	return T(llvm::VectorType::get(T(UInt::type()), 4, false));
 }
 
 Type *Half::type()
@@ -3381,7 +3381,7 @@ RValue<UInt> MaxAtomic(RValue<Pointer<UInt>> x, RValue<UInt> y, std::memory_orde
 
 Type *Float4::type()
 {
-	return T(llvm::VectorType::get(T(Float::type()), 4));
+	return T(llvm::VectorType::get(T(Float::type()), 4, false));
 }
 
 RValue<Long> Ticks()
