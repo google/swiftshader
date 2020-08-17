@@ -5,7 +5,9 @@
 Introduction
 ------------
 
-SwiftShader is a high-performance CPU-based implementation of the Vulkan and OpenGL ES graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
+SwiftShader is a high-performance CPU-based implementation of the Vulkan graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
+
+> NOTE: SwiftShader's OpenGL ES frontend is no longer supported, and will eventually be removed. Read more about our recommendation to use [ANGLE on top of SwiftShader Vulkan here](ANGLE.md).
 
 Building
 --------
@@ -13,26 +15,30 @@ Building
 SwiftShader libraries can be built for Windows, Linux, and Mac OS X.\
 Android and Chrome (OS) build environments are also supported.
 
+* **CMake**
+\
+  [Install CMake](https://cmake.org/download/) for Linux, Mac OS X, or Windows and use either [the GUI](https://cmake.org/runningcmake/) or run the following terminal commands:
+  ```
+  cd build
+  cmake ..
+  cmake --build . --parallel
+
+  ./vk-unittests
+  ```
+
 * **Visual Studio**
 \
-  For building the Vulkan ICD library, use [Visual Studio 2019](https://visualstudio.microsoft.com/vs/community/) to open the project folder and wait for it to run CMake. Open the [CMake Targets View](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#ide-integration) in the Solution Explorer and select the vk_swiftshader project to [build](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#building-cmake-projects) it.
+  To build the Vulkan ICD library, use [Visual Studio 2019](https://visualstudio.microsoft.com/vs/community/) to open the project folder and wait for it to run CMake. Open the [CMake Targets View](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#ide-integration) in the Solution Explorer and select the vk_swiftshader project to [build](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#building-cmake-projects) it.
 
-* **CMake**
-
-  [Install CMake](https://cmake.org/download/) for Linux, Mac OS X, or Windows and use either [the IDE](https://cmake.org/runningcmake/) or run the following terminal commands:
-
-      cd build
-      cmake ..
-      make --jobs=8
-
-      ./vk-unittests
 
 Usage
 -----
 
 The SwiftShader libraries act as drop-in replacements for graphics drivers.
 
-On Windows, most applications can be made to use SwiftShader's DLLs by placing them in the same folder as the executable. On Linux, the LD\_LIBRARY\_PATH environment variable or -rpath linker option can be used to direct applications to search for shared libraries in the indicated directory first.
+On Windows, most applications can be made to use SwiftShader's DLLs by placing them in the same folder as the executable. On Linux, the `LD_LIBRARY_PATH` environment variable or `-rpath` linker option can be used to direct applications to search for shared libraries in the indicated directory first.
+
+In general, Vulkan applications look for a shared library named `vulkan-1.dll` on Windows (`vulkan-1.so` on Linux). SwiftShader's equivalent is named `libvk_swiftshader.dll`, which can be renamed to `vulkan-1.dll`. Alternatively, you can set the `VK_ICD_FILENAMES` environment variable to the path to `vk_swiftshader_icd.json` file that is generated under the build directory (e.g. `.\SwiftShader\build\Windows\vk_swiftshader_icd.json`). To learn more about how Vulkan loading works, read the [official documentation here](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md).
 
 Contributing
 ------------
@@ -112,5 +118,4 @@ Disclaimer
 ----------
 
 1. Trademarks are the property of their respective owners.
-2. We do not claim official conformance with the OpenGL graphics API at this moment.
-3. This is not an official Google product.
+2. This is not an official Google product.
