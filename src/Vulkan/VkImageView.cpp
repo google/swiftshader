@@ -281,15 +281,18 @@ int ImageView::layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage) const
 	return static_cast<int>(getImage(usage)->getLayerSize(aspect));
 }
 
-VkExtent3D ImageView::getMipLevelExtent(uint32_t mipLevel) const
+VkExtent2D ImageView::getMipLevelExtent(uint32_t mipLevel) const
 {
-	return image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
-	                                subresourceRange.baseMipLevel + mipLevel);
+	VkExtent3D extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
+	                                             subresourceRange.baseMipLevel + mipLevel);
+
+	return { extent.width, extent.height };
 }
 
 int ImageView::getDepthOrLayerCount(uint32_t mipLevel) const
 {
-	VkExtent3D extent = getMipLevelExtent(mipLevel);
+	VkExtent3D extent = image->getMipLevelExtent(static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask),
+	                                             subresourceRange.baseMipLevel + mipLevel);
 	int layers = subresourceRange.layerCount;
 	int depthOrLayers = layers > 1 ? layers : extent.depth;
 

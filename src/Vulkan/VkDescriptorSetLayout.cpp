@@ -371,7 +371,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 					texture->mipmap[2].buffer = imageView->getOffsetPointer(offset, VK_IMAGE_ASPECT_PLANE_2_BIT, level, 0, ImageView::SAMPLING);
 				}
 
-				VkExtent3D extent = imageView->getMipLevelExtent(0);
+				VkExtent2D extent = imageView->getMipLevelExtent(0);
 
 				int width = extent.width;
 				int height = extent.height;
@@ -410,7 +410,7 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 						mipmap.buffer = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
 					}
 
-					VkExtent3D extent = imageView->getMipLevelExtent(level);
+					VkExtent2D extent = imageView->getMipLevelExtent(level);
 
 					int width = extent.width;
 					int height = extent.height;
