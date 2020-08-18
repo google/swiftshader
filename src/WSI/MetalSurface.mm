@@ -147,7 +147,7 @@ VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))
         if(drawable)
         {
             VkExtent2D windowExtent = metalLayer->getExtent();
-            VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+            const VkExtent3D &extent = image->getImage()->getExtent();
 
             if(windowExtent.width != extent.width || windowExtent.height != extent.height)
             {

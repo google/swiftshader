@@ -59,7 +59,7 @@ void XlibSurfaceKHR::attachImage(PresentImage *image)
 	XWindowAttributes attr;
 	libX11->XGetWindowAttributes(pDisplay, window, &attr);
 
-	VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	const VkExtent3D &extent = image->getImage()->getExtent();
 
 	int bytes_per_line = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 	char *buffer = static_cast<char *>(image->getImageMemory()->getOffsetPointer(0));
@@ -93,7 +93,7 @@ VkResult XlibSurfaceKHR::present(PresentImage *image)
 			XWindowAttributes attr;
 			libX11->XGetWindowAttributes(pDisplay, window, &attr);
 			VkExtent2D windowExtent = { static_cast<uint32_t>(attr.width), static_cast<uint32_t>(attr.height) };
-			VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			const VkExtent3D &extent = image->getImage()->getExtent();
 
 			if(windowExtent.width != extent.width || windowExtent.height != extent.height)
 			{

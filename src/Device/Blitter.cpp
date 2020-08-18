@@ -1743,10 +1743,10 @@ Blitter::CornerUpdateRoutineType Blitter::getCornerUpdateRoutine(const State &st
 
 void Blitter::copy(const vk::Image *src, uint8_t *dst, unsigned int dstPitch)
 {
-	VkExtent3D extent = src->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	const VkExtent3D &extent = src->getExtent();
 	size_t rowBytes = src->getFormat(VK_IMAGE_ASPECT_COLOR_BIT).bytes() * extent.width;
 	unsigned int srcPitch = src->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-	ASSERT(dstPitch >= rowBytes && srcPitch >= rowBytes && src->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0).height >= extent.height);
+	ASSERT(dstPitch >= rowBytes && srcPitch >= rowBytes);
 
 	const uint8_t *s = (uint8_t *)src->getTexelPointer({ 0, 0, 0 }, { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 });
 	uint8_t *d = dst;

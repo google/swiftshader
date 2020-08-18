@@ -88,7 +88,7 @@ VkResult Win32SurfaceKHR::present(PresentImage *image)
 		return VK_SUCCESS;
 	}
 
-	VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	const VkExtent3D &extent = image->getImage()->getExtent();
 
 	if(windowExtent.width != extent.width || windowExtent.height != extent.height)
 	{

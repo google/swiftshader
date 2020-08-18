@@ -70,7 +70,7 @@ void WaylandSurfaceKHR::attachImage(PresentImage *image)
 	WaylandImage *wlImage = new WaylandImage;
 	char path[] = "/tmp/XXXXXX";
 	int fd = mkstemp(path);
-	VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	const VkExtent3D &extent = image->getImage()->getExtent();
 	int stride = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 	ftruncate(fd, extent.height * stride);
 	struct wl_shm_pool *pool = wl_shm_create_pool(shm, fd, extent.height * stride);
@@ -87,7 +87,7 @@ void WaylandSurfaceKHR::detachImage(PresentImage *image)
 	if(it != imageMap.end())
 	{
 		WaylandImage *wlImage = it->second;
-		VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+		const VkExtent3D &extent = image->getImage()->getExtent();
 		int stride = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 		munmap(wlImage->data, extent.height * stride);
 		wl_buffer_destroy(wlImage->buffer);
@@ -102,7 +102,7 @@ VkResult WaylandSurfaceKHR::present(PresentImage *image)
 	if(it != imageMap.end())
 	{
 		WaylandImage *wlImage = it->second;
-		VkExtent3D extent = image->getImage()->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+		const VkExtent3D &extent = image->getImage()->getExtent();
 		int bufferRowPitch = image->getImage()->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 		image->getImage()->copyTo(reinterpret_cast<uint8_t *>(wlImage->data), bufferRowPitch);
 		wl_surface_attach(surface, wlImage->buffer, 0, 0);
