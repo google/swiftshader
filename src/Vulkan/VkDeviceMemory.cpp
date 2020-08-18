@@ -263,13 +263,13 @@ static void findTraits(const VkMemoryAllocateInfo *pAllocateInfo,
 DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo *pAllocateInfo, void *mem)
     : size(pAllocateInfo->allocationSize)
     , memoryTypeIndex(pAllocateInfo->memoryTypeIndex)
-    , external(reinterpret_cast<ExternalBase *>(mem))
 {
 	ASSERT(size);
 
 	ExternalMemoryTraits traits;
 	findTraits(pAllocateInfo, &traits);
-	traits.instanceInit(external, pAllocateInfo);
+	traits.instanceInit(mem, pAllocateInfo);
+	external = reinterpret_cast<ExternalBase *>(mem);
 }
 
 void DeviceMemory::destroy(const VkAllocationCallbacks *pAllocator)
