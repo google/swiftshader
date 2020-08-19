@@ -186,7 +186,11 @@ namespace sw
 	}
 }
 
+// Chromium can be built with USE_X11 && USE_OZONE. In case of pure USE_X11 builds, we can use this path.
+// In another case, the decision what framebuffer to create will be done by the FrameBufferFactoryOzone.
+#if !defined(USE_OZONE)
 NO_SANITIZE_FUNCTION sw::FrameBuffer *createFrameBuffer(void *display, Window window, int width, int height)
 {
 	return new sw::FrameBufferX11((::Display*)display, window, width, height);
 }
+#endif
