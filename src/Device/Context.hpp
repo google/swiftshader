@@ -83,10 +83,9 @@ public:
 	bool depthBufferActive() const;
 	bool stencilActive() const;
 
-	bool allTargetsColorClamp() const;
-
 	void setBlendState(int index, BlendState state);
 	BlendState getBlendState(int index) const;
+	bool isColorClamped(int index) const;
 
 	VkPrimitiveTopology topology;
 	VkProvokingVertexModeEXT provokingVertexMode;
