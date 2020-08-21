@@ -15,7 +15,6 @@
 #include "VkPhysicalDevice.hpp"
 
 #include "VkConfig.hpp"
-#include "VkStringify.hpp"
 #include "Pipeline/SpirvShader.hpp"  // sw::SIMD::Width
 #include "Reactor/Reactor.hpp"
 
@@ -129,14 +128,12 @@ const VkPhysicalDeviceFeatures &PhysicalDevice::getFeatures() const
 	return features;
 }
 
-template<typename T>
-static void getPhysicalDeviceSamplerYcbcrConversionFeatures(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceSamplerYcbcrConversionFeatures *features) const
 {
 	features->samplerYcbcrConversion = VK_TRUE;
 }
 
-template<typename T>
-static void getPhysicalDevice16BitStorageFeatures(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDevice16BitStorageFeatures *features) const
 {
 	features->storageBuffer16BitAccess = VK_FALSE;
 	features->storageInputOutput16 = VK_FALSE;
@@ -144,49 +141,42 @@ static void getPhysicalDevice16BitStorageFeatures(T *features)
 	features->uniformAndStorageBuffer16BitAccess = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDeviceVariablePointersFeatures(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceVariablePointerFeatures *features) const
 {
 	features->variablePointersStorageBuffer = VK_FALSE;
 	features->variablePointers = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDevice8BitStorageFeaturesKHR(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDevice8BitStorageFeaturesKHR *features) const
 {
 	features->storageBuffer8BitAccess = VK_FALSE;
 	features->uniformAndStorageBuffer8BitAccess = VK_FALSE;
 	features->storagePushConstant8 = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDeviceMultiviewFeatures(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceMultiviewFeatures *features) const
 {
 	features->multiview = VK_TRUE;
 	features->multiviewGeometryShader = VK_FALSE;
 	features->multiviewTessellationShader = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDeviceProtectedMemoryFeatures(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceProtectedMemoryFeatures *features) const
 {
 	features->protectedMemory = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDeviceShaderDrawParameterFeatures(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures *features) const
 {
 	features->shaderDrawParameters = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR *features) const
 {
 	features->separateDepthStencilLayouts = VK_TRUE;
 }
 
-template<typename T>
-static void getPhysicalDeviceLineRasterizationFeaturesEXT(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT *features) const
 {
 	features->rectangularLines = VK_TRUE;
 	features->bresenhamLines = VK_TRUE;
@@ -196,139 +186,14 @@ static void getPhysicalDeviceLineRasterizationFeaturesEXT(T *features)
 	features->stippledSmoothLines = VK_FALSE;
 }
 
-template<typename T>
-static void getPhysicalDeviceProvokingVertexFeaturesEXT(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT *features) const
 {
 	features->provokingVertexLast = VK_TRUE;
 }
 
-template<typename T>
-static void getPhysicalDeviceImageRobustnessFeaturesEXT(T *features)
+void PhysicalDevice::getFeatures(VkPhysicalDeviceImageRobustnessFeaturesEXT *features) const
 {
 	features->robustImageAccess = VK_TRUE;
-}
-
-template<typename T>
-static void getPhysicalDeviceShaderDrawParametersFeatures(T *features)
-{
-	features->shaderDrawParameters = VK_FALSE;
-}
-
-template<typename T>
-static void getPhysicalDeviceVulkan11Features(T *features)
-{
-	getPhysicalDevice16BitStorageFeatures(features);
-	getPhysicalDeviceMultiviewFeatures(features);
-	getPhysicalDeviceVariablePointersFeatures(features);
-	getPhysicalDeviceProtectedMemoryFeatures(features);
-	getPhysicalDeviceSamplerYcbcrConversionFeatures(features);
-	getPhysicalDeviceShaderDrawParametersFeatures(features);
-}
-
-template<typename T>
-static void getPhysicalDeviceVulkan12Features(T *features)
-{
-	features->samplerMirrorClampToEdge = VK_FALSE;
-	features->drawIndirectCount = VK_FALSE;
-	getPhysicalDevice8BitStorageFeaturesKHR(features);
-	features->shaderBufferInt64Atomics = VK_FALSE;
-	features->shaderSharedInt64Atomics = VK_FALSE;
-	features->shaderFloat16 = VK_FALSE;
-	features->shaderInt8 = VK_FALSE;
-	features->descriptorIndexing = VK_FALSE;
-	features->shaderInputAttachmentArrayDynamicIndexing = VK_FALSE;
-	features->shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE;
-	features->shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE;
-	features->shaderSampledImageArrayNonUniformIndexing = VK_FALSE;
-	features->shaderStorageBufferArrayNonUniformIndexing = VK_FALSE;
-	features->shaderStorageImageArrayNonUniformIndexing = VK_FALSE;
-	features->shaderInputAttachmentArrayNonUniformIndexing = VK_FALSE;
-	features->shaderUniformTexelBufferArrayNonUniformIndexing = VK_FALSE;
-	features->shaderStorageTexelBufferArrayNonUniformIndexing = VK_FALSE;
-	features->descriptorBindingUniformBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingSampledImageUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingStorageImageUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingStorageBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingStorageBufferUpdateAfterBind = VK_FALSE;
-	features->descriptorBindingUpdateUnusedWhilePending = VK_FALSE;
-	features->descriptorBindingPartiallyBound = VK_FALSE;
-	features->descriptorBindingVariableDescriptorCount = VK_FALSE;
-	features->runtimeDescriptorArray = VK_FALSE;
-	features->samplerFilterMinmax = VK_FALSE;
-	features->scalarBlockLayout = VK_FALSE;
-	features->imagelessFramebuffer = VK_FALSE;
-	features->uniformBufferStandardLayout = VK_FALSE;
-	features->shaderSubgroupExtendedTypes = VK_FALSE;
-	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
-	features->hostQueryReset = VK_FALSE;
-	features->timelineSemaphore = VK_FALSE;
-	features->bufferDeviceAddress = VK_FALSE;
-	features->bufferDeviceAddressCaptureReplay = VK_FALSE;
-	features->bufferDeviceAddressMultiDevice = VK_FALSE;
-	features->vulkanMemoryModel = VK_FALSE;
-	features->vulkanMemoryModelDeviceScope = VK_FALSE;
-	features->vulkanMemoryModelAvailabilityVisibilityChains = VK_FALSE;
-	features->shaderOutputViewportIndex = VK_FALSE;
-	features->shaderOutputLayer = VK_FALSE;
-	features->subgroupBroadcastDynamicId = VK_FALSE;
-}
-
-void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
-{
-	features->features = getFeatures();
-	VkBaseOutStructure *curExtension = reinterpret_cast<VkBaseOutStructure *>(features->pNext);
-	while(curExtension != nullptr)
-	{
-		getFeatures(curExtension);
-		curExtension = reinterpret_cast<VkBaseOutStructure *>(curExtension->pNext);
-	}
-}
-
-void PhysicalDevice::getFeatures(VkBaseOutStructure *features) const
-{
-	switch(features->sType)
-	{
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES:
-			getPhysicalDeviceVulkan11Features(reinterpret_cast<VkPhysicalDeviceVulkan11Features *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES:
-			getPhysicalDeviceVulkan12Features(reinterpret_cast<VkPhysicalDeviceVulkan12Features *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES:
-			getPhysicalDeviceMultiviewFeatures(reinterpret_cast<VkPhysicalDeviceMultiviewFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES:
-			getPhysicalDeviceVariablePointersFeatures(reinterpret_cast<VkPhysicalDeviceVariablePointersFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES:
-			getPhysicalDevice16BitStorageFeatures(reinterpret_cast<VkPhysicalDevice16BitStorageFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES:
-			getPhysicalDeviceSamplerYcbcrConversionFeatures(reinterpret_cast<VkPhysicalDeviceSamplerYcbcrConversionFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES:
-			getPhysicalDeviceProtectedMemoryFeatures(reinterpret_cast<VkPhysicalDeviceProtectedMemoryFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES:
-			getPhysicalDeviceShaderDrawParameterFeatures(reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
-			getPhysicalDeviceImageRobustnessFeaturesEXT(reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
-			getPhysicalDeviceLineRasterizationFeaturesEXT(reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES:
-			getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(reinterpret_cast<VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures *>(features));
-			break;
-		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
-			getPhysicalDevice8BitStorageFeaturesKHR(reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR *>(features));
-			break;
-		default:
-			WARN("features->pNext->sType = %s", vk::Stringify(features->sType).c_str());
-			break;
-	}
 }
 
 VkSampleCountFlags PhysicalDevice::getSampleCounts() const
