@@ -21,6 +21,18 @@
 
 using namespace sw;
 
+TEST(MathTest, UnsignedFloat11_10)
+{
+	// Test the largest value which causes underflow to 0, and the smallest value
+	// which produces a denormalized result.
+
+	EXPECT_EQ(R11G11B10F::float32ToFloat11(bit_cast<float>(0x3500007F)), 0x0000);
+	EXPECT_EQ(R11G11B10F::float32ToFloat11(bit_cast<float>(0x35000080)), 0x0001);
+
+	EXPECT_EQ(R11G11B10F::float32ToFloat10(bit_cast<float>(0x3580003F)), 0x0000);
+	EXPECT_EQ(R11G11B10F::float32ToFloat10(bit_cast<float>(0x35800040)), 0x0001);
+}
+
 // Clamps to the [0, hi] range. NaN input produces 0, hi must be non-NaN.
 float clamp0hi(float x, float hi)
 {
