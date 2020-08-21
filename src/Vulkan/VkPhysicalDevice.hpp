@@ -35,17 +35,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const void *) { return 0; }
 
 	const VkPhysicalDeviceFeatures &getFeatures() const;
-	void getFeatures(VkPhysicalDeviceSamplerYcbcrConversionFeatures *features) const;
-	void getFeatures(VkPhysicalDevice16BitStorageFeatures *features) const;
-	void getFeatures(VkPhysicalDeviceVariablePointerFeatures *features) const;
-	void getFeatures(VkPhysicalDevice8BitStorageFeaturesKHR *features) const;
-	void getFeatures(VkPhysicalDeviceMultiviewFeatures *features) const;
-	void getFeatures(VkPhysicalDeviceProtectedMemoryFeatures *features) const;
-	void getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures *features) const;
-	void getFeatures(VkPhysicalDeviceLineRasterizationFeaturesEXT *features) const;
-	void getFeatures(VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR *features) const;
-	void getFeatures(VkPhysicalDeviceProvokingVertexFeaturesEXT *features) const;
-	void getFeatures(VkPhysicalDeviceImageRobustnessFeaturesEXT *features) const;
+	void getFeatures2(VkPhysicalDeviceFeatures2 *features) const;
 	bool hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatures) const;
 
 	const VkPhysicalDeviceProperties &getProperties() const;
