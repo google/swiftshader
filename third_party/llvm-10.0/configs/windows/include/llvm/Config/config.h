@@ -347,7 +347,7 @@
 #define RETSIGTYPE void
 
 /* Define if std::is_trivially_copyable is supported */
-#define HAVE_STD_IS_TRIVIALLY_COPYABLE 1
+/* #undef HAVE_STD_IS_TRIVIALLY_COPYABLE */
 
 /* Define to a function implementing stricmp */
 #define stricmp _stricmp
