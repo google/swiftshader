@@ -1394,6 +1394,15 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				}
 			});
 			break;
+		case OpenCLDebugInfo100DebugOperation:
+			defineOrEmit(insn, pass, [&](debug::Operation *operation) {
+				operation->opcode = insn.word(5);
+				for(uint32_t i = 6; i < insn.wordCount(); i++)
+				{
+					operation->operands.push_back(insn.word(i));
+				}
+			});
+			break;
 
 		case OpenCLDebugInfo100DebugTypePointer:
 		case OpenCLDebugInfo100DebugTypeQualifier:
@@ -1406,7 +1415,6 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 		case OpenCLDebugInfo100DebugFunctionDeclaration:
 		case OpenCLDebugInfo100DebugLexicalBlockDiscriminator:
 		case OpenCLDebugInfo100DebugInlinedVariable:
-		case OpenCLDebugInfo100DebugOperation:
 		case OpenCLDebugInfo100DebugMacroDef:
 		case OpenCLDebugInfo100DebugMacroUndef:
 		case OpenCLDebugInfo100DebugImportedEntity:
