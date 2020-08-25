@@ -1264,11 +1264,14 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 				var->column = insn.word(9);
 				var->parent = get(debug::Scope::ID(insn.word(10)));
 				var->linkage = shader->getString(insn.word(11));
-				var->variable = insn.word(12);
+				var->variable = isNone(insn.word(12)) ? 0 : insn.word(12);
 				var->flags = insn.word(13);
 				// static member declaration: word(14)
 
-				exposeVariable(shader, var->name.c_str(), &debug::Scope::Global, var->type, var->variable, state);
+				// TODO: show a `<optimized-away>` message instead of hiding the variable
+				if (var->variable != 0) {
+					exposeVariable(shader, var->name.c_str(), &debug::Scope::Global, var->type, var->variable, state);
+				}
 			});
 			break;
 		case OpenCLDebugInfo100DebugFunction:
