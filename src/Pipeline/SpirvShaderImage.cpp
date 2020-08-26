@@ -558,8 +558,11 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 	if(sampleId.value())
 	{
 		Operand sample(this, state, sampleId);
-		n = sample.Int(0);
-		ptrOffset += n * samplePitch;
+		if(!sample.isConstantZero())
+		{
+			n = sample.Int(0);
+			ptrOffset += n * samplePitch;
+		}
 	}
 
 	// If the out-of-bounds behavior is set to nullify, then each coordinate must be tested individually.
@@ -584,8 +587,12 @@ SIMD::Pointer SpirvShader::GetTexelAddress(EmitState const *state, Pointer<Byte>
 
 		if(sampleId.value())
 		{
-			SIMD::UInt sampleCount = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));
-			oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(n), sampleCount));
+			Operand sample(this, state, sampleId);
+			if(!sample.isConstantZero())
+			{
+				SIMD::UInt sampleCount = *Pointer<UInt>(descriptor + OFFSET(vk::StorageImageDescriptor, sampleCount));
+				oobMask |= As<SIMD::Int>(CmpNLT(As<SIMD::UInt>(n), sampleCount));
+			}
 		}
 
 		constexpr int32_t OOB_OFFSET = 0x7FFFFFFF - 16;  // SIMD pointer offsets are signed 32-bit, so this is the largest offset (for 16-byte texels).

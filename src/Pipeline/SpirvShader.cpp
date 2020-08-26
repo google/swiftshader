@@ -2481,11 +2481,11 @@ SpirvShader::Operand::Operand(const SpirvShader *shader, const EmitState *state,
 {}
 
 SpirvShader::Operand::Operand(const EmitState *state, const Object &object)
-    : constant(object.constantValue.data())
+    : constant(object.kind == SpirvShader::Object::Kind::Constant ? object.constantValue.data() : nullptr)
     , intermediate(object.kind == SpirvShader::Object::Kind::Intermediate ? &state->getIntermediate(object.id()) : nullptr)
     , componentCount(intermediate ? intermediate->componentCount : object.constantValue.size())
 {
-	ASSERT(intermediate || (object.kind == SpirvShader::Object::Kind::Constant));
+	ASSERT(intermediate || constant);
 }
 
 SpirvShader::Operand::Operand(const Intermediate &value)
@@ -2493,6 +2493,24 @@ SpirvShader::Operand::Operand(const Intermediate &value)
     , intermediate(&value)
     , componentCount(value.componentCount)
 {
+}
+
+bool SpirvShader::Operand::isConstantZero() const
+{
+	if(!constant)
+	{
+		return false;
+	}
+
+	for(uint32_t i = 0; i < componentCount; i++)
+	{
+		if(constant[i] != 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 SpirvRoutine::SpirvRoutine(vk::PipelineLayout const *pipelineLayout)
