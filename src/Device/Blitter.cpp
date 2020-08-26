@@ -16,6 +16,7 @@
 
 #include "Pipeline/ShaderCore.hpp"
 #include "Reactor/Reactor.hpp"
+#include "System/CPUID.hpp"
 #include "System/Debug.hpp"
 #include "System/Half.hpp"
 #include "System/Memory.hpp"
@@ -23,6 +24,11 @@
 #include "Vulkan/VkImage.hpp"
 
 #include <utility>
+
+#if defined(__i386__) || defined(__x86_64__)
+#	include <xmmintrin.h>
+#	include <emmintrin.h>
+#endif
 
 namespace {
 rr::RValue<rr::Int> PackFields(rr::Int4 const &ints, const sw::int4 shifts)
@@ -1971,13 +1977,36 @@ bool Blitter::fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve r
 	uint8_t *source2 = source1 + slice;
 	uint8_t *source3 = source2 + slice;
 
+	const bool SSE2 = CPUID::supportsSSE2();
+
 	if(format == VK_FORMAT_R8G8B8A8_UNORM || format == VK_FORMAT_B8G8R8A8_UNORM || format == VK_FORMAT_A8B8G8R8_UNORM_PACK32)
 	{
 		if(samples == 4)
 		{
 			for(int y = 0; y < height; y++)
 			{
-				for(int x = 0; x < width; x++)
+				int x = 0;
+
+#if defined(__i386__) || defined(__x86_64__)
+				if(SSE2)
+				{
+					for(; (x + 3) < width; x += 4)
+					{
+						__m128i c0 = _mm_loadu_si128((__m128i *)(source0 + 4 * x));
+						__m128i c1 = _mm_loadu_si128((__m128i *)(source1 + 4 * x));
+						__m128i c2 = _mm_loadu_si128((__m128i *)(source2 + 4 * x));
+						__m128i c3 = _mm_loadu_si128((__m128i *)(source3 + 4 * x));
+
+						c0 = _mm_avg_epu8(c0, c1);
+						c2 = _mm_avg_epu8(c2, c3);
+						c0 = _mm_avg_epu8(c0, c2);
+
+						_mm_storeu_si128((__m128i *)(dest + 4 * x), c0);
+					}
+				}
+#endif
+
+				for(; x < width; x++)
 				{
 					uint32_t c0 = *(uint32_t *)(source0 + 4 * x);
 					uint32_t c1 = *(uint32_t *)(source1 + 4 * x);
@@ -1996,6 +2025,10 @@ bool Blitter::fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve r
 				source2 += pitch;
 				source3 += pitch;
 				dest += pitch;
+
+				ASSERT(source0 < src->end());
+				ASSERT(source3 < src->end());
+				ASSERT(dest < dst->end());
 			}
 		}
 		else
