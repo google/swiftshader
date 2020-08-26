@@ -159,6 +159,7 @@ private:
 	};
 
 	bool fastClear(void *clearValue, vk::Format clearFormat, vk::Image *dest, const vk::Format &viewFormat, const VkImageSubresourceRange &subresourceRange, const VkRect2D *renderArea);
+	bool fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve region);
 
 	Float4 readFloat4(Pointer<Byte> element, const State &state);
 	void write(Float4 &color, Pointer<Byte> element, const State &state);

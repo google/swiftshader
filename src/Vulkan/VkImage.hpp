@@ -194,4 +194,28 @@ static inline Image *Cast(VkImage object)
 
 }  // namespace vk
 
+inline bool operator==(const VkExtent3D &lhs, const VkExtent3D &rhs)
+{
+	return lhs.width == rhs.width &&
+	       lhs.height == rhs.height &&
+	       lhs.depth == rhs.depth;
+}
+
+inline bool operator!=(const VkExtent3D &lhs, const VkExtent3D &rhs)
+{
+	return !(lhs == rhs);
+}
+
+inline bool operator==(const VkOffset3D &lhs, const VkOffset3D &rhs)
+{
+	return lhs.x == rhs.x &&
+	       lhs.y == rhs.y &&
+	       lhs.z == rhs.z;
+}
+
+inline bool operator!=(const VkOffset3D &lhs, const VkOffset3D &rhs)
+{
+	return !(lhs == rhs);
+}
+
 #endif  // VK_IMAGE_HPP_
