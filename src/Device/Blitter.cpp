@@ -1882,6 +1882,17 @@ void Blitter::blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkF
 
 void Blitter::resolve(const vk::Image *src, vk::Image *dst, VkImageResolve region)
 {
+	// "The aspectMask member of srcSubresource and dstSubresource must only contain VK_IMAGE_ASPECT_COLOR_BIT"
+	ASSERT(region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT);
+	ASSERT(region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT);
+	// "The layerCount member of srcSubresource and dstSubresource must match"
+	ASSERT(region.srcSubresource.layerCount == region.dstSubresource.layerCount);
+
+	// We use this method both for explicit resolves from vkCmdResolveImage, and implicit ones for resolve attachments.
+	// - vkCmdResolveImage: "srcImage and dstImage must have been created with the same image format."
+	// - VkSubpassDescription: "each resolve attachment that is not VK_ATTACHMENT_UNUSED must have the same VkFormat as its corresponding color attachment."
+	ASSERT(src->getFormat() == dst->getFormat());
+
 	if(fastResolve(src, dst, region))
 	{
 		return;
@@ -1913,11 +1924,6 @@ static inline uint32_t averageByte4(uint32_t x, uint32_t y)
 
 bool Blitter::fastResolve(const vk::Image *src, vk::Image *dst, VkImageResolve region)
 {
-	// "The aspectMask member of srcSubresource and dstSubresource must only contain VK_IMAGE_ASPECT_COLOR_BIT"
-	ASSERT(region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT);
-	ASSERT(region.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT);
-	ASSERT(region.srcSubresource.layerCount == region.dstSubresource.layerCount);
-
 	if(region.dstOffset != VkOffset3D{ 0, 0, 0 })
 	{
 		return false;
