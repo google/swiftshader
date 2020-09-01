@@ -722,6 +722,12 @@ private:
 	template<typename T>
 	T *get(SpirvID<T> id) const;
 
+	// getOrNull() returns the debug object with the given id if
+	// the object exists and is of type (or derive from type) T.
+	// Otherwise, returns nullptr.
+	template<typename T>
+	T *getOrNull(SpirvID<T> id) const;
+
 	// use get() and add() to access this
 	std::unordered_map<debug::Object::ID, std::unique_ptr<debug::Object>> objects;
 
@@ -1195,7 +1201,12 @@ void SpirvShader::Impl::Debugger::process(const SpirvShader *shader, const InsnI
 		case OpenCLDebugInfo100DebugTypeFunction:
 			defineOrEmit(insn, pass, [&](debug::FunctionType *type) {
 				type->flags = insn.word(5);
-				type->returnTy = get(debug::Type::ID(insn.word(6)));
+				type->returnTy = getOrNull(debug::Type::ID(insn.word(6)));
+
+				// 'Return Type' operand must be a debug type or OpTypeVoid. See
+				// https://www.khronos.org/registry/spir-v/specs/unified1/OpenCL.DebugInfo.100.html#DebugTypeFunction
+				ASSERT_MSG(type->returnTy != nullptr || shader->getType(insn.word(6)).opcode() == spv::Op::OpTypeVoid, "Invalid return type of DebugTypeFunction: %d", insn.word(6));
+
 				for(uint32_t i = 7; i < insn.wordCount(); i++)
 				{
 					type->paramTys.push_back(get(debug::Type::ID(insn.word(i))));
@@ -1477,6 +1488,17 @@ T *SpirvShader::Impl::Debugger::get(SpirvID<T> id) const
 {
 	auto it = objects.find(debug::Object::ID(id.value()));
 	ASSERT_MSG(it != objects.end(), "Unknown debug object %d", id.value());
+	auto ptr = debug::cast<T>(it->second.get());
+	ASSERT_MSG(ptr, "Debug object %d is not of the correct type. Got: %s, want: %s",
+	           id.value(), cstr(it->second->kind), cstr(T::KIND));
+	return ptr;
+}
+
+template<typename T>
+T *SpirvShader::Impl::Debugger::getOrNull(SpirvID<T> id) const
+{
+	auto it = objects.find(debug::Object::ID(id.value()));
+	if(it == objects.end()) { return nullptr; }  // Not found.
 	auto ptr = debug::cast<T>(it->second.get());
 	ASSERT_MSG(ptr, "Debug object %d is not of the correct type. Got: %s, want: %s",
 	           id.value(), cstr(it->second->kind), cstr(T::KIND));
