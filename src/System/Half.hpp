@@ -174,7 +174,8 @@ public:
 		const unsigned int float11ExponentBias = 14;
 
 		const unsigned int float32Maxfloat11 = 0x477E0000;
-		const unsigned int float32Minfloat11 = 0x38800000;
+		const unsigned int float32MinNormfloat11 = 0x38800000;
+		const unsigned int float32MinDenormfloat11 = 0x35000080;
 
 		const unsigned int float32Bits = *reinterpret_cast<unsigned int *>(&fp32);
 		const bool float32Sign = (float32Bits & float32SignMask) == float32SignMask;
@@ -210,9 +211,14 @@ public:
 			// The number is too large to be represented as a float11, set to max
 			return float11Max;
 		}
+		else if(float32Val < float32MinDenormfloat11)
+		{
+			// The number is too small to be represented as a denormalized float11, set to 0
+			return 0;
+		}
 		else
 		{
-			if(float32Val < float32Minfloat11)
+			if(float32Val < float32MinNormfloat11)
 			{
 				// The number is too small to be represented as a normalized float11
 				// Convert it to a denormalized value.
@@ -247,7 +253,8 @@ public:
 		const unsigned int float10ExponentBias = 14;
 
 		const unsigned int float32Maxfloat10 = 0x477C0000;
-		const unsigned int float32Minfloat10 = 0x38800000;
+		const unsigned int float32MinNormfloat10 = 0x38800000;
+		const unsigned int float32MinDenormfloat10 = 0x35800040;
 
 		const unsigned int float32Bits = *reinterpret_cast<unsigned int *>(&fp32);
 		const bool float32Sign = (float32Bits & float32SignMask) == float32SignMask;
@@ -283,9 +290,14 @@ public:
 			// The number is too large to be represented as a float10, set to max
 			return float10Max;
 		}
+		else if(float32Val < float32MinDenormfloat10)
+		{
+			// The number is too small to be represented as a denormalized float10, set to 0
+			return 0;
+		}
 		else
 		{
-			if(float32Val < float32Minfloat10)
+			if(float32Val < float32MinNormfloat10)
 			{
 				// The number is too small to be represented as a normalized float10
 				// Convert it to a denormalized value.
