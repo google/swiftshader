@@ -800,7 +800,7 @@ private:
 	HandleMap<Function> functions;
 	std::unordered_map<StringID, String> strings;
 	HandleMap<Extension> extensionsByID;
-	std::unordered_set<Extension::Name> extensionsImported;
+	std::unordered_set<uint32_t> extensionsImported;
 	Function::ID entryPoint;
 	mutable bool imageWriteEmitted = false;
 
