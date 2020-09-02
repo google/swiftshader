@@ -54,8 +54,10 @@ config("swiftshader_libGLESv2_private_config") {
     if (is_mac) {
       cflags += [ "-fvisibility=protected" ]
       defines += [ "GL_APICALL=__attribute__((no_sanitize(\"function\")))" ]
-    } else {
+    } else if (is_clang) {
       defines += [ "GL_APICALL=__attribute__((visibility(\"protected\"))) __attribute__((no_sanitize(\"function\")))" ]
+    } else {
+      defines += [ "GL_APICALL= " ]
     }
   }
 }
@@ -114,9 +116,7 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
     output_dir = "$root_out_dir/swiftshader"
   }
 
-  deps = [
-    ":swiftshader_libGLESv2_static",
-  ]
+  deps = [ ":swiftshader_libGLESv2_static" ]
 
   sources = [
     "entry_points.cpp",
@@ -131,9 +131,7 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
           rebase_path("libGLESv2.exports", root_build_dir),
     ]
   } else if (is_linux) {
-    inputs = [
-      "libGLESv2.lds",
-    ]
+    inputs = [ "libGLESv2.lds" ]
     ldflags = [ "-Wl,--version-script=" +
                 rebase_path("libGLESv2.lds", root_build_dir) ]
   }
