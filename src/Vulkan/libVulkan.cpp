@@ -1757,10 +1757,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 
 				if(ycbcrConversion)
 				{
-					ASSERT((pCreateInfo->components.r == VK_COMPONENT_SWIZZLE_IDENTITY) &&
-					       (pCreateInfo->components.g == VK_COMPONENT_SWIZZLE_IDENTITY) &&
-					       (pCreateInfo->components.b == VK_COMPONENT_SWIZZLE_IDENTITY) &&
-					       (pCreateInfo->components.a == VK_COMPONENT_SWIZZLE_IDENTITY));
+					ASSERT((pCreateInfo->components.r == VK_COMPONENT_SWIZZLE_IDENTITY || pCreateInfo->components.r == VK_COMPONENT_SWIZZLE_R) &&
+					       (pCreateInfo->components.g == VK_COMPONENT_SWIZZLE_IDENTITY || pCreateInfo->components.g == VK_COMPONENT_SWIZZLE_G) &&
+					       (pCreateInfo->components.b == VK_COMPONENT_SWIZZLE_IDENTITY || pCreateInfo->components.b == VK_COMPONENT_SWIZZLE_B) &&
+					       (pCreateInfo->components.a == VK_COMPONENT_SWIZZLE_IDENTITY || pCreateInfo->components.a == VK_COMPONENT_SWIZZLE_A));
 				}
 			}
 			break;
