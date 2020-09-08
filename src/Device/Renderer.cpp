@@ -303,6 +303,10 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 			data->a2c0 = float4(0.25f);
 			data->a2c1 = float4(0.75f);
 		}
+		else if(ms == 1)
+		{
+			data->a2c0 = float4(0.5f);
+		}
 		else
 			ASSERT(false);
 	}
