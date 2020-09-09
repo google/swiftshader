@@ -289,7 +289,8 @@ void DescriptorSetLayout::WriteDescriptorSet(Device *device, DescriptorSet *dstS
 
 			sampledImage[i].type = VK_IMAGE_VIEW_TYPE_1D;
 			sampledImage[i].imageViewId = bufferView->id;
-			sampledImage[i].swizzle = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			constexpr VkComponentMapping identityMapping = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			sampledImage[i].swizzle = ResolveComponentMapping(identityMapping, bufferView->getFormat());
 			sampledImage[i].format = bufferView->getFormat();
 
 			auto numElements = bufferView->getElementCount();

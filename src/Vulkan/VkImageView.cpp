@@ -19,11 +19,21 @@
 
 #include <climits>
 
-namespace {
+namespace vk {
 
-VkComponentMapping ResolveComponentMapping(VkComponentMapping m, vk::Format format)
+VkComponentMapping ResolveIdentityMapping(VkComponentMapping mapping)
 {
-	m = vk::ResolveIdentityMapping(m);
+	return {
+		(mapping.r == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_R : mapping.r,
+		(mapping.g == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_G : mapping.g,
+		(mapping.b == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_B : mapping.b,
+		(mapping.a == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_A : mapping.a,
+	};
+}
+
+VkComponentMapping ResolveComponentMapping(VkComponentMapping mapping, vk::Format format)
+{
+	mapping = vk::ResolveIdentityMapping(mapping);
 
 	// Replace non-present components with zero/one swizzles so that the sampler
 	// will give us correct interactions between channel replacement and texel replacement,
@@ -39,7 +49,7 @@ VkComponentMapping ResolveComponentMapping(VkComponentMapping m, vk::Format form
 		format.componentCount() < 4 ? VK_COMPONENT_SWIZZLE_ONE : VK_COMPONENT_SWIZZLE_A,
 	};
 
-	return { table[m.r], table[m.g], table[m.b], table[m.a] };
+	return { table[mapping.r], table[mapping.g], table[mapping.b], table[mapping.a] };
 }
 
 VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange range, const vk::Image *image)
@@ -52,10 +62,6 @@ VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange ran
 		(range.layerCount == VK_REMAINING_ARRAY_LAYERS) ? (image->getArrayLayers() - range.baseArrayLayer) : range.layerCount,
 	};
 }
-
-}  // anonymous namespace
-
-namespace vk {
 
 Identifier::Identifier(const Image *image, VkImageViewType type, VkFormat fmt, VkComponentMapping mapping)
 {
