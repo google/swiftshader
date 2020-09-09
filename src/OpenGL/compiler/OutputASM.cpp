@@ -2918,6 +2918,20 @@ namespace glsl
 			samplerRegister(operand); // Make sure the sampler is declared
 		}
 
+		const TQualifier qualifier = operand->getQualifier();
+		if(qualifier == EvqConstExpr && (!operand->getAsConstantUnion() || !operand->getAsConstantUnion()->getUnionArrayPointer()))
+		{
+			// Constant arrays are in the constant register file.
+			if(operand->isArray() && operand->getArraySize() > 1)
+			{
+				return uniformRegister(operand);
+			}
+			else
+			{
+				return temporaryRegister(operand);
+			}
+		}
+
 		switch(operand->getQualifier())
 		{
 		case EvqTemporary:           return temporaryRegister(operand);

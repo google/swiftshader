@@ -1091,6 +1091,61 @@ TEST_F(SwiftShaderTest, MatrixInStruct)
 	Uninitialize();
 }
 
+TEST_F(SwiftShaderTest, TestMat4Uniform)
+{
+	Initialize(3, false);
+	const std::string vs = R"(#version 300 es
+	    precision highp float;
+	    uniform mat4 UniformMatrix;
+	    out vec4 color;
+	    void main()
+        {
+		    const vec4 pos[] = vec4[](
+		        vec4( 1.,  1., .0, 1.),
+		        vec4(-1.,  1., .0, 1.),
+		        vec4(-1., -1., .0, 1.),
+		        vec4( 1.,  1., .0, 1.),
+		        vec4(-1., -1., .0, 1.),
+		        vec4( 1., -1., .0, 1.));
+		        gl_Position = pos[gl_VertexID];
+		      color = vec4(vec3(UniformMatrix[0].xyz), 1.);
+	    }
+	)";
+	const std::string ps = R"(#version 300 es
+	    precision  highp float;
+	    in vec4 color;
+	    out vec4 fragColor;
+	    void main() 
+        {
+		    fragColor = color;
+	    })";
+	const ProgramHandles ph = createProgram(vs, ps);
+
+	glUseProgram(ph.program);
+	GLint location = glGetUniformLocation(ph.program, "UniformMatrix");
+	ASSERT_NE(-1, location);
+	constexpr float unit_mat[] = {
+		1., 0., 0., 0.,
+		0., 1., 0., 0.,
+		0., 0., 1., 0.,
+		0., 0., 0., 1.
+	};
+	glUniformMatrix4fv(location, 1, GL_FALSE, unit_mat);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	GLuint dummyvao = GL_NONE;
+	glGenVertexArrays(1, &dummyvao);
+	glBindVertexArray(dummyvao);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	EXPECT_NO_GL_ERROR();
+
+	unsigned char red[4] = { 255, 0, 0, 255 };
+	expectFramebufferColor(red);
+
+	Uninitialize();
+}
+
 // Test sampling from a sampler in a struct as a function argument
 TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 {
