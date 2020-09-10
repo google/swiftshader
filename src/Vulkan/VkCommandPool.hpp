@@ -37,7 +37,7 @@ public:
 	void trim(VkCommandPoolTrimFlags flags);
 
 private:
-	std::set<VkCommandBuffer> *commandBuffers;
+	std::set<VkCommandBuffer> commandBuffers;
 };
 
 static inline CommandPool *Cast(VkCommandPool object)
