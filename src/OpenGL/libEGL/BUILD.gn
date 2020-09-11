@@ -80,7 +80,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
       "-Wl,-exported_symbols_list," +
           rebase_path("libEGL.exports", root_build_dir),
     ]
-  } else if (is_linux) {
+  } else if (is_linux || is_chromeos) {
     if (use_x11) {
       sources += [ "../../Main/libX11.cpp" ]
     }

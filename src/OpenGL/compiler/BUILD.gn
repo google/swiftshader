@@ -76,7 +76,7 @@ swiftshader_source_set("swiftshader_opengl_compiler") {
     all_dependent_configs = [ ":swiftshader_translator_disable_pool_alloc" ]
   }
 
-  if (is_linux || is_mac || is_fuchsia) {
+  if (is_linux || is_chromeos || is_mac || is_fuchsia) {
     sources += [ "ossource_posix.cpp" ]
   } else if (is_win) {
     sources += [ "ossource_win.cpp" ]

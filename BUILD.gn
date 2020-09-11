@@ -134,7 +134,7 @@ config("swiftshader_config") {
       ]
     }
 
-    if (is_linux) {
+    if (is_linux || is_chromeos) {
       ldflags = [ "-Wl,--gc-sections" ]
 
       if (current_cpu == "mipsel") {

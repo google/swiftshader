@@ -19,7 +19,7 @@ declare_args() {
   # PPC64.
   use_swiftshader_with_subzero =
       current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64"
-  supports_llvm = is_linux || is_fuchsia || is_win || is_android || is_mac
+  supports_llvm = is_linux || is_chromeos || is_fuchsia || is_win || is_android || is_mac
 }
 
 config("swiftshader_reactor_private_config") {
@@ -102,7 +102,7 @@ if (use_swiftshader_with_subzero) {
     if (is_win) {
       include_dirs +=
           [ "../../third_party/llvm-subzero/build/Windows/include/" ]
-    } else if (is_linux) {
+    } else if (is_linux || is_chromeos) {
       include_dirs += [ "../../third_party/llvm-subzero/build/Linux/include/" ]
     } else if (is_fuchsia) {
       include_dirs +=
@@ -143,7 +143,7 @@ if (use_swiftshader_with_subzero) {
           cflags += [ "-Wno-sign-compare" ]
         }
       }
-    } else if (is_linux || is_mac || is_fuchsia) {
+    } else if (is_linux || is_chromeos || is_mac || is_fuchsia) {
       cflags += [ "-Wno-macro-redefined" ]
     }
 
@@ -339,7 +339,7 @@ if (supports_llvm) {
       "$llvm_dir/configs/common/include/",
     ]
 
-    if (is_linux) {
+    if (is_linux || is_chromeos) {
       include_dirs += [ "$llvm_dir/configs/linux/include/" ]
     } else if (is_fuchsia) {
       include_dirs += [ "$llvm_dir/configs/fuchsia/include/" ]

@@ -130,7 +130,7 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
       "-Wl,-exported_symbols_list," +
           rebase_path("libGLESv2.exports", root_build_dir),
     ]
-  } else if (is_linux) {
+  } else if (is_linux || is_chromeos) {
     inputs = [ "libGLESv2.lds" ]
     ldflags = [ "-Wl,--version-script=" +
                 rebase_path("libGLESv2.lds", root_build_dir) ]

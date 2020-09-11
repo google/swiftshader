@@ -18,7 +18,7 @@ import("vulkan.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_libvulkan_private_config") {
-  if (is_linux) {
+  if (is_linux || is_chromeos) {
     defines = [
       "VK_USE_PLATFORM_XLIB_KHR",
       "VK_USE_PLATFORM_XCB_KHR",
@@ -96,7 +96,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     "VkStringify.hpp",
     "VulkanPlatform.hpp",
   ]
-  if (is_linux || is_android) {
+  if (is_linux || is_chromeos || is_android) {
     sources += [
       "VkDeviceMemoryExternalLinux.hpp",
       "VkSemaphoreExternalLinux.hpp",
@@ -161,7 +161,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
       "-Wl,-exported_symbols_list," +
           rebase_path("vk_swiftshader.exports", root_build_dir),
     ]
-  } else if (is_linux || is_fuchsia) {
+  } else if (is_linux || is_chromeos || is_fuchsia) {
     inputs = [
       "vk_swiftshader.lds",
     ]

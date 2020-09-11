@@ -98,7 +98,7 @@ llvm_include_dirs = [
   "configs/common/lib/Transforms/InstCombine/",
 ]
 
-if (is_linux) {
+if (is_linux || is_chromeos) {
   llvm_include_dirs += [ "configs/linux/include/" ]
 } else if (is_fuchsia) {
   llvm_include_dirs += [ "configs/fuchsia/include/" ]
