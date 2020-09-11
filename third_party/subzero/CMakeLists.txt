@@ -93,7 +93,6 @@ add_library(subzero STATIC EXCLUDE_FROM_ALL
 
 set_target_properties(subzero PROPERTIES
     POSITION_INDEPENDENT_CODE 1
-    FOLDER "Subzero"
 )
 
 target_include_directories(subzero

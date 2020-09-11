@@ -577,12 +577,15 @@ endif()
 # LLVM
 ###########################################################
 add_subdirectory(${THIRD_PARTY_DIR}/llvm-${SWIFTSHADER_LLVM_VERSION} EXCLUDE_FROM_ALL)
+set_target_properties(llvm PROPERTIES FOLDER "third_party")
 
 ###########################################################
 # Subzero
 ###########################################################
 add_subdirectory(${THIRD_PARTY_DIR}/llvm-subzero EXCLUDE_FROM_ALL)
 add_subdirectory(${THIRD_PARTY_DIR}/subzero EXCLUDE_FROM_ALL)
+set_target_properties(llvm-subzero PROPERTIES FOLDER "third_party")
+set_target_properties(subzero PROPERTIES FOLDER "third_party")
 
 ###########################################################
 # marl
@@ -590,6 +593,7 @@ add_subdirectory(${THIRD_PARTY_DIR}/subzero EXCLUDE_FROM_ALL)
 if(BUILD_MARL)
     set(MARL_THIRD_PARTY_DIR ${THIRD_PARTY_DIR})
     add_subdirectory(${THIRD_PARTY_DIR}/marl)
+    set_target_properties(marl PROPERTIES FOLDER "third_party")
 endif()
 
 if(MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
@@ -609,6 +613,7 @@ endif()
 ###########################################################
 if(SWIFTSHADER_ENABLE_ASTC)
     add_subdirectory(${THIRD_PARTY_DIR}/astc-encoder)
+    set_target_properties(astc-encoder PROPERTIES FOLDER "third_party")
 endif()
 
 ###########################################################
@@ -621,6 +626,10 @@ if(SWIFTSHADER_BUILD_TESTS)
     # gtest finds python, which picks python 2 first, if present.
     # We need to undo this so that SPIR-V can later find python3.
     unset(PYTHON_EXECUTABLE CACHE)
+    set_target_properties(gmock PROPERTIES FOLDER "third_party")
+    set_target_properties(gmock_main PROPERTIES FOLDER "third_party")
+    set_target_properties(gtest PROPERTIES FOLDER "third_party")
+    set_target_properties(gtest_main PROPERTIES FOLDER "third_party")
 endif()
 
 ###########################################################
@@ -901,6 +910,8 @@ if(SWIFTSHADER_BUILD_BENCHMARKS)
     if (NOT TARGET benchmark::benchmark)
         set(BENCHMARK_ENABLE_TESTING FALSE CACHE BOOL FALSE FORCE)
         add_subdirectory(${THIRD_PARTY_DIR}/benchmark)
+        set_target_properties(benchmark PROPERTIES FOLDER "third_party")
+        set_target_properties(benchmark_main PROPERTIES FOLDER "third_party")
     endif()
 
     if (NOT TARGET glslang)

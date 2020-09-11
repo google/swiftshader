@@ -39,7 +39,6 @@ add_library(astc-encoder STATIC EXCLUDE_FROM_ALL
 
 set_target_properties(astc-encoder PROPERTIES
     POSITION_INDEPENDENT_CODE 1
-    FOLDER "Core"
 )
 
 target_include_directories(astc-encoder

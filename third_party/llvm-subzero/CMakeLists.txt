@@ -229,7 +229,6 @@ add_library(llvm-subzero STATIC EXCLUDE_FROM_ALL
 
 set_target_properties(llvm-subzero PROPERTIES
     POSITION_INDEPENDENT_CODE 1
-    FOLDER "Subzero"
 )
 
 target_include_directories(llvm-subzero

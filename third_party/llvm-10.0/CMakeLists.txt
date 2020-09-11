@@ -1199,7 +1199,6 @@ add_library(llvm STATIC EXCLUDE_FROM_ALL ${LLVM_LIST})
 
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
-    FOLDER "LLVM"
 )
 
 target_include_directories(llvm
