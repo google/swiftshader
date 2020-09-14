@@ -14,8 +14,10 @@
 
 #include "SpirvShader.hpp"
 
-// If enabled, each instruction will be printed before processing.
-#define PRINT_EACH_PROCESSED_INSTRUCTION 0
+// If enabled, each instruction will be printed before defining.
+#define PRINT_EACH_DEFINED_DBG_INSTRUCTION 0
+// If enabled, each instruction will be printed before emitting.
+#define PRINT_EACH_EMITTED_INSTRUCTION 0
 // If enabled, each instruction will be printed before executing.
 #define PRINT_EACH_EXECUTED_INSTRUCTION 0
 // If enabled, debugger variables will contain debug information (addresses,
@@ -2048,7 +2050,7 @@ void SpirvShader::dbgEndEmit(EmitState *state) const
 
 void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) const
 {
-#	if PRINT_EACH_PROCESSED_INSTRUCTION
+#	if PRINT_EACH_EMITTED_INSTRUCTION
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
 		    SPV_ENV_VULKAN_1_1,
@@ -2059,7 +2061,7 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 		    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
 		printf("%s\n", instruction.c_str());
 	}
-#	endif  // PRINT_EACH_PROCESSED_INSTRUCTION
+#	endif  // PRINT_EACH_EMITTED_INSTRUCTION
 
 #	if PRINT_EACH_EXECUTED_INSTRUCTION
 	{
@@ -2162,6 +2164,19 @@ SpirvShader::EmitResult SpirvShader::EmitLine(InsnIterator insn, EmitState *stat
 
 void SpirvShader::DefineOpenCLDebugInfo100(const InsnIterator &insn)
 {
+#	if PRINT_EACH_DEFINED_DBG_INSTRUCTION
+	{
+		auto instruction = spvtools::spvInstructionBinaryToText(
+		    SPV_ENV_VULKAN_1_1,
+		    insn.wordPointer(0),
+		    insn.wordCount(),
+		    insns.data(),
+		    insns.size(),
+		    SPV_BINARY_TO_TEXT_OPTION_NO_HEADER);
+		printf("%s\n", instruction.c_str());
+	}
+#	endif  // PRINT_EACH_DEFINED_DBG_INSTRUCTION
+
 	auto dbg = impl.debugger;
 	if(!dbg) { return; }
 
