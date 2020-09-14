@@ -10,4 +10,3 @@ dEQP-VK.texture.explicit_lod.2d.sizes.57x35_linear_linear_mipmap_nearest_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.57x35_nearest_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.57x35_nearest_linear_mipmap_nearest_repeat
 dEQP-VK.texture.subgroup_lod.texelfetch
-dEQP-VK.texture.texel_buffer.uniform.packed.b10g11r11-ufloat-pack32
