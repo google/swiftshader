@@ -23,6 +23,7 @@
 #include "marl/tsa.h"
 
 #include <algorithm>
+#include <atomic>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -44,7 +45,7 @@ class VariableContainer : public Value
 public:
 	using ID = dbg::ID<VariableContainer>;
 
-	inline VariableContainer(ID id);
+	inline VariableContainer();
 
 	// foreach() calls cb with each of the variables in the container.
 	// F must be a function with the signature void(const Variable&).
@@ -71,6 +72,8 @@ public:
 	const ID id;
 
 private:
+	static std::atomic<int> nextID;
+
 	struct ForeachIndex
 	{
 		size_t start;
@@ -89,8 +92,8 @@ private:
 	std::vector<std::shared_ptr<VariableContainer>> extends GUARDED_BY(mutex);
 };
 
-VariableContainer::VariableContainer(ID id)
-    : id(id)
+VariableContainer::VariableContainer()
+    : id(nextID++)
 {}
 
 template<typename F>

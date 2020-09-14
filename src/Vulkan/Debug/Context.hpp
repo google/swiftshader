@@ -106,8 +106,11 @@ public:
 		// does not exist.
 		std::shared_ptr<Scope> get(ID<Scope>);
 
-		// createVariableContainer() returns a new variable container.
-		std::shared_ptr<VariableContainer> createVariableContainer();
+		// track() registers the variable container with the context so it can
+		// be retrieved by get(). Note that the context does not hold a strong
+		// reference to the variable container, and get() will return nullptr
+		// if all strong external references are dropped.
+		void track(const std::shared_ptr<VariableContainer> &);
 
 		// get() returns the variable container with the given ID, or null if
 		// the variable container does not exist or no longer has any external

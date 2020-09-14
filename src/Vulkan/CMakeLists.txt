@@ -119,6 +119,7 @@ if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
         Debug/Type.hpp
         Debug/Value.cpp
         Debug/Value.hpp
+        Debug/Variable.cpp
         Debug/Variable.hpp
         Debug/WeakMap.hpp
     )

@@ -261,7 +261,7 @@ struct Type : public Object
 
 	// value() returns a shared pointer to a vk::dbg::Value that views the data
 	// at ptr of this type.
-	virtual std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const = 0;
+	virtual std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const = 0;
 };
 
 struct CompilationUnit : ObjectImpl<CompilationUnit, Scope, Object::Kind::CompilationUnit>
@@ -286,7 +286,7 @@ struct BasicType : ObjectImpl<BasicType, Type, Object::Kind::BasicType>
 
 	uint32_t sizeInBytes() const override { return size / 8; }
 
-	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
 		switch(encoding)
 		{
@@ -397,20 +397,20 @@ struct ArrayType : ObjectImpl<ArrayType, Type, Object::Kind::ArrayType>
 		return numBytes;
 	}
 
-	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
-		auto vc = lock.createVariableContainer();
+		auto vc = std::make_shared<vk::dbg::VariableContainer>();
 		build(
 		    vc,
 		    [&](std::shared_ptr<vk::dbg::VariableContainer> &parent, uint32_t idx) {
-			    auto child = lock.createVariableContainer();
+			    auto child = std::make_shared<vk::dbg::VariableContainer>();
 			    parent->put(tostring(idx), child);
 			    return child;
 		    },
 		    [&](std::shared_ptr<vk::dbg::VariableContainer> &parent, uint32_t idx, uint32_t offset) {
 			    offset = offset * base->sizeInBytes() * (interleaved ? sw::SIMD::Width : 1);
 			    auto addr = static_cast<uint8_t *>(ptr) + offset;
-			    auto child = base->value(lock, addr, interleaved);
+			    auto child = base->value(addr, interleaved);
 			    auto key = tostring(idx);
 #	if DEBUG_ANNOTATE_VARIABLE_KEYS
 			    key += " (" + tostring(addr) + " +" + tostring(offset) + ", idx: " + tostring(idx) + ")" + (interleaved ? "I" : "F");
@@ -431,10 +431,10 @@ struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
 		return base->sizeInBytes() * components;
 	}
 
-	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
 		const auto elSize = base->sizeInBytes();
-		auto vc = lock.createVariableContainer();
+		auto vc = std::make_shared<vk::dbg::VariableContainer>();
 		for(uint32_t i = 0; i < components; i++)
 		{
 			auto offset = elSize * i * (interleaved ? sw::SIMD::Width : 1);
@@ -443,7 +443,7 @@ struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
 #	if DEBUG_ANNOTATE_VARIABLE_KEYS
 			elKey += " (" + tostring(elPtr) + " +" + tostring(offset) + ")" + (interleaved ? "I" : "F");
 #	endif
-			vc->put(elKey, base->value(lock, elPtr, interleaved));
+			vc->put(elKey, base->value(elPtr, interleaved));
 		}
 		return vc;
 	}
@@ -456,7 +456,7 @@ struct FunctionType : ObjectImpl<FunctionType, Type, Object::Kind::FunctionType>
 	std::vector<Type *> paramTys;
 
 	uint32_t sizeInBytes() const override { return 0; }
-	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override { return nullptr; }
+	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override { return nullptr; }
 };
 
 struct Member : ObjectImpl<Member, Object, Object::Kind::Member>
@@ -486,9 +486,10 @@ struct CompositeType : ObjectImpl<CompositeType, Type, Object::Kind::CompositeTy
 	std::vector<Member *> members;
 
 	uint32_t sizeInBytes() const override { return size / 8; }
-	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+
+	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
-		auto vc = lock.createVariableContainer();
+		auto vc = std::make_shared<vk::dbg::VariableContainer>();
 		for(auto &member : members)
 		{
 			auto offset = (member->offset / 8) * (interleaved ? sw::SIMD::Width : 1);
@@ -497,7 +498,7 @@ struct CompositeType : ObjectImpl<CompositeType, Type, Object::Kind::CompositeTy
 #	if DEBUG_ANNOTATE_VARIABLE_KEYS
 			// elKey += " (" + tostring(elPtr) + " +" + tostring(offset) + ")" + (interleaved ? "I" : "F");
 #	endif
-			vc->put(elKey, member->type->value(lock, elPtr, interleaved));
+			vc->put(elKey, member->type->value(elPtr, interleaved));
 		}
 		return vc;
 	}
@@ -519,9 +520,9 @@ struct TemplateType : ObjectImpl<TemplateType, Type, Object::Kind::TemplateType>
 	std::vector<TemplateParameter *> parameters;
 
 	uint32_t sizeInBytes() const override { return target->sizeInBytes(); }
-	std::shared_ptr<vk::dbg::Value> value(vk::dbg::Context::Lock &lock, void *ptr, bool interleaved) const override
+	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
-		return target->value(lock, ptr, interleaved);
+		return target->value(ptr, interleaved);
 	}
 };
 
@@ -829,7 +830,7 @@ SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *
 		globals.hovers = frame.hovers;
 		for(int i = 0; i < sw::SIMD::Width; i++)
 		{
-			auto locals = lock.createVariableContainer();
+			auto locals = std::make_shared<vk::dbg::VariableContainer>();
 			frame.locals->variables->put(laneNames[i], locals);
 			globals.localsByLane[i] = locals;
 		}
@@ -880,7 +881,7 @@ vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::localsLane(const
 template<typename K>
 vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::group(vk::dbg::VariableContainer *vc, K key)
 {
-	auto out = debugger->ctx->lock().createVariableContainer();
+	auto out = std::make_shared<vk::dbg::VariableContainer>();
 	vc->put(tostring(key), out);
 	return out.get();
 }
@@ -894,8 +895,7 @@ void SpirvShader::Impl::Debugger::State::putVal(vk::dbg::VariableContainer *vc, 
 template<typename K>
 void SpirvShader::Impl::Debugger::State::putPtr(vk::dbg::VariableContainer *vc, K key, void *ptr, bool interleaved, const debug::Type *type)
 {
-	auto lock = debugger->ctx->lock();
-	vc->put(tostring(key), type->value(lock, ptr, interleaved));
+	vc->put(tostring(key), type->value(ptr, interleaved));
 }
 
 template<typename K, typename V>
@@ -919,7 +919,7 @@ void SpirvShader::Impl::Debugger::State::createScope(const debug::Scope *spirvSc
 
 	for(int i = 0; i < sw::SIMD::Width; i++)
 	{
-		auto locals = lock.createVariableContainer();
+		auto locals = std::make_shared<vk::dbg::VariableContainer>();
 		s.localsByLane[i] = locals;
 		s.locals->variables->put(laneNames[i], locals);
 	}
