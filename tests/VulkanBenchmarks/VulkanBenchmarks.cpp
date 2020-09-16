@@ -73,7 +73,7 @@ public:
 protected:
 	uint32_t getMemoryTypeIndex(uint32_t typeBits, vk::MemoryPropertyFlags properties)
 	{
-		vk::PhysicalDeviceMemoryProperties deviceMemoryProperties = physicalDevice.getMemoryProperties();
+		vk::PhysicalDeviceMemoryProperties deviceMemoryProperties = vk::PhysicalDevice::GetMemoryProperties();
 		for(uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; i++)
 		{
 			if((typeBits & 1) == 1)

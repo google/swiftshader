@@ -193,6 +193,41 @@ private:
 		std::shared_ptr<vk::dbg::Server> server;
 	} debugger;
 #endif  // ENABLE_VK_DEBUGGER
+
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+public:
+	class AHBAddressMap
+	{
+	public:
+		AHBAddressMap() {}
+		~AHBAddressMap() {}
+
+		struct MapValue
+		{
+			MapValue()
+			    : refCount(0)
+			    , address(nullptr)
+			{
+			}
+			int refCount;
+			void *address;
+		};
+
+		void *query(const uint32_t key);
+		int incrementReference(const uint32_t key);
+		int decrementReference(const uint32_t key);
+		void add(const uint32_t key, void *value);
+
+	private:
+		std::map<uint32_t, MapValue> addressMap;
+		std::mutex addressMapMutex;
+	};
+
+	AHBAddressMap *getAHBAddressMap() const;
+
+private:
+	std::unique_ptr<AHBAddressMap> ahbAddressMap;
+#endif
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;

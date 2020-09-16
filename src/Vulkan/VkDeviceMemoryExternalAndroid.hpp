@@ -12,14 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkStringify.hpp"
+#ifndef VK_DEVICE_MEMORY_EXTERNAL_ANDROID_HPP_
+#define VK_DEVICE_MEMORY_EXTERNAL_ANDROID_HPP_
 
-#include "System/Debug.hpp"
+#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 
-#include <android/hardware_buffer.h>
+#	include "VkDevice.hpp"
+#	include "VkDeviceMemory.hpp"
+#	include "VkDeviceMemoryExternalBase.hpp"
 
-#include <errno.h>
-#include <string.h>
+#	include "VkBuffer.hpp"
+#	include "VkDeviceMemory.hpp"
+#	include "VkImage.hpp"
+#	include "VkStringify.hpp"
+
+#	include "System/Debug.hpp"
+#	include "System/Linux/MemFd.hpp"
+
+#	include <android/hardware_buffer.h>
+
+#	include <cros_gralloc/cros_gralloc_handle.h>
+#	include <unistd.h>
+#	include <virtgpu_drm.h>
+#	include <xf86drm.h>
+
+#	include <errno.h>
+#	include <string.h>
+#	include <map>
 
 class AHardwareBufferExternalMemory : public vk::DeviceMemory::ExternalBase
 {
@@ -38,52 +57,12 @@ public:
 		AllocateInfo() = default;
 
 		// Parse the VkMemoryAllocateInfo.pNext chain to initialize an AllocateInfo.
-		AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
-		{
-			const auto *createInfo = reinterpret_cast<const VkBaseInStructure *>(pAllocateInfo->pNext);
-			while(createInfo)
-			{
-				switch(createInfo->sType)
-				{
-					case VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID:
-					{
-						const auto *importInfo = reinterpret_cast<const VkImportAndroidHardwareBufferInfoANDROID *>(createInfo);
-						importAhb = true;
-						ahb = importInfo->buffer;
-					}
-					break;
-					case VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO:
-					{
-						const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(createInfo);
-
-						if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
-						{
-							UNSUPPORTED("VkExportMemoryAllocateInfo::handleTypes %d", int(exportInfo->handleTypes));
-						}
-						exportAhb = true;
-					}
-					break;
-					case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
-					{
-						// AHB requires dedicated allocation -- for images, the gralloc gets to decide the image layout,
-						// not us.
-						const auto *dedicatedAllocateInfo = reinterpret_cast<const VkMemoryDedicatedAllocateInfo *>(createInfo);
-						imageHandle = vk::Cast(dedicatedAllocateInfo->image);
-						bufferHandle = vk::Cast(dedicatedAllocateInfo->buffer);
-					}
-					break;
-
-					default:
-						WARN("VkMemoryAllocateInfo->pNext sType = %s", vk::Stringify(createInfo->sType).c_str());
-				}
-				createInfo = createInfo->pNext;
-			}
-		}
+		AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo);
 	};
 
 	static const VkExternalMemoryHandleTypeFlagBits typeFlagBit = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 
-	static bool supportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
+	static bool SupportsAllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 	{
 		AllocateInfo info(pAllocateInfo);
 		return (info.importAhb || info.exportAhb) && (info.bufferHandle || info.imageHandle);
@@ -94,67 +73,47 @@ public:
 	{
 	}
 
-	~AHardwareBufferExternalMemory()
-	{
-		if(ahb)
-			AHardwareBuffer_release(ahb);
-	}
-
-	VkResult allocate(size_t size, void **pBuffer) override
-	{
-		if(allocateInfo.importAhb)
-		{
-			//ahb = allocateInfo.ahb;
-			//AHardwareBuffer_acquire(ahb);
-			// TODO: also allocate our internal shadow memory
-			return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-		}
-		else
-		{
-			ASSERT(allocateInfo.exportAhb);
-			// TODO: create and import the AHB
-			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-		}
-
-		return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-		/*
-		void *addr = memfd.mapReadWrite(0, size);
-		if(!addr)
-		{
-			return VK_ERROR_MEMORY_MAP_FAILED;
-		}
-		*pBuffer = addr;
-		return VK_SUCCESS;
-		 */
-	}
-
-	void deallocate(void *buffer, size_t size) override
-	{
-		// FIXME
-	}
+	~AHardwareBufferExternalMemory();
+	VkResult allocate(size_t size, void **pBuffer) override;
+	void deallocate(void *buffer, size_t size) override;
+	VkResult allocateAndroidHardwareBuffer(size_t size, void **pBuffer);
 
 	VkExternalMemoryHandleTypeFlagBits getFlagBit() const override
 	{
 		return typeFlagBit;
 	}
 
-	VkResult exportAhb(struct AHardwareBuffer **pAhb) const override
+	VkResult exportAndroidHardwareBuffer(struct AHardwareBuffer **pAhb) const override;
+
+	void setDevicePtr(vk::Device *pDevice) override
 	{
-		// Each call to vkGetMemoryAndroidHardwareBufferANDROID *must* return an Android hardware buffer with a new reference
-		// acquired in addition to the reference held by the VkDeviceMemory. To avoid leaking resources, the application *must*
-		// release the reference by calling AHardwareBuffer_release when it is no longer needed.
-		AHardwareBuffer_acquire(ahb);
-		*pAhb = ahb;
-		return VK_SUCCESS;
+		device = pDevice;
 	}
 
-	static VkResult getAhbProperties(const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
+	bool isAndroidHardwareBuffer() override
 	{
-		UNIMPLEMENTED("b/141698760: getAhbProperties");  // FIXME(b/141698760)
-		return VK_SUCCESS;
+		return true;
 	}
+
+	static uint32_t GetAndroidHardwareBufferDescFormat(VkFormat format);
+	static VkFormat GetVkFormat(uint32_t ahbFormat);
+	static VkFormatFeatureFlags GetVkFormatFeatures(VkFormat format);
+	static VkResult GetAndroidHardwareBufferFormatProperties(const AHardwareBuffer_Desc &ahbDesc, VkAndroidHardwareBufferFormatPropertiesANDROID *pFormat);
+	static VkResult GetAndroidHardwareBufferProperties(VkDevice &device, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties);
+	static VkResult GetAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags createFlags, const VkImageUsageFlags usageFlags, uint64_t &ahbDescUsage);
+
+	// All reliance on minigbm and DRM is contained in these functions
+	VkResult getPrimeHandle(const native_handle_t *h, uint32_t &primeHandle);
+	void createRenderNodeFD();
+	VkResult mapMemory(uint32_t &primeHandle, void **ptr);
+	VkResult closeMemory(uint32_t &primeHandle);
 
 private:
 	struct AHardwareBuffer *ahb = nullptr;
+	int rendernodeFD;
+	vk::Device *device = nullptr;
 	AllocateInfo allocateInfo;
 };
+
+#endif  // SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+#endif  // VK_DEVICE_MEMORY_EXTERNAL_ANDROID_HPP_
