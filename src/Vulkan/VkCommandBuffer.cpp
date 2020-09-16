@@ -1405,10 +1405,18 @@ void CommandBuffer::addCommand(Args &&... args)
 }
 
 void CommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, VkRect2D renderArea,
-                                    uint32_t clearValueCount, const VkClearValue *clearValues, VkSubpassContents contents)
+                                    uint32_t clearValueCount, const VkClearValue *clearValues, VkSubpassContents contents,
+                                    const VkRenderPassAttachmentBeginInfo *attachmentInfo)
 {
 	ASSERT(state == RECORDING);
 
+	if(attachmentInfo)
+	{
+		for(uint32_t i = 0; i < attachmentInfo->attachmentCount; i++)
+		{
+			framebuffer->setAttachment(vk::Cast(attachmentInfo->pAttachments[i]), i);
+		}
+	}
 	addCommand<::CmdBeginRenderPass>(renderPass, framebuffer, renderArea, clearValueCount, clearValues);
 }
 

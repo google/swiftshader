@@ -226,6 +226,12 @@ static void getPhysicalDeviceVulkan11Features(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceImagelessFramebufferFeatures(T *features)
+{
+	features->imagelessFramebuffer = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_FALSE;
@@ -257,7 +263,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	features->runtimeDescriptorArray = VK_FALSE;
 	features->samplerFilterMinmax = VK_FALSE;
 	features->scalarBlockLayout = VK_FALSE;
-	features->imagelessFramebuffer = VK_FALSE;
+	getPhysicalDeviceImagelessFramebufferFeatures(features);
 	features->uniformBufferStandardLayout = VK_FALSE;
 	features->shaderSubgroupExtendedTypes = VK_FALSE;
 	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
@@ -321,6 +327,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT:
 				getPhysicalDeviceProvokingVertexFeaturesEXT(reinterpret_cast<VkPhysicalDeviceProvokingVertexFeaturesEXT *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES:
+				getPhysicalDeviceImagelessFramebufferFeatures(reinterpret_cast<VkPhysicalDeviceImagelessFramebufferFeatures *>(curExtension));
 				break;
 			default:
 				WARN("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());

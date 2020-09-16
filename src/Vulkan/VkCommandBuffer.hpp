@@ -61,7 +61,8 @@ public:
 	VkResult reset(VkCommandPoolResetFlags flags);
 
 	void beginRenderPass(RenderPass *renderPass, Framebuffer *framebuffer, VkRect2D renderArea,
-	                     uint32_t clearValueCount, const VkClearValue *pClearValues, VkSubpassContents contents);
+	                     uint32_t clearValueCount, const VkClearValue *pClearValues, VkSubpassContents contents,
+	                     const VkRenderPassAttachmentBeginInfo *attachmentBeginInfo);
 	void nextSubpass(VkSubpassContents contents);
 	void endRenderPass();
 	void executeCommands(uint32_t commandBufferCount, const VkCommandBuffer *pCommandBuffers);
