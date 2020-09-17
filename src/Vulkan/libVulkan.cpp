@@ -378,7 +378,8 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 #endif
 	{ VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, VK_EXT_PROVOKING_VERTEX_SPEC_VERSION },
 	{ VK_GOOGLE_SAMPLER_FILTERING_PRECISION_EXTENSION_NAME, VK_GOOGLE_SAMPLER_FILTERING_PRECISION_SPEC_VERSION },
-	{ VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, VK_EXT_DEPTH_RANGE_UNRESTRICTED_SPEC_VERSION }
+	{ VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, VK_EXT_DEPTH_RANGE_UNRESTRICTED_SPEC_VERSION },
+	{ VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME, VK_KHR_IMAGE_FORMAT_LIST_SPEC_VERSION }
 };
 
 static bool hasExtension(const char *extensionName, const VkExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
@@ -1658,6 +1659,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 				break;
 			case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
 				/* Do nothing. We don't actually need the swapchain handle yet; we'll do all the work in vkBindImageMemory2. */
+				break;
+			case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+				// Do nothing. This extension tells the driver which image formats will be used
+				// by the application. Swiftshader is not impacted from lacking this information,
+				// so we don't need to track the format list.
 				break;
 			default:
 				// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
