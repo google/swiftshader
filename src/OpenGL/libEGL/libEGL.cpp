@@ -361,6 +361,10 @@ EGLSurface EGLAPIENTRY CreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig con
 		return EGL_NO_SURFACE;
 	}
 
+#if defined(USE_X11)
+	native_window = (void *)(*(::Window*)native_window);
+#endif
+
 	if(!display->isValidWindow((EGLNativeWindowType)native_window))
 	{
 		return error(EGL_BAD_NATIVE_WINDOW, EGL_NO_SURFACE);
