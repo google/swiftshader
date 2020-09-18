@@ -20,10 +20,13 @@ set(ROOT_PROJECT_COMPILE_OPTIONS
 set(REACTOR_SRC_FILES
     Debug.cpp
     Debug.hpp
-    EmulatedReactor.cpp
+    EmulatedIntrinsics.cpp
+    EmulatedIntrinsics.hpp
     ExecutableMemory.cpp
     ExecutableMemory.hpp
     Nucleus.hpp
+    OptimalIntrinsics.cpp
+    OptimalIntrinsics.hpp
     Print.hpp
     Reactor.cpp
     Reactor.hpp

@@ -192,10 +192,11 @@ cc_defaults {
     srcs: [
         "Reactor/CPUID.cpp",
         "Reactor/Debug.cpp",
-        "Reactor/EmulatedReactor.cpp",
+        "Reactor/EmulatedIntrinsics.cpp",
         "Reactor/ExecutableMemory.cpp",
         "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
+        "Reactor/OptimalIntrinsics.cpp",
         "Reactor/Reactor.cpp",
     ],
 
@@ -223,10 +224,11 @@ cc_defaults {
     srcs: [
         "Reactor/CPUID.cpp",
         "Reactor/Debug.cpp",
-        "Reactor/EmulatedReactor.cpp",
+        "Reactor/EmulatedIntrinsics.cpp",
         "Reactor/ExecutableMemory.cpp",
         "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
+        "Reactor/OptimalIntrinsics.cpp",
         "Reactor/Reactor.cpp",
     ],
 

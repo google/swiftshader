@@ -598,18 +598,22 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 		case GLSLstd450Asin:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d;
+			ApplyDecorationsForId(&d, insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, Asin(val.Float(i)));
+				dst.move(i, Asin(val.Float(i), d.RelaxedPrecision ? Precision::Relaxed : Precision::Full));
 			}
 			break;
 		}
 		case GLSLstd450Acos:
 		{
 			auto val = Operand(this, state, insn.word(5));
+			Decorations d;
+			ApplyDecorationsForId(&d, insn.word(5));
 			for(auto i = 0u; i < type.componentCount; i++)
 			{
-				dst.move(i, Acos(val.Float(i)));
+				dst.move(i, Acos(val.Float(i), d.RelaxedPrecision ? Precision::Relaxed : Precision::Full));
 			}
 			break;
 		}

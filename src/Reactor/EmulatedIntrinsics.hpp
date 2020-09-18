@@ -14,7 +14,7 @@
 
 #include "Reactor.hpp"
 
-// Implementation of Reactor functions that are "emulated" - that is,
+// Implementation of intrinsics that are "emulated" - that is,
 // implemented either in terms of Reactor code, or make use of
 // rr::Call to C functions. These are typically slower than implementing
 // in terms of direct calls to the JIT backend; however, provide a good

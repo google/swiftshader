@@ -2050,6 +2050,11 @@ using IntrinsicTestParams_Float = IntrinsicTestParams<RValue<Float>(RValue<Float
 using IntrinsicTestParams_Float4 = IntrinsicTestParams<RValue<Float4>(RValue<Float4>), float(float), float>;
 using IntrinsicTestParams_Float4_Float4 = IntrinsicTestParams<RValue<Float4>(RValue<Float4>, RValue<Float4>), float(float, float), std::pair<float, float>>;
 
+// TODO(b/147818976): Each function has its own precision requirements for Vulkan, sometimes broken down
+// by input range. These are currently validated by deqp, but we can improve our own tests as well.
+// See https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#spirvenv-precision-operation
+constexpr double INTRINSIC_PRECISION = 1e-4;
+
 struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_Float>
 {
 	void test()
@@ -2064,7 +2069,7 @@ struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_F
 		for(auto &&v : GetParam().testValues)
 		{
 			SCOPED_TRACE(v);
-			EXPECT_FLOAT_EQ(routine(v), GetParam().refFunc(v));
+			EXPECT_NEAR(routine(v), GetParam().refFunc(v), INTRINSIC_PRECISION);
 		}
 	}
 };
@@ -2145,10 +2150,10 @@ struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_
 			SCOPED_TRACE(v);
 			float4_value result = invokeRoutine(routine, float4_value{ v });
 			float4_value expected = float4_value{ GetParam().refFunc(v) };
-			EXPECT_FLOAT_EQ(result.v[0], expected.v[0]);
-			EXPECT_FLOAT_EQ(result.v[1], expected.v[1]);
-			EXPECT_FLOAT_EQ(result.v[2], expected.v[2]);
-			EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
+			EXPECT_NEAR(result.v[0], expected.v[0], INTRINSIC_PRECISION);
+			EXPECT_NEAR(result.v[1], expected.v[1], INTRINSIC_PRECISION);
+			EXPECT_NEAR(result.v[2], expected.v[2], INTRINSIC_PRECISION);
+			EXPECT_NEAR(result.v[3], expected.v[3], INTRINSIC_PRECISION);
 		}
 	}
 };
@@ -2172,19 +2177,19 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 			SCOPED_TRACE(v);
 			float4_value result = invokeRoutine(routine, float4_value{ v.first }, float4_value{ v.second });
 			float4_value expected = float4_value{ GetParam().refFunc(v.first, v.second) };
-			EXPECT_FLOAT_EQ(result.v[0], expected.v[0]);
-			EXPECT_FLOAT_EQ(result.v[1], expected.v[1]);
-			EXPECT_FLOAT_EQ(result.v[2], expected.v[2]);
-			EXPECT_FLOAT_EQ(result.v[3], expected.v[3]);
+			EXPECT_NEAR(result.v[0], expected.v[0], INTRINSIC_PRECISION);
+			EXPECT_NEAR(result.v[1], expected.v[1], INTRINSIC_PRECISION);
+			EXPECT_NEAR(result.v[2], expected.v[2], INTRINSIC_PRECISION);
+			EXPECT_NEAR(result.v[3], expected.v[3], INTRINSIC_PRECISION);
 		}
 	}
 };
 
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float, IntrinsicTest_Float, testing::Values(
-	IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, {0.f, 1.f, 12345.f} },
-	IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, {0.f, 1.f, 12345.f} },
-	IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, {0.f, 1.f, 12345.f} }
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Exp2(v); }, exp2f, {0.f, 1.f, 123.f} },
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Log2(v); }, log2f, {1.f, 123.f} },
+	IntrinsicTestParams_Float{ [](Float v) { return rr::Sqrt(v); }, sqrtf, {0.f, 1.f, 123.f} }
 ));
 // clang-format on
 
@@ -2201,30 +2206,30 @@ float vulkan_coshf(float a)
 // clang-format off
 constexpr float PI = 3.141592653589793f;
 INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4, IntrinsicTest_Float4, testing::Values(
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); },   sinf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); },   cosf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); },   tanf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v); },  asinf,  {0.f, 1.f, -1.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v); },  acosf,  {0.f, 1.f, -1.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); },  atanf,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); },  vulkan_sinhf,  {0.f, 1.f, PI, 12345.f, 0x1.65a84ep6}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); },  vulkan_coshf,  {0.f, 1.f, PI, 12345.f, 0x1.65a84ep6} },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); },  tanhf,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); }, asinhf, {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); }, acoshf, {     1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); }, atanhf, {0.f, 1.f, -1.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); },   expf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); },   logf,   {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); },  exp2f,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); },  log2f,  {0.f, 1.f, PI, 12345.f}  },
-	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); },  sqrtf,  {0.f, 1.f, PI, 12345.f}  }
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sin(v); },                    sinf,          {0.f, 1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cos(v); },                    cosf,          {0.f, 1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tan(v); },                    tanf,          {0.f, 1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asin(v, Precision::Full); },  asinf,         {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acos(v, Precision::Full); },  acosf,         {0.f, 1.f, -1.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atan(v); },                   atanf,         {0.f, 1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sinh(v); },                   vulkan_sinhf,  {0.f, 1.f, PI}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Cosh(v); },                   vulkan_coshf,  {0.f, 1.f, PI} },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Tanh(v); },                   tanhf,         {0.f, 1.f, PI}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Asinh(v); },                  asinhf,        {0.f, 1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Acosh(v); },                  acoshf,        {     1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Atanh(v); },                  atanhf,        {0.f, 0.9999f, -0.9999f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp(v); },                    expf,          {0.f, 1.f, PI}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log(v); },                    logf,          {1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Exp2(v); },                   exp2f,         {0.f, 1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Log2(v); },                   log2f,         {1.f, PI, 123.f}  },
+	IntrinsicTestParams_Float4{ [](RValue<Float4> v) { return rr::Sqrt(v); },                   sqrtf,         {0.f, 1.f, PI, 123.f}  }
 ));
 // clang-format on
 
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(IntrinsicTestParams_Float4_Float4, IntrinsicTest_Float4_Float4, testing::Values(
-	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } },
-	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); },   powf,   { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {12345.f, 12345.f} } }
+	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Atan2(v1, v2); }, atan2f, { {0.f, 0.f}, {0.f, -1.f}, {-1.f, 0.f}, {123.f, 123.f} } },
+	IntrinsicTestParams_Float4_Float4{ [](RValue<Float4> v1, RValue<Float4> v2) { return Pow(v1, v2); },   powf,   { {1.f, 0.f}, {1.f, -1.f}, {-1.f, 0.f} } }
 ));
 // clang-format on
 

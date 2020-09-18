@@ -16,7 +16,7 @@
 
 #include "CPUID.hpp"
 #include "Debug.hpp"
-#include "EmulatedReactor.hpp"
+#include "EmulatedIntrinsics.hpp"
 #include "LLVMReactorDebugInfo.hpp"
 #include "Print.hpp"
 #include "Reactor.hpp"
@@ -3220,13 +3220,13 @@ static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char *na
 	return RValue<Float4>(V(out));
 }
 
-RValue<Float4> Asin(RValue<Float4> v)
+RValue<Float4> Asin(RValue<Float4> v, Precision p)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return TransformFloat4PerElement(v, "asinf");
 }
 
-RValue<Float4> Acos(RValue<Float4> v)
+RValue<Float4> Acos(RValue<Float4> v, Precision p)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	return TransformFloat4PerElement(v, "acosf");

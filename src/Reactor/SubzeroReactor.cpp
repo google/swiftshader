@@ -13,7 +13,8 @@
 // limitations under the License.
 
 #include "Debug.hpp"
-#include "EmulatedReactor.hpp"
+#include "EmulatedIntrinsics.hpp"
+#include "OptimalIntrinsics.hpp"
 #include "Print.hpp"
 #include "Reactor.hpp"
 #include "ReactorDebugInfo.hpp"
@@ -4258,109 +4259,115 @@ RValue<Float> Log2(RValue<Float> x)
 RValue<Float4> Sin(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Sin(x);
+	return optimal::Sin(x);
 }
 
 RValue<Float4> Cos(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Cos(x);
+	return optimal::Cos(x);
 }
 
 RValue<Float4> Tan(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Tan(x);
+	return optimal::Tan(x);
 }
 
-RValue<Float4> Asin(RValue<Float4> x)
+RValue<Float4> Asin(RValue<Float4> x, Precision p)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Asin(x);
+	if(p == Precision::Full)
+	{
+		return emulated::Asin(x);
+	}
+	return optimal::Asin_8_terms(x);
 }
 
-RValue<Float4> Acos(RValue<Float4> x)
+RValue<Float4> Acos(RValue<Float4> x, Precision p)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Acos(x);
+	// Surprisingly, deqp-vk's precision.acos.highp/mediump tests pass when using the 4-term polynomial approximation
+	// version of acos, unlike for Asin, which requires higher precision algorithms.
+	return optimal::Acos_4_terms(x);
 }
 
 RValue<Float4> Atan(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Atan(x);
+	return optimal::Atan(x);
 }
 
 RValue<Float4> Sinh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Sinh(x);
+	return optimal::Sinh(x);
 }
 
 RValue<Float4> Cosh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Cosh(x);
+	return optimal::Cosh(x);
 }
 
 RValue<Float4> Tanh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Tanh(x);
+	return optimal::Tanh(x);
 }
 
 RValue<Float4> Asinh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Asinh(x);
+	return optimal::Asinh(x);
 }
 
 RValue<Float4> Acosh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Acosh(x);
+	return optimal::Acosh(x);
 }
 
 RValue<Float4> Atanh(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Atanh(x);
+	return optimal::Atanh(x);
 }
 
 RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Atan2(x, y);
+	return optimal::Atan2(x, y);
 }
 
 RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Pow(x, y);
+	return optimal::Pow(x, y);
 }
 
 RValue<Float4> Exp(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Exp(x);
+	return optimal::Exp(x);
 }
 
 RValue<Float4> Log(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Log(x);
+	return optimal::Log(x);
 }
 
 RValue<Float4> Exp2(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Exp2(x);
+	return optimal::Exp2(x);
 }
 
 RValue<Float4> Log2(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return emulated::Log2(x);
+	return optimal::Log2(x);
 }
 
 RValue<UInt> Ctlz(RValue<UInt> x, bool isZeroUndef)

@@ -2345,13 +2345,20 @@ RValue<Float4> Frac(RValue<Float4> x);
 RValue<Float4> Floor(RValue<Float4> x);
 RValue<Float4> Ceil(RValue<Float4> x);
 
+enum class Precision
+{
+	Full,
+	Relaxed,
+	//Half,
+};
+
 // Trigonometric functions
 // TODO: Currently unimplemented for Subzero.
 RValue<Float4> Sin(RValue<Float4> x);
 RValue<Float4> Cos(RValue<Float4> x);
 RValue<Float4> Tan(RValue<Float4> x);
-RValue<Float4> Asin(RValue<Float4> x);
-RValue<Float4> Acos(RValue<Float4> x);
+RValue<Float4> Asin(RValue<Float4> x, Precision p);
+RValue<Float4> Acos(RValue<Float4> x, Precision p);
 RValue<Float4> Atan(RValue<Float4> x);
 RValue<Float4> Sinh(RValue<Float4> x);
 RValue<Float4> Cosh(RValue<Float4> x);
