@@ -48,6 +48,8 @@ public:
 		bool isDrawPoint : 1;
 		bool isDrawLine : 1;
 		bool isDrawTriangle : 1;
+		bool fixedPointDepthBuffer : 1;
+		bool applyConstantDepthBias : 1;
 		bool applySlopeDepthBias : 1;
 		bool applyDepthBiasClamp : 1;
 		bool interpolateZ : 1;

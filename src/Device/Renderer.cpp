@@ -330,11 +330,6 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 		float Z = F - N;
 		constexpr float subPixF = vk::SUBPIXEL_PRECISION_FACTOR;
 
-		if(context->isDrawTriangle(false))
-		{
-			N += context->depthBias;
-		}
-
 		data->WxF = float4(W * subPixF);
 		data->HxF = float4(H * subPixF);
 		data->X0xF = float4(X0 * subPixF - subPixF / 2);
@@ -342,10 +337,27 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 		data->halfPixelX = float4(0.5f / W);
 		data->halfPixelY = float4(0.5f / H);
 		data->viewportHeight = abs(viewport.height);
-		data->slopeDepthBias = context->slopeDepthBias;
-		data->depthBiasClamp = context->depthBiasClamp;
 		data->depthRange = Z;
 		data->depthNear = N;
+		data->constantDepthBias = context->constantDepthBias;
+		data->slopeDepthBias = context->slopeDepthBias;
+		data->depthBiasClamp = context->depthBiasClamp;
+
+		if(context->depthBuffer)
+		{
+			switch(context->depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
+			{
+				case VK_FORMAT_D16_UNORM:
+					data->minimumResolvableDepthDifference = 1.0f / 0xFFFF;
+					break;
+				case VK_FORMAT_D32_SFLOAT:
+					// The minimum resolvable depth difference is determined per-polygon for floating-point depth
+					// buffers. DrawData::minimumResolvableDepthDifference is unused.
+					break;
+				default:
+					UNSUPPORTED("Depth format: %d", int(context->depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
+			}
+		}
 	}
 
 	// Target

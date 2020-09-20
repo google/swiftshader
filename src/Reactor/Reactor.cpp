@@ -3835,6 +3835,11 @@ Float::Float(Argument<Float> argument)
 	store(argument.rvalue());
 }
 
+RValue<Float> Float::operator=(float rhs)
+{
+	return RValue<Float>(storeValue(Nucleus::createConstantFloat(rhs)));
+}
+
 RValue<Float> Float::operator=(RValue<Float> rhs)
 {
 	return store(rhs);

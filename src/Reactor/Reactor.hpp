@@ -2096,7 +2096,7 @@ public:
 	template<int T>
 	Float(const SwizzleMask1<Float4, T> &rhs);
 
-	//	RValue<Float> operator=(float rhs);   // FIXME: Implement
+	RValue<Float> operator=(float rhs);
 	RValue<Float> operator=(RValue<Float> rhs);
 	RValue<Float> operator=(const Float &rhs);
 	RValue<Float> operator=(const Reference<Float> &rhs);

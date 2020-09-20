@@ -224,6 +224,8 @@ Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp)
 
 Float4 reciprocal(RValue<Float4> x, bool pp, bool finite, bool exactAtPow2)
 {
+	//return Float4(1.0f) / x;
+
 	Float4 rcp = Rcp_pp(x, exactAtPow2);
 
 	if(!pp)

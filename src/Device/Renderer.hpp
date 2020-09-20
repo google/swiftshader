@@ -87,9 +87,11 @@ struct DrawData
 	float4 halfPixelX;
 	float4 halfPixelY;
 	float viewportHeight;
-	float slopeDepthBias;
 	float depthRange;
 	float depthNear;
+	float minimumResolvableDepthDifference;
+	float constantDepthBias;
+	float slopeDepthBias;
 	float depthBiasClamp;
 
 	unsigned int *colorBuffer[RENDERTARGETS];

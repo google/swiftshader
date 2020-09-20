@@ -547,7 +547,7 @@ public:
 
 		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
 		{
-			context.depthBias = executionState.dynamicState.depthBiasConstantFactor;
+			context.constantDepthBias = executionState.dynamicState.depthBiasConstantFactor;
 			context.slopeDepthBias = executionState.dynamicState.depthBiasSlopeFactor;
 			context.depthBiasClamp = executionState.dynamicState.depthBiasClamp;
 		}

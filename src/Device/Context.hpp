@@ -100,7 +100,7 @@ public:
 	VkPolygonMode polygonMode;
 	VkLineRasterizationModeEXT lineRasterizationMode;
 
-	float depthBias;
+	float constantDepthBias;
 	float slopeDepthBias;
 	float depthBiasClamp;
 	bool depthRangeUnrestricted;

@@ -92,6 +92,11 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			z[q] = interpolate(x, Dz[q], z[q], primitive + OFFSET(Primitive, z), false, false);
 
+			if(state.depthBias)
+			{
+				z[q] += *Pointer<Float4>(primitive + OFFSET(Primitive, zBias), 16);
+			}
+
 			if(state.depthClamp)
 			{
 				z[q] = Min(Max(z[q], Float4(0.0f)), Float4(1.0f));

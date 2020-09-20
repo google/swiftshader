@@ -93,6 +93,7 @@ public:
 		bool centroid;
 		VkFrontFace frontFace;
 		vk::Format depthFormat;
+		bool depthBias;
 		bool depthClamp;
 	};
 
