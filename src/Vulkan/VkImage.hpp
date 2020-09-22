@@ -31,6 +31,7 @@ namespace vk {
 class Buffer;
 class Device;
 class DeviceMemory;
+class ImageView;
 
 #ifdef __ANDROID__
 struct BackingMemory
@@ -65,6 +66,7 @@ public:
 	void blitTo(Image *dstImage, const VkImageBlit &region, VkFilter filter) const;
 	void copyTo(uint8_t *dst, unsigned int dstPitch) const;
 	void resolveTo(Image *dstImage, const VkImageResolve &region) const;
+	void resolveDepthStencilTo(const ImageView *src, ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &depthStencilResolve) const;
 	void clear(const VkClearValue &clearValue, const vk::Format &viewFormat, const VkRect2D &renderArea, const VkImageSubresourceRange &subresourceRange);
 	void clear(const VkClearColorValue &color, const VkImageSubresourceRange &subresourceRange);
 	void clear(const VkClearDepthStencilValue &color, const VkImageSubresourceRange &subresourceRange);

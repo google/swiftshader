@@ -183,6 +183,17 @@ void Framebuffer::resolve(const RenderPass *renderPass, uint32_t subpassIndex)
 			}
 		}
 	}
+
+	if(renderPass->hasDepthStencilResolve() && subpass.pDepthStencilAttachment != nullptr)
+	{
+		VkSubpassDescriptionDepthStencilResolve dsResolve = renderPass->getSubpassDepthStencilResolve(subpassIndex);
+		uint32_t depthStencilAttachment = subpass.pDepthStencilAttachment->attachment;
+		if(depthStencilAttachment != VK_ATTACHMENT_UNUSED)
+		{
+			ImageView *imageView = attachments[depthStencilAttachment];
+			imageView->resolveDepthStencil(attachments[dsResolve.pDepthStencilResolveAttachment->attachment], dsResolve);
+		}
+	}
 }
 
 size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo *pCreateInfo)

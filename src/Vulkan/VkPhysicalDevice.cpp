@@ -838,8 +838,8 @@ static void getDepthStencilResolveProperties(T *properties)
 {
 	properties->supportedDepthResolveModes = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT | VK_RESOLVE_MODE_NONE;
 	properties->supportedStencilResolveModes = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT | VK_RESOLVE_MODE_NONE;
-	properties->independentResolveNone = VK_FALSE;
-	properties->independentResolve = VK_FALSE;
+	properties->independentResolveNone = VK_TRUE;
+	properties->independentResolve = VK_TRUE;
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceDepthStencilResolveProperties *properties) const

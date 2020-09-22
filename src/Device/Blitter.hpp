@@ -28,6 +28,7 @@
 namespace vk {
 
 class Image;
+class ImageView;
 class Buffer;
 
 }  // namespace vk
@@ -145,6 +146,7 @@ public:
 
 	void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 	void resolve(const vk::Image *src, vk::Image *dst, VkImageResolve region);
+	void resolveDepthStencil(const vk::ImageView *src, vk::ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsrDesc);
 	void copy(const vk::Image *src, uint8_t *dst, unsigned int dstPitch);
 
 	void updateBorders(vk::Image *image, const VkImageSubresource &subresource);

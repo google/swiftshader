@@ -17,6 +17,7 @@
 #include "VkBuffer.hpp"
 #include "VkDevice.hpp"
 #include "VkDeviceMemory.hpp"
+#include "VkImageView.hpp"
 #include "VkStringify.hpp"
 #include "Device/ASTC_Decoder.hpp"
 #include "Device/BC_Decoder.hpp"
@@ -990,6 +991,11 @@ void Image::copyTo(uint8_t *dst, unsigned int dstPitch) const
 void Image::resolveTo(Image *dstImage, const VkImageResolve &region) const
 {
 	device->getBlitter()->resolve(this, dstImage, region);
+}
+
+void Image::resolveDepthStencilTo(const ImageView *src, ImageView *dst, const VkSubpassDescriptionDepthStencilResolve &dsResolve) const
+{
+	device->getBlitter()->resolveDepthStencil(src, dst, dsResolve);
 }
 
 VkFormat Image::getClearFormat() const

@@ -129,7 +129,7 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo *pCreateInfo, void *mem)
     , subpassCount(pCreateInfo->subpassCount)
     , dependencyCount(pCreateInfo->dependencyCount)
 {
-	init(pCreateInfo, mem);
+	init(pCreateInfo, &mem);
 }
 
 RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
@@ -137,18 +137,76 @@ RenderPass::RenderPass(const VkRenderPassCreateInfo2KHR *pCreateInfo, void *mem)
     , subpassCount(pCreateInfo->subpassCount)
     , dependencyCount(pCreateInfo->dependencyCount)
 {
-	init(pCreateInfo, mem);
+	init(pCreateInfo, &mem);
 	// Note: the init function above ignores:
 	// - pCorrelatedViewMasks: This provides a potential performance optimization
 	// - VkAttachmentReference2::aspectMask : This specifies which aspects may be used
 	// - VkSubpassDependency2::viewOffset : This is the same as VkRenderPassMultiviewCreateInfo::pViewOffsets, which is currently ignored
 	// - Any pNext pointer in VkRenderPassCreateInfo2KHR's internal structures
+
+	char *hostMemory = reinterpret_cast<char *>(mem);
+
+	// Handle the extensions in each subpass
+	for(uint32_t i = 0; i < subpassCount; i++)
+	{
+		auto const &subpass = pCreateInfo->pSubpasses[i];
+		const VkBaseInStructure *extension = reinterpret_cast<const VkBaseInStructure *>(subpass.pNext);
+		while(extension)
+		{
+			switch(extension->sType)
+			{
+				case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
+				{
+					const auto *ext = reinterpret_cast<const VkSubpassDescriptionDepthStencilResolve *>(extension);
+					// If any subpass includes depthStencilResolve, allocate a DSR struct for each subpass
+					// This allows us to index into subpassDepthStencilResolves using the subpass index.
+					if(ext->pDepthStencilResolveAttachment != nullptr && ext->pDepthStencilResolveAttachment->attachment != VK_ATTACHMENT_UNUSED)
+					{
+						if(subpassDepthStencilResolves == nullptr)
+						{
+							subpassDepthStencilResolves = reinterpret_cast<VkSubpassDescriptionDepthStencilResolve *>(hostMemory);
+							hostMemory += subpassCount * sizeof(VkSubpassDescriptionDepthStencilResolve);
+							for(uint32_t subpass = 0; subpass < subpassCount; subpass++)
+							{
+								subpassDepthStencilResolves[subpass].sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE;
+								subpassDepthStencilResolves[subpass].pNext = nullptr;
+								subpassDepthStencilResolves[subpass].depthResolveMode = VK_RESOLVE_MODE_NONE;
+								subpassDepthStencilResolves[subpass].stencilResolveMode = VK_RESOLVE_MODE_NONE;
+								subpassDepthStencilResolves[subpass].pDepthStencilResolveAttachment = nullptr;
+							}
+						}
+
+						VkAttachmentReference2 *reference = reinterpret_cast<VkAttachmentReference2 *>(hostMemory);
+						hostMemory += sizeof(VkAttachmentReference2);
+
+						subpassDepthStencilResolves[i].depthResolveMode = ext->depthResolveMode;
+						subpassDepthStencilResolves[i].stencilResolveMode = ext->stencilResolveMode;
+						reference->pNext = nullptr;
+						reference->sType = ext->pDepthStencilResolveAttachment->sType;
+						reference->attachment = ext->pDepthStencilResolveAttachment->attachment;
+						reference->layout = ext->pDepthStencilResolveAttachment->layout;
+						reference->aspectMask = ext->pDepthStencilResolveAttachment->aspectMask;
+						subpassDepthStencilResolves[i].pDepthStencilResolveAttachment = reinterpret_cast<const VkAttachmentReference2 *>(reference);
+
+						MarkFirstUse(reference->attachment, i);
+					}
+				}
+				break;
+				default:
+					LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
+					         i, vk::Stringify(extension->sType).c_str());
+					break;
+			}
+
+			extension = extension->pNext;
+		}
+	}
 }
 
 template<class T>
-void RenderPass::init(const T *pCreateInfo, void *mem)
+void RenderPass::init(const T *pCreateInfo, void **mem)
 {
-	char *hostMemory = reinterpret_cast<char *>(mem);
+	char *hostMemory = reinterpret_cast<char *>(*mem);
 
 	// subpassCount must be greater than 0
 	ASSERT(pCreateInfo->subpassCount > 0);
@@ -300,7 +358,9 @@ void RenderPass::init(const T *pCreateInfo, void *mem)
 	{
 		dependencies = reinterpret_cast<VkSubpassDependency *>(hostMemory);
 		CopySubpassDependencies(dependencies, pCreateInfo->pDependencies, pCreateInfo->dependencyCount);
+		hostMemory += dependencyCount * sizeof(VkSubpassDependency);
 	}
+	*mem = hostMemory;
 }
 
 void RenderPass::destroy(const VkAllocationCallbacks *pAllocator)
@@ -315,7 +375,46 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo *p
 
 size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo2KHR *pCreateInfo)
 {
-	return ComputeRequiredAllocationSizeT(pCreateInfo);
+	size_t requiredMemory = ComputeRequiredAllocationSizeT(pCreateInfo);
+
+	// Calculate the memory required to handle depth stencil resolves
+	bool usesDSR = false;
+	for(uint32_t i = 0; i < pCreateInfo->subpassCount; i++)
+	{
+		auto const &subpass = pCreateInfo->pSubpasses[i];
+		const VkBaseInStructure *extension = reinterpret_cast<const VkBaseInStructure *>(subpass.pNext);
+		while(extension)
+		{
+			switch(extension->sType)
+			{
+				case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
+				{
+					const auto *ext = reinterpret_cast<const VkSubpassDescriptionDepthStencilResolve *>(extension);
+					if(ext->pDepthStencilResolveAttachment != nullptr && ext->pDepthStencilResolveAttachment->attachment != VK_ATTACHMENT_UNUSED)
+					{
+						if(!usesDSR)
+						{
+							// If any subpass uses DSR, then allocate a VkSubpassDescriptionDepthStencilResolve
+							// for all subpasses. This allows us to index into our DSR structs using the subpass index.
+							requiredMemory += sizeof(VkSubpassDescriptionDepthStencilResolve) * pCreateInfo->subpassCount;
+							usesDSR = true;
+						}
+						// For each subpass that actually uses DSR, allocate a VkAttachmentReference2.
+						requiredMemory += sizeof(VkAttachmentReference2);
+					}
+				}
+				break;
+				default:
+					LOG_TRAP("VkRenderPassCreateInfo2KHR->subpass[%d]->pNext sType: %s",
+					         i, vk::Stringify(extension->sType).c_str());
+					break;
+			}
+
+			extension = extension->pNext;
+		}
+	}
+
+	return requiredMemory;
 }
 
 void RenderPass::getRenderAreaGranularity(VkExtent2D *pGranularity) const

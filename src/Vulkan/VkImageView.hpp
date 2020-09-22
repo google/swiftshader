@@ -79,6 +79,7 @@ public:
 	void resolve(ImageView *resolveAttachment);
 	void resolve(ImageView *resolveAttachment, int layer);
 	void resolveWithLayerMask(ImageView *resolveAttachment, uint32_t layerMask);
+	void resolveDepthStencil(ImageView *resolveAttachment, const VkSubpassDescriptionDepthStencilResolve &dsResolve);
 
 	VkImageViewType getType() const { return viewType; }
 	Format getFormat(Usage usage = RAW) const;
@@ -88,6 +89,7 @@ public:
 	int getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
 	int layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
 	VkExtent2D getMipLevelExtent(uint32_t mipLevel) const;
+	VkExtent2D getMipLevelExtent(uint32_t mipLevel, VkImageAspectFlagBits aspect) const;
 	int getDepthOrLayerCount(uint32_t mipLevel) const;
 
 	int getSampleCount() const
