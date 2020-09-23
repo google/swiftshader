@@ -34,7 +34,10 @@ cc_library_static {
         "external/swiftshader/third_party/marl/include"
     ],
     arch: {
-        arm: { srcs: ["src/osfiber_arm.c", "src/osfiber_asm_arm.S"], },
+        arm: {
+            instruction_set: "arm",
+            srcs: ["src/osfiber_arm.c", "src/osfiber_asm_arm.S"],
+        },
         arm64: { srcs: ["src/osfiber_aarch64.c", "src/osfiber_asm_aarch64.S"], },
         x86: { srcs: ["src/osfiber_x86.c", "src/osfiber_asm_x86.S"], },
         x86_64: { srcs: ["src/osfiber_x64.c", "src/osfiber_asm_x64.S"], },
