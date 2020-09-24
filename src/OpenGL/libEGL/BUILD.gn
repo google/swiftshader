@@ -61,11 +61,16 @@ swiftshader_shared_library("swiftshader_libEGL") {
     "Display.cpp",
     "Surface.cpp",
     "libEGL.cpp",
-    "libEGL.def",
-    "libEGL.rc",
     "main.cpp",
     "resource.h",
   ]
+
+  if (is_win) {
+    sources += [
+      "libEGL.def",
+      "libEGL.rc",
+    ]
+  }
 
   if (is_mac) {
     sources += [ "OSXUtils.mm" ]

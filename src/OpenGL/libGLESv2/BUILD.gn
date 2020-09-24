@@ -118,11 +118,14 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
 
   deps = [ ":swiftshader_libGLESv2_static" ]
 
-  sources = [
-    "entry_points.cpp",
-    "libGLESv2.def",
-    "libGLESv2.rc",
-  ]
+  sources = [ "entry_points.cpp" ]
+
+  if (is_win) {
+    sources += [
+      "libGLESv2.def",
+      "libGLESv2.rc",
+    ]
+  }
 
   if (is_mac) {
     ldflags = [

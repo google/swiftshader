@@ -139,11 +139,9 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "VkShaderModule.cpp",
     "VkSpecializationInfo.cpp",
     "VkStringify.cpp",
-    "Vulkan.rc",
     "libVulkan.cpp",
     "main.cpp",
     "resource.h",
-    "vk_swiftshader.def",
   ]
 
   configs = [ ":swiftshader_libvulkan_private_config" ]
@@ -153,6 +151,13 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     output_name = "vk_swiftshader"
   } else {
     output_name = "libvk_swiftshader"
+  }
+
+  if (is_win) {
+    sources += [
+      "Vulkan.rc",
+      "vk_swiftshader.def",
+    ]
   }
 
   if (is_mac) {
