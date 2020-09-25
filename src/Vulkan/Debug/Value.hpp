@@ -15,13 +15,18 @@
 #ifndef VK_DEBUG_VALUE_HPP_
 #define VK_DEBUG_VALUE_HPP_
 
-#include "Type.hpp"
+#include "TypeOf.hpp"
+
+#include "System/Debug.hpp"
 
 #include <memory>
 #include <string>
 
 namespace vk {
 namespace dbg {
+
+class Variables;
+class VariableContainer;
 
 // FormatFlags holds settings used to serialize a Value to a string.
 struct FormatFlags
@@ -36,97 +41,85 @@ struct FormatFlags
 	const FormatFlags *subListFmt;  // Format used for list sub items.
 };
 
-// Value holds a value that can be read and possible written to.
+// Value holds a value that can be read.
 class Value
 {
 public:
 	virtual ~Value() = default;
 
-	// type() returns the value's type.
-	virtual std::shared_ptr<Type> type() const = 0;
+	// type() returns the typename for the value.
+	virtual std::string type() = 0;
 
-	// string() returns a string representation of the value using the specified
+	// get() returns a string representation of the value using the specified
 	// FormatFlags.
-	virtual std::string string(const FormatFlags & = FormatFlags::Default) const;
+	virtual std::string get(const FormatFlags & = FormatFlags::Default) = 0;
 
-	// get() returns a pointer to the value.
-	virtual const void *get() const = 0;
-
-	// set() changes the value to a copy of the value at ptr.
-	// set() returns true if the value was changed, or false if the value cannot
-	// be set.
-	virtual bool set(void *ptr) { return false; }
+	// children() returns the optional child members of this value.
+	virtual std::shared_ptr<Variables> children() { return nullptr; }
 };
 
-// Constant is an immutable value.
+// Constant is constant value of type T.
 template<typename T>
 class Constant : public Value
 {
 public:
-	inline Constant(const T &value);
-	inline std::shared_ptr<Type> type() const override;
-	inline const void *get() const override;
+	Constant(const T &val)
+	    : val(val)
+	{}
+	std::string type() override { return TypeOf<T>::name; }
+	std::string get(const FormatFlags &fmt = FormatFlags::Default) override { return std::to_string(val); }
 
 private:
-	const T value;
+	T const val;
 };
-
-template<typename T>
-Constant<T>::Constant(const T &value)
-    : value(value)
-{
-}
-
-template<typename T>
-std::shared_ptr<Type> Constant<T>::type() const
-{
-	return TypeOf<T>::get();
-}
-
-template<typename T>
-const void *Constant<T>::get() const
-{
-	return &value;
-}
 
 // Reference is reference to a value in memory.
 template<typename T>
 class Reference : public Value
 {
 public:
-	inline Reference(T &ptr);
-	inline std::shared_ptr<Type> type() const override;
-	inline const void *get() const override;
-	inline bool set(void *ptr) override;
+	Reference(const T &ref)
+	    : ref(ref)
+	{}
+	std::string type() override { return TypeOf<T>::name; }
+	std::string get(const FormatFlags &fmt = FormatFlags::Default) override { return std::to_string(ref); }
 
 private:
-	T &ref;
+	T const &ref;
 };
 
-template<typename T>
-Reference<T>::Reference(T &ref)
-    : ref(ref)
+// Struct is an implementation of Value that delegates calls to children() on to
+// the constructor provided Variables.
+class Struct : public Value
 {
-}
+public:
+	Struct(const std::string &type, const std::shared_ptr<Variables> &members)
+	    : ty(type)
+	    , members(members)
+	{
+		ASSERT(members);
+	}
 
-template<typename T>
-std::shared_ptr<Type> Reference<T>::type() const
-{
-	return TypeOf<T>::get();
-}
+	std::string type() override { return ty; }
+	std::string get(const FormatFlags &fmt = FormatFlags::Default) override;
+	std::shared_ptr<Variables> children() override { return members; }
 
-template<typename T>
-const void *Reference<T>::get() const
-{
-	return &ref;
-}
+	// create() constructs and returns a new Struct with the given type name and
+	// calls fields to populate the child members.
+	// fields must be a function that has the signature:
+	//   void(std::shared_pointer<VariableContainer>&)
+	template<typename F>
+	static std::shared_ptr<Struct> create(const std::string &name, F &&fields)
+	{
+		auto vc = std::make_shared<VariableContainer>();
+		fields(vc);
+		return std::make_shared<Struct>(name, vc);
+	}
 
-template<typename T>
-bool Reference<T>::set(void *ptr)
-{
-	ref = *reinterpret_cast<const T *>(ptr);
-	return true;
-}
+private:
+	std::string const ty;
+	std::shared_ptr<Variables> const members;
+};
 
 // make_constant() returns a shared_ptr to a Constant with the given value.
 template<typename T>
@@ -137,7 +130,7 @@ inline std::shared_ptr<Constant<T>> make_constant(const T &value)
 
 // make_reference() returns a shared_ptr to a Reference with the given value.
 template<typename T>
-inline std::shared_ptr<Reference<T>> make_reference(T &value)
+inline std::shared_ptr<Reference<T>> make_reference(const T &value)
 {
 	return std::make_shared<Reference<T>>(value);
 }

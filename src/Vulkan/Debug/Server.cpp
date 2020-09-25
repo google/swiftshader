@@ -269,7 +269,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		DAP_LOG("VariablesRequest receieved");
 
 		auto lock = ctx->lock();
-		auto vars = lock.get(VariableContainer::ID(req.variablesReference));
+		auto vars = lock.get(Variables::ID(req.variablesReference));
 		if(!vars)
 		{
 			return dap::Error("VariablesReference %d not found",
@@ -281,15 +281,15 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			dap::Variable out;
 			out.evaluateName = v.name;
 			out.name = v.name;
-			out.type = v.value->type()->string();
-			out.value = v.value->string();
-			if(v.value->type()->kind == Kind::VariableContainer)
+			out.type = v.value->type();
+			out.value = v.value->get();
+			if(auto children = v.value->children())
 			{
-				auto const vc = std::dynamic_pointer_cast<VariableContainer>(v.value);
-				out.variablesReference = vc->id.value();
-				lock.track(vc);
+				out.variablesReference = children->id.value();
+				lock.track(children);
 			}
 			response.variables.push_back(out);
+			return true;
 		});
 		return response;
 	});
@@ -446,12 +446,8 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			}
 
 			dap::EvaluateResponse response;
-			auto findHandler = [&](const Variable &var) {
-				response.result = var.value->string(fmt);
-				response.type = var.value->type()->string();
-			};
 
-			std::vector<std::shared_ptr<vk::dbg::VariableContainer>> variables = {
+			std::vector<std::shared_ptr<vk::dbg::Variables>> variables = {
 				frame->locals->variables,
 				frame->arguments->variables,
 				frame->registers->variables,
@@ -460,7 +456,12 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 
 			for(auto const &vars : variables)
 			{
-				if(vars->find(req.expression, findHandler)) { return response; }
+				if(auto val = vars->get(req.expression))
+				{
+					response.result = val->get(fmt);
+					response.type = val->type();
+					return response;
+				}
 			}
 
 			// HACK: VSCode does not appear to include the % in %123 tokens
@@ -469,7 +470,12 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			auto withPercent = "%" + req.expression;
 			for(auto const &vars : variables)
 			{
-				if(vars->find(withPercent, findHandler)) { return response; }
+				if(auto val = vars->get(withPercent))
+				{
+					response.result = val->get(fmt);
+					response.type = val->type();
+					return response;
+				}
 			}
 		}
 

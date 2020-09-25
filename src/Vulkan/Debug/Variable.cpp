@@ -17,7 +17,41 @@
 namespace vk {
 namespace dbg {
 
-std::atomic<int> VariableContainer::nextID{};
+std::atomic<int> Variables::nextID{};
+
+Variables::~Variables() = default;
+
+std::shared_ptr<Value> Variables::get(const std::string &name)
+{
+	std::shared_ptr<Value> found;
+	foreach([&](const Variable &var) {
+		if(var.name == name)
+		{
+			found = var.value;
+			return false;
+		}
+		return true;
+	});
+	return found;
+}
+
+std::string Variables::string(const FormatFlags &fmt /* = FormatFlags::Default */)
+{
+	std::string out = "";
+	auto subfmt = *fmt.subListFmt;
+	subfmt.listIndent = fmt.listIndent + fmt.subListFmt->listIndent;
+	bool first = true;
+	foreach([&](const Variable &var) {
+		if(!first) { out += fmt.listDelimiter; }
+		first = false;
+		out += fmt.listIndent;
+		out += var.name;
+		out += ": ";
+		out += var.value->get(subfmt);
+		return true;
+	});
+	return fmt.listPrefix + out + fmt.listSuffix;
+}
 
 }  // namespace dbg
 }  // namespace vk

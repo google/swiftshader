@@ -453,7 +453,7 @@ struct ArrayType : ObjectImpl<ArrayType, Type, Object::Kind::ArrayType>
 		    vc,
 		    [&](std::shared_ptr<vk::dbg::VariableContainer> &parent, uint32_t idx) {
 			    auto child = std::make_shared<vk::dbg::VariableContainer>();
-			    parent->put(tostring(idx), child);
+			    parent->put(tostring(idx), std::make_shared<vk::dbg::Struct>("array", child));
 			    return child;
 		    },
 		    [&](std::shared_ptr<vk::dbg::VariableContainer> &parent, uint32_t idx, uint32_t offset) {
@@ -466,7 +466,7 @@ struct ArrayType : ObjectImpl<ArrayType, Type, Object::Kind::ArrayType>
 #	endif
 			    parent->put(key, child);
 		    });
-		return vc;
+		return std::make_shared<vk::dbg::Struct>("array", vc);
 	}
 };
 
@@ -502,7 +502,7 @@ struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
 #	endif
 			vc->put(elKey, base->value(elPtr, interleaved));
 		}
-		return vc;
+		return std::make_shared<vk::dbg::Struct>("vector", vc);
 	}
 };
 
@@ -571,7 +571,7 @@ struct CompositeType : ObjectImpl<CompositeType, Type, Object::Kind::CompositeTy
 #	endif
 			vc->put(elKey, member->type->value(elPtr, interleaved));
 		}
-		return vc;
+		return std::make_shared<vk::dbg::Struct>(name, vc);
 	}
 };
 
@@ -928,7 +928,7 @@ SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *
 		for(int i = 0; i < sw::SIMD::Width; i++)
 		{
 			auto locals = std::make_shared<vk::dbg::VariableContainer>();
-			frame.locals->variables->put(laneNames[i], locals);
+			frame.locals->variables->put(laneNames[i], std::make_shared<vk::dbg::Struct>("", locals));
 			globals.localsByLane[i] = locals;
 		}
 	});
@@ -979,7 +979,7 @@ template<typename K>
 vk::dbg::VariableContainer *SpirvShader::Impl::Debugger::State::group(vk::dbg::VariableContainer *vc, K key)
 {
 	auto out = std::make_shared<vk::dbg::VariableContainer>();
-	vc->put(tostring(key), out);
+	vc->put(tostring(key), std::make_shared<vk::dbg::Struct>("", out));
 	return out.get();
 }
 
@@ -1018,7 +1018,7 @@ void SpirvShader::Impl::Debugger::State::createScope(const debug::Scope *spirvSc
 	{
 		auto locals = std::make_shared<vk::dbg::VariableContainer>();
 		s.localsByLane[i] = locals;
-		s.locals->variables->put(laneNames[i], locals);
+		s.locals->variables->put(laneNames[i], std::make_shared<vk::dbg::Struct>("", locals));
 	}
 
 	if(hasDebuggerScope(spirvScope->parent))

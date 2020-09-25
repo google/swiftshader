@@ -16,14 +16,16 @@
 #define VK_DEBUG_VARIABLE_HPP_
 
 #include "ID.hpp"
-#include "Type.hpp"
 #include "Value.hpp"
+
+#include "System/Debug.hpp"
 
 #include "marl/mutex.h"
 #include "marl/tsa.h"
 
 #include <algorithm>
 #include <atomic>
+#include <limits>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -37,26 +39,64 @@ struct Variable
 {
 	std::string name;
 	std::shared_ptr<Value> value;
+
+	// operator bool returns true iff value is not nullptr.
+	operator bool() const { return value != nullptr; }
 };
 
-// VariableContainer is a collection of named values.
-class VariableContainer : public Value
+// Variables is an interface to a collection of named values.
+class Variables
+{
+public:
+	using ID = dbg::ID<Variables>;
+
+	using ForeachCallback = std::function<bool(const Variable &)>;
+	using FindCallback = std::function<void(const Variable &)>;
+
+	inline Variables();
+	virtual ~Variables();
+
+	// foreach() calls cb with each of the variables in the container, while cb
+	// returns true.
+	// foreach() will return when cb returns false.
+	inline void foreach(const ForeachCallback &cb);
+
+	// foreach() calls cb with each of the variables in the container within the
+	// indexed range: [startIndex, startIndex+count), while cb returns true.
+	// foreach() will return when cb returns false.
+	virtual void foreach(size_t startIndex, size_t count, const ForeachCallback &cb) = 0;
+
+	// get() looks up and returns the variable with the given name.
+	virtual std::shared_ptr<Value> get(const std::string &name);
+
+	// string() returns the list of variables formatted to a string using the
+	// given flags.
+	virtual std::string string(const FormatFlags &fmt /* = FormatFlags::Default */);
+
+	// The unique identifier of the variables.
+	const ID id;
+
+private:
+	static std::atomic<int> nextID;
+};
+
+Variables::Variables()
+    : id(nextID++)
+{}
+
+void Variables::foreach(const ForeachCallback &cb)
+{
+	foreach(0, std::numeric_limits<size_t>::max(), cb);
+}
+
+// VariableContainer is mutable collection of named values.
+class VariableContainer : public Variables
 {
 public:
 	using ID = dbg::ID<VariableContainer>;
 
-	inline VariableContainer();
-
-	// foreach() calls cb with each of the variables in the container.
-	// F must be a function with the signature void(const Variable&).
-	template<typename F>
-	inline void foreach(size_t startIndex, size_t count, const F &cb) const;
-
-	// find() looks up the variable with the given name.
-	// If the variable with the given name is found, cb is called with the
-	// variable and find() returns true.
-	template<typename F>
-	inline bool find(const std::string &name, const F &cb) const;
+	inline void foreach(size_t startIndex, size_t count, const ForeachCallback &cb) override;
+	inline std::shared_ptr<Value> get(const std::string &name) override;
 
 	// put() places the variable var into the container.
 	inline void put(const Variable &var);
@@ -64,16 +104,12 @@ public:
 	// put() places the variable with the given name and value into the container.
 	inline void put(const std::string &name, const std::shared_ptr<Value> &value);
 
-	// extend() adds base to the list of VariableContainers that will be
-	// searched and traversed for variables.
-	inline void extend(const std::shared_ptr<VariableContainer> &base);
-
-	// The unique identifier of the variable.
-	const ID id;
+	// extend() adds base to the list of Variables that will be searched and
+	// traversed for variables after those in this VariableContainer are
+	// searched / traversed.
+	inline void extend(const std::shared_ptr<Variables> &base);
 
 private:
-	static std::atomic<int> nextID;
-
 	struct ForeachIndex
 	{
 		size_t start;
@@ -81,35 +117,30 @@ private:
 	};
 
 	template<typename F>
-	inline void foreach(ForeachIndex &index, const F &cb) const;
-
-	inline std::shared_ptr<Type> type() const override;
-	inline const void *get() const override;
+	inline void foreach(ForeachIndex &index, const F &cb);
 
 	mutable marl::mutex mutex;
 	std::vector<Variable> variables GUARDED_BY(mutex);
 	std::unordered_map<std::string, int> indices GUARDED_BY(mutex);
-	std::vector<std::shared_ptr<VariableContainer>> extends GUARDED_BY(mutex);
+	std::vector<std::shared_ptr<Variables>> extends GUARDED_BY(mutex);
 };
 
-VariableContainer::VariableContainer()
-    : id(nextID++)
-{}
-
-template<typename F>
-void VariableContainer::foreach(size_t startIndex, size_t count, const F &cb) const
+void VariableContainer::foreach(size_t startIndex, size_t count, const ForeachCallback &cb)
 {
 	auto index = ForeachIndex{ startIndex, count };
 	foreach(index, cb);
 }
 
 template<typename F>
-void VariableContainer::foreach(ForeachIndex &index, const F &cb) const
+void VariableContainer::foreach(ForeachIndex &index, const F &cb)
 {
 	marl::lock lock(mutex);
 	for(size_t i = index.start; i < variables.size() && i < index.count; i++)
 	{
-		cb(variables[i]);
+		if(!cb(variables[i]))
+		{
+			return;
+		}
 	}
 
 	index.start -= std::min(index.start, variables.size());
@@ -117,34 +148,34 @@ void VariableContainer::foreach(ForeachIndex &index, const F &cb) const
 
 	for(auto &base : extends)
 	{
-		base->foreach(index, cb);
+		base->foreach(index.start, index.count, cb);
 	}
 }
 
-template<typename F>
-bool VariableContainer::find(const std::string &name, const F &cb) const
+std::shared_ptr<Value> VariableContainer::get(const std::string &name)
 {
 	marl::lock lock(mutex);
 	for(auto const &var : variables)
 	{
 		if(var.name == name)
 		{
-			cb(var);
-			return true;
+			return var.value;
 		}
 	}
 	for(auto &base : extends)
 	{
-		if(base->find(name, cb))
+		if(auto val = base->get(name))
 		{
-			return true;
+			return val;
 		}
 	}
-	return false;
+	return nullptr;
 }
 
 void VariableContainer::put(const Variable &var)
 {
+	ASSERT(var.value);
+
 	marl::lock lock(mutex);
 	auto it = indices.find(var.name);
 	if(it == indices.end())
@@ -164,20 +195,10 @@ void VariableContainer::put(const std::string &name,
 	put({ name, value });
 }
 
-void VariableContainer::extend(const std::shared_ptr<VariableContainer> &base)
+void VariableContainer::extend(const std::shared_ptr<Variables> &base)
 {
 	marl::lock lock(mutex);
 	extends.emplace_back(base);
-}
-
-std::shared_ptr<Type> VariableContainer::type() const
-{
-	return TypeOf<VariableContainer>::get();
-}
-
-const void *VariableContainer::get() const
-{
-	return nullptr;
 }
 
 }  // namespace dbg

@@ -116,8 +116,8 @@ if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
         Debug/Server.hpp
         Debug/Thread.cpp
         Debug/Thread.hpp
-        Debug/Type.cpp
-        Debug/Type.hpp
+        Debug/TypeOf.cpp
+        Debug/TypeOf.hpp
         Debug/Value.cpp
         Debug/Value.hpp
         Debug/Variable.cpp

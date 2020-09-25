@@ -29,7 +29,7 @@ class Thread;
 class File;
 class Frame;
 class Scope;
-class VariableContainer;
+class Variables;
 class ClientEventListener;
 class ServerEventListener;
 
@@ -107,16 +107,16 @@ public:
 		// does not exist.
 		std::shared_ptr<Scope> get(ID<Scope>);
 
-		// track() registers the variable container with the context so it can
-		// be retrieved by get(). Note that the context does not hold a strong
-		// reference to the variable container, and get() will return nullptr
-		// if all strong external references are dropped.
-		void track(const std::shared_ptr<VariableContainer> &);
+		// track() registers the variables with the context so it can be
+		// retrieved by get(). Note that the context does not hold a strong
+		// reference to the variables, and get() will return nullptr if all
+		// strong external references are dropped.
+		void track(const std::shared_ptr<Variables> &);
 
-		// get() returns the variable container with the given ID, or null if
-		// the variable container does not exist or no longer has any external
-		// shared_ptr references.
-		std::shared_ptr<VariableContainer> get(ID<VariableContainer>);
+		// get() returns the variables with the given ID, or null if the
+		// variables does not exist or no longer has any external shared_ptr
+		// references.
+		std::shared_ptr<Variables> get(ID<Variables>);
 
 		// addFunctionBreakpoint() adds a breakpoint to the start of the
 		// function with the given name.

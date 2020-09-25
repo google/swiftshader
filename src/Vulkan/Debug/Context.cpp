@@ -183,12 +183,11 @@ public:
 	WeakMap<File::ID, File> files;
 	WeakMap<Frame::ID, Frame> frames;
 	WeakMap<Scope::ID, Scope> scopes;
-	WeakMap<VariableContainer::ID, VariableContainer> variableContainers;
+	WeakMap<Variables::ID, Variables> variables;
 	Thread::ID nextThreadID = 1;
 	File::ID nextFileID = 1;
 	Frame::ID nextFrameID = 1;
 	Scope::ID nextScopeID = 1;
-	VariableContainer::ID nextVariableContainerID = 1;
 };
 
 Context::Lock Context::Impl::lock()
@@ -390,14 +389,14 @@ std::shared_ptr<Scope> Context::Lock::get(Scope::ID id)
 	return ctx->scopes.get(id);
 }
 
-void Context::Lock::track(const std::shared_ptr<VariableContainer> &vc)
+void Context::Lock::track(const std::shared_ptr<Variables> &vars)
 {
-	ctx->variableContainers.add(vc->id, vc);
+	ctx->variables.add(vars->id, vars);
 }
 
-std::shared_ptr<VariableContainer> Context::Lock::get(VariableContainer::ID id)
+std::shared_ptr<Variables> Context::Lock::get(Variables::ID id)
 {
-	return ctx->variableContainers.get(id);
+	return ctx->variables.get(id);
 }
 
 void Context::Lock::addFunctionBreakpoint(const std::string &name)

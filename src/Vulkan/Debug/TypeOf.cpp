@@ -12,24 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Value.hpp"
-#include "Variable.hpp"
+#include "TypeOf.hpp"
 
 namespace vk {
 namespace dbg {
 
-const FormatFlags FormatFlags::Default = {
-	"[",                    // listPrefix
-	"]",                    // listSuffix
-	", ",                   // listDelimiter
-	"",                     // listIndent
-	&FormatFlags::Default,  // subListFmt
-};
-
-std::string Struct::get(const FormatFlags &fmt /* = FormatFlags::Default */)
-{
-	return members->string(fmt);
-}
+std::string TypeOf<bool>::name = "bool";
+std::string TypeOf<uint8_t>::name = "uint8_t";
+std::string TypeOf<int8_t>::name = "int8_t";
+std::string TypeOf<uint16_t>::name = "uint16_t";
+std::string TypeOf<int16_t>::name = "int16_t";
+std::string TypeOf<float>::name = "float";
+std::string TypeOf<uint32_t>::name = "uint32_t";
+std::string TypeOf<int32_t>::name = "int32_t";
+std::string TypeOf<double>::name = "double";
+std::string TypeOf<uint64_t>::name = "uint64_t";
+std::string TypeOf<int64_t>::name = "int64_t";
 
 }  // namespace dbg
 }  // namespace vk
