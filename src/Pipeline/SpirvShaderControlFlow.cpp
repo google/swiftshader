@@ -339,7 +339,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 
 	// Gather all the blocks that make up the loop.
 	std::unordered_set<Block::ID> loopBlocks;
-	loopBlocks.emplace(block.mergeBlock);
+	loopBlocks.emplace(block.mergeBlock);  // Stop traversal at mergeBlock.
 	function.TraverseReachableBlocks(blockId, loopBlocks);
 
 	// incomingBlocks are block ins that are not back-edges.
@@ -397,6 +397,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 		if(insn.opcode() == spv::OpPhi)
 		{
 			LoadPhi(insn, state);
+			dbgEndEmitInstruction(insn, state);
 		}
 		else
 		{
@@ -467,7 +468,7 @@ void SpirvShader::EmitLoop(EmitState *state) const
 	//     int phi = phi_source; // OpPhi
 	//
 	// In this example, with each iteration of the loop, phi_source will
-	// only have a single lane assigned. However by 'phi' value in the merge
+	// only have a single lane assigned. However the 'phi' value in the merge
 	// block needs to be assigned the union of all the per-lane assignments
 	// of phi_source when that lane exited the loop.
 	for(auto insn = mergeBlock.begin(); insn != mergeBlock.end(); insn++)
