@@ -1083,7 +1083,7 @@ bool Pointer::isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior 
 	return true;
 }
 
-Int Pointer::limit() const
+rr::Int Pointer::limit() const
 {
 	return dynamicLimit + staticLimit;
 }

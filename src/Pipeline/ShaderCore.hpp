@@ -121,7 +121,7 @@ struct Pointer
 
 	bool isStaticallyInBounds(unsigned int accessSize, OutOfBoundsBehavior robustness) const;
 
-	Int limit() const;
+	rr::Int limit() const;
 
 	// Returns true if all offsets are sequential
 	// (N+0*step, N+1*step, N+2*step, N+3*step)
