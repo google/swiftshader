@@ -26,7 +26,17 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#	define CHECK_REENTRANT_CONTEXT_LOCKS 1
+#else
+#	define CHECK_REENTRANT_CONTEXT_LOCKS 0
+#endif
+
 namespace {
+
+#if CHECK_REENTRANT_CONTEXT_LOCKS
+thread_local std::unordered_set<const void *> contextsWithLock;
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Broadcaster - template base class for ServerEventBroadcaster and
@@ -244,6 +254,10 @@ std::shared_ptr<Context> Context::create()
 Context::Lock::Lock(Impl *ctx)
     : ctx(ctx)
 {
+#if CHECK_REENTRANT_CONTEXT_LOCKS
+	ASSERT_MSG(contextsWithLock.count(ctx) == 0, "Attempting to acquire Context lock twice on same thread. This will deadlock");
+	contextsWithLock.emplace(ctx);
+#endif
 	ctx->mutex.lock();
 }
 
@@ -269,6 +283,10 @@ void Context::Lock::unlock()
 {
 	if(ctx)
 	{
+#if CHECK_REENTRANT_CONTEXT_LOCKS
+		contextsWithLock.erase(ctx);
+#endif
+
 		ctx->mutex.unlock();
 		ctx = nullptr;
 	}
