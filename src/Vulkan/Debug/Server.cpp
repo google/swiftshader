@@ -43,7 +43,7 @@
 namespace vk {
 namespace dbg {
 
-class Server::Impl : public Server, public EventListener
+class Server::Impl : public Server, public ServerEventListener
 {
 public:
 	Impl(const std::shared_ptr<Context> &ctx, int port);
@@ -100,14 +100,27 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 	session->registerHandler(
 	    [this](const dap::SetFunctionBreakpointsRequest &req) {
 		    DAP_LOG("SetFunctionBreakpointsRequest receieved");
-		    auto lock = ctx->lock();
+
 		    dap::SetFunctionBreakpointsResponse response;
-		    for(auto const &bp : req.breakpoints)
+		    for(auto const &reqBP : req.breakpoints)
 		    {
-			    DAP_LOG("Setting breakpoint for function '%s'", bp.name.c_str());
-			    lock.addFunctionBreakpoint(bp.name.c_str());
-			    response.breakpoints.push_back({});
+			    DAP_LOG("Setting breakpoint for function '%s'", reqBP.name.c_str());
+
+			    bool verified = false;
+			    ctx->clientEventBroadcast()->onSetBreakpoint(reqBP.name, verified);
+
+			    dap::Breakpoint resBP{};
+			    resBP.verified = verified;
+			    response.breakpoints.emplace_back(std::move(resBP));
 		    }
+		    {
+			    auto lock = ctx->lock();
+			    for(auto const &reqBP : req.breakpoints)
+			    {
+				    lock.addFunctionBreakpoint(reqBP.name.c_str());
+			    }
+		    }
+		    ctx->clientEventBroadcast()->onBreakpointsChanged();
 		    return response;
 	    });
 
@@ -115,7 +128,6 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 	    [this](const dap::SetBreakpointsRequest &req)
 	        -> dap::ResponseOrError<dap::SetBreakpointsResponse> {
 		    DAP_LOG("SetBreakpointsRequest receieved");
-		    bool verified = false;
 
 		    size_t numBreakpoints = 0;
 		    if(req.breakpoints.has_value())
@@ -124,14 +136,27 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			    numBreakpoints = breakpoints.size();
 			    if(auto file = this->file(req.source))
 			    {
+				    dap::SetBreakpointsResponse response;
 				    file->clearBreakpoints();
-				    for(auto const &bp : breakpoints)
+				    for(size_t i = 0; i < numBreakpoints; i++)
 				    {
-					    file->addBreakpoint(bp.line);
+					    auto &reqBP = breakpoints[i];
+					    Location location{ file, reqBP.line };
+					    file->addBreakpoint(reqBP.line);
+
+					    bool verified = false;
+					    ctx->clientEventBroadcast()->onSetBreakpoint(location, verified);
+
+					    dap::Breakpoint respBP;
+					    respBP.verified = verified;
+					    respBP.source = req.source;
+					    response.breakpoints.push_back(respBP);
 				    }
-				    verified = true;
+				    ctx->clientEventBroadcast()->onBreakpointsChanged();
+				    return response;
 			    }
-			    else if(req.source.name.has_value())
+
+			    if(req.source.name.has_value())
 			    {
 				    std::vector<int> lines;
 				    lines.reserve(breakpoints.size());
@@ -144,14 +169,16 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 			    }
 		    }
 
+		    // Generic response.
 		    dap::SetBreakpointsResponse response;
 		    for(size_t i = 0; i < numBreakpoints; i++)
 		    {
 			    dap::Breakpoint bp;
-			    bp.verified = verified;
+			    bp.verified = false;
 			    bp.source = req.source;
 			    response.breakpoints.push_back(bp);
 		    }
+		    ctx->clientEventBroadcast()->onBreakpointsChanged();
 		    return response;
 	    });
 

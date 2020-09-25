@@ -15,16 +15,20 @@
 #ifndef VK_DEBUG_EVENT_LISTENER_HPP_
 #define VK_DEBUG_EVENT_LISTENER_HPP_
 
+#include "ID.hpp"
+
 namespace vk {
 namespace dbg {
 
+struct Location;
 class Thread;
 
-// EventListener is an interface that is used to listen for thread events.
-class EventListener
+// ServerEventListener is an interface that is used to listen for events raised
+// by the server (the debugger).
+class ServerEventListener
 {
 public:
-	virtual ~EventListener() = default;
+	virtual ~ServerEventListener();
 
 	// onThreadStarted() is called when a new thread begins execution.
 	virtual void onThreadStarted(ID<Thread>) {}
@@ -40,6 +44,23 @@ public:
 	// onFunctionBreakpointHit() is called when a thread hits a function
 	// breakpoint and pauses execution.
 	virtual void onFunctionBreakpointHit(ID<Thread>) {}
+};
+
+// ClientEventListener is an interface that is used to listen for events raised
+// by the client (the IDE).
+class ClientEventListener
+{
+public:
+	virtual ~ClientEventListener();
+
+	// onSetBreakpoint() is called when a breakpoint location is set.
+	virtual void onSetBreakpoint(const Location &, bool &handled) {}
+
+	// onSetBreakpoint() is called when a function breakpoint is set.
+	virtual void onSetBreakpoint(const std::string &func, bool &handled) {}
+
+	// onBreakpointsChange() is called after breakpoints have been changed.
+	virtual void onBreakpointsChanged() {}
 };
 
 }  // namespace dbg

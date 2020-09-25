@@ -106,6 +106,7 @@ if(SWIFTSHADER_ENABLE_VULKAN_DEBUGGER)
         Debug/Context.cpp
         Debug/Context.hpp
         Debug/Debug.cpp
+        Debug/EventListener.cpp
         Debug/EventListener.hpp
         Debug/File.cpp
         Debug/File.hpp

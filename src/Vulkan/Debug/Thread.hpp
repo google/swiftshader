@@ -32,7 +32,7 @@ namespace dbg {
 
 class File;
 class VariableContainer;
-class EventListener;
+class ServerEventListener;
 
 // Scope is a container for variables and is used to provide source data for the
 // DAP 'Scope' type:
@@ -181,7 +181,7 @@ public:
 	const ID id;
 
 private:
-	EventListener *const broadcast;
+	ServerEventListener *const broadcast;
 
 	void onLocationUpdate(marl::lock &lock) REQUIRES(mutex);
 

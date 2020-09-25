@@ -28,65 +28,45 @@
 
 namespace {
 
-class Broadcaster : public vk::dbg::EventListener
+////////////////////////////////////////////////////////////////////////////////
+// Broadcaster - template base class for ServerEventBroadcaster and
+// ClientEventBroadcaster
+////////////////////////////////////////////////////////////////////////////////
+template<typename Listener>
+class Broadcaster : public Listener
 {
 public:
-	using Thread = vk::dbg::Thread;
+	void add(Listener *);
+	void remove(Listener *);
 
-	// EventListener
-	void onThreadStarted(Thread::ID) override;
-	void onThreadStepped(Thread::ID) override;
-	void onLineBreakpointHit(Thread::ID) override;
-	void onFunctionBreakpointHit(Thread::ID) override;
-
-	void add(EventListener *);
-	void remove(EventListener *);
-
-private:
+protected:
 	template<typename F>
 	inline void foreach(F &&);
 
 	template<typename F>
 	inline void modify(F &&);
 
-	using ListenerSet = std::unordered_set<EventListener *>;
+	using ListenerSet = std::unordered_set<Listener *>;
 	std::recursive_mutex mutex;
 	std::shared_ptr<ListenerSet> listeners = std::make_shared<ListenerSet>();
 	int listenersInUse = 0;
 };
 
-void Broadcaster::onThreadStarted(Thread::ID id)
-{
-	foreach([&](EventListener *l) { l->onThreadStarted(id); });
-}
-
-void Broadcaster::onThreadStepped(Thread::ID id)
-{
-	foreach([&](EventListener *l) { l->onThreadStepped(id); });
-}
-
-void Broadcaster::onLineBreakpointHit(Thread::ID id)
-{
-	foreach([&](EventListener *l) { l->onLineBreakpointHit(id); });
-}
-
-void Broadcaster::onFunctionBreakpointHit(Thread::ID id)
-{
-	foreach([&](EventListener *l) { l->onFunctionBreakpointHit(id); });
-}
-
-void Broadcaster::add(EventListener *l)
+template<typename Listener>
+void Broadcaster<Listener>::add(Listener *l)
 {
 	modify([&]() { listeners->emplace(l); });
 }
 
-void Broadcaster::remove(EventListener *l)
+template<typename Listener>
+void Broadcaster<Listener>::remove(Listener *l)
 {
 	modify([&]() { listeners->erase(l); });
 }
 
+template<typename Listener>
 template<typename F>
-void Broadcaster::foreach(F &&f)
+void Broadcaster<Listener>::foreach(F &&f)
 {
 	std::unique_lock<std::recursive_mutex> lock(mutex);
 	++listenersInUse;
@@ -95,8 +75,9 @@ void Broadcaster::foreach(F &&f)
 	--listenersInUse;
 }
 
+template<typename Listener>
 template<typename F>
-void Broadcaster::modify(F &&f)
+void Broadcaster<Listener>::modify(F &&f)
 {
 	std::unique_lock<std::recursive_mutex> lock(mutex);
 	if(listenersInUse > 0)
@@ -107,6 +88,57 @@ void Broadcaster::modify(F &&f)
 	}
 	f();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// ServerEventBroadcaster
+////////////////////////////////////////////////////////////////////////////////
+class ServerEventBroadcaster : public Broadcaster<vk::dbg::ServerEventListener>
+{
+public:
+	using Thread = vk::dbg::Thread;
+
+	void onThreadStarted(Thread::ID id) override
+	{
+		foreach([&](auto *l) { l->onThreadStarted(id); });
+	}
+
+	void onThreadStepped(Thread::ID id) override
+	{
+		foreach([&](auto *l) { l->onThreadStepped(id); });
+	}
+
+	void onLineBreakpointHit(Thread::ID id) override
+	{
+		foreach([&](auto *l) { l->onLineBreakpointHit(id); });
+	}
+
+	void onFunctionBreakpointHit(Thread::ID id) override
+	{
+		foreach([&](auto *l) { l->onFunctionBreakpointHit(id); });
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// ClientEventBroadcaster
+////////////////////////////////////////////////////////////////////////////////
+class ClientEventBroadcaster : public Broadcaster<vk::dbg::ClientEventListener>
+{
+public:
+	void onSetBreakpoint(const vk::dbg::Location &location, bool &handled) override
+	{
+		foreach([&](auto *l) { l->onSetBreakpoint(location, handled); });
+	}
+
+	void onSetBreakpoint(const std::string &func, bool &handled) override
+	{
+		foreach([&](auto *l) { l->onSetBreakpoint(func, handled); });
+	}
+
+	void onBreakpointsChanged() override
+	{
+		foreach([&](auto *l) { l->onBreakpointsChanged(); });
+	}
+};
 
 }  // namespace
 
@@ -121,13 +153,17 @@ class Context::Impl : public Context
 public:
 	// Context compliance
 	Lock lock() override;
-	void addListener(EventListener *) override;
-	void removeListener(EventListener *) override;
-	EventListener *broadcast() override;
+	void addListener(ClientEventListener *) override;
+	void removeListener(ClientEventListener *) override;
+	ClientEventListener *clientEventBroadcast() override;
+	void addListener(ServerEventListener *) override;
+	void removeListener(ServerEventListener *) override;
+	ServerEventListener *serverEventBroadcast() override;
 
 	void addFile(const std::shared_ptr<File> &file);
 
-	Broadcaster broadcaster;
+	ServerEventBroadcaster serverEventBroadcaster;
+	ClientEventBroadcaster clientEventBroadcaster;
 
 	std::mutex mutex;
 	std::unordered_map<std::thread::id, std::shared_ptr<Thread>> threadsByStdId;
@@ -150,19 +186,34 @@ Context::Lock Context::Impl::lock()
 	return Lock(this);
 }
 
-void Context::Impl::addListener(EventListener *l)
+void Context::Impl::addListener(ClientEventListener *l)
 {
-	broadcaster.add(l);
+	clientEventBroadcaster.add(l);
 }
 
-void Context::Impl::removeListener(EventListener *l)
+void Context::Impl::removeListener(ClientEventListener *l)
 {
-	broadcaster.remove(l);
+	clientEventBroadcaster.remove(l);
 }
 
-EventListener *Context::Impl::broadcast()
+ClientEventListener *Context::Impl::clientEventBroadcast()
 {
-	return &broadcaster;
+	return &clientEventBroadcaster;
+}
+
+void Context::Impl::addListener(ServerEventListener *l)
+{
+	serverEventBroadcaster.add(l);
+}
+
+void Context::Impl::removeListener(ServerEventListener *l)
+{
+	serverEventBroadcaster.remove(l);
+}
+
+ServerEventListener *Context::Impl::serverEventBroadcast()
+{
+	return &serverEventBroadcaster;
 }
 
 void Context::Impl::addFile(const std::shared_ptr<File> &file)
@@ -239,7 +290,7 @@ std::shared_ptr<Thread> Context::Lock::currentThread()
 	thread->setName(name);
 	ctx->threadsByStdId.emplace(std::this_thread::get_id(), thread);
 
-	ctx->broadcast()->onThreadStarted(id);
+	ctx->serverEventBroadcast()->onThreadStarted(id);
 
 	return thread;
 }

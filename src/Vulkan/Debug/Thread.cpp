@@ -23,7 +23,7 @@ namespace dbg {
 
 Thread::Thread(ID id, Context *ctx)
     : id(id)
-    , broadcast(ctx->broadcast())
+    , broadcast(ctx->serverEventBroadcast())
 {}
 
 void Thread::setName(const std::string &name)

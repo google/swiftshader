@@ -30,7 +30,8 @@ class File;
 class Frame;
 class Scope;
 class VariableContainer;
-class EventListener;
+class ClientEventListener;
+class ServerEventListener;
 
 // Context holds the full state of the debugger, including all current files,
 // threads, frames and variables. It also holds a list of EventListeners that
@@ -145,16 +146,27 @@ public:
 	// access.
 	virtual Lock lock() = 0;
 
-	// addListener() registers an EventListener for event notifications.
-	virtual void addListener(EventListener *) = 0;
+	// addListener() registers an ClientEventListener for event notifications.
+	virtual void addListener(ClientEventListener *) = 0;
 
-	// removeListener() unregisters an EventListener that was previously
+	// removeListener() unregisters an ClientEventListener that was previously
 	// registered by a call to addListener().
-	virtual void removeListener(EventListener *) = 0;
+	virtual void removeListener(ClientEventListener *) = 0;
 
-	// broadcast() returns an EventListener that will broadcast all methods on
-	// to all registered EventListeners.
-	virtual EventListener *broadcast() = 0;
+	// clientEventBroadcast() returns an ClientEventListener that will broadcast
+	// all method calls on to all registered ServerEventListeners.
+	virtual ClientEventListener *clientEventBroadcast() = 0;
+
+	// addListener() registers an ServerEventListener for event notifications.
+	virtual void addListener(ServerEventListener *) = 0;
+
+	// removeListener() unregisters an ServerEventListener that was previously
+	// registered by a call to addListener().
+	virtual void removeListener(ServerEventListener *) = 0;
+
+	// serverEventBroadcast() returns an ServerEventListener that will broadcast
+	// all method calls on to all registered ServerEventListeners.
+	virtual ServerEventListener *serverEventBroadcast() = 0;
 };
 
 }  // namespace dbg
