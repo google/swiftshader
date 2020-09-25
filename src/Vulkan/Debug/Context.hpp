@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace vk {
@@ -118,6 +119,9 @@ public:
 		// references.
 		std::shared_ptr<Variables> get(ID<Variables>);
 
+		// clearFunctionBreakpoints() removes all function breakpoints.
+		void clearFunctionBreakpoints();
+
 		// addFunctionBreakpoint() adds a breakpoint to the start of the
 		// function with the given name.
 		void addFunctionBreakpoint(const std::string &name);
@@ -130,6 +134,9 @@ public:
 		// isFunctionBreakpoint() returns true if the function with the given
 		// name has a function breakpoint set.
 		bool isFunctionBreakpoint(const std::string &name);
+
+		// getFunctionBreakpoints() returns all the set function breakpoints.
+		std::unordered_set<std::string> getFunctionBreakpoints();
 
 	private:
 		Lock(const Lock &) = delete;

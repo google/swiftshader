@@ -399,6 +399,11 @@ std::shared_ptr<Variables> Context::Lock::get(Variables::ID id)
 	return ctx->variables.get(id);
 }
 
+void Context::Lock::clearFunctionBreakpoints()
+{
+	ctx->functionBreakpoints.clear();
+}
+
 void Context::Lock::addFunctionBreakpoint(const std::string &name)
 {
 	ctx->functionBreakpoints.emplace(name);
@@ -412,6 +417,11 @@ void Context::Lock::addPendingBreakpoints(const std::string &filename, const std
 bool Context::Lock::isFunctionBreakpoint(const std::string &name)
 {
 	return ctx->functionBreakpoints.count(name) > 0;
+}
+
+std::unordered_set<std::string> Context::Lock::getFunctionBreakpoints()
+{
+	return ctx->functionBreakpoints;
 }
 
 }  // namespace dbg

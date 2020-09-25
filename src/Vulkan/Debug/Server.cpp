@@ -115,6 +115,7 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 		    }
 		    {
 			    auto lock = ctx->lock();
+			    lock.clearFunctionBreakpoints();
 			    for(auto const &reqBP : req.breakpoints)
 			    {
 				    lock.addFunctionBreakpoint(reqBP.name.c_str());
