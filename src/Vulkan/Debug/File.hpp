@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 namespace vk {
 namespace dbg {
@@ -50,6 +51,9 @@ public:
 	// hasBreakpoint() returns true iff the file has a breakpoint set at the
 	// line with the given index.
 	virtual bool hasBreakpoint(int line) const = 0;
+
+	// getBreakpoints() returns all the breakpoints set in the file.
+	virtual std::unordered_set<int> getBreakpoints() const = 0;
 
 	// isVirtual() returns true iff the file is not backed by the filesystem.
 	virtual bool isVirtual() const = 0;
