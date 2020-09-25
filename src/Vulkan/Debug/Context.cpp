@@ -20,6 +20,8 @@
 #include "Variable.hpp"
 #include "WeakMap.hpp"
 
+#include "System/Debug.hpp"
+
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -348,6 +350,19 @@ std::shared_ptr<File> Context::Lock::get(File::ID id)
 	return ctx->files.get(id);
 }
 
+std::shared_ptr<File> Context::Lock::findFile(const std::string &path)
+{
+	for(auto it : ctx->files)
+	{
+		auto &file = it.second;
+		if(file->path() == path)
+		{
+			return file;
+		}
+	}
+	return nullptr;
+}
+
 std::vector<std::shared_ptr<File>> Context::Lock::files()
 {
 	std::vector<std::shared_ptr<File>> out;
@@ -368,6 +383,7 @@ std::shared_ptr<Frame> Context::Lock::createFrame(
 	frame->locals = createScope(file);
 	frame->registers = createScope(file);
 	frame->hovers = createScope(file);
+	frame->location.file = file;
 	return frame;
 }
 

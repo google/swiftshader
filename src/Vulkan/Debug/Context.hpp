@@ -88,6 +88,10 @@ public:
 		// does not exist or no longer has any external shared_ptr references.
 		std::shared_ptr<File> get(ID<File>);
 
+		// findFile() returns the file with the given path, or nullptr if not
+		// found.
+		std::shared_ptr<File> findFile(const std::string &path);
+
 		// files() returns the full list of files.
 		std::vector<std::shared_ptr<File>> files();
 
