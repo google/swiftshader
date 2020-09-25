@@ -856,10 +856,10 @@ public:
 	static State *create(const Debugger *debugger, const char *name);
 	static void destroy(State *);
 
-	State(const Debugger *debugger, const char *stackBase, vk::dbg::Context::Lock &lock);
+	State(const Debugger *debugger, const char *stackBase);
 	~State();
 
-	void enter(vk::dbg::Context::Lock &lock, const char *name);
+	void enter(const char *name);
 	void exit();
 	void updateActiveLaneMask(int lane, bool enabled);
 	void updateLocation(bool isStep, vk::dbg::File::ID file, int line, int column);
@@ -905,8 +905,7 @@ public:
 
 SpirvShader::Impl::Debugger::State *SpirvShader::Impl::Debugger::State::create(const Debugger *debugger, const char *name)
 {
-	auto lock = debugger->ctx->lock();
-	return new State(debugger, name, lock);
+	return new State(debugger, name);
 }
 
 void SpirvShader::Impl::Debugger::State::destroy(State *state)
@@ -914,13 +913,13 @@ void SpirvShader::Impl::Debugger::State::destroy(State *state)
 	delete state;
 }
 
-SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *stackBase, vk::dbg::Context::Lock &lock)
+SpirvShader::Impl::Debugger::State::State(const Debugger *debugger, const char *stackBase)
     : debugger(debugger)
-    , thread(lock.currentThread())
+    , thread(debugger->ctx->lock().currentThread())
     , shadow(new uint8_t[debugger->shadow.size])
     , initialThreadDepth(thread->depth())
 {
-	enter(lock, stackBase);
+	enter(stackBase);
 
 	thread->update(true, [&](vk::dbg::Frame &frame) {
 		globals.locals = frame.locals;
@@ -942,9 +941,9 @@ SpirvShader::Impl::Debugger::State::~State()
 	}
 }
 
-void SpirvShader::Impl::Debugger::State::enter(vk::dbg::Context::Lock &lock, const char *name)
+void SpirvShader::Impl::Debugger::State::enter(const char *name)
 {
-	thread->enter(lock, debugger->spirvFile, name);
+	thread->enter(debugger->spirvFile, name);
 }
 
 void SpirvShader::Impl::Debugger::State::exit()
@@ -1058,8 +1057,7 @@ void SpirvShader::Impl::Debugger::State::setScope(debug::SourceScope *newSrcScop
 
 	if(hasDebuggerScope(srcScope->scope))
 	{
-		auto lock = debugger->ctx->lock();
-		auto thread = lock.currentThread();
+		auto thread = debugger->ctx->lock().currentThread();
 
 		debug::Function *oldFunction = oldSrcScope ? debug::find<debug::Function>(oldSrcScope->scope) : nullptr;
 		debug::Function *newFunction = newSrcScope ? debug::find<debug::Function>(newSrcScope->scope) : nullptr;
@@ -1067,7 +1065,7 @@ void SpirvShader::Impl::Debugger::State::setScope(debug::SourceScope *newSrcScop
 		if(oldFunction != newFunction)
 		{
 			if(oldFunction) { thread->exit(); }
-			if(newFunction) { thread->enter(lock, newFunction->source->dbgFile, newFunction->name); }
+			if(newFunction) { thread->enter(newFunction->source->dbgFile, newFunction->name); }
 		}
 
 		auto dbgScope = getScopes(srcScope->scope);

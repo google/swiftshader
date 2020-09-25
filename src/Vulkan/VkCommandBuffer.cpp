@@ -1810,11 +1810,9 @@ void CommandBuffer::submit(CommandBuffer::ExecutionState &executionState)
 	auto debuggerContext = device->getDebuggerContext();
 	if(debuggerContext)
 	{
-		auto lock = debuggerContext->lock();
-		debuggerThread = lock.currentThread();
+		debuggerThread = debuggerContext->lock().currentThread();
 		debuggerThread->setName("vkQueue processor");
-		debuggerThread->enter(lock, debuggerFile, "vkCommandBuffer::submit");
-		lock.unlock();
+		debuggerThread->enter(debuggerFile, "vkCommandBuffer::submit");
 	}
 	defer(if(debuggerThread) { debuggerThread->exit(); });
 	int line = 1;

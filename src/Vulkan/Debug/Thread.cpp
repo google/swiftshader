@@ -23,7 +23,7 @@ namespace dbg {
 
 Thread::Thread(ID id, Context *ctx)
     : id(id)
-    , broadcast(ctx->serverEventBroadcast())
+    , ctx(ctx)
 {}
 
 void Thread::setName(const std::string &name)
@@ -46,7 +46,7 @@ void Thread::onLocationUpdate(marl::lock &lock)
 	{
 		if(location.file->hasBreakpoint(location.line))
 		{
-			broadcast->onLineBreakpointHit(id);
+			ctx->serverEventBroadcast()->onLineBreakpointHit(id);
 			state_ = State::Paused;
 		}
 	}
@@ -61,12 +61,23 @@ void Thread::onLocationUpdate(marl::lock &lock)
 
 		case State::Stepping:
 		{
-			if(!pauseAtFrame || pauseAtFrame == frames.back())
+			bool pause = false;
+
 			{
-				broadcast->onThreadStepped(id);
+				auto frame = pauseAtFrame.lock();
+				pause = !frame;             // Pause if there's no pause-at-frame...
+				if(frame == frames.back())  // ... or if we've reached the pause-at-frame
+				{
+					pause = true;
+					pauseAtFrame.reset();
+				}
+			}
+
+			if(pause)
+			{
+				ctx->serverEventBroadcast()->onThreadStepped(id);
 				state_ = State::Paused;
 				lock.wait(stateCV, [this]() REQUIRES(mutex) { return state_ != State::Paused; });
-				pauseAtFrame = 0;
 			}
 			break;
 		}
@@ -76,17 +87,29 @@ void Thread::onLocationUpdate(marl::lock &lock)
 	}
 }
 
-void Thread::enter(Context::Lock &ctxlck, const std::shared_ptr<File> &file, const std::string &function)
+void Thread::enter(const std::shared_ptr<File> &file, const std::string &function, const UpdateFrame &f)
 {
-	auto frame = ctxlck.createFrame(file, function);
-	auto isFunctionBreakpoint = ctxlck.isFunctionBreakpoint(function);
-
-	marl::lock lock(mutex);
-	frames.push_back(frame);
-	if(isFunctionBreakpoint)
+	std::shared_ptr<Frame> frame;
+	bool isFunctionBreakpoint;
 	{
-		broadcast->onFunctionBreakpointHit(id);
-		state_ = State::Paused;
+		auto lock = ctx->lock();
+		frame = lock.createFrame(file, function);
+		isFunctionBreakpoint = lock.isFunctionBreakpoint(function);
+	}
+
+	{
+		marl::lock lock(mutex);
+		frames.push_back(frame);
+
+		if(f) { f(*frame); }
+
+		if(isFunctionBreakpoint)
+		{
+			ctx->serverEventBroadcast()->onFunctionBreakpointHit(id);
+			state_ = State::Paused;
+		}
+
+		onLocationUpdate(lock);
 	}
 }
 
@@ -96,7 +119,7 @@ void Thread::exit()
 	frames.pop_back();
 }
 
-void Thread::update(bool isStep, std::function<void(Frame &)> f)
+void Thread::update(bool isStep, const UpdateFrame &f)
 {
 	marl::lock lock(mutex);
 	auto &frame = *frames.back();
@@ -180,7 +203,7 @@ void Thread::stepOut()
 {
 	marl::lock lock(mutex);
 	state_ = State::Stepping;
-	pauseAtFrame = (frames.size() > 1) ? frames[frames.size() - 1] : nullptr;
+	pauseAtFrame = (frames.size() > 1) ? frames[frames.size() - 2] : nullptr;
 	stateCV.notify_all();
 }
 
