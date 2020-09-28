@@ -49,6 +49,19 @@ typedef unsigned __int64 uint64_t;
 
 namespace sw {
 
+// https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+constexpr inline uint32_t bit_ceil(uint32_t i)
+{
+	i--;
+	i |= i >> 1;
+	i |= i >> 2;
+	i |= i >> 4;
+	i |= i >> 8;
+	i |= i >> 16;
+	i++;
+	return i;
+}
+
 typedef ALIGN(1, uint8_t) byte;
 typedef ALIGN(2, uint16_t) word;
 typedef ALIGN(4, uint32_t) dword;
@@ -56,7 +69,7 @@ typedef ALIGN(8, uint64_t) qword;
 typedef ALIGN(1, int8_t) sbyte;
 
 template<typename T, int N>
-struct alignas(sizeof(T) * N) vec
+struct alignas(sizeof(T) * bit_ceil(N)) vec
 {
 	vec() = default;
 
@@ -161,6 +174,8 @@ bool operator!=(const vec<T, N> &a, const vec<T, N> &b)
 template<typename T>
 using vec2 = vec<T, 2>;
 template<typename T>
+using vec3 = vec<T, 3>;  // aligned to 4 elements
+template<typename T>
 using vec4 = vec<T, 4>;
 template<typename T>
 using vec8 = vec<T, 8>;
@@ -172,6 +187,13 @@ using uint2 = vec2<unsigned int>;
 using float2 = vec2<float>;
 using dword2 = vec2<dword>;
 using qword2 = vec2<qword>;
+
+// Note: These vec3<T> types all use 4-element alignment - i.e. they have
+// identical memory layout to vec4<T>, except they do not have a 4th component.
+using int3 = vec3<int>;
+using uint3 = vec3<unsigned int>;
+using float3 = vec3<float>;
+using dword3 = vec3<dword>;
 
 using int4 = vec4<int>;
 using uint4 = vec4<unsigned int>;
