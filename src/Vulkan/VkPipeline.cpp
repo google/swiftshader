@@ -102,15 +102,7 @@ std::shared_ptr<sw::SpirvShader> createShader(
 	// instructions.
 	const bool optimize = !dbgctx;
 
-	// TODO(b/147726513): Do not preprocess the shader if we have a debugger
-	// context.
-	// This is a work-around for the SPIR-V tools incorrectly reporting errors
-	// when debug information is provided. This can be removed once the
-	// following SPIR-V tools bugs are fixed:
-	// https://github.com/KhronosGroup/SPIRV-Tools/issues/3102
-	// https://github.com/KhronosGroup/SPIRV-Tools/issues/3103
-	// https://github.com/KhronosGroup/SPIRV-Tools/issues/3118
-	auto code = dbgctx ? key.getInsns() : preprocessSpirv(key.getInsns(), key.getSpecializationInfo(), optimize);
+	auto code = preprocessSpirv(key.getInsns(), key.getSpecializationInfo(), optimize);
 	ASSERT(code.size() > 0);
 
 	// If the pipeline has specialization constants, assume they're unique and
