@@ -49,7 +49,7 @@ swiftshader_source_set("swiftshader_reactor_base") {
     "Debug.cpp",
     "EmulatedIntrinsics.cpp",
     "ExecutableMemory.cpp",
-    "OptimalIntrinsics.cpp"
+    "OptimalIntrinsics.cpp",
     "Reactor.cpp",
   ]
 }
