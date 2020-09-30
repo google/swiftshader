@@ -2293,10 +2293,6 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 		const int oneBits = 0x3F7FFFFF;   // Value just under 1.0f
 		const int twoBits = 0x3FFFFFFF;   // Value just under 2.0f
 
-		bool pointFilter = state.textureFilter == FILTER_POINT ||
-		                   state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR ||
-		                   state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT;
-
 		Float4 coord = uvw;
 
 		if(state.unnormalizedCoordinates)
@@ -2348,9 +2344,10 @@ void SamplerCore::address(const Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, 
 				{
 					case ADDRESSING_CLAMP:
 					case ADDRESSING_SEAMLESS:
-						// Linear filtering of cube doesn't require clamping because the coordinates
-						// are already in [0, 1] range and numerical imprecision is tolerated.
-						if(addressingMode != ADDRESSING_SEAMLESS || pointFilter)
+						// While cube face coordinates are nominally already in the [0.0, 1.0] range
+						// due to the projection, and numerical imprecision is tolerated due to the
+						// border of pixels for seamless filtering, the projection doesn't cause
+						// range normalization for Inf and NaN values. So we always clamp.
 						{
 							Float4 one = As<Float4>(Int4(oneBits));
 							coord = Min(Max(coord, Float4(0.0f)), one);
