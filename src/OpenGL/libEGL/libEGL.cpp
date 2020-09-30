@@ -361,9 +361,9 @@ EGLSurface EGLAPIENTRY CreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig con
 		return EGL_NO_SURFACE;
 	}
 
-#if defined(USE_X11)
-	native_window = (void *)(*(::Window*)native_window);
-#endif
+	#if defined(USE_X11)
+		native_window = (void *)(*(::Window*)native_window);
+	#endif
 
 	if(!display->isValidWindow((EGLNativeWindowType)native_window))
 	{
@@ -388,7 +388,12 @@ EGLSurface EGLAPIENTRY CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGL
 	      "const EGLint *attrib_list = %p)", dpy, config, window, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreatePlatformWindowSurface(dpy, config, (void*)window, &attribs);
+
+	#if defined(USE_X11)
+		return CreatePlatformWindowSurface(dpy, config, (void*)&window, &attribs);
+	#else
+		return CreatePlatformWindowSurface(dpy, config, (void*)window, &attribs);
+	#endif
 }
 
 EGLSurface EGLAPIENTRY CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
