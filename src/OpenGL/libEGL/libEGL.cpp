@@ -24,7 +24,7 @@
 #include "Common/Version.h"
 
 #if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
-#include <system/window.h>
+#include <vndk/window.h>
 #elif defined(USE_X11)
 #include "Main/libX11.hpp"
 #endif

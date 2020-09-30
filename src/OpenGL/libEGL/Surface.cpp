@@ -344,13 +344,8 @@ bool WindowSurface::checkForResize()
 		int windowWidth = client.right - client.left;
 		int windowHeight = client.bottom - client.top;
 	#elif defined(__ANDROID__)
-	#ifdef ANDROID_NDK_BUILD
 		int windowWidth = ANativeWindow_getWidth(window);
 		int windowHeight = ANativeWindow_getHeight(window);
-	#else
-		int windowWidth;  window->query(window, NATIVE_WINDOW_WIDTH, &windowWidth);
-		int windowHeight; window->query(window, NATIVE_WINDOW_HEIGHT, &windowHeight);
-	#endif
 	#elif defined(USE_X11)
 		XWindowAttributes windowAttributes;
 		Status status = libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);

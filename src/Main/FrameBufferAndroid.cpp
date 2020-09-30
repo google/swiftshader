@@ -16,7 +16,9 @@
 
 #ifndef ANDROID_NDK_BUILD
 #include "Common/GrallocAndroid.hpp"
-#include <system/window.h>
+#include <sync/sync.h>
+#include <system/graphics.h>
+#include <vndk/window.h>
 #else
 #include <android/native_window.h>
 #endif
@@ -26,29 +28,22 @@ namespace sw
 #if !defined(ANDROID_NDK_BUILD)
 	inline int dequeueBuffer(ANativeWindow* window, ANativeWindowBuffer** buffer)
 	{
-		#if ANDROID_PLATFORM_SDK_VERSION > 16
-			return native_window_dequeue_buffer_and_wait(window, buffer);
-		#else
-			return window->dequeueBuffer(window, buffer);
-		#endif
+		int fenceFd = -1;
+		int ret = ANativeWindow_dequeueBuffer(window, buffer, &fenceFd);
+		if (ret || fenceFd < 0) return ret;
+		sync_wait(fenceFd, -1 /* forever */);
+		close(fenceFd);
+		return ret;
 	}
 
 	inline int queueBuffer(ANativeWindow* window, ANativeWindowBuffer* buffer, int fenceFd)
 	{
-		#if ANDROID_PLATFORM_SDK_VERSION > 16
-			return window->queueBuffer(window, buffer, fenceFd);
-		#else
-			return window->queueBuffer(window, buffer);
-		#endif
+		return ANativeWindow_queueBuffer(window, buffer, fenceFd);
 	}
 
 	inline int cancelBuffer(ANativeWindow* window, ANativeWindowBuffer* buffer, int fenceFd)
 	{
-		#if ANDROID_PLATFORM_SDK_VERSION > 16
-			return window->cancelBuffer(window, buffer, fenceFd);
-		#else
-			return window->cancelBuffer(window, buffer);
-		#endif
+		return ANativeWindow_cancelBuffer(window, buffer, fenceFd);
 	}
 #endif // !defined(ANDROID_NDK_BUILD)
 
@@ -57,15 +52,15 @@ namespace sw
 			nativeWindow(window), buffer(nullptr)
 	{
 #ifndef ANDROID_NDK_BUILD
-		nativeWindow->common.incRef(&nativeWindow->common);
-		native_window_set_usage(nativeWindow, GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
+		ANativeWindow_acquire(nativeWindow);
+		ANativeWindow_setUsage(nativeWindow, GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 #endif
 	}
 
 	FrameBufferAndroid::~FrameBufferAndroid()
 	{
 #ifndef ANDROID_NDK_BUILD
-		nativeWindow->common.decRef(&nativeWindow->common);
+		ANativeWindow_release(nativeWindow);
 #endif
 	}
 

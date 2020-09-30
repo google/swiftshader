@@ -22,7 +22,8 @@
 #include <GLES2/gl2ext.h>
 
 #if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
-#include <system/window.h>
+#include <system/graphics.h>
+#include <vndk/window.h>
 #include "../../Common/GrallocAndroid.hpp"
 #endif
 
