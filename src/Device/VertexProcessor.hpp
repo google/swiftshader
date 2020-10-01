@@ -94,7 +94,7 @@ public:
 
 	VertexProcessor();
 
-	const State update(const sw::Context *context);
+	const State update(const vk::GraphicsState &pipelineState, const sw::SpirvShader *vertexShader, const vk::Inputs &inputs);
 	RoutineType routine(const State &state, vk::PipelineLayout const *pipelineLayout,
 	                    SpirvShader const *vertexShader, const vk::DescriptorSet::Bindings &descriptorSets);
 

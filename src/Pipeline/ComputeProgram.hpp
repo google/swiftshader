@@ -17,9 +17,9 @@
 
 #include "SpirvShader.hpp"
 
-#include "Device/Context.hpp"
 #include "Reactor/Coroutine.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
+#include "Vulkan/VkPipeline.hpp"
 
 #include <functional>
 
@@ -58,7 +58,7 @@ public:
 	    vk::DescriptorSet::Array const &descriptorSetObjects,
 	    vk::DescriptorSet::Bindings const &descriptorSetBindings,
 	    vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
-	    PushConstantStorage const &pushConstants,
+	    vk::Pipeline::PushConstantStorage const &pushConstants,
 	    uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
 	    uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
@@ -76,7 +76,7 @@ protected:
 		uint32_t invocationsPerSubgroup;   // SPIR-V: "SubgroupSize"
 		uint32_t subgroupsPerWorkgroup;    // SPIR-V: "NumSubgroups"
 		uint32_t invocationsPerWorkgroup;  // Total number of invocations per workgroup.
-		PushConstantStorage pushConstants;
+		vk::Pipeline::PushConstantStorage pushConstants;
 		const Constants *constants;
 	};
 

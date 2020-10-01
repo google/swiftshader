@@ -20,8 +20,8 @@
 #include "Primitive.hpp"
 #include "SetupProcessor.hpp"
 #include "VertexProcessor.hpp"
-#include "Device/Config.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
+#include "Vulkan/VkPipeline.hpp"
 
 #include "marl/finally.h"
 #include "marl/pool.h"
@@ -114,7 +114,7 @@ struct DrawData
 	float4 a2c2;
 	float4 a2c3;
 
-	PushConstantStorage pushConstants;
+	vk::Pipeline::PushConstantStorage pushConstants;
 };
 
 struct DrawCall
@@ -209,27 +209,16 @@ public:
 
 	bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 
-	void draw(const sw::Context *context, VkIndexType indexType, unsigned int count, int baseVertex,
+	void draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,
 	          CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
-	          PushConstantStorage const &pushConstants, bool update = true);
-
-	// Viewport & Clipper
-	void setViewport(const VkViewport &viewport);
-	void setScissor(const VkRect2D &scissor);
-
-	void setBlendConstant(const float4 &blendConstant);
+	          vk::Pipeline::PushConstantStorage const &pushConstants, bool update = true);
 
 	void addQuery(vk::Query *query);
 	void removeQuery(vk::Query *query);
 
-	void advanceInstanceAttributes(Stream *inputs);
-
 	void synchronize();
 
 private:
-	VkViewport viewport;
-	VkRect2D scissor;
-
 	DrawCall::Pool drawCallPool;
 	DrawCall::BatchData::Pool batchDataPool;
 

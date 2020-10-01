@@ -15,9 +15,7 @@
 #ifndef VK_PIPELINE_HPP_
 #define VK_PIPELINE_HPP_
 
-#include "VkObject.hpp"
-#include "Device/Renderer.hpp"
-#include "Vulkan/VkDescriptorSet.hpp"
+#include "Device/Context.hpp"
 #include "Vulkan/VkPipelineCache.hpp"
 #include <memory>
 
@@ -34,10 +32,7 @@ namespace dbg {
 class Context;
 }  // namespace dbg
 
-class PipelineCache;
-class PipelineLayout;
 class ShaderModule;
-class Device;
 
 class Pipeline
 {
@@ -67,6 +62,11 @@ public:
 		return layout;
 	}
 
+	struct PushConstantStorage
+	{
+		unsigned char data[vk::MAX_PUSH_CONSTANT_SIZE];
+	};
+
 protected:
 	PipelineLayout *layout = nullptr;
 	Device *const device;
@@ -95,26 +95,31 @@ public:
 
 	void compileShaders(const VkAllocationCallbacks *pAllocator, const VkGraphicsPipelineCreateInfo *pCreateInfo, PipelineCache *pipelineCache);
 
-	uint32_t computePrimitiveCount(uint32_t vertexCount) const;
-	const sw::Context &getContext() const;
-	const VkRect2D &getScissor() const;
-	const VkViewport &getViewport() const;
-	const sw::float4 &getBlendConstants() const;
-	bool hasDynamicState(VkDynamicState dynamicState) const;
-	bool hasPrimitiveRestartEnable() const { return primitiveRestartEnable; }
+	const GraphicsState getState(const DynamicState &ds) const { return state.combineStates(ds); }
+
+	void getIndexBuffers(uint32_t count, uint32_t first, bool indexed, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const;
+
+	IndexBuffer &getIndexBuffer() { return indexBuffer; }
+	const IndexBuffer &getIndexBuffer() const { return indexBuffer; }
+	Attachments &getAttachments() { return attachments; }
+	const Attachments &getAttachments() const { return attachments; }
+	Inputs &getInputs() { return inputs; }
+	const Inputs &getInputs() const { return inputs; }
+
+	bool containsImageWrite() const;
+
+	const std::shared_ptr<sw::SpirvShader> getShader(const VkShaderStageFlagBits &stage) const;
 
 private:
 	void setShader(const VkShaderStageFlagBits &stage, const std::shared_ptr<sw::SpirvShader> spirvShader);
-	const std::shared_ptr<sw::SpirvShader> getShader(const VkShaderStageFlagBits &stage) const;
 	std::shared_ptr<sw::SpirvShader> vertexShader;
 	std::shared_ptr<sw::SpirvShader> fragmentShader;
 
-	uint32_t dynamicStateFlags = 0;
-	bool primitiveRestartEnable = false;
-	sw::Context context;
-	VkRect2D scissor;
-	VkViewport viewport;
-	sw::float4 blendConstants;
+	const GraphicsState state;
+
+	IndexBuffer indexBuffer;
+	Attachments attachments;
+	Inputs inputs;
 };
 
 class ComputePipeline : public Pipeline, public ObjectBase<ComputePipeline, VkPipeline>
@@ -141,7 +146,7 @@ public:
 	         vk::DescriptorSet::Array const &descriptorSetObjects,
 	         vk::DescriptorSet::Bindings const &descriptorSets,
 	         vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
-	         sw::PushConstantStorage const &pushConstants);
+	         vk::Pipeline::PushConstantStorage const &pushConstants);
 
 protected:
 	std::shared_ptr<sw::SpirvShader> shader;

@@ -466,56 +466,6 @@ private:
 class CmdDrawBase : public vk::CommandBuffer::Command
 {
 public:
-	int bytesPerIndex(vk::CommandBuffer::ExecutionState const &executionState)
-	{
-		return executionState.indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4;
-	}
-
-	template<typename T>
-	void processPrimitiveRestart(T *indexBuffer,
-	                             uint32_t count,
-	                             vk::GraphicsPipeline *pipeline,
-	                             std::vector<std::pair<uint32_t, void *>> &indexBuffers)
-	{
-		static const T RestartIndex = static_cast<T>(-1);
-		T *indexBufferStart = indexBuffer;
-		uint32_t vertexCount = 0;
-		for(uint32_t i = 0; i < count; i++)
-		{
-			if(indexBuffer[i] == RestartIndex)
-			{
-				// Record previous segment
-				if(vertexCount > 0)
-				{
-					uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
-					if(primitiveCount > 0)
-					{
-						indexBuffers.push_back({ primitiveCount, indexBufferStart });
-					}
-				}
-				vertexCount = 0;
-			}
-			else
-			{
-				if(vertexCount == 0)
-				{
-					indexBufferStart = indexBuffer + i;
-				}
-				vertexCount++;
-			}
-		}
-
-		// Record last segment
-		if(vertexCount > 0)
-		{
-			uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
-			if(primitiveCount > 0)
-			{
-				indexBuffers.push_back({ primitiveCount, indexBufferStart });
-			}
-		}
-	}
-
 	void draw(vk::CommandBuffer::ExecutionState &executionState, bool indexed,
 	          uint32_t count, uint32_t instanceCount, uint32_t first, int32_t vertexOffset, uint32_t firstInstance)
 	{
@@ -523,87 +473,21 @@ public:
 
 		auto *pipeline = static_cast<vk::GraphicsPipeline *>(pipelineState.pipeline);
 
-		sw::Context context = pipeline->getContext();
+		vk::Attachments &attachments = pipeline->getAttachments();
+		executionState.bindAttachments(&attachments);
 
-		executionState.bindVertexInputs(context, firstInstance);
+		vk::Inputs &inputs = pipeline->getInputs();
+		inputs.updateDescriptorSets(pipelineState.descriptorSetObjects,
+		                            pipelineState.descriptorSets,
+		                            pipelineState.descriptorDynamicOffsets);
+		inputs.setVertexInputBinding(executionState.vertexInputBindings);
+		inputs.bindVertexInputs(firstInstance);
 
-		context.descriptorSetObjects = pipelineState.descriptorSetObjects;
-		context.descriptorSets = pipelineState.descriptorSets;
-		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
-
-		// Apply either pipeline state or dynamic state
-		executionState.renderer->setScissor(pipeline->hasDynamicState(VK_DYNAMIC_STATE_SCISSOR) ? executionState.dynamicState.scissor : pipeline->getScissor());
-		executionState.renderer->setViewport(pipeline->hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT) ? executionState.dynamicState.viewport : pipeline->getViewport());
-		executionState.renderer->setBlendConstant(pipeline->hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS) ? executionState.dynamicState.blendConstants : pipeline->getBlendConstants());
-
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
-		{
-			context.constantDepthBias = executionState.dynamicState.depthBiasConstantFactor;
-			context.slopeDepthBias = executionState.dynamicState.depthBiasSlopeFactor;
-			context.depthBiasClamp = executionState.dynamicState.depthBiasClamp;
-		}
-
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)
-		{
-			// Unless the VK_EXT_depth_range_unrestricted extension is enabled, minDepthBounds and maxDepthBounds must be between 0.0 and 1.0, inclusive
-			ASSERT(executionState.dynamicState.minDepthBounds >= 0.0f &&
-			       executionState.dynamicState.minDepthBounds <= 1.0f);
-			ASSERT(executionState.dynamicState.maxDepthBounds >= 0.0f &&
-			       executionState.dynamicState.maxDepthBounds <= 1.0f);
-
-			UNSUPPORTED("VkPhysicalDeviceFeatures::depthBounds");
-		}
-
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && context.stencilEnable)
-		{
-			context.frontStencil.compareMask = executionState.dynamicState.compareMask[0];
-			context.backStencil.compareMask = executionState.dynamicState.compareMask[1];
-		}
-
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && context.stencilEnable)
-		{
-			context.frontStencil.writeMask = executionState.dynamicState.writeMask[0];
-			context.backStencil.writeMask = executionState.dynamicState.writeMask[1];
-		}
-
-		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && context.stencilEnable)
-		{
-			context.frontStencil.reference = executionState.dynamicState.reference[0];
-			context.backStencil.reference = executionState.dynamicState.reference[1];
-		}
-
-		executionState.bindAttachments(context);
-
-		context.occlusionEnabled = executionState.renderer->hasOcclusionQuery();
+		vk::IndexBuffer &indexBuffer = pipeline->getIndexBuffer();
+		indexBuffer.setIndexBufferBinding(executionState.indexBufferBinding, executionState.indexType);
 
 		std::vector<std::pair<uint32_t, void *>> indexBuffers;
-		if(indexed)
-		{
-			void *indexBuffer = executionState.indexBufferBinding.buffer->getOffsetPointer(
-			    executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
-			if(pipeline->hasPrimitiveRestartEnable())
-			{
-				switch(executionState.indexType)
-				{
-					case VK_INDEX_TYPE_UINT16:
-						processPrimitiveRestart(static_cast<uint16_t *>(indexBuffer), count, pipeline, indexBuffers);
-						break;
-					case VK_INDEX_TYPE_UINT32:
-						processPrimitiveRestart(static_cast<uint32_t *>(indexBuffer), count, pipeline, indexBuffers);
-						break;
-					default:
-						UNSUPPORTED("VkIndexType %d", int(executionState.indexType));
-				}
-			}
-			else
-			{
-				indexBuffers.push_back({ pipeline->computePrimitiveCount(count), indexBuffer });
-			}
-		}
-		else
-		{
-			indexBuffers.push_back({ pipeline->computePrimitiveCount(count), nullptr });
-		}
+		pipeline->getIndexBuffers(count, first, indexed, &indexBuffers);
 
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
@@ -616,14 +500,14 @@ public:
 
 				for(auto indexBuffer : indexBuffers)
 				{
-					executionState.renderer->draw(&context, executionState.indexType, indexBuffer.first, vertexOffset,
+					executionState.renderer->draw(pipeline, executionState.dynamicState, indexBuffer.first, vertexOffset,
 					                              executionState.events, instance, viewID, indexBuffer.second,
 					                              executionState.renderPassFramebuffer->getExtent(),
 					                              executionState.pushConstants);
 				}
 			}
 
-			executionState.renderer->advanceInstanceAttributes(context.input);
+			inputs.advanceInstanceAttributes();
 		}
 	}
 };
@@ -1840,25 +1724,7 @@ void CommandBuffer::submitSecondary(CommandBuffer::ExecutionState &executionStat
 	}
 }
 
-void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context &context, int firstInstance)
-{
-	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
-	{
-		auto &attrib = context.input[i];
-		if(attrib.format != VK_FORMAT_UNDEFINED)
-		{
-			const auto &vertexInput = vertexInputBindings[attrib.binding];
-			VkDeviceSize offset = attrib.offset + vertexInput.offset +
-			                      attrib.instanceStride * firstInstance;
-			attrib.buffer = vertexInput.buffer ? vertexInput.buffer->getOffsetPointer(offset) : nullptr;
-
-			VkDeviceSize size = vertexInput.buffer ? vertexInput.buffer->getSize() : 0;
-			attrib.robustnessSize = (size > offset) ? size - offset : 0;
-		}
-	}
-}
-
-void CommandBuffer::ExecutionState::bindAttachments(sw::Context &context)
+void CommandBuffer::ExecutionState::bindAttachments(Attachments *attachments)
 {
 	// Binds all the attachments for the current subpass
 	// Ideally this would be performed by BeginRenderPass and NextSubpass, but
@@ -1872,7 +1738,7 @@ void CommandBuffer::ExecutionState::bindAttachments(sw::Context &context)
 		auto attachmentReference = subpass.pColorAttachments[i];
 		if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 		{
-			context.renderTarget[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
+			attachments->renderTarget[i] = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
 		}
 	}
 
@@ -1882,11 +1748,11 @@ void CommandBuffer::ExecutionState::bindAttachments(sw::Context &context)
 		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
 		if(attachment->hasDepthAspect())
 		{
-			context.depthBuffer = attachment;
+			attachments->depthBuffer = attachment;
 		}
 		if(attachment->hasStencilAspect())
 		{
-			context.stencilBuffer = attachment;
+			attachments->stencilBuffer = attachment;
 		}
 	}
 }

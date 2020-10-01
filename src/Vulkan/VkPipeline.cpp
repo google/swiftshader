@@ -147,305 +147,9 @@ void Pipeline::destroy(const VkAllocationCallbacks *pAllocator)
 
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo *pCreateInfo, void *mem, Device *device)
     : Pipeline(vk::Cast(pCreateInfo->layout), device)
+    , state(device, pCreateInfo, layout, robustBufferAccess)
+    , inputs(pCreateInfo->pVertexInputState)
 {
-	context.robustBufferAccess = robustBufferAccess;
-
-	if((pCreateInfo->flags &
-	    ~(VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT |
-	      VK_PIPELINE_CREATE_DERIVATIVE_BIT |
-	      VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0)
-	{
-		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
-	}
-
-	if(pCreateInfo->pDynamicState)
-	{
-		if(pCreateInfo->pDynamicState->flags != 0)
-		{
-			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-			UNSUPPORTED("pCreateInfo->pDynamicState->flags %d", int(pCreateInfo->pDynamicState->flags));
-		}
-
-		for(uint32_t i = 0; i < pCreateInfo->pDynamicState->dynamicStateCount; i++)
-		{
-			VkDynamicState dynamicState = pCreateInfo->pDynamicState->pDynamicStates[i];
-			switch(dynamicState)
-			{
-				case VK_DYNAMIC_STATE_VIEWPORT:
-				case VK_DYNAMIC_STATE_SCISSOR:
-				case VK_DYNAMIC_STATE_LINE_WIDTH:
-				case VK_DYNAMIC_STATE_DEPTH_BIAS:
-				case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
-				case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
-				case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
-				case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
-				case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
-					ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
-					dynamicStateFlags |= (1 << dynamicState);
-					break;
-				default:
-					UNSUPPORTED("VkDynamicState %d", int(dynamicState));
-			}
-		}
-	}
-
-	const VkPipelineVertexInputStateCreateInfo *vertexInputState = pCreateInfo->pVertexInputState;
-
-	if(vertexInputState->flags != 0)
-	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-		UNSUPPORTED("vertexInputState->flags");
-	}
-
-	// Context must always have a PipelineLayout set.
-	context.pipelineLayout = layout;
-
-	// Temporary in-binding-order representation of buffer strides, to be consumed below
-	// when considering attributes. TODO: unfuse buffers from attributes in backend, is old GL model.
-	uint32_t vertexStrides[MAX_VERTEX_INPUT_BINDINGS];
-	uint32_t instanceStrides[MAX_VERTEX_INPUT_BINDINGS];
-	for(uint32_t i = 0; i < vertexInputState->vertexBindingDescriptionCount; i++)
-	{
-		auto const &desc = vertexInputState->pVertexBindingDescriptions[i];
-		vertexStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? desc.stride : 0;
-		instanceStrides[desc.binding] = desc.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE ? desc.stride : 0;
-	}
-
-	for(uint32_t i = 0; i < vertexInputState->vertexAttributeDescriptionCount; i++)
-	{
-		auto const &desc = vertexInputState->pVertexAttributeDescriptions[i];
-		sw::Stream &input = context.input[desc.location];
-		input.format = desc.format;
-		input.offset = desc.offset;
-		input.binding = desc.binding;
-		input.vertexStride = vertexStrides[desc.binding];
-		input.instanceStride = instanceStrides[desc.binding];
-	}
-
-	const VkPipelineInputAssemblyStateCreateInfo *inputAssemblyState = pCreateInfo->pInputAssemblyState;
-
-	if(inputAssemblyState->flags != 0)
-	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-		UNSUPPORTED("pCreateInfo->pInputAssemblyState->flags %d", int(pCreateInfo->pInputAssemblyState->flags));
-	}
-
-	primitiveRestartEnable = (inputAssemblyState->primitiveRestartEnable != VK_FALSE);
-	context.topology = inputAssemblyState->topology;
-
-	const VkPipelineRasterizationStateCreateInfo *rasterizationState = pCreateInfo->pRasterizationState;
-
-	if(rasterizationState->flags != 0)
-	{
-		// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-		UNSUPPORTED("pCreateInfo->pRasterizationState->flags %d", int(pCreateInfo->pRasterizationState->flags));
-	}
-
-	if(rasterizationState->depthClampEnable != VK_FALSE)
-	{
-		UNSUPPORTED("VkPhysicalDeviceFeatures::depthClamp");
-	}
-
-	context.rasterizerDiscard = (rasterizationState->rasterizerDiscardEnable != VK_FALSE);
-	context.cullMode = rasterizationState->cullMode;
-	context.frontFace = rasterizationState->frontFace;
-	context.polygonMode = rasterizationState->polygonMode;
-	context.constantDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasConstantFactor : 0.0f;
-	context.slopeDepthBias = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasSlopeFactor : 0.0f;
-	context.depthBiasClamp = (rasterizationState->depthBiasEnable != VK_FALSE) ? rasterizationState->depthBiasClamp : 0.0f;
-	context.depthRangeUnrestricted = device->hasExtension(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
-
-	// From the Vulkan spec for vkCmdSetDepthBias:
-	//    The bias value O for a polygon is:
-	//        O = dbclamp(...)
-	//    where dbclamp(x) =
-	//        * x                       depthBiasClamp = 0 or NaN
-	//        * min(x, depthBiasClamp)  depthBiasClamp > 0
-	//        * max(x, depthBiasClamp)  depthBiasClamp < 0
-	// So it should be safe to resolve NaNs to 0.0f.
-	if(std::isnan(context.depthBiasClamp))
-	{
-		context.depthBiasClamp = 0.0f;
-	}
-
-	context.lineWidth = rasterizationState->lineWidth;
-
-	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(rasterizationState->pNext);
-	while(extensionCreateInfo)
-	{
-		// Casting to a long since some structures, such as
-		// VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT
-		// are not enumerated in the official Vulkan header
-		switch((long)(extensionCreateInfo->sType))
-		{
-			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
-			{
-				const VkPipelineRasterizationLineStateCreateInfoEXT *lineStateCreateInfo = reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT *>(extensionCreateInfo);
-				context.lineRasterizationMode = lineStateCreateInfo->lineRasterizationMode;
-			}
-			break;
-			case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT:
-			{
-				const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *provokingVertexModeCreateInfo =
-				    reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT *>(extensionCreateInfo);
-				context.provokingVertexMode = provokingVertexModeCreateInfo->provokingVertexMode;
-			}
-			break;
-			default:
-				WARN("pCreateInfo->pRasterizationState->pNext sType = %s", vk::Stringify(extensionCreateInfo->sType).c_str());
-				break;
-		}
-
-		extensionCreateInfo = extensionCreateInfo->pNext;
-	}
-
-	// The sample count affects the batch size, so it needs initialization even if rasterization is disabled.
-	// TODO(b/147812380): Eliminate the dependency between multisampling and batch size.
-	context.sampleCount = 1;
-
-	// Only access rasterization state if rasterization is not disabled.
-	if(rasterizationState->rasterizerDiscardEnable == VK_FALSE)
-	{
-		const VkPipelineViewportStateCreateInfo *viewportState = pCreateInfo->pViewportState;
-		const VkPipelineMultisampleStateCreateInfo *multisampleState = pCreateInfo->pMultisampleState;
-		const VkPipelineDepthStencilStateCreateInfo *depthStencilState = pCreateInfo->pDepthStencilState;
-		const VkPipelineColorBlendStateCreateInfo *colorBlendState = pCreateInfo->pColorBlendState;
-
-		if(viewportState->flags != 0)
-		{
-			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-			UNSUPPORTED("pCreateInfo->pViewportState->flags %d", int(pCreateInfo->pViewportState->flags));
-		}
-
-		if((viewportState->viewportCount != 1) ||
-		   (viewportState->scissorCount != 1))
-		{
-			UNSUPPORTED("VkPhysicalDeviceFeatures::multiViewport");
-		}
-
-		if(!hasDynamicState(VK_DYNAMIC_STATE_SCISSOR))
-		{
-			scissor = viewportState->pScissors[0];
-		}
-
-		if(!hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT))
-		{
-			viewport = viewportState->pViewports[0];
-		}
-
-		if(multisampleState->flags != 0)
-		{
-			// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-			UNSUPPORTED("pCreateInfo->pMultisampleState->flags %d", int(pCreateInfo->pMultisampleState->flags));
-		}
-
-		if(multisampleState->sampleShadingEnable != VK_FALSE)
-		{
-			UNSUPPORTED("VkPhysicalDeviceFeatures::sampleRateShading");
-		}
-
-		if(multisampleState->alphaToOneEnable != VK_FALSE)
-		{
-			UNSUPPORTED("VkPhysicalDeviceFeatures::alphaToOne");
-		}
-
-		switch(multisampleState->rasterizationSamples)
-		{
-			case VK_SAMPLE_COUNT_1_BIT:
-				context.sampleCount = 1;
-				break;
-			case VK_SAMPLE_COUNT_4_BIT:
-				context.sampleCount = 4;
-				break;
-			default:
-				UNSUPPORTED("Unsupported sample count");
-		}
-
-		if(multisampleState->pSampleMask)
-		{
-			context.sampleMask = multisampleState->pSampleMask[0];
-		}
-		else  // "If pSampleMask is NULL, it is treated as if the mask has all bits set to 1."
-		{
-			context.sampleMask = ~0;
-		}
-
-		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable != VK_FALSE);
-		context.multiSampleMask = context.sampleMask & ((unsigned)0xFFFFFFFF >> (32 - context.sampleCount));
-
-		const vk::RenderPass *renderPass = vk::Cast(pCreateInfo->renderPass);
-		const VkSubpassDescription &subpass = renderPass->getSubpass(pCreateInfo->subpass);
-
-		//  Ignore pDepthStencilState when "the subpass of the render pass the pipeline is created against does not use a depth/stencil attachment"
-		if(subpass.pDepthStencilAttachment && subpass.pDepthStencilAttachment->attachment != VK_ATTACHMENT_UNUSED)
-		{
-			if(depthStencilState->flags != 0)
-			{
-				// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-				UNSUPPORTED("pCreateInfo->pDepthStencilState->flags %d", int(pCreateInfo->pDepthStencilState->flags));
-			}
-
-			if(depthStencilState->depthBoundsTestEnable != VK_FALSE)
-			{
-				UNSUPPORTED("VkPhysicalDeviceFeatures::depthBounds");
-			}
-
-			context.depthBoundsTestEnable = (depthStencilState->depthBoundsTestEnable != VK_FALSE);
-			context.depthBufferEnable = (depthStencilState->depthTestEnable != VK_FALSE);
-			context.depthWriteEnable = (depthStencilState->depthWriteEnable != VK_FALSE);
-			context.depthCompareMode = depthStencilState->depthCompareOp;
-
-			context.stencilEnable = (depthStencilState->stencilTestEnable != VK_FALSE);
-			if(context.stencilEnable)
-			{
-				context.frontStencil = depthStencilState->front;
-				context.backStencil = depthStencilState->back;
-			}
-		}
-
-		bool colorAttachmentUsed = false;
-		for(uint32_t i = 0; i < subpass.colorAttachmentCount; i++)
-		{
-			if(subpass.pColorAttachments[i].attachment != VK_ATTACHMENT_UNUSED)
-			{
-				colorAttachmentUsed = true;
-				break;
-			}
-		}
-
-		// Ignore pColorBlendState when "the subpass of the render pass the pipeline is created against does not use any color attachments"
-		if(colorAttachmentUsed)
-		{
-			if(colorBlendState->flags != 0)
-			{
-				// Vulkan 1.2: "flags is reserved for future use." "flags must be 0"
-				UNSUPPORTED("pCreateInfo->pColorBlendState->flags %d", int(pCreateInfo->pColorBlendState->flags));
-			}
-
-			if(colorBlendState->logicOpEnable != VK_FALSE)
-			{
-				UNSUPPORTED("VkPhysicalDeviceFeatures::logicOp");
-			}
-
-			if(!hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS))
-			{
-				blendConstants.x = colorBlendState->blendConstants[0];
-				blendConstants.y = colorBlendState->blendConstants[1];
-				blendConstants.z = colorBlendState->blendConstants[2];
-				blendConstants.w = colorBlendState->blendConstants[3];
-			}
-
-			for(auto i = 0u; i < colorBlendState->attachmentCount; i++)
-			{
-				const VkPipelineColorBlendAttachmentState &attachment = colorBlendState->pAttachments[i];
-				context.colorWriteMask[i] = attachment.colorWriteMask;
-
-				context.setBlendState(i, { (attachment.blendEnable != VK_FALSE),
-				                           attachment.srcColorBlendFactor, attachment.dstColorBlendFactor, attachment.colorBlendOp,
-				                           attachment.srcAlphaBlendFactor, attachment.dstAlphaBlendFactor, attachment.alphaBlendOp });
-			}
-		}
-	}
 }
 
 void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks *pAllocator)
@@ -459,6 +163,17 @@ size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineC
 	return 0;
 }
 
+void GraphicsPipeline::getIndexBuffers(uint32_t count, uint32_t first, bool indexed, std::vector<std::pair<uint32_t, void *>> *indexBuffers) const
+{
+	indexBuffer.getIndexBuffers(state.getTopology(), count, first, indexed, state.hasPrimitiveRestartEnable(), indexBuffers);
+}
+
+bool GraphicsPipeline::containsImageWrite() const
+{
+	return (vertexShader.get() && vertexShader->containsImageWrite()) ||
+	       (fragmentShader.get() && fragmentShader->containsImageWrite());
+}
+
 void GraphicsPipeline::setShader(const VkShaderStageFlagBits &stage, const std::shared_ptr<sw::SpirvShader> spirvShader)
 {
 	switch(stage)
@@ -466,13 +181,11 @@ void GraphicsPipeline::setShader(const VkShaderStageFlagBits &stage, const std::
 		case VK_SHADER_STAGE_VERTEX_BIT:
 			ASSERT(vertexShader.get() == nullptr);
 			vertexShader = spirvShader;
-			context.vertexShader = vertexShader.get();
 			break;
 
 		case VK_SHADER_STAGE_FRAGMENT_BIT:
 			ASSERT(fragmentShader.get() == nullptr);
 			fragmentShader = spirvShader;
-			context.pixelShader = fragmentShader.get();
 			break;
 
 		default:
@@ -526,54 +239,6 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks *pAllocator, c
 	}
 }
 
-uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
-{
-	switch(context.topology)
-	{
-		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-			return vertexCount;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-			return vertexCount / 2;
-		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-			return std::max<uint32_t>(vertexCount, 1) - 1;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-			return vertexCount / 3;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-			return std::max<uint32_t>(vertexCount, 2) - 2;
-		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			return std::max<uint32_t>(vertexCount, 2) - 2;
-		default:
-			UNSUPPORTED("VkPrimitiveTopology %d", int(context.topology));
-	}
-
-	return 0;
-}
-
-const sw::Context &GraphicsPipeline::getContext() const
-{
-	return context;
-}
-
-const VkRect2D &GraphicsPipeline::getScissor() const
-{
-	return scissor;
-}
-
-const VkViewport &GraphicsPipeline::getViewport() const
-{
-	return viewport;
-}
-
-const sw::float4 &GraphicsPipeline::getBlendConstants() const
-{
-	return blendConstants;
-}
-
-bool GraphicsPipeline::hasDynamicState(VkDynamicState dynamicState) const
-{
-	return (dynamicStateFlags & (1 << dynamicState)) != 0;
-}
-
 ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo *pCreateInfo, void *mem, Device *device)
     : Pipeline(vk::Cast(pCreateInfo->layout), device)
 {
@@ -624,7 +289,7 @@ void ComputePipeline::run(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t bas
                           vk::DescriptorSet::Array const &descriptorSetObjects,
                           vk::DescriptorSet::Bindings const &descriptorSets,
                           vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
-                          sw::PushConstantStorage const &pushConstants)
+                          vk::Pipeline::PushConstantStorage const &pushConstants)
 {
 	ASSERT_OR_RETURN(program != nullptr);
 	program->run(

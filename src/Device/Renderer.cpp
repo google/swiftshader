@@ -180,9 +180,9 @@ void Renderer::operator delete(void *mem)
 	vk::deallocate(mem, vk::DEVICE_MEMORY);
 }
 
-void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned int count, int baseVertex,
+void Renderer::draw(const vk::GraphicsPipeline *pipeline, const vk::DynamicState &dynamicState, unsigned int count, int baseVertex,
                     CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
-                    PushConstantStorage const &pushConstants, bool update)
+                    vk::Pipeline::PushConstantStorage const &pushConstants, bool update)
 {
 	if(count == 0) { return; }
 
@@ -196,28 +196,38 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	}
 	draw->id = id;
 
+	const vk::GraphicsState &pipelineState = pipeline->getState(dynamicState);
+	pixelProcessor.setBlendConstant(pipelineState.getBlendConstants());
+
+	const vk::Inputs &inputs = pipeline->getInputs();
+
 	if(update)
 	{
 		MARL_SCOPED_EVENT("update");
-		vertexState = vertexProcessor.update(context);
-		setupState = setupProcessor.update(context);
-		pixelState = pixelProcessor.update(context);
 
-		vertexRoutine = vertexProcessor.routine(vertexState, context->pipelineLayout, context->vertexShader, context->descriptorSets);
+		const sw::SpirvShader *fragmentShader = pipeline->getShader(VK_SHADER_STAGE_FRAGMENT_BIT).get();
+		const sw::SpirvShader *vertexShader = pipeline->getShader(VK_SHADER_STAGE_VERTEX_BIT).get();
+
+		const vk::Attachments attachments = pipeline->getAttachments();
+
+		vertexState = vertexProcessor.update(pipelineState, vertexShader, inputs);
+		setupState = setupProcessor.update(pipelineState, fragmentShader, vertexShader, attachments);
+		pixelState = pixelProcessor.update(pipelineState, fragmentShader, vertexShader, attachments, hasOcclusionQuery());
+
+		vertexRoutine = vertexProcessor.routine(vertexState, pipelineState.getPipelineLayout(), vertexShader, inputs.getDescriptorSets());
 		setupRoutine = setupProcessor.routine(setupState);
-		pixelRoutine = pixelProcessor.routine(pixelState, context->pipelineLayout, context->pixelShader, context->descriptorSets);
+		pixelRoutine = pixelProcessor.routine(pixelState, pipelineState.getPipelineLayout(), fragmentShader, inputs.getDescriptorSets());
 	}
 
-	draw->containsImageWrite = (context->vertexShader && context->vertexShader->containsImageWrite()) ||
-	                           (context->pixelShader && context->pixelShader->containsImageWrite());
+	draw->containsImageWrite = pipeline->containsImageWrite();
 
 	DrawCall::SetupFunction setupPrimitives = nullptr;
-	int ms = context->sampleCount;
+	int ms = pipelineState.getSampleCount();
 	unsigned int numPrimitivesPerBatch = MaxBatchSize / ms;
 
-	if(context->isDrawTriangle(false))
+	if(pipelineState.isDrawTriangle(false))
 	{
-		switch(context->polygonMode)
+		switch(pipelineState.getPolygonMode())
 		{
 			case VK_POLYGON_MODE_FILL:
 				setupPrimitives = &DrawCall::setupSolidTriangles;
@@ -231,11 +241,11 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 				numPrimitivesPerBatch /= 3;
 				break;
 			default:
-				UNSUPPORTED("polygon mode: %d", int(context->polygonMode));
+				UNSUPPORTED("polygon mode: %d", int(pipelineState.getPolygonMode()));
 				return;
 		}
 	}
-	else if(context->isDrawLine(false))
+	else if(pipelineState.isDrawLine(false))
 	{
 		setupPrimitives = &DrawCall::setupLines;
 	}
@@ -251,12 +261,12 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	draw->numPrimitives = count;
 	draw->numPrimitivesPerBatch = numPrimitivesPerBatch;
 	draw->numBatches = (count + draw->numPrimitivesPerBatch - 1) / draw->numPrimitivesPerBatch;
-	draw->topology = context->topology;
-	draw->provokingVertexMode = context->provokingVertexMode;
-	draw->indexType = indexType;
-	draw->lineRasterizationMode = context->lineRasterizationMode;
-	draw->descriptorSetObjects = context->descriptorSetObjects;
-	draw->pipelineLayout = context->pipelineLayout;
+	draw->topology = pipelineState.getTopology();
+	draw->provokingVertexMode = pipelineState.getProvokingVertexMode();
+	draw->indexType = pipeline->getIndexBuffer().getIndexType();
+	draw->lineRasterizationMode = pipelineState.getLineRasterizationMode();
+	draw->descriptorSetObjects = inputs.getDescriptorSetObjects();
+	draw->pipelineLayout = pipelineState.getPipelineLayout();
 
 	draw->vertexRoutine = vertexRoutine;
 	draw->setupRoutine = setupRoutine;
@@ -264,14 +274,15 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 	draw->setupPrimitives = setupPrimitives;
 	draw->setupState = setupState;
 
-	data->descriptorSets = context->descriptorSets;
-	data->descriptorDynamicOffsets = context->descriptorDynamicOffsets;
+	data->descriptorSets = inputs.getDescriptorSets();
+	data->descriptorDynamicOffsets = inputs.getDescriptorDynamicOffsets();
 
 	for(int i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
 	{
-		data->input[i] = context->input[i].buffer;
-		data->robustnessSize[i] = context->input[i].robustnessSize;
-		data->stride[i] = context->input[i].vertexStride;
+		const sw::Stream &stream = inputs.getStream(i);
+		data->input[i] = stream.buffer;
+		data->robustnessSize[i] = stream.robustnessSize;
+		data->stride[i] = stream.vertexStride;
 	}
 
 	data->indices = indexBuffer;
@@ -281,11 +292,11 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 
 	if(pixelState.stencilActive)
 	{
-		data->stencil[0].set(context->frontStencil.reference, context->frontStencil.compareMask, context->frontStencil.writeMask);
-		data->stencil[1].set(context->backStencil.reference, context->backStencil.compareMask, context->backStencil.writeMask);
+		data->stencil[0].set(pipelineState.getFrontStencil().reference, pipelineState.getFrontStencil().compareMask, pipelineState.getFrontStencil().writeMask);
+		data->stencil[1].set(pipelineState.getBackStencil().reference, pipelineState.getBackStencil().compareMask, pipelineState.getBackStencil().writeMask);
 	}
 
-	data->lineWidth = context->lineWidth;
+	data->lineWidth = pipelineState.getLineWidth();
 
 	data->factor = pixelProcessor.factor;
 
@@ -321,6 +332,8 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 
 	// Viewport
 	{
+		const VkViewport &viewport = pipelineState.getViewport();
+
 		float W = 0.5f * viewport.width;
 		float H = 0.5f * viewport.height;
 		float X0 = viewport.x + W;
@@ -339,13 +352,14 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 		data->viewportHeight = abs(viewport.height);
 		data->depthRange = Z;
 		data->depthNear = N;
-		data->constantDepthBias = context->constantDepthBias;
-		data->slopeDepthBias = context->slopeDepthBias;
-		data->depthBiasClamp = context->depthBiasClamp;
+		data->constantDepthBias = pipelineState.getConstantDepthBias();
+		data->slopeDepthBias = pipelineState.getSlopeDepthBias();
+		data->depthBiasClamp = pipelineState.getDepthBiasClamp();
 
-		if(context->depthBuffer)
+		const vk::Attachments attachments = pipeline->getAttachments();
+		if(attachments.depthBuffer)
 		{
-			switch(context->depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
+			switch(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT))
 			{
 				case VK_FORMAT_D16_UNORM:
 					data->minimumResolvableDepthDifference = 1.0f / 0xFFFF;
@@ -355,45 +369,49 @@ void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned 
 					// buffers. DrawData::minimumResolvableDepthDifference is unused.
 					break;
 				default:
-					UNSUPPORTED("Depth format: %d", int(context->depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
+					UNSUPPORTED("Depth format: %d", int(attachments.depthBuffer->getFormat(VK_IMAGE_ASPECT_DEPTH_BIT)));
 			}
 		}
 	}
 
 	// Target
 	{
+		const vk::Attachments attachments = pipeline->getAttachments();
+
 		for(int index = 0; index < RENDERTARGETS; index++)
 		{
-			draw->renderTarget[index] = context->renderTarget[index];
+			draw->renderTarget[index] = attachments.renderTarget[index];
 
 			if(draw->renderTarget[index])
 			{
-				data->colorBuffer[index] = (unsigned int *)context->renderTarget[index]->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, data->viewID);
-				data->colorPitchB[index] = context->renderTarget[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-				data->colorSliceB[index] = context->renderTarget[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+				data->colorBuffer[index] = (unsigned int *)attachments.renderTarget[index]->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_COLOR_BIT, 0, data->viewID);
+				data->colorPitchB[index] = attachments.renderTarget[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+				data->colorSliceB[index] = attachments.renderTarget[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			}
 		}
 
-		draw->depthBuffer = context->depthBuffer;
-		draw->stencilBuffer = context->stencilBuffer;
+		draw->depthBuffer = attachments.depthBuffer;
+		draw->stencilBuffer = attachments.stencilBuffer;
 
 		if(draw->depthBuffer)
 		{
-			data->depthBuffer = (float *)context->depthBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_DEPTH_BIT, 0, data->viewID);
-			data->depthPitchB = context->depthBuffer->rowPitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
-			data->depthSliceB = context->depthBuffer->slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
+			data->depthBuffer = (float *)attachments.depthBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_DEPTH_BIT, 0, data->viewID);
+			data->depthPitchB = attachments.depthBuffer->rowPitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
+			data->depthSliceB = attachments.depthBuffer->slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
 		}
 
 		if(draw->stencilBuffer)
 		{
-			data->stencilBuffer = (unsigned char *)context->stencilBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, data->viewID);
-			data->stencilPitchB = context->stencilBuffer->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
-			data->stencilSliceB = context->stencilBuffer->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+			data->stencilBuffer = (unsigned char *)attachments.stencilBuffer->getOffsetPointer({ 0, 0, 0 }, VK_IMAGE_ASPECT_STENCIL_BIT, 0, data->viewID);
+			data->stencilPitchB = attachments.stencilBuffer->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
+			data->stencilSliceB = attachments.stencilBuffer->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
 		}
 	}
 
 	// Scissor
 	{
+		const VkRect2D &scissor = pipelineState.getScissor();
+
 		data->scissorX0 = clamp<int>(scissor.offset.x, 0, framebufferExtent.width);
 		data->scissorX1 = clamp<int>(scissor.offset.x + scissor.extent.width, 0, framebufferExtent.width);
 		data->scissorY0 = clamp<int>(scissor.offset.y, 0, framebufferExtent.height);
@@ -1191,36 +1209,6 @@ void Renderer::removeQuery(vk::Query *query)
 	ASSERT(occlusionQuery == query);
 
 	occlusionQuery = nullptr;
-}
-
-// TODO(b/137740918): Optimize instancing to use a single draw call.
-void Renderer::advanceInstanceAttributes(Stream *inputs)
-{
-	for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
-	{
-		auto &attrib = inputs[i];
-		if((attrib.format != VK_FORMAT_UNDEFINED) && attrib.instanceStride && (attrib.instanceStride < attrib.robustnessSize))
-		{
-			// Under the casts: attrib.buffer += attrib.instanceStride
-			attrib.buffer = (void const *)((uintptr_t)attrib.buffer + attrib.instanceStride);
-			attrib.robustnessSize -= attrib.instanceStride;
-		}
-	}
-}
-
-void Renderer::setViewport(const VkViewport &viewport)
-{
-	this->viewport = viewport;
-}
-
-void Renderer::setScissor(const VkRect2D &scissor)
-{
-	this->scissor = scissor;
-}
-
-void Renderer::setBlendConstant(const float4 &blendConstant)
-{
-	pixelProcessor.setBlendConstant(blendConstant);
 }
 
 }  // namespace sw

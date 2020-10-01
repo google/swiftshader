@@ -65,21 +65,21 @@ void VertexProcessor::setRoutineCacheSize(int cacheSize)
 	routineCache = std::make_unique<RoutineCacheType>(clamp(cacheSize, 1, 65536));
 }
 
-const VertexProcessor::State VertexProcessor::update(const sw::Context *context)
+const VertexProcessor::State VertexProcessor::update(const vk::GraphicsState &pipelineState, const sw::SpirvShader *vertexShader, const vk::Inputs &inputs)
 {
 	State state;
 
-	state.shaderID = context->vertexShader->getSerialID();
-	state.pipelineLayoutIdentifier = context->pipelineLayout->identifier;
-	state.robustBufferAccess = context->robustBufferAccess;
-	state.isPoint = context->topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	state.shaderID = vertexShader->getSerialID();
+	state.pipelineLayoutIdentifier = pipelineState.getPipelineLayout()->identifier;
+	state.robustBufferAccess = pipelineState.getRobustBufferAccess();
+	state.isPoint = pipelineState.getTopology() == VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
-	for(int i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
+	for(size_t i = 0; i < MAX_INTERFACE_COMPONENTS / 4; i++)
 	{
-		state.input[i].format = context->input[i].format;
+		state.input[i].format = inputs.getStream(i).format;
 		// TODO: get rid of attribType -- just keep the VK format all the way through, this fully determines
 		// how to handle the attribute.
-		state.input[i].attribType = context->vertexShader->inputs[i * 4].Type;
+		state.input[i].attribType = vertexShader->inputs[i * 4].Type;
 	}
 
 	state.hash = state.computeHash();

@@ -76,7 +76,7 @@ public:
 
 	SetupProcessor();
 
-	State update(const sw::Context *context) const;
+	State update(const vk::GraphicsState &pipelineState, const sw::SpirvShader *fragmentShader, const sw::SpirvShader *vertexShader, const vk::Attachments &attachments) const;
 	RoutineType routine(const State &state);
 
 	void setRoutineCacheSize(int cacheSize);
