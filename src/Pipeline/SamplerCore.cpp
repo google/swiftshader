@@ -19,8 +19,6 @@
 #include "System/Debug.hpp"
 #include "Vulkan/VkSampler.hpp"
 
-#include <limits>
-
 namespace sw {
 
 SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler &state)
@@ -1339,7 +1337,7 @@ Int4 SamplerCore::cubeFace(Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z
 	face.z = (faces >> 8) & 0x7;
 	face.w = (faces >> 12) & 0x7;
 
-	M = Max(Max(absX, absY), Max(absZ, Float4(std::numeric_limits<float>::min())));
+	M = Max(Max(absX, absY), absZ);
 
 	// U = xMajor ? (neg ^ -z) : ((zMajor & neg) ^ x)
 	U = As<Float4>((xMajor & (n ^ As<Int4>(-z))) | (~xMajor & ((zMajor & n) ^ As<Int4>(x))));
