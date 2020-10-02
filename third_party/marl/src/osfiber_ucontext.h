@@ -95,9 +95,7 @@ Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
       Args u;
       u.a = a;
       u.b = b;
-      std::function<void()> func;
-      std::swap(func, u.self->target);
-      func();
+      u.self->target();
     }
   };
 
@@ -121,7 +119,7 @@ Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
   out->context.uc_stack.ss_size = stackSize;
   out->context.uc_link = nullptr;
 
-  Args args;
+  Args args{};
   args.self = out.get();
   makecontext(&out->context, reinterpret_cast<void (*)()>(&Target::Main), 2,
               args.a, args.b);

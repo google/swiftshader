@@ -18,6 +18,7 @@
 #include "containers.h"
 #include "debug.h"
 #include "deprecated.h"
+#include "export.h"
 #include "memory.h"
 #include "mutex.h"
 #include "task.h"
@@ -51,82 +52,77 @@ class Scheduler {
   // Config holds scheduler configuration settings that can be passed to the
   // Scheduler constructor.
   struct Config {
+    static constexpr size_t DefaultFiberStackSize = 1024 * 1024;
+
     // Per-worker-thread settings.
     struct WorkerThread {
+      // Total number of dedicated worker threads to spawn for the scheduler.
       int count = 0;
+
+      // Initializer function to call after thread creation and before any work
+      // is run by the thread.
       ThreadInitializer initializer;
+
+      // Thread affinity policy to use for worker threads.
       std::shared_ptr<Thread::Affinity::Policy> affinityPolicy;
     };
+
     WorkerThread workerThread;
 
     // Memory allocator to use for the scheduler and internal allocations.
     Allocator* allocator = Allocator::Default;
 
+    // Size of each fiber stack. This may be rounded up to the nearest
+    // allocation granularity for the given platform.
+    size_t fiberStackSize = DefaultFiberStackSize;
+
     // allCores() returns a Config with a worker thread for each of the logical
     // cpus available to the process.
+    MARL_EXPORT
     static Config allCores();
 
     // Fluent setters that return this Config so set calls can be chained.
-    inline Config& setAllocator(Allocator*);
-    inline Config& setWorkerThreadCount(int);
-    inline Config& setWorkerThreadInitializer(const ThreadInitializer&);
-    inline Config& setWorkerThreadAffinityPolicy(
+    MARL_NO_EXPORT inline Config& setAllocator(Allocator*);
+    MARL_NO_EXPORT inline Config& setFiberStackSize(size_t);
+    MARL_NO_EXPORT inline Config& setWorkerThreadCount(int);
+    MARL_NO_EXPORT inline Config& setWorkerThreadInitializer(
+        const ThreadInitializer&);
+    MARL_NO_EXPORT inline Config& setWorkerThreadAffinityPolicy(
         const std::shared_ptr<Thread::Affinity::Policy>&);
   };
 
   // Constructor.
+  MARL_EXPORT
   Scheduler(const Config&);
 
   // Destructor.
   // Blocks until the scheduler is unbound from all threads before returning.
+  MARL_EXPORT
   ~Scheduler();
 
   // get() returns the scheduler bound to the current thread.
+  MARL_EXPORT
   static Scheduler* get();
 
   // bind() binds this scheduler to the current thread.
   // There must be no existing scheduler bound to the thread prior to calling.
+  MARL_EXPORT
   void bind();
 
   // unbind() unbinds the scheduler currently bound to the current thread.
   // There must be a existing scheduler bound to the thread prior to calling.
   // unbind() flushes any enqueued tasks on the single-threaded worker before
   // returning.
+  MARL_EXPORT
   static void unbind();
 
   // enqueue() queues the task for asynchronous execution.
+  MARL_EXPORT
   void enqueue(Task&& task);
 
   // config() returns the Config that was used to build the schededuler.
+  MARL_EXPORT
   const Config& config() const;
-
-#if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
-  MARL_DEPRECATED(139, "use Scheduler::Scheduler(const Config&)")
-  Scheduler(Allocator* allocator = Allocator::Default);
-
-  // setThreadInitializer() sets the worker thread initializer function which
-  // will be called for each new worker thread spawned.
-  // The initializer will only be called on newly created threads (call
-  // setThreadInitializer() before setWorkerThreadCount()).
-  MARL_DEPRECATED(139, "use Config::setWorkerThreadInitializer()")
-  void setThreadInitializer(const std::function<void()>& init);
-
-  // getThreadInitializer() returns the thread initializer function set by
-  // setThreadInitializer().
-  MARL_DEPRECATED(139, "use config().workerThread.initializer")
-  std::function<void()> getThreadInitializer();
-
-  // setWorkerThreadCount() adjusts the number of dedicated worker threads.
-  // A count of 0 puts the scheduler into single-threaded mode.
-  // Note: Currently the number of threads cannot be adjusted once tasks
-  // have been enqueued. This restriction may be lifted at a later time.
-  MARL_DEPRECATED(139, "use Config::setWorkerThreadCount()")
-  void setWorkerThreadCount(int count);
-
-  // getWorkerThreadCount() returns the number of worker threads.
-  MARL_DEPRECATED(139, "use config().workerThread.count")
-  int getWorkerThreadCount();
-#endif  // MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
 
   // Fibers expose methods to perform cooperative multitasking and are
   // automatically created by the Scheduler.
@@ -141,6 +137,7 @@ class Scheduler {
    public:
     // current() returns the currently executing fiber, or nullptr if called
     // without a bound scheduler.
+    MARL_EXPORT
     static Fiber* current();
 
     // wait() suspends execution of this Fiber until the Fiber is woken up with
@@ -155,6 +152,7 @@ class Scheduler {
     // will be locked before wait() returns.
     // pred will be always be called with the lock held.
     // wait() must only be called on the currently executing fiber.
+    MARL_EXPORT
     void wait(marl::lock& lock, const Predicate& pred);
 
     // wait() suspends execution of this Fiber until the Fiber is woken up with
@@ -172,9 +170,10 @@ class Scheduler {
     // pred will be always be called with the lock held.
     // wait() must only be called on the currently executing fiber.
     template <typename Clock, typename Duration>
-    inline bool wait(marl::lock& lock,
-                     const std::chrono::time_point<Clock, Duration>& timeout,
-                     const Predicate& pred);
+    MARL_NO_EXPORT inline bool wait(
+        marl::lock& lock,
+        const std::chrono::time_point<Clock, Duration>& timeout,
+        const Predicate& pred);
 
     // wait() suspends execution of this Fiber until the Fiber is woken up with
     // a call to notify().
@@ -190,7 +189,7 @@ class Scheduler {
     // wait() and notify() are made by the same thread.
     //
     // Use with extreme caution.
-    inline void wait();
+    MARL_NO_EXPORT inline void wait();
 
     // wait() suspends execution of this Fiber until the Fiber is woken up with
     // a call to notify(), or sometime after the timeout is reached.
@@ -207,11 +206,13 @@ class Scheduler {
     //
     // Use with extreme caution.
     template <typename Clock, typename Duration>
-    inline bool wait(const std::chrono::time_point<Clock, Duration>& timeout);
+    MARL_NO_EXPORT inline bool wait(
+        const std::chrono::time_point<Clock, Duration>& timeout);
 
     // notify() reschedules the suspended Fiber for execution.
     // notify() is usually only called when the predicate for one or more wait()
     // calls will likely return true.
+    MARL_EXPORT
     void notify();
 
     // id is the thread-unique identifier of the Fiber.
@@ -276,10 +277,6 @@ class Scheduler {
   Scheduler(Scheduler&&) = delete;
   Scheduler& operator=(const Scheduler&) = delete;
   Scheduler& operator=(Scheduler&&) = delete;
-
-  // Stack size in bytes of a new fiber.
-  // TODO: Make configurable so the default size can be reduced.
-  static constexpr size_t FiberStackSize = 1024 * 1024;
 
   // Maximum number of worker threads.
   static constexpr size_t MaxWorkerThreads = 256;
@@ -349,12 +346,14 @@ class Scheduler {
     // wait() suspends execution of the current task until the predicate pred
     // returns true or the optional timeout is reached.
     // See Fiber::wait() for more information.
+    MARL_EXPORT
     bool wait(marl::lock& lock, const TimePoint* timeout, const Predicate& pred)
         EXCLUDES(work.mutex);
 
     // wait() suspends execution of the current task until the fiber is
     // notified, or the optional timeout is reached.
     // See Fiber::wait() for more information.
+    MARL_EXPORT
     bool wait(const TimePoint* timeout) EXCLUDES(work.mutex);
 
     // suspend() suspends the currenetly executing Fiber until the fiber is
@@ -491,12 +490,8 @@ class Scheduler {
   // The scheduler currently bound to the current thread.
   static thread_local Scheduler* bound;
 
-#if MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
-  Config cfg;
-  mutex threadInitFuncMutex;
-#else
+  // The immutable configuration used to build the scheduler.
   const Config cfg;
-#endif
 
   std::array<std::atomic<int>, 8> spinningWorkers;
   std::atomic<unsigned int> nextSpinningWorkerIdx = {0x8000000};
@@ -522,6 +517,11 @@ class Scheduler {
 ////////////////////////////////////////////////////////////////////////////////
 Scheduler::Config& Scheduler::Config::setAllocator(Allocator* alloc) {
   allocator = alloc;
+  return *this;
+}
+
+Scheduler::Config& Scheduler::Config::setFiberStackSize(size_t size) {
+  fiberStackSize = size;
   return *this;
 }
 
@@ -592,7 +592,7 @@ inline void schedule(Function&& f, Args&&... args) {
   MARL_ASSERT_HAS_BOUND_SCHEDULER("marl::schedule");
   auto scheduler = Scheduler::get();
   scheduler->enqueue(
-      std::bind(std::forward<Function>(f), std::forward<Args>(args)...));
+      Task(std::bind(std::forward<Function>(f), std::forward<Args>(args)...)));
 }
 
 // schedule() schedules the function f to be asynchronously called using the

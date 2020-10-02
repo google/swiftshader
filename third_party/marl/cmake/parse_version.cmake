@@ -21,19 +21,21 @@
 #    <major>.<minor>.<patch>
 #    <major>.<minor>.<patch>-<flavor>
 function(parse_version FILE PROJECT)
-    configure_file(${FILE} "${CMAKE_CURRENT_BINARY_DIR}/VERSION") # Required to re-run cmake on version change
-    file(READ ${FILE} VERSION)
-    if(${VERSION} MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+)(-[a-zA-Z0-9]+)?")
+    configure_file(${FILE} "${CMAKE_CURRENT_BINARY_DIR}/CHANGES.md") # Required to re-run cmake on version change
+    file(READ ${FILE} CHANGES)
+    if(${CHANGES} MATCHES "#+ *([0-9]+)\\.([0-9]+)\\.([0-9]+)(-[a-zA-Z0-9]+)?")
         set(FLAVOR "")
         if(NOT "${CMAKE_MATCH_4}" STREQUAL "")
             string(SUBSTRING ${CMAKE_MATCH_4} 1 -1 FLAVOR)
         endif()
-        set("${PROJECT}_VERSION" ${VERSION}       PARENT_SCOPE)
         set("${PROJECT}_VERSION_MAJOR"  ${CMAKE_MATCH_1} PARENT_SCOPE)
         set("${PROJECT}_VERSION_MINOR"  ${CMAKE_MATCH_2} PARENT_SCOPE)
         set("${PROJECT}_VERSION_PATCH"  ${CMAKE_MATCH_3} PARENT_SCOPE)
         set("${PROJECT}_VERSION_FLAVOR" ${FLAVOR}        PARENT_SCOPE)
+        set("${PROJECT}_VERSION"
+            "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}${CMAKE_MATCH_4}"
+            PARENT_SCOPE)
     else()
-        message(FATAL_ERROR "Unable to parse version string '${VERSION}'")
+        message(FATAL_ERROR "Unable to parse version from '${FILE}'")
     endif()
 endfunction()

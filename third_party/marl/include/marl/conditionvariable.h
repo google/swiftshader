@@ -35,37 +35,40 @@ namespace marl {
 // thread will work on other tasks until the ConditionVariable is unblocked.
 class ConditionVariable {
  public:
-  inline ConditionVariable(Allocator* allocator = Allocator::Default);
+  MARL_NO_EXPORT inline ConditionVariable(
+      Allocator* allocator = Allocator::Default);
 
   // notify_one() notifies and potentially unblocks one waiting fiber or thread.
-  inline void notify_one();
+  MARL_NO_EXPORT inline void notify_one();
 
   // notify_all() notifies and potentially unblocks all waiting fibers and/or
   // threads.
-  inline void notify_all();
+  MARL_NO_EXPORT inline void notify_all();
 
   // wait() blocks the current fiber or thread until the predicate is satisfied
   // and the ConditionVariable is notified.
   template <typename Predicate>
-  inline void wait(marl::lock& lock, Predicate&& pred);
+  MARL_NO_EXPORT inline void wait(marl::lock& lock, Predicate&& pred);
 
   // wait_for() blocks the current fiber or thread until the predicate is
   // satisfied, and the ConditionVariable is notified, or the timeout has been
   // reached. Returns false if pred still evaluates to false after the timeout
   // has been reached, otherwise true.
   template <typename Rep, typename Period, typename Predicate>
-  bool wait_for(marl::lock& lock,
-                const std::chrono::duration<Rep, Period>& duration,
-                Predicate&& pred);
+  MARL_NO_EXPORT inline bool wait_for(
+      marl::lock& lock,
+      const std::chrono::duration<Rep, Period>& duration,
+      Predicate&& pred);
 
   // wait_until() blocks the current fiber or thread until the predicate is
   // satisfied, and the ConditionVariable is notified, or the timeout has been
   // reached. Returns false if pred still evaluates to false after the timeout
   // has been reached, otherwise true.
   template <typename Clock, typename Duration, typename Predicate>
-  bool wait_until(marl::lock& lock,
-                  const std::chrono::time_point<Clock, Duration>& timeout,
-                  Predicate&& pred);
+  MARL_NO_EXPORT inline bool wait_until(
+      marl::lock& lock,
+      const std::chrono::time_point<Clock, Duration>& timeout,
+      Predicate&& pred);
 
  private:
   ConditionVariable(const ConditionVariable&) = delete;
@@ -90,8 +93,8 @@ void ConditionVariable::notify_one() {
   }
   {
     marl::lock lock(mutex);
-    for (auto fiber : waiting) {
-      fiber->notify();
+    if (waiting.size() > 0) {
+      (*waiting.begin())->notify();  // Only wake one fiber.
     }
   }
   if (numWaitingOnCondition > 0) {

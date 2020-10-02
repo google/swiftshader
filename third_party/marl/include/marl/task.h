@@ -15,6 +15,8 @@
 #ifndef marl_task_h
 #define marl_task_h
 
+#include "export.h"
+
 #include <functional>
 
 namespace marl {
@@ -34,24 +36,25 @@ class Task {
     SameThread = 1,
   };
 
-  inline Task();
-  inline Task(const Task&);
-  inline Task(Task&&);
-  inline Task(const Function& function, Flags flags = Flags::None);
-  inline Task(Function&& function, Flags flags = Flags::None);
-  inline Task& operator=(const Task&);
-  inline Task& operator=(Task&&);
-  inline Task& operator=(const Function&);
-  inline Task& operator=(Function&&);
+  MARL_NO_EXPORT inline Task();
+  MARL_NO_EXPORT inline Task(const Task&);
+  MARL_NO_EXPORT inline Task(Task&&);
+  MARL_NO_EXPORT inline Task(const Function& function,
+                             Flags flags = Flags::None);
+  MARL_NO_EXPORT inline Task(Function&& function, Flags flags = Flags::None);
+  MARL_NO_EXPORT inline Task& operator=(const Task&);
+  MARL_NO_EXPORT inline Task& operator=(Task&&);
+  MARL_NO_EXPORT inline Task& operator=(const Function&);
+  MARL_NO_EXPORT inline Task& operator=(Function&&);
 
   // operator bool() returns true if the Task has a valid function.
-  inline operator bool() const;
+  MARL_NO_EXPORT inline operator bool() const;
 
   // operator()() runs the task.
-  inline void operator()() const;
+  MARL_NO_EXPORT inline void operator()() const;
 
   // is() returns true if the Task was created with the given flag.
-  inline bool is(Flags flag) const;
+  MARL_NO_EXPORT inline bool is(Flags flag) const;
 
  private:
   Function function;
