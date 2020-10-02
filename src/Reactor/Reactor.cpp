@@ -4083,6 +4083,15 @@ Float4::Float4(const Reference<Float> &rhs)
 	*this = RValue<Float>(rhs.loadValue());
 }
 
+Float4::Float4(RValue<Float2> lo, RValue<Float2> hi)
+    : XYZW(this)
+{
+	int shuffle[4] = { 0, 1, 4, 5 };  // Real type is v4i32
+	Value *packed = Nucleus::createShuffleVector(lo.value(), hi.value(), shuffle);
+
+	storeValue(packed);
+}
+
 RValue<Float4> Float4::operator=(float x)
 {
 	return *this = Float4(x, x, x, x);

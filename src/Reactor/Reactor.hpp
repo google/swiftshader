@@ -2254,6 +2254,7 @@ public:
 	Float4(const Swizzle2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y);
 	template<int X, int Y>
 	Float4(const SwizzleMask2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y);
+	Float4(RValue<Float2> lo, RValue<Float2> hi);
 
 	RValue<Float4> operator=(float replicate);
 	RValue<Float4> operator=(RValue<Float4> rhs);
