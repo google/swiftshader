@@ -94,6 +94,20 @@ TEST_P(WithBoundScheduler, DestructWithPendingFibers) {
   (new marl::Scheduler(marl::Scheduler::Config()))->bind();
 }
 
+TEST_P(WithBoundScheduler, ScheduleWithArgs) {
+  std::string got;
+  marl::WaitGroup wg(1);
+  marl::schedule(
+      [wg, &got](std::string s, int i, bool b) {
+        got = "s: '" + s + "', i: " + std::to_string(i) +
+              ", b: " + (b ? "true" : "false");
+        wg.done();
+      },
+      "a string", 42, true);
+  wg.wait();
+  ASSERT_EQ(got, "s: 'a string', i: 42, b: true");
+}
+
 TEST_P(WithBoundScheduler, FibersResumeOnSameThread) {
   marl::WaitGroup fence(1);
   marl::WaitGroup wg(1000);

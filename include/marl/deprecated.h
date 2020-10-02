@@ -15,14 +15,6 @@
 #ifndef marl_deprecated_h
 #define marl_deprecated_h
 
-// Deprecated marl::Scheduler methods:
-//   Scheduler(Allocator* allocator = Allocator::Default)
-//   getThreadInitializer(), setThreadInitializer()
-//   getWorkerThreadCount(), setWorkerThreadCount()
-#ifndef MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
-#define MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS 1
-#endif  // MARL_ENABLE_DEPRECATED_SCHEDULER_GETTERS_SETTERS
-
 #ifndef MARL_WARN_DEPRECATED
 #define MARL_WARN_DEPRECATED 1
 #endif  // MARL_WARN_DEPRECATED

@@ -15,6 +15,7 @@
 #ifndef marl_blocking_call_h
 #define marl_blocking_call_h
 
+#include "export.h"
 #include "scheduler.h"
 #include "waitgroup.h"
 
@@ -29,7 +30,7 @@ template <typename RETURN_TYPE>
 class OnNewThread {
  public:
   template <typename F, typename... Args>
-  inline static RETURN_TYPE call(F&& f, Args&&... args) {
+  MARL_NO_EXPORT inline static RETURN_TYPE call(F&& f, Args&&... args) {
     RETURN_TYPE result;
     WaitGroup wg(1);
     auto scheduler = Scheduler::get();
@@ -55,7 +56,7 @@ template <>
 class OnNewThread<void> {
  public:
   template <typename F, typename... Args>
-  inline static void call(F&& f, Args&&... args) {
+  MARL_NO_EXPORT inline static void call(F&& f, Args&&... args) {
     WaitGroup wg(1);
     auto scheduler = Scheduler::get();
     auto thread = std::thread(
@@ -94,7 +95,8 @@ class OnNewThread<void> {
 //      });
 //  }
 template <typename F, typename... Args>
-auto inline blocking_call(F&& f, Args&&... args) -> decltype(f(args...)) {
+MARL_NO_EXPORT auto inline blocking_call(F&& f, Args&&... args)
+    -> decltype(f(args...)) {
   return detail::OnNewThread<decltype(f(args...))>::call(
       std::forward<F>(f), std::forward<Args>(args)...);
 }

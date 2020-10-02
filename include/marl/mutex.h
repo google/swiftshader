@@ -19,6 +19,7 @@
 #ifndef marl_mutex_h
 #define marl_mutex_h
 
+#include "export.h"
 #include "tsa.h"
 
 #include <condition_variable>
@@ -32,16 +33,18 @@ namespace marl {
 // as these require a std::unique_lock<> which are unsupported by the TSA.
 class CAPABILITY("mutex") mutex {
  public:
-  inline void lock() ACQUIRE() { _.lock(); }
+  MARL_NO_EXPORT inline void lock() ACQUIRE() { _.lock(); }
 
-  inline void unlock() RELEASE() { _.unlock(); }
+  MARL_NO_EXPORT inline void unlock() RELEASE() { _.unlock(); }
 
-  inline bool try_lock() TRY_ACQUIRE(true) { return _.try_lock(); }
+  MARL_NO_EXPORT inline bool try_lock() TRY_ACQUIRE(true) {
+    return _.try_lock();
+  }
 
   // wait_locked calls cv.wait() on this already locked mutex.
   template <typename Predicate>
-  inline void wait_locked(std::condition_variable& cv, Predicate&& p)
-      REQUIRES(this) {
+  MARL_NO_EXPORT inline void wait_locked(std::condition_variable& cv,
+                                         Predicate&& p) REQUIRES(this) {
     std::unique_lock<std::mutex> lock(_, std::adopt_lock);
     cv.wait(lock, std::forward<Predicate>(p));
     lock.release();  // Keep lock held.
@@ -49,9 +52,9 @@ class CAPABILITY("mutex") mutex {
 
   // wait_until_locked calls cv.wait() on this already locked mutex.
   template <typename Predicate, typename Time>
-  inline bool wait_until_locked(std::condition_variable& cv,
-                                Time&& time,
-                                Predicate&& p) REQUIRES(this) {
+  MARL_NO_EXPORT inline bool wait_until_locked(std::condition_variable& cv,
+                                               Time&& time,
+                                               Predicate&& p) REQUIRES(this) {
     std::unique_lock<std::mutex> lock(_, std::adopt_lock);
     auto res = cv.wait_until(lock, std::forward<Time>(time),
                              std::forward<Predicate>(p));

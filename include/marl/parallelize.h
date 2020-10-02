@@ -22,10 +22,10 @@ namespace marl {
 
 namespace detail {
 
-inline void parallelizeChain(WaitGroup&) {}
+MARL_NO_EXPORT inline void parallelizeChain(WaitGroup&) {}
 
 template <typename F, typename... L>
-inline void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
+MARL_NO_EXPORT inline void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
   schedule([=] {
     f();
     wg.done();
@@ -49,7 +49,7 @@ inline void parallelizeChain(WaitGroup& wg, F&& f, L&&... l) {
 // pass the function that'll take the most time as the first argument. That way
 // you'll be more likely to avoid the cost of a fiber switch.
 template <typename F0, typename... FN>
-inline void parallelize(F0&& f0, FN&&... fn) {
+MARL_NO_EXPORT inline void parallelize(F0&& f0, FN&&... fn) {
   WaitGroup wg(sizeof...(FN));
   // Schedule all the functions in fn.
   detail::parallelizeChain(wg, std::forward<FN>(fn)...);

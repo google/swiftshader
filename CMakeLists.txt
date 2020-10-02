@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 include(cmake/parse_version.cmake)
-parse_version("${CMAKE_CURRENT_SOURCE_DIR}/VERSION" MARL)
+parse_version("${CMAKE_CURRENT_SOURCE_DIR}/CHANGES.md" MARL)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -51,6 +51,7 @@ option_if_not_defined(MARL_MSAN "Build marl with memory sanitizer" OFF)
 option_if_not_defined(MARL_TSAN "Build marl with thread sanitizer" OFF)
 option_if_not_defined(MARL_INSTALL "Create marl install target" OFF)
 option_if_not_defined(MARL_FULL_BENCHMARK "Run benchmarks for [0 .. numLogicalCPUs] with no stepping" OFF)
+option_if_not_defined(MARL_FIBERS_USE_UCONTEXT "Use ucontext instead of assembly for fibers (ignored for platforms that do not support ucontext)" OFF)
 option_if_not_defined(MARL_DEBUG_ENABLED "Enable debug checks even in release builds" OFF)
 
 ###########################################################
@@ -115,9 +116,30 @@ check_cxx_source_compiles(
     MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED)
 set(CMAKE_REQUIRED_FLAGS ${SAVE_CMAKE_REQUIRED_FLAGS})
 
+# Check whether ucontext is supported.
+set(SAVE_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+set(CMAKE_REQUIRED_FLAGS "-Werror")
+check_cxx_source_compiles(
+    "#include <ucontext.h>
+    int main() {
+      ucontext_t ctx;
+      getcontext(&ctx);
+      makecontext(&ctx, nullptr, 2, 1, 2);
+      swapcontext(&ctx, &ctx);
+      return 0;
+    }"
+    MARL_UCONTEXT_SUPPORTED)
+set(CMAKE_REQUIRED_FLAGS ${SAVE_CMAKE_REQUIRED_FLAGS})
+if (MARL_FIBERS_USE_UCONTEXT AND NOT MARL_UCONTEXT_SUPPORTED)
+    # Disable MARL_FIBERS_USE_UCONTEXT and warn if MARL_UCONTEXT_SUPPORTED is 0.
+    message(WARNING "MARL_FIBERS_USE_UCONTEXT is enabled, but ucontext is not supported by the target. Disabling")
+    set(MARL_FIBERS_USE_UCONTEXT 0)
+endif()
+
 if(MARL_IS_SUBPROJECT)
-    # Export MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED as this may be useful to parent projects
+    # Export supported flags as this may be useful to parent projects
     set(MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED PARENT_SCOPE ${MARL_THREAD_SAFETY_ANALYSIS_SUPPORTED})
+    set(MARL_UCONTEXT_SUPPORTED               PARENT_SCOPE ${MARL_UCONTEXT_SUPPORTED})
 endif()
 
 ###########################################################
@@ -162,17 +184,18 @@ function(marl_set_target_options target)
 
     # Enable all warnings
     if(MSVC)
-        target_compile_options(${target} PRIVATE
-            "-W4"
-            "/wd4127" # conditional expression is constant
-        )
+        target_compile_options(${target} PRIVATE "-W4")
     else()
         target_compile_options(${target} PRIVATE "-Wall")
     endif()
 
     # Disable specific, pedantic warnings
     if(MSVC)
-        target_compile_options(${target} PRIVATE "-D_CRT_SECURE_NO_WARNINGS")
+        target_compile_options(${target} PRIVATE
+            "-D_CRT_SECURE_NO_WARNINGS"
+            "/wd4127" # conditional expression is constant
+            "/wd4324" # structure was padded due to alignment specifier
+        )
     endif()
 
     # Treat all warnings as errors
@@ -195,6 +218,10 @@ function(marl_set_target_options target)
         target_link_libraries(${target} PUBLIC "-fsanitize=thread")
     endif()
 
+    if(MARL_FIBERS_USE_UCONTEXT)
+        target_compile_definitions(${target} PRIVATE "MARL_FIBERS_USE_UCONTEXT=1")
+    endif()
+
     if(MARL_DEBUG_ENABLED)
         target_compile_definitions(${target} PRIVATE "MARL_DEBUG_ENABLED=1")
     endif()
@@ -207,10 +234,21 @@ endfunction(marl_set_target_options)
 ###########################################################
 
 # marl
-if(MARL_BUILD_SHARED) # Can also be controlled by BUILD_SHARED_LIBS
+if(MARL_BUILD_SHARED OR BUILD_SHARED_LIBS)
     add_library(marl SHARED ${MARL_LIST})
+    if(MSVC)
+        target_compile_definitions(marl
+            PRIVATE "MARL_BUILDING_DLL=1"
+            PUBLIC  "MARL_DLL=1"
+        )
+    endif()
 else()
     add_library(marl ${MARL_LIST})
+endif()
+
+if(NOT MSVC)
+    # Public API symbols are made visible with the MARL_EXPORT annotation.
+    target_compile_options(marl PRIVATE "-fvisibility=hidden")
 endif()
 
 set_target_properties(marl PROPERTIES
@@ -264,6 +302,7 @@ if(MARL_BUILD_TESTS)
         ${MARL_SRC_DIR}/blockingcall_test.cpp
         ${MARL_SRC_DIR}/conditionvariable_test.cpp
         ${MARL_SRC_DIR}/containers_test.cpp
+        ${MARL_SRC_DIR}/dag_test.cpp
         ${MARL_SRC_DIR}/defer_test.cpp
         ${MARL_SRC_DIR}/event_test.cpp
         ${MARL_SRC_DIR}/marl_test.cpp
@@ -277,12 +316,14 @@ if(MARL_BUILD_TESTS)
         ${MARL_SRC_DIR}/ticket_test.cpp
         ${MARL_SRC_DIR}/waitgroup_test.cpp
         ${MARL_GOOGLETEST_DIR}/googletest/src/gtest-all.cc
+        ${MARL_GOOGLETEST_DIR}/googlemock/src/gmock-all.cc
     )
 
     set(MARL_TEST_INCLUDE_DIR
         ${MARL_GOOGLETEST_DIR}/googletest/include/
         ${MARL_GOOGLETEST_DIR}/googlemock/include/
         ${MARL_GOOGLETEST_DIR}/googletest/
+        ${MARL_GOOGLETEST_DIR}/googlemock/
     )
 
     add_executable(marl-unittests ${MARL_TEST_LIST})
@@ -311,6 +352,7 @@ if(MARL_BUILD_BENCHMARKS)
     )
 
     add_executable(marl-benchmarks ${MARL_BENCHMARK_LIST})
+    set_target_properties(${target} PROPERTIES FOLDER "Benchmarks")
 
     marl_set_target_options(marl-benchmarks)
 
@@ -325,9 +367,7 @@ endif(MARL_BUILD_BENCHMARKS)
 if(MARL_BUILD_EXAMPLES)
     function(build_example target)
         add_executable(${target} "${CMAKE_CURRENT_SOURCE_DIR}/examples/${target}.cpp")
-        set_target_properties(${target} PROPERTIES
-            FOLDER "Examples"
-        )
+        set_target_properties(${target} PROPERTIES FOLDER "Examples")
         marl_set_target_options(${target})
         target_link_libraries(${target} PRIVATE marl)
     endfunction(build_example)

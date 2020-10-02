@@ -8,7 +8,7 @@ Marl is a C++ 11 library that provides a fluent interface for running tasks acro
 
 Marl uses a combination of fibers and threads to allow efficient execution of tasks that can block, while keeping a fixed number of hardware threads.
 
-Marl supports Windows, macOS, Linux, Fuchsia and Android (arm, aarch64, mips64, ppc64 (ELFv2), x86 and x64).
+Marl supports Windows, macOS, Linux, FreeBSD, Fuchsia, Android and iOS (arm, aarch64, mips64, ppc64 (ELFv2), x86 and x64).
 
 Marl has no dependencies on other libraries (with an exception on googletest for building the optional unit tests).
 
@@ -64,11 +64,9 @@ int main() {
 }
 ```
 
-
 ## Benchmarks
 
 Graphs of several microbenchmarks can be found [here](https://google.github.io/marl/benchmarks).
-
 
 ## Building
 
@@ -102,6 +100,7 @@ Marl can be built using [Visual Studio 2019's CMake integration](https://docs.mi
 ### Using Marl in your CMake project
 
 You can build and link Marl using `add_subdirectory()` in your project's `CMakeLists.txt` file:
+
 ```cmake
 set(MARL_DIR <path-to-marl>) # example <path-to-marl>: "${CMAKE_CURRENT_SOURCE_DIR}/third_party/marl"
 add_subdirectory(${MARL_DIR})
@@ -137,7 +136,7 @@ marl::schedule([=]{ // [=] Good, [&] Bad.
 
 Internally, these primitives hold a shared pointer to the primitive state. By capturing by value we avoid common issues where the primitive may be destructed before the last reference is used.
 
-#### Create one instance of `marl::Scheduler`, use it for the lifetime of the process.
+#### Create one instance of `marl::Scheduler`, use it for the lifetime of the process
 
 The `marl::Scheduler` constructor can be expensive as it may spawn a number of hardware threads. \
 Destructing the `marl::Scheduler` requires waiting on all tasks to complete.

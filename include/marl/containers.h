@@ -58,7 +58,7 @@ using unordered_set = std::unordered_set<K, H, E, StlAllocator<K>>;
 
 // take() takes and returns the front value from the deque.
 template <typename T>
-inline T take(deque<T>& queue) {
+MARL_NO_EXPORT inline T take(deque<T>& queue) {
   auto out = std::move(queue.front());
   queue.pop_front();
   return out;
@@ -66,7 +66,7 @@ inline T take(deque<T>& queue) {
 
 // take() takes and returns the first value from the unordered_set.
 template <typename T, typename H, typename E>
-inline T take(unordered_set<T, H, E>& set) {
+MARL_NO_EXPORT inline T take(unordered_set<T, H, E>& set) {
   auto it = set.begin();
   auto out = std::move(*it);
   set.erase(it);
@@ -85,45 +85,47 @@ inline T take(unordered_set<T, H, E>& set) {
 template <typename T, int BASE_CAPACITY>
 class vector {
  public:
-  inline vector(Allocator* allocator = Allocator::Default);
+  MARL_NO_EXPORT inline vector(Allocator* allocator = Allocator::Default);
 
   template <int BASE_CAPACITY_2>
-  inline vector(const vector<T, BASE_CAPACITY_2>& other,
-                Allocator* allocator = Allocator::Default);
+  MARL_NO_EXPORT inline vector(const vector<T, BASE_CAPACITY_2>& other,
+                               Allocator* allocator = Allocator::Default);
 
   template <int BASE_CAPACITY_2>
-  inline vector(vector<T, BASE_CAPACITY_2>&& other,
-                Allocator* allocator = Allocator::Default);
+  MARL_NO_EXPORT inline vector(vector<T, BASE_CAPACITY_2>&& other,
+                               Allocator* allocator = Allocator::Default);
 
-  inline ~vector();
+  MARL_NO_EXPORT inline ~vector();
 
-  inline vector& operator=(const vector&);
-
-  template <int BASE_CAPACITY_2>
-  inline vector<T, BASE_CAPACITY>& operator=(const vector<T, BASE_CAPACITY_2>&);
+  MARL_NO_EXPORT inline vector& operator=(const vector&);
 
   template <int BASE_CAPACITY_2>
-  inline vector<T, BASE_CAPACITY>& operator=(vector<T, BASE_CAPACITY_2>&&);
+  MARL_NO_EXPORT inline vector<T, BASE_CAPACITY>& operator=(
+      const vector<T, BASE_CAPACITY_2>&);
 
-  inline void push_back(const T& el);
-  inline void emplace_back(T&& el);
-  inline void pop_back();
-  inline T& front();
-  inline T& back();
-  inline const T& front() const;
-  inline const T& back() const;
-  inline T* begin();
-  inline T* end();
-  inline const T* begin() const;
-  inline const T* end() const;
-  inline T& operator[](size_t i);
-  inline const T& operator[](size_t i) const;
-  inline size_t size() const;
-  inline size_t cap() const;
-  inline void resize(size_t n);
-  inline void reserve(size_t n);
-  inline T* data();
-  inline const T* data() const;
+  template <int BASE_CAPACITY_2>
+  MARL_NO_EXPORT inline vector<T, BASE_CAPACITY>& operator=(
+      vector<T, BASE_CAPACITY_2>&&);
+
+  MARL_NO_EXPORT inline void push_back(const T& el);
+  MARL_NO_EXPORT inline void emplace_back(T&& el);
+  MARL_NO_EXPORT inline void pop_back();
+  MARL_NO_EXPORT inline T& front();
+  MARL_NO_EXPORT inline T& back();
+  MARL_NO_EXPORT inline const T& front() const;
+  MARL_NO_EXPORT inline const T& back() const;
+  MARL_NO_EXPORT inline T* begin();
+  MARL_NO_EXPORT inline T* end();
+  MARL_NO_EXPORT inline const T* begin() const;
+  MARL_NO_EXPORT inline const T* end() const;
+  MARL_NO_EXPORT inline T& operator[](size_t i);
+  MARL_NO_EXPORT inline const T& operator[](size_t i) const;
+  MARL_NO_EXPORT inline size_t size() const;
+  MARL_NO_EXPORT inline size_t cap() const;
+  MARL_NO_EXPORT inline void resize(size_t n);
+  MARL_NO_EXPORT inline void reserve(size_t n);
+  MARL_NO_EXPORT inline T* data();
+  MARL_NO_EXPORT inline const T* data() const;
 
   Allocator* const allocator;
 
@@ -132,7 +134,7 @@ class vector {
 
   vector(const vector&) = delete;
 
-  inline void free();
+  MARL_NO_EXPORT inline void free();
 
   size_t count = 0;
   size_t capacity = BASE_CAPACITY;
@@ -366,28 +368,28 @@ class list {
  public:
   class iterator {
    public:
-    inline iterator(Entry*);
-    inline T* operator->();
-    inline T& operator*();
-    inline iterator& operator++();
-    inline bool operator==(const iterator&) const;
-    inline bool operator!=(const iterator&) const;
+    MARL_NO_EXPORT inline iterator(Entry*);
+    MARL_NO_EXPORT inline T* operator->();
+    MARL_NO_EXPORT inline T& operator*();
+    MARL_NO_EXPORT inline iterator& operator++();
+    MARL_NO_EXPORT inline bool operator==(const iterator&) const;
+    MARL_NO_EXPORT inline bool operator!=(const iterator&) const;
 
    private:
     friend list;
     Entry* entry;
   };
 
-  inline list(Allocator* allocator = Allocator::Default);
-  inline ~list();
+  MARL_NO_EXPORT inline list(Allocator* allocator = Allocator::Default);
+  MARL_NO_EXPORT inline ~list();
 
-  inline iterator begin();
-  inline iterator end();
-  inline size_t size() const;
+  MARL_NO_EXPORT inline iterator begin();
+  MARL_NO_EXPORT inline iterator end();
+  MARL_NO_EXPORT inline size_t size() const;
 
   template <typename... Args>
-  iterator emplace_front(Args&&... args);
-  inline void erase(iterator);
+  MARL_NO_EXPORT inline iterator emplace_front(Args&&... args);
+  MARL_NO_EXPORT inline void erase(iterator);
 
  private:
   // copy / move is currently unsupported.
@@ -401,10 +403,10 @@ class list {
     AllocationChain* next;
   };
 
-  void grow(size_t count);
+  MARL_NO_EXPORT inline void grow(size_t count);
 
-  static void unlink(Entry* entry, Entry*& list);
-  static void link(Entry* entry, Entry*& list);
+  MARL_NO_EXPORT static inline void unlink(Entry* entry, Entry*& list);
+  MARL_NO_EXPORT static inline void link(Entry* entry, Entry*& list);
 
   Allocator* const allocator;
   size_t size_ = 0;
