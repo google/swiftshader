@@ -166,6 +166,11 @@ set_property(CACHE SWIFTSHADER_LLVM_VERSION PROPERTY STRINGS "10.0")
 set(REACTOR_DEFAULT_OPT_LEVEL "Default" CACHE STRING "Reactor default optimization level")
 set_property(CACHE REACTOR_DEFAULT_OPT_LEVEL PROPERTY STRINGS "None" "Less" "Default" "Aggressive")
 
+if(NOT DEFINED SWIFTSHADER_LOGGING_LEVEL)
+    set(SWIFTSHADER_LOGGING_LEVEL "Info" CACHE STRING "SwiftShader logging level")
+    set_property(CACHE SWIFTSHADER_LOGGING_LEVEL PROPERTY STRINGS "Verbose" "Debug" "Info" "Warn" "Error" "Fatal" "Disabled")
+endif()
+
 # LLVM disallows calling cmake . from the main LLVM dir, the reason is that
 # it builds header files that could overwrite the orignal ones. Here we
 # want to include LLVM as a subdirectory and even though it wouldn't cause
@@ -551,6 +556,10 @@ endif()
 
 if(REACTOR_DEFAULT_OPT_LEVEL)
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DREACTOR_DEFAULT_OPT_LEVEL=${REACTOR_DEFAULT_OPT_LEVEL}")
+endif()
+
+if(DEFINED SWIFTSHADER_LOGGING_LEVEL)
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DSWIFTSHADER_LOGGING_LEVEL=${SWIFTSHADER_LOGGING_LEVEL}")
 endif()
 
 if(WIN32)
