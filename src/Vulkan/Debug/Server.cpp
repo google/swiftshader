@@ -142,8 +142,8 @@ Server::Impl::Impl(const std::shared_ptr<Context> &context, int port)
 				    for(size_t i = 0; i < numBreakpoints; i++)
 				    {
 					    auto &reqBP = breakpoints[i];
-					    Location location{ file, reqBP.line };
-					    file->addBreakpoint(reqBP.line);
+					    Location location{ file, static_cast<int>(reqBP.line) };
+					    file->addBreakpoint(location.line);
 
 					    bool verified = false;
 					    ctx->clientEventBroadcast()->onSetBreakpoint(location, verified);
