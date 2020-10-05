@@ -24,6 +24,8 @@
 #ifndef marl_finally_h
 #define marl_finally_h
 
+#include "export.h"
+
 #include <functional>
 #include <memory>
 
@@ -42,10 +44,10 @@ class Finally {
 template <typename F>
 class FinallyImpl : public Finally {
  public:
-  inline FinallyImpl(const F& func);
-  inline FinallyImpl(F&& func);
-  inline FinallyImpl(FinallyImpl<F>&& other);
-  inline ~FinallyImpl();
+  MARL_NO_EXPORT inline FinallyImpl(const F& func);
+  MARL_NO_EXPORT inline FinallyImpl(F&& func);
+  MARL_NO_EXPORT inline FinallyImpl(FinallyImpl<F>&& other);
+  MARL_NO_EXPORT inline ~FinallyImpl();
 
  private:
   FinallyImpl(const FinallyImpl<F>& other) = delete;
@@ -76,12 +78,12 @@ FinallyImpl<F>::~FinallyImpl() {
 
 template <typename F>
 inline FinallyImpl<F> make_finally(F&& f) {
-  return FinallyImpl<F>(std::move(f));
+  return FinallyImpl<F>(std::forward<F>(f));
 }
 
 template <typename F>
 inline std::shared_ptr<Finally> make_shared_finally(F&& f) {
-  return std::make_shared<FinallyImpl<F>>(std::move(f));
+  return std::make_shared<FinallyImpl<F>>(std::forward<F>(f));
 }
 
 }  // namespace marl

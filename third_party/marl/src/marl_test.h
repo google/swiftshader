@@ -57,6 +57,7 @@ class WithBoundScheduler : public testing::TestWithParam<SchedulerParams> {
     marl::Scheduler::Config cfg;
     cfg.setAllocator(allocator);
     cfg.setWorkerThreadCount(params.numWorkerThreads);
+    cfg.setFiberStackSize(0x10000);
 
     auto scheduler = new marl::Scheduler(cfg);
     scheduler->bind();

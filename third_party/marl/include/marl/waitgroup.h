@@ -51,22 +51,22 @@ namespace marl {
 class WaitGroup {
  public:
   // Constructs the WaitGroup with the specified initial count.
-  inline WaitGroup(unsigned int initialCount = 0,
-                   Allocator* allocator = Allocator::Default);
+  MARL_NO_EXPORT inline WaitGroup(unsigned int initialCount = 0,
+                                  Allocator* allocator = Allocator::Default);
 
   // add() increments the internal counter by count.
-  inline void add(unsigned int count = 1) const;
+  MARL_NO_EXPORT inline void add(unsigned int count = 1) const;
 
   // done() decrements the internal counter by one.
   // Returns true if the internal count has reached zero.
-  inline bool done() const;
+  MARL_NO_EXPORT inline bool done() const;
 
   // wait() blocks until the WaitGroup counter reaches zero.
-  inline void wait() const;
+  MARL_NO_EXPORT inline void wait() const;
 
  private:
   struct Data {
-    inline Data(Allocator* allocator);
+    MARL_NO_EXPORT inline Data(Allocator* allocator);
 
     std::atomic<unsigned int> count = {0};
     ConditionVariable cv;

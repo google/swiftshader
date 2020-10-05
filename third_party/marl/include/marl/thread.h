@@ -15,9 +15,10 @@
 #ifndef marl_thread_h
 #define marl_thread_h
 
-#include <functional>
-
 #include "containers.h"
+#include "export.h"
+
+#include <functional>
 
 namespace marl {
 
@@ -42,8 +43,8 @@ class Thread {
     };
 
     // Comparison functions
-    inline bool operator==(const Core&) const;
-    inline bool operator<(const Core&) const;
+    MARL_NO_EXPORT inline bool operator==(const Core&) const;
+    MARL_NO_EXPORT inline bool operator<(const Core&) const;
   };
 
   // Affinity holds the affinity mask for a thread - a description of what cores
@@ -70,7 +71,7 @@ class Thread {
       // Windows requires that each thread is only associated with a
       // single affinity group, so the Policy's returned affinity will contain
       // cores all from the same group.
-      static std::shared_ptr<Policy> anyOf(
+      MARL_EXPORT static std::shared_ptr<Policy> anyOf(
           Affinity&& affinity,
           Allocator* allocator = Allocator::Default);
 
@@ -78,36 +79,39 @@ class Thread {
       // core from affinity. The single enabled core in the Policy's returned
       // affinity is:
       //      affinity[threadId % affinity.count()]
-      static std::shared_ptr<Policy> oneOf(
+      MARL_EXPORT static std::shared_ptr<Policy> oneOf(
           Affinity&& affinity,
           Allocator* allocator = Allocator::Default);
 
       // get() returns the thread Affinity for the for the given thread by id.
-      virtual Affinity get(uint32_t threadId, Allocator* allocator) const = 0;
+      MARL_EXPORT virtual Affinity get(uint32_t threadId,
+                                       Allocator* allocator) const = 0;
     };
 
-    Affinity(Allocator*);
-    Affinity(Affinity&&);
-    Affinity(const Affinity&, Allocator* allocator);
+    MARL_EXPORT Affinity(Allocator*);
+
+    MARL_EXPORT Affinity(Affinity&&);
+
+    MARL_EXPORT Affinity(const Affinity&, Allocator* allocator);
 
     // all() returns an Affinity with all the cores available to the process.
-    static Affinity all(Allocator* allocator = Allocator::Default);
+    MARL_EXPORT static Affinity all(Allocator* allocator = Allocator::Default);
 
-    Affinity(std::initializer_list<Core>, Allocator* allocator);
+    MARL_EXPORT Affinity(std::initializer_list<Core>, Allocator* allocator);
 
     // count() returns the number of enabled cores in the affinity.
-    size_t count() const;
+    MARL_EXPORT size_t count() const;
 
     // operator[] returns the i'th enabled core from this affinity.
-    Core operator[](size_t index) const;
+    MARL_EXPORT Core operator[](size_t index) const;
 
     // add() adds the cores from the given affinity to this affinity.
     // This affinity is returned to allow for fluent calls.
-    Affinity& add(const Affinity&);
+    MARL_EXPORT Affinity& add(const Affinity&);
 
     // remove() removes the cores from the given affinity from this affinity.
     // This affinity is returned to allow for fluent calls.
-    Affinity& remove(const Affinity&);
+    MARL_EXPORT Affinity& remove(const Affinity&);
 
    private:
     Affinity(const Affinity&) = delete;
@@ -115,25 +119,27 @@ class Thread {
     containers::vector<Core, 32> cores;
   };
 
-  Thread() = default;
-  Thread(Thread&&);
-  Thread& operator=(Thread&&);
+  MARL_EXPORT Thread() = default;
+
+  MARL_EXPORT Thread(Thread&&);
+
+  MARL_EXPORT Thread& operator=(Thread&&);
 
   // Start a new thread using the given affinity that calls func.
-  Thread(Affinity&& affinity, Func&& func);
+  MARL_EXPORT Thread(Affinity&& affinity, Func&& func);
 
-  ~Thread();
+  MARL_EXPORT ~Thread();
 
   // join() blocks until the thread completes.
-  void join();
+  MARL_EXPORT void join();
 
   // setName() sets the name of the currently executing thread for displaying
   // in a debugger.
-  static void setName(const char* fmt, ...);
+  MARL_EXPORT static void setName(const char* fmt, ...);
 
   // numLogicalCPUs() returns the number of available logical CPU cores for
   // the system.
-  static unsigned int numLogicalCPUs();
+  MARL_EXPORT static unsigned int numLogicalCPUs();
 
  private:
   Thread(const Thread&) = delete;
