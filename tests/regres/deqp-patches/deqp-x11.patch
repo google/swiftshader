@@ -29,7 +29,7 @@ index dfe09d060..b4493e431 100644
 +		m_display = XOpenDisplay((char*)name); // Won't modify argument string.
 +		if (m_display)
 +			break;
-+		deSleep(100*(1+i));
++		deSleep(100*(1<<i));
 +	}
  	if (!m_display)
  		throw ResourceError("Failed to open display", name, __FILE__, __LINE__);

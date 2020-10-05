@@ -179,9 +179,21 @@ func (c *Config) Run() (*Results, error) {
 		// Build a chan for the test names to be run.
 		tests := make(chan string, len(list.Tests))
 
+		numParallelTests := c.NumParallelTests
+		if list.API != testlist.Vulkan {
+			// OpenGL tests attempt to open lots of X11 display connections,
+			// which may cause us to run out of handles. This maximum was
+			// determined experimentally on a 72-core system.
+			maxParallelGLTests := 16
+
+			if numParallelTests > maxParallelGLTests {
+				numParallelTests = maxParallelGLTests
+			}
+		}
+
 		// Start a number of go routines to run the tests.
-		wg.Add(c.NumParallelTests)
-		for i := 0; i < c.NumParallelTests; i++ {
+		wg.Add(numParallelTests)
+		for i := 0; i < numParallelTests; i++ {
 			go func(index int) {
 				c.TestRoutine(exe, tests, results, index, supportsCoverage)
 				wg.Done()
