@@ -3061,6 +3061,92 @@ TEST(ReactorUnitTests, PrintReactorTypes)
 #endif
 }
 
+// Test constant <op> variable
+template<typename T, typename Func>
+T Arithmetic_LhsConstArg(T arg1, T arg2, Func f)
+{
+	using ReactorT = CToReactorT<T>;
+
+	FunctionT<T(T)> function;
+	{
+		ReactorT lhs = arg1;
+		ReactorT rhs = function.template Arg<0>();
+		ReactorT result = f(lhs, rhs);
+		Return(result);
+	}
+
+	auto routine = function("one");
+	return routine(arg2);
+}
+
+// Test variable <op> constant
+template<typename T, typename Func>
+T Arithmetic_RhsConstArg(T arg1, T arg2, Func f)
+{
+	using ReactorT = CToReactorT<T>;
+
+	FunctionT<T(T)> function;
+	{
+		ReactorT lhs = function.template Arg<0>();
+		ReactorT rhs = arg2;
+		ReactorT result = f(lhs, rhs);
+		Return(result);
+	}
+
+	auto routine = function("one");
+	return routine(arg1);
+}
+
+// Test constant <op> constant
+template<typename T, typename Func>
+T Arithmetic_TwoConstArgs(T arg1, T arg2, Func f)
+{
+	using ReactorT = CToReactorT<T>;
+
+	FunctionT<T()> function;
+	{
+		ReactorT lhs = arg1;
+		ReactorT rhs = arg2;
+		ReactorT result = f(lhs, rhs);
+		Return(result);
+	}
+
+	auto routine = function("one");
+	return routine();
+}
+
+template<typename T, typename Func>
+void Arithmetic_ConstArgs(T arg1, T arg2, T expected, Func f)
+{
+	SCOPED_TRACE(std::to_string(arg1) + " <op> " + std::to_string(arg2) + " = " + std::to_string(expected));
+	T result{};
+	result = Arithmetic_LhsConstArg(arg1, arg2, std::forward<Func>(f));
+	EXPECT_EQ(result, expected);
+	result = Arithmetic_RhsConstArg(arg1, arg2, std::forward<Func>(f));
+	EXPECT_EQ(result, expected);
+	result = Arithmetic_TwoConstArgs(arg1, arg2, std::forward<Func>(f));
+	EXPECT_EQ(result, expected);
+}
+
+// Test that we generate valid code for when one or both args to arithmetic operations
+// are constant. In particular, we want to validate the case for two const args, as
+// often lowered instructions do not support this case.
+TEST(ReactorUnitTests, Arithmetic_ConstantArgs)
+{
+	Arithmetic_ConstArgs(2, 3, 5, [](auto c1, auto c2) { return c1 + c2; });
+	Arithmetic_ConstArgs(5, 3, 2, [](auto c1, auto c2) { return c1 - c2; });
+	Arithmetic_ConstArgs(2, 3, 6, [](auto c1, auto c2) { return c1 * c2; });
+	Arithmetic_ConstArgs(6, 3, 2, [](auto c1, auto c2) { return c1 / c2; });
+	Arithmetic_ConstArgs(0xF0F0, 0xAAAA, 0xA0A0, [](auto c1, auto c2) { return c1 & c2; });
+	Arithmetic_ConstArgs(0xF0F0, 0xAAAA, 0xFAFA, [](auto c1, auto c2) { return c1 | c2; });
+	Arithmetic_ConstArgs(0xF0F0, 0xAAAA, 0x5A5A, [](auto c1, auto c2) { return c1 ^ c2; });
+
+	Arithmetic_ConstArgs(2.f, 3.f, 5.f, [](auto c1, auto c2) { return c1 + c2; });
+	Arithmetic_ConstArgs(5.f, 3.f, 2.f, [](auto c1, auto c2) { return c1 - c2; });
+	Arithmetic_ConstArgs(2.f, 3.f, 6.f, [](auto c1, auto c2) { return c1 * c2; });
+	Arithmetic_ConstArgs(6.f, 3.f, 2.f, [](auto c1, auto c2) { return c1 / c2; });
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
