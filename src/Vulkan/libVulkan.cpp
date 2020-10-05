@@ -2193,7 +2193,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 	return vk::RenderPass::Create(pAllocator, pCreateInfo, pRenderPass);
 }
 
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass2KHR(VkDevice device, const VkRenderPassCreateInfo2KHR *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkRenderPass *pRenderPass)
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass2(VkDevice device, const VkRenderPassCreateInfo2KHR *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkRenderPass *pRenderPass)
 {
 	TRACE("(VkDevice device = %p, const VkRenderPassCreateInfo* pCreateInfo = %p, const VkAllocationCallbacks* pAllocator = %p, VkRenderPass* pRenderPass = %p)",
 	      device, pCreateInfo, pAllocator, pRenderPass);
@@ -2631,35 +2631,11 @@ VKAPI_ATTR void VKAPI_CALL vkCmdPushConstants(VkCommandBuffer commandBuffer, VkP
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo *pRenderPassBegin, VkSubpassContents contents)
 {
-	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderPassBeginInfo* pRenderPassBegin = %p, VkSubpassContents contents = %d)",
-	      commandBuffer, pRenderPassBegin, contents);
-
-	const VkBaseInStructure *renderPassBeginInfo = reinterpret_cast<const VkBaseInStructure *>(pRenderPassBegin->pNext);
-	const VkRenderPassAttachmentBeginInfo *attachmentBeginInfo = nullptr;
-	while(renderPassBeginInfo)
-	{
-		switch(renderPassBeginInfo->sType)
-		{
-			case VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO:
-				// This extension controls which render area is used on which physical device,
-				// in order to distribute rendering between multiple physical devices.
-				// SwiftShader only has a single physical device, so this extension does nothing in this case.
-				break;
-			case VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO:
-				attachmentBeginInfo = reinterpret_cast<const VkRenderPassAttachmentBeginInfo *>(renderPassBeginInfo);
-				break;
-			default:
-				LOG_TRAP("pRenderPassBegin->pNext sType = %s", vk::Stringify(renderPassBeginInfo->sType).c_str());
-				break;
-		}
-
-		renderPassBeginInfo = renderPassBeginInfo->pNext;
-	}
-
-	vk::Cast(commandBuffer)->beginRenderPass(vk::Cast(pRenderPassBegin->renderPass), vk::Cast(pRenderPassBegin->framebuffer), pRenderPassBegin->renderArea, pRenderPassBegin->clearValueCount, pRenderPassBegin->pClearValues, contents, attachmentBeginInfo);
+	VkSubpassBeginInfo subpassBeginInfo = { VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO, nullptr, contents };
+	vkCmdBeginRenderPass2(commandBuffer, pRenderPassBegin, &subpassBeginInfo);
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass2KHR(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo *pRenderPassBegin, const VkSubpassBeginInfoKHR *pSubpassBeginInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass2(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo *pRenderPassBegin, const VkSubpassBeginInfoKHR *pSubpassBeginInfo)
 {
 	TRACE("(VkCommandBuffer commandBuffer = %p, const VkRenderPassBeginInfo* pRenderPassBegin = %p, const VkSubpassBeginInfoKHR* pSubpassBeginInfo = %p)",
 	      commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
@@ -2697,7 +2673,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSub
 	vk::Cast(commandBuffer)->nextSubpass(contents);
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer, const VkSubpassBeginInfoKHR *pSubpassBeginInfo, const VkSubpassEndInfoKHR *pSubpassEndInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass2(VkCommandBuffer commandBuffer, const VkSubpassBeginInfoKHR *pSubpassBeginInfo, const VkSubpassEndInfoKHR *pSubpassEndInfo)
 {
 	TRACE("(VkCommandBuffer commandBuffer = %p, const VkSubpassBeginInfoKHR* pSubpassBeginInfo = %p, const VkSubpassEndInfoKHR* pSubpassEndInfo = %p)",
 	      commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
@@ -2712,7 +2688,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass(VkCommandBuffer commandBuffer)
 	vk::Cast(commandBuffer)->endRenderPass();
 }
 
-VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass2KHR(VkCommandBuffer commandBuffer, const VkSubpassEndInfoKHR *pSubpassEndInfo)
+VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass2(VkCommandBuffer commandBuffer, const VkSubpassEndInfoKHR *pSubpassEndInfo)
 {
 	TRACE("(VkCommandBuffer commandBuffer = %p, const VkSubpassEndInfoKHR* pSubpassEndInfo = %p)", commandBuffer, pSubpassEndInfo);
 

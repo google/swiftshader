@@ -298,6 +298,11 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkAcquireImageANDROID),
 	MAKE_VULKAN_DEVICE_ENTRY(vkQueueSignalReleaseImageANDROID),
 #endif
+	// Vulkan 1.2 Entry point functions
+	MAKE_VULKAN_DEVICE_ENTRY(vkCreateRenderPass2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdBeginRenderPass2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdEndRenderPass2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkCmdNextSubpass2),
 };
 
 static const std::vector<std::pair<const char *, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers = {
