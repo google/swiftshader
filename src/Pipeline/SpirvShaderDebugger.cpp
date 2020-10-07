@@ -734,29 +734,37 @@ struct TemplateType : ObjectImpl<TemplateType, Type, Object::Kind::TemplateType>
 	}
 };
 
-// Function represents the OpenCL.DebugInfo.100 DebugFunction instruction.
-// https://www.khronos.org/registry/spir-v/specs/unified1/OpenCL.DebugInfo.100.html#DebugFunction
-struct Function : ObjectImpl<Function, Scope, Object::Kind::Function>
-{
-	std::string name;
-	FunctionType *type = nullptr;
-	uint32_t line = 0;
-	uint32_t column = 0;
-	std::string linkage;
-	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
-	uint32_t scopeLine = 0;
-	sw::SpirvShader::Function::ID function;
-};
-
 // LexicalBlock represents the OpenCL.DebugInfo.100 DebugLexicalBlock instruction.
 // https://www.khronos.org/registry/spir-v/specs/unified1/OpenCL.DebugInfo.100.html#DebugLexicalBlock
-struct LexicalBlock : ObjectImpl<LexicalBlock, Scope, Object::Kind::LexicalBlock>
+struct LexicalBlock : Scope
 {
+	using ID = sw::SpirvID<LexicalBlock>;
+	static constexpr auto Kind = Object::Kind::LexicalBlock;
+
+	inline LexicalBlock(Object::Kind kind = Kind)
+	    : Scope(kind)
+	{}
+
 	uint32_t line = 0;
 	uint32_t column = 0;
 	std::string name;
 
 	std::vector<LocalVariable *> variables;
+
+	static constexpr bool kindof(Object::Kind kind) { return kind == Kind || kind == Object::Kind::Function; }
+};
+
+// Function represents the OpenCL.DebugInfo.100 DebugFunction instruction.
+// https://www.khronos.org/registry/spir-v/specs/unified1/OpenCL.DebugInfo.100.html#DebugFunction
+struct Function : ObjectImpl<Function, LexicalBlock, Object::Kind::Function>
+{
+	std::string name;
+	FunctionType *type = nullptr;
+	uint32_t declLine = 0;
+	uint32_t declColumn = 0;
+	std::string linkage;
+	uint32_t flags = 0;  // OR'd from OpenCLDebugInfo100DebugInfoFlags
+	sw::SpirvShader::Function::ID function;
 };
 
 // InlinedAt represents the OpenCL.DebugInfo.100 DebugInlinedAt instruction.
@@ -1657,12 +1665,12 @@ void SpirvShader::Impl::Debugger::process(const InsnIterator &insn, EmitState *s
 				func->name = shader->getString(insn.word(5));
 				func->type = get(debug::FunctionType::ID(insn.word(6)));
 				func->source = get(debug::Source::ID(insn.word(7)));
-				func->line = insn.word(8);
-				func->column = insn.word(9);
+				func->declLine = insn.word(8);
+				func->declColumn = insn.word(9);
 				func->parent = get(debug::Scope::ID(insn.word(10)));
 				func->linkage = shader->getString(insn.word(11));
 				func->flags = insn.word(12);
-				func->scopeLine = insn.word(13);
+				func->line = insn.word(13);
 				func->function = Function::ID(insn.word(14));
 				// declaration: word(13)
 			});
