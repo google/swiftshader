@@ -339,8 +339,10 @@ endmacro()
 macro(set_linker_flag FLAG)
     if(${ARGC} GREATER 1)
         set(CMAKE_EXE_LINKER_FLAGS_${ARGV1} "${CMAKE_EXE_LINKER_FLAGS_${ARGV1}} ${FLAG}")
+        set(CMAKE_SHARED_LINKER_FLAGS_${ARGV1} "${CMAKE_EXE_LINKER_FLAGS_${ARGV1}} ${FLAG}")
     else()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAG}")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAG}")
     endif()
 endmacro()
 
@@ -508,8 +510,23 @@ else()
     set_cpp_flag("-fomit-frame-pointer" RELEASE)
 
     if(SWIFTSHADER_MSAN)
+        if(NOT DEFINED ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH})
+
+            message(FATAL_ERROR " \n"
+                    " MemorySanitizer usage requires an instrumented build of libc++.\n"
+                    " Set the SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH environment variable to the\n"
+                    " build output path. See\n"
+                    " https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo#instrumented-libc\n"
+                    " for details on how to build an MSan instrumented libc++.")
+        endif()
+
         set_cpp_flag("-fsanitize=memory")
         set_linker_flag("-fsanitize=memory")
+        set_cpp_flag("-stdlib=libc++")
+        set_linker_flag("-L$ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH}/lib")
+        set_cpp_flag("-I$ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH}/include")
+        set_cpp_flag("-I$ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH}/include/c++/v1")
+        set_linker_flag("-Wl,-rpath,$ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH}/lib")
     elseif(SWIFTSHADER_ASAN)
         set_cpp_flag("-fsanitize=address")
         set_linker_flag("-fsanitize=address")
