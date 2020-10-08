@@ -46,7 +46,7 @@ protected:
 
 	bool interpolateZ() const;
 	bool interpolateW() const;
-	Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective, bool clamp);
+	Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
 
 	const PixelProcessor::State &state;
 	const SpirvShader *const spirvShader;
