@@ -146,28 +146,35 @@ std::shared_ptr<vk::dbg::Value> makeDbgValue(const sw::vec<T, N> &vec)
 	});
 }
 
-// store() emits a store instruction to write sizeof(T) bytes from val into ptr.
+// store() emits a store instruction to copy val into ptr.
 template<typename T>
 void store(const rr::RValue<rr::Pointer<rr::Byte>> &ptr, const rr::RValue<T> &val)
 {
 	*rr::Pointer<T>(ptr) = val;
 }
 
-// store() emits a store instruction to write sizeof(T) bytes from val into ptr.
+// store() emits a store instruction to copy val into ptr.
 template<typename T>
 void store(const rr::RValue<rr::Pointer<rr::Byte>> &ptr, const T &val)
 {
 	*rr::Pointer<T>(ptr) = val;
 }
 
-// store() emits a store instruction to write sizeof(T) * N bytes from val into
-// ptr.
+// clang-format off
+template<typename T> struct ReactorTypeSize {};
+template<> struct ReactorTypeSize<rr::Int>    { static constexpr const int value = 4; };
+template<> struct ReactorTypeSize<rr::Float>  { static constexpr const int value = 4; };
+template<> struct ReactorTypeSize<rr::Int4>   { static constexpr const int value = 16; };
+template<> struct ReactorTypeSize<rr::Float4> { static constexpr const int value = 16; };
+// clang-format on
+
+// store() emits a store instruction to copy val into ptr.
 template<typename T, std::size_t N>
 void store(const rr::RValue<rr::Pointer<rr::Byte>> &ptr, const std::array<T, N> &val)
 {
 	for(std::size_t i = 0; i < N; i++)
 	{
-		store<T>(ptr + i * sizeof(T), val[i]);
+		store<T>(ptr + i * ReactorTypeSize<T>::value, val[i]);
 	}
 }
 
@@ -2346,10 +2353,7 @@ void SpirvShader::Impl::Debugger::State::Data::buildGlobal(const char *name, con
 {
 	for(int lane = 0; lane < sw::SIMD::Width; lane++)
 	{
-		for(int i = 0; i < N; i++)
-		{
-			globals.lanes[lane]->put(name, makeDbgValue(simd[lane]));
-		}
+		globals.lanes[lane]->put(name, makeDbgValue(simd[lane]));
 	}
 }
 
