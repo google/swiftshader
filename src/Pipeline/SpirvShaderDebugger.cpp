@@ -885,6 +885,17 @@ T *find(Scope *scope)
 	return scope->parent ? find<T>(scope->parent) : nullptr;
 }
 
+inline const char *tostring(LocalVariable::Definition def)
+{
+	switch(def)
+	{
+		case LocalVariable::Definition::Undefined: return "Undefined";
+		case LocalVariable::Definition::Declaration: return "Declaration";
+		case LocalVariable::Definition::Values: return "Values";
+		default: return "<unknown>";
+	}
+}
+
 }  // namespace debug
 }  // anonymous namespace
 
@@ -1735,7 +1746,13 @@ void SpirvShader::Impl::Debugger::process(const InsnIterator &insn, EmitState *s
 
 				decl->local->declaration = decl;
 
-				ASSERT(decl->local->definition == debug::LocalVariable::Definition::Undefined);
+				ASSERT_MSG(decl->local->definition == debug::LocalVariable::Definition::Undefined,
+				           "DebugLocalVariable '%s' declared at %s:%d was previously defined as %s, now again as %s",
+				           decl->local->name.c_str(),
+				           decl->local->source ? decl->local->source->file.c_str() : "<unknown>",
+				           (int)decl->local->line,
+				           tostring(decl->local->definition),
+				           tostring(debug::LocalVariable::Definition::Declaration));
 				decl->local->definition = debug::LocalVariable::Definition::Declaration;
 			});
 			break;
@@ -1749,7 +1766,16 @@ void SpirvShader::Impl::Debugger::process(const InsnIterator &insn, EmitState *s
 				{
 					value->local->definition = debug::LocalVariable::Definition::Values;
 				}
-				ASSERT(value->local->definition == debug::LocalVariable::Definition::Values);
+				else
+				{
+					ASSERT_MSG(value->local->definition == debug::LocalVariable::Definition::Values,
+					           "DebugLocalVariable '%s' declared at %s:%d was previously defined as %s, now again as %s",
+					           value->local->name.c_str(),
+					           value->local->source ? value->local->source->file.c_str() : "<unknown>",
+					           (int)value->local->line,
+					           tostring(value->local->definition),
+					           tostring(debug::LocalVariable::Definition::Values));
+				}
 
 				auto node = &value->local->values;
 				for(uint32_t i = 8; i < insn.wordCount(); i++)
