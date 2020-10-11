@@ -529,108 +529,24 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 	TRACE("(VkPhysicalDevice physicalDevice = %p, VkFormat format = %d, VkImageType type = %d, VkImageTiling tiling = %d, VkImageUsageFlags usage = %d, VkImageCreateFlags flags = %d, VkImageFormatProperties* pImageFormatProperties = %p)",
 	      physicalDevice, (int)format, (int)type, (int)tiling, usage, flags, pImageFormatProperties);
 
-	// "If the combination of parameters to vkGetPhysicalDeviceImageFormatProperties is not supported by the implementation
-	//  for use in vkCreateImage, then all members of VkImageFormatProperties will be filled with zero."
-	memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
+	VkPhysicalDeviceImageFormatInfo2 info2 = {};
+	info2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
+	info2.pNext = nullptr;
+	info2.format = format;
+	info2.type = type;
+	info2.tiling = tiling;
+	info2.usage = usage;
+	info2.flags = flags;
 
-	VkFormatProperties properties;
-	vk::PhysicalDevice::GetFormatProperties(format, &properties);
+	VkImageFormatProperties2 properties2 = {};
+	properties2.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
+	properties2.pNext = nullptr;
 
-	VkFormatFeatureFlags features;
-	switch(tiling)
-	{
-		case VK_IMAGE_TILING_LINEAR:
-			features = properties.linearTilingFeatures;
-			break;
+	VkResult result = vkGetPhysicalDeviceImageFormatProperties2(physicalDevice, &info2, &properties2);
 
-		case VK_IMAGE_TILING_OPTIMAL:
-			features = properties.optimalTilingFeatures;
-			break;
+	*pImageFormatProperties = properties2.imageFormatProperties;
 
-		default:
-			UNSUPPORTED("VkImageTiling %d", int(tiling));
-			features = 0;
-	}
-
-	if(features == 0)
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	// Check for usage conflict with features
-	if((usage & VK_IMAGE_USAGE_SAMPLED_BIT) && !(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	if((usage & VK_IMAGE_USAGE_STORAGE_BIT) && !(features & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	if((usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	if((usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	if((usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) && !(features & (VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	if((usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	if((usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_DST_BIT))
-	{
-		return VK_ERROR_FORMAT_NOT_SUPPORTED;
-	}
-
-	auto allRecognizedUsageBits = VK_IMAGE_USAGE_SAMPLED_BIT |
-	                              VK_IMAGE_USAGE_STORAGE_BIT |
-	                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-	                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-	                              VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-	                              VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-	                              VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-	                              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
-	ASSERT(!(usage & ~(allRecognizedUsageBits)));
-
-	// "Images created with tiling equal to VK_IMAGE_TILING_LINEAR have further restrictions on their limits and capabilities
-	//  compared to images created with tiling equal to VK_IMAGE_TILING_OPTIMAL."
-	if(tiling == VK_IMAGE_TILING_LINEAR)
-	{
-		if(type != VK_IMAGE_TYPE_2D)
-		{
-			return VK_ERROR_FORMAT_NOT_SUPPORTED;
-		}
-
-		if(vk::Format(format).isDepth() || vk::Format(format).isStencil())
-		{
-			return VK_ERROR_FORMAT_NOT_SUPPORTED;
-		}
-	}
-
-	// "Images created with a format from one of those listed in Formats requiring sampler Y'CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
-	//  have further restrictions on their limits and capabilities compared to images created with other formats."
-	if(vk::Format(format).isYcbcrFormat())
-	{
-		if(type != VK_IMAGE_TYPE_2D)
-		{
-			return VK_ERROR_FORMAT_NOT_SUPPORTED;
-		}
-	}
-
-	vk::Cast(physicalDevice)->getImageFormatProperties(format, type, tiling, usage, flags, pImageFormatProperties);
-
-	return VK_SUCCESS;
+	return result;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties *pProperties)
@@ -3044,6 +2960,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 	TRACE("(VkPhysicalDevice physicalDevice = %p, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo = %p, VkImageFormatProperties2* pImageFormatProperties = %p)",
 	      physicalDevice, pImageFormatInfo, pImageFormatProperties);
 
+	// "If the combination of parameters to vkGetPhysicalDeviceImageFormatProperties is not supported by the implementation
+	//  for use in vkCreateImage, then all members of VkImageFormatProperties will be filled with zero."
+	memset(&pImageFormatProperties->imageFormatProperties, 0, sizeof(VkImageFormatProperties));
+
 	const VkBaseInStructure *extensionFormatInfo = reinterpret_cast<const VkBaseInStructure *>(pImageFormatInfo->pNext);
 
 	const VkExternalMemoryHandleTypeFlagBits *handleType = nullptr;
@@ -3085,6 +3005,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 
 	VkBaseOutStructure *extensionProperties = reinterpret_cast<VkBaseOutStructure *>(pImageFormatProperties->pNext);
 
+#ifdef __ANDROID__
+	bool hasAHBUsage = false;
+#endif
+
 	while(extensionProperties)
 	{
 		switch(extensionProperties->sType)
@@ -3112,6 +3036,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 			{
 				auto properties = reinterpret_cast<VkAndroidHardwareBufferUsageANDROID *>(extensionProperties);
 				vk::Cast(physicalDevice)->getProperties(properties);
+				hasAHBUsage = true;
 			}
 			break;
 #endif
@@ -3123,13 +3048,119 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 		extensionProperties = extensionProperties->pNext;
 	}
 
-	return vkGetPhysicalDeviceImageFormatProperties(physicalDevice,
-	                                                pImageFormatInfo->format,
-	                                                pImageFormatInfo->type,
-	                                                pImageFormatInfo->tiling,
-	                                                pImageFormatInfo->usage,
-	                                                pImageFormatInfo->flags,
-	                                                &(pImageFormatProperties->imageFormatProperties));
+	VkFormat format = pImageFormatInfo->format;
+	VkImageType type = pImageFormatInfo->type;
+	VkImageTiling tiling = pImageFormatInfo->tiling;
+	VkImageUsageFlags usage = pImageFormatInfo->usage;
+	VkImageCreateFlags flags = pImageFormatInfo->flags;
+
+	VkFormatProperties properties;
+	vk::PhysicalDevice::GetFormatProperties(format, &properties);
+
+	VkFormatFeatureFlags features;
+	switch(tiling)
+	{
+		case VK_IMAGE_TILING_LINEAR:
+			features = properties.linearTilingFeatures;
+			break;
+
+		case VK_IMAGE_TILING_OPTIMAL:
+			features = properties.optimalTilingFeatures;
+			break;
+
+		default:
+			UNSUPPORTED("VkImageTiling %d", int(tiling));
+			features = 0;
+	}
+
+	if(features == 0)
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	// Check for usage conflict with features
+	if((usage & VK_IMAGE_USAGE_SAMPLED_BIT) && !(features & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	if((usage & VK_IMAGE_USAGE_STORAGE_BIT) && !(features & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	if((usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	if((usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) && !(features & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	if((usage & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) && !(features & (VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	if((usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	if((usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) && !(features & VK_FORMAT_FEATURE_TRANSFER_DST_BIT))
+	{
+		return VK_ERROR_FORMAT_NOT_SUPPORTED;
+	}
+
+	auto allRecognizedUsageBits = VK_IMAGE_USAGE_SAMPLED_BIT |
+	                              VK_IMAGE_USAGE_STORAGE_BIT |
+	                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+	                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
+	                              VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+	                              VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+	                              VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+	                              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+	ASSERT(!(usage & ~(allRecognizedUsageBits)));
+
+	// "Images created with tiling equal to VK_IMAGE_TILING_LINEAR have further restrictions on their limits and capabilities
+	//  compared to images created with tiling equal to VK_IMAGE_TILING_OPTIMAL."
+	if(tiling == VK_IMAGE_TILING_LINEAR)
+	{
+		if(type != VK_IMAGE_TYPE_2D)
+		{
+			return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		}
+
+		if(vk::Format(format).isDepth() || vk::Format(format).isStencil())
+		{
+			return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		}
+	}
+
+	// "Images created with a format from one of those listed in Formats requiring sampler Y'CBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image views
+	//  have further restrictions on their limits and capabilities compared to images created with other formats."
+	if(vk::Format(format).isYcbcrFormat())
+	{
+		if(type != VK_IMAGE_TYPE_2D)
+		{
+			return VK_ERROR_FORMAT_NOT_SUPPORTED;
+		}
+	}
+
+	vk::Cast(physicalDevice)->getImageFormatProperties(format, type, tiling, usage, flags, &pImageFormatProperties->imageFormatProperties);
+
+#ifdef __ANDROID__
+	if(hasAHBUsage)
+	{
+		// AHardwareBuffer_lock may only be called with a single layer.
+		pImageFormatProperties->imageFormatProperties.maxArrayLayers = 1;
+		pImageFormatProperties->imageFormatProperties.maxMipLevels = 1;
+	}
+#endif
+
+	return VK_SUCCESS;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalDevice physicalDevice, uint32_t *pQueueFamilyPropertyCount, VkQueueFamilyProperties2 *pQueueFamilyProperties)

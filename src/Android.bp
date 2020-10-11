@@ -56,7 +56,6 @@ cc_defaults {
             shared_libs: [
                 "android.hardware.graphics.mapper@3.0",
                 "android.hardware.graphics.mapper@4.0",
-                "libdrm",
                 "libnativewindow",
                 "libhardware",
                 "libhidlbase",
@@ -591,7 +590,6 @@ cc_defaults {
             shared_libs: [
                 "android.hardware.graphics.mapper@3.0",
                 "android.hardware.graphics.mapper@4.0",
-                "libdrm",
                 "libnativewindow",
                 "libhardware",
                 "libhidlbase",
@@ -664,8 +662,6 @@ cc_defaults {
     include_dirs: [
         "external/swiftshader/third_party/SPIRV-Headers/include",
         "external/swiftshader/include",
-        "external/minigbm",
-        "external/libdrm"
     ],
 }
 

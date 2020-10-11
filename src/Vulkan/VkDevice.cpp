@@ -146,10 +146,6 @@ Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice 
 		debugger.server = vk::dbg::Server::create(debugger.context, atoi(port));
 	}
 #endif  // ENABLE_VK_DEBUGGER
-
-#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
-	ahbAddressMap.reset(new AHBAddressMap());
-#endif
 }
 
 void Device::destroy(const VkAllocationCallbacks *pAllocator)
@@ -378,61 +374,5 @@ void Device::contentsChanged(ImageView *imageView)
 		}
 	}
 }
-
-#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
-Device::AHBAddressMap *Device::getAHBAddressMap() const
-{
-	return ahbAddressMap.get();
-}
-
-void *Device::AHBAddressMap::query(const uint32_t key)
-{
-	std::unique_lock<std::mutex> lock(addressMapMutex);
-	if(addressMap.find(key) == addressMap.end())
-		return nullptr;
-
-	return addressMap[key].address;
-}
-
-void Device::AHBAddressMap::add(const uint32_t key, void *value)
-{
-	std::unique_lock<std::mutex> lock(addressMapMutex);
-	auto it = addressMap.find(key);
-	if(it == addressMap.end())
-	{
-		MapValue mv;
-		mv.refCount = 1;
-		mv.address = value;
-		addressMap[key] = mv;
-	}
-	else
-	{
-		it->second.address = value;
-		it->second.refCount++;
-	}
-}
-
-int Device::AHBAddressMap::incrementReference(const uint32_t key)
-{
-	std::unique_lock<std::mutex> lock(addressMapMutex);
-	auto it = addressMap.find(key);
-	if(it == addressMap.end())
-		return -1;
-
-	it->second.refCount++;
-	return it->second.refCount;
-}
-
-int Device::AHBAddressMap::decrementReference(const uint32_t key)
-{
-	std::unique_lock<std::mutex> lock(addressMapMutex);
-	auto it = addressMap.find(key);
-	if(it == addressMap.end())
-		return -1;
-
-	it->second.refCount--;
-	return it->second.refCount;
-}
-#endif  // SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 
 }  // namespace vk

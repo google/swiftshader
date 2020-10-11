@@ -16,159 +16,19 @@
 
 #	include "VkDeviceMemoryExternalAndroid.hpp"
 
+#	include "System/Debug.hpp"
 #	include "VkDestroy.hpp"
-#	include "VkDevice.hpp"
 #	include "VkFormat.hpp"
 #	include "VkObject.hpp"
 #	include "VkPhysicalDevice.hpp"
-
-#	include "System/Debug.hpp"
-#	include "System/Linux/MemFd.hpp"
-#	include <sys/mman.h>
+#	include "VkStringify.hpp"
 
 #	include <android/hardware_buffer.h>
-#	include <cutils/native_handle.h>
 #	include <vndk/hardware_buffer.h>
 
-#	include <cros_gralloc/cros_gralloc_handle.h>
-#	include <external/virgl_hw.h>
-#	include <unistd.h>
-#	include <virtgpu_drm.h>
-#	include <xf86drm.h>
+namespace {
 
-AHardwareBufferExternalMemory::~AHardwareBufferExternalMemory()
-{
-	// correct deallocation of AHB does not require a pointer or size
-	deallocate(nullptr, 0);
-}
-
-VkResult AHardwareBufferExternalMemory::allocate(size_t size, void **pBuffer)
-{
-	if(allocateInfo.importAhb)
-	{
-		ahb = allocateInfo.ahb;
-		AHardwareBuffer_acquire(ahb);
-		return allocateAndroidHardwareBuffer(size, pBuffer);
-	}
-	else
-	{
-		ASSERT(allocateInfo.exportAhb);
-
-		// Outline ahbDesc
-		AHardwareBuffer_Desc ahbDesc;
-		if(allocateInfo.imageHandle)
-		{
-			ahbDesc.format = GetAndroidHardwareBufferDescFormat(VkFormat(allocateInfo.imageHandle->getFormat()));
-			VkExtent3D extent = allocateInfo.imageHandle->getMipLevelExtent(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			ahbDesc.width = extent.width;
-			ahbDesc.height = extent.height;
-			ahbDesc.layers = allocateInfo.imageHandle->getArrayLayers();
-			ahbDesc.stride = allocateInfo.imageHandle->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-
-			VkImageCreateFlags createFlags = allocateInfo.imageHandle->getFlags();
-			VkImageUsageFlags usageFlags = allocateInfo.imageHandle->getUsage();
-			GetAndroidHardwareBufferUsageFromVkUsage(createFlags, usageFlags, ahbDesc.usage);
-		}
-		else
-		{
-			ASSERT(allocateInfo.bufferHandle);
-			ahbDesc.format = AHARDWAREBUFFER_FORMAT_BLOB;
-			ahbDesc.width = uint32_t(allocateInfo.bufferHandle->getSize());
-			ahbDesc.height = 1;
-			ahbDesc.layers = 1;
-			ahbDesc.stride = uint32_t(allocateInfo.bufferHandle->getSize());
-			// TODO(b/141698760)
-			//   This will be fairly specific, needs fleshing out
-			ahbDesc.usage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN | AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
-		}
-
-		// create a new ahb from desc
-		if(AHardwareBuffer_allocate(&ahbDesc, &ahb) != 0)
-		{
-			return VK_ERROR_OUT_OF_HOST_MEMORY;
-		}
-
-		return allocateAndroidHardwareBuffer(size, pBuffer);
-	}
-}
-
-VkResult AHardwareBufferExternalMemory::allocateAndroidHardwareBuffer(size_t size, void **pBuffer)
-{
-	// get native_handle_t from ahb
-	const native_handle_t *h = AHardwareBuffer_getNativeHandle(ahb);
-	if(h == nullptr)
-	{
-		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-	}
-
-	// get rendernodeFD and primeHandle from native_handle_t.data
-	uint32_t primeHandle;
-	createRenderNodeFD();
-	VkResult result = getPrimeHandle(h, primeHandle);
-	if(result != VK_SUCCESS)
-	{
-		return result;
-	}
-
-	// get memory pointer from store or mmap it
-	vk::Device::AHBAddressMap *pDeviceHandleMap = device->getAHBAddressMap();
-	void *pAddress = pDeviceHandleMap->query(primeHandle);
-	if(pAddress != nullptr)
-	{
-		*pBuffer = pAddress;
-		pDeviceHandleMap->incrementReference(primeHandle);
-	}
-	else
-	{
-		// map memory
-		void *ptr;
-		VkResult result = mapMemory(primeHandle, &ptr);
-		if(result != VK_SUCCESS)
-		{
-			return result;
-		}
-
-		// Add primeHandle and ptr to deviceHandleMap
-		pDeviceHandleMap->add(primeHandle, ptr);
-		*pBuffer = pDeviceHandleMap->query(primeHandle);
-	}
-
-	return VK_SUCCESS;
-}
-
-void AHardwareBufferExternalMemory::deallocate(void *buffer, size_t size)
-{
-	if(ahb != nullptr)
-	{
-		const native_handle_t *h = AHardwareBuffer_getNativeHandle(ahb);
-		uint32_t primeHandle;
-		VkResult result = getPrimeHandle(h, primeHandle);
-		ASSERT(result == VK_SUCCESS);
-
-		// close gpu memory and rendernodeFD
-		vk::Device::AHBAddressMap *pDeviceHandleMap = device->getAHBAddressMap();
-		if(pDeviceHandleMap->decrementReference(primeHandle) == 0)
-		{
-			closeMemory(primeHandle);
-		}
-		close(rendernodeFD);
-
-		AHardwareBuffer_release(ahb);
-		ahb = nullptr;
-	}
-}
-
-VkResult AHardwareBufferExternalMemory::exportAndroidHardwareBuffer(struct AHardwareBuffer **pAhb) const
-{
-	// Each call to vkGetMemoryAndroidHardwareBufferANDROID *must* return an Android hardware buffer with a new reference
-	// acquired in addition to the reference held by the VkDeviceMemory. To avoid leaking resources, the application *must*
-	// release the reference by calling AHardwareBuffer_release when it is no longer needed.
-	AHardwareBuffer_acquire(ahb);
-	*pAhb = ahb;
-	return VK_SUCCESS;
-}
-
-uint32_t AHardwareBufferExternalMemory::GetAndroidHardwareBufferDescFormat(VkFormat format)
+uint32_t GetAHBFormatFromVkFormat(VkFormat format)
 {
 	switch(format)
 	{
@@ -204,7 +64,7 @@ uint32_t AHardwareBufferExternalMemory::GetAndroidHardwareBufferDescFormat(VkFor
 	}
 }
 
-VkFormat AHardwareBufferExternalMemory::GetVkFormat(uint32_t ahbFormat)
+VkFormat GetVkFormatFromAHBFormat(uint32_t ahbFormat)
 {
 	switch(ahbFormat)
 	{
@@ -244,8 +104,94 @@ VkFormat AHardwareBufferExternalMemory::GetVkFormat(uint32_t ahbFormat)
 	}
 }
 
-VkFormatFeatureFlags AHardwareBufferExternalMemory::GetVkFormatFeatures(VkFormat format)
+uint64_t GetAHBLockUsageFromVkImageUsageFlags(VkImageUsageFlags flags)
 {
+	uint64_t usage = 0;
+
+	if(flags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT ||
+	   flags & VK_IMAGE_USAGE_SAMPLED_BIT ||
+	   flags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+	{
+		usage |= AHARDWAREBUFFER_USAGE_CPU_READ_MASK;
+	}
+
+	if(flags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT ||
+	   flags & VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+	{
+		usage |= AHARDWAREBUFFER_USAGE_CPU_WRITE_MASK;
+	}
+
+	return usage;
+}
+
+uint64_t GetAHBLockUsageFromVkBufferUsageFlags(VkBufferUsageFlags flags)
+{
+	uint64_t usage = 0;
+
+	if(flags & VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
+	{
+		usage |= AHARDWAREBUFFER_USAGE_CPU_READ_MASK;
+	}
+
+	if(flags & VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	{
+		usage |= AHARDWAREBUFFER_USAGE_CPU_WRITE_MASK;
+	}
+
+	return usage;
+}
+
+uint64_t GetAHBUsageFromVkImageFlags(VkImageCreateFlags createFlags, VkImageUsageFlags usageFlags)
+{
+	uint64_t ahbUsage = 0;
+
+	if(usageFlags & VK_IMAGE_USAGE_SAMPLED_BIT)
+	{
+		ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE | AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN;
+	}
+	if(usageFlags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
+	{
+		ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE | AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN;
+	}
+	if(usageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+	{
+		ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_COLOR_OUTPUT | AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
+	}
+
+	if(createFlags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+	{
+		ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_CUBE_MAP;
+	}
+	if(createFlags & VK_IMAGE_CREATE_PROTECTED_BIT)
+	{
+		ahbUsage |= AHARDWAREBUFFER_USAGE_PROTECTED_CONTENT;
+	}
+
+	// No usage bits set - set at least one GPU usage
+	if(ahbUsage == 0)
+	{
+		ahbUsage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN |
+		           AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
+	}
+
+	return ahbUsage;
+}
+
+uint64_t GetAHBUsageFromVkBufferFlags(VkBufferCreateFlags /*createFlags*/, VkBufferUsageFlags /*usageFlags*/)
+{
+	uint64_t ahbUsage = 0;
+
+	// TODO(b/141698760): needs fleshing out.
+	ahbUsage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN | AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
+
+	return ahbUsage;
+}
+
+VkFormatFeatureFlags GetVkFormatFeaturesFromAHBFormat(uint32_t ahbFormat)
+{
+	VkFormatFeatureFlags features = 0;
+
+	VkFormat format = GetVkFormatFromAHBFormat(ahbFormat);
 	VkFormatProperties formatProperties;
 	vk::PhysicalDevice::GetFormatProperties(vk::Format(format), &formatProperties);
 
@@ -254,148 +200,14 @@ VkFormatFeatureFlags AHardwareBufferExternalMemory::GetVkFormatFeatures(VkFormat
 	// TODO: b/167896057
 	//   The correct formatFeatureFlags depends on consumer and format
 	//   So this solution is incomplete without more information
-	return formatProperties.linearTilingFeatures | formatProperties.optimalTilingFeatures | formatProperties.bufferFeatures;
+	features |= formatProperties.linearTilingFeatures |
+	            formatProperties.optimalTilingFeatures |
+	            formatProperties.bufferFeatures;
+
+	return features;
 }
 
-VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferFormatProperties(const AHardwareBuffer_Desc &ahbDesc, VkAndroidHardwareBufferFormatPropertiesANDROID *pFormat)
-{
-
-	pFormat->sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID;
-	pFormat->pNext = nullptr;
-
-	pFormat->format = GetVkFormat(ahbDesc.format);
-	pFormat->externalFormat = ahbDesc.format;
-	pFormat->formatFeatures = GetVkFormatFeatures(pFormat->format);
-
-	pFormat->samplerYcbcrConversionComponents = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
-	pFormat->suggestedYcbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
-	pFormat->suggestedYcbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
-	pFormat->suggestedXChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
-	pFormat->suggestedYChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
-
-	return VK_SUCCESS;
-}
-
-VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferProperties(VkDevice &device, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
-{
-	AHardwareBuffer_Desc ahbDesc;
-	AHardwareBuffer_describe(buffer, &ahbDesc);
-
-	GetAndroidHardwareBufferFormatProperties(ahbDesc, (VkAndroidHardwareBufferFormatPropertiesANDROID *)pProperties->pNext);
-
-	const VkPhysicalDeviceMemoryProperties phyDeviceMemProps = vk::PhysicalDevice::GetMemoryProperties();
-	pProperties->memoryTypeBits = phyDeviceMemProps.memoryTypes[0].propertyFlags;
-
-	if(ahbDesc.format == AHARDWAREBUFFER_FORMAT_BLOB)
-	{
-		pProperties->allocationSize = ahbDesc.width;
-	}
-	else
-	{
-		VkImageCreateInfo info = {};
-		info.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
-		info.pNext = nullptr;
-		info.flags = 0;
-		info.imageType = VK_IMAGE_TYPE_2D;
-		info.format = GetVkFormat(ahbDesc.format);
-		info.extent.width = ahbDesc.width;
-		info.extent.height = ahbDesc.height;
-		info.extent.depth = 1;
-		info.mipLevels = 1;
-		info.arrayLayers = 1;
-		info.samples = VK_SAMPLE_COUNT_1_BIT;
-		info.tiling = VK_IMAGE_TILING_OPTIMAL;
-		info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
-		VkImage Image;
-		VkResult result = vk::Image::Create(vk::DEVICE_MEMORY, &info, &Image, vk::Cast(device));
-
-		pProperties->allocationSize = vk::Cast(Image)->getMemoryRequirements().size;
-		vk::destroy(Image, vk::DEVICE_MEMORY);
-	}
-
-	return VK_SUCCESS;
-}
-
-VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags createFlags, const VkImageUsageFlags usageFlags, uint64_t &ahbDescUsage)
-{
-	if(usageFlags & VK_IMAGE_USAGE_SAMPLED_BIT)
-		ahbDescUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-	if(usageFlags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)
-		ahbDescUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-	if(usageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-		ahbDescUsage |= AHARDWAREBUFFER_USAGE_GPU_COLOR_OUTPUT;
-
-	if(createFlags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
-		ahbDescUsage |= AHARDWAREBUFFER_USAGE_GPU_CUBE_MAP;
-	if(createFlags & VK_IMAGE_CREATE_PROTECTED_BIT)
-		ahbDescUsage |= AHARDWAREBUFFER_USAGE_PROTECTED_CONTENT;
-
-	// No usage bits set - set at least one GPU usage
-	if(ahbDescUsage == 0)
-		ahbDescUsage = AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-
-	return VK_SUCCESS;
-}
-
-// Call into the native gralloc implementation to request a handle for the
-// rendernodeFD
-VkResult AHardwareBufferExternalMemory::getPrimeHandle(const native_handle_t *h, uint32_t &primeHandle)
-{
-	cros_gralloc_handle const *crosHandle = reinterpret_cast<cros_gralloc_handle const *>(h);
-	int ret = drmPrimeFDToHandle(rendernodeFD, crosHandle->fds[0], &primeHandle);
-	if(ret != 0)
-	{
-		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-	}
-
-	return VK_SUCCESS;
-}
-
-// Create a rendernodeFD
-void AHardwareBufferExternalMemory::createRenderNodeFD()
-{
-	rendernodeFD = drmOpenRender(128);
-}
-
-// using a primeHandle associated with a specific rendernodeFD, map a new block
-// of memory
-VkResult AHardwareBufferExternalMemory::mapMemory(uint32_t &primeHandle, void **ptr)
-{
-	drm_virtgpu_map map;
-	memset(&map, 0, sizeof(drm_virtgpu_map));
-	map.handle = primeHandle;
-	int ret = drmIoctl(rendernodeFD, DRM_IOCTL_VIRTGPU_MAP, &map);
-	if(ret != 0)
-	{
-		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-	}
-
-	// mmap it
-	*ptr = static_cast<unsigned char *>(
-	    mmap64(nullptr, 4096, PROT_WRITE, MAP_SHARED, rendernodeFD, map.offset));
-	if(ptr == MAP_FAILED)
-	{
-		return VK_ERROR_MEMORY_MAP_FAILED;
-	}
-
-	return VK_SUCCESS;
-}
-
-// Close out the memory block associated with rendernodeFD
-VkResult AHardwareBufferExternalMemory::closeMemory(uint32_t &primeHandle)
-{
-	struct drm_gem_close gem_close;
-	memset(&gem_close, 0x0, sizeof(gem_close));
-	gem_close.handle = primeHandle;
-	int ret = drmIoctl(rendernodeFD, DRM_IOCTL_GEM_CLOSE, &gem_close);
-	if(ret != 0)
-	{
-		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-	}
-
-	return VK_SUCCESS;
-}
+}  // namespace
 
 AHardwareBufferExternalMemory::AllocateInfo::AllocateInfo(const VkMemoryAllocateInfo *pAllocateInfo)
 {
@@ -415,11 +227,14 @@ AHardwareBufferExternalMemory::AllocateInfo::AllocateInfo(const VkMemoryAllocate
 			{
 				const auto *exportInfo = reinterpret_cast<const VkExportMemoryAllocateInfo *>(createInfo);
 
-				if(exportInfo->handleTypes != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
+				if(exportInfo->handleTypes == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
+				{
+					exportAhb = true;
+				}
+				else
 				{
 					UNSUPPORTED("VkExportMemoryAllocateInfo::handleTypes %d", int(exportInfo->handleTypes));
 				}
-				exportAhb = true;
 			}
 			break;
 			case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
@@ -437,6 +252,210 @@ AHardwareBufferExternalMemory::AllocateInfo::AllocateInfo(const VkMemoryAllocate
 		}
 		createInfo = createInfo->pNext;
 	}
+}
+
+AHardwareBufferExternalMemory::AHardwareBufferExternalMemory(const VkMemoryAllocateInfo *pAllocateInfo)
+    : allocateInfo(pAllocateInfo)
+{
+}
+
+AHardwareBufferExternalMemory::~AHardwareBufferExternalMemory()
+{
+	// correct deallocation of AHB does not require a pointer or size
+	deallocate(nullptr, 0);
+}
+
+// VkAllocateMemory
+VkResult AHardwareBufferExternalMemory::allocate(size_t /*size*/, void **pBuffer)
+{
+	if(allocateInfo.importAhb)
+	{
+		return importAndroidHardwareBuffer(allocateInfo.ahb, pBuffer);
+	}
+	else
+	{
+		ASSERT(allocateInfo.exportAhb);
+		return allocateAndroidHardwareBuffer(pBuffer);
+	}
+}
+
+void AHardwareBufferExternalMemory::deallocate(void *buffer, size_t size)
+{
+	if(ahb != nullptr)
+	{
+		unlockAndroidHardwareBuffer();
+
+		AHardwareBuffer_release(ahb);
+		ahb = nullptr;
+	}
+}
+
+VkResult AHardwareBufferExternalMemory::importAndroidHardwareBuffer(struct AHardwareBuffer *buffer, void **pBuffer)
+{
+	ahb = buffer;
+
+	AHardwareBuffer_acquire(ahb);
+
+	return lockAndroidHardwareBuffer(pBuffer);
+}
+
+VkResult AHardwareBufferExternalMemory::allocateAndroidHardwareBuffer(void **pBuffer)
+{
+	AHardwareBuffer_Desc desc = {};
+
+	if(allocateInfo.imageHandle)
+	{
+		vk::Image *image = allocateInfo.imageHandle;
+		ASSERT(image != nullptr);
+		ASSERT(image->getArrayLayers() == 1);
+
+		VkExtent3D extent = image->getExtent();
+
+		desc.width = extent.width;
+		desc.height = extent.height;
+		desc.layers = image->getArrayLayers();
+		desc.format = GetAHBFormatFromVkFormat(image->getFormat());
+		desc.usage = GetAHBUsageFromVkImageFlags(image->getFlags(), image->getUsage());
+	}
+	else
+	{
+		vk::Buffer *buffer = allocateInfo.bufferHandle;
+		ASSERT(buffer != nullptr);
+
+		desc.width = static_cast<uint32_t>(buffer->getSize());
+		desc.height = 1;
+		desc.layers = 1;
+		desc.format = AHARDWAREBUFFER_FORMAT_BLOB;
+		desc.usage = GetAHBUsageFromVkBufferFlags(buffer->getFlags(), buffer->getUsage());
+	}
+
+	// create a new ahb from desc
+	int ret = AHardwareBuffer_allocate(&desc, &ahb);
+	if(ret != 0)
+	{
+		return VK_ERROR_OUT_OF_HOST_MEMORY;
+	}
+
+	return lockAndroidHardwareBuffer(pBuffer);
+}
+
+VkResult AHardwareBufferExternalMemory::lockAndroidHardwareBuffer(void **pBuffer)
+{
+	uint64_t usage = 0;
+	if(allocateInfo.imageHandle)
+	{
+		usage = GetAHBLockUsageFromVkImageUsageFlags(allocateInfo.imageHandle->getUsage());
+	}
+	else
+	{
+		usage = GetAHBLockUsageFromVkBufferUsageFlags(allocateInfo.bufferHandle->getUsage());
+	}
+
+	// Empty fence, lock immedietly.
+	int32_t fence = -1;
+
+	// Empty rect, lock entire buffer.
+	ARect *rect = nullptr;
+
+	int ret = AHardwareBuffer_lock(ahb, usage, fence, rect, pBuffer);
+	if(ret != 0)
+	{
+		return VK_ERROR_OUT_OF_HOST_MEMORY;
+	}
+
+	return VK_SUCCESS;
+}
+
+VkResult AHardwareBufferExternalMemory::unlockAndroidHardwareBuffer()
+{
+	int ret = AHardwareBuffer_unlock(ahb, /*fence=*/nullptr);
+	if(ret != 0)
+	{
+		return VK_ERROR_UNKNOWN;
+	}
+
+	return VK_SUCCESS;
+}
+
+VkResult AHardwareBufferExternalMemory::exportAndroidHardwareBuffer(struct AHardwareBuffer **pAhb) const
+{
+	// Each call to vkGetMemoryAndroidHardwareBufferANDROID *must* return an Android hardware buffer with a new reference
+	// acquired in addition to the reference held by the VkDeviceMemory. To avoid leaking resources, the application *must*
+	// release the reference by calling AHardwareBuffer_release when it is no longer needed.
+	AHardwareBuffer_acquire(ahb);
+	*pAhb = ahb;
+	return VK_SUCCESS;
+}
+
+VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferFormatProperties(const AHardwareBuffer_Desc &ahbDesc, VkAndroidHardwareBufferFormatPropertiesANDROID *pFormat)
+{
+	pFormat->sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID;
+	pFormat->pNext = nullptr;
+	pFormat->format = GetVkFormatFromAHBFormat(ahbDesc.format);
+	pFormat->externalFormat = ahbDesc.format;
+	pFormat->formatFeatures = GetVkFormatFeaturesFromAHBFormat(ahbDesc.format);
+	pFormat->samplerYcbcrConversionComponents = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
+	pFormat->suggestedYcbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
+	pFormat->suggestedYcbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
+	pFormat->suggestedXChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
+	pFormat->suggestedYChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
+
+	return VK_SUCCESS;
+}
+
+VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferProperties(VkDevice &device, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
+{
+	VkResult result = VK_SUCCESS;
+
+	AHardwareBuffer_Desc ahbDesc;
+	AHardwareBuffer_describe(buffer, &ahbDesc);
+
+	if(pProperties->pNext != nullptr)
+	{
+		result = GetAndroidHardwareBufferFormatProperties(ahbDesc, (VkAndroidHardwareBufferFormatPropertiesANDROID *)pProperties->pNext);
+		if(result != VK_SUCCESS)
+		{
+			return result;
+		}
+	}
+
+	const VkPhysicalDeviceMemoryProperties phyDeviceMemProps = vk::PhysicalDevice::GetMemoryProperties();
+	pProperties->memoryTypeBits = phyDeviceMemProps.memoryTypes[0].propertyFlags;
+
+	if(ahbDesc.format == AHARDWAREBUFFER_FORMAT_BLOB)
+	{
+		pProperties->allocationSize = ahbDesc.width;
+	}
+	else
+	{
+		VkImageCreateInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
+		info.pNext = nullptr;
+		info.flags = 0;
+		info.imageType = VK_IMAGE_TYPE_2D;
+		info.format = GetVkFormatFromAHBFormat(ahbDesc.format);
+		info.extent.width = ahbDesc.width;
+		info.extent.height = ahbDesc.height;
+		info.extent.depth = 1;
+		info.mipLevels = 1;
+		info.arrayLayers = 1;
+		info.samples = VK_SAMPLE_COUNT_1_BIT;
+		info.tiling = VK_IMAGE_TILING_OPTIMAL;
+		info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+		VkImage Image;
+
+		result = vk::Image::Create(vk::DEVICE_MEMORY, &info, &Image, vk::Cast(device));
+		if(result != VK_SUCCESS)
+		{
+			return result;
+		}
+
+		pProperties->allocationSize = vk::Cast(Image)->getMemoryRequirements().size;
+		vk::destroy(Image, vk::DEVICE_MEMORY);
+	}
+
+	return result;
 }
 
 #endif  // SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER

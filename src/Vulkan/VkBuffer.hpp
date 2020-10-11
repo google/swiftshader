@@ -41,6 +41,9 @@ public:
 	uint8_t *end() const;
 	bool canBindToMemory(DeviceMemory *pDeviceMemory) const;
 
+	VkBufferUsageFlags getUsage() const { return usage; }
+	VkBufferCreateFlags getFlags() const { return flags; }
+
 private:
 	void *memory = nullptr;
 	VkBufferCreateFlags flags = 0;
