@@ -113,10 +113,14 @@ void Thread::enter(const std::shared_ptr<File> &file, const std::string &functio
 	}
 }
 
-void Thread::exit()
+void Thread::exit(bool isStep /* = false */)
 {
 	marl::lock lock(mutex);
 	frames.pop_back();
+	if(isStep)
+	{
+		onLocationUpdate(lock);
+	}
 }
 
 void Thread::update(bool isStep, const UpdateFrame &f)

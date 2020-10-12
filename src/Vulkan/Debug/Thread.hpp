@@ -130,7 +130,10 @@ public:
 	void enter(const std::shared_ptr<File> &file, const std::string &function, const UpdateFrame &f = nullptr);
 
 	// exit() pops the thread's stack frame.
-	void exit();
+	// If isStep is true, then this will be considered a line-steppable event,
+	// and the debugger may pause at the function call at the new top most stack
+	// frame.
+	void exit(bool isStep = false);
 
 	// frame() returns a copy of the thread's top most stack frame.
 	Frame frame() const;

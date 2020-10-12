@@ -2200,7 +2200,7 @@ void SpirvShader::Impl::Debugger::State::Data::trap(int index, State *state)
 		auto shrink = [&](size_t maxLen) {
 			while(stack.size() > maxLen)
 			{
-				thread->exit();
+				thread->exit(true);
 				stack.pop_back();
 			}
 		};
@@ -2216,10 +2216,10 @@ void SpirvShader::Impl::Debugger::State::Data::trap(int index, State *state)
 		{
 			if(stack[i] != newStack[i])
 			{
-				bool isTopMostFrame = i == (newStack.size() - 1);
+				bool wasTopMostFrame = i == (stack.size() - 1);
 				auto oldFunction = debug::find<debug::Function>(stack[i].block);
 				auto newFunction = debug::find<debug::Function>(newStack[i].block);
-				if(isTopMostFrame && oldFunction == newFunction)
+				if(wasTopMostFrame && oldFunction == newFunction)
 				{
 					// Deviation is just a movement in the top most frame's
 					// function.
@@ -2227,8 +2227,20 @@ void SpirvShader::Impl::Debugger::State::Data::trap(int index, State *state)
 					// be treated as a step out and step in, breaking stepping
 					// commands. Instead, just update the frame variables for
 					// the new scope.
-					stack[i].block = newStack[i].block;
+					stack[i] = newStack[i];
 					thread->update(true, [&](vk::dbg::Frame &frame) {
+						// Update the frame location if we're entering a
+						// function. This allows the debugger to pause at the
+						// line (which may not have any instructions or OpLines)
+						// of a inlined function call. This is less jarring
+						// than magically appearing in another function before
+						// you've reached the line of the call site.
+						// See b/170650010 for more context.
+						if(stack.size() < newStack.size())
+						{
+							auto function = debug::find<debug::Function>(stack[i].block);
+							frame.location = vk::dbg::Location{ function->source->dbgFile, (int)stack[i].line };
+						}
 						updateFrameLocals(state, frame, stack[i].block);
 					});
 				}
@@ -2240,16 +2252,33 @@ void SpirvShader::Impl::Debugger::State::Data::trap(int index, State *state)
 			}
 		}
 
-		// Now rebuild the parts of stack frames that are new
+		// Now rebuild the parts of stack frames that are new.
+		//
+		// This is done in two stages:
+		// (1) thread->enter() is called to construct the new stack frame with
+		//     the opening scope line. The frames locals and hovers are built
+		//     and assigned.
+		// (2) thread->update() is called to adjust the frame's location to
+		//     entry.line. This may be different to the function entry in the
+		//     case of multiple nested inline functions. If its the same, then
+		//     this is a no-op.
+		//
+		// This two-stage approach allows the debugger to step through chains of
+		// inlined function calls without having a jarring jump from the outer
+		// function to the first statement within the function.
+		// See b/170650010 for more context.
 		for(size_t i = stack.size(); i < newStack.size(); i++)
 		{
 			auto entry = newStack[i];
 			stack.emplace_back(entry);
 			auto function = debug::find<debug::Function>(entry.block);
 			thread->enter(entry.block->source->dbgFile, function->name, [&](vk::dbg::Frame &frame) {
-				frame.location = vk::dbg::Location{ function->source->dbgFile, (int)entry.line };
+				frame.location = vk::dbg::Location{ function->source->dbgFile, (int)function->line };
 				frame.hovers->variables->extend(std::make_shared<HoversFromLocals>(frame.locals->variables));
 				updateFrameLocals(state, frame, entry.block);
+			});
+			thread->update(true, [&](vk::dbg::Frame &frame) {
+				frame.location.line = (int)entry.line;
 			});
 		}
 	}
