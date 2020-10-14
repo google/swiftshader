@@ -31,8 +31,8 @@
 #	include <vndk/hardware_buffer.h>
 
 #	include <cros_gralloc/cros_gralloc_handle.h>
+#	include <external/virgl_hw.h>
 #	include <unistd.h>
-#	include <virgl_hw.h>
 #	include <virtgpu_drm.h>
 #	include <xf86drm.h>
 
