@@ -212,6 +212,12 @@ static void getPhysicalDeviceImagelessFramebufferFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(T *features)
+{
+	features->shaderSubgroupExtendedTypes = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_FALSE;
@@ -245,7 +251,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	features->scalarBlockLayout = VK_FALSE;
 	getPhysicalDeviceImagelessFramebufferFeatures(features);
 	features->uniformBufferStandardLayout = VK_FALSE;
-	features->shaderSubgroupExtendedTypes = VK_FALSE;
+	getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(features);
 	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
 	features->hostQueryReset = VK_FALSE;
 	features->timelineSemaphore = VK_FALSE;
@@ -310,6 +316,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES:
 				getPhysicalDeviceImagelessFramebufferFeatures(reinterpret_cast<VkPhysicalDeviceImagelessFramebufferFeatures *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR:
+				getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(reinterpret_cast<VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *>(curExtension));
 				break;
 			default:
 				LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
