@@ -78,7 +78,9 @@ public:
         }
     }
 
-    VkExtent2D getExtent() const API_AVAILABLE(macosx(10.11))
+    // Synchronizes the drawableSize to layer.bounds.size * layer.contentsScale and returns the new value of
+    // drawableSize.
+    VkExtent2D syncExtent() const API_AVAILABLE(macosx(10.11))
     {
         if(layer)
         {
@@ -86,6 +88,9 @@ public:
             CGFloat scaleFactor = layer.contentsScale;
             drawSize.width = trunc(drawSize.width * scaleFactor);
             drawSize.height = trunc(drawSize.height * scaleFactor);
+
+            [layer setDrawableSize: drawSize];
+
             return { static_cast<uint32_t>(drawSize.width), static_cast<uint32_t>(drawSize.height) };
         }
         else
@@ -102,6 +107,16 @@ public:
         }
 
         return nil;
+    }
+
+    VkExtent2D getDrawableSize() const API_AVAILABLE(macosx(10.11)) {
+        if (layer) {
+            return {
+                static_cast<uint32_t>([layer drawableSize].width),
+                static_cast<uint32_t>([layer drawableSize].height),
+            };
+        }
+        return {0, 0};
     }
 
 private:
@@ -133,7 +148,11 @@ void MetalSurface::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapa
 {
     SurfaceKHR::getSurfaceCapabilities(pSurfaceCapabilities);
 
-    VkExtent2D extent = metalLayer->getExtent();
+    // The value of drawableSize in CAMetalLayer is set the first time a drawable is queried but after that it is the
+    // (Metal) application's responsibility to resize the drawable when the window is resized. The best time for Swiftshader
+    // to resize the drawable is when querying the capabilities of the swapchain as that's done when the Vulkan application
+    // is trying to handle a window resize.
+    VkExtent2D extent = metalLayer->syncExtent();
     pSurfaceCapabilities->currentExtent = extent;
     pSurfaceCapabilities->minImageExtent = extent;
     pSurfaceCapabilities->maxImageExtent = extent;
@@ -146,10 +165,10 @@ VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))
         auto drawable = metalLayer->getNextDrawable();
         if(drawable)
         {
-            VkExtent2D windowExtent = metalLayer->getExtent();
             const VkExtent3D &extent = image->getImage()->getExtent();
+            VkExtent2D drawableExtent = metalLayer->getDrawableSize();
 
-            if(windowExtent.width != extent.width || windowExtent.height != extent.height)
+            if(drawableExtent.width != extent.width || drawableExtent.height != extent.height)
             {
                 return VK_ERROR_OUT_OF_DATE_KHR;
             }
