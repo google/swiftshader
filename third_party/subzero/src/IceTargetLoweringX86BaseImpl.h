@@ -614,7 +614,8 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   genTargetHelperCalls();
 
   // Do not merge Alloca instructions, and lay out the stack.
-  static constexpr bool SortAndCombineAllocas = false;
+  // static constexpr bool SortAndCombineAllocas = false;
+  static constexpr bool SortAndCombineAllocas = true; // TODO(b/171222930): Fix Win32 bug when this is false
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
