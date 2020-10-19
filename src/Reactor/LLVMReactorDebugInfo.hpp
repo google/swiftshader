@@ -92,11 +92,11 @@ public:
 
 	// NotifyObjectEmitted informs any attached debuggers of the JIT'd
 	// object.
-	static void NotifyObjectEmitted(const llvm::object::ObjectFile &Obj, const llvm::LoadedObjectInfo &L);
+	static void NotifyObjectEmitted(uint64_t key, const llvm::object::ObjectFile &obj, const llvm::LoadedObjectInfo &l);
 
 	// NotifyFreeingObject informs any attached debuggers that the JIT'd
 	// object is now invalid.
-	static void NotifyFreeingObject(const llvm::object::ObjectFile &Obj);
+	static void NotifyFreeingObject(uint64_t key);
 
 private:
 	struct Token
