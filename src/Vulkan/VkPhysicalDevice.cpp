@@ -953,7 +953,7 @@ static void getFloatControlsProperties(T *properties)
 {
 	// The spec states:
 	// shaderSignedZeroInfNanPreserveFloat32 is a boolean value indicating whether
-	// sign of a zero, Nans and ±∞ can be preserved in 32-bit floating-point
+	// sign of a zero, Nans and �infinity can be preserved in 32-bit floating-point
 	// computations. It also indicates whether the SignedZeroInfNanPreserve execution
 	// mode can be used for 32-bit floating-point types.
 	//
@@ -1387,6 +1387,7 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 
 	switch(format)
 	{
+	// Vulkan 1.0 mandatory storage image formats supporting atomic operations
 	case VK_FORMAT_R32_UINT:
 	case VK_FORMAT_R32_SINT:
 		pFormatProperties->optimalTilingFeatures |=
@@ -1394,14 +1395,11 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 		pFormatProperties->bufferFeatures |=
 		    VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT;
 		// [[fallthrough]]
+	// Vulkan 1.0 mandatory storage image formats
 	case VK_FORMAT_R8G8B8A8_UNORM:
 	case VK_FORMAT_R8G8B8A8_SNORM:
 	case VK_FORMAT_R8G8B8A8_UINT:
 	case VK_FORMAT_R8G8B8A8_SINT:
-	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 	case VK_FORMAT_R16G16B16A16_UINT:
 	case VK_FORMAT_R16G16B16A16_SINT:
 	case VK_FORMAT_R16G16B16A16_SFLOAT:
@@ -1412,12 +1410,13 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	case VK_FORMAT_R32G32B32A32_UINT:
 	case VK_FORMAT_R32G32B32A32_SINT:
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
-	// shaderStorageImageExtendedFormats
+	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	// Vulkan 1.0 shaderStorageImageExtendedFormats
 	case VK_FORMAT_R16G16_SFLOAT:
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 	case VK_FORMAT_R16_SFLOAT:
 	case VK_FORMAT_R16G16B16A16_UNORM:
-	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 	case VK_FORMAT_R16G16_UNORM:
 	case VK_FORMAT_R8G8_UNORM:
 	case VK_FORMAT_R16_UNORM:
@@ -1431,11 +1430,17 @@ void PhysicalDevice::GetFormatProperties(Format format, VkFormatProperties *pFor
 	case VK_FORMAT_R8G8_SINT:
 	case VK_FORMAT_R16_SINT:
 	case VK_FORMAT_R8_SINT:
-	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 	case VK_FORMAT_R16G16_UINT:
 	case VK_FORMAT_R8G8_UINT:
 	case VK_FORMAT_R16_UINT:
 	case VK_FORMAT_R8_UINT:
+	// Additional formats not listed under "Formats without shader storage format"
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_B8G8R8A8_SRGB:
 		pFormatProperties->optimalTilingFeatures |=
 		    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
 		pFormatProperties->bufferFeatures |=
