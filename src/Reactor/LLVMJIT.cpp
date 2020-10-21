@@ -484,9 +484,6 @@ auto &Unwrap(T &&v)
 // settings and no Reactor routine directly links against another.
 class JITRoutine : public rr::Routine
 {
-	using ObjLayer = llvm::orc::RTDyldObjectLinkingLayer;
-	using CompileLayer = llvm::orc::IRCompileLayer;
-
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
 	llvm::orc::IRCompileLayer compileLayer;
 	llvm::orc::MangleAndInterner mangle;
@@ -501,7 +498,10 @@ public:
 	    llvm::Function **funcs,
 	    size_t count,
 	    const rr::Config &config)
-	    : objectLayer(session, []() { return std::make_unique<llvm::SectionMemoryManager>(new MemoryMapper()); })
+	    : objectLayer(session, []() {
+		    static MemoryMapper mm;
+		    return std::make_unique<llvm::SectionMemoryManager>(&mm);
+	    })
 	    , compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())))
 	    , mangle(session, JITGlobals::get()->getDataLayout())
 	    , ctx(std::make_unique<llvm::LLVMContext>())
