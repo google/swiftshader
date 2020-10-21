@@ -393,19 +393,19 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			functions.try_emplace("aeabi_idivmod", reinterpret_cast<void *>(__aeabi_idivmod));
 #endif
 #ifdef __ANDROID__
-			functions.try_emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void *>(F::neverCalled));
-			functions.try_emplace("sync_synchronize", reinterpret_cast<void *>(F::sync_synchronize));
-			functions.try_emplace("sync_fetch_and_add_4", reinterpret_cast<void *>(F::sync_fetch_and_add_4));
-			functions.try_emplace("sync_fetch_and_and_4", reinterpret_cast<void *>(F::sync_fetch_and_and_4));
-			functions.try_emplace("sync_fetch_and_or_4", reinterpret_cast<void *>(F::sync_fetch_and_or_4));
-			functions.try_emplace("sync_fetch_and_xor_4", reinterpret_cast<void *>(F::sync_fetch_and_xor_4));
-			functions.try_emplace("sync_fetch_and_sub_4", reinterpret_cast<void *>(F::sync_fetch_and_sub_4));
-			functions.try_emplace("sync_lock_test_and_set_4", reinterpret_cast<void *>(F::sync_lock_test_and_set_4));
-			functions.try_emplace("sync_val_compare_and_swap_4", reinterpret_cast<void *>(F::sync_val_compare_and_swap_4));
-			functions.try_emplace("sync_fetch_and_max_4", reinterpret_cast<void *>(F::sync_fetch_and_max_4));
-			functions.try_emplace("sync_fetch_and_min_4", reinterpret_cast<void *>(F::sync_fetch_and_min_4));
-			functions.try_emplace("sync_fetch_and_umax_4", reinterpret_cast<void *>(F::sync_fetch_and_umax_4));
-			functions.try_emplace("sync_fetch_and_umin_4", reinterpret_cast<void *>(F::sync_fetch_and_umin_4));
+			functions.try_emplace("aeabi_unwind_cpp_pr0", reinterpret_cast<void *>(neverCalled));
+			functions.try_emplace("sync_synchronize", reinterpret_cast<void *>(sync_synchronize));
+			functions.try_emplace("sync_fetch_and_add_4", reinterpret_cast<void *>(sync_fetch_and_add_4));
+			functions.try_emplace("sync_fetch_and_and_4", reinterpret_cast<void *>(sync_fetch_and_and_4));
+			functions.try_emplace("sync_fetch_and_or_4", reinterpret_cast<void *>(sync_fetch_and_or_4));
+			functions.try_emplace("sync_fetch_and_xor_4", reinterpret_cast<void *>(sync_fetch_and_xor_4));
+			functions.try_emplace("sync_fetch_and_sub_4", reinterpret_cast<void *>(sync_fetch_and_sub_4));
+			functions.try_emplace("sync_lock_test_and_set_4", reinterpret_cast<void *>(sync_lock_test_and_set_4));
+			functions.try_emplace("sync_val_compare_and_swap_4", reinterpret_cast<void *>(sync_val_compare_and_swap_4));
+			functions.try_emplace("sync_fetch_and_max_4", reinterpret_cast<void *>(sync_fetch_and_max_4));
+			functions.try_emplace("sync_fetch_and_min_4", reinterpret_cast<void *>(sync_fetch_and_min_4));
+			functions.try_emplace("sync_fetch_and_umax_4", reinterpret_cast<void *>(sync_fetch_and_umax_4));
+			functions.try_emplace("sync_fetch_and_umin_4", reinterpret_cast<void *>(sync_fetch_and_umin_4));
 #endif
 #if __has_feature(memory_sanitizer)
 			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
