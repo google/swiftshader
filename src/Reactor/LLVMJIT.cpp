@@ -484,11 +484,11 @@ auto &Unwrap(T &&v)
 // settings and no Reactor routine directly links against another.
 class JITRoutine : public rr::Routine
 {
+	llvm::orc::ExecutionSession session;
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
 	llvm::orc::IRCompileLayer compileLayer;
 	llvm::orc::MangleAndInterner mangle;
 	llvm::orc::ThreadSafeContext ctx;
-	llvm::orc::ExecutionSession session;
 	llvm::orc::JITDylib &dylib;
 	std::vector<const void *> addresses;
 
@@ -562,6 +562,15 @@ public:
 			           (int)i, llvm::toString(symbol.takeError()).c_str());
 			addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress()));
 		}
+	}
+
+	~JITRoutine()
+	{
+		// TODO(b/165000222): Unconditional after LLVM 11 upgrade
+#if LLVM_VERSION_MAJOR >= 11
+		// Avoid assert in ~RTDyldObjectLinkingLayer()
+		dylib.getDefaultResourceTracker()->remove();
+#endif
 	}
 
 	const void *getEntry(int index) const override
