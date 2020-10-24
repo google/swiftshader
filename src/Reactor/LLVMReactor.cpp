@@ -408,9 +408,10 @@ void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, ll
 	{
 		// void __msan_unpoison(const volatile void *a, size_t size)
 		auto voidTy = ::llvm::Type::getVoidTy(jit->context);
-		auto voidPtrTy = voidTy->getPointerTo();
+		auto int8Ty = ::llvm::Type::getInt8Ty(jit->context);
+		auto int8PtrTy = int8Ty->getPointerTo();
 		auto sizetTy = ::llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
-		auto funcTy = ::llvm::FunctionType::get(voidTy, { voidPtrTy, sizetTy }, false);
+		auto funcTy = ::llvm::FunctionType::get(voidTy, { int8PtrTy, sizetTy }, false);
 		auto func = jit->module->getOrInsertFunction("__msan_unpoison", funcTy);
 		auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
 		for(unsigned i = 0; i < numEls; i++)
@@ -424,7 +425,7 @@ void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offsets, ll
 
 			// Insert __msan_unpoison call in conditional block
 			auto elPtr = jit->builder->CreateExtractElement(elPtrs, idx);
-			jit->builder->CreateCall(func, { jit->builder->CreatePointerCast(elPtr, voidPtrTy),
+			jit->builder->CreateCall(func, { jit->builder->CreatePointerCast(elPtr, int8PtrTy),
 			                                 ::llvm::ConstantInt::get(sizetTy, size) });
 			jit->builder->CreateBr(mergeBlock);
 			jit->builder->SetInsertPoint(mergeBlock);
