@@ -252,7 +252,11 @@ static uint32_t sync_fetch_and_op(uint32_t volatile *ptr, uint32_t val, F f)
 }
 #endif
 
+#if LLVM_VERSION_MAJOR >= 11 /* TODO(b/165000222): Unconditional after LLVM 11 upgrade */
+class ExternalSymbolGenerator : public llvm::orc::DefinitionGenerator
+#else
 class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
+#endif
 {
 	struct Atomic
 	{
@@ -413,10 +417,14 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 		}
 	};
 
-	llvm::Error tryToGenerate(llvm::orc::LookupKind kind,
-	                          llvm::orc::JITDylib &dylib,
-	                          llvm::orc::JITDylibLookupFlags flags,
-	                          const llvm::orc::SymbolLookupSet &set) override
+	llvm::Error tryToGenerate(
+#if LLVM_VERSION_MAJOR >= 11 /* TODO(b/165000222): Unconditional after LLVM 11 upgrade */
+	    llvm::orc::LookupState &state,
+#endif
+	    llvm::orc::LookupKind kind,
+	    llvm::orc::JITDylib &dylib,
+	    llvm::orc::JITDylibLookupFlags flags,
+	    const llvm::orc::SymbolLookupSet &set) override
 	{
 		static Resolver resolver;
 
@@ -566,10 +574,11 @@ public:
 
 	~JITRoutine()
 	{
-		// TODO(b/165000222): Unconditional after LLVM 11 upgrade
-#if LLVM_VERSION_MAJOR >= 11
-		// Avoid assert in ~RTDyldObjectLinkingLayer()
-		dylib.getDefaultResourceTracker()->remove();
+#if LLVM_VERSION_MAJOR >= 11 /* TODO(b/165000222): Unconditional after LLVM 11 upgrade */
+		if(auto err = session.endSession())
+		{
+			session.reportError(std::move(err));
+		}
 #endif
 	}
 
