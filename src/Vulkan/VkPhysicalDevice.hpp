@@ -59,6 +59,7 @@ public:
 	void getProperties(VkPhysicalDeviceDriverPropertiesKHR *properties) const;
 	void getProperties(VkPhysicalDeviceLineRasterizationPropertiesEXT *properties) const;
 	void getProperties(VkPhysicalDeviceProvokingVertexPropertiesEXT *properties) const;
+	void getProperties(VkPhysicalDeviceFloatControlsProperties *) const;
 
 	static void GetFormatProperties(Format format, VkFormatProperties *pFormatProperties);
 	void getImageFormatProperties(Format format, VkImageType type, VkImageTiling tiling,

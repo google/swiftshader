@@ -701,6 +701,38 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceProvokingVertexPropertiesEXT 
 	properties->provokingVertexModePerPipeline = VK_TRUE;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceFloatControlsProperties *properties) const
+{
+	// The spec states:
+	// shaderSignedZeroInfNanPreserveFloat32 is a boolean value indicating whether
+	// sign of a zero, Nans and ±∞ can be preserved in 32-bit floating-point
+	// computations. It also indicates whether the SignedZeroInfNanPreserve execution
+	// mode can be used for 32-bit floating-point types.
+	//
+	// There are similar clauses for all the shader* bools present here.
+	//
+	// It does not state that an implementation must report its default behavior using
+	// these variables. At this time SwiftShader does not expose any preserve, denormal,
+	// or rounding controls.
+	properties->denormBehaviorIndependence = VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE;
+	properties->roundingModeIndependence = VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE;
+	properties->shaderSignedZeroInfNanPreserveFloat16 = VK_FALSE;
+	properties->shaderSignedZeroInfNanPreserveFloat32 = VK_FALSE;
+	properties->shaderSignedZeroInfNanPreserveFloat64 = VK_FALSE;
+	properties->shaderDenormPreserveFloat16 = VK_FALSE;
+	properties->shaderDenormPreserveFloat32 = VK_FALSE;
+	properties->shaderDenormPreserveFloat64 = VK_FALSE;
+	properties->shaderDenormFlushToZeroFloat16 = VK_FALSE;
+	properties->shaderDenormFlushToZeroFloat32 = VK_FALSE;
+	properties->shaderDenormFlushToZeroFloat64 = VK_FALSE;
+	properties->shaderRoundingModeRTZFloat16 = VK_FALSE;
+	properties->shaderRoundingModeRTZFloat32 = VK_FALSE;
+	properties->shaderRoundingModeRTZFloat64 = VK_FALSE;
+	properties->shaderRoundingModeRTEFloat16 = VK_FALSE;
+	properties->shaderRoundingModeRTEFloat32 = VK_FALSE;
+	properties->shaderRoundingModeRTEFloat64 = VK_FALSE;
+}
+
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatures) const
 {
 	const VkPhysicalDeviceFeatures &supportedFeatures = getFeatures();
