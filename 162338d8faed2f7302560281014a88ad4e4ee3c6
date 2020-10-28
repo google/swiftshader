@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78445ad5_9fed5beb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 96881
+      },
+      "writtenOn": "2020-10-28T14:29:36Z",
+      "side": 1,
+      "message": "This is a partial fix to the bug report.",
+      "revId": "162338d8faed2f7302560281014a88ad4e4ee3c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
