@@ -38,6 +38,7 @@ struct Memset
 	Memset(T *object, int val)
 	{
 		static_assert(std::is_base_of<Memset<T>, T>::value, "Memset<T> must only clear the memory of a type of which it is a base class");
+		static_assert(!std::is_polymorphic<T>::value, "Memset<T> must not be used with classes that have virtual functions");
 		::memset(object, 0, sizeof(T));
 	}
 
