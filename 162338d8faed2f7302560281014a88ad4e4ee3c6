@@ -16,6 +16,23 @@
       "message": "This is a partial fix to the bug report.",
       "revId": "162338d8faed2f7302560281014a88ad4e4ee3c6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c14e9c66_ce182193",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-28T15:52:14Z",
+      "side": 1,
+      "message": "Looks good! Feel free to manually set Verified+1 and Submit. Thanks",
+      "revId": "162338d8faed2f7302560281014a88ad4e4ee3c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
