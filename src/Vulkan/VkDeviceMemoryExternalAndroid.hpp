@@ -69,6 +69,9 @@ public:
 	static VkResult GetAndroidHardwareBufferFormatProperties(const AHardwareBuffer_Desc &ahbDesc, VkAndroidHardwareBufferFormatPropertiesANDROID *pFormat);
 	static VkResult GetAndroidHardwareBufferProperties(VkDevice &device, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties);
 
+	bool hasExternalImageProperties() const override final { return true; }
+	int externalImageRowPitchBytes() const override final;
+
 private:
 	VkResult importAndroidHardwareBuffer(struct AHardwareBuffer *buffer, void **pBuffer);
 	VkResult allocateAndroidHardwareBuffer(void **pBuffer);
@@ -76,6 +79,7 @@ private:
 	VkResult unlockAndroidHardwareBuffer();
 
 	struct AHardwareBuffer *ahb = nullptr;
+	AHardwareBuffer_Desc ahbDesc = {};
 	vk::Device *device = nullptr;
 	AllocateInfo allocateInfo;
 };

@@ -57,6 +57,11 @@ public:
 	}
 #endif
 
+	// Some external device memories, such as Android hardware buffers, represent
+	// specific images with requirements.
+	virtual bool hasExternalImageProperties() const { return false; }
+	virtual int externalImageRowPitchBytes() const { return 0; }
+
 protected:
 	ExternalBase() = default;
 };

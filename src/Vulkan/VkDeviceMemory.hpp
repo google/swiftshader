@@ -57,6 +57,9 @@ public:
 	// Internal implementation class for external memory. Platform-specific.
 	class ExternalBase;
 
+	bool hasExternalImageProperties() const;
+	int externalImageRowPitchBytes() const;
+
 private:
 	void *buffer = nullptr;
 	VkDeviceSize size = 0;
