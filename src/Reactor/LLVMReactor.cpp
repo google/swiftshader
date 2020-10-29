@@ -572,10 +572,15 @@ static ::llvm::Function *createFunction(const char *name, ::llvm::Type *retTy, c
 
 Nucleus::Nucleus()
 {
+#if !__has_feature(memory_sanitizer)
+	// thread_local variables in shared libraries are initialized at load-time,
+	// but this is not observed by MemorySanitizer if the loader itself was not
+	// instrumented, leading to false-positive unitialized variable errors.
 	ASSERT(jit == nullptr);
-	jit = new JITBuilder(Nucleus::getDefaultConfig());
-
 	ASSERT(Variable::unmaterializedVariables == nullptr);
+#endif
+
+	jit = new JITBuilder(Nucleus::getDefaultConfig());
 	Variable::unmaterializedVariables = new std::unordered_set<const Variable *>();
 }
 

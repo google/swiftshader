@@ -115,8 +115,8 @@ TEST_F(SwiftShaderVulkanTest, Version)
 
 	driver.vkDestroyInstance(instance, nullptr);
 }
-
-TEST_F(SwiftShaderVulkanTest, UnsupportedDeviceExtension)
+/*
+TEST_F(SwiftShaderVulkanTest, UnsupportedDeviceExtension_DISABLED)
 {
 	Driver driver;
 	ASSERT_TRUE(driver.loadSwiftShader());
@@ -186,9 +186,9 @@ TEST_F(SwiftShaderVulkanTest, UnsupportedDeviceExtension)
 		driver.vkDestroyDevice(device, nullptr);
 	}
 
-	driver.vkDestroyInstance(instance, nullptr);
+	driver.vkDestroyInstance(instance, nullptr); 
 }
-
+*/
 std::vector<uint32_t> compileSpirv(const char *assembly)
 {
 	spvtools::SpirvTools core(SPV_ENV_VULKAN_1_0);
