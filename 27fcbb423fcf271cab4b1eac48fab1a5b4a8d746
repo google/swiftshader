@@ -70,6 +70,30 @@
       },
       "revId": "27fcbb423fcf271cab4b1eac48fab1a5b4a8d746",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "581f6587_10f8cd49",
+        "filename": "third_party/marl/src/scheduler.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-29T15:10:25Z",
+      "side": 1,
+      "message": "Yes, I landed https://swiftshader-review.googlesource.com/c/SwiftShader/+/49712\nThanks for addressing https://github.com/google/marl/issues/184 !",
+      "parentUuid": "29cd6ad8_95c151ba",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 2
+      },
+      "revId": "27fcbb423fcf271cab4b1eac48fab1a5b4a8d746",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
