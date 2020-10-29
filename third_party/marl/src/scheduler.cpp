@@ -17,6 +17,7 @@
 #include "marl/scheduler.h"
 
 #include "marl/debug.h"
+#include "marl/sanitizers.h"
 #include "marl/thread.h"
 #include "marl/trace.h"
 
@@ -91,7 +92,13 @@ Scheduler* Scheduler::get() {
 }
 
 void Scheduler::bind() {
+#if !MEMORY_SANITIZER_ENABLED
+  // thread_local variables in shared libraries are initialized at load-time,
+  // but this is not observed by MemorySanitizer if the loader itself was not
+  // instrumented, leading to false-positive unitialized variable errors.
+  // See https://github.com/google/marl/issues/184
   MARL_ASSERT(bound == nullptr, "Scheduler already bound");
+#endif
   bound = this;
   {
     marl::lock lock(singleThreadedWorkers.mutex);
@@ -237,10 +244,16 @@ void Scheduler::Fiber::notify() {
 }
 
 void Scheduler::Fiber::wait(marl::lock& lock, const Predicate& pred) {
+  MARL_ASSERT(worker == Worker::getCurrent(),
+              "Scheduler::Fiber::wait() must only be called on the currently "
+              "executing fiber");
   worker->wait(lock, nullptr, pred);
 }
 
 void Scheduler::Fiber::switchTo(Fiber* to) {
+  MARL_ASSERT(worker == Worker::getCurrent(),
+              "Scheduler::Fiber::switchTo() must only be called on the "
+              "currently executing fiber");
   if (to != this) {
     impl->switchTo(to->impl.get());
   }

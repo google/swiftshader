@@ -402,11 +402,13 @@ Thread::Thread(Affinity&& affinity, Func&& func)
     : impl(new Thread::Impl(std::move(affinity), std::move(func))) {}
 
 Thread::~Thread() {
-  delete impl;
+  MARL_ASSERT(!impl, "Thread::join() was not called before destruction");
 }
 
 void Thread::join() {
   impl->thread.join();
+  delete impl;
+  impl = nullptr;
 }
 
 void Thread::setName(const char* fmt, ...) {
