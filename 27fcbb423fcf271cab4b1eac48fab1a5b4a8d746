@@ -22,6 +22,30 @@
       },
       "revId": "27fcbb423fcf271cab4b1eac48fab1a5b4a8d746",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0fc72723_0b610586",
+        "filename": "third_party/marl/src/scheduler.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-29T13:21:22Z",
+      "side": 1,
+      "message": "Is this a line endings change or something like that? Gerrit marks it as \"Unchanged\". Anyway, looks like it\u0027s gone in the new Patchset.",
+      "parentUuid": "26136400_4809d076",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 2
+      },
+      "revId": "27fcbb423fcf271cab4b1eac48fab1a5b4a8d746",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
