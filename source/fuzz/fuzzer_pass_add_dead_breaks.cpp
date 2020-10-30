@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "source/fuzz/fuzzer_pass_add_dead_breaks.h"
+
 #include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/transformation_add_dead_break.h"
 #include "source/opt/ir_context.h"
@@ -66,11 +67,15 @@ void FuzzerPassAddDeadBreaks::Apply() {
         // anything.
         if (!block.IsSuccessor(merge_block)) {
           merge_block->ForEachPhiInst([this, &phi_ids](opt::Instruction* phi) {
-            // Add an additional operand for OpPhi instruction.
-            //
-            // We mark the constant as irrelevant so that we can replace it with
-            // a more interesting value later.
-            phi_ids.push_back(FindOrCreateZeroConstant(phi->type_id(), true));
+            // Add an additional operand for OpPhi instruction.  Use a constant
+            // if possible, and an undef otherwise.
+            if (fuzzerutil::CanCreateConstant(GetIRContext(), phi->type_id())) {
+              // We mark the constant as irrelevant so that we can replace it
+              // with a more interesting value later.
+              phi_ids.push_back(FindOrCreateZeroConstant(phi->type_id(), true));
+            } else {
+              phi_ids.push_back(FindOrCreateGlobalUndef(phi->type_id()));
+            }
           });
         }
 

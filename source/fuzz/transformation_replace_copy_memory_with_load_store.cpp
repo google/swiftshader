@@ -61,7 +61,7 @@ void TransformationReplaceCopyMemoryWithLoadStore::Apply(
          copy_memory_instruction->opcode() == SpvOpCopyMemory &&
          "The required OpCopyMemory instruction must be defined.");
 
-  // Coherence check: Both operands must be pointers.
+  // Integrity check: Both operands must be pointers.
 
   // Get types of ids used as a source and target of |copy_memory_instruction|.
   auto target = ir_context->get_def_use_mgr()->GetDef(
@@ -83,7 +83,7 @@ void TransformationReplaceCopyMemoryWithLoadStore::Apply(
          source_type_opcode == SpvOpTypePointer &&
          "Operands must be of type OpTypePointer");
 
-  // Coherence check: |source| and |target| must point to the same type.
+  // Integrity check: |source| and |target| must point to the same type.
   uint32_t target_pointee_type = fuzzerutil::GetPointeeTypeIdFromPointerType(
       ir_context, target->type_id());
   uint32_t source_pointee_type = fuzzerutil::GetPointeeTypeIdFromPointerType(
@@ -121,6 +121,11 @@ TransformationReplaceCopyMemoryWithLoadStore::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_replace_copy_memory_with_load_store() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t>
+TransformationReplaceCopyMemoryWithLoadStore::GetFreshIds() const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

@@ -96,5 +96,10 @@ opt::Instruction* TransformationSetFunctionControl ::FindFunctionDefInstruction(
   return nullptr;
 }
 
+std::unordered_set<uint32_t> TransformationSetFunctionControl::GetFreshIds()
+    const {
+  return std::unordered_set<uint32_t>();
+}
+
 }  // namespace fuzz
 }  // namespace spvtools

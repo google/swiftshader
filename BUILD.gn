@@ -32,8 +32,8 @@ template("spvtools_core_tables") {
         "${spirv_headers}/include/spirv/$version/spirv.core.grammar.json"
     core_insts_file = "${target_gen_dir}/core.insts-$version.inc"
     operand_kinds_file = "${target_gen_dir}/operand.kinds-$version.inc"
-    debuginfo_insts_file = "source/extinst.debuginfo.grammar.json"
-    cldebuginfo100_insts_file = "source/extinst.opencl.debuginfo.100.grammar.json"
+    debuginfo_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.debuginfo.grammar.json"
+    cldebuginfo100_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"
 
     sources = [
       core_json_file,
@@ -69,8 +69,8 @@ template("spvtools_core_enums") {
 
     core_json_file =
         "${spirv_headers}/include/spirv/$version/spirv.core.grammar.json"
-    debuginfo_insts_file = "source/extinst.debuginfo.grammar.json"
-    cldebuginfo100_insts_file = "source/extinst.opencl.debuginfo.100.grammar.json"
+    debuginfo_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.debuginfo.grammar.json"
+    cldebuginfo100_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"
 
     extension_enum_file = "${target_gen_dir}/extension_enum.inc"
     extension_map_file = "${target_gen_dir}/enum_string_mapping.inc"
@@ -110,8 +110,8 @@ template("spvtools_glsl_tables") {
     core_json_file =
         "${spirv_headers}/include/spirv/$version/spirv.core.grammar.json"
     glsl_json_file = "${spirv_headers}/include/spirv/${version}/extinst.glsl.std.450.grammar.json"
-    debuginfo_insts_file = "source/extinst.debuginfo.grammar.json"
-    cldebuginfo100_insts_file = "source/extinst.opencl.debuginfo.100.grammar.json"
+    debuginfo_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.debuginfo.grammar.json"
+    cldebuginfo100_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"
 
     glsl_insts_file = "${target_gen_dir}/glsl.std.450.insts.inc"
 
@@ -150,8 +150,8 @@ template("spvtools_opencl_tables") {
     core_json_file =
         "${spirv_headers}/include/spirv/$version/spirv.core.grammar.json"
     opencl_json_file = "${spirv_headers}/include/spirv/${version}/extinst.opencl.std.100.grammar.json"
-    debuginfo_insts_file = "source/extinst.debuginfo.grammar.json"
-    cldebuginfo100_insts_file = "source/extinst.opencl.debuginfo.100.grammar.json"
+    debuginfo_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.debuginfo.grammar.json"
+    cldebuginfo100_insts_file = "${spirv_headers}/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"
 
     opencl_insts_file = "${target_gen_dir}/opencl.std.insts.inc"
 
@@ -210,7 +210,7 @@ template("spvtools_vendor_table") {
     script = "utils/generate_grammar_tables.py"
 
     name = invoker.name
-    extinst_vendor_grammar = "source/extinst.${name}.grammar.json"
+    extinst_vendor_grammar = "${spirv_headers}/include/spirv/unified1/extinst.${name}.grammar.json"
     extinst_file = "${target_gen_dir}/${name}.insts.inc"
 
     args = [
@@ -280,11 +280,11 @@ spvtools_opencl_tables("opencl1-0") {
 }
 spvtools_language_header("debuginfo") {
   name = "DebugInfo"
-  grammar_file = "source/extinst.debuginfo.grammar.json"
+  grammar_file = "${spirv_headers}/include/spirv/unified1/extinst.debuginfo.grammar.json"
 }
 spvtools_language_header("cldebuginfo100") {
   name = "OpenCLDebugInfo100"
-  grammar_file = "source/extinst.opencl.debuginfo.100.grammar.json"
+  grammar_file = "${spirv_headers}/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"
 }
 
 spvtools_vendor_tables = [
@@ -294,6 +294,7 @@ spvtools_vendor_tables = [
   ["spv-amd-shader-ballot", "...nil..."],
   ["debuginfo", "...nil..."],
   ["opencl.debuginfo.100", "CLDEBUG100_"],
+  ["nonsemantic.clspvreflection", "...nil..."],
 ]
 
 foreach(table_def, spvtools_vendor_tables) {
@@ -653,8 +654,6 @@ static_library("spvtools_opt") {
     "source/opt/passes.h",
     "source/opt/private_to_local_pass.cpp",
     "source/opt/private_to_local_pass.h",
-    "source/opt/process_lines_pass.cpp",
-    "source/opt/process_lines_pass.h",
     "source/opt/propagator.cpp",
     "source/opt/propagator.h",
     "source/opt/reduce_load_size.cpp",
@@ -773,6 +772,7 @@ static_library("spvtools_reduce") {
     "source/reduce/reducer.h",
     "source/reduce/reduction_opportunity.cpp",
     "source/reduce/reduction_opportunity.h",
+    "source/reduce/reduction_opportunity_finder.cpp",
     "source/reduce/reduction_opportunity_finder.h",
     "source/reduce/reduction_pass.cpp",
     "source/reduce/reduction_pass.h",

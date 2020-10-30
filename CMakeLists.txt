@@ -79,6 +79,8 @@ if(SPIRV_BUILD_COMPRESSION)
           "Please remove SPIRV_BUILD_COMPRESSION from your build options.")
 endif(SPIRV_BUILD_COMPRESSION)
 
+option(SPIRV_BUILD_FUZZER "Build spirv-fuzz" OFF)
+
 option(SPIRV_WERROR "Enable error on warning" ON)
 if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")))
   set(COMPILER_IS_LIKE_GNU TRUE)
@@ -129,6 +131,46 @@ endif()
 if (DEFINED SPIRV_TOOLS_EXTRA_DEFINITIONS)
   add_definitions(${SPIRV_TOOLS_EXTRA_DEFINITIONS})
 endif()
+
+# Library build setting definitions:
+#
+# * SPIRV_TOOLS_BUILD_STATIC - ON or OFF - Defaults to ON.
+#   If enabled the following targets will be created:
+#     ${SPIRV_TOOLS}-static - STATIC library.
+#                             Has full public symbol visibility.
+#     ${SPIRV_TOOLS}-shared - SHARED library.
+#                             Has default-hidden symbol visibility.
+#     ${SPIRV_TOOLS}        - will alias to one of above, based on BUILD_SHARED_LIBS.
+#   If disabled the following targets will be created:
+#     ${SPIRV_TOOLS}        - either STATIC or SHARED based on SPIRV_TOOLS_LIBRARY_TYPE.
+#                             Has full public symbol visibility.
+#     ${SPIRV_TOOLS}-shared - SHARED library.
+#                             Has default-hidden symbol visibility.
+#
+# * SPIRV_TOOLS_LIBRARY_TYPE - SHARED or STATIC.
+#   Specifies the library type used for building SPIRV-Tools libraries.
+#   Defaults to SHARED when BUILD_SHARED_LIBS=1, otherwise STATIC.
+#
+# * SPIRV_TOOLS_FULL_VISIBILITY - "${SPIRV_TOOLS}-static" or "${SPIRV_TOOLS}"
+#   Evaluates to the SPIRV_TOOLS target library name that has no hidden symbols.
+#   This is used by internal targets for accessing symbols that are non-public.
+#   Note this target provides no API stability guarantees.
+#
+# Ideally, all of these will go away - see https://github.com/KhronosGroup/SPIRV-Tools/issues/3909.
+option(SPIRV_TOOLS_BUILD_STATIC "Build ${SPIRV_TOOLS}-static target. ${SPIRV_TOOLS} will alias to ${SPIRV_TOOLS}-static or ${SPIRV_TOOLS}-shared based on BUILD_SHARED_LIBS" ON)
+if(SPIRV_TOOLS_BUILD_STATIC)
+  set(SPIRV_TOOLS_FULL_VISIBILITY ${SPIRV_TOOLS}-static)
+  set(SPIRV_TOOLS_LIBRARY_TYPE "STATIC")
+else(SPIRV_TOOLS_BUILD_STATIC)
+  set(SPIRV_TOOLS_FULL_VISIBILITY ${SPIRV_TOOLS})
+  if (NOT DEFINED SPIRV_TOOLS_LIBRARY_TYPE)
+      if(BUILD_SHARED_LIBS)
+        set(SPIRV_TOOLS_LIBRARY_TYPE "SHARED")
+      else()
+        set(SPIRV_TOOLS_LIBRARY_TYPE "STATIC")
+      endif()
+  endif()
+endif(SPIRV_TOOLS_BUILD_STATIC)
 
 function(spvtools_default_compile_options TARGET)
   target_compile_options(${TARGET} PRIVATE ${SPIRV_WARNINGS})

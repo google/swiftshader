@@ -78,6 +78,27 @@ bool TransformationAddDeadBlock::IsApplicable(
     return false;
   }
 
+  // |existing_block| must be reachable.
+  opt::DominatorAnalysis* dominator_analysis =
+      ir_context->GetDominatorAnalysis(existing_block->GetParent());
+  if (!dominator_analysis->IsReachable(existing_block->id())) {
+    return false;
+  }
+
+  assert(existing_block->id() != successor_block_id &&
+         "|existing_block| must be different from |successor_block_id|");
+
+  // Even though we know |successor_block_id| is not a merge block, it might
+  // still have multiple predecessors because divergent control flow is allowed
+  // to converge early (before the merge block). In this case, when we create
+  // the selection construct, its header |existing_block| will not dominate the
+  // merge block |successor_block_id|, which is invalid. Thus, |existing_block|
+  // must dominate |successor_block_id|.
+  if (!dominator_analysis->Dominates(existing_block->id(),
+                                     successor_block_id)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -136,10 +157,6 @@ void TransformationAddDeadBlock::Apply(
   enclosing_function->InsertBasicBlockAfter(std::move(new_block),
                                             existing_block);
 
-  // Record the fact that the new block is dead.
-  transformation_context->GetFactManager()->AddFactBlockIsDead(
-      message_.fresh_id());
-
   // Fix up OpPhi instructions in the successor block, so that the values they
   // yield when control has transferred from the new block are the same as if
   // control had transferred from |message_.existing_block|.  This is guaranteed
@@ -160,12 +177,20 @@ void TransformationAddDeadBlock::Apply(
   // Do not rely on any existing analysis results since the control flow graph
   // of the module has changed.
   ir_context->InvalidateAnalysesExceptFor(opt::IRContext::kAnalysisNone);
+
+  // Record the fact that the new block is dead.
+  transformation_context->GetFactManager()->AddFactBlockIsDead(
+      message_.fresh_id());
 }
 
 protobufs::Transformation TransformationAddDeadBlock::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_add_dead_block() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t> TransformationAddDeadBlock::GetFreshIds() const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

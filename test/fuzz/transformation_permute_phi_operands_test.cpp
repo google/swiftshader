@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_permute_phi_operands.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -65,13 +68,11 @@ TEST(TransformationPermutePhiOperandsTest, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Result id is invalid.
   ASSERT_FALSE(TransformationPermutePhiOperands(26, {}).IsApplicable(
       context.get(), transformation_context));
@@ -102,7 +103,7 @@ TEST(TransformationPermutePhiOperandsTest, BasicTest) {
   TransformationPermutePhiOperands transformation(25, {1, 0});
   ASSERT_TRUE(
       transformation.IsApplicable(context.get(), transformation_context));
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string after_transformation = R"(
                OpCapability Shader

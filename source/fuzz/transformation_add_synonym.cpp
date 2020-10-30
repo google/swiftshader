@@ -68,6 +68,17 @@ bool TransformationAddSynonym::IsApplicable(
     return false;
   }
 
+  const auto* insert_before_inst_block =
+      ir_context->get_instr_block(insert_before_inst);
+  assert(insert_before_inst_block &&
+         "|insert_before_inst| must be in some block");
+
+  if (transformation_context.GetFactManager()->BlockIsDead(
+          insert_before_inst_block->id())) {
+    // We don't create synonyms in dead blocks.
+    return false;
+  }
+
   // Check that we can insert |message._synonymous_instruction| before
   // |message_.insert_before| instruction. We use OpIAdd to represent some
   // instruction that can produce a synonym.
@@ -115,7 +126,7 @@ void TransformationAddSynonym::Apply(
   // Mark two ids as synonymous.
   transformation_context->GetFactManager()->AddFactDataSynonym(
       MakeDataDescriptor(message_.result_id(), {}),
-      MakeDataDescriptor(message_.synonym_fresh_id(), {}), ir_context);
+      MakeDataDescriptor(message_.synonym_fresh_id(), {}));
 }
 
 protobufs::Transformation TransformationAddSynonym::ToMessage() const {
@@ -307,6 +318,10 @@ bool TransformationAddSynonym::IsAdditionalConstantRequired(
     default:
       return false;
   }
+}
+
+std::unordered_set<uint32_t> TransformationAddSynonym::GetFreshIds() const {
+  return {message_.synonym_fresh_id()};
 }
 
 }  // namespace fuzz

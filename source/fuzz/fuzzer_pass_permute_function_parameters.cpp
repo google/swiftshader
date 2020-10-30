@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "source/fuzz/fuzzer_pass_permute_function_parameters.h"
+
 #include <numeric>
 #include <vector>
 
 #include "source/fuzz/fuzzer_context.h"
-#include "source/fuzz/fuzzer_pass_permute_function_parameters.h"
 #include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "source/fuzz/transformation_permute_function_parameters.h"

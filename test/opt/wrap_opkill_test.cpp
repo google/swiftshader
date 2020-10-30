@@ -903,7 +903,7 @@ TEST_F(WrapOpKillTest, DebugInfoSimple) {
 ; CHECK-NEXT: {{%\d+}} = OpExtInst %void [[ext:%\d+]] DebugScope
 ; CHECK-NEXT: OpLine [[file:%\d+]] 100 200
 ; CHECK-NEXT: OpFunctionCall %void [[new_kill:%\w+]]
-; CHECK-NEXT: {{%\d+}} = OpExtInst %void [[ext]] DebugNoScope
+; CHECK:      {{%\d+}} = OpExtInst %void [[ext]] DebugNoScope
 ; CHECK-NEXT: OpReturn
 ; CHECK: [[new_kill]] = OpFunction
 ; CHECK-NEXT: OpLabel

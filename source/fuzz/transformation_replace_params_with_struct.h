@@ -15,7 +15,7 @@
 #ifndef SOURCE_FUZZ_TRANSFORMATION_REPLACE_PARAMS_WITH_STRUCT_H_
 #define SOURCE_FUZZ_TRANSFORMATION_REPLACE_PARAMS_WITH_STRUCT_H_
 
-#include <unordered_map>
+#include <map>
 
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
 #include "source/fuzz/transformation.h"
@@ -33,8 +33,7 @@ class TransformationReplaceParamsWithStruct : public Transformation {
   TransformationReplaceParamsWithStruct(
       const std::vector<uint32_t>& parameter_id,
       uint32_t fresh_function_type_id, uint32_t fresh_parameter_id,
-      const std::unordered_map<uint32_t, uint32_t>&
-          caller_id_to_fresh_composite_id);
+      const std::map<uint32_t, uint32_t>& caller_id_to_fresh_composite_id);
 
   // - Each element of |parameter_id| is a valid result id of some
   //   OpFunctionParameter instruction. All parameter ids must correspond to
@@ -64,15 +63,24 @@ class TransformationReplaceParamsWithStruct : public Transformation {
   void Apply(opt::IRContext* ir_context,
              TransformationContext* transformation_context) const override;
 
+  std::unordered_set<uint32_t> GetFreshIds() const override;
+
   protobufs::Transformation ToMessage() const override;
 
   // Returns true if parameter's type is supported by this transformation.
-  static bool IsParameterTypeSupported(const opt::analysis::Type& param_type);
+  static bool IsParameterTypeSupported(opt::IRContext* ir_context,
+                                       uint32_t param_type_id);
 
  private:
   // Returns a result id of the OpTypeStruct instruction required by this
   // transformation (see docs on the IsApplicable method to learn more).
   uint32_t MaybeGetRequiredStructType(opt::IRContext* ir_context) const;
+
+  // Returns a vector of indices of parameters to replace. Concretely, i'th
+  // element is the index of the parameter with result id |parameter_id[i]| in
+  // its function.
+  std::vector<uint32_t> ComputeIndicesOfReplacedParameters(
+      opt::IRContext* ir_context) const;
 
   protobufs::TransformationReplaceParamsWithStruct message_;
 };

@@ -35,10 +35,10 @@ bool TransformationComputeDataSynonymFactClosure::IsApplicable(
 }
 
 void TransformationComputeDataSynonymFactClosure::Apply(
-    opt::IRContext* ir_context,
+    opt::IRContext* /*unused*/,
     TransformationContext* transformation_context) const {
   transformation_context->GetFactManager()->ComputeClosureOfFacts(
-      ir_context, message_.maximum_equivalence_class_size());
+      message_.maximum_equivalence_class_size());
 }
 
 protobufs::Transformation
@@ -46,6 +46,11 @@ TransformationComputeDataSynonymFactClosure::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_compute_data_synonym_fact_closure() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t>
+TransformationComputeDataSynonymFactClosure::GetFreshIds() const {
+  return std::unordered_set<uint32_t>();
 }
 
 }  // namespace fuzz

@@ -141,9 +141,13 @@ std::vector<uint32_t> FuzzerPassAddFunctionCalls::ChooseFunctionCallArguments(
     assert(param_type && "Parameter has invalid type");
 
     if (!param_type->AsPointer()) {
-      // We mark the constant as irrelevant so that we can replace it with a
-      // more interesting value later.
-      result.push_back(FindOrCreateZeroConstant(param->type_id(), true));
+      if (fuzzerutil::CanCreateConstant(GetIRContext(), param->type_id())) {
+        // We mark the constant as irrelevant so that we can replace it with a
+        // more interesting value later.
+        result.push_back(FindOrCreateZeroConstant(param->type_id(), true));
+      } else {
+        result.push_back(FindOrCreateGlobalUndef(param->type_id()));
+      }
       continue;
     }
 

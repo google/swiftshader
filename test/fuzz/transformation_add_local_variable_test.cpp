@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_add_local_variable.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -76,13 +79,11 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // A few cases of inapplicable transformations:
   // Id 4 is already in use
   ASSERT_FALSE(TransformationAddLocalVariable(4, 50, 4, 51, true)
@@ -99,7 +100,8 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
     TransformationAddLocalVariable transformation(105, 50, 4, 51, true);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   // %104 = OpVariable %41 Function %46
@@ -107,7 +109,8 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
     TransformationAddLocalVariable transformation(104, 41, 4, 46, false);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   // %103 = OpVariable %35 Function %38
@@ -115,7 +118,8 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
     TransformationAddLocalVariable transformation(103, 35, 4, 38, true);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   // %102 = OpVariable %31 Function %33
@@ -123,7 +127,8 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
     TransformationAddLocalVariable transformation(102, 31, 4, 33, false);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   // %101 = OpVariable %19 Function %29
@@ -131,7 +136,8 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
     TransformationAddLocalVariable transformation(101, 19, 4, 29, true);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   // %100 = OpVariable %8 Function %12
@@ -139,7 +145,8 @@ TEST(TransformationAddLocalVariableTest, BasicTest) {
     TransformationAddLocalVariable transformation(100, 8, 4, 12, false);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   ASSERT_FALSE(

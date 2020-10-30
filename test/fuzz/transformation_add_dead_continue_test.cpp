@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_add_dead_continue.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -21,8 +24,8 @@ namespace {
 
 TEST(TransformationAddDeadContinueTest, SimpleExample) {
   // For a simple loop, checks that some dead continue scenarios are possible,
-  // sanity-checks that some illegal scenarios are indeed not allowed, and then
-  // applies a transformation.
+  // checks that some invalid scenarios are indeed not allowed, and then applies
+  // a transformation.
 
   // The SPIR-V for this test is adapted from the following GLSL, by separating
   // some assignments into their own basic blocks, and adding constants for true
@@ -95,12 +98,11 @@ TEST(TransformationAddDeadContinueTest, SimpleExample) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // These are all possibilities.
   ASSERT_TRUE(TransformationAddDeadContinue(11, true, {})
                   .IsApplicable(context.get(), transformation_context));
@@ -143,18 +145,24 @@ TEST(TransformationAddDeadContinueTest, SimpleExample) {
 
   ASSERT_TRUE(
       transformation1.IsApplicable(context.get(), transformation_context));
-  transformation1.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation1, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   ASSERT_TRUE(
       transformation2.IsApplicable(context.get(), transformation_context));
-  transformation2.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation2, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   ASSERT_TRUE(
       transformation3.IsApplicable(context.get(), transformation_context));
-  transformation3.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation3, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -368,13 +376,11 @@ TEST(TransformationAddDeadContinueTest, LoopNest) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   std::vector<uint32_t> good = {6, 7, 18, 20, 34, 40, 45, 46, 47, 56, 57};
   std::vector<uint32_t> bad = {5, 8, 9, 19, 21, 22, 33, 41, 58, 59, 60};
 
@@ -386,7 +392,8 @@ TEST(TransformationAddDeadContinueTest, LoopNest) {
     const TransformationAddDeadContinue transformation(from_block, true, {});
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
     ASSERT_FALSE(
         transformation.IsApplicable(context.get(), transformation_context));
   }
@@ -608,13 +615,11 @@ TEST(TransformationAddDeadConditionalTest, LoopInContinueConstruct) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   std::vector<uint32_t> good = {32, 33, 46, 52, 101};
   std::vector<uint32_t> bad = {5, 34, 36, 35, 47, 49, 48};
 
@@ -626,7 +631,8 @@ TEST(TransformationAddDeadConditionalTest, LoopInContinueConstruct) {
     const TransformationAddDeadContinue transformation(from_block, false, {});
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
     ASSERT_FALSE(
         transformation.IsApplicable(context.get(), transformation_context));
   }
@@ -819,13 +825,11 @@ TEST(TransformationAddDeadContinueTest, PhiInstructions) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   std::vector<uint32_t> bad = {5, 19, 20, 23, 31, 32, 33, 70};
 
   std::vector<uint32_t> good = {29, 30, 75};
@@ -837,12 +841,14 @@ TEST(TransformationAddDeadContinueTest, PhiInstructions) {
   auto transformation1 = TransformationAddDeadContinue(29, true, {13, 21});
   ASSERT_TRUE(
       transformation1.IsApplicable(context.get(), transformation_context));
-  transformation1.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation1, context.get(),
+                        &transformation_context);
 
   auto transformation2 = TransformationAddDeadContinue(30, true, {22, 46});
   ASSERT_TRUE(
       transformation2.IsApplicable(context.get(), transformation_context));
-  transformation2.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation2, context.get(),
+                        &transformation_context);
 
   // 75 already has the continue block as a successor, so we should not provide
   // phi ids.
@@ -853,7 +859,8 @@ TEST(TransformationAddDeadContinueTest, PhiInstructions) {
   auto transformation3 = TransformationAddDeadContinue(75, true, {});
   ASSERT_TRUE(
       transformation3.IsApplicable(context.get(), transformation_context));
-  transformation3.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation3, context.get(),
+                        &transformation_context);
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -994,13 +1001,11 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules1) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // This transformation is not applicable because the dead continue from the
   // loop body prevents the definition of %23 later in the loop body from
   // dominating its use in the loop's continue target.
@@ -1011,19 +1016,22 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules1) {
   auto good_transformation_1 = TransformationAddDeadContinue(7, false, {});
   ASSERT_TRUE(good_transformation_1.IsApplicable(context.get(),
                                                  transformation_context));
-  good_transformation_1.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(good_transformation_1, context.get(),
+                        &transformation_context);
 
   auto good_transformation_2 = TransformationAddDeadContinue(22, false, {});
   ASSERT_TRUE(good_transformation_2.IsApplicable(context.get(),
                                                  transformation_context));
-  good_transformation_2.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(good_transformation_2, context.get(),
+                        &transformation_context);
 
   // This transformation is OK, because the definition of %21 in the loop body
   // is only used in an OpPhi in the loop's continue target.
   auto good_transformation_3 = TransformationAddDeadContinue(6, false, {11});
   ASSERT_TRUE(good_transformation_3.IsApplicable(context.get(),
                                                  transformation_context));
-  good_transformation_3.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(good_transformation_3, context.get(),
+                        &transformation_context);
 
   std::string after_transformations = R"(
                OpCapability Shader
@@ -1110,13 +1118,11 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules2) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // This transformation would shortcut the part of the loop body that defines
   // an id used after the loop.
   auto bad_transformation = TransformationAddDeadContinue(100, false, {});
@@ -1162,13 +1168,11 @@ TEST(TransformationAddDeadContinueTest, RespectDominanceRules3) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // This transformation would shortcut the part of the loop body that defines
   // an id used after the loop.
   auto bad_transformation = TransformationAddDeadContinue(100, false, {});
@@ -1305,13 +1309,11 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous1) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // This transformation would shortcut the part of the loop body that defines
   // an id used in the continue target.
   auto bad_transformation = TransformationAddDeadContinue(165, false, {});
@@ -1375,13 +1377,11 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous2) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // This transformation would introduce a branch from a continue target to
   // itself.
   auto bad_transformation = TransformationAddDeadContinue(1554, true, {});
@@ -1437,13 +1437,11 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous3) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto bad_transformation = TransformationAddDeadContinue(299, false, {});
 
   // The continue edge would connect %299 to the previously-unreachable %236,
@@ -1501,13 +1499,11 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous4) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto bad_transformation = TransformationAddDeadContinue(10, false, {});
 
   // The continue edge would connect %10 to the previously-unreachable %13,
@@ -1557,13 +1553,11 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous5) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto bad_transformation = TransformationAddDeadContinue(110, true, {});
 
   // The continue edge would lead to the use of %200 in block %101 no longer
@@ -1606,13 +1600,11 @@ TEST(TransformationAddDeadContinueTest, Miscellaneous6) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto bad_transformation = TransformationAddDeadContinue(10, true, {});
 
   ASSERT_FALSE(

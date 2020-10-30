@@ -78,7 +78,6 @@ add_spvtools_unittest(TARGET opt
        pass_remove_duplicates_test.cpp
        pass_utils.cpp
        private_to_local_test.cpp
-       process_lines_test.cpp
        propagator_test.cpp
        reduce_load_size_test.cpp
        redundancy_elimination_test.cpp

@@ -16,6 +16,7 @@
 #define SOURCE_FUZZ_TRANSFORMATION_H_
 
 #include <memory>
+#include <unordered_set>
 
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
 #include "source/fuzz/transformation_context.h"
@@ -58,6 +59,13 @@ namespace fuzz {
 
 class Transformation {
  public:
+  virtual ~Transformation();
+
+  // Factory method to obtain a transformation object from the protobuf
+  // representation of a transformation given by |message|.
+  static std::unique_ptr<Transformation> FromMessage(
+      const protobufs::Transformation& message);
+
   // A precondition that determines whether the transformation can be cleanly
   // applied in a semantics-preserving manner to the SPIR-V module given by
   // |ir_context|, in the presence of facts and other contextual information
@@ -77,15 +85,12 @@ class Transformation {
   virtual void Apply(opt::IRContext* ir_context,
                      TransformationContext* transformation_context) const = 0;
 
+  // Returns the set of fresh ids that appear in the transformation's protobuf
+  // message.
+  virtual std::unordered_set<uint32_t> GetFreshIds() const = 0;
+
   // Turns the transformation into a protobuf message for serialization.
   virtual protobufs::Transformation ToMessage() const = 0;
-
-  virtual ~Transformation();
-
-  // Factory method to obtain a transformation object from the protobuf
-  // representation of a transformation given by |message|.
-  static std::unique_ptr<Transformation> FromMessage(
-      const protobufs::Transformation& message);
 
   // Helper that returns true if and only if (a) |id| is a fresh id for the
   // module, and (b) |id| is not in |ids_used_by_this_transformation|, a set of

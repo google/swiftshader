@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_replace_copy_object_with_store_load.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -77,11 +80,11 @@ TEST(TransformationReplaceCopyObjectWithStoreLoad, BasicScenarios) {
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
 
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   // Invalid: fresh_variable_id=10 is not fresh.
   auto transformation_invalid_1 = TransformationReplaceCopyObjectWithStoreLoad(
@@ -108,9 +111,10 @@ TEST(TransformationReplaceCopyObjectWithStoreLoad, BasicScenarios) {
   ASSERT_FALSE(transformation_invalid_4.IsApplicable(context.get(),
                                                      transformation_context));
 
-  // Invalid: initializer_id=15 is invalid.
+  // Invalid: initializer_id=15 has the wrong type relative to the OpCopyObject
+  // instruction.
   auto transformation_invalid_5 = TransformationReplaceCopyObjectWithStoreLoad(
-      27, 30, SpvStorageClassPrivate, 15);
+      27, 30, SpvStorageClassFunction, 15);
   ASSERT_FALSE(transformation_invalid_5.IsApplicable(context.get(),
                                                      transformation_context));
 
@@ -124,15 +128,19 @@ TEST(TransformationReplaceCopyObjectWithStoreLoad, BasicScenarios) {
       27, 30, SpvStorageClassFunction, 9);
   ASSERT_TRUE(transformation_valid_1.IsApplicable(context.get(),
                                                   transformation_context));
-  transformation_valid_1.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_valid_1, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   auto transformation_valid_2 = TransformationReplaceCopyObjectWithStoreLoad(
       28, 32, SpvStorageClassPrivate, 15);
   ASSERT_TRUE(transformation_valid_2.IsApplicable(context.get(),
                                                   transformation_context));
-  transformation_valid_2.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_valid_2, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -190,6 +198,68 @@ TEST(TransformationReplaceCopyObjectWithStoreLoad, BasicScenarios) {
                OpFunctionEnd
   )";
   ASSERT_TRUE(IsEqual(env, after_transformation, context.get()));
+}
+
+TEST(TransformationReplaceCopyObjectWithStoreLoad, IrrelevantIdsAndDeadBlocks) {
+  std::string reference_shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+         %30 = OpTypePointer Function %6
+         %10 = OpConstant %6 0
+         %11 = OpConstant %6 1
+         %13 = OpTypeBool
+         %14 = OpConstantFalse %13
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpSelectionMerge %16 None
+               OpBranchConditional %14 %15 %16
+         %15 = OpLabel
+         %50 = OpCopyObject %6 %10
+               OpBranch %16
+         %16 = OpLabel
+         %51 = OpCopyObject %6 %11
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_4;
+  const auto consumer = nullptr;
+  const auto context =
+      BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
+
+  spvtools::ValidatorOptions validator_options;
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+
+  transformation_context.GetFactManager()->AddFactBlockIsDead(15);
+  transformation_context.GetFactManager()->AddFactIdIsIrrelevant(11);
+
+  auto transformation_1 = TransformationReplaceCopyObjectWithStoreLoad(
+      50, 100, SpvStorageClassFunction, 10);
+  ASSERT_TRUE(
+      transformation_1.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation_1, context.get(),
+                        &transformation_context);
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(100, {}), MakeDataDescriptor(50, {})));
+
+  auto transformation_2 = TransformationReplaceCopyObjectWithStoreLoad(
+      51, 101, SpvStorageClassFunction, 10);
+  ASSERT_TRUE(
+      transformation_2.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation_2, context.get(),
+                        &transformation_context);
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(101, {}), MakeDataDescriptor(51, {})));
 }
 
 }  // namespace

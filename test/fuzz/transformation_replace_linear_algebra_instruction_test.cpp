@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_replace_linear_algebra_instruction.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -67,13 +70,11 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest, IsApplicable) {
   const auto env = SPV_ENV_UNIVERSAL_1_5;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Tests linear algebra instructions.
   auto instruction_descriptor = MakeInstructionDescriptor(24, SpvOpDot, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
@@ -137,6 +138,332 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest, IsApplicable) {
       transformation.IsApplicable(context.get(), transformation_context));
 }
 
+TEST(TransformationReplaceLinearAlgebraInstructionTest, ReplaceOpTranspose) {
+  std::string reference_shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %54 "main"
+
+; Types
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %4 = OpTypeFloat 32
+          %5 = OpTypeVector %4 2
+          %6 = OpTypeVector %4 3
+          %7 = OpTypeVector %4 4
+          %8 = OpTypeMatrix %5 2
+          %9 = OpTypeMatrix %5 3
+         %10 = OpTypeMatrix %5 4
+         %11 = OpTypeMatrix %6 2
+         %12 = OpTypeMatrix %6 3
+         %13 = OpTypeMatrix %6 4
+         %14 = OpTypeMatrix %7 2
+         %15 = OpTypeMatrix %7 3
+         %16 = OpTypeMatrix %7 4
+
+; Constant scalars
+         %17 = OpConstant %4 1
+         %18 = OpConstant %4 2
+         %19 = OpConstant %4 3
+         %20 = OpConstant %4 4
+         %21 = OpConstant %4 5
+         %22 = OpConstant %4 6
+         %23 = OpConstant %4 7
+         %24 = OpConstant %4 8
+         %25 = OpConstant %4 9
+         %26 = OpConstant %4 10
+         %27 = OpConstant %4 11
+         %28 = OpConstant %4 12
+         %29 = OpConstant %4 13
+         %30 = OpConstant %4 14
+         %31 = OpConstant %4 15
+         %32 = OpConstant %4 16
+
+; Constant vectors
+         %33 = OpConstantComposite %5 %17 %18
+         %34 = OpConstantComposite %5 %19 %20
+         %35 = OpConstantComposite %5 %21 %22
+         %36 = OpConstantComposite %5 %23 %24
+         %37 = OpConstantComposite %6 %17 %18 %19
+         %38 = OpConstantComposite %6 %20 %21 %22
+         %39 = OpConstantComposite %6 %23 %24 %25
+         %40 = OpConstantComposite %6 %26 %27 %28
+         %41 = OpConstantComposite %7 %17 %18 %19 %20
+         %42 = OpConstantComposite %7 %21 %22 %23 %24
+         %43 = OpConstantComposite %7 %25 %26 %27 %28
+         %44 = OpConstantComposite %7 %29 %30 %31 %32
+
+; Constant matrices
+         %45 = OpConstantComposite %8 %33 %34
+         %46 = OpConstantComposite %9 %33 %34 %35
+         %47 = OpConstantComposite %10 %33 %34 %35 %36
+         %48 = OpConstantComposite %11 %37 %38
+         %49 = OpConstantComposite %12 %37 %38 %39
+         %50 = OpConstantComposite %13 %37 %38 %39 %40
+         %51 = OpConstantComposite %14 %41 %42
+         %52 = OpConstantComposite %15 %41 %42 %43
+         %53 = OpConstantComposite %16 %41 %42 %43 %44
+
+; main function
+         %54 = OpFunction %2 None %3
+         %55 = OpLabel
+
+; Transposing a 2x2 matrix
+         %56 = OpTranspose %8 %45
+
+; Transposing a 2x3 matrix
+         %57 = OpTranspose %11 %46
+
+; Transposing a 2x4 matrix
+         %58 = OpTranspose %14 %47
+
+; Transposing a 3x2 matrix
+         %59 = OpTranspose %9 %48
+
+; Transposing a 3x3 matrix
+         %60 = OpTranspose %12 %49
+
+; Transposing a 3x4 matrix
+         %61 = OpTranspose %15 %50
+
+; Transposing a 4x2 matrix
+         %62 = OpTranspose %10 %51
+
+; Transposing a 4x3 matrix
+         %63 = OpTranspose %13 %52
+
+; Transposing a 4x4 matrix
+         %64 = OpTranspose %16 %53
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
+  const auto consumer = nullptr;
+  const auto context =
+      BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  auto instruction_descriptor =
+      MakeInstructionDescriptor(56, SpvOpTranspose, 0);
+  auto transformation = TransformationReplaceLinearAlgebraInstruction(
+      {65, 66, 67, 68, 69, 70, 71, 72, 73, 74}, instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(57, SpvOpTranspose, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(58, SpvOpTranspose, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105,
+       106},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(59, SpvOpTranspose, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+       121},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(60, SpvOpTranspose, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132,
+       133, 134, 135, 136, 137, 138, 139, 140, 141, 142},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  std::string variant_shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %54 "main"
+
+; Types
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %4 = OpTypeFloat 32
+          %5 = OpTypeVector %4 2
+          %6 = OpTypeVector %4 3
+          %7 = OpTypeVector %4 4
+          %8 = OpTypeMatrix %5 2
+          %9 = OpTypeMatrix %5 3
+         %10 = OpTypeMatrix %5 4
+         %11 = OpTypeMatrix %6 2
+         %12 = OpTypeMatrix %6 3
+         %13 = OpTypeMatrix %6 4
+         %14 = OpTypeMatrix %7 2
+         %15 = OpTypeMatrix %7 3
+         %16 = OpTypeMatrix %7 4
+
+; Constant scalars
+         %17 = OpConstant %4 1
+         %18 = OpConstant %4 2
+         %19 = OpConstant %4 3
+         %20 = OpConstant %4 4
+         %21 = OpConstant %4 5
+         %22 = OpConstant %4 6
+         %23 = OpConstant %4 7
+         %24 = OpConstant %4 8
+         %25 = OpConstant %4 9
+         %26 = OpConstant %4 10
+         %27 = OpConstant %4 11
+         %28 = OpConstant %4 12
+         %29 = OpConstant %4 13
+         %30 = OpConstant %4 14
+         %31 = OpConstant %4 15
+         %32 = OpConstant %4 16
+
+; Constant vectors
+         %33 = OpConstantComposite %5 %17 %18
+         %34 = OpConstantComposite %5 %19 %20
+         %35 = OpConstantComposite %5 %21 %22
+         %36 = OpConstantComposite %5 %23 %24
+         %37 = OpConstantComposite %6 %17 %18 %19
+         %38 = OpConstantComposite %6 %20 %21 %22
+         %39 = OpConstantComposite %6 %23 %24 %25
+         %40 = OpConstantComposite %6 %26 %27 %28
+         %41 = OpConstantComposite %7 %17 %18 %19 %20
+         %42 = OpConstantComposite %7 %21 %22 %23 %24
+         %43 = OpConstantComposite %7 %25 %26 %27 %28
+         %44 = OpConstantComposite %7 %29 %30 %31 %32
+
+; Constant matrices
+         %45 = OpConstantComposite %8 %33 %34
+         %46 = OpConstantComposite %9 %33 %34 %35
+         %47 = OpConstantComposite %10 %33 %34 %35 %36
+         %48 = OpConstantComposite %11 %37 %38
+         %49 = OpConstantComposite %12 %37 %38 %39
+         %50 = OpConstantComposite %13 %37 %38 %39 %40
+         %51 = OpConstantComposite %14 %41 %42
+         %52 = OpConstantComposite %15 %41 %42 %43
+         %53 = OpConstantComposite %16 %41 %42 %43 %44
+
+; main function
+         %54 = OpFunction %2 None %3
+         %55 = OpLabel
+
+; Transposing a 2x2 matrix
+         %65 = OpCompositeExtract %5 %45 0
+         %66 = OpCompositeExtract %4 %65 0
+         %67 = OpCompositeExtract %5 %45 1
+         %68 = OpCompositeExtract %4 %67 0
+         %69 = OpCompositeConstruct %5 %66 %68
+         %70 = OpCompositeExtract %5 %45 0
+         %71 = OpCompositeExtract %4 %70 1
+         %72 = OpCompositeExtract %5 %45 1
+         %73 = OpCompositeExtract %4 %72 1
+         %74 = OpCompositeConstruct %5 %71 %73
+         %56 = OpCompositeConstruct %8 %69 %74
+
+; Transposing a 2x3 matrix
+         %75 = OpCompositeExtract %5 %46 0
+         %76 = OpCompositeExtract %4 %75 0
+         %77 = OpCompositeExtract %5 %46 1
+         %78 = OpCompositeExtract %4 %77 0
+         %79 = OpCompositeExtract %5 %46 2
+         %80 = OpCompositeExtract %4 %79 0
+         %81 = OpCompositeConstruct %6 %76 %78 %80
+         %82 = OpCompositeExtract %5 %46 0
+         %83 = OpCompositeExtract %4 %82 1
+         %84 = OpCompositeExtract %5 %46 1
+         %85 = OpCompositeExtract %4 %84 1
+         %86 = OpCompositeExtract %5 %46 2
+         %87 = OpCompositeExtract %4 %86 1
+         %88 = OpCompositeConstruct %6 %83 %85 %87
+         %57 = OpCompositeConstruct %11 %81 %88
+
+; Transposing a 2x4 matrix
+         %89 = OpCompositeExtract %5 %47 0
+         %90 = OpCompositeExtract %4 %89 0
+         %91 = OpCompositeExtract %5 %47 1
+         %92 = OpCompositeExtract %4 %91 0
+         %93 = OpCompositeExtract %5 %47 2
+         %94 = OpCompositeExtract %4 %93 0
+         %95 = OpCompositeExtract %5 %47 3
+         %96 = OpCompositeExtract %4 %95 0
+         %97 = OpCompositeConstruct %7 %90 %92 %94 %96
+         %98 = OpCompositeExtract %5 %47 0
+         %99 = OpCompositeExtract %4 %98 1
+        %100 = OpCompositeExtract %5 %47 1
+        %101 = OpCompositeExtract %4 %100 1
+        %102 = OpCompositeExtract %5 %47 2
+        %103 = OpCompositeExtract %4 %102 1
+        %104 = OpCompositeExtract %5 %47 3
+        %105 = OpCompositeExtract %4 %104 1
+        %106 = OpCompositeConstruct %7 %99 %101 %103 %105
+         %58 = OpCompositeConstruct %14 %97 %106
+
+; Transposing a 3x2 matrix
+        %107 = OpCompositeExtract %6 %48 0
+        %108 = OpCompositeExtract %4 %107 0
+        %109 = OpCompositeExtract %6 %48 1
+        %110 = OpCompositeExtract %4 %109 0
+        %111 = OpCompositeConstruct %5 %108 %110
+        %112 = OpCompositeExtract %6 %48 0
+        %113 = OpCompositeExtract %4 %112 1
+        %114 = OpCompositeExtract %6 %48 1
+        %115 = OpCompositeExtract %4 %114 1
+        %116 = OpCompositeConstruct %5 %113 %115
+        %117 = OpCompositeExtract %6 %48 0
+        %118 = OpCompositeExtract %4 %117 2
+        %119 = OpCompositeExtract %6 %48 1
+        %120 = OpCompositeExtract %4 %119 2
+        %121 = OpCompositeConstruct %5 %118 %120
+         %59 = OpCompositeConstruct %9 %111 %116 %121
+
+; Transposing a 3x3 matrix
+        %122 = OpCompositeExtract %6 %49 0
+        %123 = OpCompositeExtract %4 %122 0
+        %124 = OpCompositeExtract %6 %49 1
+        %125 = OpCompositeExtract %4 %124 0
+        %126 = OpCompositeExtract %6 %49 2
+        %127 = OpCompositeExtract %4 %126 0
+        %128 = OpCompositeConstruct %6 %123 %125 %127
+        %129 = OpCompositeExtract %6 %49 0
+        %130 = OpCompositeExtract %4 %129 1
+        %131 = OpCompositeExtract %6 %49 1
+        %132 = OpCompositeExtract %4 %131 1
+        %133 = OpCompositeExtract %6 %49 2
+        %134 = OpCompositeExtract %4 %133 1
+        %135 = OpCompositeConstruct %6 %130 %132 %134
+        %136 = OpCompositeExtract %6 %49 0
+        %137 = OpCompositeExtract %4 %136 2
+        %138 = OpCompositeExtract %6 %49 1
+        %139 = OpCompositeExtract %4 %138 2
+        %140 = OpCompositeExtract %6 %49 2
+        %141 = OpCompositeExtract %4 %140 2
+        %142 = OpCompositeConstruct %6 %137 %139 %141
+         %60 = OpCompositeConstruct %12 %128 %135 %142
+
+; Transposing a 3x4 matrix
+         %61 = OpTranspose %15 %50
+
+; Transposing a 4x2 matrix
+         %62 = OpTranspose %10 %51
+
+; Transposing a 4x3 matrix
+         %63 = OpTranspose %13 %52
+
+; Transposing a 4x4 matrix
+         %64 = OpTranspose %16 %53
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
+}
+
 TEST(TransformationReplaceLinearAlgebraInstructionTest,
      ReplaceOpVectorTimesScalar) {
   std::string reference_shader = R"(
@@ -173,30 +500,28 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
   const auto consumer = nullptr;
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor =
       MakeInstructionDescriptor(17, SpvOpVectorTimesScalar, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
       {20, 21, 22, 23}, instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(18, SpvOpVectorTimesScalar, 0);
   transformation = TransformationReplaceLinearAlgebraInstruction(
       {24, 25, 26, 27, 28, 29}, instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(19, SpvOpVectorTimesScalar, 0);
   transformation = TransformationReplaceLinearAlgebraInstruction(
       {30, 31, 32, 33, 34, 35, 36, 37}, instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader
@@ -246,7 +571,8 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
                OpFunctionEnd
   )";
 
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
   ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 
@@ -345,25 +671,23 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
   const auto consumer = nullptr;
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor =
       MakeInstructionDescriptor(56, SpvOpMatrixTimesScalar, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
       {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76}, instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(57, SpvOpMatrixTimesScalar, 0);
   transformation = TransformationReplaceLinearAlgebraInstruction(
       {77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(58, SpvOpMatrixTimesScalar, 0);
@@ -371,7 +695,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {95,  96,  97,  98,  99,  100, 101, 102, 103, 104, 105, 106,
        107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader
@@ -520,7 +844,8 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
                OpFunctionEnd
   )";
 
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
   ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 
@@ -633,19 +958,17 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
   const auto consumer = nullptr;
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor =
       MakeInstructionDescriptor(56, SpvOpVectorTimesMatrix, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
       {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(57, SpvOpVectorTimesMatrix, 0);
@@ -653,7 +976,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {79, 80, 81, 82, 83, 84, 85, 86, 87, 88,
        89, 90, 91, 92, 93, 94, 95, 96, 97, 98},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(58, SpvOpVectorTimesMatrix, 0);
@@ -661,7 +984,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {99,  100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
        112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(59, SpvOpVectorTimesMatrix, 0);
@@ -669,7 +992,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135,
        136, 137, 138, 139, 140, 141, 142, 143, 144, 145},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader
@@ -855,7 +1178,8 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
                OpFunctionEnd
   )";
 
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
   ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 
@@ -968,19 +1292,17 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
   const auto consumer = nullptr;
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor =
       MakeInstructionDescriptor(56, SpvOpMatrixTimesVector, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
       {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(57, SpvOpMatrixTimesVector, 0);
@@ -988,7 +1310,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
        97},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(58, SpvOpMatrixTimesVector, 0);
@@ -996,7 +1318,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {98,  99,  100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
        110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(59, SpvOpMatrixTimesVector, 0);
@@ -1004,7 +1326,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
       {122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132,
        133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader
@@ -1188,7 +1510,8 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
                OpFunctionEnd
   )";
 
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
   ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 
@@ -1355,13 +1678,11 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
   const auto consumer = nullptr;
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor =
       MakeInstructionDescriptor(56, SpvOpMatrixTimesMatrix, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
@@ -1369,7 +1690,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
        97,  98,  99,  100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
        111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(57, SpvOpMatrixTimesMatrix, 0);
@@ -1380,7 +1701,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
        159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170,
        171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(58, SpvOpMatrixTimesMatrix, 0);
@@ -1392,7 +1713,7 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
        239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252,
        253, 254, 255, 256, 257, 258, 259, 260, 261, 262},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader
@@ -1731,7 +2052,297 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest,
                OpFunctionEnd
   )";
 
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
+}
+
+TEST(TransformationReplaceLinearAlgebraInstructionTest, ReplaceOpOuterProduct) {
+  std::string reference_shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %45 "main"
+
+; Types
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %4 = OpTypeFloat 32
+          %5 = OpTypeVector %4 2
+          %6 = OpTypeVector %4 3
+          %7 = OpTypeVector %4 4
+          %8 = OpTypeMatrix %5 2
+          %9 = OpTypeMatrix %5 3
+         %10 = OpTypeMatrix %5 4
+         %11 = OpTypeMatrix %6 2
+         %12 = OpTypeMatrix %6 3
+         %13 = OpTypeMatrix %6 4
+         %14 = OpTypeMatrix %7 2
+         %15 = OpTypeMatrix %7 3
+         %16 = OpTypeMatrix %7 4
+
+; Constant scalars
+         %17 = OpConstant %4 1
+         %18 = OpConstant %4 2
+         %19 = OpConstant %4 3
+         %20 = OpConstant %4 4
+         %21 = OpConstant %4 5
+         %22 = OpConstant %4 6
+         %23 = OpConstant %4 7
+         %24 = OpConstant %4 8
+         %25 = OpConstant %4 9
+         %26 = OpConstant %4 10
+         %27 = OpConstant %4 11
+         %28 = OpConstant %4 12
+         %29 = OpConstant %4 13
+         %30 = OpConstant %4 14
+         %31 = OpConstant %4 15
+         %32 = OpConstant %4 16
+
+; Constant vectors
+         %33 = OpConstantComposite %5 %17 %18
+         %34 = OpConstantComposite %5 %19 %20
+         %35 = OpConstantComposite %5 %21 %22
+         %36 = OpConstantComposite %5 %23 %24
+         %37 = OpConstantComposite %6 %17 %18 %19
+         %38 = OpConstantComposite %6 %20 %21 %22
+         %39 = OpConstantComposite %6 %23 %24 %25
+         %40 = OpConstantComposite %6 %26 %27 %28
+         %41 = OpConstantComposite %7 %17 %18 %19 %20
+         %42 = OpConstantComposite %7 %21 %22 %23 %24
+         %43 = OpConstantComposite %7 %25 %26 %27 %28
+         %44 = OpConstantComposite %7 %29 %30 %31 %32
+
+; main function
+         %45 = OpFunction %2 None %3
+         %46 = OpLabel
+
+; Multiplying 2-dimensional vector by 2-dimensional vector
+         %47 = OpOuterProduct %8 %33 %34
+
+; Multiplying 2-dimensional vector by 3-dimensional vector
+         %48 = OpOuterProduct %9 %35 %37
+
+; Multiplying 2-dimensional vector by 4-dimensional vector
+         %49 = OpOuterProduct %10 %36 %41
+
+; Multiplying 3-dimensional vector by 2-dimensional vector
+         %50 = OpOuterProduct %11 %37 %33
+
+; Multiplying 3-dimensional vector by 3-dimensional vector
+         %51 = OpOuterProduct %12 %38 %39
+
+; Multiplying 3-dimensional vector by 4-dimensional vector
+         %52 = OpOuterProduct %13 %40 %41
+
+; Multiplying 4-dimensional vector by 2-dimensional vector
+         %53 = OpOuterProduct %14 %41 %33
+
+; Multiplying 4-dimensional vector by 3-dimensional vector
+         %54 = OpOuterProduct %15 %42 %37
+
+; Multiplying 4-dimensional vector by 4-dimensional vector
+         %55 = OpOuterProduct %16 %43 %44
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
+  const auto consumer = nullptr;
+  const auto context =
+      BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  auto instruction_descriptor =
+      MakeInstructionDescriptor(47, SpvOpOuterProduct, 0);
+  auto transformation = TransformationReplaceLinearAlgebraInstruction(
+      {56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67}, instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(48, SpvOpOuterProduct, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(49, SpvOpOuterProduct, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {86, 87, 88,  89,  90,  91,  92,  93,  94,  95,  96,  97,
+       98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  instruction_descriptor = MakeInstructionDescriptor(50, SpvOpOuterProduct, 0);
+  transformation = TransformationReplaceLinearAlgebraInstruction(
+      {110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123,
+       124, 125},
+      instruction_descriptor);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+
+  std::string variant_shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %45 "main"
+
+; Types
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %4 = OpTypeFloat 32
+          %5 = OpTypeVector %4 2
+          %6 = OpTypeVector %4 3
+          %7 = OpTypeVector %4 4
+          %8 = OpTypeMatrix %5 2
+          %9 = OpTypeMatrix %5 3
+         %10 = OpTypeMatrix %5 4
+         %11 = OpTypeMatrix %6 2
+         %12 = OpTypeMatrix %6 3
+         %13 = OpTypeMatrix %6 4
+         %14 = OpTypeMatrix %7 2
+         %15 = OpTypeMatrix %7 3
+         %16 = OpTypeMatrix %7 4
+
+; Constant scalars
+         %17 = OpConstant %4 1
+         %18 = OpConstant %4 2
+         %19 = OpConstant %4 3
+         %20 = OpConstant %4 4
+         %21 = OpConstant %4 5
+         %22 = OpConstant %4 6
+         %23 = OpConstant %4 7
+         %24 = OpConstant %4 8
+         %25 = OpConstant %4 9
+         %26 = OpConstant %4 10
+         %27 = OpConstant %4 11
+         %28 = OpConstant %4 12
+         %29 = OpConstant %4 13
+         %30 = OpConstant %4 14
+         %31 = OpConstant %4 15
+         %32 = OpConstant %4 16
+
+; Constant vectors
+         %33 = OpConstantComposite %5 %17 %18
+         %34 = OpConstantComposite %5 %19 %20
+         %35 = OpConstantComposite %5 %21 %22
+         %36 = OpConstantComposite %5 %23 %24
+         %37 = OpConstantComposite %6 %17 %18 %19
+         %38 = OpConstantComposite %6 %20 %21 %22
+         %39 = OpConstantComposite %6 %23 %24 %25
+         %40 = OpConstantComposite %6 %26 %27 %28
+         %41 = OpConstantComposite %7 %17 %18 %19 %20
+         %42 = OpConstantComposite %7 %21 %22 %23 %24
+         %43 = OpConstantComposite %7 %25 %26 %27 %28
+         %44 = OpConstantComposite %7 %29 %30 %31 %32
+
+; main function
+         %45 = OpFunction %2 None %3
+         %46 = OpLabel
+
+; Multiplying 2-dimensional vector by 2-dimensional vector
+         %56 = OpCompositeExtract %4 %34 0
+         %57 = OpCompositeExtract %4 %33 0
+         %58 = OpFMul %4 %56 %57
+         %59 = OpCompositeExtract %4 %33 1
+         %60 = OpFMul %4 %56 %59
+         %61 = OpCompositeConstruct %5 %58 %60
+         %62 = OpCompositeExtract %4 %34 1
+         %63 = OpCompositeExtract %4 %33 0
+         %64 = OpFMul %4 %62 %63
+         %65 = OpCompositeExtract %4 %33 1
+         %66 = OpFMul %4 %62 %65
+         %67 = OpCompositeConstruct %5 %64 %66
+         %47 = OpCompositeConstruct %8 %61 %67
+
+; Multiplying 2-dimensional vector by 3-dimensional vector
+         %68 = OpCompositeExtract %4 %37 0
+         %69 = OpCompositeExtract %4 %35 0
+         %70 = OpFMul %4 %68 %69
+         %71 = OpCompositeExtract %4 %35 1
+         %72 = OpFMul %4 %68 %71
+         %73 = OpCompositeConstruct %5 %70 %72
+         %74 = OpCompositeExtract %4 %37 1
+         %75 = OpCompositeExtract %4 %35 0
+         %76 = OpFMul %4 %74 %75
+         %77 = OpCompositeExtract %4 %35 1
+         %78 = OpFMul %4 %74 %77
+         %79 = OpCompositeConstruct %5 %76 %78
+         %80 = OpCompositeExtract %4 %37 2
+         %81 = OpCompositeExtract %4 %35 0
+         %82 = OpFMul %4 %80 %81
+         %83 = OpCompositeExtract %4 %35 1
+         %84 = OpFMul %4 %80 %83
+         %85 = OpCompositeConstruct %5 %82 %84
+         %48 = OpCompositeConstruct %9 %73 %79 %85
+
+; Multiplying 2-dimensional vector by 4-dimensional vector
+         %86 = OpCompositeExtract %4 %41 0
+         %87 = OpCompositeExtract %4 %36 0
+         %88 = OpFMul %4 %86 %87
+         %89 = OpCompositeExtract %4 %36 1
+         %90 = OpFMul %4 %86 %89
+         %91 = OpCompositeConstruct %5 %88 %90
+         %92 = OpCompositeExtract %4 %41 1
+         %93 = OpCompositeExtract %4 %36 0
+         %94 = OpFMul %4 %92 %93
+         %95 = OpCompositeExtract %4 %36 1
+         %96 = OpFMul %4 %92 %95
+         %97 = OpCompositeConstruct %5 %94 %96
+         %98 = OpCompositeExtract %4 %41 2
+         %99 = OpCompositeExtract %4 %36 0
+        %100 = OpFMul %4 %98 %99
+        %101 = OpCompositeExtract %4 %36 1
+        %102 = OpFMul %4 %98 %101
+        %103 = OpCompositeConstruct %5 %100 %102
+        %104 = OpCompositeExtract %4 %41 3
+        %105 = OpCompositeExtract %4 %36 0
+        %106 = OpFMul %4 %104 %105
+        %107 = OpCompositeExtract %4 %36 1
+        %108 = OpFMul %4 %104 %107
+        %109 = OpCompositeConstruct %5 %106 %108
+         %49 = OpCompositeConstruct %10 %91 %97 %103 %109
+
+; Multiplying 3-dimensional vector by 2-dimensional vector
+        %110 = OpCompositeExtract %4 %33 0
+        %111 = OpCompositeExtract %4 %37 0
+        %112 = OpFMul %4 %110 %111
+        %113 = OpCompositeExtract %4 %37 1
+        %114 = OpFMul %4 %110 %113
+        %115 = OpCompositeExtract %4 %37 2
+        %116 = OpFMul %4 %110 %115
+        %117 = OpCompositeConstruct %6 %112 %114 %116
+        %118 = OpCompositeExtract %4 %33 1
+        %119 = OpCompositeExtract %4 %37 0
+        %120 = OpFMul %4 %118 %119
+        %121 = OpCompositeExtract %4 %37 1
+        %122 = OpFMul %4 %118 %121
+        %123 = OpCompositeExtract %4 %37 2
+        %124 = OpFMul %4 %118 %123
+        %125 = OpCompositeConstruct %6 %120 %122 %124
+         %50 = OpCompositeConstruct %11 %117 %125
+
+; Multiplying 3-dimensional vector by 3-dimensional vector
+         %51 = OpOuterProduct %12 %38 %39
+
+; Multiplying 3-dimensional vector by 4-dimensional vector
+         %52 = OpOuterProduct %13 %40 %41
+
+; Multiplying 4-dimensional vector by 2-dimensional vector
+         %53 = OpOuterProduct %14 %41 %33
+
+; Multiplying 4-dimensional vector by 3-dimensional vector
+         %54 = OpOuterProduct %15 %42 %37
+
+; Multiplying 4-dimensional vector by 4-dimensional vector
+         %55 = OpOuterProduct %16 %43 %44
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
   ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 
@@ -1777,28 +2388,26 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest, ReplaceOpDot) {
   const auto consumer = nullptr;
   const auto context =
       BuildModule(env, consumer, reference_shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor = MakeInstructionDescriptor(24, SpvOpDot, 0);
   auto transformation = TransformationReplaceLinearAlgebraInstruction(
       {27, 28, 29, 30, 31, 32}, instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor = MakeInstructionDescriptor(25, SpvOpDot, 0);
   transformation = TransformationReplaceLinearAlgebraInstruction(
       {33, 34, 35, 36, 37, 38, 39, 40, 41, 42}, instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor = MakeInstructionDescriptor(26, SpvOpDot, 0);
   transformation = TransformationReplaceLinearAlgebraInstruction(
       {43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56},
       instruction_descriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader
@@ -1867,7 +2476,8 @@ TEST(TransformationReplaceLinearAlgebraInstructionTest, ReplaceOpDot) {
                OpFunctionEnd
   )";
 
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
   ASSERT_TRUE(IsEqual(env, variant_shader, context.get()));
 }
 

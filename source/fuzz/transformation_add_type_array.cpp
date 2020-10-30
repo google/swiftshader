@@ -84,5 +84,9 @@ protobufs::Transformation TransformationAddTypeArray::ToMessage() const {
   return result;
 }
 
+std::unordered_set<uint32_t> TransformationAddTypeArray::GetFreshIds() const {
+  return {message_.fresh_id()};
+}
+
 }  // namespace fuzz
 }  // namespace spvtools

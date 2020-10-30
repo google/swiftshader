@@ -59,14 +59,6 @@ bool TransformationReplaceCopyObjectWithStoreLoad::IsApplicable(
     return false;
   }
 
-  // It must be valid to insert the OpStore and OpLoad instruction before it.
-  if (!fuzzerutil::CanInsertOpcodeBeforeInstruction(SpvOpStore,
-                                                    copy_object_instruction) ||
-      !fuzzerutil::CanInsertOpcodeBeforeInstruction(SpvOpLoad,
-                                                    copy_object_instruction)) {
-    return false;
-  }
-
   // A pointer type instruction pointing to the value type must be defined.
   auto pointer_type_id = fuzzerutil::MaybeGetPointerType(
       ir_context, copy_object_instruction->type_id(),
@@ -97,7 +89,7 @@ void TransformationReplaceCopyObjectWithStoreLoad::Apply(
          copy_object_instruction->opcode() == SpvOpCopyObject &&
          "The required OpCopyObject instruction must be defined.");
   // Get id used as a source by the OpCopyObject instruction.
-  uint32_t src_operand = copy_object_instruction->GetSingleWordOperand(2);
+  uint32_t src_operand = copy_object_instruction->GetSingleWordInOperand(0);
   // A pointer type instruction pointing to the value type must be defined.
   auto pointer_type_id = fuzzerutil::MaybeGetPointerType(
       ir_context, copy_object_instruction->type_id(),
@@ -137,11 +129,15 @@ void TransformationReplaceCopyObjectWithStoreLoad::Apply(
 
   ir_context->InvalidateAnalysesExceptFor(opt::IRContext::kAnalysisNone);
 
-  // Adds the fact that |message_.copy_object_result_id|
-  // and src_operand (id used by OpCopyObject) are synonymous.
-  transformation_context->GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(message_.copy_object_result_id(), {}),
-      MakeDataDescriptor(src_operand, {}), ir_context);
+  if (!transformation_context->GetFactManager()->IdIsIrrelevant(
+          message_.copy_object_result_id()) &&
+      !transformation_context->GetFactManager()->IdIsIrrelevant(src_operand)) {
+    // Adds the fact that |message_.copy_object_result_id|
+    // and src_operand (id used by OpCopyObject) are synonymous.
+    transformation_context->GetFactManager()->AddFactDataSynonym(
+        MakeDataDescriptor(message_.copy_object_result_id(), {}),
+        MakeDataDescriptor(src_operand, {}));
+  }
 }
 
 protobufs::Transformation
@@ -149,6 +145,11 @@ TransformationReplaceCopyObjectWithStoreLoad::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_replace_copy_object_with_store_load() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t>
+TransformationReplaceCopyObjectWithStoreLoad::GetFreshIds() const {
+  return {message_.fresh_variable_id()};
 }
 
 }  // namespace fuzz

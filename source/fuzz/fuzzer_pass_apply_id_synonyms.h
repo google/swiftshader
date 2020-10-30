@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SOURCE_FUZZ_FUZZER_PASS_APPLY_ID_SYNONYMS_
-#define SOURCE_FUZZ_FUZZER_PASS_APPLY_ID_SYNONYMS_
+#ifndef SOURCE_FUZZ_FUZZER_PASS_APPLY_ID_SYNONYMS_H_
+#define SOURCE_FUZZ_FUZZER_PASS_APPLY_ID_SYNONYMS_H_
 
 #include "source/fuzz/fuzzer_pass.h"
-
 #include "source/opt/ir_context.h"
 
 namespace spvtools {
@@ -34,9 +33,19 @@ class FuzzerPassApplyIdSynonyms : public FuzzerPass {
   ~FuzzerPassApplyIdSynonyms() override;
 
   void Apply() override;
+
+ private:
+  // Returns true if uses of |dd1| can be replaced with |dd2| and vice-versa
+  // with respect to the type. Concretely, returns true if |dd1| and |dd2| have
+  // the same type or both |dd1| and |dd2| are either a numerical or a vector
+  // type of integral components with possibly different signedness.
+  bool DataDescriptorsHaveCompatibleTypes(SpvOp opcode,
+                                          uint32_t use_in_operand_index,
+                                          const protobufs::DataDescriptor& dd1,
+                                          const protobufs::DataDescriptor& dd2);
 };
 
 }  // namespace fuzz
 }  // namespace spvtools
 
-#endif  // SOURCE_FUZZ_FUZZER_PASS_APPLY_ID_SYNONYMS_
+#endif  // SOURCE_FUZZ_FUZZER_PASS_APPLY_ID_SYNONYMS_H_

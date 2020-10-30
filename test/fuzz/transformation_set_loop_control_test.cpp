@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_set_loop_control.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -253,13 +256,11 @@ TEST(TransformationSetLoopControlTest, VariousScenarios) {
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
 
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // These are the loop headers together with the selection controls of their
   // merge instructions:
   //  %10 None
@@ -612,49 +613,63 @@ TEST(TransformationSetLoopControlTest, VariousScenarios) {
           7, 9)
           .IsApplicable(context.get(), transformation_context));
 
-  TransformationSetLoopControl(10,
-                               SpvLoopControlUnrollMask |
-                                   SpvLoopControlPeelCountMask |
-                                   SpvLoopControlPartialCountMask,
-                               3, 3)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(23, SpvLoopControlDontUnrollMask, 0, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(33, SpvLoopControlUnrollMask, 0, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(
-      43, SpvLoopControlDontUnrollMask | SpvLoopControlDependencyInfiniteMask,
-      0, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(53, SpvLoopControlMaskNone, 0, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(63,
-                               SpvLoopControlUnrollMask |
-                                   SpvLoopControlMinIterationsMask |
-                                   SpvLoopControlPeelCountMask,
-                               23, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(73,
-                               SpvLoopControlUnrollMask |
-                                   SpvLoopControlMaxIterationsMask |
-                                   SpvLoopControlPeelCountMask,
-                               23, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(83, SpvLoopControlDontUnrollMask, 0, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(
-      93, SpvLoopControlPeelCountMask | SpvLoopControlPartialCountMask, 16, 8)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(103, SpvLoopControlPartialCountMask, 0, 60)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(113, SpvLoopControlPeelCountMask, 12, 0)
-      .Apply(context.get(), &transformation_context);
-  TransformationSetLoopControl(
-      123,
-      SpvLoopControlUnrollMask | SpvLoopControlMinIterationsMask |
-          SpvLoopControlMaxIterationsMask | SpvLoopControlPartialCountMask,
-      0, 9)
-      .Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(10,
+                                   SpvLoopControlUnrollMask |
+                                       SpvLoopControlPeelCountMask |
+                                       SpvLoopControlPartialCountMask,
+                                   3, 3),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(23, SpvLoopControlDontUnrollMask, 0, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(33, SpvLoopControlUnrollMask, 0, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(
+          43,
+          SpvLoopControlDontUnrollMask | SpvLoopControlDependencyInfiniteMask,
+          0, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(53, SpvLoopControlMaskNone, 0, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(63,
+                                   SpvLoopControlUnrollMask |
+                                       SpvLoopControlMinIterationsMask |
+                                       SpvLoopControlPeelCountMask,
+                                   23, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(73,
+                                   SpvLoopControlUnrollMask |
+                                       SpvLoopControlMaxIterationsMask |
+                                       SpvLoopControlPeelCountMask,
+                                   23, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(83, SpvLoopControlDontUnrollMask, 0, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(
+          93, SpvLoopControlPeelCountMask | SpvLoopControlPartialCountMask, 16,
+          8),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(103, SpvLoopControlPartialCountMask, 0, 60),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(113, SpvLoopControlPeelCountMask, 12, 0),
+      context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(
+      TransformationSetLoopControl(
+          123,
+          SpvLoopControlUnrollMask | SpvLoopControlMinIterationsMask |
+              SpvLoopControlMaxIterationsMask | SpvLoopControlPartialCountMask,
+          0, 9),
+      context.get(), &transformation_context);
 
   std::string after_transformation = R"(
                OpCapability Shader
@@ -930,43 +945,40 @@ TEST(TransformationSetLoopControlTest, CheckSPIRVVersionsRespected) {
                OpFunctionEnd
   )";
 
-  const auto consumer = nullptr;
-  const auto context_1_0 =
-      BuildModule(SPV_ENV_UNIVERSAL_1_0, consumer, shader, kFuzzAssembleOption);
-  const auto context_1_1 =
-      BuildModule(SPV_ENV_UNIVERSAL_1_1, consumer, shader, kFuzzAssembleOption);
-  const auto context_1_2 =
-      BuildModule(SPV_ENV_UNIVERSAL_1_2, consumer, shader, kFuzzAssembleOption);
-  const auto context_1_3 =
-      BuildModule(SPV_ENV_UNIVERSAL_1_3, consumer, shader, kFuzzAssembleOption);
-  const auto context_1_4 =
-      BuildModule(SPV_ENV_UNIVERSAL_1_4, consumer, shader, kFuzzAssembleOption);
-  const auto context_1_5 =
-      BuildModule(SPV_ENV_UNIVERSAL_1_5, consumer, shader, kFuzzAssembleOption);
+  for (auto env :
+       {SPV_ENV_UNIVERSAL_1_0, SPV_ENV_UNIVERSAL_1_1, SPV_ENV_UNIVERSAL_1_2,
+        SPV_ENV_UNIVERSAL_1_3, SPV_ENV_UNIVERSAL_1_4, SPV_ENV_UNIVERSAL_1_5}) {
+    const auto consumer = nullptr;
+    const auto context =
+        BuildModule(env, consumer, shader, kFuzzAssembleOption);
+    spvtools::ValidatorOptions validator_options;
+    ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(
+        context.get(), validator_options, kConsoleMessageConsumer));
+    TransformationContext transformation_context(
+        MakeUnique<FactManager>(context.get()), validator_options);
+    TransformationSetLoopControl transformation(
+        10, SpvLoopControlPeelCountMask | SpvLoopControlPartialCountMask, 4, 4);
 
-  FactManager fact_manager;
-  spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
-  TransformationSetLoopControl set_peel_and_partial(
-      10, SpvLoopControlPeelCountMask | SpvLoopControlPartialCountMask, 4, 4);
-
-  // PeelCount and PartialCount were introduced in SPIRV 1.4, so are not valid
-  // in the context of older versions.
-  ASSERT_FALSE(set_peel_and_partial.IsApplicable(context_1_0.get(),
-                                                 transformation_context));
-  ASSERT_FALSE(set_peel_and_partial.IsApplicable(context_1_1.get(),
-                                                 transformation_context));
-  ASSERT_FALSE(set_peel_and_partial.IsApplicable(context_1_2.get(),
-                                                 transformation_context));
-  ASSERT_FALSE(set_peel_and_partial.IsApplicable(context_1_3.get(),
-                                                 transformation_context));
-
-  ASSERT_TRUE(set_peel_and_partial.IsApplicable(context_1_4.get(),
-                                                transformation_context));
-  ASSERT_TRUE(set_peel_and_partial.IsApplicable(context_1_5.get(),
-                                                transformation_context));
+    switch (env) {
+      case SPV_ENV_UNIVERSAL_1_0:
+      case SPV_ENV_UNIVERSAL_1_1:
+      case SPV_ENV_UNIVERSAL_1_2:
+      case SPV_ENV_UNIVERSAL_1_3:
+        // PeelCount and PartialCount were introduced in SPIRV 1.4, so are not
+        // valid in the context of older versions.
+        ASSERT_FALSE(
+            transformation.IsApplicable(context.get(), transformation_context));
+        break;
+      case SPV_ENV_UNIVERSAL_1_4:
+      case SPV_ENV_UNIVERSAL_1_5:
+        ASSERT_TRUE(
+            transformation.IsApplicable(context.get(), transformation_context));
+        break;
+      default:
+        assert(false && "Unhandled environment");
+        break;
+    }
+  }
 }
 
 }  // namespace

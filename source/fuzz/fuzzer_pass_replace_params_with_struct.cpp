@@ -53,15 +53,13 @@ void FuzzerPassReplaceParamsWithStruct::Apply() {
     std::iota(parameter_index.begin(), parameter_index.end(), 0);
 
     // Remove the indices of unsupported parameters.
-    auto new_end = std::remove_if(
-        parameter_index.begin(), parameter_index.end(),
-        [this, &params](uint32_t index) {
-          const auto* type =
-              GetIRContext()->get_type_mgr()->GetType(params[index]->type_id());
-          assert(type && "Parameter has invalid type");
-          return !TransformationReplaceParamsWithStruct::
-              IsParameterTypeSupported(*type);
-        });
+    auto new_end =
+        std::remove_if(parameter_index.begin(), parameter_index.end(),
+                       [this, &params](uint32_t index) {
+                         return !TransformationReplaceParamsWithStruct::
+                             IsParameterTypeSupported(GetIRContext(),
+                                                      params[index]->type_id());
+                       });
 
     // std::remove_if changes the vector so that removed elements are placed at
     // the end (i.e. [new_end, parameter_index.end()) is a range of removed
@@ -98,7 +96,7 @@ void FuzzerPassReplaceParamsWithStruct::Apply() {
       parameter_id.push_back(params[index]->result_id());
     }
 
-    std::unordered_map<uint32_t, uint32_t> caller_id_to_fresh_id;
+    std::map<uint32_t, uint32_t> caller_id_to_fresh_id;
     for (const auto* inst :
          fuzzerutil::GetCallers(GetIRContext(), function.result_id())) {
       caller_id_to_fresh_id[inst->result_id()] =

@@ -135,7 +135,8 @@ bool TransformationAddFunction::IsApplicable(
   // Check whether the cloned module is still valid after adding the function.
   // If it is not, the transformation is not applicable.
   if (!fuzzerutil::IsValid(cloned_module.get(),
-                           transformation_context.GetValidatorOptions())) {
+                           transformation_context.GetValidatorOptions(),
+                           fuzzerutil::kSilentMessageConsumer)) {
     return false;
   }
 
@@ -151,7 +152,8 @@ bool TransformationAddFunction::IsApplicable(
     // It is simpler to rely on the validator to guard against this than to
     // consider all scenarios when making a function livesafe.
     if (!fuzzerutil::IsValid(cloned_module.get(),
-                             transformation_context.GetValidatorOptions())) {
+                             transformation_context.GetValidatorOptions(),
+                             fuzzerutil::kSilentMessageConsumer)) {
       return false;
     }
   }
@@ -167,6 +169,32 @@ void TransformationAddFunction::Apply(
   assert(success && "The function should be successfully added.");
   (void)(success);  // Keep release builds happy (otherwise they may complain
                     // that |success| is not used).
+
+  if (message_.is_livesafe()) {
+    // Make the function livesafe, which also should succeed.
+    success = TryToMakeFunctionLivesafe(ir_context, *transformation_context);
+    assert(success && "It should be possible to make the function livesafe.");
+    (void)(success);  // Keep release builds happy.
+  }
+  ir_context->InvalidateAnalysesExceptFor(opt::IRContext::kAnalysisNone);
+
+  assert(message_.instruction(0).opcode() == SpvOpFunction &&
+         "The first instruction of an 'add function' transformation must be "
+         "OpFunction.");
+
+  if (message_.is_livesafe()) {
+    // Inform the fact manager that the function is livesafe.
+    transformation_context->GetFactManager()->AddFactFunctionIsLivesafe(
+        message_.instruction(0).result_id());
+  } else {
+    // Inform the fact manager that all blocks in the function are dead.
+    for (auto& inst : message_.instruction()) {
+      if (inst.opcode() == SpvOpLabel) {
+        transformation_context->GetFactManager()->AddFactBlockIsDead(
+            inst.result_id());
+      }
+    }
+  }
 
   // Record the fact that all pointer parameters and variables declared in the
   // function should be regarded as having irrelevant values.  This allows other
@@ -191,29 +219,6 @@ void TransformationAddFunction::Apply(
         break;
     }
   }
-
-  if (message_.is_livesafe()) {
-    // Make the function livesafe, which also should succeed.
-    success = TryToMakeFunctionLivesafe(ir_context, *transformation_context);
-    assert(success && "It should be possible to make the function livesafe.");
-    (void)(success);  // Keep release builds happy.
-
-    // Inform the fact manager that the function is livesafe.
-    assert(message_.instruction(0).opcode() == SpvOpFunction &&
-           "The first instruction of an 'add function' transformation must be "
-           "OpFunction.");
-    transformation_context->GetFactManager()->AddFactFunctionIsLivesafe(
-        message_.instruction(0).result_id());
-  } else {
-    // Inform the fact manager that all blocks in the function are dead.
-    for (auto& inst : message_.instruction()) {
-      if (inst.opcode() == SpvOpLabel) {
-        transformation_context->GetFactManager()->AddFactBlockIsDead(
-            inst.result_id());
-      }
-    }
-  }
-  ir_context->InvalidateAnalysesExceptFor(opt::IRContext::kAnalysisNone);
 }
 
 protobufs::Transformation TransformationAddFunction::ToMessage() const {
@@ -363,6 +368,22 @@ bool TransformationAddFunction::TryToMakeFunctionLivesafe(
   return true;
 }
 
+uint32_t TransformationAddFunction::GetBackEdgeBlockId(
+    opt::IRContext* ir_context, uint32_t loop_header_block_id) {
+  const auto* loop_header_block =
+      ir_context->cfg()->block(loop_header_block_id);
+  assert(loop_header_block && "|loop_header_block_id| is invalid");
+
+  for (auto pred : ir_context->cfg()->preds(loop_header_block_id)) {
+    if (ir_context->GetDominatorAnalysis(loop_header_block->GetParent())
+            ->Dominates(loop_header_block_id, pred)) {
+      return pred;
+    }
+  }
+
+  return 0;
+}
+
 bool TransformationAddFunction::TryToAddLoopLimiters(
     opt::IRContext* ir_context, opt::Function* added_function) const {
   // Collect up all the loop headers so that we can subsequently add loop
@@ -474,21 +495,28 @@ bool TransformationAddFunction::TryToAddLoopLimiters(
   for (auto loop_header : loop_headers) {
     // Look for the loop's back-edge block.  This is a predecessor of the loop
     // header that is dominated by the loop header.
-    uint32_t back_edge_block_id = 0;
-    for (auto pred : ir_context->cfg()->preds(loop_header->id())) {
-      if (ir_context->GetDominatorAnalysis(added_function)
-              ->Dominates(loop_header->id(), pred)) {
-        back_edge_block_id = pred;
-        break;
-      }
-    }
+    const auto back_edge_block_id =
+        GetBackEdgeBlockId(ir_context, loop_header->id());
     if (!back_edge_block_id) {
       // The loop's back-edge block must be unreachable.  This means that the
       // loop cannot iterate, so there is no need to make it lifesafe; we can
       // move on from this loop.
       continue;
     }
-    auto back_edge_block = ir_context->cfg()->block(back_edge_block_id);
+
+    // If the loop's merge block is unreachable, then there are no constraints
+    // on where the merge block appears in relation to the blocks of the loop.
+    // This means we need to be careful when adding a branch from the back-edge
+    // block to the merge block: the branch might make the loop merge reachable,
+    // and it might then be dominated by the loop header and possibly by other
+    // blocks in the loop. Since a block needs to appear before those blocks it
+    // strictly dominates, this could make the module invalid. To avoid this
+    // problem we bail out in the case where the loop header does not dominate
+    // the loop merge.
+    if (!ir_context->GetDominatorAnalysis(added_function)
+             ->Dominates(loop_header->id(), loop_header->MergeBlockId())) {
+      return false;
+    }
 
     // Go through the sequence of loop limiter infos and find the one
     // corresponding to this loop.
@@ -560,6 +588,7 @@ bool TransformationAddFunction::TryToAddLoopLimiters(
     // %t4 = OpLogicalOr %bool %c %t3
     //       OpBranchConditional %t4 %loop_merge %loop_header
 
+    auto back_edge_block = ir_context->cfg()->block(back_edge_block_id);
     auto back_edge_block_terminator = back_edge_block->terminator();
     bool compare_using_greater_than_equal;
     if (back_edge_block_terminator->opcode() == SpvOpBranch) {
@@ -675,16 +704,10 @@ bool TransformationAddFunction::TryToAddLoopLimiters(
       }
 
       // Add the new edge, by changing OpBranch to OpBranchConditional.
-      // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3162): This
-      //  could be a problem if the merge block was originally unreachable: it
-      //  might now be dominated by other blocks that it appears earlier than in
-      //  the module.
       back_edge_block_terminator->SetOpcode(SpvOpBranchConditional);
       back_edge_block_terminator->SetInOperands(opt::Instruction::OperandList(
           {{SPV_OPERAND_TYPE_ID, {loop_limiter_info.compare_id()}},
-           {SPV_OPERAND_TYPE_ID, {loop_header->MergeBlockId()}
-
-           },
+           {SPV_OPERAND_TYPE_ID, {loop_header->MergeBlockId()}},
            {SPV_OPERAND_TYPE_ID, {loop_header->id()}}}));
     }
 
@@ -907,6 +930,30 @@ opt::Instruction* TransformationAddFunction::FollowCompositeIndex(
   }
   assert(sub_object_type_id && "No sub-object found.");
   return ir_context->get_def_use_mgr()->GetDef(sub_object_type_id);
+}
+
+std::unordered_set<uint32_t> TransformationAddFunction::GetFreshIds() const {
+  std::unordered_set<uint32_t> result;
+  for (auto& instruction : message_.instruction()) {
+    result.insert(instruction.result_id());
+  }
+  if (message_.is_livesafe()) {
+    result.insert(message_.loop_limiter_variable_id());
+    for (auto& loop_limiter_info : message_.loop_limiter_info()) {
+      result.insert(loop_limiter_info.load_id());
+      result.insert(loop_limiter_info.increment_id());
+      result.insert(loop_limiter_info.compare_id());
+      result.insert(loop_limiter_info.logical_op_id());
+    }
+    for (auto& access_chain_clamping_info :
+         message_.access_chain_clamping_info()) {
+      for (auto& pair : access_chain_clamping_info.compare_and_select_ids()) {
+        result.insert(pair.first());
+        result.insert(pair.second());
+      }
+    }
+  }
+  return result;
 }
 
 }  // namespace fuzz

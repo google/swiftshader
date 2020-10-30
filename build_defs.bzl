@@ -39,8 +39,8 @@ TEST_COPTS = COMMON_COPTS + select({
     ],
 })
 
-DEBUGINFO_GRAMMAR_JSON_FILE = "source/extinst.debuginfo.grammar.json"
-CLDEBUGINFO100_GRAMMAR_JSON_FILE = "source/extinst.opencl.debuginfo.100.grammar.json"
+DEBUGINFO_GRAMMAR_JSON_FILE = "@spirv_headers//:spirv_ext_inst_debuginfo_grammar_unified1"
+CLDEBUGINFO100_GRAMMAR_JSON_FILE = "@spirv_headers//:spirv_ext_inst_opencl_debuginfo_100_grammar_unified1"
 
 def generate_core_tables(version = None):
     if not version:
@@ -146,7 +146,7 @@ def generate_vendor_tables(extension, operand_kind_prefix = ""):
     if not extension:
         fail("Must specify extension", "extension")
     extension_rule = extension.replace("-", "_").replace(".", "_")
-    grammars = ["source/extinst.{}.grammar.json".format(extension)]
+    grammars = ["@spirv_headers//:spirv_ext_inst_{}_grammar_unified1".format(extension_rule)]
     outs = ["{}.insts.inc".format(extension)]
     prefices = [operand_kind_prefix]
     fmtargs = grammars + outs + prefices

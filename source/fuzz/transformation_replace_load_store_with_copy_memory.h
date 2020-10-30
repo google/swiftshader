@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SPIRV_TOOLS_TRANSFORMATION_REPLACE_LOAD_STORE_WITH_COPY_MEMORY_H
-#define SPIRV_TOOLS_TRANSFORMATION_REPLACE_LOAD_STORE_WITH_COPY_MEMORY_H
+#ifndef SOURCE_FUZZ_TRANSFORMATION_REPLACE_LOAD_STORE_WITH_COPY_MEMORY_H_
+#define SOURCE_FUZZ_TRANSFORMATION_REPLACE_LOAD_STORE_WITH_COPY_MEMORY_H_
 
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
 #include "source/fuzz/transformation.h"
@@ -64,6 +64,8 @@ class TransformationReplaceLoadStoreWithCopyMemory : public Transformation {
   static bool IsStorageClassSafeAcrossMemoryBarriers(
       SpvStorageClass storage_class);
 
+  std::unordered_set<uint32_t> GetFreshIds() const override;
+
   protobufs::Transformation ToMessage() const override;
 
  private:
@@ -73,4 +75,4 @@ class TransformationReplaceLoadStoreWithCopyMemory : public Transformation {
 }  // namespace fuzz
 }  // namespace spvtools
 
-#endif  // SPIRV_TOOLS_TRANSFORMATION_REPLACE_LOAD_STORE_WITH_COPY_MEMORY_H
+#endif  // SOURCE_FUZZ_TRANSFORMATION_REPLACE_LOAD_STORE_WITH_COPY_MEMORY_H_
