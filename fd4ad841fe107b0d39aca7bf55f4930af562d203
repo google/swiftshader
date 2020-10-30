@@ -16,6 +16,23 @@
       "message": "Looks like we\u0027ll have to address b/171873846 soon.",
       "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b646520b_614bc516",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-30T09:15:09Z",
+      "side": 1,
+      "message": "Oh, wait, Regres failed to build. That\u0027s worse.",
+      "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
