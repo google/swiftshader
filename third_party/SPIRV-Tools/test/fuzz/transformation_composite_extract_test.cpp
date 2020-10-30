@@ -14,6 +14,8 @@
 
 #include "source/fuzz/transformation_composite_extract.h"
 
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -94,22 +96,21 @@ TEST(TransformationCompositeExtractTest, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Instruction does not exist.
   ASSERT_FALSE(TransformationCompositeExtract(
                    MakeInstructionDescriptor(36, SpvOpIAdd, 0), 200, 101, {0})
                    .IsApplicable(context.get(), transformation_context));
 
   // Id for composite is not a composite.
-  ASSERT_FALSE(TransformationCompositeExtract(
-                   MakeInstructionDescriptor(36, SpvOpIAdd, 0), 200, 27, {})
-                   .IsApplicable(context.get(), transformation_context));
+  ASSERT_FALSE(
+      TransformationCompositeExtract(
+          MakeInstructionDescriptor(37, SpvOpAccessChain, 0), 200, 32, {})
+          .IsApplicable(context.get(), transformation_context));
 
   // Composite does not dominate instruction being inserted before.
   ASSERT_FALSE(
@@ -144,43 +145,55 @@ TEST(TransformationCompositeExtractTest, BasicTest) {
       MakeInstructionDescriptor(36, SpvOpConvertFToS, 0), 201, 100, {2});
   ASSERT_TRUE(
       transformation_1.IsApplicable(context.get(), transformation_context));
-  transformation_1.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_1, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   TransformationCompositeExtract transformation_2(
       MakeInstructionDescriptor(37, SpvOpAccessChain, 0), 202, 104, {0, 2});
   ASSERT_TRUE(
       transformation_2.IsApplicable(context.get(), transformation_context));
-  transformation_2.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_2, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   TransformationCompositeExtract transformation_3(
       MakeInstructionDescriptor(29, SpvOpAccessChain, 0), 203, 104, {0});
   ASSERT_TRUE(
       transformation_3.IsApplicable(context.get(), transformation_context));
-  transformation_3.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_3, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   TransformationCompositeExtract transformation_4(
       MakeInstructionDescriptor(24, SpvOpStore, 0), 204, 101, {0});
   ASSERT_TRUE(
       transformation_4.IsApplicable(context.get(), transformation_context));
-  transformation_4.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_4, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   TransformationCompositeExtract transformation_5(
       MakeInstructionDescriptor(29, SpvOpBranch, 0), 205, 102, {2});
   ASSERT_TRUE(
       transformation_5.IsApplicable(context.get(), transformation_context));
-  transformation_5.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_5, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   TransformationCompositeExtract transformation_6(
       MakeInstructionDescriptor(37, SpvOpReturn, 0), 206, 103, {1});
   ASSERT_TRUE(
       transformation_6.IsApplicable(context.get(), transformation_context));
-  transformation_6.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(transformation_6, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(201, {}), MakeDataDescriptor(100, {2})));
@@ -349,13 +362,11 @@ TEST(TransformationCompositeExtractTest, IllegalInsertionPoints) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Cannot insert before the OpVariables of a function.
   ASSERT_FALSE(
       TransformationCompositeExtract(
@@ -473,20 +484,18 @@ TEST(TransformationCompositeExtractTest, AddSynonymsForRelevantIds) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   TransformationCompositeExtract transformation(
       MakeInstructionDescriptor(36, SpvOpConvertFToS, 0), 201, 100, {2});
   ASSERT_TRUE(
       transformation.IsApplicable(context.get(), transformation_context));
-  transformation.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(201, {}),
-                                        MakeDataDescriptor(100, {2})));
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(201, {}), MakeDataDescriptor(100, {2})));
 }
 
 TEST(TransformationCompositeExtractTest, DontAddSynonymsForIrrelevantIds) {
@@ -562,21 +571,68 @@ TEST(TransformationCompositeExtractTest, DontAddSynonymsForIrrelevantIds) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
-  fact_manager.AddFactIdIsIrrelevant(100);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  transformation_context.GetFactManager()->AddFactIdIsIrrelevant(100);
   TransformationCompositeExtract transformation(
       MakeInstructionDescriptor(36, SpvOpConvertFToS, 0), 201, 100, {2});
   ASSERT_TRUE(
       transformation.IsApplicable(context.get(), transformation_context));
-  transformation.Apply(context.get(), &transformation_context);
-  ASSERT_FALSE(fact_manager.IsSynonymous(MakeDataDescriptor(201, {}),
-                                         MakeDataDescriptor(100, {2})));
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(201, {}), MakeDataDescriptor(100, {2})));
+}
+
+TEST(TransformationCompositeExtractTest, DontAddSynonymInDeadBlock) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypeVector %6 2
+          %8 = OpTypePointer Function %7
+         %10 = OpConstant %6 0
+         %11 = OpConstant %6 1
+         %12 = OpConstantComposite %7 %10 %11
+         %13 = OpTypeBool
+         %14 = OpConstantFalse %13
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %9 = OpVariable %8 Function
+               OpStore %9 %12
+               OpSelectionMerge %16 None
+               OpBranchConditional %14 %15 %16
+         %15 = OpLabel
+               OpBranch %16
+         %16 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_4;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(15);
+  TransformationCompositeExtract transformation(
+      MakeInstructionDescriptor(15, SpvOpBranch, 0), 100, 12, {0});
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(100, {}), MakeDataDescriptor(12, {0})));
 }
 
 }  // namespace

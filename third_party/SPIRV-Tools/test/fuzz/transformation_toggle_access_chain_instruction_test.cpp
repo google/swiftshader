@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_toggle_access_chain_instruction.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -109,13 +112,11 @@ TEST(TransformationToggleAccessChainInstructionTest, IsApplicableTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_5;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Tests existing access chain instructions
   auto instructionDescriptor =
       MakeInstructionDescriptor(18, SpvOpAccessChain, 0);
@@ -305,40 +306,38 @@ TEST(TransformationToggleAccessChainInstructionTest, ApplyTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_5;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instructionDescriptor =
       MakeInstructionDescriptor(18, SpvOpAccessChain, 0);
   auto transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instructionDescriptor =
       MakeInstructionDescriptor(20, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(24, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instructionDescriptor =
       MakeInstructionDescriptor(26, SpvOpInBoundsAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instructionDescriptor = MakeInstructionDescriptor(38, SpvOpAccessChain, 0);
   transformation =
       TransformationToggleAccessChainInstruction(instructionDescriptor);
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variantShader = R"(
                OpCapability Shader

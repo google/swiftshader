@@ -534,7 +534,7 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowAddPhi) {
 ; CHECK: [[true:%\w+]] = OpConstantTrue
 ; CHECK: OpFunction
 ; CHECK: [[var:%\w+]] = OpVariable [[:%\w+]] Function [[false]]
-; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[single_case_switch_merge:%\w+]]
 ; CHECK: OpSelectionMerge [[merge_lab:%\w+]]
 ; CHECK: OpBranchConditional [[cond:%\w+]] [[if_lab:%\w+]] [[then_lab:%\w+]]
 ; CHECK: [[if_lab]] = OpLabel
@@ -542,9 +542,9 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowAddPhi) {
 ; CHECK-NEXT: OpBranch
 ; CHECK: [[then_lab]] = OpLabel
 ; CHECK-NEXT: OpStore [[var]] [[true]]
-; CHECK-NEXT: OpBranch [[dummy_loop_merge]]
+; CHECK-NEXT: OpBranch [[single_case_switch_merge]]
 ; CHECK: [[merge_lab]] = OpLabel
-; CHECK: [[dummy_loop_merge]] = OpLabel
+; CHECK: [[single_case_switch_merge]] = OpLabel
 ; CHECK-NEXT: OpReturn
 OpCapability Addresses
 OpCapability Shader
@@ -631,10 +631,10 @@ TEST_F(MergeReturnPassTest, SplitBlockUsedInPhi) {
   const std::string before =
       R"(
 ; CHECK: OpFunction
-; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[single_case_switch_merge:%\w+]]
 ; CHECK: OpLoopMerge [[loop_merge:%\w+]]
 ; CHECK: [[loop_merge]] = OpLabel
-; CHECK: OpBranchConditional {{%\w+}} [[dummy_loop_merge]] [[old_code_path:%\w+]]
+; CHECK: OpBranchConditional {{%\w+}} [[single_case_switch_merge]] [[old_code_path:%\w+]]
 ; CHECK: [[old_code_path:%\w+]] = OpLabel
 ; CHECK: OpBranchConditional {{%\w+}} [[side_node:%\w+]] [[phi_block:%\w+]]
 ; CHECK: [[phi_block]] = OpLabel
@@ -828,7 +828,7 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowBothMergeAndHeader) {
       R"(
 ; CHECK: OpFunction
 ; CHECK: [[ret_flag:%\w+]] = OpVariable %_ptr_Function_bool Function %false
-; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[single_case_switch_merge:%\w+]]
 ; CHECK: OpLoopMerge [[loop1_merge:%\w+]] {{%\w+}}
 ; CHECK-NEXT: OpBranchConditional {{%\w+}} [[if_lab:%\w+]] {{%\w+}}
 ; CHECK: [[if_lab]] = OpLabel
@@ -837,7 +837,7 @@ TEST_F(MergeReturnPassTest, StructuredControlFlowBothMergeAndHeader) {
 ; CHECK: [[loop1_merge]] = OpLabel
 ; CHECK-NEXT: [[ld:%\w+]] = OpLoad %bool [[ret_flag]]
 ; CHECK-NOT: OpLabel
-; CHECK: OpBranchConditional [[ld]] [[dummy_loop_merge]] [[empty_block:%\w+]]
+; CHECK: OpBranchConditional [[ld]] [[single_case_switch_merge]] [[empty_block:%\w+]]
 ; CHECK: [[empty_block]] = OpLabel
 ; CHECK-NEXT: OpBranch [[loop2:%\w+]]
 ; CHECK: [[loop2]] = OpLabel
@@ -1217,7 +1217,7 @@ TEST_F(MergeReturnPassTest, NestedLoopMerge) {
   const std::string test =
       R"(
 ; CHECK: OpFunction
-; CHECK: OpSelectionMerge [[dummy_loop_merge:%\w+]]
+; CHECK: OpSelectionMerge [[single_case_switch_merge:%\w+]]
 ; CHECK: OpLoopMerge [[outer_loop_merge:%\w+]]
 ; CHECK: OpLoopMerge [[inner_loop_merge:%\w+]]
 ; CHECK: OpSelectionMerge
@@ -1230,8 +1230,8 @@ TEST_F(MergeReturnPassTest, NestedLoopMerge) {
 ; CHECK: OpBranchConditional {{%\w+}} [[outer_loop_merge]]
 ; CHECK: [[outer_loop_merge]] = OpLabel
 ; CHECK-NOT: OpLabel
-; CHECK: OpBranchConditional {{%\w+}} [[dummy_loop_merge]]
-; CHECK: [[dummy_loop_merge]] = OpLabel
+; CHECK: OpBranchConditional {{%\w+}} [[single_case_switch_merge]]
+; CHECK: [[single_case_switch_merge]] = OpLabel
 ; CHECK-NOT: OpLabel
 ; CHECK: OpReturn
                OpCapability SampledBuffer
@@ -2145,12 +2145,12 @@ TEST_F(MergeReturnPassTest, PhiInSecondMerge) {
 }
 
 TEST_F(MergeReturnPassTest, ReturnsInSwitch) {
-  //  Cannot branch directly to dummy switch merge block from original switch.
-  //  Must branch to merge block of original switch and then do predicated
-  //  branch to merge block of dummy switch.
+  //  Cannot branch directly to single case switch merge block from original
+  //  switch. Must branch to merge block of original switch and then do
+  //  predicated branch to merge block of single case switch.
   const std::string text =
       R"(
-; CHECK: OpSelectionMerge [[dummy_merge_bb:%\w+]]
+; CHECK: OpSelectionMerge [[single_case_switch_merge_bb:%\w+]]
 ; CHECK-NEXT: OpSwitch {{%\w+}} [[def_bb1:%\w+]]
 ; CHECK-NEXT: [[def_bb1]] = OpLabel
 ; CHECK: OpSelectionMerge
@@ -2158,7 +2158,7 @@ TEST_F(MergeReturnPassTest, ReturnsInSwitch) {
 ; CHECK: OpBranch [[inner_merge_bb]]
 ; CHECK: OpBranch [[inner_merge_bb]]
 ; CHECK-NEXT: [[inner_merge_bb]] = OpLabel
-; CHECK: OpBranchConditional {{%\w+}} [[dummy_merge_bb]] {{%\w+}}
+; CHECK: OpBranchConditional {{%\w+}} [[single_case_switch_merge_bb]] {{%\w+}}
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450

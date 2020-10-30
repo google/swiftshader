@@ -161,5 +161,10 @@ protobufs::Transformation TransformationPermuteFunctionParameters::ToMessage()
   return result;
 }
 
+std::unordered_set<uint32_t>
+TransformationPermuteFunctionParameters::GetFreshIds() const {
+  return {message_.function_type_fresh_id()};
+}
+
 }  // namespace fuzz
 }  // namespace spvtools

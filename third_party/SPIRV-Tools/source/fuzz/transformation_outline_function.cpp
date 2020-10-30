@@ -21,20 +21,6 @@
 namespace spvtools {
 namespace fuzz {
 
-namespace {
-
-std::map<uint32_t, uint32_t> PairSequenceToMap(
-    const google::protobuf::RepeatedPtrField<protobufs::UInt32Pair>&
-        pair_sequence) {
-  std::map<uint32_t, uint32_t> result;
-  for (auto& pair : pair_sequence) {
-    result[pair.first()] = pair.second();
-  }
-  return result;
-}
-
-}  // namespace
-
 TransformationOutlineFunction::TransformationOutlineFunction(
     const spvtools::fuzz::protobufs::TransformationOutlineFunction& message)
     : message_(message) {}
@@ -44,8 +30,8 @@ TransformationOutlineFunction::TransformationOutlineFunction(
     uint32_t new_function_struct_return_type_id, uint32_t new_function_type_id,
     uint32_t new_function_id, uint32_t new_function_region_entry_block,
     uint32_t new_caller_result_id, uint32_t new_callee_result_id,
-    std::map<uint32_t, uint32_t>&& input_id_to_fresh_id,
-    std::map<uint32_t, uint32_t>&& output_id_to_fresh_id) {
+    const std::map<uint32_t, uint32_t>& input_id_to_fresh_id,
+    const std::map<uint32_t, uint32_t>& output_id_to_fresh_id) {
   message_.set_entry_block(entry_block);
   message_.set_exit_block(exit_block);
   message_.set_new_function_struct_return_type_id(
@@ -55,22 +41,15 @@ TransformationOutlineFunction::TransformationOutlineFunction(
   message_.set_new_function_region_entry_block(new_function_region_entry_block);
   message_.set_new_caller_result_id(new_caller_result_id);
   message_.set_new_callee_result_id(new_callee_result_id);
-  for (auto& entry : input_id_to_fresh_id) {
-    protobufs::UInt32Pair pair;
-    pair.set_first(entry.first);
-    pair.set_second(entry.second);
-    *message_.add_input_id_to_fresh_id() = pair;
-  }
-  for (auto& entry : output_id_to_fresh_id) {
-    protobufs::UInt32Pair pair;
-    pair.set_first(entry.first);
-    pair.set_second(entry.second);
-    *message_.add_output_id_to_fresh_id() = pair;
-  }
+  *message_.mutable_input_id_to_fresh_id() =
+      fuzzerutil::MapToRepeatedUInt32Pair(input_id_to_fresh_id);
+  *message_.mutable_output_id_to_fresh_id() =
+      fuzzerutil::MapToRepeatedUInt32Pair(output_id_to_fresh_id);
 }
 
 bool TransformationOutlineFunction::IsApplicable(
-    opt::IRContext* ir_context, const TransformationContext& /*unused*/) const {
+    opt::IRContext* ir_context,
+    const TransformationContext& transformation_context) const {
   std::set<uint32_t> ids_used_by_this_transformation;
 
   // The various new ids used by the transformation must be fresh and distinct.
@@ -252,12 +231,13 @@ bool TransformationOutlineFunction::IsApplicable(
 
   // For each region input id, i.e. every id defined outside the region but
   // used inside the region, ...
-  std::map<uint32_t, uint32_t> input_id_to_fresh_id_map =
-      PairSequenceToMap(message_.input_id_to_fresh_id());
+  auto input_id_to_fresh_id_map =
+      fuzzerutil::RepeatedUInt32PairToMap(message_.input_id_to_fresh_id());
   for (auto id : GetRegionInputIds(ir_context, region_set, exit_block)) {
     // There needs to be a corresponding fresh id to be used as a function
-    // parameter.
-    if (input_id_to_fresh_id_map.count(id) == 0) {
+    // parameter, or overflow ids need to be available.
+    if (input_id_to_fresh_id_map.count(id) == 0 &&
+        !transformation_context.GetOverflowIdSource()->HasOverflowIds()) {
       return false;
     }
     // Furthermore, if the input id has pointer type it must be an OpVariable
@@ -280,13 +260,15 @@ bool TransformationOutlineFunction::IsApplicable(
 
   // For each region output id -- i.e. every id defined inside the region but
   // used outside the region, ...
-  std::map<uint32_t, uint32_t> output_id_to_fresh_id_map =
-      PairSequenceToMap(message_.output_id_to_fresh_id());
+  auto output_id_to_fresh_id_map =
+      fuzzerutil::RepeatedUInt32PairToMap(message_.output_id_to_fresh_id());
   for (auto id : GetRegionOutputIds(ir_context, region_set, exit_block)) {
     if (
         // ... there needs to be a corresponding fresh id that can hold the
-        // value for this id computed in the outlined function, and ...
-        output_id_to_fresh_id_map.count(id) == 0
+        // value for this id computed in the outlined function (or overflow ids
+        // must be available), and ...
+        (output_id_to_fresh_id_map.count(id) == 0 &&
+         !transformation_context.GetOverflowIdSource()->HasOverflowIds())
         // ... the output id must not have pointer type (to avoid creating a
         // struct with pointer members to pass data out of the outlined
         // function)
@@ -323,10 +305,27 @@ void TransformationOutlineFunction::Apply(
       GetRegionOutputIds(ir_context, region_blocks, original_region_exit_block);
 
   // Maps from input and output ids to fresh ids.
-  std::map<uint32_t, uint32_t> input_id_to_fresh_id_map =
-      PairSequenceToMap(message_.input_id_to_fresh_id());
-  std::map<uint32_t, uint32_t> output_id_to_fresh_id_map =
-      PairSequenceToMap(message_.output_id_to_fresh_id());
+  auto input_id_to_fresh_id_map =
+      fuzzerutil::RepeatedUInt32PairToMap(message_.input_id_to_fresh_id());
+  auto output_id_to_fresh_id_map =
+      fuzzerutil::RepeatedUInt32PairToMap(message_.output_id_to_fresh_id());
+
+  // Use overflow ids to augment these maps at any locations where fresh ids are
+  // required but not provided.
+  for (uint32_t id : region_input_ids) {
+    if (input_id_to_fresh_id_map.count(id) == 0) {
+      input_id_to_fresh_id_map.insert(
+          {id,
+           transformation_context->GetOverflowIdSource()->GetNextOverflowId()});
+    }
+  }
+  for (uint32_t id : region_output_ids) {
+    if (output_id_to_fresh_id_map.count(id) == 0) {
+      output_id_to_fresh_id_map.insert(
+          {id,
+           transformation_context->GetOverflowIdSource()->GetNextOverflowId()});
+    }
+  }
 
   UpdateModuleIdBoundForFreshIds(ir_context, input_id_to_fresh_id_map,
                                  output_id_to_fresh_id_map);
@@ -359,14 +358,6 @@ void TransformationOutlineFunction::Apply(
       region_input_ids, region_output_ids, input_id_to_fresh_id_map, ir_context,
       transformation_context);
 
-  // If the original function was livesafe, the new function should also be
-  // livesafe.
-  if (transformation_context->GetFactManager()->FunctionIsLivesafe(
-          original_region_entry_block->GetParent()->result_id())) {
-    transformation_context->GetFactManager()->AddFactFunctionIsLivesafe(
-        message_.new_function_id());
-  }
-
   // Adapt the region to be outlined so that its input ids are replaced with the
   // ids of the outlined function's input parameters, and so that output ids
   // are similarly remapped.
@@ -378,8 +369,8 @@ void TransformationOutlineFunction::Apply(
   // being outlined.
   PopulateOutlinedFunction(
       *original_region_entry_block, *original_region_exit_block, region_blocks,
-      region_output_ids, output_id_to_fresh_id_map, ir_context,
-      outlined_function.get(), transformation_context);
+      region_output_ids, output_id_to_type_id, output_id_to_fresh_id_map,
+      ir_context, outlined_function.get());
 
   // Collapse the region that has been outlined into a function down to a single
   // block that calls said function.
@@ -390,11 +381,28 @@ void TransformationOutlineFunction::Apply(
       std::move(cloned_exit_block_terminator), original_region_entry_block);
 
   // Add the outlined function to the module.
+  const auto* outlined_function_ptr = outlined_function.get();
   ir_context->module()->AddFunction(std::move(outlined_function));
 
   // Major surgery has been conducted on the module, so invalidate all analyses.
   ir_context->InvalidateAnalysesExceptFor(
       opt::IRContext::Analysis::kAnalysisNone);
+
+  // If the original function was livesafe, the new function should also be
+  // livesafe.
+  if (transformation_context->GetFactManager()->FunctionIsLivesafe(
+          original_region_entry_block->GetParent()->result_id())) {
+    transformation_context->GetFactManager()->AddFactFunctionIsLivesafe(
+        message_.new_function_id());
+  }
+
+  // Record the fact that all blocks in the outlined region are dead if the
+  // first block is dead.
+  if (transformation_context->GetFactManager()->BlockIsDead(
+          original_region_entry_block->id())) {
+    transformation_context->GetFactManager()->AddFactBlockIsDead(
+        outlined_function_ptr->entry()->id());
+  }
 }
 
 protobufs::Transformation TransformationOutlineFunction::ToMessage() const {
@@ -452,7 +460,6 @@ std::vector<uint32_t> TransformationOutlineFunction::GetRegionInputIds(
           inst,
           [ir_context, &inst, region_exit_block, &region_set, &result](
               opt::Instruction* use, uint32_t /*unused*/) -> bool {
-
             // Find the block in which this id use occurs, recording the id as
             // an input id if the block is outside the region, with some
             // exceptions detailed below.
@@ -501,7 +508,6 @@ std::vector<uint32_t> TransformationOutlineFunction::GetRegionOutputIds(
           &inst,
           [&region_set, ir_context, &inst, region_exit_block, &result](
               opt::Instruction* use, uint32_t /*unused*/) -> bool {
-
             // Find the block in which this id use occurs, recording the id as
             // an output id if the block is outside the region, with some
             // exceptions detailed below.
@@ -589,6 +595,12 @@ TransformationOutlineFunction::PrepareFunctionPrototype(
       for (uint32_t output_id : region_output_ids) {
         auto output_id_type =
             ir_context->get_def_use_mgr()->GetDef(output_id)->type_id();
+        if (ir_context->get_def_use_mgr()->GetDef(output_id_type)->opcode() ==
+            SpvOpTypeVoid) {
+          // We cannot add a void field to a struct.  We instead use OpUndef to
+          // handle void output ids.
+          continue;
+        }
         struct_member_types.push_back({SPV_OPERAND_TYPE_ID, {output_id_type}});
       }
       // Add a new struct type to the module.
@@ -631,12 +643,22 @@ TransformationOutlineFunction::PrepareFunctionPrototype(
                 {function_type_id}}})));
 
   // Add one parameter to the function for each input id, using the fresh ids
-  // provided in |input_id_to_fresh_id_map|.
+  // provided in |input_id_to_fresh_id_map|, or overflow ids if needed.
   for (auto id : region_input_ids) {
+    uint32_t fresh_id = input_id_to_fresh_id_map.at(id);
     outlined_function->AddParameter(MakeUnique<opt::Instruction>(
         ir_context, SpvOpFunctionParameter,
-        ir_context->get_def_use_mgr()->GetDef(id)->type_id(),
-        input_id_to_fresh_id_map.at(id), opt::Instruction::OperandList()));
+        ir_context->get_def_use_mgr()->GetDef(id)->type_id(), fresh_id,
+        opt::Instruction::OperandList()));
+
+    // Analyse the use of the new parameter instruction.
+    outlined_function->ForEachParam(
+        [fresh_id, ir_context](opt::Instruction* inst) {
+          if (inst->result_id() == fresh_id) {
+            ir_context->AnalyzeDefUse(inst);
+          }
+        });
+
     // If the input id is an irrelevant-valued variable, the same should be true
     // of the corresponding parameter.
     if (transformation_context->GetFactManager()->PointeeValueIsIrrelevant(
@@ -742,9 +764,9 @@ void TransformationOutlineFunction::PopulateOutlinedFunction(
     const opt::BasicBlock& original_region_exit_block,
     const std::set<opt::BasicBlock*>& region_blocks,
     const std::vector<uint32_t>& region_output_ids,
+    const std::map<uint32_t, uint32_t>& output_id_to_type_id,
     const std::map<uint32_t, uint32_t>& output_id_to_fresh_id_map,
-    opt::IRContext* ir_context, opt::Function* outlined_function,
-    TransformationContext* transformation_context) const {
+    opt::IRContext* ir_context, opt::Function* outlined_function) const {
   // When we create the exit block for the outlined region, we use this pointer
   // to track of it so that we can manipulate it later.
   opt::BasicBlock* outlined_region_exit_block = nullptr;
@@ -757,14 +779,6 @@ void TransformationOutlineFunction::PopulateOutlinedFunction(
           ir_context, SpvOpLabel, 0, message_.new_function_region_entry_block(),
           opt::Instruction::OperandList()));
   outlined_region_entry_block->SetParent(outlined_function);
-
-  // If the original region's entry block was dead, the outlined region's entry
-  // block is also dead.
-  if (transformation_context->GetFactManager()->BlockIsDead(
-          original_region_entry_block.id())) {
-    transformation_context->GetFactManager()->AddFactBlockIsDead(
-        outlined_region_entry_block->id());
-  }
 
   if (&original_region_entry_block == &original_region_exit_block) {
     outlined_region_exit_block = outlined_region_entry_block.get();
@@ -850,12 +864,16 @@ void TransformationOutlineFunction::PopulateOutlinedFunction(
         ir_context, SpvOpReturn, 0, 0, opt::Instruction::OperandList()));
   } else {
     // In the case where there are output ids, we add an OpCompositeConstruct
-    // instruction to pack all the output values into a struct, and then an
-    // OpReturnValue instruction to return this struct.
+    // instruction to pack all the non-void output values into a struct, and
+    // then an OpReturnValue instruction to return this struct.
     opt::Instruction::OperandList struct_member_operands;
     for (uint32_t id : region_output_ids) {
-      struct_member_operands.push_back(
-          {SPV_OPERAND_TYPE_ID, {output_id_to_fresh_id_map.at(id)}});
+      if (ir_context->get_def_use_mgr()
+              ->GetDef(output_id_to_type_id.at(id))
+              ->opcode() != SpvOpTypeVoid) {
+        struct_member_operands.push_back(
+            {SPV_OPERAND_TYPE_ID, {output_id_to_fresh_id_map.at(id)}});
+      }
     }
     outlined_region_exit_block->AddInstruction(MakeUnique<opt::Instruction>(
         ir_context, SpvOpCompositeConstruct,
@@ -872,7 +890,7 @@ void TransformationOutlineFunction::PopulateOutlinedFunction(
 }
 
 void TransformationOutlineFunction::ShrinkOriginalRegion(
-    opt::IRContext* ir_context, std::set<opt::BasicBlock*>& region_blocks,
+    opt::IRContext* ir_context, const std::set<opt::BasicBlock*>& region_blocks,
     const std::vector<uint32_t>& region_input_ids,
     const std::vector<uint32_t>& region_output_ids,
     const std::map<uint32_t, uint32_t>& output_id_to_type_id,
@@ -941,15 +959,27 @@ void TransformationOutlineFunction::ShrinkOriginalRegion(
 
   // If there are output ids, the function call will return a struct.  For each
   // output id, we add an extract operation to pull the appropriate struct
-  // member out into an output id.
-  for (uint32_t index = 0; index < region_output_ids.size(); ++index) {
-    uint32_t output_id = region_output_ids[index];
-    original_region_entry_block->AddInstruction(MakeUnique<opt::Instruction>(
-        ir_context, SpvOpCompositeExtract, output_id_to_type_id.at(output_id),
-        output_id,
-        opt::Instruction::OperandList(
-            {{SPV_OPERAND_TYPE_ID, {message_.new_caller_result_id()}},
-             {SPV_OPERAND_TYPE_LITERAL_INTEGER, {index}}})));
+  // member out into an output id.  The exception is for output ids with void
+  // type.  There are no struct entries for these, so we use an OpUndef of void
+  // type instead.
+  uint32_t struct_member_index = 0;
+  for (uint32_t output_id : region_output_ids) {
+    uint32_t output_type_id = output_id_to_type_id.at(output_id);
+    if (ir_context->get_def_use_mgr()->GetDef(output_type_id)->opcode() ==
+        SpvOpTypeVoid) {
+      original_region_entry_block->AddInstruction(MakeUnique<opt::Instruction>(
+          ir_context, SpvOpUndef, output_type_id, output_id,
+          opt::Instruction::OperandList()));
+      // struct_member_index is not incremented since there was no struct member
+      // associated with this void-typed output id.
+    } else {
+      original_region_entry_block->AddInstruction(MakeUnique<opt::Instruction>(
+          ir_context, SpvOpCompositeExtract, output_type_id, output_id,
+          opt::Instruction::OperandList(
+              {{SPV_OPERAND_TYPE_ID, {message_.new_caller_result_id()}},
+               {SPV_OPERAND_TYPE_LITERAL_INTEGER, {struct_member_index}}})));
+      struct_member_index++;
+    }
   }
 
   // Finally, we terminate the block with the merge instruction (if any) that
@@ -961,6 +991,24 @@ void TransformationOutlineFunction::ShrinkOriginalRegion(
   }
   original_region_entry_block->AddInstruction(
       std::move(cloned_exit_block_terminator));
+}
+
+std::unordered_set<uint32_t> TransformationOutlineFunction::GetFreshIds()
+    const {
+  std::unordered_set<uint32_t> result = {
+      message_.new_function_struct_return_type_id(),
+      message_.new_function_type_id(),
+      message_.new_function_id(),
+      message_.new_function_region_entry_block(),
+      message_.new_caller_result_id(),
+      message_.new_callee_result_id()};
+  for (auto& pair : message_.input_id_to_fresh_id()) {
+    result.insert(pair.second());
+  }
+  for (auto& pair : message_.output_id_to_fresh_id()) {
+    result.insert(pair.second());
+  }
+  return result;
 }
 
 }  // namespace fuzz

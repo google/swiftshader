@@ -61,7 +61,6 @@
 #include "source/opt/merge_return_pass.h"
 #include "source/opt/null_pass.h"
 #include "source/opt/private_to_local_pass.h"
-#include "source/opt/process_lines_pass.h"
 #include "source/opt/reduce_load_size.h"
 #include "source/opt/redundancy_elimination.h"
 #include "source/opt/relax_float_ops_pass.h"

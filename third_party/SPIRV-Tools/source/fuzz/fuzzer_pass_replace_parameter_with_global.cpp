@@ -53,27 +53,23 @@ void FuzzerPassReplaceParameterWithGlobal::Apply() {
     // function has at least one parameter.
     if (std::none_of(params.begin(), params.end(),
                      [this](const opt::Instruction* param) {
-                       const auto* param_type =
-                           GetIRContext()->get_type_mgr()->GetType(
-                               param->type_id());
-                       assert(param_type && "Parameter has invalid type");
                        return TransformationReplaceParameterWithGlobal::
-                           IsParameterTypeSupported(*param_type);
+                           IsParameterTypeSupported(GetIRContext(),
+                                                    param->type_id());
                      })) {
       continue;
     }
 
     // Select id of a parameter to replace.
-    const opt::Instruction* replaced_param = nullptr;
-    const opt::analysis::Type* param_type = nullptr;
+    const opt::Instruction* replaced_param;
+    uint32_t param_type_id;
     do {
       replaced_param = GetFuzzerContext()->RemoveAtRandomIndex(&params);
-      param_type =
-          GetIRContext()->get_type_mgr()->GetType(replaced_param->type_id());
-      assert(param_type && "Parameter has invalid type");
+      param_type_id = replaced_param->type_id();
+      assert(param_type_id && "Parameter has invalid type");
     } while (
         !TransformationReplaceParameterWithGlobal::IsParameterTypeSupported(
-            *param_type));
+            GetIRContext(), param_type_id));
 
     assert(replaced_param && "Unable to find a parameter to replace");
 

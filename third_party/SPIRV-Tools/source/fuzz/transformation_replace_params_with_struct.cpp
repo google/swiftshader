@@ -28,8 +28,7 @@ TransformationReplaceParamsWithStruct::TransformationReplaceParamsWithStruct(
 TransformationReplaceParamsWithStruct::TransformationReplaceParamsWithStruct(
     const std::vector<uint32_t>& parameter_id, uint32_t fresh_function_type_id,
     uint32_t fresh_parameter_id,
-    const std::unordered_map<uint32_t, uint32_t>&
-        caller_id_to_fresh_composite_id) {
+    const std::map<uint32_t, uint32_t>& caller_id_to_fresh_composite_id) {
   message_.set_fresh_function_type_id(fresh_function_type_id);
   message_.set_fresh_parameter_id(fresh_parameter_id);
 
@@ -37,9 +36,8 @@ TransformationReplaceParamsWithStruct::TransformationReplaceParamsWithStruct(
     message_.add_parameter_id(id);
   }
 
-  message_.mutable_caller_id_to_fresh_composite_id()->insert(
-      caller_id_to_fresh_composite_id.begin(),
-      caller_id_to_fresh_composite_id.end());
+  *message_.mutable_caller_id_to_fresh_composite_id() =
+      fuzzerutil::MapToRepeatedUInt32Pair(caller_id_to_fresh_composite_id);
 }
 
 bool TransformationReplaceParamsWithStruct::IsApplicable(
@@ -87,10 +85,8 @@ bool TransformationReplaceParamsWithStruct::IsApplicable(
     }
 
     // Check that the parameter with result id |id| has supported type.
-    const auto* type = ir_context->get_type_mgr()->GetType(
-        fuzzerutil::GetTypeId(ir_context, id));
-    assert(type && "Parameter has invalid type");
-    if (!IsParameterTypeSupported(*type)) {
+    if (!IsParameterTypeSupported(ir_context,
+                                  fuzzerutil::GetTypeId(ir_context, id))) {
       return false;
     }
   }
@@ -103,13 +99,16 @@ bool TransformationReplaceParamsWithStruct::IsApplicable(
     return false;
   }
 
+  const auto caller_id_to_fresh_composite_id =
+      fuzzerutil::RepeatedUInt32PairToMap(
+          message_.caller_id_to_fresh_composite_id());
+
   // Check that |callee_id_to_fresh_composite_id| is valid.
   for (const auto* inst :
        fuzzerutil::GetCallers(ir_context, function->result_id())) {
     // Check that the callee is present in the map. It's ok if the map contains
     // more ids that there are callees (those ids will not be used).
-    if (!message_.caller_id_to_fresh_composite_id().contains(
-            inst->result_id())) {
+    if (!caller_id_to_fresh_composite_id.count(inst->result_id())) {
       return false;
     }
   }
@@ -118,7 +117,7 @@ bool TransformationReplaceParamsWithStruct::IsApplicable(
   std::vector<uint32_t> fresh_ids = {message_.fresh_function_type_id(),
                                      message_.fresh_parameter_id()};
 
-  for (const auto& entry : message_.caller_id_to_fresh_composite_id()) {
+  for (const auto& entry : caller_id_to_fresh_composite_id) {
     fresh_ids.push_back(entry.second);
   }
 
@@ -151,21 +150,12 @@ void TransformationReplaceParamsWithStruct::Apply(
   // Compute indices of replaced parameters. This will be used to adjust
   // OpFunctionCall instructions and create OpCompositeConstruct instructions at
   // every call site.
-  std::vector<uint32_t> indices_of_replaced_params;
-  {
-    // We want to destroy |params| after the loop because it will contain
-    // dangling pointers when we remove parameters from the function.
-    auto params = fuzzerutil::GetParameters(ir_context, function->result_id());
-    for (auto id : message_.parameter_id()) {
-      auto it = std::find_if(params.begin(), params.end(),
-                             [id](const opt::Instruction* param) {
-                               return param->result_id() == id;
-                             });
-      assert(it != params.end() && "Parameter's id is invalid");
-      indices_of_replaced_params.push_back(
-          static_cast<uint32_t>(it - params.begin()));
-    }
-  }
+  const auto indices_of_replaced_params =
+      ComputeIndicesOfReplacedParameters(ir_context);
+
+  const auto caller_id_to_fresh_composite_id =
+      fuzzerutil::RepeatedUInt32PairToMap(
+          message_.caller_id_to_fresh_composite_id());
 
   // Update all function calls.
   for (auto* inst : fuzzerutil::GetCallers(ir_context, function->result_id())) {
@@ -179,17 +169,18 @@ void TransformationReplaceParamsWithStruct::Apply(
     }
 
     // Remove arguments from the function call. We do it in a separate loop
-    // and in reverse order to make sure we have removed correct operands.
-    for (auto it = indices_of_replaced_params.rbegin();
-         it != indices_of_replaced_params.rend(); ++it) {
+    // and in decreasing order to make sure we have removed correct operands.
+    for (auto index : std::set<uint32_t, std::greater<uint32_t>>(
+             indices_of_replaced_params.begin(),
+             indices_of_replaced_params.end())) {
       // +1 since the first in operand to OpFunctionCall is the result id of
       // the function.
-      inst->RemoveInOperand(*it + 1);
+      inst->RemoveInOperand(index + 1);
     }
 
     // Insert OpCompositeConstruct before the function call.
     auto fresh_composite_id =
-        message_.caller_id_to_fresh_composite_id().at(inst->result_id());
+        caller_id_to_fresh_composite_id.at(inst->result_id());
     inst->InsertBefore(MakeUnique<opt::Instruction>(
         ir_context, SpvOpCompositeConstruct, struct_type_id, fresh_composite_id,
         std::move(composite_components)));
@@ -227,7 +218,7 @@ void TransformationReplaceParamsWithStruct::Apply(
             {SPV_OPERAND_TYPE_ID, {message_.fresh_parameter_id()}},
             {SPV_OPERAND_TYPE_LITERAL_INTEGER, {static_cast<uint32_t>(i)}}}));
 
-    function->RemoveParameter(param_inst->result_id());
+    fuzzerutil::RemoveParameter(ir_context, param_inst->result_id());
   }
 
   // Update function's type.
@@ -270,26 +261,10 @@ protobufs::Transformation TransformationReplaceParamsWithStruct::ToMessage()
 }
 
 bool TransformationReplaceParamsWithStruct::IsParameterTypeSupported(
-    const opt::analysis::Type& param_type) {
+    opt::IRContext* ir_context, uint32_t param_type_id) {
   // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3403):
   //  Consider adding support for more types of parameters.
-  switch (param_type.kind()) {
-    case opt::analysis::Type::kBool:
-    case opt::analysis::Type::kInteger:
-    case opt::analysis::Type::kFloat:
-    case opt::analysis::Type::kArray:
-    case opt::analysis::Type::kVector:
-    case opt::analysis::Type::kMatrix:
-      return true;
-    case opt::analysis::Type::kStruct:
-      return std::all_of(param_type.AsStruct()->element_types().begin(),
-                         param_type.AsStruct()->element_types().end(),
-                         [](const opt::analysis::Type* type) {
-                           return IsParameterTypeSupported(*type);
-                         });
-    default:
-      return false;
-  }
+  return fuzzerutil::CanCreateConstant(ir_context, param_type_id);
 }
 
 uint32_t TransformationReplaceParamsWithStruct::MaybeGetRequiredStructType(
@@ -300,6 +275,41 @@ uint32_t TransformationReplaceParamsWithStruct::MaybeGetRequiredStructType(
   }
 
   return fuzzerutil::MaybeGetStructType(ir_context, component_type_ids);
+}
+
+std::vector<uint32_t>
+TransformationReplaceParamsWithStruct::ComputeIndicesOfReplacedParameters(
+    opt::IRContext* ir_context) const {
+  assert(!message_.parameter_id().empty() &&
+         "There must be at least one parameter to replace");
+
+  const auto* function = fuzzerutil::GetFunctionFromParameterId(
+      ir_context, message_.parameter_id(0));
+  assert(function && "|parameter_id|s are invalid");
+
+  std::vector<uint32_t> result;
+
+  auto params = fuzzerutil::GetParameters(ir_context, function->result_id());
+  for (auto id : message_.parameter_id()) {
+    auto it = std::find_if(params.begin(), params.end(),
+                           [id](const opt::Instruction* param) {
+                             return param->result_id() == id;
+                           });
+    assert(it != params.end() && "Parameter's id is invalid");
+    result.push_back(static_cast<uint32_t>(it - params.begin()));
+  }
+
+  return result;
+}
+
+std::unordered_set<uint32_t>
+TransformationReplaceParamsWithStruct::GetFreshIds() const {
+  std::unordered_set<uint32_t> result = {message_.fresh_function_type_id(),
+                                         message_.fresh_parameter_id()};
+  for (auto& pair : message_.caller_id_to_fresh_composite_id()) {
+    result.insert(pair.second());
+  }
+  return result;
 }
 
 }  // namespace fuzz

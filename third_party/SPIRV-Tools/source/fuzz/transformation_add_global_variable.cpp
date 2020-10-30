@@ -98,21 +98,26 @@ void TransformationAddGlobalVariable::Apply(
       static_cast<SpvStorageClass>(message_.storage_class()),
       message_.initializer_id());
 
-  if (message_.value_is_irrelevant()) {
-    transformation_context->GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
-        message_.fresh_id());
-  }
-
   // We have added an instruction to the module, so need to be careful about the
   // validity of existing analyses.
   ir_context->InvalidateAnalysesExceptFor(
       opt::IRContext::Analysis::kAnalysisNone);
+
+  if (message_.value_is_irrelevant()) {
+    transformation_context->GetFactManager()->AddFactValueOfPointeeIsIrrelevant(
+        message_.fresh_id());
+  }
 }
 
 protobufs::Transformation TransformationAddGlobalVariable::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_add_global_variable() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t> TransformationAddGlobalVariable::GetFreshIds()
+    const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

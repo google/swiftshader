@@ -17,7 +17,6 @@
 #ifndef SOURCE_FUZZ_TRANSFORMATION_REPLACE_CONSTANT_WITH_UNIFORM_H_
 #define SOURCE_FUZZ_TRANSFORMATION_REPLACE_CONSTANT_WITH_UNIFORM_H_
 
-#include "source/fuzz/fact_manager.h"
 #include "source/fuzz/id_use_descriptor.h"
 #include "source/fuzz/protobufs/spirvfuzz_protobufs.h"
 #include "source/fuzz/transformation.h"
@@ -72,6 +71,8 @@ class TransformationReplaceConstantWithUniform : public Transformation {
   void Apply(opt::IRContext* ir_context,
              TransformationContext* transformation_context) const override;
 
+  std::unordered_set<uint32_t> GetFreshIds() const override;
+
   protobufs::Transformation ToMessage() const override;
 
  private:
@@ -83,6 +84,11 @@ class TransformationReplaceConstantWithUniform : public Transformation {
   // Helper to create a load instruction.
   std::unique_ptr<opt::Instruction> MakeLoadInstruction(
       spvtools::opt::IRContext* ir_context, uint32_t constant_type_id) const;
+
+  // OpAccessChain and OpLoad will be inserted above the instruction returned
+  // by this function. Returns nullptr if no such instruction is present.
+  opt::Instruction* GetInsertBeforeInstruction(
+      opt::IRContext* ir_context) const;
 
   protobufs::TransformationReplaceConstantWithUniform message_;
 };

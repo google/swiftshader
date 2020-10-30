@@ -93,5 +93,10 @@ protobufs::Transformation TransformationAdjustBranchWeights::ToMessage() const {
   return result;
 }
 
+std::unordered_set<uint32_t> TransformationAdjustBranchWeights::GetFreshIds()
+    const {
+  return std::unordered_set<uint32_t>();
+}
+
 }  // namespace fuzz
 }  // namespace spvtools

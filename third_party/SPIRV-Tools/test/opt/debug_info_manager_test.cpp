@@ -354,6 +354,116 @@ void 200(float in_var_color : COLOR) {
             200);
 }
 
+TEST(DebugInfoManager, GetDebugFunction_InlinedAway) {
+  // struct PS_INPUT
+  // {
+  //   float4 iColor : COLOR;
+  // };
+  //
+  // struct PS_OUTPUT
+  // {
+  //   float4 oColor : SV_Target0;
+  // };
+  //
+  // float4 foo(float4 ic)
+  // {
+  //   float4 c = ic / 2.0;
+  //   return c;
+  // }
+  //
+  // PS_OUTPUT MainPs(PS_INPUT i)
+  // {
+  //   PS_OUTPUT ps_output;
+  //   float4 ic = i.iColor;
+  //   ps_output.oColor = foo(ic);
+  //   return ps_output;
+  // }
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %MainPs "MainPs" %in_var_COLOR %out_var_SV_Target0
+               OpExecutionMode %MainPs OriginUpperLeft
+         %15 = OpString "foo2.frag"
+         %19 = OpString "PS_OUTPUT"
+         %23 = OpString "float"
+         %26 = OpString "oColor"
+         %28 = OpString "PS_INPUT"
+         %31 = OpString "iColor"
+         %33 = OpString "foo"
+         %37 = OpString "c"
+         %39 = OpString "ic"
+         %42 = OpString "src.MainPs"
+         %47 = OpString "ps_output"
+         %50 = OpString "i"
+               OpName %in_var_COLOR "in.var.COLOR"
+               OpName %out_var_SV_Target0 "out.var.SV_Target0"
+               OpName %MainPs "MainPs"
+               OpDecorate %in_var_COLOR Location 0
+               OpDecorate %out_var_SV_Target0 Location 0
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+   %uint_128 = OpConstant %uint 128
+     %uint_0 = OpConstant %uint 0
+         %52 = OpTypeFunction %void
+%in_var_COLOR = OpVariable %_ptr_Input_v4float Input
+%out_var_SV_Target0 = OpVariable %_ptr_Output_v4float Output
+  %float_0_5 = OpConstant %float 0.5
+        %130 = OpConstantComposite %v4float %float_0_5 %float_0_5 %float_0_5 %float_0_5
+        %115 = OpExtInst %void %1 DebugInfoNone
+         %49 = OpExtInst %void %1 DebugExpression
+         %17 = OpExtInst %void %1 DebugSource %15
+         %18 = OpExtInst %void %1 DebugCompilationUnit 1 4 %17 HLSL
+         %21 = OpExtInst %void %1 DebugTypeComposite %19 Structure %17 6 1 %18 %19 %uint_128 FlagIsProtected|FlagIsPrivate %22
+         %24 = OpExtInst %void %1 DebugTypeBasic %23 %uint_32 Float
+         %25 = OpExtInst %void %1 DebugTypeVector %24 4
+         %22 = OpExtInst %void %1 DebugTypeMember %26 %25 %17 8 5 %21 %uint_0 %uint_128 FlagIsProtected|FlagIsPrivate
+         %29 = OpExtInst %void %1 DebugTypeComposite %28 Structure %17 1 1 %18 %28 %uint_128 FlagIsProtected|FlagIsPrivate %30
+         %30 = OpExtInst %void %1 DebugTypeMember %31 %25 %17 3 5 %29 %uint_0 %uint_128 FlagIsProtected|FlagIsPrivate
+         %32 = OpExtInst %void %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %25 %25
+         %34 = OpExtInst %void %1 DebugFunction %33 %32 %17 11 1 %18 %33 FlagIsProtected|FlagIsPrivate 12 %115
+         %36 = OpExtInst %void %1 DebugLexicalBlock %17 12 1 %34
+         %38 = OpExtInst %void %1 DebugLocalVariable %37 %25 %17 13 12 %36 FlagIsLocal
+         %41 = OpExtInst %void %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %21 %29
+         %43 = OpExtInst %void %1 DebugFunction %42 %41 %17 17 1 %18 %42 FlagIsProtected|FlagIsPrivate 18 %115
+         %45 = OpExtInst %void %1 DebugLexicalBlock %17 18 1 %43
+         %46 = OpExtInst %void %1 DebugLocalVariable %39 %25 %17 20 12 %45 FlagIsLocal
+         %48 = OpExtInst %void %1 DebugLocalVariable %47 %21 %17 19 15 %45 FlagIsLocal
+        %107 = OpExtInst %void %1 DebugInlinedAt 21 %45
+     %MainPs = OpFunction %void None %52
+         %53 = OpLabel
+         %57 = OpLoad %v4float %in_var_COLOR
+        %131 = OpExtInst %void %1 DebugScope %45
+               OpLine %15 20 12
+        %117 = OpExtInst %void %1 DebugValue %46 %57 %49
+        %132 = OpExtInst %void %1 DebugScope %36 %107
+               OpLine %15 13 19
+        %112 = OpFMul %v4float %57 %130
+               OpLine %15 13 12
+        %116 = OpExtInst %void %1 DebugValue %38 %112 %49
+        %133 = OpExtInst %void %1 DebugScope %45
+        %128 = OpExtInst %void %1 DebugValue %48 %112 %49 %int_0
+        %134 = OpExtInst %void %1 DebugNoScope
+               OpStore %out_var_SV_Target0 %112
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  std::unique_ptr<IRContext> context =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  DebugInfoManager manager(context.get());
+
+  EXPECT_EQ(manager.GetDebugFunction(115), nullptr);
+}
+
 TEST(DebugInfoManager, CloneDebugInlinedAt) {
   const std::string text = R"(
                OpCapability Shader
@@ -484,7 +594,7 @@ void main(float in_var_color : COLOR) {
   auto* dbg_info_mgr = context->get_debug_info_mgr();
   auto* def_use_mgr = context->get_def_use_mgr();
 
-  EXPECT_TRUE(dbg_info_mgr->IsDebugDeclared(100));
+  EXPECT_TRUE(dbg_info_mgr->IsVariableDebugDeclared(100));
   EXPECT_EQ(def_use_mgr->GetDef(36)->GetOpenCL100DebugOpcode(),
             OpenCLDebugInfo100DebugDeclare);
   EXPECT_EQ(def_use_mgr->GetDef(37)->GetOpenCL100DebugOpcode(),
@@ -496,7 +606,7 @@ void main(float in_var_color : COLOR) {
   EXPECT_EQ(def_use_mgr->GetDef(36), nullptr);
   EXPECT_EQ(def_use_mgr->GetDef(37), nullptr);
   EXPECT_EQ(def_use_mgr->GetDef(38), nullptr);
-  EXPECT_FALSE(dbg_info_mgr->IsDebugDeclared(100));
+  EXPECT_FALSE(dbg_info_mgr->IsVariableDebugDeclared(100));
 }
 
 }  // namespace

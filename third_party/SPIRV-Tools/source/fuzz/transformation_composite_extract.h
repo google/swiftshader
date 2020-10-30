@@ -30,7 +30,8 @@ class TransformationCompositeExtract : public Transformation {
 
   TransformationCompositeExtract(
       const protobufs::InstructionDescriptor& instruction_to_insert_before,
-      uint32_t fresh_id, uint32_t composite_id, std::vector<uint32_t>&& index);
+      uint32_t fresh_id, uint32_t composite_id,
+      const std::vector<uint32_t>& index);
 
   // - |message_.fresh_id| must be available
   // - |message_.instruction_to_insert_before| must identify an instruction
@@ -48,15 +49,24 @@ class TransformationCompositeExtract : public Transformation {
   // Adds an OpCompositeConstruct instruction before the instruction identified
   // by |message_.instruction_to_insert_before|, that extracts from
   // |message_.composite_id| via indices |message_.index| into
-  // |message_.fresh_id|. If |composite_id| is not an irrelevant id,
-  // generates a data synonym fact relating
-  // |message_.fresh_id| to the extracted element.
+  // |message_.fresh_id|.
+  //
+  // Adds a synonym fact associating |message_.fresh_id| with the relevant
+  // element of |message_.composite_id|, as long as these ids support synonym
+  // creation.
   void Apply(opt::IRContext* ir_context,
              TransformationContext* transformation_context) const override;
+
+  std::unordered_set<uint32_t> GetFreshIds() const override;
 
   protobufs::Transformation ToMessage() const override;
 
  private:
+  // Helper method for adding data synonym facts when applying the
+  // transformation to |ir_context| and |transformation_context|.
+  void AddDataSynonymFacts(opt::IRContext* ir_context,
+                           TransformationContext* transformation_context) const;
+
   protobufs::TransformationCompositeExtract message_;
 };
 

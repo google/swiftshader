@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_set_selection_control.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -102,11 +105,9 @@ TEST(TransformationSetSelectionControlTest, VariousScenarios) {
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
 
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // %44 is not a block
   ASSERT_FALSE(
       TransformationSetSelectionControl(44, SpvSelectionControlFlattenMask)
@@ -124,25 +125,29 @@ TEST(TransformationSetSelectionControlTest, VariousScenarios) {
       11, SpvSelectionControlDontFlattenMask);
   ASSERT_TRUE(
       transformation1.IsApplicable(context.get(), transformation_context));
-  transformation1.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation1, context.get(),
+                        &transformation_context);
 
   TransformationSetSelectionControl transformation2(
       23, SpvSelectionControlFlattenMask);
   ASSERT_TRUE(
       transformation2.IsApplicable(context.get(), transformation_context));
-  transformation2.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation2, context.get(),
+                        &transformation_context);
 
   TransformationSetSelectionControl transformation3(
       31, SpvSelectionControlMaskNone);
   ASSERT_TRUE(
       transformation3.IsApplicable(context.get(), transformation_context));
-  transformation3.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation3, context.get(),
+                        &transformation_context);
 
   TransformationSetSelectionControl transformation4(
       31, SpvSelectionControlFlattenMask);
   ASSERT_TRUE(
       transformation4.IsApplicable(context.get(), transformation_context));
-  transformation4.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation4, context.get(),
+                        &transformation_context);
 
   std::string after_transformation = R"(
                OpCapability Shader

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SPIRV_TOOLS_FUZZER_PASS_REPLACE_LOADS_STORES_WITH_COPY_MEMORIES_H
-#define SPIRV_TOOLS_FUZZER_PASS_REPLACE_LOADS_STORES_WITH_COPY_MEMORIES_H
+#ifndef SOURCE_FUZZ_FUZZER_PASS_REPLACE_LOADS_STORES_WITH_COPY_MEMORIES_H_
+#define SOURCE_FUZZ_FUZZER_PASS_REPLACE_LOADS_STORES_WITH_COPY_MEMORIES_H_
 
 #include "source/fuzz/fuzzer_pass.h"
 
@@ -38,4 +38,4 @@ class FuzzerPassReplaceLoadsStoresWithCopyMemories : public FuzzerPass {
 }  // namespace fuzz
 }  // namespace spvtools
 
-#endif  // SPIRV_TOOLS_FUZZER_PASS_REPLACE_LOADS_STORES_WITH_COPY_MEMORIES_H
+#endif  // SOURCE_FUZZ_FUZZER_PASS_REPLACE_LOADS_STORES_WITH_COPY_MEMORIES_H_

@@ -1220,9 +1220,11 @@ OpFunctionEnd
 TEST_F(ValidateInterfacesTest, VulkanLocationsIndexGLCompute) {
   const std::string text = R"(
 OpCapability Shader
+OpCapability Geometry
 OpMemoryModel Logical GLSL450
-OpEntryPoint GLCompute %main "main" %var1
-OpExecutionMode %main LocalSize 1 1 1
+OpEntryPoint Geometry %main "main" %var1
+OpExecutionMode %main Triangles
+OpExecutionMode %main OutputPoints
 OpDecorate %var1 Location 1
 OpDecorate %var1 Index 1
 %void = OpTypeVoid
@@ -1377,6 +1379,35 @@ TEST_F(ValidateInterfacesTest, VulkanLocationsLargeLocation) {
 
   CompileSuccessfully(text, SPV_ENV_VULKAN_1_0);
   EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+}
+
+TEST_F(ValidateInterfacesTest, VulkanLocationMeshShader) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability MeshShadingNV
+OpExtension "SPV_NV_mesh_shader"
+OpMemoryModel Logical GLSL450
+OpEntryPoint MeshNV %foo "foo" %in
+OpExecutionMode %foo LocalSize 1 1 1
+OpDecorate %block Block
+OpMemberDecorate %block 0 PerTaskNV
+OpMemberDecorate %block 0 Offset 0
+%void = OpTypeVoid
+%int = OpTypeInt 32 0
+%int_32 = OpConstant %int 32
+%array = OpTypeArray %int %int_32
+%block = OpTypeStruct %array
+%ptr_input_block = OpTypePointer Input %block
+%in = OpVariable %ptr_input_block Input
+%void_fn = OpTypeFunction %void
+%foo = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+)";
+
+  CompileSuccessfully(text, SPV_ENV_VULKAN_1_2);
+  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_2));
 }
 
 }  // namespace

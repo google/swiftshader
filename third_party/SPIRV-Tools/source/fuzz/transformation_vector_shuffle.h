@@ -52,17 +52,20 @@ class TransformationVectorShuffle : public Transformation {
   // Inserts an OpVectorShuffle instruction before
   // |message_.instruction_to_insert_before|, shuffles vectors
   // |message_.vector1| and |message_.vector2| using the indices provided by
-  // |message_.component|, into |message_.fresh_id|.  Adds a fact to the fact
-  // manager recording the fact each element of |message_.fresh_id| is
+  // |message_.component|, into |message_.fresh_id|.
+  //
+  // If |message_.fresh_id| is irrelevant (e.g. due to being in a dead block)
+  // of if one of |message_.vector1| or |message_.vector2| is irrelevant and the
+  // shuffle reads components from the irrelevant vector then no synonym facts
+  // are added.
+  //
+  // Otherwise, a fact is added recording that element of |message_.fresh_id| is
   // synonymous with the element of |message_.vector1| or |message_.vector2|
-  // from which it came (with undefined components being ignored).  If the
-  // result vector is a contiguous sub-range of one of the input vectors, a
-  // fact is added to record that |message_.fresh_id| is synonymous with this
-  // sub-range. DataSynonym facts are added only for non-irrelevant vectors
-  // (e.g. if |vector1| is irrelevant but |vector2| is not, synonyms will be
-  // created for |vector1| but not |vector2|).
+  // from which it came (with undefined components being ignored).
   void Apply(opt::IRContext* ir_context,
              TransformationContext* transformation_context) const override;
+
+  std::unordered_set<uint32_t> GetFreshIds() const override;
 
   protobufs::Transformation ToMessage() const override;
 
@@ -74,8 +77,14 @@ class TransformationVectorShuffle : public Transformation {
   uint32_t GetResultTypeId(opt::IRContext* ir_context,
                            const opt::analysis::Type& element_type) const;
 
+  // Returns the type associated with |id_of_vector| in |ir_context|.
   static opt::analysis::Vector* GetVectorType(opt::IRContext* ir_context,
                                               uint32_t id_of_vector);
+
+  // Helper method for adding data synonym facts when applying the
+  // transformation to |ir_context| and |transformation_context|.
+  void AddDataSynonymFacts(opt::IRContext* ir_context,
+                           TransformationContext* transformation_context) const;
 
   protobufs::TransformationVectorShuffle message_;
 };

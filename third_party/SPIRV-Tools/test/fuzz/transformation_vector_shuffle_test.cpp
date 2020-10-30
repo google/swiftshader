@@ -14,6 +14,8 @@
 
 #include "source/fuzz/transformation_vector_shuffle.h"
 
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -21,7 +23,7 @@ namespace spvtools {
 namespace fuzz {
 namespace {
 
-TEST(TransformationVectorShuffle, BasicTest) {
+TEST(TransformationVectorShuffleTest, BasicTest) {
   std::string shader = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
@@ -84,91 +86,89 @@ TEST(TransformationVectorShuffle, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(10, {}), MakeDataDescriptor(12, {0}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(11, {}), MakeDataDescriptor(12, {1}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(10, {}), MakeDataDescriptor(12, {0}), context.get());
+      MakeDataDescriptor(10, {}), MakeDataDescriptor(16, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(11, {}), MakeDataDescriptor(12, {1}), context.get());
+      MakeDataDescriptor(11, {}), MakeDataDescriptor(16, {1}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(10, {}), MakeDataDescriptor(16, {2}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(10, {}), MakeDataDescriptor(16, {0}), context.get());
+      MakeDataDescriptor(10, {}), MakeDataDescriptor(20, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(11, {}), MakeDataDescriptor(16, {1}), context.get());
+      MakeDataDescriptor(11, {}), MakeDataDescriptor(20, {1}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(10, {}), MakeDataDescriptor(16, {2}), context.get());
+      MakeDataDescriptor(10, {}), MakeDataDescriptor(20, {2}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(11, {}), MakeDataDescriptor(20, {3}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(10, {}), MakeDataDescriptor(20, {0}), context.get());
+      MakeDataDescriptor(25, {}), MakeDataDescriptor(27, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(11, {}), MakeDataDescriptor(20, {1}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(10, {}), MakeDataDescriptor(20, {2}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(11, {}), MakeDataDescriptor(20, {3}), context.get());
+      MakeDataDescriptor(26, {}), MakeDataDescriptor(27, {1}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(25, {}), MakeDataDescriptor(27, {0}), context.get());
+      MakeDataDescriptor(25, {}), MakeDataDescriptor(31, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(26, {}), MakeDataDescriptor(27, {1}), context.get());
+      MakeDataDescriptor(26, {}), MakeDataDescriptor(31, {1}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(25, {}), MakeDataDescriptor(31, {2}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(25, {}), MakeDataDescriptor(31, {0}), context.get());
+      MakeDataDescriptor(25, {}), MakeDataDescriptor(35, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(26, {}), MakeDataDescriptor(31, {1}), context.get());
+      MakeDataDescriptor(26, {}), MakeDataDescriptor(35, {1}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(25, {}), MakeDataDescriptor(31, {2}), context.get());
+      MakeDataDescriptor(25, {}), MakeDataDescriptor(35, {2}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(26, {}), MakeDataDescriptor(35, {3}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(25, {}), MakeDataDescriptor(35, {0}), context.get());
+      MakeDataDescriptor(40, {}), MakeDataDescriptor(42, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(26, {}), MakeDataDescriptor(35, {1}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(25, {}), MakeDataDescriptor(35, {2}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(26, {}), MakeDataDescriptor(35, {3}), context.get());
+      MakeDataDescriptor(41, {}), MakeDataDescriptor(42, {1}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(40, {}), MakeDataDescriptor(42, {0}), context.get());
+      MakeDataDescriptor(40, {}), MakeDataDescriptor(46, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(41, {}), MakeDataDescriptor(42, {1}), context.get());
+      MakeDataDescriptor(41, {}), MakeDataDescriptor(46, {1}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(40, {}), MakeDataDescriptor(46, {2}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(40, {}), MakeDataDescriptor(46, {0}), context.get());
+      MakeDataDescriptor(40, {}), MakeDataDescriptor(50, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(41, {}), MakeDataDescriptor(46, {1}), context.get());
+      MakeDataDescriptor(41, {}), MakeDataDescriptor(50, {1}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(40, {}), MakeDataDescriptor(46, {2}), context.get());
+      MakeDataDescriptor(40, {}), MakeDataDescriptor(50, {2}));
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(41, {}), MakeDataDescriptor(50, {3}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(40, {}), MakeDataDescriptor(50, {0}), context.get());
+      MakeDataDescriptor(55, {}), MakeDataDescriptor(61, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(41, {}), MakeDataDescriptor(50, {1}), context.get());
+      MakeDataDescriptor(56, {}), MakeDataDescriptor(61, {1}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(40, {}), MakeDataDescriptor(50, {2}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(41, {}), MakeDataDescriptor(50, {3}), context.get());
+      MakeDataDescriptor(55, {}), MakeDataDescriptor(61, {2}));
 
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(55, {}), MakeDataDescriptor(61, {0}), context.get());
+      MakeDataDescriptor(55, {}), MakeDataDescriptor(65, {0}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(56, {}), MakeDataDescriptor(61, {1}), context.get());
+      MakeDataDescriptor(56, {}), MakeDataDescriptor(65, {1}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(55, {}), MakeDataDescriptor(61, {2}), context.get());
-
+      MakeDataDescriptor(55, {}), MakeDataDescriptor(65, {2}));
   transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(55, {}), MakeDataDescriptor(65, {0}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(56, {}), MakeDataDescriptor(65, {1}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(55, {}), MakeDataDescriptor(65, {2}), context.get());
-  transformation_context.GetFactManager()->AddFactDataSynonym(
-      MakeDataDescriptor(56, {}), MakeDataDescriptor(65, {3}), context.get());
+      MakeDataDescriptor(56, {}), MakeDataDescriptor(65, {3}));
 
   // %103 does not dominate the return instruction.
   ASSERT_FALSE(TransformationVectorShuffle(
@@ -248,7 +248,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       MakeInstructionDescriptor(100, SpvOpReturn, 0), 200, 12, 112, {1, 0});
   ASSERT_TRUE(
       transformation1.IsApplicable(context.get(), transformation_context));
-  transformation1.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation1, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(200, {0});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(11, {}), temp_dd));
@@ -261,7 +262,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       {0xFFFFFFFF, 3, 5});
   ASSERT_TRUE(
       transformation2.IsApplicable(context.get(), transformation_context));
-  transformation2.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation2, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(201, {1});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(11, {}), temp_dd));
@@ -273,7 +275,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       MakeInstructionDescriptor(100, SpvOpReturn, 0), 202, 27, 35, {5, 4, 1});
   ASSERT_TRUE(
       transformation3.IsApplicable(context.get(), transformation_context));
-  transformation3.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation3, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(202, {0});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(26, {}), temp_dd));
@@ -288,7 +291,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       MakeInstructionDescriptor(100, SpvOpReturn, 0), 203, 42, 46, {0, 1});
   ASSERT_TRUE(
       transformation4.IsApplicable(context.get(), transformation_context));
-  transformation4.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation4, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(203, {0});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(40, {}), temp_dd));
@@ -300,7 +304,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       MakeInstructionDescriptor(100, SpvOpReturn, 0), 204, 42, 46, {2, 3, 4});
   ASSERT_TRUE(
       transformation5.IsApplicable(context.get(), transformation_context));
-  transformation5.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation5, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(204, {0});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(40, {}), temp_dd));
@@ -316,7 +321,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       {0, 1, 2, 3});
   ASSERT_TRUE(
       transformation6.IsApplicable(context.get(), transformation_context));
-  transformation6.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation6, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(205, {0});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(40, {}), temp_dd));
@@ -336,7 +342,8 @@ TEST(TransformationVectorShuffle, BasicTest) {
       {0xFFFFFFFF, 3, 6, 0xFFFFFFFF});
   ASSERT_TRUE(
       transformation7.IsApplicable(context.get(), transformation_context));
-  transformation7.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation7, context.get(),
+                        &transformation_context);
   temp_dd = MakeDataDescriptor(206, {1});
   ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
       MakeDataDescriptor(56, {}), temp_dd));
@@ -487,13 +494,11 @@ TEST(TransformationVectorShuffleTest, IllegalInsertionPoints) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Cannot insert before the OpVariables of a function.
   ASSERT_FALSE(
       TransformationVectorShuffle(
@@ -541,7 +546,7 @@ TEST(TransformationVectorShuffleTest, IllegalInsertionPoints) {
                    .IsApplicable(context.get(), transformation_context));
 }
 
-TEST(TransformationVectorShuffle, HandlesIrrelevantIds1) {
+TEST(TransformationVectorShuffleTest, HandlesIrrelevantIds1) {
   std::string shader = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
@@ -604,26 +609,25 @@ TEST(TransformationVectorShuffle, HandlesIrrelevantIds1) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   TransformationVectorShuffle transformation(
       MakeInstructionDescriptor(100, SpvOpReturn, 0), 200, 12, 112, {2, 0});
   ASSERT_TRUE(
       transformation.IsApplicable(context.get(), transformation_context));
-  transformation.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(12, {0}),
-                                        MakeDataDescriptor(200, {1})));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(112, {0}),
-                                        MakeDataDescriptor(200, {0})));
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(12, {0}), MakeDataDescriptor(200, {1})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(112, {0}), MakeDataDescriptor(200, {0})));
 }
 
-TEST(TransformationVectorShuffle, HandlesIrrelevantIds2) {
+TEST(TransformationVectorShuffleTest, HandlesIrrelevantIds2) {
   std::string shader = R"(
                OpCapability Shader
           %1 = OpExtInstImport "GLSL.std.450"
@@ -686,24 +690,115 @@ TEST(TransformationVectorShuffle, HandlesIrrelevantIds2) {
   const auto env = SPV_ENV_UNIVERSAL_1_4;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
-  fact_manager.AddFactIdIsIrrelevant(112);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  transformation_context.GetFactManager()->AddFactIdIsIrrelevant(112);
   TransformationVectorShuffle transformation(
       MakeInstructionDescriptor(100, SpvOpReturn, 0), 200, 12, 112, {2, 0});
   ASSERT_TRUE(
       transformation.IsApplicable(context.get(), transformation_context));
-  transformation.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
-  ASSERT_TRUE(fact_manager.IsSynonymous(MakeDataDescriptor(12, {0}),
-                                        MakeDataDescriptor(200, {1})));
-  ASSERT_FALSE(fact_manager.IsSynonymous(MakeDataDescriptor(112, {0}),
-                                         MakeDataDescriptor(200, {0})));
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  // Because %12 is not irrelevant, we get a synonym between it and %200[1].
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(12, {0}), MakeDataDescriptor(200, {1})));
+  // Because %112 is irrelevant, we do not get a synonym between it and %200[0].
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(112, {0}), MakeDataDescriptor(200, {0})));
+}
+
+TEST(TransformationVectorShuffleTest, HandlesIrrelevantIds3) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+          %7 = OpTypeVector %6 2
+          %8 = OpTypePointer Function %7
+         %10 = OpConstant %6 0
+         %11 = OpConstant %6 1
+         %12 = OpConstantComposite %7 %10 %11
+         %40 = OpConstantComposite %7 %10 %11
+         %13 = OpTypeBool
+         %14 = OpConstantFalse %13
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+          %9 = OpVariable %8 Function
+               OpStore %9 %12
+               OpSelectionMerge %16 None
+               OpBranchConditional %14 %15 %16
+         %15 = OpLabel
+               OpBranch %16
+         %16 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_4;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  transformation_context.GetFactManager()->AddFactIdIsIrrelevant(40);
+  transformation_context.GetFactManager()->AddFactBlockIsDead(15);
+
+  TransformationVectorShuffle transformation1(
+      MakeInstructionDescriptor(15, SpvOpBranch, 0), 200, 12, 12, {0, 3});
+  ASSERT_TRUE(
+      transformation1.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation1, context.get(),
+                        &transformation_context);
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(200, {0}), MakeDataDescriptor(12, {0})));
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(200, {1}), MakeDataDescriptor(12, {1})));
+
+  TransformationVectorShuffle transformation2(
+      MakeInstructionDescriptor(16, SpvOpReturn, 0), 201, 12, 40, {0, 1});
+  ASSERT_TRUE(
+      transformation2.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation2, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(201, {0}), MakeDataDescriptor(12, {0})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(201, {1}), MakeDataDescriptor(12, {1})));
+
+  TransformationVectorShuffle transformation3(
+      MakeInstructionDescriptor(16, SpvOpReturn, 0), 202, 40, 12, {2, 3});
+  ASSERT_TRUE(
+      transformation3.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation3, context.get(),
+                        &transformation_context);
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(202, {0}), MakeDataDescriptor(12, {0})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(202, {1}), MakeDataDescriptor(12, {1})));
+
+  TransformationVectorShuffle transformation4(
+      MakeInstructionDescriptor(16, SpvOpReturn, 0), 203, 40, 12, {0, 3});
+  ASSERT_TRUE(
+      transformation4.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation4, context.get(),
+                        &transformation_context);
+  // Because %40 is irrelevant we do not get a synonym between it and %203[0].
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(203, {0}), MakeDataDescriptor(40, {0})));
+  // Because %12 is *not* irrelevant we do get a synonym between it and %203[1].
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(203, {1}), MakeDataDescriptor(12, {1})));
 }
 
 }  // namespace

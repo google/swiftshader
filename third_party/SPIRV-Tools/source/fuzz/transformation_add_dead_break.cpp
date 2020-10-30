@@ -182,7 +182,8 @@ bool TransformationAddDeadBreak::IsApplicable(
   auto cloned_context = fuzzerutil::CloneIRContext(ir_context);
   ApplyImpl(cloned_context.get(), transformation_context);
   return fuzzerutil::IsValid(cloned_context.get(),
-                             transformation_context.GetValidatorOptions());
+                             transformation_context.GetValidatorOptions(),
+                             fuzzerutil::kSilentMessageConsumer);
 }
 
 void TransformationAddDeadBreak::Apply(
@@ -209,6 +210,10 @@ void TransformationAddDeadBreak::ApplyImpl(
       fuzzerutil::MaybeGetBoolConstant(ir_context, transformation_context,
                                        message_.break_condition_value(), false),
       message_.phi_id());
+}
+
+std::unordered_set<uint32_t> TransformationAddDeadBreak::GetFreshIds() const {
+  return std::unordered_set<uint32_t>();
 }
 
 }  // namespace fuzz

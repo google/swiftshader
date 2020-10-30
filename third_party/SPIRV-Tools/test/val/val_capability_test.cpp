@@ -2288,11 +2288,30 @@ OpMemoryModel Physical64 OpenCL
                         "Embedded Profile"));
 }
 
+TEST_F(ValidateCapability, OpenCL12EmbeddedNoLongerEnabledByCapability) {
+  const std::string spirv = R"(
+OpCapability Kernel
+OpCapability Addresses
+OpCapability Linkage
+OpCapability Pipes
+OpMemoryModel Physical64 OpenCL
+%u32    = OpTypeInt 32 0
+)" + std::string(kVoidFVoid);
+
+  CompileSuccessfully(spirv, SPV_ENV_OPENCL_EMBEDDED_1_2);
+  EXPECT_EQ(SPV_ERROR_INVALID_CAPABILITY,
+            ValidateInstructions(SPV_ENV_OPENCL_EMBEDDED_1_2));
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("Capability Pipes is not allowed by OpenCL 1.2 "
+                        "Embedded Profile"));
+}
+
 TEST_F(ValidateCapability, OpenCL20FullCapability) {
   const std::string spirv = R"(
 OpCapability Kernel
 OpCapability Addresses
 OpCapability Linkage
+OpCapability Groups
 OpCapability Pipes
 OpMemoryModel Physical64 OpenCL
 %u32    = OpTypeInt 32 0

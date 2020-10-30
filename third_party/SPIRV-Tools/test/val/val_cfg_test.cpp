@@ -1063,10 +1063,10 @@ std::string GetUnreachableMergeWithComplexBody(SpvCapability cap,
   Block merge("merge", SpvOpUnreachable);
 
   entry.AppendBody(spvIsWebGPUEnv(env)
-                       ? "%dummy   = OpVariable %intptrt Function %two\n"
-                       : "%dummy   = OpVariable %intptrt Function\n");
+                       ? "%placeholder   = OpVariable %intptrt Function %two\n"
+                       : "%placeholder   = OpVariable %intptrt Function\n");
   entry.AppendBody("%cond    = OpSLessThan %boolt %one %two\n");
-  merge.AppendBody("OpStore %dummy %one\n");
+  merge.AppendBody("OpStore %placeholder %one\n");
 
   std::string str = header;
   if (spvIsWebGPUEnv(env)) {
@@ -1120,9 +1120,9 @@ std::string GetUnreachableContinueWithComplexBody(SpvCapability cap,
   target >> branch;
 
   entry.AppendBody(spvIsWebGPUEnv(env)
-                       ? "%dummy   = OpVariable %intptrt Function %two\n"
-                       : "%dummy   = OpVariable %intptrt Function\n");
-  target.AppendBody("OpStore %dummy %one\n");
+                       ? "%placeholder   = OpVariable %intptrt Function %two\n"
+                       : "%placeholder   = OpVariable %intptrt Function\n");
+  target.AppendBody("OpStore %placeholder %one\n");
 
   std::string str = header;
   if (spvIsWebGPUEnv(env)) {
@@ -1279,8 +1279,8 @@ std::string GetUnreachableContinueWithBranchUse(SpvCapability cap,
   target >> branch;
 
   entry.AppendBody(spvIsWebGPUEnv(env)
-                       ? "%dummy   = OpVariable %intptrt Function %two\n"
-                       : "%dummy   = OpVariable %intptrt Function\n");
+                       ? "%placeholder   = OpVariable %intptrt Function %two\n"
+                       : "%placeholder   = OpVariable %intptrt Function\n");
 
   std::string str = header;
   if (spvIsWebGPUEnv(env)) {
@@ -4563,6 +4563,39 @@ OpFunctionEnd
   ASSERT_TRUE(b9->reachable());
   ASSERT_TRUE(b10->reachable());
   ASSERT_FALSE(b11->reachable());
+}
+
+TEST_F(ValidateCFG, PhiInstructionWithDuplicateIncomingEdges) {
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpConstantTrue %6
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpSelectionMerge %10 None
+               OpBranchConditional %7 %8 %9
+          %8 = OpLabel
+               OpBranch %10
+          %9 = OpLabel
+	       OpBranch %10
+         %10 = OpLabel
+	 %11 = OpPhi %6 %7 %8 %7 %8
+               OpReturn
+               OpFunctionEnd
+)";
+
+  CompileSuccessfully(text);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID, ValidateInstructions());
+  EXPECT_THAT(getDiagnosticString(),
+              HasSubstr("OpPhi references incoming basic block <id> "));
+  EXPECT_THAT(getDiagnosticString(), HasSubstr("multiple times."));
 }
 
 }  // namespace

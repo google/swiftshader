@@ -72,7 +72,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, RemoveStores) {
 
   CheckValid(kEnv, context.get());
 
-  auto ops = finder.GetAvailableOpportunities(context.get());
+  auto ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(10, ops.size());
 
@@ -108,7 +108,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, RemoveStores) {
 
   CheckEqual(kEnv, step_2, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(7, ops.size());
 
@@ -137,7 +137,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, RemoveStores) {
 
   CheckEqual(kEnv, step_3, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(1, ops.size());
 
@@ -165,7 +165,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, RemoveStores) {
 
   CheckEqual(kEnv, step_4, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(1, ops.size());
 
@@ -192,7 +192,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, RemoveStores) {
 
   CheckEqual(kEnv, step_5, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(1, ops.size());
 
@@ -218,7 +218,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, RemoveStores) {
 
   CheckEqual(kEnv, step_6, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(0, ops.size());
 }
@@ -258,7 +258,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, Referenced) {
 
   CheckValid(kEnv, context.get());
 
-  auto ops = finder.GetAvailableOpportunities(context.get());
+  auto ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(6, ops.size());
 
@@ -289,7 +289,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, Referenced) {
 
   CheckEqual(kEnv, after, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(3, ops.size());
 
@@ -317,7 +317,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, Referenced) {
 
   CheckEqual(kEnv, after_2, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(1, ops.size());
 
@@ -344,7 +344,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, Referenced) {
 
   CheckEqual(kEnv, after_3, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(1, ops.size());
 
@@ -370,7 +370,7 @@ TEST(RemoveUnusedInstructionReductionPassTest, Referenced) {
 
   CheckEqual(kEnv, after_4, context.get());
 
-  ops = finder.GetAvailableOpportunities(context.get());
+  ops = finder.GetAvailableOpportunities(context.get(), 0);
 
   ASSERT_EQ(0, ops.size());
 }
@@ -438,7 +438,7 @@ TEST(RemoveUnusedResourceVariableTest, RemoveUnusedResourceVariables) {
       BuildModule(env, consumer, shader, kReduceAssembleOption);
 
   auto ops = RemoveUnusedInstructionReductionOpportunityFinder(true)
-                 .GetAvailableOpportunities(context.get());
+                 .GetAvailableOpportunities(context.get(), 0);
   ASSERT_EQ(7, ops.size());
 
   for (auto& op : ops) {
@@ -487,7 +487,7 @@ TEST(RemoveUnusedResourceVariableTest, RemoveUnusedResourceVariables) {
   CheckEqual(env, expected_1, context.get());
 
   ops = RemoveUnusedInstructionReductionOpportunityFinder(true)
-            .GetAvailableOpportunities(context.get());
+            .GetAvailableOpportunities(context.get(), 0);
   ASSERT_EQ(6, ops.size());
 
   for (auto& op : ops) {
@@ -530,7 +530,7 @@ TEST(RemoveUnusedResourceVariableTest, RemoveUnusedResourceVariables) {
   CheckEqual(env, expected_2, context.get());
 
   ops = RemoveUnusedInstructionReductionOpportunityFinder(true)
-            .GetAvailableOpportunities(context.get());
+            .GetAvailableOpportunities(context.get(), 0);
   ASSERT_EQ(6, ops.size());
 
   for (auto& op : ops) {

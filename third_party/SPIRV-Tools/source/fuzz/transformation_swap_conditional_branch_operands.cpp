@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_swap_conditional_branch_operands.h"
+
 #include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 
@@ -98,6 +99,11 @@ TransformationSwapConditionalBranchOperands::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_swap_conditional_branch_operands() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t>
+TransformationSwapConditionalBranchOperands::GetFreshIds() const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

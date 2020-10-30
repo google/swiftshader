@@ -34,34 +34,29 @@ FuzzerPassReplaceLinearAlgebraInstructions::
     ~FuzzerPassReplaceLinearAlgebraInstructions() = default;
 
 void FuzzerPassReplaceLinearAlgebraInstructions::Apply() {
-  // For each instruction, checks whether it is a supported linear algebra
-  // instruction. In this case, the transformation is randomly applied.
-  GetIRContext()->module()->ForEachInst([this](opt::Instruction* instruction) {
-    // TODO(https://github.com/KhronosGroup/SPIRV-Tools/issues/3354):
-    // Right now we only support certain operations. When this issue is
-    // addressed the following conditional can use the function
-    // |spvOpcodeIsLinearAlgebra|.
-    if (instruction->opcode() != SpvOpVectorTimesScalar &&
-        instruction->opcode() != SpvOpMatrixTimesScalar &&
-        instruction->opcode() != SpvOpVectorTimesMatrix &&
-        instruction->opcode() != SpvOpMatrixTimesVector &&
-        instruction->opcode() != SpvOpMatrixTimesMatrix &&
-        instruction->opcode() != SpvOpDot) {
-      return;
-    }
+  // For each instruction, checks whether it is a linear algebra instruction. In
+  // this case, the transformation is randomly applied.
+  for (auto& function : *GetIRContext()->module()) {
+    for (auto& block : function) {
+      for (auto& instruction : block) {
+        if (!spvOpcodeIsLinearAlgebra(instruction.opcode())) {
+          continue;
+        }
 
-    if (!GetFuzzerContext()->ChoosePercentage(
-            GetFuzzerContext()
-                ->GetChanceOfReplacingLinearAlgebraInstructions())) {
-      return;
-    }
+        if (!GetFuzzerContext()->ChoosePercentage(
+                GetFuzzerContext()
+                    ->GetChanceOfReplacingLinearAlgebraInstructions())) {
+          continue;
+        }
 
-    ApplyTransformation(TransformationReplaceLinearAlgebraInstruction(
-        GetFuzzerContext()->GetFreshIds(
-            TransformationReplaceLinearAlgebraInstruction::
-                GetRequiredFreshIdCount(GetIRContext(), instruction)),
-        MakeInstructionDescriptor(GetIRContext(), instruction)));
-  });
+        ApplyTransformation(TransformationReplaceLinearAlgebraInstruction(
+            GetFuzzerContext()->GetFreshIds(
+                TransformationReplaceLinearAlgebraInstruction::
+                    GetRequiredFreshIdCount(GetIRContext(), &instruction)),
+            MakeInstructionDescriptor(GetIRContext(), &instruction)));
+      }
+    }
+  }
 }
 
 }  // namespace fuzz
