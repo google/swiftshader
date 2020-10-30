@@ -33,6 +33,24 @@
       "message": "Oh, wait, Regres failed to build. That\u0027s worse.",
       "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48185c8d_a6c7f80d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-10-30T12:13:59Z",
+      "side": 1,
+      "message": "It also failed to build last time we updated:\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/47093\nIs it able to properly update all these patches?\nNote that all the kokoro builders succeeded.",
+      "parentUuid": "b646520b_614bc516",
+      "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
