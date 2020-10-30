@@ -61,7 +61,7 @@ TEST(RemoveUnusedStructMemberTest, RemoveOneMember) {
       BuildModule(env, consumer, shader, kReduceAssembleOption);
 
   auto ops = RemoveUnusedStructMemberReductionOpportunityFinder()
-                 .GetAvailableOpportunities(context.get());
+                 .GetAvailableOpportunities(context.get(), 0);
   ASSERT_EQ(1, ops.size());
   ASSERT_TRUE(ops[0]->PreconditionHolds());
   ops[0]->TryToApply();
@@ -143,7 +143,7 @@ TEST(RemoveUnusedStructMemberTest, RemoveUniformBufferMember) {
       BuildModule(env, consumer, shader, kReduceAssembleOption);
 
   auto ops = RemoveUnusedStructMemberReductionOpportunityFinder()
-                 .GetAvailableOpportunities(context.get());
+                 .GetAvailableOpportunities(context.get(), 0);
   ASSERT_EQ(1, ops.size());
   ASSERT_TRUE(ops[0]->PreconditionHolds());
   ops[0]->TryToApply();
@@ -229,7 +229,7 @@ TEST(RemoveUnusedStructMemberTest, DoNotRemoveNamedMemberRemoveOneMember) {
       BuildModule(env, consumer, shader, kReduceAssembleOption);
 
   auto ops = RemoveUnusedStructMemberReductionOpportunityFinder()
-                 .GetAvailableOpportunities(context.get());
+                 .GetAvailableOpportunities(context.get(), 0);
   ASSERT_EQ(0, ops.size());
 }
 

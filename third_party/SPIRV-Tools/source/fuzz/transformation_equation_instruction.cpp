@@ -50,8 +50,8 @@ bool TransformationEquationInstruction::IsApplicable(
   if (!insert_before) {
     return false;
   }
-  // The input ids must all exist, not be OpUndef, and be available before this
-  // instruction.
+  // The input ids must all exist, not be OpUndef, not be irrelevant, and be
+  // available before this instruction.
   for (auto id : message_.in_operand_id()) {
     auto inst = ir_context->get_def_use_mgr()->GetDef(id);
     if (!inst) {
@@ -92,9 +92,13 @@ void TransformationEquationInstruction::Apply(
 
   ir_context->InvalidateAnalysesExceptFor(opt::IRContext::kAnalysisNone);
 
-  transformation_context->GetFactManager()->AddFactIdEquation(
-      message_.fresh_id(), static_cast<SpvOp>(message_.opcode()), rhs_id,
-      ir_context);
+  // Add an equation fact as long as the result id is not irrelevant (it could
+  // be if we are inserting into a dead block).
+  if (!transformation_context->GetFactManager()->IdIsIrrelevant(
+          message_.fresh_id())) {
+    transformation_context->GetFactManager()->AddFactIdEquation(
+        message_.fresh_id(), static_cast<SpvOp>(message_.opcode()), rhs_id);
+  }
 }
 
 protobufs::Transformation TransformationEquationInstruction::ToMessage() const {
@@ -281,6 +285,11 @@ uint32_t TransformationEquationInstruction::MaybeGetResultTypeId(
       assert(false && "Inappropriate opcode for equation instruction.");
       return 0;
   }
+}
+
+std::unordered_set<uint32_t> TransformationEquationInstruction::GetFreshIds()
+    const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

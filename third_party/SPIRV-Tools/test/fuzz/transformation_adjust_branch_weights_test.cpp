@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_adjust_branch_weights.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -98,13 +101,11 @@ TEST(TransformationAdjustBranchWeightsTest, IsApplicableTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_5;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Tests OpBranchConditional instruction with weigths.
   auto instruction_descriptor =
       MakeInstructionDescriptor(33, SpvOpBranchConditional, 0);
@@ -248,24 +249,22 @@ TEST(TransformationAdjustBranchWeightsTest, ApplyTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_5;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   auto instruction_descriptor =
       MakeInstructionDescriptor(33, SpvOpBranchConditional, 0);
   auto transformation =
       TransformationAdjustBranchWeights(instruction_descriptor, {5, 6});
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   instruction_descriptor =
       MakeInstructionDescriptor(21, SpvOpBranchConditional, 0);
   transformation =
       TransformationAdjustBranchWeights(instruction_descriptor, {7, 8});
-  transformation.Apply(context.get(), &transformation_context);
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
 
   std::string variant_shader = R"(
                OpCapability Shader

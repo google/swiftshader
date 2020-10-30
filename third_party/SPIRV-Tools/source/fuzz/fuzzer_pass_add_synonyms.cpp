@@ -36,6 +36,12 @@ void FuzzerPassAddSynonyms::Apply() {
       [this](opt::Function* function, opt::BasicBlock* block,
              opt::BasicBlock::iterator inst_it,
              const protobufs::InstructionDescriptor& instruction_descriptor) {
+        if (GetTransformationContext()->GetFactManager()->BlockIsDead(
+                block->id())) {
+          // Don't create synonyms in dead blocks.
+          return;
+        }
+
         // Skip |inst_it| if we can't insert anything above it. OpIAdd is just
         // a representative of some instruction that might be produced by the
         // transformation.

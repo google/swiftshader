@@ -339,10 +339,6 @@ bool Optimizer::RegisterPassFromFlag(const std::string& flag) {
     RegisterPass(CreateDescriptorScalarReplacementPass());
   } else if (pass_name == "eliminate-dead-code-aggressive") {
     RegisterPass(CreateAggressiveDCEPass());
-  } else if (pass_name == "propagate-line-info") {
-    RegisterPass(CreatePropagateLineInfoPass());
-  } else if (pass_name == "eliminate-redundant-line-info") {
-    RegisterPass(CreateRedundantLineInfoElimPass());
   } else if (pass_name == "eliminate-insert-extract") {
     RegisterPass(CreateInsertExtractElimPass());
   } else if (pass_name == "eliminate-local-single-block") {
@@ -423,6 +419,12 @@ bool Optimizer::RegisterPassFromFlag(const std::string& flag) {
     RegisterPass(CreateAggressiveDCEPass());
   } else if (pass_name == "inst-desc-idx-check") {
     RegisterPass(CreateInstBindlessCheckPass(7, 23, true, true));
+    RegisterPass(CreateSimplificationPass());
+    RegisterPass(CreateDeadBranchElimPass());
+    RegisterPass(CreateBlockMergePass());
+    RegisterPass(CreateAggressiveDCEPass());
+  } else if (pass_name == "inst-buff-oob-check") {
+    RegisterPass(CreateInstBindlessCheckPass(7, 23, false, false, true));
     RegisterPass(CreateSimplificationPass());
     RegisterPass(CreateDeadBranchElimPass());
     RegisterPass(CreateBlockMergePass());
@@ -579,8 +581,8 @@ bool Optimizer::Run(const uint32_t* original_binary,
 
 #ifndef NDEBUG
   // We do not keep the result id of DebugScope in struct DebugScope.
-  // Instead, we assign random ids for them, which results in sanity
-  // check failures. We want to skip the sanity check when the module
+  // Instead, we assign random ids for them, which results in integrity
+  // check failures. We want to skip the integrity check when the module
   // contains DebugScope instructions.
   if (status == opt::Pass::Status::SuccessWithoutChange &&
       !context->module()->ContainsDebugScope()) {
@@ -751,16 +753,6 @@ Optimizer::PassToken CreateAggressiveDCEPass() {
       MakeUnique<opt::AggressiveDCEPass>());
 }
 
-Optimizer::PassToken CreatePropagateLineInfoPass() {
-  return MakeUnique<Optimizer::PassToken::Impl>(
-      MakeUnique<opt::ProcessLinesPass>(opt::kLinesPropagateLines));
-}
-
-Optimizer::PassToken CreateRedundantLineInfoElimPass() {
-  return MakeUnique<Optimizer::PassToken::Impl>(
-      MakeUnique<opt::ProcessLinesPass>(opt::kLinesEliminateDeadLines));
-}
-
 Optimizer::PassToken CreateCompactIdsPass() {
   return MakeUnique<Optimizer::PassToken::Impl>(
       MakeUnique<opt::CompactIdsPass>());
@@ -894,10 +886,12 @@ Optimizer::PassToken CreateUpgradeMemoryModelPass() {
 Optimizer::PassToken CreateInstBindlessCheckPass(uint32_t desc_set,
                                                  uint32_t shader_id,
                                                  bool input_length_enable,
-                                                 bool input_init_enable) {
+                                                 bool input_init_enable,
+                                                 bool input_buff_oob_enable) {
   return MakeUnique<Optimizer::PassToken::Impl>(
       MakeUnique<opt::InstBindlessCheckPass>(
-          desc_set, shader_id, input_length_enable, input_init_enable));
+          desc_set, shader_id, input_length_enable, input_init_enable,
+          input_buff_oob_enable));
 }
 
 Optimizer::PassToken CreateInstDebugPrintfPass(uint32_t desc_set,

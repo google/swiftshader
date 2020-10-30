@@ -44,6 +44,14 @@ bool TransformationAddTypeStruct::IsApplicable(
       // function type; both are illegal.
       return false;
     }
+
+    // From the spec for the BuiltIn decoration:
+    // - When applied to a structure-type member, that structure type cannot
+    //   be contained as a member of another structure type.
+    if (type->AsStruct() &&
+        fuzzerutil::MembersHaveBuiltInDecoration(ir_context, member_type)) {
+      return false;
+    }
   }
   return true;
 }
@@ -64,6 +72,10 @@ protobufs::Transformation TransformationAddTypeStruct::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_add_type_struct() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t> TransformationAddTypeStruct::GetFreshIds() const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

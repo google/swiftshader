@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "source/fuzz/transformation_permute_phi_operands.h"
+
 #include <vector>
 
 #include "source/fuzz/fuzzer_util.h"
-#include "source/fuzz/transformation_permute_phi_operands.h"
 
 namespace spvtools {
 namespace fuzz {
@@ -88,6 +89,11 @@ protobufs::Transformation TransformationPermutePhiOperands::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_permute_phi_operands() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t> TransformationPermutePhiOperands::GetFreshIds()
+    const {
+  return std::unordered_set<uint32_t>();
 }
 
 }  // namespace fuzz

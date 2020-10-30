@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_add_type_boolean.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "test/fuzz/fuzz_test_util.h"
 
 namespace spvtools {
@@ -39,13 +42,11 @@ TEST(TransformationAddTypeBooleanTest, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Not applicable because id 1 is already in use.
   ASSERT_FALSE(TransformationAddTypeBoolean(1).IsApplicable(
       context.get(), transformation_context));
@@ -53,8 +54,9 @@ TEST(TransformationAddTypeBooleanTest, BasicTest) {
   auto add_type_bool = TransformationAddTypeBoolean(100);
   ASSERT_TRUE(
       add_type_bool.IsApplicable(context.get(), transformation_context));
-  add_type_bool.Apply(context.get(), &transformation_context);
-  ASSERT_TRUE(IsValid(env, context.get()));
+  ApplyAndCheckFreshIds(add_type_bool, context.get(), &transformation_context);
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
 
   // Not applicable as we already have this type now.
   ASSERT_FALSE(TransformationAddTypeBoolean(101).IsApplicable(

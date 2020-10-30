@@ -37,22 +37,22 @@ using Analysis = IRContext::Analysis;
 using ::testing::Each;
 using ::testing::UnorderedElementsAre;
 
-class DummyPassPreservesNothing : public Pass {
+class NoopPassPreservesNothing : public Pass {
  public:
-  DummyPassPreservesNothing(Status s) : Pass(), status_to_return_(s) {}
+  NoopPassPreservesNothing(Status s) : Pass(), status_to_return_(s) {}
 
-  const char* name() const override { return "dummy-pass"; }
+  const char* name() const override { return "noop-pass"; }
   Status Process() override { return status_to_return_; }
 
  private:
   Status status_to_return_;
 };
 
-class DummyPassPreservesAll : public Pass {
+class NoopPassPreservesAll : public Pass {
  public:
-  DummyPassPreservesAll(Status s) : Pass(), status_to_return_(s) {}
+  NoopPassPreservesAll(Status s) : Pass(), status_to_return_(s) {}
 
-  const char* name() const override { return "dummy-pass"; }
+  const char* name() const override { return "noop-pass"; }
   Status Process() override { return status_to_return_; }
 
   Analysis GetPreservedAnalyses() override {
@@ -63,11 +63,11 @@ class DummyPassPreservesAll : public Pass {
   Status status_to_return_;
 };
 
-class DummyPassPreservesFirst : public Pass {
+class NoopPassPreservesFirst : public Pass {
  public:
-  DummyPassPreservesFirst(Status s) : Pass(), status_to_return_(s) {}
+  NoopPassPreservesFirst(Status s) : Pass(), status_to_return_(s) {}
 
-  const char* name() const override { return "dummy-pass"; }
+  const char* name() const override { return "noop-pass"; }
   Status Process() override { return status_to_return_; }
 
   Analysis GetPreservedAnalyses() override { return IRContext::kAnalysisBegin; }
@@ -116,7 +116,7 @@ TEST_F(IRContextTest, AllValidAfterPassNoChange) {
     built_analyses |= i;
   }
 
-  DummyPassPreservesNothing pass(Pass::Status::SuccessWithoutChange);
+  NoopPassPreservesNothing pass(Pass::Status::SuccessWithoutChange);
   Pass::Status s = pass.Run(&localContext);
   EXPECT_EQ(s, Pass::Status::SuccessWithoutChange);
   EXPECT_TRUE(localContext.AreAnalysesValid(built_analyses));
@@ -132,7 +132,7 @@ TEST_F(IRContextTest, NoneValidAfterPassWithChange) {
     localContext.BuildInvalidAnalyses(i);
   }
 
-  DummyPassPreservesNothing pass(Pass::Status::SuccessWithChange);
+  NoopPassPreservesNothing pass(Pass::Status::SuccessWithChange);
   Pass::Status s = pass.Run(&localContext);
   EXPECT_EQ(s, Pass::Status::SuccessWithChange);
   for (Analysis i = IRContext::kAnalysisBegin; i < IRContext::kAnalysisEnd;
@@ -151,7 +151,7 @@ TEST_F(IRContextTest, AllPreservedAfterPassWithChange) {
     localContext.BuildInvalidAnalyses(i);
   }
 
-  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  NoopPassPreservesAll pass(Pass::Status::SuccessWithChange);
   Pass::Status s = pass.Run(&localContext);
   EXPECT_EQ(s, Pass::Status::SuccessWithChange);
   for (Analysis i = IRContext::kAnalysisBegin; i < IRContext::kAnalysisEnd;
@@ -170,7 +170,7 @@ TEST_F(IRContextTest, PreserveFirstOnlyAfterPassWithChange) {
     localContext.BuildInvalidAnalyses(i);
   }
 
-  DummyPassPreservesFirst pass(Pass::Status::SuccessWithChange);
+  NoopPassPreservesFirst pass(Pass::Status::SuccessWithChange);
   Pass::Status s = pass.Run(&localContext);
   EXPECT_EQ(s, Pass::Status::SuccessWithChange);
   EXPECT_TRUE(localContext.AreAnalysesValid(IRContext::kAnalysisBegin));
@@ -912,7 +912,7 @@ OpFunctionEnd)";
       BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
                   SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
-  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  NoopPassPreservesAll pass(Pass::Status::SuccessWithChange);
   pass.Run(ctx.get());
   EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
 
@@ -978,7 +978,7 @@ OpFunctionEnd)";
       BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
                   SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
-  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  NoopPassPreservesAll pass(Pass::Status::SuccessWithChange);
   pass.Run(ctx.get());
   EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
 
@@ -1009,6 +1009,71 @@ OpFunctionEnd)";
       dbg_decl0->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 20);
   EXPECT_TRUE(
       dbg_decl1->GetSingleWordOperand(kDebugDeclareOperandVariableIndex) == 20);
+}
+
+TEST_F(IRContextTest, DebugInstructionReplaceDebugScopeAndDebugInlinedAt) {
+  const std::string text = R"(
+OpCapability Shader
+OpCapability Linkage
+%1 = OpExtInstImport "OpenCL.DebugInfo.100"
+OpMemoryModel Logical GLSL450
+%2 = OpString "test"
+%3 = OpTypeVoid
+%4 = OpTypeFunction %3
+%5 = OpTypeFloat 32
+%6 = OpTypePointer Function %5
+%7 = OpConstant %5 0
+%8 = OpTypeInt 32 0
+%9 = OpConstant %8 32
+%10 = OpExtInst %3 %1 DebugExpression
+%11 = OpExtInst %3 %1 DebugSource %2
+%12 = OpExtInst %3 %1 DebugCompilationUnit 1 4 %11 HLSL
+%13 = OpExtInst %3 %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %3
+%14 = OpExtInst %3 %1 DebugFunction %2 %13 %11 0 0 %12 %2 FlagIsProtected|FlagIsPrivate 0 %17
+%15 = OpExtInst %3 %1 DebugInfoNone
+%16 = OpExtInst %3 %1 DebugFunction %2 %13 %11 10 10 %12 %2 FlagIsProtected|FlagIsPrivate 0 %15
+%25 = OpExtInst %3 %1 DebugInlinedAt 0 %14
+%26 = OpExtInst %3 %1 DebugInlinedAt 2 %14
+%17 = OpFunction %3 None %4
+%18 = OpLabel
+%19 = OpExtInst %3 %1 DebugScope %14
+%20 = OpVariable %6 Function
+OpBranch %21
+%21 = OpLabel
+%24 = OpExtInst %3 %1 DebugScope %16
+%22 = OpPhi %5 %7 %18
+OpBranch %23
+%23 = OpLabel
+%27 = OpExtInst %3 %1 DebugScope %16 %25
+OpLine %2 0 0
+%28 = OpFAdd %5 %7 %7
+OpStore %20 %28
+OpReturn
+OpFunctionEnd)";
+
+  std::unique_ptr<IRContext> ctx =
+      BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
+                  SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
+  NoopPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  pass.Run(ctx.get());
+  EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
+
+  auto* inst0 = ctx->get_def_use_mgr()->GetDef(20);
+  auto* inst1 = ctx->get_def_use_mgr()->GetDef(22);
+  auto* inst2 = ctx->get_def_use_mgr()->GetDef(28);
+  EXPECT_EQ(inst0->GetDebugScope().GetLexicalScope(), 14);
+  EXPECT_EQ(inst1->GetDebugScope().GetLexicalScope(), 16);
+  EXPECT_EQ(inst2->GetDebugScope().GetLexicalScope(), 16);
+  EXPECT_EQ(inst2->GetDebugInlinedAt(), 25);
+
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(14, 12));
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(16, 14));
+  EXPECT_TRUE(ctx->ReplaceAllUsesWith(25, 26));
+  EXPECT_EQ(inst0->GetDebugScope().GetLexicalScope(), 12);
+  EXPECT_EQ(inst1->GetDebugScope().GetLexicalScope(), 14);
+  EXPECT_EQ(inst2->GetDebugScope().GetLexicalScope(), 14);
+  EXPECT_EQ(inst2->GetDebugInlinedAt(), 26);
 }
 
 TEST_F(IRContextTest, AddDebugValueAfterReplaceUse) {
@@ -1055,7 +1120,7 @@ OpFunctionEnd)";
       BuildModule(SPV_ENV_UNIVERSAL_1_1, nullptr, text,
                   SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
   ctx->BuildInvalidAnalyses(IRContext::kAnalysisDebugInfo);
-  DummyPassPreservesAll pass(Pass::Status::SuccessWithChange);
+  NoopPassPreservesAll pass(Pass::Status::SuccessWithChange);
   pass.Run(ctx.get());
   EXPECT_TRUE(ctx->AreAnalysesValid(IRContext::kAnalysisDebugInfo));
 
@@ -1070,11 +1135,13 @@ OpFunctionEnd)";
 
   // No DebugValue should be added because result id '26' is not used for
   // DebugDeclare.
-  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 26, 22, dbg_decl);
+  ctx->get_debug_info_mgr()->AddDebugValueIfVarDeclIsVisible(dbg_decl, 26, 22,
+                                                             dbg_decl, nullptr);
   EXPECT_EQ(dbg_decl->NextNode()->opcode(), SpvOpReturn);
 
   // DebugValue should be added because result id '20' is used for DebugDeclare.
-  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 20, 22, dbg_decl);
+  ctx->get_debug_info_mgr()->AddDebugValueIfVarDeclIsVisible(dbg_decl, 20, 22,
+                                                             dbg_decl, nullptr);
   EXPECT_EQ(dbg_decl->NextNode()->GetOpenCL100DebugOpcode(),
             OpenCLDebugInfo100DebugValue);
 
@@ -1087,13 +1154,15 @@ OpFunctionEnd)";
 
   // No DebugValue should be added because result id '20' is not used for
   // DebugDeclare.
-  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 20, 7, dbg_decl);
+  ctx->get_debug_info_mgr()->AddDebugValueIfVarDeclIsVisible(dbg_decl, 20, 7,
+                                                             dbg_decl, nullptr);
   Instruction* dbg_value = dbg_decl->NextNode();
   EXPECT_EQ(dbg_value->GetOpenCL100DebugOpcode(), OpenCLDebugInfo100DebugValue);
   EXPECT_EQ(dbg_value->GetSingleWordOperand(kDebugValueOperandValueIndex), 22);
 
   // DebugValue should be added because result id '26' is used for DebugDeclare.
-  ctx->get_debug_info_mgr()->AddDebugValue(dbg_decl, 26, 7, dbg_decl);
+  ctx->get_debug_info_mgr()->AddDebugValueIfVarDeclIsVisible(dbg_decl, 26, 7,
+                                                             dbg_decl, nullptr);
   dbg_value = dbg_decl->NextNode();
   EXPECT_EQ(dbg_value->GetOpenCL100DebugOpcode(), OpenCLDebugInfo100DebugValue);
   EXPECT_EQ(dbg_value->GetSingleWordOperand(kDebugValueOperandValueIndex), 7);

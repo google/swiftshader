@@ -105,5 +105,10 @@ bool TransformationAddNoContractionDecoration::IsArithmetic(uint32_t opcode) {
   }
 }
 
+std::unordered_set<uint32_t>
+TransformationAddNoContractionDecoration::GetFreshIds() const {
+  return std::unordered_set<uint32_t>();
+}
+
 }  // namespace fuzz
 }  // namespace spvtools

@@ -38,6 +38,34 @@ bool TransformationAddTypeInt::IsApplicable(
     return false;
   }
 
+  // Checks integer type width capabilities.
+  switch (message_.width()) {
+    case 8:
+      // The Int8 capability must be present.
+      if (!ir_context->get_feature_mgr()->HasCapability(SpvCapabilityInt8)) {
+        return false;
+      }
+      break;
+    case 16:
+      // The Int16 capability must be present.
+      if (!ir_context->get_feature_mgr()->HasCapability(SpvCapabilityInt16)) {
+        return false;
+      }
+      break;
+    case 32:
+      // No capabilities needed.
+      break;
+    case 64:
+      // The Int64 capability must be present.
+      if (!ir_context->get_feature_mgr()->HasCapability(SpvCapabilityInt64)) {
+        return false;
+      }
+      break;
+    default:
+      assert(false && "Unexpected integer type width");
+      return false;
+  }
+
   // Applicable if there is no int type with this width and signedness already
   // declared in the module.
   return fuzzerutil::MaybeGetIntegerType(ir_context, message_.width(),
@@ -58,6 +86,10 @@ protobufs::Transformation TransformationAddTypeInt::ToMessage() const {
   protobufs::Transformation result;
   *result.mutable_add_type_int() = message_;
   return result;
+}
+
+std::unordered_set<uint32_t> TransformationAddTypeInt::GetFreshIds() const {
+  return {message_.fresh_id()};
 }
 
 }  // namespace fuzz

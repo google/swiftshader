@@ -3377,7 +3377,7 @@ OpBranch %18
 %18 = OpLabel
 
 ; CHECK: DebugScope [[bb3]]
-; CHECK-NOT: OpLine {{%\w+}} 3 0
+; CHECK: OpLine {{%\w+}} 3 0
 ; CHECK: DebugValue [[dbg_foo]] [[value]]
 ; CHECK: OpLine {{%\w+}} 4 0
 ; CHECK: OpStore %gl_FragColor [[value]]

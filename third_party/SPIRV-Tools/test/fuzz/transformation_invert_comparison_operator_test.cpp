@@ -14,6 +14,8 @@
 
 #include "source/fuzz/transformation_invert_comparison_operator.h"
 
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -57,13 +59,11 @@ TEST(TransformationInvertComparisonOperatorTest, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Operator id is not valid.
   ASSERT_FALSE(TransformationInvertComparisonOperator(23, 23).IsApplicable(
       context.get(), transformation_context));
@@ -82,7 +82,8 @@ TEST(TransformationInvertComparisonOperatorTest, BasicTest) {
                                                           fresh_id);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
   }
 
   std::string expected = R"(

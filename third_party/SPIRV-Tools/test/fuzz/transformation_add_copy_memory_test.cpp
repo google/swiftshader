@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include "source/fuzz/transformation_add_copy_memory.h"
+
+#include "gtest/gtest.h"
+#include "source/fuzz/fuzzer_util.h"
 #include "source/fuzz/instruction_descriptor.h"
 #include "test/fuzz/fuzz_test_util.h"
 
@@ -79,6 +82,7 @@ TEST(TransformationAddCopyMemoryTest, BasicTest) {
                OpSelectionMerge %29 None
                OpBranchConditional %27 %28 %31
          %28 = OpLabel
+         %89 = OpCopyObject %18 %19
                OpBranch %29
          %31 = OpLabel
                OpBranch %29
@@ -137,99 +141,97 @@ TEST(TransformationAddCopyMemoryTest, BasicTest) {
   const auto env = SPV_ENV_UNIVERSAL_1_3;
   const auto consumer = nullptr;
   const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
-  ASSERT_TRUE(IsValid(env, context.get()));
-
-  FactManager fact_manager;
   spvtools::ValidatorOptions validator_options;
-  TransformationContext transformation_context(&fact_manager,
-                                               validator_options);
-
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
   // Target id is not fresh (59).
   ASSERT_FALSE(TransformationAddCopyMemory(
                    MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 59, 19,
                    SpvStorageClassPrivate, 20)
                    .IsApplicable(context.get(), transformation_context));
 
-  // Instruction descriptor is invalid (id 89 is undefined).
+  // Instruction descriptor is invalid (id 90 is undefined).
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(89, SpvOpVariable, 0), 89, 19,
+                   MakeInstructionDescriptor(90, SpvOpVariable, 0), 90, 19,
                    SpvStorageClassPrivate, 20)
                    .IsApplicable(context.get(), transformation_context));
 
   // Cannot insert OpCopyMemory before OpPhi.
   ASSERT_FALSE(
       TransformationAddCopyMemory(MakeInstructionDescriptor(75, SpvOpPhi, 0),
-                                  89, 19, SpvStorageClassPrivate, 20)
+                                  90, 19, SpvStorageClassPrivate, 20)
           .IsApplicable(context.get(), transformation_context));
 
   // Source instruction is invalid.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 89, 76,
+                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 90, 76,
                    SpvStorageClassPrivate, 0)
                    .IsApplicable(context.get(), transformation_context));
 
   // Source instruction's type doesn't exist.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 89, 5,
+                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 90, 5,
                    SpvStorageClassPrivate, 0)
                    .IsApplicable(context.get(), transformation_context));
 
   // Source instruction's type is invalid.
   ASSERT_FALSE(
       TransformationAddCopyMemory(MakeInstructionDescriptor(41, SpvOpLoad, 0),
-                                  89, 40, SpvStorageClassPrivate, 0)
+                                  90, 40, SpvStorageClassPrivate, 0)
           .IsApplicable(context.get(), transformation_context));
 
   // Source instruction is OpUndef.
   ASSERT_FALSE(
       TransformationAddCopyMemory(MakeInstructionDescriptor(41, SpvOpLoad, 0),
-                                  89, 87, SpvStorageClassPrivate, 0)
+                                  90, 87, SpvStorageClassPrivate, 0)
           .IsApplicable(context.get(), transformation_context));
 
   // Source instruction is OpConstantNull.
   ASSERT_FALSE(
       TransformationAddCopyMemory(MakeInstructionDescriptor(41, SpvOpLoad, 0),
-                                  89, 88, SpvStorageClassPrivate, 0)
+                                  90, 88, SpvStorageClassPrivate, 0)
           .IsApplicable(context.get(), transformation_context));
 
   // Storage class is invalid.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 89, 19,
+                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 90, 19,
                    SpvStorageClassWorkgroup, 20)
                    .IsApplicable(context.get(), transformation_context));
 
   // Initializer is 0.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 89, 19,
+                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 90, 19,
                    SpvStorageClassPrivate, 0)
                    .IsApplicable(context.get(), transformation_context));
 
   // Initializer has wrong type.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 89, 19,
+                   MakeInstructionDescriptor(27, SpvOpFunctionCall, 0), 90, 19,
                    SpvStorageClassPrivate, 25)
                    .IsApplicable(context.get(), transformation_context));
 
   // Source and target instructions are in different functions.
   ASSERT_FALSE(
       TransformationAddCopyMemory(MakeInstructionDescriptor(13, SpvOpLoad, 0),
-                                  89, 19, SpvStorageClassPrivate, 20)
+                                  90, 19, SpvStorageClassPrivate, 20)
           .IsApplicable(context.get(), transformation_context));
 
   // Source instruction doesn't dominate the target instruction.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(77, SpvOpLogicalEqual, 0), 89, 19,
+                   MakeInstructionDescriptor(77, SpvOpLogicalEqual, 0), 90, 89,
                    SpvStorageClassPrivate, 20)
                    .IsApplicable(context.get(), transformation_context));
 
   // Source and target instructions are the same.
   ASSERT_FALSE(TransformationAddCopyMemory(
-                   MakeInstructionDescriptor(19, SpvOpVariable, 0), 89, 19,
+                   MakeInstructionDescriptor(19, SpvOpVariable, 0), 90, 19,
                    SpvStorageClassPrivate, 20)
                    .IsApplicable(context.get(), transformation_context));
 
   // Correct transformations.
-  uint32_t fresh_id = 89;
+  uint32_t fresh_id = 90;
   auto descriptor = MakeInstructionDescriptor(27, SpvOpFunctionCall, 0);
   std::vector<uint32_t> source_ids = {19, 23, 26, 30, 35, 39, 68, 86};
   std::vector<uint32_t> initializers = {20, 24, 25, 25, 36, 84, 85, 20};
@@ -241,9 +243,13 @@ TEST(TransformationAddCopyMemoryTest, BasicTest) {
         storage_classes[i % storage_classes.size()], initializers[i]);
     ASSERT_TRUE(
         transformation.IsApplicable(context.get(), transformation_context));
-    transformation.Apply(context.get(), &transformation_context);
-    ASSERT_TRUE(IsValid(env, context.get()));
-    ASSERT_TRUE(fact_manager.PointeeValueIsIrrelevant(fresh_id));
+    ApplyAndCheckFreshIds(transformation, context.get(),
+                          &transformation_context);
+    ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(
+        context.get(), validator_options, kConsoleMessageConsumer));
+    ASSERT_TRUE(
+        transformation_context.GetFactManager()->PointeeValueIsIrrelevant(
+            fresh_id));
     fresh_id++;
   }
 
@@ -289,16 +295,16 @@ TEST(TransformationAddCopyMemoryTest, BasicTest) {
          %86 = OpVariable %79 Private %20
          %87 = OpUndef %79
          %88 = OpConstantNull %79
-         %89 = OpVariable %79 Private %20
-         %91 = OpVariable %78 Private %25
-         %93 = OpVariable %81 Private %36
-         %95 = OpVariable %83 Private %85
+         %90 = OpVariable %79 Private %20
+         %92 = OpVariable %78 Private %25
+         %94 = OpVariable %81 Private %36
+         %96 = OpVariable %83 Private %85
           %4 = OpFunction %2 None %3
           %5 = OpLabel
-         %96 = OpVariable %18 Function %20
-         %94 = OpVariable %38 Function %84
-         %92 = OpVariable %7 Function %25
-         %90 = OpVariable %22 Function %24
+         %97 = OpVariable %18 Function %20
+         %95 = OpVariable %38 Function %84
+         %93 = OpVariable %7 Function %25
+         %91 = OpVariable %22 Function %24
          %19 = OpVariable %18 Function
          %23 = OpVariable %22 Function
          %26 = OpVariable %7 Function
@@ -309,18 +315,19 @@ TEST(TransformationAddCopyMemoryTest, BasicTest) {
                OpStore %19 %20
                OpStore %23 %24
                OpStore %26 %25
-               OpCopyMemory %89 %19
-               OpCopyMemory %90 %23
-               OpCopyMemory %91 %26
-               OpCopyMemory %92 %30
-               OpCopyMemory %93 %35
-               OpCopyMemory %94 %39
-               OpCopyMemory %95 %68
-               OpCopyMemory %96 %86
+               OpCopyMemory %90 %19
+               OpCopyMemory %91 %23
+               OpCopyMemory %92 %26
+               OpCopyMemory %93 %30
+               OpCopyMemory %94 %35
+               OpCopyMemory %95 %39
+               OpCopyMemory %96 %68
+               OpCopyMemory %97 %86
          %27 = OpFunctionCall %6 %10 %26
                OpSelectionMerge %29 None
                OpBranchConditional %27 %28 %31
          %28 = OpLabel
+         %89 = OpCopyObject %18 %19
                OpBranch %29
          %31 = OpLabel
                OpBranch %29
@@ -377,6 +384,98 @@ TEST(TransformationAddCopyMemoryTest, BasicTest) {
   )";
 
   ASSERT_TRUE(IsEqual(env, expected, context.get()));
+}
+
+TEST(TransformationAddCopyMemoryTest, DisallowBufferBlockDecoration) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %4 "main"
+               OpExecutionMode %4 LocalSize 1 1 1
+               OpSource ESSL 320
+               OpName %4 "main"
+               OpName %7 "buf"
+               OpMemberName %7 0 "a"
+               OpMemberName %7 1 "b"
+               OpName %9 ""
+               OpMemberDecorate %7 0 Offset 0
+               OpMemberDecorate %7 1 Offset 4
+               OpDecorate %7 BufferBlock
+               OpDecorate %9 DescriptorSet 0
+               OpDecorate %9 Binding 0
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+         %10 = OpConstant %6 42
+          %7 = OpTypeStruct %6 %6
+          %8 = OpTypePointer Uniform %7
+          %9 = OpVariable %8 Uniform
+         %50 = OpUndef %7
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_0;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  ASSERT_FALSE(
+      TransformationAddCopyMemory(MakeInstructionDescriptor(5, SpvOpReturn, 0),
+                                  100, 9, SpvStorageClassPrivate, 50)
+          .IsApplicable(context.get(), transformation_context));
+}
+
+TEST(TransformationAddCopyMemoryTest, DisallowBlockDecoration) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %4 "main" %9
+               OpExecutionMode %4 LocalSize 1 1 1
+               OpSource ESSL 320
+               OpName %4 "main"
+               OpName %7 "buf"
+               OpMemberName %7 0 "a"
+               OpMemberName %7 1 "b"
+               OpName %9 ""
+               OpMemberDecorate %7 0 Offset 0
+               OpMemberDecorate %7 1 Offset 4
+               OpDecorate %7 Block
+               OpDecorate %9 DescriptorSet 0
+               OpDecorate %9 Binding 0
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeInt 32 1
+         %10 = OpConstant %6 42
+          %7 = OpTypeStruct %6 %6
+          %8 = OpTypePointer StorageBuffer %7
+          %9 = OpVariable %8 StorageBuffer
+         %50 = OpUndef %7
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_5;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+  ASSERT_FALSE(
+      TransformationAddCopyMemory(MakeInstructionDescriptor(5, SpvOpReturn, 0),
+                                  100, 9, SpvStorageClassPrivate, 50)
+          .IsApplicable(context.get(), transformation_context));
 }
 
 }  // namespace

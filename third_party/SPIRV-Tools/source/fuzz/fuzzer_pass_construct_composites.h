@@ -15,10 +15,10 @@
 #ifndef SOURCE_FUZZ_FUZZER_PASS_CONSTRUCT_COMPOSITES_H_
 #define SOURCE_FUZZ_FUZZER_PASS_CONSTRUCT_COMPOSITES_H_
 
-#include "source/fuzz/fuzzer_pass.h"
-
 #include <map>
 #include <vector>
+
+#include "source/fuzz/fuzzer_pass.h"
 
 namespace spvtools {
 namespace fuzz {

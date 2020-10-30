@@ -60,7 +60,7 @@ void FuzzerPassApplyIdSynonyms::Apply() {
           }
         });
 
-    for (auto& use : uses) {
+    for (const auto& use : uses) {
       auto use_inst = use.first;
       auto use_index = use.second;
       auto block_containing_use = GetIRContext()->get_instr_block(use_inst);
@@ -76,13 +76,14 @@ void FuzzerPassApplyIdSynonyms::Apply() {
       // the index of the operand restricted to input operands only.
       uint32_t use_in_operand_index =
           fuzzerutil::InOperandIndexFromOperandIndex(*use_inst, use_index);
-      if (!TransformationReplaceIdWithSynonym::UseCanBeReplacedWithSynonym(
-              GetIRContext(), use_inst, use_in_operand_index)) {
+      if (!fuzzerutil::IdUseCanBeReplaced(GetIRContext(),
+                                          *GetTransformationContext(), use_inst,
+                                          use_in_operand_index)) {
         continue;
       }
 
       std::vector<const protobufs::DataDescriptor*> synonyms_to_try;
-      for (auto& data_descriptor :
+      for (const auto* data_descriptor :
            GetTransformationContext()->GetFactManager()->GetSynonymsForId(
                id_with_known_synonyms)) {
         protobufs::DataDescriptor descriptor_for_this_id =
@@ -91,7 +92,12 @@ void FuzzerPassApplyIdSynonyms::Apply() {
           // Exclude the fact that the id is synonymous with itself.
           continue;
         }
-        synonyms_to_try.push_back(data_descriptor);
+
+        if (DataDescriptorsHaveCompatibleTypes(
+                use_inst->opcode(), use_in_operand_index,
+                descriptor_for_this_id, *data_descriptor)) {
+          synonyms_to_try.push_back(data_descriptor);
+        }
       }
       while (!synonyms_to_try.empty()) {
         auto synonym_to_try =
@@ -142,6 +148,15 @@ void FuzzerPassApplyIdSynonyms::Apply() {
                                                : parent_block->terminator();
           }
 
+          if (GetTransformationContext()->GetFactManager()->BlockIsDead(
+                  GetIRContext()
+                      ->get_instr_block(instruction_to_insert_before)
+                      ->id())) {
+            // We cannot create a synonym via a composite extraction in a dead
+            // block, as the resulting id is irrelevant.
+            continue;
+          }
+
           assert(!GetTransformationContext()->GetFactManager()->IdIsIrrelevant(
                      synonym_to_try->object()) &&
                  "Irrelevant ids can't participate in DataSynonym facts");
@@ -150,6 +165,11 @@ void FuzzerPassApplyIdSynonyms::Apply() {
                                         instruction_to_insert_before),
               id_with_which_to_replace_use, synonym_to_try->object(),
               fuzzerutil::RepeatedFieldToVector(synonym_to_try->index())));
+          assert(GetTransformationContext()->GetFactManager()->IsSynonymous(
+                     MakeDataDescriptor(id_with_which_to_replace_use, {}),
+                     *synonym_to_try) &&
+                 "The extracted id must be synonymous with the component from "
+                 "which it was extracted.");
         }
 
         ApplyTransformation(TransformationReplaceIdWithSynonym(
@@ -160,6 +180,27 @@ void FuzzerPassApplyIdSynonyms::Apply() {
       }
     }
   }
+}
+
+bool FuzzerPassApplyIdSynonyms::DataDescriptorsHaveCompatibleTypes(
+    SpvOp opcode, uint32_t use_in_operand_index,
+    const protobufs::DataDescriptor& dd1,
+    const protobufs::DataDescriptor& dd2) {
+  auto base_object_type_id_1 =
+      fuzzerutil::GetTypeId(GetIRContext(), dd1.object());
+  auto base_object_type_id_2 =
+      fuzzerutil::GetTypeId(GetIRContext(), dd2.object());
+  assert(base_object_type_id_1 && base_object_type_id_2 &&
+         "Data descriptors are invalid");
+
+  auto type_id_1 = fuzzerutil::WalkCompositeTypeIndices(
+      GetIRContext(), base_object_type_id_1, dd1.index());
+  auto type_id_2 = fuzzerutil::WalkCompositeTypeIndices(
+      GetIRContext(), base_object_type_id_2, dd2.index());
+  assert(type_id_1 && type_id_2 && "Data descriptors have invalid types");
+
+  return TransformationReplaceIdWithSynonym::TypesAreCompatible(
+      GetIRContext(), opcode, use_in_operand_index, type_id_1, type_id_2);
 }
 
 }  // namespace fuzz

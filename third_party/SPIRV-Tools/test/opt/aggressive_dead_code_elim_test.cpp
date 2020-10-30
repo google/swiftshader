@@ -7525,6 +7525,62 @@ TEST_F(AggressiveDCETest, DebugInfoElimUnusedTextureKeepGlobalVariable) {
   SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
 }
 
+TEST_F(AggressiveDCETest, KeepDebugScopeParent) {
+  // Verify that local variable tc and its store are kept by DebugDeclare.
+  //
+  // Same shader source as DebugInfoInFunctionKeepStoreVarElim. The SPIR-V
+  // has just been inlined.
+
+  const std::string text = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "OpenCL.DebugInfo.100"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %out_var_SV_TARGET0
+               OpExecutionMode %main OriginUpperLeft
+         %11 = OpString "float"
+         %16 = OpString "t.hlsl"
+         %19 = OpString "src.main"
+               OpName %out_var_SV_TARGET0 "out.var.SV_TARGET0"
+               OpName %main "main"
+               OpDecorate %out_var_SV_TARGET0 Location 0
+      %float = OpTypeFloat 32
+    %float_0 = OpConstant %float 0
+    %v4float = OpTypeVector %float 4
+          %7 = OpConstantComposite %v4float %float_0 %float_0 %float_0 %float_0
+       %uint = OpTypeInt 32 0
+    %uint_32 = OpConstant %uint 32
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %void = OpTypeVoid
+         %23 = OpTypeFunction %void
+         %26 = OpTypeFunction %v4float
+%out_var_SV_TARGET0 = OpVariable %_ptr_Output_v4float Output
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+         %33 = OpExtInst %void %1 DebugInfoNone
+         %13 = OpExtInst %void %1 DebugTypeBasic %11 %uint_32 Float
+         %14 = OpExtInst %void %1 DebugTypeVector %13 4
+         %15 = OpExtInst %void %1 DebugTypeFunction FlagIsProtected|FlagIsPrivate %14
+         %17 = OpExtInst %void %1 DebugSource %16
+         %18 = OpExtInst %void %1 DebugCompilationUnit 1 4 %17 HLSL
+         %20 = OpExtInst %void %1 DebugFunction %19 %15 %17 1 1 %18 %19 FlagIsProtected|FlagIsPrivate 2 %33
+         %22 = OpExtInst %void %1 DebugLexicalBlock %17 2 1 %20
+       %main = OpFunction %void None %23
+         %24 = OpLabel
+         %31 = OpVariable %_ptr_Function_v4float Function
+; CHECK: [[block:%\w+]] = OpExtInst %void %1 DebugLexicalBlock
+; CHECK: DebugScope [[block]]
+         %34 = OpExtInst %void %1 DebugScope %22
+               OpLine %16 3 5
+               OpStore %31 %7
+               OpStore %out_var_SV_TARGET0 %7
+         %35 = OpExtInst %void %1 DebugNoScope
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+  SinglePassRunAndMatch<AggressiveDCEPass>(text, true);
+}
+
 // TODO(greg-lunarg): Add tests to verify handling of these cases:
 //
 //    Check that logical addressing required

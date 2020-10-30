@@ -38,6 +38,8 @@ class TransformationAddConstantComposite : public Transformation {
   // - |message_.type_id| must be the id of a composite type
   // - |message_.constituent_id| must refer to ids that match the constituent
   //   types of this composite type
+  // - If |message_.type_id| is a struct type, it must not have the Block or
+  //   BufferBlock decoration
   bool IsApplicable(
       opt::IRContext* ir_context,
       const TransformationContext& transformation_context) const override;
@@ -49,6 +51,8 @@ class TransformationAddConstantComposite : public Transformation {
   //   true.
   void Apply(opt::IRContext* ir_context,
              TransformationContext* transformation_context) const override;
+
+  std::unordered_set<uint32_t> GetFreshIds() const override;
 
   protobufs::Transformation ToMessage() const override;
 

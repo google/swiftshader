@@ -318,5 +318,10 @@ TransformationReplaceBooleanConstantWithConstantBinary::ToMessage() const {
   return result;
 }
 
+std::unordered_set<uint32_t>
+TransformationReplaceBooleanConstantWithConstantBinary::GetFreshIds() const {
+  return {message_.fresh_id_for_binary_operation()};
+}
+
 }  // namespace fuzz
 }  // namespace spvtools

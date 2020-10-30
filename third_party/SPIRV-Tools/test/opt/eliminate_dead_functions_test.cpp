@@ -344,6 +344,101 @@ OpFunctionEnd
   SinglePassRunAndMatch<EliminateDeadFunctionsPass>(text, false);
 }
 
+TEST_F(EliminateDeadFunctionsBasicTest, NonSemanticInfoPersists) {
+  const std::string text = R"(
+; CHECK: [[import:%\w+]] = OpExtInstImport
+; CHECK: [[void:%\w+]] = OpTypeVoid
+; CHECK-NOT: OpExtInst [[void]] [[import]] 1
+; CHECK: OpExtInst [[void]] [[import]] 2
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%ext = OpExtInstImport "NonSemantic.Test"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 1 1 1
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+%foo = OpFunction %void None %void_fn
+%foo_entry = OpLabel
+%non_semantic1 = OpExtInst %void %ext 1
+OpReturn
+OpFunctionEnd
+%non_semantic2 = OpExtInst %void %ext 2
+)";
+
+  SinglePassRunAndMatch<EliminateDeadFunctionsPass>(text, true);
+}
+
+TEST_F(EliminateDeadFunctionsBasicTest, NonSemanticInfoRemoveDependent) {
+  const std::string text = R"(
+; CHECK: [[import:%\w+]] = OpExtInstImport
+; CHECK: [[void:%\w+]] = OpTypeVoid
+; CHECK-NOT: OpExtInst [[void]] [[import]] 1
+; CHECK-NOT: OpExtInst [[void]] [[import]] 2
+; CHECK: OpExtInst [[void]] [[import]] 3
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%ext = OpExtInstImport "NonSemantic.Test"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 1 1 1
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+%foo = OpFunction %void None %void_fn
+%foo_entry = OpLabel
+%non_semantic1 = OpExtInst %void %ext 1
+OpReturn
+OpFunctionEnd
+%non_semantic2 = OpExtInst %void %ext 2 %foo
+%non_semantic3 = OpExtInst %void %ext 3 
+)";
+
+  SinglePassRunAndMatch<EliminateDeadFunctionsPass>(text, true);
+}
+
+TEST_F(EliminateDeadFunctionsBasicTest, NonSemanticInfoRemoveDependentTree) {
+  const std::string text = R"(
+; CHECK: [[import:%\w+]] = OpExtInstImport
+; CHECK: [[void:%\w+]] = OpTypeVoid
+; CHECK-NOT: OpExtInst [[void]] [[import]] 1
+; CHECK-NOT: OpExtInst [[void]] [[import]] 2
+; CHECK: OpExtInst [[void]] [[import]] 3
+; CHECK-NOT: OpExtInst [[void]] [[import]] 4
+; CHECK-NOT: OpExtInst [[void]] [[import]] 5
+OpCapability Shader
+OpExtension "SPV_KHR_non_semantic_info"
+%ext = OpExtInstImport "NonSemantic.Test"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 1 1 1
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%main = OpFunction %void None %void_fn
+%entry = OpLabel
+OpReturn
+OpFunctionEnd
+%foo = OpFunction %void None %void_fn
+%foo_entry = OpLabel
+%non_semantic1 = OpExtInst %void %ext 1
+OpReturn
+OpFunctionEnd
+%non_semantic2 = OpExtInst %void %ext 2 %foo
+%non_semantic3 = OpExtInst %void %ext 3 
+%non_semantic4 = OpExtInst %void %ext 4 %non_semantic2
+%non_semantic5 = OpExtInst %void %ext 5 %non_semantic4
+)";
+
+  SinglePassRunAndMatch<EliminateDeadFunctionsPass>(text, true);
+}
+
 }  // namespace
 }  // namespace opt
 }  // namespace spvtools
