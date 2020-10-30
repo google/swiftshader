@@ -3503,8 +3503,8 @@ enum
 	IFELSE_NUM__
 };
 
-#define If(cond)                                                        \
-	for(IfElseData ifElse__(cond); ifElse__ < IFELSE_NUM__; ++ifElse__) \
+#define If(cond)                                                          \
+	for(IfElseData ifElse__{ cond }; ifElse__ < IFELSE_NUM__; ++ifElse__) \
 		if(ifElse__ == IF_BLOCK__)
 
 #define Else                           \
