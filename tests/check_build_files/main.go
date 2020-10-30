@@ -63,7 +63,7 @@ func run() error {
 		}
 
 		switch rel {
-		case ".git", "cache", "build", "out":
+		case ".git", "cache", "build", "out", "third_party":
 			return filepath.SkipDir
 		}
 
