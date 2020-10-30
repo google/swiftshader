@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a4b36be_ad545f5b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-30T09:13:35Z",
+      "side": 1,
+      "message": "Looks like we\u0027ll have to address b/171873846 soon.",
+      "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
