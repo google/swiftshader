@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c84123a7_20f6f688",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-30T13:44:22Z",
+      "side": 1,
+      "message": "Sorry the Kokoro build logs aren\u0027t public. We have an old bug to fix that (ironically also not public: b/144135734) but haven\u0027t gotten around to it yet. Anyway, in this case it looks like some packages failed to update. I\u0027ll rebase this change to kick off a new set of test runs.",
+      "revId": "2954abe70f2b7687c991c8e8b2e0dfb477b7e5f7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
