@@ -88,6 +88,7 @@ enum OperandClass {
     OperandRayQueryIntersection,
     OperandRayQueryCommittedIntersectionType,
     OperandRayQueryCandidateIntersectionType,
+    OperandFragmentShadingRate,
 
     OperandOpcode,
 

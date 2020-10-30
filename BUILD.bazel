@@ -71,6 +71,46 @@ filegroup(
     srcs = ["include/spirv/spir-v.xml"],
 )
 
+filegroup(
+    name = "spirv_ext_inst_debuginfo_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.debuginfo.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_nonsemantic_clspvreflection_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.nonsemantic.clspvreflection.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_nonsemantic_debugprintf_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.nonsemantic.debugprintf.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_opencl_debuginfo_100_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_spv_amd_gcn_shader_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.spv-amd-gcn-shader.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_spv_amd_shader_ballot_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.spv-amd-shader-ballot.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_spv_amd_shader_explicit_vertex_parameter_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json"],
+)
+
+filegroup(
+    name = "spirv_ext_inst_spv_amd_shader_trinary_minmax_grammar_unified1",
+    srcs = ["include/spirv/unified1/extinst.spv-amd-shader-trinary-minmax.grammar.json"],
+)
+
 cc_library(
     name = "spirv_common_headers",
     hdrs = [
@@ -81,6 +121,7 @@ cc_library(
         "include/spirv/1.2/GLSL.std.450.h",
         "include/spirv/1.2/OpenCL.std.h",
         "include/spirv/unified1/GLSL.std.450.h",
+        "include/spirv/unified1/NonSemanticClspvReflection.h",
         "include/spirv/unified1/NonSemanticDebugPrintf.h",
         "include/spirv/unified1/OpenCL.std.h",
     ],
