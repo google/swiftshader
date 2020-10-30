@@ -51,6 +51,24 @@
       "parentUuid": "b646520b_614bc516",
       "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5f4bf7a4_09a9c826",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-30T13:34:57Z",
+      "side": 1,
+      "message": "Regres does a full checkout of this revision, so I don\u0027t think that should give us any issues (in contrast, Chromium bots try to cherry-pick this and the parent change, which fails to take the subtree prefix into account). Anyway, indeed the successful Kokoro builds and previous Regres issue might mean this is safe. We can patch it up later, or revert, if it does cause issues.",
+      "parentUuid": "48185c8d_a6c7f80d",
+      "revId": "fd4ad841fe107b0d39aca7bf55f4930af562d203",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
