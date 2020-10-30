@@ -84,6 +84,10 @@ function run_check_build_files() {
   go run ${TESTS_DIR}/check_build_files/main.go --root="${ROOT_DIR}"
 }
 
+function run_scan_sources() {
+  python3 ${TESTS_DIR}/scan_sources/main.py ${SRC_DIR}
+}
+
 # Ensure we are clean to start out with.
 check "git workspace must be clean" true
 
@@ -101,6 +105,9 @@ check gofmt run_gofmt
 
 # Check build files.
 check "build files don't reference non-existent files" run_check_build_files
+
+# Check source files.
+check scan_sources run_scan_sources
 
 echo
 echo "${green}All check completed successfully.${normal}"
