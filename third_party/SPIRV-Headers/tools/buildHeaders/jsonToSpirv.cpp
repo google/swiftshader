@@ -81,6 +81,7 @@ EnumValues RayFlagsParams;
 EnumValues RayQueryIntersectionParams;
 EnumValues RayQueryCommittedIntersectionTypeParams;
 EnumValues RayQueryCandidateIntersectionTypeParams;
+EnumValues FragmentShadingRateParams;
 
 std::pair<bool, std::string> ReadFile(const std::string& path)
 {
@@ -215,6 +216,8 @@ ClassOptionality ToOperandClassAndOptionality(const std::string& operandKind, co
             type = OperandRayQueryCommittedIntersectionType;
         } else if (operandKind == "RayQueryCandidateIntersectionType") {
             type = OperandRayQueryCandidateIntersectionType;
+        } else if (operandKind == "FragmentShadingRate") {
+            type = OperandFragmentShadingRate;
         }
 
         if (type == OperandNone) {
@@ -483,6 +486,8 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
             establishOperandClass(enumName, OperandRayQueryCommittedIntersectionType, &RayQueryCommittedIntersectionTypeParams, operandEnum, category);
         } else if (enumName == "RayQueryCandidateIntersectionType") {
             establishOperandClass(enumName, OperandRayQueryCandidateIntersectionType, &RayQueryCandidateIntersectionTypeParams, operandEnum, category);
+        } else if (enumName == "FragmentShadingRate") {
+            establishOperandClass(enumName, OperandFragmentShadingRate, &FragmentShadingRateParams, operandEnum, category);
         }
     }
 }
