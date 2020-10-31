@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc5d5576_59d31487",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-10-31T00:33:46Z",
+      "side": 1,
+      "message": "Kokoro issue will be fixed by https://swiftshader-review.googlesource.com/c/SwiftShader/+/49768",
+      "revId": "b3b29237904fc5492167a59105bffdb1bf313eff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
