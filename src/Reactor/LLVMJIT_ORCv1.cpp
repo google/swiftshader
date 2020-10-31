@@ -205,13 +205,13 @@ llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 {
 	switch(level)
 	{
-		case rr::Optimization::Level::None: return ::llvm::CodeGenOpt::None;
-		case rr::Optimization::Level::Less: return ::llvm::CodeGenOpt::Less;
-		case rr::Optimization::Level::Default: return ::llvm::CodeGenOpt::Default;
-		case rr::Optimization::Level::Aggressive: return ::llvm::CodeGenOpt::Aggressive;
+		case rr::Optimization::Level::None: return llvm::CodeGenOpt::None;
+		case rr::Optimization::Level::Less: return llvm::CodeGenOpt::Less;
+		case rr::Optimization::Level::Default: return llvm::CodeGenOpt::Default;
+		case rr::Optimization::Level::Aggressive: return llvm::CodeGenOpt::Aggressive;
 		default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
-	return ::llvm::CodeGenOpt::Default;
+	return llvm::CodeGenOpt::Default;
 }
 
 JITGlobals::JITGlobals(const char *mcpu,
