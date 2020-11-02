@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4cb036c4_32041666",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 25
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-02T14:18:40Z",
+      "side": 1,
+      "message": "Filed b/172212963 for the dEQP-VK.spirv_assembly.instruction.compute.function_control.* failures, and updated b/170296391 for the graphicsfuzz test fixes. LLVM and Subzero results agree, so we should land this as-is.",
+      "revId": "b8c4c4aa326b68d36d0a723ee093dbc8d20c622e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
