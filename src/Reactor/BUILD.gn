@@ -329,7 +329,7 @@ if (supports_llvm) {
 
     sources = [
       "CPUID.cpp",
-      "LLVMJIT_ORCv1.cpp",  # TODO(b/171897980): Upgrade to ORCv2
+      "LLVMJIT.cpp",
       "LLVMReactor.cpp",
     ]
 
