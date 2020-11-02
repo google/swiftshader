@@ -597,6 +597,7 @@ JITBuilder::JITBuilder(const rr::Config &config)
     , module(new llvm::Module("", context))
     , builder(new llvm::IRBuilder<>(context))
 {
+	module->setTargetTriple(LLVM_DEFAULT_TARGET_TRIPLE);
 	module->setDataLayout(JITGlobals::get()->getDataLayout());
 }
 
