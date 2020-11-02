@@ -753,6 +753,14 @@ Optimizer::PassToken CreateAggressiveDCEPass() {
       MakeUnique<opt::AggressiveDCEPass>());
 }
 
+Optimizer::PassToken CreatePropagateLineInfoPass() {
+  return MakeUnique<Optimizer::PassToken::Impl>(MakeUnique<opt::EmptyPass>());
+}
+
+Optimizer::PassToken CreateRedundantLineInfoElimPass() {
+  return MakeUnique<Optimizer::PassToken::Impl>(MakeUnique<opt::EmptyPass>());
+}
+
 Optimizer::PassToken CreateCompactIdsPass() {
   return MakeUnique<Optimizer::PassToken::Impl>(
       MakeUnique<opt::CompactIdsPass>());
