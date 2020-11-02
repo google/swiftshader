@@ -194,7 +194,7 @@ cc_defaults {
         "Reactor/Debug.cpp",
         "Reactor/EmulatedIntrinsics.cpp",
         "Reactor/ExecutableMemory.cpp",
-        "Reactor/LLVMJIT_ORCv1.cpp",  // TODO(b/171897980): Upgrade to ORCv2
+        "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/OptimalIntrinsics.cpp",
         "Reactor/Reactor.cpp",
@@ -226,7 +226,7 @@ cc_defaults {
         "Reactor/Debug.cpp",
         "Reactor/EmulatedIntrinsics.cpp",
         "Reactor/ExecutableMemory.cpp",
-        "Reactor/LLVMJIT_ORCv1.cpp",  // TODO(b/171897980): Upgrade to ORCv2
+        "Reactor/LLVMJIT.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/OptimalIntrinsics.cpp",
         "Reactor/Reactor.cpp",
