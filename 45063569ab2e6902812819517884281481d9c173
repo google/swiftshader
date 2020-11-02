@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "20cee5cd_a4badb57",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 969,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-02T16:57:28Z",
+      "side": 1,
+      "message": "It\u0027s a \"function-like macro\", which evaluates to either 0 or 1, so it can be used in other preprocessor directives or C++ constructs. Note Kokoro and tryjobs are fine with it.",
+      "parentUuid": "6ecbfd1e_85d39537",
+      "revId": "45063569ab2e6902812819517884281481d9c173",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b3b74e7a_0cda1798",
@@ -31,6 +49,24 @@
       "writtenOn": "2020-11-02T16:04:58Z",
       "side": 1,
       "message": "Perhaps add a TODO to remove this once llvm does support instrumenting masked_gather? Also, have you opened a bug for this on the LLVM project?",
+      "revId": "45063569ab2e6902812819517884281481d9c173",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9a2a04e_8375159e",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1134,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-02T16:57:28Z",
+      "side": 1,
+      "message": "Done. TODO(b/172238865)",
+      "parentUuid": "b3b74e7a_0cda1798",
       "revId": "45063569ab2e6902812819517884281481d9c173",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
