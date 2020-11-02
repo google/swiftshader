@@ -29,6 +29,7 @@ __pragma(warning(push))
 #include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
@@ -65,13 +66,14 @@ public:
 
 	llvm::orc::JITTargetMachineBuilder getTargetMachineBuilder(rr::Optimization::Level optLevel) const;
 	const llvm::DataLayout &getDataLayout() const;
-	const llvm::Triple getTargetTriple() const;
+	const llvm::Triple &getTargetTriple() const;
 
 private:
-	JITGlobals(const llvm::orc::JITTargetMachineBuilder &jtmb, const llvm::DataLayout &dataLayout);
+	JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuilder, llvm::DataLayout &&dataLayout);
 
 	static llvm::CodeGenOpt::Level toLLVM(rr::Optimization::Level level);
-	const llvm::orc::JITTargetMachineBuilder jtmb;
+
+	const llvm::orc::JITTargetMachineBuilder jitTargetMachineBuilder;
 	const llvm::DataLayout dataLayout;
 };
 
@@ -82,19 +84,47 @@ JITGlobals *JITGlobals::get()
 		llvm::InitializeNativeTargetAsmPrinter();
 		llvm::InitializeNativeTargetAsmParser();
 
-		auto jtmb = llvm::orc::JITTargetMachineBuilder::detectHost();
-		ASSERT_MSG(jtmb, "JITTargetMachineBuilder::detectHost() failed");
-		auto dataLayout = jtmb->getDefaultDataLayoutForTarget();
+		// TODO(b/171236524): JITTargetMachineBuilder::detectHost() currently uses the target triple of the host,
+		// rather than a valid triple for the current process. Once fixed, we can use that function instead.
+		llvm::orc::JITTargetMachineBuilder jitTargetMachineBuilder(llvm::Triple(LLVM_DEFAULT_TARGET_TRIPLE));
+
+		// Retrieve host CPU name and sub-target features and add them to builder.
+		// Relocation model, code model and codegen opt level are kept to default values.
+		llvm::StringMap<bool> cpuFeatures;
+		bool ok = llvm::sys::getHostCPUFeatures(cpuFeatures);
+
+#if defined(__i386__) || defined(__x86_64__) || \
+    (defined(__linux__) && (defined(__arm__) || defined(__aarch64__)))
+		ASSERT_MSG(ok, "llvm::sys::getHostCPUFeatures returned false");
+#else
+		(void)ok;  // getHostCPUFeatures always returns false on other platforms
+#endif
+
+		for(auto &feature : cpuFeatures)
+		{
+			jitTargetMachineBuilder.getFeatures().AddFeature(feature.first(), feature.second);
+		}
+
+#if LLVM_VERSION_MAJOR >= 11 /* TODO(b/165000222): Unconditional after LLVM 11 upgrade */
+		jitTargetMachineBuilder.setCPU(std::string(llvm::sys::getHostCPUName()));
+#else
+		jitTargetMachineBuilder.setCPU(llvm::sys::getHostCPUName());
+#endif
+
+		auto dataLayout = jitTargetMachineBuilder.getDefaultDataLayoutForTarget();
 		ASSERT_MSG(dataLayout, "JITTargetMachineBuilder::getDefaultDataLayoutForTarget() failed");
-		return JITGlobals(jtmb.get(), dataLayout.get());
+
+		return JITGlobals(std::move(jitTargetMachineBuilder), std::move(dataLayout.get()));
 	}();
+
 	return &instance;
 }
 
 llvm::orc::JITTargetMachineBuilder JITGlobals::getTargetMachineBuilder(rr::Optimization::Level optLevel) const
 {
-	llvm::orc::JITTargetMachineBuilder out = jtmb;
+	llvm::orc::JITTargetMachineBuilder out = jitTargetMachineBuilder;
 	out.setCodeGenOptLevel(toLLVM(optLevel));
+
 	return out;
 }
 
@@ -103,13 +133,13 @@ const llvm::DataLayout &JITGlobals::getDataLayout() const
 	return dataLayout;
 }
 
-const llvm::Triple JITGlobals::getTargetTriple() const
+const llvm::Triple &JITGlobals::getTargetTriple() const
 {
-	return jtmb.getTargetTriple();
+	return jitTargetMachineBuilder.getTargetTriple();
 }
 
-JITGlobals::JITGlobals(const llvm::orc::JITTargetMachineBuilder &jtmb, const llvm::DataLayout &dataLayout)
-    : jtmb(jtmb)
+JITGlobals::JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuilder, llvm::DataLayout &&dataLayout)
+    : jitTargetMachineBuilder(jitTargetMachineBuilder)
     , dataLayout(dataLayout)
 {
 }
@@ -529,8 +559,8 @@ public:
 	    size_t count,
 	    const rr::Config &config)
 	    : objectLayer(session, []() {
-		    static MemoryMapper mm;
-		    return std::make_unique<llvm::SectionMemoryManager>(&mm);
+		    static MemoryMapper memoryMapper;
+		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
 	    })
 	    , compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())))
 	    , mangle(session, JITGlobals::get()->getDataLayout())
