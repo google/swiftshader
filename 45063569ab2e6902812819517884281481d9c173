@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6ecbfd1e_85d39537",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 969,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-02T16:04:58Z",
+      "side": 1,
+      "message": "How come we can use __has_feature() as a function now? Is this supported on all compilers?",
+      "revId": "45063569ab2e6902812819517884281481d9c173",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3b74e7a_0cda1798",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1134,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-02T16:04:58Z",
+      "side": 1,
+      "message": "Perhaps add a TODO to remove this once llvm does support instrumenting masked_gather? Also, have you opened a bug for this on the LLVM project?",
+      "revId": "45063569ab2e6902812819517884281481d9c173",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
