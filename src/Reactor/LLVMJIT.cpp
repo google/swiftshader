@@ -44,12 +44,14 @@ __pragma(warning(push))
 extern "C" void _chkstk();
 #endif
 
-#if __has_feature(memory_sanitizer)
-#	include <sanitizer/msan_interface.h>
-#endif
-
 #ifdef __ARM_EABI__
 extern "C" signed __aeabi_idivmod();
+#endif
+
+#if __has_feature(memory_sanitizer)
+#	include "sanitizer/msan_interface.h"  // TODO(b/155148722): Remove when we no longer unpoison all writes.
+
+#	include <dlfcn.h>  // dlsym()
 #endif
 
 namespace {
@@ -320,6 +322,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 		return sync_fetch_and_op(ptr, val, [](uint32_t a, uint32_t b) { return std::min(a, b); });
 	}
 #endif
+
 	class Resolver
 	{
 	public:
@@ -412,7 +415,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			functions.try_emplace("sync_fetch_and_umin_4", reinterpret_cast<void *>(sync_fetch_and_umin_4));
 #endif
 #if __has_feature(memory_sanitizer)
-			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
+			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));  // TODO(b/155148722): Remove when we no longer unpoison all writes.
 #endif
 		}
 	};
@@ -448,22 +451,41 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 				symbols[name] = llvm::JITEvaluatedSymbol(
 				    static_cast<llvm::JITTargetAddress>(reinterpret_cast<uintptr_t>(it->second)),
 				    llvm::JITSymbolFlags::Exported);
+
+				continue;
 			}
-#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-			else
+
+#if __has_feature(memory_sanitizer)
+			// MemorySanitizer uses a dynamically linked runtime. Instrumented routines reference
+			// some symbols from this library. Look them up dynamically in the default namespace.
+			// Note this approach should not be used for other symbols, since they might not be
+			// visible (e.g. due to static linking), we may wish to provide an alternate
+			// implementation, and/or it would be a security vulnerability.
+
+			void *address = dlsym(RTLD_DEFAULT, (*symbol.first).data());
+
+			if(address)
 			{
-				missing += (missing.empty() ? "'" : ", '") + (*name).str() + "'";
+				symbols[name] = llvm::JITEvaluatedSymbol(
+				    static_cast<llvm::JITTargetAddress>(reinterpret_cast<uintptr_t>(address)),
+				    llvm::JITSymbolFlags::Exported);
+
+				continue;
 			}
-#endif  // !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#endif
+
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+			missing += (missing.empty() ? "'" : ", '") + (*name).str() + "'";
+#endif
 		}
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-		// Missing functions will likely make the module fail in exciting non-obvious ways.
+		// Missing functions will likely make the module fail in non-obvious ways.
 		if(!missing.empty())
 		{
 			WARN("Missing external functions: %s", missing.c_str());
 		}
-#endif  // !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#endif
 
 		if(symbols.empty())
 		{
