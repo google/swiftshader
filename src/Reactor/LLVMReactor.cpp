@@ -490,6 +490,11 @@ static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const
 	auto func = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, name, jit->module.get());
 	func->setDoesNotThrow();
 	func->setCallingConv(llvm::CallingConv::C);
+	if(__has_feature(memory_sanitizer))
+	{
+		func->addFnAttr(llvm::Attribute::SanitizeMemory);
+	}
+
 	return func;
 }
 

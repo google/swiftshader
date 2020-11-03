@@ -166,6 +166,10 @@ set_property(CACHE SWIFTSHADER_LLVM_VERSION PROPERTY STRINGS "10.0")
 set(REACTOR_DEFAULT_OPT_LEVEL "Default" CACHE STRING "Reactor default optimization level")
 set_property(CACHE REACTOR_DEFAULT_OPT_LEVEL PROPERTY STRINGS "None" "Less" "Default" "Aggressive")
 
+# Enable instrumentation of Reactor routines for MemorySanitizer builds (LLVM backend).
+# TODO(b/155148722): Remove when unconditionally instrumenting for all build systems.
+set(REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION TRUE)
+
 if(NOT DEFINED SWIFTSHADER_LOGGING_LEVEL)
     set(SWIFTSHADER_LOGGING_LEVEL "Info" CACHE STRING "SwiftShader logging level")
     set_property(CACHE SWIFTSHADER_LOGGING_LEVEL PROPERTY STRINGS "Verbose" "Debug" "Info" "Warn" "Error" "Fatal" "Disabled")
@@ -511,7 +515,6 @@ else()
 
     if(SWIFTSHADER_MSAN)
         if(NOT DEFINED ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH})
-
             message(FATAL_ERROR " \n"
                     " MemorySanitizer usage requires an instrumented build of libc++.\n"
                     " Set the SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH environment variable to the\n"

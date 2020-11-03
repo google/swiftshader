@@ -688,6 +688,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Instrumentation/PGOInstrumentation.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/PGOMemOPSizeOpt.cpp
     ${LLVM_DIR}/lib/Transforms/Instrumentation/ValueProfileCollector.cpp
+    ${LLVM_DIR}/lib/Transforms/Instrumentation/MemorySanitizer.cpp
     ${LLVM_DIR}/lib/Transforms/IPO/ArgumentPromotion.cpp
     ${LLVM_DIR}/lib/Transforms/IPO/Attributor.cpp
     ${LLVM_DIR}/lib/Transforms/IPO/BarrierNoopPass.cpp

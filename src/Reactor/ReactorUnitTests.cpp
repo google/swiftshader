@@ -93,8 +93,24 @@ TEST(ReactorUnitTests, Uninitialized)
 
 	auto routine = function("one");
 
-	int result = routine();
-	EXPECT_EQ(result, result);  // Anything is fine, just don't crash
+	if(!__has_feature(memory_sanitizer) || !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
+	{
+		int result = routine();
+		EXPECT_EQ(result, result);  // Anything is fine, just don't crash
+	}
+	else
+	{
+		// Optimizations may turn the conditional If() in the Reactor code
+		// into a conditional move or arithmetic operations, which would not
+		// trigger a MemorySanitizer error. However, in that case the equals
+		// operator below should trigger it before the abort is reached.
+		EXPECT_DEATH(
+		    {
+			    int result = routine();
+			    if(result == 0) abort();
+		    },
+		    "MemorySanitizer: use-of-uninitialized-value");
+	}
 }
 
 TEST(ReactorUnitTests, Unreachable)

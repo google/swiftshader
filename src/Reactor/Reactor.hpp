@@ -52,6 +52,18 @@ int DebugPrintf(const char *format, ...);
 }
 #endif
 
+// A Clang extension to determine compiler features.
+// We use it to detect Sanitizer builds (e.g. -fsanitize=memory).
+#ifndef __has_feature
+#	define __has_feature(x) 0
+#endif
+
+// Whether Reactor routine instrumentation is enabled for MSan builds.
+// TODO(b/155148722): Remove when unconditionally instrumenting for all build systems.
+#if !defined REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
+#	define REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION 0
+#endif
+
 namespace rr {
 
 std::string BackendName();
