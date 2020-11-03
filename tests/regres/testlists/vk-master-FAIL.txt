@@ -1,6 +1,4 @@
 dEQP-VK.dynamic_state.rs_state.depth_bias_clamp
-dEQP-VK.graphicsfuzz.spv-composite-phi
-dEQP-VK.graphicsfuzz.spv-null-in-phi-and-unroll
 dEQP-VK.graphicsfuzz.stable-rects-vec4-clamp-conditional-min-mix
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_nearest_repeat

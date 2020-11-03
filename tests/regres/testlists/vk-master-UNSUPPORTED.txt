@@ -20,3 +20,7 @@ dEQP-VK.pipeline.multisample.variable_rate.4_1_fb_4_unused
 dEQP-VK.pipeline.multisample.variable_rate.4_4_1
 dEQP-VK.pipeline.multisample_shader_builtin.write_sample_mask.1_samples
 dEQP-VK.pipeline.multisample_shader_builtin.write_sample_mask.4_samples
+dEQP-VK.spirv_assembly.instruction.compute.function_control.const_dont_inline
+dEQP-VK.spirv_assembly.instruction.compute.function_control.dont_inline
+dEQP-VK.spirv_assembly.instruction.compute.function_control.inline_dont_inline
+dEQP-VK.spirv_assembly.instruction.compute.function_control.pure_inline_dont_inline
