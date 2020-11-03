@@ -13,7 +13,11 @@
 #define LLVM_ABI_BREAKING_CHECKS_H
 
 /* Define to enable checks that alter the LLVM C++ ABI */
+#if defined(NDEBUG)
+#define LLVM_ENABLE_ABI_BREAKING_CHECKS 0
+#else
 #define LLVM_ENABLE_ABI_BREAKING_CHECKS 1
+#endif
 
 /* Define to disable the link-time checking of mismatch for
    LLVM_ENABLE_ABI_BREAKING_CHECKS */
