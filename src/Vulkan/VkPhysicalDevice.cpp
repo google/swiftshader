@@ -271,7 +271,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	features->vulkanMemoryModelAvailabilityVisibilityChains = VK_FALSE;
 	features->shaderOutputViewportIndex = VK_FALSE;
 	features->shaderOutputLayer = VK_FALSE;
-	features->subgroupBroadcastDynamicId = VK_FALSE;
+	features->subgroupBroadcastDynamicId = VK_TRUE;
 }
 
 void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const

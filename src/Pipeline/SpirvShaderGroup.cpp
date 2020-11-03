@@ -139,12 +139,39 @@ SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, Emit
 		case spv::OpGroupNonUniformBroadcast:
 		{
 			auto valueId = Object::ID(insn.word(4));
-			auto id = SIMD::Int(GetConstScalarInt(insn.word(5)));
+			auto idId = Object::ID(insn.word(5));
 			Operand value(this, state, valueId);
-			auto mask = CmpEQ(id, SIMD::Int(0, 1, 2, 3));
-			for(auto i = 0u; i < type.componentCount; i++)
+
+			// Decide between the fast path for constants and the slow path for
+			// intermediates.
+			if(getObject(idId).kind == SpirvShader::Object::Kind::Constant)
 			{
-				dst.move(i, OrAll(value.Int(i) & mask));
+				auto id = SIMD::Int(GetConstScalarInt(insn.word(5)));
+				auto mask = CmpEQ(id, SIMD::Int(0, 1, 2, 3));
+				for(auto i = 0u; i < type.componentCount; i++)
+				{
+					dst.move(i, OrAll(value.Int(i) & mask));
+				}
+			}
+			else
+			{
+				Operand id(this, state, idId);
+
+				SIMD::UInt active = As<SIMD::UInt>(state->activeLaneMask());  // Considers helper invocations active. See b/151137030
+				SIMD::UInt inactive = ~active;
+				SIMD::UInt filled = id.UInt(0) & active;
+
+				for(int j = 0; j < SIMD::Width - 1; j++)
+				{
+					filled |= filled.yzwx & inactive;  // Populate inactive 'holes' with a live value
+				}
+
+				auto mask = CmpEQ(filled, SIMD::UInt(0, 1, 2, 3));
+
+				for(uint32_t i = 0u; i < type.componentCount; i++)
+				{
+					dst.move(i, OrAll(value.UInt(i) & mask));
+				}
 			}
 			break;
 		}
