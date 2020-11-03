@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <limits>
 #include <tuple>
-#include <unordered_set>
+#include <unordered_map>
 
 #ifdef ENABLE_RR_DEBUG_INFO
 // Functions used for generating JIT debug info.
@@ -132,9 +132,23 @@ private:
 
 	virtual Value *allocate() const;
 
+	// Set of variables that do not have a stack location yet.
+	class UnmaterializedVariables
+	{
+	public:
+		void add(const Variable *v);
+		void remove(const Variable *v);
+		void clear();
+		void materializeAll();
+
+	private:
+		int counter = 0;
+		std::unordered_map<const Variable *, int> variables;
+	};
+
 	// This has to be a raw pointer because glibc 2.17 doesn't support __cxa_thread_atexit_impl
 	// for destructing objects at exit. See crbug.com/1074222
-	static thread_local std::unordered_set<const Variable *> *unmaterializedVariables;
+	static thread_local UnmaterializedVariables *unmaterializedVariables;
 
 	mutable Value *rvalue = nullptr;
 	mutable Value *address = nullptr;

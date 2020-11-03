@@ -504,7 +504,7 @@ Nucleus::Nucleus()
 #endif
 
 	jit = new JITBuilder(Nucleus::getDefaultConfig());
-	Variable::unmaterializedVariables = new std::unordered_set<const Variable *>();
+	Variable::unmaterializedVariables = new Variable::UnmaterializedVariables{};
 }
 
 Nucleus::~Nucleus()

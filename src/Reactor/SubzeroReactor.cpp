@@ -909,7 +909,7 @@ Nucleus::Nucleus()
 	// instrumented, leading to false-positive unitialized variable errors.
 	ASSERT(Variable::unmaterializedVariables == nullptr);
 #endif
-	Variable::unmaterializedVariables = new std::unordered_set<const Variable *>();
+	Variable::unmaterializedVariables = new Variable::UnmaterializedVariables{};
 }
 
 Nucleus::~Nucleus()
