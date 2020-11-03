@@ -54,7 +54,11 @@ extern "C" signed __aeabi_idivmod();
 #endif
 
 #if __has_feature(memory_sanitizer)
-#	include "sanitizer/msan_interface.h"  // TODO(b/155148722): Remove when we no longer unpoison all writes.
+
+// TODO(b/155148722): Remove when we no longer unpoison all writes.
+#	if !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
+#		include "sanitizer/msan_interface.h"
+#	endif
 
 #	include <dlfcn.h>  // dlsym()
 
@@ -540,7 +544,11 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 #	endif
 #endif
 #if __has_feature(memory_sanitizer)
-			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));  // TODO(b/155148722): Remove when we no longer unpoison all writes.
+
+// TODO(b/155148722): Remove when we no longer unpoison all writes.
+#	if !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
+			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));
+#	endif
 
 			functions.try_emplace("emutls_get_address", reinterpret_cast<void *>(rr::getTLSAddress));
 			functions.try_emplace("emutls_v.__msan_retval_tls", reinterpret_cast<void *>(static_cast<uintptr_t>(rr::MSanTLS::retval)));

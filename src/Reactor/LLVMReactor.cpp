@@ -985,7 +985,7 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 			auto elTy = T(type);
 			ASSERT(V(ptr)->getType()->getContainedType(0) == elTy);
 
-			if(__has_feature(memory_sanitizer))
+			if(__has_feature(memory_sanitizer) && !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
 			{
 				// Mark all memory writes as initialized by calling __msan_unpoison
 				// void __msan_unpoison(const volatile void *a, size_t size)
@@ -1091,7 +1091,7 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::masked_store, { elVecTy, elVecPtrTy });
 	jit->builder->CreateCall(func, { V(val), V(ptr), align, i1Mask });
 
-	if(__has_feature(memory_sanitizer))
+	if(__has_feature(memory_sanitizer) && !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
 	{
 		// Mark memory writes as initialized by calling __msan_unpoison
 		// void __msan_unpoison(const volatile void *a, size_t size)
