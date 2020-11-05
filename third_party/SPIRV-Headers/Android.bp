@@ -30,6 +30,41 @@ filegroup {
 }
 
 filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.debuginfo.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.debuginfo.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.opencl.debuginfo.100.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.spv-amd-gcn-shader.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.spv-amd-gcn-shader.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.spv-amd-shader-ballot.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.spv-amd-shader-ballot.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.spv-amd-shader-trinary-minmax.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.spv-amd-shader-trinary-minmax.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv_headers_unified1_extinst.nonsemantic.clspvreflection.grammar.json",
+    srcs: ["include/spirv/unified1/extinst.nonsemantic.clspvreflection.grammar.json"],
+}
+
+filegroup {
     name: "swiftshader_spirv_headers_spir-v.xml",
     srcs: ["include/spirv/spir-v.xml"],
 }
