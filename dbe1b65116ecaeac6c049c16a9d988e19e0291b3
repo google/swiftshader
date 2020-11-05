@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "04e39933_7d620572",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-05T15:39:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f57635ef_23315e91",
+      "revId": "dbe1b65116ecaeac6c049c16a9d988e19e0291b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "94bd3bd2_ab85d78c",
@@ -55,6 +73,30 @@
       "side": 1,
       "message": "If we materializeAll(), then these Variable instances will no longer be in `variables`, so we don\u0027t want to assert.\n\nAlso, the previous code did `unmaterializedVariables-\u003eerase(this);` which on a std::set does nothing if it\u0027s already removed for the same reason.",
       "parentUuid": "94bd3bd2_ab85d78c",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 28
+      },
+      "revId": "dbe1b65116ecaeac6c049c16a9d988e19e0291b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0051e7b5_a9dc2787",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-05T15:39:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f56a68c8_c347bce9",
       "range": {
         "startLine": 77,
         "startChar": 1,
