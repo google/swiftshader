@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b585abd_1cf59c91",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-05T16:06:55Z",
+      "side": 1,
+      "message": "FYI, AFAIK, only the bots containing \"tot-swiftshader\" will actually apply this cl before testing",
+      "revId": "7c1dd9e9555fe3c431078d97704e2906ea4a2ff5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
