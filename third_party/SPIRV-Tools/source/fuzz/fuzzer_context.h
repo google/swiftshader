@@ -104,240 +104,271 @@ class FuzzerContext {
   // Returns a vector of |count| fresh ids.
   std::vector<uint32_t> GetFreshIds(const uint32_t count);
 
+  // A suggested limit on the id bound for the module being fuzzed.  This is
+  // useful for deciding when to stop the overall fuzzing process.  Furthermore,
+  // fuzzer passes that run the risk of spiralling out of control can
+  // periodically check this limit and terminate early if it has been reached.
+  uint32_t GetIdBoundLimit() const;
+
+  // A suggested limit on the number of transformations that should be applied.
+  // Also useful to control the overall fuzzing process and rein in individual
+  // fuzzer passes.
+  uint32_t GetTransformationLimit() const;
+
   // Probabilities associated with applying various transformations.
   // Keep them in alphabetical order.
-  uint32_t GetChanceOfAcceptingRepeatedPassRecommendation() {
+  uint32_t GetChanceOfAcceptingRepeatedPassRecommendation() const {
     return chance_of_accepting_repeated_pass_recommendation_;
   }
-  uint32_t GetChanceOfAddingAccessChain() {
+  uint32_t GetChanceOfAddingAccessChain() const {
     return chance_of_adding_access_chain_;
   }
-  uint32_t GetChanceOfAddingAnotherPassToPassLoop() {
+  uint32_t GetChanceOfAddingAnotherPassToPassLoop() const {
     return chance_of_adding_another_pass_to_pass_loop_;
   }
-  uint32_t GetChanceOfAddingAnotherStructField() {
+  uint32_t GetChanceOfAddingAnotherStructField() const {
     return chance_of_adding_another_struct_field_;
   }
-  uint32_t GetChanceOfAddingArrayOrStructType() {
+  uint32_t GetChanceOfAddingArrayOrStructType() const {
     return chance_of_adding_array_or_struct_type_;
   }
-  uint32_t GetChanceOfAddingBitInstructionSynonym() {
+  uint32_t GetChanceOfAddingBitInstructionSynonym() const {
     return chance_of_adding_bit_instruction_synonym_;
   }
-  uint32_t GetChanceOfAddingBothBranchesWhenReplacingOpSelect() {
+  uint32_t GetChanceOfAddingBothBranchesWhenReplacingOpSelect() const {
     return chance_of_adding_both_branches_when_replacing_opselect_;
   }
-  uint32_t GetChanceOfAddingCompositeExtract() {
+  uint32_t GetChanceOfAddingCompositeExtract() const {
     return chance_of_adding_composite_extract_;
   }
-  uint32_t GetChanceOfAddingCompositeInsert() {
+  uint32_t GetChanceOfAddingCompositeInsert() const {
     return chance_of_adding_composite_insert_;
   }
-  uint32_t GetChanceOfAddingCopyMemory() {
+  uint32_t GetChanceOfAddingCopyMemory() const {
     return chance_of_adding_copy_memory_;
   }
-  uint32_t GetChanceOfAddingDeadBlock() { return chance_of_adding_dead_block_; }
-  uint32_t GetChanceOfAddingDeadBreak() { return chance_of_adding_dead_break_; }
-  uint32_t GetChanceOfAddingDeadContinue() {
+  uint32_t GetChanceOfAddingDeadBlock() const {
+    return chance_of_adding_dead_block_;
+  }
+  uint32_t GetChanceOfAddingDeadBreak() const {
+    return chance_of_adding_dead_break_;
+  }
+  uint32_t GetChanceOfAddingDeadContinue() const {
     return chance_of_adding_dead_continue_;
   }
-  uint32_t GetChanceOfAddingEquationInstruction() {
+  uint32_t GetChanceOfAddingEquationInstruction() const {
     return chance_of_adding_equation_instruction_;
   }
-  uint32_t GetChanceOfAddingGlobalVariable() {
+  uint32_t GetChanceOfAddingGlobalVariable() const {
     return chance_of_adding_global_variable_;
   }
-  uint32_t GetChanceOfAddingImageSampleUnusedComponents() {
+  uint32_t GetChanceOfAddingImageSampleUnusedComponents() const {
     return chance_of_adding_image_sample_unused_components_;
   }
-  uint32_t GetChanceOfAddingLoad() { return chance_of_adding_load_; }
-  uint32_t GetChanceOfAddingLocalVariable() {
+  uint32_t GetChanceOfAddingLoad() const { return chance_of_adding_load_; }
+  uint32_t GetChanceOfAddingLocalVariable() const {
     return chance_of_adding_local_variable_;
   }
-  uint32_t GetChanceOfAddingLoopPreheader() {
+  uint32_t GetChanceOfAddingLoopPreheader() const {
     return chance_of_adding_loop_preheader_;
   }
-  uint32_t GetChanceOfAddingMatrixType() {
+  uint32_t GetChanceOfAddingMatrixType() const {
     return chance_of_adding_matrix_type_;
   }
-  uint32_t GetChanceOfAddingNoContractionDecoration() {
+  uint32_t GetChanceOfAddingNoContractionDecoration() const {
     return chance_of_adding_no_contraction_decoration_;
   }
-  uint32_t GetChanceOfAddingOpPhiSynonym() {
+  uint32_t GetChanceOfAddingOpPhiSynonym() const {
     return chance_of_adding_opphi_synonym_;
   }
-  uint32_t GetChanceOfAddingParameters() { return chance_of_adding_parameters; }
-  uint32_t GetChanceOfAddingRelaxedDecoration() {
+  uint32_t GetChanceOfAddingParameters() const {
+    return chance_of_adding_parameters;
+  }
+  uint32_t GetChanceOfAddingRelaxedDecoration() const {
     return chance_of_adding_relaxed_decoration_;
   }
-  uint32_t GetChanceOfAddingStore() { return chance_of_adding_store_; }
-  uint32_t GetChanceOfAddingSynonyms() { return chance_of_adding_synonyms_; }
-  uint32_t GetChanceOfAddingTrueBranchWhenReplacingOpSelect() {
+  uint32_t GetChanceOfAddingStore() const { return chance_of_adding_store_; }
+  uint32_t GetChanceOfAddingSynonyms() const {
+    return chance_of_adding_synonyms_;
+  }
+  uint32_t GetChanceOfAddingTrueBranchWhenReplacingOpSelect() const {
     return chance_of_adding_true_branch_when_replacing_opselect_;
   }
-  uint32_t GetChanceOfAddingVectorShuffle() {
+  uint32_t GetChanceOfAddingVectorShuffle() const {
     return chance_of_adding_vector_shuffle_;
   }
-  uint32_t GetChanceOfAddingVectorType() {
+  uint32_t GetChanceOfAddingVectorType() const {
     return chance_of_adding_vector_type_;
   }
-  uint32_t GetChanceOfAdjustingBranchWeights() {
+  uint32_t GetChanceOfAdjustingBranchWeights() const {
     return chance_of_adjusting_branch_weights_;
   }
-  uint32_t GetChanceOfAdjustingFunctionControl() {
+  uint32_t GetChanceOfAdjustingFunctionControl() const {
     return chance_of_adjusting_function_control_;
   }
-  uint32_t GetChanceOfAdjustingLoopControl() {
+  uint32_t GetChanceOfAdjustingLoopControl() const {
     return chance_of_adjusting_loop_control_;
   }
-  uint32_t GetChanceOfAdjustingMemoryOperandsMask() {
+  uint32_t GetChanceOfAdjustingMemoryOperandsMask() const {
     return chance_of_adjusting_memory_operands_mask_;
   }
-  uint32_t GetChanceOfAdjustingSelectionControl() {
+  uint32_t GetChanceOfAdjustingSelectionControl() const {
     return chance_of_adjusting_selection_control_;
   }
-  uint32_t GetChanceOfCallingFunction() { return chance_of_calling_function_; }
-  uint32_t GetChanceOfChoosingStructTypeVsArrayType() {
+  uint32_t GetChanceOfCallingFunction() const {
+    return chance_of_calling_function_;
+  }
+  uint32_t GetChanceOfChoosingStructTypeVsArrayType() const {
     return chance_of_choosing_struct_type_vs_array_type_;
   }
-  uint32_t GetChanceOfChoosingWorkgroupStorageClass() {
+  uint32_t GetChanceOfChoosingWorkgroupStorageClass() const {
     return chance_of_choosing_workgroup_storage_class_;
   }
-  uint32_t GetChanceOfConstructingComposite() {
+  uint32_t GetChanceOfConstructingComposite() const {
     return chance_of_constructing_composite_;
   }
-  uint32_t GetChanceOfCopyingObject() { return chance_of_copying_object_; }
-  uint32_t GetChanceOfCreatingIntSynonymsUsingLoops() {
+  uint32_t GetChanceOfCopyingObject() const {
+    return chance_of_copying_object_;
+  }
+  uint32_t GetChanceOfCreatingIntSynonymsUsingLoops() const {
     return chance_of_creating_int_synonyms_using_loops_;
   }
-  uint32_t GetChanceOfDonatingAdditionalModule() {
+  uint32_t GetChanceOfDonatingAdditionalModule() const {
     return chance_of_donating_additional_module_;
   }
-  uint32_t GetChanceOfDuplicatingRegionWithSelection() {
+  uint32_t GetChanceOfDuplicatingRegionWithSelection() const {
     return chance_of_duplicating_region_with_selection_;
   }
-  uint32_t GetChanceOfExpandingVectorReduction() {
+  uint32_t GetChanceOfExpandingVectorReduction() const {
     return chance_of_expanding_vector_reduction_;
   }
-  uint32_t GetChanceOfFlatteningConditionalBranch() {
+  uint32_t GetChanceOfFlatteningConditionalBranch() const {
     return chance_of_flattening_conditional_branch_;
   }
-  uint32_t GetChanceOfGoingDeeperToExtractComposite() {
+  uint32_t GetChanceOfGoingDeeperToExtractComposite() const {
     return chance_of_going_deeper_to_extract_composite_;
   }
-  uint32_t GetChanceOfGoingDeeperToInsertInComposite() {
+  uint32_t GetChanceOfGoingDeeperToInsertInComposite() const {
     return chance_of_going_deeper_to_insert_in_composite_;
   }
-  uint32_t GetChanceOfGoingDeeperWhenMakingAccessChain() {
+  uint32_t GetChanceOfGoingDeeperWhenMakingAccessChain() const {
     return chance_of_going_deeper_when_making_access_chain_;
   }
-  uint32_t GetChanceOfHavingTwoBlocksInLoopToCreateIntSynonym() {
+  uint32_t GetChanceOfHavingTwoBlocksInLoopToCreateIntSynonym() const {
     return chance_of_having_two_blocks_in_loop_to_create_int_synonym_;
   }
-  uint32_t GetChanceOfInliningFunction() {
+  uint32_t GetChanceOfInliningFunction() const {
     return chance_of_inlining_function_;
   }
-  uint32_t GetChanceOfInterchangingSignednessOfIntegerOperands() {
+  uint32_t GetChanceOfInterchangingSignednessOfIntegerOperands() const {
     return chance_of_interchanging_signedness_of_integer_operands_;
   }
-  uint32_t GetChanceOfInterchangingZeroLikeConstants() {
+  uint32_t GetChanceOfInterchangingZeroLikeConstants() const {
     return chance_of_interchanging_zero_like_constants_;
   }
-  uint32_t GetChanceOfInvertingComparisonOperators() {
+  uint32_t GetChanceOfInvertingComparisonOperators() const {
     return chance_of_inverting_comparison_operators_;
   }
-  uint32_t ChanceOfMakingDonorLivesafe() {
+  uint32_t ChanceOfMakingDonorLivesafe() const {
     return chance_of_making_donor_livesafe_;
   }
-  uint32_t GetChanceOfMakingVectorOperationDynamic() {
+  uint32_t GetChanceOfMakingVectorOperationDynamic() const {
     return chance_of_making_vector_operation_dynamic_;
   }
-  uint32_t GetChanceOfMergingBlocks() { return chance_of_merging_blocks_; }
-  uint32_t GetChanceOfMergingFunctionReturns() {
+  uint32_t GetChanceOfMergingBlocks() const {
+    return chance_of_merging_blocks_;
+  }
+  uint32_t GetChanceOfMergingFunctionReturns() const {
     return chance_of_merging_function_returns_;
   }
-  uint32_t GetChanceOfMovingBlockDown() { return chance_of_moving_block_down_; }
-  uint32_t GetChanceOfMutatingPointer() { return chance_of_mutating_pointer_; }
-  uint32_t GetChanceOfObfuscatingConstant() {
+  uint32_t GetChanceOfMovingBlockDown() const {
+    return chance_of_moving_block_down_;
+  }
+  uint32_t GetChanceOfMutatingPointer() const {
+    return chance_of_mutating_pointer_;
+  }
+  uint32_t GetChanceOfObfuscatingConstant() const {
     return chance_of_obfuscating_constant_;
   }
-  uint32_t GetChanceOfOutliningFunction() {
+  uint32_t GetChanceOfOutliningFunction() const {
     return chance_of_outlining_function_;
   }
-  uint32_t GetChanceOfPermutingInstructions() {
+  uint32_t GetChanceOfPermutingInstructions() const {
     return chance_of_permuting_instructions_;
   }
-  uint32_t GetChanceOfPermutingParameters() {
+  uint32_t GetChanceOfPermutingParameters() const {
     return chance_of_permuting_parameters_;
   }
-  uint32_t GetChanceOfPermutingPhiOperands() {
+  uint32_t GetChanceOfPermutingPhiOperands() const {
     return chance_of_permuting_phi_operands_;
   }
-  uint32_t GetChanceOfPropagatingInstructionsDown() {
+  uint32_t GetChanceOfPropagatingInstructionsDown() const {
     return chance_of_propagating_instructions_down_;
   }
-  uint32_t GetChanceOfPropagatingInstructionsUp() {
+  uint32_t GetChanceOfPropagatingInstructionsUp() const {
     return chance_of_propagating_instructions_up_;
   }
-  uint32_t GetChanceOfPushingIdThroughVariable() {
+  uint32_t GetChanceOfPushingIdThroughVariable() const {
     return chance_of_pushing_id_through_variable_;
   }
-  uint32_t GetChanceOfReplacingAddSubMulWithCarryingExtended() {
+  uint32_t GetChanceOfReplacingAddSubMulWithCarryingExtended() const {
     return chance_of_replacing_add_sub_mul_with_carrying_extended_;
   }
-  uint32_t GetChanceOfReplacingBranchFromDeadBlockWithExit() {
+  uint32_t GetChanceOfReplacingBranchFromDeadBlockWithExit() const {
     return chance_of_replacing_branch_from_dead_block_with_exit_;
   }
-  uint32_t GetChanceOfReplacingCopyMemoryWithLoadStore() {
+  uint32_t GetChanceOfReplacingCopyMemoryWithLoadStore() const {
     return chance_of_replacing_copy_memory_with_load_store_;
   }
-  uint32_t GetChanceOfReplacingCopyObjectWithStoreLoad() {
+  uint32_t GetChanceOfReplacingCopyObjectWithStoreLoad() const {
     return chance_of_replacing_copyobject_with_store_load_;
   }
-  uint32_t GetChanceOfReplacingIdWithSynonym() {
+  uint32_t GetChanceOfReplacingIdWithSynonym() const {
     return chance_of_replacing_id_with_synonym_;
   }
-  uint32_t GetChanceOfReplacingIrrelevantId() {
+  uint32_t GetChanceOfReplacingIrrelevantId() const {
     return chance_of_replacing_irrelevant_id_;
   }
-  uint32_t GetChanceOfReplacingLinearAlgebraInstructions() {
+  uint32_t GetChanceOfReplacingLinearAlgebraInstructions() const {
     return chance_of_replacing_linear_algebra_instructions_;
   }
-  uint32_t GetChanceOfReplacingLoadStoreWithCopyMemory() {
+  uint32_t GetChanceOfReplacingLoadStoreWithCopyMemory() const {
     return chance_of_replacing_load_store_with_copy_memory_;
   }
-  uint32_t GetChanceOfReplacingOpPhiIdFromDeadPredecessor() {
+  uint32_t GetChanceOfReplacingOpPhiIdFromDeadPredecessor() const {
     return chance_of_replacing_opphi_id_from_dead_predecessor_;
   }
-  uint32_t GetChanceOfReplacingOpselectWithConditionalBranch() {
+  uint32_t GetChanceOfReplacingOpselectWithConditionalBranch() const {
     return chance_of_replacing_opselect_with_conditional_branch_;
   }
-  uint32_t GetChanceOfReplacingParametersWithGlobals() {
+  uint32_t GetChanceOfReplacingParametersWithGlobals() const {
     return chance_of_replacing_parameters_with_globals_;
   }
-  uint32_t GetChanceOfReplacingParametersWithStruct() {
+  uint32_t GetChanceOfReplacingParametersWithStruct() const {
     return chance_of_replacing_parameters_with_struct_;
   }
-  uint32_t GetChanceOfSplittingBlock() { return chance_of_splitting_block_; }
-  uint32_t GetChanceOfSwappingConditionalBranchOperands() {
+  uint32_t GetChanceOfSplittingBlock() const {
+    return chance_of_splitting_block_;
+  }
+  uint32_t GetChanceOfSwappingConditionalBranchOperands() const {
     return chance_of_swapping_conditional_branch_operands_;
   }
-  uint32_t GetChanceOfTogglingAccessChainInstruction() {
+  uint32_t GetChanceOfTogglingAccessChainInstruction() const {
     return chance_of_toggling_access_chain_instruction_;
   }
-  uint32_t GetChanceOfWrappingRegionInSelection() {
+  uint32_t GetChanceOfWrappingRegionInSelection() const {
     return chance_of_wrapping_region_in_selection_;
   }
 
   // Other functions to control transformations. Keep them in alphabetical
   // order.
-  uint32_t GetMaximumEquivalenceClassSizeForDataSynonymFactClosure() {
+  uint32_t GetMaximumEquivalenceClassSizeForDataSynonymFactClosure() const {
     return max_equivalence_class_size_for_data_synonym_fact_closure_;
   }
-  uint32_t GetMaximumNumberOfFunctionParameters() {
+  uint32_t GetMaximumNumberOfFunctionParameters() const {
     return max_number_of_function_parameters_;
   }
-  uint32_t GetMaximumNumberOfParametersReplacedWithStruct() {
+  uint32_t GetMaximumNumberOfParametersReplacedWithStruct() const {
     return max_number_of_parameters_replaced_with_struct_;
   }
   std::pair<uint32_t, uint32_t> GetRandomBranchWeights() {

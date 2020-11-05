@@ -82,65 +82,6 @@ bool TransformationFlattenConditionalBranch::IsApplicable(
     }
   }
 
-  if (OpSelectArgumentsAreRestricted(ir_context)) {
-    // OpPhi instructions at the convergence block for the selection are handled
-    // by turning them into OpSelect instructions.  As the SPIR-V version in use
-    // has restrictions on the arguments that OpSelect can take, we must check
-    // that any OpPhi instructions are compatible with these restrictions.
-    uint32_t convergence_block_id =
-        FindConvergenceBlock(ir_context, *header_block);
-    // Consider every OpPhi instruction at the convergence block.
-    if (!ir_context->cfg()
-             ->block(convergence_block_id)
-             ->WhileEachPhiInst([this,
-                                 ir_context](opt::Instruction* inst) -> bool {
-               // Decide whether the OpPhi can be handled based on its result
-               // type.
-               opt::Instruction* phi_result_type =
-                   ir_context->get_def_use_mgr()->GetDef(inst->type_id());
-               switch (phi_result_type->opcode()) {
-                 case SpvOpTypeBool:
-                 case SpvOpTypeInt:
-                 case SpvOpTypeFloat:
-                 case SpvOpTypePointer:
-                   // Fine: OpSelect can work directly on scalar and pointer
-                   // types.
-                   return true;
-                 case SpvOpTypeVector: {
-                   // In its restricted form, OpSelect can only select between
-                   // vectors if the condition of the select is a boolean
-                   // boolean vector.  We thus require the appropriate boolean
-                   // vector type to be present.
-                   uint32_t bool_type_id =
-                       fuzzerutil::MaybeGetBoolType(ir_context);
-                   uint32_t dimension =
-                       phi_result_type->GetSingleWordInOperand(1);
-                   if (fuzzerutil::MaybeGetVectorType(ir_context, bool_type_id,
-                                                      dimension) == 0) {
-                     // The required boolean vector type is not present.
-                     return false;
-                   }
-                   // The transformation needs to be equipped with a fresh id
-                   // in which to store the vectorized version of the selection
-                   // construct's condition.
-                   switch (dimension) {
-                     case 2:
-                       return message_.fresh_id_for_bvec2_selector() != 0;
-                     case 3:
-                       return message_.fresh_id_for_bvec3_selector() != 0;
-                     default:
-                       assert(dimension == 4 && "Invalid vector dimension.");
-                       return message_.fresh_id_for_bvec4_selector() != 0;
-                   }
-                 }
-                 default:
-                   return false;
-               }
-             })) {
-      return false;
-    }
-  }
-
   // Use a set to keep track of the instructions that require fresh ids.
   std::set<opt::Instruction*> instructions_that_need_ids;
 
@@ -148,7 +89,8 @@ bool TransformationFlattenConditionalBranch::IsApplicable(
   // if so, add all the problematic instructions that need to be enclosed inside
   // conditionals to |instructions_that_need_ids|.
   if (!GetProblematicInstructionsIfConditionalCanBeFlattened(
-          ir_context, header_block, &instructions_that_need_ids)) {
+          ir_context, header_block, transformation_context,
+          &instructions_that_need_ids)) {
     return false;
   }
 
@@ -201,6 +143,69 @@ bool TransformationFlattenConditionalBranch::IsApplicable(
   for (auto instruction : instructions_that_need_ids) {
     if (insts_to_wrapper_info.count(instruction) == 0 &&
         !transformation_context.GetOverflowIdSource()->HasOverflowIds()) {
+      return false;
+    }
+  }
+
+  if (OpSelectArgumentsAreRestricted(ir_context)) {
+    // OpPhi instructions at the convergence block for the selection are handled
+    // by turning them into OpSelect instructions.  As the SPIR-V version in use
+    // has restrictions on the arguments that OpSelect can take, we must check
+    // that any OpPhi instructions are compatible with these restrictions.
+    uint32_t convergence_block_id =
+        FindConvergenceBlock(ir_context, *header_block);
+    // Consider every OpPhi instruction at the convergence block.
+    if (!ir_context->cfg()
+             ->block(convergence_block_id)
+             ->WhileEachPhiInst([this,
+                                 ir_context](opt::Instruction* inst) -> bool {
+               // Decide whether the OpPhi can be handled based on its result
+               // type.
+               opt::Instruction* phi_result_type =
+                   ir_context->get_def_use_mgr()->GetDef(inst->type_id());
+               switch (phi_result_type->opcode()) {
+                 case SpvOpTypeBool:
+                 case SpvOpTypeInt:
+                 case SpvOpTypeFloat:
+                 case SpvOpTypePointer:
+                   // Fine: OpSelect can work directly on scalar and pointer
+                   // types.
+                   return true;
+                 case SpvOpTypeVector: {
+                   // In its restricted form, OpSelect can only select between
+                   // vectors if the condition of the select is a boolean
+                   // boolean vector.  We thus require the appropriate boolean
+                   // vector type to be present.
+                   uint32_t bool_type_id =
+                       fuzzerutil::MaybeGetBoolType(ir_context);
+                   if (!bool_type_id) {
+                     return false;
+                   }
+
+                   uint32_t dimension =
+                       phi_result_type->GetSingleWordInOperand(1);
+                   if (fuzzerutil::MaybeGetVectorType(ir_context, bool_type_id,
+                                                      dimension) == 0) {
+                     // The required boolean vector type is not present.
+                     return false;
+                   }
+                   // The transformation needs to be equipped with a fresh id
+                   // in which to store the vectorized version of the selection
+                   // construct's condition.
+                   switch (dimension) {
+                     case 2:
+                       return message_.fresh_id_for_bvec2_selector() != 0;
+                     case 3:
+                       return message_.fresh_id_for_bvec3_selector() != 0;
+                     default:
+                       assert(dimension == 4 && "Invalid vector dimension.");
+                       return message_.fresh_id_for_bvec4_selector() != 0;
+                   }
+                 }
+                 default:
+                   return false;
+               }
+             })) {
       return false;
     }
   }
@@ -428,6 +433,7 @@ protobufs::Transformation TransformationFlattenConditionalBranch::ToMessage()
 bool TransformationFlattenConditionalBranch::
     GetProblematicInstructionsIfConditionalCanBeFlattened(
         opt::IRContext* ir_context, opt::BasicBlock* header,
+        const TransformationContext& transformation_context,
         std::set<opt::Instruction*>* instructions_that_need_ids) {
   uint32_t merge_block_id = header->MergeBlockIdIfAny();
   assert(merge_block_id &&
@@ -440,6 +446,11 @@ bool TransformationFlattenConditionalBranch::
       ir_context->GetDominatorAnalysis(enclosing_function);
   auto postdominator_analysis =
       ir_context->GetPostDominatorAnalysis(enclosing_function);
+
+  // |header| must be reachable.
+  if (!dominator_analysis->IsReachable(header)) {
+    return false;
+  }
 
   // Check that the header and the merge block describe a single-entry,
   // single-exit region.
@@ -454,13 +465,22 @@ bool TransformationFlattenConditionalBranch::
   //  - they branch unconditionally to another block
   //  Add any side-effecting instruction, requiring fresh ids, to
   //  |instructions_that_need_ids|
-  std::list<uint32_t> to_check;
+  std::queue<uint32_t> to_check;
   header->ForEachSuccessorLabel(
-      [&to_check](uint32_t label) { to_check.push_back(label); });
+      [&to_check](uint32_t label) { to_check.push(label); });
 
+  auto* structured_cfg = ir_context->GetStructuredCFGAnalysis();
   while (!to_check.empty()) {
     uint32_t block_id = to_check.front();
-    to_check.pop_front();
+    to_check.pop();
+
+    if (structured_cfg->ContainingConstruct(block_id) != header->id() &&
+        block_id != merge_block_id) {
+      // This block can be reached from the |header| but doesn't belong to its
+      // selection construct. This might be a continue target of some loop -
+      // we can't flatten the |header|.
+      return false;
+    }
 
     // If the block post-dominates the header, this is where flow converges, and
     // we don't need to check this branch any further, because the
@@ -468,6 +488,15 @@ bool TransformationFlattenConditionalBranch::
     // divergent.
     if (postdominator_analysis->Dominates(block_id, header->id())) {
       continue;
+    }
+
+    if (!transformation_context.GetFactManager()->BlockIsDead(header->id()) &&
+        transformation_context.GetFactManager()->BlockIsDead(block_id)) {
+      // The |header| is not dead but the |block_id| is. Since |block_id|
+      // doesn't postdominate the |header|, CFG hasn't converged yet. Thus, we
+      // don't flatten the construct to prevent |block_id| from becoming
+      // executable.
+      return false;
     }
 
     auto block = ir_context->cfg()->block(block_id);
@@ -518,7 +547,7 @@ bool TransformationFlattenConditionalBranch::
 
     // Add the successor of this block to the list of blocks that need to be
     // checked.
-    to_check.push_back(block->terminator()->GetSingleWordInOperand(0));
+    to_check.push(block->terminator()->GetSingleWordInOperand(0));
   }
 
   // All the blocks are compatible with the transformation and this is indeed a
@@ -564,7 +593,7 @@ TransformationFlattenConditionalBranch::EncloseInstructionInConditional(
     opt::Instruction* instruction,
     const protobufs::SideEffectWrapperInfo& wrapper_info, uint32_t condition_id,
     bool exec_if_cond_true, std::vector<uint32_t>* dead_blocks,
-    std::vector<uint32_t>* irrelevant_ids) const {
+    std::vector<uint32_t>* irrelevant_ids) {
   // Get the next instruction (it will be useful for splitting).
   auto next_instruction = instruction->NextNode();
 
@@ -810,7 +839,7 @@ bool TransformationFlattenConditionalBranch::OpSelectArgumentsAreRestricted(
 void TransformationFlattenConditionalBranch::AddBooleanVectorConstructorToBlock(
     uint32_t fresh_id, uint32_t dimension,
     const opt::Operand& branch_condition_operand, opt::IRContext* ir_context,
-    opt::BasicBlock* block) const {
+    opt::BasicBlock* block) {
   opt::Instruction::OperandList in_operands;
   for (uint32_t i = 0; i < dimension; i++) {
     in_operands.emplace_back(branch_condition_operand);

@@ -53,6 +53,8 @@ FuzzerPass* RepeatedPassManagerRandomWithRecommendations::ChoosePass(
     result = recommended_passes_.front();
     recommended_passes_.pop_front();
   }
+  assert(result != nullptr && "A pass must have been chosen.");
+  last_pass_choice_ = result;
   return result;
 }
 

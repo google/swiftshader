@@ -2041,6 +2041,100 @@ TEST(TransformationFlattenConditionalBranchTest,
   ASSERT_TRUE(IsEqual(env, expected, context.get()));
 }
 
+TEST(TransformationFlattenConditionalBranchTest, ContainsDeadBlocksTest) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+               OpName %4 "main"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpConstantFalse %6
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpSelectionMerge %9 None
+               OpBranchConditional %7 %8 %9
+          %8 = OpLabel
+         %10 = OpCopyObject %6 %7
+               OpBranch %9
+          %9 = OpLabel
+         %11 = OpPhi %6 %10 %8 %7 %5
+         %12 = OpPhi %6 %7 %5 %10 %8
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+
+  TransformationFlattenConditionalBranch transformation(5, true, 0, 0, 0, {});
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+
+  transformation_context.GetFactManager()->AddFactBlockIsDead(8);
+
+  ASSERT_FALSE(
+      transformation.IsApplicable(context.get(), transformation_context));
+}
+
+TEST(TransformationFlattenConditionalBranchTest, ContainsContinueBlockTest) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+               OpName %4 "main"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpConstantFalse %6
+          %4 = OpFunction %2 None %3
+         %12 = OpLabel
+               OpBranch %13
+         %13 = OpLabel
+               OpLoopMerge %15 %14 None
+               OpBranchConditional %7 %5 %15
+          %5 = OpLabel
+               OpSelectionMerge %11 None
+               OpBranchConditional %7 %9 %10
+          %9 = OpLabel
+               OpBranch %11
+         %10 = OpLabel
+               OpBranch %14
+         %11 = OpLabel
+               OpBranch %14
+         %14 = OpLabel
+               OpBranch %13
+         %15 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+
+  ASSERT_FALSE(TransformationFlattenConditionalBranch(5, true, 0, 0, 0, {})
+                   .IsApplicable(context.get(), transformation_context));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

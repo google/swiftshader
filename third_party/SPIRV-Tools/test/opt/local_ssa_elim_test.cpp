@@ -3891,6 +3891,44 @@ TEST_F(LocalSSAElimTest, RemoveDebugDeclareWithoutLoads) {
   SinglePassRunAndMatch<SSARewritePass>(text, true);
 }
 
+// Check support for pointer variables. When pointer variables are used, the
+// computation of reaching definitions may need to follow pointer chains.
+// See https://github.com/KhronosGroup/SPIRV-Tools/issues/3873 for details.
+TEST_F(LocalSSAElimTest, PointerVariables) {
+  const std::string text = R"(
+               OpCapability Shader
+               OpCapability VariablePointers
+               OpExtension "SPV_KHR_variable_pointers"
+               OpMemoryModel Logical Simple
+               OpEntryPoint Fragment %1 "main" %2 %3
+               OpExecutionMode %1 OriginUpperLeft
+      %float = OpTypeFloat 32
+       %void = OpTypeVoid
+          %6 = OpTypeFunction %void
+%_ptr_Input_float = OpTypePointer Input %float
+%_ptr_Output_float = OpTypePointer Output %float
+%_ptr_Function__ptr_Input_float = OpTypePointer Function %_ptr_Input_float
+          %2 = OpVariable %_ptr_Input_float Input
+          %3 = OpVariable %_ptr_Output_float Output
+          %1 = OpFunction %void None %6
+         %10 = OpLabel
+         %11 = OpVariable %_ptr_Function__ptr_Input_float Function
+               OpStore %11 %2
+
+; CHECK-NOT: %12 = OpLoad %_ptr_Input_float %11
+         %12 = OpLoad %_ptr_Input_float %11
+
+; CHECK: %13 = OpLoad %float %2
+         %13 = OpLoad %float %12
+
+               OpStore %3 %13
+               OpReturn
+               OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<SSARewritePass>(text, true);
+}
+
 // TODO(greg-lunarg): Add tests to verify handling of these cases:
 //
 //    No optimization in the presence of
