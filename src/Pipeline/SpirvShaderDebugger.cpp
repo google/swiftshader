@@ -1790,7 +1790,7 @@ void SpirvShader::Impl::Debugger::process(const InsnIterator &insn, EmitState *s
 					auto idx = shader->GetConstScalarInt(insn.word(i));
 					value->indexes.push_back(idx);
 
-					auto it = node->children.find(i);
+					auto it = node->children.find(idx);
 					if(it != node->children.end())
 					{
 						node = it->second.get();
@@ -1800,7 +1800,7 @@ void SpirvShader::Impl::Debugger::process(const InsnIterator &insn, EmitState *s
 						auto parent = node;
 						auto child = std::make_unique<debug::LocalVariable::ValueNode>();
 						node = child.get();
-						parent->children.emplace(i, std::move(child));
+						parent->children.emplace(idx, std::move(child));
 					}
 				}
 
