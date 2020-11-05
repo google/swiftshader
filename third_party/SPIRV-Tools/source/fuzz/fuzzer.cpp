@@ -107,8 +107,6 @@ namespace fuzz {
 namespace {
 const uint32_t kIdBoundGap = 100;
 
-const uint32_t kTransformationLimit = 2000;
-
 }  // namespace
 
 Fuzzer::Fuzzer(spv_target_env target_env, MessageConsumer consumer,
@@ -367,21 +365,37 @@ bool Fuzzer::ShouldContinueFuzzing() {
   // that fuzzing stops if the number of repeated passes hits the limit on the
   // number of transformations that can be applied.
   assert(
-      num_repeated_passes_applied_ <= kTransformationLimit &&
+      num_repeated_passes_applied_ <=
+          fuzzer_context_->GetTransformationLimit() &&
       "The number of repeated passes applied must not exceed its upper limit.");
-  if (num_repeated_passes_applied_ == kTransformationLimit) {
+  if (ir_context_->module()->id_bound() >= fuzzer_context_->GetIdBoundLimit()) {
+    return false;
+  }
+  if (num_repeated_passes_applied_ ==
+      fuzzer_context_->GetTransformationLimit()) {
     // Stop because fuzzing has got stuck.
     return false;
   }
   auto transformations_applied_so_far =
       static_cast<uint32_t>(transformation_sequence_out_.transformation_size());
-  if (transformations_applied_so_far >= kTransformationLimit) {
+  if (transformations_applied_so_far >=
+      fuzzer_context_->GetTransformationLimit()) {
     // Stop because we have reached the transformation limit.
     return false;
   }
+  // If we have applied T transformations so far, and the limit on the number of
+  // transformations to apply is L (where T < L), the chance that we will
+  // continue fuzzing is:
+  //
+  //     1 - T/(2*L)
+  //
+  // That is, the chance of continuing decreases as more transformations are
+  // applied.  Using 2*L instead of L increases the number of transformations
+  // that are applied on average.
   auto chance_of_continuing = static_cast<uint32_t>(
       100.0 * (1.0 - (static_cast<double>(transformations_applied_so_far) /
-                      static_cast<double>(kTransformationLimit))));
+                      (2.0 * static_cast<double>(
+                                 fuzzer_context_->GetTransformationLimit())))));
   if (!fuzzer_context_->ChoosePercentage(chance_of_continuing)) {
     // We have probabilistically decided to stop.
     return false;

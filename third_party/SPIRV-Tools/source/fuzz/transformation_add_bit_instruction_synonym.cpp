@@ -46,7 +46,8 @@ bool TransformationAddBitInstructionSynonym::IsApplicable(
   // |instruction| must be defined and must be a supported bit instruction.
   if (!instruction || (instruction->opcode() != SpvOpBitwiseOr &&
                        instruction->opcode() != SpvOpBitwiseXor &&
-                       instruction->opcode() != SpvOpBitwiseAnd)) {
+                       instruction->opcode() != SpvOpBitwiseAnd &&
+                       instruction->opcode() != SpvOpNot)) {
     return false;
   }
 

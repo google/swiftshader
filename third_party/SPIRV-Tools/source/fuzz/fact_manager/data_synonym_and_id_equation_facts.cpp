@@ -176,12 +176,6 @@ void DataSynonymAndIdEquationFacts::AddEquationFactRecursive(
             // We can thus infer "a = d"
             AddDataSynonymFactRecursive(lhs_dd, *equation.operands[0]);
           }
-          if (synonymous_.IsEquivalent(*equation.operands[0], *rhs_dds[1])) {
-            // Equation form: "a = (c - e) + c"
-            // We can thus infer "a = -e"
-            AddEquationFactRecursive(lhs_dd, SpvOpSNegate,
-                                     {equation.operands[1]});
-          }
         }
       }
       for (const auto& equation : GetEquations(rhs_dds[1])) {

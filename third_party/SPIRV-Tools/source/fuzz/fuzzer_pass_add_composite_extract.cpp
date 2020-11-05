@@ -91,35 +91,29 @@ void FuzzerPassAddCompositeExtract::Apply() {
                   available_composites)];
           composite_id = inst->result_id();
 
-          const auto* type =
-              GetIRContext()->get_type_mgr()->GetType(inst->type_id());
-          assert(type && "Composite instruction has invalid type id");
-
+          auto type_id = inst->type_id();
           do {
             uint32_t number_of_members = 0;
 
-            if (const auto* array_type = type->AsArray()) {
-              const auto* type_inst =
-                  GetIRContext()->get_def_use_mgr()->GetDef(inst->type_id());
-              assert(type_inst && "Type instruction must exist");
+            const auto* type_inst =
+                GetIRContext()->get_def_use_mgr()->GetDef(type_id);
+            assert(type_inst && "Composite instruction has invalid type id");
 
-              number_of_members =
-                  fuzzerutil::GetArraySize(*type_inst, GetIRContext());
-              type = array_type->element_type();
-            } else if (const auto* vector_type = type->AsVector()) {
-              number_of_members = vector_type->element_count();
-              type = vector_type->element_type();
-            } else if (const auto* matrix_type = type->AsMatrix()) {
-              number_of_members = matrix_type->element_count();
-              type = matrix_type->element_type();
-            } else if (const auto* struct_type = type->AsStruct()) {
-              number_of_members =
-                  static_cast<uint32_t>(struct_type->element_types().size());
-              // The next value of |type| will be assigned when we know the
-              // index of the OpTypeStruct's operand.
-            } else {
-              assert(false && "|inst| is not a composite");
-              return;
+            switch (type_inst->opcode()) {
+              case SpvOpTypeArray:
+                number_of_members =
+                    fuzzerutil::GetArraySize(*type_inst, GetIRContext());
+                break;
+              case SpvOpTypeVector:
+              case SpvOpTypeMatrix:
+                number_of_members = type_inst->GetSingleWordInOperand(1);
+                break;
+              case SpvOpTypeStruct:
+                number_of_members = type_inst->NumInOperands();
+                break;
+              default:
+                assert(false && "|type_inst| is not a composite");
+                return;
             }
 
             if (number_of_members == 0) {
@@ -130,10 +124,21 @@ void FuzzerPassAddCompositeExtract::Apply() {
                 GetFuzzerContext()->GetRandomCompositeExtractIndex(
                     number_of_members));
 
-            if (const auto* struct_type = type->AsStruct()) {
-              type = struct_type->element_types()[indices.back()];
+            switch (type_inst->opcode()) {
+              case SpvOpTypeArray:
+              case SpvOpTypeVector:
+              case SpvOpTypeMatrix:
+                type_id = type_inst->GetSingleWordInOperand(0);
+                break;
+              case SpvOpTypeStruct:
+                type_id = type_inst->GetSingleWordInOperand(indices.back());
+                break;
+              default:
+                assert(false && "|type_inst| is not a composite");
+                return;
             }
-          } while (fuzzerutil::IsCompositeType(type) &&
+          } while (fuzzerutil::IsCompositeType(
+                       GetIRContext()->get_type_mgr()->GetType(type_id)) &&
                    GetFuzzerContext()->ChoosePercentage(
                        GetFuzzerContext()
                            ->GetChanceOfGoingDeeperToExtractComposite()));

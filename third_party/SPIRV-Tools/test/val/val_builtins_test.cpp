@@ -168,6 +168,17 @@ MATCHER_P(AnyVUID, vuid_set, "VUID from the set is in error message") {
   std::string token;
   std::string vuids = std::string(vuid_set);
   size_t position;
+
+  // Catch case were someone accidentally left spaces by trimming string
+  // clang-format off
+  vuids.erase(std::find_if(vuids.rbegin(), vuids.rend(), [](unsigned char c) {
+    return (c != ' ');
+  }).base(), vuids.end());
+  vuids.erase(vuids.begin(), std::find_if(vuids.begin(), vuids.end(), [](unsigned char c) {
+    return (c != ' ');
+  }));
+  // clang-format on
+
   do {
     position = vuids.find(delimiter);
     if (position != std::string::npos) {
@@ -1263,7 +1274,8 @@ INSTANTIATE_TEST_SUITE_P(
     ValidateVulkanCombineBuiltInExecutionModelDataTypeResult,
     Combine(
         Values("Layer", "ViewportIndex"), Values("Fragment"), Values("Output"),
-        Values("%u32"), Values(nullptr),
+        Values("%u32"),
+        Values("VUID-Layer-Layer-04275 VUID-ViewportIndex-ViewportIndex-04407"),
         Values(TestResult(SPV_ERROR_INVALID_DATA,
                           "Output storage class if execution model is Fragment",
                           "which is called with execution model Fragment"))));
@@ -1274,10 +1286,11 @@ INSTANTIATE_TEST_SUITE_P(
     Combine(
         Values("Layer", "ViewportIndex"),
         Values("Vertex", "TessellationEvaluation", "Geometry"), Values("Input"),
-        Values("%u32"), Values(nullptr),
+        Values("%u32"),
+        Values("VUID-Layer-Layer-04274 VUID-ViewportIndex-ViewportIndex-04406"),
         Values(TestResult(SPV_ERROR_INVALID_DATA,
                           "Input storage class if execution model is Vertex, "
-                          "TessellationEvaluation, or Geometry",
+                          "TessellationEvaluation, Geometry, or MeshNV",
                           "which is called with execution model"))));
 
 INSTANTIATE_TEST_SUITE_P(
@@ -3836,7 +3849,7 @@ INSTANTIATE_TEST_SUITE_P(
         Values("PrimitiveShadingRateKHR"), Values("Vertex"), Values("Output"),
         Values("%f32"), Values("OpCapability FragmentShadingRateKHR\n"),
         Values("OpExtension \"SPV_KHR_fragment_shading_rate\"\n"),
-        Values("VUID-PrimitiveShadingRateKHR-PrimitiveShadingRateKHR-04485 "),
+        Values("VUID-PrimitiveShadingRateKHR-PrimitiveShadingRateKHR-04486 "),
         Values(TestResult(
             SPV_ERROR_INVALID_DATA,
             "According to the Vulkan spec BuiltIn PrimitiveShadingRateKHR "
