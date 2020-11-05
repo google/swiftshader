@@ -72,6 +72,7 @@ class TransformationFlattenConditionalBranch : public Transformation {
   // instructions are OpSelectionMerge and OpBranchConditional.
   static bool GetProblematicInstructionsIfConditionalCanBeFlattened(
       opt::IRContext* ir_context, opt::BasicBlock* header,
+      const TransformationContext& transformation_context,
       std::set<opt::Instruction*>* instructions_that_need_ids);
 
   // Returns true iff the given instruction needs a placeholder to be enclosed
@@ -117,14 +118,14 @@ class TransformationFlattenConditionalBranch : public Transformation {
   // |dead_blocks| and |irrelevant_ids| are used to record the ids of blocks
   // and instructions for which dead block and irrelevant id facts should
   // ultimately be created.
-  opt::BasicBlock* EncloseInstructionInConditional(
+  static opt::BasicBlock* EncloseInstructionInConditional(
       opt::IRContext* ir_context,
       const TransformationContext& transformation_context,
       opt::BasicBlock* block, opt::Instruction* instruction,
       const protobufs::SideEffectWrapperInfo& wrapper_info,
       uint32_t condition_id, bool exec_if_cond_true,
       std::vector<uint32_t>* dead_blocks,
-      std::vector<uint32_t>* irrelevant_ids) const;
+      std::vector<uint32_t>* irrelevant_ids);
 
   // Turns every OpPhi instruction of |convergence_block| -- the convergence
   // block for |header_block| (both in |ir_context|) into an OpSelect
@@ -137,10 +138,10 @@ class TransformationFlattenConditionalBranch : public Transformation {
   // |ir_context|, with result id given by |fresh_id|.  The instruction will
   // make a |dimension|-dimensional boolean vector with
   // |branch_condition_operand| at every component.
-  void AddBooleanVectorConstructorToBlock(
+  static void AddBooleanVectorConstructorToBlock(
       uint32_t fresh_id, uint32_t dimension,
       const opt::Operand& branch_condition_operand, opt::IRContext* ir_context,
-      opt::BasicBlock* block) const;
+      opt::BasicBlock* block);
 
   // Returns true if the given instruction either has no side effects or it can
   // be handled by being enclosed in a conditional.

@@ -71,7 +71,8 @@ void FuzzerPassFlattenConditionalBranches::Apply() {
       // Do not consider this header if the conditional cannot be flattened.
       if (!TransformationFlattenConditionalBranch::
               GetProblematicInstructionsIfConditionalCanBeFlattened(
-                  GetIRContext(), header, &instructions_that_need_ids)) {
+                  GetIRContext(), header, *GetTransformationContext(),
+                  &instructions_that_need_ids)) {
         continue;
       }
 
@@ -214,7 +215,7 @@ void FuzzerPassFlattenConditionalBranches::Apply() {
           }
         }
 
-        wrappers_info.emplace_back(wrapper_info);
+        wrappers_info.push_back(std::move(wrapper_info));
       }
 
       // Apply the transformation, evenly choosing whether to lay out the true
