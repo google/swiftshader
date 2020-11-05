@@ -1287,6 +1287,11 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
     const Variable *Root = Var->getLinkedToStackRoot();
     assert(Root != nullptr);
     Var->setStackOffset(Root->getStackOffset());
+
+    // If the stack root variable is an arg, make this variable an arg too so
+    // that stackVarToAsmOperand uses the correct base pointer (e.g. ebp on
+    // x86).
+    Var->setIsArg(Root->getIsArg());
   }
   this->HasComputedFrame = true;
 
