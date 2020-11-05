@@ -16,6 +16,24 @@
       "message": "FYI, AFAIK, only the bots containing \"tot-swiftshader\" will actually apply this cl before testing",
       "revId": "7c1dd9e9555fe3c431078d97704e2906ea4a2ff5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c24d9c9_f915495a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-05T16:12:52Z",
+      "side": 1,
+      "message": "That\u0027s good to know. It\u0027s confusing, since so many have \"swangle\" in the name. So I\u0027ll ignore the failures, and make sure the 4 \"tot-swiftshader\" are passing then.",
+      "parentUuid": "4b585abd_1cf59c91",
+      "revId": "7c1dd9e9555fe3c431078d97704e2906ea4a2ff5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
