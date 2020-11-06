@@ -16,6 +16,75 @@
       "message": "I think you forgot to rebase your change. This undoes a fix by Antonio.",
       "revId": "589e8e90ece2a44cb3a2e3e037fe0d2b1670568c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3724dbc_fa10ea64",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 4230,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-06T20:03:32Z",
+      "side": 1,
+      "message": "nit: I think it\u0027s more readable with named constants than unnamed ones",
+      "range": {
+        "startLine": 4230,
+        "startChar": 31,
+        "endLine": 4230,
+        "endChar": 41
+      },
+      "revId": "589e8e90ece2a44cb3a2e3e037fe0d2b1670568c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d89ab16b_7ef75413",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 4231,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-06T20:03:32Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 4231,
+        "startChar": 34,
+        "endLine": 4231,
+        "endChar": 44
+      },
+      "revId": "589e8e90ece2a44cb3a2e3e037fe0d2b1670568c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6c5dceed_effb348e",
+        "filename": "src/System/CPUID.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-06T20:03:32Z",
+      "side": 1,
+      "message": "This probably requires an assert of some kind",
+      "range": {
+        "startLine": 308,
+        "startChar": 1,
+        "endLine": 308,
+        "endChar": 17
+      },
+      "revId": "589e8e90ece2a44cb3a2e3e037fe0d2b1670568c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
