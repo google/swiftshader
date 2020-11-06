@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "44e68ae0_7375b686",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 98721
+      },
+      "writtenOn": "2020-11-06T18:19:30Z",
+      "side": 1,
+      "message": "The link to the bug tracker has a trailing \u0027\\\u0027 which will get converted into https://g.co/swiftshaderbugs%5C (and that doesn\u0027t exist).",
+      "revId": "bd28dd4f8bcb8af40747f801a7ffc17ce502b91d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
