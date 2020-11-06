@@ -3147,6 +3147,75 @@ TEST(ReactorUnitTests, Arithmetic_ConstantArgs)
 	Arithmetic_ConstArgs(6.f, 3.f, 2.f, [](auto c1, auto c2) { return c1 / c2; });
 }
 
+// Test for Subzero bad code-gen that was fixed in swiftshader-cl/50008
+// This tests the case of copying enough arguments to local variables so that the locals
+// get spilled to the stack when no more registers remain, and making sure these copies
+// are generated correctly. Without the aforementioned fix, this fails 100% on Windows x86.
+TEST(ReactorUnitTests, SpillLocalCopiesOfArgs)
+{
+	struct Helpers
+	{
+		static bool True() { return true; }
+	};
+
+	const int numLoops = 5;  // 2 should be enough, but loop more to make sure
+
+	FunctionT<int(int, int, int, int, int, int, int, int, int, int, int, int)> function;
+	{
+		Int result = 0;
+		Int a1 = function.Arg<0>();
+		Int a2 = function.Arg<1>();
+		Int a3 = function.Arg<2>();
+		Int a4 = function.Arg<3>();
+		Int a5 = function.Arg<4>();
+		Int a6 = function.Arg<5>();
+		Int a7 = function.Arg<6>();
+		Int a8 = function.Arg<7>();
+		Int a9 = function.Arg<8>();
+		Int a10 = function.Arg<9>();
+		Int a11 = function.Arg<10>();
+		Int a12 = function.Arg<11>();
+
+		for(int i = 0; i < numLoops; ++i)
+		{
+			// Copy all arguments to locals so that Ice::LocalVariableSplitter::handleSimpleVarAssign
+			// creates Variable copies of arguments. We loop so that we create enough of these so
+			// that some spill over to the stack.
+			Int i1 = a1;
+			Int i2 = a2;
+			Int i3 = a3;
+			Int i4 = a4;
+			Int i5 = a5;
+			Int i6 = a6;
+			Int i7 = a7;
+			Int i8 = a8;
+			Int i9 = a9;
+			Int i10 = a10;
+			Int i11 = a11;
+			Int i12 = a12;
+
+			// Forcibly materialize all variables so that Ice::Variable instances are created for each
+			// local; otherwise, Reactor r-value optimizations kick in, and the locals are elided.
+			Variable::materializeAll();
+
+			// We also need to create a separate block that uses the variables declared above
+			// so that rr::optimize() doesn't optimize them out when attempting to eliminate stores
+			// followed by a load in the same block.
+			If(Call(Helpers::True))
+			{
+				result += (i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9 + i10 + i11 + i12);
+			}
+		}
+
+		Return(result);
+	}
+
+	auto routine = function("one");
+	int result = routine(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+	int expected = numLoops * (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12);
+	EXPECT_EQ(result, expected);
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

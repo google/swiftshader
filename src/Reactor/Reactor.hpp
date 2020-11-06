@@ -120,6 +120,10 @@ public:
 
 	virtual Type *getType() const = 0;
 
+	// This function is only public for testing purposes, as it affects performance.
+	// It is not considered part of Reactor's public API.
+	static void materializeAll();
+
 protected:
 	Variable();
 	Variable(const Variable &) = default;
@@ -127,7 +131,6 @@ protected:
 	virtual ~Variable();
 
 private:
-	static void materializeAll();
 	static void killUnmaterialized();
 
 	virtual Value *allocate() const;
