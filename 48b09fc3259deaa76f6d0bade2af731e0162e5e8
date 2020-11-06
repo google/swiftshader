@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "95442ff7_bbd1e858",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "Thanks Jason! Just some minor things:",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5ed5a4b3_a47a4265",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "clang-format: Double newline",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc75a26c_54beadb9",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "Assert we don\u0027t call this on non-external memory?",
+      "range": {
+        "startLine": 321,
+        "startChar": 1,
+        "endLine": 321,
+        "endChar": 10
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c5fffeca_b50d9e9e",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "Do we expect to encounter this on Cuttlefish? If not, I\u0027d remove this so we hit the default UNSUPPORTED assert below in case it inadvertently gets used.",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 36,
+        "endChar": 12
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2cdf4c26_93830194",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "Please add a TODO(b/165302991) comment here.",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "437e252c_20438d94",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "This format is supported, but I\u0027m not sure what this function would be expected to return. Just the depth aspect\u0027s bytes per pixel?",
+      "range": {
+        "startLine": 47,
+        "startChar": 38,
+        "endLine": 47,
+        "endChar": 97
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d79750f8_6c0694c8",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "Not supported",
+      "range": {
+        "startLine": 59,
+        "startChar": 2,
+        "endLine": 60,
+        "endChar": 12
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "badce0a8_402cf9c4",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "Bytes per pixel of the Y channel is fine here?",
+      "range": {
+        "startLine": 63,
+        "startChar": 2,
+        "endLine": 64,
+        "endChar": 12
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "44a15383_001a9f80",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-06T20:27:18Z",
+      "side": 1,
+      "message": "TODO(b/165302991)",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
