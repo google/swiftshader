@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "68f7be8d_d240d39b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-06T19:58:46Z",
+      "side": 1,
+      "message": "I think you forgot to rebase your change. This undoes a fix by Antonio.",
+      "revId": "589e8e90ece2a44cb3a2e3e037fe0d2b1670568c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
