@@ -22,6 +22,30 @@
       },
       "revId": "dae74d86169850a794fb7adf02458d0fe1b2c98f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "761ac48b_de058257",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3194,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-06T20:24:22Z",
+      "side": 1,
+      "message": "Great idea. Also, as per our discussion, this allowed me to realize that we need the If() not only for materializeAll, but also to separate the load from the stores into separate blocks so that rr::optimize() doesn\u0027t optimize them out.",
+      "parentUuid": "9ee655ac_d9159ed3",
+      "range": {
+        "startLine": 3192,
+        "startChar": 3,
+        "endLine": 3194,
+        "endChar": 18
+      },
+      "revId": "dae74d86169850a794fb7adf02458d0fe1b2c98f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
