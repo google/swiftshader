@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1aa2876d_65f24e75",
+        "filename": "src/Pipeline/SpirvShaderArithmetic.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-06T19:45:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4244b8e6_0e25969f",
+      "range": {
+        "startLine": 427,
+        "startChar": 16,
+        "endLine": 427,
+        "endChar": 69
+      },
+      "revId": "d37506f4ba6a2ddd34864f1b1029216f129b1777",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ea2ae31b_8a017c1b",
@@ -47,6 +71,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "95542b0a_a484e771",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4202,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-06T19:45:25Z",
+      "side": 1,
+      "message": "I copied this from LLVMReactor.cpp:\n\nRValue\u003cUInt4\u003e CmpEQ(RValue\u003cUInt4\u003e x, RValue\u003cUInt4\u003e y)\n{\n\tRR_DEBUG_INFO_UPDATE_LOC();\n\treturn RValue\u003cUInt4\u003e(Nucleus::createSExt(Nucleus::createICmpEQ(x.value(), y.value()), Int4::type()));\n}\n\nI originally tried to use just createICmpEq, but got a conversion error where ICmpEq returns a bool, so it can\u0027t be used with an And operation. So I sign extend it to turn it into a full Int.\n\nBut yes, this code could be made simpler.",
+      "parentUuid": "ea2ae31b_8a017c1b",
+      "range": {
+        "startLine": 4188,
+        "startChar": 0,
+        "endLine": 4202,
+        "endChar": 27
+      },
+      "revId": "d37506f4ba6a2ddd34864f1b1029216f129b1777",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e378caad_9803ef5c",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-10-29T17:51:58Z",
       "side": 1,
       "message": "Is all of this being true necessary? It looks like the cl only performs float controls on Float32, no?",
+      "range": {
+        "startLine": 708,
+        "startChar": 0,
+        "endLine": 710,
+        "endChar": 61
+      },
+      "revId": "d37506f4ba6a2ddd34864f1b1029216f129b1777",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a54dac2e_f1d5d4e7",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 710,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-06T19:45:25Z",
+      "side": 1,
+      "message": "I\u0027m not entirely certain. I think that since I specify VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE, that all these values have to match. And since we don\u0027t support float16 or float64 yet there\u0027s no failures being caused by this.",
+      "parentUuid": "e378caad_9803ef5c",
       "range": {
         "startLine": 708,
         "startChar": 0,
