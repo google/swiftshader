@@ -18,6 +18,23 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "59cb87ac_324082e2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 77391
+      },
+      "writtenOn": "2020-11-09T18:01:31Z",
+      "side": 1,
+      "message": "I agree with Nicolas\u0027s comments, otherwise, LGTM.",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5ed5a4b3_a47a4265",
@@ -48,6 +65,30 @@
       "writtenOn": "2020-11-06T20:27:18Z",
       "side": 1,
       "message": "Assert we don\u0027t call this on non-external memory?",
+      "range": {
+        "startLine": 321,
+        "startChar": 1,
+        "endLine": 321,
+        "endChar": 10
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c8eeb5ca_28b05f50",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 77391
+      },
+      "writtenOn": "2020-11-09T18:01:31Z",
+      "side": 1,
+      "message": "Do we want a lack of image row pitch bytes to return a 0? Would -1 make more sense?",
+      "parentUuid": "dc75a26c_54beadb9",
       "range": {
         "startLine": 321,
         "startChar": 1,
