@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ae3fb90_875180b6",
+        "filename": "src/Reactor/OptimalIntrinsics.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-09T22:18:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99b9f5c7_9dc7afba",
+      "range": {
+        "startLine": 242,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 140
+      },
+      "revId": "daebaad875b712e789cf946e5ef595248f0de2fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "21d2f4dc_406c6fe7",
@@ -47,6 +71,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f7738864_06397c9c",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 4231,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-09T22:18:02Z",
+      "side": 1,
+      "message": "Same",
+      "parentUuid": "21d2f4dc_406c6fe7",
+      "range": {
+        "startLine": 4229,
+        "startChar": 0,
+        "endLine": 4231,
+        "endChar": 32
+      },
+      "revId": "daebaad875b712e789cf946e5ef595248f0de2fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "42a0111b_26bf8411",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-11-06T20:56:55Z",
       "side": 1,
       "message": "Out of curiosity, what should happen on other platforms?\nThis feature should work on every platform supported by SwiftShader, including ARM.",
+      "range": {
+        "startLine": 309,
+        "startChar": 1,
+        "endLine": 309,
+        "endChar": 17
+      },
+      "revId": "daebaad875b712e789cf946e5ef595248f0de2fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "79104c9f_181c434c",
+        "filename": "src/System/CPUID.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-09T22:18:02Z",
+      "side": 1,
+      "message": "On ARM/ARM64, you would need to set the FZ bit of the FPSCR/FPCR register. Would have to know which other architectures we support or are planning to support to answer for those, as each has their own way of dealing with this.\n\nThis can be its own patch.",
+      "parentUuid": "42a0111b_26bf8411",
       "range": {
         "startLine": 309,
         "startChar": 1,
