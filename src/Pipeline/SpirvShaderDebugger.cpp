@@ -2549,7 +2549,7 @@ void SpirvShader::dbgCreateFile()
 	for(auto insn : *this)
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
-		                       SPV_ENV_VULKAN_1_1,
+		                       vk::SPIRV_VERSION,
 		                       insn.wordPointer(0),
 		                       insn.wordCount(),
 		                       insns.data(),
@@ -2648,7 +2648,7 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 #	if PRINT_EACH_EMITTED_INSTRUCTION
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
-		    SPV_ENV_VULKAN_1_1,
+		    vk::SPIRV_VERSION,
 		    insn.wordPointer(0),
 		    insn.wordCount(),
 		    insns.data(),
@@ -2661,7 +2661,7 @@ void SpirvShader::dbgBeginEmitInstruction(InsnIterator insn, EmitState *state) c
 #	if PRINT_EACH_EXECUTED_INSTRUCTION
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
-		    SPV_ENV_VULKAN_1_1,
+		    vk::SPIRV_VERSION,
 		    insn.wordPointer(0),
 		    insn.wordCount(),
 		    insns.data(),
@@ -2757,7 +2757,7 @@ void SpirvShader::DefineOpenCLDebugInfo100(const InsnIterator &insn)
 #	if PRINT_EACH_DEFINED_DBG_INSTRUCTION
 	{
 		auto instruction = spvtools::spvInstructionBinaryToText(
-		    SPV_ENV_VULKAN_1_1,
+		    vk::SPIRV_VERSION,
 		    insn.wordPointer(0),
 		    insn.wordCount(),
 		    insns.data(),

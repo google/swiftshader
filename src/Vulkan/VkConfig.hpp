@@ -18,6 +18,7 @@
 #include "Version.hpp"
 
 #include "Vulkan/VulkanPlatform.hpp"
+#include "spirv-tools/libspirv.h"
 
 namespace vk {
 
@@ -25,6 +26,8 @@ namespace vk {
 //       constexpr char* or char[] does not work for that purpose.
 #define SWIFTSHADER_DEVICE_NAME "SwiftShader Device"  // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
 #define SWIFTSHADER_UUID "SwiftShaderUUID"            // Max length: VK_UUID_SIZE (16)
+
+const spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_1;
 
 enum
 {

@@ -30,7 +30,7 @@ ShaderModule::ShaderModule(const VkShaderModuleCreateInfo *pCreateInfo, void *me
 	wordCount = static_cast<uint32_t>(pCreateInfo->codeSize / sizeof(uint32_t));
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	spvtools::SpirvTools spirvTools(SPV_ENV_VULKAN_1_1);
+	spvtools::SpirvTools spirvTools(SPIRV_VERSION);
 	ASSERT(spirvTools.Validate(getCode()));  // The SPIR-V code passed to vkCreateShaderModule must be valid (b/158228522)
 #endif
 }
