@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f383634_a3fea305",
+        "filename": "src/Vulkan/VkConfig.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-09T20:19:05Z",
+      "side": 1,
+      "message": "I would suggest putting SPV_ENV_VULKAN_1_1 here and then making a second, easily revertable cl which only changes this to SPV_ENV_VULKAN_1_2.\nAlso, can we claim support for SPV_ENV_VULKAN_1_2 now?",
+      "range": {
+        "startLine": 30,
+        "startChar": 37,
+        "endLine": 30,
+        "endChar": 55
+      },
+      "revId": "b67d09669f666d63f43091623a95f3d32aafd8df",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
