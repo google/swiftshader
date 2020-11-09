@@ -146,6 +146,22 @@ Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice 
 		debugger.server = vk::dbg::Server::create(debugger.context, atoi(port));
 	}
 #endif  // ENABLE_VK_DEBUGGER
+
+#ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
+	const VkBaseInStructure *extensionCreateInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+	while(extensionCreateInfo)
+	{
+		if(extensionCreateInfo->sType == VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT)
+		{
+			auto deviceMemoryReportCreateInfo = reinterpret_cast<const VkDeviceDeviceMemoryReportCreateInfoEXT *>(pCreateInfo->pNext);
+			if(deviceMemoryReportCreateInfo->pfnUserCallback != nullptr)
+			{
+				deviceMemoryReportCallbacks.emplace_back(deviceMemoryReportCreateInfo->pfnUserCallback, deviceMemoryReportCreateInfo->pUserData);
+			}
+		}
+		extensionCreateInfo = extensionCreateInfo->pNext;
+	}
+#endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
 }
 
 void Device::destroy(const VkAllocationCallbacks *pAllocator)
@@ -374,5 +390,28 @@ void Device::contentsChanged(ImageView *imageView)
 		}
 	}
 }
+
+#ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
+void Device::emitDeviceMemoryReport(VkDeviceMemoryReportEventTypeEXT type, uint64_t memoryObjectId, VkDeviceSize size, VkObjectType objectType, uint64_t objectHandle, uint32_t heapIndex)
+{
+	if(deviceMemoryReportCallbacks.empty()) return;
+
+	const VkDeviceMemoryReportCallbackDataEXT callbackData = {
+		VK_STRUCTURE_TYPE_DEVICE_MEMORY_REPORT_CALLBACK_DATA_EXT,  // sType
+		nullptr,                                                   // pNext
+		0,                                                         // flags
+		type,                                                      // type
+		memoryObjectId,                                            // memoryObjectId
+		size,                                                      // size
+		objectType,                                                // objectType
+		objectHandle,                                              // objectHandle
+		heapIndex,                                                 // heapIndex
+	};
+	for(const auto &callback : deviceMemoryReportCallbacks)
+	{
+		callback.first(&callbackData, callback.second);
+	}
+}
+#endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
 
 }  // namespace vk

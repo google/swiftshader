@@ -12,19 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+#include "VkDeviceMemoryExternalAndroid.hpp"
 
-#	include "VkDeviceMemoryExternalAndroid.hpp"
-
-#	include "System/Debug.hpp"
-#	include "VkDestroy.hpp"
-#	include "VkFormat.hpp"
-#	include "VkObject.hpp"
-#	include "VkPhysicalDevice.hpp"
-#	include "VkStringify.hpp"
-
-#	include <android/hardware_buffer.h>
-#	include <vndk/hardware_buffer.h>
+#include "VkDestroy.hpp"
+#include "VkFormat.hpp"
+#include "VkObject.hpp"
+#include "VkPhysicalDevice.hpp"
+#include "VkStringify.hpp"
+#include "System/Debug.hpp"
 
 namespace {
 
@@ -323,7 +318,7 @@ void AHardwareBufferExternalMemory::deallocate(void *buffer, size_t size)
 	}
 }
 
-VkResult AHardwareBufferExternalMemory::importAndroidHardwareBuffer(struct AHardwareBuffer *buffer, void **pBuffer)
+VkResult AHardwareBufferExternalMemory::importAndroidHardwareBuffer(AHardwareBuffer *buffer, void **pBuffer)
 {
 	ahb = buffer;
 
@@ -410,7 +405,7 @@ VkResult AHardwareBufferExternalMemory::unlockAndroidHardwareBuffer()
 	return VK_SUCCESS;
 }
 
-VkResult AHardwareBufferExternalMemory::exportAndroidHardwareBuffer(struct AHardwareBuffer **pAhb) const
+VkResult AHardwareBufferExternalMemory::exportAndroidHardwareBuffer(AHardwareBuffer **pAhb) const
 {
 	// Each call to vkGetMemoryAndroidHardwareBufferANDROID *must* return an Android hardware buffer with a new reference
 	// acquired in addition to the reference held by the VkDeviceMemory. To avoid leaking resources, the application *must*
@@ -436,7 +431,7 @@ VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferFormatProperties
 	return VK_SUCCESS;
 }
 
-VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferProperties(VkDevice &device, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
+VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferProperties(VkDevice &device, const AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)
 {
 	VkResult result = VK_SUCCESS;
 
@@ -496,4 +491,12 @@ int AHardwareBufferExternalMemory::externalImageRowPitchBytes() const
 	return GetBytesFromAHBFormat(ahbDesc.format) * ahbDesc.stride;
 }
 
-#endif  // SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
+#ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
+uint64_t AHardwareBufferExternalMemory::getMemoryObjectId() const
+{
+	uint64_t id = 0;
+	int ret = AHardwareBuffer_getId(ahb, &id);
+	ASSERT(ret == 0);
+	return id;
+}
+#endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT

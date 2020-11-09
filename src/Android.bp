@@ -634,6 +634,7 @@ cc_defaults {
         "-DLOG_TAG=\"swiftshader\"",
         "-DSWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER",
         "-DSWIFTSHADER_ENABLE_ASTC",  // TODO(b/150130101)
+        //"-DSWIFTSHADER_DEVICE_MEMORY_REPORT",
     ],
 
     srcs: [

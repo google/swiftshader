@@ -217,6 +217,14 @@ static void getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(T *features)
 	features->shaderSubgroupExtendedTypes = VK_TRUE;
 }
 
+#ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
+template<typename T>
+static void getPhysicalDeviceDeviceMemoryReportFeaturesEXT(T *features)
+{
+	features->deviceMemoryReport = VK_TRUE;
+}
+#endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
+
 template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
@@ -320,6 +328,11 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR:
 				getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(reinterpret_cast<VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *>(curExtension));
 				break;
+#ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT:
+				getPhysicalDeviceDeviceMemoryReportFeaturesEXT(reinterpret_cast<VkPhysicalDeviceDeviceMemoryReportFeaturesEXT *>(curExtension));
+				break;
+#endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
 			default:
 				LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
 				break;
