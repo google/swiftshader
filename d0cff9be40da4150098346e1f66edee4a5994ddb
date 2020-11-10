@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "677a5ee3_31179246",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 3206,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-10T21:03:49Z",
+      "side": 1,
+      "message": "Sorry for noticing this only now, but without anything that has side-effects in this body, the branch and its basic blocks could get eliminated. While Subzero doesn\u0027t do that currently, it would be relatively straightforward so I can\u0027t eliminate the possibility this will be done in the future.\n\nAnyway, your call.",
+      "range": {
+        "startLine": 3205,
+        "startChar": 3,
+        "endLine": 3206,
+        "endChar": 4
+      },
+      "revId": "d0cff9be40da4150098346e1f66edee4a5994ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
