@@ -33,9 +33,7 @@ const struct InstArithmeticAttributes_ {
   const char *DisplayString;
   bool IsCommutative;
 } InstArithmeticAttributes[] = {
-#define X(tag, str, commutative)                                               \
-  { str, commutative }                                                         \
-  ,
+#define X(tag, str, commutative) {str, commutative},
     ICEINSTARITHMETIC_TABLE
 #undef X
 };
@@ -44,9 +42,7 @@ const struct InstArithmeticAttributes_ {
 const struct InstCastAttributes_ {
   const char *DisplayString;
 } InstCastAttributes[] = {
-#define X(tag, str)                                                            \
-  { str }                                                                      \
-  ,
+#define X(tag, str) {str},
     ICEINSTCAST_TABLE
 #undef X
 };
@@ -55,9 +51,7 @@ const struct InstCastAttributes_ {
 const struct InstFcmpAttributes_ {
   const char *DisplayString;
 } InstFcmpAttributes[] = {
-#define X(tag, str)                                                            \
-  { str }                                                                      \
-  ,
+#define X(tag, str) {str},
     ICEINSTFCMP_TABLE
 #undef X
 };
@@ -67,9 +61,7 @@ const struct InstIcmpAttributes_ {
   const char *DisplayString;
   InstIcmp::ICond Reverse;
 } InstIcmpAttributes[] = {
-#define X(tag, reverse, str)                                                   \
-  { str, InstIcmp::ICond::reverse }                                            \
-  ,
+#define X(tag, reverse, str) {str, InstIcmp::ICond::reverse},
     ICEINSTICMP_TABLE
 #undef X
 };

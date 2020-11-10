@@ -12,11 +12,11 @@
 /// constructors and the dump()/emit() methods.
 ///
 //===----------------------------------------------------------------------===//
+#include "IceInstMIPS32.h"
 #include "IceAssemblerMIPS32.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
-#include "IceInstMIPS32.h"
 #include "IceOperand.h"
 #include "IceRegistersMIPS32.h"
 #include "IceTargetLoweringMIPS32.h"
@@ -29,9 +29,7 @@ const struct InstMIPS32CondAttributes_ {
   CondMIPS32::Cond Opposite;
   const char *EmitString;
 } InstMIPS32CondAttributes[] = {
-#define X(tag, opp, emit)                                                      \
-  { CondMIPS32::opp, emit }                                                    \
-  ,
+#define X(tag, opp, emit) {CondMIPS32::opp, emit},
     ICEINSTMIPS32COND_TABLE
 #undef X
 };
@@ -477,7 +475,8 @@ void InstMIPS32Br::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-         "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
+         "b"
+      << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
   if (Label != nullptr) {
     if (isUnconditionalBranch()) {
       Str << Label->getLabelName();
@@ -528,7 +527,8 @@ void InstMIPS32Br::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "\t"
-         "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
+         "b"
+      << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
 
   if (Label != nullptr) {
     if (isUnconditionalBranch()) {

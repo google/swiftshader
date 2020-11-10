@@ -64,11 +64,12 @@ namespace X8664 {
 //------------------------------------------------------------------------------
 const TargetX8664Traits::TableFcmpType TargetX8664Traits::TableFcmp[] = {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
-  {                                                                            \
-    dflt, swapS, X8664::Traits::Cond::C1, X8664::Traits::Cond::C2, swapV,      \
-        X8664::Traits::Cond::pred                                              \
-  }                                                                            \
-  ,
+  {dflt,                                                                       \
+   swapS,                                                                      \
+   X8664::Traits::Cond::C1,                                                    \
+   X8664::Traits::Cond::C2,                                                    \
+   swapV,                                                                      \
+   X8664::Traits::Cond::pred},
     FCMPX8664_TABLE
 #undef X
 };
@@ -76,9 +77,7 @@ const TargetX8664Traits::TableFcmpType TargetX8664Traits::TableFcmp[] = {
 const size_t TargetX8664Traits::TableFcmpSize = llvm::array_lengthof(TableFcmp);
 
 const TargetX8664Traits::TableIcmp32Type TargetX8664Traits::TableIcmp32[] = {
-#define X(val, C_32, C1_64, C2_64, C3_64)                                      \
-  { X8664::Traits::Cond::C_32 }                                                \
-  ,
+#define X(val, C_32, C1_64, C2_64, C3_64) {X8664::Traits::Cond::C_32},
     ICMPX8664_TABLE
 #undef X
 };
@@ -88,11 +87,8 @@ const size_t TargetX8664Traits::TableIcmp32Size =
 
 const TargetX8664Traits::TableIcmp64Type TargetX8664Traits::TableIcmp64[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
-  {                                                                            \
-    X8664::Traits::Cond::C1_64, X8664::Traits::Cond::C2_64,                    \
-        X8664::Traits::Cond::C3_64                                             \
-  }                                                                            \
-  ,
+  {X8664::Traits::Cond::C1_64, X8664::Traits::Cond::C2_64,                     \
+   X8664::Traits::Cond::C3_64},
     ICMPX8664_TABLE
 #undef X
 };
@@ -103,8 +99,7 @@ const size_t TargetX8664Traits::TableIcmp64Size =
 const TargetX8664Traits::TableTypeX8664AttributesType
     TargetX8664Traits::TableTypeX8664Attributes[] = {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
-  { IceType_##elty }                                                           \
-  ,
+  {IceType_##elty},
         ICETYPEX8664_TABLE
 #undef X
 };
@@ -298,12 +293,14 @@ void TargetX8664::_unlink_bp() {
 
 void TargetX8664::_push_reg(RegNumT RegNum) {
   if (Traits::isXmm(RegNum)) {
-    Variable *reg =
-        getPhysicalRegister(RegNum, IceType_v4f32);
+    Variable *reg = getPhysicalRegister(RegNum, IceType_v4f32);
     Variable *rsp =
         getPhysicalRegister(Traits::RegisterSet::Reg_rsp, Traits::WordType);
-    auto* address = Traits::X86OperandMem::create(Func, reg->getType(), rsp, nullptr);
-    _sub_sp(Ctx->getConstantInt32(16)); // TODO(capn): accumulate all the offsets and adjust the stack pointer once.
+    auto *address =
+        Traits::X86OperandMem::create(Func, reg->getType(), rsp, nullptr);
+    _sub_sp(
+        Ctx->getConstantInt32(16)); // TODO(capn): accumulate all the offsets
+                                    // and adjust the stack pointer once.
     _storep(reg, address);
   } else if (RegNum != Traits::RegisterSet::Reg_rbp || !NeedSandboxing) {
     _push(getPhysicalRegister(RegNum, Traits::WordType));
@@ -314,13 +311,15 @@ void TargetX8664::_push_reg(RegNumT RegNum) {
 
 void TargetX8664::_pop_reg(RegNumT RegNum) {
   if (Traits::isXmm(RegNum)) {
-    Variable *reg =
-        getPhysicalRegister(RegNum, IceType_v4f32);
+    Variable *reg = getPhysicalRegister(RegNum, IceType_v4f32);
     Variable *rsp =
         getPhysicalRegister(Traits::RegisterSet::Reg_rsp, Traits::WordType);
-    auto* address = Traits::X86OperandMem::create(Func, reg->getType(), rsp, nullptr);
+    auto *address =
+        Traits::X86OperandMem::create(Func, reg->getType(), rsp, nullptr);
     _movp(reg, address);
-    _add_sp(Ctx->getConstantInt32(16)); // TODO(capn): accumulate all the offsets and adjust the stack pointer once.
+    _add_sp(
+        Ctx->getConstantInt32(16)); // TODO(capn): accumulate all the offsets
+                                    // and adjust the stack pointer once.
   } else {
     _pop(getPhysicalRegister(RegNum, Traits::WordType));
   }

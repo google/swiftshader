@@ -16,8 +16,8 @@
 #ifndef SUBZERO_SRC_ICEGLOBALCONTEXT_H
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
-#include "IceDefs.h"
 #include "IceClFlags.h"
+#include "IceDefs.h"
 #include "IceInstrumentation.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"

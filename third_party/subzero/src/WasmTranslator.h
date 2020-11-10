@@ -72,7 +72,7 @@ public:
 private:
   std::vector<uint8_t> Buffer;
 };
-}
+} // namespace Ice
 
 #endif // ALLOW_WASM
 

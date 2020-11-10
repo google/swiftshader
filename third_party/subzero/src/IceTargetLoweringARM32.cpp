@@ -87,8 +87,7 @@ class SizeOf {
 public:
   constexpr SizeOf() : Size(0) {}
   template <typename... T>
-  explicit constexpr SizeOf(T...)
-      : Size(__length<T...>::value) {}
+  explicit constexpr SizeOf(T...) : Size(__length<T...>::value) {}
   constexpr SizeT size() const { return Size; }
 
 private:
@@ -109,12 +108,14 @@ private:
 RegARM32::RegTableType RegARM32::RegTable[RegARM32::Reg_NUM] = {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
           isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
-  {                                                                            \
-    name, encode, cc_arg, scratch, preserved, stackptr, frameptr, isGPR,       \
-        isInt, isI64Pair, isFP32, isFP64, isVec128,                            \
-        (SizeOf alias_init).size(), alias_init                                 \
-  }                                                                            \
-  ,
+  {name,      encode,                                                          \
+   cc_arg,    scratch,                                                         \
+   preserved, stackptr,                                                        \
+   frameptr,  isGPR,                                                           \
+   isInt,     isI64Pair,                                                       \
+   isFP32,    isFP64,                                                          \
+   isVec128,  (SizeOf alias_init).size(),                                      \
+   alias_init},
     REGARM32_TABLE
 #undef X
 };
@@ -129,8 +130,7 @@ const struct TableIcmp32_ {
   CondARM32::Cond Mapping;
 } TableIcmp32[] = {
 #define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
-  { CondARM32::C_32 }                                                          \
-  ,
+  {CondARM32::C_32},
     ICMPARM32_TABLE
 #undef X
 };
@@ -145,8 +145,7 @@ const struct TableIcmp64_ {
   CondARM32::Cond C1, C2;
 } TableIcmp64[] = {
 #define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
-  { is_signed, swapped64, CondARM32::C1_64, CondARM32::C2_64 }                 \
-  ,
+  {is_signed, swapped64, CondARM32::C1_64, CondARM32::C2_64},
     ICMPARM32_TABLE
 #undef X
 };
@@ -371,23 +370,23 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   for (size_t i = 0; i < llvm::array_lengthof(TypeToRegisterSet); ++i)
     TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
 
-  filterTypeToRegisterSet(Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
-                          llvm::array_lengthof(TypeToRegisterSet),
-                          [](RegNumT RegNum) -> std::string {
-                            // This function simply removes ", " from the
-                            // register name.
-                            std::string Name = RegARM32::getRegName(RegNum);
-                            constexpr const char RegSeparator[] = ", ";
-                            constexpr size_t RegSeparatorWidth =
-                                llvm::array_lengthof(RegSeparator) - 1;
-                            for (size_t Pos = Name.find(RegSeparator);
-                                 Pos != std::string::npos;
-                                 Pos = Name.find(RegSeparator)) {
-                              Name.replace(Pos, RegSeparatorWidth, "");
-                            }
-                            return Name;
-                          },
-                          getRegClassName);
+  filterTypeToRegisterSet(
+      Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
+      llvm::array_lengthof(TypeToRegisterSet),
+      [](RegNumT RegNum) -> std::string {
+        // This function simply removes ", " from the
+        // register name.
+        std::string Name = RegARM32::getRegName(RegNum);
+        constexpr const char RegSeparator[] = ", ";
+        constexpr size_t RegSeparatorWidth =
+            llvm::array_lengthof(RegSeparator) - 1;
+        for (size_t Pos = Name.find(RegSeparator); Pos != std::string::npos;
+             Pos = Name.find(RegSeparator)) {
+          Name.replace(Pos, RegSeparatorWidth, "");
+        }
+        return Name;
+      },
+      getRegClassName);
 }
 
 namespace {
@@ -1376,7 +1375,9 @@ void TargetARM32::lowerArguments() {
     Arg->setIsArg(false);
     Args[I] = RegisterArg;
     switch (Ty) {
-    default: { RegisterArg->setRegNum(RegNum); } break;
+    default: {
+      RegisterArg->setRegNum(RegNum);
+    } break;
     case IceType_i64: {
       auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
       RegisterArg64->initHiLo(Func);
@@ -1878,9 +1879,9 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
     assert(!SrcR->isRematerializable());
     const int32_t Offset = Dest->getStackOffset();
     // This is a _mov(Mem(), Variable), i.e., a store.
-    TargetARM32::Sandboxer(Target)
-        .str(SrcR, createMemOperand(DestTy, StackOrFrameReg, Offset),
-             MovInstr->getPredicate());
+    TargetARM32::Sandboxer(Target).str(
+        SrcR, createMemOperand(DestTy, StackOrFrameReg, Offset),
+        MovInstr->getPredicate());
     // _str() does not have a Dest, so we add a fake-def(Dest).
     Target->Context.insert<InstFakeDef>(Dest);
     Legalized = true;
@@ -1903,9 +1904,9 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
       if (!Var->hasReg()) {
         // This is a _mov(Variable, Mem()), i.e., a load.
         const int32_t Offset = Var->getStackOffset();
-        TargetARM32::Sandboxer(Target)
-            .ldr(Dest, createMemOperand(DestTy, StackOrFrameReg, Offset),
-                 MovInstr->getPredicate());
+        TargetARM32::Sandboxer(Target).ldr(
+            Dest, createMemOperand(DestTy, StackOrFrameReg, Offset),
+            MovInstr->getPredicate());
         Legalized = true;
       }
     }
@@ -1942,8 +1943,12 @@ static const struct {
 } MemTraits[] = {
 #define X(tag, elementty, int_width, fp_width, uvec_width, svec_width, sbits,  \
           ubits, rraddr, shaddr)                                               \
-  { (1 << ubits) - 1, (ubits) > 0, rraddr, shaddr, }                           \
-  ,
+  {                                                                            \
+      (1 << ubits) - 1,                                                        \
+      (ubits) > 0,                                                             \
+      rraddr,                                                                  \
+      shaddr,                                                                  \
+  },
     ICETYPEARM32_TABLE
 #undef X
 };
@@ -1954,9 +1959,8 @@ OperandARM32Mem *
 TargetARM32::PostLoweringLegalizer::legalizeMemOperand(OperandARM32Mem *Mem,
                                                        bool AllowOffsets) {
   assert(!Mem->isRegReg() || !Mem->getIndex()->isRematerializable());
-  assert(
-      Mem->isRegReg() ||
-      Target->isLegalMemOffset(Mem->getType(), Mem->getOffset()->getValue()));
+  assert(Mem->isRegReg() || Target->isLegalMemOffset(
+                                Mem->getType(), Mem->getOffset()->getValue()));
 
   bool Legalized = false;
   Variable *Base = Mem->getBase();
@@ -2054,8 +2058,8 @@ void TargetARM32::postLowerLegalization() {
       } else if (auto *LdrInstr = llvm::dyn_cast<InstARM32Ldr>(CurInstr)) {
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(LdrInstr->getSrc(0)))) {
-          Sandboxer(this)
-              .ldr(CurInstr->getDest(), LegalMem, LdrInstr->getPredicate());
+          Sandboxer(this).ldr(CurInstr->getDest(), LegalMem,
+                              LdrInstr->getPredicate());
           CurInstr->setDeleted();
         }
       } else if (auto *LdrexInstr = llvm::dyn_cast<InstARM32Ldrex>(CurInstr)) {
@@ -2063,8 +2067,8 @@ void TargetARM32::postLowerLegalization() {
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(LdrexInstr->getSrc(0)),
                 DisallowOffsetsBecauseLdrex)) {
-          Sandboxer(this)
-              .ldrex(CurInstr->getDest(), LegalMem, LdrexInstr->getPredicate());
+          Sandboxer(this).ldrex(CurInstr->getDest(), LegalMem,
+                                LdrexInstr->getPredicate());
           CurInstr->setDeleted();
         }
       } else if (auto *StrInstr = llvm::dyn_cast<InstARM32Str>(CurInstr)) {
@@ -2783,8 +2787,9 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
     Variable *Src1RLo = SrcsLo.unswappedSrc1R(this);
     _rsb(T0, Src1RLo, _32);
     _lsr(T1, Src0RLo, T0);
-    _orr(TA_Hi, T1, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                                OperandARM32::LSL, Src1RLo));
+    _orr(TA_Hi, T1,
+         OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                     OperandARM32::LSL, Src1RLo));
     _sub(T2, Src1RLo, _32);
     _cmp(T2, _0);
     _lsl(TA_Hi, Src0RLo, T2, CondARM32::GE);
@@ -2889,8 +2894,9 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
     Variable *Src1RLo = SrcsLo.unswappedSrc1R(this);
     _lsr(T0, Src0RLo, Src1RLo);
     _rsb(T1, Src1RLo, _32);
-    _orr(TA_Lo, T0, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                                OperandARM32::LSL, T1));
+    _orr(TA_Lo, T0,
+         OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                     OperandARM32::LSL, T1));
     _sub(T2, Src1RLo, _32);
     _cmp(T2, _0);
     if (ASR) {
@@ -3058,8 +3064,9 @@ bool tryToOptimize(uint32_t Src, SizeT *NumOperations,
     const uint32_t NegSrcLastBitSet = llvm::findLastSet(NegSrc);
     assert(NegSrcLastBitSet < SrcLastBitSet);
     const uint32_t SrcClearMask =
-        (NegSrcLastBitSet == 0) ? 0 : (0xFFFFFFFFu) >>
-                                          (SrcSizeBits - NegSrcLastBitSet);
+        (NegSrcLastBitSet == 0)
+            ? 0
+            : (0xFFFFFFFFu) >> (SrcSizeBits - NegSrcLastBitSet);
     Src &= SrcClearMask;
     if (!addOperations(SrcLastBitSet, NegSrcLastBitSet + 1, NumOperations,
                        Operations)) {
@@ -4125,9 +4132,9 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     //     t3.fp = vcvt.{fp}.s32    @ fp is either f32 or f64
     if (Src0->getType() != IceType_i32) {
       Variable *Src0R_32 = makeReg(IceType_i32);
-      lowerCast(InstCast::create(Func, SourceIsSigned ? InstCast::Sext
-                                                      : InstCast::Zext,
-                                 Src0R_32, Src0));
+      lowerCast(InstCast::create(
+          Func, SourceIsSigned ? InstCast::Sext : InstCast::Zext, Src0R_32,
+          Src0));
       Src0 = Src0R_32;
     }
     Variable *Src0R = legalizeToReg(Src0);
@@ -4289,8 +4296,7 @@ struct {
   CondARM32::Cond CC1;
 } TableFcmp[] = {
 #define X(val, CC0, CC1, CC0_V, CC1_V, INV_V, NEG_V)                           \
-  { CondARM32::CC0, CondARM32::CC1 }                                           \
-  ,
+  {CondARM32::CC0, CondARM32::CC1},
     FCMPARM32_TABLE
 #undef X
 };
@@ -4755,11 +4761,11 @@ void TargetARM32::lowerIcmp(const InstIcmp *Instr) {
       llvm::report_fatal_error("Unhandled integer comparison.");
 #define _Vceq(T, S0, S1, Signed) _vceq(T, S0, S1)
 #define _Vcge(T, S0, S1, Signed)                                               \
-  _vcge(T, S0, S1)                                                             \
-      ->setSignType(Signed ? InstARM32::FS_Signed : InstARM32::FS_Unsigned)
+  _vcge(T, S0, S1)->setSignType(Signed ? InstARM32::FS_Signed                  \
+                                       : InstARM32::FS_Unsigned)
 #define _Vcgt(T, S0, S1, Signed)                                               \
-  _vcgt(T, S0, S1)                                                             \
-      ->setSignType(Signed ? InstARM32::FS_Signed : InstARM32::FS_Unsigned)
+  _vcgt(T, S0, S1)->setSignType(Signed ? InstARM32::FS_Signed                  \
+                                       : InstARM32::FS_Unsigned)
 #define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
   case InstIcmp::val: {                                                        \
     _Vc##C_V(T, (INV_V) ? Src1 : Src0, (INV_V) ? Src0 : Src1, is_signed);      \
@@ -5191,8 +5197,9 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       return;
     }
     lowerAtomicRMW(
-        Dest, static_cast<uint32_t>(
-                  llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
+        Dest,
+        static_cast<uint32_t>(
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
         Instr->getArg(1), Instr->getArg(2));
     return;
   }
@@ -6996,7 +7003,7 @@ bool isValidConsumer(const Inst &Instr) {
   }
   }
 }
-} // end of namespace FpFolding
+} // namespace IntFolding
 } // end of anonymous namespace
 
 void TargetARM32::ComputationTracker::recordProducers(CfgNode *Node) {

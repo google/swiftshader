@@ -6,7 +6,7 @@
 // Please update the (git) revision if we merge changes from Dart.
 // https://code.google.com/p/dart/wiki/GettingTheSource
 
-#include "vm/globals.h"  // NOLINT
+#include "vm/globals.h" // NOLINT
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
@@ -45,9 +45,9 @@ uint32_t Address::encoding3() const {
 uint32_t Address::vencoding() const {
   ASSERT(kind_ == Immediate);
   uint32_t offset = encoding_ & kOffset12Mask;
-  ASSERT(offset < (1 << 10));  // In the range 0 to +1020.
-  ASSERT(Utils::IsAligned(offset, 4));  // Multiple of 4.
-  int mode = encoding_ & ((8|4|1) << 21);
+  ASSERT(offset < (1 << 10));          // In the range 0 to +1020.
+  ASSERT(Utils::IsAligned(offset, 4)); // Multiple of 4.
+  int mode = encoding_ & ((8 | 4 | 1) << 21);
   ASSERT((mode == Offset) || (mode == NegOffset));
   uint32_t vencoding = (encoding_ & (0xf << kRnShift)) | (offset >> 2);
   if (mode == Offset) {
@@ -56,17 +56,15 @@ uint32_t Address::vencoding() const {
   return vencoding;
 }
 
-
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));
   ASSERT(Utils::IsAligned(length, 4));
   const uword end = data + length;
   while (data < end) {
-    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
+    *reinterpret_cast<int32_t *>(data) = Instr::kBreakPointInstruction;
     data += 4;
   }
 }
-
 
 void Assembler::Emit(int32_t value) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -152,40 +150,30 @@ void Assembler::EmitMultiMemOp(Condition cond,
 }
 #endif
 
-void Assembler::EmitShiftImmediate(Condition cond,
-                                   Shift opcode,
-                                   Register rd,
-                                   Register rm,
-                                   Operand o) {
+void Assembler::EmitShiftImmediate(Condition cond, Shift opcode, Register rd,
+                                   Register rm, Operand o) {
   ASSERT(cond != kNoCondition);
   ASSERT(o.type() == 1);
-  int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
-                     static_cast<int32_t>(MOV) << kOpcodeShift |
-                     static_cast<int32_t>(rd) << kRdShift |
-                     o.encoding() << kShiftImmShift |
-                     static_cast<int32_t>(opcode) << kShiftShift |
-                     static_cast<int32_t>(rm);
+  int32_t encoding =
+      static_cast<int32_t>(cond) << kConditionShift |
+      static_cast<int32_t>(MOV) << kOpcodeShift |
+      static_cast<int32_t>(rd) << kRdShift | o.encoding() << kShiftImmShift |
+      static_cast<int32_t>(opcode) << kShiftShift | static_cast<int32_t>(rm);
   Emit(encoding);
 }
 
-
-void Assembler::EmitShiftRegister(Condition cond,
-                                  Shift opcode,
-                                  Register rd,
-                                  Register rm,
-                                  Operand o) {
+void Assembler::EmitShiftRegister(Condition cond, Shift opcode, Register rd,
+                                  Register rm, Operand o) {
   ASSERT(cond != kNoCondition);
   ASSERT(o.type() == 0);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      static_cast<int32_t>(MOV) << kOpcodeShift |
                      static_cast<int32_t>(rd) << kRdShift |
                      o.encoding() << kShiftRegisterShift |
-                     static_cast<int32_t>(opcode) << kShiftShift |
-                     B4 |
+                     static_cast<int32_t>(opcode) << kShiftShift | B4 |
                      static_cast<int32_t>(rm);
   Emit(encoding);
 }
-
 
 #if 0
 // Moved to ARM32::AssemblerARM32::and_()
@@ -243,7 +231,6 @@ void Assembler::sbc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SBC, 0, rn, rd, o);
 }
 
-
 void Assembler::sbcs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SBC, 1, rn, rd, o);
 }
@@ -295,7 +282,6 @@ void Assembler::mov(Register rd, Operand o, Condition cond) {
 void Assembler::movs(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 1, R0, rd, o);
 }
-
 
 #if 0
 // Moved to ARM32::AssemblerARM32::bic()
@@ -405,8 +391,8 @@ void Assembler::mls(Register rd, Register rn,
 }
 #endif
 
-void Assembler::smull(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm, Condition cond) {
+void Assembler::smull(Register rd_lo, Register rd_hi, Register rn, Register rm,
+                      Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
 }
@@ -420,15 +406,14 @@ void Assembler::umull(Register rd_lo, Register rd_hi,
 }
 #endif
 
-void Assembler::umlal(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm, Condition cond) {
+void Assembler::umlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
+                      Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23 | B21, rd_lo, rd_hi, rn, rm);
 }
 
-
-void Assembler::umaal(Register rd_lo, Register rd_hi,
-                      Register rn, Register rm) {
+void Assembler::umaal(Register rd_lo, Register rd_hi, Register rn,
+                      Register rm) {
   ASSERT(rd_lo != IP);
   ASSERT(rd_hi != IP);
   ASSERT(rn != IP);
@@ -443,7 +428,6 @@ void Assembler::umaal(Register rd_lo, Register rd_hi,
     adc(rd_hi, IP, Operand(0));
   }
 }
-
 
 #if 0
 // Moved to ARM32::AssemblerARM32::emitDivOp()
@@ -499,21 +483,17 @@ void Assembler::ldrh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | H | B4, rd, ad);
 }
 
-
 void Assembler::strh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, B7 | H | B4, rd, ad);
 }
-
 
 void Assembler::ldrsb(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | B6 | B4, rd, ad);
 }
 
-
 void Assembler::ldrsh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | B6 | H | B4, rd, ad);
 }
-
 
 void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
   ASSERT((rd % 2) == 0);
@@ -525,7 +505,6 @@ void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
     EmitMemOpAddressMode3(cond, B7 | B6 | B4, rd, Address(rn, offset));
   }
 }
-
 
 void Assembler::strd(Register rd, Register rn, int32_t offset, Condition cond) {
   ASSERT((rd % 2) == 0);
@@ -591,8 +570,8 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 
 void Assembler::clrex() {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
-  int32_t encoding = (kSpecialCondition << kConditionShift) |
-                     B26 | B24 | B22 | B21 | B20 | (0xff << 12) | B4 | 0xf;
+  int32_t encoding = (kSpecialCondition << kConditionShift) | B26 | B24 | B22 |
+                     B21 | B20 | (0xff << 12) | B4 | 0xf;
   Emit(encoding);
 }
 
@@ -638,7 +617,6 @@ void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
 }
 #endif
 
-
 void Assembler::vmovsrr(SRegister sm, Register rt, Register rt2,
                         Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -651,15 +629,13 @@ void Assembler::vmovsrr(SRegister sm, Register rt, Register rt2,
   ASSERT(rt2 != SP);
   ASSERT(rt2 != PC);
   ASSERT(cond != kNoCondition);
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B22 |
-                     (static_cast<int32_t>(rt2)*B16) |
-                     (static_cast<int32_t>(rt)*B12) | B11 | B9 |
-                     ((static_cast<int32_t>(sm) & 1)*B5) | B4 |
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
+                     B26 | B22 | (static_cast<int32_t>(rt2) * B16) |
+                     (static_cast<int32_t>(rt) * B12) | B11 | B9 |
+                     ((static_cast<int32_t>(sm) & 1) * B5) | B4 |
                      (static_cast<int32_t>(sm) >> 1);
   Emit(encoding);
 }
-
 
 void Assembler::vmovrrs(Register rt, Register rt2, SRegister sm,
                         Condition cond) {
@@ -674,11 +650,10 @@ void Assembler::vmovrrs(Register rt, Register rt2, SRegister sm,
   ASSERT(rt2 != PC);
   ASSERT(rt != rt2);
   ASSERT(cond != kNoCondition);
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B22 | B20 |
-                     (static_cast<int32_t>(rt2)*B16) |
-                     (static_cast<int32_t>(rt)*B12) | B11 | B9 |
-                     ((static_cast<int32_t>(sm) & 1)*B5) | B4 |
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
+                     B26 | B22 | B20 | (static_cast<int32_t>(rt2) * B16) |
+                     (static_cast<int32_t>(rt) * B12) | B11 | B9 |
+                     ((static_cast<int32_t>(sm) & 1) * B5) | B4 |
                      (static_cast<int32_t>(sm) >> 1);
   Emit(encoding);
 }
@@ -790,44 +765,33 @@ void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
   ASSERT(static_cast<Register>(ad.encoding_ & (0xf << kRnShift)) != PC);
   ASSERT(dd != kNoDRegister);
   ASSERT(cond != kNoCondition);
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B24 |
-                     ((static_cast<int32_t>(dd) >> 4)*B22) |
-                     ((static_cast<int32_t>(dd) & 0xf)*B12) |
-                     B11 | B9 | B8 | ad.vencoding();
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
+                     B26 | B24 | ((static_cast<int32_t>(dd) >> 4) * B22) |
+                     ((static_cast<int32_t>(dd) & 0xf) * B12) | B11 | B9 | B8 |
+                     ad.vencoding();
   Emit(encoding);
 }
 
-void Assembler::EmitMultiVSMemOp(Condition cond,
-                                BlockAddressMode am,
-                                bool load,
-                                Register base,
-                                SRegister start,
-                                uint32_t count) {
+void Assembler::EmitMultiVSMemOp(Condition cond, BlockAddressMode am, bool load,
+                                 Register base, SRegister start,
+                                 uint32_t count) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
   ASSERT(start != kNoSRegister);
   ASSERT(static_cast<int32_t>(start) + count <= kNumberOfSRegisters);
 
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B11 | B9 |
-                     am |
-                     (load ? L : 0) |
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
+                     B26 | B11 | B9 | am | (load ? L : 0) |
                      (static_cast<int32_t>(base) << kRnShift) |
                      ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
-                     ((static_cast<int32_t>(start) >> 1) << 12) |
-                     count;
+                     ((static_cast<int32_t>(start) >> 1) << 12) | count;
   Emit(encoding);
 }
 
-
-void Assembler::EmitMultiVDMemOp(Condition cond,
-                                BlockAddressMode am,
-                                bool load,
-                                Register base,
-                                DRegister start,
-                                int32_t count) {
+void Assembler::EmitMultiVDMemOp(Condition cond, BlockAddressMode am, bool load,
+                                 Register base, DRegister start,
+                                 int32_t count) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -835,45 +799,38 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
   ASSERT(static_cast<int32_t>(start) + count <= kNumberOfDRegisters);
   const int armv5te = TargetCPUFeatures::arm_version() == ARMv5TE ? 1 : 0;
 
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B11 | B9 | B8 |
-                     am |
-                     (load ? L : 0) |
-                     (static_cast<int32_t>(base) << kRnShift) |
-                     ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
-                     ((static_cast<int32_t>(start) & 0xf) << 12) |
-                     (count << 1) | armv5te;
+  int32_t encoding =
+      (static_cast<int32_t>(cond) << kConditionShift) | B27 | B26 | B11 | B9 |
+      B8 | am | (load ? L : 0) | (static_cast<int32_t>(base) << kRnShift) |
+      ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
+      ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | armv5te;
   Emit(encoding);
 }
 
-
-void Assembler::vldms(BlockAddressMode am, Register base,
-                      SRegister first, SRegister last, Condition cond) {
+void Assembler::vldms(BlockAddressMode am, Register base, SRegister first,
+                      SRegister last, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
   ASSERT(last > first);
   EmitMultiVSMemOp(cond, am, true, base, first, last - first + 1);
 }
 
-
-void Assembler::vstms(BlockAddressMode am, Register base,
-                      SRegister first, SRegister last, Condition cond) {
+void Assembler::vstms(BlockAddressMode am, Register base, SRegister first,
+                      SRegister last, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
   ASSERT(last > first);
   EmitMultiVSMemOp(cond, am, false, base, first, last - first + 1);
 }
 
-
-void Assembler::vldmd(BlockAddressMode am, Register base,
-                      DRegister first, intptr_t count, Condition cond) {
+void Assembler::vldmd(BlockAddressMode am, Register base, DRegister first,
+                      intptr_t count, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
   ASSERT(count <= 16);
   ASSERT(first + count <= kNumberOfDRegisters);
   EmitMultiVDMemOp(cond, am, true, base, first, count);
 }
 
-
-void Assembler::vstmd(BlockAddressMode am, Register base,
-                      DRegister first, intptr_t count, Condition cond) {
+void Assembler::vstmd(BlockAddressMode am, Register base, DRegister first,
+                      intptr_t count, Condition cond) {
   ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
   ASSERT(count <= 16);
   ASSERT(first + count <= kNumberOfDRegisters);
@@ -1052,7 +1009,6 @@ void Assembler::vnegs(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B16 | B6, sd, S0, sm);
 }
 
-
 void Assembler::vnegd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B16 | B6, dd, D0, dm);
 }
@@ -1183,30 +1139,27 @@ void Assembler::vmrs(Register rd, Condition cond) {
 }
 #endif
 
-void Assembler::vmstat(Condition cond) {
-  vmrs(APSR, cond);
-}
-
+void Assembler::vmstat(Condition cond) { vmrs(APSR, cond); }
 
 static inline int ShiftOfOperandSize(OperandSize size) {
   switch (size) {
-    case kByte:
-    case kUnsignedByte:
-      return 0;
-    case kHalfword:
-    case kUnsignedHalfword:
-      return 1;
-    case kWord:
-    case kUnsignedWord:
-      return 2;
-    case kWordPair:
-      return 3;
-    case kSWord:
-    case kDWord:
-      return 0;
-    default:
-      UNREACHABLE();
-      break;
+  case kByte:
+  case kUnsignedByte:
+    return 0;
+  case kHalfword:
+  case kUnsignedHalfword:
+    return 1;
+  case kWord:
+  case kUnsignedWord:
+    return 2;
+  case kWordPair:
+    return 3;
+  case kSWord:
+  case kDWord:
+    return 0;
+  default:
+    UNREACHABLE();
+    break;
   }
 
   UNREACHABLE();
@@ -1233,23 +1186,19 @@ void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
 }
 #endif
 
-void Assembler::EmitSIMDddd(int32_t opcode, OperandSize size,
-                            DRegister dd, DRegister dn, DRegister dm) {
+void Assembler::EmitSIMDddd(int32_t opcode, OperandSize size, DRegister dd,
+                            DRegister dn, DRegister dm) {
   ASSERT(TargetCPUFeatures::neon_supported());
   int sz = ShiftOfOperandSize(size);
   int32_t encoding =
-      (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
-      B25 |
-      opcode | ((sz & 0x3) * B20) |
-      ((static_cast<int32_t>(dd) >> 4)*B22) |
-      ((static_cast<int32_t>(dn) & 0xf)*B16) |
-      ((static_cast<int32_t>(dd) & 0xf)*B12) |
-      ((static_cast<int32_t>(dn) >> 4)*B7) |
-      ((static_cast<int32_t>(dm) >> 4)*B5) |
-      (static_cast<int32_t>(dm) & 0xf);
+      (static_cast<int32_t>(kSpecialCondition) << kConditionShift) | B25 |
+      opcode | ((sz & 0x3) * B20) | ((static_cast<int32_t>(dd) >> 4) * B22) |
+      ((static_cast<int32_t>(dn) & 0xf) * B16) |
+      ((static_cast<int32_t>(dd) & 0xf) * B12) |
+      ((static_cast<int32_t>(dn) >> 4) * B7) |
+      ((static_cast<int32_t>(dm) >> 4) * B5) | (static_cast<int32_t>(dm) & 0xf);
   Emit(encoding);
 }
-
 
 void Assembler::vmovq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qm, qm);
@@ -1268,11 +1217,10 @@ void Assembler::vaddqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 #endif
 
-void Assembler::vsubqi(OperandSize sz,
-                       QRegister qd, QRegister qn, QRegister qm) {
+void Assembler::vsubqi(OperandSize sz, QRegister qd, QRegister qn,
+                       QRegister qm) {
   EmitSIMDqqq(B24 | B11, sz, qd, qn, qm);
 }
-
 
 void Assembler::vsubqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B8, kSWord, qd, qn, qm);
@@ -1329,11 +1277,9 @@ void Assembler::vmvnq(QRegister qd, QRegister qm) {
 }
 #endif
 
-
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vmaxqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
@@ -1353,74 +1299,65 @@ void Assembler::vnegqs(QRegister qd, QRegister qm) {
 }
 #endif
 
-
 void Assembler::vrecpeqs(QRegister qd, QRegister qm) {
-  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8, kSWord,
-              qd, Q0, qm);
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8, kSWord, qd,
+              Q0, qm);
 }
-
 
 void Assembler::vrecpsqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
 }
 
-
 void Assembler::vrsqrteqs(QRegister qd, QRegister qm) {
-  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8 | B7,
-              kSWord, qd, Q0, qm);
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8 | B7, kSWord,
+              qd, Q0, qm);
 }
-
 
 void Assembler::vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8 | B4, kSWord, qd, qn, qm);
 }
-
 
 void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
   ASSERT((sz != kDWord) && (sz != kSWord) && (sz != kWordPair));
   int code = 0;
 
   switch (sz) {
-    case kByte:
-    case kUnsignedByte: {
-      ASSERT((idx >= 0) && (idx < 8));
-      code = 1 | (idx << 1);
-      break;
-    }
-    case kHalfword:
-    case kUnsignedHalfword: {
-      ASSERT((idx >= 0) && (idx < 4));
-      code = 2 | (idx << 2);
-      break;
-    }
-    case kWord:
-    case kUnsignedWord: {
-      ASSERT((idx >= 0) && (idx < 2));
-      code = 4 | (idx << 3);
-      break;
-    }
-    default: {
-      break;
-    }
+  case kByte:
+  case kUnsignedByte: {
+    ASSERT((idx >= 0) && (idx < 8));
+    code = 1 | (idx << 1);
+    break;
+  }
+  case kHalfword:
+  case kUnsignedHalfword: {
+    ASSERT((idx >= 0) && (idx < 4));
+    code = 2 | (idx << 2);
+    break;
+  }
+  case kWord:
+  case kUnsignedWord: {
+    ASSERT((idx >= 0) && (idx < 2));
+    code = 4 | (idx << 3);
+    break;
+  }
+  default: {
+    break;
+  }
   }
 
   EmitSIMDddd(B24 | B23 | B11 | B10 | B6, kWordPair,
               static_cast<DRegister>(qd * 2),
-              static_cast<DRegister>(code & 0xf),
-              dm);
+              static_cast<DRegister>(code & 0xf), dm);
 }
-
 
 void Assembler::vtbl(DRegister dd, DRegister dn, int len, DRegister dm) {
   ASSERT((len >= 1) && (len <= 4));
   EmitSIMDddd(B24 | B23 | B11 | ((len - 1) * B8), kWordPair, dd, dn, dm);
 }
 
-
 void Assembler::vzipqw(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B8 | B7, kByte, qd, Q0, qm);
 }
-
 
 #if 0
 // Moved to Arm32::AssemblerARM32::vceqqi().
@@ -1474,11 +1411,9 @@ void Assembler::bkpt(uint16_t imm16) {
 }
 #endif
 
-
-void Assembler::b(Label* label, Condition cond) {
+void Assembler::b(Label *label, Condition cond) {
   EmitBranch(cond, label, false);
 }
-
 
 #if 0
 // Moved to ARM32::AssemblerARM32::bl()
@@ -1507,15 +1442,13 @@ void Assembler::blx(Register rm, Condition cond) {
 }
 #endif
 
-
-void Assembler::MarkExceptionHandler(Label* label) {
+void Assembler::MarkExceptionHandler(Label *label) {
   EmitType01(AL, 1, TST, 1, PC, R0, Operand(0));
   Label l;
   b(&l);
   EmitBranch(AL, label, false);
   Bind(&l);
 }
-
 
 void Assembler::Drop(intptr_t stack_elements) {
   ASSERT(stack_elements >= 0);
@@ -1524,16 +1457,12 @@ void Assembler::Drop(intptr_t stack_elements) {
   }
 }
 
-
 intptr_t Assembler::FindImmediate(int32_t imm) {
   return object_pool_wrapper_.FindImmediate(imm);
 }
 
-
 // Uses a code sequence that can easily be decoded.
-void Assembler::LoadWordFromPoolOffset(Register rd,
-                                       int32_t offset,
-                                       Register pp,
+void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset, Register pp,
                                        Condition cond) {
   ASSERT((pp != PP) || constant_pool_allowed());
   ASSERT(rd != pp);
@@ -1541,8 +1470,8 @@ void Assembler::LoadWordFromPoolOffset(Register rd,
   if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
     ldr(rd, Address(pp, offset), cond);
   } else {
-    int32_t offset_hi = offset & ~offset_mask;  // signed
-    uint32_t offset_lo = offset & offset_mask;  // unsigned
+    int32_t offset_hi = offset & ~offset_mask; // signed
+    uint32_t offset_lo = offset & offset_mask; // unsigned
     // Inline a simplified version of AddImmediate(rd, pp, offset_hi).
     Operand o;
     if (Operand::CanHold(offset_hi, &o)) {
@@ -1566,7 +1495,7 @@ void Assembler::CheckCodePointer() {
   Bind(&cid_ok);
 
   const intptr_t offset = CodeSize() + Instr::kPCReadOffset +
-      Instructions::HeaderSize() - kHeapObjectTag;
+                          Instructions::HeaderSize() - kHeapObjectTag;
   mov(R0, Operand(PC));
   AddImmediate(R0, R0, -offset);
   ldr(IP, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
@@ -1579,12 +1508,10 @@ void Assembler::CheckCodePointer() {
 #endif
 }
 
-
 void Assembler::RestoreCodePointer() {
   ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
   CheckCodePointer();
 }
-
 
 void Assembler::LoadPoolPointer(Register reg) {
   // Load new pool pointer.
@@ -1593,13 +1520,11 @@ void Assembler::LoadPoolPointer(Register reg) {
   set_constant_pool_allowed(reg == PP);
 }
 
-
 void Assembler::LoadIsolate(Register rd) {
   ldr(rd, Address(THR, Thread::isolate_offset()));
 }
 
-
-bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+bool Assembler::CanLoadFromObjectPool(const Object &object) const {
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -1610,12 +1535,8 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-
-void Assembler::LoadObjectHelper(Register rd,
-                                 const Object& object,
-                                 Condition cond,
-                                 bool is_unique,
-                                 Register pp) {
+void Assembler::LoadObjectHelper(Register rd, const Object &object,
+                                 Condition cond, bool is_unique, Register pp) {
   // Load common VM constants from the thread. This works also in places where
   // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
@@ -1629,8 +1550,8 @@ void Assembler::LoadObjectHelper(Register rd,
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset = ObjectPool::element_offset(
-       is_unique ? object_pool_wrapper_.AddObject(object)
-                 : object_pool_wrapper_.FindObject(object));
+        is_unique ? object_pool_wrapper_.AddObject(object)
+                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
     ASSERT(FLAG_allow_absolute_addresses);
@@ -1641,45 +1562,36 @@ void Assembler::LoadObjectHelper(Register rd,
   }
 }
 
-
-void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
+void Assembler::LoadObject(Register rd, const Object &object, Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ false, PP);
 }
 
-
-void Assembler::LoadUniqueObject(Register rd,
-                                 const Object& object,
+void Assembler::LoadUniqueObject(Register rd, const Object &object,
                                  Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
 }
 
-
 void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
+                                           const Function &function,
                                            Register new_pp) {
   const int32_t offset =
       ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
   LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp, AL);
 }
 
-
-void Assembler::LoadNativeEntry(Register rd,
-                                const ExternalLabel* label,
-                                Patchability patchable,
-                                Condition cond) {
+void Assembler::LoadNativeEntry(Register rd, const ExternalLabel *label,
+                                Patchability patchable, Condition cond) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeEntry(label, patchable));
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
 }
 
-
-void Assembler::PushObject(const Object& object) {
+void Assembler::PushObject(const Object &object) {
   LoadObject(IP, object);
   Push(IP);
 }
 
-
-void Assembler::CompareObject(Register rn, const Object& object) {
+void Assembler::CompareObject(Register rn, const Object &object) {
   ASSERT(rn != IP);
   if (object.IsSmi()) {
     CompareImmediate(rn, reinterpret_cast<int32_t>(object.raw()));
@@ -1689,11 +1601,9 @@ void Assembler::CompareObject(Register rn, const Object& object) {
   }
 }
 
-
 // Preserves object and value registers.
-void Assembler::StoreIntoObjectFilterNoSmi(Register object,
-                                           Register value,
-                                           Label* no_update) {
+void Assembler::StoreIntoObjectFilterNoSmi(Register object, Register value,
+                                           Label *no_update) {
   COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
                  (kOldObjectAlignmentOffset == 0));
 
@@ -1706,11 +1616,9 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   b(no_update, EQ);
 }
 
-
 // Preserves object and value registers.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* no_update) {
+void Assembler::StoreIntoObjectFilter(Register object, Register value,
+                                      Label *no_update) {
   // For the value we are only interested in the new/old bit and the tag bit.
   // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
   and_(IP, value, Operand(value, LSL, kObjectAlignmentLog2 - 1));
@@ -1720,7 +1628,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
   b(no_update, EQ);
 }
 
-
 Operand Assembler::GetVerifiedMemoryShadow() {
   Operand offset;
   if (!Operand::CanHold(VerifiedMemory::offset(), &offset)) {
@@ -1729,11 +1636,8 @@ Operand Assembler::GetVerifiedMemoryShadow() {
   return offset;
 }
 
-
-void Assembler::WriteShadowedField(Register base,
-                                   intptr_t offset,
-                                   Register value,
-                                   Condition cond) {
+void Assembler::WriteShadowedField(Register base, intptr_t offset,
+                                   Register value, Condition cond) {
   if (VerifiedMemory::enabled()) {
     ASSERT(base != value);
     Operand shadow(GetVerifiedMemoryShadow());
@@ -1744,11 +1648,8 @@ void Assembler::WriteShadowedField(Register base,
   str(value, Address(base, offset), cond);
 }
 
-
-void Assembler::WriteShadowedFieldPair(Register base,
-                                       intptr_t offset,
-                                       Register value_even,
-                                       Register value_odd,
+void Assembler::WriteShadowedFieldPair(Register base, intptr_t offset,
+                                       Register value_even, Register value_odd,
                                        Condition cond) {
   ASSERT(value_odd == value_even + 1);
   if (VerifiedMemory::enabled()) {
@@ -1762,8 +1663,7 @@ void Assembler::WriteShadowedFieldPair(Register base,
   strd(value_even, base, offset, cond);
 }
 
-
-Register UseRegister(Register reg, RegList* used) {
+Register UseRegister(Register reg, RegList *used) {
   ASSERT(reg != SP);
   ASSERT(reg != PC);
   ASSERT((*used & (1 << reg)) == 0);
@@ -1771,17 +1671,15 @@ Register UseRegister(Register reg, RegList* used) {
   return reg;
 }
 
-
-Register AllocateRegister(RegList* used) {
+Register AllocateRegister(RegList *used) {
   const RegList free = ~*used;
-  return (free == 0) ?
-      kNoRegister :
-      UseRegister(static_cast<Register>(Utils::CountTrailingZeros(free)), used);
+  return (free == 0) ? kNoRegister
+                     : UseRegister(static_cast<Register>(
+                                       Utils::CountTrailingZeros(free)),
+                                   used);
 }
 
-
-void Assembler::VerifiedWrite(const Address& address,
-                              Register new_value,
+void Assembler::VerifiedWrite(const Address &address, Register new_value,
                               FieldContent old_content) {
 #if defined(DEBUG)
   ASSERT(address.mode() == Address::Offset ||
@@ -1802,32 +1700,32 @@ void Assembler::VerifiedWrite(const Address& address,
   tst(old_value, Operand(kHeapObjectTag));
   Label ok;
   switch (old_content) {
-    case kOnlySmi:
-      b(&ok, EQ);  // Smi is OK.
-      Stop("Expected smi.");
-      break;
-    case kHeapObjectOrSmi:
-      b(&ok, EQ);  // Smi is OK.
-      // Non-smi case: Verify object pointer is word-aligned when untagged.
-      COMPILE_ASSERT(kHeapObjectTag == 1);
-      tst(old_value, Operand((kWordSize - 1) - kHeapObjectTag));
-      b(&ok, EQ);
-      Stop("Expected heap object or Smi");
-      break;
-    case kEmptyOrSmiOrNull:
-      b(&ok, EQ);  // Smi is OK.
-      // Non-smi case: Check for the special zap word or null.
-      // Note: Cannot use CompareImmediate, since IP may be in use.
-      LoadImmediate(temp, Heap::kZap32Bits);
-      cmp(old_value, Operand(temp));
-      b(&ok, EQ);
-      LoadObject(temp, Object::null_object());
-      cmp(old_value, Operand(temp));
-      b(&ok, EQ);
-      Stop("Expected zapped, Smi or null");
-      break;
-    default:
-      UNREACHABLE();
+  case kOnlySmi:
+    b(&ok, EQ); // Smi is OK.
+    Stop("Expected smi.");
+    break;
+  case kHeapObjectOrSmi:
+    b(&ok, EQ); // Smi is OK.
+    // Non-smi case: Verify object pointer is word-aligned when untagged.
+    COMPILE_ASSERT(kHeapObjectTag == 1);
+    tst(old_value, Operand((kWordSize - 1) - kHeapObjectTag));
+    b(&ok, EQ);
+    Stop("Expected heap object or Smi");
+    break;
+  case kEmptyOrSmiOrNull:
+    b(&ok, EQ); // Smi is OK.
+    // Non-smi case: Check for the special zap word or null.
+    // Note: Cannot use CompareImmediate, since IP may be in use.
+    LoadImmediate(temp, Heap::kZap32Bits);
+    cmp(old_value, Operand(temp));
+    b(&ok, EQ);
+    LoadObject(temp, Object::null_object());
+    cmp(old_value, Operand(temp));
+    b(&ok, EQ);
+    Stop("Expected zapped, Smi or null");
+    break;
+  default:
+    UNREACHABLE();
   }
   Bind(&ok);
   if (VerifiedMemory::enabled()) {
@@ -1849,14 +1747,11 @@ void Assembler::VerifiedWrite(const Address& address,
   PopList(used);
 #else
   str(new_value, address);
-#endif  // DEBUG
+#endif // DEBUG
 }
 
-
-void Assembler::StoreIntoObject(Register object,
-                                const Address& dest,
-                                Register value,
-                                bool can_value_be_smi) {
+void Assembler::StoreIntoObject(Register object, const Address &dest,
+                                Register value, bool can_value_be_smi) {
   ASSERT(object != value);
   VerifiedWrite(dest, value, kHeapObjectOrSmi);
   Label done;
@@ -1868,7 +1763,7 @@ void Assembler::StoreIntoObject(Register object,
   // A store buffer update is required.
   RegList regs = (1 << CODE_REG) | (1 << LR);
   if (value != R0) {
-    regs |= (1 << R0);  // Preserve R0.
+    regs |= (1 << R0); // Preserve R0.
   }
   PushList(regs);
   if (object != R0) {
@@ -1881,24 +1776,19 @@ void Assembler::StoreIntoObject(Register object,
   Bind(&done);
 }
 
-
-void Assembler::StoreIntoObjectOffset(Register object,
-                                      int32_t offset,
-                                      Register value,
-                                      bool can_value_be_smi) {
+void Assembler::StoreIntoObjectOffset(Register object, int32_t offset,
+                                      Register value, bool can_value_be_smi) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
-    StoreIntoObject(
-        object, FieldAddress(object, offset), value, can_value_be_smi);
+    StoreIntoObject(object, FieldAddress(object, offset), value,
+                    can_value_be_smi);
   } else {
     AddImmediate(IP, object, offset - kHeapObjectTag);
     StoreIntoObject(object, Address(IP), value, can_value_be_smi);
   }
 }
 
-
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
+void Assembler::StoreIntoObjectNoBarrier(Register object, const Address &dest,
                                          Register value,
                                          FieldContent old_content) {
   VerifiedWrite(dest, value, old_content);
@@ -1907,13 +1797,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done);
   Stop("Store buffer update is required");
   Bind(&done);
-#endif  // defined(DEBUG)
+#endif // defined(DEBUG)
   // No store buffer update.
 }
 
-
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
-                                               int32_t offset,
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object, int32_t offset,
                                                Register value,
                                                FieldContent old_content) {
   int32_t ignored = 0;
@@ -1926,10 +1814,8 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
   }
 }
 
-
-void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const Address& dest,
-                                         const Object& value,
+void Assembler::StoreIntoObjectNoBarrier(Register object, const Address &dest,
+                                         const Object &value,
                                          FieldContent old_content) {
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
@@ -1938,10 +1824,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   VerifiedWrite(dest, IP, old_content);
 }
 
-
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
-                                               int32_t offset,
-                                               const Object& value,
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object, int32_t offset,
+                                               const Object &value,
                                                FieldContent old_content) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
@@ -1953,11 +1837,8 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
   }
 }
 
-
-void Assembler::InitializeFieldsNoBarrier(Register object,
-                                          Register begin,
-                                          Register end,
-                                          Register value_even,
+void Assembler::InitializeFieldsNoBarrier(Register object, Register begin,
+                                          Register end, Register value_even,
                                           Register value_odd) {
   ASSERT(value_odd == value_even + 1);
   Label init_loop;
@@ -1973,22 +1854,18 @@ void Assembler::InitializeFieldsNoBarrier(Register object,
   StoreIntoObjectFilter(object, value_odd, &done);
   Stop("Store buffer update is required");
   Bind(&done);
-#endif  // defined(DEBUG)
+#endif // defined(DEBUG)
   // No store buffer update.
 }
 
-
-void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
-                                                  Register base,
-                                                  intptr_t begin_offset,
-                                                  intptr_t end_offset,
-                                                  Register value_even,
-                                                  Register value_odd) {
+void Assembler::InitializeFieldsNoBarrierUnrolled(
+    Register object, Register base, intptr_t begin_offset, intptr_t end_offset,
+    Register value_even, Register value_odd) {
   ASSERT(value_odd == value_even + 1);
   intptr_t current_offset = begin_offset;
   while (current_offset + kWordSize < end_offset) {
     WriteShadowedFieldPair(base, current_offset, value_even, value_odd);
-    current_offset += 2*kWordSize;
+    current_offset += 2 * kWordSize;
   }
   while (current_offset < end_offset) {
     WriteShadowedField(base, current_offset, value_even);
@@ -2000,31 +1877,28 @@ void Assembler::InitializeFieldsNoBarrierUnrolled(Register object,
   StoreIntoObjectFilter(object, value_odd, &done);
   Stop("Store buffer update is required");
   Bind(&done);
-#endif  // defined(DEBUG)
+#endif // defined(DEBUG)
   // No store buffer update.
 }
 
-
-void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
+void Assembler::StoreIntoSmiField(const Address &dest, Register value) {
 #if defined(DEBUG)
   Label done;
   tst(value, Operand(kHeapObjectTag));
   b(&done, EQ);
   Stop("New value must be Smi.");
   Bind(&done);
-#endif  // defined(DEBUG)
+#endif // defined(DEBUG)
   VerifiedWrite(dest, value, kOnlySmi);
 }
-
 
 void Assembler::LoadClassId(Register result, Register object, Condition cond) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagPos / kBitsPerByte;
+  const intptr_t class_id_offset =
+      Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   ldrh(result, FieldAddress(object, class_id_offset), cond);
 }
-
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
@@ -2035,21 +1909,17 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
-
 void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ASSERT(scratch != result);
   LoadClassId(scratch, object);
   LoadClassById(result, scratch);
 }
 
-
-void Assembler::CompareClassId(Register object,
-                               intptr_t class_id,
+void Assembler::CompareClassId(Register object, intptr_t class_id,
                                Register scratch) {
   LoadClassId(scratch, object);
   CompareImmediate(scratch, class_id);
 }
-
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   tst(object, Operand(kSmiTagMask));
@@ -2057,17 +1927,13 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   LoadImmediate(result, kSmiCid, EQ);
 }
 
-
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
 }
 
-
-void Assembler::ComputeRange(Register result,
-                             Register value,
-                             Register scratch,
-                             Label* not_mint) {
+void Assembler::ComputeRange(Register result, Register value, Register scratch,
+                             Label *not_mint) {
   const Register hi = TMP;
   const Register lo = scratch;
 
@@ -2082,24 +1948,19 @@ void Assembler::ComputeRange(Register result,
   rsb(result, hi, Operand(ICData::kInt32RangeBit));
   cmp(hi, Operand(lo, ASR, kBitsPerWord - 1));
   b(&done, EQ);
-  LoadImmediate(result, ICData::kUint32RangeBit);  // Uint32
+  LoadImmediate(result, ICData::kUint32RangeBit); // Uint32
   tst(hi, Operand(hi));
-  LoadImmediate(result, ICData::kInt64RangeBit, NE);  // Int64
+  LoadImmediate(result, ICData::kInt64RangeBit, NE); // Int64
   Bind(&done);
 }
 
-
-void Assembler::UpdateRangeFeedback(Register value,
-                                    intptr_t index,
-                                    Register ic_data,
-                                    Register scratch1,
-                                    Register scratch2,
-                                    Label* miss) {
+void Assembler::UpdateRangeFeedback(Register value, intptr_t index,
+                                    Register ic_data, Register scratch1,
+                                    Register scratch2, Label *miss) {
   ASSERT(ICData::IsValidRangeFeedbackIndex(index));
   ComputeRange(scratch1, value, scratch2, miss);
   ldr(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
-  orr(scratch2,
-      scratch2,
+  orr(scratch2, scratch2,
       Operand(scratch1, LSL, ICData::RangeFeedbackShift(index)));
   str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
 }
@@ -2146,9 +2007,8 @@ static int32_t DecodeARMv7LoadImmediate(int32_t movt, int32_t movw) {
   return offset;
 }
 
-
-static int32_t DecodeARMv6LoadImmediate(int32_t mov, int32_t or1,
-                                        int32_t or2, int32_t or3) {
+static int32_t DecodeARMv6LoadImmediate(int32_t mov, int32_t or1, int32_t or2,
+                                        int32_t or3) {
   int32_t offset = 0;
   offset |= (mov & 0xff) << 24;
   offset |= (or1 & 0xff) << 16;
@@ -2157,12 +2017,11 @@ static int32_t DecodeARMv6LoadImmediate(int32_t mov, int32_t or1,
   return offset;
 }
 
-
 class PatchFarBranch : public AssemblerFixup {
- public:
+public:
   PatchFarBranch() {}
 
-  void Process(const MemoryRegion& region, intptr_t position) {
+  void Process(const MemoryRegion &region, intptr_t position) {
     const ARMVersion version = TargetCPUFeatures::arm_version();
     if ((version == ARMv5TE) || (version == ARMv6)) {
       ProcessARMv6(region, position);
@@ -2172,18 +2031,18 @@ class PatchFarBranch : public AssemblerFixup {
     }
   }
 
- private:
-  void ProcessARMv6(const MemoryRegion& region, intptr_t position) {
+private:
+  void ProcessARMv6(const MemoryRegion &region, intptr_t position) {
     const int32_t mov = region.Load<int32_t>(position);
-    const int32_t or1 = region.Load<int32_t>(position + 1*Instr::kInstrSize);
-    const int32_t or2 = region.Load<int32_t>(position + 2*Instr::kInstrSize);
-    const int32_t or3 = region.Load<int32_t>(position + 3*Instr::kInstrSize);
-    const int32_t bx = region.Load<int32_t>(position + 4*Instr::kInstrSize);
+    const int32_t or1 = region.Load<int32_t>(position + 1 * Instr::kInstrSize);
+    const int32_t or2 = region.Load<int32_t>(position + 2 * Instr::kInstrSize);
+    const int32_t or3 = region.Load<int32_t>(position + 3 * Instr::kInstrSize);
+    const int32_t bx = region.Load<int32_t>(position + 4 * Instr::kInstrSize);
 
-    if (((mov & 0xffffff00) == 0xe3a0c400) &&  // mov IP, (byte3 rot 4)
-        ((or1 & 0xffffff00) == 0xe38cc800) &&  // orr IP, IP, (byte2 rot 8)
-        ((or2 & 0xffffff00) == 0xe38ccc00) &&  // orr IP, IP, (byte1 rot 12)
-        ((or3 & 0xffffff00) == 0xe38cc000)) {  // orr IP, IP, byte0
+    if (((mov & 0xffffff00) == 0xe3a0c400) && // mov IP, (byte3 rot 4)
+        ((or1 & 0xffffff00) == 0xe38cc800) && // orr IP, IP, (byte2 rot 8)
+        ((or2 & 0xffffff00) == 0xe38ccc00) && // orr IP, IP, (byte1 rot 12)
+        ((or3 & 0xffffff00) == 0xe38cc000)) { // orr IP, IP, byte0
       const int32_t offset = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
       const int32_t dest = region.start() + offset;
       const int32_t dest0 = (dest & 0x000000ff);
@@ -2205,20 +2064,17 @@ class PatchFarBranch : public AssemblerFixup {
     // If the offset loading instructions aren't there, we must have replaced
     // the far branch with a near one, and so these instructions
     // should be NOPs.
-    ASSERT((or1 == Instr::kNopInstruction) &&
-           (or2 == Instr::kNopInstruction) &&
-           (or3 == Instr::kNopInstruction) &&
-           (bx == Instr::kNopInstruction));
+    ASSERT((or1 == Instr::kNopInstruction) && (or2 == Instr::kNopInstruction) &&
+           (or3 == Instr::kNopInstruction) && (bx == Instr::kNopInstruction));
   }
 
-
-  void ProcessARMv7(const MemoryRegion& region, intptr_t position) {
+  void ProcessARMv7(const MemoryRegion &region, intptr_t position) {
     const int32_t movw = region.Load<int32_t>(position);
     const int32_t movt = region.Load<int32_t>(position + Instr::kInstrSize);
     const int32_t bx = region.Load<int32_t>(position + 2 * Instr::kInstrSize);
 
-    if (((movt & 0xfff0f000) == 0xe340c000) &&  // movt IP, high
-        ((movw & 0xfff0f000) == 0xe300c000)) {   // movw IP, low
+    if (((movt & 0xfff0f000) == 0xe340c000) && // movt IP, high
+        ((movw & 0xfff0f000) == 0xe300c000)) { // movw IP, low
       const int32_t offset = DecodeARMv7LoadImmediate(movt, movw);
       const int32_t dest = region.start() + offset;
       const uint16_t dest_high = Utils::High16Bits(dest);
@@ -2236,13 +2092,11 @@ class PatchFarBranch : public AssemblerFixup {
     // If the offset loading instructions aren't there, we must have replaced
     // the far branch with a near one, and so these instructions
     // should be NOPs.
-    ASSERT((movt == Instr::kNopInstruction) &&
-           (bx == Instr::kNopInstruction));
+    ASSERT((movt == Instr::kNopInstruction) && (bx == Instr::kNopInstruction));
   }
 
   virtual bool IsPointerOffset() const { return false; }
 };
-
 
 void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
   buffer_.EmitFixup(new PatchFarBranch());
@@ -2254,8 +2108,7 @@ void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
   }
 }
 
-
-void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
+void Assembler::EmitBranch(Condition cond, Label *label, bool link) {
   if (label->IsBound()) {
     const int32_t dest = label->Position() - buffer_.Size();
     if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
@@ -2276,8 +2129,7 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
   }
 }
 
-
-void Assembler::BindARMv6(Label* label) {
+void Assembler::BindARMv6(Label *label) {
   ASSERT(!label->IsBound());
   intptr_t bound_pc = buffer_.Size();
   while (label->IsLinked()) {
@@ -2287,8 +2139,7 @@ void Assembler::BindARMv6(Label* label) {
       // Far branches are enabled and we can't encode the branch offset.
 
       // Grab instructions that load the offset.
-      const int32_t mov =
-          buffer_.Load<int32_t>(position);
+      const int32_t mov = buffer_.Load<int32_t>(position);
       const int32_t or1 =
           buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
       const int32_t or2 =
@@ -2316,8 +2167,7 @@ void Assembler::BindARMv6(Label* label) {
       label->position_ = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
     } else if (use_far_branches() && CanEncodeBranchOffset(dest)) {
       // Grab instructions that load the offset, and the branch.
-      const int32_t mov =
-          buffer_.Load<int32_t>(position);
+      const int32_t mov = buffer_.Load<int32_t>(position);
       const int32_t or1 =
           buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
       const int32_t or2 =
@@ -2338,13 +2188,13 @@ void Assembler::BindARMv6(Label* label) {
       // Write the encoded branch instruction followed by two nops.
       buffer_.Store<int32_t>(position, encoded);
       buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
-          Instr::kNopInstruction);
+                             Instr::kNopInstruction);
       buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize,
-          Instr::kNopInstruction);
+                             Instr::kNopInstruction);
       buffer_.Store<int32_t>(position + 3 * Instr::kInstrSize,
-          Instr::kNopInstruction);
+                             Instr::kNopInstruction);
       buffer_.Store<int32_t>(position + 4 * Instr::kInstrSize,
-          Instr::kNopInstruction);
+                             Instr::kNopInstruction);
 
       label->position_ = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
     } else {
@@ -2429,8 +2279,7 @@ void Assembler::BindARMv7(Label* label) {
 }
 #endif
 
-
-void Assembler::Bind(Label* label) {
+void Assembler::Bind(Label *label) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
     BindARMv6(label);
@@ -2440,127 +2289,121 @@ void Assembler::Bind(Label* label) {
   }
 }
 
-
 OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return kWord;
-    case kOneByteStringCid:
-    case kExternalOneByteStringCid:
-      return kByte;
-    case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kHalfword;
-    case kTypedDataInt8ArrayCid:
-      return kByte;
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnsignedByte;
-    case kTypedDataInt16ArrayCid:
-      return kHalfword;
-    case kTypedDataUint16ArrayCid:
-      return kUnsignedHalfword;
-    case kTypedDataInt32ArrayCid:
-      return kWord;
-    case kTypedDataUint32ArrayCid:
-      return kUnsignedWord;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      UNREACHABLE();
-      return kByte;
-    case kTypedDataFloat32ArrayCid:
-      return kSWord;
-    case kTypedDataFloat64ArrayCid:
-      return kDWord;
-    case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat64x2ArrayCid:
-      return kRegList;
-    case kTypedDataInt8ArrayViewCid:
-      UNREACHABLE();
-      return kByte;
-    default:
-      UNREACHABLE();
-      return kByte;
+  case kArrayCid:
+  case kImmutableArrayCid:
+    return kWord;
+  case kOneByteStringCid:
+  case kExternalOneByteStringCid:
+    return kByte;
+  case kTwoByteStringCid:
+  case kExternalTwoByteStringCid:
+    return kHalfword;
+  case kTypedDataInt8ArrayCid:
+    return kByte;
+  case kTypedDataUint8ArrayCid:
+  case kTypedDataUint8ClampedArrayCid:
+  case kExternalTypedDataUint8ArrayCid:
+  case kExternalTypedDataUint8ClampedArrayCid:
+    return kUnsignedByte;
+  case kTypedDataInt16ArrayCid:
+    return kHalfword;
+  case kTypedDataUint16ArrayCid:
+    return kUnsignedHalfword;
+  case kTypedDataInt32ArrayCid:
+    return kWord;
+  case kTypedDataUint32ArrayCid:
+    return kUnsignedWord;
+  case kTypedDataInt64ArrayCid:
+  case kTypedDataUint64ArrayCid:
+    UNREACHABLE();
+    return kByte;
+  case kTypedDataFloat32ArrayCid:
+    return kSWord;
+  case kTypedDataFloat64ArrayCid:
+    return kDWord;
+  case kTypedDataFloat32x4ArrayCid:
+  case kTypedDataInt32x4ArrayCid:
+  case kTypedDataFloat64x2ArrayCid:
+    return kRegList;
+  case kTypedDataInt8ArrayViewCid:
+    UNREACHABLE();
+    return kByte;
+  default:
+    UNREACHABLE();
+    return kByte;
   }
 }
 
-
-bool Address::CanHoldLoadOffset(OperandSize size,
-                                int32_t offset,
-                                int32_t* offset_mask) {
+bool Address::CanHoldLoadOffset(OperandSize size, int32_t offset,
+                                int32_t *offset_mask) {
   switch (size) {
-    case kByte:
-    case kHalfword:
-    case kUnsignedHalfword:
-    case kWordPair: {
-      *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
-    }
-    case kUnsignedByte:
-    case kWord:
-    case kUnsignedWord: {
-      *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
-    }
-    case kSWord:
-    case kDWord: {
-      *offset_mask = 0x3fc;  // Multiple of 4.
-      // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
-    }
-    case kRegList: {
-      *offset_mask = 0x0;
-      return offset == 0;
-    }
-    default: {
-      UNREACHABLE();
-      return false;
-    }
+  case kByte:
+  case kHalfword:
+  case kUnsignedHalfword:
+  case kWordPair: {
+    *offset_mask = 0xff;
+    return Utils::IsAbsoluteUint(8, offset); // Addressing mode 3.
+  }
+  case kUnsignedByte:
+  case kWord:
+  case kUnsignedWord: {
+    *offset_mask = 0xfff;
+    return Utils::IsAbsoluteUint(12, offset); // Addressing mode 2.
+  }
+  case kSWord:
+  case kDWord: {
+    *offset_mask = 0x3fc; // Multiple of 4.
+    // VFP addressing mode.
+    return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+  }
+  case kRegList: {
+    *offset_mask = 0x0;
+    return offset == 0;
+  }
+  default: {
+    UNREACHABLE();
+    return false;
+  }
   }
 }
 
-
-bool Address::CanHoldStoreOffset(OperandSize size,
-                                 int32_t offset,
-                                 int32_t* offset_mask) {
+bool Address::CanHoldStoreOffset(OperandSize size, int32_t offset,
+                                 int32_t *offset_mask) {
   switch (size) {
-    case kHalfword:
-    case kUnsignedHalfword:
-    case kWordPair: {
-      *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
-    }
-    case kByte:
-    case kUnsignedByte:
-    case kWord:
-    case kUnsignedWord: {
-      *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
-    }
-    case kSWord:
-    case kDWord: {
-      *offset_mask = 0x3fc;  // Multiple of 4.
-      // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
-    }
-    case kRegList: {
-      *offset_mask = 0x0;
-      return offset == 0;
-    }
-    default: {
-      UNREACHABLE();
-      return false;
-    }
+  case kHalfword:
+  case kUnsignedHalfword:
+  case kWordPair: {
+    *offset_mask = 0xff;
+    return Utils::IsAbsoluteUint(8, offset); // Addressing mode 3.
+  }
+  case kByte:
+  case kUnsignedByte:
+  case kWord:
+  case kUnsignedWord: {
+    *offset_mask = 0xfff;
+    return Utils::IsAbsoluteUint(12, offset); // Addressing mode 2.
+  }
+  case kSWord:
+  case kDWord: {
+    *offset_mask = 0x3fc; // Multiple of 4.
+    // VFP addressing mode.
+    return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+  }
+  case kRegList: {
+    *offset_mask = 0x0;
+    return offset == 0;
+  }
+  default: {
+    UNREACHABLE();
+    return false;
+  }
   }
 }
 
-
-bool Address::CanHoldImmediateOffset(
-    bool is_load, intptr_t cid, int64_t offset) {
+bool Address::CanHoldImmediateOffset(bool is_load, intptr_t cid,
+                                     int64_t offset) {
   int32_t offset_mask = 0;
   if (is_load) {
     return CanHoldLoadOffset(OperandSizeFor(cid), offset, &offset_mask);
@@ -2641,13 +2484,13 @@ void Assembler::Asr(Register rd, Register rm, const Operand& shift_imm,
 }
 #endif
 
-void Assembler::Asrs(Register rd, Register rm, const Operand& shift_imm,
+void Assembler::Asrs(Register rd, Register rm, const Operand &shift_imm,
                      Condition cond) {
   ASSERT(shift_imm.type() == 1);
   uint32_t shift = shift_imm.encoding();
-  ASSERT(shift != 0);  // Do not use Asr if no shift is wanted.
+  ASSERT(shift != 0); // Do not use Asr if no shift is wanted.
   if (shift == 32) {
-    shift = 0;  // Comply to UAL syntax.
+    shift = 0; // Comply to UAL syntax.
   }
   movs(rd, Operand(rm, ASR, shift), cond);
 }
@@ -2659,28 +2502,24 @@ void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
 }
 #endif
 
-void Assembler::Ror(Register rd, Register rm, const Operand& shift_imm,
+void Assembler::Ror(Register rd, Register rm, const Operand &shift_imm,
                     Condition cond) {
   ASSERT(shift_imm.type() == 1);
-  ASSERT(shift_imm.encoding() != 0);  // Use Rrx instruction.
+  ASSERT(shift_imm.encoding() != 0); // Use Rrx instruction.
   mov(rd, Operand(rm, ROR, shift_imm.encoding()), cond);
 }
-
 
 void Assembler::Ror(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, ROR, rs), cond);
 }
 
-
 void Assembler::Rrx(Register rd, Register rm, Condition cond) {
   mov(rd, Operand(rm, ROR, 0), cond);
 }
 
-
 void Assembler::SignFill(Register rd, Register rm, Condition cond) {
   Asr(rd, rm, Operand(31), cond);
 }
-
 
 void Assembler::Vreciprocalqs(QRegister qd, QRegister qm) {
   ASSERT(qm != QTMP);
@@ -2695,7 +2534,6 @@ void Assembler::Vreciprocalqs(QRegister qd, QRegister qm) {
   vmulqs(qd, qd, QTMP);
 }
 
-
 void Assembler::VreciprocalSqrtqs(QRegister qd, QRegister qm) {
   ASSERT(qm != QTMP);
   ASSERT(qd != QTMP);
@@ -2704,15 +2542,14 @@ void Assembler::VreciprocalSqrtqs(QRegister qd, QRegister qm) {
   vrsqrteqs(qd, qm);
   // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
   // First step.
-  vmulqs(QTMP, qd, qd);  // QTMP <- xn^2
-  vrsqrtsqs(QTMP, qm, QTMP);  // QTMP <- (3 - Q1*QTMP) / 2.
-  vmulqs(qd, qd, QTMP);  // xn+1 <- xn * QTMP
+  vmulqs(QTMP, qd, qd);      // QTMP <- xn^2
+  vrsqrtsqs(QTMP, qm, QTMP); // QTMP <- (3 - Q1*QTMP) / 2.
+  vmulqs(qd, qd, QTMP);      // xn+1 <- xn * QTMP
   // Second step.
   vmulqs(QTMP, qd, qd);
   vrsqrtsqs(QTMP, qm, QTMP);
   vmulqs(qd, qd, QTMP);
 }
-
 
 void Assembler::Vsqrtqs(QRegister qd, QRegister qm, QRegister temp) {
   ASSERT(temp != QTMP);
@@ -2729,7 +2566,6 @@ void Assembler::Vsqrtqs(QRegister qd, QRegister qm, QRegister temp) {
   Vreciprocalqs(qd, qm);
 }
 
-
 void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   ASSERT(qd != QTMP);
   ASSERT(qn != QTMP);
@@ -2739,12 +2575,9 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   vmulqs(qd, qn, qd);
 }
 
-
-void Assembler::Branch(const StubEntry& stub_entry,
-                       Patchability patchable,
-                       Register pp,
-                       Condition cond) {
-  const Code& target_code = Code::Handle(stub_entry.code());
+void Assembler::Branch(const StubEntry &stub_entry, Patchability patchable,
+                       Register pp, Condition cond) {
+  const Code &target_code = Code::Handle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target_code, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
@@ -2752,8 +2585,7 @@ void Assembler::Branch(const StubEntry& stub_entry,
   bx(IP, cond);
 }
 
-
-void Assembler::BranchLink(const Code& target, Patchability patchable) {
+void Assembler::BranchLink(const Code &target, Patchability patchable) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2762,43 +2594,37 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
       object_pool_wrapper_.FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  blx(LR);  // Use blx instruction so that the return branch prediction works.
+  blx(LR); // Use blx instruction so that the return branch prediction works.
 }
 
-
-void Assembler::BranchLink(const StubEntry& stub_entry,
+void Assembler::BranchLink(const StubEntry &stub_entry,
                            Patchability patchable) {
-  const Code& code = Code::Handle(stub_entry.code());
+  const Code &code = Code::Handle(stub_entry.code());
   BranchLink(code, patchable);
 }
 
-
-void Assembler::BranchLinkPatchable(const Code& target) {
+void Assembler::BranchLinkPatchable(const Code &target) {
   BranchLink(target, kPatchable);
 }
 
-
-void Assembler::BranchLink(const ExternalLabel* label) {
-  LoadImmediate(LR, label->address());  // Target address is never patched.
-  blx(LR);  // Use blx instruction so that the return branch prediction works.
+void Assembler::BranchLink(const ExternalLabel *label) {
+  LoadImmediate(LR, label->address()); // Target address is never patched.
+  blx(LR); // Use blx instruction so that the return branch prediction works.
 }
 
-
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
+void Assembler::BranchLinkPatchable(const StubEntry &stub_entry) {
   BranchLinkPatchable(Code::Handle(stub_entry.code()));
 }
-
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
   LoadFromOffset(kWord, IP, base, offset);
-  blx(IP);  // Use blx instruction so that the return branch prediction works.
+  blx(IP); // Use blx instruction so that the return branch prediction works.
 }
 
-
-void Assembler::LoadPatchableImmediate(
-    Register rd, int32_t value, Condition cond) {
+void Assembler::LoadPatchableImmediate(Register rd, int32_t value,
+                                       Condition cond) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
     // This sequence is patched in a few places, and should remain fixed.
@@ -2819,9 +2645,8 @@ void Assembler::LoadPatchableImmediate(
   }
 }
 
-
-void Assembler::LoadDecodableImmediate(
-    Register rd, int32_t value, Condition cond) {
+void Assembler::LoadDecodableImmediate(Register rd, int32_t value,
+                                       Condition cond) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
     if (constant_pool_allowed()) {
@@ -2840,7 +2665,6 @@ void Assembler::LoadDecodableImmediate(
   }
 }
 
-
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -2852,7 +2676,6 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   }
 }
 
-
 void Assembler::LoadSImmediate(SRegister sd, float value, Condition cond) {
   if (!vmovs(sd, value, cond)) {
     const DRegister dd = static_cast<DRegister>(sd >> 1);
@@ -2862,10 +2685,7 @@ void Assembler::LoadSImmediate(SRegister sd, float value, Condition cond) {
   }
 }
 
-
-void Assembler::LoadDImmediate(DRegister dd,
-                               double value,
-                               Register scratch,
+void Assembler::LoadDImmediate(DRegister dd, double value, Register scratch,
                                Condition cond) {
   ASSERT(scratch != PC);
   ASSERT(scratch != IP);
@@ -2879,12 +2699,8 @@ void Assembler::LoadDImmediate(DRegister dd,
   }
 }
 
-
-void Assembler::LoadFromOffset(OperandSize size,
-                               Register reg,
-                               Register base,
-                               int32_t offset,
-                               Condition cond) {
+void Assembler::LoadFromOffset(OperandSize size, Register reg, Register base,
+                               int32_t offset, Condition cond) {
   int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
     ASSERT(base != IP);
@@ -2893,35 +2709,31 @@ void Assembler::LoadFromOffset(OperandSize size,
     offset = offset & offset_mask;
   }
   switch (size) {
-    case kByte:
-      ldrsb(reg, Address(base, offset), cond);
-      break;
-    case kUnsignedByte:
-      ldrb(reg, Address(base, offset), cond);
-      break;
-    case kHalfword:
-      ldrsh(reg, Address(base, offset), cond);
-      break;
-    case kUnsignedHalfword:
-      ldrh(reg, Address(base, offset), cond);
-      break;
-    case kWord:
-      ldr(reg, Address(base, offset), cond);
-      break;
-    case kWordPair:
-      ldrd(reg, base, offset, cond);
-      break;
-    default:
-      UNREACHABLE();
+  case kByte:
+    ldrsb(reg, Address(base, offset), cond);
+    break;
+  case kUnsignedByte:
+    ldrb(reg, Address(base, offset), cond);
+    break;
+  case kHalfword:
+    ldrsh(reg, Address(base, offset), cond);
+    break;
+  case kUnsignedHalfword:
+    ldrh(reg, Address(base, offset), cond);
+    break;
+  case kWord:
+    ldr(reg, Address(base, offset), cond);
+    break;
+  case kWordPair:
+    ldrd(reg, base, offset, cond);
+    break;
+  default:
+    UNREACHABLE();
   }
 }
 
-
-void Assembler::StoreToOffset(OperandSize size,
-                              Register reg,
-                              Register base,
-                              int32_t offset,
-                              Condition cond) {
+void Assembler::StoreToOffset(OperandSize size, Register reg, Register base,
+                              int32_t offset, Condition cond) {
   int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
     ASSERT(reg != IP);
@@ -2931,27 +2743,24 @@ void Assembler::StoreToOffset(OperandSize size,
     offset = offset & offset_mask;
   }
   switch (size) {
-    case kByte:
-      strb(reg, Address(base, offset), cond);
-      break;
-    case kHalfword:
-      strh(reg, Address(base, offset), cond);
-      break;
-    case kWord:
-      str(reg, Address(base, offset), cond);
-      break;
-    case kWordPair:
-      strd(reg, base, offset, cond);
-      break;
-    default:
-      UNREACHABLE();
+  case kByte:
+    strb(reg, Address(base, offset), cond);
+    break;
+  case kHalfword:
+    strh(reg, Address(base, offset), cond);
+    break;
+  case kWord:
+    str(reg, Address(base, offset), cond);
+    break;
+  case kWordPair:
+    strd(reg, base, offset, cond);
+    break;
+  default:
+    UNREACHABLE();
   }
 }
 
-
-void Assembler::LoadSFromOffset(SRegister reg,
-                                Register base,
-                                int32_t offset,
+void Assembler::LoadSFromOffset(SRegister reg, Register base, int32_t offset,
                                 Condition cond) {
   int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(kSWord, offset, &offset_mask)) {
@@ -2963,10 +2772,7 @@ void Assembler::LoadSFromOffset(SRegister reg,
   vldrs(reg, Address(base, offset), cond);
 }
 
-
-void Assembler::StoreSToOffset(SRegister reg,
-                               Register base,
-                               int32_t offset,
+void Assembler::StoreSToOffset(SRegister reg, Register base, int32_t offset,
                                Condition cond) {
   int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(kSWord, offset, &offset_mask)) {
@@ -2978,10 +2784,7 @@ void Assembler::StoreSToOffset(SRegister reg,
   vstrs(reg, Address(base, offset), cond);
 }
 
-
-void Assembler::LoadDFromOffset(DRegister reg,
-                                Register base,
-                                int32_t offset,
+void Assembler::LoadDFromOffset(DRegister reg, Register base, int32_t offset,
                                 Condition cond) {
   int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(kDWord, offset, &offset_mask)) {
@@ -2993,10 +2796,7 @@ void Assembler::LoadDFromOffset(DRegister reg,
   vldrd(reg, Address(base, offset), cond);
 }
 
-
-void Assembler::StoreDToOffset(DRegister reg,
-                               Register base,
-                               int32_t offset,
+void Assembler::StoreDToOffset(DRegister reg, Register base, int32_t offset,
                                Condition cond) {
   int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(kDWord, offset, &offset_mask)) {
@@ -3008,106 +2808,102 @@ void Assembler::StoreDToOffset(DRegister reg,
   vstrd(reg, Address(base, offset), cond);
 }
 
-
-void Assembler::LoadMultipleDFromOffset(DRegister first,
-                                        intptr_t count,
-                                        Register base,
-                                        int32_t offset) {
+void Assembler::LoadMultipleDFromOffset(DRegister first, intptr_t count,
+                                        Register base, int32_t offset) {
   ASSERT(base != IP);
   AddImmediate(IP, base, offset);
   vldmd(IA, IP, first, count);
 }
 
-void Assembler::StoreMultipleDToOffset(DRegister first,
-                                       intptr_t count,
-                                       Register base,
-                                       int32_t offset) {
+void Assembler::StoreMultipleDToOffset(DRegister first, intptr_t count,
+                                       Register base, int32_t offset) {
   ASSERT(base != IP);
   AddImmediate(IP, base, offset);
   vstmd(IA, IP, first, count);
 }
 
-
-void Assembler::CopyDoubleField(
-    Register dst, Register src, Register tmp1, Register tmp2, DRegister dtmp) {
+void Assembler::CopyDoubleField(Register dst, Register src, Register tmp1,
+                                Register tmp2, DRegister dtmp) {
   if (TargetCPUFeatures::vfp_supported()) {
     LoadDFromOffset(dtmp, src, Double::value_offset() - kHeapObjectTag);
     StoreDToOffset(dtmp, dst, Double::value_offset() - kHeapObjectTag);
   } else {
-    LoadFromOffset(kWord, tmp1, src,
-        Double::value_offset() - kHeapObjectTag);
+    LoadFromOffset(kWord, tmp1, src, Double::value_offset() - kHeapObjectTag);
     LoadFromOffset(kWord, tmp2, src,
-        Double::value_offset() + kWordSize - kHeapObjectTag);
-    StoreToOffset(kWord, tmp1, dst,
-        Double::value_offset() - kHeapObjectTag);
+                   Double::value_offset() + kWordSize - kHeapObjectTag);
+    StoreToOffset(kWord, tmp1, dst, Double::value_offset() - kHeapObjectTag);
     StoreToOffset(kWord, tmp2, dst,
-        Double::value_offset() + kWordSize - kHeapObjectTag);
+                  Double::value_offset() + kWordSize - kHeapObjectTag);
   }
 }
 
-
-void Assembler::CopyFloat32x4Field(
-    Register dst, Register src, Register tmp1, Register tmp2, DRegister dtmp) {
+void Assembler::CopyFloat32x4Field(Register dst, Register src, Register tmp1,
+                                   Register tmp2, DRegister dtmp) {
   if (TargetCPUFeatures::neon_supported()) {
     LoadMultipleDFromOffset(dtmp, 2, src,
-        Float32x4::value_offset() - kHeapObjectTag);
+                            Float32x4::value_offset() - kHeapObjectTag);
     StoreMultipleDToOffset(dtmp, 2, dst,
-        Float32x4::value_offset() - kHeapObjectTag);
+                           Float32x4::value_offset() - kHeapObjectTag);
   } else {
     LoadFromOffset(kWord, tmp1, src,
-        (Float32x4::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+                   (Float32x4::value_offset() + 0 * kWordSize) -
+                       kHeapObjectTag);
     LoadFromOffset(kWord, tmp2, src,
-        (Float32x4::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+                   (Float32x4::value_offset() + 1 * kWordSize) -
+                       kHeapObjectTag);
     StoreToOffset(kWord, tmp1, dst,
-        (Float32x4::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+                  (Float32x4::value_offset() + 0 * kWordSize) - kHeapObjectTag);
     StoreToOffset(kWord, tmp2, dst,
-        (Float32x4::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+                  (Float32x4::value_offset() + 1 * kWordSize) - kHeapObjectTag);
 
     LoadFromOffset(kWord, tmp1, src,
-        (Float32x4::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+                   (Float32x4::value_offset() + 2 * kWordSize) -
+                       kHeapObjectTag);
     LoadFromOffset(kWord, tmp2, src,
-        (Float32x4::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+                   (Float32x4::value_offset() + 3 * kWordSize) -
+                       kHeapObjectTag);
     StoreToOffset(kWord, tmp1, dst,
-        (Float32x4::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+                  (Float32x4::value_offset() + 2 * kWordSize) - kHeapObjectTag);
     StoreToOffset(kWord, tmp2, dst,
-        (Float32x4::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+                  (Float32x4::value_offset() + 3 * kWordSize) - kHeapObjectTag);
   }
 }
 
-
-void Assembler::CopyFloat64x2Field(
-    Register dst, Register src, Register tmp1, Register tmp2, DRegister dtmp) {
+void Assembler::CopyFloat64x2Field(Register dst, Register src, Register tmp1,
+                                   Register tmp2, DRegister dtmp) {
   if (TargetCPUFeatures::neon_supported()) {
     LoadMultipleDFromOffset(dtmp, 2, src,
-        Float64x2::value_offset() - kHeapObjectTag);
+                            Float64x2::value_offset() - kHeapObjectTag);
     StoreMultipleDToOffset(dtmp, 2, dst,
-        Float64x2::value_offset() - kHeapObjectTag);
+                           Float64x2::value_offset() - kHeapObjectTag);
   } else {
     LoadFromOffset(kWord, tmp1, src,
-        (Float64x2::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+                   (Float64x2::value_offset() + 0 * kWordSize) -
+                       kHeapObjectTag);
     LoadFromOffset(kWord, tmp2, src,
-        (Float64x2::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+                   (Float64x2::value_offset() + 1 * kWordSize) -
+                       kHeapObjectTag);
     StoreToOffset(kWord, tmp1, dst,
-        (Float64x2::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+                  (Float64x2::value_offset() + 0 * kWordSize) - kHeapObjectTag);
     StoreToOffset(kWord, tmp2, dst,
-        (Float64x2::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+                  (Float64x2::value_offset() + 1 * kWordSize) - kHeapObjectTag);
 
     LoadFromOffset(kWord, tmp1, src,
-        (Float64x2::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+                   (Float64x2::value_offset() + 2 * kWordSize) -
+                       kHeapObjectTag);
     LoadFromOffset(kWord, tmp2, src,
-        (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+                   (Float64x2::value_offset() + 3 * kWordSize) -
+                       kHeapObjectTag);
     StoreToOffset(kWord, tmp1, dst,
-        (Float64x2::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+                  (Float64x2::value_offset() + 2 * kWordSize) - kHeapObjectTag);
     StoreToOffset(kWord, tmp2, dst,
-        (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+                  (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
   }
 }
-
 
 void Assembler::AddImmediate(Register rd, int32_t value, Condition cond) {
   AddImmediate(rd, rd, value, cond);
 }
-
 
 void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
                              Condition cond) {
@@ -3140,7 +2936,6 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
   }
 }
 
-
 void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                                      Condition cond) {
   Operand o;
@@ -3148,7 +2943,7 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
     // Handles value == kMinInt32.
     adds(rd, rn, o, cond);
   } else if (Operand::CanHold(-value, &o)) {
-    ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+    ASSERT(value != kMinInt32); // Would cause erroneous overflow detection.
     subs(rd, rn, o, cond);
   } else {
     ASSERT(rn != IP);
@@ -3156,7 +2951,7 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
-      ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+      ASSERT(value != kMinInt32); // Would cause erroneous overflow detection.
       mvn(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else {
@@ -3166,15 +2961,14 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
   }
 }
 
-
 void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
-                                    Condition cond) {
+                                     Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
     // Handles value == kMinInt32.
     subs(rd, rn, o, cond);
   } else if (Operand::CanHold(-value, &o)) {
-    ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+    ASSERT(value != kMinInt32); // Would cause erroneous overflow detection.
     adds(rd, rn, o, cond);
   } else {
     ASSERT(rn != IP);
@@ -3182,7 +2976,7 @@ void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
       mvn(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
-      ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
+      ASSERT(value != kMinInt32); // Would cause erroneous overflow detection.
       mvn(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else {
@@ -3191,7 +2985,6 @@ void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
     }
   }
 }
-
 
 void Assembler::AndImmediate(Register rd, Register rs, int32_t imm,
                              Condition cond) {
@@ -3204,7 +2997,6 @@ void Assembler::AndImmediate(Register rd, Register rs, int32_t imm,
   }
 }
 
-
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -3215,7 +3007,6 @@ void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
     cmp(rn, Operand(IP), cond);
   }
 }
-
 
 void Assembler::TestImmediate(Register rn, int32_t imm, Condition cond) {
   Operand o;
@@ -3237,15 +3028,14 @@ void Assembler::IntegerDivide(Register result, Register left, Register right,
     SRegister stmpl = static_cast<SRegister>(2 * tmpl);
     SRegister stmpr = static_cast<SRegister>(2 * tmpr);
     vmovsr(stmpl, left);
-    vcvtdi(tmpl, stmpl);  // left is in tmpl.
+    vcvtdi(tmpl, stmpl); // left is in tmpl.
     vmovsr(stmpr, right);
-    vcvtdi(tmpr, stmpr);  // right is in tmpr.
+    vcvtdi(tmpr, stmpr); // right is in tmpr.
     vdivd(tmpr, tmpl, tmpr);
     vcvtid(stmpr, tmpr);
     vmovrs(result, stmpr);
   }
 }
-
 
 static int NumRegsBelowFP(RegList regs) {
   int count = 0;
@@ -3256,7 +3046,6 @@ static int NumRegsBelowFP(RegList regs) {
   }
   return count;
 }
-
 
 void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   if (prologue_offset_ == -1) {
@@ -3270,9 +3059,8 @@ void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   AddImmediate(SP, -frame_size);
 }
 
-
 void Assembler::LeaveFrame(RegList regs) {
-  ASSERT((regs & (1 << PC)) == 0);  // Must not pop PC.
+  ASSERT((regs & (1 << PC)) == 0); // Must not pop PC.
   if ((regs & (1 << FP)) != 0) {
     // Use FP to set SP.
     sub(SP, FP, Operand(4 * NumRegsBelowFP(regs)));
@@ -3280,11 +3068,7 @@ void Assembler::LeaveFrame(RegList regs) {
   PopList(regs);
 }
 
-
-void Assembler::Ret() {
-  bx(LR);
-}
-
+void Assembler::Ret() { bx(LR); }
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
@@ -3294,7 +3078,6 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
     bic(SP, SP, Operand(OS::ActivationFrameAlignment() - 1));
   }
 }
-
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve volatile CPU registers and PP.
@@ -3319,14 +3102,14 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   ReserveAlignedFrameSpace(frame_space);
 }
 
-
 void Assembler::LeaveCallRuntimeFrame() {
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
   const intptr_t kPushedFpuRegisterSize =
-      TargetCPUFeatures::vfp_supported() ?
-      kDartVolatileFpuRegCount * kFpuRegisterSize : 0;
+      TargetCPUFeatures::vfp_supported()
+          ? kDartVolatileFpuRegCount * kFpuRegisterSize
+          : 0;
 
   COMPILE_ASSERT(PP < FP);
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
@@ -3353,12 +3136,10 @@ void Assembler::LeaveCallRuntimeFrame() {
   LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP));
 }
 
-
-void Assembler::CallRuntime(const RuntimeEntry& entry,
+void Assembler::CallRuntime(const RuntimeEntry &entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
 }
-
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!constant_pool_allowed());
@@ -3372,7 +3153,6 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
 }
-
 
 // On entry to a function compiled for OSR, the caller's frame pointer, the
 // stack locals, and any copied parameters are already in place.  The frame
@@ -3388,29 +3168,20 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   AddImmediate(SP, -extra_size);
 }
 
-
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (restore_pp == kRestoreCallerPP) {
     ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
     set_constant_pool_allowed(false);
   }
-  Drop(2);  // Drop saved PP, PC marker.
+  Drop(2); // Drop saved PP, PC marker.
   LeaveFrame((1 << FP) | (1 << LR));
 }
 
+void Assembler::EnterStubFrame() { EnterDartFrame(0); }
 
-void Assembler::EnterStubFrame() {
-  EnterDartFrame(0);
-}
+void Assembler::LeaveStubFrame() { LeaveDartFrame(); }
 
-
-void Assembler::LeaveStubFrame() {
-  LeaveDartFrame();
-}
-
-
-void Assembler::LoadAllocationStatsAddress(Register dest,
-                                           intptr_t cid,
+void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid,
                                            bool inline_isolate) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3418,8 +3189,8 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
   const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
   if (inline_isolate) {
     ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    ClassTable *class_table = Isolate::Current()->class_table();
+    ClassHeapStats **table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {
       LoadImmediate(dest, reinterpret_cast<uword>(*table_ptr) + class_offset);
     } else {
@@ -3436,11 +3207,8 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
   }
 }
 
-
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace,
-                                     bool inline_isolate) {
+void Assembler::MaybeTraceAllocation(intptr_t cid, Register temp_reg,
+                                     Label *trace, bool inline_isolate) {
   LoadAllocationStatsAddress(temp_reg, cid, inline_isolate);
   const uword state_offset = ClassHeapStats::state_offset();
   ldr(temp_reg, Address(temp_reg, state_offset));
@@ -3448,36 +3216,36 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   b(trace, NE);
 }
 
-
-void Assembler::IncrementAllocationStats(Register stats_addr_reg,
-                                         intptr_t cid,
+void Assembler::IncrementAllocationStats(Register stats_addr_reg, intptr_t cid,
                                          Heap::Space space) {
   ASSERT(stats_addr_reg != kNoRegister);
   ASSERT(stats_addr_reg != TMP);
   ASSERT(cid > 0);
-  const uword count_field_offset = (space == Heap::kNew) ?
-    ClassHeapStats::allocated_since_gc_new_space_offset() :
-    ClassHeapStats::allocated_since_gc_old_space_offset();
-  const Address& count_address = Address(stats_addr_reg, count_field_offset);
+  const uword count_field_offset =
+      (space == Heap::kNew)
+          ? ClassHeapStats::allocated_since_gc_new_space_offset()
+          : ClassHeapStats::allocated_since_gc_old_space_offset();
+  const Address &count_address = Address(stats_addr_reg, count_field_offset);
   ldr(TMP, count_address);
   AddImmediate(TMP, 1);
   str(TMP, count_address);
 }
-
 
 void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
                                                  Register size_reg,
                                                  Heap::Space space) {
   ASSERT(stats_addr_reg != kNoRegister);
   ASSERT(stats_addr_reg != TMP);
-  const uword count_field_offset = (space == Heap::kNew) ?
-    ClassHeapStats::allocated_since_gc_new_space_offset() :
-    ClassHeapStats::allocated_since_gc_old_space_offset();
-  const uword size_field_offset = (space == Heap::kNew) ?
-    ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-    ClassHeapStats::allocated_size_since_gc_old_space_offset();
-  const Address& count_address = Address(stats_addr_reg, count_field_offset);
-  const Address& size_address = Address(stats_addr_reg, size_field_offset);
+  const uword count_field_offset =
+      (space == Heap::kNew)
+          ? ClassHeapStats::allocated_since_gc_new_space_offset()
+          : ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset =
+      (space == Heap::kNew)
+          ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
+          : ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  const Address &count_address = Address(stats_addr_reg, count_field_offset);
+  const Address &size_address = Address(stats_addr_reg, size_field_offset);
   ldr(TMP, count_address);
   AddImmediate(TMP, 1);
   str(TMP, count_address);
@@ -3486,11 +3254,8 @@ void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
   str(TMP, size_address);
 }
 
-
-void Assembler::TryAllocate(const Class& cls,
-                            Label* failure,
-                            Register instance_reg,
-                            Register temp_reg) {
+void Assembler::TryAllocate(const Class &cls, Label *failure,
+                            Register instance_reg, Register temp_reg) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
     ASSERT(instance_reg != temp_reg);
@@ -3537,13 +3302,9 @@ void Assembler::TryAllocate(const Class& cls,
   }
 }
 
-
-void Assembler::TryAllocateArray(intptr_t cid,
-                                 intptr_t instance_size,
-                                 Label* failure,
-                                 Register instance,
-                                 Register end_address,
-                                 Register temp1,
+void Assembler::TryAllocateArray(intptr_t cid, intptr_t instance_size,
+                                 Label *failure, Register instance,
+                                 Register end_address, Register temp1,
                                  Register temp2) {
   if (FLAG_inline_alloc) {
     // If this allocation is traced, program will jump to failure path
@@ -3555,7 +3316,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Potential new object start.
     ldr(instance, Address(temp1, Heap::TopOffset(space)));
     AddImmediateSetFlags(end_address, instance, instance_size);
-    b(failure, CS);  // Branch if unsigned overflow.
+    b(failure, CS); // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
@@ -3577,7 +3338,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
     LoadImmediate(temp1, tags);
-    str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
+    str(temp1, FieldAddress(instance, Array::tags_offset())); // Store tags.
 
     LoadImmediate(temp1, instance_size);
     IncrementAllocationStatsWithSize(temp2, temp1, space);
@@ -3586,14 +3347,13 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
-
-void Assembler::Stop(const char* message) {
+void Assembler::Stop(const char *message) {
   if (FLAG_print_stop_message) {
-    PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
+    PushList((1 << R0) | (1 << IP) | (1 << LR)); // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
     BranchLink(&StubCode::PrintStopMessage_entry()->label());
-    PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
+    PopList((1 << R0) | (1 << IP) | (1 << LR)); // Restore R0, IP, LR.
   }
   // Emit the message address before the svc instruction, so that we can
   // 'unstop' and continue execution in the simulator or jump to the next
@@ -3605,18 +3365,14 @@ void Assembler::Stop(const char* message) {
   bkpt(Instr::kStopMessageCode);
 }
 
-
-Address Assembler::ElementAddressForIntIndex(bool is_load,
-                                             bool is_external,
-                                             intptr_t cid,
-                                             intptr_t index_scale,
-                                             Register array,
-                                             intptr_t index,
+Address Assembler::ElementAddressForIntIndex(bool is_load, bool is_external,
+                                             intptr_t cid, intptr_t index_scale,
+                                             Register array, intptr_t index,
                                              Register temp) {
   const int64_t offset_base =
       (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  const int64_t offset = offset_base +
-      static_cast<int64_t>(index) * index_scale;
+  const int64_t offset =
+      offset_base + static_cast<int64_t>(index) * index_scale;
   ASSERT(Utils::IsInt(32, offset));
 
   if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
@@ -3628,13 +3384,9 @@ Address Assembler::ElementAddressForIntIndex(bool is_load,
   }
 }
 
-
-Address Assembler::ElementAddressForRegIndex(bool is_load,
-                                             bool is_external,
-                                             intptr_t cid,
-                                             intptr_t index_scale,
-                                             Register array,
-                                             Register index) {
+Address Assembler::ElementAddressForRegIndex(bool is_load, bool is_external,
+                                             intptr_t cid, intptr_t index_scale,
+                                             Register array, Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
   int32_t offset =
@@ -3643,8 +3395,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   ASSERT(array != IP);
   ASSERT(index != IP);
   const Register base = is_load ? IP : index;
-  if ((offset != 0) ||
-      (size == kSWord) || (size == kDWord) || (size == kRegList)) {
+  if ((offset != 0) || (size == kSWord) || (size == kDWord) ||
+      (size == kRegList)) {
     if (shift < 0) {
       ASSERT(shift == -1);
       add(base, array, Operand(index, ASR, 1));
@@ -3660,44 +3412,36 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
     }
   }
   int32_t offset_mask = 0;
-  if ((is_load && !Address::CanHoldLoadOffset(size,
-                                              offset,
-                                              &offset_mask)) ||
-      (!is_load && !Address::CanHoldStoreOffset(size,
-                                                offset,
-                                                &offset_mask))) {
+  if ((is_load && !Address::CanHoldLoadOffset(size, offset, &offset_mask)) ||
+      (!is_load && !Address::CanHoldStoreOffset(size, offset, &offset_mask))) {
     AddImmediate(base, offset & ~offset_mask);
     offset = offset & offset_mask;
   }
   return Address(base, offset);
 }
 
-
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-  "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
-  "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
+static const char *cpu_reg_names[kNumberOfCpuRegisters] = {
+    "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
+    "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
 };
 
-
-const char* Assembler::RegisterName(Register reg) {
+const char *Assembler::RegisterName(Register reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
   return cpu_reg_names[reg];
 }
 
-
-static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-  "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+static const char *fpu_reg_names[kNumberOfFpuRegisters] = {
+    "q0", "q1", "q2",  "q3",  "q4",  "q5",  "q6",  "q7",
 #if defined(VFPv3_D32)
-  "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
+    "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
 #endif
 };
 
-
-const char* Assembler::FpuRegisterName(FpuRegister reg) {
+const char *Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
   return fpu_reg_names[reg];
 }
 
-}  // namespace dart
+} // namespace dart
 
-#endif  // defined TARGET_ARCH_ARM
+#endif // defined TARGET_ARCH_ARM

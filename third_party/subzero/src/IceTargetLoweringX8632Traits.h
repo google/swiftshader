@@ -173,8 +173,7 @@ struct TargetX8632Traits {
     bool IsRegister(GPRRegister reg) const {
       return ((encoding_[0] & 0xF8) ==
               0xC0) // Addressing mode is register only.
-             &&
-             ((encoding_[0] & 0x07) == reg); // Register codes match.
+             && ((encoding_[0] & 0x07) == reg); // Register codes match.
     }
 
     friend class AssemblerX86Base<TargetX8632Traits>;
@@ -323,7 +322,7 @@ struct TargetX8632Traits {
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   isXmm,
-		REGX8632_TABLE
+        REGX8632_TABLE
 #undef X
     };
     return IsXmm[RegNum];
@@ -446,8 +445,7 @@ private:
   public:
     constexpr SizeOf() : Size(0) {}
     template <typename... T>
-    explicit constexpr SizeOf(T...)
-        : Size(__length<T...>::value) {}
+    explicit constexpr SizeOf(T...) : Size(__length<T...>::value) {}
     constexpr SizeT size() const { return Size; }
 
   private:
@@ -500,10 +498,20 @@ public:
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   {                                                                            \
-    RegisterSet::val, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8, \
-        isTrunc8Rcvr, isAhRcvr, (SizeOf aliases).size(), aliases,              \
-  }                                                                            \
-  ,
+      RegisterSet::val,                                                        \
+      is64,                                                                    \
+      is32,                                                                    \
+      is16,                                                                    \
+      is8,                                                                     \
+      isXmm,                                                                   \
+      is64To8,                                                                 \
+      is32To8,                                                                 \
+      is16To8,                                                                 \
+      isTrunc8Rcvr,                                                            \
+      isAhRcvr,                                                                \
+      (SizeOf aliases).size(),                                                 \
+      aliases,                                                                 \
+  },
         REGX8632_TABLE
 #undef X
     };

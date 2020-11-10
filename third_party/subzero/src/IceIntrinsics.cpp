@@ -41,14 +41,12 @@ const struct IceIntrinsicsEntry_ {
   const char *IntrinsicName;
 } IceIntrinsicsTable[] = {
 
-#define AtomicCmpxchgInit(Overload, NameSuffix)                                  \
-  {                                                                              \
-    {                                                                            \
-      INTRIN(AtomicCmpxchg, SideEffects_T, ReturnsTwice_F, MemoryWrite_T),       \
-          {Overload, IceType_i32, Overload, Overload, IceType_i32, IceType_i32}, \
-          6                                                                      \
-    }                                                                            \
-    , "llvm.nacl.atomic.cmpxchg." NameSuffix                                     \
+#define AtomicCmpxchgInit(Overload, NameSuffix)                                \
+  {                                                                            \
+    {INTRIN(AtomicCmpxchg, SideEffects_T, ReturnsTwice_F, MemoryWrite_T),      \
+     {Overload, IceType_i32, Overload, Overload, IceType_i32, IceType_i32},    \
+     6},                                                                       \
+        "llvm.nacl.atomic.cmpxchg." NameSuffix                                 \
   }
     AtomicCmpxchgInit(IceType_i8, "i8"),
     AtomicCmpxchgInit(IceType_i16, "i16"),
@@ -71,11 +69,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define AtomicLoadInit(Overload, NameSuffix)                                   \
   {                                                                            \
-    {                                                                          \
-      INTRIN(AtomicLoad, SideEffects_T, ReturnsTwice_F, MemoryWrite_T),        \
-          {Overload, IceType_i32, IceType_i32}, 3                              \
-    }                                                                          \
-    , "llvm.nacl.atomic.load." NameSuffix                                      \
+    {INTRIN(AtomicLoad, SideEffects_T, ReturnsTwice_F, MemoryWrite_T),         \
+     {Overload, IceType_i32, IceType_i32},                                     \
+     3},                                                                       \
+        "llvm.nacl.atomic.load." NameSuffix                                    \
   }
     AtomicLoadInit(IceType_i8, "i8"),
     AtomicLoadInit(IceType_i16, "i16"),
@@ -85,11 +82,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define AtomicRMWInit(Overload, NameSuffix)                                    \
   {                                                                            \
-    {                                                                          \
-      INTRIN(AtomicRMW, SideEffects_T, ReturnsTwice_F, MemoryWrite_T)          \
-      , {Overload, IceType_i32, IceType_i32, Overload, IceType_i32}, 5         \
-    }                                                                          \
-    , "llvm.nacl.atomic.rmw." NameSuffix                                       \
+    {INTRIN(AtomicRMW, SideEffects_T, ReturnsTwice_F, MemoryWrite_T),          \
+     {Overload, IceType_i32, IceType_i32, Overload, IceType_i32},              \
+     5},                                                                       \
+        "llvm.nacl.atomic.rmw." NameSuffix                                     \
   }
     AtomicRMWInit(IceType_i8, "i8"),
     AtomicRMWInit(IceType_i16, "i16"),
@@ -99,11 +95,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define AtomicStoreInit(Overload, NameSuffix)                                  \
   {                                                                            \
-    {                                                                          \
-      INTRIN(AtomicStore, SideEffects_T, ReturnsTwice_F, MemoryWrite_T)        \
-      , {IceType_void, Overload, IceType_i32, IceType_i32}, 4                  \
-    }                                                                          \
-    , "llvm.nacl.atomic.store." NameSuffix                                     \
+    {INTRIN(AtomicStore, SideEffects_T, ReturnsTwice_F, MemoryWrite_T),        \
+     {IceType_void, Overload, IceType_i32, IceType_i32},                       \
+     4},                                                                       \
+        "llvm.nacl.atomic.store." NameSuffix                                   \
   }
     AtomicStoreInit(IceType_i8, "i8"),
     AtomicStoreInit(IceType_i16, "i16"),
@@ -113,11 +108,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define BswapInit(Overload, NameSuffix)                                        \
   {                                                                            \
-    {                                                                          \
-      INTRIN(Bswap, SideEffects_F, ReturnsTwice_F, MemoryWrite_F)              \
-      , {Overload, Overload}, 2                                                \
-    }                                                                          \
-    , "llvm.bswap." NameSuffix                                                 \
+    {INTRIN(Bswap, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),              \
+     {Overload, Overload},                                                     \
+     2},                                                                       \
+        "llvm.bswap." NameSuffix                                               \
   }
     BswapInit(IceType_i16, "i16"),
     BswapInit(IceType_i32, "i32"),
@@ -126,11 +120,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define CtlzInit(Overload, NameSuffix)                                         \
   {                                                                            \
-    {                                                                          \
-      INTRIN(Ctlz, SideEffects_F, ReturnsTwice_F, MemoryWrite_F)               \
-      , {Overload, Overload, IceType_i1}, 3                                    \
-    }                                                                          \
-    , "llvm.ctlz." NameSuffix                                                  \
+    {INTRIN(Ctlz, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),               \
+     {Overload, Overload, IceType_i1},                                         \
+     3},                                                                       \
+        "llvm.ctlz." NameSuffix                                                \
   }
     CtlzInit(IceType_i32, "i32"),
     CtlzInit(IceType_i64, "i64"),
@@ -138,11 +131,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define CtpopInit(Overload, NameSuffix)                                        \
   {                                                                            \
-    {                                                                          \
-      INTRIN(Ctpop, SideEffects_F, ReturnsTwice_F, MemoryWrite_F)              \
-      , {Overload, Overload}, 2                                                \
-    }                                                                          \
-    , "llvm.ctpop." NameSuffix                                                 \
+    {INTRIN(Ctpop, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),              \
+     {Overload, Overload},                                                     \
+     2},                                                                       \
+        "llvm.ctpop." NameSuffix                                               \
   }
     CtpopInit(IceType_i32, "i32"),
     CtpopInit(IceType_i64, "i64"),
@@ -150,11 +142,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define CttzInit(Overload, NameSuffix)                                         \
   {                                                                            \
-    {                                                                          \
-      INTRIN(Cttz, SideEffects_F, ReturnsTwice_F, MemoryWrite_F)               \
-      , {Overload, Overload, IceType_i1}, 3                                    \
-    }                                                                          \
-    , "llvm.cttz." NameSuffix                                                  \
+    {INTRIN(Cttz, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),               \
+     {Overload, Overload, IceType_i1},                                         \
+     3},                                                                       \
+        "llvm.cttz." NameSuffix                                                \
   }
     CttzInit(IceType_i32, "i32"),
     CttzInit(IceType_i64, "i64"),
@@ -162,11 +153,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define FabsInit(Overload, NameSuffix)                                         \
   {                                                                            \
-    {                                                                          \
-      INTRIN(Fabs, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),              \
-          {Overload, Overload}, 2                                              \
-    }                                                                          \
-    , "llvm.fabs." NameSuffix                                                  \
+    {INTRIN(Fabs, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),               \
+     {Overload, Overload},                                                     \
+     2},                                                                       \
+        "llvm.fabs." NameSuffix                                                \
   }
     FabsInit(IceType_f32, "f32"),
     FabsInit(IceType_f64, "f64"),
@@ -203,11 +193,10 @@ const struct IceIntrinsicsEntry_ {
 
 #define SqrtInit(Overload, NameSuffix)                                         \
   {                                                                            \
-    {                                                                          \
-      INTRIN(Sqrt, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),              \
-          {Overload, Overload}, 2                                              \
-    }                                                                          \
-    , "llvm.sqrt." NameSuffix                                                  \
+    {INTRIN(Sqrt, SideEffects_F, ReturnsTwice_F, MemoryWrite_F),               \
+     {Overload, Overload},                                                     \
+     2},                                                                       \
+        "llvm.sqrt." NameSuffix                                                \
   }
     SqrtInit(IceType_f32, "f32"),
     SqrtInit(IceType_f64, "f64"),

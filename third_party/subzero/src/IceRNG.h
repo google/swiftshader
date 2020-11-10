@@ -15,9 +15,9 @@
 #ifndef SUBZERO_SRC_ICERNG_H
 #define SUBZERO_SRC_ICERNG_H
 
+#include "IceDefs.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
-#include "IceDefs.h"
 
 #include <cstdint>
 

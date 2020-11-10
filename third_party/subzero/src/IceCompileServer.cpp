@@ -30,10 +30,10 @@
 #include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
 #endif // PNACL_LLVM
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
+#include "llvm/Support/raw_os_ostream.h"
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -205,7 +205,8 @@ void CLCompileServer::run() {
         Flags.getOutputFilename(), EC, llvm::sys::fs::F_None));
     if (EC) {
       *Ls << "Failed to open output file: " << Flags.getOutputFilename()
-          << ":\n" << EC.message() << "\n";
+          << ":\n"
+          << EC.message() << "\n";
       return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
     ELFStr.reset(new ELFFileStreamer(*FdOs.get()));
@@ -219,7 +220,8 @@ void CLCompileServer::run() {
     Os = makeStream(Flags.getOutputFilename(), EC);
     if (EC) {
       *Ls << "Failed to open output file: " << Flags.getOutputFilename()
-          << ":\n" << EC.message() << "\n";
+          << ":\n"
+          << EC.message() << "\n";
       return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
     Os->SetUnbuffered();

@@ -615,7 +615,8 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
 
   // Do not merge Alloca instructions, and lay out the stack.
   // static constexpr bool SortAndCombineAllocas = false;
-  static constexpr bool SortAndCombineAllocas = true; // TODO(b/171222930): Fix Win32 bug when this is false
+  static constexpr bool SortAndCombineAllocas =
+      true; // TODO(b/171222930): Fix Win32 bug when this is false
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
@@ -1134,8 +1135,9 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
 
   // Generate "push frameptr; mov frameptr, stackptr"
   if (IsEbpBasedFrame) {
-    assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
-               .count() == 0);
+    assert(
+        (RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None)).count() ==
+        0);
     PreservedRegsSizeBytes += typeWidthInBytes(Traits::WordType);
     _link_bp();
   }
@@ -5881,7 +5883,7 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
       AddressWasOptimized = true;
       Reason = nullptr;
       SkipLastFolding = nullptr;
-      memset(reinterpret_cast<void*>(&Skip), 0, sizeof(Skip));
+      memset(reinterpret_cast<void *>(&Skip), 0, sizeof(Skip));
     }
 
     NewAddrCheckpoint = NewAddr;
@@ -7723,7 +7725,8 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
   Variable *Dest = Instr->getDest();
   if (Dest != nullptr)
     ReturnType = Dest->getType();
-  return getShadowStoreSize<Traits>() + getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
+  return getShadowStoreSize<Traits>() +
+         getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
 }
 
 template <typename TraitsType>
@@ -8495,7 +8498,8 @@ void TargetX86Base<TraitsType>::emitJumpTable(
   const char *Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
   Str << "\t.section\t" << Prefix << JumpTable->getSectionName()
       << ",\"a\",@progbits\n"
-         "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n"
+         "\t.align\t"
+      << typeWidthInBytes(getPointerType()) << "\n"
       << JumpTable->getName() << ":";
 
   // On X86 ILP32 pointers are 32-bit hence the use of .long
@@ -8603,7 +8607,8 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
     for (const JumpTableData &JT : Ctx->getJumpTables()) {
       Str << "\t.section\t" << Prefix << JT.getSectionName()
           << ",\"a\",@progbits\n"
-             "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n"
+             "\t.align\t"
+          << typeWidthInBytes(getPointerType()) << "\n"
           << JT.getName().toString() << ":";
 
       // On X8664 ILP32 pointers are 32-bit hence the use of .long

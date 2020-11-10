@@ -18,8 +18,8 @@
 #ifndef SUBZERO_SRC_ICEREGALLOC_H
 #define SUBZERO_SRC_ICEREGALLOC_H
 
-#include "IceDefs.h"
 #include "IceBitVector.h"
+#include "IceDefs.h"
 #include "IceOperand.h"
 #include "IceTypes.h"
 

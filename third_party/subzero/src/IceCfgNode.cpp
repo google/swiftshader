@@ -776,10 +776,10 @@ bool CfgNode::livenessValidateIntervals(Liveness *Liveness) const {
     return true;
 
   // Verify there are no duplicates.
-  auto ComparePair =
-      [](const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
-        return A.first == B.first;
-      };
+  auto ComparePair = [](const LiveBeginEndMapEntry &A,
+                        const LiveBeginEndMapEntry &B) {
+    return A.first == B.first;
+  };
   LiveBeginEndMap &MapBegin = *Liveness->getLiveBegin(this);
   LiveBeginEndMap &MapEnd = *Liveness->getLiveEnd(this);
   if (std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair) ==

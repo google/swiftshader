@@ -825,6 +825,6 @@ template <template <typename> class AT>
 inline void swap(Ice::BitVectorTmpl<AT> &LHS, Ice::BitVectorTmpl<AT> &RHS) {
   LHS.swap(RHS);
 }
-}
+} // namespace std
 
 #endif // SUBZERO_SRC_ICEBITVECTOR_H

@@ -567,7 +567,7 @@ CfgVector<Inst *> getInstructionsInRange(CfgNode *Node, InstNumberT Start,
   // instructions.
   return Result;
 }
-}
+} // namespace
 
 void TargetLowering::postRegallocSplitting(const SmallBitVector &RegMask) {
   // Splits the live ranges of global(/multi block) variables and runs the
@@ -955,9 +955,11 @@ void TargetLowering::scalarizeArithmetic(InstArithmetic::OpKind Kind,
                                          Variable *Dest, Operand *Src0,
                                          Operand *Src1) {
   scalarizeInstruction(
-      Dest, [this, Kind](Variable *Dest, Operand *Src0, Operand *Src1) {
+      Dest,
+      [this, Kind](Variable *Dest, Operand *Src0, Operand *Src1) {
         return Context.insert<InstArithmetic>(Kind, Dest, Src0, Src1);
-      }, Src0, Src1);
+      },
+      Src0, Src1);
 }
 
 void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,

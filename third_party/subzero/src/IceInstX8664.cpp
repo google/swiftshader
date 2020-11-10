@@ -23,9 +23,9 @@
 #include "IceCfgNode.h"
 #include "IceConditionCodesX8664.h"
 #include "IceInst.h"
+#include "IceOperand.h"
 #include "IceRegistersX8664.h"
 #include "IceTargetLoweringX8664.h"
-#include "IceOperand.h"
 
 namespace Ice {
 
@@ -33,18 +33,14 @@ namespace X8664 {
 
 const TargetX8664Traits::InstBrAttributesType
     TargetX8664Traits::InstBrAttributes[] = {
-#define X(val, encode, opp, dump, emit)                                        \
-  { X8664::Traits::Cond::opp, dump, emit }                                     \
-  ,
+#define X(val, encode, opp, dump, emit) {X8664::Traits::Cond::opp, dump, emit},
         ICEINSTX8664BR_TABLE
 #undef X
 };
 
 const TargetX8664Traits::InstCmppsAttributesType
     TargetX8664Traits::InstCmppsAttributes[] = {
-#define X(val, emit)                                                           \
-  { emit }                                                                     \
-  ,
+#define X(val, emit) {emit},
         ICEINSTX8664CMPPS_TABLE
 #undef X
 };
@@ -52,8 +48,7 @@ const TargetX8664Traits::InstCmppsAttributesType
 const TargetX8664Traits::TypeAttributesType
     TargetX8664Traits::TypeAttributes[] = {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
-  { cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld }                    \
-  ,
+  {cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld},
         ICETYPEX8664_TABLE
 #undef X
 };
@@ -159,15 +154,17 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
     if (!NeedSandboxing) {
       // TODO(jpp): stop abusing the operand's type to identify LEAs.
       const Type MemType = getType();
-      if (Base->getType() != IceType_i32 && MemType != IceType_void && !isVectorType(MemType)) {
+      if (Base->getType() != IceType_i32 && MemType != IceType_void &&
+          !isVectorType(MemType)) {
         // X86-64 is ILP32, but %rsp and %rbp are accessed as 64-bit registers.
         // For filetype=asm, they need to be emitted as their 32-bit siblings.
         assert(Base->getType() == IceType_i64);
         assert(getEncodedGPR(Base->getRegNum()) == RegX8664::Encoded_Reg_rsp ||
                getEncodedGPR(Base->getRegNum()) == RegX8664::Encoded_Reg_rbp ||
                getType() == IceType_void);
-        B = B->asType(Func, IceType_i32, X8664::Traits::getGprForType(
-                                             IceType_i32, Base->getRegNum()));
+        B = B->asType(
+            Func, IceType_i32,
+            X8664::Traits::getGprForType(IceType_i32, Base->getRegNum()));
       }
     }
 

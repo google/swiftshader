@@ -36,8 +36,7 @@ constexpr struct {
   uint32_t ELFFlags;
 } ELFTargetInfo[TargetArch_NUM] = {
 #define X(tag, str, is_elf64, e_machine, e_flags)                              \
-  { is_elf64, e_machine, e_flags }                                             \
-  ,
+  {is_elf64, e_machine, e_flags},
     TARGETARCH_TABLE
 #undef X
 };

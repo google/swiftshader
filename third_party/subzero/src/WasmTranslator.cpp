@@ -54,7 +54,7 @@ using namespace v8::internal::wasm;
 using v8::internal::wasm::DecodeWasmModule;
 
 #undef LOG
-#define LOG(Expr) log([&](Ostream & out) { Expr; })
+#define LOG(Expr) log([&](Ostream &out) { Expr; })
 
 namespace {
 // 64KB
@@ -1594,8 +1594,9 @@ void WasmTranslator::translate(
 
       // Add the data
       WasmMemory->addInitializer(VariableDeclaration::DataInitializer::create(
-          Globals.get(), reinterpret_cast<const char *>(Module->module_start) +
-                             Seg.source_offset,
+          Globals.get(),
+          reinterpret_cast<const char *>(Module->module_start) +
+              Seg.source_offset,
           Seg.source_size));
 
       WritePtr += Seg.source_size;

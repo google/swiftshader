@@ -15,9 +15,9 @@
 #ifndef SUBZERO_SRC_ICECLFLAGS_H
 #define SUBZERO_SRC_ICECLFLAGS_H
 
-#include "IceDefs.h"
 #include "IceBuildDefs.h"
 #include "IceClFlags.def"
+#include "IceDefs.h"
 #include "IceRangeSpec.h"
 #include "IceTypes.h"
 

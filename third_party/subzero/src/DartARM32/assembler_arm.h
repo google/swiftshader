@@ -72,8 +72,8 @@ enum {
 #endif
 
 class Label : public ValueObject {
- public:
-  Label() : position_(0) { }
+public:
+  Label() : position_(0) {}
 
   ~Label() {
     // Assert if label is being destroyed with unresolved branches pending.
@@ -91,12 +91,10 @@ class Label : public ValueObject {
   bool IsUnused() const { return position_ == 0; }
   bool IsLinked() const { return position_ > 0; }
 
- private:
+private:
   intptr_t position_;
 
-  void Reinitialize() {
-    position_ = 0;
-  }
+  void Reinitialize() { position_ = 0; }
 
   void BindTo(intptr_t position) {
     ASSERT(!IsBound());
@@ -114,19 +112,18 @@ class Label : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
-
 // Encodes Addressing Mode 1 - Data-processing operands.
 class Operand : public ValueObject {
- public:
+public:
   // Data-processing operands - Uninitialized.
-  Operand() : type_(-1), encoding_(-1) { }
+  Operand() : type_(-1), encoding_(-1) {}
 
   // Data-processing operands - Copy constructor.
-  Operand(const Operand& other)
-      : ValueObject(), type_(other.type_), encoding_(other.encoding_) { }
+  Operand(const Operand &other)
+      : ValueObject(), type_(other.type_), encoding_(other.encoding_) {}
 
   // Data-processing operands - Assignment operator.
-  Operand& operator=(const Operand& other) {
+  Operand &operator=(const Operand &other) {
     type_ = other.type_;
     encoding_ = other.encoding_;
     return *this;
@@ -196,7 +193,7 @@ class Operand : public ValueObject {
   }
 #endif
 
- private:
+private:
   bool is_valid() const { return (type_ == 0) || (type_ == 1); }
 
   uint32_t type() const {
@@ -209,13 +206,12 @@ class Operand : public ValueObject {
     return encoding_;
   }
 
-  uint32_t type_;  // Encodes the type field (bits 27-25) in the instruction.
+  uint32_t type_; // Encodes the type field (bits 27-25) in the instruction.
   uint32_t encoding_;
 
   friend class Assembler;
   friend class Address;
 };
-
 
 enum OperandSize {
   kByte,
@@ -230,9 +226,9 @@ enum OperandSize {
   kRegList,
 };
 
-
 // Load/store multiple addressing mode.
 enum BlockAddressMode {
+  // clang-format off
   // bit encoding P U W
   DA           = (0|0|0) << 21,  // decrement after
   IA           = (0|4|0) << 21,  // increment after
@@ -242,11 +238,11 @@ enum BlockAddressMode {
   IA_W         = (0|4|1) << 21,  // increment after with writeback to base
   DB_W         = (8|0|1) << 21,  // decrement before with writeback to base
   IB_W         = (8|4|1) << 21   // increment before with writeback to base
+  // clang-format on
 };
 
-
 class Address : public ValueObject {
- public:
+public:
   enum OffsetKind {
     Immediate,
     IndexRegister,
@@ -255,6 +251,7 @@ class Address : public ValueObject {
 
   // Memory operand addressing mode
   enum Mode {
+    // clang-format off
     kModeMask    = (8|4|1) << 21,
     // bit encoding P U W
     Offset       = (8|4|0) << 21,  // offset (w/o writeback to base)
@@ -263,19 +260,19 @@ class Address : public ValueObject {
     NegOffset    = (8|0|0) << 21,  // negative offset (w/o writeback to base)
     NegPreIndex  = (8|0|1) << 21,  // negative pre-indexed with writeback
     NegPostIndex = (0|0|0) << 21   // negative post-indexed with writeback
+    // clang-format on
   };
 
-  Address(const Address& other)
-      : ValueObject(), encoding_(other.encoding_), kind_(other.kind_) {
-  }
+  Address(const Address &other)
+      : ValueObject(), encoding_(other.encoding_), kind_(other.kind_) {}
 
-  Address& operator=(const Address& other) {
+  Address &operator=(const Address &other) {
     encoding_ = other.encoding_;
     kind_ = other.kind_;
     return *this;
   }
 
-  bool Equals(const Address& other) const {
+  bool Equals(const Address &other) const {
     return (encoding_ == other.encoding_) && (kind_ == other.kind_);
   }
 
@@ -298,8 +295,8 @@ class Address : public ValueObject {
   // shifted register case below should be used.
   Address(Register rn, Register r, Mode am);
 
-  Address(Register rn, Register rm,
-          Shift shift = LSL, uint32_t shift_imm = 0, Mode am = Offset) {
+  Address(Register rn, Register rm, Shift shift = LSL, uint32_t shift_imm = 0,
+          Mode am = Offset) {
     Operand o(rm, shift, shift_imm);
 
     if ((shift == LSL) && (shift_imm == 0)) {
@@ -315,25 +312,22 @@ class Address : public ValueObject {
 
   static OperandSize OperandSizeFor(intptr_t cid);
 
-  static bool CanHoldLoadOffset(OperandSize size,
-                                int32_t offset,
-                                int32_t* offset_mask);
-  static bool CanHoldStoreOffset(OperandSize size,
-                                 int32_t offset,
-                                 int32_t* offset_mask);
-  static bool CanHoldImmediateOffset(bool is_load,
-                                     intptr_t cid,
+  static bool CanHoldLoadOffset(OperandSize size, int32_t offset,
+                                int32_t *offset_mask);
+  static bool CanHoldStoreOffset(OperandSize size, int32_t offset,
+                                 int32_t *offset_mask);
+  static bool CanHoldImmediateOffset(bool is_load, intptr_t cid,
                                      int64_t offset);
 
- private:
+private:
   Register rn() const {
     return Instr::At(reinterpret_cast<uword>(&encoding_))->RnField();
   }
 
   Register rm() const {
-    return ((kind() == IndexRegister) || (kind() == ScaledIndexRegister)) ?
-        Instr::At(reinterpret_cast<uword>(&encoding_))->RmField() :
-        kNoRegister;
+    return ((kind() == IndexRegister) || (kind() == ScaledIndexRegister))
+               ? Instr::At(reinterpret_cast<uword>(&encoding_))->RmField()
+               : kNoRegister;
   }
 
   Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
@@ -358,39 +352,34 @@ class Address : public ValueObject {
   friend class Assembler;
 };
 
-
 class FieldAddress : public Address {
- public:
+public:
   FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) { }
+      : Address(base, disp - kHeapObjectTag) {}
 
   // This addressing mode does not exist.
   FieldAddress(Register base, Register r);
 
-  FieldAddress(const FieldAddress& other) : Address(other) { }
+  FieldAddress(const FieldAddress &other) : Address(other) {}
 
-  FieldAddress& operator=(const FieldAddress& other) {
+  FieldAddress &operator=(const FieldAddress &other) {
     Address::operator=(other);
     return *this;
   }
 };
 
-
 class Assembler : public ValueObject {
- public:
+public:
   explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        prologue_offset_(-1),
-        use_far_branches_(use_far_branches),
-        comments_(),
-        constant_pool_allowed_(false) { }
+      : buffer_(), prologue_offset_(-1), use_far_branches_(use_far_branches),
+        comments_(), constant_pool_allowed_(false) {}
 
-  ~Assembler() { }
+  ~Assembler() {}
 
   void PopRegister(Register r) { Pop(r); }
 
-  void Bind(Label* label);
-  void Jump(Label* label) { b(label); }
+  void Bind(Label *label);
+  void Jump(Label *label) { b(label); }
 
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
@@ -400,14 +389,14 @@ class Assembler : public ValueObject {
   // the fixups.  On ARM there are no pointers in code.
   intptr_t CountPointerOffsets() const { return 0; }
 
-  const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
-    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
+  const ZoneGrowableArray<intptr_t> &GetPointerOffsets() const {
+    ASSERT(buffer_.pointer_offsets().length() == 0); // No pointers in code.
     return buffer_.pointer_offsets();
   }
 
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+  ObjectPoolWrapper &object_pool_wrapper() { return object_pool_wrapper_; }
 
-  RawObjectPool* MakeObjectPool() {
+  RawObjectPool *MakeObjectPool() {
     return object_pool_wrapper_.MakeObjectPool();
   }
 
@@ -418,31 +407,29 @@ class Assembler : public ValueObject {
 #if defined(TESTING) || defined(DEBUG)
   // Used in unit tests and to ensure predictable verification code size in
   // FlowGraphCompiler::EmitEdgeCounter.
-  void set_use_far_branches(bool b) {
-    use_far_branches_ = b;
-  }
-#endif  // TESTING || DEBUG
+  void set_use_far_branches(bool b) { use_far_branches_ = b; }
+#endif // TESTING || DEBUG
 
-  void FinalizeInstructions(const MemoryRegion& region) {
+  void FinalizeInstructions(const MemoryRegion &region) {
     buffer_.FinalizeInstructions(region);
   }
 
   // Debugging and bringup support.
-  void Stop(const char* message);
-  void Unimplemented(const char* message);
-  void Untested(const char* message);
-  void Unreachable(const char* message);
+  void Stop(const char *message);
+  void Unimplemented(const char *message);
+  void Untested(const char *message);
+  void Unreachable(const char *message);
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void Comment(const char *format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();
 
-  const Code::Comments& GetCodeComments() const;
+  const Code::Comments &GetCodeComments() const;
 
-  static const char* RegisterName(Register reg);
+  static const char *RegisterName(Register reg);
 
-  static const char* FpuRegisterName(FpuRegister reg);
+  static const char *FpuRegisterName(FpuRegister reg);
 
 #if 0
   // Moved to ARM32::AssemblerARM32::and_()
@@ -658,15 +645,15 @@ class Assembler : public ValueObject {
   void vstrd(DRegister dd, Address ad, Condition cond = AL);
 #endif
 
-  void vldms(BlockAddressMode am, Register base,
-             SRegister first, SRegister last, Condition cond = AL);
-  void vstms(BlockAddressMode am, Register base,
-             SRegister first, SRegister last, Condition cond = AL);
+  void vldms(BlockAddressMode am, Register base, SRegister first,
+             SRegister last, Condition cond = AL);
+  void vstms(BlockAddressMode am, Register base, SRegister first,
+             SRegister last, Condition cond = AL);
 
-  void vldmd(BlockAddressMode am, Register base,
-             DRegister first, intptr_t count, Condition cond = AL);
-  void vstmd(BlockAddressMode am, Register base,
-             DRegister first, intptr_t count, Condition cond = AL);
+  void vldmd(BlockAddressMode am, Register base, DRegister first,
+             intptr_t count, Condition cond = AL);
+  void vstmd(BlockAddressMode am, Register base, DRegister first,
+             intptr_t count, Condition cond = AL);
 
 #if 0
   // Moved to Arm32::AssemblerARM32::vadds()
@@ -823,18 +810,17 @@ class Assembler : public ValueObject {
   void blx(Register rm, Condition cond = AL);
 #endif
 
-  void Branch(const StubEntry& stub_entry,
-              Patchability patchable = kNotPatchable,
-              Register pp = PP,
+  void Branch(const StubEntry &stub_entry,
+              Patchability patchable = kNotPatchable, Register pp = PP,
               Condition cond = AL);
 
-  void BranchLink(const StubEntry& stub_entry,
+  void BranchLink(const StubEntry &stub_entry,
                   Patchability patchable = kNotPatchable);
-  void BranchLink(const Code& code, Patchability patchable);
+  void BranchLink(const Code &code, Patchability patchable);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(const StubEntry& stub_entry);
-  void BranchLinkPatchable(const Code& code);
+  void BranchLinkPatchable(const StubEntry &stub_entry);
+  void BranchLinkPatchable(const Code &code);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -855,7 +841,6 @@ class Assembler : public ValueObject {
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
 
-
   // Signed integer division of left by right. Checks to see if integer
   // division is supported. If not, uses the FPU for division with
   // temporary registers tmpl and tmpr. tmpl and tmpr must be different
@@ -870,10 +855,10 @@ class Assembler : public ValueObject {
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
-  void LoadDImmediate(DRegister dd, double value,
-                      Register scratch, Condition cond = AL);
+  void LoadDImmediate(DRegister dd, double value, Register scratch,
+                      Condition cond = AL);
 
-  void MarkExceptionHandler(Label* label);
+  void MarkExceptionHandler(Label *label);
 
   void Drop(intptr_t stack_elements);
 
@@ -882,79 +867,65 @@ class Assembler : public ValueObject {
 
   void LoadIsolate(Register rd);
 
-  void LoadObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
+  void LoadObject(Register rd, const Object &object, Condition cond = AL);
+  void LoadUniqueObject(Register rd, const Object &object, Condition cond = AL);
+  void LoadFunctionFromCalleePool(Register dst, const Function &function,
                                   Register new_pp);
-  void LoadNativeEntry(Register dst,
-                       const ExternalLabel* label,
-                       Patchability patchable,
-                       Condition cond = AL);
-  void PushObject(const Object& object);
-  void CompareObject(Register rn, const Object& object);
+  void LoadNativeEntry(Register dst, const ExternalLabel *label,
+                       Patchability patchable, Condition cond = AL);
+  void PushObject(const Object &object);
+  void CompareObject(Register rn, const Object &object);
 
   // When storing into a heap object field, knowledge of the previous content
   // is expressed through these constants.
   enum FieldContent {
-    kEmptyOrSmiOrNull,  // Empty = garbage/zapped in release/debug mode.
+    kEmptyOrSmiOrNull, // Empty = garbage/zapped in release/debug mode.
     kHeapObjectOrSmi,
     kOnlySmi,
   };
 
-  void StoreIntoObject(Register object,  // Object we are storing into.
-                       const Address& dest,  // Where we are storing into.
-                       Register value,  // Value we are storing.
+  void StoreIntoObject(Register object,     // Object we are storing into.
+                       const Address &dest, // Where we are storing into.
+                       Register value,      // Value we are storing.
                        bool can_value_be_smi = true);
-  void StoreIntoObjectOffset(Register object,
-                             int32_t offset,
-                             Register value,
+  void StoreIntoObjectOffset(Register object, int32_t offset, Register value,
                              bool can_value_be_smi = true);
 
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
+  void StoreIntoObjectNoBarrier(Register object, const Address &dest,
                                 Register value,
                                 FieldContent old_content = kHeapObjectOrSmi);
-  void InitializeFieldNoBarrier(Register object,
-                                const Address& dest,
+  void InitializeFieldNoBarrier(Register object, const Address &dest,
                                 Register value) {
     StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
   }
-  void StoreIntoObjectNoBarrierOffset(
-      Register object,
-      int32_t offset,
-      Register value,
-      FieldContent old_content = kHeapObjectOrSmi);
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                const Object& value,
+  void
+  StoreIntoObjectNoBarrierOffset(Register object, int32_t offset,
+                                 Register value,
+                                 FieldContent old_content = kHeapObjectOrSmi);
+  void StoreIntoObjectNoBarrier(Register object, const Address &dest,
+                                const Object &value,
                                 FieldContent old_content = kHeapObjectOrSmi);
-  void StoreIntoObjectNoBarrierOffset(
-      Register object,
-      int32_t offset,
-      const Object& value,
-      FieldContent old_content = kHeapObjectOrSmi);
+  void
+  StoreIntoObjectNoBarrierOffset(Register object, int32_t offset,
+                                 const Object &value,
+                                 FieldContent old_content = kHeapObjectOrSmi);
 
   // Store value_even, value_odd, value_even, ... into the words in the address
   // range [begin, end), assumed to be uninitialized fields in object (tagged).
   // The stores must not need a generational store barrier (e.g., smi/null),
   // and (value_even, value_odd) must be a valid register pair.
   // Destroys register 'begin'.
-  void InitializeFieldsNoBarrier(Register object,
-                                 Register begin,
-                                 Register end,
-                                 Register value_even,
-                                 Register value_odd);
+  void InitializeFieldsNoBarrier(Register object, Register begin, Register end,
+                                 Register value_even, Register value_odd);
   // Like above, for the range [base+begin_offset, base+end_offset), unrolled.
-  void InitializeFieldsNoBarrierUnrolled(Register object,
-                                         Register base,
+  void InitializeFieldsNoBarrierUnrolled(Register object, Register base,
                                          intptr_t begin_offset,
                                          intptr_t end_offset,
                                          Register value_even,
                                          Register value_odd);
 
   // Stores a Smi value into a heap object field that always contains a Smi.
-  void StoreIntoSmiField(const Address& dest, Register value);
+  void StoreIntoSmiField(const Address &dest, Register value);
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
@@ -963,69 +934,42 @@ class Assembler : public ValueObject {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void ComputeRange(Register result,
-                    Register value,
-                    Register scratch,
-                    Label* miss);
+  void ComputeRange(Register result, Register value, Register scratch,
+                    Label *miss);
 
-  void UpdateRangeFeedback(Register value,
-                           intptr_t idx,
-                           Register ic_data,
-                           Register scratch1,
-                           Register scratch2,
-                           Label* miss);
+  void UpdateRangeFeedback(Register value, intptr_t idx, Register ic_data,
+                           Register scratch1, Register scratch2, Label *miss);
 
   intptr_t FindImmediate(int32_t imm);
-  bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadFromOffset(OperandSize type,
-                      Register reg,
-                      Register base,
-                      int32_t offset,
-                      Condition cond = AL);
-  void LoadFieldFromOffset(OperandSize type,
-                           Register reg,
-                           Register base,
-                           int32_t offset,
-                           Condition cond = AL) {
+  bool CanLoadFromObjectPool(const Object &object) const;
+  void LoadFromOffset(OperandSize type, Register reg, Register base,
+                      int32_t offset, Condition cond = AL);
+  void LoadFieldFromOffset(OperandSize type, Register reg, Register base,
+                           int32_t offset, Condition cond = AL) {
     LoadFromOffset(type, reg, base, offset - kHeapObjectTag, cond);
   }
-  void StoreToOffset(OperandSize type,
-                     Register reg,
-                     Register base,
-                     int32_t offset,
-                     Condition cond = AL);
-  void LoadSFromOffset(SRegister reg,
-                       Register base,
-                       int32_t offset,
+  void StoreToOffset(OperandSize type, Register reg, Register base,
+                     int32_t offset, Condition cond = AL);
+  void LoadSFromOffset(SRegister reg, Register base, int32_t offset,
                        Condition cond = AL);
-  void StoreSToOffset(SRegister reg,
-                      Register base,
-                      int32_t offset,
+  void StoreSToOffset(SRegister reg, Register base, int32_t offset,
                       Condition cond = AL);
-  void LoadDFromOffset(DRegister reg,
-                       Register base,
-                       int32_t offset,
+  void LoadDFromOffset(DRegister reg, Register base, int32_t offset,
                        Condition cond = AL);
-  void StoreDToOffset(DRegister reg,
-                      Register base,
-                      int32_t offset,
+  void StoreDToOffset(DRegister reg, Register base, int32_t offset,
                       Condition cond = AL);
 
-  void LoadMultipleDFromOffset(DRegister first,
-                               intptr_t count,
-                               Register base,
+  void LoadMultipleDFromOffset(DRegister first, intptr_t count, Register base,
                                int32_t offset);
-  void StoreMultipleDToOffset(DRegister first,
-                              intptr_t count,
-                              Register base,
+  void StoreMultipleDToOffset(DRegister first, intptr_t count, Register base,
                               int32_t offset);
 
-  void CopyDoubleField(Register dst, Register src,
-                       Register tmp1, Register tmp2, DRegister dtmp);
-  void CopyFloat32x4Field(Register dst, Register src,
-                          Register tmp1, Register tmp2, DRegister dtmp);
-  void CopyFloat64x2Field(Register dst, Register src,
-                          Register tmp1, Register tmp2, DRegister dtmp);
+  void CopyDoubleField(Register dst, Register src, Register tmp1, Register tmp2,
+                       DRegister dtmp);
+  void CopyFloat32x4Field(Register dst, Register src, Register tmp1,
+                          Register tmp2, DRegister dtmp);
+  void CopyFloat64x2Field(Register dst, Register src, Register tmp1,
+                          Register tmp2, DRegister dtmp);
 
 #if 0
   // Moved to ARM32::AssemblerARM32::push().
@@ -1061,9 +1005,9 @@ class Assembler : public ValueObject {
   // Moved to ARM32::AssemblerARM32::asr()
   void Asr(Register rd, Register rm, Register rs, Condition cond = AL);
 #endif
-  void Asrs(Register rd, Register rm, const Operand& shift_imm,
+  void Asrs(Register rd, Register rm, const Operand &shift_imm,
             Condition cond = AL);
-  void Ror(Register rd, Register rm, const Operand& shift_imm,
+  void Ror(Register rd, Register rm, const Operand &shift_imm,
            Condition cond = AL);
   void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
@@ -1097,7 +1041,7 @@ class Assembler : public ValueObject {
   // Untagging shifts tag bit into the carry flag - if carry is clear
   // assumption was correct. In this case jump to the is_smi label.
   // Otherwise fall-through.
-  void SmiUntag(Register dst, Register src, Label* is_smi) {
+  void SmiUntag(Register dst, Register src, Label *is_smi) {
     ASSERT(kSmiTagSize == 1);
     Asrs(dst, src, Operand(kSmiTagSize));
     b(is_smi, CC);
@@ -1117,7 +1061,7 @@ class Assembler : public ValueObject {
   void EnterCallRuntimeFrame(intptr_t frame_space);
   void LeaveCallRuntimeFrame();
 
-  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntime(const RuntimeEntry &entry, intptr_t argument_count);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
@@ -1140,53 +1084,36 @@ class Assembler : public ValueObject {
   // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
-  void LoadAllocationStatsAddress(Register dest,
-                                  intptr_t cid,
+  void LoadAllocationStatsAddress(Register dest, intptr_t cid,
                                   bool inline_isolate = true);
-  void IncrementAllocationStats(Register stats_addr,
-                                intptr_t cid,
+  void IncrementAllocationStats(Register stats_addr, intptr_t cid,
                                 Heap::Space space);
   void IncrementAllocationStatsWithSize(Register stats_addr_reg,
-                                        Register size_reg,
-                                        Heap::Space space);
+                                        Register size_reg, Heap::Space space);
 
-  Address ElementAddressForIntIndex(bool is_load,
-                                    bool is_external,
-                                    intptr_t cid,
-                                    intptr_t index_scale,
-                                    Register array,
-                                    intptr_t index,
+  Address ElementAddressForIntIndex(bool is_load, bool is_external,
+                                    intptr_t cid, intptr_t index_scale,
+                                    Register array, intptr_t index,
                                     Register temp);
 
-  Address ElementAddressForRegIndex(bool is_load,
-                                    bool is_external,
-                                    intptr_t cid,
-                                    intptr_t index_scale,
-                                    Register array,
-                                    Register index);
+  Address ElementAddressForRegIndex(bool is_load, bool is_external,
+                                    intptr_t cid, intptr_t index_scale,
+                                    Register array, Register index);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid,
-                            Register temp_reg,
-                            Label* trace,
+  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label *trace,
                             bool inline_isolate = true);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
-  void TryAllocate(const Class& cls,
-                   Label* failure,
-                   Register instance_reg,
+  void TryAllocate(const Class &cls, Label *failure, Register instance_reg,
                    Register temp_reg);
 
-  void TryAllocateArray(intptr_t cid,
-                        intptr_t instance_size,
-                        Label* failure,
-                        Register instance,
-                        Register end_address,
-                        Register temp1,
+  void TryAllocateArray(intptr_t cid, intptr_t instance_size, Label *failure,
+                        Register instance, Register end_address, Register temp1,
                         Register temp2);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
@@ -1194,18 +1121,14 @@ class Assembler : public ValueObject {
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
-  static bool IsSafe(const Object& object) { return true; }
-  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
+  static bool IsSafe(const Object &object) { return true; }
+  static bool IsSafeSmi(const Object &object) { return object.IsSmi(); }
 
-  bool constant_pool_allowed() const {
-    return constant_pool_allowed_;
-  }
-  void set_constant_pool_allowed(bool b) {
-    constant_pool_allowed_ = b;
-  }
+  bool constant_pool_allowed() const { return constant_pool_allowed_; }
+  void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
- private:
-  AssemblerBuffer buffer_;  // Contains position independent code.
+private:
+  AssemblerBuffer buffer_; // Contains position independent code.
   ObjectPoolWrapper object_pool_wrapper_;
 
   int32_t prologue_offset_;
@@ -1221,40 +1144,35 @@ class Assembler : public ValueObject {
   void movt(Register rd, uint16_t imm16, Condition cond = AL);
 #endif
 
-  void BindARMv6(Label* label);
-  void BindARMv7(Label* label);
+  void BindARMv6(Label *label);
+  void BindARMv7(Label *label);
 
-  void LoadWordFromPoolOffset(Register rd,
-                              int32_t offset,
-                              Register pp,
+  void LoadWordFromPoolOffset(Register rd, int32_t offset, Register pp,
                               Condition cond);
 
-  void BranchLink(const ExternalLabel* label);
+  void BranchLink(const ExternalLabel *label);
 
   class CodeComment : public ZoneAllocated {
-   public:
-    CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) { }
+  public:
+    CodeComment(intptr_t pc_offset, const String &comment)
+        : pc_offset_(pc_offset), comment_(comment) {}
 
     intptr_t pc_offset() const { return pc_offset_; }
-    const String& comment() const { return comment_; }
+    const String &comment() const { return comment_; }
 
-   private:
+  private:
     intptr_t pc_offset_;
-    const String& comment_;
+    const String &comment_;
 
     DISALLOW_COPY_AND_ASSIGN(CodeComment);
   };
 
-  GrowableArray<CodeComment*> comments_;
+  GrowableArray<CodeComment *> comments_;
 
   bool constant_pool_allowed_;
 
-  void LoadObjectHelper(Register rd,
-                        const Object& object,
-                        Condition cond,
-                        bool is_unique,
-                        Register pp);
+  void LoadObjectHelper(Register rd, const Object &object, Condition cond,
+                        bool is_unique, Register pp);
 
 #if 0
   // Moved to ARM32::AssemblerARM32::emitType01()
@@ -1290,16 +1208,10 @@ class Assembler : public ValueObject {
                       RegList regs);
 #endif
 
-  void EmitShiftImmediate(Condition cond,
-                          Shift opcode,
-                          Register rd,
-                          Register rm,
-                          Operand o);
+  void EmitShiftImmediate(Condition cond, Shift opcode, Register rd,
+                          Register rm, Operand o);
 
-  void EmitShiftRegister(Condition cond,
-                         Shift opcode,
-                         Register rd,
-                         Register rm,
+  void EmitShiftRegister(Condition cond, Shift opcode, Register rd, Register rm,
                          Operand o);
 
 #if 0
@@ -1319,19 +1231,11 @@ class Assembler : public ValueObject {
                  Register rm);
 #endif
 
-  void EmitMultiVSMemOp(Condition cond,
-                        BlockAddressMode am,
-                        bool load,
-                        Register base,
-                        SRegister start,
-                        uint32_t count);
+  void EmitMultiVSMemOp(Condition cond, BlockAddressMode am, bool load,
+                        Register base, SRegister start, uint32_t count);
 
-  void EmitMultiVDMemOp(Condition cond,
-                        BlockAddressMode am,
-                        bool load,
-                        Register base,
-                        DRegister start,
-                        int32_t count);
+  void EmitMultiVDMemOp(Condition cond, BlockAddressMode am, bool load,
+                        Register base, DRegister start, int32_t count);
 
 #if 0
   // Moved to ARM32::AssemblerARM32::emitVFPsss
@@ -1365,8 +1269,8 @@ class Assembler : public ValueObject {
                    QRegister qd, QRegister qn, QRegister qm);
 #endif
 
-  void EmitSIMDddd(int32_t opcode, OperandSize sz,
-                   DRegister dd, DRegister dn, DRegister dm);
+  void EmitSIMDddd(int32_t opcode, OperandSize sz, DRegister dd, DRegister dn,
+                   DRegister dm);
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
 #if 0
@@ -1380,31 +1284,25 @@ class Assembler : public ValueObject {
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  void StoreIntoObjectFilter(Register object, Register value, Label *no_update);
 
   // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+  void StoreIntoObjectFilterNoSmi(Register object, Register value,
+                                  Label *no_update);
 
   // Helpers for write-barrier verification.
 
   // Returns VerifiedMemory::offset() as an Operand.
   Operand GetVerifiedMemoryShadow();
   // Writes value to [base + offset] and also its shadow location, if enabled.
-  void WriteShadowedField(Register base,
-                          intptr_t offset,
-                          Register value,
+  void WriteShadowedField(Register base, intptr_t offset, Register value,
                           Condition cond = AL);
-  void WriteShadowedFieldPair(Register base,
-                              intptr_t offset,
-                              Register value_even,
-                              Register value_odd,
+  void WriteShadowedFieldPair(Register base, intptr_t offset,
+                              Register value_even, Register value_odd,
                               Condition cond = AL);
   // Writes new_value to address and its shadow location, if enabled, after
   // verifying that its old value matches its shadow.
-  void VerifiedWrite(const Address& address,
-                     Register new_value,
+  void VerifiedWrite(const Address &address, Register new_value,
                      FieldContent old_content);
 
 #if 0
@@ -1429,6 +1327,6 @@ class Assembler : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
 
-}  // namespace dart
+} // namespace dart
 
-#endif  // VM_ASSEMBLER_ARM_H_
+#endif // VM_ASSEMBLER_ARM_H_

@@ -202,8 +202,8 @@ size_t ELFStringTableSection::getIndex(const std::string &Str) const {
   return It->second;
 }
 
-bool ELFStringTableSection::SuffixComparator::
-operator()(const std::string &StrA, const std::string &StrB) const {
+bool ELFStringTableSection::SuffixComparator::operator()(
+    const std::string &StrA, const std::string &StrB) const {
   size_t LenA = StrA.size();
   size_t LenB = StrB.size();
   size_t CommonLen = std::min(LenA, LenB);

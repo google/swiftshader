@@ -94,8 +94,8 @@ std::string Cfg::getFunctionNameAndSize() const {
         ++InstCount;
     }
   }
-  return getFunctionName() + "(i=" + std::to_string(InstCount) + ":b=" +
-         std::to_string(NodeCount) + ")";
+  return getFunctionName() + "(i=" + std::to_string(InstCount) +
+         ":b=" + std::to_string(NodeCount) + ")";
 }
 
 void Cfg::setError(const std::string &Message) {
@@ -228,9 +228,9 @@ void Cfg::translate() {
   if (BuildDefs::dump()) {
     if (isVerbose(IceV_Status) &&
         getFlags().matchTestStatus(getFunctionName(), getSequenceNumber())) {
-      getContext()->getStrDump() << ">>>Translating "
-                                 << getFunctionNameAndSize()
-                                 << " seq=" << getSequenceNumber() << "\n";
+      getContext()->getStrDump()
+          << ">>>Translating " << getFunctionNameAndSize()
+          << " seq=" << getSequenceNumber() << "\n";
     }
   }
   TimerMarker T_func(getContext(), getFunctionName().toStringOrEmpty());

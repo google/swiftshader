@@ -18,9 +18,9 @@
 
 #include "IceAssemblerX8632.h"
 #include "IceDefs.h"
+#include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLowering.h"
-#include "IceInstX8632.h"
 #define X86NAMESPACE X8632
 #include "IceTargetLoweringX86Base.h"
 #undef X86NAMESPACE

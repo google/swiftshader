@@ -21,9 +21,9 @@
 #ifndef SUBZERO_SRC_ICELIVENESS_H
 #define SUBZERO_SRC_ICELIVENESS_H
 
-#include "IceDefs.h"
 #include "IceBitVector.h"
 #include "IceCfgNode.h"
+#include "IceDefs.h"
 #include "IceTLS.h"
 #include "IceTypes.h"
 
@@ -114,8 +114,9 @@ public:
   static void TlsInit() { LivenessAllocatorTraits::init(); }
 
   std::string dumpStr() const {
-    return "MaxLocals(" + std::to_string(MaxLocals) + "), "
-                                                      "NumGlobals(" +
+    return "MaxLocals(" + std::to_string(MaxLocals) +
+           "), "
+           "NumGlobals(" +
            std::to_string(NumGlobals) + ")";
   }
 

@@ -22,9 +22,9 @@
 #include "IceCfgNode.h"
 #include "IceConditionCodesX8632.h"
 #include "IceInst.h"
+#include "IceOperand.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLoweringX8632.h"
-#include "IceOperand.h"
 
 namespace Ice {
 
@@ -32,18 +32,14 @@ namespace X8632 {
 
 const TargetX8632Traits::InstBrAttributesType
     TargetX8632Traits::InstBrAttributes[] = {
-#define X(val, encode, opp, dump, emit)                                        \
-  { X8632::Traits::Cond::opp, dump, emit }                                     \
-  ,
+#define X(val, encode, opp, dump, emit) {X8632::Traits::Cond::opp, dump, emit},
         ICEINSTX8632BR_TABLE
 #undef X
 };
 
 const TargetX8632Traits::InstCmppsAttributesType
     TargetX8632Traits::InstCmppsAttributes[] = {
-#define X(val, emit)                                                           \
-  { emit }                                                                     \
-  ,
+#define X(val, emit) {emit},
         ICEINSTX8632CMPPS_TABLE
 #undef X
 };
@@ -51,8 +47,7 @@ const TargetX8632Traits::InstCmppsAttributesType
 const TargetX8632Traits::TypeAttributesType
     TargetX8632Traits::TypeAttributes[] = {
 #define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
-  { cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld }                    \
-  ,
+  {cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld},
         ICETYPEX8632_TABLE
 #undef X
 };

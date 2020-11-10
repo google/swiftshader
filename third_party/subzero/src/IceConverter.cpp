@@ -24,8 +24,8 @@
 #include "IceMangling.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
-#include "IceTypes.h"
 #include "IceTypeConverter.h"
+#include "IceTypes.h"
 
 #ifdef __clang__
 #pragma clang diagnostic push

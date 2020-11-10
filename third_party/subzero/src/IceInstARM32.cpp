@@ -42,8 +42,7 @@ const struct TypeARM32Attributes_ {
 } TypeARM32Attributes[] = {
 #define X(tag, elementty, int_width, fp_width, uvec_width, svec_width, sbits,  \
           ubits, rraddr, shaddr)                                               \
-  { int_width, fp_width, svec_width, uvec_width, sbits, ubits }                \
-  ,
+  {int_width, fp_width, svec_width, uvec_width, sbits, ubits},
     ICETYPEARM32_TABLE
 #undef X
 };
@@ -51,9 +50,7 @@ const struct TypeARM32Attributes_ {
 const struct InstARM32ShiftAttributes_ {
   const char *EmitString;
 } InstARM32ShiftAttributes[] = {
-#define X(tag, emit)                                                           \
-  { emit }                                                                     \
-  ,
+#define X(tag, emit) {emit},
     ICEINSTARM32SHIFT_TABLE
 #undef X
 };
@@ -62,9 +59,7 @@ const struct InstARM32CondAttributes_ {
   CondARM32::Cond Opposite;
   const char *EmitString;
 } InstARM32CondAttributes[] = {
-#define X(tag, encode, opp, emit)                                              \
-  { CondARM32::opp, emit }                                                     \
-  ,
+#define X(tag, encode, opp, emit) {CondARM32::opp, emit},
     ICEINSTARM32COND_TABLE
 #undef X
 };
@@ -1915,7 +1910,8 @@ void InstARM32Mov::emitMultiDestSingleSource(const Cfg *Func) const {
   assert(Src->hasReg());
 
   Str << "\t"
-         "vmov" << getPredicate() << "\t";
+         "vmov"
+      << getPredicate() << "\t";
   DestLo->emit(Func);
   Str << ", ";
   DestHi->emit(Func);
@@ -1937,7 +1933,8 @@ void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
   assert(getSrcSize() == 2);
 
   Str << "\t"
-         "vmov" << getPredicate() << "\t";
+         "vmov"
+      << getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
   SrcLo->emit(Func);
@@ -2170,7 +2167,8 @@ void InstARM32Br::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-         "b" << getPredicate() << "\t";
+         "b"
+      << getPredicate() << "\t";
   if (Label) {
     Str << Label->getLabelName();
   } else {
@@ -2972,7 +2970,8 @@ void InstARM32Umull::emit(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   assert(getDest()->hasReg());
   Str << "\t"
-         "umull" << getPredicate() << "\t";
+         "umull"
+      << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   DestHi->emit(Func);
@@ -3044,7 +3043,8 @@ void InstARM32Vcvt::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
   Str << "\t"
-         "vcvt" << getPredicate() << vcvtVariantSuffix(Variant) << "\t";
+         "vcvt"
+      << getPredicate() << vcvtVariantSuffix(Variant) << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -3115,8 +3115,8 @@ void InstARM32Vcmp::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Str << "\t"
-         "vcmp" << getPredicate() << getFpWidthString(getSrc(0)->getType())
-      << "\t";
+         "vcmp"
+      << getPredicate() << getFpWidthString(getSrc(0)->getType()) << "\t";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
@@ -3169,10 +3169,12 @@ void InstARM32Vmrs::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 0);
   Str << "\t"
-         "vmrs" << getPredicate() << "\t"
-                                     "APSR_nzcv"
-                                     ", "
-                                     "FPSCR";
+         "vmrs"
+      << getPredicate()
+      << "\t"
+         "APSR_nzcv"
+         ", "
+         "FPSCR";
 }
 
 void InstARM32Vmrs::emitIAS(const Cfg *Func) const {
@@ -3185,8 +3187,9 @@ void InstARM32Vmrs::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "APSR{n,z,v,c} = vmrs" << getPredicate() << "\t"
-                                                     "FPSCR{n,z,c,v}";
+  Str << "APSR{n,z,v,c} = vmrs" << getPredicate()
+      << "\t"
+         "FPSCR{n,z,c,v}";
 }
 
 void InstARM32Vabs::emit(const Cfg *Func) const {
@@ -3195,8 +3198,8 @@ void InstARM32Vabs::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\t"
-         "vabs" << getPredicate() << getFpWidthString(getSrc(0)->getType())
-      << "\t";
+         "vabs"
+      << getPredicate() << getFpWidthString(getSrc(0)->getType()) << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);

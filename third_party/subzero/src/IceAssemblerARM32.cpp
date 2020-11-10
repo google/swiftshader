@@ -642,10 +642,12 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
   const bool NeedsPCRelSuffix =
       (Asm.fixupIsPCRel(kind()) || Symbol == GlobalOffsetTable);
   Str << "\t"
-         "mov" << (IsMovw ? "w" : "t") << "\t"
+         "mov"
+      << (IsMovw ? "w" : "t") << "\t"
       << RegARM32::getRegName(RegNumT::fixme((Inst >> kRdShift) & 0xF))
       << ", #:" << (IsMovw ? "lower" : "upper") << "16:" << Symbol
-      << (NeedsPCRelSuffix ? " - ." : "") << "\t@ .word "
+      << (NeedsPCRelSuffix ? " - ." : "")
+      << "\t@ .word "
       // TODO(jpp): This is broken, it also needs to add a magic constant.
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
@@ -700,8 +702,9 @@ size_t BlRelocatableFixup::emit(GlobalContext *Ctx,
   Ostream &Str = Ctx->getStrEmit();
   IValueT Inst = Asm.load<IValueT>(position());
   Str << "\t"
-         "bl\t" << symbol() << "\t@ .word "
-      << llvm::format_hex_no_prefix(Inst, 8) << "\n";
+         "bl\t"
+      << symbol() << "\t@ .word " << llvm::format_hex_no_prefix(Inst, 8)
+      << "\n";
   return InstARM32::InstSize;
 }
 

@@ -25,7 +25,7 @@
 namespace llvm {
 class DataStreamer;
 class raw_fd_ostream;
-}
+} // namespace llvm
 
 namespace Ice {
 

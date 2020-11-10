@@ -260,7 +260,7 @@ inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
     return Integer->getValue();
   return Intrinsics::MemoryOrderInvalid;
 }
-}
+} // namespace
 
 void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
   constexpr bool NoTailCall = false;
@@ -1398,7 +1398,9 @@ void TargetMIPS32::lowerArguments() {
       }
     } else {
       switch (Ty) {
-      default: { RegisterArg->setRegNum(RegNum); } break;
+      default: {
+        RegisterArg->setRegNum(RegNum);
+      } break;
       case IceType_i64: {
         auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
         RegisterArg64->initHiLo(Func);

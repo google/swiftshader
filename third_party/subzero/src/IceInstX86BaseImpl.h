@@ -499,7 +499,8 @@ void InstImpl<TraitsType>::InstX86Br::emit(const Cfg *Func) const {
       Str << "\t" << getTargetTrue()->getAsmName();
       if (getTargetFalse()) {
         Str << "\n\t"
-               "jmp\t" << getTargetFalse()->getAsmName();
+               "jmp\t"
+            << getTargetFalse()->getAsmName();
       }
     }
   }
@@ -571,7 +572,8 @@ void InstImpl<TraitsType>::InstX86Jmp::emit(const Cfg *Func) const {
     if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src)) {
       Str << "\t"
              "jmp"
-             "\t" << CR->getName();
+             "\t"
+          << CR->getName();
       return;
     }
   }
@@ -1082,7 +1084,8 @@ void InstImpl<TraitsType>::InstX86Sqrt::emit(const Cfg *Func) const {
   Type Ty = this->getSrc(0)->getType();
   assert(isScalarFloatingType(Ty));
   Str << "\t"
-         "sqrt" << Traits::TypeAttributes[Ty].SpSdString << "\t";
+         "sqrt"
+      << Traits::TypeAttributes[Ty].SpSdString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -1201,7 +1204,8 @@ void InstImpl<TraitsType>::InstX86Imul::emit(const Cfg *Func) const {
     this->getSrc(1)->emit(Func);
   } else if (llvm::isa<Constant>(this->getSrc(1))) {
     Str << "\t"
-           "imul" << this->getWidthString(Dest->getType()) << "\t";
+           "imul"
+        << this->getWidthString(Dest->getType()) << "\t";
     this->getSrc(1)->emit(Func);
     Str << ", ";
     this->getSrc(0)->emit(Func);
@@ -1246,7 +1250,8 @@ void InstImpl<TraitsType>::InstX86ImulImm::emit(const Cfg *Func) const {
   assert(Dest->getType() == IceType_i16 || Dest->getType() == IceType_i32);
   assert(llvm::isa<Constant>(this->getSrc(1)));
   Str << "\t"
-         "imul" << this->getWidthString(Dest->getType()) << "\t";
+         "imul"
+      << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1374,7 +1379,8 @@ void InstImpl<TraitsType>::InstX86Mul::emit(const Cfg *Func) const {
                                                                 // allow
                                                                 // edx?
   Str << "\t"
-         "mul" << this->getWidthString(this->getDest()->getType()) << "\t";
+         "mul"
+      << this->getWidthString(this->getDest()->getType()) << "\t";
   this->getSrc(1)->emit(Func);
 }
 
@@ -1412,7 +1418,8 @@ void InstImpl<TraitsType>::InstX86Shld::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 3);
   assert(Dest == this->getSrc(0));
   Str << "\t"
-         "shld" << this->getWidthString(Dest->getType()) << "\t";
+         "shld"
+      << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -1450,7 +1457,8 @@ void InstImpl<TraitsType>::InstX86Shrd::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 3);
   assert(Dest == this->getSrc(0));
   Str << "\t"
-         "shrd" << this->getWidthString(Dest->getType()) << "\t";
+         "shrd"
+      << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -1546,7 +1554,8 @@ void InstImpl<TraitsType>::InstX86Cmpps::emit(const Cfg *Func) const {
   assert(Condition < Cond::Cmpps_Invalid);
   Type DestTy = this->Dest->getType();
   Str << "\t"
-         "cmp" << Traits::InstCmppsAttributes[Condition].EmitString
+         "cmp"
+      << Traits::InstCmppsAttributes[Condition].EmitString
       << Traits::TypeAttributes[DestTy].PdPsString << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
@@ -1582,8 +1591,9 @@ void InstImpl<TraitsType>::InstX86Cmpps::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   assert(Condition < Cond::Cmpps_Invalid);
   this->dumpDest(Func);
-  Str << " = cmp" << Traits::InstCmppsAttributes[Condition].EmitString << "ps"
-                                                                          "\t";
+  Str << " = cmp" << Traits::InstCmppsAttributes[Condition].EmitString
+      << "ps"
+         "\t";
   this->dumpSources(Func);
 }
 
@@ -1598,7 +1608,8 @@ void InstImpl<TraitsType>::InstX86Cmpxchg::emit(const Cfg *Func) const {
            "lock";
   }
   Str << "\t"
-         "cmpxchg" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+         "cmpxchg"
+      << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1824,7 +1835,8 @@ void InstImpl<TraitsType>::InstX86Icmp::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   Str << "\t"
-         "cmp" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+         "cmp"
+      << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1950,7 +1962,8 @@ void InstImpl<TraitsType>::InstX86Test::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   Str << "\t"
-         "test" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+         "test"
+      << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -2018,8 +2031,9 @@ void InstImpl<TraitsType>::InstX86Store::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   Type Ty = this->getSrc(0)->getType();
   Str << "\t"
-         "mov" << this->getWidthString(Ty)
-      << Traits::TypeAttributes[Ty].SdSsString << "\t";
+         "mov"
+      << this->getWidthString(Ty) << Traits::TypeAttributes[Ty].SdSsString
+      << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -2198,7 +2212,8 @@ void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   assert(this->getDest()->hasReg());
   Str << "\t"
-         "lea" << this->getWidthString(this->getDest()->getType()) << "\t";
+         "lea"
+      << this->getWidthString(this->getDest()->getType()) << "\t";
   Operand *Src0 = this->getSrc(0);
   if (const auto *Src0Var = llvm::dyn_cast<Variable>(Src0)) {
     Type Ty = Src0Var->getType();
@@ -2230,9 +2245,11 @@ void InstImpl<TraitsType>::InstX86Mov::emit(const Cfg *Func) const {
            "\t";
   } else {
     Str << "\t"
-           "mov" << (!isScalarFloatingType(DestTy)
-                         ? this->getWidthString(DestTy)
-                         : Traits::TypeAttributes[DestTy].SdSsString) << "\t";
+           "mov"
+        << (!isScalarFloatingType(DestTy)
+                ? this->getWidthString(DestTy)
+                : Traits::TypeAttributes[DestTy].SdSsString)
+        << "\t";
   }
   // For an integer truncation operation, src is wider than dest. In this case,
   // we use a mov instruction whose data width matches the narrower dest.
@@ -2568,7 +2585,8 @@ void InstImpl<TraitsType>::InstX86Nop::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   // TODO: Emit the right code for each variant.
   Str << "\t"
-         "nop\t/* variant = " << Variant << " */";
+         "nop\t/* variant = "
+      << Variant << " */";
 }
 
 template <typename TraitsType>
@@ -2599,16 +2617,20 @@ void InstImpl<TraitsType>::InstX86Fld::emit(const Cfg *Func) const {
     // stack slot.  Function prolog emission guarantees that there is sufficient
     // space to do this.
     Str << "\t"
-           "mov" << Traits::TypeAttributes[Ty].SdSsString << "\t";
+           "mov"
+        << Traits::TypeAttributes[Ty].SdSsString << "\t";
     Var->emit(Func);
     Str << ", (%esp)\n"
            "\t"
-           "fld" << this->getFldString(Ty) << "\t"
-                                              "(%esp)";
+           "fld"
+        << this->getFldString(Ty)
+        << "\t"
+           "(%esp)";
     return;
   }
   Str << "\t"
-         "fld" << this->getFldString(Ty) << "\t";
+         "fld"
+      << this->getFldString(Ty) << "\t";
   this->getSrc(0)->emit(Func);
 }
 
@@ -2669,7 +2691,8 @@ void InstImpl<TraitsType>::InstX86Fstp::emit(const Cfg *Func) const {
   Type Ty = this->getDest()->getType();
   if (!this->getDest()->hasReg()) {
     Str << "\t"
-           "fstp" << this->getFldString(Ty) << "\t";
+           "fstp"
+        << this->getFldString(Ty) << "\t";
     this->getDest()->emit(Func);
     return;
   }
@@ -2677,11 +2700,15 @@ void InstImpl<TraitsType>::InstX86Fstp::emit(const Cfg *Func) const {
   // Hack this by using caller-reserved memory at the top of stack, spilling
   // st(0) there, and loading it into the xmm register.
   Str << "\t"
-         "fstp" << this->getFldString(Ty) << "\t"
-                                             "(%esp)\n";
+         "fstp"
+      << this->getFldString(Ty)
+      << "\t"
+         "(%esp)\n";
   Str << "\t"
-         "mov" << Traits::TypeAttributes[Ty].SdSsString << "\t"
-                                                           "(%esp), ";
+         "mov"
+      << Traits::TypeAttributes[Ty].SdSsString
+      << "\t"
+         "(%esp), ";
   this->getDest()->emit(Func);
 }
 
@@ -2949,7 +2976,8 @@ void InstImpl<TraitsType>::InstX86Setcc::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-         "set" << Traits::InstBrAttributes[Condition].DisplayString << "\t";
+         "set"
+      << Traits::InstBrAttributes[Condition].DisplayString << "\t";
   this->Dest->emit(Func);
 }
 
@@ -2987,7 +3015,8 @@ void InstImpl<TraitsType>::InstX86Xadd::emit(const Cfg *Func) const {
            "lock";
   }
   Str << "\t"
-         "xadd" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+         "xadd"
+      << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -3027,7 +3056,8 @@ void InstImpl<TraitsType>::InstX86Xchg::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-         "xchg" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+         "xchg"
+      << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);

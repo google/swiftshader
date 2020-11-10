@@ -38,9 +38,10 @@ RandomNumberGenerator::RandomNumberGenerator(
   constexpr unsigned NumBitsPassID = 4;
   constexpr unsigned NumBitsSalt = 12;
   static_assert(RPE_num < (1 << NumBitsPassID), "NumBitsPassID too small");
-  State = Seed ^ ((uint64_t)RandomizationPassID
-                  << (NumBitsGlobalSeed - NumBitsPassID)) ^
-          (Salt << (NumBitsGlobalSeed - NumBitsPassID - NumBitsSalt));
+  State =
+      Seed ^
+      ((uint64_t)RandomizationPassID << (NumBitsGlobalSeed - NumBitsPassID)) ^
+      (Salt << (NumBitsGlobalSeed - NumBitsPassID - NumBitsSalt));
 }
 uint64_t RandomNumberGenerator::next(uint64_t Max) {
   // Lewis, Goodman, and Miller (1969)

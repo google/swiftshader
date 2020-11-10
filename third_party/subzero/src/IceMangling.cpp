@@ -12,9 +12,9 @@
 ///
 //===----------------------------------------------------------------------===//
 
+#include "IceMangling.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
-#include "IceMangling.h"
 
 #include <cctype> // isdigit(), isupper()
 #include <locale> // locale

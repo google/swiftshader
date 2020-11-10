@@ -64,8 +64,7 @@ template <typename T, typename Traits> struct sz_allocator {
 
   sz_allocator() : Current() {}
   template <class U>
-  sz_allocator(const sz_allocator<U, Traits> &)
-      : Current() {}
+  sz_allocator(const sz_allocator<U, Traits> &) : Current() {}
 
   pointer address(reference x) const {
     return reinterpret_cast<pointer>(&reinterpret_cast<char &>(x));

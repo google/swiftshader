@@ -179,9 +179,8 @@ struct TargetX8664Traits {
     /// disguise. Used from the assembler to generate better encodings.
     bool IsRegister(GPRRegister reg) const {
       return ((encoding_[0] & 0xF8) ==
-              0xC0) // Addressing mode is register only.
-             &&
-             (rm() == reg); // Register codes match.
+              0xC0)            // Addressing mode is register only.
+             && (rm() == reg); // Register codes match.
     }
 
     friend class AssemblerX86Base<TargetX8664Traits>;
@@ -343,11 +342,11 @@ struct TargetX8664Traits {
   }
 
   static bool isXmm(RegNumT RegNum) {
-    static const bool IsXmm [RegisterSet::Reg_NUM] = {
+    static const bool IsXmm[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
           is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
-        isXmm,
+  isXmm,
         REGX8664_TABLE
 #undef X
     };
@@ -474,8 +473,7 @@ private:
   public:
     constexpr SizeOf() : Size(0) {}
     template <typename... T>
-    explicit constexpr SizeOf(T...)
-        : Size(length<T...>::value) {}
+    explicit constexpr SizeOf(T...) : Size(length<T...>::value) {}
     constexpr SizeT size() const { return Size; }
 
   private:
@@ -530,10 +528,21 @@ public:
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
           is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   {                                                                            \
-    RegisterSet::val, sboxres, is64, is32, is16, is8, isXmm, is64To8, is32To8, \
-        is16To8, isTrunc8Rcvr, isAhRcvr, (SizeOf aliases).size(), aliases,     \
-  }                                                                            \
-  ,
+      RegisterSet::val,                                                        \
+      sboxres,                                                                 \
+      is64,                                                                    \
+      is32,                                                                    \
+      is16,                                                                    \
+      is8,                                                                     \
+      isXmm,                                                                   \
+      is64To8,                                                                 \
+      is32To8,                                                                 \
+      is16To8,                                                                 \
+      isTrunc8Rcvr,                                                            \
+      isAhRcvr,                                                                \
+      (SizeOf aliases).size(),                                                 \
+      aliases,                                                                 \
+  },
         REGX8664_TABLE
 #undef X
     };
@@ -734,7 +743,9 @@ public:
       return RegNumT();
     }
     static const RegisterSet::AllRegisters GprForArgNum[] = {
-        RegisterSet::Reg_rcx, RegisterSet::Reg_rdx, RegisterSet::Reg_r8,
+        RegisterSet::Reg_rcx,
+        RegisterSet::Reg_rdx,
+        RegisterSet::Reg_r8,
         RegisterSet::Reg_r9,
     };
     static_assert(llvm::array_lengthof(GprForArgNum) == X86_MAX_GPR_ARGS,

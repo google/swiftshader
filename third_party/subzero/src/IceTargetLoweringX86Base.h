@@ -1244,7 +1244,7 @@ public:
 private:
   ENABLE_MAKE_UNIQUE;
 
-  explicit TargetDataX86(GlobalContext *Ctx) : TargetDataLowering(Ctx){}
+  explicit TargetDataX86(GlobalContext *Ctx) : TargetDataLowering(Ctx) {}
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 
