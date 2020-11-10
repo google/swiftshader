@@ -22,6 +22,30 @@
       },
       "revId": "d0cff9be40da4150098346e1f66edee4a5994ddb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dee9eb89_ca8908ac",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 3206,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T21:05:45Z",
+      "side": 1,
+      "message": "That\u0027s fair. I liked having it be separate from the result +\u003d ... just so that we understand that we\u0027re creating a separate basic-block, but I\u0027ll move it back in there so make sure it works in the future, as per your point. Thanks.",
+      "parentUuid": "677a5ee3_31179246",
+      "range": {
+        "startLine": 3205,
+        "startChar": 3,
+        "endLine": 3206,
+        "endChar": 4
+      },
+      "revId": "d0cff9be40da4150098346e1f66edee4a5994ddb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
