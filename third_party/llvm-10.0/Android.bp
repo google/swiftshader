@@ -1,6 +1,6 @@
+cc_defaults {
+    name: "libLLVM10_swiftshader_defaults",
 
-cc_library_static {
-    name: "libLLVM10_swiftshader",
     device_supported: true,
     host_supported: true,
     vendor: true,
@@ -1026,5 +1026,27 @@ cc_library_static {
         "-Wno-implicit-fallthrough",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
+    ],
+}
+
+cc_library_static {
+    name: "libLLVM10_swiftshader",
+
+    defaults: [ "libLLVM10_swiftshader_defaults" ],
+}
+
+cc_library_static {
+    name: "libLLVM10_swiftshader_debug",
+
+    defaults: [ "libLLVM10_swiftshader_defaults" ],
+
+    srcs: [
+        "llvm/lib/MC/MCAsmMacro.cpp",
+        "llvm/lib/Support/Locale.cpp",
+        "llvm/lib/Support/circular_raw_ostream.cpp",
+    ],
+
+    cflags: [
+        "-UNDEBUG",
     ],
 }

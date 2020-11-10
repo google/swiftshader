@@ -366,7 +366,7 @@ cc_defaults {
     defaults: [ "libswiftshader_debug" ],
     static_libs: [
         "libswiftshader_llvm_debug",
-        "libLLVM10_swiftshader",
+        "libLLVM10_swiftshader_debug",
     ],
 }
 
@@ -684,7 +684,7 @@ cc_library_shared {
 
     static_libs: [
         "libswiftshadervk_llvm_debug",
-        "libLLVM10_swiftshader",
+        "libLLVM10_swiftshader_debug",
     ],
 
     cflags: [
