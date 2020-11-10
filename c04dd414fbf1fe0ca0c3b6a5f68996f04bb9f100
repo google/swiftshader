@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7341b5c0_903b33d4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-10T13:51:37Z",
+      "side": 1,
+      "message": "Is it expected that this doesn\u0027t change the state of any test? I guess they go from unsupported (missing extension) to unsupported (missing capability from extension).",
+      "revId": "c04dd414fbf1fe0ca0c3b6a5f68996f04bb9f100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "754122aa_6b7dd544",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 708,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-10T13:51:37Z",
+      "side": 1,
+      "message": "Just curious: Is it always ok to have unicode characters in comments?",
+      "range": {
+        "startLine": 708,
+        "startChar": 29,
+        "endLine": 708,
+        "endChar": 31
+      },
+      "revId": "c04dd414fbf1fe0ca0c3b6a5f68996f04bb9f100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
