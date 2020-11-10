@@ -1,0 +1,129 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c8ae913f_110659ef",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "\"can only be enabled in CMake builds\"?",
+      "range": {
+        "startLine": 27,
+        "startChar": 15,
+        "endLine": 27,
+        "endChar": 39
+      },
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f3df6cfb_ca987098",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "This is a very cool change, Nicolas!",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "04a1cf8c_ca16cf3e",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "We may eventually want to have MSAN enabled without Reactor\u0027s MSAN instrumentation. We should add a top-level CMake option \"REACTOR_ENABLE_MSAN_INSTRUMENTATION\" (default \"Off\"), and we can set it to \"On\" at this location for now. Then, in the src/Reactor/CMakeLists.txt, we enable this define ONLY for the Reactor targets (ReactorSubzero and ReactorLLVM) via target_compile_definitions(), rather than for all targets. We can make it a PUBLIC define, so that ReactorUnitTests can use the same macro. This is also important for making Reactor something we can eventually extract into its own thing.",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20e41ae2_b569d565",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "I don\u0027t understand how come this reinterpret_cast works here...\n\nI know it\u0027s not the same project, but the only place I can see an actual implementation of __emutls_get_address is in LLVM\u0027s compiler-rt project (https://github.com/llvm-mirror/compiler-rt):\n\nLooking at the current __emutls_get_address, it looks like we should be accessing the \"index\" field of __emutls_control, which isn\u0027t the first field: https://github.com/llvm-mirror/compiler-rt/blob/master/lib/builtins/emutls.c#L283\n\nThe __emutls_get_address function starts by calling emutls_get_index:\nhttps://github.com/llvm-mirror/compiler-rt/blob/master/lib/builtins/emutls.c#L379\n\nFurthermore, emutls_get_index uses atomic read on MSVC, presumably because MSAN may set the index from another thread? https://github.com/llvm-mirror/compiler-rt/blob/master/lib/builtins/emutls.c#L230\n\nIn LLVM\u0027s source, https://github.com/llvm-mirror/llvm/blob/0d04cbb5783c50f77f8d4c136f2dd529aa112ff9/lib/CodeGen/SelectionDAG/TargetLowering.cpp#L6817, I can see that it does get the address of the __emutls_v.xyz, but that\u0027s supposed to be the address of that variable\u0027s __emutls_control structure, as per: https://github.com/llvm-mirror/compiler-rt/blob/4e6f4067825b56acba0729a164454d8b4fd2beb1/lib/builtins/emutls.c#L271",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "01aa6165_5c7ea1a4",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "Are we not more likely to run this in non-debug builds? If so, this ASSERT would not trip, right?",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9451e9e5_0f9f3ce3",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "As per my comment above, we can have src/Reactor/CMakeLists.txt always define REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION to 0 or 1, and remove this code here. Of course, we\u0027d have to make sure that other build system files also define this macro, or we\u0027ll get that warning about #if macro when macro isn\u0027t defined.\n\nAlternatively, we can move this to Reactor.hpp so that any dependent project can use this macro easily.",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f9f462b7_71203c19",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T16:41:17Z",
+      "side": 1,
+      "message": "If I understand correctly, we\u0027re expecting msan to trigger a failure when executing the routine, but if eventual optimizations kick in for the If(), msan may not trip, in which case, you have this abort() in there to make sure it still fails. If that happens, though, that would make this test invalid, right? Shouldn\u0027t we remove that abort() call, and let the test fail for non-death?",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
