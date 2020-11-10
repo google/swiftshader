@@ -14,9 +14,9 @@
 // This aims to test all the conversion bitcode instructions across
 // all PNaCl primitive data types.
 
-#include <stdint.h>
 #include "test_cast.h"
 #include "xdefs.h"
+#include <stdint.h>
 
 template <typename FromType, typename ToType>
 ToType __attribute__((noinline)) cast(FromType a) {

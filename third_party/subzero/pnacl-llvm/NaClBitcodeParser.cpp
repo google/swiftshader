@@ -14,19 +14,20 @@ using namespace llvm;
 
 void NaClBitcodeRecordData::Print(raw_ostream &os) const {
   os << "[" << Code;
-  for (NaClRecordVector::const_iterator
-           Iter = Values.begin(), IterEnd = Values.end();
+  for (NaClRecordVector::const_iterator Iter = Values.begin(),
+                                        IterEnd = Values.end();
        Iter != IterEnd; ++Iter) {
     os << ", " << *Iter;
   }
   os << "]";
 }
 
-void NaClBitcodeRecord::Print(raw_ostream& os) const {
+void NaClBitcodeRecord::Print(raw_ostream &os) const {
   Block.Print(os);
   os << ", Code " << Data.Code << ", EntryID " << Entry.ID << ", <";
   for (unsigned i = 0, e = Data.Values.size(); i != e; ++i) {
-    if (i > 0) os << " ";
+    if (i > 0)
+      os << " ";
     os << Data.Values[i];
   }
   os << ">";
@@ -34,11 +35,8 @@ void NaClBitcodeRecord::Print(raw_ostream& os) const {
 
 NaClBitcodeBlock::NaClBitcodeBlock(unsigned BlockID,
                                    const NaClBitcodeRecord &Record)
-    : NaClBitcodeData(Record),
-      BlockID(BlockID),
-      EnclosingBlock(&Record.GetBlock()),
-      LocalStartBit(Record.GetStartBit())
-{}
+    : NaClBitcodeData(Record), BlockID(BlockID),
+      EnclosingBlock(&Record.GetBlock()), LocalStartBit(Record.GetStartBit()) {}
 
 void NaClBitcodeBlock::Print(raw_ostream &os) const {
   os << "Block " << BlockID;
@@ -69,8 +67,8 @@ void NaClBitcodeParserListener::EndBlockInfoBlock() {
   Parser->ExitBlock();
 }
 
-void NaClBitcodeParserListener::
-ProcessAbbreviation(NaClBitCodeAbbrev *Abbrev, bool IsLocal) {
+void NaClBitcodeParserListener::ProcessAbbreviation(NaClBitCodeAbbrev *Abbrev,
+                                                    bool IsLocal) {
   Parser->Record.SetStartBit(StartBit);
   Parser->Record.Entry.Kind = NaClBitstreamEntry::Record;
   Parser->Record.Entry.ID = naclbitc::DEFINE_ABBREV;
@@ -86,9 +84,9 @@ NaClBitcodeParser::~NaClBitcodeParser() {
   }
 }
 
-bool NaClBitcodeParser::ErrorAt(
-    naclbitc::ErrorLevel Level, uint64_t BitPosition,
-    const std::string &Message) {
+bool NaClBitcodeParser::ErrorAt(naclbitc::ErrorLevel Level,
+                                uint64_t BitPosition,
+                                const std::string &Message) {
   naclbitc::ErrorAt(*ErrStream, Level, BitPosition) << Message << "\n";
   if (Level == naclbitc::Fatal)
     report_fatal_error("Unable to continue");
@@ -108,7 +106,8 @@ bool NaClBitcodeParser::ParseBlockInfoInternal() {
   // BLOCKINFO is a special part of the stream. Let the bitstream
   // reader process this block.
   bool Result = Record.GetCursor().ReadBlockInfoBlock(Listener);
-  if (Result) return Error("Malformed BlockInfoBlock");
+  if (Result)
+    return Error("Malformed BlockInfoBlock");
   return Result;
 }
 
@@ -136,7 +135,8 @@ bool NaClBitcodeParser::ParseBlockInternal() {
       return false;
     }
     case NaClBitstreamEntry::SubBlock: {
-      if (ParseBlock(Record.GetEntryID())) return true;
+      if (ParseBlock(Record.GetEntryID()))
+        return true;
       break;
     }
     case NaClBitstreamEntry::Record:
@@ -145,7 +145,8 @@ bool NaClBitcodeParser::ParseBlockInternal() {
         // Since this abbreviation is local, the listener doesn't
         // have the start bit set (it is only set when processing
         // the BlockInfo block). Fix this by setting it here.
-        if (Listener) Listener->StartBit = Record.GetStartBit();
+        if (Listener)
+          Listener->StartBit = Record.GetStartBit();
         Record.GetCursor().ReadAbbrevRecord(true, Listener);
       } else {
         // Read in a record.

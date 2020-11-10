@@ -92,8 +92,8 @@ TEST_F(AssemblerX8632Test, ArithSS) {
     TestArithSSXmmAddr(FloatSize, 4.0, Dst1, 40.0, subss, -);                  \
     TestArithSSXmmXmm(FloatSize, Src, 5.0, Dst0, 50.0, mulss, *);              \
     TestArithSSXmmAddr(FloatSize, 6.0, Dst1, 60.0, mulss, *);                  \
-    TestArithSSXmmXmm(FloatSize, Src, 7.0, Dst0, 70.0, divss, / );             \
-    TestArithSSXmmAddr(FloatSize, 8.0, Dst1, 80.0, divss, / );                 \
+    TestArithSSXmmXmm(FloatSize, Src, 7.0, Dst0, 70.0, divss, /);              \
+    TestArithSSXmmAddr(FloatSize, 8.0, Dst1, 80.0, divss, /);                  \
   } while (0)
 
   TestArithSS(32, xmm0, xmm1, xmm2);
@@ -250,113 +250,129 @@ TEST_F(AssemblerX8632Test, PArith) {
           Dst,                                                                 \
           (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
           Src, (uint64_t(3u), uint64_t(0u)), psra, >>, int, Size);             \
-      TestPArithXmmAddr(Dst, (uint64_t(0x8040201008040201ull),                 \
-                              uint64_t(0x8080404002020101ull)),                \
-                        (uint64_t(3u), uint64_t(0u)), psra, >>, int, Size);    \
-      TestPArithXmmImm(Dst, (uint64_t(0x8040201008040201ull),                  \
-                             uint64_t(0x8080404002020101ull)),                 \
-                       3u, psra, >>, int, Size);                               \
+      TestPArithXmmAddr(                                                       \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          (uint64_t(3u), uint64_t(0u)), psra, >>, int, Size);                  \
+      TestPArithXmmImm(                                                        \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          3u, psra, >>, int, Size);                                            \
       TestPArithXmmXmm(                                                        \
           Dst,                                                                 \
           (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
           Src, (uint64_t(3u), uint64_t(0u)), psrl, >>, uint, Size);            \
-      TestPArithXmmAddr(Dst, (uint64_t(0x8040201008040201ull),                 \
-                              uint64_t(0x8080404002020101ull)),                \
-                        (uint64_t(3u), uint64_t(0u)), psrl, >>, uint, Size);   \
-      TestPArithXmmImm(Dst, (uint64_t(0x8040201008040201ull),                  \
-                             uint64_t(0x8080404002020101ull)),                 \
-                       3u, psrl, >>, uint, Size);                              \
+      TestPArithXmmAddr(                                                       \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          (uint64_t(3u), uint64_t(0u)), psrl, >>, uint, Size);                 \
+      TestPArithXmmImm(                                                        \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          3u, psrl, >>, uint, Size);                                           \
       TestPArithXmmXmm(                                                        \
           Dst,                                                                 \
           (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
           Src, (uint64_t(3u), uint64_t(0u)), psll, <<, uint, Size);            \
-      TestPArithXmmAddr(Dst, (uint64_t(0x8040201008040201ull),                 \
-                              uint64_t(0x8080404002020101ull)),                \
-                        (uint64_t(3u), uint64_t(0u)), psll, <<, uint, Size);   \
-      TestPArithXmmImm(Dst, (uint64_t(0x8040201008040201ull),                  \
-                             uint64_t(0x8080404002020101ull)),                 \
-                       3u, psll, <<, uint, Size);                              \
+      TestPArithXmmAddr(                                                       \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          (uint64_t(3u), uint64_t(0u)), psll, <<, uint, Size);                 \
+      TestPArithXmmImm(                                                        \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          3u, psll, <<, uint, Size);                                           \
                                                                                \
-      TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                  \
-                             uint64_t(0x8080404002020101ull)),                 \
-                       Src, (uint64_t(0xFFFFFFFF00000000ull),                  \
-                             uint64_t(0x0123456789ABCDEull)),                  \
-                       pmull, *, int, Size);                                   \
+      TestPArithXmmXmm(                                                        \
+          Dst,                                                                 \
+          (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
+          Src,                                                                 \
+          (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),   \
+          pmull, *, int, Size);                                                \
       TestPArithXmmAddr(                                                       \
           Dst,                                                                 \
           (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),  \
           (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),   \
           pmull, *, int, Size);                                                \
       if (Size != 16) {                                                        \
-        TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                \
-                               uint64_t(0x8080404002020101ull)),               \
-                         Src, (uint64_t(0xFFFFFFFF00000000ull),                \
-                               uint64_t(0x0123456789ABCDEull)),                \
-                         pmuludq, *, uint, Size);                              \
+        TestPArithXmmXmm(                                                      \
+            Dst,                                                               \
+            (uint64_t(0x8040201008040201ull),                                  \
+             uint64_t(0x8080404002020101ull)),                                 \
+            Src,                                                               \
+            (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)), \
+            pmuludq, *, uint, Size);                                           \
         TestPArithXmmAddr(                                                     \
-            Dst, (uint64_t(0x8040201008040201ull),                             \
-                  uint64_t(0x8080404002020101ull)),                            \
+            Dst,                                                               \
+            (uint64_t(0x8040201008040201ull),                                  \
+             uint64_t(0x8080404002020101ull)),                                 \
             (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)), \
             pmuludq, *, uint, Size);                                           \
       }                                                                        \
     }                                                                          \
-    TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                    \
-                           uint64_t(0x8080404002020101ull)),                   \
-                     Src, (uint64_t(0xFFFFFFFF00000000ull),                    \
-                           uint64_t(0x0123456789ABCDEull)),                    \
-                     padd, +, int, Size);                                      \
+    TestPArithXmmXmm(                                                          \
+        Dst,                                                                   \
+        (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
+        Src,                                                                   \
+        (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
+        padd, +, int, Size);                                                   \
     TestPArithXmmAddr(                                                         \
         Dst,                                                                   \
         (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
         (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
         padd, +, int, Size);                                                   \
-    TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                    \
-                           uint64_t(0x8080404002020101ull)),                   \
-                     Src, (uint64_t(0xFFFFFFFF00000000ull),                    \
-                           uint64_t(0x0123456789ABCDEull)),                    \
-                     psub, -, int, Size);                                      \
+    TestPArithXmmXmm(                                                          \
+        Dst,                                                                   \
+        (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
+        Src,                                                                   \
+        (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
+        psub, -, int, Size);                                                   \
     TestPArithXmmAddr(                                                         \
         Dst,                                                                   \
         (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
         (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
         psub, -, int, Size);                                                   \
-    TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                    \
-                           uint64_t(0x8080404002020101ull)),                   \
-                     Src, (uint64_t(0xFFFFFFFF00000000ull),                    \
-                           uint64_t(0x0123456789ABCDEull)),                    \
-                     pand, &, int, Size);                                      \
+    TestPArithXmmXmm(                                                          \
+        Dst,                                                                   \
+        (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
+        Src,                                                                   \
+        (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
+        pand, &, int, Size);                                                   \
     TestPArithXmmAddr(                                                         \
         Dst,                                                                   \
         (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
         (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
         pand, &, int, Size);                                                   \
                                                                                \
-    TestPAndnXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                     \
-                          uint64_t(0x8080404002020101ull)),                    \
-                    Src, (uint64_t(0xFFFFFFFF00000000ull),                     \
-                          uint64_t(0x0123456789ABCDEull)),                     \
-                    int, Size);                                                \
+    TestPAndnXmmXmm(                                                           \
+        Dst,                                                                   \
+        (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
+        Src,                                                                   \
+        (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
+        int, Size);                                                            \
     TestPAndnXmmAddr(                                                          \
         Dst,                                                                   \
         (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
         (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
         int, Size);                                                            \
                                                                                \
-    TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                    \
-                           uint64_t(0x8080404002020101ull)),                   \
-                     Src, (uint64_t(0xFFFFFFFF00000000ull),                    \
-                           uint64_t(0x0123456789ABCDEull)),                    \
-                     por, |, int, Size);                                       \
+    TestPArithXmmXmm(                                                          \
+        Dst,                                                                   \
+        (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
+        Src,                                                                   \
+        (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
+        por, |, int, Size);                                                    \
     TestPArithXmmAddr(                                                         \
         Dst,                                                                   \
         (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
         (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
         por, |, int, Size);                                                    \
-    TestPArithXmmXmm(Dst, (uint64_t(0x8040201008040201ull),                    \
-                           uint64_t(0x8080404002020101ull)),                   \
-                     Src, (uint64_t(0xFFFFFFFF00000000ull),                    \
-                           uint64_t(0x0123456789ABCDEull)),                    \
-                     pxor, ^, int, Size);                                      \
+    TestPArithXmmXmm(                                                          \
+        Dst,                                                                   \
+        (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
+        Src,                                                                   \
+        (uint64_t(0xFFFFFFFF00000000ull), uint64_t(0x0123456789ABCDEull)),     \
+        pxor, ^, int, Size);                                                   \
     TestPArithXmmAddr(                                                         \
         Dst,                                                                   \
         (uint64_t(0x8040201008040201ull), uint64_t(0x8080404002020101ull)),    \
@@ -789,24 +805,27 @@ TEST_F(AssemblerX8632Test, Cmpps) {
     TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
     TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
     if (FloatSize == 32) {                                                     \
-      TestCmppsOrdUnordXmmXmm(                                                 \
-          32, Dst, (1.0, 1.0, std::numeric_limits<float>::quiet_NaN(),         \
-                    std::numeric_limits<float>::quiet_NaN()),                  \
-          Src, (1.0, std::numeric_limits<float>::quiet_NaN(), 1.0,             \
-                std::numeric_limits<float>::quiet_NaN()),                      \
-          unord, Type);                                                        \
-      TestCmppsOrdUnordXmmAddr(                                                \
-          32, Dst, (1.0, 1.0, std::numeric_limits<float>::quiet_NaN(),         \
-                    std::numeric_limits<float>::quiet_NaN()),                  \
-          (1.0, std::numeric_limits<float>::quiet_NaN(), 1.0,                  \
-           std::numeric_limits<float>::quiet_NaN()),                           \
-          unord, Type);                                                        \
-    } else {                                                                   \
-      TestCmppsOrdUnordXmmXmm(64, Dst,                                         \
-                              (1.0, std::numeric_limits<double>::quiet_NaN()), \
-                              Src, (std::numeric_limits<double>::quiet_NaN(),  \
-                                    std::numeric_limits<double>::quiet_NaN()), \
+      TestCmppsOrdUnordXmmXmm(32, Dst,                                         \
+                              (1.0, 1.0,                                       \
+                               std::numeric_limits<float>::quiet_NaN(),        \
+                               std::numeric_limits<float>::quiet_NaN()),       \
+                              Src,                                             \
+                              (1.0, std::numeric_limits<float>::quiet_NaN(),   \
+                               1.0, std::numeric_limits<float>::quiet_NaN()),  \
                               unord, Type);                                    \
+      TestCmppsOrdUnordXmmAddr(32, Dst,                                        \
+                               (1.0, 1.0,                                      \
+                                std::numeric_limits<float>::quiet_NaN(),       \
+                                std::numeric_limits<float>::quiet_NaN()),      \
+                               (1.0, std::numeric_limits<float>::quiet_NaN(),  \
+                                1.0, std::numeric_limits<float>::quiet_NaN()), \
+                               unord, Type);                                   \
+    } else {                                                                   \
+      TestCmppsOrdUnordXmmXmm(                                                 \
+          64, Dst, (1.0, std::numeric_limits<double>::quiet_NaN()), Src,       \
+          (std::numeric_limits<double>::quiet_NaN(),                           \
+           std::numeric_limits<double>::quiet_NaN()),                          \
+          unord, Type);                                                        \
       TestCmppsOrdUnordXmmXmm(64, Dst, (1.0, 1.0), Src,                        \
                               (1.0, std::numeric_limits<double>::quiet_NaN()), \
                               unord, Type);                                    \
@@ -863,15 +882,19 @@ TEST_F(AssemblerX8632Test, Sqrtps_Rsqrtps_Reciprocalps_Sqrtpd) {
 
 #define TestImpl(Dst)                                                          \
   do {                                                                         \
-    TestImplSingle(Dst, sqrtps, (uint64_t(0x400000003F800000ull),              \
-                                 uint64_t(0x3FE2D10B408F1BBDull)));            \
-    TestImplSingle(Dst, rsqrtps, (uint64_t(0x3EFFF0003F7FF000ull),             \
-                                  uint64_t(0x3F1078003E64F000ull)));           \
-    TestImplSingle(Dst, reciprocalps, (uint64_t(0x3E7FF0003F7FF000ull),        \
-                                       uint64_t(0x3EA310003D4CC000ull)));      \
+    TestImplSingle(                                                            \
+        Dst, sqrtps,                                                           \
+        (uint64_t(0x400000003F800000ull), uint64_t(0x3FE2D10B408F1BBDull)));   \
+    TestImplSingle(                                                            \
+        Dst, rsqrtps,                                                          \
+        (uint64_t(0x3EFFF0003F7FF000ull), uint64_t(0x3F1078003E64F000ull)));   \
+    TestImplSingle(                                                            \
+        Dst, reciprocalps,                                                     \
+        (uint64_t(0x3E7FF0003F7FF000ull), uint64_t(0x3EA310003D4CC000ull)));   \
                                                                                \
-    TestImplSingle(Dst, sqrtpd, (uint64_t(0x4036A09E9365F5F3ull),              \
-                                 uint64_t(0x401C42FAE40282A8ull)));            \
+    TestImplSingle(                                                            \
+        Dst, sqrtpd,                                                           \
+        (uint64_t(0x4036A09E9365F5F3ull), uint64_t(0x401C42FAE40282A8ull)));   \
   } while (0)
 
   TestImpl(xmm0);
@@ -1871,12 +1894,14 @@ TEST_F(AssemblerX8632Test, Pinsr) {
 
 #define TestPinsrSize(Dst, GPR, Value1, Imm, Size)                             \
   do {                                                                         \
-    TestPinsrXmmGPRImm(Dst, (uint64_t(0xAAAAAAAABBBBBBBBull),                  \
-                             uint64_t(0xFFFFFFFFDDDDDDDDull)),                 \
-                       GPR, Value1, Imm, Size);                                \
-    TestPinsrXmmAddrImm(Dst, (uint64_t(0xAAAAAAAABBBBBBBBull),                 \
-                              uint64_t(0xFFFFFFFFDDDDDDDDull)),                \
-                        Value1, Imm, Size);                                    \
+    TestPinsrXmmGPRImm(                                                        \
+        Dst,                                                                   \
+        (uint64_t(0xAAAAAAAABBBBBBBBull), uint64_t(0xFFFFFFFFDDDDDDDDull)),    \
+        GPR, Value1, Imm, Size);                                               \
+    TestPinsrXmmAddrImm(                                                       \
+        Dst,                                                                   \
+        (uint64_t(0xAAAAAAAABBBBBBBBull), uint64_t(0xFFFFFFFFDDDDDDDDull)),    \
+        Value1, Imm, Size);                                                    \
   } while (0)
 
 #define TestPinsr(Src, Dst)                                                    \
@@ -1928,9 +1953,10 @@ TEST_F(AssemblerX8632Test, Pextr) {
 
 #define TestPextrSize(GPR, Src, Value1, Imm, Size)                             \
   do {                                                                         \
-    TestPextrGPRXmmImm(GPR, Src, (uint64_t(0xAAAAAAAABBBBBBBBull),             \
-                                  uint64_t(0xFFFFFFFFDDDDDDDDull)),            \
-                       Imm, Size);                                             \
+    TestPextrGPRXmmImm(                                                        \
+        GPR, Src,                                                              \
+        (uint64_t(0xAAAAAAAABBBBBBBBull), uint64_t(0xFFFFFFFFDDDDDDDDull)),    \
+        Imm, Size);                                                            \
   } while (0)
 
 #define TestPextr(Src, Dst)                                                    \
@@ -2014,24 +2040,26 @@ TEST_F(AssemblerX8632Test, Pcmpeq_Pcmpgt) {
 
 #define TestPcmpValues(Dst, Value0, Src, Value1, Size)                         \
   do {                                                                         \
-    TestPcmpXmmXmm(Dst, Value0, Src, Value1, Size, pcmpeq, == );               \
-    TestPcmpXmmAddr(Dst, Value0, Value1, Size, pcmpeq, == );                   \
-    TestPcmpXmmXmm(Dst, Value0, Src, Value1, Size, pcmpgt, < );                \
-    TestPcmpXmmAddr(Dst, Value0, Value1, Size, pcmpgt, < );                    \
+    TestPcmpXmmXmm(Dst, Value0, Src, Value1, Size, pcmpeq, ==);                \
+    TestPcmpXmmAddr(Dst, Value0, Value1, Size, pcmpeq, ==);                    \
+    TestPcmpXmmXmm(Dst, Value0, Src, Value1, Size, pcmpgt, <);                 \
+    TestPcmpXmmAddr(Dst, Value0, Value1, Size, pcmpgt, <);                     \
   } while (0)
 
 #define TestPcmpSize(Dst, Src, Size)                                           \
   do {                                                                         \
-    TestPcmpValues(Dst, (uint64_t(0x8888888888888888ull),                      \
-                         uint64_t(0x0000000000000000ull)),                     \
-                   Src, (uint64_t(0x0000008800008800ull),                      \
-                         uint64_t(0xFFFFFFFFFFFFFFFFull)),                     \
-                   Size);                                                      \
-    TestPcmpValues(Dst, (uint64_t(0x123567ABAB55DE01ull),                      \
-                         uint64_t(0x12345abcde12345Aull)),                     \
-                   Src, (uint64_t(0x0000008800008800ull),                      \
-                         uint64_t(0xAABBCCDD1234321Aull)),                     \
-                   Size);                                                      \
+    TestPcmpValues(                                                            \
+        Dst,                                                                   \
+        (uint64_t(0x8888888888888888ull), uint64_t(0x0000000000000000ull)),    \
+        Src,                                                                   \
+        (uint64_t(0x0000008800008800ull), uint64_t(0xFFFFFFFFFFFFFFFFull)),    \
+        Size);                                                                 \
+    TestPcmpValues(                                                            \
+        Dst,                                                                   \
+        (uint64_t(0x123567ABAB55DE01ull), uint64_t(0x12345abcde12345Aull)),    \
+        Src,                                                                   \
+        (uint64_t(0x0000008800008800ull), uint64_t(0xAABBCCDD1234321Aull)),    \
+        Size);                                                                 \
   } while (0)
 
 #define TestPcmp(Dst, Src)                                                     \

@@ -24,16 +24,33 @@ namespace {
 static const unsigned NO_LOCAL_ABBREVS =
     NaClBitsNeededForValue(naclbitc::DEFAULT_MAX_ABBREV);
 
-const uint64_t BitcodeRecords[] = {
-    naclbitc::ENTER_SUBBLOCK, naclbitc::BLK_CODE_ENTER,
-    naclbitc::MODULE_BLOCK_ID, NO_LOCAL_ABBREVS, Terminator,
-    naclbitc::ENTER_SUBBLOCK, naclbitc::BLK_CODE_ENTER,
-    naclbitc::TYPE_BLOCK_ID_NEW, NO_LOCAL_ABBREVS, Terminator,
-    naclbitc::UNABBREV_RECORD, naclbitc::TYPE_CODE_NUMENTRY, 2, Terminator,
-    naclbitc::UNABBREV_RECORD, naclbitc::TYPE_CODE_INTEGER, 32, Terminator,
-    naclbitc::UNABBREV_RECORD, naclbitc::TYPE_CODE_FLOAT, Terminator,
-    naclbitc::END_BLOCK, naclbitc::BLK_CODE_EXIT, Terminator,
-    naclbitc::END_BLOCK, naclbitc::BLK_CODE_EXIT, Terminator};
+const uint64_t BitcodeRecords[] = {naclbitc::ENTER_SUBBLOCK,
+                                   naclbitc::BLK_CODE_ENTER,
+                                   naclbitc::MODULE_BLOCK_ID,
+                                   NO_LOCAL_ABBREVS,
+                                   Terminator,
+                                   naclbitc::ENTER_SUBBLOCK,
+                                   naclbitc::BLK_CODE_ENTER,
+                                   naclbitc::TYPE_BLOCK_ID_NEW,
+                                   NO_LOCAL_ABBREVS,
+                                   Terminator,
+                                   naclbitc::UNABBREV_RECORD,
+                                   naclbitc::TYPE_CODE_NUMENTRY,
+                                   2,
+                                   Terminator,
+                                   naclbitc::UNABBREV_RECORD,
+                                   naclbitc::TYPE_CODE_INTEGER,
+                                   32,
+                                   Terminator,
+                                   naclbitc::UNABBREV_RECORD,
+                                   naclbitc::TYPE_CODE_FLOAT,
+                                   Terminator,
+                                   naclbitc::END_BLOCK,
+                                   naclbitc::BLK_CODE_EXIT,
+                                   Terminator,
+                                   naclbitc::END_BLOCK,
+                                   naclbitc::BLK_CODE_EXIT,
+                                   Terminator};
 
 const char *ExpectedDump =
     "       0:0|<65532, 80, 69, 88, 69, 1, 0,|Magic Number: 'PEXE' (80, 69, "
@@ -75,8 +92,9 @@ TEST(NaClParseTypesTest, BadTypeCountRecord) {
   // Index for "count 2;".
   const uint64_t CountRecordIndex = 2;
   const uint64_t Edit[] = {
-      CountRecordIndex, NaClMungedBitcode::Replace, naclbitc::UNABBREV_RECORD,
-      naclbitc::TYPE_CODE_NUMENTRY, 18446744073709547964ULL, Terminator};
+      CountRecordIndex,          NaClMungedBitcode::Replace,
+      naclbitc::UNABBREV_RECORD, naclbitc::TYPE_CODE_NUMENTRY,
+      18446744073709547964ULL,   Terminator};
 
   SubzeroBitcodeMunger Munger(ARRAY_TERM(BitcodeRecords));
   Munger.Flags.setGenerateUnitTestMessages(false);

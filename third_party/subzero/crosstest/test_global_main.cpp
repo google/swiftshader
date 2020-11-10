@@ -14,9 +14,9 @@
 /* crosstest.py --test=test_global.cpp \
    --driver=test_global_main.cpp --prefix=Subzero_ --output=test_global */
 
-#include <stdint.h>
 #include <cstdlib>
 #include <iostream>
+#include <stdint.h>
 
 #include "test_global.h"
 namespace Subzero_ {

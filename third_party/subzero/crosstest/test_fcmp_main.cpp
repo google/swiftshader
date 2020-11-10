@@ -20,9 +20,9 @@
 #include <cstring>
 #include <iostream>
 
-#include "vectors.h"
 #include "test_arith.def"
 #include "test_fcmp.def"
+#include "vectors.h"
 
 #define X(cmp)                                                                 \
   extern "C" bool fcmp##cmp##Float(float a, float b);                          \
@@ -79,13 +79,11 @@ void testsScalar(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncTypeDoubleSelect FuncDoubleSelectLlc;
   } Funcs[] = {
 #define X(cmp)                                                                 \
-  {                                                                            \
-    "fcmp" STR(cmp), Subzero_fcmp##cmp##Float, fcmp##cmp##Float,               \
-        Subzero_fcmp##cmp##Double, fcmp##cmp##Double,                          \
-        Subzero_fcmpSelect##cmp##Float, fcmpSelect##cmp##Float,                \
-        Subzero_fcmpSelect##cmp##Double, fcmpSelect##cmp##Double               \
-  }                                                                            \
-  ,
+  {"fcmp" STR(cmp),        Subzero_fcmp##cmp##Float,                           \
+   fcmp##cmp##Float,       Subzero_fcmp##cmp##Double,                          \
+   fcmp##cmp##Double,      Subzero_fcmpSelect##cmp##Float,                     \
+   fcmpSelect##cmp##Float, Subzero_fcmpSelect##cmp##Double,                    \
+   fcmpSelect##cmp##Double},
       FCMP_TABLE
 #undef X
   };
@@ -164,9 +162,7 @@ void testsVector(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncTypeVector FuncVectorSz;
     FuncTypeVector FuncVectorLlc;
   } Funcs[] = {
-#define X(cmp)                                                                 \
-  { "fcmp" STR(cmp), Subzero_fcmp##cmp##Vector, fcmp##cmp##Vector }            \
-  ,
+#define X(cmp) {"fcmp" STR(cmp), Subzero_fcmp##cmp##Vector, fcmp##cmp##Vector},
       FCMP_TABLE
 #undef X
   };

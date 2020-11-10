@@ -29,83 +29,83 @@ class raw_ostream;
 
 namespace naclbitc {
 enum StandardWidths {
-  BlockIDWidth = 8,      // We use VBR-8 for block IDs.
-  CodeLenWidth = 4,      // Codelen are VBR-4.
-  BlockSizeWidth = 32,   // BlockSize up to 2^32 32-bit words = 16GB per block.
-  MaxAbbrevWidth = 32,   // Maximum value allowed for Fixed and VBR.
+  BlockIDWidth = 8,    // We use VBR-8 for block IDs.
+  CodeLenWidth = 4,    // Codelen are VBR-4.
+  BlockSizeWidth = 32, // BlockSize up to 2^32 32-bit words = 16GB per block.
+  MaxAbbrevWidth = 32, // Maximum value allowed for Fixed and VBR.
   BitstreamWordSize = sizeof(uint32_t), // Number of bytes in bitstream word.
-  MinRecordBitSize = 2   // Minimum number of bits needed to represent a record.
+  MinRecordBitSize = 2 // Minimum number of bits needed to represent a record.
 };
 
-  // The standard abbrev namespace always has a way to exit a block, enter a
-  // nested block, define abbrevs, and define an unabbreviated record.
-  enum FixedAbbrevIDs {
-    END_BLOCK = 0,  // Must be zero to guarantee termination for broken bitcode.
-    ENTER_SUBBLOCK = 1,
+// The standard abbrev namespace always has a way to exit a block, enter a
+// nested block, define abbrevs, and define an unabbreviated record.
+enum FixedAbbrevIDs {
+  END_BLOCK = 0, // Must be zero to guarantee termination for broken bitcode.
+  ENTER_SUBBLOCK = 1,
 
-    /// DEFINE_ABBREV - Defines an abbrev for the current block.  It consists
-    /// of a vbr5 for # operand infos.  Each operand info is emitted with a
-    /// single bit to indicate if it is a literal encoding.  If so, the value is
-    /// emitted with a vbr8.  If not, the encoding is emitted as 3 bits followed
-    /// by the info value as a vbr5 if needed.
-    DEFINE_ABBREV = 2,
+  /// DEFINE_ABBREV - Defines an abbrev for the current block.  It consists
+  /// of a vbr5 for # operand infos.  Each operand info is emitted with a
+  /// single bit to indicate if it is a literal encoding.  If so, the value is
+  /// emitted with a vbr8.  If not, the encoding is emitted as 3 bits followed
+  /// by the info value as a vbr5 if needed.
+  DEFINE_ABBREV = 2,
 
-    // UNABBREV_RECORDs are emitted with a vbr6 for the record code, followed by
-    // a vbr6 for the # operands, followed by vbr6's for each operand.
-    UNABBREV_RECORD = 3,
+  // UNABBREV_RECORDs are emitted with a vbr6 for the record code, followed by
+  // a vbr6 for the # operands, followed by vbr6's for each operand.
+  UNABBREV_RECORD = 3,
 
-    // This is not a code, this is a marker for the first abbrev assignment.
-    // In addition, we assume up to two additional enumerated constants are
-    // added for each extension. These constants are:
-    //
-    //   PREFIX_MAX_FIXED_ABBREV
-    //   PREFIX_MAX_ABBREV
-    //
-    // PREFIX_MAX_ABBREV defines the maximal enumeration value used for
-    // the code selector of a block. If Both PREFIX_MAX_FIXED_ABBREV
-    // and PREFIX_MAX_ABBREV is defined, then PREFIX_MAX_FIXED_ABBREV
-    // defines the last code selector of the block that must be read using
-    // a single read (i.e. a FIXED read, or the first chunk of a VBR read.
-    FIRST_APPLICATION_ABBREV = 4,
-    // Defines default values for code length, if no additional selectors
-    // are added.
-    DEFAULT_MAX_ABBREV = FIRST_APPLICATION_ABBREV-1
-  };
+  // This is not a code, this is a marker for the first abbrev assignment.
+  // In addition, we assume up to two additional enumerated constants are
+  // added for each extension. These constants are:
+  //
+  //   PREFIX_MAX_FIXED_ABBREV
+  //   PREFIX_MAX_ABBREV
+  //
+  // PREFIX_MAX_ABBREV defines the maximal enumeration value used for
+  // the code selector of a block. If Both PREFIX_MAX_FIXED_ABBREV
+  // and PREFIX_MAX_ABBREV is defined, then PREFIX_MAX_FIXED_ABBREV
+  // defines the last code selector of the block that must be read using
+  // a single read (i.e. a FIXED read, or the first chunk of a VBR read.
+  FIRST_APPLICATION_ABBREV = 4,
+  // Defines default values for code length, if no additional selectors
+  // are added.
+  DEFAULT_MAX_ABBREV = FIRST_APPLICATION_ABBREV - 1
+};
 
-  /// StandardBlockIDs - All bitcode files can optionally include a BLOCKINFO
-  /// block, which contains metadata about other blocks in the file.
-  enum StandardBlockIDs {
-    /// BLOCKINFO_BLOCK is used to define metadata about blocks, for example,
-    /// standard abbrevs that should be available to all blocks of a specified
-    /// ID.
-    BLOCKINFO_BLOCK_ID = 0,
-    // Block IDs 1-6 are reserved for future expansion.
-    // Dummy block added around all records in a bitcode file. Allows the code
-    // to treat top-level records like all other records (i.e. all records
-    // appear in a block).
-    TOP_LEVEL_BLOCKID = 7,
-    FIRST_APPLICATION_BLOCKID = 8
-  };
+/// StandardBlockIDs - All bitcode files can optionally include a BLOCKINFO
+/// block, which contains metadata about other blocks in the file.
+enum StandardBlockIDs {
+  /// BLOCKINFO_BLOCK is used to define metadata about blocks, for example,
+  /// standard abbrevs that should be available to all blocks of a specified
+  /// ID.
+  BLOCKINFO_BLOCK_ID = 0,
+  // Block IDs 1-6 are reserved for future expansion.
+  // Dummy block added around all records in a bitcode file. Allows the code
+  // to treat top-level records like all other records (i.e. all records
+  // appear in a block).
+  TOP_LEVEL_BLOCKID = 7,
+  FIRST_APPLICATION_BLOCKID = 8
+};
 
-  /// BlockInfoCodes - The blockinfo block contains metadata about user-defined
-  /// blocks.
-  enum BlockInfoCodes {
-    // DEFINE_ABBREV has magic semantics here, applying to the current SETBID'd
-    // block, instead of the BlockInfo block.
+/// BlockInfoCodes - The blockinfo block contains metadata about user-defined
+/// blocks.
+enum BlockInfoCodes {
+  // DEFINE_ABBREV has magic semantics here, applying to the current SETBID'd
+  // block, instead of the BlockInfo block.
 
-    BLOCKINFO_CODE_SETBID        = 1, // SETBID: [blockid#]
-                                      // The following two codes were removed
-                                      // because the PNaCl reader could read
-                                      // them, but couldn't be generated by
-                                      // the writer.
-    BLOCKINFO_CODE_BLOCKNAME     = 2, // Not used in PNaCl.
-    BLOCKINFO_CODE_SETRECORDNAME = 3  // Not used in PNaCl.
-  };
+  BLOCKINFO_CODE_SETBID = 1,       // SETBID: [blockid#]
+                                   // The following two codes were removed
+                                   // because the PNaCl reader could read
+                                   // them, but couldn't be generated by
+                                   // the writer.
+  BLOCKINFO_CODE_BLOCKNAME = 2,    // Not used in PNaCl.
+  BLOCKINFO_CODE_SETRECORDNAME = 3 // Not used in PNaCl.
+};
 
-} // End naclbitc namespace
+} // namespace naclbitc
 
-/// NaClBitCodeAbbrevOp - This describes one or more operands in an abbreviation.
-/// This is actually a union of two different things:
+/// NaClBitCodeAbbrevOp - This describes one or more operands in an
+/// abbreviation. This is actually a union of two different things:
 ///   1. It could be a literal integer value ("the operand is always 17").
 ///   2. It could be an encoding specification ("this operand encoded like so").
 ///
@@ -114,13 +114,13 @@ public:
   enum Encoding {
     Literal = 0, // Value is literal value.
     Fixed = 1,   // A fixed width field, Val specifies number of bits.
-    VBR   = 2,   // A VBR field where Val specifies the width of each chunk.
+    VBR = 2,     // A VBR field where Val specifies the width of each chunk.
     Array = 3,   // A sequence of fields, next field species elt encoding.
     Char6 = 4,   // A 6-bit fixed field which maps to [a-zA-Z0-9._].
     Encoding_MAX = Char6
   };
 
-  explicit NaClBitCodeAbbrevOp(uint64_t V) :  Enc(Literal), Val(V) {}
+  explicit NaClBitCodeAbbrevOp(uint64_t V) : Enc(Literal), Val(V) {}
   explicit NaClBitCodeAbbrevOp(Encoding E, uint64_t Data = 0);
 
   Encoding getEncoding() const { return Enc; }
@@ -129,9 +129,7 @@ public:
 
   uint64_t getValue() const { return Val; }
 
-  bool hasValue() const {
-    return hasValue(Enc);
-  }
+  bool hasValue() const { return hasValue(Enc); }
   static bool hasValue(Encoding E) {
     return E <= Encoding_MAX && HasValueArray[E];
   }
@@ -164,28 +162,42 @@ public:
 
   /// isChar6 - Return true if this character is legal in the Char6 encoding.
   static bool isChar6(char C) {
-    if (C >= 'a' && C <= 'z') return true;
-    if (C >= 'A' && C <= 'Z') return true;
-    if (C >= '0' && C <= '9') return true;
-    if (C == '.' || C == '_') return true;
+    if (C >= 'a' && C <= 'z')
+      return true;
+    if (C >= 'A' && C <= 'Z')
+      return true;
+    if (C >= '0' && C <= '9')
+      return true;
+    if (C == '.' || C == '_')
+      return true;
     return false;
   }
   static unsigned EncodeChar6(char C) {
-    if (C >= 'a' && C <= 'z') return C-'a';
-    if (C >= 'A' && C <= 'Z') return C-'A'+26;
-    if (C >= '0' && C <= '9') return C-'0'+26+26;
-    if (C == '.')             return 62;
-    if (C == '_')             return 63;
+    if (C >= 'a' && C <= 'z')
+      return C - 'a';
+    if (C >= 'A' && C <= 'Z')
+      return C - 'A' + 26;
+    if (C >= '0' && C <= '9')
+      return C - '0' + 26 + 26;
+    if (C == '.')
+      return 62;
+    if (C == '_')
+      return 63;
     llvm_unreachable("Not a value Char6 character!");
   }
 
   static char DecodeChar6(unsigned V) {
     assert((V & ~63) == 0 && "Not a Char6 encoded character!");
-    if (V < 26)       return V+'a';
-    if (V < 26+26)    return V-26+'A';
-    if (V < 26+26+10) return V-26-26+'0';
-    if (V == 62)      return '.';
-    if (V == 63)      return '_';
+    if (V < 26)
+      return V + 'a';
+    if (V < 26 + 26)
+      return V - 26 + 'A';
+    if (V < 26 + 26 + 10)
+      return V - 26 - 26 + '0';
+    if (V == 62)
+      return '.';
+    if (V == 63)
+      return '_';
     llvm_unreachable("Not a value Char6 character!");
   }
 
@@ -194,7 +206,8 @@ public:
   int Compare(const NaClBitCodeAbbrevOp &Op) const {
     // Compare encoding values.
     int EncodingDiff = static_cast<int>(Enc) - static_cast<int>(Op.Enc);
-    if (EncodingDiff != 0) return EncodingDiff;
+    if (EncodingDiff != 0)
+      return EncodingDiff;
 
     // Encodings don't differ, so now base on data associated with the
     // encoding.
@@ -202,8 +215,8 @@ public:
   }
 
 private:
-  Encoding Enc;           // The encoding to use.
-  uint64_t Val;           // Data associated with encoding (if any).
+  Encoding Enc; // The encoding to use.
+  uint64_t Val; // Data associated with encoding (if any).
 
   int ValCompare(const NaClBitCodeAbbrevOp &Op) const {
     if (Val < Op.Val)
@@ -218,7 +231,7 @@ private:
 };
 
 template <> struct isPodLike<NaClBitCodeAbbrevOp> {
-  static const bool value=true;
+  static const bool value = true;
 };
 
 static inline bool operator<(const NaClBitCodeAbbrevOp &Op1,
@@ -258,11 +271,15 @@ class NaClBitCodeAbbrev {
   SmallVector<NaClBitCodeAbbrevOp, 8> OperandList;
   unsigned char RefCount; // Number of things using this.
   ~NaClBitCodeAbbrev() {}
+
 public:
   NaClBitCodeAbbrev() : RefCount(1) {}
 
   void addRef() { ++RefCount; }
-  void dropRef() { if (--RefCount == 0) delete this; }
+  void dropRef() {
+    if (--RefCount == 0)
+      delete this;
+  }
 
   unsigned getNumOperandInfos() const {
     return static_cast<unsigned>(OperandList.size());
@@ -271,9 +288,7 @@ public:
     return OperandList[N];
   }
 
-  void Add(const NaClBitCodeAbbrevOp &OpInfo) {
-    OperandList.push_back(OpInfo);
-  }
+  void Add(const NaClBitCodeAbbrevOp &OpInfo) { OperandList.push_back(OpInfo); }
 
   // Returns a simplified version of the abbreviation. Used
   // to recognize equivalent abbrevations.
@@ -303,24 +318,25 @@ public:
   // of fixed length.
   bool IsFixedSize() const {
     unsigned Size = getNumOperandInfos();
-    if (Size < 2) return true;
-    return !OperandList[Size-2].isArrayOp();
+    if (Size < 2)
+      return true;
+    return !OperandList[Size - 2].isArrayOp();
   }
 
   // Returns the smallest record size that will match this
   // abbreviation.
   size_t GetMinRecordSize() const {
     size_t Min = getNumOperandInfos();
-    if (!IsFixedSize()) Min -= 2;
+    if (!IsFixedSize())
+      Min -= 2;
     return Min;
   }
 
-  void Print(raw_ostream &Stream, bool AddNewline=true) const;
+  void Print(raw_ostream &Stream, bool AddNewline = true) const;
 
   NaClBitCodeAbbrev *Copy() const {
     NaClBitCodeAbbrev *AbbrevCopy = new NaClBitCodeAbbrev();
-    for (unsigned I = 0, IEnd = getNumOperandInfos();
-         I != IEnd; ++I) {
+    for (unsigned I = 0, IEnd = getNumOperandInfos(); I != IEnd; ++I) {
       AbbrevCopy->Add(NaClBitCodeAbbrevOp(getOperandInfo(I)));
     }
     return AbbrevCopy;
@@ -360,8 +376,9 @@ static inline bool operator>(const NaClBitCodeAbbrev &A1,
 inline unsigned NaClBitsNeededForValue(unsigned Value) {
   // Note: Need to handle case where Value=0xFFFFFFFF as special case,
   // since we can't add 1 to it.
-  if (Value >= 0x80000000) return 32;
-  return Log2_32_Ceil(Value+1);
+  if (Value >= 0x80000000)
+    return 32;
+  return Log2_32_Ceil(Value + 1);
 }
 
 /// \brief Encode a signed value by moving the sign to the LSB for dense
@@ -393,8 +410,7 @@ public:
   unsigned NumBits;
 
   // Creates a selector range for the given values.
-  NaClBitcodeSelectorAbbrev(bool IF, unsigned NB)
-      : IsFixed(IF), NumBits(NB) {}
+  NaClBitcodeSelectorAbbrev(bool IF, unsigned NB) : IsFixed(IF), NumBits(NB) {}
 
   // Creates a selector range when no abbreviations are defined.
   NaClBitcodeSelectorAbbrev()
@@ -404,9 +420,8 @@ public:
   // Creates a selector range to handle fixed abbrevations up to
   // the specified value.
   explicit NaClBitcodeSelectorAbbrev(unsigned MaxAbbrev)
-      : IsFixed(true),
-        NumBits(NaClBitsNeededForValue(MaxAbbrev)) {}
+      : IsFixed(true), NumBits(NaClBitsNeededForValue(MaxAbbrev)) {}
 };
-} // End llvm namespace
+} // namespace llvm
 
 #endif

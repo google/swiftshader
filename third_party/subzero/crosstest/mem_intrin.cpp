@@ -3,9 +3,9 @@
  * (fixed length buffers, variable length buffers, etc.)
  */
 
-#include <stdint.h> /* cstdint requires -std=c++0x or higher */
 #include <cstdlib>
 #include <cstring>
+#include <stdint.h> /* cstdint requires -std=c++0x or higher */
 
 #include "mem_intrin.h"
 #include "xdefs.h"

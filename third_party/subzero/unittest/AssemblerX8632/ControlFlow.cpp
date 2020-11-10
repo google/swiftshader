@@ -6,8 +6,8 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-#include "IceAssemblerX8632.h"
 #include "AssemblerX8632/TestUtil.h"
+#include "IceAssemblerX8632.h"
 
 namespace Ice {
 namespace X8632 {

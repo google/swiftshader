@@ -25,7 +25,7 @@ namespace naclbitc {
 // record codes for user-defined blocks.
 enum SpecialBlockCodes {
   BLK_CODE_ENTER = 65535,
-  BLK_CODE_EXIT  = 65534,
+  BLK_CODE_EXIT = 65534,
   BLK_CODE_DEFINE_ABBREV = 65533,
   BLK_CODE_HEADER = 65532
 };
@@ -48,6 +48,5 @@ static const size_t MaxNaClGlobalVarInits =
     std::numeric_limits<uint32_t>::max();
 
 } // end of namespace llvm
-
 
 #endif // LLVM_BITCODE_NACL_NACLBITCODEDEFS_H

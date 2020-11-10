@@ -29,19 +29,56 @@ namespace Subzero_ {
 #include "test_bitmanip.h"
 }
 
-volatile uint64 Values[] = {
-    0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
-    0xfffe, 0xffff, 0xc0de, 0xabcd, 0xdcba, 0x007fffff /*Max subnormal + */,
-    0x00800000 /*Min+ */, 0x7f7fffff /*Max+ */, 0x7f800000 /*+Inf*/,
-    0xff800000 /*-Inf*/, 0x7fa00000 /*SNaN*/, 0x7fc00000 /*QNaN*/, 0x7ffffffe,
-    0x7fffffff, 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff, 0x12345678,
-    0xabcd1234, 0x1234dcba, 0x100000000ll, 0x100000001ll, 0x123456789abcdef1ll,
-    0x987654321ab1fedcll, 0x000fffffffffffffll /*Max subnormal + */,
-    0x0010000000000000ll /*Min+ */, 0x7fefffffffffffffll /*Max+ */,
-    0x7ff0000000000000ll /*+Inf*/, 0xfff0000000000000ll /*-Inf*/,
-    0x7ff0000000000001ll /*SNaN*/, 0x7ff8000000000000ll /*QNaN*/,
-    0x7ffffffffffffffell, 0x7fffffffffffffffll, 0x8000000000000000ll,
-    0x8000000000000001ll, 0xfffffffffffffffell, 0xffffffffffffffffll};
+volatile uint64 Values[] = {0,
+                            1,
+                            0x7e,
+                            0x7f,
+                            0x80,
+                            0x81,
+                            0xfe,
+                            0xff,
+                            0x7ffe,
+                            0x7fff,
+                            0x8000,
+                            0x8001,
+                            0xfffe,
+                            0xffff,
+                            0xc0de,
+                            0xabcd,
+                            0xdcba,
+                            0x007fffff /*Max subnormal + */,
+                            0x00800000 /*Min+ */,
+                            0x7f7fffff /*Max+ */,
+                            0x7f800000 /*+Inf*/,
+                            0xff800000 /*-Inf*/,
+                            0x7fa00000 /*SNaN*/,
+                            0x7fc00000 /*QNaN*/,
+                            0x7ffffffe,
+                            0x7fffffff,
+                            0x80000000,
+                            0x80000001,
+                            0xfffffffe,
+                            0xffffffff,
+                            0x12345678,
+                            0xabcd1234,
+                            0x1234dcba,
+                            0x100000000ll,
+                            0x100000001ll,
+                            0x123456789abcdef1ll,
+                            0x987654321ab1fedcll,
+                            0x000fffffffffffffll /*Max subnormal + */,
+                            0x0010000000000000ll /*Min+ */,
+                            0x7fefffffffffffffll /*Max+ */,
+                            0x7ff0000000000000ll /*+Inf*/,
+                            0xfff0000000000000ll /*-Inf*/,
+                            0x7ff0000000000001ll /*SNaN*/,
+                            0x7ff8000000000000ll /*QNaN*/,
+                            0x7ffffffffffffffell,
+                            0x7fffffffffffffffll,
+                            0x8000000000000000ll,
+                            0x8000000000000001ll,
+                            0xfffffffffffffffell,
+                            0xffffffffffffffffll};
 
 const static size_t NumValues = sizeof(Values) / sizeof(*Values);
 
@@ -54,8 +91,8 @@ void testBitManip(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncType FuncSz;
   } Funcs[] = {
 #define X(inst)                                                                \
-  { STR(inst), test_##inst, Subzero_::test_##inst }                            \
-  , {STR(inst) "_alloca", test_alloca_##inst, Subzero_::test_alloca_##inst},   \
+  {STR(inst), test_##inst, Subzero_::test_##inst},                             \
+      {STR(inst) "_alloca", test_alloca_##inst, Subzero_::test_alloca_##inst}, \
       {STR(inst) "_const", test_const_##inst, Subzero_::test_const_##inst},
       BMI_OPS
 #undef X

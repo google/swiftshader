@@ -72,19 +72,21 @@ void testCaller(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #ifdef MIPS32
 #define X(caller, callee, argc)                                                \
   {                                                                            \
-    STR(caller), STR(callee), argc, &caller, &Subzero_::caller,                \
-        reinterpret_cast<CalleePtrTy>(&Subzero_::callee),                      \
-  }                                                                            \
-  ,
+      STR(caller),                                                             \
+      STR(callee),                                                             \
+      argc,                                                                    \
+      &caller,                                                                 \
+      &Subzero_::caller,                                                       \
+      reinterpret_cast<CalleePtrTy>(&Subzero_::callee),                        \
+  },
       TEST_FUNC_TABLE
 #undef X
 #else
 #define X(caller, callee, argc)                                                \
   {                                                                            \
-    STR(caller), STR(callee), argc, &caller, &Subzero_::caller,                \
-        reinterpret_cast<CalleePtrTy>(&callee),                                \
-  }                                                                            \
-  ,
+      STR(caller), STR(callee),       argc,                                    \
+      &caller,     &Subzero_::caller, reinterpret_cast<CalleePtrTy>(&callee),  \
+  },
       TEST_FUNC_TABLE
 #undef X
 #endif
@@ -130,12 +132,12 @@ void testCallee(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     CalleePtrTy Callee, Subzero_Callee;
   } Funcs[] = {
 #define X(caller, callee, argc)                                                \
-  {                                                                            \
-    STR(caller), STR(callee), argc, &caller,                                   \
-        reinterpret_cast<CalleePtrTy>(&callee),                                \
-        reinterpret_cast<CalleePtrTy>(&Subzero_::callee)                       \
-  }                                                                            \
-  ,
+  {STR(caller),                                                                \
+   STR(callee),                                                                \
+   argc,                                                                       \
+   &caller,                                                                    \
+   reinterpret_cast<CalleePtrTy>(&callee),                                     \
+   reinterpret_cast<CalleePtrTy>(&Subzero_::callee)},
       TEST_FUNC_TABLE
 #undef X
   };

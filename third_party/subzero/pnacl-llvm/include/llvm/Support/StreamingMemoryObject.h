@@ -48,8 +48,8 @@ public:
 private:
   mutable std::vector<unsigned char> Bytes;
   std::unique_ptr<DataStreamer> Streamer;
-  mutable size_t BytesRead;   // Bytes read from stream
-  size_t BytesSkipped;// Bytes skipped at start of stream (e.g. wrapper/header)
+  mutable size_t BytesRead; // Bytes read from stream
+  size_t BytesSkipped; // Bytes skipped at start of stream (e.g. wrapper/header)
   mutable size_t ObjectSize; // 0 if unknown, set if wrapper seen or EOF reached
   mutable bool EOFReached;
 
@@ -64,8 +64,8 @@ private:
       if (EOFReached)
         return false;
       Bytes.resize(BytesRead + BytesSkipped + kChunkSize);
-      size_t bytes = Streamer->GetBytes(&Bytes[BytesRead + BytesSkipped],
-                                        kChunkSize);
+      size_t bytes =
+          Streamer->GetBytes(&Bytes[BytesRead + BytesSkipped], kChunkSize);
       BytesRead += bytes;
       if (bytes == 0) { // reached EOF/ran out of bytes
         if (ObjectSize == 0)
@@ -76,12 +76,12 @@ private:
     return !ObjectSize || Pos < ObjectSize;
   }
 
-  StreamingMemoryObject(const StreamingMemoryObject&) = delete;
-  void operator=(const StreamingMemoryObject&) = delete;
+  StreamingMemoryObject(const StreamingMemoryObject &) = delete;
+  void operator=(const StreamingMemoryObject &) = delete;
 };
 
-MemoryObject *getNonStreamedMemoryObject(
-    const unsigned char *Start, const unsigned char *End);
+MemoryObject *getNonStreamedMemoryObject(const unsigned char *Start,
+                                         const unsigned char *End);
 
-}
-#endif  // STREAMINGMEMORYOBJECT_H_
+} // namespace llvm
+#endif // STREAMINGMEMORYOBJECT_H_

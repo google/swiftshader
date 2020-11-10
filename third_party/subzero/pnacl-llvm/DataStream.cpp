@@ -15,8 +15,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Support/DataStream.h"
-#include "llvm/ADT/Statistic.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/Statistic.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Program.h"
 #include <string>
@@ -45,14 +45,15 @@ STATISTIC(NumStreamFetches, "Number of calls to Data stream fetch");
 
 namespace llvm {
 DataStreamer::~DataStreamer() {}
-}
+} // namespace llvm
 
 namespace {
 
 // Very simple stream backed by a file. Mostly useful for stdin and debugging;
 // actual file access is probably still best done with mmap.
 class DataFileStreamer : public DataStreamer {
- int Fd;
+  int Fd;
+
 public:
   DataFileStreamer() : Fd(0) {}
   ~DataFileStreamer() override { close(Fd); }
@@ -72,14 +73,14 @@ public:
   }
 };
 
-}
+} // namespace
 
 std::unique_ptr<DataStreamer>
 llvm::getDataFileStreamer(const std::string &Filename, std::string *StrError) {
   std::unique_ptr<DataFileStreamer> s = make_unique<DataFileStreamer>();
   if (std::error_code e = s->OpenFile(Filename)) {
-    *StrError = std::string("Could not open ") + Filename + ": " +
-        e.message() + "\n";
+    *StrError =
+        std::string("Could not open ") + Filename + ": " + e.message() + "\n";
     return nullptr;
   }
   return std::move(s);

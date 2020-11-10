@@ -179,20 +179,64 @@ int main(int argc, char *argv[]) {
                                 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff};
   static const size_t NumValsSi32 = sizeof(ValsSi32) / sizeof(*ValsSi32);
 
-  volatile uint64 ValsUi64[] = {
-      0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
-      0xfffe, 0xffff, 0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001,
-      0xfffffffe, 0xffffffff, 0x100000000ull, 0x100000001ull,
-      0x7ffffffffffffffeull, 0x7fffffffffffffffull, 0x8000000000000000ull,
-      0x8000000000000001ull, 0xfffffffffffffffeull, 0xffffffffffffffffull};
+  volatile uint64 ValsUi64[] = {0,
+                                1,
+                                0x7e,
+                                0x7f,
+                                0x80,
+                                0x81,
+                                0xfe,
+                                0xff,
+                                0x7ffe,
+                                0x7fff,
+                                0x8000,
+                                0x8001,
+                                0xfffe,
+                                0xffff,
+                                0x7ffffffe,
+                                0x7fffffff,
+                                0x80000000,
+                                0x80000001,
+                                0xfffffffe,
+                                0xffffffff,
+                                0x100000000ull,
+                                0x100000001ull,
+                                0x7ffffffffffffffeull,
+                                0x7fffffffffffffffull,
+                                0x8000000000000000ull,
+                                0x8000000000000001ull,
+                                0xfffffffffffffffeull,
+                                0xffffffffffffffffull};
   static const size_t NumValsUi64 = sizeof(ValsUi64) / sizeof(*ValsUi64);
 
-  volatile int64 ValsSi64[] = {
-      0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
-      0xfffe, 0xffff, 0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001,
-      0xfffffffe, 0xffffffff, 0x100000000ll, 0x100000001ll,
-      0x7ffffffffffffffell, 0x7fffffffffffffffll, 0x8000000000000000ll,
-      0x8000000000000001ll, 0xfffffffffffffffell, 0xffffffffffffffffll};
+  volatile int64 ValsSi64[] = {0,
+                               1,
+                               0x7e,
+                               0x7f,
+                               0x80,
+                               0x81,
+                               0xfe,
+                               0xff,
+                               0x7ffe,
+                               0x7fff,
+                               0x8000,
+                               0x8001,
+                               0xfffe,
+                               0xffff,
+                               0x7ffffffe,
+                               0x7fffffff,
+                               0x80000000,
+                               0x80000001,
+                               0xfffffffe,
+                               0xffffffff,
+                               0x100000000ll,
+                               0x100000001ll,
+                               0x7ffffffffffffffell,
+                               0x7fffffffffffffffll,
+                               0x8000000000000000ll,
+                               0x8000000000000001ll,
+                               0xfffffffffffffffell,
+                               0xffffffffffffffffll};
   static const size_t NumValsSi64 = sizeof(ValsSi64) / sizeof(*ValsSi64);
 
   static const double NegInf = -1.0 / 0.0;

@@ -38,17 +38,12 @@ namespace naclbitc {
 std::string getBitAddress(uint64_t Bit);
 
 /// Severity levels for reporting errors.
-enum ErrorLevel {
-  Warning,
-  Error,
-  Fatal
-};
+enum ErrorLevel { Warning, Error, Fatal };
 
 // Basic printing routine to generate the beginning of an error
 // message. BitPosition is the bit position the error was found.
 // Level is the severity of the error.
-raw_ostream &ErrorAt(raw_ostream &Out, ErrorLevel Level,
-                     uint64_t BitPosition);
+raw_ostream &ErrorAt(raw_ostream &Out, ErrorLevel Level, uint64_t BitPosition);
 
 } // End namespace naclbitc.
 
@@ -61,8 +56,8 @@ class NaClBitstreamReader {
 public:
   // Models a raw list of abbreviations.
   static const size_t DefaultAbbrevListSize = 12;
-  using AbbrevListVector = SmallVector<NaClBitCodeAbbrev *,
-                                       DefaultAbbrevListSize>;
+  using AbbrevListVector =
+      SmallVector<NaClBitCodeAbbrev *, DefaultAbbrevListSize>;
 
   // Models and maintains a list of abbreviations. In particular, it maintains
   // updating reference counts of abbreviation operators within the abbreviation
@@ -104,12 +99,13 @@ public:
     }
     // Empties abbreviation list.
     void clear() {
-      while(!Abbrevs.empty())
+      while (!Abbrevs.empty())
         popLast();
     }
     // Allow read access to vector defining list.
     const AbbrevListVector &getVector() const { return Abbrevs; }
     ~AbbrevList() { clear(); }
+
   private:
     AbbrevListVector Abbrevs;
   };
@@ -118,16 +114,17 @@ public:
   /// BLOCKINFO_BLOCK block.  These describe global abbreviations that apply to
   /// all succeeding blocks of the specified ID.
   class BlockInfo {
-    BlockInfo &operator=(const BlockInfo&) = delete;
+    BlockInfo &operator=(const BlockInfo &) = delete;
+
   public:
     BlockInfo() = default;
-    explicit BlockInfo(unsigned BlockID)
-        : BlockID(BlockID), Abbrevs() {}
-    BlockInfo(const BlockInfo&) = default;
+    explicit BlockInfo(unsigned BlockID) : BlockID(BlockID), Abbrevs() {}
+    BlockInfo(const BlockInfo &) = default;
     unsigned getBlockID() const { return BlockID; }
     void setBlockID(unsigned ID) { BlockID = ID; }
     AbbrevList &getAbbrevs() { return Abbrevs; }
     ~BlockInfo() {}
+
   private:
     unsigned BlockID;
     AbbrevList Abbrevs;
@@ -147,11 +144,12 @@ public:
   //
   // In practice, this means that only function blocks can be parsed in
   // parallel.
-  class BlockInfoRecordsMap :
-      public std::enable_shared_from_this<BlockInfoRecordsMap> {
+  class BlockInfoRecordsMap
+      : public std::enable_shared_from_this<BlockInfoRecordsMap> {
     friend class NaClBitstreamReader;
-    BlockInfoRecordsMap(const BlockInfoRecordsMap&) = delete;
-    BlockInfoRecordsMap &operator=(const BlockInfoRecordsMap&) = delete;
+    BlockInfoRecordsMap(const BlockInfoRecordsMap &) = delete;
+    BlockInfoRecordsMap &operator=(const BlockInfoRecordsMap &) = delete;
+
   public:
     using InfosMap = std::unordered_map<unsigned, std::unique_ptr<BlockInfo>>;
 
@@ -160,14 +158,10 @@ public:
     }
     ~BlockInfoRecordsMap() = default;
 
-    bool isFrozen() const {
-      return IsFrozen.load();
-    }
+    bool isFrozen() const { return IsFrozen.load(); }
 
     // Returns true if already frozen.
-    bool freeze() {
-      return IsFrozen.exchange(true);
-    }
+    bool freeze() { return IsFrozen.exchange(true); }
 
     BlockInfo *getBlockInfo(unsigned BlockID) {
       auto Pos = KnownInfos.find(BlockID);
@@ -186,11 +180,13 @@ public:
     // global abbreviations are defined.
     class UpdateLock {
       UpdateLock() = delete;
-      UpdateLock(const UpdateLock&) = delete;
-      UpdateLock &operator=(const UpdateLock&) = delete;
+      UpdateLock(const UpdateLock &) = delete;
+      UpdateLock &operator=(const UpdateLock &) = delete;
+
     public:
       explicit UpdateLock(BlockInfoRecordsMap &BlockInfoRecords);
       ~UpdateLock();
+
     private:
       // The BlockInfoRecordsMap to update.
       BlockInfoRecordsMap &BlockInfoRecords;
@@ -235,9 +231,8 @@ private:
 
   // True if filler should be added to byte align records.
   bool AlignBitcodeRecords = false;
-  NaClBitstreamReader(const NaClBitstreamReader&) = delete;
-  void operator=(const NaClBitstreamReader&) = delete;
-
+  NaClBitstreamReader(const NaClBitstreamReader &) = delete;
+  void operator=(const NaClBitstreamReader &) = delete;
 
   void initFromHeader(NaClBitcodeHeader &Header) {
     InitialAddress = Header.getHeaderSize();
@@ -256,8 +251,9 @@ public:
 
   /// Read stream from Bytes, after parsing the given bitcode header.
   NaClBitstreamReader(MemoryObject *Bytes, NaClBitcodeHeader &Header)
-      : BitcodeBytes(Bytes), BlockInfoRecords(BlockInfoRecordsMap::create())
-  { initFromHeader(Header); }
+      : BitcodeBytes(Bytes), BlockInfoRecords(BlockInfoRecordsMap::create()) {
+    initFromHeader(Header);
+  }
 
   /// Read stream from bytes, starting at the given initial address.
   /// Provides simple API for unit testing.
@@ -272,7 +268,9 @@ public:
                       const unsigned char *End, NaClBitstreamReader *Reader)
       : BitcodeBytes(getNonStreamedMemoryObject(Start, End)),
         BlockInfoRecords(Reader->BlockInfoRecords), InitialAddress(0),
-        ErrorOffset(StartAddress) { BlockInfoRecords->freeze(); }
+        ErrorOffset(StartAddress) {
+    BlockInfoRecords->freeze();
+  }
 
   // Returns the memory object that is being read.
   MemoryObject &getBitcodeBytes() { return *BitcodeBytes; }
@@ -280,9 +278,7 @@ public:
   ~NaClBitstreamReader() {}
 
   /// \brief Returns the initial address (after the header) of the input stream.
-  size_t getInitialAddress() const {
-    return InitialAddress;
-  }
+  size_t getInitialAddress() const { return InitialAddress; }
 
   /// Returns the byte address of the first byte in the bitstream. Used
   /// for error reporting.
@@ -311,16 +307,26 @@ struct NaClBitstreamEntry {
   unsigned ID;
 
   static NaClBitstreamEntry getError() {
-    NaClBitstreamEntry E; E.Kind = Error; return E;
+    NaClBitstreamEntry E;
+    E.Kind = Error;
+    return E;
   }
   static NaClBitstreamEntry getEndBlock() {
-    NaClBitstreamEntry E; E.Kind = EndBlock; return E;
+    NaClBitstreamEntry E;
+    E.Kind = EndBlock;
+    return E;
   }
   static NaClBitstreamEntry getSubBlock(unsigned ID) {
-    NaClBitstreamEntry E; E.Kind = SubBlock; E.ID = ID; return E;
+    NaClBitstreamEntry E;
+    E.Kind = SubBlock;
+    E.ID = ID;
+    return E;
   }
   static NaClBitstreamEntry getRecord(unsigned AbbrevID) {
-    NaClBitstreamEntry E; E.Kind = Record; E.ID = AbbrevID; return E;
+    NaClBitstreamEntry E;
+    E.Kind = Record;
+    E.ID = AbbrevID;
+    return E;
   }
 };
 
@@ -338,15 +344,15 @@ typedef SmallVector<uint64_t, 8> NaClBitcodeRecordVector;
 /// to allow the readers to update internals of the bit stream reader
 /// appropriately.
 class NaClAbbrevListener {
-  NaClAbbrevListener(const NaClAbbrevListener&) = delete;
-  void operator=(const NaClAbbrevListener&) = delete;
+  NaClAbbrevListener(const NaClAbbrevListener &) = delete;
+  void operator=(const NaClAbbrevListener &) = delete;
+
 public:
   NaClAbbrevListener() {}
   virtual ~NaClAbbrevListener() {}
 
   /// Called to process the read abbreviation.
-  virtual void ProcessAbbreviation(NaClBitCodeAbbrev *Abbrv,
-                                   bool IsLocal) = 0;
+  virtual void ProcessAbbreviation(NaClBitCodeAbbrev *Abbrv, bool IsLocal) = 0;
 
   /// Called after entering block. NumWords is the number of words
   /// in the block.
@@ -382,14 +388,14 @@ public:
   class ErrorHandler {
     ErrorHandler(const ErrorHandler &) = delete;
     ErrorHandler &operator=(const ErrorHandler &) = delete;
+
   public:
     explicit ErrorHandler(NaClBitstreamCursor &Cursor) : Cursor(Cursor) {}
     LLVM_ATTRIBUTE_NORETURN
     virtual void Fatal(const std::string &ErrorMessage) const;
     virtual ~ErrorHandler() {}
-    uint64_t getCurrentBitNo() const {
-      return Cursor.GetCurrentBitNo();
-    }
+    uint64_t getCurrentBitNo() const { return Cursor.GetCurrentBitNo(); }
+
   private:
     NaClBitstreamCursor &Cursor;
   };
@@ -428,7 +434,7 @@ private:
       return *this;
     }
     Block(NaClBitstreamReader::BlockInfo *GlobalAbbrevs,
-          NaClBitcodeSelectorAbbrev& CodeAbbrev)
+          NaClBitcodeSelectorAbbrev &CodeAbbrev)
         : GlobalAbbrevs(GlobalAbbrevs),
           NumGlobalAbbrevs(GlobalAbbrevs->getAbbrevs().getVector().size()),
           LocalAbbrevs(), CodeAbbrev(CodeAbbrev) {}
@@ -460,6 +466,7 @@ private:
         LocalAbbrevs.popLast();
       }
     }
+
   private:
     friend class NaClBitstreamCursor;
     // The global abbreviations associated with this scope.
@@ -481,12 +488,12 @@ private:
   NaClBitstreamCursor &operator=(const NaClBitstreamCursor &) = delete;
 
 public:
-  NaClBitstreamCursor() : ErrHandler(new ErrorHandler(*this)) {
-    init(nullptr);
-  }
+  NaClBitstreamCursor() : ErrHandler(new ErrorHandler(*this)) { init(nullptr); }
 
   explicit NaClBitstreamCursor(NaClBitstreamReader &R)
-      : ErrHandler(new ErrorHandler(*this)) { init(&R); }
+      : ErrHandler(new ErrorHandler(*this)) {
+    init(&R);
+  }
 
   void init(NaClBitstreamReader *R) {
     freeState();
@@ -500,9 +507,7 @@ public:
     }
   }
 
-  ~NaClBitstreamCursor() {
-    freeState();
-  }
+  ~NaClBitstreamCursor() { freeState(); }
 
   void freeState() {
     while (!BlockScope.empty())
@@ -519,7 +524,7 @@ public:
   bool canSkipToPos(size_t pos) const {
     // pos can be skipped to if it is a valid address or one byte past the end.
     return pos == 0 || BitStream->getBitcodeBytes().isValidAddress(
-        static_cast<uint64_t>(pos - 1));
+                           static_cast<uint64_t>(pos - 1));
   }
 
   bool AtEndOfStream() {
@@ -538,7 +543,7 @@ public:
 
   /// Return the bit # of the bit we are reading.
   uint64_t GetCurrentBitNo() const {
-    return NextChar*CHAR_BIT - BitsInCurWord;
+    return NextChar * CHAR_BIT - BitsInCurWord;
   }
 
   /// Converts the given position into the corresponding Error position.
@@ -547,16 +552,10 @@ public:
   }
 
   /// Returns the current bit address for reporting errors.
-  uint64_t getErrorBitNo() const {
-    return getErrorBitNo(GetCurrentBitNo());
-  }
+  uint64_t getErrorBitNo() const { return getErrorBitNo(GetCurrentBitNo()); }
 
-  NaClBitstreamReader *getBitStreamReader() {
-    return BitStream;
-  }
-  const NaClBitstreamReader *getBitStreamReader() const {
-    return BitStream;
-  }
+  NaClBitstreamReader *getBitStreamReader() { return BitStream; }
+  const NaClBitstreamReader *getBitStreamReader() const { return BitStream; }
 
   /// Returns the current bit address (string) of the bit cursor.
   std::string getCurrentBitAddress() const {
@@ -618,20 +617,18 @@ public:
 
   /// Returns the starting byte of the word containing BitNo.
   uintptr_t getStartWordByteForBit(uint64_t BitNo) const {
-    return uintptr_t(BitNo/CHAR_BIT) & ~(sizeof(word_t)-1);
+    return uintptr_t(BitNo / CHAR_BIT) & ~(sizeof(word_t) - 1);
   }
 
   /// Returns the index of BitNo within the word it appears in.
   unsigned getWordBitNo(uint64_t BitNo) const {
-    return unsigned(BitNo & (sizeof(word_t)*CHAR_BIT-1));
+    return unsigned(BitNo & (sizeof(word_t) * CHAR_BIT - 1));
   }
 
   /// Returns the ending byte of the word containing BitNo.
   uintptr_t getEndWordByteForBit(uint64_t BitNo) const {
     return getStartWordByteForBit(BitNo) +
-        (getWordBitNo(BitNo)
-         ? sizeof(word_t)
-         : 0);
+           (getWordBitNo(BitNo) ? sizeof(word_t) : 0);
   }
 
   /// Fills Buffer[Size] using bytes at Address (in the memory object being
@@ -720,18 +717,18 @@ public:
 
   uint32_t ReadVBR(unsigned NumBits) {
     uint32_t Piece = Read(NumBits);
-    if ((Piece & (1U << (NumBits-1))) == 0)
+    if ((Piece & (1U << (NumBits - 1))) == 0)
       return Piece;
 
     uint32_t Result = 0;
     unsigned NextBit = 0;
     while (1) {
-      Result |= (Piece & ((1U << (NumBits-1))-1)) << NextBit;
+      Result |= (Piece & ((1U << (NumBits - 1)) - 1)) << NextBit;
 
-      if ((Piece & (1U << (NumBits-1))) == 0)
+      if ((Piece & (1U << (NumBits - 1))) == 0)
         return Result;
 
-      NextBit += NumBits-1;
+      NextBit += NumBits - 1;
       Piece = Read(NumBits);
     }
   }
@@ -740,18 +737,18 @@ public:
   // the VBR must still be <= 32 bits though.
   uint64_t ReadVBR64(unsigned NumBits) {
     uint32_t Piece = Read(NumBits);
-    if ((Piece & (1U << (NumBits-1))) == 0)
+    if ((Piece & (1U << (NumBits - 1))) == 0)
       return uint64_t(Piece);
 
     uint64_t Result = 0;
     unsigned NextBit = 0;
     while (1) {
-      Result |= uint64_t(Piece & ((1U << (NumBits-1))-1)) << NextBit;
+      Result |= uint64_t(Piece & ((1U << (NumBits - 1)) - 1)) << NextBit;
 
-      if ((Piece & (1U << (NumBits-1))) == 0)
+      if ((Piece & (1U << (NumBits - 1))) == 0)
         return Result;
 
-      NextBit += NumBits-1;
+      NextBit += NumBits - 1;
       Piece = Read(NumBits);
     }
   }
@@ -773,32 +770,28 @@ private:
   void SkipToFourByteBoundary() {
     // If word_t is 64-bits and if we've read less than 32 bits, just dump
     // the bits we have up to the next 32-bit boundary.
-    if (sizeof(word_t) > 4 &&
-        BitsInCurWord >= 32) {
-      CurWord >>= BitsInCurWord-32;
+    if (sizeof(word_t) > 4 && BitsInCurWord >= 32) {
+      CurWord >>= BitsInCurWord - 32;
       BitsInCurWord = 32;
       return;
     }
 
     BitsInCurWord = 0;
   }
-public:
 
+public:
   unsigned ReadCode() {
     const NaClBitcodeSelectorAbbrev &CodeAbbrev =
         BlockScope.back().getCodeAbbrev();
-    return CodeAbbrev.IsFixed
-        ? Read(CodeAbbrev.NumBits)
-        : ReadVBR(CodeAbbrev.NumBits);
+    return CodeAbbrev.IsFixed ? Read(CodeAbbrev.NumBits)
+                              : ReadVBR(CodeAbbrev.NumBits);
   }
 
   // Block header:
   //    [ENTER_SUBBLOCK, blockid, newcodelen, <align4bytes>, blocklen]
 
   /// Having read the ENTER_SUBBLOCK code, read the BlockID for the block.
-  unsigned ReadSubBlockID() {
-    return ReadVBR(naclbitc::BlockIDWidth);
-  }
+  unsigned ReadSubBlockID() { return ReadVBR(naclbitc::BlockIDWidth); }
 
   /// Having read the ENTER_SUBBLOCK abbrevid and a BlockID, skip over the body
   /// of this block. If the block record is malformed, return true.
@@ -811,8 +804,8 @@ public:
 
     // Check that the block wasn't partially defined, and that the offset isn't
     // bogus.
-    size_t SkipTo = GetCurrentBitNo() + NumFourBytes*4*CHAR_BIT;
-    if (AtEndOfStream() || !canSkipToPos(SkipTo/CHAR_BIT))
+    size_t SkipTo = GetCurrentBitNo() + NumFourBytes * 4 * CHAR_BIT;
+    if (AtEndOfStream() || !canSkipToPos(SkipTo / CHAR_BIT))
       return true;
 
     JumpToBit(SkipTo);
@@ -824,7 +817,8 @@ public:
   bool EnterSubBlock(unsigned BlockID, unsigned *NumWordsP = nullptr);
 
   bool ReadBlockEnd() {
-    if (BlockScope.empty()) return true;
+    if (BlockScope.empty())
+      return true;
 
     // Block tail:
     //    [END_BLOCK, <align4bytes>]
@@ -835,7 +829,6 @@ public:
   }
 
 private:
-
   //===--------------------------------------------------------------------===//
   // Record Processing
   //===--------------------------------------------------------------------===//
@@ -869,17 +862,16 @@ private:
   void reportInvalidJumpToBit(uint64_t Bit) const;
 
 public:
-
   /// Return the abbreviation for the specified AbbrevId.
   const NaClBitCodeAbbrev *getAbbrev(unsigned AbbrevID) const {
-    unsigned AbbrevNo = AbbrevID-naclbitc::FIRST_APPLICATION_ABBREV;
+    unsigned AbbrevNo = AbbrevID - naclbitc::FIRST_APPLICATION_ABBREV;
     const Block &CurBlock = BlockScope.back();
     const unsigned NumGlobalAbbrevs = CurBlock.getNumGlobalAbbrevs();
     if (AbbrevNo < NumGlobalAbbrevs)
       return CurBlock.getGlobalAbbrevs().getVector()[AbbrevNo];
     unsigned LocalAbbrevNo = AbbrevNo - NumGlobalAbbrevs;
-    NaClBitstreamReader::AbbrevListVector
-        LocalAbbrevs = CurBlock.getLocalAbbrevs().getVector();
+    NaClBitstreamReader::AbbrevListVector LocalAbbrevs =
+        CurBlock.getLocalAbbrevs().getVector();
     if (LocalAbbrevNo >= LocalAbbrevs.size())
       reportInvalidAbbrevNumber(AbbrevID);
     return LocalAbbrevs[LocalAbbrevNo];
@@ -887,7 +879,7 @@ public:
 
   /// Read the current record and discard it.
   void skipRecord(unsigned AbbrevID);
-  
+
   unsigned readRecord(unsigned AbbrevID, SmallVectorImpl<uint64_t> &Vals);
 
   //===--------------------------------------------------------------------===//
@@ -896,16 +888,15 @@ public:
   // IsLocal indicates where the abbreviation occurs. If it is in the
   // BlockInfo block, IsLocal is false. In all other cases, IsLocal is
   // true.
-  void ReadAbbrevRecord(bool IsLocal,
-                        NaClAbbrevListener *Listener);
+  void ReadAbbrevRecord(bool IsLocal, NaClAbbrevListener *Listener);
 
   // Skips over an abbreviation record. Duplicates code of ReadAbbrevRecord,
   // except that no abbreviation is built.
   void SkipAbbrevRecord();
-  
+
   bool ReadBlockInfoBlock(NaClAbbrevListener *Listener);
 };
 
-} // End llvm namespace
+} // namespace llvm
 
 #endif

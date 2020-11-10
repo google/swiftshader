@@ -15,8 +15,8 @@
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Format.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/StreamingMemoryObject.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <cstring>
 #include <iomanip>
@@ -28,24 +28,24 @@ namespace {
 
 // The name for each ID tag.
 static const char *TagName[] = {
-  "Invalid",              // kInvalid
-  "PNaCl Version",        // kPNaClVersion
-  "Align bitcode records" // kAlignBitcodeRecords
+    "Invalid",              // kInvalid
+    "PNaCl Version",        // kPNaClVersion
+    "Align bitcode records" // kAlignBitcodeRecords
 };
 
 // The name for each field type.
 static const char *FieldTypeName[] = {
-  "uint8[]", // kBufferType
-  "uint32",  // kUInt32Type
-  "flag",    // kFlagType
-  "unknown"  // kUnknownType
+    "uint8[]", // kBufferType
+    "uint32",  // kUInt32Type
+    "flag",    // kFlagType
+    "unknown"  // kUnknownType
 };
 
 // The type associated with each ID tag.
 static const NaClBitcodeHeaderField::FieldType ExpectedType[] = {
-  NaClBitcodeHeaderField::kUnknownType, // kInvalid
-  NaClBitcodeHeaderField::kUInt32Type,  // kPNaClVersion
-  NaClBitcodeHeaderField::kFlagType     // kAlignBitcodeRecords
+    NaClBitcodeHeaderField::kUnknownType, // kInvalid
+    NaClBitcodeHeaderField::kUInt32Type,  // kPNaClVersion
+    NaClBitcodeHeaderField::kFlagType     // kAlignBitcodeRecords
 };
 
 } // end of anonymous namespace
@@ -59,10 +59,10 @@ const char *NaClBitcodeHeaderField::TypeName(FieldType FType) {
 }
 
 NaClBitcodeHeaderField::NaClBitcodeHeaderField()
-  : ID(kInvalid), FType(kBufferType), Len(0), Data(0) {}
+    : ID(kInvalid), FType(kBufferType), Len(0), Data(0) {}
 
 NaClBitcodeHeaderField::NaClBitcodeHeaderField(Tag MyID)
-  : ID(MyID), FType(kFlagType), Len(0), Data(0) {
+    : ID(MyID), FType(kFlagType), Len(0), Data(0) {
   assert(MyID <= kTag_MAX);
 }
 
@@ -94,7 +94,7 @@ NaClBitcodeHeaderField::NaClBitcodeHeaderField(Tag MyID, size_t MyLen,
 
 bool NaClBitcodeHeaderField::Write(uint8_t *Buf, size_t BufLen) const {
   size_t FieldsLen = kTagLenSize + Len;
-  size_t PadLen = (WordSize - (FieldsLen & (WordSize-1))) & (WordSize-1);
+  size_t PadLen = (WordSize - (FieldsLen & (WordSize - 1))) & (WordSize - 1);
   // Ensure buffer is large enough and that length can be represented
   // in 32 bits
   if (BufLen < FieldsLen + PadLen ||
@@ -182,7 +182,7 @@ bool NaClBitcodeHeader::ReadPrefix(const unsigned char *BufPtr,
     UnsupportedMessage = "Invalid PNaCl bitcode header";
     if (isBitcode(BufPtr, BufEnd)) {
       UnsupportedMessage += " (to run in Chrome, bitcode files must be "
-          "finalized using pnacl-finalize)";
+                            "finalized using pnacl-finalize)";
     }
     return true;
   }
@@ -192,9 +192,9 @@ bool NaClBitcodeHeader::ReadPrefix(const unsigned char *BufPtr,
   if (BufPtr + WordSize > BufEnd)
     return UnsupportedError("Bitcode read failure");
   NumFields = static_cast<unsigned>(BufPtr[0]) |
-      (static_cast<unsigned>(BufPtr[1]) << 8);
+              (static_cast<unsigned>(BufPtr[1]) << 8);
   NumBytes = static_cast<unsigned>(BufPtr[2]) |
-      (static_cast<unsigned>(BufPtr[3]) << 8);
+             (static_cast<unsigned>(BufPtr[3]) << 8);
   BufPtr += WordSize;
   return false;
 }
@@ -245,9 +245,8 @@ bool NaClBitcodeHeader::Read(MemoryObject *Bytes) {
   }
   // Then read the rest, starting after the 2 * WordSize of the prefix.
   uint8_t *Header = new uint8_t[NumBytes];
-  bool failed =
-      Bytes->readBytes(Header, NumBytes, 2 * WordSize) != NumBytes ||
-      ReadFields(Header, Header + NumBytes, NumFields, NumBytes);
+  bool failed = Bytes->readBytes(Header, NumBytes, 2 * WordSize) != NumBytes ||
+                ReadFields(Header, Header + NumBytes, NumFields, NumBytes);
   delete[] Header;
   if (failed)
     return UnsupportedError("Bitcode read failure");

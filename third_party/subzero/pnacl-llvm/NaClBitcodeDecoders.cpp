@@ -13,8 +13,7 @@
 namespace llvm {
 namespace naclbitc {
 
-bool DecodeCastOpcode(uint64_t NaClOpcode,
-                      Instruction::CastOps &LLVMOpcode) {
+bool DecodeCastOpcode(uint64_t NaClOpcode, Instruction::CastOps &LLVMOpcode) {
   switch (NaClOpcode) {
   default:
     LLVMOpcode = Instruction::BitCast;
@@ -223,6 +222,5 @@ bool DecodeIcmpPredicate(uint64_t NaClPredicate,
   }
 }
 
-
-}
-}
+} // namespace naclbitc
+} // namespace llvm

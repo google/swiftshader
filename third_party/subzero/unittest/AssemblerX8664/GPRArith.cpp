@@ -646,8 +646,8 @@ TEST_F(AssemblerX8664Test, Arith_most) {
   do {                                                                         \
     TestImplOp(And, Dst, Value0, Src, Value1, int, Size, &);                   \
     TestImplOp(And, Dst, Value0, Src, Value1, uint, Size, &);                  \
-    TestImplOp(Or, Dst, Value0, Src, Value1, int, Size, | );                   \
-    TestImplOp(Or, Dst, Value0, Src, Value1, uint, Size, | );                  \
+    TestImplOp(Or, Dst, Value0, Src, Value1, int, Size, |);                    \
+    TestImplOp(Or, Dst, Value0, Src, Value1, uint, Size, |);                   \
     TestImplOp(Xor, Dst, Value0, Src, Value1, int, Size, ^);                   \
     TestImplOp(Xor, Dst, Value0, Src, Value1, uint, Size, ^);                  \
     TestImplOp(add, Dst, Value0, Src, Value1, int, Size, +);                   \
@@ -728,9 +728,8 @@ TEST_F(AssemblerX8664Test, Arith_BorrowNCarry) {
     AssembledTest test = assemble();                                           \
     test.run();                                                                \
                                                                                \
-    static constexpr uint64_t Result =                                         \
-        (uint64_t(Value0) & ResultMask##Size)Op(uint64_t(Value1) &             \
-                                                ResultMask##Size);             \
+    static constexpr uint64_t Result = (uint64_t(Value0) & ResultMask##Size)   \
+        Op(uint64_t(Value1) & ResultMask##Size);                               \
     static constexpr uint32_t Expected0 = Result & Mask##Size;                 \
     static constexpr uint32_t Expected1 = (Result >> Size) & Mask##Size;       \
     ASSERT_EQ(Expected0, test.Dst0()) << TestString << ": 0";                  \
@@ -761,9 +760,8 @@ TEST_F(AssemblerX8664Test, Arith_BorrowNCarry) {
     test.setDwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    static constexpr uint64_t Result =                                         \
-        (uint64_t(Value0) & ResultMask##Size)Op(uint64_t(Value1) &             \
-                                                ResultMask##Size);             \
+    static constexpr uint64_t Result = (uint64_t(Value0) & ResultMask##Size)   \
+        Op(uint64_t(Value1) & ResultMask##Size);                               \
     static constexpr uint32_t Expected0 = Result & Mask##Size;                 \
     static constexpr uint32_t Expected1 = (Result >> Size) & Mask##Size;       \
     ASSERT_EQ(Expected0, test.Dst0()) << TestString << ": 0";                  \
@@ -790,9 +788,8 @@ TEST_F(AssemblerX8664Test, Arith_BorrowNCarry) {
     AssembledTest test = assemble();                                           \
     test.run();                                                                \
                                                                                \
-    static constexpr uint64_t Result =                                         \
-        (uint64_t(Value0) & ResultMask##Size)Op(uint64_t(Imm) &                \
-                                                ResultMask##Size);             \
+    static constexpr uint64_t Result = (uint64_t(Value0) & ResultMask##Size)   \
+        Op(uint64_t(Imm) & ResultMask##Size);                                  \
     static constexpr uint32_t Expected0 = Result & Mask##Size;                 \
     static constexpr uint32_t Expected1 = (Result >> Size) & Mask##Size;       \
     ASSERT_EQ(Expected0, test.Dst0()) << TestString << ": 0";                  \
@@ -823,9 +820,8 @@ TEST_F(AssemblerX8664Test, Arith_BorrowNCarry) {
     test.setDwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    static constexpr uint64_t Result =                                         \
-        (uint64_t(Value0) & ResultMask##Size)Op(uint64_t(Value1) &             \
-                                                ResultMask##Size);             \
+    static constexpr uint64_t Result = (uint64_t(Value0) & ResultMask##Size)   \
+        Op(uint64_t(Value1) & ResultMask##Size);                               \
     static constexpr uint32_t Expected0 = Result & Mask##Size;                 \
     static constexpr uint32_t Expected1 = (Result >> Size) & Mask##Size;       \
     ASSERT_EQ(Expected0, test.contentsOfDword(T0)) << TestString << ": 0";     \
@@ -854,9 +850,8 @@ TEST_F(AssemblerX8664Test, Arith_BorrowNCarry) {
     test.setDwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    static constexpr uint64_t Result =                                         \
-        (uint64_t(Value0) & ResultMask##Size)Op(uint64_t(Imm) &                \
-                                                ResultMask##Size);             \
+    static constexpr uint64_t Result = (uint64_t(Value0) & ResultMask##Size)   \
+        Op(uint64_t(Imm) & ResultMask##Size);                                  \
     static constexpr uint32_t Expected0 = Result & Mask##Size;                 \
     static constexpr uint32_t Expected1 = (Result >> Size) & Mask##Size;       \
     ASSERT_EQ(Expected0, test.contentsOfDword(T0)) << TestString << ": 0";     \

@@ -50,9 +50,8 @@ void caller_vlvilvfvdviv(void) {
   int arg11 = 26;
   v4f32 arg12 = {27, 28, 29, 30};
 
-  CALL_AS_TYPE(callee_vlvilvfvdviv_Ty, Callee)(arg1, arg2, arg3, arg4, arg5,
-                                               arg6, arg7, arg8, arg9, arg10,
-                                               arg11, arg12);
+  CALL_AS_TYPE(callee_vlvilvfvdviv_Ty, Callee)
+  (arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 }
 
 #define HANDLE_ARG(ARGNUM)                                                     \

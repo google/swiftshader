@@ -539,8 +539,8 @@ TEST_F(AssemblerX8664Test, MovssXmmAddr) {
       test.setDwordTo(T0, static_cast<float>(V0));                             \
     }                                                                          \
     test.run();                                                                \
-    ASSERT_DOUBLE_EQ(Value, test.Xmm<Type>()) << TestString << " value is "    \
-                                              << Value;                        \
+    ASSERT_DOUBLE_EQ(Value, test.Xmm<Type>())                                  \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -601,8 +601,8 @@ TEST_F(AssemblerX8664Test, MovssAddrXmm) {
       test.setDwordTo(T1, static_cast<float>(V1));                             \
     }                                                                          \
     test.run();                                                                \
-    ASSERT_DOUBLE_EQ(Value, test.Xmm<Type>()) << TestString << " value is "    \
-                                              << Value;                        \
+    ASSERT_DOUBLE_EQ(Value, test.Xmm<Type>())                                  \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -667,8 +667,8 @@ TEST_F(AssemblerX8664Test, MovssXmmXmm) {
       test.setDwordTo(T1, static_cast<float>(V1));                             \
     }                                                                          \
     test.run();                                                                \
-    ASSERT_DOUBLE_EQ(Value, test.Dst<Type>()) << TestString << " value is "    \
-                                              << Value;                        \
+    ASSERT_DOUBLE_EQ(Value, test.Dst<Type>())                                  \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -719,8 +719,8 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     test.setQwordTo(T0, V0);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
-                                           << Value;                           \
+    ASSERT_EQ(Value, test.Dst<uint64_t>())                                     \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -741,8 +741,8 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     test.setQwordTo(T0, V0);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Expected, test.Dst<uint64_t>()) << TestString << " value is "    \
-                                              << Value;                        \
+    ASSERT_EQ(Expected, test.Dst<uint64_t>())                                  \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -770,8 +770,8 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     test.setQwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
-                                           << Value;                           \
+    ASSERT_EQ(Value, test.Dst<uint64_t>())                                     \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -793,8 +793,8 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     test.setQwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
-                                           << Value;                           \
+    ASSERT_EQ(Value, test.Dst<uint64_t>())                                     \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -867,8 +867,8 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     test.setDwordTo(T0, V0);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.contentsOfDword(T0)) << TestString << " value is "   \
-                                               << Value;                       \
+    ASSERT_EQ(Value, test.contentsOfDword(T0))                                 \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -887,8 +887,8 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     test.setQwordTo(T0, V0);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(V0, test.contentsOfQword(T0)) << TestString << " value is "      \
-                                            << Value;                          \
+    ASSERT_EQ(V0, test.contentsOfQword(T0))                                    \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -916,8 +916,8 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     test.setDwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.contentsOfDword(T1)) << TestString << " value is "   \
-                                               << Value;                       \
+    ASSERT_EQ(Value, test.contentsOfDword(T1))                                 \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -939,8 +939,8 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     test.setQwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(V0, test.contentsOfQword(T1)) << TestString << " value is "      \
-                                            << Value;                          \
+    ASSERT_EQ(V0, test.contentsOfQword(T1))                                    \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -1015,8 +1015,8 @@ TEST_F(AssemblerX8664Test, MovqXmmAddr) {
     test.setQwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
-                                           << Value;                           \
+    ASSERT_EQ(Value, test.Dst<uint64_t>())                                     \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -1060,8 +1060,8 @@ TEST_F(AssemblerX8664Test, MovqAddrXmm) {
     test.setQwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
-                                           << Value;                           \
+    ASSERT_EQ(Value, test.Dst<uint64_t>())                                     \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -1106,8 +1106,8 @@ TEST_F(AssemblerX8664Test, MovqXmmXmm) {
     test.setQwordTo(T1, V1);                                                   \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
-                                           << Value;                           \
+    ASSERT_EQ(Value, test.Dst<uint64_t>())                                     \
+        << TestString << " value is " << Value;                                \
     reset();                                                                   \
   } while (0)
 
@@ -1325,10 +1325,12 @@ TEST_F(AssemblerX8664Test, Movhlps_Movlhps) {
 
 #define TestImpl(Dst, Src)                                                     \
   do {                                                                         \
-    TestImplSingle(Dst, Src, movhlps, (uint64_t(0x9999999988888888ull),        \
-                                       uint64_t(0xCCCCCCCCDDDDDDDDull)));      \
-    TestImplSingle(Dst, Src, movlhps, (uint64_t(0xAAAAAAAABBBBBBBBull),        \
-                                       uint64_t(0xEEEEEEEEFFFFFFFFull)));      \
+    TestImplSingle(                                                            \
+        Dst, Src, movhlps,                                                     \
+        (uint64_t(0x9999999988888888ull), uint64_t(0xCCCCCCCCDDDDDDDDull)));   \
+    TestImplSingle(                                                            \
+        Dst, Src, movlhps,                                                     \
+        (uint64_t(0xAAAAAAAABBBBBBBBull), uint64_t(0xEEEEEEEEFFFFFFFFull)));   \
   } while (0)
 
   TestImpl(xmm0, xmm1);
@@ -1422,14 +1424,18 @@ TEST_F(AssemblerX8664Test, Pmovsxdq) {
 
 #define TestPmovsxdq(Dst, Src)                                                 \
   do {                                                                         \
-    TestPmovsxdqXmmXmm(Dst, Src, (uint64_t(0x700000007FFFFFFFull),             \
-                                  uint64_t(0xAAAAAAAAEEEEEEEEull)));           \
-    TestPmovsxdqXmmXmm(Dst, Src, (uint64_t(0x800000007FFFFFFFull),             \
-                                  uint64_t(0xAAAAAAAAEEEEEEEEull)));           \
-    TestPmovsxdqXmmXmm(Dst, Src, (uint64_t(0x70000000FFFFFFFFull),             \
-                                  uint64_t(0xAAAAAAAAEEEEEEEEull)));           \
-    TestPmovsxdqXmmXmm(Dst, Src, (uint64_t(0x80000000FFFFFFFFull),             \
-                                  uint64_t(0xAAAAAAAAEEEEEEEEull)));           \
+    TestPmovsxdqXmmXmm(                                                        \
+        Dst, Src,                                                              \
+        (uint64_t(0x700000007FFFFFFFull), uint64_t(0xAAAAAAAAEEEEEEEEull)));   \
+    TestPmovsxdqXmmXmm(                                                        \
+        Dst, Src,                                                              \
+        (uint64_t(0x800000007FFFFFFFull), uint64_t(0xAAAAAAAAEEEEEEEEull)));   \
+    TestPmovsxdqXmmXmm(                                                        \
+        Dst, Src,                                                              \
+        (uint64_t(0x70000000FFFFFFFFull), uint64_t(0xAAAAAAAAEEEEEEEEull)));   \
+    TestPmovsxdqXmmXmm(                                                        \
+        Dst, Src,                                                              \
+        (uint64_t(0x80000000FFFFFFFFull), uint64_t(0xAAAAAAAAEEEEEEEEull)));   \
   } while (0)
 
   TestPmovsxdq(xmm0, xmm1);

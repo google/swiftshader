@@ -430,12 +430,12 @@ protected:
     return *reinterpret_cast<Dqword *>(&Ret);                                  \
   }
 
-    DefinePackedComparisonOperator(< );
-    DefinePackedComparisonOperator(<= );
-    DefinePackedComparisonOperator(> );
-    DefinePackedComparisonOperator(>= );
-    DefinePackedComparisonOperator(== );
-    DefinePackedComparisonOperator(!= );
+    DefinePackedComparisonOperator(<);
+    DefinePackedComparisonOperator(<=);
+    DefinePackedComparisonOperator(>);
+    DefinePackedComparisonOperator(>=);
+    DefinePackedComparisonOperator(==);
+    DefinePackedComparisonOperator(!=);
 
 #undef DefinePackedComparisonOperator
 
@@ -499,7 +499,7 @@ protected:
     DefinePackedArithOperator(/, true, false);
     DefinePackedArithOperator(&, true, true);
     DefinePackedArithOperator(|, true, true);
-    DefinePackedArithOperator (^, true, true);
+    DefinePackedArithOperator(^, true, true);
 
 #undef DefinePackedArithOperator
 
@@ -515,8 +515,8 @@ protected:
     return *reinterpret_cast<Dqword *>(&Ret);                                  \
   }
 
-    DefinePackedArithShiftImm(>> );
-    DefinePackedArithShiftImm(<< );
+    DefinePackedArithShiftImm(>>);
+    DefinePackedArithShiftImm(<<);
 
 #undef DefinePackedArithShiftImm
 
@@ -879,8 +879,7 @@ protected:
 
     Dqword contentsOfDqword(uint32_t InitialDword) const {
       return *reinterpret_cast<Dqword *>(
-                 static_cast<uint8_t *>(ExecutableData) +
-                 dwordOffset(InitialDword));
+          static_cast<uint8_t *>(ExecutableData) + dwordOffset(InitialDword));
     }
 
     template <typename T = uint32_t, typename = typename std::enable_if<

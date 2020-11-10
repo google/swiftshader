@@ -16,9 +16,9 @@
 #ifndef VECTORS_H
 #define VECTORS_H
 
+#include <sstream>
 #include <stdint.h>
 #include <string>
-#include <sstream>
 
 // The driver and the test program may be compiled by different
 // versions of clang, with different standard libraries that have

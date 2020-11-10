@@ -1,8 +1,8 @@
 /* crosstest.py --test=mem_intrin.cpp --driver=mem_intrin_main.cpp \
    --prefix=Subzero_ --output=mem_intrin */
 
-#include <stdint.h> /* cstdint requires -std=c++0x or higher */
 #include <cstdio>
+#include <stdint.h> /* cstdint requires -std=c++0x or higher */
 
 #include "mem_intrin.h"
 #include "xdefs.h"

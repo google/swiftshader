@@ -97,8 +97,8 @@
 #ifndef LLVM_BITCODE_NACL_NACLBITCODEPARSER_H
 #define LLVM_BITCODE_NACL_NACLBITCODEPARSER_H
 
-#include "llvm/Bitcode/NaCl/NaClBitstreamReader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDefs.h"
+#include "llvm/Bitcode/NaCl/NaClBitstreamReader.h"
 #include "llvm/Support/raw_ostream.h"
 #include <vector>
 
@@ -111,18 +111,16 @@ class NaClBitcodeParserListener;
 // Defines the base class for data extracted from the input bitstream
 // (i.e blocks and records).
 class NaClBitcodeData {
-  void operator=(const NaClBitcodeData&) = delete;
+  void operator=(const NaClBitcodeData &) = delete;
 
 public:
   /// Create data element to be read from input cursor.
   explicit NaClBitcodeData(NaClBitstreamCursor &Cursor)
-      : Cursor(Cursor), StartBit(Cursor.GetCurrentBitNo())
-  {}
+      : Cursor(Cursor), StartBit(Cursor.GetCurrentBitNo()) {}
 
   /// Create copy of the given data element.
   explicit NaClBitcodeData(const NaClBitcodeData &Data)
-      : Cursor(Data.Cursor), StartBit(Data.StartBit)
-  {}
+      : Cursor(Data.Cursor), StartBit(Data.StartBit) {}
 
   /// Returns the bitstream reader being used.
   NaClBitstreamReader &GetReader() const {
@@ -130,9 +128,7 @@ public:
   }
 
   /// Returns the cursor position within the bitstream.
-  NaClBitstreamCursor &GetCursor() const {
-    return Cursor;
-  }
+  NaClBitstreamCursor &GetCursor() const { return Cursor; }
 
   /// Returns the number of bits defined by the data.
   uint64_t GetNumBits() const {
@@ -140,15 +136,11 @@ public:
   }
 
   /// Returns the first bit of the stream data.
-  uint64_t GetStartBit() const {
-    return StartBit;
-  }
+  uint64_t GetStartBit() const { return StartBit; }
 
 protected:
   /// Change the start bit for the data to the new value.
-  void SetStartBit(uint64_t NewValue) {
-    StartBit = NewValue;
-  }
+  void SetStartBit(uint64_t NewValue) { StartBit = NewValue; }
 
 private:
   // The bitstream cursor defining location within the bitcode file.
@@ -171,25 +163,18 @@ public:
 
   /// Create block data for block BlockID, using the input cursor.
   NaClBitcodeBlock(unsigned BlockID, NaClBitstreamCursor &Cursor)
-      : NaClBitcodeData(Cursor),
-        BlockID(BlockID),
-        EnclosingBlock(0)
-  {
+      : NaClBitcodeData(Cursor), BlockID(BlockID), EnclosingBlock(0) {
     LocalStartBit = GetStartBit();
   }
 
   /// Print the contents out to the given stream.
-  void Print(raw_ostream& os) const;
+  void Print(raw_ostream &os) const;
 
   /// Returns pointer to the enclosing block.
-  const NaClBitcodeBlock *GetEnclosingBlock() const {
-    return EnclosingBlock;
-  }
+  const NaClBitcodeBlock *GetEnclosingBlock() const { return EnclosingBlock; }
 
   /// Returns the block ID of the block.
-  unsigned GetBlockID() const {
-    return BlockID;
-  }
+  unsigned GetBlockID() const { return BlockID; }
 
   /// Returns the number of bits in the block associated with the
   /// bitcode parser parsing this block, excluding nested blocks.
@@ -214,6 +199,7 @@ typedef NaClBitcodeRecordVector NaClRecordVector;
 
 class NaClBitcodeRecordData {
   NaClBitcodeRecordData &operator=(const NaClBitcodeRecordData &) = delete;
+
 public:
   NaClBitcodeRecordData(unsigned Code, const NaClRecordVector &Values)
       : Code(Code), Values(Values) {}
@@ -238,15 +224,12 @@ inline raw_ostream &operator<<(raw_ostream &Strm,
 /// read record to a simpler form, only containing values.
 struct NaClBitcodeValues {
 public:
-  NaClBitcodeValues(const NaClBitcodeRecordData &Record)
-      : Record(Record) {}
+  NaClBitcodeValues(const NaClBitcodeRecordData &Record) : Record(Record) {}
 
-  size_t size() const {
-    return Record.Values.size()+1;
-  }
+  size_t size() const { return Record.Values.size() + 1; }
 
   uint64_t operator[](size_t index) const {
-    return index == 0 ? Record.Code : Record.Values[index-1];
+    return index == 0 ? Record.Code : Record.Values[index - 1];
   }
 
 private:
@@ -263,69 +246,52 @@ public:
   /// Creates a bitcode record, starting at the position defined
   /// by cursor.
   explicit NaClBitcodeRecord(const NaClBitcodeBlock &Block)
-      : NaClBitcodeData(Block.GetCursor()),
-        Block(Block)
-  {}
+      : NaClBitcodeData(Block.GetCursor()), Block(Block) {}
 
   /// Print the contents out to the given stream.
-  void Print(raw_ostream& os) const;
+  void Print(raw_ostream &os) const;
 
   /// The block the record appears in.
-  const NaClBitcodeBlock &GetBlock() const {
-    return Block;
-  }
+  const NaClBitcodeBlock &GetBlock() const { return Block; }
 
   /// Returns the block ID associated with the record.
-  unsigned GetBlockID() const {
-    return Block.GetBlockID();
-  }
+  unsigned GetBlockID() const { return Block.GetBlockID(); }
 
   /// Returns the kind of entry read from the input stream.
-  unsigned GetEntryKind() const {
-    return Entry.Kind;
-  }
+  unsigned GetEntryKind() const { return Entry.Kind; }
 
   /// Returns the code value (i.e. selector) associated with the
   /// record.
-  unsigned GetCode() const {
-    return Data.Code;
-  }
+  unsigned GetCode() const { return Data.Code; }
 
   /// Returns the EntryID (e.g. abbreviation if !=
   /// naclbitc::UNABBREV_RECORD) associated with the record. Note:
   /// for block-enter, block-exit, and define-abbreviation, EntryID is
   /// not the corresponding abbreviation.
-  unsigned GetEntryID() const {
-    return Entry.ID;
-  }
+  unsigned GetEntryID() const { return Entry.ID; }
 
   /// Returns the (value) record associated with the read record.
-  const RecordVector &GetValues() const {
-    return Data.Values;
-  }
+  const RecordVector &GetValues() const { return Data.Values; }
 
   /// Allows lower level access to data representing record.
-  const NaClBitcodeRecordData &GetRecordData() const {
-    return Data;
-  }
+  const NaClBitcodeRecordData &GetRecordData() const { return Data; }
 
   /// Returns true if the record was read using an abbreviation.
   bool UsedAnAbbreviation() const {
     return GetEntryKind() == NaClBitstreamEntry::Record &&
-        GetEntryID() != naclbitc::UNABBREV_RECORD;
+           GetEntryID() != naclbitc::UNABBREV_RECORD;
   }
 
   /// Returns the abbrevation index used to read the record.
   /// Returns naclbitc::UNABBREV_RECORD if not applicable.
   unsigned GetAbbreviationIndex() const {
     return UsedAnAbbreviation()
-        ? GetEntryID() : static_cast<unsigned>(naclbitc::UNABBREV_RECORD);
+               ? GetEntryID()
+               : static_cast<unsigned>(naclbitc::UNABBREV_RECORD);
   }
 
   /// Destructively change the abbreviation ID to the given value.
-  void SetAbbreviationIndex(unsigned Index) {
-    Entry.ID = Index;
-  }
+  void SetAbbreviationIndex(unsigned Index) { Entry.ID = Index; }
 
 protected:
   // The block associated with the record.
@@ -346,8 +312,8 @@ private:
   /// bitstream.
   void ReadEntry() {
     SetStartBit(GetCursor().GetCurrentBitNo());
-    Entry = GetCursor().
-        advance(NaClBitstreamCursor::AF_DontAutoprocessAbbrevs, 0);
+    Entry =
+        GetCursor().advance(NaClBitstreamCursor::AF_DontAutoprocessAbbrevs, 0);
   }
 
   /// Reads in a record's values, if the entry defines a record (Must
@@ -373,12 +339,12 @@ inline raw_ostream &operator<<(raw_ostream &Strm,
 /// ProcessAbbreviation and SetBID.
 class NaClBitcodeParserListener : public NaClAbbrevListener {
   friend class NaClBitcodeParser;
+
 public:
   // Constructs a listener for the given parser.  Note: All nested
   // parsers automatically inherit this listener.
   NaClBitcodeParserListener(NaClBitcodeParser *Parser)
-      : Parser(Parser), GlobalBlockID(naclbitc::BLOCKINFO_BLOCK_ID) {
-  }
+      : Parser(Parser), GlobalBlockID(naclbitc::BLOCKINFO_BLOCK_ID) {}
 
   virtual ~NaClBitcodeParserListener() {}
 
@@ -389,8 +355,7 @@ private:
 
   virtual void EndBlockInfoBlock();
 
-  virtual void ProcessAbbreviation(NaClBitCodeAbbrev *Abbrev,
-                                   bool IsLocal);
+  virtual void ProcessAbbreviation(NaClBitCodeAbbrev *Abbrev, bool IsLocal);
 
   /// The block parser currently being listened to.
   NaClBitcodeParser *Parser;
@@ -411,10 +376,10 @@ class NaClBitcodeParser {
   // reporting function.
   class ErrorHandler : public NaClBitstreamCursor::ErrorHandler {
     NaClBitcodeParser *Parser;
+
   public:
-    ErrorHandler(NaClBitcodeParser *Parser,
-                 NaClBitstreamCursor &Cursor):
-        NaClBitstreamCursor::ErrorHandler(Cursor), Parser(Parser) {}
+    ErrorHandler(NaClBitcodeParser *Parser, NaClBitstreamCursor &Cursor)
+        : NaClBitstreamCursor::ErrorHandler(Cursor), Parser(Parser) {}
     LLVM_ATTRIBUTE_NORETURN
     void Fatal(const std::string &ErrorMessage) const final {
       Parser->FatalAt(getCurrentBitNo(), ErrorMessage);
@@ -428,13 +393,10 @@ public:
   // the PNaCl bitcode stream. This instance is a "dummy" instance
   // that starts the parser.
   explicit NaClBitcodeParser(NaClBitstreamCursor &Cursor)
-      : EnclosingParser(0),
-        Block(ILLEGAL_BLOCK_ID, Cursor),
-        Record(Block),
-        Listener(0),
-        ErrStream(&errs()) {
-    std::unique_ptr<NaClBitstreamCursor::ErrorHandler>
-        ErrHandler(new ErrorHandler(this, Cursor));
+      : EnclosingParser(0), Block(ILLEGAL_BLOCK_ID, Cursor), Record(Block),
+        Listener(0), ErrStream(&errs()) {
+    std::unique_ptr<NaClBitstreamCursor::ErrorHandler> ErrHandler(
+        new ErrorHandler(this, Cursor));
     Cursor.setErrorHandler(ErrHandler);
   }
 
@@ -525,28 +487,18 @@ public:
 
   // Generates fatal generic error message.
   LLVM_ATTRIBUTE_NORETURN
-  void Fatal() {
-    Fatal("Fatal error occurred!");
-  }
+  void Fatal() { Fatal("Fatal error occurred!"); }
 
   // Returns the number of bits in this block, including nested blocks.
-  unsigned GetBlockNumBits() const {
-    return Block.GetNumBits();
-  }
+  unsigned GetBlockNumBits() const { return Block.GetNumBits(); }
 
   // Returns the number of bits in this block, excluding nested blocks.
-  unsigned GetBlockLocalNumBits() const {
-    return Block.GetLocalNumBits();
-  }
+  unsigned GetBlockLocalNumBits() const { return Block.GetLocalNumBits(); }
 
   /// Returns the block ID associated with the Parser.
-  unsigned GetBlockID() const {
-    return Block.GetBlockID();
-  }
+  unsigned GetBlockID() const { return Block.GetBlockID(); }
 
-  NaClBitcodeBlock &GetBlock() {
-    return Block;
-  }
+  NaClBitcodeBlock &GetBlock() { return Block; }
 
   /// Returns the enclosing parser of this block.
   NaClBitcodeParser *GetEnclosingParser() const {
@@ -603,11 +555,9 @@ protected:
   // EnclosingParser.
   NaClBitcodeParser(unsigned BlockID, NaClBitcodeParser *EnclosingParser)
       : EnclosingParser(EnclosingParser),
-        Block(BlockID, EnclosingParser->Record),
-        Record(Block),
+        Block(BlockID, EnclosingParser->Record), Record(Block),
         Listener(EnclosingParser->Listener),
-        ErrStream(EnclosingParser->ErrStream)
-  {}
+        ErrStream(EnclosingParser->ErrStream) {}
 
   // Same as above, but use the supplied bitstream cursor (instead of
   // inheriting from the enclosing parser). This constructor allows
@@ -615,16 +565,13 @@ protected:
   // a different Cursor for each block to be parsed in parallel.
   NaClBitcodeParser(unsigned BlockID, NaClBitcodeParser *EnclosingParser,
                     NaClBitstreamCursor &Cursor)
-      : EnclosingParser(EnclosingParser),
-        Block(BlockID, Cursor),
-        Record(Block),
+      : EnclosingParser(EnclosingParser), Block(BlockID, Cursor), Record(Block),
         Listener(EnclosingParser->Listener),
-        ErrStream(EnclosingParser->ErrStream)
-  {}
+        ErrStream(EnclosingParser->ErrStream) {}
 
   /// Defines the listener for this block, and all enclosing blocks,
   /// to be the given listener. Should be set in the constructor.
-  void SetListener(NaClBitcodeParserListener* UseListener) {
+  void SetListener(NaClBitcodeParserListener *UseListener) {
     Listener = UseListener;
   }
 
@@ -655,9 +602,8 @@ private:
 
   void operator=(const NaClBitcodeParser &Parser) = delete;
   NaClBitcodeParser(const NaClBitcodeParser &Parser) = delete;
-
 };
 
-}  // namespace llvm
+} // namespace llvm
 
 #endif

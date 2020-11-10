@@ -1,4 +1,5 @@
-//===- NaClBitcodeDecoders.h -------------------------------------*- C++ -*-===//
+//===- NaClBitcodeDecoders.h -------------------------------------*- C++
+//-*-===//
 //     Functions used to decode values in PNaCl bitcode files.
 //
 //                     The LLVM Compiler Infrastructure
@@ -16,11 +17,11 @@
 #ifndef LLVM_BITCODE_NACL_NACLBITCODEDECODERS_H
 #define LLVM_BITCODE_NACL_NACLBITCODEDECODERS_H
 
+#include "llvm/Bitcode/NaCl/NaClLLVMBitCodes.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
-#include "llvm/Bitcode/NaCl/NaClLLVMBitCodes.h"
 
 namespace llvm {
 namespace naclbitc {
@@ -29,8 +30,7 @@ namespace naclbitc {
 /// LLVM cast opcode. Returns true if the conversion
 /// succeeds. Otherwise sets LLVMOpcode to Instruction::BitCast and
 /// returns false.
-bool DecodeCastOpcode(uint64_t NaClOpcode,
-                      Instruction::CastOps &LLVMOpcode);
+bool DecodeCastOpcode(uint64_t NaClOpcode, Instruction::CastOps &LLVMOpcode);
 
 /// Converts the NaCl (bitcode file) linkage type to the corresponding
 /// LLVM linkage type. Returns true if the conversion
@@ -68,7 +68,7 @@ bool DecodeFcmpPredicate(uint64_t NaClPredicate,
 bool DecodeIcmpPredicate(uint64_t NaClPredicate,
                          CmpInst::Predicate &LLVMPredicate);
 
-}
-}
+} // namespace naclbitc
+} // namespace llvm
 
 #endif

@@ -44,18 +44,23 @@ template <typename T> struct VectorOps;
   TY(NAME) Subzero_shufflevector_##NAME(TY(NAME), TY(NAME), uint32_t);         \
   uint32_t shufflevector_count_##NAME();                                       \
   }                                                                            \
-  TY(NAME) (*FIELD(NAME, insertelement))(TY(NAME), CASTTY(NAME), int32_t) =    \
+  TY(NAME)                                                                     \
+  (*FIELD(NAME, insertelement))(TY(NAME), CASTTY(NAME), int32_t) =             \
       &insertelement_##NAME;                                                   \
-  TY(NAME) (*FIELD(NAME, Subzero_insertelement))(                              \
-      TY(NAME), CASTTY(NAME), int32_t) = &Subzero_insertelement_##NAME;        \
-  CASTTY(NAME) (*FIELD(NAME, extractelement))(TY(NAME), int32_t) =             \
-      &extractelement_##NAME;                                                  \
-  CASTTY(NAME) (*FIELD(NAME, Subzero_extractelement))(TY(NAME), int32_t) =     \
+  TY(NAME)                                                                     \
+  (*FIELD(NAME, Subzero_insertelement))(TY(NAME), CASTTY(NAME), int32_t) =     \
+      &Subzero_insertelement_##NAME;                                           \
+  CASTTY(NAME)                                                                 \
+  (*FIELD(NAME, extractelement))(TY(NAME), int32_t) = &extractelement_##NAME;  \
+  CASTTY(NAME)                                                                 \
+  (*FIELD(NAME, Subzero_extractelement))(TY(NAME), int32_t) =                  \
       &Subzero_extractelement_##NAME;                                          \
-  TY(NAME) (*FIELD(NAME, shufflevector))(TY(NAME), TY(NAME), uint32_t) =       \
+  TY(NAME)                                                                     \
+  (*FIELD(NAME, shufflevector))(TY(NAME), TY(NAME), uint32_t) =                \
       &shufflevector_##NAME;                                                   \
-  TY(NAME) (*FIELD(NAME, Subzero_shufflevector))(                              \
-      TY(NAME), TY(NAME), uint32_t) = &Subzero_shufflevector_##NAME;           \
+  TY(NAME)                                                                     \
+  (*FIELD(NAME, Subzero_shufflevector))(TY(NAME), TY(NAME), uint32_t) =        \
+      &Subzero_shufflevector_##NAME;                                           \
   uint32_t (*FIELD(NAME, shufflevector_count))() = &shufflevector_count_##NAME;
 
 #define X(ty, eltty, castty) DECLARE_VECTOR_OPS(ty)

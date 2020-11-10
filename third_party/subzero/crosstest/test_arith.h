@@ -12,9 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <stdint.h>
 #include "test_arith.def"
 #include "xdefs.h"
+#include <stdint.h>
 
 #include "vectors.h"
 

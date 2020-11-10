@@ -8,8 +8,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/Bitcode/NaCl/NaClBitstreamReader.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/Format.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -17,11 +17,7 @@ using namespace llvm;
 
 namespace {
 
-static const char *ErrorLevelName[] = {
-  "Warning",
-  "Error",
-  "Fatal"
-};
+static const char *ErrorLevelName[] = {"Warning", "Error", "Fatal"};
 
 } // End of anonymous namespace.
 
@@ -32,8 +28,8 @@ std::string llvm::naclbitc::getBitAddress(uint64_t Bit) {
   return Stream.str();
 }
 
-raw_ostream &llvm::naclbitc::ErrorAt(
-    raw_ostream &Out, ErrorLevel Level, uint64_t BitPosition) {
+raw_ostream &llvm::naclbitc::ErrorAt(raw_ostream &Out, ErrorLevel Level,
+                                     uint64_t BitPosition) {
   assert(Level < array_lengthof(::ErrorLevelName));
   return Out << ErrorLevelName[Level] << "("
              << naclbitc::getBitAddress(BitPosition) << "): ";
@@ -43,14 +39,15 @@ raw_ostream &llvm::naclbitc::ErrorAt(
 //  NaClBitstreamCursor implementation
 //===----------------------------------------------------------------------===//
 
-void NaClBitstreamCursor::ErrorHandler::
-Fatal(const std::string &ErrorMessage) const {
+void NaClBitstreamCursor::ErrorHandler::Fatal(
+    const std::string &ErrorMessage) const {
   // Default implementation is simply print message, and the bit where
   // the error occurred.
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   naclbitc::ErrorAt(StrBuf, naclbitc::Fatal,
-                    Cursor.getErrorBitNo(getCurrentBitNo())) << ErrorMessage;
+                    Cursor.getErrorBitNo(getCurrentBitNo()))
+      << ErrorMessage;
   report_fatal_error(StrBuf.str());
 }
 
@@ -72,12 +69,13 @@ void NaClBitstreamCursor::reportInvalidJumpToBit(uint64_t BitNo) const {
 /// the block, and return true if the block has an error.
 bool NaClBitstreamCursor::EnterSubBlock(unsigned BlockID, unsigned *NumWordsP) {
   const bool IsFixed = true;
-  NaClBitcodeSelectorAbbrev
-      CodeAbbrev(IsFixed, ReadVBR(naclbitc::CodeLenWidth));
+  NaClBitcodeSelectorAbbrev CodeAbbrev(IsFixed,
+                                       ReadVBR(naclbitc::CodeLenWidth));
   BlockScope.push_back(Block(BitStream->getBlockInfo(BlockID), CodeAbbrev));
   SkipToFourByteBoundary();
   unsigned NumWords = Read(naclbitc::BlockSizeWidth);
-  if (NumWordsP) *NumWordsP = NumWords;
+  if (NumWordsP)
+    *NumWordsP = NumWords;
 
   // Validate that this block is sane.
   if (BlockScope.back().getCodeAbbrev().NumBits == 0 || AtEndOfStream())
@@ -148,8 +146,8 @@ void NaClBitstreamCursor::skipRecord(unsigned AbbrevID) {
   SkipToByteBoundaryIfAligned();
 }
 
-bool NaClBitstreamCursor::readRecordAbbrevField(
-    const NaClBitCodeAbbrevOp &Op, uint64_t &Value) {
+bool NaClBitstreamCursor::readRecordAbbrevField(const NaClBitCodeAbbrevOp &Op,
+                                                uint64_t &Value) {
   switch (Op.getEncoding()) {
   case NaClBitCodeAbbrevOp::Literal:
     Value = Op.getValue();
@@ -171,8 +169,8 @@ bool NaClBitstreamCursor::readRecordAbbrevField(
   return false;
 }
 
-uint64_t NaClBitstreamCursor::readArrayAbbreviatedField(
-    const NaClBitCodeAbbrevOp &Op) {
+uint64_t
+NaClBitstreamCursor::readArrayAbbreviatedField(const NaClBitCodeAbbrevOp &Op) {
   // Decode the value as we are commanded.
   switch (Op.getEncoding()) {
   case NaClBitCodeAbbrevOp::Literal:
@@ -191,9 +189,9 @@ uint64_t NaClBitstreamCursor::readArrayAbbreviatedField(
   llvm_unreachable("Illegal abbreviation encoding for field!");
 }
 
-void NaClBitstreamCursor::readArrayAbbrev(
-    const NaClBitCodeAbbrevOp &Op, unsigned NumArrayElements,
-    SmallVectorImpl<uint64_t> &Vals) {
+void NaClBitstreamCursor::readArrayAbbrev(const NaClBitCodeAbbrevOp &Op,
+                                          unsigned NumArrayElements,
+                                          SmallVectorImpl<uint64_t> &Vals) {
   for (; NumArrayElements; --NumArrayElements) {
     Vals.push_back(readArrayAbbreviatedField(Op));
   }
@@ -241,9 +239,7 @@ unsigned NaClBitstreamCursor::readRecord(unsigned AbbrevID,
   return Code;
 }
 
-
-NaClBitCodeAbbrevOp::Encoding NaClBitstreamCursor::
-getEncoding(uint64_t Value) {
+NaClBitCodeAbbrevOp::Encoding NaClBitstreamCursor::getEncoding(uint64_t Value) {
   if (!NaClBitCodeAbbrevOp::isValidEncoding(Value)) {
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
@@ -258,28 +254,34 @@ void NaClBitstreamCursor::ReadAbbrevRecord(bool IsLocal,
                                            NaClAbbrevListener *Listener) {
   NaClBitCodeAbbrev *Abbv = BlockScope.back().appendLocalCreate();
   unsigned NumOpInfo = ReadVBR(5);
-  if (Listener) Listener->Values.push_back(NumOpInfo);
+  if (Listener)
+    Listener->Values.push_back(NumOpInfo);
   for (unsigned i = 0; i != NumOpInfo; ++i) {
     bool IsLiteral = Read(1) ? true : false;
-    if (Listener) Listener->Values.push_back(IsLiteral);
+    if (Listener)
+      Listener->Values.push_back(IsLiteral);
     if (IsLiteral) {
       uint64_t Value = ReadVBR64(8);
-      if (Listener) Listener->Values.push_back(Value);
+      if (Listener)
+        Listener->Values.push_back(Value);
       Abbv->Add(NaClBitCodeAbbrevOp(Value));
       continue;
     }
     NaClBitCodeAbbrevOp::Encoding E = getEncoding(Read(3));
-    if (Listener) Listener->Values.push_back(E);
+    if (Listener)
+      Listener->Values.push_back(E);
     if (NaClBitCodeAbbrevOp::hasValue(E)) {
       unsigned Data = ReadVBR64(5);
-      if (Listener) Listener->Values.push_back(Data);
+      if (Listener)
+        Listener->Values.push_back(Data);
 
       // As a special case, handle fixed(0) (i.e., a fixed field with zero bits)
       // and vbr(0) as a literal zero.  This is decoded the same way, and avoids
       // a slow path in Read() to have to handle reading zero bits.
       if ((E == NaClBitCodeAbbrevOp::Fixed || E == NaClBitCodeAbbrevOp::VBR) &&
           Data == 0) {
-        if (Listener) Listener->Values.push_back(0);
+        if (Listener)
+          Listener->Values.push_back(0);
         Abbv->Add(NaClBitCodeAbbrevOp(0));
         continue;
       }
@@ -287,8 +289,8 @@ void NaClBitstreamCursor::ReadAbbrevRecord(bool IsLocal,
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
         StrBuf << "Invalid abbreviation encoding ("
-               << NaClBitCodeAbbrevOp::getEncodingName(E)
-               << ", " << Data << ")";
+               << NaClBitCodeAbbrevOp::getEncodingName(E) << ", " << Data
+               << ")";
         ErrHandler->Fatal(StrBuf.str());
       }
       Abbv->Add(NaClBitCodeAbbrevOp(E, Data));
@@ -333,28 +335,24 @@ void NaClBitstreamCursor::SkipAbbrevRecord() {
 namespace {
 
 unsigned ValidBlockIDs[] = {
-  naclbitc::BLOCKINFO_BLOCK_ID,
-  naclbitc::CONSTANTS_BLOCK_ID,
-  naclbitc::FUNCTION_BLOCK_ID,
-  naclbitc::GLOBALVAR_BLOCK_ID,
-  naclbitc::MODULE_BLOCK_ID,
-  naclbitc::TOP_LEVEL_BLOCKID,
-  naclbitc::TYPE_BLOCK_ID_NEW,
-  naclbitc::VALUE_SYMTAB_BLOCK_ID
-};
+    naclbitc::BLOCKINFO_BLOCK_ID, naclbitc::CONSTANTS_BLOCK_ID,
+    naclbitc::FUNCTION_BLOCK_ID,  naclbitc::GLOBALVAR_BLOCK_ID,
+    naclbitc::MODULE_BLOCK_ID,    naclbitc::TOP_LEVEL_BLOCKID,
+    naclbitc::TYPE_BLOCK_ID_NEW,  naclbitc::VALUE_SYMTAB_BLOCK_ID};
 
 } // end of anonymous namespace
 
-NaClBitstreamReader::BlockInfoRecordsMap::
-BlockInfoRecordsMap() : IsFrozen(false) {
+NaClBitstreamReader::BlockInfoRecordsMap::BlockInfoRecordsMap()
+    : IsFrozen(false) {
   for (size_t BlockID : ValidBlockIDs) {
     std::unique_ptr<BlockInfo> Info(new BlockInfo(BlockID));
     KnownInfos.emplace(BlockID, std::move(Info));
   }
 }
 
-NaClBitstreamReader::BlockInfo * NaClBitstreamReader::BlockInfoRecordsMap::
-getOrCreateUnknownBlockInfo(unsigned BlockID) {
+NaClBitstreamReader::BlockInfo *
+NaClBitstreamReader::BlockInfoRecordsMap::getOrCreateUnknownBlockInfo(
+    unsigned BlockID) {
   std::unique_lock<std::mutex> Lock(UnknownBlockInfoLock);
   while (true) {
     auto Pos = UnknownInfos.find(BlockID);
@@ -366,13 +364,12 @@ getOrCreateUnknownBlockInfo(unsigned BlockID) {
   }
 }
 
-NaClBitstreamReader::BlockInfoRecordsMap::UpdateLock::
-UpdateLock(BlockInfoRecordsMap &BlockInfoRecords)
+NaClBitstreamReader::BlockInfoRecordsMap::UpdateLock::UpdateLock(
+    BlockInfoRecordsMap &BlockInfoRecords)
     : BlockInfoRecords(BlockInfoRecords),
       Lock(BlockInfoRecords.UpdateRecordsLock) {}
 
-NaClBitstreamReader::BlockInfoRecordsMap::UpdateLock::
-~UpdateLock() {
+NaClBitstreamReader::BlockInfoRecordsMap::UpdateLock::~UpdateLock() {
   if (BlockInfoRecords.freeze())
     report_fatal_error("Global abbreviations block frozen while building.");
 }
@@ -382,12 +379,14 @@ bool NaClBitstreamCursor::ReadBlockInfoBlock(NaClAbbrevListener *Listener) {
   if (BitStream->BlockInfoRecords->isFrozen())
     return SkipBlock();
 
-  NaClBitstreamReader::BlockInfoRecordsMap::UpdateLock
-      Lock(*BitStream->BlockInfoRecords);
+  NaClBitstreamReader::BlockInfoRecordsMap::UpdateLock Lock(
+      *BitStream->BlockInfoRecords);
   unsigned NumWords;
-  if (EnterSubBlock(naclbitc::BLOCKINFO_BLOCK_ID, &NumWords)) return true;
+  if (EnterSubBlock(naclbitc::BLOCKINFO_BLOCK_ID, &NumWords))
+    return true;
 
-  if (Listener) Listener->BeginBlockInfoBlock(NumWords);
+  if (Listener)
+    Listener->BeginBlockInfoBlock(NumWords);
 
   NaClBitcodeRecordVector Record;
   Block &CurBlock = BlockScope.back();
@@ -397,15 +396,17 @@ bool NaClBitstreamCursor::ReadBlockInfoBlock(NaClAbbrevListener *Listener) {
 
   // Read records of the BlockInfo block.
   while (1) {
-    if (Listener) Listener->StartBit = GetCurrentBitNo();
+    if (Listener)
+      Listener->StartBit = GetCurrentBitNo();
     NaClBitstreamEntry Entry = advance(AF_DontAutoprocessAbbrevs, Listener);
 
     switch (Entry.Kind) {
-    case llvm::NaClBitstreamEntry::SubBlock:  // PNaCl doesn't allow!
+    case llvm::NaClBitstreamEntry::SubBlock: // PNaCl doesn't allow!
     case llvm::NaClBitstreamEntry::Error:
       return true;
     case llvm::NaClBitstreamEntry::EndBlock:
-      if (Listener) Listener->EndBlockInfoBlock();
+      if (Listener)
+        Listener->EndBlockInfoBlock();
       return false;
     case llvm::NaClBitstreamEntry::Record:
       // The interesting case.
@@ -427,19 +428,20 @@ bool NaClBitstreamCursor::ReadBlockInfoBlock(NaClAbbrevListener *Listener) {
     // Read a record.
     Record.clear();
     switch (readRecord(Entry.ID, Record)) {
-      default: 
-        // No other records should be found!
+    default:
+      // No other records should be found!
+      return true;
+    case naclbitc::BLOCKINFO_CODE_SETBID:
+      if (Record.size() < 1)
         return true;
-      case naclbitc::BLOCKINFO_CODE_SETBID:
-        if (Record.size() < 1) return true;
-        FoundSetBID = true;
-        UpdateAbbrevs =
-            &BitStream->getBlockInfo((unsigned)Record[0])->getAbbrevs();
-        if (Listener) {
-          Listener->Values = Record;
-          Listener->SetBID();
-        }
-        break;
+      FoundSetBID = true;
+      UpdateAbbrevs =
+          &BitStream->getBlockInfo((unsigned)Record[0])->getAbbrevs();
+      if (Listener) {
+        Listener->Values = Record;
+        Listener->SetBID();
+      }
+      break;
     }
   }
 }

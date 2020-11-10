@@ -17,12 +17,12 @@
 
 #include <stdint.h>
 
-#include <climits> // CHAR_BIT
-#include <limits>
 #include <cfloat>
+#include <climits> // CHAR_BIT
 #include <cmath>   // fmodf
 #include <cstring> // memcmp
 #include <iostream>
+#include <limits>
 
 // Include test_arith.h twice - once normally, and once within the
 // Subzero_ namespace, corresponding to the llc and Subzero translated
@@ -66,22 +66,26 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     bool ExcludeDivExceptions; // for divide related tests
   } Funcs[] = {
 #define X(inst, op, isdiv, isshift)                                            \
-  { STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv }           \
-  ,
+  {STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv},
       UINTOP_TABLE
 #undef X
 #define X(inst, op, isdiv, isshift)                                            \
-  { STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv }           \
-  ,
+  {STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv},
           SINTOP_TABLE
 #undef X
 #define X(mult_by)                                                             \
-  {                                                                            \
-    "Mult-By-" STR(mult_by), testMultiplyBy##mult_by,                          \
-        Subzero_::testMultiplyBy##mult_by, NULL, NULL, false                   \
-  }                                                                            \
-  , {"Mult-By-Neg-" STR(mult_by), testMultiplyByNeg##mult_by,                  \
-     Subzero_::testMultiplyByNeg##mult_by, NULL, NULL, false},
+  {"Mult-By-" STR(mult_by),                                                    \
+   testMultiplyBy##mult_by,                                                    \
+   Subzero_::testMultiplyBy##mult_by,                                          \
+   NULL,                                                                       \
+   NULL,                                                                       \
+   false},                                                                     \
+      {"Mult-By-Neg-" STR(mult_by),                                            \
+       testMultiplyByNeg##mult_by,                                             \
+       Subzero_::testMultiplyByNeg##mult_by,                                   \
+       NULL,                                                                   \
+       NULL,                                                                   \
+       false},
               MULIMM_TABLE};
 #undef X
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
@@ -187,13 +191,11 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     bool MaskShiftOperations;  // for shift related tests
   } Funcs[] = {
 #define X(inst, op, isdiv, isshift)                                            \
-  { STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv, isshift }  \
-  ,
+  {STR(inst), test##inst, Subzero_::test##inst, NULL, NULL, isdiv, isshift},
       UINTOP_TABLE
 #undef X
 #define X(inst, op, isdiv, isshift)                                            \
-  { STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv, isshift }  \
-  ,
+  {STR(inst), NULL, NULL, test##inst, Subzero_::test##inst, isdiv, isshift},
           SINTOP_TABLE
 #undef X
   };
@@ -256,8 +258,7 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncType FuncSz;
   } Funcs[] = {
 #define X(inst, op, func)                                                      \
-  { STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst }          \
-  ,
+  {STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst},
       FPOP_TABLE
 #undef X
   };
@@ -327,8 +328,7 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     FuncType FuncSz;
   } Funcs[] = {
 #define X(inst, op, func)                                                      \
-  { STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst }          \
-  ,
+  {STR(inst), (FuncType)test##inst, (FuncType)Subzero_::test##inst},
       FPOP_TABLE
 #undef X
   };

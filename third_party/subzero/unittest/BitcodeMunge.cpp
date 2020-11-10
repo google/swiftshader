@@ -14,8 +14,8 @@
 #include "BitcodeMunge.h"
 #include "IceCfg.h"
 #include "IceClFlags.h"
-#include "PNaClTranslator.h"
 #include "IceTypes.h"
+#include "PNaClTranslator.h"
 
 namespace IceTest {
 
