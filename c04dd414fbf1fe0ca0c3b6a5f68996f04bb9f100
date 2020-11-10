@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a2d9ef9a_df4599be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-10T19:59:04Z",
+      "side": 1,
+      "message": "Yes. The only test I would expect this to interact with now is dEQP-VK.api.info.get_physical_device_properties2, which is broken due to depth stencil resolve not being merged. All other float_control tests should report that they\u0027re unsupported.",
+      "parentUuid": "7341b5c0_903b33d4",
+      "revId": "c04dd414fbf1fe0ca0c3b6a5f68996f04bb9f100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "754122aa_6b7dd544",
@@ -31,6 +49,30 @@
       "writtenOn": "2020-11-10T13:51:37Z",
       "side": 1,
       "message": "Just curious: Is it always ok to have unicode characters in comments?",
+      "range": {
+        "startLine": 708,
+        "startChar": 29,
+        "endLine": 708,
+        "endChar": 31
+      },
+      "revId": "c04dd414fbf1fe0ca0c3b6a5f68996f04bb9f100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "34559ec7_5232b163",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 708,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-10T19:59:04Z",
+      "side": 1,
+      "message": "These are both extended ASCII characters. ± is character 241 and ∞ is 236.",
+      "parentUuid": "754122aa_6b7dd544",
       "range": {
         "startLine": 708,
         "startChar": 29,
