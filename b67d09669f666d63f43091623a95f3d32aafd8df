@@ -22,6 +22,30 @@
       },
       "revId": "b67d09669f666d63f43091623a95f3d32aafd8df",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "413a8fa6_54d73f90",
+        "filename": "src/Vulkan/VkConfig.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-10T20:16:04Z",
+      "side": 1,
+      "message": "I believe that once the float_controls CL is landed, then we\u0027ll fully support SPIR-V 1.4 (i.e. SPV_ENV_VULKAN_1_2). All that\u0027s missing without that patch is SPV_KHR_float_controls being accepted in the OpExtension handling code even though we don\u0027t support any of the float control ops that change rounding behavior, preserve behavior, etc. That\u0027s fine because those ops are only legal if the implementation specifies they\u0027re supported in the VkPhysicalDeviceFloatControlsProperties struct.\n\nOther than that, spvtools\u0027 behavior is the only thing that\u0027s effected by changing SPV_ENV...\n\nBut yes, I will update the SPV_ENV_... in its own patch.",
+      "parentUuid": "2f383634_a3fea305",
+      "range": {
+        "startLine": 30,
+        "startChar": 37,
+        "endLine": 30,
+        "endChar": 55
+      },
+      "revId": "b67d09669f666d63f43091623a95f3d32aafd8df",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
