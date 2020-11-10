@@ -81,6 +81,30 @@
       },
       "revId": "c04dd414fbf1fe0ca0c3b6a5f68996f04bb9f100",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dc43ee0e_71a037ba",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 708,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-10T20:18:35Z",
+      "side": 1,
+      "message": "Right, I just remember causing issues because my last name contains an \u0027é\u0027, which is also an extended ASCII character (130), but I don\u0027t think these can still cause issues.",
+      "parentUuid": "34559ec7_5232b163",
+      "range": {
+        "startLine": 708,
+        "startChar": 29,
+        "endLine": 708,
+        "endChar": 31
+      },
+      "revId": "c04dd414fbf1fe0ca0c3b6a5f68996f04bb9f100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
