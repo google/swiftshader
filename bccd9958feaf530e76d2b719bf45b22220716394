@@ -20,6 +20,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f129df6f_41d299d3",
+        "filename": "src/Vulkan/VkDevice.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-10T18:30:35Z",
+      "side": 1,
+      "message": "nit: Let\u0027s move this below \u0027enabledFeatures\u0027 since it\u0027s related?",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 190,
+        "endChar": 42
+      },
+      "revId": "bccd9958feaf530e76d2b719bf45b22220716394",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ea2f0b1c_77cea5fc",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 3
