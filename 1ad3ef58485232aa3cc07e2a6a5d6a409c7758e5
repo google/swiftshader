@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0bee42e_b5a7e76c",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T15:44:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28b7eee7_c2b92df6",
+      "revId": "1ad3ef58485232aa3cc07e2a6a5d6a409c7758e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e2c1ba06_5c6d325b",
@@ -31,6 +49,30 @@
       "writtenOn": "2020-11-09T16:03:23Z",
       "side": 1,
       "message": "To prevent this getting eliminated, pass the Boolean as a parameter to the function.",
+      "range": {
+        "startLine": 3199,
+        "startChar": 3,
+        "endLine": 3199,
+        "endChar": 11
+      },
+      "revId": "1ad3ef58485232aa3cc07e2a6a5d6a409c7758e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a3ca0b6e_f3f7b0ea",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3199,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-10T15:44:39Z",
+      "side": 1,
+      "message": "Done. I went for a Call to a bool-returning function.",
+      "parentUuid": "e2c1ba06_5c6d325b",
       "range": {
         "startLine": 3199,
         "startChar": 3,
