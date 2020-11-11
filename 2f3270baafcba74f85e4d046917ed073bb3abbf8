@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "da45d6e5_8155d447",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:28:53Z",
+      "side": 1,
+      "message": "\u003e Will there be a follow-up change to automatically enforce it?\n\nPossibly, but I\u0027m not overly worried about it, since so few people make any changes to this code. It\u0027s mainly for me, because I use \"format on save\" in my editors, and Subzeros\u0027 code is _almost_ properly formatted. I\u0027m fine with just doing this once for now, and trying to keep it formatted in the future.\n\n\u003e One complication is that we might have to duplicate the .clang-format file and keep it in sync with the other copy.\n\nI don\u0027t think we should reformat this codebase to match the SwiftShader one, not unless we move this out of third_party. The original code was formatted using the default (\"LLVM\") style, and I think we should keep it that way.",
+      "parentUuid": "60810af9_ea6480e9",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 134
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9f381880_c85ba00c",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-11T13:59:44Z",
       "side": 1,
       "message": "b/144825072",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 9
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "36c1fb2f_23fbc6d7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:28:53Z",
+      "side": 1,
+      "message": "This isn\u0027t exactly related to that bug, which is about adding a .clang-format for SwiftShader\u0027s source. I\u0027ll put it anyway, if you wish.",
+      "parentUuid": "9f381880_c85ba00c",
       "range": {
         "startLine": 13,
         "startChar": 5,
@@ -104,6 +152,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "88a3196c_49d456de",
+        "filename": "third_party/subzero/src/DartARM32/assembler_arm.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:28:53Z",
+      "side": 1,
+      "message": "This is the default LLVM style, which is how the entire Subzero codebase is formatted.",
+      "parentUuid": "e56abdf6_d70480a9",
+      "range": {
+        "startLine": 74,
+        "startChar": 32,
+        "endLine": 74,
+        "endChar": 34
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d1f6136a_0c147202",
@@ -117,6 +189,30 @@
       "writtenOn": "2020-11-11T13:59:44Z",
       "side": 1,
       "message": "I thought we used two spaces?",
+      "range": {
+        "startLine": 209,
+        "startChar": 17,
+        "endLine": 209,
+        "endChar": 18
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f8a49070_47f5bca0",
+        "filename": "third_party/subzero/src/DartARM32/assembler_arm.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:28:53Z",
+      "side": 1,
+      "message": "Default LLVM style.",
+      "parentUuid": "d1f6136a_0c147202",
       "range": {
         "startLine": 209,
         "startChar": 17,
