@@ -86,8 +86,10 @@ constexpr int SUBPIXEL_PRECISION_MASK = 0xFFFFFFFF >> (32 - SUBPIXEL_PRECISION_B
 
 }  // namespace vk
 
-#if defined(__linux__) || defined(__ANDROID__)
+#if defined(__linux__) && !defined(__ANDROID__)
 #	define SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD 1
+#	define SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD 1
+#elif defined(__ANDROID__)
 #	define SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD 1
 #endif
 

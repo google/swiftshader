@@ -170,7 +170,7 @@ private:
 };
 
 #if SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD
-#	if defined(__linux__) || defined(__ANDROID__)
+#	if defined(__linux__) && !defined(__ANDROID__)
 #		include "VkDeviceMemoryExternalLinux.hpp"
 #	else
 #		error "Missing VK_KHR_external_memory_fd implementation for this platform!"
