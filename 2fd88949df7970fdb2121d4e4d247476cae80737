@@ -102,6 +102,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4fe95c14_36172f5d",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:47:35Z",
+      "side": 1,
+      "message": "Still, even if this is temporary, we should make proper use of CMake\u0027s target-based defines, rather than relying on SWIFTSHADER_COMPILE_OPTIONS. It\u0027s not that much harder to make this change I\u0027m suggesting, and will provide a good example for how to do this in the future.",
+      "parentUuid": "6b8a46f5_60fe26e1",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "20e41ae2_b569d565",
         "filename": "src/Reactor/LLVMJIT.cpp",
         "patchSetId": 9
@@ -137,6 +155,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "cc4d1204_ed542e6e",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:47:35Z",
+      "side": 1,
+      "message": "Your explanation here makes it much clearer. Yes, I think we should use void* instead, and add the explanation you gave here to comment 57 in some way.",
+      "parentUuid": "faa5cf50_73c25052",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "01aa6165_5c7ea1a4",
         "filename": "src/Reactor/LLVMJIT.cpp",
         "patchSetId": 9
@@ -166,6 +202,24 @@
       "side": 1,
       "message": "True, but this is really only to help us pinpoint a potential issue with MSan for future LLVM versions, for which we\u0027d use a Debug build.",
       "parentUuid": "01aa6165_5c7ea1a4",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d68e8938_6c583ed1",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:47:35Z",
+      "side": 1,
+      "message": "I\u0027m more worried about getting false positives because this code doesn\u0027t end up running properly, but okay.",
+      "parentUuid": "83aff22c_82467d80",
       "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -207,6 +261,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "2ac343b4_3245747d",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:47:35Z",
+      "side": 1,
+      "message": "\u003e This also avoids any potential breakages due to not having it defined to 0 properly.\n\nI understand, which is why I suggested that alternatively we move this to Reactor.hpp so that any project that includes it can also safely use this macro.",
+      "parentUuid": "3d941efe_85ea3066",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f9f462b7_71203c19",
         "filename": "src/Reactor/ReactorUnitTests.cpp",
         "patchSetId": 9
@@ -236,6 +308,24 @@
       "side": 1,
       "message": "The abort() serves two purposes. First, I needed something with guaranteed side-effects that the compiler would not eliminate, so the \"results \u003d\u003d 0\" always gets evaluated. That in itself should always trigger an MSan error, if it didn\u0027t already trigger within the Reactor routine. But if that fails for some reason, the abort() would cause a \"death\" which does not include outputting the string at line 123 which gtest looks for.",
       "parentUuid": "f9f462b7_71203c19",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c62cd073_996ce413",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:47:35Z",
+      "side": 1,
+      "message": "Ah, okay, that makes more sense, thanks.",
+      "parentUuid": "7bc12ca8_842be6a9",
       "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
