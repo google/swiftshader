@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fbfef357_37b0996f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T13:45:39Z",
+      "side": 1,
+      "message": "Got tired of disabling \"format on save\" when working in the Subzero codebase. Fact is, these files were originally formatted using clang-format\u0027s default rules, but over time, the formatting wasn\u0027t kept up. I simply ran clang-format against all source files in this, and the next CL.",
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
