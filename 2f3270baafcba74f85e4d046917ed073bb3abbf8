@@ -1,6 +1,52 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "60810af9_ea6480e9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T13:59:44Z",
+      "side": 1,
+      "message": "Will there be a follow-up change to automatically enforce it?\n\nOne complication is that we might have to duplicate the .clang-format file and keep it in sync with the other copy.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 134
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f381880_c85ba00c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T13:59:44Z",
+      "side": 1,
+      "message": "b/144825072",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 9
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "fbfef357_37b0996f",
@@ -14,6 +60,69 @@
       "writtenOn": "2020-11-11T13:45:39Z",
       "side": 1,
       "message": "Got tired of disabling \"format on save\" when working in the Subzero codebase. Fact is, these files were originally formatted using clang-format\u0027s default rules, but over time, the formatting wasn\u0027t kept up. I simply ran clang-format against all source files in this, and the next CL.",
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7180871e_15236d14",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T13:59:44Z",
+      "side": 1,
+      "message": "Good move!",
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e56abdf6_d70480a9",
+        "filename": "third_party/subzero/src/DartARM32/assembler_arm.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T13:59:44Z",
+      "side": 1,
+      "message": "I\u0027m a bit surprised this isn\u0027t moved to the next line, like the rest of our //src/ code.",
+      "range": {
+        "startLine": 74,
+        "startChar": 32,
+        "endLine": 74,
+        "endChar": 34
+      },
+      "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d1f6136a_0c147202",
+        "filename": "third_party/subzero/src/DartARM32/assembler_arm.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T13:59:44Z",
+      "side": 1,
+      "message": "I thought we used two spaces?",
+      "range": {
+        "startLine": 209,
+        "startChar": 17,
+        "endLine": 209,
+        "endChar": 18
+      },
       "revId": "2f3270baafcba74f85e4d046917ed073bb3abbf8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
