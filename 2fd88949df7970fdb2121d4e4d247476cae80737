@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "8e05ed2d_796a31ab",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T15:17:43Z",
+      "side": 1,
+      "message": "This change enables it for all MSan builds with CMake, so I think the phrasing is correct.",
+      "parentUuid": "c8ae913f_110659ef",
+      "range": {
+        "startLine": 27,
+        "startChar": 15,
+        "endLine": 27,
+        "endChar": 39
+      },
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "f3df6cfb_ca987098",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 9
@@ -58,6 +82,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b8a46f5_60fe26e1",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T15:17:43Z",
+      "side": 1,
+      "message": "\u003e We may eventually want to have MSAN enabled without Reactor\u0027s MSAN instrumentation.\n\nThe way I see it, MSan support is currently broken (we silence false negatives, but also true positives), and instrumenting Reactor code properly fixes it. Ideally this gets enabled on all platforms, and REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION is removed.\n\n\u003e This is also important for making Reactor something we can eventually extract into its own thing.\n\nAgreed. But there are already some top-level Reactor macros, and I intend for this one to be temporary. So I don\u0027t think we have to tackle this issue now.",
+      "parentUuid": "04a1cf8c_ca16cf3e",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "20e41ae2_b569d565",
@@ -71,6 +113,24 @@
       "writtenOn": "2020-11-10T16:41:17Z",
       "side": 1,
       "message": "I don\u0027t understand how come this reinterpret_cast works here...\n\nI know it\u0027s not the same project, but the only place I can see an actual implementation of __emutls_get_address is in LLVM\u0027s compiler-rt project (https://github.com/llvm-mirror/compiler-rt):\n\nLooking at the current __emutls_get_address, it looks like we should be accessing the \"index\" field of __emutls_control, which isn\u0027t the first field: https://github.com/llvm-mirror/compiler-rt/blob/master/lib/builtins/emutls.c#L283\n\nThe __emutls_get_address function starts by calling emutls_get_index:\nhttps://github.com/llvm-mirror/compiler-rt/blob/master/lib/builtins/emutls.c#L379\n\nFurthermore, emutls_get_index uses atomic read on MSVC, presumably because MSAN may set the index from another thread? https://github.com/llvm-mirror/compiler-rt/blob/master/lib/builtins/emutls.c#L230\n\nIn LLVM\u0027s source, https://github.com/llvm-mirror/llvm/blob/0d04cbb5783c50f77f8d4c136f2dd529aa112ff9/lib/CodeGen/SelectionDAG/TargetLowering.cpp#L6817, I can see that it does get the address of the __emutls_v.xyz, but that\u0027s supposed to be the address of that variable\u0027s __emutls_control structure, as per: https://github.com/llvm-mirror/compiler-rt/blob/4e6f4067825b56acba0729a164454d8b4fd2beb1/lib/builtins/emutls.c#L271",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "faa5cf50_73c25052",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T15:17:43Z",
+      "side": 1,
+      "message": "The thing is, __emutls_control is a GCC implementation detail of this functionality. We don\u0027t have to use it. I forward declared it at line 84, but maybe that adds to the confusion and I should just pass void* around...\n\nWhen LLVM needs to emit code that accesses a TLS variable, it will call __emutls_get_address(), and pass it *some* pointer-sized variable that represents the TLS value or points to a structure that holds all the info. LLVM obtains this pointer from the symbol resolver. We can have *our* symbol resolver returns anything we like, that we can use in our implementation of __emutls_get_address() to obtain the TLS variable\u0027s actual address.\n\nHence, I\u0027m having the symbol resolver simply return enum values, cast to a pointer, and getTLSAddress() casts it back to an enum that it uses to switch between the TLS variables we need for MSan, and simply let C++ figure out how to obtain the actual address of them.\n\nWould removing the __emutls_control references here sufficiently avoid the confusion? Anything I should add to the comment at 57 or elsewhere that would help?",
+      "parentUuid": "20e41ae2_b569d565",
       "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -92,6 +152,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "83aff22c_82467d80",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T15:17:43Z",
+      "side": 1,
+      "message": "True, but this is really only to help us pinpoint a potential issue with MSan for future LLVM versions, for which we\u0027d use a Debug build.",
+      "parentUuid": "01aa6165_5c7ea1a4",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9451e9e5_0f9f3ce3",
@@ -109,6 +187,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d941efe_85ea3066",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T15:17:43Z",
+      "side": 1,
+      "message": "Since the macro is meant to be temporary, I wanted to make sure the code works like before when it\u0027s not defined. This also avoids any potential breakages due to not having it defined to 0 properly.",
+      "parentUuid": "9451e9e5_0f9f3ce3",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f9f462b7_71203c19",
@@ -122,6 +218,24 @@
       "writtenOn": "2020-11-10T16:41:17Z",
       "side": 1,
       "message": "If I understand correctly, we\u0027re expecting msan to trigger a failure when executing the routine, but if eventual optimizations kick in for the If(), msan may not trip, in which case, you have this abort() in there to make sure it still fails. If that happens, though, that would make this test invalid, right? Shouldn\u0027t we remove that abort() call, and let the test fail for non-death?",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7bc12ca8_842be6a9",
+        "filename": "src/Reactor/ReactorUnitTests.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T15:17:43Z",
+      "side": 1,
+      "message": "The abort() serves two purposes. First, I needed something with guaranteed side-effects that the compiler would not eliminate, so the \"results \u003d\u003d 0\" always gets evaluated. That in itself should always trigger an MSan error, if it didn\u0027t already trigger within the Reactor routine. But if that fails for some reason, the abort() would cause a \"death\" which does not include outputting the string at line 123 which gtest looks for.",
+      "parentUuid": "f9f462b7_71203c19",
       "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
