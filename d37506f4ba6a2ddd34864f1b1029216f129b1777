@@ -211,6 +211,30 @@
       },
       "revId": "d37506f4ba6a2ddd34864f1b1029216f129b1777",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2383eaa3_5515cc66",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 717,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-11T20:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1de3b348_e14d04fe",
+      "range": {
+        "startLine": 715,
+        "startChar": 0,
+        "endLine": 717,
+        "endChar": 54
+      },
+      "revId": "d37506f4ba6a2ddd34864f1b1029216f129b1777",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
