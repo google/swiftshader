@@ -136,6 +136,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "35be7326_2268e5eb",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 9
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T19:26:55Z",
+      "side": 1,
+      "message": "Thanks for illustrating the effect of a public define in https://swiftshader-review.googlesource.com/c/SwiftShader/+/50209/1. Merged in patch set 11.",
+      "parentUuid": "bc36ddd5_a7d06920",
+      "revId": "2fd88949df7970fdb2121d4e4d247476cae80737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "20e41ae2_b569d565",
