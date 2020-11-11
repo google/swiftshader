@@ -27,7 +27,7 @@ namespace vk {
 #define SWIFTSHADER_DEVICE_NAME "SwiftShader Device"  // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
 #define SWIFTSHADER_UUID "SwiftShaderUUID"            // Max length: VK_UUID_SIZE (16)
 
-const spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_1;
+const spv_target_env SPIRV_VERSION = SPV_ENV_VULKAN_1_1_SPIRV_1_4;
 
 enum
 {
