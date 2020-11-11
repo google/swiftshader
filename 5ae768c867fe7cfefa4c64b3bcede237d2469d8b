@@ -39,6 +39,30 @@
       },
       "revId": "5ae768c867fe7cfefa4c64b3bcede237d2469d8b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dee8f5e7_db68736f",
+        "filename": "src/Reactor/CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T19:05:37Z",
+      "side": 1,
+      "message": "Yep! That\u0027s what PUBLIC target properties are all about. Same goes for target_include_directories, target_link_libraries, target_compile_options, etc. Any of those that are PUBLIC get inherited by dependent targets. This is why \"modern CMake\" is all about using targets.",
+      "parentUuid": "46f2b5ff_6bdc39f6",
+      "range": {
+        "startLine": 128,
+        "startChar": 3,
+        "endLine": 129,
+        "endChar": 45
+      },
+      "revId": "5ae768c867fe7cfefa4c64b3bcede237d2469d8b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
