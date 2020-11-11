@@ -68,6 +68,7 @@ swiftshader_source_set("WSI") {
   ]
 
   deps = [
+    "${swiftshader_spirv_tools_dir}:SPIRV-Tools",
     "../../third_party/marl:Marl_headers",
     "../System",
     "../Vulkan:swiftshader_libvulkan_headers",
