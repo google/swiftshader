@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "5683f932_3981aeb5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:31:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6855f254_50d788b7",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 9
+      },
+      "revId": "45dc187d0e3a83c24fd9f8a1bb48fecb4e165227",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "4a981296_ded99ada",
         "filename": "third_party/subzero/crosstest/mem_intrin.cpp",
         "patchSetId": 1
@@ -37,6 +61,24 @@
       "writtenOn": "2020-11-11T14:09:59Z",
       "side": 1,
       "message": "FYI, I believe all the tests in third_party/subzero/crosstest are for comparing Subzero and LLVM for generic programs. I don\u0027t think it\u0027s of value for Reactor, so it can be removed at some point. Fine to have it formatted for now.",
+      "revId": "45dc187d0e3a83c24fd9f8a1bb48fecb4e165227",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0f50c889_5a10182a",
+        "filename": "third_party/subzero/crosstest/mem_intrin.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-11T15:31:51Z",
+      "side": 1,
+      "message": "Yeah, I thought about not applying the formatting to the tests, but then it would be strangely inconsistent, especially since they\u0027re almost properly formatted.",
+      "parentUuid": "4a981296_ded99ada",
       "revId": "45dc187d0e3a83c24fd9f8a1bb48fecb4e165227",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
