@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94fedd0f_dbd6dbae",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-11T01:16:32Z",
+      "side": 1,
+      "message": "Fails to land in Chromium: https://chromium-review.googlesource.com/c/chromium/src/+/2530612\n\nI don\u0027t think a revert is necessary. The fix is probably straightforward and can be verified by adding tryjobs to the change in Gerrit. Let us know if you\u0027re not sure how to do that.",
+      "revId": "019feda602ec90e99c448256e1ce11f6fdb622e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
