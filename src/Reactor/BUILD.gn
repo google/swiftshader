@@ -16,9 +16,9 @@ import("../swiftshader.gni")
 
 declare_args() {
   # Subzero produces smaller binaries, but doesn't support ARM64, MIPS64, and
-  # PPC64.
+  # PPC64. It also doesn't support MemorySanitizer instrumentation.
   use_swiftshader_with_subzero =
-      current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64"
+      current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64" && !is_msan
   supports_llvm = is_linux || is_chromeos || is_fuchsia || is_win || is_android || is_mac
 }
 
