@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "42c3dec5_e9bddc32",
+        "filename": "include/vulkan/vulkan.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-12T20:45:46Z",
+      "side": 0,
+      "message": "Minor issue, but easily fixable: We manually edited this in and we have to keep it.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "fefd0854a0383fdc7fd7c3a50d37fcb56e618dc2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
