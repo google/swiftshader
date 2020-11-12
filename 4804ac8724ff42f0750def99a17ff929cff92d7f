@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "04300a95_32e68615",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-12T10:17:17Z",
+      "side": 1,
+      "message": "Oops, forgot to change this into #if when the definition of REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION to 0 was moved to Reactor.hpp.\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/50288",
+      "range": {
+        "startLine": 727,
+        "startChar": 1,
+        "endLine": 727,
+        "endChar": 6
+      },
+      "revId": "4804ac8724ff42f0750def99a17ff929cff92d7f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
