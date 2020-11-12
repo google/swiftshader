@@ -16,6 +16,24 @@
       "message": "It might come as a surprise to users that enabling MSAN will suddenly switch from using Subzero to LLVM with no warning or message. Maybe we should leave this line as is, and below it, check \"if (use_swiftshader_with_subzero \u0026\u0026 is_msan)\", then output a warning/message that we\u0027ll be using LLVM instead of Subzero to enable MSAN support.",
       "revId": "fa0c8207981781f2ffbf3a5b4adc8cfe1d4eecb5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bdc46a4c_940317a0",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-12T20:47:06Z",
+      "side": 1,
+      "message": "... and after outputting the warning/message, set use_swiftshader_with_subzero \u003d false",
+      "parentUuid": "08f56865_c759ae8a",
+      "revId": "fa0c8207981781f2ffbf3a5b4adc8cfe1d4eecb5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
