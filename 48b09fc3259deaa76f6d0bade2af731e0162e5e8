@@ -52,6 +52,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9da738e0_08c4fdef",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "5ed5a4b3_a47a4265",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dc75a26c_54beadb9",
@@ -99,6 +117,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "de4d4232_0717436a",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Added assert and switched to -1.",
+      "parentUuid": "c8eeb5ca_28b05f50",
+      "range": {
+        "startLine": 321,
+        "startChar": 1,
+        "endLine": 321,
+        "endChar": 10
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c5fffeca_b50d9e9e",
@@ -112,6 +154,30 @@
       "writtenOn": "2020-11-06T20:27:18Z",
       "side": 1,
       "message": "Do we expect to encounter this on Cuttlefish? If not, I\u0027d remove this so we hit the default UNSUPPORTED assert below in case it inadvertently gets used.",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 36,
+        "endChar": 12
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "319d6712_8a5aa442",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "I have seen BLOB used in emulated camera but it\u0027s not clear if blob would ever be imported to vulkan. Removed case for now.",
+      "parentUuid": "c5fffeca_b50d9e9e",
       "range": {
         "startLine": 35,
         "startChar": 2,
@@ -139,6 +205,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "71655da2_e49d691f",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Removed case and put the TODO in the default.",
+      "parentUuid": "2cdf4c26_93830194",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "437e252c_20438d94",
@@ -152,6 +236,30 @@
       "writtenOn": "2020-11-06T20:27:18Z",
       "side": 1,
       "message": "This format is supported, but I\u0027m not sure what this function would be expected to return. Just the depth aspect\u0027s bytes per pixel?",
+      "range": {
+        "startLine": 47,
+        "startChar": 38,
+        "endLine": 47,
+        "endChar": 97
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0b9ba7c_f2e1ad58",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Removed this case to punt for now. Eventually, this function should probably include `VkImageAspectFlagBits aspect` as an argument.",
+      "parentUuid": "437e252c_20438d94",
       "range": {
         "startLine": 47,
         "startChar": 38,
@@ -185,6 +293,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "23c099ce_59c0a768",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Removed case.",
+      "parentUuid": "d79750f8_6c0694c8",
+      "range": {
+        "startLine": 59,
+        "startChar": 2,
+        "endLine": 60,
+        "endChar": 12
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "badce0a8_402cf9c4",
@@ -208,6 +340,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "34971c21_0e941034",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Removed this case to punt for now. Eventually, this function should probably include `VkImageAspectFlagBits aspect` as an argument.",
+      "parentUuid": "badce0a8_402cf9c4",
+      "range": {
+        "startLine": 63,
+        "startChar": 2,
+        "endLine": 64,
+        "endChar": 12
+      },
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "44a15383_001a9f80",
@@ -221,6 +377,24 @@
       "writtenOn": "2020-11-06T20:27:18Z",
       "side": 1,
       "message": "TODO(b/165302991)",
+      "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b375ce8e_6ec5bcf3",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-11-12T15:48:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44a15383_001a9f80",
       "revId": "48b09fc3259deaa76f6d0bade2af731e0162e5e8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
