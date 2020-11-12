@@ -22,11 +22,6 @@
 #define VULKAN_HPP_NAMESPACE vkhpp
 #include <vulkan/vulkan.hpp>
 
-#include <iostream>
-#include <map>
-#include <sstream>
-#include <string>
-
 namespace vk {
 
 std::string Stringify(VkStructureType value)
@@ -51,9 +46,8 @@ std::string Stringify(VkStructureType value)
 			ret = vkhpp::to_string(static_cast<vkhpp::StructureType>(value));
 			break;
 	}
-	std::ostringstream stringStream;
-	stringStream << ret << " (" << static_cast<int>(value) << ")";
-	return stringStream.str();
+
+	return ret;
 #else
 	return std::to_string(static_cast<int>(value));
 #endif
