@@ -724,7 +724,7 @@ void JITBuilder::optimize(const rr::Config &cfg)
 
 	llvm::legacy::PassManager passManager;
 
-#ifdef REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
+#if REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION
 	if(__has_feature(memory_sanitizer))
 	{
 		passManager.add(llvm::createMemorySanitizerLegacyPassPass());
