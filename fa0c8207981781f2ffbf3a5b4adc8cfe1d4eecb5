@@ -70,6 +70,24 @@
       "parentUuid": "bff372d7_34ca7c61",
       "revId": "fa0c8207981781f2ffbf3a5b4adc8cfe1d4eecb5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "566831dc_04e5c41c",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-12T22:00:46Z",
+      "side": 1,
+      "message": "\u003e This would work if there\u0027s a way for clients to say they want to use LLVM, though, which isn\u0027t the case, right?\n\nNo, we pick the backend, so ensuring the backend is LLVM for MSan builds when we just picked LLVM because it\u0027s an MSan builds is a bit redundant.",
+      "parentUuid": "865b9dce_f3ddd316",
+      "revId": "fa0c8207981781f2ffbf3a5b4adc8cfe1d4eecb5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
