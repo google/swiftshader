@@ -46,6 +46,30 @@
       },
       "revId": "fefd0854a0383fdc7fd7c3a50d37fcb56e618dc2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0ae831c7_962931ab",
+        "filename": "include/vulkan/vulkan.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-12T21:04:24Z",
+      "side": 0,
+      "message": "Thanks for catching that, Alexis! I wonder if we\u0027re any closer to not needing that any more...",
+      "parentUuid": "ae028b82_e03b98eb",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "fefd0854a0383fdc7fd7c3a50d37fcb56e618dc2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
