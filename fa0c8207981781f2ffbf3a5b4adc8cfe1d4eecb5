@@ -52,6 +52,24 @@
       "parentUuid": "bdc46a4c_940317a0",
       "revId": "fa0c8207981781f2ffbf3a5b4adc8cfe1d4eecb5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "865b9dce_f3ddd316",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-12T21:35:43Z",
+      "side": 1,
+      "message": "\u003e I don\u0027t know. Which backend gets used should practically not be a concern to anyone but SwiftShader team members.\n\nSure, unless you\u0027re enabling MSAN to find a bug in Subzero.\n\n\u003e FWIW, I found exactly one use of print() in BUILD.gn files\n\nThat\u0027s a good point. Maybe we should assert() instead that we\u0027re expecting to use LLVM. There are a few more of those going around: https://source.chromium.org/search?q\u003df:%2FBUILD.gn%20f:%2FBUILD.gni%20content:%22assert%22\u0026ss\u003dchromium\n\nThis would work if there\u0027s a way for clients to say they want to use LLVM, though, which isn\u0027t the case, right?",
+      "parentUuid": "bff372d7_34ca7c61",
+      "revId": "fa0c8207981781f2ffbf3a5b4adc8cfe1d4eecb5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
