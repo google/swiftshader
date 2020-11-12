@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf81d0e0_b7243c9a",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2020-11-12T08:09:23Z",
+      "side": 0,
+      "message": "nit: There is no reason to remove this bit, as far as I can see, since you disabled SWIFTSHADER_EXTERNAL_MEMORY_OPAQUE_FD for Android. You may remove the \"defined(__ANDROID__)\" part if you want though, but keep in mind that __linux__ is defined on that platform as well (the defined(__ANDROID__) serves as documentation to indicate that including the header here is intentional.",
+      "revId": "4ed9d3498dcffa987acba1a8007ff8dec336f263",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bf818670_507fe5b9",
+        "filename": "src/Vulkan/VkSemaphore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2020-11-12T08:09:23Z",
+      "side": 0,
+      "message": "There is no reason to remove this bit, as far as I see. Can you keep it as is?",
+      "revId": "4ed9d3498dcffa987acba1a8007ff8dec336f263",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
