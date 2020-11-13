@@ -497,6 +497,13 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			functions.try_emplace("sync_fetch_and_min_4", reinterpret_cast<void *>(sync_fetch_and_min_4));
 			functions.try_emplace("sync_fetch_and_umax_4", reinterpret_cast<void *>(sync_fetch_and_umax_4));
 			functions.try_emplace("sync_fetch_and_umin_4", reinterpret_cast<void *>(sync_fetch_and_umin_4));
+
+#	if defined(__i386__)
+			// TODO(b/172974501): Workaround for an x86-32 issue where an R_386_PC32 relocation is used
+			// When calling a C function from Reactor code, who's address is not associated with any symbol
+			// (since it's an absolute constant), but it still invokes the symbol resolver for "".
+			functions.try_emplace("", nullptr);
+#	endif
 #endif
 #if __has_feature(memory_sanitizer)
 			functions.try_emplace("msan_unpoison", reinterpret_cast<void *>(__msan_unpoison));  // TODO(b/155148722): Remove when we no longer unpoison all writes.
