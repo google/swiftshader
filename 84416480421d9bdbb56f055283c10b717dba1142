@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "324f835a_8ffefc61",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-13T21:39:54Z",
+      "side": 1,
+      "message": "Is it okay to already report supporting a version of SPIR-V aimed at a higher version of Vulkan than what we currently advertise? Please test this with a full dEQP-VK.* test run.",
+      "revId": "84416480421d9bdbb56f055283c10b717dba1142",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
