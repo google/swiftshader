@@ -16,6 +16,24 @@
       "message": "I\u0027m generally not a fan of having certain features turned on/off in different configurations, as I find it ends up causing more confusion down the road. However, if we are to do this, I would rather we set REACTOR_ENABLE_PRINT to \"On\" at line 554 with:\n\nif(CMAKE_BUILD_TYPE MATCHES \"Deb\")\n    set(REACTOR_ENABLE_PRINT \"On\")\nendif()\n\nThis way, if we add more logic in this CMakeLists.txt or any of the subfolder ones that depend on REACTOR_ENABLE_PRINT, it will just work.",
       "revId": "4b30a7a204e7d6a5439978a0d92189a8c970d5ef",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "06d113ec_89e565c4",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 566,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-14T03:58:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7e54aef_6c943e70",
+      "revId": "4b30a7a204e7d6a5439978a0d92189a8c970d5ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
