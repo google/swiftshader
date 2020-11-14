@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "62e01ed9_92aaa2f0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-14T04:40:27Z",
+      "side": 1,
+      "message": "Verified to fix booting of an aosp_cf_x86_phone instance.",
+      "revId": "61c78ad2dc5a656d82efcbbe202c76d11f49970d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
