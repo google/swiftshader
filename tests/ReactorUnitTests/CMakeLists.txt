@@ -22,9 +22,9 @@ set(ROOT_PROJECT_LINK_LIBRARIES
     ${SWIFTSHADER_LIBS}
 )
 
-# TODO(b/154013190): move source file to separate folder for this target.
 set(REACTOR_UNIT_TESTS_SRC_FILES
-    ../../src/Reactor/ReactorUnitTests.cpp
+    main.cpp
+    ReactorUnitTests.cpp
 )
 
 add_executable(ReactorUnitTests

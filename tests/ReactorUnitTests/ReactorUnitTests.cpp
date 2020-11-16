@@ -3232,12 +3232,6 @@ TEST(ReactorUnitTests, SpillLocalCopiesOfArgs)
 	EXPECT_EQ(result, expected);
 }
 
-int main(int argc, char **argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
-
 ////////////////////////////////
 // Trait compile time checks. //
 ////////////////////////////////

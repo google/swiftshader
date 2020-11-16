@@ -15,6 +15,7 @@
 import("//build/config/c++/c++.gni")
 import("//build/config/compiler/compiler.gni")
 import("//build/config/mips.gni")
+import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
   defines = []
@@ -201,5 +202,13 @@ if (build_with_chromium) {
         "tests/GLESUnitTests:swiftshader_unittests",
         "tests/SystemUnitTests:swiftshader_system_unittests",
       ]
+
+      if (supports_llvm) {
+        data_deps += [ "tests/ReactorUnitTests:swiftshader_reactor_llvm_unittests" ]
+      }
+
+      if (supports_subzero) {
+        data_deps += [ "tests/ReactorUnitTests:swiftshader_reactor_subzero_unittests" ]
+      }
     }
 }

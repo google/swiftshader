@@ -22,9 +22,8 @@ set(ROOT_PROJECT_LINK_LIBRARIES
     ${SWIFTSHADER_LIBS}
 )
 
-# TODO(b/154013190): move source file to separate folder for this target.
 set(REACTOR_BENCHMARKS_SRC_FILES
-    ../../src/Reactor/ReactorBenchmarks.cpp
+    ReactorBenchmarks.cpp
 )
 
 add_executable(ReactorBenchmarks

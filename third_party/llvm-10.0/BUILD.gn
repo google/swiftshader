@@ -733,6 +733,7 @@ swiftshader_llvm_source_set("swiftshader_llvm_most") {
     "llvm/lib/Transforms/Instrumentation/IndirectCallPromotion.cpp",
     "llvm/lib/Transforms/Instrumentation/InstrOrderFile.cpp",
     "llvm/lib/Transforms/Instrumentation/InstrProfiling.cpp",
+    "llvm/lib/Transforms/Instrumentation/MemorySanitizer.cpp",
     "llvm/lib/Transforms/Instrumentation/PGOInstrumentation.cpp",
     "llvm/lib/Transforms/Instrumentation/PGOMemOPSizeOpt.cpp",
     "llvm/lib/Transforms/Instrumentation/ValueProfileCollector.cpp",

@@ -12,15 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("reactor.gni")
 import("../swiftshader.gni")
-
-declare_args() {
-  # Subzero produces smaller binaries, but doesn't support ARM64, MIPS64, and
-  # PPC64. It also doesn't support MemorySanitizer instrumentation.
-  use_swiftshader_with_subzero =
-      current_cpu != "arm64" && current_cpu != "mips64el" && current_cpu != "ppc64" && !is_msan
-  supports_llvm = is_linux || is_chromeos || is_fuchsia || is_win || is_android || is_mac
-}
 
 config("swiftshader_reactor_private_config") {
   if (is_win) {
@@ -54,7 +47,7 @@ swiftshader_source_set("swiftshader_reactor_base") {
   ]
 }
 
-if (use_swiftshader_with_subzero) {
+if (supports_subzero) {
   # Need a separate config to ensure the warnings are added to the end.
   config("swiftshader_subzero_common_private_config") {
     defines = [
@@ -299,6 +292,7 @@ if (use_swiftshader_with_subzero) {
       ":swiftshader_subzero_private_config",
     ]
   }
+
   swiftshader_source_set("swiftshader_subzero_reactor") {
     deps = [
       "../../third_party/marl:Marl",
