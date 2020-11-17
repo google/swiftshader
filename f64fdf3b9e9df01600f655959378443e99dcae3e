@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8008a219_8456e9d8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-17T21:19:24Z",
+      "side": 1,
+      "message": "I know we need this to unblock MSAN tests that are timing out, but I do worry that this also means that enabling MSAN to find problems in the normal LLVM codegen path will no longer do what we expect. Hopefully we can revert this patch soon.",
+      "revId": "f64fdf3b9e9df01600f655959378443e99dcae3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
