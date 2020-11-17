@@ -35,7 +35,7 @@ struct dev_list_flag {};
   X(IRFilename, std::string, release_opt_flag, cl::Positional,                 \
     cl::desc("IR File"), cl::init("-"))                                        \
                                                                                \
-  X(NumTranslationThreads, uint32_t, release_opt_flag, "threads",              \
+  X(NumTranslationThreads, uint32_t, release_opt_flag, "num_threads",          \
     cl::desc("Number of translation threads (0 for purely sequential)"),       \
     cl::init(2))                                                               \
                                                                                \
