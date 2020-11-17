@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07c8555a_51cb6d05",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-17T17:08:45Z",
+      "side": 1,
+      "message": "Is this syntax a compiler-specific extension?",
+      "range": {
+        "startLine": 400,
+        "startChar": 2,
+        "endLine": 400,
+        "endChar": 8
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8364befa_5b69ef13",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-17T17:08:45Z",
+      "side": 1,
+      "message": "Are we not getting the same pointer back? Should this parameter be removed altogether?",
+      "range": {
+        "startLine": 86,
+        "startChar": 24,
+        "endLine": 86,
+        "endChar": 36
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d47b558_7709c5d5",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-17T17:08:45Z",
+      "side": 1,
+      "message": "Why not return immediately? This risks running other code or modifying the result code before returning.",
+      "range": {
+        "startLine": 273,
+        "startChar": 2,
+        "endLine": 273,
+        "endChar": 10
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7c1b85e8_dd5827f1",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-17T17:08:45Z",
+      "side": 1,
+      "message": "If this extension isn\u0027t meant to be Android-exclusive, can it be always enabled?\n\nI\u0027m a bit wary about building SwiftShader in various different configurations that make it difficult to reproduce issues on other platforms, or cause build failures that would have been caught if we didn\u0027t use conditional preprocessor directives.",
+      "range": {
+        "startLine": 392,
+        "startChar": 7,
+        "endLine": 392,
+        "endChar": 39
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
