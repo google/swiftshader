@@ -16,6 +16,23 @@
       "message": "I am using the Subzero backend, not with the third_party/llvm-subzero but with the shared LLVM library coming from my system.\nDue to the \"threads\" option already used in lib/LTO/ThinLTOCodeGenerator.cpp with an external LLVM, there is a conflict with the declaration of the \"threads\" option in IceClFlags.def\nSo I just propose to rename it.\nI understand that the Subzero project is no longer being maintained. So you plan to maintain your own version of Subzero in SwiftShader, is that correct?\n\nNicolas Caramelli",
       "revId": "52630784e7ef27a71953451440c9b8a597adb29c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a383e1a6_d690d8c0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-17T20:31:17Z",
+      "side": 1,
+      "message": "Thanks. While the general intention is to compile third_party/subzero with third_party/llvm-subzero for its LLVM dependencies, I think this change is fine since we don\u0027t actually use these command line flags. Note that the long-term plan is for third_party/llvm-subzero to be eliminated: b/155971541. That includes simply getting rid of these flags.",
+      "revId": "52630784e7ef27a71953451440c9b8a597adb29c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
