@@ -16,6 +16,23 @@
       "message": "This is Reid\u0027s original change applied to our LLVM copy (modulo the unit test change as we don\u0027t keep the LLVM unit tests).\n",
       "revId": "86a316164731094aeed3207c2c39b8db4ae43ad1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "89475aae_d59e7d4e",
+        "filename": "third_party/llvm-10.0/llvm/lib/CodeGen/GlobalISel/LegalityPredicates.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5175
+      },
+      "writtenOn": "2020-11-17T23:53:06Z",
+      "side": 1,
+      "message": "The comment is actually wrong, it should be \"Enable\", I fixed it in a follow-up:\n2c73bef7fad4bb92213c9e8ace7d98a231efe027\nMaybe you don\u0027t care, you just want the functionality, I just thought I\u0027d point it out.",
+      "revId": "86a316164731094aeed3207c2c39b8db4ae43ad1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
