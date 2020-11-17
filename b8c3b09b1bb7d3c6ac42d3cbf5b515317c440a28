@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1ec3234b_58e61967",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-17T21:38:14Z",
+      "side": 1,
+      "message": "Thanks for the review, Nicolas! Could you help take another look? would need some further suggestions on the comments ; )",
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "07c8555a_51cb6d05",
@@ -14,6 +31,30 @@
       "writtenOn": "2020-11-17T17:08:45Z",
       "side": 1,
       "message": "Is this syntax a compiler-specific extension?",
+      "range": {
+        "startLine": 400,
+        "startChar": 2,
+        "endLine": 400,
+        "endChar": 8
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cfcd254f_5ac76ce0",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-17T21:38:14Z",
+      "side": 1,
+      "message": "Nope. The use of designator was introduced in C99.",
+      "parentUuid": "07c8555a_51cb6d05",
       "range": {
         "startLine": 400,
         "startChar": 2,
@@ -49,6 +90,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "88f43150_39b846b1",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-17T21:38:14Z",
+      "side": 1,
+      "message": "This probably should stay or go together with \"size\". I took a look at all the external memory backends. VK_EXT_external_memory_fd implementation on linux and the VK_FUCHSIA_external_memory on Fusia require \"size\" for deallocation. Maybe a follow up clean up? Or I can do the refactoring to move them to \"ExternalBase\" and then rebase my CL.",
+      "parentUuid": "8364befa_5b69ef13",
+      "range": {
+        "startLine": 86,
+        "startChar": 24,
+        "endLine": 86,
+        "endChar": 36
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1d47b558_7709c5d5",
         "filename": "src/Vulkan/VkDeviceMemory.cpp",
         "patchSetId": 14
@@ -72,6 +137,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e3e5f331_ce8742f5",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-17T21:38:14Z",
+      "side": 1,
+      "message": "line 286 below relies on the return code being not VK_SUCCESS to emit allocation_failed event. The logic inside DeviceMemory::allocate() seems to be simple enough to group within one conditional block.\n\nOr I can keep the early return and emit once there.\n```\n    if(size \u003e MAX_MEMORY_ALLOCATION_SIZE)\n    {\n        device-\u003eemitDeviceMemoryReport(VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT, 0 /* memoryObjectId */, size, VK_OBJECT_TYPE_DEVICE_MEMORY, 0 /* objectHandle */);\n        return VK_ERROR_OUT_OF_DEVICE_MEMORY;\n    }\n```\n\nI\u0027m ok with either way.",
+      "parentUuid": "1d47b558_7709c5d5",
+      "range": {
+        "startLine": 273,
+        "startChar": 2,
+        "endLine": 273,
+        "endChar": 10
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "7c1b85e8_dd5827f1",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 14
@@ -83,6 +172,30 @@
       "writtenOn": "2020-11-17T17:08:45Z",
       "side": 1,
       "message": "If this extension isn\u0027t meant to be Android-exclusive, can it be always enabled?\n\nI\u0027m a bit wary about building SwiftShader in various different configurations that make it difficult to reproduce issues on other platforms, or cause build failures that would have been caught if we didn\u0027t use conditional preprocessor directives.",
+      "range": {
+        "startLine": 392,
+        "startChar": 7,
+        "endLine": 392,
+        "endChar": 39
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "89ac8bac_7fdb48ad",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-17T21:38:14Z",
+      "side": 1,
+      "message": "I\u0027m not familiar with the other platforms enough to properly implement the external memory import/unimport attribution correctly. Thus this baseline was targeting Android only. e.g. For VK_KHR_external_memory_fd, the implementation needs a way to retrieve a system wide unique ID for the underlying dmabuf, which isn\u0027t available yet. But for external_memeory_fd on linux backend and the fusia one, I don\u0027t know whether there always exists a system wide id other than the underlying handle(most likely will change at process boundary).\n\nFor Android to properly implement this extension, i\u0027ve added a new ndk api(AHardwareBuffer_getId) in Android 12, thus I have to pull the def out from the conditional preprocessor directives, otherwise aosp will be broken once SS flows to the downstream. Chris and Jason seem to prefer Android blueprint to resolve the issue for now.",
+      "parentUuid": "7c1b85e8_dd5827f1",
       "range": {
         "startLine": 392,
         "startChar": 7,
