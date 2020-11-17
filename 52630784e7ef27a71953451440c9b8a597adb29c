@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fac4609c_971d6688",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2020-11-17T08:42:40Z",
+      "side": 1,
+      "message": "I am using the Subzero backend, not with the third_party/llvm-subzero but with the shared LLVM library coming from my system.\nDue to the \"threads\" option already used in lib/LTO/ThinLTOCodeGenerator.cpp with an external LLVM, there is a conflict with the declaration of the \"threads\" option in IceClFlags.def\nSo I just propose to rename it.\nI understand that the Subzero project is no longer being maintained. So you plan to maintain your own version of Subzero in SwiftShader, is that correct?\n\nNicolas Caramelli",
+      "revId": "52630784e7ef27a71953451440c9b8a597adb29c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
