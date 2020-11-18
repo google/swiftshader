@@ -133,6 +133,30 @@
       },
       "revId": "86a316164731094aeed3207c2c39b8db4ae43ad1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1095c03f_84c74be1",
+        "filename": "third_party/llvm-10.0/llvm/lib/CodeGen/GlobalISel/LegalityPredicates.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-18T15:52:38Z",
+      "side": 1,
+      "message": "Done. Will leave as is.",
+      "parentUuid": "bc7a42df_f2ffd5d1",
+      "range": {
+        "startLine": 15,
+        "startChar": 3,
+        "endLine": 15,
+        "endChar": 8
+      },
+      "revId": "86a316164731094aeed3207c2c39b8db4ae43ad1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
