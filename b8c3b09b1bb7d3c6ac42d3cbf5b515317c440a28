@@ -130,6 +130,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "332f0e4d_40fa4fc6",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-18T20:31:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32098501_117dc9da",
+      "range": {
+        "startLine": 400,
+        "startChar": 2,
+        "endLine": 400,
+        "endChar": 8
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8364befa_5b69ef13",
@@ -262,6 +286,30 @@
       "side": 1,
       "message": "Thanks for pointing out it intentionally emits the same event for allocations that fail due to being too large or for other reasons. I think the early return and repeating the emitDeviceMemoryReport call is slightly clearer (and the compiler will likely optimize out the duplication), but that\u0027s just my 2 cents.",
       "parentUuid": "e3e5f331_ce8742f5",
+      "range": {
+        "startLine": 273,
+        "startChar": 2,
+        "endLine": 273,
+        "endChar": 10
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "85524bc6_e9d8bdc3",
+        "filename": "src/Vulkan/VkDeviceMemory.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-18T20:31:09Z",
+      "side": 1,
+      "message": "Updated, done.",
+      "parentUuid": "07c7bf25_eeed7572",
       "range": {
         "startLine": 273,
         "startChar": 2,
