@@ -28,12 +28,6 @@
 #	undef None  // TODO(b/127920555)
 #endif
 
-// A Clang extension to determine compiler features.
-// We use it to detect Sanitizer builds (e.g. -fsanitize=memory).
-#ifndef __has_feature
-#	define __has_feature(x) 0
-#endif
-
 static_assert(sizeof(short) == 2, "Reactor's 'Short' type is 16-bit, and requires the C++ 'short' to match that.");
 static_assert(sizeof(int) == 4, "Reactor's 'Int' type is 32-bit, and requires the C++ 'int' to match that.");
 
@@ -85,14 +79,6 @@ public:
 			this->level = Level::REACTOR_DEFAULT_OPT_LEVEL;
 		}
 #endif
-
-		// TODO(b/173257647): MemorySanitizer instrumentation produces IR which takes
-		// a lot longer to process by the machine code optimization passes. Disabling
-		// them has a negligible effect on code quality but compiles much faster.
-		if(__has_feature(memory_sanitizer))
-		{
-			this->level = Level::None;
-		}
 	}
 
 	Level getLevel() const { return level; }

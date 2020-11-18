@@ -198,6 +198,14 @@ JITGlobals::JITGlobals(llvm::orc::JITTargetMachineBuilder &&jitTargetMachineBuil
 
 llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 {
+	// TODO(b/173257647): MemorySanitizer instrumentation produces IR which takes
+	// a lot longer to process by the machine code optimization passes. Disabling
+	// them has a negligible effect on code quality but compiles much faster.
+	if(__has_feature(memory_sanitizer))
+	{
+		return llvm::CodeGenOpt::None;
+	}
+
 	switch(level)
 	{
 		case rr::Optimization::Level::None: return llvm::CodeGenOpt::None;
@@ -206,6 +214,7 @@ llvm::CodeGenOpt::Level JITGlobals::toLLVM(rr::Optimization::Level level)
 		case rr::Optimization::Level::Aggressive: return llvm::CodeGenOpt::Aggressive;
 		default: UNREACHABLE("Unknown Optimization Level %d", int(level));
 	}
+
 	return llvm::CodeGenOpt::Default;
 }
 
