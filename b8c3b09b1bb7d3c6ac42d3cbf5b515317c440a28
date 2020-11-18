@@ -67,6 +67,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ae01e895_121ba886",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2020-11-18T17:00:24Z",
+      "side": 1,
+      "message": "Doesn\u0027t exist in C++ until C++20. SwiftShader targets C++14.",
+      "parentUuid": "cfcd254f_5ac76ce0",
+      "range": {
+        "startLine": 400,
+        "startChar": 2,
+        "endLine": 400,
+        "endChar": 8
+      },
+      "revId": "b8c3b09b1bb7d3c6ac42d3cbf5b515317c440a28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8364befa_5b69ef13",
         "filename": "src/Vulkan/VkDeviceMemory.cpp",
         "patchSetId": 14
