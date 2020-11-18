@@ -22,6 +22,30 @@
       },
       "revId": "93c057ddc3fad69ddab5a2ff4d5546579a8afa64",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "11bfd18a_d76f51b5",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-18T21:53:37Z",
+      "side": 1,
+      "message": "I\u0027d like to keep that as an option. While Subzero doesn\u0027t support instrumentation, it should still support msan builds and not trigger false positives.",
+      "parentUuid": "1351fee4_79692ec2",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 20
+      },
+      "revId": "93c057ddc3fad69ddab5a2ff4d5546579a8afa64",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
