@@ -54,6 +54,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "71287c7e_295b8a28",
+        "filename": "third_party/llvm-10.0/llvm/lib/CodeGen/GlobalISel/LegalityPredicates.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-18T15:36:51Z",
+      "side": 1,
+      "message": "Thanks, will do.",
+      "parentUuid": "89475aae_d59e7d4e",
+      "revId": "86a316164731094aeed3207c2c39b8db4ae43ad1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "264c3ef7_72ecc47a",
         "filename": "third_party/llvm-10.0/llvm/lib/CodeGen/GlobalISel/LegalityPredicates.cpp",
         "patchSetId": 1
@@ -65,6 +83,30 @@
       "writtenOn": "2020-11-18T00:19:46Z",
       "side": 1,
       "message": "FIXME(b/173512119)\n\nTo have Squeegee keep track of this",
+      "range": {
+        "startLine": 15,
+        "startChar": 3,
+        "endLine": 15,
+        "endChar": 8
+      },
+      "revId": "86a316164731094aeed3207c2c39b8db4ae43ad1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bc7a42df_f2ffd5d1",
+        "filename": "third_party/llvm-10.0/llvm/lib/CodeGen/GlobalISel/LegalityPredicates.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-18T15:36:51Z",
+      "side": 1,
+      "message": "For third party patches, I think it\u0027s better we leave the patch exactly as-is so that when we upgrade LLVM, Git will likely be able to merge without conflict.",
+      "parentUuid": "264c3ef7_72ecc47a",
       "range": {
         "startLine": 15,
         "startChar": 3,
