@@ -22,6 +22,30 @@
       },
       "revId": "43fcd32b4faefdd5dd7cece1d87e43939cc1f360",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f3ef69f_cefc67cb",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.hpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 89377
+      },
+      "writtenOn": "2020-11-18T20:56:05Z",
+      "side": 0,
+      "message": "That is intentional because anywhere including this header already does def check of \"SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER\" outside. (specifically only libVulkan.cpp and VkDeviceMemory.cpp include this header, and they both check the def already, which also aligns with how the other external memory backends are detected/included.)",
+      "parentUuid": "0e2b7649_4d86be21",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 55
+      },
+      "revId": "43fcd32b4faefdd5dd7cece1d87e43939cc1f360",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
