@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1351fee4_79692ec2",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-18T21:38:39Z",
+      "side": 1,
+      "message": "Why go through this if we\u0027re not going to use subzero? Are we expecting to run subzero tests when msan is enabled?",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 20
+      },
+      "revId": "93c057ddc3fad69ddab5a2ff4d5546579a8afa64",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
