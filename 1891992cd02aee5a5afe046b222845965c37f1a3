@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb8aba52_fbb80462",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-19T18:11:09Z",
+      "side": 1,
+      "message": "Printing of SPIR-V intermediate values is likely affected by this, as it keeps track of a \u0027typeHint\u0027 based on what method was used to assign the value, but that\u0027s a Debug build feature only and likely benign either way.\n\nBen, Jaebaek, will the debugger be affected? Where do things stand on SPIR-V 1.4 support?",
+      "revId": "1891992cd02aee5a5afe046b222845965c37f1a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
