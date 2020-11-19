@@ -14,6 +14,7 @@
 
 #include "VkDeviceMemory.hpp"
 #include "VkBuffer.hpp"
+#include "VkDevice.hpp"
 #include "VkDeviceMemoryExternalBase.hpp"
 #include "VkImage.hpp"
 
@@ -360,7 +361,11 @@ VkResult DeviceMemory::exportFd(int *pFd) const
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 VkResult DeviceMemory::exportAndroidHardwareBuffer(struct AHardwareBuffer **pAhb) const
 {
-	return external->exportAndroidHardwareBuffer(pAhb);
+	if(external->getFlagBit() != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
+	{
+		return VK_ERROR_OUT_OF_HOST_MEMORY;
+	}
+	return static_cast<AHardwareBufferExternalMemory *>(external)->exportAndroidHardwareBuffer(pAhb);
 }
 
 VkResult DeviceMemory::GetAndroidHardwareBufferProperties(VkDevice &ahbDevice, const struct AHardwareBuffer *buffer, VkAndroidHardwareBufferPropertiesANDROID *pProperties)

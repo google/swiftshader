@@ -45,18 +45,6 @@ public:
 	}
 #endif
 
-#if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
-	virtual VkResult exportAndroidHardwareBuffer(struct AHardwareBuffer **pAhb) const
-	{
-		return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-	}
-
-	virtual bool isAndroidHardwareBuffer()
-	{
-		return false;
-	}
-#endif
-
 	// Some external device memories, such as Android hardware buffers, represent
 	// specific images with requirements.
 	virtual bool hasExternalImageProperties() const { return false; }
