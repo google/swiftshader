@@ -33,15 +33,60 @@ size_t alignUp(size_t val, size_t alignment)
 }
 }  // anonymous namespace
 
-class SwiftShaderVulkanTest : public testing::Test
+enum class LoadDriver
+{
+	PerSuite,
+	PerTest
+};
+
+template<typename TestBase, LoadDriver loadDriver>
+class SwiftShaderTest : public TestBase
+{
+protected:
+	static Driver driver;
+
+	static void SetUpTestSuite()
+	{
+		if(loadDriver == LoadDriver::PerSuite)
+		{
+			ASSERT_TRUE(driver.loadSwiftShader());
+		}
+	}
+
+	static void TearDownTestSuite()
+	{
+		if(loadDriver == LoadDriver::PerSuite)
+		{
+			driver.unload();
+		}
+	}
+
+	virtual void SetUp()
+	{
+		if(loadDriver == LoadDriver::PerTest)
+		{
+			ASSERT_TRUE(driver.loadSwiftShader());
+		}
+	}
+
+	virtual void TearDown()
+	{
+		if(loadDriver == LoadDriver::PerTest)
+		{
+			driver.unload();
+		}
+	}
+};
+
+template<typename TestBase, LoadDriver loadDriver>
+Driver SwiftShaderTest<TestBase, loadDriver>::driver;
+
+class SwiftShaderVulkanTest : public SwiftShaderTest<testing::Test, LoadDriver::PerTest>
 {
 };
 
 TEST_F(SwiftShaderVulkanTest, ICD_Check)
 {
-	Driver driver;
-	ASSERT_TRUE(driver.loadSwiftShader());
-
 	auto createInstance = driver.vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkCreateInstance");
 	EXPECT_NE(createInstance, nullptr);
 
@@ -62,9 +107,6 @@ TEST_F(SwiftShaderVulkanTest, ICD_Check)
 
 TEST_F(SwiftShaderVulkanTest, Version)
 {
-	Driver driver;
-	ASSERT_TRUE(driver.loadSwiftShader());
-
 	uint32_t apiVersion = 0;
 	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
 	EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
@@ -118,9 +160,6 @@ TEST_F(SwiftShaderVulkanTest, Version)
 /*
 TEST_F(SwiftShaderVulkanTest, UnsupportedDeviceExtension_DISABLED)
 {
-	Driver driver;
-	ASSERT_TRUE(driver.loadSwiftShader());
-
 	uint32_t apiVersion = 0;
 	VkResult result = driver.vkEnumerateInstanceVersion(&apiVersion);
 	EXPECT_EQ(apiVersion, (uint32_t)VK_API_VERSION_1_1);
@@ -257,7 +296,7 @@ struct ComputeParams
 
 // Base class for compute tests that read from an input buffer and write to an
 // output buffer of same length.
-class SwiftShaderVulkanBufferToBufferComputeTest : public testing::TestWithParam<ComputeParams>
+class SwiftShaderVulkanBufferToBufferComputeTest : public SwiftShaderTest<testing::TestWithParam<ComputeParams>, LoadDriver::PerSuite>
 {
 public:
 	void test(const std::string &shader,
@@ -271,9 +310,6 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     std::function<uint32_t(uint32_t idx)> expected)
 {
 	auto code = compileSpirv(shader.c_str());
-
-	Driver driver;
-	ASSERT_TRUE(driver.loadSwiftShader());
 
 	const VkInstanceCreateInfo createInfo = {
 		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,  // sType
