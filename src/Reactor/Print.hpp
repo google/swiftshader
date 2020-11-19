@@ -364,7 +364,7 @@ inline void Printv(const char *msg, std::initializer_list<PrintValue> vals)
 // Print is a wrapper over Printv that wraps the variadic arguments into an
 // initializer_list before calling Printv.
 template<typename... ARGS>
-void Print(const char *msg, const ARGS &... vals)
+void Print(const char *msg, const ARGS &...vals)
 {
 	Printv(msg, { vals... });
 }
@@ -372,7 +372,7 @@ void Print(const char *msg, const ARGS &... vals)
 // Print is a wrapper over Printv that wraps the variadic arguments into an
 // initializer_list before calling Printv.
 template<typename... ARGS>
-void Print(const char *function, const char *file, int line, const char *msg, const ARGS &... vals)
+void Print(const char *function, const char *file, int line, const char *msg, const ARGS &...vals)
 {
 	Printv(function, file, line, msg, { vals... });
 }

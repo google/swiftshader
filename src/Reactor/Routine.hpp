@@ -55,7 +55,7 @@ public:
 	}
 
 	template<typename... Args>
-	Return operator()(Args &&... args) const
+	Return operator()(Args &&...args) const
 	{
 		return function(std::forward<Args>(args)...);
 	}

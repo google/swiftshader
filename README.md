@@ -67,7 +67,7 @@ Changes are uploaded to Gerrit by executing:
 
 When ready, [add](https://gerrit-review.googlesource.com/Documentation/intro-user.html#adding-reviewers) a project [owner](OWNERS) as a reviewer on your change.
 
-Some tests will automatically be run against the change. Notably, [presubmit.sh](tests/presubmit.sh) verifies the change has been formatted using [clang-format 10.0](tests/kokoro/gcp_ubuntu/check_style.sh). Most IDEs come with clang-format support, but may require downgrading to [clang-format version 10.0](https://github.com/llvm/llvm-project/releases/tag/llvmorg-10.0.0).
+Some tests will automatically be run against the change. Notably, [presubmit.sh](tests/presubmit.sh) verifies the change has been formatted using [clang-format 11.0.1](tests/kokoro/gcp_ubuntu/check_style.sh). Most IDEs come with clang-format support, but may require upgrading/downgrading to the [clang-format version 11.0.0](https://github.com/llvm/llvm-project/releases/tag/llvmorg-11.0.0) *release* version (notably Chromium's buildtools has a clang-format binary which can be an in-between revision which produces different formatting results).
 
 Testing
 -------
