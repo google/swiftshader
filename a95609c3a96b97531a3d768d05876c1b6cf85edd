@@ -16,6 +16,24 @@
       "message": "Cool, seems to pass all relevant tests.\nJust curious, is there anything we need to do when types aren\u0027t equal, according to the spec (or are we already doing everything we should be doing correctly)?",
       "revId": "a95609c3a96b97531a3d768d05876c1b6cf85edd",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "37910a5f_d2a57686",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-19T16:04:51Z",
+      "side": 1,
+      "message": "From what I can tell, our implementation of OpCopyObject already does what OpCopyLogical asks for, as I don\u0027t see any type equality checking between the destination and the source. OpCopyObject and OpCopyLogical are nearly identical instructions, but with different semantics about what\u0027s allowed to be copied.",
+      "parentUuid": "1344cc3c_5c4be7f7",
+      "revId": "a95609c3a96b97531a3d768d05876c1b6cf85edd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
