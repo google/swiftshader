@@ -13,41 +13,46 @@
 # limitations under the License.
 
 import("//testing/test.gni")
+import("../../src/Reactor/reactor.gni")
 
-test("swiftshader_reactor_llvm_unittests") {
-  deps = [
-    "//base",
-    "//base/test:test_support",
-    "//testing/gmock",
-    "//testing/gtest",
-    "//third_party/swiftshader/src/Reactor:swiftshader_llvm_reactor",
-  ]
+if (supports_llvm) {
+  test("swiftshader_reactor_llvm_unittests") {
+    deps = [
+      "//base",
+      "//base/test:test_support",
+      "//testing/gmock",
+      "//testing/gtest",
+      "//third_party/swiftshader/src/Reactor:swiftshader_llvm_reactor",
+    ]
 
-  sources = [
-    "//gpu/swiftshader_tests_main.cc",
-    "ReactorUnitTests.cpp",
-  ]
+    sources = [
+      "//gpu/swiftshader_tests_main.cc",
+      "ReactorUnitTests.cpp",
+    ]
 
-  include_dirs = [
-    "../../src/Reactor"
-  ]
+    include_dirs = [
+      "../../src/Reactor"
+    ]
+  }
 }
 
-test("swiftshader_reactor_subzero_unittests") {
-  deps = [
-    "//base",
-    "//base/test:test_support",
-    "//testing/gmock",
-    "//testing/gtest",
-    "//third_party/swiftshader/src/Reactor:swiftshader_subzero_reactor",
-  ]
+if (supports_subzero) {
+  test("swiftshader_reactor_subzero_unittests") {
+    deps = [
+      "//base",
+      "//base/test:test_support",
+      "//testing/gmock",
+      "//testing/gtest",
+      "//third_party/swiftshader/src/Reactor:swiftshader_subzero_reactor",
+    ]
 
-  sources = [
-    "//gpu/swiftshader_tests_main.cc",
-    "ReactorUnitTests.cpp",
-  ]
+    sources = [
+      "//gpu/swiftshader_tests_main.cc",
+      "ReactorUnitTests.cpp",
+    ]
 
-  include_dirs = [
-    "../../src/Reactor"
-  ]
+    include_dirs = [
+      "../../src/Reactor"
+    ]
+  }
 }
