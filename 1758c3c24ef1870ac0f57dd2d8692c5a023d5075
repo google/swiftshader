@@ -16,6 +16,24 @@
       "message": "Fix confirmed",
       "revId": "1758c3c24ef1870ac0f57dd2d8692c5a023d5075",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "82a9ddc4_d0a548b6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-20T18:21:17Z",
+      "side": 1,
+      "message": "Awesome, thanks Ben!",
+      "parentUuid": "be20dc2e_acaf5d0f",
+      "revId": "1758c3c24ef1870ac0f57dd2d8692c5a023d5075",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
