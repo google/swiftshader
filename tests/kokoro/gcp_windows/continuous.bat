@@ -19,7 +19,7 @@ REM choco upgrade cmake -y --limit-output --no-progress
 cmake --version
 
 cmake .. ^
-    -G "Visual Studio 15 2017 Win64" ^
+    -G "%CMAKE_GENERATOR_TYPE%" ^
     -Thost=x64 ^
     "-DCMAKE_BUILD_TYPE=%BUILD_TYPE%" ^
     "-DREACTOR_BACKEND=%REACTOR_BACKEND%" ^
