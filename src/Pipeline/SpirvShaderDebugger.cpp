@@ -146,6 +146,21 @@ std::shared_ptr<vk::dbg::Value> makeDbgValue(const sw::vec<T, N> &vec)
 	});
 }
 
+// NullptrValue is an implementation of vk::dbg::Value that simply displays
+// "<null>" for the given type.
+class NullptrValue : public vk::dbg::Value
+{
+public:
+	NullptrValue(const std::string &ty)
+	    : ty(ty)
+	{}
+	std::string type() override { return ty; }
+	std::string get(const vk::dbg::FormatFlags &) { return "<null>"; }
+
+private:
+	std::string ty;
+};
+
 // store() emits a store instruction to copy val into ptr.
 template<typename T>
 void store(const rr::RValue<rr::Pointer<rr::Byte>> &ptr, const rr::RValue<T> &val)
@@ -544,6 +559,8 @@ struct BasicType : ObjectImpl<BasicType, Type, Object::Kind::BasicType>
 
 	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
+		if(ptr == nullptr) { return std::make_shared<NullptrValue>(name()); }
+
 		switch(encoding)
 		{
 			case OpenCLDebugInfo100Address:
@@ -593,6 +610,8 @@ struct ArrayType : ObjectImpl<ArrayType, Type, Object::Kind::ArrayType>
 
 	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
+		if(ptr == nullptr) { return std::make_shared<NullptrValue>(name()); }
+
 		auto members = std::make_shared<vk::dbg::VariableContainer>();
 
 		auto addr = static_cast<uint8_t *>(ptr);
@@ -625,6 +644,8 @@ struct VectorType : ObjectImpl<VectorType, Type, Object::Kind::VectorType>
 
 	std::shared_ptr<vk::dbg::Value> value(void *ptr, bool interleaved) const override
 	{
+		if(ptr == nullptr) { return std::make_shared<NullptrValue>(name()); }
+
 		const auto elSize = base->sizeInBytes();
 		auto members = std::make_shared<vk::dbg::VariableContainer>();
 		for(uint32_t i = 0; i < components; i++)
@@ -1057,8 +1078,8 @@ struct SpirvShader::Impl::Debugger : public vk::dbg::ClientEventListener
 		void create(const SpirvShader *, const EmitState *, Object::ID);
 
 		// get() returns a Memory pointing to the shadow memory for the object
-		// with the given id for the given SIMD lane.
-		Memory get(const State *, Object::ID, int lane) const;
+		// with the given id.
+		Memory get(const State *, Object::ID) const;
 
 		std::unordered_map<Object::ID, Entry> entries;
 		uint32_t size = 0;  // Total size of the shadow memory in bytes.
@@ -1965,7 +1986,7 @@ void SpirvShader::Impl::Debugger::Shadow::create(const SpirvShader *shader, cons
 }
 
 SpirvShader::Impl::Debugger::Shadow::Memory
-SpirvShader::Impl::Debugger::Shadow::get(const State *state, Object::ID objId, int lane) const
+SpirvShader::Impl::Debugger::Shadow::get(const State *state, Object::ID objId) const
 {
 	auto entryIt = entries.find(objId);
 	ASSERT_MSG(entryIt != entries.end(), "Missing shadow entry for object %%%d (%s)",
@@ -2041,7 +2062,7 @@ void sw::SpirvShader::Impl::Debugger::LocalVariableValue::updateValue()
 		ASSERT(activeValue->local == shared->variable);  // If this isn't true, then something is very wonky.
 
 		// Update the value.
-		auto ptr = shared->state->debugger->shadow.get(shared->state, activeValue->value, shared->lane);
+		auto ptr = shared->state->debugger->shadow.get(shared->state, activeValue->value);
 		for(auto op : activeValue->expression->operations)
 		{
 			switch(op->opcode)
@@ -2338,7 +2359,7 @@ SpirvShader::Impl::Debugger::State::Data::getOrCreateLocals(State *state, debug:
 					}
 					case debug::LocalVariable::Definition::Declaration:
 					{
-						auto data = state->debugger->shadow.get(state, var->declaration->variable, lane);
+						auto data = state->debugger->shadow.get(state, var->declaration->variable);
 						vc->put(name, var->type->value(data.dref(lane), true));
 						break;
 					}
@@ -2403,7 +2424,7 @@ void SpirvShader::Impl::Debugger::State::Data::buildGlobals(State *state)
 			{
 				if(var->variable != 0)
 				{
-					auto data = state->debugger->shadow.get(state, var->variable, lane);
+					auto data = state->debugger->shadow.get(state, var->variable);
 					vc->put(var->name, var->type->value(data.dref(lane), true));
 				}
 			}
@@ -2475,7 +2496,7 @@ SpirvShader::Impl::Debugger::State::Data::buildSpirvVariables(State *state, int 
 			auto &obj = debugger->shader->getObject(id);
 			auto &objTy = debugger->shader->getType(obj.typeId());
 			auto name = "%" + std::to_string(id.value());
-			auto memory = debugger->shadow.get(state, id, lane);
+			auto memory = debugger->shadow.get(state, id);
 			switch(obj.kind)
 			{
 				case Object::Kind::Intermediate:
