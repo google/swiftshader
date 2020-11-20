@@ -63,7 +63,7 @@ class Thread {
     // Affinity for the given thread by id.
     class Policy {
      public:
-      virtual ~Policy(){};
+      virtual ~Policy() {}
 
       // anyOf() returns a Policy that returns an Affinity for a number of
       // available cores in affinity.
