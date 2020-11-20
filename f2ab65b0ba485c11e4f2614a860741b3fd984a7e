@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d445124e_59780f46",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-20T19:00:15Z",
+      "side": 1,
+      "message": "The SystemUnitTests are failing on Chromium: https://chromium-review.googlesource.com/c/chromium/src/+/2552568\nWe do run those on Kokoro...",
+      "revId": "f2ab65b0ba485c11e4f2614a860741b3fd984a7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
