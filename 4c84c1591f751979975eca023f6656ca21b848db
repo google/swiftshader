@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9793d625_08f4493e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-20T20:45:16Z",
+      "side": 1,
+      "message": "Once the last Kokoro run passes, we\u0027ll know at least that passing in the CMAKE_GENERATOR_TYPE works for the Win64 builds. But to test the Win32 ones, we\u0027ll need this to land and have copybara do its thing.",
+      "revId": "4c84c1591f751979975eca023f6656ca21b848db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
