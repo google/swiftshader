@@ -43,11 +43,11 @@ class PipelineLayout;
 
 namespace sw {
 
+class CountedEvent;
 struct DrawCall;
 class PixelShader;
 class VertexShader;
 struct Task;
-class TaskEvents;
 class Resource;
 struct Constants;
 
@@ -172,7 +172,7 @@ struct DrawCall
 	vk::ImageView *stencilBuffer;
 	vk::DescriptorSet::Array descriptorSetObjects;
 	const vk::PipelineLayout *pipelineLayout;
-	TaskEvents *events;
+	sw::CountedEvent *events;
 
 	vk::Query *occlusionQuery;
 
@@ -210,7 +210,7 @@ public:
 	bool hasOcclusionQuery() const { return occlusionQuery != nullptr; }
 
 	void draw(const sw::Context *context, VkIndexType indexType, unsigned int count, int baseVertex,
-	          TaskEvents *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
+	          CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
 	          PushConstantStorage const &pushConstants, bool update = true);
 
 	// Viewport & Clipper

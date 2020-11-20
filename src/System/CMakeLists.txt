@@ -68,6 +68,11 @@ target_compile_options(vk_system
         ${ROOT_PROJECT_COMPILE_OPTIONS}
 )
 
+target_link_libraries(vk_system
+    PUBLIC
+        marl
+)
+
 target_link_options(vk_system
     PUBLIC
         ${SWIFTSHADER_LINK_FLAGS}

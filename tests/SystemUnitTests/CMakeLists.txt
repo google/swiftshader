@@ -26,6 +26,7 @@ set(SYSTEM_UNIT_TESTS_SRC_FILES
     LRUCacheTests.cpp
     main.cpp
     unittests.cpp
+    SynchronizationTests.cpp
 )
 
 add_executable(system-unittests

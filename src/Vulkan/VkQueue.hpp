@@ -65,7 +65,7 @@ private:
 	{
 		uint32_t submitCount = 0;
 		VkSubmitInfo *pSubmits = nullptr;
-		sw::TaskEvents *events = nullptr;
+		std::shared_ptr<sw::CountedEvent> events;
 
 		enum Type
 		{

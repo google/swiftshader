@@ -181,7 +181,7 @@ void Renderer::operator delete(void *mem)
 }
 
 void Renderer::draw(const sw::Context *context, VkIndexType indexType, unsigned int count, int baseVertex,
-                    TaskEvents *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
+                    CountedEvent *events, int instanceID, int viewID, void *indexBuffer, const VkExtent3D &framebufferExtent,
                     PushConstantStorage const &pushConstants, bool update)
 {
 	if(count == 0) { return; }
@@ -421,7 +421,7 @@ void DrawCall::setup()
 
 	if(events)
 	{
-		events->start();
+		events->add();
 	}
 }
 
@@ -429,7 +429,7 @@ void DrawCall::teardown()
 {
 	if(events)
 	{
-		events->finish();
+		events->done();
 		events = nullptr;
 	}
 

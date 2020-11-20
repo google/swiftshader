@@ -246,7 +246,7 @@ VkResult Device::waitForFences(uint32_t fenceCount, const VkFence *pFences, VkBo
 		marl::containers::vector<marl::Event, 8> events;
 		for(uint32_t i = 0; i < fenceCount; i++)
 		{
-			events.push_back(Cast(pFences[i])->getEvent());
+			events.push_back(Cast(pFences[i])->getCountedEvent()->event());
 		}
 
 		auto any = marl::Event::any(events.begin(), events.end());

@@ -21,12 +21,14 @@ test("swiftshader_system_unittests") {
     "//testing/gmock",
     "//testing/gtest",
     "../../src/System",
+    "../../third_party/marl:Marl",
   ]
 
   sources = [
     "//gpu/swiftshader_tests_main.cc",
     "LRUCacheTests.cpp",
     "unittests.cpp",
+    "SynchronizationTests.cpp",
   ]
 
   include_dirs = [

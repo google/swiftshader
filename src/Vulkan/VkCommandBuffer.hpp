@@ -19,6 +19,7 @@
 #include "VkDescriptorSet.hpp"
 #include "VkObject.hpp"
 #include "Device/Context.hpp"
+#include "System/Synchronization.hpp"
 
 #include <memory>
 #include <vector>
@@ -27,7 +28,6 @@ namespace sw {
 
 class Context;
 class Renderer;
-class TaskEvents;
 
 }  // namespace sw
 
@@ -150,7 +150,7 @@ public:
 		};
 
 		sw::Renderer *renderer = nullptr;
-		sw::TaskEvents *events = nullptr;
+		sw::CountedEvent *events = nullptr;
 		RenderPass *renderPass = nullptr;
 		Framebuffer *renderPassFramebuffer = nullptr;
 		std::array<PipelineState, vk::VK_PIPELINE_BIND_POINT_RANGE_SIZE> pipelineState;

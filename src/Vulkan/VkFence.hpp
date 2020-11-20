@@ -18,17 +18,13 @@
 #include "VkObject.hpp"
 #include "System/Synchronization.hpp"
 
-#include "marl/containers.h"
-#include "marl/event.h"
-#include "marl/waitgroup.h"
-
 namespace vk {
 
-class Fence : public Object<Fence, VkFence>, public sw::TaskEvents
+class Fence : public Object<Fence, VkFence>
 {
 public:
 	Fence(const VkFenceCreateInfo *pCreateInfo, void *mem)
-	    : event(marl::Event::Mode::Manual, (pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) != 0)
+	    : counted_event(std::make_shared<sw::CountedEvent>((pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) != 0))
 	{}
 
 	static size_t ComputeRequiredAllocationSize(const VkFenceCreateInfo *pCreateInfo)
@@ -38,49 +34,38 @@ public:
 
 	void reset()
 	{
-		event.clear();
+		counted_event->reset();
+	}
+
+	void complete()
+	{
+		counted_event->add();
+		counted_event->done();
 	}
 
 	VkResult getStatus()
 	{
-		return event.isSignalled() ? VK_SUCCESS : VK_NOT_READY;
+		return counted_event->signalled() ? VK_SUCCESS : VK_NOT_READY;
 	}
 
 	VkResult wait()
 	{
-		event.wait();
+		counted_event->wait();
 		return VK_SUCCESS;
 	}
 
 	template<class CLOCK, class DURATION>
 	VkResult wait(const std::chrono::time_point<CLOCK, DURATION> &timeout)
 	{
-		return event.wait_until(timeout) ? VK_SUCCESS : VK_TIMEOUT;
+		return counted_event->wait(timeout) ? VK_SUCCESS : VK_TIMEOUT;
 	}
 
-	const marl::Event &getEvent() const { return event; }
-
-	// TaskEvents compliance
-	void start() override
-	{
-		ASSERT(!event.isSignalled());
-		wg.add();
-	}
-
-	void finish() override
-	{
-		ASSERT(!event.isSignalled());
-		if(wg.done())
-		{
-			event.signal();
-		}
-	}
+	const std::shared_ptr<sw::CountedEvent> &getCountedEvent() const { return counted_event; };
 
 private:
 	Fence(const Fence &) = delete;
 
-	marl::WaitGroup wg;
-	const marl::Event event;
+	const std::shared_ptr<sw::CountedEvent> counted_event;
 };
 
 static inline Fence *Cast(VkFence object)

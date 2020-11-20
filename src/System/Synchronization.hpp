@@ -22,103 +22,85 @@
 #ifndef sw_Synchronization_hpp
 #define sw_Synchronization_hpp
 
+#include "Debug.hpp"
+
 #include <assert.h>
 #include <chrono>
 #include <condition_variable>
 #include <queue>
 
+#include "marl/event.h"
 #include "marl/mutex.h"
+#include "marl/waitgroup.h"
 
 namespace sw {
 
-// TaskEvents is an interface for notifying when tasks begin and end.
-// Tasks can be nested and/or overlapping.
-// TaskEvents is used for task queue synchronization.
-class TaskEvents
+// CountedEvent is an event that is signalled when the internal counter is
+// decremented and reaches zero.
+// The counter is incremented with calls to add() and decremented with calls to
+// done().
+class CountedEvent
 {
 public:
-	// start() is called before a task begins.
-	virtual void start() = 0;
-	// finish() is called after a task ends. finish() must only be called after
-	// a corresponding call to start().
-	virtual void finish() = 0;
-	// complete() is a helper for calling start() followed by finish().
-	inline void complete()
+	// Constructs the CountedEvent with the initial signalled state set to the
+	// provided value.
+	CountedEvent(bool signalled = false)
+	    : ev(marl::Event::Mode::Manual, signalled)
+	{}
+
+	// add() increments the internal counter.
+	// add() must not be called when the event is already signalled.
+	void add() const
 	{
-		start();
-		finish();
+		ASSERT(!ev.isSignalled());
+		wg.add();
 	}
 
-protected:
-	virtual ~TaskEvents() = default;
-};
-
-// WaitGroup is a synchronization primitive that allows you to wait for
-// collection of asynchronous tasks to finish executing.
-// Call add() before each task begins, and then call done() when after each task
-// is finished.
-// At the same time, wait() can be used to block until all tasks have finished.
-// WaitGroup takes its name after Golang's sync.WaitGroup.
-class WaitGroup : public TaskEvents
-{
-public:
-	// add() begins a new task.
-	void add()
+	// done() decrements the internal counter, signalling the event if the new
+	// counter value is zero.
+	// done() must not be called when the event is already signalled.
+	void done() const
 	{
-		marl::lock lock(mutex);
-		++count_;
-	}
-
-	// done() is called when a task of the WaitGroup has been completed.
-	// Returns true if there are no more tasks currently running in the
-	// WaitGroup.
-	bool done()
-	{
-		marl::lock lock(mutex);
-		assert(count_ > 0);
-		--count_;
-		if(count_ == 0)
+		ASSERT(!ev.isSignalled());
+		if(wg.done())
 		{
-			condition.notify_all();
+			ev.signal();
 		}
-		return count_ == 0;
 	}
 
-	// wait() blocks until all the tasks have been finished.
-	void wait()
+	// reset() clears the signal state.
+	// done() must not be called when the internal counter is non-zero.
+	void reset() const
 	{
-		marl::lock lock(mutex);
-		lock.wait(condition, [this]() REQUIRES(mutex) { return count_ == 0; });
+		ev.clear();
 	}
 
-	// wait() blocks until all the tasks have been finished or the timeout
-	// has been reached, returning true if all tasks have been completed, or
-	// false if the timeout has been reached.
+	// signalled() returns the current signal state.
+	bool signalled() const
+	{
+		return ev.isSignalled();
+	}
+
+	// wait() waits until the event is signalled.
+	void wait() const
+	{
+		ev.wait();
+	}
+
+	// wait() waits until the event is signalled or the timeout is reached.
+	// If the timeout was reached, then wait() return false.
 	template<class CLOCK, class DURATION>
-	bool wait(const std::chrono::time_point<CLOCK, DURATION> &timeout)
+	bool wait(const std::chrono::time_point<CLOCK, DURATION> &timeout) const
 	{
-		marl::lock lock(mutex);
-		return condition.wait_until(lock, timeout, [this]() REQUIRES(mutex) { return count_ == 0; });
+		return ev.wait_until(timeout);
 	}
 
-	// count() returns the number of times add() has been called without a call
-	// to done().
-	// Note: No lock is held after count() returns, so the count may immediately
-	// change after returning.
-	int32_t count()
-	{
-		marl::lock lock(mutex);
-		return count_;
-	}
-
-	// TaskEvents compliance
-	void start() override { add(); }
-	void finish() override { done(); }
+	// event() returns the internal marl event.
+	const marl::Event &event() { return ev; }
 
 private:
-	marl::mutex mutex;
-	int32_t count_ GUARDED_BY(mutex) = 0;
-	std::condition_variable condition;
+	const marl::WaitGroup wg;
+	const marl::Event ev;
 };
 
 // Chan is a thread-safe FIFO queue of type T.
