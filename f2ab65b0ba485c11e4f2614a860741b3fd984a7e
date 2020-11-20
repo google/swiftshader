@@ -34,6 +34,24 @@
       "parentUuid": "d445124e_59780f46",
       "revId": "f2ab65b0ba485c11e4f2614a860741b3fd984a7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d0f2d523_0eff3fe4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-20T19:20:03Z",
+      "side": 1,
+      "message": "Fixed in https://swiftshader-review.googlesource.com/c/SwiftShader/+/50669",
+      "parentUuid": "457662e6_c6b2dff5",
+      "revId": "f2ab65b0ba485c11e4f2614a860741b3fd984a7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
