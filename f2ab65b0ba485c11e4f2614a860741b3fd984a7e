@@ -88,6 +88,24 @@
       "parentUuid": "d29eb6b2_c0fbacfc",
       "revId": "f2ab65b0ba485c11e4f2614a860741b3fd984a7e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "377270a3_86c4d04a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-11-20T19:22:33Z",
+      "side": 1,
+      "message": "As to why now, maybe they upgraded the compiler or adjusted warning flags for Chromium builds. *shrug*",
+      "parentUuid": "72b22259_853b5652",
+      "revId": "f2ab65b0ba485c11e4f2614a860741b3fd984a7e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
