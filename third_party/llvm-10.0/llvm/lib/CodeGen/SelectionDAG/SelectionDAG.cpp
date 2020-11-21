@@ -2278,9 +2278,12 @@ bool SelectionDAG::MaskedValueIsAllOnes(SDValue V, const APInt &Mask,
 /// isSplatValue - Return true if the vector V has the same value
 /// across all DemandedElts.
 bool SelectionDAG::isSplatValue(SDValue V, const APInt &DemandedElts,
-                                APInt &UndefElts) {
+                                APInt &UndefElts, unsigned Depth) {
   if (!DemandedElts)
     return false; // No demanded elts, better to assume we don't know anything.
+
+  if (Depth >= MaxRecursionDepth)
+      return false;  // Limit search depth.
 
   EVT VT = V.getValueType();
   assert(VT.isVector() && "Vector type expected");
@@ -2334,7 +2337,7 @@ bool SelectionDAG::isSplatValue(SDValue V, const APInt &DemandedElts,
       uint64_t Idx = SubIdx->getZExtValue();
       APInt UndefSrcElts;
       APInt DemandedSrc = DemandedElts.zextOrSelf(NumSrcElts).shl(Idx);
-      if (isSplatValue(Src, DemandedSrc, UndefSrcElts)) {
+      if (isSplatValue(Src, DemandedSrc, UndefSrcElts, Depth + 1)) {
         UndefElts = UndefSrcElts.extractBits(NumElts, Idx);
         return true;
       }
@@ -2347,8 +2350,8 @@ bool SelectionDAG::isSplatValue(SDValue V, const APInt &DemandedElts,
     APInt UndefLHS, UndefRHS;
     SDValue LHS = V.getOperand(0);
     SDValue RHS = V.getOperand(1);
-    if (isSplatValue(LHS, DemandedElts, UndefLHS) &&
-        isSplatValue(RHS, DemandedElts, UndefRHS)) {
+    if (isSplatValue(LHS, DemandedElts, UndefLHS, Depth + 1) &&
+        isSplatValue(RHS, DemandedElts, UndefRHS, Depth + 1)) {
       UndefElts = UndefLHS | UndefRHS;
       return true;
     }
