@@ -1280,7 +1280,15 @@ TEST(ReactorUnitTests, LargeStack)
 		}
 	}
 
-	auto routine = function("one");
+	// LLVM takes very long to generate this routine when InstructionCombining
+	// and O2 optimizations are enabled. Disable for now.
+	// TODO(b/174031014): Remove this once we fix LLVM taking so long
+	auto cfg = Config::Edit{}
+	               .remove(Optimization::Pass::InstructionCombining)
+	               .set(Optimization::Level::None);
+
+	auto routine = function(cfg, "one");
+
 	std::array<int32_t, ArraySize> v;
 
 	// Run this in a thread, so that we get the default reserved stack size (8K on Win64).
