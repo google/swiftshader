@@ -452,6 +452,7 @@ class ExternalSymbolGenerator : public llvm::orc::JITDylib::DefinitionGenerator
 			functions.try_emplace("exp2f", reinterpret_cast<void *>(exp2f));
 			functions.try_emplace("log2f", reinterpret_cast<void *>(log2f));
 
+			functions.try_emplace("fmod", reinterpret_cast<void *>(static_cast<double (*)(double, double)>(fmod)));
 			functions.try_emplace("sin", reinterpret_cast<void *>(static_cast<double (*)(double)>(sin)));
 			functions.try_emplace("cos", reinterpret_cast<void *>(static_cast<double (*)(double)>(cos)));
 			functions.try_emplace("asin", reinterpret_cast<void *>(static_cast<double (*)(double)>(asin)));
