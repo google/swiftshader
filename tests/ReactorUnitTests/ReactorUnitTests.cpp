@@ -1258,7 +1258,6 @@ TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 // required pages. See https://docs.microsoft.com/en-us/windows/win32/devnotes/-win32-chkstk.
 TEST(ReactorUnitTests, LargeStack)
 {
-#if defined(_WIN32)
 	// An empirically large enough value to access outside the guard pages
 	constexpr int ArrayByteSize = 24 * 1024;
 	constexpr int ArraySize = ArrayByteSize / sizeof(int32_t);
@@ -1301,7 +1300,6 @@ TEST(ReactorUnitTests, LargeStack)
 	{
 		EXPECT_EQ(v[i], i);
 	}
-#endif
 }
 
 TEST(ReactorUnitTests, Call)
