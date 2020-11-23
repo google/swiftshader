@@ -163,7 +163,7 @@ set_property(CACHE SWIFTSHADER_LLVM_VERSION PROPERTY STRINGS "10.0")
 
 # If defined, overrides the default optimization level of the current reactor backend.
 # Set to one of the rr::Optimization::Level enum values.
-set(REACTOR_DEFAULT_OPT_LEVEL "Default" CACHE STRING "Reactor default optimization level")
+set(REACTOR_DEFAULT_OPT_LEVEL "" CACHE STRING "Reactor default optimization level")
 set_property(CACHE REACTOR_DEFAULT_OPT_LEVEL PROPERTY STRINGS "None" "Less" "Default" "Aggressive")
 
 # Enable instrumentation of Reactor routines for MemorySanitizer builds (LLVM backend).
