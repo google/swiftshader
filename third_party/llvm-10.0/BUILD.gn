@@ -129,7 +129,12 @@ swiftshader_llvm_source_set("swiftshader_llvm") {
   # builds require that all declared classes have a definition even if they're
   # not used.
   if (is_ubsan_vptr) {
-    sources = [ "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp" ]
+    sources = [
+      "llvm/lib/MC/MCWasmObjectTargetWriter.cpp",
+      "llvm/lib/MC/MCXCOFFObjectTargetWriter.cpp",
+      "llvm/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp",
+      "llvm/lib/Target/TargetIntrinsicInfo.cpp",
+    ]
   }
 
   deps = [
