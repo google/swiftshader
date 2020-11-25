@@ -153,7 +153,6 @@ void TransformationAddDeadBlock::Apply(
                                     : successor_block_id}}});
 
   // Add the new block to the enclosing function.
-  new_block->SetParent(enclosing_function);
   enclosing_function->InsertBasicBlockAfter(std::move(new_block),
                                             existing_block);
 

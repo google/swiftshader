@@ -2135,6 +2135,62 @@ TEST(TransformationFlattenConditionalBranchTest, ContainsContinueBlockTest) {
                    .IsApplicable(context.get(), transformation_context));
 }
 
+TEST(TransformationFlattenConditionalBranchTest, ContainsSynonymCreation) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+               OpName %4 "main"
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeBool
+          %7 = OpConstantFalse %6
+          %8 = OpTypeInt 32 0
+          %9 = OpTypePointer Function %8
+         %10 = OpConstant %8 42
+         %80 = OpConstant %8 0
+          %4 = OpFunction %2 None %3
+         %11 = OpLabel
+         %20 = OpVariable %9 Function
+               OpBranch %12
+         %12 = OpLabel
+               OpSelectionMerge %31 None
+               OpBranchConditional %7 %30 %31
+         %30 = OpLabel
+               OpStore %20 %10
+         %21 = OpLoad %8 %20
+               OpBranch %31
+         %31 = OpLabel
+               OpBranch %14
+         %14 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+
+  transformation_context.GetFactManager()->AddFactDataSynonym(
+      MakeDataDescriptor(10, {}), MakeDataDescriptor(21, {}));
+  ASSERT_FALSE(TransformationFlattenConditionalBranch(
+                   12, true, 0, 0, 0,
+                   {MakeSideEffectWrapperInfo(
+                        MakeInstructionDescriptor(30, SpvOpStore, 0), 100, 101),
+                    MakeSideEffectWrapperInfo(
+                        MakeInstructionDescriptor(21, SpvOpLoad, 0), 102, 103,
+                        104, 105, 106, 80)})
+                   .IsApplicable(context.get(), transformation_context));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

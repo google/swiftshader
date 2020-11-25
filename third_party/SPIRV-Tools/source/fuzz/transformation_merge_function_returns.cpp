@@ -579,7 +579,6 @@ void TransformationMergeFunctionReturns::Apply(
   }
 
   // Insert the new return block at the end of the function.
-  outer_return_block->SetParent(function);
   function->AddBasicBlock(std::move(outer_return_block));
 
   // All analyses must be invalidated because the structure of the module was

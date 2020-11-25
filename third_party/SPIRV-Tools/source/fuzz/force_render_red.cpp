@@ -212,7 +212,6 @@ bool ForceRenderRed(
     auto new_exit_block = MakeUnique<opt::BasicBlock>(std::move(label));
     new_exit_block->AddInstruction(MakeUnique<opt::Instruction>(
         ir_context.get(), SpvOpReturn, 0, 0, opt::Instruction::OperandList()));
-    new_exit_block->SetParent(entry_point_function);
     entry_point_function->AddBasicBlock(std::move(new_exit_block));
   }
 
