@@ -16,6 +16,24 @@
       "message": "PTAL, is there a presubmit/CQ for this repo?",
       "revId": "05abd04e5491020d2accdf4aef5b21ef625a14f0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c792536a_772dabe7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-25T21:38:57Z",
+      "side": 1,
+      "message": "Yes, but you weren\u0027t added to the tryjob access group yet. Done.\n\nThe tryjobs with \"swiftshader\" in their name are the most important ones for us. I\u0027ve added them.\n\nThanks for updating SPIRV-Tools/Headers for us!",
+      "parentUuid": "25954363_b44f5194",
+      "revId": "05abd04e5491020d2accdf4aef5b21ef625a14f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }

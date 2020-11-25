@@ -16,6 +16,23 @@
       "message": "The failure is due to there being no BUG: in the commit message, I have added one now.\n ",
       "revId": "eb14064f52e03de86be42f0cfb032188f5f50317",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d12bd1ed_14458e43",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-25T21:38:57Z",
+      "side": 1,
+      "message": "Looks good. Once the tryjobs return green, feel free to manually set Verified+1 and Submit. Thanks!",
+      "revId": "eb14064f52e03de86be42f0cfb032188f5f50317",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
