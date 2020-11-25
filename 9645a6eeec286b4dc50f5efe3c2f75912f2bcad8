@@ -16,6 +16,24 @@
       "message": "Sorry, I\u0027m unfamiliar with Swiftshader Gerrit, how do I submit this?",
       "revId": "9645a6eeec286b4dc50f5efe3c2f75912f2bcad8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "804dd35b_7987ecad",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-11-25T20:26:43Z",
+      "side": 1,
+      "message": "You have to set \"Verified\" to +1 and then Submit.\nTell me if you don\u0027t have permission.",
+      "parentUuid": "71386103_990a816e",
+      "revId": "9645a6eeec286b4dc50f5efe3c2f75912f2bcad8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
