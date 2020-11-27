@@ -621,6 +621,7 @@ auto &Unwrap(T &&v)
 // settings and no Reactor routine directly links against another.
 class JITRoutine : public rr::Routine
 {
+	std::string name;
 	llvm::orc::ExecutionSession session;
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
 	llvm::orc::IRCompileLayer compileLayer;
@@ -632,10 +633,12 @@ class JITRoutine : public rr::Routine
 public:
 	JITRoutine(
 	    std::unique_ptr<llvm::Module> module,
+	    const char *name,
 	    llvm::Function **funcs,
 	    size_t count,
 	    const rr::Config &config)
-	    : objectLayer(session, []() {
+	    : name(name)
+	    , objectLayer(session, []() {
 		    static MemoryMapper memoryMapper;
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
 	    })
@@ -771,10 +774,10 @@ void JITBuilder::optimize(const rr::Config &cfg)
 	passManager.run(*module);
 }
 
-std::shared_ptr<rr::Routine> JITBuilder::acquireRoutine(llvm::Function **funcs, size_t count, const rr::Config &cfg)
+std::shared_ptr<rr::Routine> JITBuilder::acquireRoutine(const char *name, llvm::Function **funcs, size_t count, const rr::Config &cfg)
 {
 	ASSERT(module);
-	return std::make_shared<JITRoutine>(std::move(module), funcs, count, cfg);
+	return std::make_shared<JITRoutine>(std::move(module), name, funcs, count, cfg);
 }
 
 }  // namespace rr

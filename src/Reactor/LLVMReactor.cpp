@@ -595,7 +595,7 @@ std::shared_ptr<Routine> Nucleus::acquireRoutine(const char *name, const Config:
 			jit->module->print(file, 0);
 		}
 
-		routine = jit->acquireRoutine(&jit->function, 1, cfg);
+		routine = jit->acquireRoutine(name, &jit->function, 1, cfg);
 	};
 
 #ifdef JIT_IN_SEPARATE_THREAD
@@ -4227,7 +4227,7 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 	funcs[Nucleus::CoroutineEntryAwait] = jit->coroutine.await;
 	funcs[Nucleus::CoroutineEntryDestroy] = jit->coroutine.destroy;
 
-	auto routine = jit->acquireRoutine(funcs, Nucleus::CoroutineEntryCount, cfg);
+	auto routine = jit->acquireRoutine(name, funcs, Nucleus::CoroutineEntryCount, cfg);
 
 	delete jit;
 	jit = nullptr;
