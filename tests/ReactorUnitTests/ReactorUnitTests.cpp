@@ -1907,6 +1907,7 @@ TEST(ReactorUnitTests, Coroutines_Fibonacci)
 			next = tmp;
 		}
 	}
+	function.finalize(testName().c_str());
 
 	auto coroutine = function();
 
@@ -1936,6 +1937,7 @@ TEST(ReactorUnitTests, Coroutines_Parameters)
 			Yield(data[i]);
 		}
 	}
+	function.finalize(testName().c_str());
 
 	uint8_t data[] = { 10, 20, 30 };
 	auto coroutine = function(&data[0], 3);
@@ -1976,6 +1978,7 @@ TEST(ReactorUnitTests, Coroutines_Vectors)
 		Int4 c{ 9, 10, 11, 12 };
 		Yield(rr::Extract(c, 1));
 	}
+	function.finalize(testName().c_str());
 
 	auto coroutine = function();
 
@@ -2008,6 +2011,7 @@ TEST(ReactorUnitTests, Coroutines_NoYield)
 			Int a;
 			a = 4;
 		}
+		function.finalize(testName().c_str());
 
 		auto coroutine = function();
 		int out;
@@ -2041,7 +2045,7 @@ TEST(ReactorUnitTests, Coroutines_Parallel)
 	}
 
 	// Must call on same thread that creates the coroutine
-	function.finalize();
+	function.finalize(testName().c_str());
 
 	std::vector<std::thread> threads;
 	const size_t numThreads = 100;
@@ -2847,6 +2851,7 @@ TEST(ReactorUnitTests, Multithreaded_Coroutine)
 					Yield(a);
 					Yield(b);
 				}
+				function.finalize((testName() + "_thread" + std::to_string(t) + "_loop" + std::to_string(l)).c_str());
 
 				auto coroutine = function(t, l);
 
