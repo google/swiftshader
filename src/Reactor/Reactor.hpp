@@ -2639,14 +2639,16 @@ public:
 
 	// Hide base implementations of operator()
 
-	RoutineType operator()(const char *name, ...)
+	template<typename... VarArgs>
+	RoutineType operator()(const char *name, VarArgs... varArgs)
 	{
-		return RoutineType(BaseType::operator()(name));
+		return RoutineType(BaseType::operator()(name, std::forward<VarArgs>(varArgs)...));
 	}
 
-	RoutineType operator()(const Config::Edit &cfg, const char *name, ...)
+	template<typename... VarArgs>
+	RoutineType operator()(const Config::Edit &cfg, const char *name, VarArgs... varArgs)
 	{
-		return RoutineType(BaseType::operator()(cfg, name));
+		return RoutineType(BaseType::operator()(cfg, name, std::forward<VarArgs>(varArgs)...));
 	}
 };
 
