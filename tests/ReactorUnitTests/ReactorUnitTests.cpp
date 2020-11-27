@@ -25,6 +25,12 @@
 
 using namespace rr;
 
+std::string testName()
+{
+	auto info = ::testing::UnitTest::GetInstance()->current_test_info();
+	return std::string{ info->test_suite_name() } + "_" + info->name();
+}
+
 int reference(int *p, int y)
 {
 	int x = p[-1];
@@ -63,7 +69,7 @@ TEST(ReactorUnitTests, Sample)
 		Return(sum);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int one[2] = { 1, 0 };
 	int result = routine(&one[1], 2);
@@ -91,7 +97,7 @@ TEST(ReactorUnitTests, Uninitialized)
 		Return(a + z + q + c);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	if(!__has_feature(memory_sanitizer) || !REACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION)
 	{
@@ -128,7 +134,7 @@ TEST(ReactorUnitTests, Unreachable)
 		z += a;
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int result = routine(16);
 	EXPECT_EQ(result, 20);
@@ -146,7 +152,7 @@ TEST(ReactorUnitTests, VariableAddress)
 		Return(a + z);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int result = routine(16);
 	EXPECT_EQ(result, 20);
@@ -168,7 +174,7 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int8_t in[16 * 5] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 		                  17, 18, 19, 20, 21, 22, 23, 24, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -216,7 +222,7 @@ TEST(ReactorUnitTests, VectorConstant)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int8_t out[16 * 4] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		                   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -253,7 +259,7 @@ TEST(ReactorUnitTests, Concatenate)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int8_t ref[16 * 5] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
 		                   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
@@ -287,7 +293,7 @@ TEST(ReactorUnitTests, Cast)
 		*Pointer<Byte4>(out + 16 * 1 + 8) = Byte4(As<Short4>(c));
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int out[2][4];
 
@@ -348,7 +354,7 @@ TEST(ReactorUnitTests, Swizzle4)
 		}
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	struct
 	{
@@ -439,7 +445,7 @@ TEST(ReactorUnitTests, Swizzle)
 		*Pointer<UShort8>(out + 16 * 2) = Swizzle(As<UShort8>(c), 0x76543210u);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int out[3][4];
 
@@ -516,7 +522,7 @@ TEST(ReactorUnitTests, Shuffle)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	struct
 	{
@@ -601,7 +607,7 @@ TEST(ReactorUnitTests, Branching)
 		Return(x);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int result = routine();
 
@@ -630,7 +636,7 @@ TEST(ReactorUnitTests, MinMax)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[10][4];
 
@@ -710,7 +716,7 @@ TEST(ReactorUnitTests, NotNeg)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[10][4];
 
@@ -780,7 +786,7 @@ TEST(ReactorUnitTests, FPtoUI)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[2][4];
 
@@ -816,7 +822,7 @@ TEST(ReactorUnitTests, VectorCompare)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[6][4];
 
@@ -903,7 +909,7 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[14][2];
 
@@ -972,7 +978,7 @@ TEST(ReactorUnitTests, Unpack)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int in[1][2];
 	unsigned int out[2][2];
@@ -1016,7 +1022,7 @@ TEST(ReactorUnitTests, Pack)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[6][2];
 
@@ -1075,7 +1081,7 @@ TEST(ReactorUnitTests, MulHigh)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[6][4];
 
@@ -1124,7 +1130,7 @@ TEST(ReactorUnitTests, MulAdd)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	unsigned int out[1][2];
 
@@ -1152,7 +1158,7 @@ TEST(ReactorUnitTests, PointersEqual)
 		}
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	int *a = reinterpret_cast<int *>(uintptr_t(0x0000000000000000));
 	int *b = reinterpret_cast<int *>(uintptr_t(0x00000000F0000000));
 	int *c = reinterpret_cast<int *>(uintptr_t(0xF000000000000000));
@@ -1178,7 +1184,7 @@ TEST(ReactorUnitTests, Args_2Mixed)
 		Return(Float(a) + b);
 	}
 
-	if(auto routine = function("one"))
+	if(auto routine = function(testName().c_str()))
 	{
 		float result = routine(1, 2.f);
 		EXPECT_EQ(result, 3.f);
@@ -1197,7 +1203,7 @@ TEST(ReactorUnitTests, Args_4Mixed)
 		Return(Float(a) + b + Float(c) + d);
 	}
 
-	if(auto routine = function("one"))
+	if(auto routine = function(testName().c_str()))
 	{
 		float result = routine(1, 2.f, 3, 4.f);
 		EXPECT_EQ(result, 10.f);
@@ -1217,7 +1223,7 @@ TEST(ReactorUnitTests, Args_5Mixed)
 		Return(Float(a) + b + Float(c) + d + Float(e));
 	}
 
-	if(auto routine = function("one"))
+	if(auto routine = function(testName().c_str()))
 	{
 		float result = routine(1, 2.f, 3, 4.f, 5);
 		EXPECT_EQ(result, 15.f);
@@ -1242,7 +1248,7 @@ TEST(ReactorUnitTests, Args_GreaterThan5Mixed)
 		Return(Float(a) + b + Float(c) + d + Float(e) + f + Float(g) + h + Float(i) + j);
 	}
 
-	if(auto routine = function("one"))
+	if(auto routine = function(testName().c_str()))
 	{
 		float result = routine(1, 2.f, 3, 4.f, 5, 6.f, 7, 8.f, 9, 10.f);
 		EXPECT_EQ(result, 55.f);
@@ -1286,7 +1292,7 @@ TEST(ReactorUnitTests, LargeStack)
 	               .remove(Optimization::Pass::InstructionCombining)
 	               .set(Optimization::Level::None);
 
-	auto routine = function(cfg, "one");
+	auto routine = function(cfg, testName().c_str());
 
 	std::array<int32_t, ArraySize> v;
 
@@ -1324,7 +1330,7 @@ TEST(ReactorUnitTests, Call)
 		Return(res);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	Class c;
 	int res = routine(&c);
@@ -1356,7 +1362,7 @@ TEST(ReactorUnitTests, CallMemberFunction)
 		Return(res);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int res = routine();
 	EXPECT_EQ(res, 30);
@@ -1386,7 +1392,7 @@ TEST(ReactorUnitTests, CallMemberFunctionIndirect)
 		Return(res);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	Class c;
 	int res = routine(&c);
@@ -1413,7 +1419,7 @@ TEST(ReactorUnitTests, CallImplicitCast)
 		Call(Class::Callback, c, s);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	Class c;
 	routine(&c, "hello world");
@@ -1441,7 +1447,7 @@ TEST(ReactorUnitTests, CallBoolReturnFunction)
 		Return(0);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	for(int i = 0; i < 10; ++i)
 	{
@@ -1466,7 +1472,7 @@ TEST(ReactorUnitTests, Call_Args4)
 			Return(res);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		int res = routine();
 		EXPECT_EQ(res, 1 + 2 + 3 + 4);
@@ -1490,7 +1496,7 @@ TEST(ReactorUnitTests, Call_Args5)
 			Return(res);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		int res = routine();
 		EXPECT_EQ(res, 1 + 2 + 3 + 4 + 5);
@@ -1514,7 +1520,7 @@ TEST(ReactorUnitTests, Call_ArgsMany)
 			Return(res);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		int res = routine();
 		EXPECT_EQ(res, 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
@@ -1542,7 +1548,7 @@ TEST(ReactorUnitTests, Call_ArgsMixed)
 			Return(res);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		int res = routine();
 		EXPECT_EQ(res, 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
@@ -1567,7 +1573,7 @@ TEST(ReactorUnitTests, Call_ArgsPointer)
 			Return(res);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		int res = routine();
 		EXPECT_EQ(res, 12345);
@@ -1585,7 +1591,7 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 			Int b = function.Arg<1>();
 			Return(a + Float(b));
 		}
-		return function("two");
+		return function("%s2", testName().c_str());
 	}();
 
 	struct Class
@@ -1606,7 +1612,7 @@ TEST(ReactorUnitTests, CallExternalCallRoutine)
 			Float result = Call(Class::Func, funcToCall, a, b);
 			Return(result);
 		}
-		return function("one");
+		return function(testName().c_str());
 	}();
 
 	float result = routine1((void *)routine2.getEntry(), 12.f, 13);
@@ -1664,7 +1670,7 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
 		Return();
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	assert(routine);
 
 	float input[64] = { 1.0f, 0.0f, 0.0f, 0.0f,
@@ -1731,7 +1737,7 @@ TYPED_TEST(CToReactorTCastTest, Casts)
 			Return(IfThenElse(same, Int(1), Int(0)));  // TODO: Ability to use Bools as return values.
 		}
 
-		routine = function("one");
+		routine = function(testName().c_str());
 
 		auto callable = (int (*)(CType))routine->getEntry();
 		CType in = {};
@@ -1794,7 +1800,7 @@ TYPED_TEST(GEPTest, PtrOffsets)
 			Return(&pointer[index]);
 		}
 
-		routine = function("one");
+		routine = function(testName().c_str());
 
 		auto callable = (CType * (*)(CType *, unsigned int)) routine->getEntry();
 
@@ -1871,7 +1877,7 @@ TEST(ReactorUnitTests, Fibonacci)
 		Return(current);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	for(size_t i = 0; i < fibonacci.size(); i++)
 	{
@@ -2086,7 +2092,7 @@ struct IntrinsicTest_Float : public testing::TestWithParam<IntrinsicTestParams_F
 			Return(GetParam().testFunc((Float(function.Arg<0>()))));
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		for(auto &&v : GetParam().testValues)
 		{
@@ -2165,7 +2171,7 @@ struct IntrinsicTest_Float4 : public testing::TestWithParam<IntrinsicTestParams_
 			Return();
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		for(auto &&v : GetParam().testValues)
 		{
@@ -2192,7 +2198,7 @@ struct IntrinsicTest_Float4_Float4 : public testing::TestWithParam<IntrinsicTest
 			Return();
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 
 		for(auto &&v : GetParam().testValues)
 		{
@@ -2278,7 +2284,7 @@ TEST(ReactorUnitTests, Intrinsics_Ctlz)
 			UInt x = function.Arg<0>();
 			Return(rr::Ctlz(x, false));
 		}
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
 
 		for(uint32_t i = 0; i < 31; ++i)
@@ -2301,7 +2307,7 @@ TEST(ReactorUnitTests, Intrinsics_Ctlz)
 			UInt x = function.Arg<1>();
 			*out = rr::Ctlz(UInt4(x), false);
 		}
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		auto callable = (void (*)(uint32_t *, uint32_t))routine->getEntry();
 
 		uint32_t x[4];
@@ -2336,7 +2342,7 @@ TEST(ReactorUnitTests, Intrinsics_Cttz)
 			UInt x = function.Arg<0>();
 			Return(rr::Cttz(x, false));
 		}
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		auto callable = (uint32_t(*)(uint32_t))routine->getEntry();
 
 		for(uint32_t i = 0; i < 31; ++i)
@@ -2359,7 +2365,7 @@ TEST(ReactorUnitTests, Intrinsics_Cttz)
 			UInt x = function.Arg<1>();
 			*out = rr::Cttz(UInt4(x), false);
 		}
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		auto callable = (void (*)(uint32_t *, uint32_t))routine->getEntry();
 
 		uint32_t x[4];
@@ -2410,7 +2416,7 @@ TEST(ReactorUnitTests, Intrinsics_Scatter)
 
 	float val[4] = { 10, 60, 110, 130 };
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	auto entry = (void (*)(float *, float *, int *))routine->getEntry();
 
 	entry(buffer, val, offsets);
@@ -2451,7 +2457,7 @@ TEST(ReactorUnitTests, Intrinsics_Gather)
 		13 * elemSize
 	};
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	auto entry = (void (*)(float *, int *, float *))routine->getEntry();
 
 	float result[4] = {};
@@ -2489,7 +2495,7 @@ TEST(ReactorUnitTests, ExtractFromRValue)
 		Return();
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	auto entry = (void (*)(int *, int *))routine->getEntry();
 
 	int v[4] = { 42, 42, 42, 42 };
@@ -2511,7 +2517,7 @@ TEST(ReactorUnitTests, AddAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 123;
 	uint32_t y = 456;
 	uint32_t prevX = routine(&x, y);
@@ -2529,7 +2535,7 @@ TEST(ReactorUnitTests, SubAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 456;
 	uint32_t y = 123;
 	uint32_t prevX = routine(&x, y);
@@ -2547,7 +2553,7 @@ TEST(ReactorUnitTests, AndAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 0b1111'0000;
 	uint32_t y = 0b1010'1100;
 	uint32_t prevX = routine(&x, y);
@@ -2565,7 +2571,7 @@ TEST(ReactorUnitTests, OrAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 0b1111'0000;
 	uint32_t y = 0b1010'1100;
 	uint32_t prevX = routine(&x, y);
@@ -2583,7 +2589,7 @@ TEST(ReactorUnitTests, XorAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 0b1111'0000;
 	uint32_t y = 0b1010'1100;
 	uint32_t prevX = routine(&x, y);
@@ -2602,7 +2608,7 @@ TEST(ReactorUnitTests, MinAtomic)
 			Return(r);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		uint32_t x = 123;
 		uint32_t y = 100;
 		uint32_t prevX = routine(&x, y);
@@ -2619,7 +2625,7 @@ TEST(ReactorUnitTests, MinAtomic)
 			Return(r);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		int32_t x = -123;
 		int32_t y = -200;
 		int32_t prevX = routine(&x, y);
@@ -2639,7 +2645,7 @@ TEST(ReactorUnitTests, MaxAtomic)
 			Return(r);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		uint32_t x = 123;
 		uint32_t y = 100;
 		uint32_t prevX = routine(&x, y);
@@ -2656,7 +2662,7 @@ TEST(ReactorUnitTests, MaxAtomic)
 			Return(r);
 		}
 
-		auto routine = function("one");
+		auto routine = function(testName().c_str());
 		int32_t x = -123;
 		int32_t y = -200;
 		int32_t prevX = routine(&x, y);
@@ -2675,7 +2681,7 @@ TEST(ReactorUnitTests, ExchangeAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 123;
 	uint32_t y = 456;
 	uint32_t prevX = routine(&x, y);
@@ -2694,7 +2700,7 @@ TEST(ReactorUnitTests, CompareExchangeAtomic)
 		Return(r);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	uint32_t x = 123;
 	uint32_t y = 456;
 	uint32_t compare = 123;
@@ -2719,7 +2725,7 @@ TEST(ReactorUnitTests, SRem)
 		*a = *a % *b;
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	int4_value result = invokeRoutine(routine, int4_value{ 10, 11, 12, 13 }, int4_value{ 3, 3, 3, 3 });
 	int4_value expected = int4_value{ 10 % 3, 11 % 3, 12 % 3, 13 % 3 };
@@ -2738,7 +2744,7 @@ TEST(ReactorUnitTests, FRem)
 		*a = *a % *b;
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	float4_value result = invokeRoutine(routine, float4_value{ 10.1f, 11.2f, 12.3f, 13.4f }, float4_value{ 3.f, 3.f, 3.f, 3.f });
 	float4_value expected = float4_value{ fmodf(10.1f, 3.f), fmodf(11.2f, 3.f), fmodf(12.3f, 3.f), fmodf(13.4f, 3.f) };
@@ -2762,7 +2768,7 @@ TEST(ReactorUnitTests, LoadFromConstantData)
 		Return(v);
 	}
 
-	const int result = function("one")();
+	const int result = function(testName().c_str())();
 	EXPECT_EQ(result, value);
 }
 
@@ -2786,7 +2792,7 @@ TEST(ReactorUnitTests, Multithreaded_Function)
 					Return((a << 16) | b);
 				}
 
-				auto f = function("thread%d_loop%d", t, l);
+				auto f = function("%s_thread%d_loop%d", testName().c_str(), t, l);
 				results[t * numLoops + l] = f(t, l);
 			}
 		};
@@ -2965,7 +2971,7 @@ TEST(ReactorUnitTests, PrintPrimitiveTypes)
 		RR_WATCH(p);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	char pNullptr[64];
 	snprintf(pNullptr, sizeof(pNullptr), "  p: %p", nullptr);
@@ -3044,7 +3050,7 @@ TEST(ReactorUnitTests, PrintReactorTypes)
 		RR_WATCH(by4);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 
 	char piNullptr[64];
 	snprintf(piNullptr, sizeof(piNullptr), "  pi: %p", nullptr);
@@ -3097,7 +3103,7 @@ T Arithmetic_LhsConstArg(T arg1, T arg2, Func f)
 		Return(result);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	return routine(arg2);
 }
 
@@ -3115,7 +3121,7 @@ T Arithmetic_RhsConstArg(T arg1, T arg2, Func f)
 		Return(result);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	return routine(arg1);
 }
 
@@ -3133,7 +3139,7 @@ T Arithmetic_TwoConstArgs(T arg1, T arg2, Func f)
 		Return(result);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	return routine();
 }
 
@@ -3232,7 +3238,7 @@ TEST(ReactorUnitTests, SpillLocalCopiesOfArgs)
 		Return(result);
 	}
 
-	auto routine = function("one");
+	auto routine = function(testName().c_str());
 	int result = routine(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 	int expected = numLoops * (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12);
 	EXPECT_EQ(result, expected);
