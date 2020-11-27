@@ -16,6 +16,7 @@
 
 #include "Debug.hpp"
 #include "ExecutableMemory.hpp"
+#include "LLVMAsm.hpp"
 #include "Routine.hpp"
 
 // TODO(b/143539525): Eliminate when warning has been fixed.
@@ -687,6 +688,11 @@ public:
 			names[i] = mangle(func->getName());
 		}
 
+#ifdef ENABLE_RR_EMIT_ASM_FILE
+		const auto asmFilename = rr::AsmFile::generateFilename(name);
+		rr::AsmFile::emitAsmFile(asmFilename, JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel()), *module);
+#endif
+
 		// Once the module is passed to the compileLayer, the
 		// llvm::Functions are freed. Make sure funcs are not referenced
 		// after this point.
@@ -702,6 +708,10 @@ public:
 			           (int)i, llvm::toString(symbol.takeError()).c_str());
 			addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress()));
 		}
+
+#ifdef ENABLE_RR_EMIT_ASM_FILE
+		rr::AsmFile::fixupAsmFile(asmFilename, addresses);
+#endif
 	}
 
 	~JITRoutine()

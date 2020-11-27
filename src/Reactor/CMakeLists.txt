@@ -43,6 +43,8 @@ set(SUBZERO_SRC_FILES
 set(LLVM_SRC_FILES
     CPUID.cpp
     CPUID.hpp
+    LLVMAsm.cpp
+    LLVMAsm.hpp
     LLVMJIT.cpp
     LLVMReactor.cpp
     LLVMReactor.hpp
