@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "42c25100_9ff7c7e6",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T17:18:02Z",
+      "side": 1,
+      "message": "Do these even appear on an OpImageWrite at all?",
+      "range": {
+        "startLine": 1028,
+        "startChar": 2,
+        "endLine": 1035,
+        "endChar": 3
+      },
+      "revId": "57b3846953f444e10d8c386ca8e79d7f577a7185",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
