@@ -60,6 +60,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "cf58387d_dc595622",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T20:12:24Z",
+      "side": 1,
+      "message": "Ah, I\u0027m too slow. 8)\n\nSee https://swiftshader-review.googlesource.com/c/SwiftShader/+/50809/comment/fbfec2be_b3e07641/ for a potential direction for a solution.",
+      "parentUuid": "16b8a1dc_3e17e25d",
+      "revId": "d89b88a8c3134d4a41d46cea5c4530d468eb0f20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "fbfec2be_b3e07641",
         "filename": "src/Reactor/Reactor.hpp",
         "patchSetId": 1
