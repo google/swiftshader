@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "add4eed7_06ae1182",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T20:10:37Z",
+      "side": 1,
+      "message": "FYI, this was introduced by https://swiftshader-review.googlesource.com/c/SwiftShader/+/27949/43/src/Reactor/Reactor.hpp#2414, but it doesn\u0027t appear that we wrote down the exact reasons for it. Anyway, I\u0027m not sure this would only cause potential print issues. Debuggers in general work better when every variable has a stack slot.",
+      "range": {
+        "startLine": 20,
+        "startChar": 35,
+        "endLine": 20,
+        "endChar": 40
+      },
+      "revId": "d89b88a8c3134d4a41d46cea5c4530d468eb0f20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "16b8a1dc_3e17e25d",
@@ -14,6 +37,40 @@
       "writtenOn": "2020-11-30T20:04:18Z",
       "side": 1,
       "message": "Ben wrote to me on Chat to point out that the materialize() problem was not related to rr::Print, but to the debug info stuff, which makes sense. My bad. So this CL is likely no good. I would, though, like to write a unit test that can prove we need to materialize on construction, but I\u0027m not sure how exactly.",
+      "revId": "d89b88a8c3134d4a41d46cea5c4530d468eb0f20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cb540511_811b69f7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T20:10:37Z",
+      "side": 1,
+      "message": "Looks good, but I\u0027ll let Ben confirm this might be okay now.",
+      "revId": "d89b88a8c3134d4a41d46cea5c4530d468eb0f20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fbfec2be_b3e07641",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2663,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T20:10:37Z",
+      "side": 1,
+      "message": "If we do need variables to materialize on construction, we\u0027d probably need a second non-virtual form of materialize() which takes the size as a parameter. I believe I did that in an earlier version of the delayed materialization change, but then decided I didn\u0027t need it (but it allowed this bug to manifest).",
       "revId": "d89b88a8c3134d4a41d46cea5c4530d468eb0f20",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
