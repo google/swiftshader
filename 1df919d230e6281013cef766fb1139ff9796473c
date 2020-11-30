@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "00784a6d_0322da2c",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T20:37:43Z",
+      "side": 1,
+      "message": "You could use: #if !defined(__android__)\n\nSince this is an Android specific requirement and test.",
+      "range": {
+        "startLine": 390,
+        "startChar": 0,
+        "endLine": 390,
+        "endChar": 50
+      },
+      "revId": "1df919d230e6281013cef766fb1139ff9796473c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
