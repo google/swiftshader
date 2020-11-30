@@ -52,6 +52,23 @@
       "parentUuid": "804dd35b_7987ecad",
       "revId": "9645a6eeec286b4dc50f5efe3c2f75912f2bcad8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b5ca9c00_8c6749bb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T20:17:17Z",
+      "side": 1,
+      "message": "Looks good. The kokoro failure is benign (should go away with a rebase, but that doesn\u0027t seem necessary to wait on).",
+      "revId": "9645a6eeec286b4dc50f5efe3c2f75912f2bcad8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
