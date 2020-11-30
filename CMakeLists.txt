@@ -520,6 +520,11 @@ else()
     set_cpp_flag("-fomit-frame-pointer" RELEASE)
 
     if(SWIFTSHADER_MSAN)
+        if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            message(FATAL_ERROR " \n"
+                    " MemorySanitizer usage requires compiling with Clang.")
+        endif()
+
         if(NOT DEFINED ENV{SWIFTSHADER_MSAN_INSTRUMENTED_LIBCXX_PATH})
             message(FATAL_ERROR " \n"
                     " MemorySanitizer usage requires an instrumented build of libc++.\n"
