@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d17a12c6_38bbcb32",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 53354
+      },
+      "writtenOn": "2020-11-30T16:11:55Z",
+      "side": 1,
+      "message": "Sorry for the late code review.",
+      "revId": "b7a77063ab0eb2e1bd83199f067c36e908644e44",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
