@@ -46,6 +46,30 @@
       },
       "revId": "57b3846953f444e10d8c386ca8e79d7f577a7185",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ccea0812_b4984987",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T18:04:48Z",
+      "side": 1,
+      "message": "Okay, weird, but good to know. Thanks for checking!",
+      "parentUuid": "d0159eb8_7f44b54b",
+      "range": {
+        "startLine": 1028,
+        "startChar": 2,
+        "endLine": 1035,
+        "endChar": 3
+      },
+      "revId": "57b3846953f444e10d8c386ca8e79d7f577a7185",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
