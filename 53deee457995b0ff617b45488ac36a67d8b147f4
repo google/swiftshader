@@ -80,6 +80,24 @@
       "parentUuid": "35ba1d91_80b62e68",
       "revId": "53deee457995b0ff617b45488ac36a67d8b147f4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e670857e_086d6283",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-11-30T15:44:23Z",
+      "side": 1,
+      "message": "You\u0027re right. I just realized that your change is at exactly the point where we do the final handling of the image operands, and check there are no unknown ones left.\n\nHowever, we don\u0027t have any asserts for situations where a signed format is used but there\u0027s a ZeroExtend operand, or an unsigned format with a SignExtend operand, in which case we may not be doing what\u0027s required.\n\nAgain I think that\u0027s fine for the short term, but it could use some clarification/documentation to avoid issues later on. Please open a new bug which states the need for handling these operands for SPIRV 1.4 and that currently all tests pass when we just ignore them, but that this might not be spec compliant behavior.",
+      "parentUuid": "b554fe30_e922ab53",
+      "revId": "53deee457995b0ff617b45488ac36a67d8b147f4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
