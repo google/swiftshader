@@ -78,6 +78,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "662edc19_94976b57",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2020-11-30T23:59:04Z",
+      "side": 1,
+      "message": "So this materialize() call is to ensure that the variable has alloca storage, so that this logic can attempt to associate the LValue constructor with the variable name (fetched by parsing the C++ source from the backtrace).\n\nThe materialize() call does the alloca, then calls RR_DEBUG_INFO_EMIT_VAR() with the alloca address:\nhttps://github.com/google/swiftshader/blob/bfb211914759cc5deffbe9419cd1c2cae0573488/src/Reactor/Reactor.cpp#L122\n\nThis feeds down to here, to produce the debug info for the variable:\nhttps://github.com/google/swiftshader/blob/bfb211914759cc5deffbe9419cd1c2cae0573488/src/Reactor/LLVMReactorDebugInfo.cpp#L314",
+      "parentUuid": "cf58387d_dc595622",
+      "revId": "d89b88a8c3134d4a41d46cea5c4530d468eb0f20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "fbfec2be_b3e07641",
         "filename": "src/Reactor/Reactor.hpp",
         "patchSetId": 1
