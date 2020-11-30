@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ba8d9591_82546d8c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-30T16:36:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa25b86c_0b1ef203",
+      "range": {
+        "startLine": 17,
+        "startChar": 7,
+        "endLine": 17,
+        "endChar": 16
+      },
+      "revId": "55c763fb16d5388cb6373bbf960133b7a8e64f06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a4cfc379_64133efd",
@@ -41,6 +65,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1437a96b_f0f63c2d",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-30T16:36:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4cfc379_64133efd",
+      "revId": "55c763fb16d5388cb6373bbf960133b7a8e64f06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4477b014_e1bef334",
@@ -54,6 +96,24 @@
       "writtenOn": "2020-11-30T15:44:23Z",
       "side": 1,
       "message": "same todo here",
+      "revId": "55c763fb16d5388cb6373bbf960133b7a8e64f06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a581987_e76aa1ba",
+        "filename": "src/Pipeline/SpirvShaderImage.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1026,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-11-30T16:36:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4477b014_e1bef334",
       "revId": "55c763fb16d5388cb6373bbf960133b7a8e64f06",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
