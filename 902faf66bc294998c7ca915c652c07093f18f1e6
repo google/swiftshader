@@ -70,6 +70,30 @@
       },
       "revId": "902faf66bc294998c7ca915c652c07093f18f1e6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e4147c38_3287494e",
+        "filename": "src/Pipeline/ComputeProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T22:17:06Z",
+      "side": 1,
+      "message": "Okay, I went ahead and replaced with const char*. We should probably do the same for Function for consistency.",
+      "parentUuid": "71a793df_82d3a924",
+      "range": {
+        "startLine": 60,
+        "startChar": 10,
+        "endLine": 60,
+        "endChar": 14
+      },
+      "revId": "902faf66bc294998c7ca915c652c07093f18f1e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
