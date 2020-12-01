@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7940c117_67e5aa2f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T01:31:07Z",
+      "side": 1,
+      "message": "The current implementation of coroutines already has a lot of overhead, and I don\u0027t think we should add to it.\n\nNote that coroutine use is rare (only for compute shaders and only for those that contain control barriers), so I don\u0027t think it\u0027s vital to include them in the first iteration of the asm file debugging approach, if a more elegant solution isn\u0027t readily found.",
+      "revId": "46221a4d3d30d8093b5685ca9980e10adf27834d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2c2a85fd_73956e5c",
+        "filename": "src/Reactor/Coroutine.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T01:31:07Z",
+      "side": 1,
+      "message": "I don\u0027t think this helps when the argument is passed by value.",
+      "range": {
+        "startLine": 31,
+        "startChar": 12,
+        "endLine": 31,
+        "endChar": 21
+      },
+      "revId": "46221a4d3d30d8093b5685ca9980e10adf27834d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3962e942_83bc74e2",
+        "filename": "src/Reactor/Coroutine.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T01:31:07Z",
+      "side": 1,
+      "message": "I think this adds considerable overhead for each invocation. I don\u0027t think we should be providing the name at the call site.",
+      "range": {
+        "startLine": 174,
+        "startChar": 44,
+        "endLine": 174,
+        "endChar": 50
+      },
+      "revId": "46221a4d3d30d8093b5685ca9980e10adf27834d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
