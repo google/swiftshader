@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7c7831bb_be286455",
+        "filename": "src/Reactor/Coroutine.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:01:37Z",
+      "side": 1,
+      "message": "As discussed, yes, this is how std::move is typically used.",
+      "parentUuid": "2c2a85fd_73956e5c",
+      "range": {
+        "startLine": 31,
+        "startChar": 12,
+        "endLine": 31,
+        "endChar": 21
+      },
+      "revId": "46221a4d3d30d8093b5685ca9980e10adf27834d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3962e942_83bc74e2",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-01T01:31:07Z",
       "side": 1,
       "message": "I think this adds considerable overhead for each invocation. I don\u0027t think we should be providing the name at the call site.",
+      "range": {
+        "startLine": 174,
+        "startChar": 44,
+        "endLine": 174,
+        "endChar": 50
+      },
+      "revId": "46221a4d3d30d8093b5685ca9980e10adf27834d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "df5c8342_b6560186",
+        "filename": "src/Reactor/Coroutine.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:01:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3962e942_83bc74e2",
       "range": {
         "startLine": 174,
         "startChar": 44,
