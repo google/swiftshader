@@ -382,6 +382,30 @@
       },
       "revId": "d3989490875901350db963b8399b593dbec8703d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6e86a3b_b9724da6",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T21:05:23Z",
+      "side": 1,
+      "message": "Yeah, I didn\u0027t have to do anything! When ENABLE_RR_DEBUG_INFO is enabled, we feed LLVM all this debug symbol info, and it just so happens that this gets output to the assembly file it emits! It was a nice discovery, and is also what prompted me to continue pursuing this avenue.",
+      "parentUuid": "6d55ff8e_e3c12cfc",
+      "range": {
+        "startLine": 871,
+        "startChar": 7,
+        "endLine": 871,
+        "endChar": 30
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
