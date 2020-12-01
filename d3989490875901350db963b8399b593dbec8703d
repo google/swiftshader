@@ -36,6 +36,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cd344bdd_e6403e6a",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T20:54:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "45714d85_3f0d4f05",
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "655c240a_07b66621",
@@ -120,6 +138,30 @@
       "side": 1,
       "message": "https://b.corp.google.com/issues/174587935",
       "parentUuid": "d4664cc4_a1584a16",
+      "range": {
+        "startLine": 125,
+        "startChar": 11,
+        "endLine": 125,
+        "endChar": 34
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10e117f4_a712dda1",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T20:54:59Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "9a2bb90d_8662d59f",
       "range": {
         "startLine": 125,
         "startChar": 11,
@@ -308,6 +350,30 @@
       "side": 1,
       "message": "It doesn\u0027t, actually. If you do enable ENABLE_RR_DEBUG_INFO, you get the debug location info in the output assembly file, which is nice, but not necessary.",
       "parentUuid": "d54ec56d_39df1aa7",
+      "range": {
+        "startLine": 871,
+        "startChar": 7,
+        "endLine": 871,
+        "endChar": 30
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d55ff8e_e3c12cfc",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T20:54:59Z",
+      "side": 1,
+      "message": "How does this interaction work? Does ENABLE_RR_DEBUG_INFO instruct LLVM to produce debug info and it automatically affects the asm emitter, or is there something in your code that ties it up that I missed? Just curious.",
+      "parentUuid": "2ba4240f_0edc326d",
       "range": {
         "startLine": 871,
         "startChar": 7,
