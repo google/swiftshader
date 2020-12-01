@@ -54,6 +54,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "23cdcdaa_b46ff7dc",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T21:58:29Z",
+      "side": 1,
+      "message": "Done, and got rid of the initialize() call, which is now done by emitAsmFile.",
+      "parentUuid": "cd344bdd_e6403e6a",
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "655c240a_07b66621",
