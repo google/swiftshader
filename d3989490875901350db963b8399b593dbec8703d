@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "021a1cdc_a160ea00",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "FYI, this file contains most of the LLVM code that could break between revisions, so adding to it could increase our maintenance burden. Unless of course this is intended as an internal tool which may break from time to time without blocking core functionality?",
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "655c240a_07b66621",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "What would be the effect of this on non-x86 targets?",
+      "range": {
+        "startLine": 123,
+        "startChar": 3,
+        "endLine": 123,
+        "endChar": 18
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d4664cc4_a1584a16",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "It seems unfortunate to have to resort to this. It ties us in closer with LLVM\u0027s static compiler machinery rather than sticking with the JIT interfaces.\n\nPerhaps this could be added to llvm::MCTargetOptions?",
+      "range": {
+        "startLine": 125,
+        "startChar": 11,
+        "endLine": 125,
+        "endChar": 34
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7adc597d_085be268",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 141,
+        "startChar": 110,
+        "endLine": 141,
+        "endChar": 136
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d84dfbc1_c18d22d1",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "Can you elaborate? What are the potential risks, and consequences?",
+      "range": {
+        "startLine": 162,
+        "startChar": 9,
+        "endLine": 162,
+        "endChar": 34
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf8ab20e_cdab1f7c",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "Is it possibly to merge this with the block at line 871?",
+      "range": {
+        "startLine": 850,
+        "startChar": 0,
+        "endLine": 853,
+        "endChar": 6
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d54ec56d_39df1aa7",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-01T02:36:19Z",
+      "side": 1,
+      "message": "Does this depend on ENABLE_RR_DEBUG_INFO also?",
+      "range": {
+        "startLine": 871,
+        "startChar": 7,
+        "endLine": 871,
+        "endChar": 30
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
