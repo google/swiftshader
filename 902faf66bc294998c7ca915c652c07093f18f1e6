@@ -46,6 +46,30 @@
       },
       "revId": "902faf66bc294998c7ca915c652c07093f18f1e6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "71a793df_82d3a924",
+        "filename": "src/Pipeline/ComputeProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T21:19:50Z",
+      "side": 1,
+      "message": "To add to what I wrote, if we want varargs, but you don\u0027t want a strong type for the name, then we\u0027d have to make the name the 2nd arg along with \u0027...\u0027. Alternatively, we drop varargs and just take a const char* as you said, though that makes it inconsistent with the version in Function. Would you still prefer that?",
+      "parentUuid": "553a56c9_ce1b2676",
+      "range": {
+        "startLine": 60,
+        "startChar": 10,
+        "endLine": 60,
+        "endChar": 14
+      },
+      "revId": "902faf66bc294998c7ca915c652c07093f18f1e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
