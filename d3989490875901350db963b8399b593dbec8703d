@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "45714d85_3f0d4f05",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "I\u0027m going to move all this code into a separate LLVMAsm.h/cpp. I\u0027m going to do that as a separate commit so that the review isn\u0027t confusing.",
+      "parentUuid": "021a1cdc_a160ea00",
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "655c240a_07b66621",
         "filename": "src/Reactor/LLVMJIT.cpp",
         "patchSetId": 5
@@ -31,6 +49,30 @@
       "writtenOn": "2020-12-01T02:36:19Z",
       "side": 1,
       "message": "What would be the effect of this on non-x86 targets?",
+      "range": {
+        "startLine": 123,
+        "startChar": 3,
+        "endLine": 123,
+        "endChar": 18
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2cae94cc_af9a7ae1",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "This would have no effect, as this global would simply not be read by LLVM\u0027s assembly output code.",
+      "parentUuid": "655c240a_07b66621",
       "range": {
         "startLine": 123,
         "startChar": 3,
@@ -64,6 +106,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9a2bb90d_8662d59f",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "https://b.corp.google.com/issues/174587935",
+      "parentUuid": "d4664cc4_a1584a16",
+      "range": {
+        "startLine": 125,
+        "startChar": 11,
+        "endLine": 125,
+        "endChar": 34
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7adc597d_085be268",
@@ -77,6 +143,30 @@
       "writtenOn": "2020-12-01T02:36:19Z",
       "side": 1,
       "message": "unused",
+      "range": {
+        "startLine": 141,
+        "startChar": 110,
+        "endLine": 141,
+        "endChar": 136
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0c7268d6_75f60cc2",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7adc597d_085be268",
       "range": {
         "startLine": 141,
         "startChar": 110,
@@ -110,6 +200,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "57eff633_6e894735",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d84dfbc1_c18d22d1",
+      "range": {
+        "startLine": 162,
+        "startChar": 9,
+        "endLine": 162,
+        "endChar": 34
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cf8ab20e_cdab1f7c",
@@ -133,6 +247,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c9e9df7_fd910c05",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "Unfortunately not, as we need the \u0027module\u0027 here, and it cannot be shared. Just below, we move the module into a ThreadSafeModule (also not-sharable) which gets added to the compilerLayer. After that, we cannot gain access to this module, AFAICT.",
+      "parentUuid": "cf8ab20e_cdab1f7c",
+      "range": {
+        "startLine": 850,
+        "startChar": 0,
+        "endLine": 853,
+        "endChar": 6
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d54ec56d_39df1aa7",
@@ -146,6 +284,30 @@
       "writtenOn": "2020-12-01T02:36:19Z",
       "side": 1,
       "message": "Does this depend on ENABLE_RR_DEBUG_INFO also?",
+      "range": {
+        "startLine": 871,
+        "startChar": 7,
+        "endLine": 871,
+        "endChar": 30
+      },
+      "revId": "d3989490875901350db963b8399b593dbec8703d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2ba4240f_0edc326d",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-01T20:17:38Z",
+      "side": 1,
+      "message": "It doesn\u0027t, actually. If you do enable ENABLE_RR_DEBUG_INFO, you get the debug location info in the output assembly file, which is nice, but not necessary.",
+      "parentUuid": "d54ec56d_39df1aa7",
       "range": {
         "startLine": 871,
         "startChar": 7,
