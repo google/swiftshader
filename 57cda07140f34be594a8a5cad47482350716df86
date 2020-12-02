@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5df997d1_c1e54848",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-02T20:01:53Z",
+      "side": 1,
+      "message": "uber-nit: I assume this wasn\u0027t a \"clean\" revert? When I see a title formatted like this, I would generally expect that it is.\n\nProbably just my pet peeve for reverts talking. I tend to think of most things as forward progress and a balancing of design choices. In this case, we gain the ability to call materialize() from a constructor, but regress on structure size, and we have an alternative (https://swiftshader-review.googlesource.com/c/SwiftShader/+/50828) with other tradeoffs. So talking about a \"revert\" feels slightly weird.\n\nPart of me is also still sad that we have to sacrifice structure leanness for a feature which is only used in debug builds.\n\nAnyway, I\u0027ll bite the bullet, as this is more sound C++ design and probably doesn\u0027t have real-world negative impact. LGTM",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 51
+      },
+      "revId": "57cda07140f34be594a8a5cad47482350716df86",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
