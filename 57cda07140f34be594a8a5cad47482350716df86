@@ -22,6 +22,30 @@
       },
       "revId": "57cda07140f34be594a8a5cad47482350716df86",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0758a895_119ad4f9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-02T21:28:43Z",
+      "side": 1,
+      "message": "I agree with your uber-nit. I reworded the commit comment.",
+      "parentUuid": "5df997d1_c1e54848",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 51
+      },
+      "revId": "57cda07140f34be594a8a5cad47482350716df86",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
