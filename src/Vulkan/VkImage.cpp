@@ -751,7 +751,7 @@ int Image::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
 	if(deviceMemory && deviceMemory->hasExternalImageProperties())
 	{
-		return deviceMemory->externalImageRowPitchBytes();
+		return deviceMemory->externalImageRowPitchBytes(aspect);
 	}
 
 	// Depth and Stencil pitch should be computed separately
@@ -803,6 +803,11 @@ uint8_t *Image::end() const
 
 VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 {
+	if(deviceMemory && deviceMemory->hasExternalImageProperties())
+	{
+		return deviceMemory->externalImageMemoryOffset(aspect);
+	}
+
 	switch(format)
 	{
 		case VK_FORMAT_D16_UNORM_S8_UINT:

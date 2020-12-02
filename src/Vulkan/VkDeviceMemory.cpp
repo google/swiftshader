@@ -339,11 +339,23 @@ bool DeviceMemory::hasExternalImageProperties() const
 	return external && external->hasExternalImageProperties();
 }
 
-int DeviceMemory::externalImageRowPitchBytes() const
+int DeviceMemory::externalImageRowPitchBytes(VkImageAspectFlagBits aspect) const
 {
 	if(external)
 	{
-		return external->externalImageRowPitchBytes();
+		return external->externalImageRowPitchBytes(aspect);
+	}
+
+	// This function should never be called on non-external memory.
+	ASSERT(false);
+	return -1;
+}
+
+VkDeviceSize DeviceMemory::externalImageMemoryOffset(VkImageAspectFlagBits aspect) const
+{
+	if(external)
+	{
+		return external->externalImageMemoryOffset(aspect);
 	}
 
 	// This function should never be called on non-external memory.

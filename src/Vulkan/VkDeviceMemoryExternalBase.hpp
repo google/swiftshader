@@ -48,7 +48,8 @@ public:
 	// Some external device memories, such as Android hardware buffers, represent
 	// specific images with requirements.
 	virtual bool hasExternalImageProperties() const { return false; }
-	virtual int externalImageRowPitchBytes() const { return 0; }
+	virtual int externalImageRowPitchBytes(VkImageAspectFlagBits aspect) const { return 0; }
+	virtual VkDeviceSize externalImageMemoryOffset(VkImageAspectFlagBits aspect) const { return 0; }
 
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 	virtual bool isImport() const

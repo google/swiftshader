@@ -58,7 +58,8 @@ public:
 	class ExternalBase;
 
 	bool hasExternalImageProperties() const;
-	int externalImageRowPitchBytes() const;
+	int externalImageRowPitchBytes(VkImageAspectFlagBits aspect) const;
+	VkDeviceSize externalImageMemoryOffset(VkImageAspectFlagBits aspect) const;
 
 private:
 	void *buffer = nullptr;
