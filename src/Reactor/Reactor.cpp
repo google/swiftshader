@@ -27,6 +27,12 @@
 #	include <windows.h>
 #endif
 
+// Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
+// variables have a stack location obtained throuch alloca().
+#ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
+#	define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
+#endif
+
 namespace rr {
 
 const Config::Edit Config::Edit::None = {};
@@ -104,9 +110,14 @@ void Variable::UnmaterializedVariables::materializeAll()
 	variables.clear();
 }
 
-Variable::Variable()
+Variable::Variable(int arraySize)
+    : arraySize(arraySize)
 {
+#if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
+	materialize();
+#else
 	unmaterializedVariables->add(this);
+#endif
 }
 
 Variable::~Variable()
@@ -118,7 +129,7 @@ void Variable::materialize() const
 {
 	if(!address)
 	{
-		address = allocate();
+		address = Nucleus::allocateStackVariable(getType(), arraySize);
 		RR_DEBUG_INFO_EMIT_VAR(address);
 
 		if(rvalue)
@@ -167,11 +178,6 @@ Value *Variable::getBaseAddress() const
 Value *Variable::getElementPointer(Value *index, bool unsignedIndex) const
 {
 	return Nucleus::createGEP(getBaseAddress(), getType(), index, unsignedIndex);
-}
-
-Value *Variable::allocate() const
-{
-	return Nucleus::allocateStackVariable(getType());
 }
 
 void Variable::materializeAll()
