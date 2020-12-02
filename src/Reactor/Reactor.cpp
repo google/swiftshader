@@ -110,8 +110,9 @@ void Variable::UnmaterializedVariables::materializeAll()
 	variables.clear();
 }
 
-Variable::Variable(int arraySize)
-    : arraySize(arraySize)
+Variable::Variable(Type *type, int arraySize)
+    : type(type)
+    , arraySize(arraySize)
 {
 #if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
 	materialize();

@@ -131,7 +131,7 @@ public:
 	Value *getBaseAddress() const;
 	Value *getElementPointer(Value *index, bool unsignedIndex) const;
 
-	virtual Type *getType() const = 0;
+	Type *getType() const { return type; }
 	int getArraySize() const { return arraySize; }
 
 	// This function is only public for testing purposes, as it affects performance.
@@ -139,7 +139,7 @@ public:
 	static void materializeAll();
 
 protected:
-	Variable(int arraySize);
+	Variable(Type *type, int arraySize);
 	Variable(const Variable &) = default;
 
 	virtual ~Variable();
@@ -165,6 +165,7 @@ private:
 	// for destructing objects at exit. See crbug.com/1074222
 	static thread_local UnmaterializedVariables *unmaterializedVariables;
 
+	Type *const type;
 	const int arraySize;
 	mutable Value *rvalue = nullptr;
 	mutable Value *address = nullptr;
@@ -188,11 +189,6 @@ public:
 		this->storeValue(rvalue.value());
 
 		return rvalue;
-	}
-
-	Type *getType() const override
-	{
-		return T::type();
 	}
 
 	// self() returns the this pointer to this LValue<T> object.
@@ -2658,7 +2654,7 @@ namespace rr {
 
 template<class T>
 LValue<T>::LValue(int arraySize)
-    : Variable(arraySize)
+    : Variable(T::type(), arraySize)
 {
 #ifdef ENABLE_RR_DEBUG_INFO
 	materialize();
