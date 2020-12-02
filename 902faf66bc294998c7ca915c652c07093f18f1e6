@@ -94,6 +94,30 @@
       },
       "revId": "902faf66bc294998c7ca915c652c07093f18f1e6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a3a432d5_bfc28b81",
+        "filename": "src/Pipeline/ComputeProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-02T02:39:41Z",
+      "side": 1,
+      "message": "Sounds good, thanks.",
+      "parentUuid": "e4147c38_3287494e",
+      "range": {
+        "startLine": 60,
+        "startChar": 10,
+        "endLine": 60,
+        "endChar": 14
+      },
+      "revId": "902faf66bc294998c7ca915c652c07093f18f1e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
