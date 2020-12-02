@@ -3,6 +3,23 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "b21495c7_7384062f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-02T20:21:01Z",
+      "side": 1,
+      "message": "The Kokoro failure is benign and would go away with a rebase (doesn\u0027t seem necessary to retest).",
+      "revId": "a4c75d923bdde9a4c6a3e328f7422afb296dc905",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "26d6a180_fc8d8c2f",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 4
