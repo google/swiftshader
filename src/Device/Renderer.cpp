@@ -147,7 +147,7 @@ inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topo
 DrawCall::DrawCall()
 {
 	data = (DrawData *)allocate(sizeof(DrawData));
-	data->constants = &constants;
+	data->constants = &Constants::Get();
 }
 
 DrawCall::~DrawCall()

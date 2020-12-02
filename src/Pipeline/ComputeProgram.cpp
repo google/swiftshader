@@ -234,7 +234,7 @@ void ComputeProgram::run(
 	data.invocationsPerWorkgroup = invocationsPerWorkgroup;
 	data.subgroupsPerWorkgroup = subgroupsPerWorkgroup;
 	data.pushConstants = pushConstants;
-	data.constants = &sw::constants;
+	data.constants = &sw::Constants::Get();
 
 	marl::WaitGroup wg;
 	const uint32_t batchCount = 16;

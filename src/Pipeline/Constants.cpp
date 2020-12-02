@@ -21,7 +21,11 @@
 
 namespace sw {
 
-Constants constants;
+const Constants &Constants::Get()
+{
+	static const Constants constants;
+	return constants;
+}
 
 Constants::Constants()
 {
