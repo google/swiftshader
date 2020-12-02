@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "26d6a180_fc8d8c2f",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1950,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-02T19:15:46Z",
+      "side": 1,
+      "message": "FYI, I\u0027ve started a discussion at https://gitlab.khronos.org/vulkan/vulkan/-/issues/2442 about whether or not we can leave handling of non-exposed exposed in place (as well as exposed but disabled ones).\n\nThe conclusion is we can definitely omit this conditional compilation. That said, if an application misused this (it\u0027s not unrealistic that Chrome would use this extension whenever it detects its using SwiftShader), we wouldn\u0027t be notified about it. Also, it\u0027s not clear whether we have a validation layer checking for this, or if we\u0027d have that any time soon.\n\nLong story short, while I\u0027m not a huge fan of conditional compilation where it could be avoided, this looks appropriate for now.",
+      "range": {
+        "startLine": 1950,
+        "startChar": 0,
+        "endLine": 1950,
+        "endChar": 25
+      },
+      "revId": "a4c75d923bdde9a4c6a3e328f7422afb296dc905",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
