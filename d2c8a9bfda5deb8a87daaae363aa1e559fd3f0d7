@@ -102,6 +102,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4dcfbd0c_469a52d9",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-03T23:08:52Z",
+      "side": 1,
+      "message": "After what I just saw in terms of leak debugging and (potential) performance gain, I\u0027m starting to think seldom used data tied to specific features that aren\u0027t used most of the time should almost always be dynamically allocated only once we know we need it. There\u0027s no point in going through static initialization of global variables if we have a good chance of not using it. A static variable inside a function is a simple way of achieving this.\n\nI\u0027m no expert on this subject, though. Do you think that the (potential) performance issue here is entirely related to the use of std::vector as a global static variable? Aren\u0027t we winning anything by not allocating anything if we don\u0027t need the feature? What I\u0027m wondering is the comparison between:\n1) having a global static const array, which most likely resides entirely in the data section of the application\n2) having a local static const array, like here, where its data probably also resides in the data section, but is potentially smaller",
+      "parentUuid": "1f4d61b5_37bd7145",
+      "range": {
+        "startLine": 740,
+        "startChar": 0,
+        "endLine": 742,
+        "endChar": 55
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fb34d71f_37ad6247",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 1
@@ -148,6 +172,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f3874869_4d1bee07",
+        "filename": "src/Vulkan/VkGetProcAddress.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-03T23:08:52Z",
+      "side": 1,
+      "message": "I can do that for the ones below, but this one specifically is global and doesn\u0027t belong to Instances or Devices.\nAlso, putting them in member maps could potentially cause duplication of these, if we have multiple instances/devices.",
+      "parentUuid": "8314f5f4_45f8c9c6",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 65
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d0b0f3bd_870bc0b0",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 1
@@ -159,6 +207,30 @@
       "writtenOn": "2020-12-03T21:42:30Z",
       "side": 1,
       "message": "\u003ccinttypes\u003e",
+      "range": {
+        "startLine": 94,
+        "startChar": 9,
+        "endLine": 94,
+        "endChar": 21
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "01c757ae_da4fb15e",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-03T23:08:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d0b0f3bd_870bc0b0",
       "range": {
         "startLine": 94,
         "startChar": 9,
@@ -192,6 +264,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd1d73dd_b6bcecee",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1331,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-03T23:08:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "91066cf5_cd98db80",
+      "range": {
+        "startLine": 1331,
+        "startChar": 131,
+        "endLine": 1331,
+        "endChar": 138
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "893d0c89_5afd0f6e",
@@ -205,6 +301,30 @@
       "writtenOn": "2020-12-03T21:42:30Z",
       "side": 1,
       "message": "I think this class can be left as-is. It didn\u0027t have any member fields, and no (explicit) constructor/destructor. It only does the loading of the exports on the first operator-\u003e usage.",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 12
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b587de0_251dd3ee",
+        "filename": "src/WSI/XcbSurfaceKHR.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-03T23:08:52Z",
+      "side": 1,
+      "message": "In the previous version, \"exports\", the static variable in loadExports(), was potentially not released.\nI still don\u0027t think this is done right currently, if we go through the loadLibrary path, but this may need to be fixed (I don\u0027t know if there\u0027s any need to unload the library). Anyway, I can remove this from this cl, this is a different issue.",
+      "parentUuid": "893d0c89_5afd0f6e",
       "range": {
         "startLine": 54,
         "startChar": 6,
