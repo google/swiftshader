@@ -78,6 +78,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1f4d61b5_37bd7145",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-03T21:49:04Z",
+      "side": 1,
+      "message": "https://issuetracker.google.com/174782098",
+      "parentUuid": "b954b61f_49101b77",
+      "range": {
+        "startLine": 740,
+        "startChar": 0,
+        "endLine": 742,
+        "endChar": 55
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fb34d71f_37ad6247",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 1
