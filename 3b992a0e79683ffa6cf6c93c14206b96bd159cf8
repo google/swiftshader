@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13cf3e37_dbc030e6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-03T02:39:35Z",
+      "side": 1,
+      "message": "LGTM with the access groups updated:",
+      "revId": "3b992a0e79683ffa6cf6c93c14206b96bd159cf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a65a1216_a8f04f67",
+        "filename": "infra/config/generated/commit-queue.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-03T02:39:35Z",
+      "side": 1,
+      "message": "project-swiftshader-tryjob-access ?",
+      "range": {
+        "startLine": 18,
+        "startChar": 23,
+        "endLine": 18,
+        "endChar": 35
+      },
+      "revId": "3b992a0e79683ffa6cf6c93c14206b96bd159cf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
