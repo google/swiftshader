@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "afb2ffe8_6d6b98ea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-03T19:50:42Z",
+      "side": 1,
+      "message": "Getting some more eyes on this as it seems odd that these would require no further work. Decorating with a string probably doesn\u0027t alter semantics if it\u0027s only used for debug info? I\u0027m most suspicious about OpDecorateId, which might pass the tests \"by accident\" when treating it the same as OpDecorate.",
+      "revId": "56025d26eb2a741cfaedf8be3356e6d25b08bf18",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cd70f437_74db2398",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-03T19:50:42Z",
+      "side": 1,
+      "message": "Weird how this used to require the SPV_GOOGLE_decorate_string extension (and VK_GOOGLE_decorate_string on the Vulkan side), which we don\u0027t implement, nor seem to be promoted for Vulkan 1.2, but it still got \"Incorporated\" into SPIR-V 1.4 and is tested for by dEQP.",
+      "range": {
+        "startLine": 97,
+        "startChar": 13,
+        "endLine": 97,
+        "endChar": 29
+      },
+      "revId": "56025d26eb2a741cfaedf8be3356e6d25b08bf18",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
