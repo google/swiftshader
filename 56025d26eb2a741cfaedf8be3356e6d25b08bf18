@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "1f5bbee7_4d4463fd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-12-03T21:06:14Z",
+      "side": 1,
+      "message": "For OpDecorateId, the parameters to the decorations should be interpreted as result \u003cid\u003es. For example,\n\nOpDecorateId %mainBuffer CounterBuffer %10\n\n%10 should be pointing to a result \u003cid\u003e. It should not be treated as a normal literal number (10) like if OpDecorate is used. So I think we cannot just treat OpDecorateId as OpDecorate.\n\nOpDecorateString is mainly for attaching string to a result \u003cid\u003e so that it cannot be removed freely. (Decorations are semantics impacting; debug information is not. Debug information can be freely removed but decorations cannot.) It was initially introduced so that we can make HLSL compilation easier (see the usage here: https://khr.io/hlsl2spirv#hlsl-semantic) and it\u0027s mainly for reflection. So I think it\u0027s fine to ignore it.",
+      "parentUuid": "afb2ffe8_6d6b98ea",
+      "revId": "56025d26eb2a741cfaedf8be3356e6d25b08bf18",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "cd70f437_74db2398",
