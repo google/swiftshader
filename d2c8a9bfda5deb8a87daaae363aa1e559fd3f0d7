@@ -88,6 +88,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e27108b4_38988cab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T15:16:16Z",
+      "side": 1,
+      "message": "\u003e ... There is extra runtime cost ...\n\nUgh, I wish I could edit comments posted. Anyway, I meant: \"There is NO extra runtime cost\" to using std::array.",
+      "parentUuid": "79937b41_d968726b",
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b954b61f_49101b77",
