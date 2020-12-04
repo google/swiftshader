@@ -70,6 +70,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "79937b41_d968726b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T14:57:10Z",
+      "side": 1,
+      "message": "Oh, I wanted to add:\n* I don\u0027t think we should blindly replace globals with functions without proof that it fixes a reported leak. Keep in mind that it may be nearly impossible for us to guarantee no global leaks because of third-party dependencies. In the end, this may be a lost cause. Furthermore, it would surprise me that LeakSanitizer would be unable to discern global static allocations in general, as this would mean it would report leaks in almost every shared object that\u0027s loaded. We probably have a real global leak - something that isn\u0027t feed when the DLL is unloaded.",
+      "parentUuid": "bd64d6f7_215c11de",
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b954b61f_49101b77",
