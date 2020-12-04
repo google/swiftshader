@@ -126,6 +126,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ce59b59d_1a86fcec",
+        "filename": "src/Device/BC_Decoder.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-04T07:06:25Z",
+      "side": 1,
+      "message": "Oh, certainly your approach has major benefits. I\u0027m just arguing that we can go a step further and try to make the data constexpr. In that case there\u0027s no overhead from dynamic allocations and copying the data, whether it is used at runtime or not. There would also be no point in putting it behind a function call, which adds some overhead of its own (especially since local static data requires a mutex), and it also makes things less elegant in my opinion.\n\nConsidering that this code didn\u0027t leak anything to begin with, I think we have time to go straight for the better solution.",
+      "parentUuid": "4dcfbd0c_469a52d9",
+      "range": {
+        "startLine": 740,
+        "startChar": 0,
+        "endLine": 742,
+        "endChar": 55
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fb34d71f_37ad6247",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 1
@@ -184,6 +208,30 @@
       "side": 1,
       "message": "I can do that for the ones below, but this one specifically is global and doesn\u0027t belong to Instances or Devices.\nAlso, putting them in member maps could potentially cause duplication of these, if we have multiple instances/devices.",
       "parentUuid": "8314f5f4_45f8c9c6",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 65
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c6a2735_ffeaf926",
+        "filename": "src/Vulkan/VkGetProcAddress.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-04T07:06:25Z",
+      "side": 1,
+      "message": "\u003e I can do that for the ones below, but this one specifically is global and doesn\u0027t belong to Instances or Devices.\n\nRight, for this one, which will always be tiny, a global C array would be fine and searching it linearly is probably even faster than an unordered_map.\n\n\u003e Also, putting them in member maps could potentially cause duplication of these, if we have multiple instances/devices.\n\nTrue, but that\u0027s probably a negligible concern given that most applications create just one instance and one device. Note that in the future we\u0027ll want the set of exposed extensions to be run-time controllable for fuzzer test purposes, which means we need a non-static array anyway. By only storing the pointers to the strings, and sorting them by content, we can can both have minimal storage needs and fast lookup through bsearch().",
+      "parentUuid": "f3874869_4d1bee07",
       "range": {
         "startLine": 36,
         "startChar": 1,
@@ -325,6 +373,30 @@
       "side": 1,
       "message": "In the previous version, \"exports\", the static variable in loadExports(), was potentially not released.\nI still don\u0027t think this is done right currently, if we go through the loadLibrary path, but this may need to be fixed (I don\u0027t know if there\u0027s any need to unload the library). Anyway, I can remove this from this cl, this is a different issue.",
       "parentUuid": "893d0c89_5afd0f6e",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 12
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fff5e08b_6245a39b",
+        "filename": "src/WSI/XcbSurfaceKHR.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-04T07:06:25Z",
+      "side": 1,
+      "message": "I don\u0027t see why exports (and the LibXcbExports instance it holds) wouldn\u0027t be deleted in the old version. Can you elaborate on why you think that\u0027s the case?",
+      "parentUuid": "6b587de0_251dd3ee",
       "range": {
         "startLine": 54,
         "startChar": 6,
