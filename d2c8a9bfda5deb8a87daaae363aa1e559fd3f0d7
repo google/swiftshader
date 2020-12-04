@@ -53,6 +53,23 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd64d6f7_215c11de",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T14:54:48Z",
+      "side": 1,
+      "message": "Here are my thoughts on this change:\n\n- Replacing globals with functions returning a static singleton doesn\u0027t necessarily solve leaks. Indeed, the lazily contructed object will not be freed, and leak sanitizer will probably still report it as a leak. Furthermore, as Nicolas already pointed out in one of his comments, static instances are guaranteed thread-safe since C++11, which typically means we have to pay at least atomic-access cost, if not mutex-based in the worst case.\n\n- WRT replacing global std::vectors with C-style arrays, I would suggest using std::array\u003c\u003e instead of C-style arrays. There is extra runtime cost, they can be used in algorithms, and we get bounds checking in debug builds.\n",
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b954b61f_49101b77",
