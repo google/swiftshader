@@ -16,6 +16,24 @@
       "message": "Is replacing anonymous scopes with \u0027static\u0027 functions a personal preference? Anonymous namespaces are superior and generally preferred as they allow you to make things like class definitions and enums anonymous, while \"static\" can only be applied to functions and global variables.",
       "revId": "b345eda770f895f8e6761078eced42295fdfda21",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efbf2a36_4a82e443",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-04T16:23:52Z",
+      "side": 0,
+      "message": "The C++ spec standard, which initially stated that anonymous namespaces are superior and this use of static is deprecated, dropped that entire paragraph...\n\nThere are several reasons why I think static is preferable:\n- I can immediately see the linkage of the function. I don\u0027t have to check whether or not there\u0027s an anonymous namespace somewhere and whether this function is inside or outside of it.\n- I can move the function around in the file, without risk of pulling it in or out of an anonymous namespace.\n- The anonymous namespace semantics are not what I would call obvious. At a cursory glance it looks like something redundant. I\u0027d rather have the use of the namespace keyword actually introduce a namespace.\n- The fact that an anonymous namespace can make types invisible to other compile units doesn\u0027t seem like a material advantage to me. Named namespaces already serve the purpose of keeping identically named objects apart, but it should still be done sparingly to avoid confusion. Anonymous namespaces can lead to a lot of things being called the same.\n- Anonymous namespaces in headers are a recipe for disaster since each translation unit will get its own definition.\n\nThat said, I can remove this refactoring from this patch if you think it warrants a longer discussion before settling on a guideline.",
+      "parentUuid": "658860d0_c58e7b13",
+      "revId": "b345eda770f895f8e6761078eced42295fdfda21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
