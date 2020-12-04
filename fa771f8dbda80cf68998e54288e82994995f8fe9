@@ -46,6 +46,30 @@
       },
       "revId": "fa771f8dbda80cf68998e54288e82994995f8fe9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "553f3a4d_cd6cab5b",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T17:32:33Z",
+      "side": 1,
+      "message": "Ah, right, one of those where we don\u0027t see the whole story in the change/codebase. Okay!",
+      "parentUuid": "a18a2010_41b20bd8",
+      "range": {
+        "startLine": 161,
+        "startChar": 31,
+        "endLine": 161,
+        "endChar": 58
+      },
+      "revId": "fa771f8dbda80cf68998e54288e82994995f8fe9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }

@@ -34,6 +34,24 @@
       "parentUuid": "658860d0_c58e7b13",
       "revId": "b345eda770f895f8e6761078eced42295fdfda21",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3aaf19be_6a97170f",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T17:32:33Z",
+      "side": 0,
+      "message": "\u003e The C++ spec standard, which initially stated that anonymous namespaces are superior and this use of static is deprecated, dropped that entire paragraph...\n\nI\u0027m not sure what you\u0027re referring to here. I don\u0027t recall any mention of \u0027static\u0027 being deprecated. Anonymous namespaces are strictly superior in that they do everything static can do, and more. To be clear, I meant superior in terms of functionality, not readability or anything else.\n\n\u003e I can immediately see the linkage of the function. I don\u0027t have to check whether or not there\u0027s an anonymous namespace somewhere and whether this function is inside or outside of it.\n\nAgreed, this is an advantage of \u0027static\u0027 for sure.\n\n\u003e The anonymous namespace semantics are not what I would call obvious. At a cursory glance it looks like something redundant. I\u0027d rather have the use of the namespace keyword actually introduce a namespace.\n\nWhile it\u0027s true that the semantics seem irregular, like every feature of C++, it\u0027s one that we all have to learn. The idea behind it, though, makes sense to me: if you can\u0027t name the scope, then it\u0027s only visible to code that\u0027s in scope (in this case, the code below it in the file). This is a lot like \"Voldermort types\".\n\n\u003e The fact that an anonymous namespace can make types invisible to other compile units doesn\u0027t seem like a material advantage to me. Named namespaces already serve the purpose of keeping identically named objects apart, but it should still be done sparingly to avoid confusion. Anonymous namespaces can lead to a lot of things being called the same.\n\nOne advantage of hiding symbols is faster linking. The other is the ability to name symbols the same way, which can be an advantage in certain cases. In any case, your argument here against anonymous namespaces are the same against using static - that they can lead to a lot of things being named the same.\n\n\u003e Anonymous namespaces in headers are a recipe for disaster since each translation unit will get its own definition.\n\nAlso true about static, so not really specific to anonymous namespaces.\n\n\u003e That said, I can remove this refactoring from this patch if you think it warrants a longer discussion before settling on a guideline.\n\nI agree that seeing the keyword \u0027static\u0027 on a function makes it immediately clear that it\u0027s internal linkage. But the fact that I can\u0027t use it for classes and enums means that we\u0027re forced to mix using anoynmous namespaces and static. I prefer to just use one way and be consistent. Now having said that, we could actually have our cake and eat it too: nothing stops us from putting \u0027static\u0027 on functions/globals in anonymous namespaces. It\u0027s redundant, but perhaps a good compromise?\n\nNow having said all that, I\u0027m not going to fight this one. You can make the final call as the TL.",
+      "parentUuid": "efbf2a36_4a82e443",
+      "revId": "b345eda770f895f8e6761078eced42295fdfda21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
