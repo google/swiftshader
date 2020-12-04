@@ -16,6 +16,24 @@
       "message": "Usually I\u0027ve seen this just as:\n\n#define STRINGIFY2(x) #x\n#define STRINGIFY(x) STRINGIFY2(x)\n\nAnd you use STRINGIFY() always.",
       "revId": "acffac39ac2dd8b34dbca915ed01a4d8196f5f4d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f12bcd70_22156f85",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-04T19:58:09Z",
+      "side": 1,
+      "message": "I think it\u0027s slightly clearer that MACRO_STRINGIFY(X) stringifies the value of the macro X, while with STRINGIFY(X) the X doesn\u0027t have to be a macro; it stringifies whatever you pass in (which obviously can be accomplished by putting it between quotes too, but the point is to just have clear names for what these macros do, which just appending a 2 does not accomplish).",
+      "parentUuid": "1dd7df89_1fe42851",
+      "revId": "acffac39ac2dd8b34dbca915ed01a4d8196f5f4d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
