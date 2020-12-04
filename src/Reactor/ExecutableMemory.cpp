@@ -20,7 +20,7 @@
 #	ifndef WIN32_LEAN_AND_MEAN
 #		define WIN32_LEAN_AND_MEAN
 #	endif
-#	include <windows.h>
+#	include <Windows.h>
 #	include <intrin.h>
 #elif defined(__Fuchsia__)
 #	include <unistd.h>
@@ -55,7 +55,7 @@ void *allocateRaw(size_t bytes, size_t alignment)
 {
 	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
 
-#if defined(LINUX_ENABLE_NAMED_MMAP)
+#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	if(alignment < sizeof(void *))
 	{
 		return malloc(bytes);
@@ -128,11 +128,11 @@ int permissionsToMmapProt(int permissions)
 }
 #endif  // !defined(_WIN32) && !defined(__Fuchsia__)
 
-#if defined(LINUX_ENABLE_NAMED_MMAP)
+#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
 // Create a file descriptor for anonymous memory with the given
 // name. Returns -1 on failure.
 // TODO: remove once libc wrapper exists.
-int memfd_create(const char *name, unsigned int flags)
+static int memfd_create(const char *name, unsigned int flags)
 {
 #	if __aarch64__
 #		define __NR_memfd_create 279
@@ -159,7 +159,7 @@ int memfd_create(const char *name, unsigned int flags)
 // MAP_PRIVATE so that underlying pages aren't shared.
 int anonymousFd()
 {
-	static int fd = memfd_create("SwiftShader JIT", 0);
+	static int fd = memfd_create(#REACTOR_ANONYMOUS_MMAP_NAME, 0);
 	return fd;
 }
 
@@ -173,7 +173,7 @@ void ensureAnonFileSize(int anonFd, size_t length)
 		fileSize = length;
 	}
 }
-#endif  // defined(LINUX_ENABLE_NAMED_MMAP)
+#endif  // defined(REACTOR_ANONYMOUS_MMAP_NAME)
 
 #if defined(__Fuchsia__)
 zx_vm_option_t permissionsToZxVmOptions(int permissions)
@@ -226,7 +226,7 @@ void *allocate(size_t bytes, size_t alignment)
 
 void deallocate(void *memory)
 {
-#if defined(LINUX_ENABLE_NAMED_MMAP)
+#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	free(memory);
 #else
 	if(memory)
@@ -252,7 +252,7 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 	size_t length = roundUp(bytes, pageSize);
 	void *mapping = nullptr;
 
-#if defined(LINUX_ENABLE_NAMED_MMAP)
+#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	int flags = MAP_PRIVATE;
 
 	// Try to name the memory region for the executable code,
@@ -329,7 +329,10 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 void protectMemoryPages(void *memory, size_t bytes, int permissions)
 {
 	if(bytes == 0)
+	{
 		return;
+	}
+
 	bytes = roundUp(bytes, memoryPageSize());
 
 #if defined(_WIN32)
@@ -358,7 +361,7 @@ void deallocateMemoryPages(void *memory, size_t bytes)
 	    VirtualProtect(memory, bytes, PAGE_READWRITE, &oldProtection);
 	ASSERT(result);
 	deallocate(memory);
-#elif defined(LINUX_ENABLE_NAMED_MMAP) || defined(__APPLE__)
+#elif defined(__APPLE__) || defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	size_t pageSize = memoryPageSize();
 	size_t length = (bytes + pageSize - 1) & ~(pageSize - 1);
 	int result = munmap(memory, length);
