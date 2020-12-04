@@ -51,7 +51,7 @@ std::string generateFilename(std::string routineName)
 
 	static size_t counter = 0;
 	std::stringstream f;
-	f << "swiftshader_jit_llvm_" << std::setfill('0') << std::setw(4) << counter++ << "_" << routineName << ".asm";
+	f << "reactor_jit_llvm_" << std::setfill('0') << std::setw(4) << counter++ << "_" << routineName << ".asm";
 	return f.str();
 }
 

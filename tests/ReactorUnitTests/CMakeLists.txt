@@ -31,6 +31,11 @@ add_executable(ReactorUnitTests
     ${REACTOR_UNIT_TESTS_SRC_FILES}
 )
 
+target_compile_features(ReactorUnitTests
+    PUBLIC
+        cxx_std_17
+)
+
 set_target_properties(ReactorUnitTests PROPERTIES
     FOLDER "Tests"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

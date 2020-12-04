@@ -20,8 +20,18 @@
 
 #include <array>
 #include <cmath>
+#include <fstream>
 #include <thread>
 #include <tuple>
+
+// TODO(b/174843857): Remove once we upgrade to C++17
+#if(__cplusplus >= 201703L)
+#	define HAS_STD_FILESYSTEM
+#endif
+
+#if(defined(HAS_STD_FILESYSTEM))
+#	include <filesystem>
+#endif
 
 using namespace rr;
 
@@ -3248,6 +3258,75 @@ TEST(ReactorUnitTests, SpillLocalCopiesOfArgs)
 	int expected = numLoops * (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12);
 	EXPECT_EQ(result, expected);
 }
+
+#if defined(ENABLE_RR_EMIT_ASM_FILE) && defined(HAS_STD_FILESYSTEM)
+TEST(ReactorUnitTests, EmitAsm)
+{
+	// Only supported by LLVM for now
+	if(BackendName().find("LLVM") == std::string::npos) return;
+
+	namespace fs = std::filesystem;
+
+	FunctionT<int(void)> function;
+	{
+		Int sum;
+		For(Int i = 0, i < 10, i++)
+		{
+			sum += i;
+		}
+		Return(sum);
+	}
+
+	auto routine = function(testName().c_str());
+
+	// Returns path to first match of filename in current directory
+	auto findFile = [](const std::string filename) -> fs::path {
+		for(auto &p : fs::directory_iterator("."))
+		{
+			if(!p.is_regular_file())
+				continue;
+			auto currFilename = p.path().filename().string();
+			auto index = currFilename.find(testName());
+			if(index != std::string::npos)
+			{
+				return p.path();
+			}
+		}
+		return {};
+	};
+
+	fs::path path = findFile(testName());
+	EXPECT_FALSE(path.empty());
+
+	// Make sure an asm file was created
+	std::ifstream fin(path);
+	EXPECT_TRUE(fin);
+
+	// Make sure address of routine is in the file
+	auto findAddressInFile = [](std::ifstream &fin, size_t address) {
+		std::string addressString = [&] {
+			std::stringstream addressSS;
+			addressSS << "0x" << std::uppercase << std::hex << address;
+			return addressSS.str();
+		}();
+
+		std::string token;
+		while(fin >> token)
+		{
+			if(token.find(addressString) != std::string::npos)
+				return true;
+		}
+		return false;
+	};
+
+	size_t address = reinterpret_cast<size_t>(routine.getEntry());
+	EXPECT_TRUE(findAddressInFile(fin, address));
+
+	// Delete the file in case subsequent runs generate one with a different sequence number
+	fin.close();
+	std::filesystem::remove(path);
+}
+#endif
 
 ////////////////////////////////
 // Trait compile time checks. //

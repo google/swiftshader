@@ -45,6 +45,13 @@ cmake --build . --target ReactorUnitTests || goto :error
 Debug\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
 cmake "-DREACTOR_ENABLE_PRINT=0" .. || goto :error
 
+REM Incrementally build with REACTOR_EMIT_ASM_FILE and run unit test
+cd %SRC%\build || goto :error
+cmake "-DREACTOR_EMIT_ASM_FILE=1" .. || goto :error
+cmake --build . --target ReactorUnitTests || goto :error
+Debug\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.EmitAsm || goto :error
+cmake "-DREACTOR_EMIT_ASM_FILE=0" .. || goto :error
+
 REM Incrementally build with REACTOR_EMIT_DEBUG_INFO to ensure it builds
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_EMIT_DEBUG_INFO=1" .. || goto :error
