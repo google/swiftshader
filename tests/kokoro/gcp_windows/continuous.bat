@@ -42,18 +42,20 @@ REM Incrementally build and run rr::Print unit tests
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_ENABLE_PRINT=1" .. || goto :error
 cmake --build . --target ReactorUnitTests || goto :error
-cd %SRC% || goto :error
-build\Debug\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
+Debug\ReactorUnitTests.exe --gtest_filter=ReactorUnitTests.Print* || goto :error
+cmake "-DREACTOR_ENABLE_PRINT=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_DEBUG_INFO to ensure it builds
 cd %SRC%\build || goto :error
 cmake "-DREACTOR_EMIT_DEBUG_INFO=1" .. || goto :error
 cmake --build . --target ReactorUnitTests || goto :error
+cmake "-DREACTOR_EMIT_DEBUG_INFO=0" .. || goto :error
 
 REM Incrementally build with REACTOR_EMIT_PRINT_LOCATION to ensure it builds
 cd %SRC%\build || goto :error
-cmake "-REACTOR_EMIT_PRINT_LOCATION=1" .. || goto :error
+cmake "-DREACTOR_EMIT_PRINT_LOCATION=1" .. || goto :error
 cmake --build . --target ReactorUnitTests || goto :error
+cmake "-DREACTOR_EMIT_PRINT_LOCATION=0" .. || goto :error
 
 exit /b 0
 
