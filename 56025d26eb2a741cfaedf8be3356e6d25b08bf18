@@ -36,6 +36,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d73219f_dfe504c5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-04T05:03:03Z",
+      "side": 1,
+      "message": "Thanks Lei!\n\nSean, for OpDecorateId it looks like we can only encounter this for the UniformId decoration, which takes an \u003cid\u003e (versus the Uniform decoration which takes a literal). It provides information to perform potential optimizations, which we currently don\u0027t perform. It\u0027s safe to ignore. Hence why we\u0027re passing the test. That said, this instruction should really not be processed the same as OpDecorate. It needs its own implementation, which can currently consist of an assert that UniformId is the only decoration being applied, and a comment should be added that we don\u0027t optimize for uniform results yet.\n\nFor the string decorations, let\u0027s just add a comment we\u0027re assuming these are only used for HLSL semantics, which can be ignored, and add the link that Lei provided.\n\nI\u0027d also love to see https://cs.opensource.google/swiftshader/SwiftShader/+/master:src/Pipeline/SpirvShader.cpp;drc\u003d88e698a4f3e35f509ac80d9ffed8a4e0bbe3a85a;l\u003d115 and https://cs.opensource.google/swiftshader/SwiftShader/+/master:src/Pipeline/SpirvShader.cpp;drc\u003d88e698a4f3e35f509ac80d9ffed8a4e0bbe3a85a;l\u003d1391 check that we\u0027re only seeing expected decorations, and else trigger an UNSUPPORTED(). But that\u0027s an existing flaw so it can be done as a separate cleanup.",
+      "parentUuid": "1f5bbee7_4d4463fd",
+      "revId": "56025d26eb2a741cfaedf8be3356e6d25b08bf18",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "cd70f437_74db2398",
