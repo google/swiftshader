@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3f6c5246_6ff589c9",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T15:38:58Z",
+      "side": 1,
+      "message": "Is this macro defined anywhere? It\u0027s not clear to me whether LINUX_ENABLE_NAMED_MMAP was ever defined, say in CMakeLists.txt, and whether this change makes it so that we no longer enable this codepath.",
+      "range": {
+        "startLine": 161,
+        "startChar": 31,
+        "endLine": 161,
+        "endChar": 58
+      },
+      "revId": "fa771f8dbda80cf68998e54288e82994995f8fe9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

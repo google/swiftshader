@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "658860d0_c58e7b13",
+        "filename": "src/Reactor/ExecutableMemory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-04T15:38:58Z",
+      "side": 0,
+      "message": "Is replacing anonymous scopes with \u0027static\u0027 functions a personal preference? Anonymous namespaces are superior and generally preferred as they allow you to make things like class definitions and enums anonymous, while \"static\" can only be applied to functions and global variables.",
+      "revId": "b345eda770f895f8e6761078eced42295fdfda21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
