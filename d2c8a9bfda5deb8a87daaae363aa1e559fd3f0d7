@@ -405,6 +405,30 @@
       },
       "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "71f8c8ff_39a1817c",
+        "filename": "src/WSI/XcbSurfaceKHR.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-04T14:00:28Z",
+      "side": 1,
+      "message": "I didn\u0027t mean the exports object itself, I meant that I didn\u0027t know if a cleanup was necessary after calling loadLibrary (maybe some unloadLibrary function, similarly to dlopen/dlclose, although that\u0027s probably a bad example, as dlclose isn\u0027t forced to cleanup everything)",
+      "parentUuid": "fff5e08b_6245a39b",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 12
+      },
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
