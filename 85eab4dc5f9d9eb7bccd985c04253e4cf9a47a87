@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3034db33_fba2a19d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6650
+      },
+      "writtenOn": "2020-12-04T21:20:18Z",
+      "side": 1,
+      "message": "Here goes nothing!",
+      "revId": "85eab4dc5f9d9eb7bccd985c04253e4cf9a47a87",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

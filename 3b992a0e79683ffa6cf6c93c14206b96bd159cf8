@@ -39,6 +39,30 @@
       },
       "revId": "3b992a0e79683ffa6cf6c93c14206b96bd159cf8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b8e598b3_04ca167b",
+        "filename": "infra/config/generated/commit-queue.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 6650
+      },
+      "writtenOn": "2020-12-04T21:20:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a65a1216_a8f04f67",
+      "range": {
+        "startLine": 18,
+        "startChar": 23,
+        "endLine": 18,
+        "endChar": 35
+      },
+      "revId": "3b992a0e79683ffa6cf6c93c14206b96bd159cf8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
