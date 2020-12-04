@@ -106,6 +106,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a05f32c3_f58ff49c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-04T22:18:45Z",
+      "side": 1,
+      "message": "For clarity, I\u0027m not doing any of these changes to remove leaks, I was doing these changes locally to reduce the scope of where the leaks can be found.\n\nWhy use functions then? Because I can find them with LSAN. I can\u0027t find globals, but if the leak comes memory allocated during a function call, even from static variables, LSAN will point straight to it, so, in that regard, removing globals helps with debugging leaks and getting significant stack traces.",
+      "parentUuid": "e27108b4_38988cab",
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b954b61f_49101b77",
