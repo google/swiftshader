@@ -54,23 +54,6 @@ void *allocateRaw(size_t bytes, size_t alignment)
 {
 	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
 
-#if defined(LINUX_ENABLE_NAMED_MMAP)
-	if(alignment < sizeof(void *))
-	{
-		return malloc(bytes);
-	}
-	else
-	{
-		void *allocation;
-		int result = posix_memalign(&allocation, alignment, bytes);
-		if(result != 0)
-		{
-			errno = result;
-			allocation = nullptr;
-		}
-		return allocation;
-	}
-#else
 	unsigned char *block = (unsigned char *)malloc(bytes + sizeof(Allocation) + alignment);
 	unsigned char *aligned = nullptr;
 
@@ -84,7 +67,6 @@ void *allocateRaw(size_t bytes, size_t alignment)
 	}
 
 	return aligned;
-#endif
 }
 
 }  // anonymous namespace
@@ -118,9 +100,6 @@ void *allocate(size_t bytes, size_t alignment)
 
 void deallocate(void *memory)
 {
-#if defined(LINUX_ENABLE_NAMED_MMAP)
-	free(memory);
-#else
 	if(memory)
 	{
 		unsigned char *aligned = (unsigned char *)memory;
@@ -128,7 +107,6 @@ void deallocate(void *memory)
 
 		free(allocation->block);
 	}
-#endif
 }
 
 void clear(uint16_t *memory, uint16_t element, size_t count)
