@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "46b54806_aa53b729",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-04T21:04:39Z",
+      "side": 1,
+      "message": "I\u0027ll move each of these changes to their own cl. This cl now only contains Constants.",
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
