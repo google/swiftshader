@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "259e23a2_691f1a0f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-06T04:26:41Z",
+      "side": 1,
+      "message": "Should use \"chromium:1069673\"\n\nOtherwise it\u0027s interpreted as a Buganizer id.",
+      "range": {
+        "startLine": 9,
+        "startChar": 5,
+        "endLine": 9,
+        "endChar": 12
+      },
+      "revId": "7427f19aedca5fdcd79396ebd440dd4b331ce1fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20185871_f60cb0c6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-06T04:26:41Z",
+      "side": 1,
+      "message": "LGTM, minor comment:",
+      "revId": "7427f19aedca5fdcd79396ebd440dd4b331ce1fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
