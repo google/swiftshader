@@ -214,3 +214,4 @@ dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8
 dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8_unorm_block.etc2_r8g8b8a8_unorm_block.general_optimal
 dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8_unorm_block.etc2_r8g8b8a8_unorm_block.optimal_general
 dEQP-VK.api.copy_and_blit.core.image_to_image.all_formats.color.1d.etc2_r8g8b8a8_unorm_block.etc2_r8g8b8a8_unorm_block.optimal_optimal
+dEQP-VK.graphicsfuzz.spv-stable-orbit-Os-access-chain-mutate-pointer
