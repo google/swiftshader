@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c7c82df1_b03251c5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6650
+      },
+      "writtenOn": "2020-12-07T19:49:54Z",
+      "side": 1,
+      "message": "Going to TBR.\nWas testing before what will happen if I try to submit without approvals.",
+      "revId": "8938da6b5dd9806a4a8e8b698896cdda6e511fc7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
