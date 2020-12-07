@@ -16,6 +16,63 @@
       "message": "Testing CQ.",
       "revId": "688d59fce99e53ebdcc7c997f34d53a171d2fcbe",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "93273835_a428c0d0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-07T19:19:35Z",
+      "side": 1,
+      "message": "LGTM if Lei can tell us the CounterBuffer decoration can be ignored:",
+      "revId": "688d59fce99e53ebdcc7c997f34d53a171d2fcbe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4606cfb9_ecfbb743",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-07T19:19:35Z",
+      "side": 1,
+      "message": "This isn\u0027t mentioned in the comment. Is this also only an optimization hint, or something that may alter semantics?\n\nAccording to https://github.com/KhronosGroup/SPIRV-Registry/blob/master/extensions/GOOGLE/SPV_GOOGLE_hlsl_functionality1.asciidoc, \"The decoration HlslCounterBuffer is used with OpDecorateId to link a counter buffer to a UAV resource that has an associated counter.\" I\u0027m not sure if we support the Vulkan equivalent of that.\n\n@antiagainst got any info on this?",
+      "range": {
+        "startLine": 148,
+        "startChar": 72,
+        "endLine": 148,
+        "endChar": 95
+      },
+      "revId": "688d59fce99e53ebdcc7c997f34d53a171d2fcbe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f41f656_683b12c6",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-07T19:19:35Z",
+      "side": 1,
+      "message": "nit: Could be useful to mention https://khr.io/hlsl2spirv#hlsl-semantic",
+      "revId": "688d59fce99e53ebdcc7c997f34d53a171d2fcbe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
