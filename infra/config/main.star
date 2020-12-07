@@ -5,7 +5,7 @@ luci.project(
 )
 
 luci.cq_group(
-    name = 'cq',
+    name = 'SwiftShader-CQ',
     watch = cq.refset('https://swiftshader.googlesource.com/SwiftShader'),
     acls = [
         acl.entry(
@@ -27,3 +27,6 @@ luci.cq_group(
     ],
 )
 
+luci.cq(
+    status_host = 'chromium-cq-status.appspot.com',
+)
