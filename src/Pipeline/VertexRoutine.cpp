@@ -136,9 +136,10 @@ void VertexRoutine::computeClipFlags()
 	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
 	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
 
-	Int4 finiteX = CmpLE(Abs(posX), *Pointer<Float4>(constants + OFFSET(Constants, maxPos)));
-	Int4 finiteY = CmpLE(Abs(posY), *Pointer<Float4>(constants + OFFSET(Constants, maxPos)));
-	Int4 finiteZ = CmpLE(Abs(posZ), *Pointer<Float4>(constants + OFFSET(Constants, maxPos)));
+	Float4 maxPos = As<Float4>(Int4(0x7F7FFFFF));
+	Int4 finiteX = CmpLE(Abs(posX), maxPos);
+	Int4 finiteY = CmpLE(Abs(posY), maxPos);
+	Int4 finiteZ = CmpLE(Abs(posZ), maxPos);
 
 	Int4 finiteXYZ = finiteX & finiteY & finiteZ;
 	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, fini))[SignMask(finiteXYZ)];
