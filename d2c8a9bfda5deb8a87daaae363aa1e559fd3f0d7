@@ -142,6 +142,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bdbc4c7c_f1e5cb7c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-08T22:27:26Z",
+      "side": 1,
+      "message": "By \"find\", I mean LSAN can pinpoint any allocation which occurs during a function call to the exact line where the allocation happened. The issue with global variables is that they are allocated during the dlopen() call, and that\u0027s all the info we get from LSAN. We don\u0027t get a stack trace pointing the the allocation which is leaking.",
+      "parentUuid": "e2bf9e75_8c7c44e9",
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b954b61f_49101b77",
