@@ -1,6 +1,121 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "51c8021b_77a22463",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "nit: \"Make Constants a singleton instead of a global\"\n\n(Removing it from global scope could be a achieved in different ways, and I think it\u0027s important the title describes the \"what\" of a change.)",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 38
+      },
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7ac3d4b_9df806ff",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "I think this can be removed. A discussion about the impact of globals on the LSAN analysis could be had in chromium:972686, but I don\u0027t see much value in it as part of this commit message.\n\n(If we encounter this again in a year or so, and there are no LSAN issues at that time and we\u0027re testing rigorously for regressions, this could be interpreted as no longer needing this change.)",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 22
+      },
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ab8aeb13_94ca04a8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "I don\u0027t think we should make behavior-altering changes purely for making debugging easier (unless there\u0027s additional positive effect from it or the positive outweighs the negative, but then that should be clearly indicated). Also I think the second half of this sentence may no longer be true. So let\u0027s just remove it entirely?",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 42
+      },
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dafa2eeb_563f3c4a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "Let\u0027s make sure the commit message body contains the \"how\" and/or \"why\". In this case I think it\u0027s worth mentioning that the constructor of Constants runs at library load time, and this implementation of the singleton pattern achieves running the construction on first use. This saves startup time, and omits the construction entirely when no draw call or compute invocation is made.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 43
+      },
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6565acd6_37c70c67",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "Replace by a bug that focuses on the startup time-saving aspects instead of leaks: b/175073772 ?",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 20
+      },
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "46b54806_aa53b729",
@@ -14,6 +129,69 @@
       "writtenOn": "2020-12-04T21:04:39Z",
       "side": 1,
       "message": "I\u0027ll move each of these changes to their own cl. This cl now only contains Constants.",
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab4f4aed_0e0a4094",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "I\u0027m still on the fence about this. If it\u0027s not to fix any bug, but only to make debugging easier, we should question whether it can simply just be applied locally while LSAN issues are being investigated (it also bears the question of why exactly this makes a difference to LSAN analysis in the first place).\n\nIf the purpose of this change is now instead to make Constants a singleton so we save a bit on startup time, that should be stated a more clearly in the commit message:",
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7f347f41_637b94e6",
+        "filename": "src/Pipeline/Constants.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "Please move the implementation to the cpp file. While the C++ standard states that static locals of inline methods refer to the same object (instead of having multiple instances), this is not a widely known exception to the semantics of static.",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 2
+      },
+      "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "38226fd1_4c27a8e3",
+        "filename": "src/Pipeline/Constants.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "static const\n\nWhile that\u0027s redundant since the returned reference is const, it seems like good practice to prevent either making changes to it in this method or accidentally removing the const from the return type.",
+      "range": {
+        "startLine": 28,
+        "startChar": 2,
+        "endLine": 28,
+        "endChar": 8
+      },
       "revId": "91280582603781af29263e4698bf80cd3c7bcc14",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }

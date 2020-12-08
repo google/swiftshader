@@ -126,6 +126,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e2bf9e75_8c7c44e9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-08T06:45:52Z",
+      "side": 1,
+      "message": "\u003e Because I can find them with LSAN.\n\nWhat do you mean by \"find\", exactly? Is there a way to list all current allocations, and globals which use heap memory don\u0027t appear?\n\nAnyway, since Constants only stores constants, it makes sense to make it a singleton to avoid multiple instances.",
+      "parentUuid": "a05f32c3_f58ff49c",
+      "revId": "d2c8a9bfda5deb8a87daaae363aa1e559fd3f0d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b954b61f_49101b77",
         "filename": "src/Device/BC_Decoder.cpp",
         "patchSetId": 1
