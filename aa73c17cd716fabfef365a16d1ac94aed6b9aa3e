@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d692654f_68964d9b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-09T19:40:30Z",
+      "side": 1,
+      "message": "PTAL: updated to handle externalFormat \u003d 0",
+      "revId": "aa73c17cd716fabfef365a16d1ac94aed6b9aa3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
