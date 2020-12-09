@@ -87,6 +87,30 @@
       },
       "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad5e17c2_a6cdde70",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-09T21:47:34Z",
+      "side": 1,
+      "message": "OK, from what I can gather, AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420 is what\u0027s exposed to the public NVK, while AHARDWAREBUFFER_FORMAT_YV12 is used by the vendor NDK:\n- https://cs.android.com/android/platform/superproject/+/master:frameworks/native/libs/nativewindow/include/android/hardware_buffer.h;drc\u003d05565477b4702fece931ce0c91730e07a4147d52;l\u003d160\n- https://cs.android.com/android/platform/superproject/+/master:frameworks/native/libs/nativewindow/include/vndk/hardware_buffer.h;drc\u003d4e9e48d856dbd87df2b071e69acd12235e05f8df;l\u003d61",
+      "parentUuid": "c29bc406_53afed95",
+      "range": {
+        "startLine": 379,
+        "startChar": 2,
+        "endLine": 380,
+        "endChar": 35
+      },
+      "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
