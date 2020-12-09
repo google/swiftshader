@@ -377,6 +377,7 @@ VkFormat AHardwareBufferExternalMemory::GetVkFormatFromAHBFormat(uint32_t ahbFor
 		case AHARDWAREBUFFER_FORMAT_S8_UINT:
 			return VK_FORMAT_S8_UINT;
 		case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
+		case AHARDWAREBUFFER_FORMAT_YV12:
 			return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
 		default:
 			UNSUPPORTED("AHardwareBufferExternalMemory::AHardwareBuffer_Format %d", int(ahbFormat));
@@ -460,6 +461,7 @@ int AHardwareBufferExternalMemory::externalImageRowPitchBytes(VkImageAspectFlagB
 	switch(ahbDesc.format)
 	{
 		case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
+		case AHARDWAREBUFFER_FORMAT_YV12:
 			switch(aspect)
 			{
 				case VK_IMAGE_ASPECT_PLANE_0_BIT:
@@ -484,6 +486,7 @@ VkDeviceSize AHardwareBufferExternalMemory::externalImageMemoryOffset(VkImageAsp
 	switch(ahbDesc.format)
 	{
 		case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
+		case AHARDWAREBUFFER_FORMAT_YV12:
 			switch(aspect)
 			{
 				case VK_IMAGE_ASPECT_PLANE_0_BIT:
