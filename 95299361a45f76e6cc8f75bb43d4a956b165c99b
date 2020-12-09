@@ -22,6 +22,23 @@
       },
       "revId": "95299361a45f76e6cc8f75bb43d4a956b165c99b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "126c84ee_a8b19e5c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-09T22:02:39Z",
+      "side": 1,
+      "message": "As discussed, this is correct behavior, but could use clarification in the comment and commit message. +2 with those changes.",
+      "revId": "95299361a45f76e6cc8f75bb43d4a956b165c99b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
