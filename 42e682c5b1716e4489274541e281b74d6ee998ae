@@ -39,6 +39,30 @@
       },
       "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "acaaeb01_341634fd",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-09T21:39:54Z",
+      "side": 1,
+      "message": "I found b/117617861 which appears to have a ton of info about AHardwareBuffer YUV Support...",
+      "parentUuid": "0aa4e775_dc53a7f1",
+      "range": {
+        "startLine": 379,
+        "startChar": 2,
+        "endLine": 380,
+        "endChar": 35
+      },
+      "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
