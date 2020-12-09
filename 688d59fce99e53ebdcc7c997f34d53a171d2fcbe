@@ -84,6 +84,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "b8d632ac_bc4a7c98",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-09T18:41:54Z",
+      "side": 1,
+      "message": "Thanks for the information. I\u0027ve updated the comment to reflect this.",
+      "parentUuid": "779f1a24_f6ecaeb4",
+      "range": {
+        "startLine": 148,
+        "startChar": 72,
+        "endLine": 148,
+        "endChar": 95
+      },
+      "revId": "688d59fce99e53ebdcc7c997f34d53a171d2fcbe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "1f41f656_683b12c6",
         "filename": "src/Pipeline/SpirvShader.cpp",
         "patchSetId": 2
