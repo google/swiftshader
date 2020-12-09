@@ -398,6 +398,13 @@ VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferFormatProperties
 	pFormat->suggestedXChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
 	pFormat->suggestedYChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
 
+	// YUV formats are not listed in the AHardwareBuffer Format Equivalence table in the Vulkan spec.
+	// Clients must use VkExternalFormatANDROID.
+	if(pFormat->format == VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM)
+	{
+		pFormat->format = VK_FORMAT_UNDEFINED;
+	}
+
 	return VK_SUCCESS;
 }
 
