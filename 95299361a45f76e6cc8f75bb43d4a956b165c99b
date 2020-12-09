@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e8df81f8_863398e3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-09T18:08:40Z",
+      "side": 1,
+      "message": "Why is this necessary?\n\nI think it might not be valid. The spec for VkAndroidHardwareBufferFormatPropertiesANDROID states that \"If the Android hardware buffer has one of the formats listed in the Format Equivalence table, then format must have the equivalent Vulkan format listed in the table\"",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 5
+      },
+      "revId": "95299361a45f76e6cc8f75bb43d4a956b165c99b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
