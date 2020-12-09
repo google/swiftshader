@@ -2781,6 +2781,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 #if SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER
 				if(vk::Cast(pInfo->image)->getSupportedExternalMemoryHandleTypes() == VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
 				{
+					requirements->prefersDedicatedAllocation = VK_TRUE;
 					requirements->requiresDedicatedAllocation = VK_TRUE;
 				}
 #endif
