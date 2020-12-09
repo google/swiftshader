@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dbf47215_e7bca5e4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-09T17:18:22Z",
+      "side": 1,
+      "message": "Thank you for all of the recommendations and help!",
+      "parentUuid": "ffc9729a_48c8efd7",
+      "revId": "60ad3b2502bdaf603ffc7f409b97318cd8a733c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8a0919d9_350b4171",
@@ -41,6 +59,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4413490d_1163229c",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-09T17:18:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a0919d9_350b4171",
+      "range": {
+        "startLine": 127,
+        "startChar": 1,
+        "endLine": 130,
+        "endChar": 2
+      },
+      "revId": "60ad3b2502bdaf603ffc7f409b97318cd8a733c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2f4dd904_9f59e4b9",
@@ -54,6 +96,24 @@
       "writtenOn": "2020-12-09T16:33:17Z",
       "side": 1,
       "message": "Let\u0027s add a comment here to document what this is for:\n\n// VkImageViewCreateInfo: \"If image has an external format, format must be VK_FORMAT_UNDEFINED\"\n// In that case, obtain the format from the underlying image.",
+      "revId": "60ad3b2502bdaf603ffc7f409b97318cd8a733c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c12b10d4_4e7d6a7a",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-09T17:18:22Z",
+      "side": 1,
+      "message": "Added.",
+      "parentUuid": "2f4dd904_9f59e4b9",
       "revId": "60ad3b2502bdaf603ffc7f409b97318cd8a733c0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
