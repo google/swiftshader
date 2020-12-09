@@ -16,6 +16,24 @@
       "message": "PTAL: updated to handle externalFormat \u003d 0",
       "revId": "aa73c17cd716fabfef365a16d1ac94aed6b9aa3e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b55ed6c_669ccd6b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-09T20:08:42Z",
+      "side": 1,
+      "message": "Good catch. LGTM",
+      "parentUuid": "d692654f_68964d9b",
+      "revId": "aa73c17cd716fabfef365a16d1ac94aed6b9aa3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
