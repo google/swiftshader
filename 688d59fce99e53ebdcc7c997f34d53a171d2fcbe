@@ -58,6 +58,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "779f1a24_f6ecaeb4",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2020-12-09T17:31:22Z",
+      "side": 1,
+      "message": "The decoration is useful for certain gamedev flows where the shaders are authored using HLSL and the Vulkan runtime side uses shader reflection to build graphics pipelines. It\u0027s a decoration so that the compilation pipeline won\u0027t strip it away like normal debug information. I don\u0027t think it matters at the driver level, where they are just normal buffers as far as the drivers concern. So looks reasonable to me to ignore.",
+      "parentUuid": "4606cfb9_ecfbb743",
+      "range": {
+        "startLine": 148,
+        "startChar": 72,
+        "endLine": 148,
+        "endChar": 95
+      },
+      "revId": "688d59fce99e53ebdcc7c997f34d53a171d2fcbe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "1f41f656_683b12c6",
