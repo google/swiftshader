@@ -111,6 +111,30 @@
       },
       "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4648c76_bcd89001",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-09T21:57:41Z",
+      "side": 1,
+      "message": "\u003e IIUC, YV12 is explicitly a 3 plane format while Y8Cb8Cr8_420 is the more generic format that does not make any promises about the number of planes or the layouts.\n\nAh, yes, I see.\n\nI\u0027ll approve this CL since it\u0027s correct to map AHARDWAREBUFFER_FORMAT_YV12 to VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM, but we\u0027ll need to fix the AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420 handling to not assume the 3 planes. I *think* the only other possibility is VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, so we can still map to existing Vulkan types, but that needs checking.",
+      "parentUuid": "ad5e17c2_a6cdde70",
+      "range": {
+        "startLine": 379,
+        "startChar": 2,
+        "endLine": 380,
+        "endChar": 35
+      },
+      "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
