@@ -63,6 +63,30 @@
       },
       "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c29bc406_53afed95",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalAndroid.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-09T21:44:14Z",
+      "side": 1,
+      "message": "I have been using https://android.googlesource.com/platform/hardware/interfaces/+/refs/heads/master/graphics/common/aidl/android/hardware/graphics/common/PixelFormat.aidl#416 as my reference.\n\nIIUC, YV12 is explicitly a 3 plane format while Y8Cb8Cr8_420 is the more generic format that does not make any promises about the number of planes or the layouts. I think the existing handling of Y8Cb8Cr8_420 actually only works because we know that minigbm gralloc is using 3 plane for Y8Cb8Cr8_420.",
+      "parentUuid": "acaaeb01_341634fd",
+      "range": {
+        "startLine": 379,
+        "startChar": 2,
+        "endLine": 380,
+        "endChar": 35
+      },
+      "revId": "42e682c5b1716e4489274541e281b74d6ee998ae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
