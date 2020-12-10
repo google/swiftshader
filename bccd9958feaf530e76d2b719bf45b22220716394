@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b51c1f99_ffb96e4a",
+        "filename": "src/Vulkan/VkDevice.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-10T21:07:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f129df6f_41d299d3",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 190,
+        "endChar": 42
+      },
+      "revId": "bccd9958feaf530e76d2b719bf45b22220716394",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ea2f0b1c_77cea5fc",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-11-05T19:47:36Z",
       "side": 1,
       "message": "nit: it would be nice to always end these lines with a comma, so that only one line gets modified when we add one",
+      "range": {
+        "startLine": 396,
+        "startChar": 108,
+        "endLine": 396,
+        "endChar": 109
+      },
+      "revId": "bccd9958feaf530e76d2b719bf45b22220716394",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef1d4b1a_2bfe25eb",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-10T21:07:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea2f0b1c_77cea5fc",
       "range": {
         "startLine": 396,
         "startChar": 108,
