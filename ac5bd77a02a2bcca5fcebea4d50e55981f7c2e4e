@@ -16,6 +16,23 @@
       "message": "\u003e Patch Set 4:\n\u003e \n\u003e \u003e Patch Set 4: Code-Review+1\n\u003e \u003e \n\u003e \u003e Jonah: friendly ping\n\u003e \n\u003e I get these build errors when I try locally:\n\u003e \n\u003e In file included from ../../third_party/swiftshader/src/Vulkan/VkDeviceMemory.cpp:261:\n\u003e ../../third_party/swiftshader/src/Vulkan/VkDeviceMemoryExternalPosix.hpp:75:5: error: \u0027clock_gettime\u0027 is only available on macOS 10.12 or newer [-Werror,-Wunguarded-availability]\n\u003e                                 clock_gettime(CLOCK_REALTIME, \u0026tv);\n\u003e                                 ^~~~~~~~~~~~~\n\u003e ../../build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/time.h:178:5: note: \u0027clock_gettime\u0027 has been marked as being introduced in macOS 10.12 here, but the deployment target is macOS 10.10.0\n\u003e int clock_gettime(clockid_t __clock_id, struct timespec *__tp);\n\u003e     ^\n\u003e ../../third_party/swiftshader/src/Vulkan/VkDeviceMemoryExternalPosix.hpp:75:5: note: enclose \u0027clock_gettime\u0027 in a __builtin_available check to silence this warning\n\u003e                                 clock_gettime(CLOCK_REALTIME, \u0026tv);\n\nDone",
       "revId": "ac5bd77a02a2bcca5fcebea4d50e55981f7c2e4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "afab70a2_f91ed49c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 94981
+      },
+      "writtenOn": "2020-12-10T05:39:56Z",
+      "side": 1,
+      "message": "Verified that chromium build on macOS now. Please take a look.",
+      "revId": "ac5bd77a02a2bcca5fcebea4d50e55981f7c2e4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
