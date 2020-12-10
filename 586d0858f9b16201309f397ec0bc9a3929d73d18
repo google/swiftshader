@@ -16,6 +16,24 @@
       "message": "Let\u0027s also add Bug: b/141698760",
       "revId": "586d0858f9b16201309f397ec0bc9a3929d73d18",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b21b68a9_1ffd3160",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-10T02:15:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de386125_13768f85",
+      "revId": "586d0858f9b16201309f397ec0bc9a3929d73d18",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
