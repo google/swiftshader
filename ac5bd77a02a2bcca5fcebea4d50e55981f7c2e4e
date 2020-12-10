@@ -33,6 +33,23 @@
       "message": "Verified that chromium build on macOS now. Please take a look.",
       "revId": "ac5bd77a02a2bcca5fcebea4d50e55981f7c2e4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1b3d3340_8259ce62",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalPosix.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2020-12-10T11:18:16Z",
+      "side": 1,
+      "message": "nit: Would you consider renaming this file to VkDeviceMemoryExternalMac.hpp then?",
+      "revId": "ac5bd77a02a2bcca5fcebea4d50e55981f7c2e4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
