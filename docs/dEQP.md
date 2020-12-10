@@ -6,26 +6,21 @@ These steps are specifically for testing SwiftShader's OpenGL ES 3.0 implementat
 Prerequisites
 -------------
 
-1. Install the latest [Python 2.X](https://www.python.org/downloads/)
+1. Install the latest [Python 3](https://www.python.org/downloads/)
 2. Install [Visual Studio](https://visualstudio.microsoft.com/vs/community/)
 3. Install [CMake](https://cmake.org/download/)
-4. Install [Go](https://golang.org/doc/install) 32-bit (Important: must be 32 bit)
-5. Install [MinGW](http://www.mingw.org/)
+4. Install [Go](https://golang.org/doc/install)
+5. Install [MinGW-W64](http://mingw-w64.org/doku.php/download)
+  * Select 'x86_64' as Architecture during setup
 6. Install [Git](https://git-scm.com/download/win)
 7. Install [Android Studio](https://developer.android.com/studio/index.html)
 8. Run Android Studio and install Android SDK.
 9. Set environment variables: Config Panel -> System and Security -> System -> Advanced system settigns -> Environment Variables
   * Add `<path to python>` to your PATH environment variable
-  * Add `<path to MinGW>\bin` to your PATH environment variable
+  * Add `<path to MinGW-W64>\bin` to your PATH environment variable
   * Add `<path to adb>` to your PATH environment variable
 
     Note: abd is in the Android SDK, typically in `C:\Users\<username>\AppData\Local\Android\sdk\platform-tools`
-
-10. Install GCC. In 'cmd', run:
-
-    `mingw-get install gcc`
-
-    Note: Using Cygwin GCC currently doesn't work.
 
 11. (Optional) Install [TortoiseGit](https://tortoisegit.org/)
 
@@ -40,7 +35,7 @@ Getting the Code
 
 13. Get dEQP's dependencies. In your dEQP root directory, open 'cmd' and run:
 
-    `python external\fetch_sources.py`
+    `python3 external\fetch_sources.py`
 
 14. Get Cherry (either in 'cmd' or by using TortoiseGit):
 
@@ -57,13 +52,9 @@ Building the code
     ```
     mkdir build
     cd build
-    cmake .. -G "Visual Studio 15 2017 Win64"
+    cmake ..
     ```
-    Note: If you have multiple versions of Visual Studio installed and you want to make sure cmake is using the correct version of Visual Studio, you can specify it by calling, for example:
-
-    `cmake .. -G "Visual Studio <version> Win64"`
-
-    Also note: don't call 'cmake .' directly in the root directory. It will make things fails later on. If you do, simply erase the files created by CMake and follow the steps above.
+    Note: don't call 'cmake .' directly in the root directory. It will make things fails later on. If you do, simply erase the files created by CMake and follow the steps above.
 
 17. Build dEQP:
 
@@ -75,10 +66,10 @@ Building the code
     ```
     mkdir <path to cherry>\data
     cd <path to dEQP>
-    python scripts\build_caselists.py <path to cherry>\data
+    python3 scripts\build_caselists.py <path to cherry>\data
     ```
 
-    Note: you need to run `python scripts\build_caselists.py <path to cherry>\data` every time you update dEQP.
+    Note: you need to run `python3 scripts\build_caselists.py <path to cherry>\data` every time you update dEQP.
 
 Preparing the server
 --------------------
@@ -145,13 +136,13 @@ Linux
 
 The Linux process is similar to Windows. However it doesn't use Release or Debug variants and it uses shared object files instead of DLLs.
 
-1. Install the latest [Python 2.X](https://www.python.org/downloads/)
+1. Install the latest [Python 3](https://www.python.org/downloads/)
 2. Install GCC and Make. In a terminal, run:
 
     `sudo apt-get install gcc make`
 
 3. Install [CMake](https://cmake.org/download/)
-4. Install [Go](https://golang.org/doc/install) 32-bit (Important: must be 32 bit)
+4. Install [Go](https://golang.org/doc/install)
 5. Install Git. In a terminal, run:
 
     `sudo apt-get install git`
@@ -175,7 +166,7 @@ Getting the Code
 
 9. Get dEQP's dependencies. In your dEQP root directory, run:
 
-    `python external/fetch_sources.py`
+    `python3 external/fetch_sources.py`
 
 10. Get Cherry, similar to step 8:
 
@@ -212,16 +203,16 @@ Building the code
     make --jobs=$(nproc)
     ```
 
-    Also note: don't call 'cmake .' directly in the root directory. It will make things fails later on. If you do, simply erase the files created by CMake and follow the steps above.
+    Also: don't call 'cmake .' directly in the root directory. It will make things fails later on. If you do, simply erase the files created by CMake and follow the steps above.
 
 15. Generate test cases:
     ```
     mkdir <path to cherry>/data
     cd <path to dEQP>
-    python scripts/build_caselists.py <path to cherry>/data
+    python3 scripts/build_caselists.py <path to cherry>/data
     ```
 
-    Note: you need to run `python scripts/build_caselists.py <path to cherry>/data` every time you update dEQP.
+    Note: you need to run `python3 scripts/build_caselists.py <path to cherry>/data` every time you update dEQP.
 
 Preparing the server
 --------------------
