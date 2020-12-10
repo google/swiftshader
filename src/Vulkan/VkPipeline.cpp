@@ -74,12 +74,17 @@ std::vector<uint32_t> preprocessSpirv(
 		opt.RegisterPerformancePasses();
 	}
 
-	std::vector<uint32_t> optimized;
 	spvtools::OptimizerOptions options;
 #if defined(NDEBUG)
 	options.set_run_validator(false);
+#else
+	options.set_run_validator(true);
+	spvtools::ValidatorOptions validatorOptions;
+	validatorOptions.SetScalarBlockLayout(true);  // VK_EXT_scalar_block_layout
+	options.set_validator_options(validatorOptions);
 #endif
 
+	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized, options);
 
 	if(false)

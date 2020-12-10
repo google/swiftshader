@@ -396,6 +396,7 @@ static const VkExtensionProperties deviceExtensionProperties[] = {
 	{ VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME, VK_EXT_DEVICE_MEMORY_REPORT_SPEC_VERSION },
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
 	// Vulkan 1.2 promoted extensions
+	{ VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME, VK_EXT_SCALAR_BLOCK_LAYOUT_SPEC_VERSION },
 	{ VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME, VK_KHR_IMAGE_FORMAT_LIST_SPEC_VERSION },
 	{ VK_KHR_IMAGELESS_FRAMEBUFFER_EXTENSION_NAME, VK_KHR_IMAGELESS_FRAMEBUFFER_SPEC_VERSION },
 	{ VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME, VK_KHR_SHADER_FLOAT_CONTROLS_SPEC_VERSION },
@@ -770,6 +771,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 				const VkPhysicalDeviceImagelessFramebufferFeaturesKHR *imagelessFramebufferFeatures = reinterpret_cast<const VkPhysicalDeviceImagelessFramebufferFeaturesKHR *>(extensionCreateInfo);
 				// Always provide Imageless Framebuffers
 				(void)imagelessFramebufferFeatures->imagelessFramebuffer;
+			}
+			break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
+			{
+				const VkPhysicalDeviceScalarBlockLayoutFeatures *scalarBlockLayoutFeatures = reinterpret_cast<const VkPhysicalDeviceScalarBlockLayoutFeatures *>(extensionCreateInfo);
+
+				// VK_EXT_scalar_block_layout is supported, allowing C-like structure layout for SPIR-V blocks.
+				(void)scalarBlockLayoutFeatures->scalarBlockLayout;
 			}
 			break;
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT

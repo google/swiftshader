@@ -217,6 +217,12 @@ static void getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(T *features)
 	features->shaderSubgroupExtendedTypes = VK_TRUE;
 }
 
+template<typename T>
+static void getPhysicalDeviceScalarBlockLayoutFeatures(T *features)
+{
+	features->scalarBlockLayout = VK_TRUE;
+}
+
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 template<typename T>
 static void getPhysicalDeviceDeviceMemoryReportFeaturesEXT(T *features)
@@ -256,7 +262,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	features->descriptorBindingVariableDescriptorCount = VK_FALSE;
 	features->runtimeDescriptorArray = VK_FALSE;
 	features->samplerFilterMinmax = VK_FALSE;
-	features->scalarBlockLayout = VK_FALSE;
+	getPhysicalDeviceScalarBlockLayoutFeatures(features);
 	getPhysicalDeviceImagelessFramebufferFeatures(features);
 	features->uniformBufferStandardLayout = VK_FALSE;
 	getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(features);
@@ -327,6 +333,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR:
 				getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(reinterpret_cast<VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
+				getPhysicalDeviceScalarBlockLayoutFeatures(reinterpret_cast<VkPhysicalDeviceScalarBlockLayoutFeatures *>(curExtension));
 				break;
 #ifdef SWIFTSHADER_DEVICE_MEMORY_REPORT
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT:
