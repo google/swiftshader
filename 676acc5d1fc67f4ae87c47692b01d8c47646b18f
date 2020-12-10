@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "524a8676_9b21548b",
+        "filename": "tests/regres/testlists/vk-master-FAIL.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-10T14:52:41Z",
+      "side": 1,
+      "message": "Known test issue: https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2698",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 81
+      },
+      "revId": "676acc5d1fc67f4ae87c47692b01d8c47646b18f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
