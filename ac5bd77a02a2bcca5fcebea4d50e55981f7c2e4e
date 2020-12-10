@@ -50,6 +50,24 @@
       "message": "nit: Would you consider renaming this file to VkDeviceMemoryExternalMac.hpp then?",
       "revId": "ac5bd77a02a2bcca5fcebea4d50e55981f7c2e4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8e322a1_fc0e8b28",
+        "filename": "src/Vulkan/VkDeviceMemoryExternalPosix.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 94981
+      },
+      "writtenOn": "2020-12-10T21:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b3d3340_8259ce62",
+      "revId": "ac5bd77a02a2bcca5fcebea4d50e55981f7c2e4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
