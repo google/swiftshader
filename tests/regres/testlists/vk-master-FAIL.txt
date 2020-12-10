@@ -1,5 +1,6 @@
 dEQP-VK.dynamic_state.rs_state.depth_bias_clamp
 dEQP-VK.graphicsfuzz.stable-rects-vec4-clamp-conditional-min-mix
+dEQP-VK.spirv_assembly.instruction.spirv1p4.entrypoint.comp_workgroup_entry_point
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_linear_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_linear_linear_mipmap_nearest_repeat
 dEQP-VK.texture.explicit_lod.2d.sizes.31x55_nearest_linear_mipmap_linear_repeat
