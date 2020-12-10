@@ -466,7 +466,7 @@ void SetupRoutine::generate()
 
 					Int e = Max(Max(e0, e1), e2);
 
-					r = As<Float>(e - (23 << 23));
+					r = As<Float>(e) * Float(1.0f / (1 << 23));
 				}
 
 				bias = r * *Pointer<Float>(data + OFFSET(DrawData, constantDepthBias));
