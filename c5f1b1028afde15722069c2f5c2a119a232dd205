@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd7bc2e0_dbbf6cdc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-11T18:35:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "233cdad8_a3383a57",
+      "range": {
+        "startLine": 10,
+        "startChar": 9,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "c5f1b1028afde15722069c2f5c2a119a232dd205",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a33ba188_4fdd78ac",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-11T15:27:40Z",
       "side": 1,
       "message": "This method is marked deprecated. The one taking OptimizerOptions should be used instead.\n\nI wasn\u0027t aware that this optimizer also performed validation (might be a recent change). Let\u0027s disable it: https://swiftshader-review.googlesource.com/c/SwiftShader/+/51168. Note that based on that change you\u0027ll be able to call OptimizerOptions::set_validator_options() to control standard layout validation.",
+      "range": {
+        "startLine": 81,
+        "startChar": 5,
+        "endLine": 81,
+        "endChar": 71
+      },
+      "revId": "c5f1b1028afde15722069c2f5c2a119a232dd205",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e0cca1c1_cb927c6c",
+        "filename": "src/Vulkan/VkPipeline.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-11T18:35:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a33ba188_4fdd78ac",
       "range": {
         "startLine": 81,
         "startChar": 5,
