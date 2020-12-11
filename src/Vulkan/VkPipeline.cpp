@@ -75,7 +75,12 @@ std::vector<uint32_t> preprocessSpirv(
 	}
 
 	std::vector<uint32_t> optimized;
-	opt.Run(code.data(), code.size(), &optimized);
+	spvtools::OptimizerOptions options;
+#if defined(NDEBUG)
+	options.set_run_validator(false);
+#endif
+
+	opt.Run(code.data(), code.size(), &optimized, options);
 
 	if(false)
 	{
