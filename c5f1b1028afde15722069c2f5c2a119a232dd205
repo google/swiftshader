@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "233cdad8_a3383a57",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-11T15:27:40Z",
+      "side": 1,
+      "message": "Thanks for giving thought about this! It\u0027s important that we think about asserting both SwiftShader and the applications\u0027 behavior to make the Vulkan ecosystem thrive.\n\nThat said, the rules about what we should check and what not are a bit nuanced. First note that SwiftShader, like every Vulkan ICD, doesn\u0027t *have* to perform validation (so the \"is responsible for\" in your message isn\u0027t quite correct). That\u0027s what the validation layers are for. However, as part of b/158228522 I added SPIR-V validation to our Debug builds, to avoid the complication of having to set up validation layers to prove whether or not an issue is an app-side bug or a SwiftShader bug.\n\nWhen performing validation as a convenience measure, we\u0027re purely interested in whether SwiftShader can process the SPIR-V that we\u0027ve been given, and not whether the application correctly enabled the extension. Hence it would be fine to consider the feature always enabled when having SPIRV-Tools perform the validation. While checking that the app enabled it correctly could theoretically also have some value, I want to be careful not to set an expectation that SwiftShader can be used in lieu of validation layers. That would make our code more complicated than other ICDs and increase our maintenance burden. When we add validation to SwiftShader, despite not being mandatory, it should be for our convenience or for calculated cases where it\u0027s exceedingly hard for a validation layer to do it while it\u0027s easy for us.\n\nSo with that in mind, I don\u0027t think this particular case has a need for checking that the feature has bee enabled. Validation layers are 100% capable of checking correct application behavior, and we\u0027re still ensuring SwiftShader receives SPIR-V that it can handle without causing trouble deeper down. While it\u0027s only a Boolean flag that needs to be passed around for now, I\u0027d like to avoid setting a precedent that could add complications in the future. Lastly, note that `uniformBufferStandardLayout` is fully mandatory for Vulkan 1.2, so any conditional checks here are only of short term value for Vulkan 1.1 compatibility.",
+      "range": {
+        "startLine": 10,
+        "startChar": 9,
+        "endLine": 14,
+        "endChar": 5
+      },
+      "revId": "c5f1b1028afde15722069c2f5c2a119a232dd205",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a33ba188_4fdd78ac",
+        "filename": "src/Vulkan/VkPipeline.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-11T15:27:40Z",
+      "side": 1,
+      "message": "This method is marked deprecated. The one taking OptimizerOptions should be used instead.\n\nI wasn\u0027t aware that this optimizer also performed validation (might be a recent change). Let\u0027s disable it: https://swiftshader-review.googlesource.com/c/SwiftShader/+/51168. Note that based on that change you\u0027ll be able to call OptimizerOptions::set_validator_options() to control standard layout validation.",
+      "range": {
+        "startLine": 81,
+        "startChar": 5,
+        "endLine": 81,
+        "endChar": 71
+      },
+      "revId": "c5f1b1028afde15722069c2f5c2a119a232dd205",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
