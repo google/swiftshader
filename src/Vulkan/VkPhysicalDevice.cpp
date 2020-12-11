@@ -232,6 +232,12 @@ static void getPhysicalDeviceDeviceMemoryReportFeaturesEXT(T *features)
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
 
 template<typename T>
+static void getPhysicalDeviceUniformBufferStandardLayoutFeatures(T *features)
+{
+	features->uniformBufferStandardLayout = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_FALSE;
@@ -264,7 +270,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	features->samplerFilterMinmax = VK_FALSE;
 	getPhysicalDeviceScalarBlockLayoutFeatures(features);
 	getPhysicalDeviceImagelessFramebufferFeatures(features);
-	features->uniformBufferStandardLayout = VK_FALSE;
+	getPhysicalDeviceUniformBufferStandardLayoutFeatures(features);
 	getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(features);
 	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
 	features->hostQueryReset = VK_FALSE;
@@ -342,6 +348,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				getPhysicalDeviceDeviceMemoryReportFeaturesEXT(reinterpret_cast<VkPhysicalDeviceDeviceMemoryReportFeaturesEXT *>(curExtension));
 				break;
 #endif  // SWIFTSHADER_DEVICE_MEMORY_REPORT
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES:
+				getPhysicalDeviceUniformBufferStandardLayoutFeatures(reinterpret_cast<VkPhysicalDeviceUniformBufferStandardLayoutFeatures *>(curExtension));
+				break;
 			default:
 				LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
 				break;

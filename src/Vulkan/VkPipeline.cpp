@@ -74,18 +74,19 @@ std::vector<uint32_t> preprocessSpirv(
 		opt.RegisterPerformancePasses();
 	}
 
-	spvtools::OptimizerOptions options;
+	spvtools::OptimizerOptions optimizerOptions = {};
 #if defined(NDEBUG)
-	options.set_run_validator(false);
+	optimizerOptions.set_run_validator(false);
 #else
-	options.set_run_validator(true);
-	spvtools::ValidatorOptions validatorOptions;
-	validatorOptions.SetScalarBlockLayout(true);  // VK_EXT_scalar_block_layout
-	options.set_validator_options(validatorOptions);
+	optimizerOptions.set_run_validator(true);
+	spvtools::ValidatorOptions validatorOptions = {};
+	validatorOptions.SetScalarBlockLayout(true);            // VK_EXT_scalar_block_layout
+	validatorOptions.SetUniformBufferStandardLayout(true);  // VK_KHR_uniform_buffer_standard_layout
+	optimizerOptions.set_validator_options(validatorOptions);
 #endif
 
 	std::vector<uint32_t> optimized;
-	opt.Run(code.data(), code.size(), &optimized, options);
+	opt.Run(code.data(), code.size(), &optimized, optimizerOptions);
 
 	if(false)
 	{

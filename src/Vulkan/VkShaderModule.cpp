@@ -31,10 +31,11 @@ ShaderModule::ShaderModule(const VkShaderModuleCreateInfo *pCreateInfo, void *me
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 	spvtools::SpirvTools spirvTools(SPIRV_VERSION);
-	spvtools::ValidatorOptions options = {};
-	options.SetScalarBlockLayout(true);
+	spvtools::ValidatorOptions validatorOptions = {};
+	validatorOptions.SetScalarBlockLayout(true);            // VK_EXT_scalar_block_layout
+	validatorOptions.SetUniformBufferStandardLayout(true);  // VK_KHR_uniform_buffer_standard_layout
 
-	ASSERT(spirvTools.Validate(code, wordCount, options));  // The SPIR-V code passed to vkCreateShaderModule must be valid (b/158228522)
+	ASSERT(spirvTools.Validate(code, wordCount, validatorOptions));  // The SPIR-V code passed to vkCreateShaderModule must be valid (b/158228522)
 #endif
 }
 
