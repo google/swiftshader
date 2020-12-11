@@ -16,6 +16,24 @@
       "message": "Is it the correct bug ID? Seems unrelated.",
       "revId": "33e683180b229cf0b51e2de2d6ae4e83800a446a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b57bc4c_e83f86f6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-11T15:41:18Z",
+      "side": 1,
+      "message": "Yes, b/146387550 is about exposing features that we support. Since R16G16B16 and R32G32B32 sampling is subtly broken, we should make sure we don\u0027t use b/146387550 as justification to expose it. Kind of the inverse, but I think it\u0027s sensible to associate it with this bug.\n\nWhile I ran into this while working on b/167582422, that one seems less fitting since it\u0027s only about the 16-bit component formats.\n\nAnyway, if you think too confusing I\u0027ll open a new bug that is explicitly the inverse of b/146387550.",
+      "parentUuid": "d168fa3a_16845485",
+      "revId": "33e683180b229cf0b51e2de2d6ae4e83800a446a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
