@@ -22,6 +22,30 @@
       },
       "revId": "af42a5d0645724683995af75c7191adfa3bb76c2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "399f861a_220a0b01",
+        "filename": "src/Vulkan/VkShaderModule.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-11T21:00:50Z",
+      "side": 1,
+      "message": "Ah, yes, I\u0027ll revert it before landing.",
+      "parentUuid": "f2628903_bc44f04b",
+      "range": {
+        "startLine": 37,
+        "startChar": 31,
+        "endLine": 37,
+        "endChar": 32
+      },
+      "revId": "af42a5d0645724683995af75c7191adfa3bb76c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
