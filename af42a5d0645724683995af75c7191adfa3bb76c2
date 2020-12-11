@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2628903_bc44f04b",
+        "filename": "src/Vulkan/VkShaderModule.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-11T20:54:01Z",
+      "side": 1,
+      "message": "typo?",
+      "range": {
+        "startLine": 37,
+        "startChar": 31,
+        "endLine": 37,
+        "endChar": 32
+      },
+      "revId": "af42a5d0645724683995af75c7191adfa3bb76c2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
