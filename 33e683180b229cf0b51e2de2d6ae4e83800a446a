@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d168fa3a_16845485",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-11T14:47:54Z",
+      "side": 1,
+      "message": "Is it the correct bug ID? Seems unrelated.",
+      "revId": "33e683180b229cf0b51e2de2d6ae4e83800a446a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
