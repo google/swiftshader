@@ -34,6 +34,24 @@
       "parentUuid": "d168fa3a_16845485",
       "revId": "33e683180b229cf0b51e2de2d6ae4e83800a446a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "69d70e8e_08c75a43",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-11T15:50:06Z",
+      "side": 1,
+      "message": "I don\u0027t mind either way, I was just making sure this wasn\u0027t a typo.",
+      "parentUuid": "2b57bc4c_e83f86f6",
+      "revId": "33e683180b229cf0b51e2de2d6ae4e83800a446a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
