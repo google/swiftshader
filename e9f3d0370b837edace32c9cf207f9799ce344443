@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "adb094f8_a221e8dd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-12T12:40:14Z",
+      "side": 1,
+      "message": "Rebased to test against new dEQP 1.2.5 version which adds some more external memory coverage.",
+      "revId": "e9f3d0370b837edace32c9cf207f9799ce344443",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
