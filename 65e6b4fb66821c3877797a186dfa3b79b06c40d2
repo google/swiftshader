@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d9db9fe_0a5a1a6b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-12T11:27:27Z",
+      "side": 1,
+      "message": "Clean Regres test run of follow-up change https://swiftshader-review.googlesource.com/c/SwiftShader/+/51188",
+      "revId": "65e6b4fb66821c3877797a186dfa3b79b06c40d2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
