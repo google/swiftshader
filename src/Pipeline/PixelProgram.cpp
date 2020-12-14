@@ -373,12 +373,4 @@ void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
 	}
 }
 
-Float4 PixelProgram::linearToSRGB(const Float4 &x)  // Approximates x^(1.0/2.2)
-{
-	Float4 sqrtx = Rcp_pp(RcpSqrt_pp(x));
-	Float4 sRGB = sqrtx * Float4(1.14f) - x * Float4(0.14f);
-
-	return Min(Max(sRGB, Float4(0.0f)), Float4(1.0f));
-}
-
 }  // namespace sw

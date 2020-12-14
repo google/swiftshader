@@ -48,7 +48,6 @@ private:
 
 	Int4 maskAny(Int cMask[4]) const;
 	Int4 maskAny(Int cMask[4], Int sMask[4], Int zMask[4]) const;
-	Float4 linearToSRGB(const Float4 &x);
 };
 
 }  // namespace sw

@@ -1226,10 +1226,10 @@ void SamplerCore::computeLod2D(Pointer<Byte> &texture, Float &lod, Float &anisot
 		uDelta = As<Float4>((As<Int4>(dudx) & mask) | ((As<Int4>(dudy) & ~mask)));
 		vDelta = As<Float4>((As<Int4>(dvdx) & mask) | ((As<Int4>(dvdy) & ~mask)));
 
-		anisotropy = lod * Rcp_pp(det);
+		anisotropy = lod * Rcp(det, Precision::Relaxed);
 		anisotropy = Min(anisotropy, state.maxAnisotropy);
 
-		lod *= Rcp_pp(anisotropy * anisotropy);
+		lod *= Rcp(anisotropy * anisotropy, Precision::Relaxed);
 	}
 
 	lod = log2sqrt(lod);  // log2(sqrt(lod))

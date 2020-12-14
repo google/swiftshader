@@ -2865,6 +2865,47 @@ RValue<Float> RcpSqrt_pp(RValue<Float> x)
 #endif
 }
 
+bool HasRcpApprox()
+{
+#if defined(__i386__) || defined(__x86_64__)
+	return true;
+#else
+	return false;
+#endif
+}
+
+RValue<Float4> RcpApprox(RValue<Float4> x, bool exactAtPow2)
+{
+#if defined(__i386__) || defined(__x86_64__)
+	if(exactAtPow2)
+	{
+		// rcpps uses a piecewise-linear approximation which minimizes the relative error
+		// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
+		return x86::rcpps(x) * Float4(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
+	}
+	return x86::rcpps(x);
+#else
+	UNREACHABLE("RValue<Float4> RcpApprox() not available on this platform");
+	return { 0.0f };
+#endif
+}
+
+RValue<Float> RcpApprox(RValue<Float> x, bool exactAtPow2)
+{
+#if defined(__i386__) || defined(__x86_64__)
+	if(exactAtPow2)
+	{
+		// rcpss uses a piecewise-linear approximation which minimizes the relative error
+		// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
+		return x86::rcpss(x) * Float(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
+	}
+	return x86::rcpss(x);
+#else
+	UNREACHABLE("RValue<Float4> RcpApprox() not available on this platform");
+	return { 0.0f };
+#endif
+}
+
 RValue<Float> Sqrt(RValue<Float> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();

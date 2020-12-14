@@ -66,6 +66,16 @@ int DebugPrintf(const char *format, ...);
 
 namespace rr {
 
+// These generally map to the precision types as specified by the Vulkan specification.
+// See https://www.khronos.org/registry/vulkan/specs/1.2/html/chap37.html#spirvenv-precision-operation
+enum class Precision
+{
+	/*Exact,*/  // 0 ULP with correct rounding (i.e. Math.h)
+	Full,       // Single precision, but not relaxed
+	Relaxed,    // Single precision, relaxed
+	/*Half,*/   // Half precision
+};
+
 std::string BackendName();
 
 struct Capabilities
@@ -2155,8 +2165,11 @@ RValue<Bool> operator==(RValue<Float> lhs, RValue<Float> rhs);
 RValue<Float> Abs(RValue<Float> x);
 RValue<Float> Max(RValue<Float> x, RValue<Float> y);
 RValue<Float> Min(RValue<Float> x, RValue<Float> y);
+// Deprecated: use Rcp
+// TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float> Rcp_pp(RValue<Float> val, bool exactAtPow2 = false);
 RValue<Float> RcpSqrt_pp(RValue<Float> val);
+RValue<Float> Rcp(RValue<Float> x, Precision p = Precision::Full, bool finite = false, bool exactAtPow2 = false);
 RValue<Float> Sqrt(RValue<Float> x);
 
 //	RValue<Int4> IsInf(RValue<Float> x);
@@ -2319,8 +2332,12 @@ RValue<Float4> operator-(RValue<Float4> val);
 RValue<Float4> Abs(RValue<Float4> x);
 RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y);
 RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);
+
+// Deprecated: use Rcp
+// TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float4> Rcp_pp(RValue<Float4> val, bool exactAtPow2 = false);
 RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
+RValue<Float4> Rcp(RValue<Float4> x, Precision p = Precision::Full, bool finite = false, bool exactAtPow2 = false);
 RValue<Float4> Sqrt(RValue<Float4> x);
 RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i);
 RValue<Float> Extract(RValue<Float4> x, int i);
@@ -2371,13 +2388,6 @@ RValue<Float4> Trunc(RValue<Float4> x);
 RValue<Float4> Frac(RValue<Float4> x);
 RValue<Float4> Floor(RValue<Float4> x);
 RValue<Float4> Ceil(RValue<Float4> x);
-
-enum class Precision
-{
-	Full,
-	Relaxed,
-	//Half,
-};
 
 // Trigonometric functions
 // TODO: Currently unimplemented for Subzero.

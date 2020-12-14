@@ -3932,6 +3932,26 @@ RValue<Float4> RcpSqrt_pp(RValue<Float4> x)
 	return Rcp_pp(Sqrt(x));
 }
 
+bool HasRcpApprox()
+{
+	// TODO(b/175612820): Update once we implement x86 SSE rcp_ss and rsqrt_ss intrinsics in Subzero
+	return false;
+}
+
+RValue<Float4> RcpApprox(RValue<Float4> x, bool exactAtPow2)
+{
+	// TODO(b/175612820): Update once we implement x86 SSE rcp_ss and rsqrt_ss intrinsics in Subzero
+	UNREACHABLE("RValue<Float4> RcpApprox()");
+	return { 0.0f };
+}
+
+RValue<Float> RcpApprox(RValue<Float> x, bool exactAtPow2)
+{
+	// TODO(b/175612820): Update once we implement x86 SSE rcp_ss and rsqrt_ss intrinsics in Subzero
+	UNREACHABLE("RValue<Float> RcpApprox()");
+	return { 0.0f };
+}
+
 RValue<Float4> Sqrt(RValue<Float4> x)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
