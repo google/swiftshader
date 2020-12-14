@@ -5,19 +5,19 @@
 Introduction
 ------------
 
-SwiftShader is a high-performance CPU-based implementation of the Vulkan graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
+SwiftShader is a high-performance CPU-based implementation of the Vulkan graphics API<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
 
 > NOTE: SwiftShader's OpenGL ES frontend is no longer supported, and will eventually be removed. Read more about our recommendation to use [ANGLE on top of SwiftShader Vulkan here](ANGLE.md).
 
 Building
 --------
 
-SwiftShader libraries can be built for Windows, Linux, and Mac OS X.\
+SwiftShader libraries can be built for Windows, Linux, and macOS.\
 Android and Chrome (OS) build environments are also supported.
 
 * **CMake**
 \
-  [Install CMake](https://cmake.org/download/) for Linux, Mac OS X, or Windows and use either [the GUI](https://cmake.org/runningcmake/) or run the following terminal commands:
+  [Install CMake](https://cmake.org/download/) for Linux, macOS, or Windows and use either [the GUI](https://cmake.org/runningcmake/) or run the following terminal commands:
   ```
   cd build
   cmake ..
@@ -25,6 +25,8 @@ Android and Chrome (OS) build environments are also supported.
 
   ./vk-unittests
   ```
+  Tip: Set the [CMAKE_BUILD_PARALLEL_LEVEL](https://cmake.org/cmake/help/latest/envvar/.CMAKE_BUILD_PARALLEL_LEVEL.html#envvar:CMAKE_BUILD_PARALLEL_LEVEL) environment variable to control the level of parallelism.
+
 
 * **Visual Studio**
 \
@@ -79,7 +81,7 @@ Third-Party Dependencies
 
 The [third_party](third_party/) directory contains projects which originated outside of SwiftShader:
 
-[subzero](third_party/subzero/) contains a fork of the [Subzero](https://chromium.googlesource.com/native_client/pnacl-subzero/) project. It is part of Google Chrome's (Portable) [Native Client](https://developer.chrome.com/native-client) project. Its authoritative source is at [https://chromium.googlesource.com/native_client/pnacl-subzero/](https://chromium.googlesource.com/native_client/pnacl-subzero/). The fork was made using [git-subtree](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.txt) to include all of Subzero's history, and until further notice it should **not** diverge from the upstream project. Contributions must be tested using the [README](third_party/subzero/docs/README.rst) instructions, reviewed at [https://chromium-review.googlesource.com](https://chromium-review.googlesource.com/q/project:native_client%252Fpnacl-subzero), and then pulled into the SwiftShader repository.
+[subzero](third_party/subzero/) contains a fork of the [Subzero](https://chromium.googlesource.com/native_client/pnacl-subzero/) project. It originates from Google Chrome's (Portable) [Native Client](https://developer.chrome.com/native-client) project. The fork was made using [git-subtree](https://github.com/git/git/blob/master/contrib/subtree/git-subtree.txt) to include all of Subzero's history.
 
 [llvm-subzero](third_party/llvm-subzero/) contains a minimized set of LLVM dependencies of the Subzero project.
 
