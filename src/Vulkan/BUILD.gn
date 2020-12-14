@@ -94,6 +94,7 @@ swiftshader_source_set("swiftshader_libvulkan_headers") {
     "VkShaderModule.hpp",
     "VkSpecializationInfo.hpp",
     "VkStringify.hpp",
+    "VkTimelineSemaphore.hpp",
     "VulkanPlatform.hpp",
   ]
   if (is_linux || is_chromeos || is_android) {
@@ -143,6 +144,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "VkShaderModule.cpp",
     "VkSpecializationInfo.cpp",
     "VkStringify.cpp",
+    "VkTimelineSemaphore.cpp",
     "libVulkan.cpp",
     "main.cpp",
     "resource.h",

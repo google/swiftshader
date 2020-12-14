@@ -276,6 +276,12 @@ static void getPhysicalDeviceVulkanMemoryModelFeatures(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceTimelineSemaphoreFeatures(T *features)
+{
+	features->timelineSemaphore = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceVulkan12Features(T *features)
 {
 	features->samplerMirrorClampToEdge = VK_FALSE;
@@ -294,7 +300,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(features);
 	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
 	getPhysicalDeviceHostQueryResetFeatures(features);
-	features->timelineSemaphore = VK_FALSE;
+	getPhysicalDeviceTimelineSemaphoreFeatures(features);
 	features->bufferDeviceAddress = VK_FALSE;
 	features->bufferDeviceAddressCaptureReplay = VK_FALSE;
 	features->bufferDeviceAddressMultiDevice = VK_FALSE;
@@ -374,6 +380,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES:
 				getPhysicalDeviceVulkanMemoryModelFeatures(reinterpret_cast<VkPhysicalDeviceVulkanMemoryModelFeatures *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES:
+				getPhysicalDeviceTimelineSemaphoreFeatures(reinterpret_cast<VkPhysicalDeviceTimelineSemaphoreFeatures *>(curExtension));
 				break;
 			default:
 				LOG_TRAP("curExtension->pNext->sType = %s", vk::Stringify(curExtension->sType).c_str());
@@ -787,6 +796,30 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalFenceInfo *pExt
 
 void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo *pExternalSemaphoreInfo, VkExternalSemaphoreProperties *pExternalSemaphoreProperties) const
 {
+	for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pExternalSemaphoreInfo->pNext);
+	    nextInfo != nullptr; nextInfo = nextInfo->pNext)
+	{
+		switch(nextInfo->sType)
+		{
+			case VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO:
+			{
+				const auto *tlsInfo = reinterpret_cast<const VkSemaphoreTypeCreateInfo *>(nextInfo);
+				// Timeline Semaphore does not support external semaphore
+				if(tlsInfo->semaphoreType == VK_SEMAPHORE_TYPE_TIMELINE)
+				{
+					pExternalSemaphoreProperties->compatibleHandleTypes = 0;
+					pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
+					pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
+					return;
+				}
+			}
+			break;
+			default:
+				WARN("nextInfo->sType = %s", vk::Stringify(nextInfo->sType).c_str());
+				break;
+		}
+	}
+
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 	if(pExternalSemaphoreInfo->handleType == VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT)
 	{
@@ -939,7 +972,8 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceSamplerFilterMinmaxProperties
 template<typename T>
 static void getTimelineSemaphoreProperties(T *properties)
 {
-	properties->maxTimelineSemaphoreValueDifference = 0x7FFFFFFFull;
+	// Our implementation of Timeline Semaphores allows the timeline to advance to any value from any value.
+	properties->maxTimelineSemaphoreValueDifference = (uint64_t)-1;
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceTimelineSemaphoreProperties *properties) const

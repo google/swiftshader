@@ -22,16 +22,45 @@
 #include "marl/mutex.h"
 #include "marl/tsa.h"
 
+#include "System/Synchronization.hpp"
+
 #if VK_USE_PLATFORM_FUCHSIA
 #	include <zircon/types.h>
 #endif
 
 namespace vk {
 
-class Semaphore : public Object<Semaphore, VkSemaphore>
+class BinarySemaphore;
+class TimelineSemaphore;
+
+class Semaphore
 {
 public:
-	Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const VkAllocationCallbacks *pAllocator);
+	Semaphore(VkSemaphoreType type);
+
+	virtual ~Semaphore() = default;
+
+	static inline Semaphore *Cast(VkSemaphore semaphore)
+	{
+		return static_cast<Semaphore *>(static_cast<void *>(semaphore));
+	}
+
+	virtual void destroy(const VkAllocationCallbacks *pAllocator)
+	{
+	}
+
+	VkSemaphoreType getSemaphoreType() const;
+	//static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo);
+
+protected:
+	VkSemaphoreType type;
+	marl::mutex mutex;
+};
+
+class BinarySemaphore : public Semaphore, public Object<BinarySemaphore, VkSemaphore>
+{
+public:
+	BinarySemaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const VkAllocationCallbacks *pAllocator);
 	void destroy(const VkAllocationCallbacks *pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo);
@@ -149,7 +178,6 @@ private:
 	const VkAllocationCallbacks *allocator = nullptr;
 	VkExternalSemaphoreHandleTypeFlags exportableHandleTypes = (VkExternalSemaphoreHandleTypeFlags)0;
 	marl::Event internal;
-	marl::mutex mutex;
 	External *external GUARDED_BY(mutex) = nullptr;
 	External *tempExternal GUARDED_BY(mutex) = nullptr;
 };
@@ -158,6 +186,48 @@ static inline Semaphore *Cast(VkSemaphore object)
 {
 	return Semaphore::Cast(object);
 }
+
+template<typename T>
+static inline T *DynamicCast(VkSemaphore object)
+{
+	Semaphore *semaphore = vk::Cast(object);
+	if(semaphore == nullptr)
+	{
+		return nullptr;
+	}
+
+	static_assert(std::is_same_v<T, BinarySemaphore> || std::is_same_v<T, TimelineSemaphore>);
+	if constexpr(std::is_same_v<T, BinarySemaphore>)
+	{
+		if(semaphore->getSemaphoreType() != VK_SEMAPHORE_TYPE_BINARY)
+		{
+			return nullptr;
+		}
+	}
+	else
+	{
+		if(semaphore->getSemaphoreType() != VK_SEMAPHORE_TYPE_TIMELINE)
+		{
+			return nullptr;
+		}
+	}
+	return static_cast<T *>(semaphore);
+}
+
+// This struct helps parse VkSemaphoreCreateInfo. It also looks at the pNext
+// structures and stores their data flatly in a single struct. The default
+// values of each data member are what the absence of a pNext struct implies
+// for those values.
+struct SemaphoreCreateInfo
+{
+	bool exportSemaphore = false;
+	VkExternalSemaphoreHandleTypeFlags exportHandleTypes = 0;
+
+	VkSemaphoreType semaphoreType = VK_SEMAPHORE_TYPE_BINARY;
+	uint64_t initialPayload = 0;
+
+	SemaphoreCreateInfo(const VkSemaphoreCreateInfo *pCreateInfo);
+};
 
 }  // namespace vk
 

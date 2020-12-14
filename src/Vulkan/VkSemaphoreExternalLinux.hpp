@@ -130,7 +130,7 @@ private:
 
 namespace vk {
 
-class OpaqueFdExternalSemaphore : public Semaphore::External
+class OpaqueFdExternalSemaphore : public BinarySemaphore::External
 {
 public:
 	~OpaqueFdExternalSemaphore() { unmapRegion(); }

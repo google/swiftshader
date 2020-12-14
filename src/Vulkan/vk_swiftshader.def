@@ -226,6 +226,13 @@ EXPORTS
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR
 	vkGetPhysicalDeviceSurfaceFormatsKHR
 	vkGetPhysicalDeviceSurfacePresentModesKHR
+	; VK_KHR_timeline_semaphore
+	vkGetSemaphoreCounterValue
+	vkSignalSemaphore
+	vkWaitSemaphores
+	vkGetSemaphoreCounterValueKHR
+	vkSignalSemaphoreKHR
+	vkWaitSemaphoresKHR
 	; VK_KHR_win32_surface
 	vkCreateWin32SurfaceKHR
 	vkGetPhysicalDeviceWin32PresentationSupportKHR

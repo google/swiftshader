@@ -215,4 +215,20 @@ VKAPI_ATTR void VKAPI_CALL vkResetQueryPoolEXT(VkDevice device, VkQueryPool quer
 {
 	vkResetQueryPool(device, queryPool, firstQuery, queryCount);
 }
+
+// VK_KHR_timeline_semaphore
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreCounterValueKHR(VkDevice device, VkSemaphore semaphore, uint64_t *pValue)
+{
+	return vkGetSemaphoreCounterValue(device, semaphore, pValue);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkSignalSemaphoreKHR(VkDevice device, const VkSemaphoreSignalInfo *pSignalInfo)
+{
+	return vkSignalSemaphore(device, pSignalInfo);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkWaitSemaphoresKHR(VkDevice device, const VkSemaphoreWaitInfo *pWaitInfo, uint64_t timeout)
+{
+	return vkWaitSemaphores(device, pWaitInfo, timeout);
+}
 }

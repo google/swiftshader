@@ -26,7 +26,7 @@
 
 namespace vk {
 
-class ZirconEventExternalSemaphore : public Semaphore::External
+class ZirconEventExternalSemaphore : public BinarySemaphore::External
 {
 public:
 	~ZirconEventExternalSemaphore()

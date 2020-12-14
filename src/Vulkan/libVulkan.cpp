@@ -42,6 +42,7 @@
 #include "VkSemaphore.hpp"
 #include "VkShaderModule.hpp"
 #include "VkStringify.hpp"
+#include "VkTimelineSemaphore.hpp"
 
 #include "System/Debug.hpp"
 
@@ -421,6 +422,7 @@ static const ExtensionProperties deviceExtensionProperties[] = {
 	{ { VK_KHR_SHADER_SUBGROUP_EXTENDED_TYPES_EXTENSION_NAME, VK_KHR_SHADER_SUBGROUP_EXTENDED_TYPES_SPEC_VERSION } },
 	{ { VK_KHR_SPIRV_1_4_EXTENSION_NAME, VK_KHR_SPIRV_1_4_SPEC_VERSION } },
 	{ { VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME, VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_SPEC_VERSION } },
+	{ { VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, VK_KHR_TIMELINE_SEMAPHORE_SPEC_VERSION } },
 };
 
 static uint32_t numSupportedExtensions(const ExtensionProperties *extensionProperties, uint32_t extensionPropertiesCount)
@@ -1428,7 +1430,35 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSemaphore(VkDevice device, const VkSemaph
 		UNSUPPORTED("pCreateInfo->flags %d", int(pCreateInfo->flags));
 	}
 
-	return vk::Semaphore::Create(pAllocator, pCreateInfo, pSemaphore, pAllocator);
+	VkSemaphoreType type = VK_SEMAPHORE_TYPE_BINARY;
+	for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+	    nextInfo != nullptr; nextInfo = nextInfo->pNext)
+	{
+		switch(nextInfo->sType)
+		{
+			case VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO:
+				// Let the semaphore constructor handle this
+				break;
+			case VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO:
+			{
+				const VkSemaphoreTypeCreateInfo *info = reinterpret_cast<const VkSemaphoreTypeCreateInfo *>(nextInfo);
+				type = info->semaphoreType;
+			}
+			break;
+			default:
+				WARN("nextInfo->sType = %s", vk::Stringify(nextInfo->sType).c_str());
+				break;
+		}
+	}
+
+	if(type == VK_SEMAPHORE_TYPE_BINARY)
+	{
+		return vk::BinarySemaphore::Create(pAllocator, pCreateInfo, pSemaphore, pAllocator);
+	}
+	else
+	{
+		return vk::TimelineSemaphore::Create(pAllocator, pCreateInfo, pSemaphore, pAllocator);
+	}
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroySemaphore(VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator)
@@ -1450,7 +1480,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreFdKHR(VkDevice device, const VkSema
 		UNSUPPORTED("pGetFdInfo->handleType %d", int(pGetFdInfo->handleType));
 	}
 
-	return vk::Cast(pGetFdInfo->semaphore)->exportFd(pFd);
+	auto *sem = vk::DynamicCast<vk::BinarySemaphore>(pGetFdInfo->semaphore);
+	ASSERT(sem != nullptr);
+	return sem->exportFd(pFd);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreFdKHR(VkDevice device, const VkImportSemaphoreFdInfoKHR *pImportSemaphoreInfo)
@@ -1464,7 +1496,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreFdKHR(VkDevice device, const VkI
 	}
 	bool temporaryImport = (pImportSemaphoreInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
 
-	return vk::Cast(pImportSemaphoreInfo->semaphore)->importFd(pImportSemaphoreInfo->fd, temporaryImport);
+	auto *sem = vk::DynamicCast<vk::BinarySemaphore>(pImportSemaphoreInfo->semaphore);
+	ASSERT(sem != nullptr);
+	return sem->importFd(pImportSemaphoreInfo->fd, temporaryImport);
 }
 #endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 
@@ -1481,8 +1515,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkImportSemaphoreZirconHandleFUCHSIA(
 		UNSUPPORTED("pImportSemaphoreZirconHandleInfo->handleType %d", int(pImportSemaphoreZirconHandleInfo->handleType));
 	}
 	bool temporaryImport = (pImportSemaphoreZirconHandleInfo->flags & VK_SEMAPHORE_IMPORT_TEMPORARY_BIT) != 0;
-
-	return vk::Cast(pImportSemaphoreZirconHandleInfo->semaphore)->importHandle(pImportSemaphoreZirconHandleInfo->handle, temporaryImport);
+	auto *sem = vk::DynamicCast<vk::BinarySemaphore>(pImportSemaphoreZirconHandleInfo->semaphore);
+	ASSERT(sem != nullptr);
+	return sem->importHandle(pImportSemaphoreZirconHandleInfo->handle, temporaryImport);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
@@ -1498,9 +1533,34 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreZirconHandleFUCHSIA(
 		UNSUPPORTED("pGetZirconHandleInfo->handleType %d", int(pGetZirconHandleInfo->handleType));
 	}
 
-	return vk::Cast(pGetZirconHandleInfo->semaphore)->exportHandle(pZirconHandle);
+	auto *sem = vk::DynamicCast<vk::BinarySemaphore>(pGetZirconHandleInfo->semaphore);
+	ASSERT(sem != nullptr);
+	return sem->exportHandle(pZirconHandle);
 }
 #endif  // VK_USE_PLATFORM_FUCHSIA
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore, uint64_t *pValue)
+{
+	TRACE("(VkDevice device = %p, VkSemaphore semaphore = %p, uint64_t* pValue = %p)",
+	      device, static_cast<void *>(semaphore), pValue);
+	*pValue = vk::DynamicCast<vk::TimelineSemaphore>(semaphore)->getCounterValue();
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkSignalSemaphore(VkDevice device, const VkSemaphoreSignalInfo *pSignalInfo)
+{
+	TRACE("(VkDevice device = %p, const VkSemaphoreSignalInfo *pSignalInfo = %p)",
+	      device, pSignalInfo);
+	vk::DynamicCast<vk::TimelineSemaphore>(pSignalInfo->semaphore)->signal(pSignalInfo->value);
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkWaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo *pWaitInfo, uint64_t timeout)
+{
+	TRACE("(VkDevice device = %p, const VkSemaphoreWaitInfo *pWaitInfo = %p, uint64_t timeout = %" PRIu64 ")",
+	      device, pWaitInfo, timeout);
+	return vk::Cast(device)->waitForSemaphores(pWaitInfo, timeout);
+}
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreateInfo *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkEvent *pEvent)
 {
@@ -3949,7 +4009,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAcquireNextImageKHR(VkDevice device, VkSwapchai
 	TRACE("(VkDevice device = %p, VkSwapchainKHR swapchain = %p, uint64_t timeout = %" PRIu64 ", VkSemaphore semaphore = %p, VkFence fence = %p, uint32_t* pImageIndex = %p)",
 	      device, static_cast<void *>(swapchain), timeout, static_cast<void *>(semaphore), static_cast<void *>(fence), pImageIndex);
 
-	return vk::Cast(swapchain)->getNextImage(timeout, vk::Cast(semaphore), vk::Cast(fence), pImageIndex);
+	return vk::Cast(swapchain)->getNextImage(timeout, vk::DynamicCast<vk::BinarySemaphore>(semaphore), vk::Cast(fence), pImageIndex);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *pPresentInfo)
@@ -3965,7 +4025,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAcquireNextImage2KHR(VkDevice device, const VkA
 	TRACE("(VkDevice device = %p, const VkAcquireNextImageInfoKHR *pAcquireInfo = %p, uint32_t *pImageIndex = %p",
 	      device, pAcquireInfo, pImageIndex);
 
-	return vk::Cast(pAcquireInfo->swapchain)->getNextImage(pAcquireInfo->timeout, vk::Cast(pAcquireInfo->semaphore), vk::Cast(pAcquireInfo->fence), pImageIndex);
+	return vk::Cast(pAcquireInfo->swapchain)->getNextImage(pAcquireInfo->timeout, vk::DynamicCast<vk::BinarySemaphore>(pAcquireInfo->semaphore), vk::Cast(pAcquireInfo->fence), pImageIndex);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(VkDevice device, VkDeviceGroupPresentCapabilitiesKHR *pDeviceGroupPresentCapabilities)

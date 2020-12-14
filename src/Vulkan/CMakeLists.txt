@@ -91,6 +91,8 @@ set(VULKAN_SRC_FILES
     VkShaderModule.hpp
     VkStringify.cpp
     VkStringify.hpp
+    VkTimelineSemaphore.cpp
+    VkTimelineSemaphore.hpp
     VulkanPlatform.hpp
 )
 

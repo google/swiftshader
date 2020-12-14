@@ -315,6 +315,10 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdEndRenderPass2),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdNextSubpass2),
 	MAKE_VULKAN_DEVICE_ENTRY(vkResetQueryPool),
+	// VK_KHR_timeline_semaphore
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreCounterValue),
+	MAKE_VULKAN_DEVICE_ENTRY(vkSignalSemaphore),
+	MAKE_VULKAN_DEVICE_ENTRY(vkWaitSemaphores),
 };
 
 static const std::vector<std::pair<const char *, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers = {
@@ -376,6 +380,14 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdBeginRenderPass2KHR),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdNextSubpass2KHR),
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdEndRenderPass2KHR),
+	    } },
+	// VK_KHR_timeline_semaphore
+	{
+	    VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkGetSemaphoreCounterValueKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkSignalSemaphoreKHR),
+	        MAKE_VULKAN_DEVICE_ENTRY(vkWaitSemaphoresKHR),
 	    } },
 	// VK_EXT_line_rasterization
 	{

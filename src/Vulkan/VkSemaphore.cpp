@@ -16,10 +16,13 @@
 
 #include "VkConfig.hpp"
 #include "VkStringify.hpp"
+#include "VkTimelineSemaphore.hpp"
 
 #include "marl/blockingcall.h"
 #include "marl/conditionvariable.h"
 
+#include <chrono>
+#include <climits>
 #include <functional>
 #include <memory>
 #include <utility>
@@ -28,7 +31,7 @@ namespace vk {
 
 // This is a base abstract class for all external semaphore implementations
 // used in this source file.
-class Semaphore::External
+class BinarySemaphore::External
 {
 public:
 	virtual ~External() = default;
@@ -90,45 +93,53 @@ static const VkExternalSemaphoreHandleTypeFlags kSupportedTypes =
 #endif
     0;
 
-namespace {
-
-struct SemaphoreCreateInfo
+// Create a new instance. The external instance will be allocated only
+// the pCreateInfo->pNext chain indicates it needs to be exported.
+SemaphoreCreateInfo::SemaphoreCreateInfo(const VkSemaphoreCreateInfo *pCreateInfo)
 {
-	bool exportSemaphore = false;
-	VkExternalSemaphoreHandleTypeFlags exportHandleTypes = 0;
-
-	// Create a new instance. The external instance will be allocated only
-	// the pCreateInfo->pNext chain indicates it needs to be exported.
-	SemaphoreCreateInfo(const VkSemaphoreCreateInfo *pCreateInfo)
+	for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
+	    nextInfo != nullptr; nextInfo = nextInfo->pNext)
 	{
-		for(const auto *nextInfo = reinterpret_cast<const VkBaseInStructure *>(pCreateInfo->pNext);
-		    nextInfo != nullptr; nextInfo = nextInfo->pNext)
+		switch(nextInfo->sType)
 		{
-			switch(nextInfo->sType)
+			case VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO:
 			{
-				case VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO:
+				const auto *exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
+				exportSemaphore = true;
+				exportHandleTypes = exportInfo->handleTypes;
+				if((exportHandleTypes & ~kSupportedTypes) != 0)
 				{
-					const auto *exportInfo = reinterpret_cast<const VkExportSemaphoreCreateInfo *>(nextInfo);
-					exportSemaphore = true;
-					exportHandleTypes = exportInfo->handleTypes;
-					if((exportHandleTypes & ~kSupportedTypes) != 0)
-					{
-						UNSUPPORTED("exportInfo->handleTypes 0x%X (supports 0x%X)",
-						            int(exportHandleTypes),
-						            int(kSupportedTypes));
-					}
+					UNSUPPORTED("exportInfo->handleTypes 0x%X (supports 0x%X)",
+					            int(exportHandleTypes),
+					            int(kSupportedTypes));
 				}
-				break;
-				default:
-					WARN("nextInfo->sType = %s", vk::Stringify(nextInfo->sType).c_str());
 			}
+			break;
+			case VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO:
+			{
+				const auto *tlsInfo = reinterpret_cast<const VkSemaphoreTypeCreateInfo *>(nextInfo);
+				semaphoreType = tlsInfo->semaphoreType;
+				initialPayload = tlsInfo->initialValue;
+			}
+			break;
+			default:
+				WARN("nextInfo->sType = %s", vk::Stringify(nextInfo->sType).c_str());
+				break;
 		}
 	}
-};
+}
 
-}  // namespace
+Semaphore::Semaphore(VkSemaphoreType type)
+    : type(type)
+{
+}
 
-void Semaphore::wait()
+VkSemaphoreType Semaphore::getSemaphoreType() const
+{
+	return type;
+}
+
+void BinarySemaphore::wait()
 {
 	marl::lock lock(mutex);
 	External *ext = tempExternal ? tempExternal : external;
@@ -149,7 +160,7 @@ void Semaphore::wait()
 		}
 
 		// If the import was temporary, reset the semaphore to its previous state.
-		// See "6.4.5. Importing Semaphore Payloads" in Vulkan 1.1 spec.
+		// See "6.4.5. Importing BinarySemaphore Payloads" in Vulkan 1.1 spec.
 		if(ext == tempExternal)
 		{
 			tempExternal = ext->previous;
@@ -162,8 +173,9 @@ void Semaphore::wait()
 	}
 }
 
-void Semaphore::signal()
+void BinarySemaphore::signal()
 {
+	ASSERT(type == VK_SEMAPHORE_TYPE_BINARY);
 	marl::lock lock(mutex);
 	External *ext = tempExternal ? tempExternal : external;
 	if(ext)
@@ -178,14 +190,17 @@ void Semaphore::signal()
 	}
 }
 
-Semaphore::Semaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const VkAllocationCallbacks *pAllocator)
-    : allocator(pAllocator)
+BinarySemaphore::BinarySemaphore(const VkSemaphoreCreateInfo *pCreateInfo, void *mem, const VkAllocationCallbacks *pAllocator)
+    : Semaphore(VK_SEMAPHORE_TYPE_BINARY)
+    , allocator(pAllocator)
 {
 	SemaphoreCreateInfo info(pCreateInfo);
 	exportableHandleTypes = info.exportHandleTypes;
+	ASSERT(info.semaphoreType == VK_SEMAPHORE_TYPE_BINARY);
+	type = info.semaphoreType;
 }
 
-void Semaphore::destroy(const VkAllocationCallbacks *pAllocator)
+void BinarySemaphore::destroy(const VkAllocationCallbacks *pAllocator)
 {
 	marl::lock lock(mutex);
 	while(tempExternal)
@@ -201,31 +216,31 @@ void Semaphore::destroy(const VkAllocationCallbacks *pAllocator)
 	}
 }
 
-size_t Semaphore::ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo)
+size_t BinarySemaphore::ComputeRequiredAllocationSize(const VkSemaphoreCreateInfo *pCreateInfo)
 {
 	// Semaphore::External instance is created and destroyed on demand so return 0 here.
 	return 0;
 }
 
 template<class EXTERNAL>
-Semaphore::External *Semaphore::allocateExternal()
+BinarySemaphore::External *BinarySemaphore::allocateExternal()
 {
-	auto *ext = reinterpret_cast<Semaphore::External *>(
+	auto *ext = reinterpret_cast<BinarySemaphore::External *>(
 	    vk::allocate(sizeof(EXTERNAL), alignof(EXTERNAL), allocator));
 	new(ext) EXTERNAL();
 	return ext;
 }
 
-void Semaphore::deallocateExternal(Semaphore::External *ext)
+void BinarySemaphore::deallocateExternal(BinarySemaphore::External *ext)
 {
 	ext->~External();
 	vk::deallocate(ext, allocator);
 }
 
 template<typename ALLOC_FUNC, typename IMPORT_FUNC>
-VkResult Semaphore::importPayload(bool temporaryImport,
-                                  ALLOC_FUNC alloc_func,
-                                  IMPORT_FUNC import_func)
+VkResult BinarySemaphore::importPayload(bool temporaryImport,
+                                        ALLOC_FUNC alloc_func,
+                                        IMPORT_FUNC import_func)
 {
 	marl::lock lock(mutex);
 
@@ -258,7 +273,7 @@ VkResult Semaphore::importPayload(bool temporaryImport,
 }
 
 template<typename ALLOC_FUNC, typename EXPORT_FUNC>
-VkResult Semaphore::exportPayload(ALLOC_FUNC alloc_func, EXPORT_FUNC export_func)
+VkResult BinarySemaphore::exportPayload(ALLOC_FUNC alloc_func, EXPORT_FUNC export_func)
 {
 	marl::lock lock(mutex);
 	// Sanity check, do not try to export a semaphore that has a temporary import.
@@ -283,7 +298,7 @@ VkResult Semaphore::exportPayload(ALLOC_FUNC alloc_func, EXPORT_FUNC export_func
 }
 
 #if SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
-VkResult Semaphore::importFd(int fd, bool temporaryImport)
+VkResult BinarySemaphore::importFd(int fd, bool temporaryImport)
 {
 	return importPayload(
 	    temporaryImport,
@@ -295,7 +310,7 @@ VkResult Semaphore::importFd(int fd, bool temporaryImport)
 	    });
 }
 
-VkResult Semaphore::exportFd(int *pFd)
+VkResult BinarySemaphore::exportFd(int *pFd)
 {
 	if((exportableHandleTypes & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) == 0)
 	{
@@ -314,7 +329,7 @@ VkResult Semaphore::exportFd(int *pFd)
 #endif  // SWIFTSHADER_EXTERNAL_SEMAPHORE_OPAQUE_FD
 
 #if VK_USE_PLATFORM_FUCHSIA
-VkResult Semaphore::importHandle(zx_handle_t handle, bool temporaryImport)
+VkResult BinarySemaphore::importHandle(zx_handle_t handle, bool temporaryImport)
 {
 	return importPayload(
 	    temporaryImport,
@@ -326,7 +341,7 @@ VkResult Semaphore::importHandle(zx_handle_t handle, bool temporaryImport)
 	    });
 }
 
-VkResult Semaphore::exportHandle(zx_handle_t *pHandle)
+VkResult BinarySemaphore::exportHandle(zx_handle_t *pHandle)
 {
 	if((exportableHandleTypes & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA) == 0)
 	{

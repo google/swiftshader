@@ -230,7 +230,13 @@ global:
 	vkResetQueryPool;
 	# VK_EXT_headless_surface
 	vkCreateHeadlessSurfaceEXT;
-
+	# VK_KHR_timeline_semaphore
+	vkGetSemaphoreCounterValue;
+	vkSignalSemaphore;
+	vkWaitSemaphores;
+	vkGetSemaphoreCounterValueKHR;
+	vkSignalSemaphoreKHR;
+	vkWaitSemaphoresKHR;
 	# Android HAL module info object
 	HMI;
 
