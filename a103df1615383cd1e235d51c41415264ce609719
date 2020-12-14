@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "408573b5_f37f7f17",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-14T17:38:39Z",
+      "side": 1,
+      "message": "Rebasing past the dEQP 1.2.5 update just to be sure...",
+      "revId": "a103df1615383cd1e235d51c41415264ce609719",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
