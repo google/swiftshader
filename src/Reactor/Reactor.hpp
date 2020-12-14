@@ -2168,8 +2168,11 @@ RValue<Float> Min(RValue<Float> x, RValue<Float> y);
 // Deprecated: use Rcp
 // TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float> Rcp_pp(RValue<Float> val, bool exactAtPow2 = false);
+// Deprecated: use RcpSqrt
+// TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float> RcpSqrt_pp(RValue<Float> val);
 RValue<Float> Rcp(RValue<Float> x, Precision p = Precision::Full, bool finite = false, bool exactAtPow2 = false);
+RValue<Float> RcpSqrt(RValue<Float> x, Precision p = Precision::Full);
 RValue<Float> Sqrt(RValue<Float> x);
 
 //	RValue<Int4> IsInf(RValue<Float> x);
@@ -2336,8 +2339,11 @@ RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);
 // Deprecated: use Rcp
 // TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float4> Rcp_pp(RValue<Float4> val, bool exactAtPow2 = false);
+// Deprecated: use RcpSqrt
+// TODO(b/147516027): Remove when GLES frontend is removed
 RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
 RValue<Float4> Rcp(RValue<Float4> x, Precision p = Precision::Full, bool finite = false, bool exactAtPow2 = false);
+RValue<Float4> RcpSqrt(RValue<Float4> x, Precision p = Precision::Full);
 RValue<Float4> Sqrt(RValue<Float4> x);
 RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i);
 RValue<Float> Extract(RValue<Float4> x, int i);
