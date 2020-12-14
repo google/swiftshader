@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0e469fd0_603b90c3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2020-12-14T18:13:19Z",
+      "side": 1,
+      "message": "PTAL: accidentally dropped the CPU usages between patchsets 1 and 2.",
+      "revId": "7499665e579500a14c6063b55c423f2065085d2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
