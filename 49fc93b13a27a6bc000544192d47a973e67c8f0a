@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "e67078c9_c0b98687",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-15T19:53:38Z",
+      "side": 1,
+      "message": "Done. Good catch!",
+      "parentUuid": "1ca2a9c2_3240dfc7",
+      "range": {
+        "startLine": 12,
+        "startChar": 7,
+        "endLine": 12,
+        "endChar": 12
+      },
+      "revId": "49fc93b13a27a6bc000544192d47a973e67c8f0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "dcd87617_b7db83f9",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 1
@@ -54,6 +78,24 @@
       "writtenOn": "2020-12-15T19:44:12Z",
       "side": 1,
       "message": "I\u0027ve forgotten whether there was anything intentional about that. I do believe there could be value in writing tests in a way that they could be used both for validation and benchmarking. Anyway, that can still be done later if actually useful.",
+      "revId": "49fc93b13a27a6bc000544192d47a973e67c8f0a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f253704c_5299170a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-15T19:53:38Z",
+      "side": 1,
+      "message": "Right, but since you changed the CMakeLists.txt to reference the file in the same dir, I think you meant to move the file there rather than in ReactorUnitTests/. I also think in general that it\u0027s better to group them together so that the directory can be moved without having to modify the CMakeLists.txt at all.",
+      "parentUuid": "0d8e8e16_ba3192cc",
       "revId": "49fc93b13a27a6bc000544192d47a973e67c8f0a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
