@@ -114,6 +114,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9307d257_e772c114",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4674,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-16T17:49:27Z",
+      "side": 1,
+      "message": "In general, this file doesn\u0027t have a lot of platform specific code, whereas other Reactor files do, so I would rather have this moved elsewhere, honestly, if that\u0027s possible.\n\nIf you want to keep HasRcpApprox() in the other files, that fine, but this file probably only requires something like:\nbool PerformApproximation(Precision p); // \u003c-- this would call HasRcpApprox()\n\nUnless you know of an upcoming use case for having HasRcpApprox() available everywhere, I\u0027m not sure it\u0027s necessary to have this function public.",
+      "parentUuid": "44b1fe1d_8014a5ba",
+      "range": {
+        "startLine": 4670,
+        "startChar": 0,
+        "endLine": 4674,
+        "endChar": 6
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "5f476401_4b8b4223",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 10
@@ -161,6 +185,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "31fc641f_0d01658d",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4684,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-16T17:49:27Z",
+      "side": 1,
+      "message": "I think you\u0027re correct, but Nicolas could confirm.",
+      "parentUuid": "0b9b968e_a6b34230",
+      "range": {
+        "startLine": 4684,
+        "startChar": 9,
+        "endLine": 4684,
+        "endChar": 39
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1c6e6466_96663ac6",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 10
@@ -196,6 +244,30 @@
       "side": 1,
       "message": "Done. I made it constexpr. No need for static as constexpr means the compiler will definitely use the value as is, and no storage will be made for it. (\"const\" would also work, but doesn\u0027t guarantee that it will be used inline -- like if the address were taken).",
       "parentUuid": "1c6e6466_96663ac6",
+      "range": {
+        "startLine": 4694,
+        "startChar": 2,
+        "endLine": 4694,
+        "endChar": 23
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40745c40_5d0574eb",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4694,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-16T17:49:27Z",
+      "side": 1,
+      "message": "I was more thinking of having the constant already be in floating point format, to avoid the cast below, but that\u0027s no big deal.",
+      "parentUuid": "48a317fb_4e16909d",
       "range": {
         "startLine": 4694,
         "startChar": 2,
