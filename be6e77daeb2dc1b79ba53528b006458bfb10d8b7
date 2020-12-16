@@ -138,6 +138,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "13206a38_48806f85",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4674,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T18:31:18Z",
+      "side": 1,
+      "message": "I hear you about this file not having platform-specific stuff, but unfortunately, the only files that do are the backend-specific ones, and this code is generic, so I\u0027m not sure where to put it. Reactor.cpp is the only place we have for backend-agnostic code like this. Nicolas, do you have any thoughts on this? I agree with Alexis that it\u0027s weird to have the x86 check here, but I\u0027m sure where to put it. Passing in a bool to HasRcpApprox is a possible solution, but it somewhat changes the semantics of this function, and also means I repeat the x86 logic in each backend (return false if Precision::Full).",
+      "parentUuid": "9307d257_e772c114",
+      "range": {
+        "startLine": 4670,
+        "startChar": 0,
+        "endLine": 4674,
+        "endChar": 6
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "5f476401_4b8b4223",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 10
@@ -268,6 +292,30 @@
       "side": 1,
       "message": "I was more thinking of having the constant already be in floating point format, to avoid the cast below, but that\u0027s no big deal.",
       "parentUuid": "48a317fb_4e16909d",
+      "range": {
+        "startLine": 4694,
+        "startChar": 2,
+        "endLine": 4694,
+        "endChar": 23
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c503a0e3_b521064f",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4694,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T18:31:18Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "40745c40_5d0574eb",
       "range": {
         "startLine": 4694,
         "startChar": 2,
