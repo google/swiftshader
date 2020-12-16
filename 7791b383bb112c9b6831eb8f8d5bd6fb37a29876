@@ -236,6 +236,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "47890ed5_6079cd1a",
+        "filename": "src/Pipeline/ShaderCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T19:42:51Z",
+      "side": 1,
+      "message": "Ack, let\u0027s do that in a separate change.",
+      "parentUuid": "d26c07c4_502411fb",
+      "range": {
+        "startLine": 225,
+        "startChar": 41,
+        "endLine": 225,
+        "endChar": 43
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4371b3eb_c6d50cc9",
@@ -273,6 +297,30 @@
       "side": 1,
       "message": "If it\u0027s okay with you, I prefer keeping it as is. Rcp is already an abbreviation for Reciprocal, so it seems fine to me to add another abbreviation to it. Otherwise, it should probably be \"HasReciprocalApproximation\", which is unnecessarily long, IMHO.",
       "parentUuid": "4371b3eb_c6d50cc9",
+      "range": {
+        "startLine": 4663,
+        "startChar": 11,
+        "endLine": 4663,
+        "endChar": 17
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "72c94473_8682b6dd",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4663,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T19:42:51Z",
+      "side": 1,
+      "message": "Rcp() is part of the exposed API, and like e.g. Atan() it\u0027s a fairly well-known abbreviation so I agree expanding that would make it unnecessarily long. However I don\u0027t think that applies to Approx[imation]. For the implementation side here it is much more important to be clear than to be compact.\n\nAnother way of looking at it: when I read something like \"AtanApprox\" I would still say/think \"AtanApproximation\" (and not \"ArcustangentApproximation\" or \"ArcustangentApprox\").\n\nAnyway, I won\u0027t trip on this. Your call.",
+      "parentUuid": "cb0e922c_af3a72de",
       "range": {
         "startLine": 4663,
         "startChar": 11,
@@ -367,6 +415,30 @@
       "side": 1,
       "message": "Went with hasApprox.",
       "parentUuid": "272d5384_613a97b0",
+      "range": {
+        "startLine": 4671,
+        "startChar": 6,
+        "endLine": 4671,
+        "endChar": 12
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a00c22e4_4bb31a1b",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4671,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T19:42:51Z",
+      "side": 1,
+      "message": "That\u0027s exactly the confusion I wanted to avoid. This variable isn\u0027t about whether we \"have\" an approximation, but about whether we\u0027ll \"do\" an approximation.\n\nSo spelling out \"approximate\", a verb, seemed like a better option to me.",
+      "parentUuid": "8315e845_1df246af",
       "range": {
         "startLine": 4671,
         "startChar": 6,

@@ -162,6 +162,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4d58cbd7_00f5888b",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4674,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T19:42:51Z",
+      "side": 1,
+      "message": "Reactor.cpp should be backend-agnostic but not necessarily target/platform-agnostic. For what it\u0027s worth, LLVM also has target/platform-specific stuff at its \"high\" IR level, especially when it comes to these types of optimizations. Not ever target supports every abstract LLVM intrinsics. Which is precisely what HasRcpApprox() here deals with.\n\nEither way I think this is a big step forward, and its fine if some stuff under Reactor\u0027s hood still changes at a later point. So I think this can land as-is even if we agreed on a follow-up that is more elegant.",
+      "parentUuid": "13206a38_48806f85",
+      "range": {
+        "startLine": 4670,
+        "startChar": 0,
+        "endLine": 4674,
+        "endChar": 6
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "5f476401_4b8b4223",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 10
@@ -221,6 +245,30 @@
       "side": 1,
       "message": "I think you\u0027re correct, but Nicolas could confirm.",
       "parentUuid": "0b9b968e_a6b34230",
+      "range": {
+        "startLine": 4684,
+        "startChar": 9,
+        "endLine": 4684,
+        "endChar": 39
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "db409eee_19ca9510",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4684,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T19:42:51Z",
+      "side": 1,
+      "message": "Exactly. At Wikipedia this corresponds to the X[i+1] \u003d X[i] * (2 - D * X[i]) formula, where D\u003dx and X[i]\u003drcp.\n\nIt can be written as 2 * X[i] - D * X[i]^2, or (X[i] + X[i]) - (D * X[i] * X[i]). The latter avoids requiring a constant 2 and a multiplication, and keeping the subtraction for last ensures minimal precision loss.",
+      "parentUuid": "31fc641f_0d01658d",
       "range": {
         "startLine": 4684,
         "startChar": 9,
