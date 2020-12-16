@@ -16,6 +16,23 @@
       "message": "Rebased to test against new dEQP 1.2.5 version which adds some more external memory coverage.",
       "revId": "e9f3d0370b837edace32c9cf207f9799ce344443",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d292d6a_9907e858",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T17:01:40Z",
+      "side": 1,
+      "message": "LGTM\n\nThis will be actively used by the Fuchsia emulator on macOS, right? It doesn\u0027t seem like dEQP-VK has coverage for it, which you might want to file a request for: https://gitlab.khronos.org/Tracker/vk-gl-cts/issues",
+      "revId": "e9f3d0370b837edace32c9cf207f9799ce344443",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
