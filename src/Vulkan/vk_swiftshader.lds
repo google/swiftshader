@@ -226,6 +226,8 @@ global:
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
 	vkGetPhysicalDeviceSurfaceFormatsKHR;
 	vkGetPhysicalDeviceSurfacePresentModesKHR;
+	# VK_EXT_host_query_reset
+	vkResetQueryPool;
 
 	# Android HAL module info object
 	HMI;

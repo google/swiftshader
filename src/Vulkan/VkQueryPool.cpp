@@ -153,7 +153,7 @@ VkResult QueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t 
 		const auto current = query.getData();
 
 		bool writeResult = true;
-		if(current.state == Query::ACTIVE)
+		if(current.state == Query::ACTIVE || (current.state == Query::UNAVAILABLE && !(flags & VK_QUERY_RESULT_WAIT_BIT)))
 		{
 			result = VK_NOT_READY;
 			writeResult = (flags & VK_QUERY_RESULT_PARTIAL_BIT);  // Allow writing partial results

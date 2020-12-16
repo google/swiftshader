@@ -313,6 +313,7 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdBeginRenderPass2),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdEndRenderPass2),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCmdNextSubpass2),
+	MAKE_VULKAN_DEVICE_ENTRY(vkResetQueryPool),
 };
 
 static const std::vector<std::pair<const char *, std::unordered_map<std::string, PFN_vkVoidFunction>>> deviceExtensionFunctionPointers = {
@@ -380,6 +381,12 @@ static const std::vector<std::pair<const char *, std::unordered_map<std::string,
 	    VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
 	    {
 	        MAKE_VULKAN_DEVICE_ENTRY(vkCmdSetLineStippleEXT),
+	    } },
+	// VK_EXT_host_query_reset
+	{
+	    VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
+	    {
+	        MAKE_VULKAN_DEVICE_ENTRY(vkResetQueryPoolEXT),
 	    } },
 #ifndef __ANDROID__
 	// VK_KHR_swapchain

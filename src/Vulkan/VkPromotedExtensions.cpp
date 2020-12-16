@@ -209,4 +209,10 @@ VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer, c
 {
 	vkCmdNextSubpass2(commandBuffer, pSubpassBegin, pSubpassEnd);
 }
+
+// VK_EXT_host_query_reset
+VKAPI_ATTR void VKAPI_CALL vkResetQueryPoolEXT(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount)
+{
+	vkResetQueryPool(device, queryPool, firstQuery, queryCount);
+}
 }

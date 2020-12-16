@@ -183,6 +183,12 @@ static void getPhysicalDeviceProvokingVertexFeaturesEXT(T *features)
 }
 
 template<typename T>
+static void getPhysicalDeviceHostQueryResetFeatures(T *features)
+{
+	features->hostQueryReset = VK_TRUE;
+}
+
+template<typename T>
 static void getPhysicalDeviceImageRobustnessFeaturesEXT(T *features)
 {
 	features->robustImageAccess = VK_TRUE;
@@ -287,7 +293,7 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	getPhysicalDeviceUniformBufferStandardLayoutFeatures(features);
 	getPhysicalDeviceShaderSubgroupExtendedTypesFeatures(features);
 	getPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR(features);
-	features->hostQueryReset = VK_FALSE;
+	getPhysicalDeviceHostQueryResetFeatures(features);
 	features->timelineSemaphore = VK_FALSE;
 	features->bufferDeviceAddress = VK_FALSE;
 	features->bufferDeviceAddressCaptureReplay = VK_FALSE;
@@ -330,6 +336,9 @@ void PhysicalDevice::getFeatures2(VkPhysicalDeviceFeatures2 *features) const
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES:
 				getPhysicalDeviceShaderDrawParameterFeatures(reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures *>(curExtension));
+				break;
+			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES:
+				getPhysicalDeviceHostQueryResetFeatures(reinterpret_cast<VkPhysicalDeviceHostQueryResetFeatures *>(curExtension));
 				break;
 			case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
 				getPhysicalDeviceImageRobustnessFeaturesEXT(reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT *>(curExtension));

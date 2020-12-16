@@ -229,3 +229,5 @@ EXPORTS
 	; VK_KHR_win32_surface
 	vkCreateWin32SurfaceKHR
 	vkGetPhysicalDeviceWin32PresentationSupportKHR
+	; VK_EXT_host_query_reset
+	vkResetQueryPool
