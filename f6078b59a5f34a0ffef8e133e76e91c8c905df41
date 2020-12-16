@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c152050_949413a9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:17:04Z",
+      "side": 1,
+      "message": "Same nits as the previous change, and also:",
+      "revId": "f6078b59a5f34a0ffef8e133e76e91c8c905df41",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "960dffc1_057bc14d",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:17:04Z",
+      "side": 1,
+      "message": "I initially thought that the spec would state that the full-precision operation requires precision \u0027inherited\u0027 from 1.0 / sqrt(), thus forcing us to use exactly that implementation. In which case it would have been better not to handle this down at the Reactor level...\n\nHowever, the spec instead states that inversesqrt() precision is 2 ULP, while sqrt() is inherited from 1.0 / inverseqqrt(). This suggests that on GPUs inversesqrt is a native instruction, while here we\u0027re trying to use x86\u0027s native sqrt instructions.\n\nIn short, this looks fine, but let\u0027s make sure the Vulkan expectation and difference with our implementation is mentioned in the commit message so it ends up in b/169760262.",
+      "range": {
+        "startLine": 756,
+        "startChar": 16,
+        "endLine": 756,
+        "endChar": 23
+      },
+      "revId": "f6078b59a5f34a0ffef8e133e76e91c8c905df41",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
