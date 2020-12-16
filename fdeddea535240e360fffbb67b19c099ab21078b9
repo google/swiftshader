@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a44b70e1_761bd23e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T22:19:33Z",
+      "side": 1,
+      "message": "Can ignore the Kokoro failure. There was a network timeout when updating packages for one target:\nhttps://g3c.corp.google.com/results/invocations/becacdf7-41dd-4900-814c-6cd75d3d86cd/targets/swiftshader%2Fgcp_ubuntu_reactor_llvm%2F10.0%2Frelease%2Fpresubmit/log\n",
+      "revId": "fdeddea535240e360fffbb67b19c099ab21078b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
