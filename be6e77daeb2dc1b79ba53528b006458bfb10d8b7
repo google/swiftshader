@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d413a5a2_ae2f7b70",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4665,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "I think it\u0027s fine. If we organized our code such that public headers would be in an \"include\" folder, while private headers and source would go in a \"src\" folder, then I\u0027d say we could move these to a \"ReactorInternal.hpp\" that would be in \"src\", and there would be no danger of it being included from client libraries of Reactor. But right now, all headers and src are in the same place, so this is the best way to keep these internal.",
+      "parentUuid": "f6b67989_df945b71",
+      "range": {
+        "startLine": 4662,
+        "startChar": 0,
+        "endLine": 4665,
+        "endChar": 67
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "998c7ef5_77451655",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 10
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-16T16:50:55Z",
       "side": 1,
       "message": "It seems unnecessarily complicated and error prone to have to perform those #if checks both here and within HasRcpApprox().\nMaybe it would be simpler to just pass \u0027p\u0027 as an argument?\nLine 4678 below could then just be:\nif(HasRcpApprox(p))",
+      "range": {
+        "startLine": 4670,
+        "startChar": 0,
+        "endLine": 4674,
+        "endChar": 6
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "44b1fe1d_8014a5ba",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4674,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Hmm, I see your point, but then I\u0027d have to rename HasRcpApprox since it would no longer return whether the current target has the ability to perform the approximate reciprocal. We may want to perform this query and use RcpApprox elsewhere, regardless of the Precision parameter, so I think it\u0027s better to keep this here.",
+      "parentUuid": "998c7ef5_77451655",
       "range": {
         "startLine": 4670,
         "startChar": 0,
@@ -89,6 +137,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "0b9b968e_a6b34230",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4684,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "I agree, but there was no such comment in sw::reciprocal. I think this minimizes the error of the initial rcp estimate by performing 1 (or more?) iterations of Newton-Rhapson division (https://en.wikipedia.org/wiki/Division_algorithm#Newton%E2%80%93Raphson_division), but I\u0027m not quite able to correlate it to that wikipedia article.",
+      "parentUuid": "5f476401_4b8b4223",
+      "range": {
+        "startLine": 4684,
+        "startChar": 9,
+        "endLine": 4684,
+        "endChar": 39
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1c6e6466_96663ac6",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 10
@@ -100,6 +172,30 @@
       "writtenOn": "2020-12-16T16:50:55Z",
       "side": 1,
       "message": "Nit: This could be turned into a \u0027static constexpr float\u0027 right away",
+      "range": {
+        "startLine": 4694,
+        "startChar": 2,
+        "endLine": 4694,
+        "endChar": 23
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48a317fb_4e16909d",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4694,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done. I made it constexpr. No need for static as constexpr means the compiler will definitely use the value as is, and no storage will be made for it. (\"const\" would also work, but doesn\u0027t guarantee that it will be used inline -- like if the address were taken).",
+      "parentUuid": "1c6e6466_96663ac6",
       "range": {
         "startLine": 4694,
         "startChar": 2,

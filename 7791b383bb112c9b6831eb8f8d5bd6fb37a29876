@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fafbc985_c9ae2495",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c70c73d5_8cd2e1b6",
+      "range": {
+        "startLine": 378,
+        "startChar": 16,
+        "endLine": 378,
+        "endChar": 19
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7748b3a2_d3385788",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-16T15:01:11Z",
       "side": 1,
       "message": "This should definitely use Precision::Relaxed.",
+      "range": {
+        "startLine": 136,
+        "startChar": 10,
+        "endLine": 136,
+        "endChar": 19
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b30edd1_91b90575",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7748b3a2_d3385788",
       "range": {
         "startLine": 136,
         "startChar": 10,
@@ -70,6 +118,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "86d6a250_623817e8",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1213,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ddde64c_fbbf5db1",
+      "range": {
+        "startLine": 1213,
+        "startChar": 21,
+        "endLine": 1213,
+        "endChar": 29
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "20599562_67fd94dc",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-12-16T15:01:11Z",
       "side": 1,
       "message": "Precision::Relaxed",
+      "range": {
+        "startLine": 1216,
+        "startChar": 9,
+        "endLine": 1216,
+        "endChar": 37
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a8f2d77e_ac9d2a57",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20599562_67fd94dc",
       "range": {
         "startLine": 1216,
         "startChar": 9,
@@ -118,6 +214,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d26c07c4_502411fb",
+        "filename": "src/Pipeline/ShaderCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "All the functions in this file use \u0027pp\u0027 to mean partial precision. I think it\u0027s okay to leave this as is for now, as it\u0027s consistent with the other functions. Perhaps as a separate change we can rename this everywhere. In fact, we may want to just remove and replace many functions here with their Reactor equivalent, like this one.",
+      "parentUuid": "759084d5_bed54c9e",
+      "range": {
+        "startLine": 225,
+        "startChar": 41,
+        "endLine": 225,
+        "endChar": 43
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4371b3eb_c6d50cc9",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 8
@@ -141,6 +261,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "cb0e922c_af3a72de",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4663,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "If it\u0027s okay with you, I prefer keeping it as is. Rcp is already an abbreviation for Reciprocal, so it seems fine to me to add another abbreviation to it. Otherwise, it should probably be \"HasReciprocalApproximation\", which is unnecessarily long, IMHO.",
+      "parentUuid": "4371b3eb_c6d50cc9",
+      "range": {
+        "startLine": 4663,
+        "startChar": 11,
+        "endLine": 4663,
+        "endChar": 17
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "94b986ed_7fa5e83c",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 8
@@ -152,6 +296,30 @@
       "writtenOn": "2020-12-16T15:01:11Z",
       "side": 1,
       "message": "Accoring to https://www.agner.org/optimize/instruction_tables.pdf, AMD Zen2 can do divps in 10 cycles and 1/3 throughput, which is better than Intel Skylake. So let\u0027s replace this with \"x86\".",
+      "range": {
+        "startLine": 4670,
+        "startChar": 52,
+        "endLine": 4670,
+        "endChar": 57
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "93a76316_42e6c685",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4670,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94b986ed_7fa5e83c",
       "range": {
         "startLine": 4670,
         "startChar": 52,
@@ -187,6 +355,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8315e845_1df246af",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4671,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Went with hasApprox.",
+      "parentUuid": "272d5384_613a97b0",
+      "range": {
+        "startLine": 4671,
+        "startChar": 6,
+        "endLine": 4671,
+        "endChar": 12
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ba1f18bc_2082db4d",
         "filename": "src/Reactor/Reactor.cpp",
         "patchSetId": 8
@@ -198,6 +390,30 @@
       "writtenOn": "2020-12-16T15:01:11Z",
       "side": 1,
       "message": "There might be an expectation that this causes zero-initialization of the generated variable (as it would for basic C types). Instead I believe this only ensures the default constructor is called to initialize the Reactor class instance. Let\u0027s just remove it to make it clear this is uninitialized at the logical level.",
+      "range": {
+        "startLine": 4676,
+        "startChar": 6,
+        "endLine": 4676,
+        "endChar": 8
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b5d1f6dd_b03d9f99",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4676,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T17:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba1f18bc_2082db4d",
       "range": {
         "startLine": 4676,
         "startChar": 6,
