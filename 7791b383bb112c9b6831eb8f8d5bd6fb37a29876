@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c70c73d5_8cd2e1b6",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "I was concerned about this no longer using the fast, low-precision approximation, but then I noticed PixelProgram::linearToSRGB() is not used at all. We use Blitter::LinearToSRGB) for blit operations, which uses a very expensive power() function, and for sampling operations we use a lookup table.\n\nI vaguely recall I wanted to keep this one to eventually replace the other two. But that should not be our focus at the moment. So let\u0027s remove it now (could be a separate change) and associate that with b/149574741, where I\u0027ll make a note about potential future optimization based on this approximation.",
+      "range": {
+        "startLine": 378,
+        "startChar": 16,
+        "endLine": 378,
+        "endChar": 19
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7748b3a2_d3385788",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "This should definitely use Precision::Relaxed.",
+      "range": {
+        "startLine": 136,
+        "startChar": 10,
+        "endLine": 136,
+        "endChar": 19
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3ddde64c_fbbf5db1",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1213,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "Precision::Relaxed",
+      "range": {
+        "startLine": 1213,
+        "startChar": 21,
+        "endLine": 1213,
+        "endChar": 29
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20599562_67fd94dc",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "Precision::Relaxed",
+      "range": {
+        "startLine": 1216,
+        "startChar": 9,
+        "endLine": 1216,
+        "endChar": 37
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "759084d5_bed54c9e",
+        "filename": "src/Pipeline/ShaderCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "Let\u0027s rename this to relaxedPrecision",
+      "range": {
+        "startLine": 225,
+        "startChar": 41,
+        "endLine": 225,
+        "endChar": 43
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4371b3eb_c6d50cc9",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4663,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "nit: I prefer spelling out Approximation",
+      "range": {
+        "startLine": 4663,
+        "startChar": 11,
+        "endLine": 4663,
+        "endChar": 17
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "94b986ed_7fa5e83c",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4670,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "Accoring to https://www.agner.org/optimize/instruction_tables.pdf, AMD Zen2 can do divps in 10 cycles and 1/3 throughput, which is better than Intel Skylake. So let\u0027s replace this with \"x86\".",
+      "range": {
+        "startLine": 4670,
+        "startChar": 52,
+        "endLine": 4670,
+        "endChar": 57
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "272d5384_613a97b0",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4671,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "nit: Let\u0027s spell out \"approximate\", which would help keep it distinct from HasApproximation.",
+      "range": {
+        "startLine": 4671,
+        "startChar": 6,
+        "endLine": 4671,
+        "endChar": 12
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ba1f18bc_2082db4d",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 4676,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-16T15:01:11Z",
+      "side": 1,
+      "message": "There might be an expectation that this causes zero-initialization of the generated variable (as it would for basic C types). Instead I believe this only ensures the default constructor is called to initialize the Reactor class instance. Let\u0027s just remove it to make it clear this is uninitialized at the logical level.",
+      "range": {
+        "startLine": 4676,
+        "startChar": 6,
+        "endLine": 4676,
+        "endChar": 8
+      },
+      "revId": "7791b383bb112c9b6831eb8f8d5bd6fb37a29876",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
