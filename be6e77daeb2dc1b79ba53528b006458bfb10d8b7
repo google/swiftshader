@@ -65,6 +65,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dce9a4cf_ce082e35",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4665,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T21:25:52Z",
+      "side": 1,
+      "message": "Done. Going to leave as is until we find a better solution.",
+      "parentUuid": "d413a5a2_ae2f7b70",
+      "range": {
+        "startLine": 4662,
+        "startChar": 0,
+        "endLine": 4665,
+        "endChar": 67
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "998c7ef5_77451655",
@@ -184,6 +208,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f58844a2_4e881e34",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4674,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T21:25:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4d58cbd7_00f5888b",
+      "range": {
+        "startLine": 4670,
+        "startChar": 0,
+        "endLine": 4674,
+        "endChar": 6
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5f476401_4b8b4223",
@@ -269,6 +317,30 @@
       "side": 1,
       "message": "Exactly. At Wikipedia this corresponds to the X[i+1] \u003d X[i] * (2 - D * X[i]) formula, where D\u003dx and X[i]\u003drcp.\n\nIt can be written as 2 * X[i] - D * X[i]^2, or (X[i] + X[i]) - (D * X[i] * X[i]). The latter avoids requiring a constant 2 and a multiplication, and keeping the subtraction for last ensures minimal precision loss.",
       "parentUuid": "31fc641f_0d01658d",
+      "range": {
+        "startLine": 4684,
+        "startChar": 9,
+        "endLine": 4684,
+        "endChar": 39
+      },
+      "revId": "be6e77daeb2dc1b79ba53528b006458bfb10d8b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d34975b_ef0317fa",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 4684,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-16T21:25:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "db409eee_19ca9510",
       "range": {
         "startLine": 4684,
         "startChar": 9,
