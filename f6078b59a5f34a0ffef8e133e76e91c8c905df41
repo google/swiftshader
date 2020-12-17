@@ -63,6 +63,30 @@
       },
       "revId": "f6078b59a5f34a0ffef8e133e76e91c8c905df41",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b90321f_05519ee2",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T03:40:43Z",
+      "side": 1,
+      "message": "Yes, that should suffice to point out the reverse roles of sqrt and 1/sqrt vs. Vulkan\u0027s precision expectations in our x86 implementation. That is, our sqrt is more accurate than our 1/sqrt, while with Vulkan it\u0027s the inverse. We\u0027re still below the ULP requirement for each so it\u0027s totally cool.",
+      "parentUuid": "bd347f8d_52eff033",
+      "range": {
+        "startLine": 756,
+        "startChar": 16,
+        "endLine": 756,
+        "endChar": 23
+      },
+      "revId": "f6078b59a5f34a0ffef8e133e76e91c8c905df41",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }

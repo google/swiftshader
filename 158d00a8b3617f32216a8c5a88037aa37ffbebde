@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7dbf76ba_bb1f952b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T03:40:43Z",
+      "side": 1,
+      "message": "nit: NR refinement itself is always available, it\u0027s the initial approximation intrinsic that must be available for it to make sense to use NR.",
+      "range": {
+        "startLine": 10,
+        "startChar": 49,
+        "endLine": 10,
+        "endChar": 61
+      },
+      "revId": "158d00a8b3617f32216a8c5a88037aa37ffbebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e9bbcd2_f3477924",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T03:40:43Z",
+      "side": 1,
+      "message": "1/sqrt(x)",
+      "range": {
+        "startLine": 16,
+        "startChar": 58,
+        "endLine": 16,
+        "endChar": 61
+      },
+      "revId": "158d00a8b3617f32216a8c5a88037aa37ffbebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d45594ec_01cb683f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T03:40:43Z",
+      "side": 1,
+      "message": "LGTM, couple potential nits:",
+      "revId": "158d00a8b3617f32216a8c5a88037aa37ffbebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
