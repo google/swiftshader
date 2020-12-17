@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "871666ea_84d9b256",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T19:50:43Z",
+      "side": 1,
+      "message": "This now successfully pre-compiles all texture sampling functions in the VulkanGlass sample",
+      "revId": "dcbe222d07d778f3bd38aaee1929bb6b7b1e5472",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
