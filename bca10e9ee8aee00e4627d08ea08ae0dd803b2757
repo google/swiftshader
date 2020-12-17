@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "549b08f4_c3ba3fa6",
+        "filename": "tests/ReactorUnitTests/ReactorUnitTests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T14:27:35Z",
+      "side": 1,
+      "message": "We need \u0027primary\u0027 to go out of scope before calling its routine, because we have an assert that checks the global JIT builder is destroyed before a new Function\u003c\u003e is started (to prevent mixing the generation of two routines).\n\nHistorically, \u0027naming\u0027 the routine finalized it and allowed to create new one right after. I\u0027d like to go back to that. But that\u0027s an issue for another day...",
+      "range": {
+        "startLine": 128,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 2
+      },
+      "revId": "bca10e9ee8aee00e4627d08ea08ae0dd803b2757",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
