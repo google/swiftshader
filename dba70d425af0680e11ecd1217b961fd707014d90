@@ -1,6 +1,52 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "35d05730_3b9bae0c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "As noted earlier, let\u0027s not make this claim for the parameter packing refactoring.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 34
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad62fbad_a2180256",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "Can be fewer. See other comments.",
+      "range": {
+        "startLine": 30,
+        "startChar": 35,
+        "endLine": 30,
+        "endChar": 46
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "55a5716f_cb516da0",
@@ -14,6 +60,184 @@
       "writtenOn": "2020-12-16T22:10:58Z",
       "side": 1,
       "message": "Formatting fix",
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "483bd1e3_3662ba86",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "+Antonio to gain some more familiarity with this code.\n\nThis change is useful, but I don\u0027t think the claim that is makes the sampling routines more \"reusable\" is correct (with one small exception, which I\u0027ll come back to). It doesn\u0027t matter that much what size the key is (especially when it\u0027s already this small). If we have bits that can be derived from other bits, the number of valid combinations is the same and the cache miss/hit result is the same. What\u0027s important to keep the number of key values low and not needlessly recompile is to set state bits always to the same value when they\u0027re irrelevant.\n\nNote for example that while \u0027variant\u0027 has been eliminated from \u0027ImageInstruction\u0027, which indicated whether we have a Dref and/or Proj instruction, it is now passed as an extra parameter to EmitImageSample(). And while it isn\u0027t consumed as part of the cache key, this only happens to work out because the Vulkan spec (not the SPIR-V spec) states that in these cases:\n* The SPIR-V instruction is one of the OpImage*Dref* instructions and the sampler compareEnable is VK_FALSE\n* The SPIR-V instruction is not one of the OpImage*Dref* instructions and the sampler compareEnable is VK_TRUE\nThe result is undefined. In other words, for valid applications we get the same information (whether or not there\u0027s a Dref parameter) from the sampler descriptor.\n\nSo it doesn\u0027t hurt to keep the Dref bit in \u0027ImageInstruction\u0027. In fact it helps us, for debugging and for validation. Instead I\u0027d rather take care of b/152227757 and assert we have a Dref instruction when the sampler\u0027s compareEnable is true.\n\nThat said, the Proj bit of information is different. We use it to project the coordinates, before calling the sampling routine. The latter doesn\u0027t indirectly depend on it either. So eliminating that does result in potentially more routine reuse. But let\u0027s make that a separate change from the non-packing of the parameters.\n\nThe latter again doesn\u0027t actually alter the cache key uniqueness. However, it does seem useful to eliminate having sampler-dependent state as part of the ImageInstruction from a code readability point of view. But let\u0027s avoid mixing that in with the elimination of Proj, which serves a different purpose.",
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cbc88cf8_d0f33933",
+        "filename": "src/Device/Sampler.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "This is a scalar integer that\u0027s part of the SPIR-V instruction. Why replace it with four, of which only a single one is used?\n\nIf I missed something here that is useful, please split this into a separate change so it\u0027s clearer.",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 34
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2676e3e7_f9489d49",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1259,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "The SPIR-V spec states that \"It is invalid to set both the Lod and Grad bits\", so these can start at the same offset.",
+      "range": {
+        "startLine": 1258,
+        "startChar": 2,
+        "endLine": 1259,
+        "endChar": 16
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6513522f_f0e61619",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1260,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "Let\u0027s call this GRADX/Y or something like that. DSX/Y originated from Direct3D nomenclature.",
+      "range": {
+        "startLine": 1260,
+        "startChar": 8,
+        "endLine": 1260,
+        "endChar": 11
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d0e62bfb_83785bb0",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1260,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "There can only be 3 grad components per direction: \"Each is a scalar or vector containing (du/dx[, dv/dx] [, dw/dx]) and (du/dy[, dv/dy] [, dw/dy]). The number of components of each must equal the number of components in Coordinate, minus the array layer component, if present.\"",
+      "range": {
+        "startLine": 1260,
+        "startChar": 14,
+        "endLine": 1260,
+        "endChar": 16
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1124891c_566e352d",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1261,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "Only 3 max: \"A following operand is added to (u, v, w) before texel lookup.\" and \"The number of components must equal the number of components in Coordinate, minus the array layer component, if present.\"",
+      "range": {
+        "startLine": 1261,
+        "startChar": 17,
+        "endLine": 1261,
+        "endChar": 19
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af52edce_e67d4091",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1262,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "This could share the same slot at Dref, since Sample is \"Only valid with OpImageFetch, OpImageRead, OpImageWrite\".\n\nBut let\u0027s do that in a separate change since it\u0027s a little trickier than the other fine-tuning above. We may also want to reduce the parameter count in SamplerCore the same way lodOrBias explicitly combines two.",
+      "range": {
+        "startLine": 1262,
+        "startChar": 2,
+        "endLine": 1262,
+        "endChar": 23
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4b201ae5_b0618ef6",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T16:32:32Z",
+      "side": 1,
+      "message": "This always emits code for reading all of the parameters, even the ones that don\u0027t get used. I don\u0027t think Subzero can eliminate those load instructions in all cases (specifically, if these get materialized due to a branch, which would be the case for anisotropic filtering for example). I\u0027d like to make sure we fully understand the consequences.",
+      "range": {
+        "startLine": 114,
+        "startChar": 3,
+        "endLine": 116,
+        "endChar": 51
+      },
       "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
