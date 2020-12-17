@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "14e33a5c_dd642b13",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-17T19:43:05Z",
+      "side": 1,
+      "message": "I thought that the query.wait() call above this would take care of that situation, but I guess not? I\u0027ve changed the condition.",
+      "parentUuid": "dae9bf0b_418c9e33",
+      "range": {
+        "startLine": 156,
+        "startChar": 5,
+        "endLine": 156,
+        "endChar": 74
+      },
+      "revId": "5d1e3f7112023122637d5fb16ca038d908022529",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7a48bbd8_917054ed",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-16T22:32:00Z",
       "side": 1,
       "message": "Nit: other cases above have code like this:\nconst VkPhysicalDevice... * ...Features \u003d reinterpret_cast\u003cconst ...\u003e(extensionCreateInfo);\n(void)...Features-\u003e\u003cINSERT SOME RELEVANT FEATURE BOOL HERE\u003e\n\nIt would be nice to have the same thing here.",
+      "range": {
+        "startLine": 795,
+        "startChar": 4,
+        "endLine": 795,
+        "endChar": 41
+      },
+      "revId": "5d1e3f7112023122637d5fb16ca038d908022529",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb3ff302_18acd680",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 795,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-17T19:43:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a48bbd8_917054ed",
       "range": {
         "startLine": 795,
         "startChar": 4,
