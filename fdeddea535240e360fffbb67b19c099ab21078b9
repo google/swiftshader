@@ -33,6 +33,24 @@
       "message": "Going to wait for another regres run to make sure the timing has not increased. I believe the two regres reports here come from before Patchset 11, where I added the #include \"CPUID.hpp\" to Reactor.cpp that makes sure the x86-specific path is compiled in.",
       "revId": "fdeddea535240e360fffbb67b19c099ab21078b9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2e75391_4e1d4642",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2020-12-17T03:39:42Z",
+      "side": 1,
+      "message": "Note Regres is currently running on my local Linux workstation, and test timings might be affected when I use it for any other work.",
+      "parentUuid": "c1df0869_1029996b",
+      "revId": "fdeddea535240e360fffbb67b19c099ab21078b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
