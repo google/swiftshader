@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "8968a74c_b0d3600d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-17T14:45:45Z",
+      "side": 1,
+      "message": "Good point, I clarified this paragraph.",
+      "parentUuid": "7dbf76ba_bb1f952b",
+      "range": {
+        "startLine": 10,
+        "startChar": 49,
+        "endLine": 10,
+        "endChar": 61
+      },
+      "revId": "158d00a8b3617f32216a8c5a88037aa37ffbebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "6e9bbcd2_f3477924",
         "filename": "/COMMIT_MSG",
         "patchSetId": 6
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-17T03:40:43Z",
       "side": 1,
       "message": "1/sqrt(x)",
+      "range": {
+        "startLine": 16,
+        "startChar": 58,
+        "endLine": 16,
+        "endChar": 61
+      },
+      "revId": "158d00a8b3617f32216a8c5a88037aa37ffbebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2416979c_e198fe3a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2020-12-17T14:45:45Z",
+      "side": 1,
+      "message": "Good catch!",
+      "parentUuid": "6e9bbcd2_f3477924",
       "range": {
         "startLine": 16,
         "startChar": 58,
