@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d331a559_e075b05c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Agreed, it\u0027s not that it\u0027s more reusable in the sense that, combined with a given sampler, it reduce the amount of possible combinations. What this does is allow multiple sampler to share identical ImageInstruction structures, which then allows me to increase the likeliness that all samplers within a given shader will have the same ImageInstruction structure, allowing me to easily pre-compile all texture sampling functions.",
+      "parentUuid": "35d05730_3b9bae0c",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 34
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ad62fbad_a2180256",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-17T16:32:32Z",
       "side": 1,
       "message": "Can be fewer. See other comments.",
+      "range": {
+        "startLine": 30,
+        "startChar": 35,
+        "endLine": 30,
+        "endChar": 46
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5ac898a5_0fd87c2e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Brought it back down to 16 (its original size), but I\u0027d like to create the overlap in its own separate CL, to isolate potential issues.",
+      "parentUuid": "ad62fbad_a2180256",
       "range": {
         "startLine": 30,
         "startChar": 35,
@@ -81,6 +129,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "07386b63_88e5071e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Ok, restored \u0027variant\u0027 and the isDref() and isProj() functions in this cl.",
+      "parentUuid": "483bd1e3_3662ba86",
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cbc88cf8_d0f33933",
@@ -106,6 +172,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ecc4c2e8_441c3f0b",
+        "filename": "src/Device/Sampler.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "VkComponentSwizzle is a single value. Are you confusing it with VkComponentMapping, which has 4 values?\n\nThis change simply allows us to compute gatherSwizzle earlier than before.",
+      "parentUuid": "cbc88cf8_d0f33933",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 34
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "2676e3e7_f9489d49",
         "filename": "src/Pipeline/SpirvShader.hpp",
         "patchSetId": 2
@@ -117,6 +207,30 @@
       "writtenOn": "2020-12-17T16:32:32Z",
       "side": 1,
       "message": "The SPIR-V spec states that \"It is invalid to set both the Lod and Grad bits\", so these can start at the same offset.",
+      "range": {
+        "startLine": 1258,
+        "startChar": 2,
+        "endLine": 1259,
+        "endChar": 16
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "859007a6_8f3c2db0",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1259,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "I agree with this, bit I\u0027d like to create a follow-up cl for packing these more tightly, instead of doing this right away. Since we always read everyone of these now, I want to make sure we\u0027re not actually going to use the other values first. This is a safe first step.",
+      "parentUuid": "2676e3e7_f9489d49",
       "range": {
         "startLine": 1258,
         "startChar": 2,
@@ -173,6 +287,54 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7758d128_97f0fa93",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1260,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6513522f_f0e61619",
+      "range": {
+        "startLine": 1260,
+        "startChar": 8,
+        "endLine": 1260,
+        "endChar": 11
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d0d9a54_71556f6f",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1260,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0e62bfb_83785bb0",
+      "range": {
+        "startLine": 1260,
+        "startChar": 14,
+        "endLine": 1260,
+        "endChar": 16
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1124891c_566e352d",
@@ -186,6 +348,30 @@
       "writtenOn": "2020-12-17T16:32:32Z",
       "side": 1,
       "message": "Only 3 max: \"A following operand is added to (u, v, w) before texel lookup.\" and \"The number of components must equal the number of components in Coordinate, minus the array layer component, if present.\"",
+      "range": {
+        "startLine": 1261,
+        "startChar": 17,
+        "endLine": 1261,
+        "endChar": 19
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "96036e47_f9841949",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1261,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1124891c_566e352d",
       "range": {
         "startLine": 1261,
         "startChar": 17,
@@ -219,6 +405,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d20ae4fc_45701258",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1262,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "af52edce_e67d4091",
+      "range": {
+        "startLine": 1262,
+        "startChar": 2,
+        "endLine": 1262,
+        "endChar": 23
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4b201ae5_b0618ef6",
@@ -232,6 +442,30 @@
       "writtenOn": "2020-12-17T16:32:32Z",
       "side": 1,
       "message": "This always emits code for reading all of the parameters, even the ones that don\u0027t get used. I don\u0027t think Subzero can eliminate those load instructions in all cases (specifically, if these get materialized due to a branch, which would be the case for anisotropic filtering for example). I\u0027d like to make sure we fully understand the consequences.",
+      "range": {
+        "startLine": 114,
+        "startChar": 3,
+        "endLine": 116,
+        "endChar": 51
+      },
+      "revId": "dba70d425af0680e11ecd1217b961fd707014d90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9812f5d_2ca2d3b4",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T18:31:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4b201ae5_b0618ef6",
       "range": {
         "startLine": 114,
         "startChar": 3,
