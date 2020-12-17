@@ -48,6 +48,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "680ea67e_ffe157f9",
+        "filename": "src/Vulkan/VkQueryPool.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2020-12-17T20:10:58Z",
+      "side": 1,
+      "message": "Let\u0027s see, so if VK_QUERY_RESULT_WAIT_BIT is set, then we called query.wait(), which called Query::finished.wait(), but I think that doesn\u0027t automatically call Query::finish() to set the state to FINISHED, so it may still be in the UNAVAILABLE state (correct me if I\u0027m wrong), but we still don\u0027t want to return partial results in that case, so I think the extra check is required.",
+      "parentUuid": "14e33a5c_dd642b13",
+      "range": {
+        "startLine": 156,
+        "startChar": 5,
+        "endLine": 156,
+        "endChar": 74
+      },
+      "revId": "5d1e3f7112023122637d5fb16ca038d908022529",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7a48bbd8_917054ed",
