@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "63cc1d1f_0d7412cb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2020-12-17T21:19:52Z",
+      "side": 1,
+      "message": "Kokoro fails on ubuntu, subzero, release because it\u0027s failing a fetch. Should be fine to ignore it.",
+      "revId": "17042196992d8b9598143a02ab248ddbcf6decb7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
