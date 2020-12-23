@@ -530,7 +530,8 @@ const VkPhysicalDeviceProperties &PhysicalDevice::getProperties() const
 	return properties;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties *properties) const
+template<typename T>
+static void getIdProperties(T *properties)
 {
 	memset(properties->deviceUUID, 0, VK_UUID_SIZE);
 	memset(properties->driverUUID, 0, VK_UUID_SIZE);
@@ -543,26 +544,55 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties *properties) con
 	properties->deviceLUIDValid = VK_FALSE;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties *properties) const
+{
+	getIdProperties(properties);
+}
+
+template<typename T>
+static void getMaintenance3Properties(T *properties)
 {
 	properties->maxMemoryAllocationSize = MAX_MEMORY_ALLOCATION_SIZE;
 	properties->maxPerSetDescriptors = 1024;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceMultiviewProperties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties *properties) const
+{
+	getMaintenance3Properties(properties);
+}
+
+template<typename T>
+static void getMultiviewProperties(T *properties)
 {
 	properties->maxMultiviewViewCount = 6;
 	properties->maxMultiviewInstanceIndex = 1u << 27;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDevicePointClippingProperties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDeviceMultiviewProperties *properties) const
+{
+	getMultiviewProperties(properties);
+}
+
+template<typename T>
+static void getPointClippingProperties(T *properties)
 {
 	properties->pointClippingBehavior = VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceProtectedMemoryProperties *properties) const
+void PhysicalDevice::getProperties(VkPhysicalDevicePointClippingProperties *properties) const
+{
+	getPointClippingProperties(properties);
+}
+
+template<typename T>
+static void getProtectedMemoryProperties(T *properties)
 {
 	properties->protectedNoFault = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceProtectedMemoryProperties *properties) const
+{
+	getProtectedMemoryProperties(properties);
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties *properties) const
@@ -577,6 +607,26 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties *propertie
 	    VK_SUBGROUP_FEATURE_SHUFFLE_BIT |
 	    VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT;
 	properties->quadOperationsInAllStages = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan11Properties *properties) const
+{
+	getIdProperties(properties);
+
+	// We can't use templated functions for Vulkan11 & subgroup properties. The names of the
+	// variables in VkPhysicalDeviceSubgroupProperties differ from the names in the Vulkan11
+	// struct.
+	VkPhysicalDeviceSubgroupProperties subgroupProperties = {};
+	getProperties(&subgroupProperties);
+	properties->subgroupSize = subgroupProperties.subgroupSize;
+	properties->subgroupSupportedStages = subgroupProperties.supportedStages;
+	properties->subgroupSupportedOperations = subgroupProperties.supportedOperations;
+	properties->subgroupQuadOperationsInAllStages = subgroupProperties.quadOperationsInAllStages;
+
+	getPointClippingProperties(properties);
+	getMultiviewProperties(properties);
+	getProtectedMemoryProperties(properties);
+	getMaintenance3Properties(properties);
 }
 
 void PhysicalDevice::getProperties(const VkExternalMemoryHandleTypeFlagBits *handleType, VkExternalImageFormatProperties *properties) const
