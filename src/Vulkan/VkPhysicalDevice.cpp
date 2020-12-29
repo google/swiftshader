@@ -238,16 +238,8 @@ static void getPhysicalDeviceUniformBufferStandardLayoutFeatures(T *features)
 }
 
 template<typename T>
-static void getPhysicalDeviceVulkan12Features(T *features)
+static void getPhysicalDeviceDescriptorIndexingFeatures(T *features)
 {
-	features->samplerMirrorClampToEdge = VK_FALSE;
-	features->drawIndirectCount = VK_FALSE;
-	getPhysicalDevice8BitStorageFeaturesKHR(features);
-	features->shaderBufferInt64Atomics = VK_FALSE;
-	features->shaderSharedInt64Atomics = VK_FALSE;
-	features->shaderFloat16 = VK_FALSE;
-	features->shaderInt8 = VK_FALSE;
-	features->descriptorIndexing = VK_FALSE;
 	features->shaderInputAttachmentArrayDynamicIndexing = VK_FALSE;
 	features->shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE;
 	features->shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE;
@@ -267,6 +259,20 @@ static void getPhysicalDeviceVulkan12Features(T *features)
 	features->descriptorBindingPartiallyBound = VK_FALSE;
 	features->descriptorBindingVariableDescriptorCount = VK_FALSE;
 	features->runtimeDescriptorArray = VK_FALSE;
+}
+
+template<typename T>
+static void getPhysicalDeviceVulkan12Features(T *features)
+{
+	features->samplerMirrorClampToEdge = VK_FALSE;
+	features->drawIndirectCount = VK_FALSE;
+	getPhysicalDevice8BitStorageFeaturesKHR(features);
+	features->shaderBufferInt64Atomics = VK_FALSE;
+	features->shaderSharedInt64Atomics = VK_FALSE;
+	features->shaderFloat16 = VK_FALSE;
+	features->shaderInt8 = VK_FALSE;
+	features->descriptorIndexing = VK_FALSE;
+	getPhysicalDeviceDescriptorIndexingFeatures(features);
 	features->samplerFilterMinmax = VK_FALSE;
 	getPhysicalDeviceScalarBlockLayoutFeatures(features);
 	getPhysicalDeviceImagelessFramebufferFeatures(features);
@@ -714,12 +720,18 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceExternalMemoryHostPropertiesE
 	properties->minImportedHostPointerAlignment = REQUIRED_MEMORY_ALIGNMENT;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR *properties) const
+template<typename T>
+static void getDriverProperties(T *properties)
 {
 	properties->driverID = VK_DRIVER_ID_GOOGLE_SWIFTSHADER_KHR;
 	strcpy(properties->driverName, "SwiftShader driver");
 	strcpy(properties->driverInfo, "");
 	properties->conformanceVersion = { 1, 1, 3, 3 };
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR *properties) const
+{
+	getDriverProperties(properties);
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceLineRasterizationPropertiesEXT *properties) const
@@ -732,7 +744,8 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceProvokingVertexPropertiesEXT 
 	properties->provokingVertexModePerPipeline = VK_TRUE;
 }
 
-void PhysicalDevice::getProperties(VkPhysicalDeviceFloatControlsProperties *properties) const
+template<typename T>
+static void getFloatControlsProperties(T *properties)
 {
 	// The spec states:
 	// shaderSignedZeroInfNanPreserveFloat32 is a boolean value indicating whether
@@ -762,6 +775,92 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceFloatControlsProperties *prop
 	properties->shaderRoundingModeRTEFloat16 = VK_FALSE;
 	properties->shaderRoundingModeRTEFloat32 = VK_FALSE;
 	properties->shaderRoundingModeRTEFloat64 = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceFloatControlsProperties *properties) const
+{
+	getFloatControlsProperties(properties);
+}
+
+template<typename T>
+static void getDescriptorIndexingProperties(T *properties)
+{
+	properties->maxUpdateAfterBindDescriptorsInAllPools = 0;
+	properties->shaderUniformBufferArrayNonUniformIndexingNative = VK_FALSE;
+	properties->shaderSampledImageArrayNonUniformIndexingNative = VK_FALSE;
+	properties->shaderStorageBufferArrayNonUniformIndexingNative = VK_FALSE;
+	properties->shaderStorageImageArrayNonUniformIndexingNative = VK_FALSE;
+	properties->shaderInputAttachmentArrayNonUniformIndexingNative = VK_FALSE;
+	properties->robustBufferAccessUpdateAfterBind = VK_FALSE;
+	properties->quadDivergentImplicitLod = VK_FALSE;
+	properties->maxPerStageDescriptorUpdateAfterBindSamplers = 0;
+	properties->maxPerStageDescriptorUpdateAfterBindUniformBuffers = 0;
+	properties->maxPerStageDescriptorUpdateAfterBindStorageBuffers = 0;
+	properties->maxPerStageDescriptorUpdateAfterBindSampledImages = 0;
+	properties->maxPerStageDescriptorUpdateAfterBindStorageImages = 0;
+	properties->maxPerStageDescriptorUpdateAfterBindInputAttachments = 0;
+	properties->maxPerStageUpdateAfterBindResources = 0;
+	properties->maxDescriptorSetUpdateAfterBindSamplers = 0;
+	properties->maxDescriptorSetUpdateAfterBindUniformBuffers = 0;
+	properties->maxDescriptorSetUpdateAfterBindUniformBuffersDynamic = 0;
+	properties->maxDescriptorSetUpdateAfterBindStorageBuffers = 0;
+	properties->maxDescriptorSetUpdateAfterBindStorageBuffersDynamic = 0;
+	properties->maxDescriptorSetUpdateAfterBindSampledImages = 0;
+	properties->maxDescriptorSetUpdateAfterBindStorageImages = 0;
+	properties->maxDescriptorSetUpdateAfterBindInputAttachments = 0;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceDescriptorIndexingProperties *properties) const
+{
+	getDescriptorIndexingProperties(properties);
+}
+
+template<typename T>
+static void getDepthStencilResolveProperties(T *properties)
+{
+	properties->supportedDepthResolveModes = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT | VK_RESOLVE_MODE_NONE;
+	properties->supportedStencilResolveModes = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT | VK_RESOLVE_MODE_NONE;
+	properties->independentResolveNone = VK_FALSE;
+	properties->independentResolve = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceDepthStencilResolveProperties *properties) const
+{
+	getDepthStencilResolveProperties(properties);
+}
+
+template<typename T>
+static void getSamplerFilterMinmaxProperties(T *properties)
+{
+	properties->filterMinmaxSingleComponentFormats = VK_FALSE;
+	properties->filterMinmaxImageComponentMapping = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceSamplerFilterMinmaxProperties *properties) const
+{
+	getSamplerFilterMinmaxProperties(properties);
+}
+
+template<typename T>
+static void getTimelineSemaphoreProperties(T *properties)
+{
+	properties->maxTimelineSemaphoreValueDifference = 0x7FFFFFFFull;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceTimelineSemaphoreProperties *properties) const
+{
+	getTimelineSemaphoreProperties(properties);
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceVulkan12Properties *properties) const
+{
+	getDriverProperties(properties);
+	getFloatControlsProperties(properties);
+	getDescriptorIndexingProperties(properties);
+	getDepthStencilResolveProperties(properties);
+	getSamplerFilterMinmaxProperties(properties);
+	getTimelineSemaphoreProperties(properties);
+	properties->framebufferIntegerColorSampleCounts = VK_SAMPLE_COUNT_1_BIT;
 }
 
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures &requestedFeatures) const
