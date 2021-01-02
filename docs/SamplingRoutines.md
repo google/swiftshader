@@ -20,11 +20,11 @@ Note that this differs from typical JIT-compilers' use of trampoline functions i
 
 We cache the generated sampling routines, using the descriptors as well as the type of sampling instruction, as the key. This is done at three levels, described in reverse order for easier understanding:
 
-At the third and last level, we use a least-recently-used (LRU) cache, just like the caches of the pipeline stages' routines. It is protected by a mutex, and it may experience high contention due to all shader worker threads needing the sampling routines.
+L3: At the third and last level, we use a generic least-recently-used (LRU) cache, just like the caches of the pipeline stages' routines. It is protected by a mutex, which may experience high contention due to all shader worker threads needing the sampling routines.
 
-To mitigate that, there's a second-level cache which contains a 'snapshot' of the last-level cache, which can be queried concurrently without locking. The snapshot is updated at pipeline barriers. While much faster than the last-level cache's critical section, the lookup is still a lot of work per sampling instruction.
+L2: To mitigate that, there's a second-level cache which contains a 'snapshot' of the last-level cache, which can be queried concurrently without locking. The snapshot is updated at pipeline barriers. While much faster than the last-level cache's critical section, the hash table lookup is still a lot of work per sampling instruction.
 
-Often the descriptors being used don't change between executions of the sampling instruction. Which is where the first-level cache comes in. It is a single-entry cache implemented at the compiled shader level. Before calling out to the C++ function to retrieve the routine, we check if the sampler and image descriptor haven't changed since the last execution of the instruction. Note that this cache doesn't use the instruction type as part of the lookup key, since each sampling instruction instance gets its own first-level cache.
+L1: Often the descriptors being used don't change between executions of the sampling instruction. Which is where the first-level or '[inline](https://en.wikipedia.org/wiki/Inline_caching)' cache comes in. It is a single-entry cache implemented at the compiled sampling instruction level. Before calling out to the C++ function to retrieve the routine, we check if the sampler and image descriptor haven't changed since the last execution of the instruction. Note that this cache doesn't use the instruction type as part of the lookup key, since each sampling instruction instance gets its own inline cache.
 
 Descriptor Identifiers
 ----------------------
