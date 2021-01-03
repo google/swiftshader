@@ -149,7 +149,7 @@ void SpirvShader::EvalSpecConstantOp(InsnIterator insn)
 			// Other spec constant ops are possible, but require capabilities that are
 			// not exposed in our Vulkan implementation (eg Kernel), so we should never
 			// get here for correct shaders.
-			UNSUPPORTED("EvalSpecConstantOp op: %s", OpcodeName(opcode).c_str());
+			UNSUPPORTED("EvalSpecConstantOp op: %s", OpcodeName(opcode));
 	}
 }
 
@@ -198,7 +198,7 @@ void SpirvShader::EvalSpecConstantUnaryOp(InsnIterator insn)
 				break;
 			}
 			default:
-				UNREACHABLE("EvalSpecConstantUnaryOp op: %s", OpcodeName(opcode).c_str());
+				UNREACHABLE("EvalSpecConstantUnaryOp op: %s", OpcodeName(opcode));
 		}
 	}
 }
@@ -306,7 +306,7 @@ void SpirvShader::EvalSpecConstantBinaryOp(InsnIterator insn)
 				v = static_cast<int32_t>(l) >= static_cast<int32_t>(r) ? ~0u : 0u;
 				break;
 			default:
-				UNREACHABLE("EvalSpecConstantBinaryOp op: %s", OpcodeName(opcode).c_str());
+				UNREACHABLE("EvalSpecConstantBinaryOp op: %s", OpcodeName(opcode));
 		}
 	}
 }

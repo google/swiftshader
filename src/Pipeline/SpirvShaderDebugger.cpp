@@ -1991,7 +1991,7 @@ SpirvShader::Impl::Debugger::Shadow::get(const State *state, Object::ID objId) c
 	auto entryIt = entries.find(objId);
 	ASSERT_MSG(entryIt != entries.end(), "Missing shadow entry for object %%%d (%s)",
 	           (int)objId.value(),
-	           OpcodeName(state->debugger->shader->getObject(objId).opcode()).c_str());
+	           OpcodeName(state->debugger->shader->getObject(objId).opcode()));
 	auto &entry = entryIt->second;
 	auto data = &state->shadow[entry.offset];
 	return Memory{ data };

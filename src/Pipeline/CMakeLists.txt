@@ -38,7 +38,6 @@ set(PIPELINE_SRC_FILES
     SpirvShaderArithmetic.cpp
     SpirvShaderControlFlow.cpp
     SpirvShaderDebugger.cpp
-    SpirvShaderEnumNames.cpp
     SpirvShaderGLSLstd450.cpp
     SpirvShaderGroup.cpp
     SpirvShaderImage.cpp

@@ -344,7 +344,7 @@ void SpirvShader::VisitMemoryObjectInner(sw::SpirvShader::Type::ID id, sw::Spirv
 			break;
 		}
 		default:
-			UNREACHABLE("%s", OpcodeName(type.opcode()).c_str());
+			UNREACHABLE("%s", OpcodeName(type.opcode()));
 	}
 }
 

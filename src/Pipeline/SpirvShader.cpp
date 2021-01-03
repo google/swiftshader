@@ -483,7 +483,7 @@ SpirvShader::SpirvShader(
 			case spv::OpFunctionParameter:
 				// These should have all been removed by preprocessing passes. If we see them here,
 				// our assumptions are wrong and we will probably generate wrong code.
-				UNREACHABLE("%s should have already been lowered.", OpcodeName(opcode).c_str());
+				UNREACHABLE("%s should have already been lowered.", OpcodeName(opcode));
 				break;
 
 			case spv::OpFunctionCall:
@@ -743,7 +743,7 @@ SpirvShader::SpirvShader(
 			}
 
 			default:
-				UNSUPPORTED("%s", OpcodeName(opcode).c_str());
+				UNSUPPORTED("%s", OpcodeName(opcode));
 		}
 	}
 
@@ -987,7 +987,7 @@ uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 			return 1;
 
 		default:
-			UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
+			UNREACHABLE("%s", OpcodeName(insn.opcode()));
 			return 0;
 	}
 }
@@ -1110,7 +1110,7 @@ void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, DescriptorDecor
 				d->InsideMatrix = true;
 				break;
 			default:
-				UNREACHABLE("%s", OpcodeName(type.definition.opcode()).c_str());
+				UNREACHABLE("%s", OpcodeName(type.definition.opcode()));
 		}
 	}
 }
@@ -1219,7 +1219,7 @@ SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint
 				break;
 			}
 			default:
-				UNREACHABLE("%s", OpcodeName(type.definition.opcode()).c_str());
+				UNREACHABLE("%s", OpcodeName(type.definition.opcode()));
 		}
 	}
 
@@ -1300,7 +1300,7 @@ SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexe
 			}
 
 			default:
-				UNREACHABLE("%s", OpcodeName(type.opcode()).c_str());
+				UNREACHABLE("%s", OpcodeName(type.opcode()));
 		}
 	}
 
@@ -1346,7 +1346,7 @@ uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexe
 			}
 
 			default:
-				UNREACHABLE("%s", OpcodeName(type.opcode()).c_str());
+				UNREACHABLE("%s", OpcodeName(type.opcode()));
 		}
 	}
 
@@ -2028,7 +2028,7 @@ SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitStat
 			return EmitArrayLength(insn, state);
 
 		default:
-			UNREACHABLE("%s", OpcodeName(opcode).c_str());
+			UNREACHABLE("%s", OpcodeName(opcode));
 			break;
 	}
 
@@ -2328,7 +2328,7 @@ SpirvShader::EmitResult SpirvShader::EmitAtomicOp(InsnIterator insn, EmitState *
 					v = ExchangeAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				default:
-					UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
+					UNREACHABLE("%s", OpcodeName(insn.opcode()));
 					break;
 			}
 			result = Insert(result, v, j);

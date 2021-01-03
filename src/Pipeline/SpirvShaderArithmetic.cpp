@@ -299,7 +299,7 @@ SpirvShader::EmitResult SpirvShader::EmitUnaryOp(InsnIterator insn, EmitState *s
 				break;
 			}
 			default:
-				UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
+				UNREACHABLE("%s", OpcodeName(insn.opcode()));
 		}
 	}
 
@@ -502,7 +502,7 @@ SpirvShader::EmitResult SpirvShader::EmitBinaryOp(InsnIterator insn, EmitState *
 				dst.move(i + lhsType.componentCount, CmpLT(lhs.UInt(i), rhs.UInt(i)) >> 31);
 				break;
 			default:
-				UNREACHABLE("%s", OpcodeName(insn.opcode()).c_str());
+				UNREACHABLE("%s", OpcodeName(insn.opcode()));
 		}
 	}
 

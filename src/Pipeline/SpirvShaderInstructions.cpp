@@ -14,6 +14,8 @@
 
 #include "SpirvShader.hpp"
 
+#include "spirv-tools/libspirv.h"
+
 #include <spirv/unified1/spirv.hpp>
 
 #define CONCAT(a, b) a##b
@@ -44,6 +46,11 @@ constexpr void checkForNoMissingOps(spv::Op op)
 }  // anonymous namespace
 
 namespace sw {
+
+const char *SpirvShader::OpcodeName(spv::Op op)
+{
+	return spvOpcodeString(op);
+}
 
 bool SpirvShader::IsStatement(spv::Op op)
 {

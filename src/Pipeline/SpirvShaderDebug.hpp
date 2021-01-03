@@ -15,6 +15,8 @@
 #ifndef sw_SpirvShaderDebug_hpp
 #define sw_SpirvShaderDebug_hpp
 
+#include "SpirvShader.hpp"
+
 // Enable this to print verbose debug messages as each SPIR-V instructon is
 // executed. Very handy for performing text diffs when the thread count is
 // reduced to 1 and execution is deterministic.

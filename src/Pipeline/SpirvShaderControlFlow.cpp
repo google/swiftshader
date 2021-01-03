@@ -605,7 +605,7 @@ SpirvShader::EmitResult SpirvShader::EmitFunctionCall(InsnIterator insn, EmitSta
 
 			if(blockInsn.opcode() != wrapOpKill[insnNumber++])
 			{
-				UNIMPLEMENTED("b/141246700: Function block instruction %d : %s", insnNumber - 1, OpcodeName(blockInsn.opcode()).c_str());  // FIXME(b/141246700)
+				UNIMPLEMENTED("b/141246700: Function block instruction %d : %s", insnNumber - 1, OpcodeName(blockInsn.opcode()));  // FIXME(b/141246700)
 				return EmitResult::Continue;
 			}
 

@@ -1250,8 +1250,7 @@ private:
 	void WriteCFGGraphVizDotFile(const char *path) const;
 
 	// OpcodeName() returns the name of the opcode op.
-	// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
-	static std::string OpcodeName(spv::Op op);
+	static const char *OpcodeName(spv::Op op);
 	static std::memory_order MemoryOrder(spv::MemorySemanticsMask memorySemantics);
 
 	// IsStatement() returns true if the given opcode actually performs
