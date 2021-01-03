@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "89a8c7f8_231f1ff9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-03T07:31:01Z",
+      "side": 1,
+      "message": "This looks stale, so I\u0027ll Abandon it. Feel free to revive it if you\u0027d still like us to consider this (but see my comment above about making the change in ANGLE instead).",
+      "revId": "aed7105d66594633798643754c42aa7d043052df",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
