@@ -574,6 +574,7 @@ public:
 		bool ClipDistance : 1;
 		bool CullDistance : 1;
 		bool ImageCubeArray : 1;
+		bool SampleRateShading : 1;
 		bool InputAttachment : 1;
 		bool Sampled1D : 1;
 		bool Image1D : 1;

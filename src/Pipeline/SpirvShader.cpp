@@ -387,6 +387,7 @@ SpirvShader::SpirvShader(
 					case spv::CapabilityClipDistance: capabilities.ClipDistance = true; break;
 					case spv::CapabilityCullDistance: capabilities.CullDistance = true; break;
 					case spv::CapabilityImageCubeArray: capabilities.ImageCubeArray = true; break;
+					case spv::CapabilitySampleRateShading: capabilities.SampleRateShading = true; break;
 					case spv::CapabilityInputAttachment: capabilities.InputAttachment = true; break;
 					case spv::CapabilitySampled1D: capabilities.Sampled1D = true; break;
 					case spv::CapabilityImage1D: capabilities.Image1D = true; break;
