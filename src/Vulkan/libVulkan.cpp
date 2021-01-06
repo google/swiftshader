@@ -65,6 +65,10 @@
 #	include "WSI/DirectFBSurfaceEXT.hpp"
 #endif
 
+#ifdef VK_USE_PLATFORM_DISPLAY_KHR
+#	include "WSI/DisplaySurfaceKHR.hpp"
+#endif
+
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 #	include "WSI/Win32SurfaceKHR.hpp"
 #endif
@@ -318,6 +322,9 @@ static const VkExtensionProperties instanceExtensionProperties[] = {
 #endif
 #ifdef VK_USE_PLATFORM_DIRECTFB_EXT
 	{ VK_EXT_DIRECTFB_SURFACE_EXTENSION_NAME, VK_EXT_DIRECTFB_SURFACE_SPEC_VERSION },
+#endif
+#ifdef VK_USE_PLATFORM_DISPLAY_KHR
+	{ VK_KHR_DISPLAY_EXTENSION_NAME, VK_KHR_DISPLAY_SPEC_VERSION },
 #endif
 #ifdef VK_USE_PLATFORM_MACOS_MVK
 	{ VK_MVK_MACOS_SURFACE_EXTENSION_NAME, VK_MVK_MACOS_SURFACE_SPEC_VERSION },
@@ -3592,6 +3599,64 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceDirectFBPresentationSupportEXT
 	      physicalDevice, int(queueFamilyIndex), dfb);
 
 	return VK_TRUE;
+}
+#endif
+
+#ifdef VK_USE_PLATFORM_DISPLAY_KHR
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateDisplayModeKHR(VkPhysicalDevice physicalDevice, VkDisplayKHR display, const VkDisplayModeCreateInfoKHR *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDisplayModeKHR *pMode)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, VkDisplayKHR display = %p, VkDisplayModeCreateInfoKHR* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkDisplayModeKHR* pModei = %p)",
+	      physicalDevice, static_cast<void *>(display), pCreateInfo, pAllocator, pMode);
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateDisplayPlaneSurfaceKHR(VkInstance instance, const VkDisplaySurfaceCreateInfoKHR *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkSurfaceKHR *pSurface)
+{
+	TRACE("(VkInstance instance = %p, VkDisplaySurfaceCreateInfoKHR* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
+	      instance, pCreateInfo, pAllocator, pSurface);
+
+	return vk::DisplaySurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetDisplayModePropertiesKHR(VkPhysicalDevice physicalDevice, VkDisplayKHR display, uint32_t *pPropertyCount, VkDisplayModePropertiesKHR *pProperties)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, VkDisplayKHR display = %p, uint32_t* pPropertyCount = %p, VkDisplayModePropertiesKHR* pProperties = %p)",
+	      physicalDevice, static_cast<void *>(display), pPropertyCount, pProperties);
+
+	return vk::DisplaySurfaceKHR::GetDisplayModeProperties(pPropertyCount, pProperties);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetDisplayPlaneCapabilitiesKHR(VkPhysicalDevice physicalDevice, VkDisplayModeKHR mode, uint32_t planeIndex, VkDisplayPlaneCapabilitiesKHR *pCapabilities)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, VkDisplayModeKHR mode = %p, uint32_t planeIndex = %d, VkDisplayPlaneCapabilitiesKHR* pCapabilities = %p)",
+	      physicalDevice, static_cast<void *>(mode), planeIndex, pCapabilities);
+
+	return vk::DisplaySurfaceKHR::GetDisplayPlaneCapabilities(pCapabilities);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetDisplayPlaneSupportedDisplaysKHR(VkPhysicalDevice physicalDevice, uint32_t planeIndex, uint32_t *pDisplayCount, VkDisplayKHR *pDisplays)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t planeIndex = %d, uint32_t* pDisplayCount = %p, VkDisplayKHR* pDisplays = %p)",
+	      physicalDevice, planeIndex, pDisplayCount, pDisplays);
+
+	return vk::DisplaySurfaceKHR::GetDisplayPlaneSupportedDisplays(pDisplayCount, pDisplays);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceDisplayPlanePropertiesKHR(VkPhysicalDevice physicalDevice, uint32_t *pPropertyCount, VkDisplayPlanePropertiesKHR *pProperties)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t* pPropertyCount = %p, VkDisplayPlanePropertiesKHR* pProperties = %p)",
+	      physicalDevice, pPropertyCount, pProperties);
+
+	return vk::DisplaySurfaceKHR::GetPhysicalDeviceDisplayPlaneProperties(pPropertyCount, pProperties);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceDisplayPropertiesKHR(VkPhysicalDevice physicalDevice, uint32_t *pPropertyCount, VkDisplayPropertiesKHR *pProperties)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = %p, uint32_t* pPropertyCount = %p, VkDisplayPropertiesKHR* pProperties = %p)",
+	      physicalDevice, pPropertyCount, pProperties);
+
+	return vk::DisplaySurfaceKHR::GetPhysicalDeviceDisplayProperties(pPropertyCount, pProperties);
 }
 #endif
 

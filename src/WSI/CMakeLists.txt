@@ -59,6 +59,13 @@ elseif(LINUX)
             DirectFBSurfaceEXT.hpp
         )
     endif()
+
+    if(D2D)
+        list(APPEND WSI_SRC_FILES
+            DisplaySurfaceKHR.cpp
+            DisplaySurfaceKHR.hpp
+        )
+    endif()
 elseif(APPLE)
     list(APPEND WSI_SRC_FILES
         MetalSurface.mm
