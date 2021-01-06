@@ -50,7 +50,7 @@ uint64_t RandomNumberGenerator::next(uint64_t Max) {
 }
 
 bool RandomNumberGeneratorWrapper::getTrueWithProbability(float Probability) {
-  return RNG.next(MAX) < Probability * MAX;
+  return static_cast<float>(RNG.next(MAX)) < Probability * static_cast<float>(MAX);
 }
 
 } // end of namespace Ice
