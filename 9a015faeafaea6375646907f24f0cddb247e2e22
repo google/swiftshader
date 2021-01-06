@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea872083_818a9f9a",
+        "filename": "third_party/subzero/src/IceRNG.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-06T17:00:00Z",
+      "side": 1,
+      "message": "Note SwiftShader/Reactor don\u0027t depend on functionality to randomize code generation. We could eliminate it as part of the b/155971541 cleanup, but for now just work around the warning.",
+      "range": {
+        "startLine": 52,
+        "startChar": 35,
+        "endLine": 52,
+        "endChar": 57
+      },
+      "revId": "9a015faeafaea6375646907f24f0cddb247e2e22",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "76f64179_d37b1857",
+        "filename": "third_party/subzero/src/IceRNG.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-06T17:00:00Z",
+      "side": 1,
+      "message": "While Clang doesn\u0027t complain about this, I also made this implicit cast explicit for good measure.",
+      "range": {
+        "startLine": 53,
+        "startChar": 9,
+        "endLine": 53,
+        "endChar": 42
+      },
+      "revId": "9a015faeafaea6375646907f24f0cddb247e2e22",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
