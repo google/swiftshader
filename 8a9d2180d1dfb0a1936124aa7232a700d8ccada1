@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ca63c8f6_5a07866e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2021-01-06T20:16:28Z",
+      "side": 1,
+      "message": "This change adds a very basic implementation of VK_KHR_display using KMS/DRM. The proposed implementation is focused on simplicity while being based on the existing code architecture.\nThis Direct-to-Display support is useful for example when running SDL2 with the KMS/DRM video driver.\n\nNicolas Caramelli",
+      "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
