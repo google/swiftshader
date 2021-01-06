@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1b749b74_afc39dd9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-06T22:11:22Z",
+      "side": 1,
+      "message": "Thanks! While I think this can land immediately, you might also want to consider queuing the change to enable the vulkanMemoryModel feature on top of this (and include a Test line), so that if anything was missing from this change you can fix it here. Probably not the case so totally up to you if you want to land this first before working on vulkanMemoryModel.",
+      "revId": "dfeaae3691346b7baef143355c2aad275211d4e3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
