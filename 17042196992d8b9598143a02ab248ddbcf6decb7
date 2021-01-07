@@ -16,6 +16,23 @@
       "message": "Kokoro fails on ubuntu, subzero, release because it\u0027s failing a fetch. Should be fine to ignore it.",
       "revId": "17042196992d8b9598143a02ab248ddbcf6decb7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c49d45ed_41b5142a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T14:06:19Z",
+      "side": 1,
+      "message": "Alexis, was there anything left to do here?\n\nIt\u0027s entirely the application\u0027s responsibility to take care of synchronization, right? Anything we can do to help detect mistakes, that the validation layers are unlikely to catch?",
+      "revId": "17042196992d8b9598143a02ab248ddbcf6decb7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
