@@ -16,6 +16,24 @@
       "message": "Thanks! While I think this can land immediately, you might also want to consider queuing the change to enable the vulkanMemoryModel feature on top of this (and include a Test line), so that if anything was missing from this change you can fix it here. Probably not the case so totally up to you if you want to land this first before working on vulkanMemoryModel.",
       "revId": "dfeaae3691346b7baef143355c2aad275211d4e3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "69115bce_422b0544",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-07T18:52:55Z",
+      "side": 1,
+      "message": "This is safe enough to land on its own. And I don\u0027t think the vulkanMemoryModel work is non-trivial since it deals with several new operands for storage, images, and so on in SPIR-V.",
+      "parentUuid": "1b749b74_afc39dd9",
+      "revId": "dfeaae3691346b7baef143355c2aad275211d4e3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
