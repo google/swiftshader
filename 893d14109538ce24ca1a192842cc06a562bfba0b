@@ -22,6 +22,30 @@
       },
       "revId": "893d14109538ce24ca1a192842cc06a562bfba0b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "89972cb4_916b0ba0",
+        "filename": "third_party/subzero/src/IceUtils.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-07T20:08:57Z",
+      "side": 1,
+      "message": "Right, for some reason I forgot these were 32-bit variables. Yes, \"u\" would be enough.",
+      "parentUuid": "a7446d3d_59897869",
+      "range": {
+        "startLine": 137,
+        "startChar": 19,
+        "endLine": 137,
+        "endChar": 21
+      },
+      "revId": "893d14109538ce24ca1a192842cc06a562bfba0b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
