@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "481d22d1_bae38d84",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T02:49:14Z",
+      "side": 1,
+      "message": "nit: \"Implement\"\n\n\"Add\" makes it sound like we specified that extension.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 3
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4f4c3a1_81b2ce39",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T02:49:14Z",
+      "side": 1,
+      "message": "How does this query work? I don\u0027t see any changes here that seem related to that. Note that the spec states that for depth+stencil formats the VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT only relates to the depth format (note also that there are no unnormalized integer formats that allow linear filtering, so that also excludes stencil). Closely related: https://swiftshader-review.googlesource.com/c/SwiftShader/+/40028\n\nAnyway, that\u0027s a feature bit, not a usage bit, so probably not an issue here. Alexis, do you spot any interaction between this extension and things that might complicate future quad-layout optimizations?",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "61d76eee_889ade1d",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3173,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T02:49:14Z",
+      "side": 1,
+      "message": "Perhaps this micro-optimization can be moved into checkFormatUsage() so both the call on this line and on 3169 benefit from it?",
+      "range": {
+        "startLine": 3173,
+        "startChar": 4,
+        "endLine": 3173,
+        "endChar": 22
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
