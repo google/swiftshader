@@ -58,6 +58,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "45c88d42_86c45bd4",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3640,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2021-01-07T08:38:16Z",
+      "side": 1,
+      "message": "Yes, it\u0027s better to keep libVulkan.cpp to a minimum: it\u0027s done. Thanks for your comment!",
+      "parentUuid": "e6500f83_a90bb291",
+      "range": {
+        "startLine": 3631,
+        "startChar": 2,
+        "endLine": 3640,
+        "endChar": 12
+      },
+      "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "066c0ccf_4bb5a533",
@@ -71,6 +95,30 @@
       "writtenOn": "2021-01-07T04:55:10Z",
       "side": 1,
       "message": "nit: Initialize these here?",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 20
+      },
+      "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "93e7e7f0_455ba9b9",
+        "filename": "src/WSI/DisplaySurfaceKHR.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2021-01-07T08:38:16Z",
+      "side": 1,
+      "message": "These variables are initialized in the constructor. If I\u0027m not wrong, this is consistent with others WSIs. I think we can keep it like this.",
+      "parentUuid": "066c0ccf_4bb5a533",
       "range": {
         "startLine": 43,
         "startChar": 1,
