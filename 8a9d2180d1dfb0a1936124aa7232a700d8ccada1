@@ -16,6 +16,69 @@
       "message": "This change adds a very basic implementation of VK_KHR_display using KMS/DRM. The proposed implementation is focused on simplicity while being based on the existing code architecture.\nThis Direct-to-Display support is useful for example when running SDL2 with the KMS/DRM video driver.\n\nNicolas Caramelli",
       "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c06c395_37887733",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T04:55:10Z",
+      "side": 1,
+      "message": "Looks OK to me. CC\u0027ing some people who might have an interest in this / more experience with this corner of Linux graphics.\n\nSome minor suggestions:",
+      "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6500f83_a90bb291",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3640,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T04:55:10Z",
+      "side": 1,
+      "message": "nit: We generally try to keep the amount of implementation code in libVulkan.cpp to a minimum. Would it make sense to move this and the guts of the functions below into (static) methods of DisplaySurfaceKHR?",
+      "range": {
+        "startLine": 3631,
+        "startChar": 2,
+        "endLine": 3640,
+        "endChar": 12
+      },
+      "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "066c0ccf_4bb5a533",
+        "filename": "src/WSI/DisplaySurfaceKHR.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-07T04:55:10Z",
+      "side": 1,
+      "message": "nit: Initialize these here?",
+      "range": {
+        "startLine": 43,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 20
+      },
+      "revId": "8a9d2180d1dfb0a1936124aa7232a700d8ccada1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
