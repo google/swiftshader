@@ -134,7 +134,7 @@ inline void reserveAndResize(Container &V, uint32_t Size,
   // Don't call reserve() if Size==0.
   if (Size > 0) {
     uint32_t Mask;
-    if (Size <= (1 << ChunkSizeBits)) {
+    if (Size <= (1u << ChunkSizeBits)) {
       // For smaller sizes, reserve the smallest power of 2 greater than or
       // equal to Size.
       Mask =
