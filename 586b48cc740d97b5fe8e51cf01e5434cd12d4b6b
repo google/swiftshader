@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "37f7ef1e_06113f35",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 699,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-08T18:09:22Z",
+      "side": 1,
+      "message": "note: This constructor turns the context into a thread-safe one.",
+      "range": {
+        "startLine": 699,
+        "startChar": 52,
+        "endLine": 699,
+        "endChar": 107
+      },
+      "revId": "586b48cc740d97b5fe8e51cf01e5434cd12d4b6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
