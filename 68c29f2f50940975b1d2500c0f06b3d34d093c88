@@ -49,6 +49,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a5c65f23_a1a0c6a4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-08T04:11:22Z",
+      "side": 1,
+      "message": "IIUC, this would allow the stencil buffer to be quad layout while the depth buffer is not. I think we\u0027re fine with that. Depth and stencil are 2 separate planes of memory allocated contiguously together, but they have no correlation (in terms of layout).\nIt would be an issue if we wanted to implement internal formats which are packed depth + stencil formats (like D24S8), but I don\u0027t think we actually plan to ever do that.",
+      "parentUuid": "b4f4c3a1_81b2ce39",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "61d76eee_889ade1d",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 2
