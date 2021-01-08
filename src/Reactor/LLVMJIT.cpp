@@ -704,8 +704,7 @@ public:
 #if LLVM_VERSION_MAJOR >= 13
 	    , session(std::move(*llvm::orc::SelfExecutorProcessControl::Create()))
 #endif
-	    , objectLayer(session, []() {
-		    static MemoryMapper memoryMapper;
+	    , objectLayer(session, [this]() {
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
 	    })
 	    , addresses(count)
@@ -810,6 +809,7 @@ public:
 private:
 	std::string name;
 	llvm::orc::ExecutionSession session;
+	MemoryMapper memoryMapper;
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
 	std::vector<const void *> addresses;
 };
