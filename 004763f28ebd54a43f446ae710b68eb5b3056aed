@@ -16,6 +16,24 @@
       "message": "Do you mind testing that ENABLE_RR_EMIT_ASM_FILE still works? It should be tested by Kokoro (ReactorUnitTests), but just to be sure that these changes don\u0027t affect the asm emit.",
       "revId": "004763f28ebd54a43f446ae710b68eb5b3056aed",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "403e3fa4_131b0ce8",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-08T19:29:17Z",
+      "side": 1,
+      "message": "It looks like Kokoro doesn\u0027t run ReactorUnitTests.EmitAsm, because we do set(CMAKE_CXX_STANDARD 14)? Anyway, when I force it on, the test passes.",
+      "parentUuid": "36ea0a3d_f2b3b3b5",
+      "revId": "004763f28ebd54a43f446ae710b68eb5b3056aed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
