@@ -33,6 +33,24 @@
       "message": "Alexis, was there anything left to do here?\n\nIt\u0027s entirely the application\u0027s responsibility to take care of synchronization, right? Anything we can do to help detect mistakes, that the validation layers are unlikely to catch?",
       "revId": "17042196992d8b9598143a02ab248ddbcf6decb7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8017e758_02beb6cd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-08T03:59:57Z",
+      "side": 1,
+      "message": "This is legal as is, since the spec mentions that: \"submitted commands that refer to the range specified by firstQuery and queryCount in queryPool must have completed execution\".\n\nThere\u0027s already an \"ASSERT(prevState !\u003d ACTIVE)\" check in Query::reset() which is probably the best we can do short of analyzing the upcoming command buffers for unfinished queries, but unless there\u0027s a specific need for that, there\u0027s no point in spending any effort on this.\n\nSo yes, it\u0027s fine as is.",
+      "parentUuid": "c49d45ed_41b5142a",
+      "revId": "17042196992d8b9598143a02ab248ddbcf6decb7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
