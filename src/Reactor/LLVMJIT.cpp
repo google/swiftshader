@@ -626,7 +626,6 @@ class JITRoutine : public rr::Routine
 	llvm::orc::ExecutionSession session;
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
 	llvm::orc::IRCompileLayer compileLayer;
-	llvm::orc::MangleAndInterner mangle;
 	llvm::orc::JITDylib &dylib;
 	std::vector<const void *> addresses;
 
@@ -644,7 +643,6 @@ public:
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
 	    })
 	    , compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())))
-	    , mangle(session, JITGlobals::get()->getDataLayout())
 	    , dylib(Unwrap(session.createJITDylib("<routine>")))
 	    , addresses(count)
 	{
@@ -673,17 +671,19 @@ public:
 
 		dylib.addGenerator(std::make_unique<ExternalSymbolGenerator>());
 
-		llvm::SmallVector<llvm::orc::SymbolStringPtr, 8> names(count);
+		llvm::SmallVector<llvm::orc::SymbolStringPtr, 8> functionNames(count);
+		llvm::orc::MangleAndInterner mangle(session, JITGlobals::get()->getDataLayout());
+
 		for(size_t i = 0; i < count; i++)
 		{
 			auto func = funcs[i];
-			func->setLinkage(llvm::GlobalValue::ExternalLinkage);
-			func->setDoesNotThrow();
+
 			if(!func->hasName())
 			{
 				func->setName("f" + llvm::Twine(i).str());
 			}
-			names[i] = mangle(func->getName());
+
+			functionNames[i] = mangle(func->getName());
 		}
 
 #ifdef ENABLE_RR_EMIT_ASM_FILE
@@ -701,7 +701,7 @@ public:
 		// Resolve the function addresses.
 		for(size_t i = 0; i < count; i++)
 		{
-			auto symbol = session.lookup({ &dylib }, names[i]);
+			auto symbol = session.lookup({ &dylib }, functionNames[i]);
 			ASSERT_MSG(symbol, "Failed to lookup address of routine function %d: %s",
 			           (int)i, llvm::toString(symbol.takeError()).c_str());
 			addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress()));

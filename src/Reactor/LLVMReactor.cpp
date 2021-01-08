@@ -488,8 +488,11 @@ static llvm::Function *createFunction(const char *name, llvm::Type *retTy, const
 {
 	llvm::FunctionType *functionType = llvm::FunctionType::get(retTy, params, false);
 	auto func = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, name, jit->module.get());
+
+	func->setLinkage(llvm::GlobalValue::ExternalLinkage);
 	func->setDoesNotThrow();
 	func->setCallingConv(llvm::CallingConv::C);
+
 	if(__has_feature(memory_sanitizer))
 	{
 		func->addFnAttr(llvm::Attribute::SanitizeMemory);
