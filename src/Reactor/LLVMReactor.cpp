@@ -642,7 +642,7 @@ Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
 
 BasicBlock *Nucleus::createBasicBlock()
 {
-	return B(llvm::BasicBlock::Create(jit->context, "", jit->function));
+	return B(llvm::BasicBlock::Create(*jit->context, "", jit->function));
 }
 
 BasicBlock *Nucleus::getInsertBlock()
@@ -664,10 +664,10 @@ void Nucleus::createFunction(Type *ReturnType, const std::vector<Type *> &Params
 	jit->function = rr::createFunction("", T(ReturnType), T(Params));
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	jit->debugInfo = std::make_unique<DebugInfo>(jit->builder.get(), &jit->context, jit->module.get(), jit->function);
+	jit->debugInfo = std::make_unique<DebugInfo>(jit->builder.get(), jit->context.get(), jit->module.get(), jit->function);
 #endif  // ENABLE_RR_DEBUG_INFO
 
-	jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->function));
+	jit->builder->SetInsertPoint(llvm::BasicBlock::Create(*jit->context, "", jit->function));
 }
 
 Value *Nucleus::getArgument(unsigned int index)
@@ -906,7 +906,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				// above, but certain backends cannot deal with this.
 				// Load as an integer and bitcast. See b/136037244.
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
-				auto elAsIntTy = llvm::IntegerType::get(jit->context, size * 8);
+				auto elAsIntTy = llvm::IntegerType::get(*jit->context, size * 8);
 				auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
 				auto load = jit->builder->CreateAlignedLoad(ptrCast, alignment, isVolatile);
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
@@ -917,11 +917,11 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 			{
 				// More exotic types require falling back to the extern:
 				// void __atomic_load(size_t size, void *ptr, void *ret, int ordering)
-				auto sizetTy = llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
-				auto intTy = llvm::IntegerType::get(jit->context, sizeof(int) * 8);
-				auto i8Ty = llvm::Type::getInt8Ty(jit->context);
+				auto sizetTy = llvm::IntegerType::get(*jit->context, sizeof(size_t) * 8);
+				auto intTy = llvm::IntegerType::get(*jit->context, sizeof(int) * 8);
+				auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 				auto i8PtrTy = i8Ty->getPointerTo();
-				auto voidTy = llvm::Type::getVoidTy(jit->context);
+				auto voidTy = llvm::Type::getVoidTy(*jit->context);
 				auto funcTy = llvm::FunctionType::get(voidTy, { sizetTy, i8PtrTy, i8PtrTy, intTy }, false);
 				auto func = jit->module->getOrInsertFunction("__atomic_load", funcTy);
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
@@ -976,10 +976,10 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 			{
 				// Mark all memory writes as initialized by calling __msan_unpoison
 				// void __msan_unpoison(const volatile void *a, size_t size)
-				auto voidTy = llvm::Type::getVoidTy(jit->context);
-				auto i8Ty = llvm::Type::getInt8Ty(jit->context);
+				auto voidTy = llvm::Type::getVoidTy(*jit->context);
+				auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 				auto voidPtrTy = i8Ty->getPointerTo();
-				auto sizetTy = llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
+				auto sizetTy = llvm::IntegerType::get(*jit->context, sizeof(size_t) * 8);
 				auto funcTy = llvm::FunctionType::get(voidTy, { voidPtrTy, sizetTy }, false);
 				auto func = jit->module->getOrInsertFunction("__msan_unpoison", funcTy);
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
@@ -1005,7 +1005,7 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 				// above, but certain backends cannot deal with this.
 				// Store as an bitcast integer. See b/136037244.
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
-				auto elAsIntTy = llvm::IntegerType::get(jit->context, size * 8);
+				auto elAsIntTy = llvm::IntegerType::get(*jit->context, size * 8);
 				auto valCast = jit->builder->CreateBitCast(V(value), elAsIntTy);
 				auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
 				auto store = jit->builder->CreateAlignedStore(valCast, ptrCast, alignment, isVolatile);
@@ -1015,11 +1015,11 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 			{
 				// More exotic types require falling back to the extern:
 				// void __atomic_store(size_t size, void *ptr, void *val, int ordering)
-				auto sizetTy = llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
-				auto intTy = llvm::IntegerType::get(jit->context, sizeof(int) * 8);
-				auto i8Ty = llvm::Type::getInt8Ty(jit->context);
+				auto sizetTy = llvm::IntegerType::get(*jit->context, sizeof(size_t) * 8);
+				auto intTy = llvm::IntegerType::get(*jit->context, sizeof(int) * 8);
+				auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 				auto i8PtrTy = i8Ty->getPointerTo();
-				auto voidTy = llvm::Type::getVoidTy(jit->context);
+				auto voidTy = llvm::Type::getVoidTy(*jit->context);
 				auto funcTy = llvm::FunctionType::get(voidTy, { sizetTy, i8PtrTy, i8PtrTy, intTy }, false);
 				auto func = jit->module->getOrInsertFunction("__atomic_store", funcTy);
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
@@ -1049,8 +1049,8 @@ Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned i
 	ASSERT(V(mask)->getType()->isVectorTy());
 
 	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i32Ty = llvm::Type::getInt32Ty(jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
 	auto elVecTy = llvm::VectorType::get(T(elTy), numEls, false);
 	auto elVecPtrTy = elVecTy->getPointerTo();
 	auto i8Mask = jit->builder->CreateIntCast(V(mask), llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
@@ -1069,8 +1069,8 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	ASSERT(V(mask)->getType()->isVectorTy());
 
 	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i32Ty = llvm::Type::getInt32Ty(jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
 	auto elVecTy = V(val)->getType();
 	auto elVecPtrTy = elVecTy->getPointerTo();
 	auto i1Mask = jit->builder->CreateIntCast(V(mask), llvm::VectorType::get(i1Ty, numEls, false), false);  // vec<int, int, ...> -> vec<bool, bool, ...>
@@ -1082,9 +1082,9 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	{
 		// Mark memory writes as initialized by calling __msan_unpoison
 		// void __msan_unpoison(const volatile void *a, size_t size)
-		auto voidTy = llvm::Type::getVoidTy(jit->context);
+		auto voidTy = llvm::Type::getVoidTy(*jit->context);
 		auto voidPtrTy = voidTy->getPointerTo();
-		auto sizetTy = llvm::IntegerType::get(jit->context, sizeof(size_t) * 8);
+		auto sizetTy = llvm::IntegerType::get(*jit->context, sizeof(size_t) * 8);
 		auto funcTy = llvm::FunctionType::get(voidTy, { voidPtrTy, sizetTy }, false);
 		auto func = jit->module->getOrInsertFunction("__msan_unpoison", funcTy);
 		auto size = jit->module->getDataLayout().getTypeStoreSize(llvm::cast<llvm::VectorType>(elVecTy)->getElementType());
@@ -1093,8 +1093,8 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 		{
 			// Check mask for this element
 			auto idx = llvm::ConstantInt::get(i32Ty, i);
-			auto thenBlock = llvm::BasicBlock::Create(jit->context, "", jit->function);
-			auto mergeBlock = llvm::BasicBlock::Create(jit->context, "", jit->function);
+			auto thenBlock = llvm::BasicBlock::Create(*jit->context, "", jit->function);
+			auto mergeBlock = llvm::BasicBlock::Create(*jit->context, "", jit->function);
 			jit->builder->CreateCondBr(jit->builder->CreateExtractElement(i1Mask, idx), thenBlock, mergeBlock);
 			jit->builder->SetInsertPoint(thenBlock);
 
@@ -1116,9 +1116,9 @@ static llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Valu
 	ASSERT(mask->getType()->isVectorTy());
 
 	auto numEls = llvm::cast<llvm::VectorType>(mask->getType())->getNumElements();
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i32Ty = llvm::Type::getInt32Ty(jit->context);
-	auto i8Ty = llvm::Type::getInt8Ty(jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
+	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 	auto i8PtrTy = i8Ty->getPointerTo();
 	auto elPtrTy = elTy->getPointerTo();
 	auto elVecTy = llvm::VectorType::get(elTy, numEls, false);
@@ -1182,9 +1182,9 @@ static void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offs
 	ASSERT(mask->getType()->isVectorTy());
 
 	auto numEls = llvm::cast<llvm::VectorType>(mask->getType())->getNumElements();
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i32Ty = llvm::Type::getInt32Ty(jit->context);
-	auto i8Ty = llvm::Type::getInt8Ty(jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
+	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 	auto i8PtrTy = i8Ty->getPointerTo();
 	auto elVecTy = val->getType();
 	auto elTy = llvm::cast<llvm::VectorType>(elVecTy)->getElementType();
@@ -1212,8 +1212,8 @@ static void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offs
 		{
 			// Check mask for this element
 			auto idx = llvm::ConstantInt::get(i32Ty, i);
-			auto thenBlock = llvm::BasicBlock::Create(jit->context, "", jit->function);
-			auto mergeBlock = llvm::BasicBlock::Create(jit->context, "", jit->function);
+			auto thenBlock = llvm::BasicBlock::Create(*jit->context, "", jit->function);
+			auto mergeBlock = llvm::BasicBlock::Create(*jit->context, "", jit->function);
 			jit->builder->CreateCondBr(jit->builder->CreateExtractElement(i1Mask, idx), thenBlock, mergeBlock);
 			jit->builder->SetInsertPoint(thenBlock);
 
@@ -1598,7 +1598,7 @@ Value *Nucleus::createShuffleVector(Value *v1, Value *v2, const int *select)
 
 	for(int i = 0; i < size; i++)
 	{
-		swizzle[i] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), select[i]);
+		swizzle[i] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*jit->context), select[i]);
 	}
 
 	llvm::Value *shuffle = llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant *>(swizzle, size));
@@ -1622,7 +1622,7 @@ void Nucleus::addSwitchCase(SwitchCases *switchCases, int label, BasicBlock *bra
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	llvm::SwitchInst *sw = reinterpret_cast<llvm::SwitchInst *>(switchCases);
-	sw->addCase(llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), label, true), B(branch));
+	sw->addCase(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*jit->context), label, true), B(branch));
 }
 
 void Nucleus::createUnreachable()
@@ -1648,7 +1648,7 @@ Type *Nucleus::getPointerType(Type *ElementType)
 
 static llvm::Type *getNaturalIntType()
 {
-	return llvm::Type::getIntNTy(jit->context, sizeof(int) * 8);
+	return llvm::Type::getIntNTy(*jit->context, sizeof(int) * 8);
 }
 
 Type *Nucleus::getPrintfStorageType(Type *valueType)
@@ -1660,7 +1660,7 @@ Type *Nucleus::getPrintfStorageType(Type *valueType)
 	}
 	if(valueTy->isFloatTy())
 	{
-		return T(llvm::Type::getDoubleTy(jit->context));
+		return T(llvm::Type::getDoubleTy(*jit->context));
 	}
 
 	UNIMPLEMENTED_NO_BUG("getPrintfStorageType: add more cases as needed");
@@ -1676,49 +1676,49 @@ Value *Nucleus::createNullValue(Type *Ty)
 Value *Nucleus::createConstantLong(int64_t i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt64Ty(jit->context), i, true));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt64Ty(*jit->context), i, true));
 }
 
 Value *Nucleus::createConstantInt(int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), i, true));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*jit->context), i, true));
 }
 
 Value *Nucleus::createConstantInt(unsigned int i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(jit->context), i, false));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*jit->context), i, false));
 }
 
 Value *Nucleus::createConstantBool(bool b)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt1Ty(jit->context), b));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt1Ty(*jit->context), b));
 }
 
 Value *Nucleus::createConstantByte(signed char i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(jit->context), i, true));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(*jit->context), i, true));
 }
 
 Value *Nucleus::createConstantByte(unsigned char i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(jit->context), i, false));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt8Ty(*jit->context), i, false));
 }
 
 Value *Nucleus::createConstantShort(short i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(jit->context), i, true));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(*jit->context), i, true));
 }
 
 Value *Nucleus::createConstantShort(unsigned short i)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
-	return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(jit->context), i, false));
+	return V(llvm::ConstantInt::get(llvm::Type::getInt16Ty(*jit->context), i, false));
 }
 
 Value *Nucleus::createConstantFloat(float x)
@@ -1776,32 +1776,32 @@ Value *Nucleus::createConstantString(const char *v)
 
 Type *Void::type()
 {
-	return T(llvm::Type::getVoidTy(jit->context));
+	return T(llvm::Type::getVoidTy(*jit->context));
 }
 
 Type *Bool::type()
 {
-	return T(llvm::Type::getInt1Ty(jit->context));
+	return T(llvm::Type::getInt1Ty(*jit->context));
 }
 
 Type *Byte::type()
 {
-	return T(llvm::Type::getInt8Ty(jit->context));
+	return T(llvm::Type::getInt8Ty(*jit->context));
 }
 
 Type *SByte::type()
 {
-	return T(llvm::Type::getInt8Ty(jit->context));
+	return T(llvm::Type::getInt8Ty(*jit->context));
 }
 
 Type *Short::type()
 {
-	return T(llvm::Type::getInt16Ty(jit->context));
+	return T(llvm::Type::getInt16Ty(*jit->context));
 }
 
 Type *UShort::type()
 {
-	return T(llvm::Type::getInt16Ty(jit->context));
+	return T(llvm::Type::getInt16Ty(*jit->context));
 }
 
 Type *Byte4::type()
@@ -2338,12 +2338,12 @@ RValue<Int> RoundInt(RValue<Float> cast)
 
 Type *Int::type()
 {
-	return T(llvm::Type::getInt32Ty(jit->context));
+	return T(llvm::Type::getInt32Ty(*jit->context));
 }
 
 Type *Long::type()
 {
-	return T(llvm::Type::getInt64Ty(jit->context));
+	return T(llvm::Type::getInt64Ty(*jit->context));
 }
 
 UInt::UInt(RValue<Float> cast)
@@ -2404,7 +2404,7 @@ const UInt &operator--(UInt &val)  // Pre-decrement
 
 Type *UInt::type()
 {
-	return T(llvm::Type::getInt32Ty(jit->context));
+	return T(llvm::Type::getInt32Ty(*jit->context));
 }
 
 //	Int2::Int2(RValue<Int> cast)
@@ -2836,7 +2836,7 @@ Type *UInt4::type()
 
 Type *Half::type()
 {
-	return T(llvm::Type::getInt16Ty(jit->context));
+	return T(llvm::Type::getInt16Ty(*jit->context));
 }
 
 RValue<Float> Rcp_pp(RValue<Float> x, bool exactAtPow2)
@@ -3032,7 +3032,7 @@ RValue<Float> Ceil(RValue<Float> x)
 
 Type *Float::type()
 {
-	return T(llvm::Type::getFloatTy(jit->context));
+	return T(llvm::Type::getFloatTy(*jit->context));
 }
 
 Type *Float2::type()
@@ -3445,7 +3445,7 @@ RValue<UInt> Ctlz(RValue<UInt> v, bool isZeroUndef)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt::type()) });
 	return RValue<UInt>(V(jit->builder->CreateCall(func, { V(v.value()),
-	                                                       isZeroUndef ? llvm::ConstantInt::getTrue(jit->context) : llvm::ConstantInt::getFalse(jit->context) })));
+	                                                       isZeroUndef ? llvm::ConstantInt::getTrue(*jit->context) : llvm::ConstantInt::getFalse(*jit->context) })));
 }
 
 RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
@@ -3453,7 +3453,7 @@ RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::ctlz, { T(UInt4::type()) });
 	return RValue<UInt4>(V(jit->builder->CreateCall(func, { V(v.value()),
-	                                                        isZeroUndef ? llvm::ConstantInt::getTrue(jit->context) : llvm::ConstantInt::getFalse(jit->context) })));
+	                                                        isZeroUndef ? llvm::ConstantInt::getTrue(*jit->context) : llvm::ConstantInt::getFalse(*jit->context) })));
 }
 
 RValue<UInt> Cttz(RValue<UInt> v, bool isZeroUndef)
@@ -3461,7 +3461,7 @@ RValue<UInt> Cttz(RValue<UInt> v, bool isZeroUndef)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt::type()) });
 	return RValue<UInt>(V(jit->builder->CreateCall(func, { V(v.value()),
-	                                                       isZeroUndef ? llvm::ConstantInt::getTrue(jit->context) : llvm::ConstantInt::getFalse(jit->context) })));
+	                                                       isZeroUndef ? llvm::ConstantInt::getTrue(*jit->context) : llvm::ConstantInt::getFalse(*jit->context) })));
 }
 
 RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
@@ -3469,7 +3469,7 @@ RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	auto func = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::cttz, { T(UInt4::type()) });
 	return RValue<UInt4>(V(jit->builder->CreateCall(func, { V(v.value()),
-	                                                        isZeroUndef ? llvm::ConstantInt::getTrue(jit->context) : llvm::ConstantInt::getFalse(jit->context) })));
+	                                                        isZeroUndef ? llvm::ConstantInt::getTrue(*jit->context) : llvm::ConstantInt::getFalse(*jit->context) })));
 }
 
 RValue<Int> MinAtomic(RValue<Pointer<Int>> x, RValue<Int> y, std::memory_order memoryOrder)
@@ -3510,7 +3510,7 @@ RValue<Pointer<Byte>> ConstantPointer(void const *ptr)
 	RR_DEBUG_INFO_UPDATE_LOC();
 	// Note: this should work for 32-bit pointers as well because 'inttoptr'
 	// is defined to truncate (and zero extend) if necessary.
-	auto ptrAsInt = llvm::ConstantInt::get(llvm::Type::getInt64Ty(jit->context), reinterpret_cast<uintptr_t>(ptr));
+	auto ptrAsInt = llvm::ConstantInt::get(llvm::Type::getInt64Ty(*jit->context), reinterpret_cast<uintptr_t>(ptr));
 	return RValue<Pointer<Byte>>(V(jit->builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::type()))));
 }
 
@@ -3923,8 +3923,8 @@ RValue<Int4> pmovsxwd(RValue<Short8> x)
 #ifdef ENABLE_RR_PRINT
 void VPrintf(const std::vector<Value *> &vals)
 {
-	auto i32Ty = llvm::Type::getInt32Ty(jit->context);
-	auto i8PtrTy = llvm::Type::getInt8PtrTy(jit->context);
+	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
+	auto i8PtrTy = llvm::Type::getInt8PtrTy(*jit->context);
 	auto funcTy = llvm::FunctionType::get(i32Ty, { i8PtrTy }, true);
 	auto func = jit->module->getOrInsertFunction("rr::DebugPrintf", funcTy);
 	jit->builder->CreateCall(func, V(vals));
@@ -3933,7 +3933,7 @@ void VPrintf(const std::vector<Value *> &vals)
 
 void Nop()
 {
-	auto voidTy = llvm::Type::getVoidTy(jit->context);
+	auto voidTy = llvm::Type::getVoidTy(*jit->context);
 	auto funcTy = llvm::FunctionType::get(voidTy, {}, false);
 	auto func = jit->module->getOrInsertFunction("nop", funcTy);
 	jit->builder->CreateCall(func);
@@ -3989,11 +3989,11 @@ void promoteFunctionToCoroutine()
 	ASSERT(jit->coroutine.id == nullptr);
 
 	// Types
-	auto voidTy = llvm::Type::getVoidTy(jit->context);
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i8Ty = llvm::Type::getInt8Ty(jit->context);
-	auto i32Ty = llvm::Type::getInt32Ty(jit->context);
-	auto i8PtrTy = llvm::Type::getInt8PtrTy(jit->context);
+	auto voidTy = llvm::Type::getVoidTy(*jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
+	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
+	auto i8PtrTy = llvm::Type::getInt8PtrTy(*jit->context);
 	auto promiseTy = jit->coroutine.yieldType;
 	auto promisePtrTy = promiseTy->getPointerTo();
 
@@ -4036,9 +4036,9 @@ void promoteFunctionToCoroutine()
 		auto args = jit->coroutine.await->arg_begin();
 		auto handle = args++;
 		auto outPtr = args++;
-		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "co_await", jit->coroutine.await));
-		auto doneBlock = llvm::BasicBlock::Create(jit->context, "done", jit->coroutine.await);
-		auto resumeBlock = llvm::BasicBlock::Create(jit->context, "resume", jit->coroutine.await);
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(*jit->context, "co_await", jit->coroutine.await));
+		auto doneBlock = llvm::BasicBlock::Create(*jit->context, "done", jit->coroutine.await);
+		auto resumeBlock = llvm::BasicBlock::Create(*jit->context, "resume", jit->coroutine.await);
 
 		auto done = jit->builder->CreateCall(coro_done, { handle }, "done");
 		jit->builder->CreateCondBr(done, doneBlock, resumeBlock);
@@ -4064,7 +4064,7 @@ void promoteFunctionToCoroutine()
 	//
 	{
 		auto handle = jit->coroutine.destroy->arg_begin();
-		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->coroutine.destroy));
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(*jit->context, "", jit->coroutine.destroy));
 		jit->builder->CreateCall(coro_destroy, { handle });
 		jit->builder->CreateRetVoid();
 	}
@@ -4103,12 +4103,12 @@ void promoteFunctionToCoroutine()
 	//
 
 #ifdef ENABLE_RR_DEBUG_INFO
-	jit->debugInfo = std::make_unique<rr::DebugInfo>(jit->builder.get(), &jit->context, jit->module.get(), jit->function);
+	jit->debugInfo = std::make_unique<rr::DebugInfo>(jit->builder.get(), jit->context.get(), jit->module.get(), jit->function);
 #endif  // ENABLE_RR_DEBUG_INFO
 
-	jit->coroutine.suspendBlock = llvm::BasicBlock::Create(jit->context, "suspend", jit->function);
-	jit->coroutine.endBlock = llvm::BasicBlock::Create(jit->context, "end", jit->function);
-	jit->coroutine.destroyBlock = llvm::BasicBlock::Create(jit->context, "destroy", jit->function);
+	jit->coroutine.suspendBlock = llvm::BasicBlock::Create(*jit->context, "suspend", jit->function);
+	jit->coroutine.endBlock = llvm::BasicBlock::Create(*jit->context, "end", jit->function);
+	jit->coroutine.destroyBlock = llvm::BasicBlock::Create(*jit->context, "destroy", jit->function);
 
 	jit->builder->SetInsertPoint(jit->coroutine.entryBlock, jit->coroutine.entryBlock->begin());
 	jit->coroutine.promise = jit->builder->CreateAlloca(promiseTy, nullptr, "promise");
@@ -4130,7 +4130,7 @@ void promoteFunctionToCoroutine()
 	// Build the end block
 	jit->builder->SetInsertPoint(jit->coroutine.endBlock);
 	auto action = jit->builder->CreateCall(coro_suspend, {
-	                                                         llvm::ConstantTokenNone::get(jit->context),
+	                                                         llvm::ConstantTokenNone::get(*jit->context),
 	                                                         llvm::ConstantInt::get(i1Ty, 1),  // final: true
 	                                                     });
 	auto switch_ = jit->builder->CreateSwitch(action, jit->coroutine.suspendBlock, 3);
@@ -4156,9 +4156,9 @@ void Nucleus::createCoroutine(Type *YieldType, const std::vector<Type *> &Params
 	// Coroutines are initially created as a regular function.
 	// Upon the first call to Yield(), the function is promoted to a true
 	// coroutine.
-	auto voidTy = llvm::Type::getVoidTy(jit->context);
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i8PtrTy = llvm::Type::getInt8PtrTy(jit->context);
+	auto voidTy = llvm::Type::getVoidTy(*jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i8PtrTy = llvm::Type::getInt8PtrTy(*jit->context);
 	auto handleTy = i8PtrTy;
 	auto boolTy = i1Ty;
 	auto promiseTy = T(YieldType);
@@ -4168,7 +4168,7 @@ void Nucleus::createCoroutine(Type *YieldType, const std::vector<Type *> &Params
 	jit->coroutine.await = rr::createFunction("coroutine_await", boolTy, { handleTy, promisePtrTy });
 	jit->coroutine.destroy = rr::createFunction("coroutine_destroy", voidTy, { handleTy });
 	jit->coroutine.yieldType = promiseTy;
-	jit->coroutine.entryBlock = llvm::BasicBlock::Create(jit->context, "function", jit->function);
+	jit->coroutine.entryBlock = llvm::BasicBlock::Create(*jit->context, "function", jit->function);
 
 	jit->builder->SetInsertPoint(jit->coroutine.entryBlock);
 }
@@ -4202,19 +4202,19 @@ void Nucleus::yield(Value *val)
 	Variable::materializeAll();
 
 	// Types
-	auto i1Ty = llvm::Type::getInt1Ty(jit->context);
-	auto i8Ty = llvm::Type::getInt8Ty(jit->context);
+	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
+	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
 
 	// Intrinsics
 	auto coro_suspend = llvm::Intrinsic::getDeclaration(jit->module.get(), llvm::Intrinsic::coro_suspend);
 
 	// Create a block to resume execution.
-	auto resumeBlock = llvm::BasicBlock::Create(jit->context, "resume", jit->function);
+	auto resumeBlock = llvm::BasicBlock::Create(*jit->context, "resume", jit->function);
 
 	// Store the promise (yield value)
 	jit->builder->CreateStore(V(val), jit->coroutine.promise);
 	auto action = jit->builder->CreateCall(coro_suspend, {
-	                                                         llvm::ConstantTokenNone::get(jit->context),
+	                                                         llvm::ConstantTokenNone::get(*jit->context),
 	                                                         llvm::ConstantInt::get(i1Ty, 0),  // final: true
 	                                                     });
 	auto switch_ = jit->builder->CreateSwitch(action, jit->coroutine.suspendBlock, 3);
@@ -4239,10 +4239,10 @@ std::shared_ptr<Routine> Nucleus::acquireCoroutine(const char *name, const Confi
 		// handle.
 		jit->builder->CreateRet(llvm::Constant::getNullValue(jit->function->getReturnType()));
 		// The 'coroutine_await' function always returns false (coroutine done).
-		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->coroutine.await));
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(*jit->context, "", jit->coroutine.await));
 		jit->builder->CreateRet(llvm::Constant::getNullValue(jit->coroutine.await->getReturnType()));
 		// The 'coroutine_destroy' does nothing, returns void.
-		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(jit->context, "", jit->coroutine.destroy));
+		jit->builder->SetInsertPoint(llvm::BasicBlock::Create(*jit->context, "", jit->coroutine.destroy));
 		jit->builder->CreateRetVoid();
 	}
 

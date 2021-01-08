@@ -627,13 +627,13 @@ class JITRoutine : public rr::Routine
 	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
 	llvm::orc::IRCompileLayer compileLayer;
 	llvm::orc::MangleAndInterner mangle;
-	llvm::orc::ThreadSafeContext ctx;
 	llvm::orc::JITDylib &dylib;
 	std::vector<const void *> addresses;
 
 public:
 	JITRoutine(
 	    std::unique_ptr<llvm::Module> module,
+	    std::unique_ptr<llvm::LLVMContext> context,
 	    const char *name,
 	    llvm::Function **funcs,
 	    size_t count,
@@ -645,11 +645,9 @@ public:
 	    })
 	    , compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())))
 	    , mangle(session, JITGlobals::get()->getDataLayout())
-	    , ctx(std::make_unique<llvm::LLVMContext>())
 	    , dylib(Unwrap(session.createJITDylib("<routine>")))
 	    , addresses(count)
 	{
-
 #ifdef ENABLE_RR_DEBUG_INFO
 		// TODO(b/165000222): Update this on next LLVM roll.
 		// https://github.com/llvm/llvm-project/commit/98f2bb4461072347dcca7d2b1b9571b3a6525801
@@ -698,7 +696,7 @@ public:
 		// after this point.
 		funcs = nullptr;
 
-		llvm::cantFail(compileLayer.add(dylib, llvm::orc::ThreadSafeModule(std::move(module), ctx)));
+		llvm::cantFail(compileLayer.add(dylib, llvm::orc::ThreadSafeModule(std::move(module), std::move(context))));
 
 		// Resolve the function addresses.
 		for(size_t i = 0; i < count; i++)
@@ -736,8 +734,9 @@ namespace rr {
 
 JITBuilder::JITBuilder(const rr::Config &config)
     : config(config)
-    , module(new llvm::Module("", context))
-    , builder(new llvm::IRBuilder<>(context))
+    , context(new llvm::LLVMContext())
+    , module(new llvm::Module("", *context))
+    , builder(new llvm::IRBuilder<>(*context))
 {
 	module->setTargetTriple(LLVM_DEFAULT_TARGET_TRIPLE);
 	module->setDataLayout(JITGlobals::get()->getDataLayout());
@@ -787,7 +786,7 @@ void JITBuilder::optimize(const rr::Config &cfg)
 std::shared_ptr<rr::Routine> JITBuilder::acquireRoutine(const char *name, llvm::Function **funcs, size_t count, const rr::Config &cfg)
 {
 	ASSERT(module);
-	return std::make_shared<JITRoutine>(std::move(module), name, funcs, count, cfg);
+	return std::make_shared<JITRoutine>(std::move(module), std::move(context), name, funcs, count, cfg);
 }
 
 }  // namespace rr

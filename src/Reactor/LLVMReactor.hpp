@@ -95,7 +95,7 @@ public:
 	std::shared_ptr<rr::Routine> acquireRoutine(const char *name, llvm::Function **funcs, size_t count, const rr::Config &cfg);
 
 	const Config config;
-	llvm::LLVMContext context;
+	std::unique_ptr<llvm::LLVMContext> context;
 	std::unique_ptr<llvm::Module> module;
 	std::unique_ptr<llvm::IRBuilder<>> builder;
 	llvm::Function *function = nullptr;
