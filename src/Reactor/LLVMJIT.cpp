@@ -622,13 +622,6 @@ auto &Unwrap(T &&v)
 // settings and no Reactor routine directly links against another.
 class JITRoutine : public rr::Routine
 {
-	std::string name;
-	llvm::orc::ExecutionSession session;
-	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
-	llvm::orc::IRCompileLayer compileLayer;
-	llvm::orc::JITDylib &dylib;
-	std::vector<const void *> addresses;
-
 public:
 	JITRoutine(
 	    std::unique_ptr<llvm::Module> module,
@@ -642,8 +635,6 @@ public:
 		    static MemoryMapper memoryMapper;
 		    return std::make_unique<llvm::SectionMemoryManager>(&memoryMapper);
 	    })
-	    , compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())))
-	    , dylib(Unwrap(session.createJITDylib("<routine>")))
 	    , addresses(count)
 	{
 #ifdef ENABLE_RR_DEBUG_INFO
@@ -669,8 +660,6 @@ public:
 			objectLayer.setAutoClaimResponsibilityForObjectSymbols(true);
 		}
 
-		dylib.addGenerator(std::make_unique<ExternalSymbolGenerator>());
-
 		llvm::SmallVector<llvm::orc::SymbolStringPtr, 8> functionNames(count);
 		llvm::orc::MangleAndInterner mangle(session, JITGlobals::get()->getDataLayout());
 
@@ -691,10 +680,13 @@ public:
 		rr::AsmFile::emitAsmFile(asmFilename, JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel()), *module);
 #endif
 
-		// Once the module is passed to the compileLayer, the
-		// llvm::Functions are freed. Make sure funcs are not referenced
-		// after this point.
+		// Once the module is passed to the compileLayer, the llvm::Functions are freed.
+		// Make sure funcs are not referenced after this point.
 		funcs = nullptr;
+
+		llvm::orc::IRCompileLayer compileLayer(session, objectLayer, std::make_unique<llvm::orc::ConcurrentIRCompiler>(JITGlobals::get()->getTargetMachineBuilder(config.getOptimization().getLevel())));
+		llvm::orc::JITDylib &dylib(Unwrap(session.createJITDylib("<routine>")));
+		dylib.addGenerator(std::make_unique<ExternalSymbolGenerator>());
 
 		llvm::cantFail(compileLayer.add(dylib, llvm::orc::ThreadSafeModule(std::move(module), std::move(context))));
 
@@ -726,6 +718,12 @@ public:
 	{
 		return addresses[index];
 	}
+
+private:
+	std::string name;
+	llvm::orc::ExecutionSession session;
+	llvm::orc::RTDyldObjectLinkingLayer objectLayer;
+	std::vector<const void *> addresses;
 };
 
 }  // anonymous namespace
