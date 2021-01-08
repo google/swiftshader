@@ -18,28 +18,11 @@
 
 #	include "Debug.hpp"
 #	include "llvm/IR/LegacyPassManager.h"
-#	include "llvm/Support/CommandLine.h"
+#	include "llvm/Support/FileSystem.h"
 #	include <fstream>
 #	include <iomanip>
 #	include <regex>
 #	include <sstream>
-
-namespace {
-bool initAsmOutputOptionsOnce()
-{
-	// Use a static immediately invoked lambda to make this thread safe
-	static auto initialized = []() {
-		const char *argv[] = {
-			"Reactor",
-			"-x86-asm-syntax", "intel"  // Use Intel syntax rather than the default AT&T
-		};
-		llvm::cl::ParseCommandLineOptions(sizeof(argv) / sizeof(argv[0]), argv);
-		return true;
-	}();
-
-	return initialized;
-}
-}  // namespace
 
 namespace rr {
 namespace AsmFile {
@@ -57,8 +40,6 @@ std::string generateFilename(std::string routineName)
 
 bool emitAsmFile(const std::string &filename, llvm::orc::JITTargetMachineBuilder builder, llvm::Module &module)
 {
-	initAsmOutputOptionsOnce();
-
 	auto targetMachine = builder.createTargetMachine();
 	if(!targetMachine)
 		return false;

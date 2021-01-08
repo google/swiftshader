@@ -29,7 +29,9 @@ __pragma(warning(push))
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
 #include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
@@ -106,6 +108,19 @@ static void *getTLSAddress(void *control)
 
 namespace {
 
+// TODO(b/174587935): Eliminate command-line parsing.
+bool parseCommandLineOptionsOnce(int argc, const char *const *argv)
+{
+	// Use a static immediately invoked lambda to make this thread safe
+	static auto initialized = [=]() {
+		llvm::cl::ParseCommandLineOptions(argc, argv);
+
+		return true;
+	}();
+
+	return initialized;
+}
+
 // JITGlobals is a singleton that holds all the immutable machine specific
 // information for the host device.
 class JITGlobals
@@ -129,6 +144,14 @@ private:
 JITGlobals *JITGlobals::get()
 {
 	static JITGlobals instance = [] {
+		const char *argv[] = {
+			"Reactor",
+			"-x86-asm-syntax", "intel",   // Use Intel syntax rather than the default AT&T
+			"-warn-stack-size", "524288"  // Warn when a function uses more than 512 KiB of stack memory
+		};
+
+		parseCommandLineOptionsOnce(sizeof(argv) / sizeof(argv[0]), argv);
+
 		llvm::InitializeNativeTarget();
 		llvm::InitializeNativeTargetAsmPrinter();
 		llvm::InitializeNativeTargetAsmParser();
@@ -617,6 +640,40 @@ auto &Unwrap(T &&v)
 	return v;
 }
 
+// Sets *fatal to true if a diagnostic is received which makes a routine invalid or unusable.
+struct FatalDiagnosticsHandler : public llvm::DiagnosticHandler
+{
+	FatalDiagnosticsHandler(bool *fatal)
+	    : fatal(fatal)
+	{}
+
+	bool handleDiagnostics(const llvm::DiagnosticInfo &info) override
+	{
+		switch(info.getSeverity())
+		{
+			case llvm::DS_Error:
+				ASSERT_MSG(false, "LLVM JIT compilation failure");
+				*fatal = true;
+				break;
+			case llvm::DS_Warning:
+				if(info.getKind() == llvm::DK_StackSize)
+				{
+					// Stack size limit exceeded
+					*fatal = true;
+				}
+				break;
+			case llvm::DS_Remark:
+				break;
+			case llvm::DS_Note:
+				break;
+		}
+
+		return true;  // Diagnostic handled, don't let LLVM print it.
+	}
+
+	bool *fatal;
+};
+
 // JITRoutine is a rr::Routine that holds a LLVM JIT session, compiler and
 // object layer as each routine may require different target machine
 // settings and no Reactor routine directly links against another.
@@ -637,6 +694,9 @@ public:
 	    })
 	    , addresses(count)
 	{
+		bool fatalCompileIssue = false;
+		context->setDiagnosticHandler(std::make_unique<FatalDiagnosticsHandler>(&fatalCompileIssue), true);
+
 #ifdef ENABLE_RR_DEBUG_INFO
 		// TODO(b/165000222): Update this on next LLVM roll.
 		// https://github.com/llvm/llvm-project/commit/98f2bb4461072347dcca7d2b1b9571b3a6525801
@@ -693,10 +753,22 @@ public:
 		// Resolve the function addresses.
 		for(size_t i = 0; i < count; i++)
 		{
+			fatalCompileIssue = false;  // May be set to true by session.lookup()
+
+			// This is where the actual compilation happens.
 			auto symbol = session.lookup({ &dylib }, functionNames[i]);
+
 			ASSERT_MSG(symbol, "Failed to lookup address of routine function %d: %s",
 			           (int)i, llvm::toString(symbol.takeError()).c_str());
-			addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress()));
+
+			if(fatalCompileIssue)
+			{
+				addresses[i] = nullptr;
+			}
+			else  // Successful compilation
+			{
+				addresses[i] = reinterpret_cast<void *>(static_cast<intptr_t>(symbol->getAddress()));
+			}
 		}
 
 #ifdef ENABLE_RR_EMIT_ASM_FILE
