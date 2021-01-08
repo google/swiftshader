@@ -73,6 +73,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ea82f11e_d700a317",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-08T16:07:31Z",
+      "side": 1,
+      "message": "A user can call vkGetPhysicalDeviceImageFormatProperties2 with a stencilUsage, and the function will return VK_SUCCESS or VK_ERROR_FORMAT_NOT_SUPPORTED to inform a user whether the usage (and everything else) is valid or not. The checkFormatUsage function was made to handle users querying stencil usage.",
+      "parentUuid": "b4f4c3a1_81b2ce39",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "61d76eee_889ade1d",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "writtenOn": "2021-01-07T02:49:14Z",
       "side": 1,
       "message": "Perhaps this micro-optimization can be moved into checkFormatUsage() so both the call on this line and on 3169 benefit from it?",
+      "range": {
+        "startLine": 3173,
+        "startChar": 4,
+        "endLine": 3173,
+        "endChar": 22
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f29676ce_436079d3",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3173,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-08T16:07:31Z",
+      "side": 1,
+      "message": "Per the spec: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceImageFormatInfo2.html\n\nusage must not be 0\n\nBut if stencilUsage is 0, then it wasn\u0027t provided (or is an illegal argument in VkImageStencilUsageCreateInfo and is something that should be caught by validation layers). I\u0027ll add a comment explaining this.",
+      "parentUuid": "61d76eee_889ade1d",
       "range": {
         "startLine": 3173,
         "startChar": 4,
