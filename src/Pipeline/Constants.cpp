@@ -21,6 +21,10 @@
 
 namespace sw {
 
+constexpr float Constants::VkSampleLocations4[][2];
+constexpr float Constants::SampleLocationsX[4];
+constexpr float Constants::SampleLocationsY[4];
+
 const Constants &Constants::Get()
 {
 	static const Constants constants;
