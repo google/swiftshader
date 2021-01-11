@@ -52,6 +52,24 @@
       "parentUuid": "8c6496a3_6384096f",
       "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84603965_154708b0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-11T17:01:49Z",
+      "side": 1,
+      "message": "Hi Nicolas,\n\nKhronos\u0027 dEQP Vulkan tests can be found here:\nhttps://github.com/KhronosGroup/VK-GL-CTS\n\nYou can build and execute them normally, but in order to use SwiftShader while running the Vulkan tests, you need to make sure the Vulkan loader loads Swiftshader instead of your local driver by properly setting the appropriate environment variable this way:\nexport VK_ICD_FILENAMES\u003d\u003cYour path to Swiftshader\u003e\\build\\\u003cYour platform\u003e\\vk_swiftshader_icd.json\n\nOn Windows, you can set it as a system environment variable (but that will use Swiftshader for any application using Vulkan, so you might want to unset it when you\u0027re done debugging).",
+      "parentUuid": "98ceb538_4a8efc7c",
+      "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
