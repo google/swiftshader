@@ -70,6 +70,24 @@
       "parentUuid": "98ceb538_4a8efc7c",
       "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b46302a_b17e786a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-11T17:05:52Z",
+      "side": 1,
+      "message": "You\u0027re right, I jumped to conclusions due to the coincidental timeline. We actually switched to a new test test system this week, which might explain a difference in Xlib results better. The results for https://swiftshader-review.googlesource.com/c/SwiftShader/+/51529/2 confirm your change didn\u0027t cause this test to fail.\n\nHere\u0027s some info about our usage of dEQP: https://cs.opensource.google/swiftshader/SwiftShader/+/master:docs/dEQP.md\nAnd the Regres service that parallelizes dEQP and posts results to Gerrit: https://cs.opensource.google/swiftshader/SwiftShader/+/master:docs/Regres.md",
+      "parentUuid": "98ceb538_4a8efc7c",
+      "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
