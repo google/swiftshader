@@ -95,6 +95,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6aec9f98_20b6fa9f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-11T04:32:28Z",
+      "side": 1,
+      "message": "\u003e It would be an issue if we wanted to implement internal formats which are packed depth + stencil formats (like D24S8), but I don\u0027t think we actually plan to ever do that.\n\nSomething might force our hand. Anyway, my understanding is that depth/stencil images are totally opaque in Vulkan. The description for D24S8 states there\u0027s 24 bits for depth and 8 for stencil, but nothing about them having a specific order in a 32-bit word. Also the format is not compatible with any other image view format, so there\u0027s no way to access it other than in the fixed-function stages or through sampling. So I think we\u0027re good.",
+      "parentUuid": "ea82f11e_d700a317",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 36
+      },
+      "revId": "68c29f2f50940975b1d2500c0f06b3d34d093c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "61d76eee_889ade1d",
