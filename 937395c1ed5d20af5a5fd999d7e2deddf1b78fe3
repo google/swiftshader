@@ -34,6 +34,24 @@
       "parentUuid": "ad8e10dc_9b28eba1",
       "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "98ceb538_4a8efc7c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 86106
+      },
+      "writtenOn": "2021-01-11T04:08:01Z",
+      "side": 1,
+      "message": "I\u0027m embarrassed for this regression.\nI don\u0027t know how to explain it: all code related to this Direct-to-Display support is disabled by default (SWIFTSHADER_BUILD_WSI_D2D set to FALSE)\nAnd I don\u0027t see link with the Xlib WSI. Note that I don\u0027t have X11 on the system I build and use Swiftshader with VK_KHR_display.\nI have never used this dEQP test suite, if you have more details on that. I can try to take a look, but I\u0027m not sure how to go about it.",
+      "parentUuid": "8c6496a3_6384096f",
+      "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
