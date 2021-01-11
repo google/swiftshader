@@ -16,6 +16,24 @@
       "message": "It look like this might have caused a regression in dEQP-VK.wsi.xlib.swapchain.render.2swapchains: https://swiftshader-review.googlesource.com/c/SwiftShader/+/51208/3",
       "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c6496a3_6384096f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-11T02:55:18Z",
+      "side": 1,
+      "message": "Testing all dEQP-VK.wsi.* tests at https://swiftshader-review.googlesource.com/c/SwiftShader/+/51529/2",
+      "parentUuid": "ad8e10dc_9b28eba1",
+      "revId": "937395c1ed5d20af5a5fd999d7e2deddf1b78fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
