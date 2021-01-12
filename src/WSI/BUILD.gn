@@ -25,6 +25,8 @@ config("WSI_metal_weak_framework") {
 
 swiftshader_source_set("WSI") {
   sources = [
+    "HeadlessSurfaceKHR.cpp",
+    "HeadlessSurfaceKHR.hpp",
     "VkSurfaceKHR.cpp",
     "VkSurfaceKHR.hpp",
     "VkSwapchainKHR.cpp",

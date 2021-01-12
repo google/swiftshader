@@ -73,6 +73,8 @@
 #	include "WSI/Win32SurfaceKHR.hpp"
 #endif
 
+#include "WSI/HeadlessSurfaceKHR.hpp"
+
 #ifdef __ANDROID__
 #	include "commit.h"
 #	include "System/GrallocAndroid.hpp"
@@ -3739,6 +3741,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkGetPhysicalDeviceWin32PresentationSupportKHR(Vk
 	return VK_TRUE;
 }
 #endif
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateHeadlessSurfaceEXT(VkInstance instance, const VkHeadlessSurfaceCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkSurfaceKHR *pSurface)
+{
+	TRACE("(VkInstance instance = %p, VkHeadlessSurfaceCreateInfoEXT* pCreateInfo = %p, VkAllocationCallbacks* pAllocator = %p, VkSurface* pSurface = %p)",
+	      instance, pCreateInfo, pAllocator, pSurface);
+
+	return vk::HeadlessSurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
+}
 
 #ifndef __ANDROID__
 VKAPI_ATTR void VKAPI_CALL vkDestroySurfaceKHR(VkInstance instance, VkSurfaceKHR surface, const VkAllocationCallbacks *pAllocator)

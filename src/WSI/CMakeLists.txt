@@ -18,6 +18,8 @@ set(ROOT_PROJECT_COMPILE_OPTIONS
 )
 
 set(WSI_SRC_FILES
+    HeadlessSurfaceKHR.cpp
+    HeadlessSurfaceKHR.hpp
     VkSurfaceKHR.cpp
     VkSurfaceKHR.hpp
     VkSwapchainKHR.cpp

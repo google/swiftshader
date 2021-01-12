@@ -231,3 +231,5 @@ EXPORTS
 	vkGetPhysicalDeviceWin32PresentationSupportKHR
 	; VK_EXT_host_query_reset
 	vkResetQueryPool
+	; VK_EXT_headless_surface
+	vkCreateHeadlessSurfaceEXT
