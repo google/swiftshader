@@ -712,11 +712,18 @@ int DrawCall::setupWireframeTriangles(Triangle *triangles, Primitive *primitives
 		const Vertex &v1 = triangles[i].v1;
 		const Vertex &v2 = triangles[i].v2;
 
-		float d = (v0.y * v1.x - v0.x * v1.y) * v2.w +
-		          (v0.x * v2.y - v0.y * v2.x) * v1.w +
-		          (v2.x * v1.y - v1.x * v2.y) * v0.w;
+		float A = ((float)v0.projected.y - (float)v2.projected.y) * (float)v1.projected.x +
+		          ((float)v2.projected.y - (float)v1.projected.y) * (float)v0.projected.x +
+		          ((float)v1.projected.y - (float)v0.projected.y) * (float)v2.projected.x;  // Area
 
-		bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? (d > 0) : (d < 0);
+		int w0w1w2 = bit_cast<int>(v0.w) ^
+		             bit_cast<int>(v1.w) ^
+		             bit_cast<int>(v2.w);
+
+		A = w0w1w2 < 0 ? -A : A;
+
+		bool frontFacing = (state.frontFace == VK_FRONT_FACE_COUNTER_CLOCKWISE) ? (A >= 0.0f) : (A <= 0.0f);
+
 		if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
 		{
 			if(frontFacing) continue;

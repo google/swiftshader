@@ -3589,6 +3589,33 @@ RValue<Int4> RoundInt(RValue<Float4> cast)
 	}
 }
 
+RValue<Int4> RoundIntClamped(RValue<Float4> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+
+	// cvtps2dq produces 0x80000000, a negative value, for input larger than
+	// 2147483520.0, so clamp to 2147483520. Values less than -2147483520.0
+	// saturate to 0x80000000.
+	RValue<Float4> clamped = Min(cast, Float4(0x7FFFFF80));
+
+	if(emulateIntrinsics || CPUID::ARM)
+	{
+		// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+		return Int4((clamped + Float4(0x00C00000)) - Float4(0x00C00000));
+	}
+	else
+	{
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = { Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F };
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+		nearbyint->addArg(clamped.value());
+		::basicBlock->appendInst(nearbyint);
+
+		return RValue<Int4>(V(result));
+	}
+}
+
 RValue<Short8> PackSigned(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();

@@ -2674,6 +2674,21 @@ RValue<Int4> RoundInt(RValue<Float4> cast)
 #endif
 }
 
+RValue<Int4> RoundIntClamped(RValue<Float4> cast)
+{
+	RR_DEBUG_INFO_UPDATE_LOC();
+#if defined(__i386__) || defined(__x86_64__)
+	// cvtps2dq produces 0x80000000, a negative value, for input larger than
+	// 2147483520.0, so clamp to 2147483520. Values less than -2147483520.0
+	// saturate to 0x80000000.
+	return x86::cvtps2dq(Min(cast, Float4(0x7FFFFF80)));
+#else
+	// ARM saturates to the largest positive or negative integer. Unit tests
+	// verify that lowerRoundInt() behaves as desired.
+	return As<Int4>(V(lowerRoundInt(V(cast.value()), T(Int4::type()))));
+#endif
+}
+
 RValue<Int4> MulHigh(RValue<Int4> x, RValue<Int4> y)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();

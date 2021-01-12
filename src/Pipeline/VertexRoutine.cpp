@@ -546,8 +546,8 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 	Float4 rhw = Float4(1.0f) / w;
 
 	Vector4f proj;
-	proj.x = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData, X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData, WxF))));
-	proj.y = As<Float4>(RoundInt(*Pointer<Float4>(data + OFFSET(DrawData, Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData, HxF))));
+	proj.x = As<Float4>(RoundIntClamped(*Pointer<Float4>(data + OFFSET(DrawData, X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData, WxF))));
+	proj.y = As<Float4>(RoundIntClamped(*Pointer<Float4>(data + OFFSET(DrawData, Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData, HxF))));
 	proj.z = pos.z * rhw;
 	proj.w = rhw;
 

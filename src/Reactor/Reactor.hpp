@@ -2007,7 +2007,14 @@ inline RValue<Int4> CmpGE(RValue<Int4> x, RValue<Int4> y)
 }
 RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
 RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
+// Convert to nearest integer. If a converted value is outside of the integer
+// range, the returned result is undefined.
 RValue<Int4> RoundInt(RValue<Float4> cast);
+// Rounds to the nearest integer, but clamps very large values to an
+// implementation-dependent range.
+// Specifically, on x86, values larger than 2147483583.0 are converted to
+// 2147483583 (0x7FFFFFBF) instead of producing 0x80000000.
+RValue<Int4> RoundIntClamped(RValue<Float4> cast);
 RValue<Short8> PackSigned(RValue<Int4> x, RValue<Int4> y);
 RValue<UShort8> PackUnsigned(RValue<Int4> x, RValue<Int4> y);
 RValue<Int> Extract(RValue<Int4> val, int i);

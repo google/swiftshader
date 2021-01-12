@@ -780,6 +780,40 @@ TEST(ReactorUnitTests, NotNeg)
 	EXPECT_EQ(out[8][3], 0x00000000u);
 }
 
+TEST(ReactorUnitTests, RoundInt)
+{
+	FunctionT<int(void *)> function;
+	{
+		Pointer<Byte> out = function.Arg<0>();
+
+		*Pointer<Int4>(out + 0) = RoundInt(Float4(3.1f, 3.6f, -3.1f, -3.6f));
+		*Pointer<Int4>(out + 16) = RoundIntClamped(Float4(2147483648.0f, -2147483648.0f, 2147483520, -2147483520));
+
+		Return(0);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int out[2][4];
+
+	memset(&out, 0, sizeof(out));
+
+	routine(&out);
+
+	EXPECT_EQ(out[0][0], 3);
+	EXPECT_EQ(out[0][1], 4);
+	EXPECT_EQ(out[0][2], -3);
+	EXPECT_EQ(out[0][3], -4);
+
+	// x86 returns 0x80000000 for values which cannot be represented in a 32-bit
+	// integer, but RoundIntClamped() clamps to ensure a positive value for
+	// positive input. ARM saturates to the largest representable integers.
+	EXPECT_GE(out[1][0], 2147483520);
+	EXPECT_LT(out[1][1], -2147483647);
+	EXPECT_EQ(out[1][2], 2147483520);
+	EXPECT_EQ(out[1][3], -2147483520);
+}
+
 TEST(ReactorUnitTests, FPtoUI)
 {
 	FunctionT<int(void *)> function;
