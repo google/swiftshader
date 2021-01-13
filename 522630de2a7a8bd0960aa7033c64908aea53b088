@@ -171,6 +171,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "54f67529_ff47d2f3",
+        "filename": "src/Vulkan/vk_swiftshader.def",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-13T21:01:18Z",
+      "side": 1,
+      "message": "True, but those two lds files export almost no symbols... so I don\u0027t think I should be adding this one there as well, right?",
+      "parentUuid": "b8c3fac2_9d7bf0ce",
+      "range": {
+        "startLine": 235,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 27
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "36609071_b9d3a3b0",
