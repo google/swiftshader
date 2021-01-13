@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "040b60fb_07caed72",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-13T15:35:34Z",
+      "side": 1,
+      "message": "This is your change, Nicolas, pretty much untouched. I just fixed build errors after rebasing.",
+      "revId": "815f11d029f8a853250eb3f4763af468eaac9b08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
