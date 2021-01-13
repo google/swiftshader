@@ -407,7 +407,7 @@ VkResult AHardwareBufferExternalMemory::GetAndroidHardwareBufferFormatProperties
 	pFormat->externalFormat = ahbDesc.format;
 	pFormat->formatFeatures = GetVkFormatFeaturesFromAHBFormat(ahbDesc.format);
 	pFormat->samplerYcbcrConversionComponents = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
-	pFormat->suggestedYcbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709;
+	pFormat->suggestedYcbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601;
 	pFormat->suggestedYcbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
 	pFormat->suggestedXChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
 	pFormat->suggestedYChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
