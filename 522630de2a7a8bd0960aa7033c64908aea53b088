@@ -16,6 +16,92 @@
       "message": "Kokoro build failure isn\u0027t a real failure. The next stacked change passes Kokoro.",
       "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48be19f2_288db383",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T18:41:29Z",
+      "side": 1,
+      "message": "I thought we were going to integrate https://gitlab.freedesktop.org/mesa/vulkan-wsi-layer to obtain VK_EXT_headless_surface support, but looking at how trivial it ends up being to roll our own, this is great! One question:",
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "56139353_4d922b01",
+        "filename": "src/Vulkan/vk_swiftshader.def",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T18:41:29Z",
+      "side": 1,
+      "message": "nit: Stray whitespace",
+      "range": {
+        "startLine": 234,
+        "startChar": 26,
+        "endLine": 234,
+        "endChar": 27
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dcfc1ecc_9a92b921",
+        "filename": "src/Vulkan/vk_swiftshader.def",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T18:41:29Z",
+      "side": 1,
+      "message": "Also export from .lds files, or do you intend to have this on Windows only for now?",
+      "range": {
+        "startLine": 235,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 27
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "36609071_b9d3a3b0",
+        "filename": "src/WSI/HeadlessSurfaceKHR.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T18:41:29Z",
+      "side": 1,
+      "message": "nit: remove?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 8
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
