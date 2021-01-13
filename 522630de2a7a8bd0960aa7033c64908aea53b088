@@ -147,6 +147,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8c3fac2_9d7bf0ce",
+        "filename": "src/Vulkan/vk_swiftshader.def",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T19:31:00Z",
+      "side": 1,
+      "message": "There\u0027s an Android and Fuchsia specific one as well, unfortunately (cf. b/150767098).",
+      "parentUuid": "33a42ff4_164e22d9",
+      "range": {
+        "startLine": 235,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 27
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "36609071_b9d3a3b0",
