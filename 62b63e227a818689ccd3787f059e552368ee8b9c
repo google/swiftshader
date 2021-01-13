@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cd0d276b_d161c9dc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-13T13:59:01Z",
+      "side": 1,
+      "message": "I feel like this should be replaced by an assert rather than be removed entirely. Attempting to write an unused value will probably end up being picked up by the sanitizers / fuzzers and we\u0027d have to fix it again.",
+      "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
