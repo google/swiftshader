@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3da09b91_02c3dc89",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T06:08:34Z",
+      "side": 1,
+      "message": "The dEQP-VK.wsi.xlib.swapchain.render.2swapchains2 regression is consistent. Filed b/177235551 to take a closer look but I think we can land this in the meantime.",
+      "revId": "17347073bd203fbd608d72007b3c463de7551567",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
