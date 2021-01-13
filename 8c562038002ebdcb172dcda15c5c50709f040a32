@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a927cbe_79975fda",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-13T19:06:43Z",
+      "side": 1,
+      "message": "Antonio suggested we land this as-is and reserve comments/suggestions for his refactorings.",
+      "revId": "8c562038002ebdcb172dcda15c5c50709f040a32",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
