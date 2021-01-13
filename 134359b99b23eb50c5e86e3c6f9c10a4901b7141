@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4381e78d_b131411b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-13T21:53:11Z",
+      "side": 1,
+      "message": "Kokoro failure is not a real failure.",
+      "revId": "134359b99b23eb50c5e86e3c6f9c10a4901b7141",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
