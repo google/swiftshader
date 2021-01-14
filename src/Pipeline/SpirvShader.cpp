@@ -397,6 +397,7 @@ SpirvShader::SpirvShader(
 					case spv::CapabilityStorageImageExtendedFormats: capabilities.StorageImageExtendedFormats = true; break;
 					case spv::CapabilityImageQuery: capabilities.ImageQuery = true; break;
 					case spv::CapabilityDerivativeControl: capabilities.DerivativeControl = true; break;
+					case spv::CapabilityInterpolationFunction: capabilities.InterpolationFunction = true; break;
 					case spv::CapabilityGroupNonUniform: capabilities.GroupNonUniform = true; break;
 					case spv::CapabilityGroupNonUniformVote: capabilities.GroupNonUniformVote = true; break;
 					case spv::CapabilityGroupNonUniformArithmetic: capabilities.GroupNonUniformArithmetic = true; break;

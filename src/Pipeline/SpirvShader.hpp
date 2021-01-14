@@ -584,6 +584,7 @@ public:
 		bool StorageImageExtendedFormats : 1;
 		bool ImageQuery : 1;
 		bool DerivativeControl : 1;
+		bool InterpolationFunction : 1;
 		bool GroupNonUniform : 1;
 		bool GroupNonUniformVote : 1;
 		bool GroupNonUniformBallot : 1;
@@ -1352,12 +1353,24 @@ public:
 		Pointer<Byte> function;
 	};
 
+	struct InterpolationData
+	{
+		Pointer<Byte> primitive;
+		SIMD::Float x;
+		SIMD::Float y;
+		SIMD::Float rhw;
+		SIMD::Float xCentroid;
+		SIMD::Float yCentroid;
+		SIMD::Float rhwCentroid;
+	};
+
 	vk::PipelineLayout const *const pipelineLayout;
 
 	std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 	std::unordered_map<SpirvShader::Object::ID, SamplerCache> samplerCache;
 	Variable inputs = Variable{ MAX_INTERFACE_COMPONENTS };
 	Variable outputs = Variable{ MAX_INTERFACE_COMPONENTS };
+	InterpolationData interpolationData;
 
 	Pointer<Byte> workgroupMemory;
 	Pointer<Pointer<Byte>> descriptorSets;
