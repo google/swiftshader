@@ -2471,7 +2471,10 @@ void SpirvShader::emitEpilog(SpirvRoutine *routine) const
 				break;
 		}
 	}
+}
 
+void SpirvShader::clearPhis(SpirvRoutine *routine) const
+{
 	// Clear phis that are no longer used. This serves two purposes:
 	// (1) The phi rr::Variables are destructed, preventing pointless
 	//     materialization.

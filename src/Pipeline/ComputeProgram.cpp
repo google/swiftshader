@@ -57,6 +57,7 @@ void ComputeProgram::generate()
 	shader->emitProlog(&routine);
 	emit(&routine);
 	shader->emitEpilog(&routine);
+	shader->clearPhis(&routine);
 }
 
 void ComputeProgram::setWorkgroupBuiltins(Pointer<Byte> data, SpirvRoutine *routine, Int workgroupID[3])

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "PixelProgram.hpp"
+#include "Constants.hpp"
 
 #include "SamplerCore.hpp"
 #include "Device/Primitive.hpp"
@@ -56,14 +57,37 @@ Int4 PixelProgram::maskAny(Int cMask[4], Int sMask[4], Int zMask[4]) const
 	return mask;
 }
 
-void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4])
+Int4 PixelProgram::maskAny(Int cMask, Int sMask, Int zMask) const
+{
+	Int maskUnion = cMask & sMask & zMask;
+
+	// Convert to 4 booleans
+	Int4 laneBits = Int4(1, 2, 4, 8);
+	Int4 laneShiftsToMSB = Int4(31, 30, 29, 28);
+	Int4 mask(maskUnion);
+	mask = ((mask & laneBits) << laneShiftsToMSB) >> Int4(31);
+	return mask;
+}
+
+void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cMask[4], int sampleId)
 {
 	routine.setImmutableInputBuiltins(spirvShader);
 
 	// TODO(b/146486064): Consider only assigning these to the SpirvRoutine iff
 	// they are ever going to be read.
-	routine.fragCoord[0] = SIMD::Float(Float(x)) + SIMD::Float(0.5f, 1.5f, 0.5f, 1.5f);
-	routine.fragCoord[1] = SIMD::Float(Float(y)) + SIMD::Float(0.5f, 0.5f, 1.5f, 1.5f);
+	float x0 = 0.5f;
+	float y0 = 0.5f;
+	float x1 = 1.5f;
+	float y1 = 1.5f;
+	if((state.multiSampleCount > 1) && (sampleId >= 0))
+	{
+		x0 = Constants::VkSampleLocations4[sampleId][0];
+		y0 = Constants::VkSampleLocations4[sampleId][1];
+		x1 = 1.0f + x0;
+		y1 = 1.0f + y0;
+	}
+	routine.fragCoord[0] = SIMD::Float(Float(x)) + SIMD::Float(x0, x1, x0, x1);
+	routine.fragCoord[1] = SIMD::Float(Float(y)) + SIMD::Float(y0, y0, y1, y1);
 	routine.fragCoord[2] = z[0];  // sample 0
 	routine.fragCoord[3] = w;
 
@@ -109,8 +133,11 @@ void PixelProgram::setBuiltins(Int &x, Int &y, Float4 (&z)[4], Float4 &w, Int cM
 	});
 }
 
-void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
+void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4], int sampleId)
 {
+	unsigned int sampleLoopInit = (sampleId >= 0) ? sampleId : 0;
+	unsigned int sampleLoopEnd = (sampleId >= 0) ? sampleId + 1 : state.multiSampleCount;
+
 	routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
 	routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 	routine.pushConstants = data + OFFSET(DrawData, pushConstants);
@@ -130,8 +157,8 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 		static_assert(SIMD::Width == 4, "Expects SIMD width to be 4");
 		Int4 laneBits = Int4(1, 2, 4, 8);
 
-		Int4 inputSampleMask = Int4(1) & CmpNEQ(Int4(cMask[0]) & laneBits, Int4(0));
-		for(auto i = 1u; i < state.multiSampleCount; i++)
+		Int4 inputSampleMask = 0;
+		for(auto i = sampleLoopInit; i < sampleLoopEnd; i++)
 		{
 			inputSampleMask |= Int4(1 << i) & CmpNEQ(Int4(cMask[i]) & laneBits, Int4(0));
 		}
@@ -146,11 +173,15 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
 	// handled separately, through the cMask.
 	auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
-	auto storesAndAtomicsMask = maskAny(cMask, sMask, zMask);
+	auto storesAndAtomicsMask = (sampleId >= 0) ? maskAny(cMask[sampleId], sMask[sampleId], zMask[sampleId]) : maskAny(cMask, sMask, zMask);
 	routine.killMask = 0;
 
 	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets);
 	spirvShader->emitEpilog(&routine);
+	if((sampleId < 0) || (sampleId == static_cast<int>(state.multiSampleCount - 1)))
+	{
+		spirvShader->clearPhis(&routine);
+	}
 
 	for(int i = 0; i < RENDERTARGETS; i++)
 	{
@@ -168,7 +199,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 
 	if(spirvShader->getModes().ContainsKill)
 	{
-		for(auto i = 0u; i < state.multiSampleCount; i++)
+		for(auto i = sampleLoopInit; i < sampleLoopEnd; i++)
 		{
 			cMask[i] &= ~routine.killMask;
 		}
@@ -179,7 +210,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	{
 		auto outputSampleMask = As<SIMD::Int>(routine.getVariable(it->second.Id)[it->second.FirstComponent]);
 
-		for(auto i = 0u; i < state.multiSampleCount; i++)
+		for(auto i = sampleLoopInit; i < sampleLoopEnd; i++)
 		{
 			cMask[i] &= SignMask(CmpNEQ(outputSampleMask & SIMD::Int(1 << i), SIMD::Int(0)));
 		}
@@ -192,14 +223,19 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4])
 	}
 }
 
-Bool PixelProgram::alphaTest(Int cMask[4])
+Bool PixelProgram::alphaTest(Int cMask[4], int sampleId)
 {
 	if(!state.alphaToCoverage)
 	{
 		return true;
 	}
 
-	alphaToCoverage(cMask, c[0].w);
+	alphaToCoverage(cMask, c[0].w, sampleId);
+
+	if(sampleId >= 0)
+	{
+		return cMask[sampleId] != 0x0;
+	}
 
 	Int pass = cMask[0];
 
@@ -211,8 +247,11 @@ Bool PixelProgram::alphaTest(Int cMask[4])
 	return pass != 0x0;
 }
 
-void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
+void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4], int sampleId)
 {
+	unsigned int sampleLoopInit = (sampleId >= 0) ? sampleId : 0;
+	unsigned int sampleLoopEnd = (sampleId >= 0) ? sampleId + 1 : state.multiSampleCount;
+
 	for(int index = 0; index < RENDERTARGETS; index++)
 	{
 		if(!state.colorWriteActive(index))
@@ -237,7 +276,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 			case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 			case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 			case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-				for(unsigned int q = 0; q < state.multiSampleCount; q++)
+				for(unsigned int q = sampleLoopInit; q < sampleLoopEnd; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
 					{
@@ -283,7 +322,7 @@ void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4
 			case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-				for(unsigned int q = 0; q < state.multiSampleCount; q++)
+				for(unsigned int q = sampleLoopInit; q < sampleLoopEnd; q++)
 				{
 					if(state.multiSampleMask & (1 << q))
 					{

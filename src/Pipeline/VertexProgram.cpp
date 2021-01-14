@@ -83,6 +83,7 @@ void VertexProgram::program(Pointer<UInt> &batch, UInt &vertexCount)
 	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets);
 
 	spirvShader->emitEpilog(&routine);
+	spirvShader->clearPhis(&routine);
 }
 
 }  // namespace sw
