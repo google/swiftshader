@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f051b00_91a51295",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1002,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-14T19:14:18Z",
+      "side": 1,
+      "message": "The \"memory\" member already existed in VertexBuffer struct, and we already call device.freeMemory on it.",
+      "revId": "89d5e62b398a7c46ca318991a871d9e89e4d3aa5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
