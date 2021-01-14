@@ -170,6 +170,22 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4], int sam
 			routine.getVariable(it->second.Id)[it->second.FirstComponent + i] = Float4(0);
 	}
 
+	it = spirvShader->inputBuiltins.find(spv::BuiltInSampleId);
+	if(it != spirvShader->inputBuiltins.end())
+	{
+		routine.getVariable(it->second.Id)[it->second.FirstComponent] =
+		    As<SIMD::Float>(SIMD::Int((sampleId >= 0) ? sampleId : 0));
+	}
+
+	it = spirvShader->inputBuiltins.find(spv::BuiltInSamplePosition);
+	if(it != spirvShader->inputBuiltins.end())
+	{
+		routine.getVariable(it->second.Id)[it->second.FirstComponent + 0] =
+		    SIMD::Float(((sampleId >= 0) && (state.multiSampleCount > 1)) ? Constants::VkSampleLocations4[sampleId][0] : 0.5f);
+		routine.getVariable(it->second.Id)[it->second.FirstComponent + 1] =
+		    SIMD::Float(((sampleId >= 0) && (state.multiSampleCount > 1)) ? Constants::VkSampleLocations4[sampleId][1] : 0.5f);
+	}
+
 	// Note: all lanes initially active to facilitate derivatives etc. Actual coverage is
 	// handled separately, through the cMask.
 	auto activeLaneMask = SIMD::Int(0xFFFFFFFF);

@@ -62,9 +62,28 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 	Int zMask[4];  // Depth mask
 	Int sMask[4];  // Stencil mask
 
+	bool sampleShadingEnabled = state.sampleShadingEnabled;
+	float minSampleShading = state.minSampleShading;
+	if(spirvShader)
+	{
+		// SampleId and SamplePosition built-ins require the sampleRateShading feature, so the Vulkan spec
+		// requires turning on per sample shading if either of them is present in the shader.
+
+		// "If a fragment shader entry point's interface includes an input variable decorated with SampleId,
+		//  Sample Shading is considered enabled with a minSampleShading value of 1.0."
+
+		// "If a fragment shader entry point's interface includes an input variable decorated with SamplePosition,
+		//  Sample Shading is considered enabled with a minSampleShading value of 1.0."
+		if(spirvShader->hasBuiltinInput(spv::BuiltInSampleId) || spirvShader->hasBuiltinInput(spv::BuiltInSamplePosition))
+		{
+			sampleShadingEnabled = true;
+			minSampleShading = 1.0f;
+		}
+	}
+
 	bool shaderContainsInterpolation = spirvShader && spirvShader->getUsedCapabilities().InterpolationFunction;
 	bool shaderContainsSampleQualifier = spirvShader && spirvShader->getModes().ContainsSampleQualifier;
-	bool perSampleShading = (state.sampleShadingEnabled && (state.minSampleShading > 0.0f)) ||
+	bool perSampleShading = (sampleShadingEnabled && (minSampleShading > 0.0f)) ||
 	                        shaderContainsInterpolation || shaderContainsSampleQualifier;
 	unsigned int numSampleRenders = perSampleShading ? state.multiSampleCount : 1;
 
