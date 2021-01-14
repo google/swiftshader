@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "18c7961e_3740d7c7",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-14T19:48:23Z",
+      "side": 1,
+      "message": "I thought about #if-def\u0027ing here, but I was worried that we might get paths with forward-slashes on Windows, which does tend to happen. In this case, it depends on how the backtrace resolves the paths, which really could go either way. Currently, we are getting paths with only backslashes, it seems, so I guess I could go with the #if-def.",
+      "parentUuid": "04005b8f_f3a7aa0a",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9e18f2cf_8ba2e790",
         "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
         "patchSetId": 1
@@ -54,6 +78,30 @@
       "writtenOn": "2021-01-14T19:43:48Z",
       "side": 1,
       "message": "Is there any risk of the rsplit(\u0027/\u0027) returning a non-empty string on Windows and causing us to do something wrong or even harmful below? Reversely, can it produce an empty string on other platforms and then the rsplit(\u0027\\\\\u0027) does something wrong/harmful?\n\nI\u0027m probably overthinking this since this is debug-only. Just checking.",
+      "range": {
+        "startLine": 62,
+        "startChar": 45,
+        "endLine": 62,
+        "endChar": 49
+      },
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "79a5bb8b_7ea84e5d",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-14T19:48:23Z",
+      "side": 1,
+      "message": "Maybe? I guess if we get some kind of path that mixed forward and back-slashes, though I haven\u0027t seen that before.",
+      "parentUuid": "9e18f2cf_8ba2e790",
       "range": {
         "startLine": 62,
         "startChar": 45,
