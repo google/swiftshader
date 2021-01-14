@@ -221,6 +221,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "e0d0a6a5_a61a2847",
+        "filename": "src/Vulkan/vk_swiftshader.def",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-14T14:56:18Z",
+      "side": 1,
+      "message": "Makes sense. Thanks for the clarification.",
+      "parentUuid": "54c1eed9_35988bee",
+      "range": {
+        "startLine": 235,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 27
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "36609071_b9d3a3b0",
         "filename": "src/WSI/HeadlessSurfaceKHR.hpp",
         "patchSetId": 5
