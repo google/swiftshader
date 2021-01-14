@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd5c0a15_59f96737",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-14T21:18:36Z",
+      "side": 1,
+      "message": "Note: there are 15 gl_FragDepth related failures, but these are only a side effect of getting enabled with the feature and aren\u0027t failing because of the feature. These will be investigated at a later time, after the rest of the feature lands.",
+      "revId": "f3f828f2f12f6aefc9a9c17ff57c00e0ca6c1a04",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
