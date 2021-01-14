@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2a7430a3_8646b2e1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-14T19:43:48Z",
+      "side": 1,
+      "message": "Couple questions, probably minor:",
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "04005b8f_f3a7aa0a",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-14T19:43:48Z",
+      "side": 1,
+      "message": "How often is this function potentially called? It seems like on Windows we\u0027d always be paying the price of trying an invalid/nonexistent path split, creating an empty string, and then trying with the correct path separator. We could just #ifdef _WIN32 here?",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e18f2cf_8ba2e790",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-14T19:43:48Z",
+      "side": 1,
+      "message": "Is there any risk of the rsplit(\u0027/\u0027) returning a non-empty string on Windows and causing us to do something wrong or even harmful below? Reversely, can it produce an empty string on other platforms and then the rsplit(\u0027\\\\\u0027) does something wrong/harmful?\n\nI\u0027m probably overthinking this since this is debug-only. Just checking.",
+      "range": {
+        "startLine": 62,
+        "startChar": 45,
+        "endLine": 62,
+        "endChar": 49
+      },
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
