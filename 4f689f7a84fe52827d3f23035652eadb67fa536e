@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f07a6637_9d7badd3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-14T22:09:36Z",
+      "side": 1,
+      "message": "Note for reviewer(s): A lot of differences in this cl are indentation changes only. It\u0027s easier to review this change if you adjust your settings to ignore whitespace changes.",
+      "revId": "4f689f7a84fe52827d3f23035652eadb67fa536e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
