@@ -783,6 +783,7 @@ public:
 	{
 		delete texture;
 
+		device.destroyDescriptorSetLayout(descriptorSetLayout);
 		device.destroyDescriptorPool(descriptorPool);
 
 		device.destroySampler(sampler, nullptr);
@@ -998,12 +999,12 @@ protected:
 		vk::MemoryRequirements memoryRequirements = device.getBufferMemoryRequirements(vertices.buffer);
 		memoryAllocateInfo.allocationSize = memoryRequirements.size;
 		memoryAllocateInfo.memoryTypeIndex = getMemoryTypeIndex(physicalDevice, memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-		vk::DeviceMemory vertexBufferMemory = device.allocateMemory(memoryAllocateInfo);
+		vertices.memory = device.allocateMemory(memoryAllocateInfo);
 
-		void *data = device.mapMemory(vertexBufferMemory, 0, VK_WHOLE_SIZE);
+		void *data = device.mapMemory(vertices.memory, 0, VK_WHOLE_SIZE);
 		memcpy(data, vertexBufferData, sizeof(vertexBufferData));
-		device.unmapMemory(vertexBufferMemory);
-		device.bindBufferMemory(vertices.buffer, vertexBufferMemory, 0);
+		device.unmapMemory(vertices.memory);
+		device.bindBufferMemory(vertices.buffer, vertices.memory, 0);
 
 		vertices.inputBinding.binding = 0;
 		vertices.inputBinding.stride = sizeof(Vertex);
