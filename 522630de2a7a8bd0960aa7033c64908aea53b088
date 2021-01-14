@@ -197,6 +197,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "54c1eed9_35988bee",
+        "filename": "src/Vulkan/vk_swiftshader.def",
+        "patchSetId": 5
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-14T14:40:38Z",
+      "side": 1,
+      "message": "Ah, right, on Android we\u0027re not allowed to export anything beyond what the Loader needs, and we never sidestep the Loader and allow applications to load SwiftShader directly like we do on Windows and Linux.\n\nOn the latter we do have to export any WSI extensions: https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#vulkan-direct-exports. We probably *shouldn\u0027t* export functions for other extensions. I\u0027ll file a bug about that.\n\nThe Android and Fuchsia exports never need updating, unless a change is made to the vk_icd interface functions: https://swiftshader-review.googlesource.com/c/SwiftShader/+/44019. Lets document that better in the files themselves to avoid future confusion.\n\nThis change itself is correct.",
+      "parentUuid": "54f67529_ff47d2f3",
+      "range": {
+        "startLine": 235,
+        "startChar": 1,
+        "endLine": 235,
+        "endChar": 27
+      },
+      "revId": "522630de2a7a8bd0960aa7033c64908aea53b088",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "36609071_b9d3a3b0",
         "filename": "src/WSI/HeadlessSurfaceKHR.hpp",
         "patchSetId": 5
