@@ -111,6 +111,9 @@ SpirvShader::SpirvShader(
 					case spv::DecorationInputAttachmentIndex:
 						descriptorDecorations[targetId].InputAttachmentIndex = value;
 						break;
+					case spv::DecorationSample:
+						modes.ContainsSampleQualifier = true;
+						break;
 					default:
 						// Only handling descriptor decorations here.
 						break;

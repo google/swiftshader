@@ -553,6 +553,7 @@ public:
 		bool ContainsKill : 1;
 		bool ContainsControlBarriers : 1;
 		bool NeedsCentroid : 1;
+		bool ContainsSampleQualifier : 1;
 
 		// Compute workgroup dimensions
 		int WorkgroupSizeX = 1;
