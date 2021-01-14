@@ -409,8 +409,10 @@ GraphicsState::GraphicsState(const Device *device, const VkGraphicsPipelineCreat
 			UNSUPPORTED("pCreateInfo->pMultisampleState->flags %d", int(pCreateInfo->pMultisampleState->flags));
 		}
 
-		if(multisampleState->sampleShadingEnable != VK_FALSE)
+		sampleShadingEnable = (multisampleState->sampleShadingEnable != VK_FALSE);
+		if(sampleShadingEnable)
 		{
+			minSampleShading = multisampleState->minSampleShading;
 			UNSUPPORTED("VkPhysicalDeviceFeatures::sampleRateShading");
 		}
 

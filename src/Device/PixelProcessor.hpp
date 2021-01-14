@@ -89,6 +89,8 @@ public:
 		bool enableMultiSampling;
 		bool alphaToCoverage;
 		bool centroid;
+		bool sampleShadingEnabled;
+		float minSampleShading;
 		VkFrontFace frontFace;
 		vk::Format depthFormat;
 		bool depthBias;

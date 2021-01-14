@@ -165,6 +165,8 @@ struct GraphicsState
 
 	inline unsigned int getMultiSampleMask() const { return multiSampleMask; }
 	inline int getSampleCount() const { return sampleCount; }
+	inline bool hasSampleShadingEnabled() const { return sampleShadingEnable; }
+	inline float getMinSampleShading() const { return minSampleShading; }
 	inline bool hasAlphaToCoverage() const { return alphaToCoverage; }
 
 	inline bool hasPrimitiveRestartEnable() const { return primitiveRestartEnable; }
@@ -232,6 +234,9 @@ private:
 	unsigned int multiSampleMask;
 	int sampleCount;
 	bool alphaToCoverage;
+
+	bool sampleShadingEnable = false;
+	float minSampleShading = 0.0f;
 
 	bool primitiveRestartEnable = false;
 	VkRect2D scissor;

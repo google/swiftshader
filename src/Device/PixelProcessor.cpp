@@ -137,6 +137,8 @@ const PixelProcessor::State PixelProcessor::update(const vk::GraphicsState &pipe
 	state.multiSampleMask = pipelineState.getMultiSampleMask();
 	state.enableMultiSampling = (state.multiSampleCount > 1) &&
 	                            !(pipelineState.isDrawLine(true) && (pipelineState.getLineRasterizationMode() == VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT));
+	state.sampleShadingEnabled = pipelineState.hasSampleShadingEnabled();
+	state.minSampleShading = pipelineState.getMinSampleShading();
 
 	if(state.enableMultiSampling && fragmentShader)
 	{
