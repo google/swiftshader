@@ -15,13 +15,34 @@
 #include "SpirvShader.hpp"
 
 #include "ShaderCore.hpp"
+#include "Device/Primitive.hpp"
 
 #include <spirv/unified1/GLSL.std.450.h>
 #include <spirv/unified1/spirv.hpp>
 
 namespace {
 constexpr float PI = 3.141592653589793f;
+
+sw::SIMD::Float Interpolate(const sw::SIMD::Float &x, const sw::SIMD::Float &y, const sw::SIMD::Float &rhw,
+                            const sw::SIMD::Float &A, const sw::SIMD::Float &B, const sw::SIMD::Float &C,
+                            bool flat, bool perspective)
+{
+	sw::SIMD::Float interpolant = C;
+
+	if(!flat)
+	{
+		interpolant += x * A + y * B;
+
+		if(perspective)
+		{
+			interpolant *= rhw;
+		}
+	}
+
+	return interpolant;
 }
+
+}  // namespace
 
 namespace sw {
 
@@ -930,6 +951,21 @@ SpirvShader::EmitResult SpirvShader::EmitExtGLSLstd450(InsnIterator insn, EmitSt
 	}
 
 	return EmitResult::Continue;
+}
+
+SIMD::Float SpirvRoutine::interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
+{
+	SIMD::Float A;
+	SIMD::Float B;
+	SIMD::Float C = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, C), 16);
+
+	if(!flat)
+	{
+		A = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, A), 16);
+		B = *Pointer<SIMD::Float>(planeEquation + OFFSET(PlaneEquation, B), 16);
+	}
+
+	return ::Interpolate(x, y, rhw, A, B, C, flat, perspective);
 }
 
 }  // namespace sw

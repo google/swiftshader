@@ -147,7 +147,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			if(state.centroid)
 			{
-				rhwCentroid = reciprocal(interpolateCentroid(XXXX, YYYY, rhwCentroid, primitive + OFFSET(Primitive, w), false, false));
+				rhwCentroid = reciprocal(SpirvRoutine::interpolateAtXY(XXXX, YYYY, rhwCentroid, primitive + OFFSET(Primitive, w), false, false));
 			}
 		}
 
@@ -161,9 +161,9 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 					if(input.Centroid && state.enableMultiSampling)
 					{
 						routine.inputs[interpolant] =
-						    interpolateCentroid(XXXX, YYYY, rhwCentroid,
-						                        primitive + OFFSET(Primitive, V[interpolant]),
-						                        input.Flat, !input.NoPerspective);
+						    SpirvRoutine::interpolateAtXY(XXXX, YYYY, rhwCentroid,
+						                                  primitive + OFFSET(Primitive, V[interpolant]),
+						                                  input.Flat, !input.NoPerspective);
 					}
 					else
 					{
@@ -280,24 +280,6 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 			writeStencil(sBuffer, q, x, sMask[q], zMask[q], cMask[q]);
 		}
 	}
-}
-
-Float4 PixelRoutine::interpolateCentroid(const Float4 &x, const Float4 &y, const Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
-{
-	Float4 interpolant = *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, C), 16);
-
-	if(!flat)
-	{
-		interpolant += x * *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, A), 16) +
-		               y * *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, B), 16);
-
-		if(perspective)
-		{
-			interpolant *= rhw;
-		}
-	}
-
-	return interpolant;
 }
 
 void PixelRoutine::stencilTest(const Pointer<Byte> &sBuffer, int q, const Int &x, Int &sMask, const Int &cMask)

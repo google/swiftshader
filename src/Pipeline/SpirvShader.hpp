@@ -1406,6 +1406,8 @@ public:
 	// common for all shader types.
 	void setImmutableInputBuiltins(SpirvShader const *shader);
 
+	static SIMD::Float interpolateAtXY(const SIMD::Float &x, const SIMD::Float &y, const SIMD::Float &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
+
 	// setInputBuiltin() calls f() with the builtin and value if the shader
 	// uses the input builtin, otherwise the call is a no-op.
 	// F is a function with the signature:
