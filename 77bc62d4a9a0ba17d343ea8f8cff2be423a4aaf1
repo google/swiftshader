@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "73c1ee89_757733f7",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2024,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da0e5065_223052b7",
+      "range": {
+        "startLine": 2024,
+        "startChar": 32,
+        "endLine": 2024,
+        "endChar": 100
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "19444e4c_a0e9e274",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-14T19:52:57Z",
       "side": 1,
       "message": "This should be \"aspect\"",
+      "range": {
+        "startLine": 2025,
+        "startChar": 34,
+        "endLine": 2025,
+        "endChar": 102
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21c37f93_c73e7d02",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2025,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19444e4c_a0e9e274",
       "range": {
         "startLine": 2025,
         "startChar": 34,
@@ -70,6 +118,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc174af8_deef1dc4",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2048,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91ff81e7_a2bd877a",
+      "range": {
+        "startLine": 2048,
+        "startChar": 1,
+        "endLine": 2048,
+        "endChar": 41
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a12906a7_0321caf0",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-10-14T19:52:57Z",
       "side": 1,
       "message": "Nit: Unsupported depth/stencil resolve mode",
+      "range": {
+        "startLine": 2071,
+        "startChar": 18,
+        "endLine": 2071,
+        "endChar": 48
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dea687af_5c8c21a0",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2071,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a12906a7_0321caf0",
       "range": {
         "startLine": 2071,
         "startChar": 18,
@@ -116,6 +212,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8014f69b_c1c9526c",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2091,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Many things are only here for development purposes. The compiler doesn\u0027t like that I never read from c1-3, and declares them as unused variables. So yeah, in the final version, I\u0027ll be deleting c1-3 and stop voiding out c0.",
+      "parentUuid": "19c8139f_ed83cc8d",
+      "range": {
+        "startLine": 2088,
+        "startChar": 0,
+        "endLine": 2091,
+        "endChar": 10
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "591e3739_31997cd8",
@@ -129,6 +249,30 @@
       "writtenOn": "2020-10-14T19:52:57Z",
       "side": 1,
       "message": "Nit, similarly to other functions, store this in:\nVkImageAspectFlagBits srcAspect \u003d static_cast\u003cVkImageAspectFlagBits\u003e(region.srcSubresource.aspectMask);",
+      "range": {
+        "startLine": 2186,
+        "startChar": 32,
+        "endLine": 2186,
+        "endChar": 100
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa6b7826_7583b20a",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2186,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "591e3739_31997cd8",
       "range": {
         "startLine": 2186,
         "startChar": 32,
@@ -162,6 +306,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "74389751_80ab035d",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2233,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7310342e_57a193a3",
+      "range": {
+        "startLine": 2229,
+        "startChar": 0,
+        "endLine": 2233,
+        "endChar": 34
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2315ec22_ce8d0c76",
@@ -185,6 +353,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "06203168_2640568d",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 595,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2315ec22_ce8d0c76",
+      "range": {
+        "startLine": 595,
+        "startChar": 2,
+        "endLine": 595,
+        "endChar": 29
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "78969b1d_21aa4fc2",
@@ -198,6 +390,30 @@
       "writtenOn": "2020-10-14T19:52:57Z",
       "side": 1,
       "message": "This is part of VK_KHR_create_renderpass2. Was this missing?",
+      "range": {
+        "startLine": 2213,
+        "startChar": 31,
+        "endLine": 2213,
+        "endChar": 50
+      },
+      "revId": "77bc62d4a9a0ba17d343ea8f8cff2be423a4aaf1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb60e43e_16f3fb9b",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2213,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-14T22:39:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "78969b1d_21aa4fc2",
       "range": {
         "startLine": 2213,
         "startChar": 31,
