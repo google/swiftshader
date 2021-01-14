@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a949154b_6528cad5",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 762,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-14T23:49:18Z",
+      "side": 1,
+      "message": "mipLevelExtent is really meant to be valid for a specific memory plane (depth or stencil). I suggest you call Image::getMipLevelExtent() with only VK_IMAGE_ASPECT_DEPTH_BIT set. If necessary, you can call Image::getMipLevelExtent() with VK_IMAGE_ASPECT_STENCIL_BIT and assert that both mipLevelExtents are equal, but in your specific case, I assume the spec must mentions that both must be equal.",
+      "range": {
+        "startLine": 762,
+        "startChar": 0,
+        "endLine": 762,
+        "endChar": 63
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07826c23_57daa97b",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-14T23:49:18Z",
+      "side": 1,
+      "message": "It might be simpler/more straightforward to write something like:\n\n```\nfor(uint32_t layer \u003d 0; layer \u003c 32; ++layer)\n{\n    if(layerMask \u0026 (1u \u003c\u003c layer))\n    {\n        resolveDepthStencil(resolveAttachment, layer, dsResolve);\n    }\n}\n```",
+      "range": {
+        "startLine": 323,
+        "startChar": 1,
+        "endLine": 328,
+        "endChar": 2
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "689293c3_1f961bba",
+        "filename": "src/Vulkan/VkRenderPass.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-14T23:49:18Z",
+      "side": 1,
+      "message": "Is this necessary? Just curious.",
+      "range": {
+        "startLine": 363,
+        "startChar": 8,
+        "endLine": 363,
+        "endChar": 32
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
