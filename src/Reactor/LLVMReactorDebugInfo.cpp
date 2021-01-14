@@ -56,7 +56,11 @@ __pragma(warning(push))
 
 	std::pair<llvm::StringRef, llvm::StringRef> splitPath(const char *path)
 	{
-		auto dirAndFile = llvm::StringRef(path).rsplit('/');
+#	ifdef _WIN32
+		auto dirAndFile = llvm::StringRef(path).rsplit('\\');
+#	else
+	auto dirAndFile = llvm::StringRef(path).rsplit('/');
+#	endif
 		if(dirAndFile.second == "")
 		{
 			dirAndFile.second = "<unknown>";
