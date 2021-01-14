@@ -65,6 +65,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5f526c16_d10c7d25",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-14T20:01:08Z",
+      "side": 1,
+      "message": "Decided to go ahead with the #ifdef _WIN32.",
+      "parentUuid": "18c7961e_3740d7c7",
+      "range": {
+        "startLine": 60,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9e18f2cf_8ba2e790",
@@ -102,6 +126,30 @@
       "side": 1,
       "message": "Maybe? I guess if we get some kind of path that mixed forward and back-slashes, though I haven\u0027t seen that before.",
       "parentUuid": "9e18f2cf_8ba2e790",
+      "range": {
+        "startLine": 62,
+        "startChar": 45,
+        "endLine": 62,
+        "endChar": 49
+      },
+      "revId": "58f1a51fd5d80841028e0342fd1064a36dc1ef70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10f4b4e2_7c5d51f4",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-14T20:01:08Z",
+      "side": 1,
+      "message": "No longer an issue now that we\u0027re using #ifdef _WIN32.",
+      "parentUuid": "79a5bb8b_7ea84e5d",
       "range": {
         "startLine": 62,
         "startChar": 45,
