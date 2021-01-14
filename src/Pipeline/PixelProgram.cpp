@@ -192,7 +192,7 @@ void PixelProgram::applyShader(Int cMask[4], Int sMask[4], Int zMask[4], int sam
 	auto storesAndAtomicsMask = (sampleId >= 0) ? maskAny(cMask[sampleId], sMask[sampleId], zMask[sampleId]) : maskAny(cMask, sMask, zMask);
 	routine.killMask = 0;
 
-	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets);
+	spirvShader->emit(&routine, activeLaneMask, storesAndAtomicsMask, descriptorSets, state.multiSampleCount);
 	spirvShader->emitEpilog(&routine);
 	if((sampleId < 0) || (sampleId == static_cast<int>(state.multiSampleCount - 1)))
 	{

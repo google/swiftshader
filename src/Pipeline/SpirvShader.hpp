@@ -783,7 +783,7 @@ public:
 	std::vector<InterfaceComponent> outputs;
 
 	void emitProlog(SpirvRoutine *routine) const;
-	void emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, RValue<SIMD::Int> const &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets) const;
+	void emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, RValue<SIMD::Int> const &storesAndAtomicsMask, const vk::DescriptorSet::Bindings &descriptorSets, unsigned int multiSampleCount = 0) const;
 	void emitEpilog(SpirvRoutine *routine) const;
 	void clearPhis(SpirvRoutine *routine) const;
 
@@ -917,6 +917,7 @@ private:
 		          RValue<SIMD::Int> storesAndAtomicsMask,
 		          const vk::DescriptorSet::Bindings &descriptorSets,
 		          bool robustBufferAccess,
+		          unsigned int multiSampleCount,
 		          spv::ExecutionModel executionModel)
 		    : routine(routine)
 		    , function(function)
@@ -924,6 +925,7 @@ private:
 		    , storesAndAtomicsMaskValue(storesAndAtomicsMask.value())
 		    , descriptorSets(descriptorSets)
 		    , robustBufferAccess(robustBufferAccess)
+		    , multiSampleCount(multiSampleCount)
 		    , executionModel(executionModel)
 		{
 			ASSERT(executionModelToStage(executionModel) != VkShaderStageFlagBits(0));  // Must parse OpEntryPoint before emitting.
@@ -985,6 +987,8 @@ private:
 
 		OutOfBoundsBehavior getOutOfBoundsBehavior(spv::StorageClass storageClass) const;
 
+		unsigned int getMultiSampleCount() const { return multiSampleCount; }
+
 		Intermediate &createIntermediate(Object::ID id, uint32_t componentCount)
 		{
 			auto it = intermediates.emplace(std::piecewise_construct,
@@ -1019,6 +1023,7 @@ private:
 		std::unordered_map<Object::ID, SIMD::Pointer> pointers;
 
 		const bool robustBufferAccess = true;  // Emit robustBufferAccess safe code.
+		const unsigned int multiSampleCount = 0;
 		const spv::ExecutionModel executionModel = spv::ExecutionModelMax;
 	};
 
@@ -1229,7 +1234,16 @@ private:
 	void EvalSpecConstantUnaryOp(InsnIterator insn);
 	void EvalSpecConstantBinaryOp(InsnIterator insn);
 
+	// Fragment input interpolation functions
 	uint32_t GetNumInputComponents(int32_t location) const;
+	enum InterpolationType
+	{
+		Centroid,
+		AtSample,
+		AtOffset,
+	};
+	SIMD::Float Interpolate(SIMD::Pointer const &ptr, int32_t location, Object::ID paramId, uint32_t component,
+	                        uint32_t component_count, EmitState *state, InterpolationType type) const;
 
 	// Helper for implementing OpStore, which doesn't take an InsnIterator so it
 	// can also store independent operands.
