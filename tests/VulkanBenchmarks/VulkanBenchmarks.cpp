@@ -28,6 +28,7 @@
 #	define VK_USE_PLATFORM_WIN32_KHR
 #endif
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#define VULKAN_HPP_NO_NODISCARD_WARNINGS
 #include <vulkan/vulkan.hpp>
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -211,16 +212,16 @@ public:
 		instance.destroy(nullptr);
 	}
 
+private:
+	std::unique_ptr<vk::DynamicLoader> dl;
+
 protected:
 	const uint32_t queueFamilyIndex = 0;
 
-	vk::Instance instance;
+	vk::Instance instance;  // Owning handle
 	vk::PhysicalDevice physicalDevice;
-	vk::Device device;
+	vk::Device device;  // Owning handle
 	vk::Queue queue;
-
-private:
-	std::unique_ptr<vk::DynamicLoader> dl;
 };
 
 class ClearImageBenchmark : public VulkanBenchmark
@@ -317,11 +318,10 @@ public:
 	}
 
 private:
-	vk::CommandPool commandPool;
-	vk::CommandBuffer commandBuffer;
-
-	vk::Image image;
-	vk::DeviceMemory memory;
+	vk::Image image;                  // Owning handle
+	vk::DeviceMemory memory;          // Owning handle
+	vk::CommandPool commandPool;      // Owning handle
+	vk::CommandBuffer commandBuffer;  // Owning handle
 };
 
 static void ClearImage(benchmark::State &state, vk::Format clearFormat, vk::ImageAspectFlagBits clearAspect)
@@ -449,10 +449,10 @@ private:
 class Swapchain
 {
 public:
-	Swapchain(vk::PhysicalDevice physicalDevice, vk::Device device, Window *window)
+	Swapchain(vk::PhysicalDevice physicalDevice, vk::Device device, Window &window)
 	    : device(device)
 	{
-		vk::SurfaceKHR surface = window->getSurface();
+		vk::SurfaceKHR surface = window.getSurface();
 
 		// Create the swapchain
 		vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
@@ -542,11 +542,11 @@ public:
 private:
 	const vk::Device device;
 
-	vk::SwapchainKHR swapchain;
+	vk::SwapchainKHR swapchain;  // Owning handle
 	vk::Extent2D extent;
 
-	std::vector<vk::Image> images;  // Weak pointers. Presentable images owned by swapchain object.
-	std::vector<vk::ImageView> imageViews;
+	std::vector<vk::Image> images;          // Weak pointers. Presentable images owned by swapchain object.
+	std::vector<vk::ImageView> imageViews;  // Owning handles
 };
 
 class Buffer
@@ -597,8 +597,8 @@ public:
 private:
 	const vk::Device device;
 	vk::DeviceSize size;
-	vk::Buffer buffer;
-	vk::DeviceMemory bufferMemory;
+	vk::Buffer buffer;              // Owning handle
+	vk::DeviceMemory bufferMemory;  // Owning handle
 };
 
 class Image
@@ -645,9 +645,9 @@ public:
 
 	~Image()
 	{
-		device.destroyImage(image);
 		device.destroyImageView(imageView);
 		device.freeMemory(imageMemory);
+		device.destroyImage(image);
 	}
 
 	vk::Image getImage()
@@ -663,9 +663,9 @@ public:
 private:
 	const vk::Device device;
 
-	vk::Image image;
-	vk::DeviceMemory imageMemory;
-	vk::ImageView imageView;
+	vk::Image image;               // Owning handle
+	vk::DeviceMemory imageMemory;  // Owning handle
+	vk::ImageView imageView;       // Owning handle
 };
 
 class Framebuffer
@@ -678,7 +678,7 @@ public:
 
 		if(multisample)
 		{
-			multisampleImage = new Image(device, extent.width, extent.height, colorFormat, vk::SampleCountFlagBits::e4);
+			multisampleImage.reset(new Image(device, extent.width, extent.height, colorFormat, vk::SampleCountFlagBits::e4));
 
 			// We'll be rendering to attachment location 0
 			attachments[0] = multisampleImage->getImageView();
@@ -703,9 +703,8 @@ public:
 
 	~Framebuffer()
 	{
+		multisampleImage.reset();
 		device.destroyFramebuffer(framebuffer);
-
-		delete multisampleImage;
 	}
 
 	vk::Framebuffer getFramebuffer()
@@ -715,10 +714,8 @@ public:
 
 private:
 	const vk::Device device;
-
-	vk::Framebuffer framebuffer;
-
-	Image *multisampleImage = nullptr;
+	vk::Framebuffer framebuffer;  // Owning handle
+	std::unique_ptr<Image> multisampleImage;
 };
 
 static std::vector<uint32_t> compileGLSLtoSPIRV(const char *glslSource, EShLanguage glslLanguage)
@@ -764,8 +761,8 @@ public:
 	TriangleBenchmark(bool multisample)
 	    : multisample(multisample)
 	{
-		window = new Window(instance, windowSize);
-		swapchain = new Swapchain(physicalDevice, device, window);
+		window.reset(new Window(instance, windowSize));
+		swapchain.reset(new Swapchain(physicalDevice, device, *window));
 
 		renderPass = createRenderPass(swapchain->colorFormat);
 		createFramebuffers(renderPass);
@@ -781,39 +778,37 @@ public:
 
 	~TriangleBenchmark()
 	{
-		delete texture;
+		device.freeCommandBuffers(commandPool, commandBuffers);
 
-		device.destroyDescriptorSetLayout(descriptorSetLayout);
 		device.destroyDescriptorPool(descriptorPool);
-
 		device.destroySampler(sampler, nullptr);
-
-		device.destroyPipelineLayout(pipelineLayout, nullptr);
-		device.destroyPipelineCache(pipelineCache, nullptr);
-
-		device.destroyBuffer(vertices.buffer, nullptr);
-		device.freeMemory(vertices.memory, nullptr);
-
-		device.destroySemaphore(presentCompleteSemaphore, nullptr);
-		device.destroySemaphore(renderCompleteSemaphore, nullptr);
+		texture.reset();
+		device.destroyCommandPool(commandPool, nullptr);
 
 		for(auto &fence : waitFences)
 		{
 			device.destroyFence(fence, nullptr);
 		}
 
-		for(auto *framebuffer : framebuffers)
+		device.destroySemaphore(renderCompleteSemaphore, nullptr);
+		device.destroySemaphore(presentCompleteSemaphore, nullptr);
+
+		device.destroyPipeline(pipeline);
+		device.destroyPipelineLayout(pipelineLayout, nullptr);
+		device.destroyDescriptorSetLayout(descriptorSetLayout);
+
+		device.freeMemory(vertices.memory, nullptr);
+		device.destroyBuffer(vertices.buffer, nullptr);
+
+		for(auto &framebuffer : framebuffers)
 		{
-			delete framebuffer;
+			framebuffer.reset();
 		}
 
 		device.destroyRenderPass(renderPass, nullptr);
 
-		device.freeCommandBuffers(commandPool, commandBuffers);
-		device.destroyCommandPool(commandPool, nullptr);
-
-		delete swapchain;
-		delete window;
+		swapchain.reset();
+		window.reset();
 	}
 
 	void renderFrame()
@@ -867,7 +862,7 @@ protected:
 		commandPoolCreateInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 		commandPool = device.createCommandPool(commandPoolCreateInfo);
 
-		texture = new Image(device, 16, 16, vk::Format::eR8G8B8A8Unorm);
+		texture.reset(new Image(device, 16, 16, vk::Format::eR8G8B8A8Unorm));
 
 		// Fill texture with white
 		vk::DeviceSize bufferSize = 16 * 16 * 4;
@@ -965,7 +960,7 @@ protected:
 			commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, 1, &descriptorSets[0], 0, nullptr);
 
 			// Draw a triangle
-			commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.get());
+			commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 			VULKAN_HPP_NAMESPACE::DeviceSize offset = 0;
 			commandBuffers[i].bindVertexBuffers(0, 1, &vertices.buffer, &offset);
 			commandBuffers[i].draw(3, 1, 0, 0);
@@ -1026,7 +1021,7 @@ protected:
 
 		for(size_t i = 0; i < framebuffers.size(); i++)
 		{
-			framebuffers[i] = new Framebuffer(device, swapchain->getImageView(i), swapchain->colorFormat, renderPass, swapchain->getExtent(), multisample);
+			framebuffers[i].reset(new Framebuffer(device, swapchain->getImageView(i), swapchain->colorFormat, renderPass, swapchain->getExtent(), multisample));
 		}
 	}
 
@@ -1111,7 +1106,7 @@ protected:
 		return device.createRenderPass(renderPassInfo);
 	}
 
-	vk::UniqueShaderModule createShaderModule(const char *glslSource, EShLanguage glslLanguage)
+	vk::ShaderModule createShaderModule(const char *glslSource, EShLanguage glslLanguage)
 	{
 		auto spirv = compileGLSLtoSPIRV(glslSource, glslLanguage);
 
@@ -1119,10 +1114,10 @@ protected:
 		moduleCreateInfo.codeSize = spirv.size() * sizeof(uint32_t);
 		moduleCreateInfo.pCode = (uint32_t *)spirv.data();
 
-		return device.createShaderModuleUnique(moduleCreateInfo);
+		return device.createShaderModule(moduleCreateInfo);
 	}
 
-	vk::UniquePipeline createGraphicsPipeline(vk::RenderPass renderPass)
+	vk::Pipeline createGraphicsPipeline(vk::RenderPass renderPass)
 	{
 		vk::DescriptorSetLayoutBinding samplerLayoutBinding;
 		samplerLayoutBinding.binding = 1;
@@ -1225,16 +1220,16 @@ protected:
 			}
 		)";
 
-		vk::UniqueShaderModule vertexModule = createShaderModule(vertexShader, EShLanguage::EShLangVertex);
-		vk::UniqueShaderModule fragmentModule = createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
+		vk::ShaderModule vertexModule = createShaderModule(vertexShader, EShLanguage::EShLangVertex);
+		vk::ShaderModule fragmentModule = createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
 
 		std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages;
 
-		shaderStages[0].module = vertexModule.get();
+		shaderStages[0].module = vertexModule;
 		shaderStages[0].stage = vk::ShaderStageFlagBits::eVertex;
 		shaderStages[0].pName = "main";
 
-		shaderStages[1].module = fragmentModule.get();
+		shaderStages[1].module = fragmentModule;
 		shaderStages[1].stage = vk::ShaderStageFlagBits::eFragment;
 		shaderStages[1].pName = "main";
 
@@ -1250,46 +1245,47 @@ protected:
 		pipelineCreateInfo.renderPass = renderPass;
 		pipelineCreateInfo.pDynamicState = &dynamicState;
 
-		return device.createGraphicsPipelineUnique(nullptr, pipelineCreateInfo).value;
+		auto pipeline = device.createGraphicsPipeline(nullptr, pipelineCreateInfo).value;
+
+		device.destroyShaderModule(fragmentModule);
+		device.destroyShaderModule(vertexModule);
+
+		return pipeline;
 	}
 
 	const vk::Extent2D windowSize = { 1280, 720 };
 	const bool multisample;
-	Window *window = nullptr;
 
-	Swapchain *swapchain = nullptr;
+	std::unique_ptr<Window> window;
+	std::unique_ptr<Swapchain> swapchain;
 
-	vk::RenderPass renderPass;
-	std::vector<Framebuffer *> framebuffers;
+	vk::RenderPass renderPass;  // Owning handle
+	std::vector<std::unique_ptr<Framebuffer>> framebuffers;
 	uint32_t currentFrameBuffer = 0;
 
 	struct VertexBuffer
 	{
-		vk::Buffer buffer;
-		vk::DeviceMemory memory;
+		vk::Buffer buffer;        // Owning handle
+		vk::DeviceMemory memory;  // Owning handle
 
-		vk::PipelineVertexInputStateCreateInfo inputState;
 		vk::VertexInputBindingDescription inputBinding;
 		std::vector<vk::VertexInputAttributeDescription> inputAttributes;
+		vk::PipelineVertexInputStateCreateInfo inputState;
 	} vertices;
 
-	vk::DescriptorPool descriptorPool;
-	vk::DescriptorSetLayout descriptorSetLayout;
-	vk::PipelineLayout pipelineLayout;
-	vk::PipelineCache pipelineCache;
-	vk::UniquePipeline pipeline;
+	vk::DescriptorSetLayout descriptorSetLayout;  // Owning handle
+	vk::PipelineLayout pipelineLayout;            // Owning handle
+	vk::Pipeline pipeline;                        // Owning handle
 
-	vk::Sampler sampler;
+	vk::Semaphore presentCompleteSemaphore;  // Owning handle
+	vk::Semaphore renderCompleteSemaphore;   // Owning handle
+	std::vector<vk::Fence> waitFences;       // Owning handles
 
-	vk::CommandPool commandPool;
-	std::vector<vk::CommandBuffer> commandBuffers;
-
-	vk::Semaphore presentCompleteSemaphore;
-	vk::Semaphore renderCompleteSemaphore;
-
-	std::vector<vk::Fence> waitFences;
-
-	Image *texture = nullptr;
+	vk::CommandPool commandPool;  // Owning handle
+	std::unique_ptr<Image> texture;
+	vk::Sampler sampler;                            // Owning handle
+	vk::DescriptorPool descriptorPool;              // Owning handle
+	std::vector<vk::CommandBuffer> commandBuffers;  // Owning handles
 };
 
 static void Triangle(benchmark::State &state, bool multisample)
