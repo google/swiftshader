@@ -22,6 +22,30 @@
       },
       "revId": "e343d49106dc572c4202ac3ae365389980f1ee51",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "60059457_565e24c3",
+        "filename": "src/Vulkan/VulkanPlatform.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T21:59:03Z",
+      "side": 1,
+      "message": "Yes, that\u0027s desirable.\n\nThere\u0027s a bigger issue though, that has led me down a deep rabbit hole. The current change works for libVulkan.cpp, where most of our uses of Vulkan results code are, but not all of them. So I tried moving this into System/Debug.hpp, but vulkan.hpp happens to have constexpr variables intialized to these result codes, which doesn\u0027t work when we replace them with a call to a non-constexpr logging function. \n\nTo solve that we\u0027d have to ensure vulkan.hpp gets included before these macros are defined, but this header is huge so we don\u0027t want to preemptively do that. We also a precarious dependency between requiring VulkanPlatform.hpp to override VK_DEFINE_NON_DISPATCHABLE_HANDLE before vulkan_core.h, but vulkan.hpp can\u0027t have it because VkNonDispatchableHandle\u003c\u003e can\u0027t be initialized with VK_NULL_HANDLE because it can\u0027t have a constructor (it must satisfy std::is_trivially_copyable to be able to replace a uint64_t without changing call ABIs). Note we use { VK_NULL_HANDLE } in a few places as a workaround.\n\nI tried avoiding that by defining the non-dispatchable handles as enum types with an underlying type of uint64_t, but unfortunately they can\u0027t be initialized with VK_NULL_HANDLE either which is literal 0. Redefining VK_NULL_HANDLE as {} didn\u0027t work either.\n\nSo... I\u0027m not sure there\u0027s a foolproof way to record every use of these error codes. At this point I think we may have to use error macros/objects/functions with a different name, or have a header which overrides them just for the .cpp files where we want them. In either case we could miss some uses, but it\u0027s better than nothing.",
+      "parentUuid": "8590cad0_9c40f353",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 67
+      },
+      "revId": "e343d49106dc572c4202ac3ae365389980f1ee51",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
