@@ -3,6 +3,144 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d3344914_f2fb4693",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1924,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T04:22:35Z",
+      "side": 1,
+      "message": "VK_KHR_depth_stencil_resolve only resolves framebuffer attachments, which are image views. Passing in vk::ImageView pointers instead is going to avoid some potential issues and will likely simplify things.",
+      "range": {
+        "startLine": 1924,
+        "startChar": 34,
+        "endLine": 1924,
+        "endChar": 70
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c7498714_61cc5915",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1924,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T04:22:35Z",
+      "side": 1,
+      "message": "As far as I can tell, VK_KHR_depth_stencil_resolve only allows resolving the entire image, so we shouldn\u0027t pass in a region here.",
+      "range": {
+        "startLine": 1924,
+        "startChar": 72,
+        "endLine": 1924,
+        "endChar": 93
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96296e59_86c1ecdd",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1941,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T04:22:35Z",
+      "side": 1,
+      "message": "Can the parameter be passed by reference instead, removing the need for this check?",
+      "range": {
+        "startLine": 1938,
+        "startChar": 1,
+        "endLine": 1941,
+        "endChar": 2
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2c1d8914_8e6bf2dd",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1963,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T04:22:35Z",
+      "side": 1,
+      "message": "Just assert they are equal? This will also produce more useful log messages.",
+      "range": {
+        "startLine": 1943,
+        "startChar": 1,
+        "endLine": 1963,
+        "endChar": 2
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03db110a_bc8d97ea",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1973,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T04:22:35Z",
+      "side": 1,
+      "message": "It looks weird/confusing to me to be calling the same function again. While you could split the code below into a separate function to avoid that, I suggest actually having both a resolveDepth and resolveStencil function. Note that stencil can only ever be 8-bit (while depth is always larger), and the extension states that VK_RESOLVE_MODE_AVERAGE_BIT must not be supported, so the stencil resolve code will always be quite different from the depth resolve code.",
+      "range": {
+        "startLine": 1968,
+        "startChar": 2,
+        "endLine": 1973,
+        "endChar": 61
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "932d3a19_4efcc462",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 2066,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T04:22:35Z",
+      "side": 1,
+      "message": "This can be simplified into a memset. It will be a lot faster. We can worry about other modes, and not regressing performance of the zeroing case, later.",
+      "range": {
+        "startLine": 2048,
+        "startChar": 2,
+        "endLine": 2066,
+        "endChar": 3
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "a949154b_6528cad5",
         "filename": "src/Vulkan/VkImage.cpp",
         "patchSetId": 13
