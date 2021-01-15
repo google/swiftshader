@@ -16,6 +16,24 @@
       "message": "I feel like this should be replaced by an assert rather than be removed entirely. Attempting to write an unused value will probably end up being picked up by the sanitizers / fuzzers and we\u0027d have to fix it again.",
       "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff5585fd_84c8c8dc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T06:17:14Z",
+      "side": 1,
+      "message": "An assert would also be treated as a bug by a fuzzer, so we can\u0027t just have one that produces random shaders. That said, the MSan support for Reactor routines would catch the use of uninitialized variables passed between shader interfaces, so no explicit assert is required. Hence I believe this can \u0027safely\u0027 be removed.\n\nOf course an assert would catch it more directly, but I\u0027d rather not litter our code with validation that can be provided by tooling which instruments it at the compilation level. Also note this can be checked by the Validation Layer, although at the time of writing this is still unimplemented: https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/fb2ab876edcdfdc3770fcf58bc3ab1fddd6c68e0/layers/shader_validation.cpp#L1508. I can poke someone if you\u0027re concerned.",
+      "parentUuid": "cd0d276b_d161c9dc",
+      "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
