@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4cc7a0e8_dfc7d236",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T18:04:46Z",
+      "side": 1,
+      "message": "Rebasing to get another measurement of the timings...",
+      "revId": "a8aa937edaa65ae3ef6bb28bf4292a078d0800bb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9a408161_50dd928c",
+        "filename": "third_party/llvm-10.0/llvm/include/llvm/Support/ManagedStatic.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T18:04:46Z",
+      "side": 1,
+      "message": "cf. https://swiftshader-review.googlesource.com/c/SwiftShader/+/37608/6/third_party/llvm-7.0/llvm/include/llvm/Support/ManagedStatic.h#36",
+      "revId": "a8aa937edaa65ae3ef6bb28bf4292a078d0800bb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
