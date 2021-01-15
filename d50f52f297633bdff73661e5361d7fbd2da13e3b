@@ -47,6 +47,54 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d823b47_c435e1c1",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1924,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d3344914_f2fb4693",
+      "range": {
+        "startLine": 1924,
+        "startChar": 34,
+        "endLine": 1924,
+        "endChar": 70
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a695de09_311eb3a9",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1924,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7498714_61cc5915",
+      "range": {
+        "startLine": 1924,
+        "startChar": 72,
+        "endLine": 1924,
+        "endChar": 93
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "96296e59_86c1ecdd",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-01-15T04:22:35Z",
       "side": 1,
       "message": "Can the parameter be passed by reference instead, removing the need for this check?",
+      "range": {
+        "startLine": 1938,
+        "startChar": 1,
+        "endLine": 1941,
+        "endChar": 2
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "86473779_219fdb8a",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1941,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "96296e59_86c1ecdd",
       "range": {
         "startLine": 1938,
         "startChar": 1,
@@ -93,6 +165,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "35a1de22_8e1d510f",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1963,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c1d8914_8e6bf2dd",
+      "range": {
+        "startLine": 1943,
+        "startChar": 1,
+        "endLine": 1963,
+        "endChar": 2
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "03db110a_bc8d97ea",
@@ -106,6 +202,30 @@
       "writtenOn": "2021-01-15T04:22:35Z",
       "side": 1,
       "message": "It looks weird/confusing to me to be calling the same function again. While you could split the code below into a separate function to avoid that, I suggest actually having both a resolveDepth and resolveStencil function. Note that stencil can only ever be 8-bit (while depth is always larger), and the extension states that VK_RESOLVE_MODE_AVERAGE_BIT must not be supported, so the stencil resolve code will always be quite different from the depth resolve code.",
+      "range": {
+        "startLine": 1968,
+        "startChar": 2,
+        "endLine": 1973,
+        "endChar": 61
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf6afc72_ffd1a53d",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 1973,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03db110a_bc8d97ea",
       "range": {
         "startLine": 1968,
         "startChar": 2,
@@ -139,6 +259,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "aff3179f_44e2ed83",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 2066,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Used a memcpy instead as I think that\u0027s what you meant?",
+      "parentUuid": "932d3a19_4efcc462",
+      "range": {
+        "startLine": 2048,
+        "startChar": 2,
+        "endLine": 2066,
+        "endChar": 3
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a949154b_6528cad5",
@@ -152,6 +296,30 @@
       "writtenOn": "2021-01-14T23:49:18Z",
       "side": 1,
       "message": "mipLevelExtent is really meant to be valid for a specific memory plane (depth or stencil). I suggest you call Image::getMipLevelExtent() with only VK_IMAGE_ASPECT_DEPTH_BIT set. If necessary, you can call Image::getMipLevelExtent() with VK_IMAGE_ASPECT_STENCIL_BIT and assert that both mipLevelExtents are equal, but in your specific case, I assume the spec must mentions that both must be equal.",
+      "range": {
+        "startLine": 762,
+        "startChar": 0,
+        "endLine": 762,
+        "endChar": 63
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e47c479_e3824883",
+        "filename": "src/Vulkan/VkImage.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 762,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a949154b_6528cad5",
       "range": {
         "startLine": 762,
         "startChar": 0,
@@ -185,6 +353,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c8365bc1_da232eba",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07826c23_57daa97b",
+      "range": {
+        "startLine": 323,
+        "startChar": 1,
+        "endLine": 328,
+        "endChar": 2
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "689293c3_1f961bba",
@@ -198,6 +390,30 @@
       "writtenOn": "2021-01-14T23:49:18Z",
       "side": 1,
       "message": "Is this necessary? Just curious.",
+      "range": {
+        "startLine": 363,
+        "startChar": 8,
+        "endLine": 363,
+        "endChar": 32
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5148b376_1eb4ffaa",
+        "filename": "src/Vulkan/VkRenderPass.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-15T21:23:46Z",
+      "side": 1,
+      "message": "I could add the subpass-\u003epNext handling code into this function and adjusting the memory pointer wouldn\u0027t be necessary. I did it this way because of the comment on #141 saying that the init function ignores such things.",
+      "parentUuid": "689293c3_1f961bba",
       "range": {
         "startLine": 363,
         "startChar": 8,
