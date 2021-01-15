@@ -422,6 +422,30 @@
       },
       "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9388a6e3_f4559f1a",
+        "filename": "src/Vulkan/VkRenderPass.cpp",
+        "patchSetId": 13
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T21:43:46Z",
+      "side": 1,
+      "message": "Sorry, my comment wasn\u0027t clear. I\u0027m pointing to the \"reinterpret_cast\u003cvoid *\u003e\" section of that line. I meant: do you need to reinterpret_cast, or can you just assign it this way:\n*mem \u003d hostMemory;",
+      "parentUuid": "5148b376_1eb4ffaa",
+      "range": {
+        "startLine": 363,
+        "startChar": 8,
+        "endLine": 363,
+        "endChar": 32
+      },
+      "revId": "d50f52f297633bdff73661e5361d7fbd2da13e3b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }

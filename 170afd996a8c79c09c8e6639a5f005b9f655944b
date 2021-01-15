@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4b5b7a32_7db5923b",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 1946,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T21:43:46Z",
+      "side": 1,
+      "message": "These 2 functions are almost the same. I think you could just add the aspect bit as a function argument, base everything else on that and remove one function entirely.",
+      "range": {
+        "startLine": 1884,
+        "startChar": 0,
+        "endLine": 1946,
+        "endChar": 1
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bfbc085f_e92ea2df",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T21:43:46Z",
+      "side": 1,
+      "message": "I think this one could be private or simply folded into the one currently called resolveDepthStencilWithLayerMask. It contains a levelCount related check per layer which doesn\u0027t depend on the layer.",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 125
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2445d782_131ace23",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T21:43:46Z",
+      "side": 1,
+      "message": "Nit: Maybe you could drop the \"WithLayerMask\" from the function\u0027s name, since one of the arguments is already called \"layerMask\".",
+      "range": {
+        "startLine": 84,
+        "startChar": 25,
+        "endLine": 84,
+        "endChar": 38
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
