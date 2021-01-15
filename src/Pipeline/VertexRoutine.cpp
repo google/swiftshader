@@ -114,35 +114,37 @@ void VertexRoutine::readInput(Pointer<UInt> &batch)
 void VertexRoutine::computeClipFlags()
 {
 	auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
-	assert(it != spirvShader->outputBuiltins.end());
-	assert(it->second.SizeInComponents == 4);
-	auto &pos = routine.getVariable(it->second.Id);
-	auto posX = pos[it->second.FirstComponent + 0];
-	auto posY = pos[it->second.FirstComponent + 1];
-	auto posZ = pos[it->second.FirstComponent + 2];
-	auto posW = pos[it->second.FirstComponent + 3];
+	if(it != spirvShader->outputBuiltins.end())
+	{
+		assert(it->second.SizeInComponents == 4);
+		auto &pos = routine.getVariable(it->second.Id);
+		auto posX = pos[it->second.FirstComponent + 0];
+		auto posY = pos[it->second.FirstComponent + 1];
+		auto posZ = pos[it->second.FirstComponent + 2];
+		auto posW = pos[it->second.FirstComponent + 3];
 
-	Int4 maxX = CmpLT(posW, posX);
-	Int4 maxY = CmpLT(posW, posY);
-	Int4 maxZ = CmpLT(posW, posZ);
-	Int4 minX = CmpNLE(-posW, posX);
-	Int4 minY = CmpNLE(-posW, posY);
-	Int4 minZ = CmpNLE(Float4(0.0f), posZ);
+		Int4 maxX = CmpLT(posW, posX);
+		Int4 maxY = CmpLT(posW, posY);
+		Int4 maxZ = CmpLT(posW, posZ);
+		Int4 minX = CmpNLE(-posW, posX);
+		Int4 minY = CmpNLE(-posW, posY);
+		Int4 minZ = CmpNLE(Float4(0.0f), posZ);
 
-	clipFlags = Pointer<Int>(constants + OFFSET(Constants, maxX))[SignMask(maxX)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxY))[SignMask(maxY)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minX))[SignMask(minX)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
+		clipFlags = Pointer<Int>(constants + OFFSET(Constants, maxX))[SignMask(maxX)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxY))[SignMask(maxY)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, maxZ))[SignMask(maxZ)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minX))[SignMask(minX)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minY))[SignMask(minY)];
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, minZ))[SignMask(minZ)];
 
-	Float4 maxPos = As<Float4>(Int4(0x7F7FFFFF));
-	Int4 finiteX = CmpLE(Abs(posX), maxPos);
-	Int4 finiteY = CmpLE(Abs(posY), maxPos);
-	Int4 finiteZ = CmpLE(Abs(posZ), maxPos);
+		Float4 maxPos = As<Float4>(Int4(0x7F7FFFFF));
+		Int4 finiteX = CmpLE(Abs(posX), maxPos);
+		Int4 finiteY = CmpLE(Abs(posY), maxPos);
+		Int4 finiteZ = CmpLE(Abs(posZ), maxPos);
 
-	Int4 finiteXYZ = finiteX & finiteY & finiteZ;
-	clipFlags |= Pointer<Int>(constants + OFFSET(Constants, fini))[SignMask(finiteXYZ)];
+		Int4 finiteXYZ = finiteX & finiteY & finiteZ;
+		clipFlags |= Pointer<Int>(constants + OFFSET(Constants, fini))[SignMask(finiteXYZ)];
+	}
 }
 
 void VertexRoutine::computeCullMask()
@@ -531,32 +533,46 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 	tagCache[cacheIndex0] = index0;
 
 	auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
-	assert(it != spirvShader->outputBuiltins.end());
-	assert(it->second.SizeInComponents == 4);
-	auto &position = routine.getVariable(it->second.Id);
+	if(it != spirvShader->outputBuiltins.end())
+	{
+		assert(it->second.SizeInComponents == 4);
+		auto &position = routine.getVariable(it->second.Id);
 
-	Vector4f pos;
-	pos.x = position[it->second.FirstComponent + 0];
-	pos.y = position[it->second.FirstComponent + 1];
-	pos.z = position[it->second.FirstComponent + 2];
-	pos.w = position[it->second.FirstComponent + 3];
+		Vector4f pos;
+		pos.x = position[it->second.FirstComponent + 0];
+		pos.y = position[it->second.FirstComponent + 1];
+		pos.z = position[it->second.FirstComponent + 2];
+		pos.w = position[it->second.FirstComponent + 3];
 
-	// Projection and viewport transform.
-	Float4 w = As<Float4>(As<Int4>(pos.w) | (As<Int4>(CmpEQ(pos.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
-	Float4 rhw = Float4(1.0f) / w;
+		// Projection and viewport transform.
+		Float4 w = As<Float4>(As<Int4>(pos.w) | (As<Int4>(CmpEQ(pos.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
+		Float4 rhw = Float4(1.0f) / w;
 
-	Vector4f proj;
-	proj.x = As<Float4>(RoundIntClamped(*Pointer<Float4>(data + OFFSET(DrawData, X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData, WxF))));
-	proj.y = As<Float4>(RoundIntClamped(*Pointer<Float4>(data + OFFSET(DrawData, Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData, HxF))));
-	proj.z = pos.z * rhw;
-	proj.w = rhw;
+		Vector4f proj;
+		proj.x = As<Float4>(RoundIntClamped(*Pointer<Float4>(data + OFFSET(DrawData, X0xF)) + pos.x * rhw * *Pointer<Float4>(data + OFFSET(DrawData, WxF))));
+		proj.y = As<Float4>(RoundIntClamped(*Pointer<Float4>(data + OFFSET(DrawData, Y0xF)) + pos.y * rhw * *Pointer<Float4>(data + OFFSET(DrawData, HxF))));
+		proj.z = pos.z * rhw;
+		proj.w = rhw;
 
-	transpose4x4(pos.x, pos.y, pos.z, pos.w);
+		transpose4x4(pos.x, pos.y, pos.z, pos.w);
 
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, position), 16) = pos.w;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, position), 16) = pos.z;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, position), 16) = pos.y;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, position), 16) = pos.x;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, position), 16) = pos.w;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, position), 16) = pos.z;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, position), 16) = pos.y;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, position), 16) = pos.x;
+
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 8) & 0x0000000FF;
+		*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 0) & 0x0000000FF;
+
+		transpose4x4(proj.x, proj.y, proj.z, proj.w);
+
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, projected), 16) = proj.w;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, projected), 16) = proj.z;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, projected), 16) = proj.y;
+		*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, projected), 16) = proj.x;
+	}
 
 	it = spirvShader->outputBuiltins.find(spv::BuiltInPointSize);
 	if(it != spirvShader->outputBuiltins.end())
@@ -598,22 +614,10 @@ void VertexRoutine::writeCache(Pointer<Byte> &vertexCache, Pointer<UInt> &tagCac
 		}
 	}
 
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 24) & 0x0000000FF;
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 16) & 0x0000000FF;
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 8) & 0x0000000FF;
-	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, clipFlags)) = (clipFlags >> 0) & 0x0000000FF;
-
 	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, cullMask)) = -((cullMask >> 3) & 1);
 	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, cullMask)) = -((cullMask >> 2) & 1);
 	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, cullMask)) = -((cullMask >> 1) & 1);
 	*Pointer<Int>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, cullMask)) = -((cullMask >> 0) & 1);
-
-	transpose4x4(proj.x, proj.y, proj.z, proj.w);
-
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex3 + OFFSET(Vertex, projected), 16) = proj.w;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex2 + OFFSET(Vertex, projected), 16) = proj.z;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex1 + OFFSET(Vertex, projected), 16) = proj.y;
-	*Pointer<Float4>(vertexCache + sizeof(Vertex) * cacheIndex0 + OFFSET(Vertex, projected), 16) = proj.x;
 
 	for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i += 4)
 	{
