@@ -34,6 +34,24 @@
       "parentUuid": "cd0d276b_d161c9dc",
       "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "220526e5_fb48cfed",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T13:56:30Z",
+      "side": 1,
+      "message": "My concern is mainly how urgent it is to remove this code VS spending a day or more debugging a fuzzer issue later to end up finding out that this was the issue. If we\u0027re fully covered (other mechanisms protect us from debugging this later), then this is fine. Otherwise, I\u0027m fairly certain one of the fuzzers will end up triggering this.",
+      "parentUuid": "ff5585fd_84c8c8dc",
+      "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
