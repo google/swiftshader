@@ -22,6 +22,30 @@
       },
       "revId": "92907718f39a8f08b8bc2b53d09c61eaed9aa96b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "638bf706_75e80f0c",
+        "filename": "src/Pipeline/VertexRoutine.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T22:35:16Z",
+      "side": 1,
+      "message": "Good catch, thanks. Done.",
+      "parentUuid": "8372d2e7_807ff5bc",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 24
+      },
+      "revId": "92907718f39a8f08b8bc2b53d09c61eaed9aa96b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
