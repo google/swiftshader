@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "06441fdf_65f56afc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T20:28:21Z",
+      "side": 1,
+      "message": "While this can be mentioned as the GLSL-specific way this bug manifested, this change doesn\u0027t have anything GL specific. So I suggest changing this line into something like \"Fix crash in vertex shader when position is not declared\".",
+      "range": {
+        "startLine": 7,
+        "startChar": 18,
+        "endLine": 7,
+        "endChar": 30
+      },
+      "revId": "b8cdbd205506b8487e1aaada1d802c7f7e760ee9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "87f8a41b_80033efe",
@@ -14,6 +37,29 @@
       "writtenOn": "2021-01-15T20:20:19Z",
       "side": 1,
       "message": "Formatting fixed",
+      "revId": "b8cdbd205506b8487e1aaada1d802c7f7e760ee9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2801ad7b_b797d164",
+        "filename": "src/Pipeline/VertexRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T20:28:21Z",
+      "side": 1,
+      "message": "I don\u0027t think we should return a 0 vector when no position is present. Note that due to the perspective division by w this isn\u0027t even \u0027safe\u0027. Instead I think we should just skip all post-shader handling of the position.",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 12
+      },
       "revId": "b8cdbd205506b8487e1aaada1d802c7f7e760ee9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
