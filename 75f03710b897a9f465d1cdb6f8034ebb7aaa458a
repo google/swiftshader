@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9cf1d46f_758e673e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:07:07Z",
+      "side": 1,
+      "message": "Note that this change is based off a temp one that allows me to check for memory leaks while ignoring any from Reactor.",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c0714057_eef24f84",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:07:07Z",
+      "side": 1,
+      "message": "Ignore this, I have this locally because the temp parent change sets us to use C++17, which enables \"nodiscard\" attributes in vulkan.hpp.",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "66459282_18a2fe88",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:07:07Z",
+      "side": 1,
+      "message": "The fact that this is the only UniqueDevice member shows us that this class is the owner of the device, while vk::Device members in other classes are weak handles. Sadly, the concept of shared/weak doesn\u0027t exist in vulkan.hpp, so we don\u0027t get the safety benefits, but we do get a clearer understanding of ownership.",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f377c74_425d0dbd",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1187,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:07:07Z",
+      "side": 1,
+      "message": "You can see here that I reordered types in creation order so that destruction order is correct. I quite like this.",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

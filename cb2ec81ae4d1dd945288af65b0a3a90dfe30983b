@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f03639e5_be0bc0eb",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 608,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:07:07Z",
+      "side": 0,
+      "message": "No need to store this device anymore in our class. Of course, it is stored in the UniqueHandle types so that their destructors can do the right thing.",
+      "revId": "cb2ec81ae4d1dd945288af65b0a3a90dfe30983b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03688950_e226a763",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 782,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:07:07Z",
+      "side": 0,
+      "message": "One of many destructors gone. This makes it easier to add new code and not leak. An interesting side effect of using the UniqueHandles is that you can easily know which types require destruction in the first place (only those that have a create...Unique function).",
+      "revId": "cb2ec81ae4d1dd945288af65b0a3a90dfe30983b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
