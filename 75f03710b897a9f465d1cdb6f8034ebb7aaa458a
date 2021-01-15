@@ -18,6 +18,23 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a10641e9_d770ceae",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T19:40:37Z",
+      "side": 1,
+      "message": "Thanks for creating this change. In my humble opinion it illustrates that trying to wrap Vulkan\u0027s C API into thin RAII objects creates quite a bit of dissonance though. While it helps in some areas, things like unique/shared/weak ownership/references are clearly not dealt with by vulkan.hpp in the same rigorous manner as C++11\u0027s smart pointers. Also keep in mind that when writing tests we reference the spec a lot, and so it\u0027s helpful to stick as close to the C calls mentioned by the spec as possible to avoid confusion. FWIW, many tutorials are also written against the C API.\n\nAs I mentioned at b/152889428#comment4, having abstractions like the Image class also reduce the practical benefit we get from partially relying on vulkan.hpp for resource management. Splitting the responsibilities between our code and theirs increases confusion, and I think that also rules out using the RAII objects only in some parts as it would be even more confusing. Again, pool allocated and resettable objects also add to the confusion of ownership and lifetime. It\u0027s a complex matter when reading the spec, but at least it tells the complete story instead of having this largely undocumented C++ wrapper behavior.\n\nI\u0027m also not enamoured with seeing \"Unique\" everywhere. It increases the difference in nomenclature between the spec\u0027s C types, and thee C++ wrappers. \"Unique\" as part of the class names (instead of part of smart pointers) also can be confused for being singletons.\n\nThe biggest advantage of this is the avoidance of leaks, but as I\u0027ve also mentioned earlier I\u0027m not overly concerned about that due to great tooling infrastructure. Keeping a minimal amount of behind-the-scenes magic between the test code and the C API that we\u0027re ultimately trying to test seems more important.",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c0714057_eef24f84",
@@ -31,6 +48,24 @@
       "writtenOn": "2021-01-15T16:07:07Z",
       "side": 1,
       "message": "Ignore this, I have this locally because the temp parent change sets us to use C++17, which enables \"nodiscard\" attributes in vulkan.hpp.",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ec60f417_b4b12559",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-15T19:40:37Z",
+      "side": 1,
+      "message": "Actually let\u0027s pull this into a separate change, to be C++17 ready, together with other changes for cl/351957376.\n\nI believe vulkan.hpp by default adds [[nodiscard]] to ensure applications check for errors. It\u0027s a debatable topic, but graphics applications generally can\u0027t gracefully recover from an unexpected result. Also, for benchmarks like this we want to keep overhead to a minimum. Unexpected results are also going to be extremely rare due to not having to deal with multiple driver implementations (assuming this remains SwiftShader-specific code).\n\nSo I definitely think we can keep this. It also simply preserves the previous behavior, and we should be able to relatively easily change our minds on this later, while in the short term it\u0027s un unnecessary feature/distraction.",
+      "parentUuid": "c0714057_eef24f84",
       "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
