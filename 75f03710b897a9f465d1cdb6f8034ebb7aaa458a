@@ -35,6 +35,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7340186b_22dfa678",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T21:01:02Z",
+      "side": 1,
+      "message": "Thank you for the feedback. I understand your points, and will go ahead and abandon this change. I will share some of my own opinions here, though:\n\nI think it\u0027s valuable knowing this data member represents the owner, while the regular handle types (vk::Device) represent non-owner/weak references. I also find it helpful that create functions with the Unique suffix only exist for types that must be destroyed as it helps understand the design of Vulkan. It effectively documents the lifetime policy in code without needing to refer to documentation.\n\nAbout having abstractions like the Image class reducing the benefit of these wrappers, I know what you mean, but don\u0027t fully agree. Indeed, I would venture that it helps me understand the meaning of these wrappers even more. For instance, if I see that the wrapper has Unique handle types, then I know it\u0027s an ownership type, and must be treated as such. If the wrapper does not have Unique handle types, then it\u0027s a weak proxy, and its lifetime can be temporary, for instance.\n\nThe \"Unique\" in the name of the type doesn\u0027t bother me, and in fact, is a common pattern (e.g. using UniqueFoo \u003d std::unique_ptr\u003cFoo\u003e). Also, \"unique\" types are a well known C++ concept since C++11, so I don\u0027t think it\u0027s really that confusing. At least the API is consistent (types start with Unique, create functions end with Unique).\n\nI agree with your last point; that it\u0027s mainly useful for avoiding memory leaks. Of course, this is something we do all the time in C++, and feels quite natural. But Vulkan is a C API, and we implement said API, so I understand that we don\u0027t want to hide it behind wrappers. Simply put: it\u0027s useful to be able to put a breakpoint on a destroy function in our tests.",
+      "parentUuid": "a10641e9_d770ceae",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c0714057_eef24f84",
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "Actually let\u0027s pull this into a separate change, to be C++17 ready, together with other changes for cl/351957376.\n\nI believe vulkan.hpp by default adds [[nodiscard]] to ensure applications check for errors. It\u0027s a debatable topic, but graphics applications generally can\u0027t gracefully recover from an unexpected result. Also, for benchmarks like this we want to keep overhead to a minimum. Unexpected results are also going to be extremely rare due to not having to deal with multiple driver implementations (assuming this remains SwiftShader-specific code).\n\nSo I definitely think we can keep this. It also simply preserves the previous behavior, and we should be able to relatively easily change our minds on this later, while in the short term it\u0027s un unnecessary feature/distraction.",
       "parentUuid": "c0714057_eef24f84",
+      "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa59632e_e4a2a647",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T21:01:02Z",
+      "side": 1,
+      "message": "Sure thing, I\u0027ll make this as part of a separate change. I agree that we don\u0027t need to be checking the result in our tests, but it makes sense for applications.",
+      "parentUuid": "ec60f417_b4b12559",
       "revId": "75f03710b897a9f465d1cdb6f8034ebb7aaa458a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
