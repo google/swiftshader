@@ -46,6 +46,30 @@
       },
       "revId": "882c291a822126be6b62e0cfdbf6d8fe16686f4c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bcffd708_fb02413f",
+        "filename": "src/Reactor/LLVMReactorDebugInfo.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-15T16:26:55Z",
+      "side": 1,
+      "message": "Turns out, that indentation problem is clang-format\u0027s fault! No amount of messing around makes it work. It looks like a bug with nested #ifdefs that indent failing to indent blocks in the #else part. I\u0027m going to leave it as is, and perhaps a future version of clang-format will correct it.\n\nAs for the second nit, I\u0027m going to leave this as is since we may want to actually parse for both on Windows in case we get mixed paths or something.\n\nThanks!",
+      "parentUuid": "ad734341_2be633c7",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 1
+      },
+      "revId": "882c291a822126be6b62e0cfdbf6d8fe16686f4c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
