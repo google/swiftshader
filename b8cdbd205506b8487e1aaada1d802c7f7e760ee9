@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "1d34c25a_6b720207",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T21:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06441fdf_65f56afc",
+      "range": {
+        "startLine": 7,
+        "startChar": 18,
+        "endLine": 7,
+        "endChar": 30
+      },
+      "revId": "b8cdbd205506b8487e1aaada1d802c7f7e760ee9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "87f8a41b_80033efe",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
@@ -54,6 +78,30 @@
       "writtenOn": "2021-01-15T20:28:21Z",
       "side": 1,
       "message": "I don\u0027t think we should return a 0 vector when no position is present. Note that due to the perspective division by w this isn\u0027t even \u0027safe\u0027. Instead I think we should just skip all post-shader handling of the position.",
+      "range": {
+        "startLine": 116,
+        "startChar": 1,
+        "endLine": 128,
+        "endChar": 12
+      },
+      "revId": "b8cdbd205506b8487e1aaada1d802c7f7e760ee9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "35dc327e_1a4c6be2",
+        "filename": "src/Pipeline/VertexRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-15T21:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2801ad7b_b797d164",
       "range": {
         "startLine": 116,
         "startChar": 1,
