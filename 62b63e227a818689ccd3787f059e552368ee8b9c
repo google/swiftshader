@@ -52,6 +52,24 @@
       "parentUuid": "ff5585fd_84c8c8dc",
       "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "598031c1_995c7ae0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-17T09:01:00Z",
+      "side": 1,
+      "message": "I don\u0027t think adding an assert is actually feasible. It is valid for applications to not write to all components, as long as they don\u0027t read them (well, even that is \"valid\", it\u0027s just undefined what value they\u0027ll get). This can be a sane optimization, when a second shader writes the missing components later. Implementations can do whatever is cheapest (not touching the components, zeroing them, or writing whatever value the color output register happens to have).\n\nNote that the current workaround for the test bug takes extra operations per pixel.\n\nAlso, it actually prevents MSan from detecting the old test bug. So reverting it is the right course of action if we want to detect future bugs. I have filed b/176197137 to check that this works as expected.",
+      "parentUuid": "220526e5_fb48cfed",
+      "revId": "62b63e227a818689ccd3787f059e552368ee8b9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
