@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4105d7c_1a6002ba",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 924,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T17:54:33Z",
+      "side": 1,
+      "message": "I wonder if we\u0027re going to hit this for valid applications.",
+      "range": {
+        "startLine": 924,
+        "startChar": 3,
+        "endLine": 924,
+        "endChar": 14
+      },
+      "revId": "df8533163f4da9bb433aa760bb2ba3aafd94f381",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
