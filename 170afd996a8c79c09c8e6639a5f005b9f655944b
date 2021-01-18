@@ -111,6 +111,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "402d4514_7fd40d6c",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 1946,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-18T13:39:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "98c9d6f6_ffde7bb3",
+      "range": {
+        "startLine": 1884,
+        "startChar": 0,
+        "endLine": 1946,
+        "endChar": 1
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bfbc085f_e92ea2df",
@@ -171,6 +195,30 @@
       "side": 1,
       "message": "@Alexis: Note this matches the prior resolveWithLayerMask/clearWithLayerMask methods above. If deemed worthwhile, let\u0027s refactor it in a separate change?",
       "parentUuid": "2445d782_131ace23",
+      "range": {
+        "startLine": 84,
+        "startChar": 25,
+        "endLine": 84,
+        "endChar": 38
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "853b4a0d_e333a0ed",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-18T13:39:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "55f15082_4d5f162c",
       "range": {
         "startLine": 84,
         "startChar": 25,
