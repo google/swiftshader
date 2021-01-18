@@ -22,22 +22,8 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 )
 
 set(VULKAN_BENCHMARKS_SRC_FILES
-    Buffer.cpp
-    Buffer.hpp
-    Framebuffer.cpp
-    Framebuffer.hpp
-    Image.cpp
-    Image.hpp
     main.cpp
-    Swapchain.cpp
-    Swapchain.hpp
-    Util.cpp
-    Util.hpp
     VulkanBenchmarks.cpp
-    VulkanHeaders.cpp
-    VulkanHeaders.hpp
-    Window.cpp
-    Window.hpp
 )
 
 add_executable(VulkanBenchmarks
@@ -48,16 +34,8 @@ if (NOT TARGET benchmark::benchmark)
     message(FATAL_ERROR "Missing required target: benchmark::benchmark")
 endif()
 
-if (NOT TARGET glslang)
-    message(FATAL_ERROR "Missing required target: glslang")
-endif()
-
-if (NOT TARGET glslang-default-resource-limits)
-    message(FATAL_ERROR "Missing required target: glslang-default-resource-limits")
-endif()
-
-if (NOT TARGET SPIRV)
-    message(FATAL_ERROR "Missing required target: SPIRV")
+if (NOT TARGET VulkanWrapper)
+    message(FATAL_ERROR "Missing required target: VulkanWrapper")
 endif()
 
 add_dependencies(VulkanBenchmarks
@@ -87,8 +65,6 @@ target_link_options(VulkanBenchmarks
 target_link_libraries(VulkanBenchmarks
     PRIVATE
         benchmark::benchmark
-        glslang
-        glslang-default-resource-limits
-        SPIRV
+        VulkanWrapper
         ${ROOT_PROJECT_LINK_LIBRARIES}
 )
