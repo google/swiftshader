@@ -22,6 +22,30 @@
       },
       "revId": "df8533163f4da9bb433aa760bb2ba3aafd94f381",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8829209c_32d732e1",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 924,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T17:55:49Z",
+      "side": 1,
+      "message": "That would be a good moment to look into what we actually need to do for these execution modes, so I\u0027m fine with removing them instead of silently ignoring them.",
+      "parentUuid": "a4105d7c_1a6002ba",
+      "range": {
+        "startLine": 924,
+        "startChar": 3,
+        "endLine": 924,
+        "endChar": 14
+      },
+      "revId": "df8533163f4da9bb433aa760bb2ba3aafd94f381",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
