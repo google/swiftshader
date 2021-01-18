@@ -22,8 +22,22 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 )
 
 set(VULKAN_BENCHMARKS_SRC_FILES
-    VulkanBenchmarks.cpp
+    Buffer.cpp
+    Buffer.hpp
+    Framebuffer.cpp
+    Framebuffer.hpp
+    Image.cpp
+    Image.hpp
     main.cpp
+    Swapchain.cpp
+    Swapchain.hpp
+    Util.cpp
+    Util.hpp
+    VulkanBenchmarks.cpp
+    VulkanHeaders.cpp
+    VulkanHeaders.hpp
+    Window.cpp
+    Window.hpp
 )
 
 add_executable(VulkanBenchmarks
