@@ -46,6 +46,30 @@
       },
       "revId": "df8533163f4da9bb433aa760bb2ba3aafd94f381",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b7cfbcfd_3ec4620e",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 924,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T21:57:26Z",
+      "side": 1,
+      "message": "I filed https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2735 since there don\u0027t appear to be dEQP tests for this. I also verified that our current implementation is correct. We can safely keep these, since it would have only been a matter of time before we run into the assert and have to bring them back. Let\u0027s just add comments that these aren\u0027t used by our implementation, and associate that change with a bug which explains why and links to the above test request for follow-up.",
+      "parentUuid": "8829209c_32d732e1",
+      "range": {
+        "startLine": 924,
+        "startChar": 3,
+        "endLine": 924,
+        "endChar": 14
+      },
+      "revId": "df8533163f4da9bb433aa760bb2ba3aafd94f381",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
