@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bcb40728_d8b4ec07",
+        "filename": "src/Vulkan/VkImageView.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T16:50:38Z",
+      "side": 1,
+      "message": "This has to be 1: https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#VUID-VkFramebufferCreateInfo-pAttachments-00883\n\nSo the macro used for checking the level count should be ASSERT(), not UNIMPLEMENTED().\n\nThe image view\u0027s number of layers can be greater than 1 though, and VkFramebufferCreateInfo indicates the number of layers used by the framebuffer. I\u0027m not sure which of these two are used for the resolve operation. Anyway, this can looked into later, but should trigger an UNIMPLEMENTED() for now.",
+      "range": {
+        "startLine": 267,
+        "startChar": 22,
+        "endLine": 267,
+        "endChar": 33
+      },
+      "revId": "cc6d54b824a44d4024bf2902e793896e8dc8929f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
