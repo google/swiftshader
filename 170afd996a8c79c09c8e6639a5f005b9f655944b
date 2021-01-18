@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "912f0c95_a3d78d2d",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 1903,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-18T16:27:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2fad363a_71e1989c",
+      "range": {
+        "startLine": 1903,
+        "startChar": 4,
+        "endLine": 1903,
+        "endChar": 8
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d8c0a573_bf3bceb7",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-01-17T09:32:05Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 1933,
+        "startChar": 4,
+        "endLine": 1933,
+        "endChar": 8
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b2131df_291c249e",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 1933,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-18T16:27:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d8c0a573_bf3bceb7",
       "range": {
         "startLine": 1933,
         "startChar": 4,
@@ -148,6 +196,30 @@
       "writtenOn": "2021-01-15T21:43:46Z",
       "side": 1,
       "message": "I think this one could be private or simply folded into the one currently called resolveDepthStencilWithLayerMask. It contains a levelCount related check per layer which doesn\u0027t depend on the layer.",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 125
+      },
+      "revId": "170afd996a8c79c09c8e6639a5f005b9f655944b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d383601_440bcafc",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-01-18T16:27:15Z",
+      "side": 1,
+      "message": "I just realized that I never actually do anything with the layer variable after patch 13. So I removed these functions.",
+      "parentUuid": "bfbc085f_e92ea2df",
       "range": {
         "startLine": 83,
         "startChar": 1,
