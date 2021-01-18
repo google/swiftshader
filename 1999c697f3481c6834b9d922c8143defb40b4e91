@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b225f0d9_f09bc895",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T18:21:57Z",
+      "side": 1,
+      "message": "Can land as-is but at some point we should take care of b/177839655",
+      "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dc801d3e_9e8c1d77",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T18:21:57Z",
+      "side": 1,
+      "message": "nit: This could be confused for handling the whole instruction. I suggest renaming it to Analyze.",
+      "range": {
+        "startLine": 1227,
+        "startChar": 6,
+        "endLine": 1227,
+        "endChar": 13
+      },
+      "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
