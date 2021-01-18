@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6f5b1357_738d0315",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-18T18:26:14Z",
+      "side": 1,
+      "message": "Similar to the previous change, fine for now but would be nice if we could separate data provided directly by the binary code, from analysis results: b/177839655",
+      "revId": "d8934f74b4d8090642bda4395dfc3493dcd66a2c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
