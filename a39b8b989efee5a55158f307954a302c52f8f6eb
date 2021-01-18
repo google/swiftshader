@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c171d9ae_c7817044",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-18T19:39:37Z",
+      "side": 1,
+      "message": "This is step one. Next change is to move this into a reusable library.",
+      "revId": "a39b8b989efee5a55158f307954a302c52f8f6eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
