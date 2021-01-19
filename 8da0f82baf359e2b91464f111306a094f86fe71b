@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9a815a2e_ce00e367",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T16:56:59Z",
+      "side": 0,
+      "message": "note: This was added at https://swiftshader-review.googlesource.com/c/SwiftShader/+/29648/4/src/Pipeline/PixelRoutine.cpp#65\n\nIt relates to alpha-to-coverage, not early depth test.",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 63
+      },
+      "revId": "8da0f82baf359e2b91464f111306a094f86fe71b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
