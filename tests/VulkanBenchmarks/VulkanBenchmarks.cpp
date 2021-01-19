@@ -199,11 +199,25 @@ static void ClearImage(benchmark::State &state, vk::Format clearFormat, vk::Imag
 	}
 }
 
+enum class FragShadeType
+{
+	Solid,
+	Interpolate,
+	Sample,
+};
+
+enum class Multisample
+{
+	False,
+	True
+};
+
 class TriangleBenchmark : public VulkanBenchmark
 {
 public:
-	TriangleBenchmark(bool multisample)
-	    : multisample(multisample)
+	TriangleBenchmark(FragShadeType fragShadeType, Multisample multisample)
+	    : fragShadeType(fragShadeType)
+	    , multisample(multisample == Multisample::True)
 	{
 		window.reset(new Window(instance, windowSize));
 		swapchain.reset(new Swapchain(physicalDevice, device, *window));
@@ -306,68 +320,72 @@ protected:
 		commandPoolCreateInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 		commandPool = device.createCommandPool(commandPoolCreateInfo);
 
-		texture.reset(new Image(device, 16, 16, vk::Format::eR8G8B8A8Unorm));
+		std::vector<vk::DescriptorSet> descriptorSets;
+		if(fragShadeType == FragShadeType::Sample)
+		{
+			texture.reset(new Image(device, 16, 16, vk::Format::eR8G8B8A8Unorm));
 
-		// Fill texture with white
-		vk::DeviceSize bufferSize = 16 * 16 * 4;
-		Buffer buffer(device, bufferSize, vk::BufferUsageFlagBits::eTransferSrc);
-		void *data = buffer.mapMemory();
-		memset(data, 255, bufferSize);
-		buffer.unmapMemory();
+			// Fill texture with white
+			vk::DeviceSize bufferSize = 16 * 16 * 4;
+			Buffer buffer(device, bufferSize, vk::BufferUsageFlagBits::eTransferSrc);
+			void *data = buffer.mapMemory();
+			memset(data, 255, bufferSize);
+			buffer.unmapMemory();
 
-		Util::transitionImageLayout(device, commandPool, queue, texture->getImage(), vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-		Util::copyBufferToImage(device, commandPool, queue, buffer.getBuffer(), texture->getImage(), 16, 16);
-		Util::transitionImageLayout(device, commandPool, queue, texture->getImage(), vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+			Util::transitionImageLayout(device, commandPool, queue, texture->getImage(), vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+			Util::copyBufferToImage(device, commandPool, queue, buffer.getBuffer(), texture->getImage(), 16, 16);
+			Util::transitionImageLayout(device, commandPool, queue, texture->getImage(), vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
-		vk::SamplerCreateInfo samplerInfo;
-		samplerInfo.magFilter = vk::Filter::eLinear;
-		samplerInfo.minFilter = vk::Filter::eLinear;
-		samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
-		samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
-		samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
-		samplerInfo.anisotropyEnable = VK_FALSE;
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
-		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 0.0f;
+			vk::SamplerCreateInfo samplerInfo;
+			samplerInfo.magFilter = vk::Filter::eLinear;
+			samplerInfo.minFilter = vk::Filter::eLinear;
+			samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+			samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+			samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+			samplerInfo.anisotropyEnable = VK_FALSE;
+			samplerInfo.unnormalizedCoordinates = VK_FALSE;
+			samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+			samplerInfo.mipLodBias = 0.0f;
+			samplerInfo.minLod = 0.0f;
+			samplerInfo.maxLod = 0.0f;
 
-		sampler = device.createSampler(samplerInfo);
+			sampler = device.createSampler(samplerInfo);
 
-		std::array<vk::DescriptorPoolSize, 1> poolSizes = {};
-		poolSizes[0].type = vk::DescriptorType::eCombinedImageSampler;
-		poolSizes[0].descriptorCount = 1;
+			std::array<vk::DescriptorPoolSize, 1> poolSizes = {};
+			poolSizes[0].type = vk::DescriptorType::eCombinedImageSampler;
+			poolSizes[0].descriptorCount = 1;
 
-		vk::DescriptorPoolCreateInfo poolInfo;
-		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = 1;
+			vk::DescriptorPoolCreateInfo poolInfo;
+			poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+			poolInfo.pPoolSizes = poolSizes.data();
+			poolInfo.maxSets = 1;
 
-		descriptorPool = device.createDescriptorPool(poolInfo);
+			descriptorPool = device.createDescriptorPool(poolInfo);
 
-		std::vector<vk::DescriptorSetLayout> layouts(1, descriptorSetLayout);
-		vk::DescriptorSetAllocateInfo allocInfo;
-		allocInfo.descriptorPool = descriptorPool;
-		allocInfo.descriptorSetCount = 1;
-		allocInfo.pSetLayouts = layouts.data();
+			std::vector<vk::DescriptorSetLayout> layouts(1, descriptorSetLayout);
+			vk::DescriptorSetAllocateInfo allocInfo;
+			allocInfo.descriptorPool = descriptorPool;
+			allocInfo.descriptorSetCount = 1;
+			allocInfo.pSetLayouts = layouts.data();
 
-		std::vector<vk::DescriptorSet> descriptorSets = device.allocateDescriptorSets(allocInfo);
+			descriptorSets = device.allocateDescriptorSets(allocInfo);
 
-		vk::DescriptorImageInfo imageInfo;
-		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		imageInfo.imageView = texture->getImageView();
-		imageInfo.sampler = sampler;
+			vk::DescriptorImageInfo imageInfo;
+			imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			imageInfo.imageView = texture->getImageView();
+			imageInfo.sampler = sampler;
 
-		std::array<vk::WriteDescriptorSet, 1> descriptorWrites = {};
+			std::array<vk::WriteDescriptorSet, 1> descriptorWrites = {};
 
-		descriptorWrites[0].dstSet = descriptorSets[0];
-		descriptorWrites[0].dstBinding = 1;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pImageInfo = &imageInfo;
+			descriptorWrites[0].dstSet = descriptorSets[0];
+			descriptorWrites[0].dstBinding = 1;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pImageInfo = &imageInfo;
 
-		device.updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			device.updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		}
 
 		vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
 		commandBufferAllocateInfo.commandPool = commandPool;
@@ -401,7 +419,10 @@ protected:
 			vk::Rect2D scissor(vk::Offset2D(0, 0), windowSize);
 			commandBuffers[i].setScissor(0, 1, &scissor);
 
-			commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, 1, &descriptorSets[0], 0, nullptr);
+			if(!descriptorSets.empty())
+			{
+				commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, 1, &descriptorSets[0], 0, nullptr);
+			}
 
 			// Draw a triangle
 			commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
@@ -449,9 +470,26 @@ protected:
 		vertices.inputBinding.stride = sizeof(Vertex);
 		vertices.inputBinding.inputRate = vk::VertexInputRate::eVertex;
 
-		vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
-		vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)));
-		vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texCoord)));
+		switch(fragShadeType)
+		{
+			case FragShadeType::Solid:
+				vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
+				break;
+
+			case FragShadeType::Interpolate:
+				vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
+				vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)));
+				break;
+
+			case FragShadeType::Sample:
+				vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
+				vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)));
+				vertices.inputAttributes.push_back(vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texCoord)));
+				break;
+
+			default:
+				assert(false && "Unhandled fragShadeType");
+		}
 
 		vertices.inputState.vertexBindingDescriptionCount = 1;
 		vertices.inputState.pVertexBindingDescriptions = &vertices.inputBinding;
@@ -563,21 +601,25 @@ protected:
 
 	vk::Pipeline createGraphicsPipeline(vk::RenderPass renderPass)
 	{
-		vk::DescriptorSetLayoutBinding samplerLayoutBinding;
-		samplerLayoutBinding.binding = 1;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
-		samplerLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+		std::vector<vk::DescriptorSetLayout> setLayouts;
+		if(fragShadeType == FragShadeType::Sample)
+		{
+			vk::DescriptorSetLayoutBinding samplerLayoutBinding;
+			samplerLayoutBinding.binding = 1;
+			samplerLayoutBinding.descriptorCount = 1;
+			samplerLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			samplerLayoutBinding.pImmutableSamplers = nullptr;
+			samplerLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-		std::array<vk::DescriptorSetLayoutBinding, 1> bindings = { samplerLayoutBinding };
-		vk::DescriptorSetLayoutCreateInfo layoutInfo;
-		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-		layoutInfo.pBindings = bindings.data();
+			std::array<vk::DescriptorSetLayoutBinding, 1> bindings = { samplerLayoutBinding };
+			vk::DescriptorSetLayoutCreateInfo layoutInfo;
+			layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+			layoutInfo.pBindings = bindings.data();
 
-		descriptorSetLayout = device.createDescriptorSetLayout(layoutInfo);
+			descriptorSetLayout = device.createDescriptorSetLayout(layoutInfo);
 
-		std::vector<vk::DescriptorSetLayout> setLayouts(1, descriptorSetLayout);
+			setLayouts.push_back(descriptorSetLayout);
+		}
 
 		vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
 		pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
@@ -633,36 +675,98 @@ protected:
 		multisampleState.rasterizationSamples = multisample ? vk::SampleCountFlagBits::e4 : vk::SampleCountFlagBits::e1;
 		multisampleState.pSampleMask = nullptr;
 
-		const char *vertexShader = R"(#version 310 es
-			layout(location = 0) in vec3 inPos;
-			layout(location = 1) in vec3 inColor;
+		const char *vertexShader = nullptr;
+		const char *fragmentShader = nullptr;
 
-			layout(location = 0) out vec3 outColor;
-			layout(location = 1) out vec2 fragTexCoord;
-
-			void main()
+		switch(fragShadeType)
+		{
+			case FragShadeType::Solid:
 			{
-				outColor = inColor;
-				gl_Position = vec4(inPos.xyz, 1.0);
-				fragTexCoord = inPos.xy;
+				vertexShader = R"(#version 310 es
+					layout(location = 0) in vec3 inPos;
+
+					void main()
+					{
+						gl_Position = vec4(inPos.xyz, 1.0);
+					})";
+
+				fragmentShader = R"(#version 310 es
+					precision highp float;
+
+					layout(location = 0) out vec4 outColor;
+
+					void main()
+					{
+						outColor = vec4(1.0, 1.0, 1.0, 1.0);
+					})";
 			}
-		)";
+			break;
 
-		const char *fragmentShader = R"(#version 310 es
-			precision highp float;
-
-			layout(location = 0) in vec3 inColor;
-			layout(location = 1) in vec2 fragTexCoord;
-
-			layout(location = 0) out vec4 outColor;
-
-			layout(binding = 0) uniform sampler2D texSampler;
-
-			void main()
+			case FragShadeType::Interpolate:
 			{
-				outColor = texture(texSampler, fragTexCoord) * vec4(inColor, 1.0);
+				vertexShader = R"(#version 310 es
+					layout(location = 0) in vec3 inPos;
+					layout(location = 1) in vec3 inColor;
+
+					layout(location = 0) out vec3 outColor;
+
+					void main()
+					{
+						outColor = inColor;
+						gl_Position = vec4(inPos.xyz, 1.0);
+					})";
+
+				fragmentShader = R"(#version 310 es
+					precision highp float;
+
+					layout(location = 0) in vec3 inColor;
+
+					layout(location = 0) out vec4 outColor;
+
+					void main()
+					{
+						outColor = vec4(inColor, 1.0);
+					})";
 			}
-		)";
+			break;
+
+			case FragShadeType::Sample:
+			{
+				vertexShader = R"(#version 310 es
+					layout(location = 0) in vec3 inPos;
+					layout(location = 1) in vec3 inColor;
+
+					layout(location = 0) out vec3 outColor;
+					layout(location = 1) out vec2 fragTexCoord;
+
+					void main()
+					{
+						outColor = inColor;
+						gl_Position = vec4(inPos.xyz, 1.0);
+						fragTexCoord = inPos.xy;
+					})";
+
+				fragmentShader = R"(#version 310 es
+					precision highp float;
+
+					layout(location = 0) in vec3 inColor;
+					layout(location = 1) in vec2 fragTexCoord;
+
+					layout(location = 0) out vec4 outColor;
+
+					layout(binding = 0) uniform sampler2D texSampler;
+
+					void main()
+					{
+						outColor = texture(texSampler, fragTexCoord) * vec4(inColor, 1.0);
+					})";
+			}
+			break;
+
+			default:
+				assert(false && "Unhandled fragShadeType");
+				break;
+		}
 
 		vk::ShaderModule vertexModule = createShaderModule(vertexShader, EShLanguage::EShLangVertex);
 		vk::ShaderModule fragmentModule = createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
@@ -698,6 +802,7 @@ protected:
 	}
 
 	const vk::Extent2D windowSize = { 1280, 720 };
+	const FragShadeType fragShadeType;
 	const bool multisample;
 
 	std::unique_ptr<Window> window;
@@ -732,9 +837,9 @@ protected:
 	std::vector<vk::CommandBuffer> commandBuffers;  // Owning handles
 };
 
-static void Triangle(benchmark::State &state, bool multisample)
+static void Triangle(benchmark::State &state, FragShadeType fragShadeType, Multisample multisample)
 {
-	TriangleBenchmark benchmark(multisample);
+	TriangleBenchmark benchmark(fragShadeType, multisample);
 
 	if(false) benchmark.show();  // Enable for visual verification.
 
@@ -750,5 +855,10 @@ static void Triangle(benchmark::State &state, bool multisample)
 BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R8G8B8A8_UNORM, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
 BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_R32_SFLOAT, vk::Format::eR32Sfloat, vk::ImageAspectFlagBits::eColor)->Unit(benchmark::kMillisecond);
 BENCHMARK_CAPTURE(ClearImage, VK_FORMAT_D32_SFLOAT, vk::Format::eD32Sfloat, vk::ImageAspectFlagBits::eDepth)->Unit(benchmark::kMillisecond);
-BENCHMARK_CAPTURE(Triangle, Hello, false)->Unit(benchmark::kMillisecond);
-BENCHMARK_CAPTURE(Triangle, Multisample, true)->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(Triangle, Solid, FragShadeType::Solid, Multisample::False)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Interpolate, FragShadeType::Interpolate, Multisample::False)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Sample, FragShadeType::Sample, Multisample::False)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Solid_Multisample, FragShadeType::Solid, Multisample::True)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Interpolate_Multisample, FragShadeType::Interpolate, Multisample::True)->Unit(benchmark::kMillisecond);
+BENCHMARK_CAPTURE(Triangle, Sample_Multisample, FragShadeType::Sample, Multisample::True)->Unit(benchmark::kMillisecond);
