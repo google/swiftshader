@@ -63,6 +63,29 @@
       },
       "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b6a0c55_b672560f",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:14:09Z",
+      "side": 1,
+      "message": "Actually we don\u0027t have to do this. https://www.khronos.org/registry/spir-v/specs/unified1/GLSL.std.450.pdf states for each of the Interpolate instructions that \"Use of this instruction requires declaration of the InterpolationFunction capability.\" This is validated by SPIRV-Tools.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 1
+      },
+      "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
