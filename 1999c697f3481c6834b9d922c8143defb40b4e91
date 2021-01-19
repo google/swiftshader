@@ -86,6 +86,30 @@
       },
       "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "41adee04_ccd87bc8",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-19T21:17:46Z",
+      "side": 1,
+      "message": "This is used to optimize out code that we don\u0027t need when the functions aren\u0027t present.",
+      "parentUuid": "3b6a0c55_b672560f",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 1
+      },
+      "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
