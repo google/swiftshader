@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "d24e1469_c221a6f5",
         "filename": "src/Pipeline/PixelRoutine.cpp",
@@ -14,10 +15,10 @@
       "side": 1,
       "message": "We\u0027re being too clever here. There\u0027s just the explicit control (8.11.2):\n\nIf the fragment shader specifies the EarlyFragmentTests OpExecutionMode, the per-fragment tests described in Early Fragment Test Mode are performed prior to fragment shader execution. Otherwise, they are performed after fragment shader execution\n\n\nLet\u0027s clean this up properly in a follow-up?",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
       "key": {
         "uuid": "c2d430a1_246aa14f",
         "filename": "src/Pipeline/PixelRoutine.cpp",
@@ -32,10 +33,10 @@
       "message": "Ack",
       "parentUuid": "d24e1469_c221a6f5",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": false
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "3c79d202_b1a6d2e8",
         "filename": "src/Pipeline/PixelRoutine.cpp",
@@ -50,10 +51,10 @@
       "message": "Please open a bug",
       "parentUuid": "c2d430a1_246aa14f",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "30119f50_35b6dea1",
         "filename": "src/Pipeline/PixelRoutine.cpp",
@@ -68,10 +69,28 @@
       "message": "Done. b/140302392",
       "parentUuid": "3c79d202_b1a6d2e8",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe7e0efb_74d67c37",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 17
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T18:43:17Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/c/SwiftShader/+/51888",
+      "parentUuid": "30119f50_35b6dea1",
+      "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "aa9dbd61_396849a1",
         "filename": "src/Pipeline/SpirvShader.cpp",
@@ -85,10 +104,10 @@
       "side": 1,
       "message": "Must only apply storesAndAtomicsMask for stores out to images/buffers (Uniform, StorageBuffer, and Image storage classes). Stores to variables within the shader must happen as usual for helper invocations.",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "48607ad0_77915525",
         "filename": "src/Pipeline/SpirvShader.cpp",
@@ -103,10 +122,10 @@
       "message": "I\u0027m already working on it locally.",
       "parentUuid": "aa9dbd61_396849a1",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "2cb08ad9_20b2c3df",
         "filename": "src/Pipeline/SpirvShader.cpp",
@@ -121,10 +140,10 @@
       "message": "Would it be feasible to have dEQP coverage for that?",
       "parentUuid": "48607ad0_77915525",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "3c959005_192b5426",
         "filename": "src/Pipeline/SpirvShader.cpp",
@@ -139,8 +158,7 @@
       "message": "Yes. Some of the edges are pretty subtle to test, but I will add a task for Siru.",
       "parentUuid": "2cb08ad9_20b2c3df",
       "revId": "b231d2b8bf2aa1f1532913f4c73efa0e8e34cb72",
-      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
-      "unresolved": true
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
