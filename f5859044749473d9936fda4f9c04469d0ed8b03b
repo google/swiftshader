@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "717ea641_1554ac94",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:20:15Z",
+      "side": 1,
+      "message": "These don\u0027t need initialization. Note that we can catch bugs with MSan support for Reactor routines now.",
+      "range": {
+        "startLine": 1018,
+        "startChar": 1,
+        "endLine": 1020,
+        "endChar": 23
+      },
+      "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5a9201d7_fb6e4efb",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1032,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:20:15Z",
+      "side": 1,
+      "message": "This should be the actual number of samples obtained from the image, to avoid future issues when we support other multisample counts.\n\nI\u0027m okay with landing this as-is if you file a bug to take care of this later.",
+      "range": {
+        "startLine": 1032,
+        "startChar": 25,
+        "endLine": 1032,
+        "endChar": 40
+      },
+      "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "de9f1898_505c5a0e",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1041,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:20:15Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem necessary. You can do something like `Pointer\u003cFloat\u003e(constants + sizeof(Constants::SampleLocationsX) + i * sizeof(float))` to access it directly.\n\nI\u0027ve filed b/177926425 to make that a bit easier to do in the future. Feel free to either file a bug dependent on that one for simplifying/optimizing this code at a later point, or update this patch to use the explicit pointer arithmetic for now.",
+      "range": {
+        "startLine": 1035,
+        "startChar": 4,
+        "endLine": 1041,
+        "endChar": 5
+      },
+      "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb95afa5_3f7a24ad",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1048,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:20:15Z",
+      "side": 1,
+      "message": "This can be done more cheaply as x \u0026 0x3",
+      "range": {
+        "startLine": 1048,
+        "startChar": 24,
+        "endLine": 1048,
+        "endChar": 31
+      },
+      "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3eea35c_1b2be0da",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1080,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:20:15Z",
+      "side": 1,
+      "message": "According to \"The operand interpolant must be a pointer to the Input Storage Class.\" These are globals, so they can\u0027t be offset by a dynamic index. Hence I don\u0027t think we can run into this case?",
+      "range": {
+        "startLine": 1080,
+        "startChar": 4,
+        "endLine": 1080,
+        "endChar": 57
+      },
+      "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
