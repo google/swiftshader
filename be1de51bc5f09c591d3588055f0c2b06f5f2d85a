@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4f540ca7_094d2cfc",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 907,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:46:59Z",
+      "side": 1,
+      "message": "I think this would indicate a bug and we shouldn\u0027t silently return. Let\u0027s replace this with an assert.\n\nNote that all decoration values in SPIR-V are actually uint32, but we currently use int32 for initializing to -1 and detecting bugs. I\u0027ve filed b/177932128 to see if we can avoid that and not require littering the code with asserts.",
+      "range": {
+        "startLine": 904,
+        "startChar": 1,
+        "endLine": 907,
+        "endChar": 2
+      },
+      "revId": "be1de51bc5f09c591d3588055f0c2b06f5f2d85a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "04e32486_ecc6d1e7",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 911,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:46:59Z",
+      "side": 1,
+      "message": "nit: \"over\" ?",
+      "range": {
+        "startLine": 911,
+        "startChar": 35,
+        "endLine": 911,
+        "endChar": 37
+      },
+      "revId": "be1de51bc5f09c591d3588055f0c2b06f5f2d85a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "86109169_e56c2137",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 922,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:46:59Z",
+      "side": 1,
+      "message": "nit: Move to the top of the loop so you can break early when \u003d\u003d ATTRIBTYPE_UNUSED and not require an else clause.",
+      "range": {
+        "startLine": 919,
+        "startChar": 2,
+        "endLine": 922,
+        "endChar": 3
+      },
+      "revId": "be1de51bc5f09c591d3588055f0c2b06f5f2d85a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
