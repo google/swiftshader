@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "323e5cfc_97b819ca",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1356,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-19T21:57:44Z",
+      "side": 1,
+      "message": "Let\u0027s avoid mixing data and state.\n\nTogether with robustBufferAccess this is state which affects the code that gets generated (besides obviously the SPIR-V binary itself), so let\u0027s bundle them together in their own struct. FYI for sampler inlining the descriptor set contents (which is already passed into SpirvShader::emit()) also becomes part of that state, but it is not known at pipeline compilation time like robustBufferAccess and multiSampleCount are.",
+      "range": {
+        "startLine": 1356,
+        "startChar": 2,
+        "endLine": 1356,
+        "endChar": 36
+      },
+      "revId": "57f983766519c87728b075a7701df8fbe42c6219",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
