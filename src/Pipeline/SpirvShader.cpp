@@ -936,12 +936,15 @@ void SpirvShader::ProcessExecutionMode(InsnIterator insn)
 			modes.DepthReplacing = true;
 			break;
 		case spv::ExecutionModeDepthGreater:
+			// TODO(b/177915067): Can be used to optimize depth test, currently unused.
 			modes.DepthGreater = true;
 			break;
 		case spv::ExecutionModeDepthLess:
+			// TODO(b/177915067): Can be used to optimize depth test, currently unused.
 			modes.DepthLess = true;
 			break;
 		case spv::ExecutionModeDepthUnchanged:
+			// TODO(b/177915067): Can be used to optimize depth test, currently unused.
 			modes.DepthUnchanged = true;
 			break;
 		case spv::ExecutionModeLocalSize:
