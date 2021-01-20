@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3f4acf58_4be63d5d",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-20T04:06:14Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of this extra namespace. For unit tests and benchmarks we should never have multiple classes with the same name (that we ourselves wrote, i.e. vulkan.hpp\u0027s vk:: namespace helps clarify which are the \"native\" Vulkan types). I don\u0027t think it helps reading nor writing.\n\nLikewise the extra vkw/ subdirectory for the include files seems redundant.",
+      "range": {
+        "startLine": 208,
+        "startChar": 19,
+        "endLine": 208,
+        "endChar": 24
+      },
+      "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
