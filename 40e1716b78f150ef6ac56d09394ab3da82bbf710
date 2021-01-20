@@ -22,6 +22,30 @@
       },
       "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e61cb7d6_bc02988f",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-20T16:22:20Z",
+      "side": 1,
+      "message": "In general, I would disagree only because namespacing is good practice in C++, especially for reusable libraries. It is also good practice to \"namespace\" include directories so that you can tell at a glance when looking at includes what the dependencies are. However, I know that we don\u0027t generally follow this practice in SwiftShader, so I will go ahead and remove the namespace in code and in the include directory.",
+      "parentUuid": "3f4acf58_4be63d5d",
+      "range": {
+        "startLine": 208,
+        "startChar": 19,
+        "endLine": 208,
+        "endChar": 24
+      },
+      "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
