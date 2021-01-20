@@ -22,6 +22,30 @@
       },
       "revId": "e57d6de04fe14cf9a97e472afb1a553f0985c8b9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e05cf44e_515ca30e",
+        "filename": "tests/VulkanBenchmarks/Util.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-20T16:20:11Z",
+      "side": 1,
+      "message": "Yes, this is true. I adapted the first 5 from vulkan-tutorial.com, FYI.",
+      "parentUuid": "e91f1abd_1a48feba",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 91
+      },
+      "revId": "e57d6de04fe14cf9a97e472afb1a553f0985c8b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
