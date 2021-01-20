@@ -160,7 +160,10 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/GCMetadataPrinter.cpp
     ${LLVM_DIR}/lib/CodeGen/GCRootLowering.cpp
     ${LLVM_DIR}/lib/CodeGen/GCStrategy.cpp
+    ${LLVM_DIR}/lib/CodeGen/GlobalMerge.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/CallLowering.cpp
+    ${LLVM_DIR}/lib/CodeGen/GlobalISel/Combiner.cpp
+    ${LLVM_DIR}/lib/CodeGen/GlobalISel/CombinerHelper.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/CSEInfo.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/CSEMIRBuilder.cpp
     ${LLVM_DIR}/lib/CodeGen/GlobalISel/GISelChangeObserver.cpp
@@ -268,6 +271,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/CodeGen/RegAllocGreedy.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterClassInfo.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterCoalescer.cpp
+    ${LLVM_DIR}/lib/CodeGen/RegAllocPBQP.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterPressure.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterScavenging.cpp
     ${LLVM_DIR}/lib/CodeGen/RegisterUsageInfo.cpp
@@ -456,6 +460,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/IR/Value.cpp
     ${LLVM_DIR}/lib/IR/ValueSymbolTable.cpp
     ${LLVM_DIR}/lib/IR/Verifier.cpp
+    ${LLVM_DIR}/lib/MC/ConstantPools.cpp
     ${LLVM_DIR}/lib/MC/ELFObjectWriter.cpp
     ${LLVM_DIR}/lib/MC/MachObjectWriter.cpp
     ${LLVM_DIR}/lib/MC/MCAsmBackend.cpp
@@ -732,6 +737,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Scalar/InstSimplifyPass.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/JumpThreading.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LICM.cpp
+    ${LLVM_DIR}/lib/Transforms/Scalar/LoopDataPrefetch.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopDeletion.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopDistribute.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/LoopIdiomRecognize.cpp
@@ -757,6 +763,7 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Transforms/Scalar/PartiallyInlineLibCalls.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/Reassociate.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SCCP.cpp
+    ${LLVM_DIR}/lib/Transforms/Scalar/SeparateConstOffsetFromGEP.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SimpleLoopUnswitch.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SimplifyCFGPass.cpp
     ${LLVM_DIR}/lib/Transforms/Scalar/SpeculativeExecution.cpp
@@ -943,6 +950,7 @@ elseif(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
     )
 elseif(ARCH STREQUAL "aarch64")
     list(APPEND LLVM_LIST
+        ${LLVM_DIR}/lib/Support/AArch64TargetParser.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64A53Fix835769.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64A57FPLoadBalancing.cpp
         ${LLVM_DIR}/lib/Target/AArch64/AArch64AdvSIMDScalarPass.cpp

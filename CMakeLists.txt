@@ -68,6 +68,22 @@ else()
     endif()
 endif()
 
+# Cross compiling on macOS. The cross compiling architecture should override
+# auto-detected system architecture settings.
+if(CMAKE_OSX_ARCHITECTURES)
+    if(CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+        set(ARCH "aarch64")
+    elseif(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
+        set(ARCH "x86_64")
+    elseif(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
+        set(ARCH "x86")
+    else()
+        message(FATAL_ERROR "Architecture ${CMAKE_OSX_ARCHITECTURES} is not "
+                            "supported. Only one architecture (arm64, x86_64 "
+                            "or i386) could be specified at build time.")
+    endif()
+endif()
+
 set(CMAKE_MACOSX_RPATH TRUE)
 
 if ((CMAKE_GENERATOR MATCHES "Visual Studio") AND (CMAKE_GENERATOR_TOOLSET STREQUAL ""))
