@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b691ceb2_8673a70e",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-20T04:37:34Z",
+      "side": 1,
+      "message": "Instead of an enum I think it would make more sense to use subclasses. This list will grow and we\u0027ll need to bind different resources based on what\u0027s used by the shader (as is already the case).\n\nAt least for shader-related tests/benchmarks we might take a page out of Amber\u0027s book on how to structure this: https://github.com/google/amber/tree/main/tests/cases. Compare that to the TriangleBenchmark constructor and renderFrame() method. Anyway, let\u0027s do things incrementally and only customize into subclasses what we need for these three cases for now.",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 207,
+        "endChar": 2
+      },
+      "revId": "d12b9ab4c1cf377020dae8c102911a47c416a76c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
