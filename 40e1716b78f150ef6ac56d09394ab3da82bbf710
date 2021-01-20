@@ -94,6 +94,30 @@
       },
       "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9b7c553_6a974402",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-20T19:27:50Z",
+      "side": 1,
+      "message": "Yes, I understand your point, but I actually am pro-namespacing, both in-code and include path namespacing, because I believe it actually increases readability -- with the caveat that namespaces be short (stuff like \"MyFramework::MyLibrary::MyComponent::MyType\" is terrible, but \"vkw::MyType\" seems alright). For paths, in particular, I find it very helpful when reading code to understand where my dependencies come from. I like to think of each library as a layer, and seeing the layer dependencies in-code is useful.\n\nAnyway, just an opinion 😊",
+      "parentUuid": "24ab0132_b880f11e",
+      "range": {
+        "startLine": 208,
+        "startChar": 19,
+        "endLine": 208,
+        "endChar": 24
+      },
+      "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
