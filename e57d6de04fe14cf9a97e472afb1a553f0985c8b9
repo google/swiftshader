@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e91f1abd_1a48feba",
+        "filename": "tests/VulkanBenchmarks/Util.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-20T03:56:06Z",
+      "side": 1,
+      "message": "Just thinking out loud, but perhaps these could at some point be made part of a Device wrapper class. While the first one takes a vk::PhysicalDevice instead of a vk::Device, I don\u0027t think it hurts to make it a member of a Device class. The last function isn\u0027t device-specific at all (currently), but could be a static method (either that or we make it part of a Shader class, or a Pipeline class).\n\nAnyway, we want to avoid adding too much abstraction to unit tests \u0026 benchmarks, so let\u0027s only do this when the need arises / the benefit is clear.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 91
+      },
+      "revId": "e57d6de04fe14cf9a97e472afb1a553f0985c8b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
