@@ -70,6 +70,30 @@
       },
       "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "24ab0132_b880f11e",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-20T19:21:50Z",
+      "side": 1,
+      "message": "FWIW, I don\u0027t think not following this practice in other parts of SwiftShader should be a direct factor here. I generally agree namespacing is useful, but I don\u0027t think it should be used without weighing the pros and cons. It affects readability and writability, and hides the problem of things using the same generic name when we should really use more descriptive ones.\n\nIf we\u0027re not careful it leads to falling into the \"Every problem in computer science can be solved with another level of indirection, except for the problem of too many layers of indirection.\" trap. We can add it back if for some reason it becomes useful later. Admittedly in some cases that\u0027s harder than doing it from the get go, but that\u0027s what design/architecture is about, and at this point I don\u0027t think our test/benchmark suite will evolve to the point where we would end up with name clashes with other libraries, with that being an indication of a problem that needs a different resolution.\n\nAnyway, just my 2 cents. Thanks for the revision.",
+      "parentUuid": "9f588620_5516967f",
+      "range": {
+        "startLine": 208,
+        "startChar": 19,
+        "endLine": 208,
+        "endChar": 24
+      },
+      "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
