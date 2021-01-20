@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "556b3515_a8db1465",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-20T02:32:54Z",
+      "side": 1,
+      "message": "Ben, does the Marl build change look okay for upstreaming?",
+      "revId": "8a7574c1fdb697674f30c7d29a995f4b336ee910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d3a19b8c_b85ececa",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1987,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-20T02:32:54Z",
+      "side": 1,
+      "message": "This is supposed to just return false on non-x86 CPUs. Did you run into an issue?",
+      "range": {
+        "startLine": 1987,
+        "startChar": 26,
+        "endLine": 1987,
+        "endChar": 38
+      },
+      "revId": "8a7574c1fdb697674f30c7d29a995f4b336ee910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
