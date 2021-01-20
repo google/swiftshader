@@ -32,7 +32,7 @@ cc_defaults {
         "-DVK_USE_PLATFORM_ANDROID_KHR",
         "-DVK_EXPORT= ",
     ],
-    cpp_std: "c++14",
+    cpp_std: "c++17",
 
     target: {
         host: {

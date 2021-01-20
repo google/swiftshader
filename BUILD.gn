@@ -60,12 +60,14 @@ config("swiftshader_config") {
         "/wd4309", # Truncation of constant value. See PixelRoutine.cpp casts of signed shorts.
       ]
     }
+
+    cflags_cc = [ "/std:c++17" ]
   } else {
     cflags = [
-      "-std=c++14",
       "-fno-exceptions",
       "-fno-operator-names",
     ]
+    cflags_cc = [ "-std=c++17" ]
 
     defines += [
       "__STDC_CONSTANT_MACROS",

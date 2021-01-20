@@ -21,7 +21,7 @@
                 "${workspaceFolder}/third_party/SPIRV-Tools/include"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
         },
         {
             "name": "Mac",
@@ -44,7 +44,7 @@
                 "${workspaceFolder}/third_party/SPIRV-Tools/include"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
         },
         {
             "name": "Win32",
@@ -66,7 +66,7 @@
                 "${workspaceFolder}/third_party/SPIRV-Tools/include"
             ],
             "cStandard": "c11",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
         }
     ],
     "version": 4

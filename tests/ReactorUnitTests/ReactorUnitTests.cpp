@@ -20,18 +20,10 @@
 
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <thread>
 #include <tuple>
-
-// TODO(b/174843857): Remove once we upgrade to C++17
-#if(__cplusplus >= 201703L)
-#	define HAS_STD_FILESYSTEM
-#endif
-
-#if(defined(HAS_STD_FILESYSTEM))
-#	include <filesystem>
-#endif
 
 using namespace rr;
 
@@ -3293,7 +3285,7 @@ TEST(ReactorUnitTests, SpillLocalCopiesOfArgs)
 	EXPECT_EQ(result, expected);
 }
 
-#if defined(ENABLE_RR_EMIT_ASM_FILE) && defined(HAS_STD_FILESYSTEM)
+#if defined(ENABLE_RR_EMIT_ASM_FILE)
 TEST(ReactorUnitTests, EmitAsm)
 {
 	// Only supported by LLVM for now

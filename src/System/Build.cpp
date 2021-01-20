@@ -25,15 +25,15 @@
 #endif
 
 // The template and unused function below verifies the compiler is using at least
-// C++14. It will print an error message containing the actual C++ version if
-// the version is < 14.
+// C++17. It will print an error message containing the actual C++ version if
+// the version is < 17.
 
 namespace {
 
 template<int version>
 class cpp
 {
-	static_assert(version >= 2014, "SwiftShader requires at least C++14");
+	static_assert(version >= 2017, "SwiftShader requires at least C++17");
 };
 
 void check_cpp_version()
