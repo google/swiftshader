@@ -182,8 +182,7 @@ void MergeReturnPass::CreateReturnBlock() {
   context()->AnalyzeDefUse(final_return_block_->GetLabelInst());
   context()->set_instr_block(final_return_block_->GetLabelInst(),
                              final_return_block_);
-  assert(final_return_block_->GetParent() == function_ &&
-         "The function should have been set when the block was created.");
+  final_return_block_->SetParent(function_);
 }
 
 void MergeReturnPass::CreateReturn(BasicBlock* block) {

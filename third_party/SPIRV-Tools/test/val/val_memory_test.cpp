@@ -58,7 +58,7 @@ OpFunctionEnd
                 "are used only as handles to refer to opaque resources. Such "
                 "variables must be typed as OpTypeImage, OpTypeSampler, "
                 "OpTypeSampledImage, OpTypeAccelerationStructureNV, "
-                "OpTypeAccelerationStructureKHR, OpTypeRayQueryKHR, "
+                "OpTypeAccelerationStructureKHR, OpTypeRayQueryProvisionalKHR, "
                 "or an array of one of these types."));
 }
 
@@ -112,7 +112,7 @@ OpFunctionEnd
                 "are used only as handles to refer to opaque resources. Such "
                 "variables must be typed as OpTypeImage, OpTypeSampler, "
                 "OpTypeSampledImage, OpTypeAccelerationStructureNV, "
-                "OpTypeAccelerationStructureKHR, OpTypeRayQueryKHR, "
+                "OpTypeAccelerationStructureKHR, OpTypeRayQueryProvisionalKHR, "
                 "or an array of one of these types."));
 }
 

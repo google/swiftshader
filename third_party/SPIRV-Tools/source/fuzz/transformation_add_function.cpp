@@ -276,10 +276,12 @@ bool TransformationAddFunction::TryToAddFunction(
     // Invariant: we should always be at a label instruction at this point.
     assert(message_.instruction(instruction_index).opcode() == SpvOpLabel);
 
-    // Make a basic block using the label instruction.
+    // Make a basic block using the label instruction, with the new function
+    // as its parent.
     std::unique_ptr<opt::BasicBlock> block =
         MakeUnique<opt::BasicBlock>(InstructionFromMessage(
             ir_context, message_.instruction(instruction_index)));
+    block->SetParent(new_function.get());
 
     // Consider successive instructions until we hit another label or the end
     // of the function, adding each such instruction to the block.

@@ -47,7 +47,7 @@ inline bool IsTypeInst(SpvOp opcode) {
          opcode == SpvOpTypePipeStorage || opcode == SpvOpTypeNamedBarrier ||
          opcode == SpvOpTypeAccelerationStructureNV ||
          opcode == SpvOpTypeAccelerationStructureKHR ||
-         opcode == SpvOpTypeRayQueryKHR ||
+         opcode == SpvOpTypeRayQueryProvisionalKHR ||
          opcode == SpvOpTypeCooperativeMatrixNV;
 }
 inline bool IsConstantInst(SpvOp opcode) {

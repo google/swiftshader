@@ -248,8 +248,7 @@ BasicBlock* BasicBlock::SplitBasicBlock(IRContext* context, uint32_t label_id,
   function_->InsertBasicBlockAfter(std::move(new_block_temp), this);
 
   new_block->insts_.Splice(new_block->end(), &insts_, iter, end());
-  assert(new_block->GetParent() == GetParent() &&
-         "The parent should already be set appropriately.");
+  new_block->SetParent(GetParent());
 
   context->AnalyzeDefUse(new_block->GetLabelInst());
 

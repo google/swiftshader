@@ -213,7 +213,6 @@ inline void Function::AddBasicBlock(std::unique_ptr<BasicBlock> b) {
 
 inline void Function::AddBasicBlock(std::unique_ptr<BasicBlock> b,
                                     iterator ip) {
-  b->SetParent(this);
   ip.InsertBefore(std::move(b));
 }
 
