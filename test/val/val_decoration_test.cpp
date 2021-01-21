@@ -42,8 +42,8 @@ struct TestResult {
 };
 
 using ValidateDecorations = spvtest::ValidateBase<bool>;
-using ValidateWebGPUCombineDecorationResult =
-    spvtest::ValidateBase<std::tuple<const char*, TestResult>>;
+using ValidateVulkanCombineDecorationResult =
+    spvtest::ValidateBase<std::tuple<const char*, const char*, TestResult>>;
 
 TEST_F(ValidateDecorations, ValidateOpDecorateRegistration) {
   std::string spirv = R"(
@@ -162,44 +162,6 @@ TEST_F(ValidateDecorations, ValidateGroupDecorateRegistration) {
   EXPECT_THAT(vstate_->id_decorations(3), Eq(expected_decorations));
   EXPECT_THAT(vstate_->id_decorations(4), Eq(expected_decorations));
 }
-
-TEST_F(ValidateDecorations, WebGPUOpDecorationGroupBad) {
-  std::string spirv = R"(
-               OpCapability Shader
-               OpCapability VulkanMemoryModelKHR
-               OpExtension "SPV_KHR_vulkan_memory_model"
-               OpMemoryModel Logical VulkanKHR
-               OpDecorate %1 DescriptorSet 0
-               OpDecorate %1 NonWritable
-               OpDecorate %1 Restrict
-          %1 = OpDecorationGroup
-               OpGroupDecorate %1 %2 %3
-               OpGroupDecorate %1 %4
-  %float = OpTypeFloat 32
-%_runtimearr_float = OpTypeRuntimeArray %float
-  %_struct_9 = OpTypeStruct %_runtimearr_float
-%_ptr_Uniform__struct_9 = OpTypePointer Uniform %_struct_9
-         %2 = OpVariable %_ptr_Uniform__struct_9 Uniform
- %_struct_10 = OpTypeStruct %_runtimearr_float
-%_ptr_Uniform__struct_10 = OpTypePointer Uniform %_struct_10
-         %3 = OpVariable %_ptr_Uniform__struct_10 Uniform
- %_struct_11 = OpTypeStruct %_runtimearr_float
-%_ptr_Uniform__struct_11 = OpTypePointer Uniform %_struct_11
-         %4 = OpVariable %_ptr_Uniform__struct_11 Uniform
-  )";
-  CompileSuccessfully(spirv);
-  EXPECT_EQ(SPV_ERROR_INVALID_BINARY, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("OpDecorationGroup is not allowed in the WebGPU "
-                        "execution environment.\n  %1 = OpDecorationGroup\n"));
-}
-
-// For WebGPU, OpGroupDecorate does not have a test case, because it requires
-// being preceded by OpDecorationGroup, which will cause a validation error.
-
-// For WebGPU, OpGroupMemberDecorate does not have a test case, because it
-// requires being preceded by OpDecorationGroup, which will cause a validation
-// error.
 
 TEST_F(ValidateDecorations, ValidateGroupMemberDecorateRegistration) {
   std::string spirv = R"(
@@ -4679,6 +4641,95 @@ OpFunctionEnd
                         "Object operand of an OpStore."));
 }
 
+TEST_F(ValidateDecorations, VulkanFPRoundingModeGood) {
+  std::string spirv = R"(
+               OpCapability Shader
+               OpCapability StorageBuffer16BitAccess
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %_
+               OpExecutionMode %main LocalSize 1 1 1
+               OpMemberDecorate %ssbo 0 Offset 0
+               OpDecorate %ssbo Block
+               OpDecorate %_ DescriptorSet 0
+               OpDecorate %_ Binding 0
+               OpDecorate %17 FPRoundingMode RTE
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+%_ptr_Function_float = OpTypePointer Function %float
+    %float_1 = OpConstant %float 1
+       %half = OpTypeFloat 16
+       %ssbo = OpTypeStruct %half
+%_ptr_StorageBuffer_ssbo = OpTypePointer StorageBuffer %ssbo
+          %_ = OpVariable %_ptr_StorageBuffer_ssbo StorageBuffer
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_StorageBuffer_half = OpTypePointer StorageBuffer %half
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+          %b = OpVariable %_ptr_Function_float Function
+               OpStore %b %float_1
+         %16 = OpLoad %float %b
+         %17 = OpFConvert %half %16
+         %19 = OpAccessChain %_ptr_StorageBuffer_half %_ %int_0
+               OpStore %19 %17
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  CompileSuccessfully(spirv, SPV_ENV_VULKAN_1_2);
+  EXPECT_EQ(SPV_SUCCESS,
+            ValidateAndRetrieveValidationState(SPV_ENV_VULKAN_1_2));
+}
+
+TEST_F(ValidateDecorations, VulkanFPRoundingModeBadMode) {
+  std::string spirv = R"(
+               OpCapability Shader
+               OpCapability StorageBuffer16BitAccess
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %_
+               OpExecutionMode %main LocalSize 1 1 1
+               OpMemberDecorate %ssbo 0 Offset 0
+               OpDecorate %ssbo Block
+               OpDecorate %_ DescriptorSet 0
+               OpDecorate %_ Binding 0
+               OpDecorate %17 FPRoundingMode RTP
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+%_ptr_Function_float = OpTypePointer Function %float
+    %float_1 = OpConstant %float 1
+       %half = OpTypeFloat 16
+       %ssbo = OpTypeStruct %half
+%_ptr_StorageBuffer_ssbo = OpTypePointer StorageBuffer %ssbo
+          %_ = OpVariable %_ptr_StorageBuffer_ssbo StorageBuffer
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_StorageBuffer_half = OpTypePointer StorageBuffer %half
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+          %b = OpVariable %_ptr_Function_float Function
+               OpStore %b %float_1
+         %16 = OpLoad %float %b
+         %17 = OpFConvert %half %16
+         %19 = OpAccessChain %_ptr_StorageBuffer_half %_ %int_0
+               OpStore %19 %17
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  CompileSuccessfully(spirv, SPV_ENV_VULKAN_1_2);
+  EXPECT_EQ(SPV_ERROR_INVALID_ID,
+            ValidateAndRetrieveValidationState(SPV_ENV_VULKAN_1_2));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-FPRoundingMode-04675"));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("In Vulkan, the FPRoundingMode mode must only by RTE or RTZ."));
+}
+
 TEST_F(ValidateDecorations, GroupDecorateTargetsDecorationGroup) {
   std::string spirv = R"(
 OpCapability Shader
@@ -6299,11 +6350,12 @@ TEST_F(ValidateDecorations, NonWritableRuntimeArrayGood) {
   EXPECT_EQ(SPV_SUCCESS, ValidateInstructions());
 }
 
-TEST_P(ValidateWebGPUCombineDecorationResult, Decorate) {
+TEST_P(ValidateVulkanCombineDecorationResult, Decorate) {
   const char* const decoration = std::get<0>(GetParam());
-  const TestResult& test_result = std::get<1>(GetParam());
+  const char* const vuid = std::get<1>(GetParam());
+  const TestResult& test_result = std::get<2>(GetParam());
 
-  CodeGenerator generator = CodeGenerator::GetWebGPUShaderCodeGenerator();
+  CodeGenerator generator = CodeGenerator::GetDefaultShaderCodeGenerator();
   generator.before_types_ = "OpDecorate %u32 ";
   generator.before_types_ += decoration;
   generator.before_types_ += "\n";
@@ -6313,52 +6365,24 @@ TEST_P(ValidateWebGPUCombineDecorationResult, Decorate) {
   entry_point.execution_model = "Vertex";
   generator.entry_points_.push_back(std::move(entry_point));
 
-  CompileSuccessfully(generator.Build(), SPV_ENV_WEBGPU_0);
+  CompileSuccessfully(generator.Build(), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(test_result.validation_result,
-            ValidateInstructions(SPV_ENV_WEBGPU_0));
-  if (test_result.error_str != "") {
-    EXPECT_THAT(getDiagnosticString(), HasSubstr(test_result.error_str));
-  }
-}
-
-TEST_P(ValidateWebGPUCombineDecorationResult, DecorateMember) {
-  const char* const decoration = std::get<0>(GetParam());
-  const TestResult& test_result = std::get<1>(GetParam());
-
-  CodeGenerator generator = CodeGenerator::GetWebGPUShaderCodeGenerator();
-  generator.before_types_ = "OpMemberDecorate %struct_type 0 ";
-  generator.before_types_ += decoration;
-  generator.before_types_ += "\n";
-
-  generator.after_types_ = "%struct_type = OpTypeStruct %u32\n";
-
-  EntryPoint entry_point;
-  entry_point.name = "main";
-  entry_point.execution_model = "Vertex";
-  generator.entry_points_.push_back(std::move(entry_point));
-
-  CompileSuccessfully(generator.Build(), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(test_result.validation_result,
-            ValidateInstructions(SPV_ENV_WEBGPU_0));
+            ValidateInstructions(SPV_ENV_VULKAN_1_0));
   if (!test_result.error_str.empty()) {
     EXPECT_THAT(getDiagnosticString(), HasSubstr(test_result.error_str));
   }
+  if (vuid) {
+    EXPECT_THAT(getDiagnosticString(), AnyVUID(vuid));
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    DecorationCapabilityFailure, ValidateWebGPUCombineDecorationResult,
-    Combine(Values("CPacked", "Patch", "Sample", "Constant",
-                   "SaturatedConversion", "NonUniformEXT"),
-            Values(TestResult(SPV_ERROR_INVALID_CAPABILITY,
-                              "requires one of these capabilities"))));
-
-INSTANTIATE_TEST_SUITE_P(
-    DecorationAllowListFailure, ValidateWebGPUCombineDecorationResult,
-    Combine(Values("RelaxedPrecision", "BufferBlock", "GLSLShared",
-                   "GLSLPacked", "Invariant", "Volatile", "Coherent"),
+    DecorationAllowListFailure, ValidateVulkanCombineDecorationResult,
+    Combine(Values("GLSLShared", "GLSLPacked"),
+            Values("VUID-StandaloneSpirv-GLSLShared-04669"),
             Values(TestResult(
                 SPV_ERROR_INVALID_ID,
-                "is not valid for the WebGPU execution environment."))));
+                "is not valid for the Vulkan execution environment."))));
 
 TEST_F(ValidateDecorations, NonWritableVarFunctionV13Bad) {
   std::string spirv = ShaderWithNonWritableTarget("%var_func");
