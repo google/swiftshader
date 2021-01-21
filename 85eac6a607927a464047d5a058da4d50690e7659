@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8feee045_600f2f64",
+        "filename": "src/Reactor/reactor.gni",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-21T20:05:13Z",
+      "side": 1,
+      "message": "It\u0027s not clear which part of the line below this comment applies to. Also, we should add a TODO(b/...) to remove the \"\u0026\u0026 !supports_subzero\" once Chrome supports macOS 10.12. Maybe we can do:\n\nsupports_llvm \u003d is_linux || is_chromeos || is_fuchsia || is_win || is_android\n  # LLVM uses C++17 features which require macOS 10.12, while Chrome\u0027s minimum platform for x86 is 10.11.\n  # TODO(b/...): Remove check for !supports_subzero once Chrome supports macOS 10.12\n  || (is_mac \u0026\u0026 !supports_subzero)",
+      "range": {
+        "startLine": 17,
+        "startChar": 2,
+        "endLine": 17,
+        "endChar": 106
+      },
+      "revId": "85eac6a607927a464047d5a058da4d50690e7659",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
