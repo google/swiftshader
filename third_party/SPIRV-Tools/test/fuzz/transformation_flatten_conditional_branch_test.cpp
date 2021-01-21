@@ -666,7 +666,6 @@ TEST(TransformationFlattenConditionalBranchTest, EdgeCases) {
                OpBranchConditional %5 %13 %12
          %13 = OpLabel
          %14 = OpFunctionCall %3 %11
-         %15 = OpCopyObject %3 %14
                OpBranch %12
          %12 = OpLabel
                OpReturn
@@ -774,7 +773,6 @@ TEST(TransformationFlattenConditionalBranchTest, EdgeCases) {
                OpBranchConditional %5 %13 %12
          %13 = OpLabel
          %14 = OpFunctionCall %3 %11
-         %15 = OpCopyObject %3 %14
                OpBranch %12
          %12 = OpLabel
                OpReturn

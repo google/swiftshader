@@ -260,6 +260,11 @@ typedef enum spv_operand_type_t {
   SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_OPERATION,                     // Sec 3.6
   SPV_OPERAND_TYPE_CLDEBUG100_DEBUG_IMPORTED_ENTITY,               // Sec 3.7
 
+  // The following are concrete enum types from SPV_INTEL_float_controls2
+  // https://github.com/intel/llvm/blob/39fa9b0cbfbae88327118990a05c5b387b56d2ef/sycl/doc/extensions/SPIRV/SPV_INTEL_float_controls2.asciidoc
+  SPV_OPERAND_TYPE_FPDENORM_MODE,     // Sec 3.17 FP Denorm Mode
+  SPV_OPERAND_TYPE_FPOPERATION_MODE,  // Sec 3.18 FP Operation Mode
+
   // This is a sentinel value, and does not represent an operand type.
   // It should come last.
   SPV_OPERAND_TYPE_NUM_OPERAND_TYPES,
@@ -482,7 +487,7 @@ typedef enum {
   SPV_ENV_OPENCL_EMBEDDED_2_2,  // OpenCL Embedded Profile 2.2 latest revision.
   SPV_ENV_UNIVERSAL_1_3,  // SPIR-V 1.3 latest revision, no other restrictions.
   SPV_ENV_VULKAN_1_1,     // Vulkan 1.1 latest revision.
-  SPV_ENV_WEBGPU_0,       // Work in progress WebGPU 1.0.
+  SPV_ENV_WEBGPU_0,       // DEPRECATED, may be removed in the future.
   SPV_ENV_UNIVERSAL_1_4,  // SPIR-V 1.4 latest revision, no other restrictions.
 
   // Vulkan 1.1 with VK_KHR_spirv_1_4, i.e. SPIR-V 1.4 binary.
