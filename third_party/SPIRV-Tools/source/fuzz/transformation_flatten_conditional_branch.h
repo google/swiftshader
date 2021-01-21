@@ -41,6 +41,8 @@ class TransformationFlattenConditionalBranch : public Transformation {
   //   single-exit region.
   // - The region must not contain barrier or OpSampledImage instructions.
   // - The region must not contain selection or loop constructs.
+  // - The region must not define ids that are the base objects for existing
+  //   synonym facts.
   // - For each instruction that requires additional fresh ids, then:
   //   - if the instruction is mapped to the required ids for enclosing it by
   //     |message_.side_effect_wrapper_info|, these must be valid (the

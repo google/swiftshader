@@ -1110,6 +1110,8 @@ spv_result_t CfgPass(ValidationState_t& _, const Instruction* inst) {
     case SpvOpReturnValue:
     case SpvOpUnreachable:
     case SpvOpTerminateInvocation:
+    case SpvOpIgnoreIntersectionKHR:
+    case SpvOpTerminateRayKHR:
       _.current_function().RegisterBlockEnd(std::vector<uint32_t>());
       if (opcode == SpvOpKill) {
         _.current_function().RegisterExecutionModelLimitation(
@@ -1121,6 +1123,17 @@ spv_result_t CfgPass(ValidationState_t& _, const Instruction* inst) {
             SpvExecutionModelFragment,
             "OpTerminateInvocation requires Fragment execution model");
       }
+      if (opcode == SpvOpIgnoreIntersectionKHR) {
+        _.current_function().RegisterExecutionModelLimitation(
+            SpvExecutionModelAnyHitKHR,
+            "OpIgnoreIntersectionKHR requires AnyHit execution model");
+      }
+      if (opcode == SpvOpTerminateRayKHR) {
+        _.current_function().RegisterExecutionModelLimitation(
+            SpvExecutionModelAnyHitKHR,
+            "OpTerminateRayKHR requires AnyHit execution model");
+      }
+
       break;
     default:
       break;
