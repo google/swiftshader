@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94bb29f0_2388ba4c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 33023
+      },
+      "writtenOn": "2021-01-21T00:44:19Z",
+      "side": 1,
+      "message": "FYI this CL caused an issue with SwANGLE on Mac: https://b.corp.google.com/issues/178039602",
+      "revId": "89fd1480b47e8c8668dfd3c24302c53b76ba4c88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
