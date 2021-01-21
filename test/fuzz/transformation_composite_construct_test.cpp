@@ -1643,6 +1643,55 @@ TEST(TransformationCompositeConstructTest, OneIrrelevantComponent) {
       MakeDataDescriptor(100, {2}), MakeDataDescriptor(10, {})));
 }
 
+TEST(TransformationCompositeConstructTest, IrrelevantVec2ThenFloat) {
+  std::string shader = R"(
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %4 "main"
+               OpExecutionMode %4 OriginUpperLeft
+               OpSource ESSL 320
+          %2 = OpTypeVoid
+          %3 = OpTypeFunction %2
+          %6 = OpTypeFloat 32
+          %7 = OpTypeVector %6 2
+          %8 = OpTypeVector %6 3
+          %9 = OpConstant %6 0
+         %11 = OpConstant %6 1
+         %12 = OpConstant %6 2
+         %10 = OpConstantComposite %7 %11 %12
+          %4 = OpFunction %2 None %3
+          %5 = OpLabel
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  const auto env = SPV_ENV_UNIVERSAL_1_3;
+  const auto consumer = nullptr;
+  const auto context = BuildModule(env, consumer, shader, kFuzzAssembleOption);
+  spvtools::ValidatorOptions validator_options;
+  ASSERT_TRUE(fuzzerutil::IsValidAndWellFormed(context.get(), validator_options,
+                                               kConsoleMessageConsumer));
+  TransformationContext transformation_context(
+      MakeUnique<FactManager>(context.get()), validator_options);
+
+  transformation_context.GetFactManager()->AddFactIdIsIrrelevant(10);
+
+  TransformationCompositeConstruct transformation(
+      8, {10, 9}, MakeInstructionDescriptor(5, SpvOpReturn, 0), 100);
+  ASSERT_TRUE(
+      transformation.IsApplicable(context.get(), transformation_context));
+  ApplyAndCheckFreshIds(transformation, context.get(), &transformation_context);
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(100, {0}), MakeDataDescriptor(10, {0})));
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(100, {1}), MakeDataDescriptor(10, {1})));
+  ASSERT_TRUE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(100, {2}), MakeDataDescriptor(9, {})));
+  ASSERT_FALSE(transformation_context.GetFactManager()->IsSynonymous(
+      MakeDataDescriptor(100, {1}), MakeDataDescriptor(9, {})));
+}
+
 }  // namespace
 }  // namespace fuzz
 }  // namespace spvtools

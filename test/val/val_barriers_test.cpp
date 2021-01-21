@@ -1595,7 +1595,7 @@ TEST_F(ValidateBarriers, OpMemoryBarrierShaderCallRayGenSuccess) {
                                              // capabilities_and_extensions
                                              R"(
                                                OpCapability VulkanMemoryModelKHR
-                                               OpCapability RayTracingProvisionalKHR
+                                               OpCapability RayTracingKHR
                                                OpExtension "SPV_KHR_vulkan_memory_model"
                                                OpExtension "SPV_KHR_ray_tracing"
                                              )",
@@ -1642,7 +1642,7 @@ TEST_F(ValidateBarriers, OpControlBarrierShaderCallRayGenFailure) {
                                              // capabilities_and_extensions
                                              R"(
                                                OpCapability VulkanMemoryModelKHR
-                                               OpCapability RayTracingProvisionalKHR
+                                               OpCapability RayTracingKHR
                                                OpExtension "SPV_KHR_vulkan_memory_model"
                                                OpExtension "SPV_KHR_ray_tracing"
                                              )",

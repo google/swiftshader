@@ -778,7 +778,6 @@ void TransformationOutlineFunction::PopulateOutlinedFunction(
       MakeUnique<opt::BasicBlock>(MakeUnique<opt::Instruction>(
           ir_context, SpvOpLabel, 0, message_.new_function_region_entry_block(),
           opt::Instruction::OperandList()));
-  outlined_region_entry_block->SetParent(outlined_function);
 
   if (&original_region_entry_block == &original_region_exit_block) {
     outlined_region_exit_block = outlined_region_entry_block.get();
@@ -814,8 +813,6 @@ void TransformationOutlineFunction::PopulateOutlinedFunction(
              "We should not yet have encountered the exit block.");
       outlined_region_exit_block = cloned_block.get();
     }
-
-    cloned_block->SetParent(outlined_function);
 
     // Redirect any OpPhi operands whose predecessors are the original region
     // entry block to become the new function entry block.
