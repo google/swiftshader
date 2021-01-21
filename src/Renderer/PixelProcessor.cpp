@@ -21,6 +21,7 @@
 #include "Shader/PixelShader.hpp"
 #include "Shader/Constants.hpp"
 #include "Common/Debug.hpp"
+#include "Common/Memory.hpp"
 
 #include <cstring>
 
@@ -76,6 +77,18 @@ namespace sw
 	{
 		delete routineCache;
 		routineCache = nullptr;
+	}
+
+	// This object has to be mem aligned
+	void *PixelProcessor::operator new(size_t size)
+	{
+		ASSERT(size == sizeof(PixelProcessor)); // This operator can't be called from a derived class
+		return sw::allocate(sizeof(PixelProcessor), 16);
+	}
+
+	void PixelProcessor::operator delete(void *mem)
+	{
+		sw::deallocate(mem);
 	}
 
 	void PixelProcessor::setFloatConstant(unsigned int index, const float value[4])

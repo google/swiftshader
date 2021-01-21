@@ -191,6 +191,9 @@ namespace sw
 
 		virtual ~PixelProcessor();
 
+		void *operator new(size_t size);
+		void operator delete(void *mem);
+
 		void setFloatConstant(unsigned int index, const float value[4]);
 		void setIntegerConstant(unsigned int index, const int value[4]);
 		void setBooleanConstant(unsigned int index, int boolean);

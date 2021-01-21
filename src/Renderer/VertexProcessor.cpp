@@ -20,6 +20,7 @@
 #include "Shader/PixelShader.hpp"
 #include "Shader/Constants.hpp"
 #include "Common/Math.hpp"
+#include "Common/Memory.hpp"
 #include "Common/Debug.hpp"
 
 #include <cstring>
@@ -122,6 +123,18 @@ namespace sw
 	{
 		delete routineCache;
 		routineCache = nullptr;
+	}
+
+	// This object has to be mem aligned
+	void *VertexProcessor::operator new(size_t size)
+	{
+		ASSERT(size == sizeof(VertexProcessor)); // This operator can't be called from a derived class
+		return sw::allocate(sizeof(VertexProcessor), 16);
+	}
+
+	void VertexProcessor::operator delete(void *mem)
+	{
+		sw::deallocate(mem);
 	}
 
 	void VertexProcessor::setInputStream(int index, const Stream &stream)
