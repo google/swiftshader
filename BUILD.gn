@@ -15,6 +15,7 @@
 import("//build/config/c++/c++.gni")
 import("//build/config/compiler/compiler.gni")
 import("//build/config/mips.gni")
+import("//build/config/sysroot.gni")
 import("src/Reactor/reactor.gni")
 
 config("swiftshader_config") {
@@ -68,6 +69,14 @@ config("swiftshader_config") {
       "-fno-operator-names",
     ]
     cflags_cc = [ "-std=c++17" ]
+    # On macOS, some C++17 features used by LLVM require version 10.12.
+    if (is_mac && supports_llvm) {
+      cflags += [
+        "-isysroot",
+        rebase_path(sysroot, root_build_dir),
+        "-mmacosx-version-min=10.12.0",
+      ]
+    }
 
     defines += [
       "__STDC_CONSTANT_MACROS",
