@@ -86,7 +86,7 @@ void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBu
 
 			if(state.enableMultiSampling)
 			{
-				x -= *Pointer<Float4>(constants + OFFSET(Constants, X) + q * sizeof(float4));
+				x += *Pointer<Float4>(constants + OFFSET(Constants, X) + q * sizeof(float4));
 			}
 
 			z[q] = interpolate(x, Dz[q], z[q], primitive + OFFSET(Primitive, z), false, false);

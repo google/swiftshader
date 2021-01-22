@@ -131,7 +131,7 @@ void QuadRasterizer::rasterize(Int &yMin, Int &yMax)
 
 				if(state.enableMultiSampling)
 				{
-					y -= *Pointer<Float4>(constants + OFFSET(Constants, Y) + q * sizeof(float4));
+					y += *Pointer<Float4>(constants + OFFSET(Constants, Y) + q * sizeof(float4));
 				}
 
 				Dz[q] = *Pointer<Float4>(primitive + OFFSET(Primitive, z.C), 16) + y * *Pointer<Float4>(primitive + OFFSET(Primitive, z.B), 16);
