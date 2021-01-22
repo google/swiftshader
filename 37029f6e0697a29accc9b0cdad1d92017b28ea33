@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "297b6ac3_518f1ee8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-22T20:57:45Z",
+      "side": 1,
+      "message": "I wanted to move class VulkanBenchmarks and (now) class DrawVerticesBenchmark to new files, but not in this change so as to keep the diff understandable. Let me know what you think.",
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
