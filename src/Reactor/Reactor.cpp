@@ -124,7 +124,13 @@ Variable::Variable(Type *type, int arraySize)
 
 Variable::~Variable()
 {
-	unmaterializedVariables->remove(this);
+	// `unmaterializedVariables` can be null at this point due to the function
+	// already having been finalized, while classes derived from `Function<>`
+	// can have member `Variable` fields which are destructed afterwards.
+	if(unmaterializedVariables)
+	{
+		unmaterializedVariables->remove(this);
+	}
 }
 
 void Variable::materialize() const

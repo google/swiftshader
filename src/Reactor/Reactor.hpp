@@ -2610,8 +2610,6 @@ class Function<Return(Arguments...)>
 public:
 	Function();
 
-	virtual ~Function();
-
 	template<int index>
 	Argument<typename std::tuple_element<index, std::tuple<Arguments...>>::type> Arg() const
 	{
@@ -2623,7 +2621,7 @@ public:
 	std::shared_ptr<Routine> operator()(const Config::Edit &cfg, const char *name, ...);
 
 protected:
-	Nucleus *core;
+	std::unique_ptr<Nucleus> core;
 	std::vector<Type *> arguments;
 };
 
@@ -3175,9 +3173,8 @@ RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, const T &ifFalse)
 
 template<typename Return, typename... Arguments>
 Function<Return(Arguments...)>::Function()
+    : core(new Nucleus())
 {
-	core = new Nucleus();
-
 	Type *types[] = { Arguments::type()... };
 	for(Type *type : types)
 	{
@@ -3191,12 +3188,6 @@ Function<Return(Arguments...)>::Function()
 }
 
 template<typename Return, typename... Arguments>
-Function<Return(Arguments...)>::~Function()
-{
-	delete core;
-}
-
-template<typename Return, typename... Arguments>
 std::shared_ptr<Routine> Function<Return(Arguments...)>::operator()(const char *name, ...)
 {
 	char fullName[1024 + 1];
@@ -3206,7 +3197,10 @@ std::shared_ptr<Routine> Function<Return(Arguments...)>::operator()(const char *
 	vsnprintf(fullName, 1024, name, vararg);
 	va_end(vararg);
 
-	return core->acquireRoutine(fullName, Config::Edit::None);
+	auto routine = core->acquireRoutine(fullName, Config::Edit::None);
+	core.reset(nullptr);
+
+	return routine;
 }
 
 template<typename Return, typename... Arguments>
@@ -3219,7 +3213,10 @@ std::shared_ptr<Routine> Function<Return(Arguments...)>::operator()(const Config
 	vsnprintf(fullName, 1024, name, vararg);
 	va_end(vararg);
 
-	return core->acquireRoutine(fullName, cfg);
+	auto routine = core->acquireRoutine(fullName, cfg);
+	core.reset(nullptr);
+
+	return routine;
 }
 
 template<class T, class S>

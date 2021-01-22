@@ -117,22 +117,20 @@ TEST(ReactorUnitTests, Trampoline)
 	SecondaryGeneratorFunc secondaryGenerator = (SecondaryGeneratorFunc)generateSecondary;
 
 	using PrimaryFunc = int(int, int, int);
-	RoutineT<PrimaryFunc> routine;
+
+	FunctionT<PrimaryFunc> primary;
 	{
-		FunctionT<PrimaryFunc> primary;
-		{
-			Int x = primary.Arg<0>();
-			Int y = primary.Arg<1>();
-			Int z = primary.Arg<2>();
+		Int x = primary.Arg<0>();
+		Int y = primary.Arg<1>();
+		Int z = primary.Arg<2>();
 
-			Pointer<Byte> secondary = Call(secondaryGenerator, z);
-			Int r = Call<SecondaryFunc>(secondary, x, y);
+		Pointer<Byte> secondary = Call(secondaryGenerator, z);
+		Int r = Call<SecondaryFunc>(secondary, x, y);
 
-			Return(r);
-		}
-
-		routine = primary((testName() + "_primary").c_str());
+		Return(r);
 	}
+
+	auto routine = primary((testName() + "_primary").c_str());
 
 	int result = routine(100, 20, -3);
 	EXPECT_EQ(result, 80);
@@ -200,6 +198,72 @@ TEST(ReactorUnitTests, Unreachable)
 
 	int result = routine(16);
 	EXPECT_EQ(result, 20);
+}
+
+// Stopping in the middle of a `Function<>` is supported and should not affect
+// subsequent complete ones.
+TEST(ReactorUnitTests, UnfinishedFunction)
+{
+	do
+	{
+		FunctionT<int(int)> function;
+		{
+			Int a = function.Arg<0>();
+			Int z = 4;
+
+			break;  // Terminate do-while early.
+
+			Return(a + z);
+		}
+	} while(true);
+
+	FunctionT<int(int)> function;
+	{
+		Int a = function.Arg<0>();
+		Int z = 4;
+
+		Return(a - z);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(16);
+	EXPECT_EQ(result, 12);
+}
+
+// Deriving from `Function<>` and using Reactor variables as members can be a
+// convenient way to 'name' function arguments and compose complex functions
+// with helper methods. This test checks the interactions between the lifetime
+// of the `Function<>` and the variables belonging to the derived class.
+struct FunctionMembers : FunctionT<int(int)>
+{
+	FunctionMembers()
+	    : level(Arg<0>())
+	{
+		For(Int i = 0, i < 3, i++)
+		{
+			pourSomeMore();
+		}
+
+		Return(level);
+	}
+
+	void pourSomeMore()
+	{
+		level += 2;
+	}
+
+	Int level;
+};
+
+TEST(ReactorUnitTests, FunctionMembers)
+{
+	FunctionMembers function;
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(3);
+	EXPECT_EQ(result, 9);
 }
 
 TEST(ReactorUnitTests, VariableAddress)

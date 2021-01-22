@@ -154,9 +154,8 @@ protected:
 
 template<typename Return, typename... Arguments>
 Coroutine<Return(Arguments...)>::Coroutine()
+    : core(new Nucleus())
 {
-	core.reset(new Nucleus());
-
 	std::vector<Type *> types = { CToReactorT<Arguments>::type()... };
 	for(auto type : types)
 	{
