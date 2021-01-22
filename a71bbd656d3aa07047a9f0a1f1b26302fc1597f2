@@ -3,6 +3,52 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "cdb6b6d7_e34a97a0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-22T19:54:17Z",
+      "side": 1,
+      "message": "uber-nit: What do you mean by \"back\"? Were they ever correct?",
+      "range": {
+        "startLine": 7,
+        "startChar": 13,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6fa4f55_dd363a52",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-22T19:54:17Z",
+      "side": 1,
+      "message": "Is this relevant? Vulkan dictates exact sample locations when `standardSampleLocations` support is claimed.",
+      "range": {
+        "startLine": 10,
+        "startChar": 20,
+        "endLine": 10,
+        "endChar": 45
+      },
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "44a92473_5ad3ce4e",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -20,6 +66,40 @@
         "endLine": 14,
         "endChar": 25
       },
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39e153c6_ac7a6809",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-22T19:54:17Z",
+      "side": 1,
+      "message": "Also b/141380498",
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1d24f21_68bdbe90",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-22T19:54:17Z",
+      "side": 1,
+      "message": "Great find! I vaguely recall discussing this with Antonio when `standardSampleLocations` (b/141380498) was being implemented, but it passed the tests so we assumed it was correct.",
       "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
