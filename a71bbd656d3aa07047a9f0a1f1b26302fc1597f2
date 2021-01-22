@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6a0cfe09_90915be4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-22T20:22:25Z",
+      "side": 1,
+      "message": "Maybe not, I meant not negating them anymore, I\u0027ll rephrase it.",
+      "parentUuid": "cdb6b6d7_e34a97a0",
+      "range": {
+        "startLine": 7,
+        "startChar": 13,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e6fa4f55_dd363a52",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-22T19:54:17Z",
       "side": 1,
       "message": "Is this relevant? Vulkan dictates exact sample locations when `standardSampleLocations` support is claimed.",
+      "range": {
+        "startLine": 10,
+        "startChar": 20,
+        "endLine": 10,
+        "endChar": 45
+      },
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e04f4b5_8bad514f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-22T20:22:25Z",
+      "side": 1,
+      "message": "Rephrased it.",
+      "parentUuid": "e6fa4f55_dd363a52",
       "range": {
         "startLine": 10,
         "startChar": 20,
@@ -70,6 +118,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "12061162_cf9f69de",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-22T20:22:25Z",
+      "side": 1,
+      "message": "What I meant here is that if you rotate sample 0 by 90 degrees around the center of the pixel, you get sample 1, another 90 degree you get sample 3, than another 90 degree, you get sample 2.\nAny rotation by a multiple of 90 for the sample locations (when using 4 samples) will give you the same result if you don\u0027t care about the order of the samples.",
+      "parentUuid": "44a92473_5ad3ce4e",
+      "range": {
+        "startLine": 14,
+        "startChar": 23,
+        "endLine": 14,
+        "endChar": 25
+      },
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "39e153c6_ac7a6809",
@@ -83,6 +155,24 @@
       "writtenOn": "2021-01-22T19:54:17Z",
       "side": 1,
       "message": "Also b/141380498",
+      "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7409ae2a_6aa116c0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-22T20:22:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39e153c6_ac7a6809",
       "revId": "a71bbd656d3aa07047a9f0a1f1b26302fc1597f2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
