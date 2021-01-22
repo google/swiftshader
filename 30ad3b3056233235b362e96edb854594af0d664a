@@ -16,6 +16,24 @@
       "message": "Please also open a dEQP-VK test coverage improvement request for this.",
       "revId": "30ad3b3056233235b362e96edb854594af0d664a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8128aeb4_27bf1ef0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-22T20:43:40Z",
+      "side": 1,
+      "message": "Done: https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2755",
+      "parentUuid": "35c909b6_8bd2e8fa",
+      "revId": "30ad3b3056233235b362e96edb854594af0d664a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
