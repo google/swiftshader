@@ -69,6 +69,8 @@ enum OperandClass {
     OperandImageOperands,
     OperandFPFastMath,
     OperandFPRoundingMode,
+    OperandFPDenormMode,
+    OperandFPOperationMode,
     OperandLinkageType,
     OperandAccessQualifier,
     OperandFuncParamAttr,

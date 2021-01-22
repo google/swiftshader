@@ -61,6 +61,8 @@ EnumValues ImageChannelDataTypeParams;
 EnumValues ImageOperandsParams;
 EnumValues FPFastMathParams;
 EnumValues FPRoundingModeParams;
+EnumValues FPDenormModeParams;
+EnumValues FPOperationModeParams;
 EnumValues LinkageTypeParams;
 EnumValues DecorationParams;
 EnumValues BuiltInParams;
@@ -178,6 +180,10 @@ ClassOptionality ToOperandClassAndOptionality(const std::string& operandKind, co
             type = OperandImageChannelDataType;
         } else if (operandKind == "FPRoundingMode") {
             type = OperandFPRoundingMode;
+        } else if (operandKind == "FPDenormMode") {
+            type = OperandFPDenormMode;
+        } else if (operandKind == "FPOperationMode") {
+            type = OperandFPOperationMode;
         } else if (operandKind == "LinkageType") {
             type = OperandLinkageType;
         } else if (operandKind == "AccessQualifier") {
@@ -452,6 +458,10 @@ void jsonToSpirv(const std::string& jsonPath, bool buildingHeaders)
             establishOperandClass(enumName, OperandFPFastMath, &FPFastMathParams, operandEnum, category);
         } else if (enumName == "FPRoundingMode") {
             establishOperandClass(enumName, OperandFPRoundingMode, &FPRoundingModeParams, operandEnum, category);
+        } else if (enumName == "FPDenormMode") {
+            establishOperandClass(enumName, OperandFPDenormMode, &FPDenormModeParams, operandEnum, category);
+        } else if (enumName == "FPOperationMode") {
+            establishOperandClass(enumName, OperandFPOperationMode, &FPOperationModeParams, operandEnum, category);
         } else if (enumName == "LinkageType") {
             establishOperandClass(enumName, OperandLinkageType, &LinkageTypeParams, operandEnum, category);
         } else if (enumName == "FunctionParameterAttribute") {

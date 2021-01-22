@@ -89,7 +89,6 @@ add_spvtools_unittest(TARGET val_stuvw
        val_type_unique_test.cpp
        val_validation_state_test.cpp
        val_version_test.cpp
-       val_webgpu_test.cpp
        ${VAL_TEST_COMMON_SRCS}
   LIBS ${SPIRV_TOOLS_FULL_VISIBILITY}
   PCH_FILE pch_test_val

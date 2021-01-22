@@ -30,16 +30,16 @@ using ValidateAtomics = spvtest::ValidateBase<bool>;
 
 std::string GenerateShaderCodeImpl(
     const std::string& body, const std::string& capabilities_and_extensions,
-    const std::string& definitions, const std::string& memory_model) {
+    const std::string& definitions, const std::string& memory_model,
+    const std::string& execution) {
   std::ostringstream ss;
   ss << R"(
 OpCapability Shader
 )";
   ss << capabilities_and_extensions;
   ss << "OpMemoryModel Logical " << memory_model << "\n";
+  ss << execution;
   ss << R"(
-OpEntryPoint Fragment %main "main"
-OpExecutionMode %main OriginUpperLeft
 %void = OpTypeVoid
 %func = OpTypeFunction %void
 %bool = OpTypeBool
@@ -96,6 +96,10 @@ std::string GenerateShaderCode(
     const std::string& body,
     const std::string& capabilities_and_extensions = "",
     const std::string& memory_model = "GLSL450") {
+  const std::string execution = R"(
+OpEntryPoint Fragment %main "main"
+OpExecutionMode %main OriginUpperLeft
+)";
   const std::string defintions = R"(
 %u64 = OpTypeInt 64 0
 %s64 = OpTypeInt 64 1
@@ -110,24 +114,32 @@ std::string GenerateShaderCode(
 )";
   return GenerateShaderCodeImpl(
       body, "OpCapability Int64\n" + capabilities_and_extensions, defintions,
-      memory_model);
+      memory_model, execution);
 }
 
-std::string GenerateWebGPUShaderCode(
+std::string GenerateShaderComputeCode(
     const std::string& body,
-    const std::string& capabilities_and_extensions = "") {
-  const std::string vulkan_memory_capability = R"(
-OpCapability VulkanMemoryModelDeviceScopeKHR
-OpCapability VulkanMemoryModelKHR
+    const std::string& capabilities_and_extensions = "",
+    const std::string& memory_model = "GLSL450") {
+  const std::string execution = R"(
+OpEntryPoint GLCompute %main "main"
+OpExecutionMode %main LocalSize 32 1 1
 )";
-  const std::string vulkan_memory_extension = R"(
-OpExtension "SPV_KHR_vulkan_memory_model"
+  const std::string defintions = R"(
+%u64 = OpTypeInt 64 0
+%s64 = OpTypeInt 64 1
+
+%u64_1 = OpConstant %u64 1
+%s64_1 = OpConstant %s64 1
+
+%u64_ptr = OpTypePointer Workgroup %u64
+%s64_ptr = OpTypePointer Workgroup %s64
+%u64_var = OpVariable %u64_ptr Workgroup
+%s64_var = OpVariable %s64_ptr Workgroup
 )";
-  return GenerateShaderCodeImpl(body,
-                                vulkan_memory_capability +
-                                    capabilities_and_extensions +
-                                    vulkan_memory_extension,
-                                "", "VulkanKHR");
+  return GenerateShaderCodeImpl(
+      body, "OpCapability Int64\n" + capabilities_and_extensions, defintions,
+      memory_model, execution);
 }
 
 std::string GenerateKernelCode(
@@ -234,7 +246,7 @@ TEST_F(ValidateAtomics, AtomicLoadInt32VulkanSuccess) {
 %val2 = OpAtomicLoad %u32 %u32_var %workgroup %acquire
 )";
 
-  CompileSuccessfully(GenerateShaderCode(body), SPV_ENV_VULKAN_1_0);
+  CompileSuccessfully(GenerateShaderComputeCode(body), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_0));
 }
 
@@ -358,7 +370,7 @@ TEST_F(ValidateAtomics, AtomicLoadFloatVulkan) {
 %val2 = OpAtomicLoad %f32 %f32_var %workgroup %acquire
 )";
 
-  CompileSuccessfully(GenerateShaderCode(body), SPV_ENV_VULKAN_1_0);
+  CompileSuccessfully(GenerateShaderComputeCode(body), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_0));
 }
 
@@ -386,8 +398,9 @@ TEST_F(ValidateAtomics, AtomicLoadInt64WithCapabilityVulkanSuccess) {
   %val2 = OpAtomicLoad %u64 %u64_var %workgroup %acquire
   )";
 
-  CompileSuccessfully(GenerateShaderCode(body, "OpCapability Int64Atomics\n"),
-                      SPV_ENV_VULKAN_1_0);
+  CompileSuccessfully(
+      GenerateShaderComputeCode(body, "OpCapability Int64Atomics\n"),
+      SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_VULKAN_1_0));
 }
 
@@ -397,7 +410,7 @@ TEST_F(ValidateAtomics, AtomicLoadInt64WithoutCapabilityVulkan) {
   %val2 = OpAtomicLoad %u64 %u64_var %workgroup %acquire
   )";
 
-  CompileSuccessfully(GenerateShaderCode(body), SPV_ENV_VULKAN_1_0);
+  CompileSuccessfully(GenerateShaderComputeCode(body), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_VULKAN_1_0));
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("64-bit atomics require the Int64Atomics capability"));
@@ -421,6 +434,23 @@ OpAtomicStore %f32_var_function %device %relaxed %f32_1
 
   CompileSuccessfully(GenerateShaderCode(body), SPV_ENV_VULKAN_1_0);
   ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_VULKAN_1_0));
+  EXPECT_THAT(getDiagnosticString(),
+              AnyVUID("VUID-StandaloneSpirv-None-04686"));
+  EXPECT_THAT(
+      getDiagnosticString(),
+      HasSubstr("AtomicStore: Vulkan spec only allows storage classes for "
+                "atomic to be: Uniform, Workgroup, Image, StorageBuffer, or "
+                "PhysicalStorageBuffer."));
+}
+
+TEST_F(ValidateAtomics, AtomicStoreFunctionPointerStorageType) {
+  const std::string body = R"(
+%f32_var_function = OpVariable %f32_ptr_function Function
+OpAtomicStore %f32_var_function %device %relaxed %f32_1
+)";
+
+  CompileSuccessfully(GenerateShaderCode(body));
+  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions());
   EXPECT_THAT(getDiagnosticString(),
               HasSubstr("AtomicStore: Function storage class forbidden when "
                         "the Shader capability is declared."));
@@ -499,39 +529,6 @@ TEST_F(ValidateAtomics, AtomicLoadVulkanInt64) {
       getDiagnosticString(),
       HasSubstr(
           "AtomicLoad: 64-bit atomics require the Int64Atomics capability"));
-}
-
-TEST_F(ValidateAtomics, AtomicLoadWebGPUSuccess) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %queuefamily %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_WEBGPU_0));
-}
-
-TEST_F(ValidateAtomics, AtomicLoadWebGPUNonQueueFamilyFailure) {
-  const std::string body = R"(
-%val3 = OpAtomicLoad %u32 %u32_var %invocation %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("Memory Scope is limited to QueueFamilyKHR for "
-                        "OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, AtomicLoadWebGPUNonRelaxedFailure) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %queuefamily %acquire
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("no bits may be set for Memory Semantics of OpAtomic* "
-                        "instructions"));
 }
 
 TEST_F(ValidateAtomics, VK_KHR_shader_atomic_int64Success) {
@@ -708,38 +705,6 @@ OpAtomicStore %u32_var %device %sequentially_consistent %u32_1
       getDiagnosticString(),
       HasSubstr("Vulkan spec disallows OpAtomicStore with Memory Semantics "
                 "Acquire, AcquireRelease and SequentiallyConsistent"));
-}
-
-TEST_F(ValidateAtomics, AtomicStoreWebGPUSuccess) {
-  const std::string body = R"(
-OpAtomicStore %u32_var %queuefamily %relaxed %u32_1
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_WEBGPU_0));
-}
-TEST_F(ValidateAtomics, AtomicStoreWebGPUNonQueueFamilyFailure) {
-  const std::string body = R"(
-OpAtomicStore %u32_var %workgroup %relaxed %u32_1
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("Memory Scope is limited to QueueFamilyKHR for "
-                        "OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, AtomicStoreWebGPUNonRelaxedFailure) {
-  const std::string body = R"(
-OpAtomicStore %u32_var %queuefamily %release %u32_1
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  ASSERT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("no bits may be set for Memory Semantics of OpAtomic* "
-                        "instructions"));
 }
 
 TEST_F(ValidateAtomics, AtomicStoreWrongPointerType) {
@@ -2030,75 +1995,6 @@ OpExtension "SPV_KHR_vulkan_memory_model"
   CompileSuccessfully(GenerateShaderCode(body, extra, "VulkanKHR"),
                       SPV_ENV_UNIVERSAL_1_3);
   EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_UNIVERSAL_1_3));
-}
-
-TEST_F(ValidateAtomics, WebGPUCrossDeviceMemoryScopeBad) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %cross_device %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("in WebGPU environment Memory Scope is limited to "
-                        "QueueFamilyKHR for OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, WebGPUDeviceMemoryScopeBad) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %device %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("in WebGPU environment Memory Scope is limited to "
-                        "QueueFamilyKHR for OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, WebGPUWorkgroupMemoryScopeBad) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %workgroup %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("in WebGPU environment Memory Scope is limited to "
-                        "QueueFamilyKHR for OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, WebGPUSubgroupMemoryScopeBad) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %subgroup %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("in WebGPU environment Memory Scope is limited to "
-                        "QueueFamilyKHR for OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, WebGPUInvocationMemoryScopeBad) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %invocation %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  EXPECT_EQ(SPV_ERROR_INVALID_DATA, ValidateInstructions(SPV_ENV_WEBGPU_0));
-  EXPECT_THAT(getDiagnosticString(),
-              HasSubstr("in WebGPU environment Memory Scope is limited to "
-                        "QueueFamilyKHR for OpAtomic* operations"));
-}
-
-TEST_F(ValidateAtomics, WebGPUQueueFamilyMemoryScopeGood) {
-  const std::string body = R"(
-%val1 = OpAtomicLoad %u32 %u32_var %queuefamily %relaxed
-)";
-
-  CompileSuccessfully(GenerateWebGPUShaderCode(body), SPV_ENV_WEBGPU_0);
-  EXPECT_EQ(SPV_SUCCESS, ValidateInstructions(SPV_ENV_WEBGPU_0));
 }
 
 TEST_F(ValidateAtomics, CompareExchangeWeakV13ValV14Good) {

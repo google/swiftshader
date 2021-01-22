@@ -66,6 +66,17 @@ class TransformationDuplicateRegionWithSelection : public Transformation {
       opt::IRContext* ir_context, opt::BasicBlock* entry_block,
       opt::BasicBlock* exit_block);
 
+  // Returns true if and only if |instr| is available at the end of the region
+  // for which |exit_block| is the final block.
+  static bool AvailableAfterRegion(const opt::Instruction& instr,
+                                   opt::BasicBlock* exit_block,
+                                   opt::IRContext* ir_context);
+
+  // Returns true if and only if |instr| is valid as an argument to an OpPhi
+  // instruction.
+  static bool ValidOpPhiArgument(const opt::Instruction& instr,
+                                 opt::IRContext* ir_context);
+
   std::unordered_set<uint32_t> GetFreshIds() const override;
 
   protobufs::Transformation ToMessage() const override;
