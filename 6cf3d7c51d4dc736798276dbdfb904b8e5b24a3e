@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0ed2a10f_e5fe497d",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:07:01Z",
+      "side": 1,
+      "message": "Since these don\u0027t just refer to classic multi-sampling (I consider `sampleRateShading` a form of super-sampling), I would rename them to `sampleLoopInit` and `sampleLoopEnd`.",
+      "range": {
+        "startLine": 138,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 82
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b5cf6b97_08f6d9e0",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:07:01Z",
+      "side": 1,
+      "message": "Could this be the source of the remaining failing tests? We seem to have a single oDepth, which is fine when doing pure multi-sampling, but with `sampleRateShading` I\u0027d expect each shader invocation can produce its own depth?",
+      "range": {
+        "startLine": 218,
+        "startChar": 2,
+        "endLine": 218,
+        "endChar": 8
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c4c9435c_a97d0f6b",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:07:01Z",
+      "side": 1,
+      "message": "This inadvertently reverts https://swiftshader-review.googlesource.com/c/SwiftShader/+/51888",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 159
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6326666f_80b065d0",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:07:01Z",
+      "side": 1,
+      "message": "Let\u0027s call this \"perSampleShading\" to be more in line with `sampleRateShading`.",
+      "range": {
+        "startLine": 66,
+        "startChar": 6,
+        "endLine": 66,
+        "endChar": 24
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "68e44e5b_15cd6942",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:07:01Z",
+      "side": 1,
+      "message": "Does this act like a mask to determine which samples we\u0027re invoking the shader and writing out the results, or is it intended as an initialization when not doing sampleRateShading? If the latter, I believe it should be 0. https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#primsrast-multisampling states that \"Each sample in a fragment is also assigned a unique coverage index j in the range [0, n × rasterizationSamples), where n is the number of sets in the fragment. If the fragment contains a single set of samples, the coverage index is always equal to the sample index.\"",
+      "range": {
+        "startLine": 72,
+        "startChar": 42,
+        "endLine": 72,
+        "endChar": 44
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25990cc9_939e57bf",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2474,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:07:01Z",
+      "side": 1,
+      "message": "This should be split out of this method so it can be called once after the loop over the samples, instead of using this hacky conditional to call it on the last iteration.\n\nClearing this set wouldn\u0027t even be necessary if we limited the scope of the SpirvRoutine object to where we need it (close to the quad() method) instead of being a member of PixelRoutine. But that\u0027s a pre-existing issue so let\u0027s start with the above.",
+      "range": {
+        "startLine": 2467,
+        "startChar": 1,
+        "endLine": 2474,
+        "endChar": 2
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
