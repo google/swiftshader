@@ -651,6 +651,8 @@ cc_defaults {
         "Device/*.cpp",
         "Pipeline/*.cpp",
         "Vulkan/*.cpp",
+        "WSI/HeadlessSurfaceKHR.cpp",
+        "WSI/VkSurfaceKHR.cpp",
     ],
 
     static_libs: [
