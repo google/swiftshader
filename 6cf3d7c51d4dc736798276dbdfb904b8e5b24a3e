@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "07424263_da2e9a5e",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ed2a10f_e5fe497d",
+      "range": {
+        "startLine": 138,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 82
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b5cf6b97_08f6d9e0",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-25T19:07:01Z",
       "side": 1,
       "message": "Could this be the source of the remaining failing tests? We seem to have a single oDepth, which is fine when doing pure multi-sampling, but with `sampleRateShading` I\u0027d expect each shader invocation can produce its own depth?",
+      "range": {
+        "startLine": 218,
+        "startChar": 2,
+        "endLine": 218,
+        "endChar": 8
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d2c0831_dbb43aa8",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:30Z",
+      "side": 1,
+      "message": "Maybe, but applyShader() is called once per sample so a different depth is computed per sample when per sample rendering is enabled. To be investigated.",
+      "parentUuid": "b5cf6b97_08f6d9e0",
       "range": {
         "startLine": 218,
         "startChar": 2,
@@ -70,6 +118,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7238326b_945df9eb",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4c9435c_a97d0f6b",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 159
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6326666f_80b065d0",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-01-25T19:07:01Z",
       "side": 1,
       "message": "Let\u0027s call this \"perSampleShading\" to be more in line with `sampleRateShading`.",
+      "range": {
+        "startLine": 66,
+        "startChar": 6,
+        "endLine": 66,
+        "endChar": 24
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "442ebf04_95805065",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6326666f_80b065d0",
       "range": {
         "startLine": 66,
         "startChar": 6,
@@ -118,6 +214,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ce2bda49_43ab22e3",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:30Z",
+      "side": 1,
+      "message": "If it was 0, how would we distinguish between the first sample of per sample shading and doing regular ms?",
+      "parentUuid": "68e44e5b_15cd6942",
+      "range": {
+        "startLine": 72,
+        "startChar": 42,
+        "endLine": 72,
+        "endChar": 44
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "25990cc9_939e57bf",
         "filename": "src/Pipeline/SpirvShader.cpp",
         "patchSetId": 2
@@ -129,6 +249,30 @@
       "writtenOn": "2021-01-25T19:07:01Z",
       "side": 1,
       "message": "This should be split out of this method so it can be called once after the loop over the samples, instead of using this hacky conditional to call it on the last iteration.\n\nClearing this set wouldn\u0027t even be necessary if we limited the scope of the SpirvRoutine object to where we need it (close to the quad() method) instead of being a member of PixelRoutine. But that\u0027s a pre-existing issue so let\u0027s start with the above.",
+      "range": {
+        "startLine": 2467,
+        "startChar": 1,
+        "endLine": 2474,
+        "endChar": 2
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e73c979_be97d7b2",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2474,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25990cc9_939e57bf",
       "range": {
         "startLine": 2467,
         "startChar": 1,
