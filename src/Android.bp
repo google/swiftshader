@@ -201,6 +201,7 @@ cc_defaults {
     ],
 
     cflags: [
+        "-DREACTOR_ANONYMOUS_MMAP_NAME=swiftshader_jit",
         "-Wno-unused-parameter",
         "-Wno-implicit-fallthrough",
     ],
@@ -233,6 +234,7 @@ cc_defaults {
     ],
 
     cflags: [
+        "-DREACTOR_ANONYMOUS_MMAP_NAME=swiftshader_jit",
         "-Wno-unused-parameter",
         "-Wno-implicit-fallthrough",
     ],
