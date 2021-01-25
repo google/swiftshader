@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d80918a_70f6827e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-25T15:32:23Z",
+      "side": 1,
+      "message": "Sounds good, I\u0027ll make that change.",
+      "parentUuid": "e3ac4db6_50c47769",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 52
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "297b6ac3_518f1ee8",
@@ -83,6 +107,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "384f7b5a_95942578",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-25T15:32:23Z",
+      "side": 1,
+      "message": "I explained this in the commit comment, but basically I prefix the virtual \"hook\" functions with \"do\" to distinguish them from regular functions. The \"do\" verb here applies more to what the client code (the derived class) is doing, as in \"this function is called by the base to do the creation of vertex buffers\". If you have another idea for how to distinguish these, let me know. I would prefer distinguishing them from regular functions if possible, as it helps both when reading the base framework code, as well as when trying to write a derived class and figuring what functions you can override.",
+      "parentUuid": "e330bf3f_99bfb1c7",
+      "range": {
+        "startLine": 407,
+        "startChar": 2,
+        "endLine": 407,
+        "endChar": 10
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "a238a51e_f31d131d",
         "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
         "patchSetId": 2
@@ -94,6 +142,30 @@
       "writtenOn": "2021-01-25T15:04:48Z",
       "side": 1,
       "message": "Did you make this a template instead of a virtual DrawVerticesBenchmark::run() method to avoid the call overhead, or some other reason? I\u0027m not sure one virtual call matters when each frame is on the order of a million pixels.",
+      "range": {
+        "startLine": 1019,
+        "startChar": 0,
+        "endLine": 1020,
+        "endChar": 63
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40f4fda0_8801f49e",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-25T15:32:23Z",
+      "side": 1,
+      "message": "No, I did this to avoid writing the same code in the three functions TriangleSolidColor, TriangleInterpolateColor, TriangleSampleTexture below. I assumed based on your initial design that you preferred to keep the `benchmark::State`-related code separate. Personally, I prefer this as well. My next step was to move the classes in here into separate files, but I was going to keep the benchmark functions in this .cpp file, so that they are all in one place.",
+      "parentUuid": "a238a51e_f31d131d",
       "range": {
         "startLine": 1019,
         "startChar": 0,
