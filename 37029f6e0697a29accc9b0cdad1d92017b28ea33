@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3ac4db6_50c47769",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T15:04:48Z",
+      "side": 1,
+      "message": "nit: Every draw involves vertices, so I think \u0027DrawBenchmark\u0027 is just as clear, and avoids potential confusion with a benchmark for point rendering.",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 52
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "297b6ac3_518f1ee8",
@@ -14,6 +37,69 @@
       "writtenOn": "2021-01-22T20:57:45Z",
       "side": 1,
       "message": "I wanted to move class VulkanBenchmarks and (now) class DrawVerticesBenchmark to new files, but not in this change so as to keep the diff understandable. Let me know what you think.",
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f584013a_974eb7ae",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T15:04:48Z",
+      "side": 1,
+      "message": "Just some nits:",
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e330bf3f_99bfb1c7",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T15:04:48Z",
+      "side": 1,
+      "message": "nit: Why the double verb? \"create\" seems sufficient to me.",
+      "range": {
+        "startLine": 407,
+        "startChar": 2,
+        "endLine": 407,
+        "endChar": 10
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a238a51e_f31d131d",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T15:04:48Z",
+      "side": 1,
+      "message": "Did you make this a template instead of a virtual DrawVerticesBenchmark::run() method to avoid the call overhead, or some other reason? I\u0027m not sure one virtual call matters when each frame is on the order of a million pixels.",
+      "range": {
+        "startLine": 1019,
+        "startChar": 0,
+        "endLine": 1020,
+        "endChar": 63
+      },
       "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
