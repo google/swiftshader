@@ -22,6 +22,30 @@
       },
       "revId": "0a74b31dad9185c4a24dc9e8c954dd08d3f79144",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe54c9a9_e123557c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-25T22:55:48Z",
+      "side": 1,
+      "message": "Done. Also modified the code to make it clear minSampleShading gets set to 1.0 in this case.",
+      "parentUuid": "45090422_124bdf1c",
+      "range": {
+        "startLine": 11,
+        "startChar": 48,
+        "endLine": 12,
+        "endChar": 56
+      },
+      "revId": "0a74b31dad9185c4a24dc9e8c954dd08d3f79144",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
