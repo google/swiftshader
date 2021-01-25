@@ -22,8 +22,13 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 )
 
 set(VULKAN_BENCHMARKS_SRC_FILES
+    ClearImageBenchmarks.cpp
+    DrawBenchmark.cpp
+    DrawBenchmark.hpp
     main.cpp
-    VulkanBenchmarks.cpp
+    TriangleBenchmarks.cpp
+    VulkanBenchmark.cpp
+    VulkanBenchmark.hpp
 )
 
 add_executable(VulkanBenchmarks
