@@ -129,6 +129,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "161bad7e_054f3c78",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T16:00:28Z",
+      "side": 1,
+      "message": "Oh, sorry, I skimped over that clarification in the comment.\n\nI don\u0027t think the name of a function has to clarify that it\u0027s virtual (that\u0027s what the \"virtual\" and \"override\" keywords are for). In my experience these naming rules also easily get broken. Anyway, it\u0027s all just a minor opinion. I\u0027m fine with keeping this as-is if you find it valuable. I don\u0027t have a better suggestion for distinguishing them.",
+      "parentUuid": "384f7b5a_95942578",
+      "range": {
+        "startLine": 407,
+        "startChar": 2,
+        "endLine": 407,
+        "endChar": 10
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a238a51e_f31d131d",
@@ -166,6 +190,30 @@
       "side": 1,
       "message": "No, I did this to avoid writing the same code in the three functions TriangleSolidColor, TriangleInterpolateColor, TriangleSampleTexture below. I assumed based on your initial design that you preferred to keep the `benchmark::State`-related code separate. Personally, I prefer this as well. My next step was to move the classes in here into separate files, but I was going to keep the benchmark functions in this .cpp file, so that they are all in one place.",
       "parentUuid": "a238a51e_f31d131d",
+      "range": {
+        "startLine": 1019,
+        "startChar": 0,
+        "endLine": 1020,
+        "endChar": 63
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3da54124_593a2aeb",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T16:00:28Z",
+      "side": 1,
+      "message": "Right, makes sense to keep the main \u0027loop\u0027 in this file.\n\nJust thinking out loud: Perhaps there could be a VulkanBenchmarks.hpp which defines a class with an abstract interface for all benchmarks that follow this pattern (mainly pure virtual `initialize` and `renderFrame`), and a `run` method which looks like this and can be defined in this file.\n\nThis can land as-is though so we can discuss pros/cons of approaches to split things across files later.",
+      "parentUuid": "40f4fda0_8801f49e",
       "range": {
         "startLine": 1019,
         "startChar": 0,
