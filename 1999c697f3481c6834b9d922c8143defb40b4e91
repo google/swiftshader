@@ -134,6 +134,30 @@
       },
       "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5272ea55_57bf1371",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T17:13:24Z",
+      "side": 1,
+      "message": "\u003e This is used to optimize out code that we don\u0027t need when the functions aren\u0027t present.\n\nYes, but my point is that presence of interpolation functions is already indicated by the SPIR-V binary. It doesn\u0027t require us to look for them ourselves.\n\n\u003e Also, we always expose the InterpolationFunction capability (see https://swiftshader-review.googlesource.com/c/SwiftShader/+/51469/11/src/Pipeline/SpirvShader.cpp#401), even if there\u0027s no interpolation function in the shader.\n\nThat code doesn\u0027t expose capabilities, it records the capabilities used by the shader, i.e. what I\u0027m referring to above. See https://www.khronos.org/registry/spir-v/specs/unified1/SPIRV.html#OpCapability",
+      "parentUuid": "b6e14de8_0bd57321",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 1
+      },
+      "revId": "1999c697f3481c6834b9d922c8143defb40b4e91",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
