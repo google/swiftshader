@@ -50,6 +50,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "59b0d07b_2fae1911",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-25T18:49:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d80918a_70f6827e",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 52
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "297b6ac3_518f1ee8",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
@@ -153,6 +177,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "457bdac9_0c67716d",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-25T18:49:43Z",
+      "side": 1,
+      "message": "Thanks, I\u0027ll keep it as is for now, and we can certainly revisit this in the future.",
+      "parentUuid": "161bad7e_054f3c78",
+      "range": {
+        "startLine": 407,
+        "startChar": 2,
+        "endLine": 407,
+        "endChar": 10
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a238a51e_f31d131d",
@@ -214,6 +262,30 @@
       "side": 1,
       "message": "Right, makes sense to keep the main \u0027loop\u0027 in this file.\n\nJust thinking out loud: Perhaps there could be a VulkanBenchmarks.hpp which defines a class with an abstract interface for all benchmarks that follow this pattern (mainly pure virtual `initialize` and `renderFrame`), and a `run` method which looks like this and can be defined in this file.\n\nThis can land as-is though so we can discuss pros/cons of approaches to split things across files later.",
       "parentUuid": "40f4fda0_8801f49e",
+      "range": {
+        "startLine": 1019,
+        "startChar": 0,
+        "endLine": 1020,
+        "endChar": 63
+      },
+      "revId": "37029f6e0697a29accc9b0cdad1d92017b28ea33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6ebcf1a_93002a6a",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1020,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-25T18:49:43Z",
+      "side": 1,
+      "message": "I like your idea. Only problem I see right now is that \u0027initialize\u0027 is currently not virtual because it may take arguments -- like ClearBenchmark::initialize(). I could make the constructor take these, store them as members, and use them in initialize, but that\u0027s a little sad for one-time use inputs. I\u0027ll think a bit more about this and come up with something nice 😊",
+      "parentUuid": "3da54124_593a2aeb",
       "range": {
         "startLine": 1019,
         "startChar": 0,
