@@ -118,6 +118,30 @@
       },
       "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "08e18b57_a6ad205e",
+        "filename": "tests/VulkanBenchmarks/VulkanBenchmarks.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T21:20:13Z",
+      "side": 1,
+      "message": "I agree 100% it\u0027s useful for discerning between layers. For project Bunker I think we should get much stricter about what goes in the vk:: namespace and what goes in sw::\n\nFor Reactor we already have a better separation now than prior to Pastel, but there might be room for a layer of utilities which is built on top of Reactor\u0027s basic interface but which is not SwiftShader specific (especially once Reactor has been made a standalone project and we want others to benefit from this layer as well). We\u0027ll also have an rr::SIMD:: namespace for wide vector types.\n\nThat said, for microbenchmarks it seems like overkill. I don\u0027t think I want to have to worry about what goes in the abstraction layer and what does not. It seems the distinction is too arbitrary, since we should be free to make any Vulkan API call we might need for the test. Again, I\u0027m not dead set on keeping it this way, a namespace can be introduced when the benefits clearly outweigh the downsides, but at the moment I don\u0027t see it yet.",
+      "parentUuid": "f9b7c553_6a974402",
+      "range": {
+        "startLine": 208,
+        "startChar": 19,
+        "endLine": 208,
+        "endChar": 24
+      },
+      "revId": "40e1716b78f150ef6ac56d09394ab3da82bbf710",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
