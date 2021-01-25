@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "12fbd377_cafa6549",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T17:18:54Z",
+      "side": 1,
+      "message": "That\u0027s odd. I know Gerrit will reject new revisions of closed changes, but if this change is no longer in the chain you\u0027re trying to push I don\u0027t think it would cause issues?\n\nOn another note: I think we can land https://swiftshader-review.googlesource.com/c/SwiftShader/+/51908 as it shouldn\u0027t cause any rebase issues with this change removed?",
+      "parentUuid": "abd10ac5_b5b24852",
+      "revId": "df8533163f4da9bb433aa760bb2ba3aafd94f381",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "a4105d7c_1a6002ba",
         "filename": "src/Pipeline/SpirvShader.cpp",
         "patchSetId": 1
