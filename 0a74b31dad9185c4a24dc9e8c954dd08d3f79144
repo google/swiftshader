@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45090422_124bdf1c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-25T19:15:09Z",
+      "side": 1,
+      "message": "This could use a quote that this is a spec requirement instead of an implementation choice:\n\n\"If a fragment shader entry point’s interface includes an input variable decorated with SampleId, Sample Shading is considered enabled with a minSampleShading value of 1.0.\"\n\n\"If a fragment shader entry point’s interface includes an input variable decorated with SamplePosition, Sample Shading is considered enabled with a minSampleShading value of 1.0.\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 48,
+        "endLine": 12,
+        "endChar": 56
+      },
+      "revId": "0a74b31dad9185c4a24dc9e8c954dd08d3f79144",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
