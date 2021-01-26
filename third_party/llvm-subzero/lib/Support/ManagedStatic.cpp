@@ -21,6 +21,8 @@ static const ManagedStaticBase *StaticList = nullptr;
 static std::recursive_mutex *ManagedStaticMutex = nullptr;
 LLVM_DEFINE_ONCE_FLAG(mutex_init_flag);
 
+#if 0
+
 static void initializeMutex() {
   ManagedStaticMutex = new std::recursive_mutex();
 }
@@ -32,6 +34,16 @@ static std::recursive_mutex* getManagedStaticMutex() {
   llvm::call_once(mutex_init_flag, initializeMutex);
   return ManagedStaticMutex;
 }
+
+#else
+
+// SwiftShader: from https://reviews.llvm.org/D83372
+static std::recursive_mutex *getManagedStaticMutex() {
+  static std::recursive_mutex m;
+  return &m;
+}
+
+#endif
 
 void ManagedStaticBase::RegisterManagedStatic(void *(*Creator)(),
                                               void (*Deleter)(void*)) const {
@@ -68,7 +80,11 @@ void ManagedStaticBase::destroy() const {
 
 /// llvm_shutdown - Deallocate and destroy all ManagedStatic variables.
 void llvm::llvm_shutdown() {
-  std::lock_guard<std::recursive_mutex> Lock(*getManagedStaticMutex());
+  // SwiftShader: from https://reviews.llvm.org/D83372
+  // This may be called after the mutex is destroyed. Instead of fixing this,
+  // don't bother locking the mutex, and require llvm_shutdown to be called from
+  // exactly one thread.
+  // std::lock_guard<std::recursive_mutex> Lock(*getManagedStaticMutex());
 
   while (StaticList)
     StaticList->destroy();

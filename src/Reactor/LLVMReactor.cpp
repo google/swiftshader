@@ -27,6 +27,7 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/Alignment.h"
+#include "llvm/Support/ManagedStatic.h"
 #include "llvm/Transforms/Coroutines.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Scalar.h"
@@ -56,6 +57,9 @@ extern "C" void X86CompilationCallback()
 #endif
 
 namespace {
+
+// Used to automatically invoke llvm_shutdown() when driver is unloaded
+llvm::llvm_shutdown_obj llvmShutdownObj;
 
 // This has to be a raw pointer because glibc 2.17 doesn't support __cxa_thread_atexit_impl
 // for destructing objects at exit. See crbug.com/1074222
