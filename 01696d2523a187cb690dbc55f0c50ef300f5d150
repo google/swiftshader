@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "53c8a795_a2c55e95",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-26T22:22:51Z",
+      "side": 1,
+      "message": "This isn\u0027t fully ready yet, but I want you guys to take a look. Turns out, the proposed patch (https://reviews.llvm.org/D83372) isn\u0027t good enough as it will possibly break code that uses llvm_shutdown_obj to auto-invoke llvm::shutdown on destruction, depending on the order of init/destroy of different TUs. I\u0027m going to update my comment on that patch review to talk about this, but I wanted to get your opinions first.\n\nAlso, do you think we can land this as is? LSAN no longer reports leaks - at least for gpu_unittests.\n",
+      "revId": "01696d2523a187cb690dbc55f0c50ef300f5d150",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
