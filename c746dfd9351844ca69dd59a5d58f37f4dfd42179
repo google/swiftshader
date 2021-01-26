@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c71242cb_8783ba33",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-26T21:21:14Z",
+      "side": 1,
+      "message": "The Kokoro failure is a \"Connection timed out\", so it\u0027s unrelated to this cl.",
+      "revId": "c746dfd9351844ca69dd59a5d58f37f4dfd42179",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
