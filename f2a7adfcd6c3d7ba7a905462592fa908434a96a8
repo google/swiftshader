@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5cd9eda2_34000c0a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-26T21:53:55Z",
+      "side": 1,
+      "message": "Looking good! 😊",
+      "revId": "f2a7adfcd6c3d7ba7a905462592fa908434a96a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "21907e20_3ebc53aa",
+        "filename": "src/Reactor/Reactor.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-26T21:53:55Z",
+      "side": 1,
+      "message": "Maybe we should add a TODO here for making unmaterializedVariables a data member of Function and Coroutine (or of a common base)? This way we don\u0027t need to worry about the lifetime of this for Function-derived classes with Variables.",
+      "revId": "f2a7adfcd6c3d7ba7a905462592fa908434a96a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
