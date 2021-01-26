@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "05c5ce56_6c148571",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-26T06:45:10Z",
+      "side": 1,
+      "message": "As noted by Antonio, this splits the destructor into a separate method, which is both fragile and unnecessary. In the next Patch Set we simply invoke the Nucleus destructor at Routine acquisition. The issue of Function\u003c\u003e being destroyed without a Routine having been generated is solved elegantly by having Function\u003c\u003e own a unique_ptr to the Nucleus object. If the latter was already destroyed at Routine aquisition, it won\u0027t be destroyed again.",
+      "range": {
+        "startLine": 518,
+        "startChar": 0,
+        "endLine": 530,
+        "endChar": 1
+      },
+      "revId": "eb358f77c12e847b94b4548f4d6718a14790b0ab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
