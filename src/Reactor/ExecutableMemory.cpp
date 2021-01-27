@@ -58,7 +58,7 @@ void *allocateRaw(size_t bytes, size_t alignment)
 {
 	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
 
-#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#if defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	if(alignment < sizeof(void *))
 	{
 		return malloc(bytes);
@@ -131,7 +131,7 @@ int permissionsToMmapProt(int permissions)
 }
 #endif  // !defined(_WIN32) && !defined(__Fuchsia__)
 
-#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#if defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
 // Create a file descriptor for anonymous memory with the given
 // name. Returns -1 on failure.
 // TODO: remove once libc wrapper exists.
@@ -176,7 +176,7 @@ void ensureAnonFileSize(int anonFd, size_t length)
 		fileSize = length;
 	}
 }
-#endif  // defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#endif  // defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
 
 #if defined(__Fuchsia__)
 zx_vm_option_t permissionsToZxVmOptions(int permissions)
@@ -229,7 +229,7 @@ void *allocate(size_t bytes, size_t alignment)
 
 void deallocate(void *memory)
 {
-#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#if defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	free(memory);
 #else
 	if(memory)
@@ -255,7 +255,7 @@ void *allocateMemoryPages(size_t bytes, int permissions, bool need_exec)
 	size_t length = roundUp(bytes, pageSize);
 	void *mapping = nullptr;
 
-#if defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#if defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME)
 	int flags = MAP_PRIVATE;
 
 	// Try to name the memory region for the executable code,
@@ -364,7 +364,7 @@ void deallocateMemoryPages(void *memory, size_t bytes)
 	    VirtualProtect(memory, bytes, PAGE_READWRITE, &oldProtection);
 	ASSERT(result);
 	deallocate(memory);
-#elif defined(__APPLE__) || defined(REACTOR_ANONYMOUS_MMAP_NAME)
+#elif defined(__APPLE__) || (defined(__linux__) && defined(REACTOR_ANONYMOUS_MMAP_NAME))
 	size_t pageSize = memoryPageSize();
 	size_t length = (bytes + pageSize - 1) & ~(pageSize - 1);
 	int result = munmap(memory, length);
