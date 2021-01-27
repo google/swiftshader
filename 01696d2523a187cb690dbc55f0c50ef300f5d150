@@ -16,6 +16,24 @@
       "message": "This isn\u0027t fully ready yet, but I want you guys to take a look. Turns out, the proposed patch (https://reviews.llvm.org/D83372) isn\u0027t good enough as it will possibly break code that uses llvm_shutdown_obj to auto-invoke llvm::shutdown on destruction, depending on the order of init/destroy of different TUs. I\u0027m going to update my comment on that patch review to talk about this, but I wanted to get your opinions first.\n\nAlso, do you think we can land this as is? LSAN no longer reports leaks - at least for gpu_unittests.\n",
       "revId": "01696d2523a187cb690dbc55f0c50ef300f5d150",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f48f21f9_328a178f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-27T16:19:39Z",
+      "side": 1,
+      "message": "An LLVM dev wrote back to my post yesterday, and I updated with this: https://reviews.llvm.org/D83372#2525379\n\nAfter thinking about it some more, and as I wrote on my post, I think there\u0027s a better solution than the one I posted here. It would be to take that patch as-is, but to remove the locking of that mutex in llvm_shutdown. Am going to update this patch with that change.",
+      "parentUuid": "53c8a795_a2c55e95",
+      "revId": "01696d2523a187cb690dbc55f0c50ef300f5d150",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
