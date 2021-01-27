@@ -22,6 +22,30 @@
       },
       "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "75fba6f1_1fca4eba",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-27T21:15:38Z",
+      "side": 1,
+      "message": "Done. CCed your chromium account.",
+      "parentUuid": "be3b6f89_14b74b1d",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 21
+      },
+      "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
