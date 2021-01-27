@@ -15,7 +15,7 @@
 import("reactor.gni")
 import("../swiftshader.gni")
 
-config("swiftshader_reactor_private_config") {
+config("swiftshader_llvm_reactor_private_config") {
   if (is_win) {
     cflags = [
       "/wd4141",  # 'inline' used more than once. (LLVM 7.0)
@@ -37,6 +37,12 @@ config("swiftshader_reactor_private_config") {
   }
 }
 
+config("swiftshader_reactor_base_private_config") {
+  defines = [
+    "REACTOR_ANONYMOUS_MMAP_NAME=swiftshader_jit",
+  ]
+}
+
 swiftshader_source_set("swiftshader_reactor_base") {
   sources = [
     "Debug.cpp",
@@ -44,6 +50,10 @@ swiftshader_source_set("swiftshader_reactor_base") {
     "ExecutableMemory.cpp",
     "OptimalIntrinsics.cpp",
     "Reactor.cpp",
+  ]
+
+  configs = [
+      ":swiftshader_reactor_base_private_config",
   ]
 }
 
@@ -327,7 +337,7 @@ if (supports_llvm) {
       "LLVMReactor.cpp",
     ]
 
-    configs = [ ":swiftshader_reactor_private_config" ]
+    configs = [ ":swiftshader_llvm_reactor_private_config" ]
 
     include_dirs = [
       "$llvm_dir/llvm/include/",
