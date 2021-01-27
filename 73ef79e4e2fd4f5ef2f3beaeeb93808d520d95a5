@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "872baefe_1b1b58f5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-27T16:21:27Z",
+      "side": 1,
+      "message": "Verified to build on AOSP Cuttlefish.",
+      "revId": "73ef79e4e2fd4f5ef2f3beaeeb93808d520d95a5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
