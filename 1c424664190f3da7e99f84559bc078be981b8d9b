@@ -33,6 +33,24 @@
       "message": "How about instead of checking for constants like UINT32_MAX and SIZE_MAX, we use a little \"isMax\" helper function that takes advantage of numeric_limits? Here\u0027s what I mean:\n\nhttps://godbolt.org/z/3sYPG1\n\nSo this code would become:\n\n if (IsMaxValue(pCreateInfo-\u003epBindings[i].binding))\n {\n     return MaxValue\u003csize_t\u003e(); // Could also be ~0\n }\n\nAnd below on line 52, we do the same thing:\n\n if (IsMaxValue(size))\n {\n     return VK_ERROR_OUT_OF_HOST_MEMORY;\n }\n\nI think it helps readability, and is robust against type changes. Just a thought.",
       "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "77f0a6e3_3e32c346",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T15:38:02Z",
+      "side": 1,
+      "message": "Actually, this is the compiler explorer link: https://godbolt.org/z/ob8KrT",
+      "parentUuid": "00e19bd3_b3b11cc7",
+      "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
