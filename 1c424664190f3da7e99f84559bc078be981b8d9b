@@ -105,6 +105,24 @@
       "parentUuid": "c5be938e_b3c51eb1",
       "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51408957_da68c874",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-28T21:17:11Z",
+      "side": 1,
+      "message": "To be fair, if any of the ComputeRequiredAllocationSize() functions returned SIZE_MAX, it would cause an OOM error, even without checking for it in the Create() function, since the memory allocation would fail.",
+      "parentUuid": "0873afb2_6f35fa85",
+      "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
