@@ -172,7 +172,8 @@ void ensureAnonFileSize(int anonFd, size_t length)
 	static size_t fileSize = 0;
 	if(length > fileSize)
 	{
-		ftruncate(anonFd, length);
+		[[maybe_unused]] int result = ftruncate(anonFd, length);
+		ASSERT(result == 0);
 		fileSize = length;
 	}
 }
