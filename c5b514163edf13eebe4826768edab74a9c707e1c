@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b51bfe6_5aca96bd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "I\u0027m curious what prompted this change? It would great to have a real example where we can state how many allocations this saves us.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b6d83bb_7d96b87c",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 832,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "So basically this change adds a constant cache, right? So we should probably use that nomenclature, such as \"Look up constant in cache\" here. Ideally, we\u0027d wrap this up in a cache data type with a lookup -- we have one of those, right?",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7bf7558b_540de580",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 835,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "I find it confusing to call this variable \u0027constant\u0027 when that\u0027s the name of the \u0027c\u0027 struct type. With the changes below, we can just remove \u0027constant\u0027 and \u0027space\u0027 here and use c-\u003edata and c-\u003espace below.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad42f609_dcdc5ccc",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "Maybe we should store \u0027alignedPtr\u0027 in struct Constant.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "274f28a3_7becf45c",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "This should be comparing data against alignedPtr, right? This probably works because most of the time, memory we allocate is already aligned.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d6ed0a0_8e89bcf0",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "We\u0027re not deleting this memory, so this will leak. Why not use std::unique_ptr\u003cuint8_t[]\u003e as before? struct Constant\u0027s \u0027data\u0027 value can be std::unique_ptr\u003cuint8_t[]\u003e instead of a \u0027void *\u0027.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7882bccd_29e36804",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 856,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:29:53Z",
+      "side": 1,
+      "message": "This can be replaced with:\n\nconstant.emplace_back(ptr, space);",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
