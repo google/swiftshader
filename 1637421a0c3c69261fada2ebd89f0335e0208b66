@@ -46,6 +46,29 @@
       },
       "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cef00579_02a5dd6a",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-28T04:40:03Z",
+      "side": 1,
+      "message": "They can\u0027t be outside of that range, because the range is computed from the provided bindings.\n\nThe issue is that, pedantically speaking, we\u0027re computing the range wrong. The conditional below can be true due to numeric overflow caused by the + 1 at line 46 (cf. the one at line 113). But we shouldn\u0027t silently ignore the UINT_MAX binding number here. That can lead to numerous other issues down the line.\n\nInstead, there are two workable solutions:\n1) Detect/avoid the overflow and return an OOM error as suggested at https://crbug.com/1164655#c6. This could be achieved by using 64-bit values in DescriptorSetLayout::ComputeRequiredAllocationSize().\n2) Make Dawn prevent huge binding numbers.\n\nDespite (1) being easy enough, I am strongly in favor of (2). Vulkan is fundamentally an unsafe API, and every edge case not explicitly tested by dEQP can be assumed to cause issues on some drivers. It is Dawn\u0027s responsibility to turn this unsafe API into a safe one by bounding everything to reasonable ranges. Addressing this in SwiftShader would let it off the hook too easily. Many more of these issues will come its way, and not all with SwiftShader as the driver, so I don\u0027t want to set a bad precedent by masking the issue.\n\nBy edge case I specifically mean behavior not expected from a well-behaved application. Malicious content will exercise edge cases in search of vulnerabilities, and unless a solution addresses all configurations, one will succeed. This leads me to suggest a \"third\" reasonable option; add a dEQP test for these edge cases. That forces all drivers to be robust (and effectively requires SwiftShader to implement solution (1)). This option also has the advantage that it avoids the double effort of Dawn limiting the binding range when drivers are already robust against overflow, and has the advantage of securing more than just Dawn\u0027s usage of Vulkan.",
+      "range": {
+        "startLine": 68,
+        "startChar": 5,
+        "endLine": 68,
+        "endChar": 79
+      },
+      "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
