@@ -93,6 +93,30 @@
       },
       "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "976b08e3_b5fe2edb",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-28T15:18:10Z",
+      "side": 1,
+      "message": "I CCed you on it",
+      "parentUuid": "36717a8a_fb4b3fad",
+      "range": {
+        "startLine": 68,
+        "startChar": 5,
+        "endLine": 68,
+        "endChar": 79
+      },
+      "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
