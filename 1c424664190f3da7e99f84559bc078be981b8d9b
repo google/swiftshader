@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "99c26d09_da2ac421",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-28T15:25:09Z",
+      "side": 1,
+      "message": "Note: With this new fix, there\u0027s no crash, but the test output is:\n\nWarning: setupLoaderTermPhysDevs:  Failed to detect any valid GPUs in the current config\nError: Assertion failure at ../../third_party/dawn/src/dawn_native/vulkan/BackendVk.cpp:65 (OnDebugUtilsCallback): (messageSeverity \u0026 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) \u003d\u003d 0\nAborted\n",
+      "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
