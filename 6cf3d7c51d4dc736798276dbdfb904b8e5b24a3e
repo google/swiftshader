@@ -238,6 +238,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a0efe593_e2a26483",
+        "filename": "src/Pipeline/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-28T07:54:09Z",
+      "side": 1,
+      "message": "Is it used for that purpose? I thought `perSampleShading` distinguishes between the two?",
+      "parentUuid": "ce2bda49_43ab22e3",
+      "range": {
+        "startLine": 72,
+        "startChar": 42,
+        "endLine": 72,
+        "endChar": 44
+      },
+      "revId": "6cf3d7c51d4dc736798276dbdfb904b8e5b24a3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "25990cc9_939e57bf",
         "filename": "src/Pipeline/SpirvShader.cpp",
         "patchSetId": 2
