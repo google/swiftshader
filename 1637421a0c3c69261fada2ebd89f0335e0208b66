@@ -117,6 +117,30 @@
       },
       "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "90c13354_23e8442e",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2021-01-28T18:14:15Z",
+      "side": 1,
+      "message": "So Dawn will obviously do 2) before WebGPU goes to Origin Trial because we internally pack layouts and will be able to easily modify the SPIRV once we use Tint to emit it.\n\nHowever, the behavior is not prevented by the VU so Swiftshader shouldn\u0027t crash on this type of input. The specification allows producing and OOM for any reason so Swiftshader can bail out using that.\n\nWe ran into a similar issue with the allocation of VkBuffer of size uint64_t max that would overflow inside drivers and we had to work around it. Likewise the driver should have done an OOM. Even if the allocation size makes no sense, it shouldn\u0027t be up to the implementation to judge what\u0027s reasonable or not, as long as it is within spec.",
+      "parentUuid": "976b08e3_b5fe2edb",
+      "range": {
+        "startLine": 68,
+        "startChar": 5,
+        "endLine": 68,
+        "endChar": 79
+      },
+      "revId": "1637421a0c3c69261fada2ebd89f0335e0208b66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
