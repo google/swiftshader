@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fefb82fd_6f43f4ab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-28T16:31:25Z",
+      "side": 1,
+      "message": "Moving to CC so that this doesn\u0027t show up in \"My Turn\"",
+      "revId": "cb26243ff3af323645d742b8afd26fc4d62ade9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
