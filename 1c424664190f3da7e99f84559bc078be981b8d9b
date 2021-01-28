@@ -51,6 +51,24 @@
       "parentUuid": "00e19bd3_b3b11cc7",
       "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c5be938e_b3c51eb1",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-28T15:47:29Z",
+      "side": 1,
+      "message": "I\u0027m fine with this if it\u0027s applied consistently. Should we just do a cl which changes other occurrences of this, like:\nhttps://source.chromium.org/chromium/chromium/src/+/master:third_party/swiftshader/src/Vulkan/VkPhysicalDevice.cpp;l\u003d454",
+      "parentUuid": "77f0a6e3_3e32c346",
+      "revId": "1c424664190f3da7e99f84559bc078be981b8d9b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
