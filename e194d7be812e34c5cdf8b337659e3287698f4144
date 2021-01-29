@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "46d0fca8_93dba650",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T19:58:04Z",
+      "side": 1,
+      "message": "Verified to reduce the accumulative space for constants of a PixelRoutine from 6944 to 736 bytes. Note this doesn\u0027t take heap allocation management overhead nor the effective unique L1D bandwidth (due to scattered locality) into account.",
+      "revId": "e194d7be812e34c5cdf8b337659e3287698f4144",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

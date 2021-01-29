@@ -215,6 +215,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "03d28112_5cfee073",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T19:58:04Z",
+      "side": 1,
+      "message": "\u003e \u0027a\u0027 could technically reuse \u0027v[0]\u0027 with the current implementation. Is this good? Is it worth doing the extra memcmp\u0027s?\n\nYes and yes. That\u0027s what we\u0027d do if the pool consisted of larger allocations (ideally, a single one).\n\nAlgorithmically this function is O(n) regardless of whether the allocations are individual or larger, and regardless of whether we skip ones with bad alignment \"early\" (which really won\u0027t make much of a difference in practice; std::align is fast while storing and reading the aligned pointer is comparatively not cheap).\n\nNote that Subzero has constant pooling logic for scalars, so your example doesn\u0027t apply to this current implementation, but e.g. this case would be relevant:\n\nInt4(0, 1, 2, 3)\nInt2(2, 3)\n\nThe second vector only needs 8-byte alignment, so it can reuse the upper part of the first vector. Note this patch doesn\u0027t continue searching if the data isn\u0027t found at the first 8-byte aligned address though. That\u0027s left to do for b/148086935.",
+      "parentUuid": "144fe1e0_2bf80389",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "274f28a3_7becf45c",
         "filename": "src/Reactor/SubzeroReactor.cpp",
         "patchSetId": 1
