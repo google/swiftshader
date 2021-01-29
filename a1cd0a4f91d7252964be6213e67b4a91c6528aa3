@@ -50,6 +50,24 @@
       "message": "\u003e Ah, nvm, I found that I can just set supports_llvm \u003d false in Dawn\u0027s .gn\n\nI don\u0027t think that\u0027s a good approach, as it will disable all LLVM usage, even when it\u0027s our only option (like ARM64 at the moment). While I\u0027m sure Dawn won\u0027t need SwiftShader on ARM64 in the short term, once it does, you run the risk of repeating SwiftShader\u0027s build logic for selecting the Reactor backend (which is likely to get more complex as we look into tiered compilation support). In other words, `supports_llvm` is supposed to be a private flag.\n\nI fully understand the frustration of the long build times, but let\u0027s avoid adding technical debt that would require changes in both repos to clean up. I\u0027ll look into handling this properly, today.",
       "revId": "a1cd0a4f91d7252964be6213e67b4a91c6528aa3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "55a31fa5_d1c8b5f1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2021-01-29T14:39:04Z",
+      "side": 1,
+      "message": "It\u0027s true that it isn\u0027t the optimal approach but I was ready to maintain that option in our repo if it saves me compilation time when rolling things like //build. Looking forward to the proper option though :)",
+      "parentUuid": "672d5c2f_a1df16b2",
+      "revId": "a1cd0a4f91d7252964be6213e67b4a91c6528aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
