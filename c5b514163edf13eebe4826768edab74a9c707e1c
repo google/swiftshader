@@ -18,6 +18,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5dc4115_fb1b7dff",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "I\u0027ve updated b/178661423 with the rationale.",
+      "parentUuid": "6b51bfe6_5aca96bd",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2b6d83bb_7d96b87c",
@@ -37,6 +55,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "24da6c76_fb71fb68",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 832,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "I wouldn\u0027t call it a cache. A cache is temporal and optional. Compilers call this concept constant pooling. I\u0027ll rename `ELFMemoryStreamer::constants` to `constantsPool`. I\u0027m keeping the name of this method for now, \u0027cause naming things is hard...",
+      "parentUuid": "2b6d83bb_7d96b87c",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "7bf7558b_540de580",
         "filename": "src/Reactor/SubzeroReactor.cpp",
         "patchSetId": 1
@@ -48,6 +84,24 @@
       "writtenOn": "2021-01-28T16:29:53Z",
       "side": 1,
       "message": "I find it confusing to call this variable \u0027constant\u0027 when that\u0027s the name of the \u0027c\u0027 struct type. With the changes below, we can just remove \u0027constant\u0027 and \u0027space\u0027 here and use c-\u003edata and c-\u003espace below.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6fe0c8a0_dc00d2bb",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 835,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "std::align takes references to the pointer and space parameters, so we should not pass in the member fields (this is also enforced by `c` being a const reference).\n\nI renamed `constant` to `ptr` to be less confusing (aligns better with `alignedPtr` too, pun unintended).",
+      "parentUuid": "7bf7558b_540de580",
       "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -71,6 +125,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "14c9a789_11c9d241",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "Then we\u0027d also have to store the alignment, or compute the alignment from the pointer value itself.\n\nAlso note that when we turn `Constant` into larger blocks of memory as suggested by b/148086935, there won\u0027t be  a single constant per allocation. Instead we\u0027d just search its entire range for suitably aligned memory with the right content.",
+      "parentUuid": "ad42f609_dcdc5ccc",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "274f28a3_7becf45c",
         "filename": "src/Reactor/SubzeroReactor.cpp",
         "patchSetId": 1
@@ -82,6 +154,24 @@
       "writtenOn": "2021-01-28T16:29:53Z",
       "side": 1,
       "message": "This should be comparing data against alignedPtr, right? This probably works because most of the time, memory we allocate is already aligned.",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d53c552_4aae86bd",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "Good catch! No more 3am coding for me...",
+      "parentUuid": "274f28a3_7becf45c",
       "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -103,6 +193,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "85d2a7f9_9d05b7fe",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "Yes, sorry, the first version of this patch was terribly hacky to check if it has any effect on Regres times. I added you as a reviewer way too soon. The next revision should be closer to reviewable.",
+      "parentUuid": "1d6ed0a0_8e89bcf0",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7882bccd_29e36804",
@@ -116,6 +224,24 @@
       "writtenOn": "2021-01-28T16:29:53Z",
       "side": 1,
       "message": "This can be replaced with:\n\nconstant.emplace_back(ptr, space);",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a42d795_2d7a70d9",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 856,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-29T18:24:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7882bccd_29e36804",
       "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
