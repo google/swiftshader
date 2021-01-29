@@ -16,6 +16,23 @@
       "message": "PTAL!",
       "revId": "a1cd0a4f91d7252964be6213e67b4a91c6528aa3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "943f3fa6_8ca411f6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-29T13:50:59Z",
+      "side": 1,
+      "message": "This errors out when trying to use it:\nERROR Unresolved dependencies.\n//third_party/swiftshader/tests/ReactorUnitTests:swiftshader_reactor_llvm_unittests(//build/toolchain/linux:clang_x64)\n  needs //third_party/swiftshader/src/Reactor:swiftshader_llvm_reactor(//build/toolchain/linux:clang_x64)",
+      "revId": "a1cd0a4f91d7252964be6213e67b4a91c6528aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
