@@ -282,6 +282,30 @@
       },
       "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c9369937_3d0ba67c",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1080,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-01-29T22:57:12Z",
+      "side": 1,
+      "message": "Yeah, I think was was missing was handling arrays properly, which was done by adding the \"ComputeInterpolantOffset\" function. I removed the code to handle the dynamic case and I updated the issue to remove a request for the dynamic case in https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/2733 (it still contains a request for testing arrays and the sample keyword properly).",
+      "parentUuid": "763cc583_f2c1228b",
+      "range": {
+        "startLine": 1080,
+        "startChar": 4,
+        "endLine": 1080,
+        "endChar": 57
+      },
+      "revId": "f5859044749473d9936fda4f9c04469d0ed8b03b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
