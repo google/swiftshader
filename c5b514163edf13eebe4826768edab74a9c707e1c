@@ -231,6 +231,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "26977ed3_e5d38333",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T20:49:40Z",
+      "side": 1,
+      "message": "Sold! +2",
+      "parentUuid": "03d28112_5cfee073",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "274f28a3_7becf45c",
