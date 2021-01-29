@@ -36,6 +36,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f1aa2c8d_b5d1755e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T19:10:51Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "a5dc4115_fb1b7dff",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2b6d83bb_7d96b87c",
@@ -71,6 +89,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c6679bc_8eb1c07c",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 832,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T19:10:51Z",
+      "side": 1,
+      "message": "constantsPool is fine by me 😊",
+      "parentUuid": "24da6c76_fb71fb68",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7bf7558b_540de580",
@@ -102,6 +138,24 @@
       "side": 1,
       "message": "std::align takes references to the pointer and space parameters, so we should not pass in the member fields (this is also enforced by `c` being a const reference).\n\nI renamed `constant` to `ptr` to be less confusing (aligns better with `alignedPtr` too, pun unintended).",
       "parentUuid": "7bf7558b_540de580",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43c8da63_013f88c0",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 835,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T19:10:51Z",
+      "side": 1,
+      "message": "\u0027ptr\u0027 is good, thanks.",
+      "parentUuid": "6fe0c8a0_dc00d2bb",
       "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -143,6 +197,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "144fe1e0_2bf80389",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T19:10:51Z",
+      "side": 1,
+      "message": "You\u0027re right that we\u0027d have to store the alignment as well, but now I\u0027m thinking maybe we should, and also store the requested size, so that we can more quickly validate which cache entry to use.\n\nIn fact, adding the requested size to Constant would allow us to skip memcmp\u0027ing constants who\u0027s original requested size \u003e the currently requested size.\n\nRight now, we can only skip if \"allocated space\" \u003c \"currently requested size\", but this means memcmp\u0027ing against constants that are larger (like vectors). The only good thing, I guess, about this way is that you can technically reuse a constant value from a larger type, like:\n\nvector v{1,2,3,1};\nfloat a \u003d 1;\n\n\u0027a\u0027 could technically reuse \u0027v[0]\u0027 with the current implementation. Is this good? Is it worth doing the extra memcmp\u0027s?",
+      "parentUuid": "14c9a789_11c9d241",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "274f28a3_7becf45c",
         "filename": "src/Reactor/SubzeroReactor.cpp",
         "patchSetId": 1
@@ -172,6 +244,24 @@
       "side": 1,
       "message": "Good catch! No more 3am coding for me...",
       "parentUuid": "274f28a3_7becf45c",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8906ed58_55d22668",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T19:10:51Z",
+      "side": 1,
+      "message": "lol no worries!",
+      "parentUuid": "8d53c552_4aae86bd",
       "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -207,6 +297,24 @@
       "side": 1,
       "message": "Yes, sorry, the first version of this patch was terribly hacky to check if it has any effect on Regres times. I added you as a reviewer way too soon. The next revision should be closer to reviewable.",
       "parentUuid": "1d6ed0a0_8e89bcf0",
+      "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5f353dee_52578a7a",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-01-29T19:10:51Z",
+      "side": 1,
+      "message": "All good :)",
+      "parentUuid": "85d2a7f9_9d05b7fe",
       "revId": "c5b514163edf13eebe4826768edab74a9c707e1c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
