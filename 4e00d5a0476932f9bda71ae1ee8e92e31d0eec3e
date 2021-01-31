@@ -95,6 +95,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "a9248b00_aa1acba1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-31T04:30:51Z",
+      "side": 1,
+      "message": "dEQP-VK definitely tests driver-specific behavior, and should do so in this case as well. Can you file a request for this, and mention it on b/171299814 so we can track it? Thanks!",
+      "parentUuid": "5409599b_3d59ca7a",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 31
+      },
+      "revId": "4e00d5a0476932f9bda71ae1ee8e92e31d0eec3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "2c0d8ec5_fc8896ff",
@@ -272,6 +296,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "13844a14_c7d67326",
+        "filename": "src/Vulkan/VkPhysicalDevice.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-31T04:30:51Z",
+      "side": 1,
+      "message": "\u003e Will do this in separated change.\n\nThanks!",
+      "parentUuid": "a3f0f868_3d787641",
+      "range": {
+        "startLine": 75,
+        "startChar": 6,
+        "endLine": 75,
+        "endChar": 20
+      },
+      "revId": "4e00d5a0476932f9bda71ae1ee8e92e31d0eec3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4e0d9abb_b5d4d7ec",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 3
@@ -307,6 +355,30 @@
       "side": 1,
       "message": "Sounds good. Let\u0027s do this in a separated change.",
       "parentUuid": "4e0d9abb_b5d4d7ec",
+      "range": {
+        "startLine": 3076,
+        "startChar": 31,
+        "endLine": 3076,
+        "endChar": 45
+      },
+      "revId": "4e00d5a0476932f9bda71ae1ee8e92e31d0eec3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf78047d_79ad25b6",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 3076,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-31T04:30:51Z",
+      "side": 1,
+      "message": "Excellent. I\u0027ll leave this comment unresolved as a reminder...",
+      "parentUuid": "019d3b60_00e77f99",
       "range": {
         "startLine": 3076,
         "startChar": 31,
