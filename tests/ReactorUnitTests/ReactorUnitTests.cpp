@@ -211,7 +211,7 @@ TEST(ReactorUnitTests, UnfinishedFunction)
 			Int a = function.Arg<0>();
 			Int z = 4;
 
-			break;  // Terminate do-while early.
+			if((true)) break;  // Terminate do-while early.
 
 			Return(a + z);
 		}
