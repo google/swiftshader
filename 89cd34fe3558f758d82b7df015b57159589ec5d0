@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4d95052a_6894d6a3",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-31T03:50:09Z",
+      "side": 1,
+      "message": "You can just do * 4 here and the compiler will use a shift instruction if it\u0027s faster. The multiply is easier to read.\n\nSame for the one below. But see my other comment about whether we should need this in the first place.",
+      "range": {
+        "startLine": 51,
+        "startChar": 31,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "89cd34fe3558f758d82b7df015b57159589ec5d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae2aaf79_cd4953d1",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-01-31T03:50:09Z",
+      "side": 1,
+      "message": "There is no operator[] at the SPIR-V level. The `interpolant` operand of the Interpolate instructions is a pointer, which may have previously undergone pointer arithmetic through the `OpAccessChain` instruction. The latter can index into the fields of a struct, elements of an array, or components of a vector. So there shouldn\u0027t be any pointer arithmetic left to do within this method.",
+      "range": {
+        "startLine": 995,
+        "startChar": 28,
+        "endLine": 995,
+        "endChar": 38
+      },
+      "revId": "89cd34fe3558f758d82b7df015b57159589ec5d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
