@@ -45,6 +45,30 @@
       },
       "revId": "89cd34fe3558f758d82b7df015b57159589ec5d0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a8c76232_16484e25",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-01T14:08:30Z",
+      "side": 1,
+      "message": "We have an external offset into an internal data representation. For example:\n`vec2 myVec[3];`\nhas 6 interpolants, but is internally stored as 4 floats per vector, with locations for interpolants like so:\n```\n0,1,X,X\n2,3,X,X\n4,5,X,X\n```\nIt doesn\u0027t look like the pointer arithmetic knows about this.\n\nIf it does, are the \"state-\u003egetPointer(insn.word(5));\" calls above incorrect?",
+      "parentUuid": "ae2aaf79_cd4953d1",
+      "range": {
+        "startLine": 995,
+        "startChar": 28,
+        "endLine": 995,
+        "endChar": 38
+      },
+      "revId": "89cd34fe3558f758d82b7df015b57159589ec5d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
