@@ -157,7 +157,7 @@ std::vector<uint32_t> compileGLSLtoSPIRV(const char *glslSource, EShLanguage gls
 	{
 		std::string debugLog = glslangShader->getInfoDebugLog();
 		std::string infoLog = glslangShader->getInfoLog();
-		assert(false);
+		assert(false && "Failed to parse shader");
 	}
 
 	glslang::TIntermediate *intermediateRepresentation = glslangShader->getIntermediate();

@@ -17,20 +17,24 @@ set(ROOT_PROJECT_COMPILE_OPTIONS
 )
 
 set(VULKAN_WRAPPER_SRC_FILES
-    Buffer.hpp
-    Framebuffer.hpp
-    Image.hpp
-    Swapchain.hpp
-    Util.hpp
-    VulkanHeaders.hpp
-    Window.hpp
     Buffer.cpp
+    Buffer.hpp
+    DrawTester.cpp
+    DrawTester.hpp
     Framebuffer.cpp
+    Framebuffer.hpp
     Image.cpp
+    Image.hpp
     Swapchain.cpp
+    Swapchain.hpp
     Util.cpp
+    Util.hpp
     VulkanHeaders.cpp
+    VulkanHeaders.hpp
+    VulkanTester.cpp
+    VulkanTester.hpp
     Window.cpp
+    Window.hpp
 )
 
 add_library(VulkanWrapper STATIC
@@ -50,7 +54,7 @@ if (NOT TARGET SPIRV)
 endif()
 
 set_target_properties(VulkanWrapper PROPERTIES
-    FOLDER "Benchmarks"
+    FOLDER "Tests"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
@@ -58,6 +62,11 @@ target_include_directories(VulkanWrapper
     PUBLIC
         "."
         "${SWIFTSHADER_DIR}/include"
+)
+
+target_compile_definitions(VulkanWrapper
+    PUBLIC
+        "STANDALONE"
 )
 
 target_compile_options(VulkanWrapper

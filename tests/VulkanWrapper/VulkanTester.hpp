@@ -12,19 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef VULKAN_BENCHMARK_HPP_
-#define VULKAN_BENCHMARK_HPP_
+#ifndef VULKAN_TESTER_HPP_
+#define VULKAN_TESTER_HPP_
 
 #include "VulkanHeaders.hpp"
 
-class VulkanBenchmark
+class VulkanTester
 {
 public:
-	VulkanBenchmark() = default;
-	virtual ~VulkanBenchmark();
+	VulkanTester() = default;
+	virtual ~VulkanTester();
 
 	// Call once after construction so that virtual functions may be called during init
 	void initialize();
+
+	const vk::DynamicLoader &dynamicLoader() const { return *dl; }
+	vk::Device &getDevice() { return this->device; }
+	vk::Queue &getQueue() { return this->queue; }
+	uint32_t getQueueFamilyIndex() const { return queueFamilyIndex; }
 
 private:
 	std::unique_ptr<vk::DynamicLoader> dl;
@@ -38,4 +43,4 @@ protected:
 	vk::Queue queue;
 };
 
-#endif  // VULKAN_BENCHMARK_HPP_
+#endif  // VULKAN_TESTER_HPP_

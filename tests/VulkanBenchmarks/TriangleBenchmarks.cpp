@@ -13,22 +13,33 @@
 // limitations under the License.
 
 #include "Buffer.hpp"
-#include "DrawBenchmark.hpp"
+#include "DrawTester.hpp"
 #include "benchmark/benchmark.h"
 
 #include <cassert>
 #include <vector>
 
-class TriangleSolidColorBenchmark : public DrawBenchmark
+template<typename T>
+static void RunBenchmark(benchmark::State &state, T &tester)
 {
-public:
-	TriangleSolidColorBenchmark(Multisample multisample)
-	    : DrawBenchmark(multisample)
-	{}
+	tester.initialize();
 
-protected:
-	void doCreateVertexBuffers() override
+	if(false) tester.show();  // Enable for visual verification.
+
+	// Warmup
+	tester.renderFrame();
+
+	for(auto _ : state)
 	{
+		tester.renderFrame();
+	}
+}
+
+static void TriangleSolidColor(benchmark::State &state, Multisample multisample)
+{
+	DrawTester tester(multisample);
+
+	tester.onCreateVertexBuffers([](DrawTester &tester) {
 		struct Vertex
 		{
 			float position[3];
@@ -43,11 +54,10 @@ protected:
 		std::vector<vk::VertexInputAttributeDescription> inputAttributes;
 		inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
 
-		addVertexBuffer(vertexBufferData, sizeof(vertexBufferData), std::move(inputAttributes));
-	}
+		tester.addVertexBuffer(vertexBufferData, sizeof(vertexBufferData), std::move(inputAttributes));
+	});
 
-	vk::ShaderModule doCreateVertexShader() override
-	{
+	tester.onCreateVertexShader([](DrawTester &tester) {
 		const char *vertexShader = R"(#version 310 es
 			layout(location = 0) in vec3 inPos;
 
@@ -56,11 +66,10 @@ protected:
 				gl_Position = vec4(inPos.xyz, 1.0);
 			})";
 
-		return createShaderModule(vertexShader, EShLanguage::EShLangVertex);
-	}
+		return tester.createShaderModule(vertexShader, EShLanguage::EShLangVertex);
+	});
 
-	vk::ShaderModule doCreateFragmentShader() override
-	{
+	tester.onCreateFragmentShader([](DrawTester &tester) {
 		const char *fragmentShader = R"(#version 310 es
 			precision highp float;
 
@@ -71,20 +80,17 @@ protected:
 				outColor = vec4(1.0, 1.0, 1.0, 1.0);
 			})";
 
-		return createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
-	}
-};
+		return tester.createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
+	});
 
-class TriangleInterpolateColorBenchmark : public DrawBenchmark
+	RunBenchmark(state, tester);
+}
+
+static void TriangleInterpolateColor(benchmark::State &state, Multisample multisample)
 {
-public:
-	TriangleInterpolateColorBenchmark(Multisample multisample)
-	    : DrawBenchmark(multisample)
-	{}
+	DrawTester tester(multisample);
 
-protected:
-	void doCreateVertexBuffers() override
-	{
+	tester.onCreateVertexBuffers([](DrawTester &tester) {
 		struct Vertex
 		{
 			float position[3];
@@ -101,11 +107,10 @@ protected:
 		inputAttributes.push_back(vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)));
 		inputAttributes.push_back(vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)));
 
-		addVertexBuffer(vertexBufferData, sizeof(vertexBufferData), std::move(inputAttributes));
-	}
+		tester.addVertexBuffer(vertexBufferData, sizeof(vertexBufferData), std::move(inputAttributes));
+	});
 
-	vk::ShaderModule doCreateVertexShader() override
-	{
+	tester.onCreateVertexShader([](DrawTester &tester) {
 		const char *vertexShader = R"(#version 310 es
 			layout(location = 0) in vec3 inPos;
 			layout(location = 1) in vec3 inColor;
@@ -118,11 +123,10 @@ protected:
 				gl_Position = vec4(inPos.xyz, 1.0);
 			})";
 
-		return createShaderModule(vertexShader, EShLanguage::EShLangVertex);
-	}
+		return tester.createShaderModule(vertexShader, EShLanguage::EShLangVertex);
+	});
 
-	vk::ShaderModule doCreateFragmentShader() override
-	{
+	tester.onCreateFragmentShader([](DrawTester &tester) {
 		const char *fragmentShader = R"(#version 310 es
 			precision highp float;
 
@@ -135,20 +139,17 @@ protected:
 				outColor = vec4(inColor, 1.0);
 			})";
 
-		return createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
-	}
-};
+		return tester.createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
+	});
 
-class TriangleSampleTextureBenchmark : public DrawBenchmark
+	RunBenchmark(state, tester);
+}
+
+static void TriangleSampleTexture(benchmark::State &state, Multisample multisample)
 {
-public:
-	TriangleSampleTextureBenchmark(Multisample multisample)
-	    : DrawBenchmark(multisample)
-	{}
+	DrawTester tester(multisample);
 
-protected:
-	void doCreateVertexBuffers() override
-	{
+	tester.onCreateVertexBuffers([](DrawTester &tester) {
 		struct Vertex
 		{
 			float position[3];
@@ -167,11 +168,10 @@ protected:
 		inputAttributes.push_back(vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)));
 		inputAttributes.push_back(vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texCoord)));
 
-		addVertexBuffer(vertexBufferData, sizeof(vertexBufferData), std::move(inputAttributes));
-	}
+		tester.addVertexBuffer(vertexBufferData, sizeof(vertexBufferData), std::move(inputAttributes));
+	});
 
-	vk::ShaderModule doCreateVertexShader() override
-	{
+	tester.onCreateVertexShader([](DrawTester &tester) {
 		const char *vertexShader = R"(#version 310 es
 			layout(location = 0) in vec3 inPos;
 			layout(location = 1) in vec3 inColor;
@@ -186,11 +186,10 @@ protected:
 				fragTexCoord = inPos.xy;
 			})";
 
-		return createShaderModule(vertexShader, EShLanguage::EShLangVertex);
-	}
+		return tester.createShaderModule(vertexShader, EShLanguage::EShLangVertex);
+	});
 
-	vk::ShaderModule doCreateFragmentShader() override
-	{
+	tester.onCreateFragmentShader([](DrawTester &tester) {
 		const char *fragmentShader = R"(#version 310 es
 			precision highp float;
 
@@ -206,11 +205,10 @@ protected:
 				outColor = texture(texSampler, fragTexCoord) * vec4(inColor, 1.0);
 			})";
 
-		return createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
-	}
+		return tester.createShaderModule(fragmentShader, EShLanguage::EShLangFragment);
+	});
 
-	std::vector<vk::DescriptorSetLayoutBinding> doCreateDescriptorSetLayouts() override
-	{
+	tester.onCreateDescriptorSetLayouts([](DrawTester &tester) -> std::vector<vk::DescriptorSetLayoutBinding> {
 		vk::DescriptorSetLayoutBinding samplerLayoutBinding;
 		samplerLayoutBinding.binding = 1;
 		samplerLayoutBinding.descriptorCount = 1;
@@ -219,11 +217,13 @@ protected:
 		samplerLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
 		return { samplerLayoutBinding };
-	}
+	});
 
-	void doUpdateDescriptorSet(vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet) override
-	{
-		auto &texture = addImage(device, 16, 16, vk::Format::eR8G8B8A8Unorm).obj;
+	tester.onUpdateDescriptorSet([](DrawTester &tester, vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet) {
+		auto &device = tester.getDevice();
+		auto &queue = tester.getQueue();
+
+		auto &texture = tester.addImage(device, 16, 16, vk::Format::eR8G8B8A8Unorm).obj;
 
 		// Fill texture with white
 		vk::DeviceSize bufferSize = 16 * 16 * 4;
@@ -249,7 +249,7 @@ protected:
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
 
-		auto sampler = addSampler(samplerInfo);
+		auto sampler = tester.addSampler(samplerInfo);
 
 		vk::DescriptorImageInfo imageInfo;
 		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -266,41 +266,9 @@ protected:
 		descriptorWrites[0].pImageInfo = &imageInfo;
 
 		device.updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-	}
-};
+	});
 
-template<typename T>
-static void RunBenchmark(benchmark::State &state, T &benchmark)
-{
-	benchmark.initialize();
-
-	if(false) benchmark.show();  // Enable for visual verification.
-
-	// Warmup
-	benchmark.renderFrame();
-
-	for(auto _ : state)
-	{
-		benchmark.renderFrame();
-	}
-}
-
-static void TriangleSolidColor(benchmark::State &state, Multisample multisample)
-{
-	TriangleSolidColorBenchmark benchmark(multisample);
-	RunBenchmark(state, benchmark);
-}
-
-static void TriangleInterpolateColor(benchmark::State &state, Multisample multisample)
-{
-	TriangleInterpolateColorBenchmark benchmark(multisample);
-	RunBenchmark(state, benchmark);
-}
-
-static void TriangleSampleTexture(benchmark::State &state, Multisample multisample)
-{
-	TriangleSampleTextureBenchmark benchmark(multisample);
-	RunBenchmark(state, benchmark);
+	RunBenchmark(state, tester);
 }
 
 BENCHMARK_CAPTURE(TriangleSolidColor, TriangleSolidColor, Multisample::False)->Unit(benchmark::kMillisecond);

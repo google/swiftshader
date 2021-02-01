@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef DRAW_BENCHMARK_HPP_
-#define DRAW_BENCHMARK_HPP_
+#ifndef DRAW_TESTER_HPP_
+#define DRAW_TESTER_HPP_
 
 #include "Framebuffer.hpp"
 #include "Image.hpp"
 #include "Swapchain.hpp"
 #include "Util.hpp"
-#include "VulkanBenchmark.hpp"
+#include "VulkanTester.hpp"
 #include "Window.hpp"
 
 enum class Multisample
@@ -28,62 +28,43 @@ enum class Multisample
 	True
 };
 
-class DrawBenchmark : public VulkanBenchmark
+class DrawTester : public VulkanTester
 {
 public:
-	DrawBenchmark(Multisample multisample);
-	~DrawBenchmark();
+	using ThisType = DrawTester;
+
+	DrawTester(Multisample multisample = Multisample::False);
+	~DrawTester();
 
 	void initialize();
 	void renderFrame();
 	void show();
 
-private:
-	void createSynchronizationPrimitives();
-	void createCommandBuffers(vk::RenderPass renderPass);
-	void prepareVertices();
-	void createFramebuffers(vk::RenderPass renderPass);
-	vk::RenderPass createRenderPass(vk::Format colorFormat);
-	vk::Pipeline createGraphicsPipeline(vk::RenderPass renderPass);
-	void addVertexBuffer(void *vertexBufferData, size_t vertexBufferDataSize, size_t vertexSize, std::vector<vk::VertexInputAttributeDescription> inputAttributes);
-
-protected:
 	/////////////////////////
 	// Hooks
 	/////////////////////////
 
 	// Called from prepareVertices.
-	// Child type may call addVertexBuffer() from this function.
-	virtual void doCreateVertexBuffers() {}
+	// Callback may call tester.addVertexBuffer() from this function.
+	void onCreateVertexBuffers(std::function<void(ThisType &tester)> callback);
 
 	// Called from createGraphicsPipeline.
-	// Child type may return vector of DescriptorSetLayoutBindings for which a DescriptorSetLayout
+	// Callback must return vector of DescriptorSetLayoutBindings for which a DescriptorSetLayout
 	// will be created and stored in this->descriptorSetLayout.
-	virtual std::vector<vk::DescriptorSetLayoutBinding> doCreateDescriptorSetLayouts()
-	{
-		return {};
-	}
+	void onCreateDescriptorSetLayouts(std::function<std::vector<vk::DescriptorSetLayoutBinding>(ThisType &tester)> callback);
 
 	// Called from createGraphicsPipeline.
-	// Child type may call createShaderModule() and return the result.
-	virtual vk::ShaderModule doCreateVertexShader()
-	{
-		return nullptr;
-	}
+	// Callback should call tester.createShaderModule() and return the result.
+	void onCreateVertexShader(std::function<vk::ShaderModule(ThisType &tester)> callback);
 
 	// Called from createGraphicsPipeline.
-	// Child type may call createShaderModule() and return the result.
-	virtual vk::ShaderModule doCreateFragmentShader()
-	{
-		return nullptr;
-	}
+	// Callback should call tester.createShaderModule() and return the result.
+	void onCreateFragmentShader(std::function<vk::ShaderModule(ThisType &tester)> callback);
 
 	// Called from createCommandBuffers.
-	// Child type may create resources (addImage, addSampler, etc.), and make sure to
-	// call device.updateDescriptorSets.
-	virtual void doUpdateDescriptorSet(vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet)
-	{
-	}
+	// Callback may create resources (tester.addImage, tester.addSampler, etc.), and make sure to
+	// call tester.device().updateDescriptorSets.
+	void onUpdateDescriptorSet(std::function<void(ThisType &tester, vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet)> callback);
 
 	/////////////////////////
 	// Resource Management
@@ -122,7 +103,7 @@ protected:
 	{
 		auto sampler = device.createSampler(samplerCreateInfo);
 		samplers.push_back(sampler);
-		return { samplers.size() - 1, sampler };
+		return { samplers.size() - 1, samplers.back() };
 	}
 
 	vk::Sampler &getSamplerById(size_t id)
@@ -131,6 +112,23 @@ protected:
 	}
 
 private:
+	void createSynchronizationPrimitives();
+	void createCommandBuffers(vk::RenderPass renderPass);
+	void prepareVertices();
+	void createFramebuffers(vk::RenderPass renderPass);
+	vk::RenderPass createRenderPass(vk::Format colorFormat);
+	vk::Pipeline createGraphicsPipeline(vk::RenderPass renderPass);
+	void addVertexBuffer(void *vertexBufferData, size_t vertexBufferDataSize, size_t vertexSize, std::vector<vk::VertexInputAttributeDescription> inputAttributes);
+
+	struct Hook
+	{
+		std::function<void(ThisType &tester)> createVertexBuffers = [](auto &) {};
+		std::function<std::vector<vk::DescriptorSetLayoutBinding>(ThisType &tester)> createDescriptorSetLayout = [](auto &) { return std::vector<vk::DescriptorSetLayoutBinding>{}; };
+		std::function<vk::ShaderModule(ThisType &tester)> createVertexShader = [](auto &) { return vk::ShaderModule{}; };
+		std::function<vk::ShaderModule(ThisType &tester)> createFragmentShader = [](auto &) { return vk::ShaderModule{}; };
+		std::function<void(ThisType &tester, vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet)> updateDescriptorSet = [](auto &, auto &, auto &) {};
+	} hooks;
+
 	const vk::Extent2D windowSize = { 1280, 720 };
 	const bool multisample;
 
@@ -171,4 +169,29 @@ private:
 	std::vector<vk::CommandBuffer> commandBuffers;  // Owning handles
 };
 
-#endif  // DRAW_BENCHMARK_HPP_
+inline void DrawTester::onCreateVertexBuffers(std::function<void(ThisType &tester)> callback)
+{
+	hooks.createVertexBuffers = std::move(callback);
+}
+
+inline void DrawTester::onCreateDescriptorSetLayouts(std::function<std::vector<vk::DescriptorSetLayoutBinding>(ThisType &tester)> callback)
+{
+	hooks.createDescriptorSetLayout = std::move(callback);
+}
+
+inline void DrawTester::onCreateVertexShader(std::function<vk::ShaderModule(ThisType &tester)> callback)
+{
+	hooks.createVertexShader = std::move(callback);
+}
+
+inline void DrawTester::onCreateFragmentShader(std::function<vk::ShaderModule(ThisType &tester)> callback)
+{
+	hooks.createFragmentShader = std::move(callback);
+}
+
+inline void DrawTester::onUpdateDescriptorSet(std::function<void(ThisType &tester, vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet)> callback)
+{
+	hooks.updateDescriptorSet = std::move(callback);
+}
+
+#endif  // DRAW_TESTER_HPP_

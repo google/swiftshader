@@ -31,7 +31,7 @@ add_executable(ReactorBenchmarks
 )
 
 set_target_properties(ReactorBenchmarks PROPERTIES
-    FOLDER "Benchmarks"
+    FOLDER "Tests/Benchmarks"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

@@ -70,7 +70,7 @@ Swapchain::~Swapchain()
 	device.destroySwapchainKHR(swapchain, nullptr);
 }
 
-void Swapchain::acquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t &imageIndex)
+void Swapchain::acquireNextImage(vk::Semaphore presentCompleteSemaphore, uint32_t &imageIndex)
 {
 	auto result = device.acquireNextImageKHR(swapchain, UINT64_MAX, presentCompleteSemaphore, vk::Fence());
 	imageIndex = result.value;

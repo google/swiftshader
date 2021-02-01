@@ -26,9 +26,12 @@ test("swiftshader_vulkan_unittests") {
 
   sources = [
     "//gpu/swiftshader_tests_main.cc",
-    "Device.cpp",
-    "Driver.cpp",
-    "unittests.cpp",
+    "BasicTests.cpp"
+    "ComputeTests.cpp"
+    "Device.cpp"
+    "DrawTests.cpp"
+    "Driver.cpp"
+    "main.cpp"
   ]
 
   include_dirs = [

@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "DrawBenchmark.hpp"
+#include "DrawTester.hpp"
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
-DrawBenchmark::DrawBenchmark(Multisample multisample)
+DrawTester::DrawTester(Multisample multisample)
     : multisample(multisample == Multisample::True)
 {
 }
 
-DrawBenchmark::~DrawBenchmark()
+DrawTester::~DrawTester()
 {
 	device.freeCommandBuffers(commandPool, commandBuffers);
 
@@ -59,9 +59,9 @@ DrawBenchmark::~DrawBenchmark()
 	window.reset();
 }
 
-void DrawBenchmark::initialize()
+void DrawTester::initialize()
 {
-	VulkanBenchmark::initialize();
+	VulkanTester::initialize();
 
 	window.reset(new Window(instance, windowSize));
 	swapchain.reset(new Swapchain(physicalDevice, device, *window));
@@ -78,7 +78,7 @@ void DrawBenchmark::initialize()
 	createCommandBuffers(renderPass);
 }
 
-void DrawBenchmark::renderFrame()
+void DrawTester::renderFrame()
 {
 	swapchain->acquireNextImage(presentCompleteSemaphore, currentFrameBuffer);
 
@@ -101,12 +101,12 @@ void DrawBenchmark::renderFrame()
 	swapchain->queuePresent(queue, currentFrameBuffer, renderCompleteSemaphore);
 }
 
-void DrawBenchmark::show()
+void DrawTester::show()
 {
 	window->show();
 }
 
-vk::RenderPass DrawBenchmark::createRenderPass(vk::Format colorFormat)
+vk::RenderPass DrawTester::createRenderPass(vk::Format colorFormat)
 {
 	std::vector<vk::AttachmentDescription> attachments(multisample ? 2 : 1);
 
@@ -187,7 +187,7 @@ vk::RenderPass DrawBenchmark::createRenderPass(vk::Format colorFormat)
 	return device.createRenderPass(renderPassInfo);
 }
 
-void DrawBenchmark::createFramebuffers(vk::RenderPass renderPass)
+void DrawTester::createFramebuffers(vk::RenderPass renderPass)
 {
 	framebuffers.resize(swapchain->imageCount());
 
@@ -197,14 +197,14 @@ void DrawBenchmark::createFramebuffers(vk::RenderPass renderPass)
 	}
 }
 
-void DrawBenchmark::prepareVertices()
+void DrawTester::prepareVertices()
 {
-	doCreateVertexBuffers();
+	hooks.createVertexBuffers(*this);
 }
 
-vk::Pipeline DrawBenchmark::createGraphicsPipeline(vk::RenderPass renderPass)
+vk::Pipeline DrawTester::createGraphicsPipeline(vk::RenderPass renderPass)
 {
-	auto setLayoutBindings = doCreateDescriptorSetLayouts();
+	auto setLayoutBindings = hooks.createDescriptorSetLayout(*this);
 
 	std::vector<vk::DescriptorSetLayout> setLayouts;
 	if(!setLayoutBindings.empty())
@@ -271,8 +271,8 @@ vk::Pipeline DrawBenchmark::createGraphicsPipeline(vk::RenderPass renderPass)
 	multisampleState.rasterizationSamples = multisample ? vk::SampleCountFlagBits::e4 : vk::SampleCountFlagBits::e1;
 	multisampleState.pSampleMask = nullptr;
 
-	vk::ShaderModule vertexModule = doCreateVertexShader();
-	vk::ShaderModule fragmentModule = doCreateFragmentShader();
+	vk::ShaderModule vertexModule = hooks.createVertexShader(*this);
+	vk::ShaderModule fragmentModule = hooks.createFragmentShader(*this);
 
 	assert(vertexModule);    // TODO: if nullptr, use a default
 	assert(fragmentModule);  // TODO: if nullptr, use a default
@@ -307,7 +307,7 @@ vk::Pipeline DrawBenchmark::createGraphicsPipeline(vk::RenderPass renderPass)
 	return pipeline;
 }
 
-void DrawBenchmark::createSynchronizationPrimitives()
+void DrawTester::createSynchronizationPrimitives()
 {
 	vk::SemaphoreCreateInfo semaphoreCreateInfo;
 	presentCompleteSemaphore = device.createSemaphore(semaphoreCreateInfo);
@@ -322,7 +322,7 @@ void DrawBenchmark::createSynchronizationPrimitives()
 	}
 }
 
-void DrawBenchmark::createCommandBuffers(vk::RenderPass renderPass)
+void DrawTester::createCommandBuffers(vk::RenderPass renderPass)
 {
 	vk::CommandPoolCreateInfo commandPoolCreateInfo;
 	commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndex;
@@ -351,7 +351,7 @@ void DrawBenchmark::createCommandBuffers(vk::RenderPass renderPass)
 
 		descriptorSets = device.allocateDescriptorSets(allocInfo);
 
-		doUpdateDescriptorSet(commandPool, descriptorSets[0]);
+		hooks.updateDescriptorSet(*this, commandPool, descriptorSets[0]);
 	}
 
 	vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
@@ -402,7 +402,7 @@ void DrawBenchmark::createCommandBuffers(vk::RenderPass renderPass)
 	}
 }
 
-void DrawBenchmark::addVertexBuffer(void *vertexBufferData, size_t vertexBufferDataSize, size_t vertexSize, std::vector<vk::VertexInputAttributeDescription> inputAttributes)
+void DrawTester::addVertexBuffer(void *vertexBufferData, size_t vertexBufferDataSize, size_t vertexSize, std::vector<vk::VertexInputAttributeDescription> inputAttributes)
 {
 	assert(!vertices.buffer);  // For now, only support adding once
 
@@ -437,7 +437,7 @@ void DrawBenchmark::addVertexBuffer(void *vertexBufferData, size_t vertexBufferD
 	vertices.numVertices = static_cast<uint32_t>(vertexBufferDataSize / vertexSize);
 }
 
-vk::ShaderModule DrawBenchmark::createShaderModule(const char *glslSource, EShLanguage glslLanguage)
+vk::ShaderModule DrawTester::createShaderModule(const char *glslSource, EShLanguage glslLanguage)
 {
 	auto spirv = Util::compileGLSLtoSPIRV(glslSource, glslLanguage);
 

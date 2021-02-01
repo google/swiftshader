@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VulkanBenchmark.hpp"
+#include "VulkanTester.hpp"
 #include "benchmark/benchmark.h"
 
 #include <cassert>
 
-class ClearImageBenchmark : public VulkanBenchmark
+class ClearImageBenchmark
 {
 public:
 	void initialize(vk::Format clearFormat, vk::ImageAspectFlagBits clearAspect)
 	{
-		VulkanBenchmark::initialize();
+		tester.initialize();
+		auto &device = tester.getDevice();
 
 		vk::ImageCreateInfo imageInfo;
 		imageInfo.imageType = vk::ImageType::e2D;
@@ -48,7 +49,7 @@ public:
 		device.bindImageMemory(image, memory, 0);
 
 		vk::CommandPoolCreateInfo commandPoolCreateInfo;
-		commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndex;
+		commandPoolCreateInfo.queueFamilyIndex = tester.getQueueFamilyIndex();
 
 		commandPool = device.createCommandPool(commandPoolCreateInfo);
 
@@ -96,6 +97,7 @@ public:
 
 	~ClearImageBenchmark()
 	{
+		auto &device = tester.getDevice();
 		device.freeCommandBuffers(commandPool, 1, &commandBuffer);
 		device.destroyCommandPool(commandPool, nullptr);
 		device.freeMemory(memory, nullptr);
@@ -104,6 +106,8 @@ public:
 
 	void clear()
 	{
+		auto &queue = tester.getQueue();
+
 		vk::SubmitInfo submitInfo;
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
@@ -113,6 +117,7 @@ public:
 	}
 
 private:
+	VulkanTester tester;
 	vk::Image image;                  // Owning handle
 	vk::DeviceMemory memory;          // Owning handle
 	vk::CommandPool commandPool;      // Owning handle

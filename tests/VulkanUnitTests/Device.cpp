@@ -333,7 +333,7 @@ void Device::UpdateStorageBufferDescriptorSets(
 		});
 	}
 
-	driver->vkUpdateDescriptorSets(device, writes.size(), writes.data(), 0, nullptr);
+	driver->vkUpdateDescriptorSets(device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 }
 
 VkResult Device::AllocateMemory(size_t size, VkMemoryPropertyFlags flags, VkDeviceMemory *out) const

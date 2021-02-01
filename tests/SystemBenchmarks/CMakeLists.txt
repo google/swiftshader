@@ -32,7 +32,7 @@ add_executable(system-benchmarks
 )
 
 set_target_properties(system-benchmarks PROPERTIES
-    FOLDER "Benchmarks"
+    FOLDER "Tests/Benchmarks"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 

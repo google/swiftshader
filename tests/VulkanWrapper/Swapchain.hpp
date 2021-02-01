@@ -26,7 +26,7 @@ public:
 	Swapchain(vk::PhysicalDevice physicalDevice, vk::Device device, Window &window);
 	~Swapchain();
 
-	void acquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t &imageIndex);
+	void acquireNextImage(vk::Semaphore presentCompleteSemaphore, uint32_t &imageIndex);
 	void queuePresent(vk::Queue queue, uint32_t imageIndex, vk::Semaphore waitSemaphore);
 
 	size_t imageCount() const

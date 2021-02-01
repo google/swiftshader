@@ -13,7 +13,6 @@
 # limitations under the License.
 
 set(ROOT_PROJECT_COMPILE_OPTIONS
-    ${SWIFTSHADER_COMPILE_OPTIONS}
     ${WARNINGS_AS_ERRORS}
 )
 
@@ -23,14 +22,16 @@ set(ROOT_PROJECT_LINK_LIBRARIES
 )
 
 set(VULKAN_UNIT_TESTS_SRC_FILES
+    BasicTests.cpp
+    ComputeTests.cpp
+    Device.cpp
     Device.hpp
+    DrawTests.cpp
+    Driver.cpp
     Driver.hpp
+    main.cpp
     VkGlobalFuncs.hpp
     VkInstanceFuncs.hpp
-    Device.cpp
-    Driver.cpp
-    main.cpp
-    unittests.cpp
 )
 
 add_executable(vk-unittests
@@ -72,5 +73,6 @@ target_link_libraries(vk-unittests
         gtest
         gmock
         SPIRV-Tools
+        VulkanWrapper
         ${ROOT_PROJECT_LINK_LIBRARIES}
 )
