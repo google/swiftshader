@@ -56,6 +56,12 @@ extern "C" void X86CompilationCallback()
 #	error "LLVM_ENABLE_THREADS needs to be enabled"
 #endif
 
+#if LLVM_VERSION_MAJOR < 11
+namespace llvm {
+using FixedVectorType = VectorType;
+}  // namespace llvm
+#endif
+
 namespace {
 
 // Used to automatically invoke llvm_shutdown() when driver is unloaded
@@ -111,7 +117,7 @@ llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
 llvm::Value *lowerPMOV(llvm::Value *op, llvm::Type *dstType, bool sext)
 {
 	llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(op->getType());
-	llvm::VectorType *dstTy = llvm::cast<llvm::VectorType>(dstType);
+	llvm::FixedVectorType *dstTy = llvm::cast<llvm::FixedVectorType>(dstType);
 
 	llvm::Value *undef = llvm::UndefValue::get(srcTy);
 	llvm::SmallVector<uint32_t, 16> mask(dstTy->getNumElements());
@@ -175,7 +181,7 @@ llvm::Value *lowerRCP(llvm::Value *x)
 {
 	llvm::Type *ty = x->getType();
 	llvm::Constant *one;
-	if(llvm::VectorType *vectorTy = llvm::dyn_cast<llvm::VectorType>(ty))
+	if(llvm::FixedVectorType *vectorTy = llvm::dyn_cast<llvm::FixedVectorType>(ty))
 	{
 		one = llvm::ConstantVector::getSplat(
 		    vectorTy->getNumElements(),
@@ -195,7 +201,7 @@ llvm::Value *lowerRSQRT(llvm::Value *x)
 
 llvm::Value *lowerVectorShl(llvm::Value *x, uint64_t scalarY)
 {
-	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Value *y = llvm::ConstantVector::getSplat(
 	    ty->getNumElements(),
 	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
@@ -204,7 +210,7 @@ llvm::Value *lowerVectorShl(llvm::Value *x, uint64_t scalarY)
 
 llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
 {
-	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Value *y = llvm::ConstantVector::getSplat(
 	    ty->getNumElements(),
 	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
@@ -213,7 +219,7 @@ llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
 
 llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
 {
-	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Value *y = llvm::ConstantVector::getSplat(
 	    ty->getNumElements(),
 	    llvm::ConstantInt::get(ty->getElementType(), scalarY));
@@ -222,7 +228,7 @@ llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
 
 llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
 {
-	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
 
 	llvm::Value *extX = jit->builder->CreateSExt(x, extTy);
@@ -246,7 +252,7 @@ llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
 
 llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 {
-	llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *srcTy = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::VectorType *dstTy = llvm::VectorType::getTruncatedElementVectorType(srcTy);
 
 	llvm::IntegerType *dstElemTy =
@@ -282,7 +288,7 @@ llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 
 llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
 {
-	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Constant *zero = llvm::ConstantInt::get(ty, 0);
 	llvm::Value *cmp = jit->builder->CreateICmpSLT(x, zero);
 
@@ -299,7 +305,7 @@ llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
 
 llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
 {
-	llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+	llvm::FixedVectorType *ty = llvm::cast<llvm::FixedVectorType>(x->getType());
 	llvm::Constant *zero = llvm::ConstantFP::get(ty, 0);
 	llvm::Value *cmp = jit->builder->CreateFCmpULT(x, zero);
 
@@ -481,7 +487,7 @@ static unsigned int elementCount(Type *type)
 		case Type_v8i8: return 8;
 		case Type_v4i8: return 4;
 		case Type_v2f32: return 2;
-		case Type_LLVM: return llvm::cast<llvm::VectorType>(T(type))->getNumElements();
+		case Type_LLVM: return llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();
 		default:
 			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
 			return 0;
@@ -1055,7 +1061,7 @@ Value *Nucleus::createMaskedLoad(Value *ptr, Type *elTy, Value *mask, unsigned i
 	ASSERT(V(ptr)->getType()->isPointerTy());
 	ASSERT(V(mask)->getType()->isVectorTy());
 
-	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
+	auto numEls = llvm::cast<llvm::FixedVectorType>(V(mask)->getType())->getNumElements();
 	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
 	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
 	auto elVecTy = llvm::VectorType::get(T(elTy), numEls, false);
@@ -1075,7 +1081,7 @@ void Nucleus::createMaskedStore(Value *ptr, Value *val, Value *mask, unsigned in
 	ASSERT(V(val)->getType()->isVectorTy());
 	ASSERT(V(mask)->getType()->isVectorTy());
 
-	auto numEls = llvm::cast<llvm::VectorType>(V(mask)->getType())->getNumElements();
+	auto numEls = llvm::cast<llvm::FixedVectorType>(V(mask)->getType())->getNumElements();
 	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
 	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
 	auto elVecTy = V(val)->getType();
@@ -1122,7 +1128,7 @@ static llvm::Value *createGather(llvm::Value *base, llvm::Type *elTy, llvm::Valu
 	ASSERT(offsets->getType()->isVectorTy());
 	ASSERT(mask->getType()->isVectorTy());
 
-	auto numEls = llvm::cast<llvm::VectorType>(mask->getType())->getNumElements();
+	auto numEls = llvm::cast<llvm::FixedVectorType>(mask->getType())->getNumElements();
 	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
 	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
 	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
@@ -1188,7 +1194,7 @@ static void createScatter(llvm::Value *base, llvm::Value *val, llvm::Value *offs
 	ASSERT(offsets->getType()->isVectorTy());
 	ASSERT(mask->getType()->isVectorTy());
 
-	auto numEls = llvm::cast<llvm::VectorType>(mask->getType())->getNumElements();
+	auto numEls = llvm::cast<llvm::FixedVectorType>(mask->getType())->getNumElements();
 	auto i1Ty = llvm::Type::getInt1Ty(*jit->context);
 	auto i32Ty = llvm::Type::getInt32Ty(*jit->context);
 	auto i8Ty = llvm::Type::getInt8Ty(*jit->context);
@@ -1598,7 +1604,7 @@ Value *Nucleus::createShuffleVector(Value *v1, Value *v2, const int *select)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 
-	int size = llvm::cast<llvm::VectorType>(V(v1)->getType())->getNumElements();
+	int size = llvm::cast<llvm::FixedVectorType>(V(v1)->getType())->getNumElements();
 	const int maxSize = 16;
 	llvm::Constant *swizzle[maxSize];
 	ASSERT(size <= maxSize);
@@ -1744,8 +1750,8 @@ Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	ASSERT(llvm::isa<llvm::VectorType>(T(type)));
-	const int numConstants = elementCount(type);                                      // Number of provided constants for the (emulated) type.
-	const int numElements = llvm::cast<llvm::VectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
+	const int numConstants = elementCount(type);                                           // Number of provided constants for the (emulated) type.
+	const int numElements = llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
 	ASSERT(numElements <= 16 && numConstants <= numElements);
 	llvm::Constant *constantVector[16];
 
@@ -1761,8 +1767,8 @@ Value *Nucleus::createConstantVector(const double *constants, Type *type)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();
 	ASSERT(llvm::isa<llvm::VectorType>(T(type)));
-	const int numConstants = elementCount(type);                                      // Number of provided constants for the (emulated) type.
-	const int numElements = llvm::cast<llvm::VectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
+	const int numConstants = elementCount(type);                                           // Number of provided constants for the (emulated) type.
+	const int numElements = llvm::cast<llvm::FixedVectorType>(T(type))->getNumElements();  // Number of elements of the underlying vector type.
 	ASSERT(numElements <= 8 && numConstants <= numElements);
 	llvm::Constant *constantVector[8];
 
