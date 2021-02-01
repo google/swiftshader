@@ -64,7 +64,9 @@ namespace sz {
 Ice::Cfg *createFunction(Ice::GlobalContext *context, Ice::Type returnType, const std::vector<Ice::Type> &paramTypes)
 {
 	uint32_t sequenceNumber = 0;
-	auto function = Ice::Cfg::create(context, sequenceNumber).release();
+	auto *function = Ice::Cfg::create(context, sequenceNumber).release();
+
+	function->setStackSizeLimit(512 * 1024);  // 512 KiB
 
 	Ice::CfgLocalAllocatorScope allocScope{ function };
 
@@ -1039,6 +1041,11 @@ static std::shared_ptr<Routine> acquireRoutine(Ice::Cfg *const (&functions)[Coun
 		}
 
 		currFunc->emitIAS();
+
+		if(currFunc->hasError())
+		{
+			return nullptr;
+		}
 	}
 
 	// Emit items

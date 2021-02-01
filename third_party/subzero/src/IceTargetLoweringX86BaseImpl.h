@@ -1202,6 +1202,11 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   SpillAreaSizeBytes = StackSize - StackOffset; // Adjust for alignment, if any
 
   if (SpillAreaSizeBytes) {
+    auto *Func = Node->getCfg();
+    if (SpillAreaSizeBytes > Func->getStackSizeLimit()) {
+      Func->setError("Stack size limit exceeded");
+    }
+
     emitStackProbe(SpillAreaSizeBytes);
 
     // Generate "sub stackptr, SpillAreaSizeBytes"

@@ -274,6 +274,9 @@ public:
   /// in the correct information once everything is known.
   void fixPhiNodes();
 
+  void setStackSizeLimit(uint32_t Limit) { StackSizeLimit = Limit; }
+  uint32_t getStackSizeLimit() const { return StackSizeLimit; }
+
 private:
   friend class CfgAllocatorTraits; // for Allocator access.
 
@@ -344,6 +347,7 @@ private:
   /// should be called to avoid spurious validation failures.
   const CfgNode *CurrentNode = nullptr;
   CfgVector<Loop> LoopInfo;
+  uint32_t StackSizeLimit = 1 * 1024 * 1024; // 1 MiB
 
 public:
   static void TlsInit() { CfgAllocatorTraits::init(); }
