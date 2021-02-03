@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ef81b4c3_8cf8c24f",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-03T20:38:20Z",
+      "side": 1,
+      "message": "I assume this implies that *fatal is guranteed to be initialized to false before being passed into the handler?",
+      "revId": "053f37991099fd115a3c4f6955addf0951e11612",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cb0c88d9_28100e63",
+        "filename": "src/Reactor/LLVMJIT.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 765,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-03T20:38:20Z",
+      "side": 1,
+      "message": "This is reset because the subsequent session.lookup compiles again and may invoke the fatal handler again, right? In that case, I think we should move this resetting to false of the bool right above the call to session.lookup with a short comment like \"// May be set to true by session.lookup\"",
+      "revId": "053f37991099fd115a3c4f6955addf0951e11612",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
