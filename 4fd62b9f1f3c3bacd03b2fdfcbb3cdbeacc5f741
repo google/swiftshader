@@ -22,6 +22,30 @@
       },
       "revId": "4fd62b9f1f3c3bacd03b2fdfcbb3cdbeacc5f741",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c63144fe_44f66bd0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-03T21:29:12Z",
+      "side": 1,
+      "message": "Yeah I don\u0027t know, I do think it is a wrapper, and so is vulkan.hpp. I think Builder is confusing. There are lots of names, like \"Lib\", \"Utils\", \"Helpers\", etc. For now I\u0027ll stick to Wrapper as it means less renaming of folders and files, but we can cerainly change this in the future.",
+      "parentUuid": "c209dea1_bc2d5843",
+      "range": {
+        "startLine": 7,
+        "startChar": 28,
+        "endLine": 7,
+        "endChar": 35
+      },
+      "revId": "4fd62b9f1f3c3bacd03b2fdfcbb3cdbeacc5f741",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
