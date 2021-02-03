@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b7e5650_5da8636b",
+        "filename": "third_party/llvm-10.0/CMakeLists.txt",
+        "patchSetId": 3
+      },
+      "lineNbr": 953,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-03T03:31:11Z",
+      "side": 1,
+      "message": "Must be capital A on case-sensitive OS.",
+      "range": {
+        "startLine": 953,
+        "startChar": 33,
+        "endLine": 953,
+        "endChar": 34
+      },
+      "revId": "4a43076a2839f2c91f06348b6c28711e920544fa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
