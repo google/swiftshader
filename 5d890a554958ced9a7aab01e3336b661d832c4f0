@@ -16,6 +16,40 @@
       "message": "The win-swangle-try-tot-swiftshader-x86 failure was due to a timeout. Seems unrelated to this change, but I don\u0027t think I\u0027ve seen one before, so it\u0027s something to keep an eye out for.",
       "revId": "5d890a554958ced9a7aab01e3336b661d832c4f0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73233ebf_1a5392dd",
+        "filename": "third_party/subzero/src/IceCfg.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-03T20:41:21Z",
+      "side": 1,
+      "message": "This function should be \u0027const\u0027.",
+      "revId": "5d890a554958ced9a7aab01e3336b661d832c4f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f6cfe5bd_c0dc60aa",
+        "filename": "third_party/subzero/src/IceCfg.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-03T20:41:21Z",
+      "side": 1,
+      "message": "I would prefer \"1 * 1024 * 1024\" personally.",
+      "revId": "5d890a554958ced9a7aab01e3336b661d832c4f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
