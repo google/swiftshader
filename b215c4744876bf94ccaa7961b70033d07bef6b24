@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "89e07191_cbada592",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 94981
+      },
+      "writtenOn": "2021-02-03T09:32:23Z",
+      "side": 1,
+      "message": "Verified it works on macOS 10.15.7 using arm64 as target system.",
+      "revId": "b215c4744876bf94ccaa7961b70033d07bef6b24",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
