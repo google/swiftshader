@@ -376,6 +376,83 @@ TEST(ReactorUnitTests, LoopAfterReturn)
 	EXPECT_EQ(result, 7);
 }
 
+// This test excercises the Optimizer::propagateAlloca() optimization pass.
+// The pointer variable should not get stored to / loaded from memory.
+// TODO(b/180665600): Check that the optimization took place.
+TEST(ReactorUnitTests, PropagateAlloca)
+{
+	FunctionT<int(int)> function;
+	{
+		Int b = function.Arg<0>();
+
+		Int a = 22;
+		Pointer<Int> p;
+
+		// This branch materializes both `a` and `p`, and ensures single basic block
+		// optimizations don't also eliminate the pointer store and load.
+		If(b != 0)  // TODO(b/179922668): Support If(b)
+		{
+			p = &a;
+		}
+
+		Return(Int(*p));  // TODO(b/179694472): Support Return(*p)
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(true);
+	EXPECT_EQ(result, 22);
+}
+
+// Corner case for Optimizer::propagateAlloca(). It should not replace loading of `p`
+// with the addres of `a`, since it also got the address of `b` assigned.
+TEST(ReactorUnitTests, PointerToPointer)
+{
+	FunctionT<int()> function;
+	{
+		Int a = 444;
+		Int b = 555;
+		Int c = 666;
+
+		Pointer<Int> p = &a;
+		Pointer<Pointer<Int>> pp = &p;
+		p = &b;
+
+		Return(Int(*Pointer<Int>(*pp)));  // TODO(b/179694472): Support **pp
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine();
+	EXPECT_EQ(result, 555);
+}
+
+// Corner case for Optimizer::propagateAlloca(). It should not replace loading of `p[i]`
+// with any of the addresses of the `a`, `b`, or `c`.
+TEST(ReactorUnitTests, ArrayOfPointersToLocals)
+{
+	FunctionT<int(int)> function;
+	{
+		Int i = function.Arg<0>();
+
+		Int a = 111;
+		Int b = 222;
+		Int c = 333;
+
+		Array<Pointer<Int>, 3> p;
+		p[0] = &a;
+		p[1] = &b;
+		p[2] = &c;
+
+		Return(Int(*Pointer<Int>(p[i])));  // TODO(b/179694472): Support *p[i]
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(1);
+	EXPECT_EQ(result, 222);
+}
+
 TEST(ReactorUnitTests, SubVectorLoadStore)
 {
 	FunctionT<int(void *, void *)> function;

@@ -28,7 +28,9 @@ public:
 
 private:
 	void analyzeUses(Ice::Cfg *function);
+
 	void eliminateDeadCode();
+	void propagateAlloca();
 	void eliminateUnitializedLoads();
 	void eliminateLoadsFollowingSingleStore();
 	void optimizeStoresInSingleBasicBlock();
@@ -95,7 +97,13 @@ void Optimizer::run(Ice::Cfg *function)
 
 	analyzeUses(function);
 
+	// Start by eliminating any dead code, to avoid redundant work for the
+	// subsequent optimization passes.
 	eliminateDeadCode();
+
+	// Eliminate allocas which store the address of other allocas.
+	propagateAlloca();
+
 	eliminateUnitializedLoads();
 	eliminateLoadsFollowingSingleStore();
 	optimizeStoresInSingleBasicBlock();
@@ -107,6 +115,63 @@ void Optimizer::run(Ice::Cfg *function)
 		setUses(operand, nullptr);
 	}
 	operandsWithUses.clear();
+}
+
+// Eliminates allocas which store the address of other allocas.
+void Optimizer::propagateAlloca()
+{
+	Ice::CfgNode *entryBlock = function->getEntryNode();
+	Ice::InstList &instList = entryBlock->getInsts();
+
+	for(Ice::Inst &inst : instList)
+	{
+		if(inst.isDeleted())
+		{
+			continue;
+		}
+
+		auto *alloca = llvm::dyn_cast<Ice::InstAlloca>(&inst);
+
+		if(!alloca)
+		{
+			break;  // Allocas are all at the top
+		}
+
+		// Look for stores of this alloca's address.
+		Ice::Operand *address = alloca->getDest();
+		Uses uses = *getUses(address);  // Hard copy
+
+		for(auto *store : uses)
+		{
+			if(isStore(*store) && store->getData() == address)
+			{
+				Ice::Operand *dest = store->getStoreAddress();
+				Ice::Variable *destVar = llvm::dyn_cast<Ice::Variable>(dest);
+				Ice::Inst *def = destVar ? getDefinition(destVar) : nullptr;
+
+				// If the address is stored into another stack variable, eliminate the latter.
+				if(def && def->getKind() == Ice::Inst::Alloca)
+				{
+					Uses destUses = *getUses(dest);  // Hard copy
+
+					// Make sure the only store into the stack variable is this address, and that all of its other uses are loads.
+					// This prevents dynamic array loads/stores to be replaced by a scalar.
+					if((destUses.stores.size() == 1) && (destUses.loads.size() == destUses.size() - 1))
+					{
+						for(auto *load : destUses.loads)
+						{
+							replace(load, address);
+						}
+
+						// The address is now only stored, never loaded, so the store can be eliminated, together with its alloca.
+						assert(getUses(dest)->size() == 1);
+						deleteInstruction(store);
+						assert(def->isDeleted());
+					}
+				}
+			}
+		}
+	}
 }
 
 void Optimizer::eliminateDeadCode()
