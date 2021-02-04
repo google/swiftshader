@@ -33,6 +33,23 @@
       "message": "Alexis, can you do the honors?",
       "revId": "c4f1dff43cb3b2ceb479849d1484a65dbdb23017",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cd88bdad_4b6344cb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-04T15:44:41Z",
+      "side": 1,
+      "message": "The Kokoro failure is not real one.",
+      "revId": "c4f1dff43cb3b2ceb479849d1484a65dbdb23017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
