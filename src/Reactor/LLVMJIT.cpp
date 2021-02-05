@@ -113,9 +113,7 @@ bool parseCommandLineOptionsOnce(int argc, const char *const *argv)
 {
 	// Use a static immediately invoked lambda to make this thread safe
 	static auto initialized = [=]() {
-		llvm::cl::ParseCommandLineOptions(argc, argv);
-
-		return true;
+		return llvm::cl::ParseCommandLineOptions(argc, argv);
 	}();
 
 	return initialized;
@@ -146,8 +144,10 @@ JITGlobals *JITGlobals::get()
 	static JITGlobals instance = [] {
 		const char *argv[] = {
 			"Reactor",
-			"-x86-asm-syntax", "intel",   // Use Intel syntax rather than the default AT&T
-			"-warn-stack-size", "524288"  // Warn when a function uses more than 512 KiB of stack memory
+#if defined(__i386__) || defined(__x86_64__)
+			"-x86-asm-syntax=intel",  // Use Intel syntax rather than the default AT&T
+#endif
+			"-warn-stack-size=524288"  // Warn when a function uses more than 512 KiB of stack memory
 		};
 
 		parseCommandLineOptionsOnce(sizeof(argv) / sizeof(argv[0]), argv);
