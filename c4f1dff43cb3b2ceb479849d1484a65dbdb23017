@@ -69,6 +69,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e0063b67_d90dacb3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-05T19:05:49Z",
+      "side": 1,
+      "message": "Thanks.",
+      "parentUuid": "7582b2d6_a5e8734d",
+      "revId": "c4f1dff43cb3b2ceb479849d1484a65dbdb23017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dc0afe30_84ab7101",
@@ -82,6 +100,30 @@
       "writtenOn": "2021-02-05T18:38:44Z",
       "side": 1,
       "message": "Why is this test commented out?",
+      "range": {
+        "startLine": 115,
+        "startChar": 18,
+        "endLine": 115,
+        "endChar": 53
+      },
+      "revId": "c4f1dff43cb3b2ceb479849d1484a65dbdb23017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e046b3f2_7ec84f60",
+        "filename": "tests/VulkanUnitTests/BasicTests.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-05T19:05:49Z",
+      "side": 1,
+      "message": "This was already commented out in unittests.cpp, so I just brought it over as it was. Just took a look, Nicolas commented this out back in https://swiftshader-review.googlesource.com/c/SwiftShader/+/49548\n\nI think we can leave this as is for now.",
+      "parentUuid": "dc0afe30_84ab7101",
       "range": {
         "startLine": 115,
         "startChar": 18,
@@ -115,6 +157,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "852f69f5_d08e153f",
+        "filename": "tests/VulkanUnitTests/BasicTests.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-05T19:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d20bf5cf_6d47f5b7",
+      "range": {
+        "startLine": 182,
+        "startChar": 45,
+        "endLine": 182,
+        "endChar": 46
+      },
+      "revId": "c4f1dff43cb3b2ceb479849d1484a65dbdb23017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ad15cd91_b74260a3",
@@ -128,6 +194,30 @@
       "writtenOn": "2021-02-05T18:38:44Z",
       "side": 1,
       "message": "Nit: I know this is the whole point of the test, but it would be nice to have a tiny comment here mentioning that this commented out line is on purpose for the test",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 53,
+        "endChar": 6
+      },
+      "revId": "c4f1dff43cb3b2ceb479849d1484a65dbdb23017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "41283663_cdff95ca",
+        "filename": "tests/VulkanUnitTests/DrawTests.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-05T19:05:49Z",
+      "side": 1,
+      "message": "Done. Good point.",
+      "parentUuid": "ad15cd91_b74260a3",
       "range": {
         "startLine": 53,
         "startChar": 4,
