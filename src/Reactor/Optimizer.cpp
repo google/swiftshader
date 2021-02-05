@@ -630,7 +630,7 @@ Ice::Operand *Optimizer::storeAddress(const Ice::Inst *instruction)
 
 	if(auto *store = llvm::dyn_cast<Ice::InstStore>(instruction))
 	{
-		return store->getAddr();
+		return store->getStoreAddress();
 	}
 
 	if(auto *storeSubVector = asStoreSubVector(instruction))
@@ -647,7 +647,7 @@ Ice::Operand *Optimizer::loadAddress(const Ice::Inst *instruction)
 
 	if(auto *load = llvm::dyn_cast<Ice::InstLoad>(instruction))
 	{
-		return load->getSourceAddress();
+		return load->getLoadAddress();
 	}
 
 	if(auto *loadSubVector = asLoadSubVector(instruction))

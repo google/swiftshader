@@ -873,7 +873,7 @@ void InstStore::dump(const Cfg *Func) const {
   Str << "store " << Ty << " ";
   getData()->dump(Func);
   Str << ", " << Ty << "* ";
-  getAddr()->dump(Func);
+  getStoreAddress()->dump(Func);
   Str << ", align " << typeAlignInBytes(Ty);
   if (getRmwBeacon()) {
     Str << ", beacon ";

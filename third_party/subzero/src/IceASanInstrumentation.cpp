@@ -363,7 +363,7 @@ void ASanInstrumentation::instrumentCall(LoweringContext &Context,
 
 void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
                                          InstLoad *Instr) {
-  Operand *Src = Instr->getSourceAddress();
+  Operand *Src = Instr->getLoadAddress();
   if (auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     auto *NewLoad = InstLoad::create(Context.getNode()->getCfg(),
                                      Instr->getDest(), instrumentReloc(Reloc));
@@ -373,7 +373,7 @@ void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
   }
   Constant *Func =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_load"));
-  instrumentAccess(Context, Instr->getSourceAddress(),
+  instrumentAccess(Context, Instr->getLoadAddress(),
                    typeWidthInBytes(Instr->getDest()->getType()), Func);
 }
 
@@ -381,15 +381,16 @@ void ASanInstrumentation::instrumentStore(LoweringContext &Context,
                                           InstStore *Instr) {
   Operand *Data = Instr->getData();
   if (auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Data)) {
-    auto *NewStore = InstStore::create(
-        Context.getNode()->getCfg(), instrumentReloc(Reloc), Instr->getAddr());
+    auto *NewStore =
+        InstStore::create(Context.getNode()->getCfg(), instrumentReloc(Reloc),
+                          Instr->getStoreAddress());
     Instr->setDeleted();
     Context.insert(NewStore);
     Instr = NewStore;
   }
   Constant *Func =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_store"));
-  instrumentAccess(Context, Instr->getAddr(),
+  instrumentAccess(Context, Instr->getStoreAddress(),
                    typeWidthInBytes(Instr->getData()->getType()), Func);
 }
 
@@ -461,8 +462,8 @@ void ASanInstrumentation::instrumentRet(LoweringContext &Context, InstRet *) {
   Cfg *Func = Context.getNode()->getCfg();
   Context.setInsertPoint(Context.getCur());
   for (InstStore *RzUnpoison : *ICE_TLS_GET_FIELD(LocalDtors)) {
-    Context.insert(
-        InstStore::create(Func, RzUnpoison->getData(), RzUnpoison->getAddr()));
+    Context.insert(InstStore::create(Func, RzUnpoison->getData(),
+                                     RzUnpoison->getStoreAddress()));
   }
   Context.advanceCur();
   Context.advanceNext();

@@ -5483,7 +5483,7 @@ void TargetARM32::lowerLoad(const InstLoad *Load) {
   // A Load instruction can be treated the same as an Assign instruction, after
   // the source operand is transformed into an OperandARM32Mem operand.
   Type Ty = Load->getDest()->getType();
-  Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
+  Operand *Src0 = formMemoryOperand(Load->getLoadAddress(), Ty);
   Variable *DestLoad = Load->getDest();
 
   // TODO(jvoung): handled folding opportunities. Sign and zero extension can
@@ -6168,7 +6168,7 @@ void TargetARM32::lowerSelect(const InstSelect *Instr) {
 
 void TargetARM32::lowerStore(const InstStore *Instr) {
   Operand *Value = Instr->getData();
-  Operand *Addr = Instr->getAddr();
+  Operand *Addr = Instr->getStoreAddress();
   OperandARM32Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
   Type Ty = NewAddr->getType();
 

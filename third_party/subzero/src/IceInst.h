@@ -655,7 +655,7 @@ public:
     (void)Align;
     return new (Func->allocate<InstLoad>()) InstLoad(Func, Dest, SourceAddr);
   }
-  Operand *getSourceAddress() const { return getSrc(0); }
+  Operand *getLoadAddress() const { return getSrc(0); }
   bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Load; }
@@ -761,7 +761,7 @@ public:
     (void)Align;
     return new (Func->allocate<InstStore>()) InstStore(Func, Data, Addr);
   }
-  Operand *getAddr() const { return getSrc(1); }
+  Operand *getStoreAddress() const { return getSrc(1); }
   Operand *getData() const { return getSrc(0); }
   Variable *getRmwBeacon() const;
   void setRmwBeacon(Variable *Beacon);

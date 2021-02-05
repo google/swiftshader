@@ -5211,7 +5211,7 @@ void TargetMIPS32::lowerLoad(const InstLoad *Instr) {
   // A Load instruction can be treated the same as an Assign instruction, after
   // the source operand is transformed into an OperandMIPS32Mem operand.
   Type Ty = Instr->getDest()->getType();
-  Operand *Src0 = formMemoryOperand(Instr->getSourceAddress(), Ty);
+  Operand *Src0 = formMemoryOperand(Instr->getLoadAddress(), Ty);
   Variable *DestLoad = Instr->getDest();
   auto *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);

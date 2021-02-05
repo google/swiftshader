@@ -765,8 +765,8 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::findRMW() {
       // trigger, resulting in two loads and one store, which is worse than the
       // original one load and one store.  However, this is probably rare, and
       // caching probably keeps it just as fast.
-      if (!isSameMemAddressOperand<TraitsType>(Load->getSourceAddress(),
-                                               Store->getAddr()))
+      if (!isSameMemAddressOperand<TraitsType>(Load->getLoadAddress(),
+                                               Store->getStoreAddress()))
         continue;
       Operand *ArithSrcFromLoad = Arith->getSrc(0);
       Operand *ArithSrcOther = Arith->getSrc(1);
@@ -794,8 +794,9 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::findRMW() {
       Store->setRmwBeacon(Beacon);
       auto *BeaconDef = InstFakeDef::create(Func, Beacon);
       Node->getInsts().insert(I3, BeaconDef);
-      auto *RMW = InstX86FakeRMW::create(Func, ArithSrcOther, Store->getAddr(),
-                                         Beacon, Arith->getOp());
+      auto *RMW =
+          InstX86FakeRMW::create(Func, ArithSrcOther, Store->getStoreAddress(),
+                                 Beacon, Arith->getOp());
       Node->getInsts().insert(I3, RMW);
     }
   }
@@ -843,8 +844,8 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::doLoadOpt() {
         // An InstLoad always qualifies.
         LoadDest = Load->getDest();
         constexpr bool DoLegalize = false;
-        LoadSrc = formMemoryOperand(Load->getSourceAddress(),
-                                    LoadDest->getType(), DoLegalize);
+        LoadSrc = formMemoryOperand(Load->getLoadAddress(), LoadDest->getType(),
+                                    DoLegalize);
       } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsic>(CurInst)) {
         // An AtomicLoad intrinsic qualifies as long as it has a valid memory
         // ordering, and can be implemented in a single instruction (i.e., not
@@ -6065,7 +6066,7 @@ void TargetX86Base<TraitsType>::lowerLoad(const InstLoad *Load) {
   // it doesn't need another level of transformation.
   Variable *DestLoad = Load->getDest();
   Type Ty = DestLoad->getType();
-  Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
+  Operand *Src0 = formMemoryOperand(Load->getLoadAddress(), Ty);
   doMockBoundsCheck(Src0);
   auto *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
@@ -6958,7 +6959,7 @@ void TargetX86Base<TraitsType>::lowerSelectVector(const InstSelect *Instr) {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerStore(const InstStore *Instr) {
   Operand *Value = Instr->getData();
-  Operand *Addr = Instr->getAddr();
+  Operand *Addr = Instr->getStoreAddress();
   X86OperandMem *NewAddr = formMemoryOperand(Addr, Value->getType());
   doMockBoundsCheck(NewAddr);
   Type Ty = NewAddr->getType();
@@ -6980,7 +6981,7 @@ void TargetX86Base<TraitsType>::lowerStore(const InstStore *Instr) {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptStore() {
   auto *Instr = llvm::cast<InstStore>(Context.getCur());
-  Operand *Addr = Instr->getAddr();
+  Operand *Addr = Instr->getStoreAddress();
   Operand *Data = Instr->getData();
   if (auto *OptAddr = computeAddressOpt(Instr, Data->getType(), Addr)) {
     Instr->setDeleted();
