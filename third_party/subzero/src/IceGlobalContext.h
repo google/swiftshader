@@ -396,9 +396,6 @@ public:
   ///  - clears the Globals array.
   void lowerGlobals(const std::string &SectionSuffix);
 
-  /// Lowers the profile information.
-  void lowerProfileData();
-
   void dumpConstantLookupCounts();
 
   /// DisposeGlobalVariablesAfterLowering controls whether the memory used by
@@ -507,9 +504,6 @@ private:
   // If Instrumentor is not empty then it will be used to instrument globals and
   // CFGs.
   std::unique_ptr<Instrumentation> Instrumentor = nullptr;
-  // TODO(jpp): move to EmitterContext.
-  VariableDeclaration *ProfileBlockInfoVarDecl = nullptr;
-  std::vector<VariableDeclaration *> ProfileBlockInfos;
   /// Indicates if global variable declarations can be disposed of right after
   /// lowering.
   bool DisposeGlobalVariablesAfterLowering = true;
@@ -563,8 +557,6 @@ private:
     lowerGlobals(NoSuffix);
     HasSeenCode = true;
   }
-
-  void saveBlockInfoPtrs();
 
   llvm::SmallVector<ThreadContext *, 128> AllThreadContexts;
   llvm::SmallVector<std::thread, 128> TranslationThreads;

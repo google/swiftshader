@@ -483,14 +483,6 @@ void GlobalContext::emitTargetRODataSections() {
   DataLowering->emitTargetRODataSections();
 }
 
-void GlobalContext::saveBlockInfoPtrs() {
-  for (VariableDeclaration *Global : Globals) {
-    if (Cfg::isProfileGlobal(*Global)) {
-      ProfileBlockInfos.push_back(Global);
-    }
-  }
-}
-
 void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
   const bool DumpGlobalVariables =
@@ -506,7 +498,6 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   if (getFlags().getDisableTranslation())
     return;
 
-  saveBlockInfoPtrs();
   // If we need to shuffle the layout of global variables, shuffle them now.
   if (getFlags().getReorderGlobalVariables()) {
     // Create a random number generator for global variable reordering.
@@ -520,48 +511,11 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
     Instrumentor->instrumentGlobals(Globals);
 
   DataLowering->lowerGlobals(Globals, SectionSuffix);
-  if (ProfileBlockInfos.empty() && DisposeGlobalVariablesAfterLowering) {
+  if (DisposeGlobalVariablesAfterLowering) {
     Globals.clearAndPurge();
   } else {
     Globals.clear();
   }
-}
-
-void GlobalContext::lowerProfileData() {
-  // ProfileBlockInfoVarDecl is initialized in the constructor, and will only
-  // ever be nullptr after this method completes. This assertion is a convoluted
-  // way of ensuring lowerProfileData is invoked a single time.
-  assert(ProfileBlockInfoVarDecl == nullptr);
-
-  auto GlobalVariablePool = getInitializerAllocator();
-  ProfileBlockInfoVarDecl =
-      VariableDeclaration::createExternal(GlobalVariablePool.get());
-  ProfileBlockInfoVarDecl->setAlignment(typeWidthInBytes(IceType_i64));
-  ProfileBlockInfoVarDecl->setIsConstant(true);
-
-  // Note: if you change this symbol, make sure to update
-  // runtime/szrt_profiler.c as well.
-  ProfileBlockInfoVarDecl->setName(this, "__Sz_block_profile_info");
-
-  for (const VariableDeclaration *PBI : ProfileBlockInfos) {
-    if (Cfg::isProfileGlobal(*PBI)) {
-      constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
-      ProfileBlockInfoVarDecl->addInitializer(
-          VariableDeclaration::RelocInitializer::create(
-              GlobalVariablePool.get(), PBI,
-              {RelocOffset::create(this, BlockExecutionCounterOffset)}));
-    }
-  }
-
-  // This adds a 64-bit sentinel entry to the end of our array. For 32-bit
-  // architectures this will waste 4 bytes.
-  const SizeT Sizeof64BitNullPtr = typeWidthInBytes(IceType_i64);
-  ProfileBlockInfoVarDecl->addInitializer(
-      VariableDeclaration::ZeroInitializer::create(GlobalVariablePool.get(),
-                                                   Sizeof64BitNullPtr));
-  Globals.push_back(ProfileBlockInfoVarDecl);
-  constexpr char ProfileDataSection[] = "$sz_profiler$";
-  lowerGlobals(ProfileDataSection);
 }
 
 void GlobalContext::emitterWrapper(ThreadContext *MyTLS) {

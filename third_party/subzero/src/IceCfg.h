@@ -178,10 +178,6 @@ public:
   uint32_t getConstantBlindingCookie() const { return ConstantBlindingCookie; }
   /// @}
 
-  /// Returns true if Var is a global variable that is used by the profiling
-  /// code.
-  static bool isProfileGlobal(const VariableDeclaration &Var);
-
   /// Passes over the CFG.
   void translate();
   /// After the CFG is fully constructed, iterate over the nodes and compute the
@@ -282,15 +278,6 @@ private:
 
   Cfg(GlobalContext *Ctx, uint32_t SequenceNumber);
 
-  /// Adds a call to the ProfileSummary runtime function as the first
-  /// instruction in this CFG's entry block.
-  void addCallToProfileSummary();
-
-  /// Iterates over the basic blocks in this CFG, adding profiling code to each
-  /// one of them. It returns a list with all the globals that the profiling
-  /// code needs to be defined.
-  void profileBlocks();
-
   void createNodeNameDeclaration(const std::string &NodeAsmName);
   void
   createBlockProfilingInfoDeclaration(const std::string &NodeAsmName,
@@ -338,7 +325,7 @@ private:
   std::unique_ptr<TargetLowering> Target;
   std::unique_ptr<VariablesMetadata> VMetadata;
   std::unique_ptr<Assembler> TargetAssembler;
-  /// Globals required by this CFG. Mostly used for the profiler's globals.
+  /// Globals required by this CFG.
   std::unique_ptr<VariableDeclarationList> GlobalInits;
   CfgVector<InstJumpTable *> JumpTables;
   /// CurrentNode is maintained during dumping/emitting just for validating

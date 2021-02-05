@@ -177,38 +177,6 @@ void Cfg::createBlockProfilingInfoDeclaration(
   GlobalInits->push_back(Var);
 }
 
-void Cfg::profileBlocks() {
-  if (GlobalInits == nullptr)
-    GlobalInits.reset(new VariableDeclarationList());
-
-  for (CfgNode *Node : Nodes) {
-    const std::string NodeAsmName = Node->getAsmName();
-    createNodeNameDeclaration(NodeAsmName);
-    createBlockProfilingInfoDeclaration(NodeAsmName, GlobalInits->back());
-    Node->profileExecutionCount(GlobalInits->back());
-  }
-}
-
-bool Cfg::isProfileGlobal(const VariableDeclaration &Var) {
-  if (!Var.getName().hasStdString())
-    return false;
-  return Var.getName().toString().find(BlockStatsGlobalPrefix) == 0;
-}
-
-void Cfg::addCallToProfileSummary() {
-  // The call(s) to __Sz_profile_summary are added by the profiler in functions
-  // that cause the program to exit. This function is defined in
-  // runtime/szrt_profiler.c.
-  Constant *ProfileSummarySym =
-      Ctx->getConstantExternSym(Ctx->getGlobalString("__Sz_profile_summary"));
-  constexpr SizeT NumArgs = 0;
-  constexpr Variable *Void = nullptr;
-  constexpr bool HasTailCall = false;
-  auto *Call =
-      InstCall::create(this, NumArgs, Void, ProfileSummarySym, HasTailCall);
-  getEntryNode()->getInsts().push_front(Call);
-}
-
 void Cfg::translate() {
   if (hasError())
     return;
@@ -237,16 +205,6 @@ void Cfg::translate() {
   TimerMarker T(TimerStack::TT_translate, this);
 
   dump("Initial CFG");
-
-  if (getFlags().getEnableBlockProfile()) {
-    profileBlocks();
-    // TODO(jpp): this is fragile, at best. Figure out a better way of
-    // detecting exit functions.
-    if (getFunctionName().toStringOrEmpty() == "exit") {
-      addCallToProfileSummary();
-    }
-    dump("Profiled CFG");
-  }
 
   // Create the Hi and Lo variables where a split was needed
   for (Variable *Var : Variables) {
