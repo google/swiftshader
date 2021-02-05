@@ -181,6 +181,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4d4ed808_25689f7e",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-05T21:52:46Z",
+      "side": 1,
+      "message": "They\u0027re effectively 2 different classes that the Vulkan API treats as a single class by using the same handle type to refer to both. I believe a base class that both Semaphore and TimelineSemaphore inherit would work best.",
+      "parentUuid": "d8a4e273_3e8a796f",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 39
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "334b44e1_6442abcd",
         "filename": "src/Vulkan/VkSemaphore.hpp",
         "patchSetId": 3
