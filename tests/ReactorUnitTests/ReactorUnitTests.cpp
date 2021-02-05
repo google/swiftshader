@@ -376,6 +376,23 @@ TEST(ReactorUnitTests, LoopAfterReturn)
 	EXPECT_EQ(result, 7);
 }
 
+TEST(ReactorUnitTests, ConstantPointer)
+{
+	int c = 44;
+
+	FunctionT<int()> function;
+	{
+		Int x = *Pointer<Int>(ConstantPointer(&c));
+
+		Return(x);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine();
+	EXPECT_EQ(result, 44);
+}
+
 // This test excercises the Optimizer::eliminateLoadsFollowingSingleStore() optimization pass.
 // The three load operations for `y` should get eliminated.
 // TODO(b/180665600): Check that the optimization took place.

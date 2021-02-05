@@ -319,14 +319,6 @@ void Optimizer::eliminateLoadsFollowingSingleStore()
 					continue;
 				}
 
-				// TODO(b/148272103): InstLoad assumes that a constant ptr is an offset, rather than an
-				// absolute address. We need to make sure we don't replace a variable with a constant
-				// on this load.
-				if(llvm::isa<Ice::Constant>(storeValue))
-				{
-					continue;
-				}
-
 				replace(load, storeValue);
 
 				for(size_t i = 0; i < addressUses.loads.size(); i++)
@@ -485,15 +477,6 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 				else
 				{
 					if(!loadTypeMatchesStore(inst, store))
-					{
-						unmatchedLoads = true;
-						continue;
-					}
-
-					// TODO(b/148272103): InstLoad assumes that a constant ptr is an offset, rather than an
-					// absolute address. We need to make sure we don't replace a variable with a constant
-					// on this load.
-					if(llvm::isa<Ice::Constant>(storeValue))
 					{
 						unmatchedLoads = true;
 						continue;

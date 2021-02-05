@@ -174,15 +174,6 @@ Ice::Variable *Call(Ice::Cfg *function, Ice::CfgNode *basicBlock, Return(fptr)(C
 	return Call(function, basicBlock, retTy, reinterpret_cast<void const *>(fptr), iceArgs, false);
 }
 
-// Returns a non-const variable copy of const v
-Ice::Variable *createUnconstCast(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Constant *v)
-{
-	Ice::Variable *result = function->makeVariable(v->getType());
-	Ice::InstCast *cast = Ice::InstCast::create(function, Ice::InstCast::Bitcast, result, v);
-	basicBlock->appendInst(cast);
-	return result;
-}
-
 Ice::Variable *createTruncate(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *from, Ice::Type toType)
 {
 	Ice::Variable *to = function->makeVariable(toType);
@@ -193,14 +184,6 @@ Ice::Variable *createTruncate(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice:
 
 Ice::Variable *createLoad(Ice::Cfg *function, Ice::CfgNode *basicBlock, Ice::Operand *ptr, Ice::Type type, unsigned int align)
 {
-	// TODO(b/148272103): InstLoad assumes that a constant ptr is an offset, rather than an
-	// absolute address. We circumvent this by casting to a non-const variable, and loading
-	// from that.
-	if(auto *cptr = llvm::dyn_cast<Ice::Constant>(ptr))
-	{
-		ptr = sz::createUnconstCast(function, basicBlock, cptr);
-	}
-
 	Ice::Variable *result = function->makeVariable(type);
 	auto load = Ice::InstLoad::create(function, result, ptr, align);
 	basicBlock->appendInst(load);

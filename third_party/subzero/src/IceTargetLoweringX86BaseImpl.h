@@ -823,11 +823,15 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::doLoadOpt() {
       // Determine whether the current instruction is a Load instruction or
       // equivalent.
       if (auto *Load = llvm::dyn_cast<InstLoad>(CurInst)) {
-        // An InstLoad always qualifies.
-        LoadDest = Load->getDest();
-        constexpr bool DoLegalize = false;
-        LoadSrc = formMemoryOperand(Load->getLoadAddress(), LoadDest->getType(),
-                                    DoLegalize);
+        // An InstLoad qualifies unless it uses a 64-bit absolute address,
+        // which requires legalization to insert a copy to register.
+        // TODO(b/148272103): Fold these after legalization.
+        if (!Traits::Is64Bit || !llvm::isa<Constant>(Load->getLoadAddress())) {
+          LoadDest = Load->getDest();
+          constexpr bool DoLegalize = false;
+          LoadSrc = formMemoryOperand(Load->getLoadAddress(),
+                                      LoadDest->getType(), DoLegalize);
+        }
       } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsic>(CurInst)) {
         // An AtomicLoad intrinsic qualifies as long as it has a valid memory
         // ordering, and can be implemented in a single instruction (i.e., not
@@ -8121,20 +8125,22 @@ TargetX86Base<TraitsType>::formMemoryOperand(Operand *Opnd, Type Ty,
     auto *Offset = llvm::dyn_cast<Constant>(Opnd);
     assert(Base || Offset);
     if (Offset) {
-      // During memory operand building, we do not blind or pool the constant
-      // offset, we will work on the whole memory operand later as one entity
-      // later, this save one instruction. By turning blinding and pooling off,
-      // we guarantee legalize(Offset) will return a Constant*.
       if (!llvm::isa<ConstantRelocatable>(Offset)) {
-        Offset = llvm::cast<Constant>(legalize(Offset));
-      }
+        if (llvm::isa<ConstantInteger64>(Offset)) {
+          // Memory operands cannot have 64-bit immediates, so they must be
+          // legalized into a register only.
+          Base = llvm::cast<Variable>(legalize(Offset, Legal_Reg));
+          Offset = nullptr;
+        } else {
+          Offset = llvm::cast<Constant>(legalize(Offset));
 
-      assert(llvm::isa<ConstantInteger32>(Offset) ||
-             llvm::isa<ConstantRelocatable>(Offset));
+          assert(llvm::isa<ConstantInteger32>(Offset) ||
+                 llvm::isa<ConstantRelocatable>(Offset));
+        }
+      }
     }
     Mem = X86OperandMem::create(Func, Ty, Base, Offset);
   }
-  // Do legalization, which contains pooling or do pooling.
   return llvm::cast<X86OperandMem>(DoLegalize ? legalize(Mem) : Mem);
 }
 
