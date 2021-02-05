@@ -36,6 +36,7 @@ private:
 
 	void eliminateDeadCode();
 	void propagateAlloca();
+	void performScalarReplacementOfAggregates();
 	void eliminateUnitializedLoads();
 	void eliminateLoadsFollowingSingleStore();
 	void optimizeStoresInSingleBasicBlock();
@@ -43,6 +44,7 @@ private:
 	void replace(Ice::Inst *instruction, Ice::Operand *newValue);
 	void deleteInstruction(Ice::Inst *instruction);
 	bool isDead(Ice::Inst *instruction);
+	bool isStaticallyIndexedArray(Ice::Operand *allocaAddress);
 
 	static const Ice::InstIntrinsic *asLoadSubVector(const Ice::Inst *instruction);
 	static const Ice::InstIntrinsic *asStoreSubVector(const Ice::Inst *instruction);
@@ -113,6 +115,9 @@ void Optimizer::run(Ice::Cfg *function)
 	// Eliminate allocas which store the address of other allocas.
 	propagateAlloca();
 
+	// Replace arrays with individual elements if only statically indexed.
+	performScalarReplacementOfAggregates();
+
 	eliminateUnitializedLoads();
 	eliminateLoadsFollowingSingleStore();
 	optimizeStoresInSingleBasicBlock();
@@ -181,6 +186,117 @@ void Optimizer::propagateAlloca()
 					}
 				}
 			}
+		}
+	}
+}
+
+Ice::Type pointerType()
+{
+	if(sizeof(void *) == 8)
+	{
+		return Ice::IceType_i64;
+	}
+	else
+	{
+		return Ice::IceType_i32;
+	}
+}
+
+// Replace arrays with individual elements if only statically indexed.
+void Optimizer::performScalarReplacementOfAggregates()
+{
+	std::vector<Ice::InstAlloca *> newAllocas;
+
+	Ice::CfgNode *entryBlock = function->getEntryNode();
+	Ice::InstList &instList = entryBlock->getInsts();
+
+	for(Ice::Inst &inst : instList)
+	{
+		if(inst.isDeleted())
+		{
+			continue;
+		}
+
+		auto *alloca = llvm::dyn_cast<Ice::InstAlloca>(&inst);
+
+		if(!alloca)
+		{
+			break;  // Allocas are all at the top
+		}
+
+		uint32_t sizeInBytes = llvm::cast<Ice::ConstantInteger32>(alloca->getSizeInBytes())->getValue();
+		uint32_t alignInBytes = alloca->getAlignInBytes();
+
+		// This pass relies on array elements to be naturally aligned (i.e. matches the type size).
+		assert(sizeInBytes >= alignInBytes);
+		assert(sizeInBytes % alignInBytes == 0);
+		uint32_t elementCount = sizeInBytes / alignInBytes;
+
+		Ice::Operand *address = alloca->getDest();
+
+		if(isStaticallyIndexedArray(address))
+		{
+			// Delete the old array.
+			alloca->setDeleted();
+
+			// Allocate new stack slots for each element.
+			std::vector<Ice::Variable *> newAddress(elementCount);
+			auto *bytes = Ice::ConstantInteger32::create(context, Ice::IceType_i32, alignInBytes);
+
+			for(uint32_t i = 0; i < elementCount; i++)
+			{
+				newAddress[i] = function->makeVariable(pointerType());
+				auto *alloca = Ice::InstAlloca::create(function, newAddress[i], bytes, alignInBytes);
+				setDefinition(newAddress[i], alloca);
+
+				newAllocas.push_back(alloca);
+			}
+
+			Uses uses = *getUses(address);  // Hard copy
+
+			for(auto *use : uses)
+			{
+				assert(!use->isDeleted());
+
+				if(isLoad(*use))  // Direct use of base address
+				{
+					use->replaceSource(asLoadSubVector(use) ? 1 : 0, newAddress[0]);
+					getUses(newAddress[0])->insert(newAddress[0], use);
+				}
+				else if(isStore(*use))  // Direct use of base address
+				{
+					use->replaceSource(asStoreSubVector(use) ? 2 : 1, newAddress[0]);
+					getUses(newAddress[0])->insert(newAddress[0], use);
+				}
+				else  // Statically indexed use
+				{
+					auto *arithmetic = llvm::cast<Ice::InstArithmetic>(use);
+
+					if(arithmetic->getOp() == Ice::InstArithmetic::Add)
+					{
+						auto *rhs = arithmetic->getSrc(1);
+						int32_t offset = llvm::cast<Ice::ConstantInteger32>(rhs)->getValue();
+
+						assert(offset % alignInBytes == 0);
+						int32_t index = offset / alignInBytes;
+						assert(static_cast<uint32_t>(index) < elementCount);
+
+						replace(arithmetic, newAddress[index]);
+					}
+					else
+						assert(false && "Mismatch between isStaticallyIndexedArray() and scalarReplacementOfAggregates()");
+				}
+			}
+		}
+	}
+
+	// After looping over all the old allocas, add any new ones that replace them.
+	// They're added to the front in reverse order, to retain their original order.
+	for(size_t i = newAllocas.size(); i-- != 0;)
+	{
+		if(!isDead(newAllocas[i]))
+		{
+			instList.push_front(newAllocas[i]);
 		}
 	}
 }
@@ -582,6 +698,7 @@ void Optimizer::deleteInstruction(Ice::Inst *instruction)
 		return;
 	}
 
+	assert(!instruction->getDest() || getUses(instruction->getDest())->empty());
 	instruction->setDeleted();
 
 	for(Ice::SizeT i = 0; i < instruction->getSrcSize(); i++)
@@ -637,6 +754,52 @@ bool Optimizer::isDead(Ice::Inst *instruction)
 	}
 
 	return false;
+}
+
+bool Optimizer::isStaticallyIndexedArray(Ice::Operand *allocaAddress)
+{
+	auto &uses = *getUses(allocaAddress);
+
+	for(auto *use : uses)
+	{
+		// Direct load from base address.
+		if(isLoad(*use) && use->getLoadAddress() == allocaAddress)
+		{
+			continue;  // This is fine.
+		}
+
+		if(isStore(*use))
+		{
+			// Can either be the address we're storing to, or the data we're storing.
+			if(use->getStoreAddress() == allocaAddress)
+			{
+				continue;
+			}
+			else
+			{
+				// propagateAlloca() eliminates most of the stores of the address itself.
+				// For the cases it doesn't handle, assume SRoA is not feasible.
+				return false;
+			}
+		}
+
+		// Pointer arithmetic is fine if it only uses constants.
+		auto *arithmetic = llvm::dyn_cast<Ice::InstArithmetic>(use);
+		if(arithmetic && arithmetic->getOp() == Ice::InstArithmetic::Add)
+		{
+			auto *rhs = arithmetic->getSrc(1);
+
+			if(llvm::isa<Ice::Constant>(rhs))
+			{
+				continue;
+			}
+		}
+
+		// If there's any other type of use, bail out.
+		return false;
+	}
+
+	return true;
 }
 
 const Ice::InstIntrinsic *Optimizer::asLoadSubVector(const Ice::Inst *instruction)

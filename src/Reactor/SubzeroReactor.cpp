@@ -101,7 +101,7 @@ Ice::Variable *allocateStackVariable(Ice::Cfg *function, Ice::Type type, int arr
 
 	auto bytes = Ice::ConstantInteger32::create(function->getContext(), Ice::IceType_i32, totalSize);
 	auto address = function->makeVariable(getPointerType(type));
-	auto alloca = Ice::InstAlloca::create(function, address, bytes, typeSize);
+	auto alloca = Ice::InstAlloca::create(function, address, bytes, typeSize);  // SRoA depends on the alignment to match the type size.
 	function->getEntryNode()->getInsts().push_front(alloca);
 
 	return address;
@@ -1104,7 +1104,7 @@ Value *Nucleus::allocateStackVariable(Type *t, int arraySize)
 
 	auto bytes = Ice::ConstantInteger32::create(::context, Ice::IceType_i32, totalSize);
 	auto address = ::function->makeVariable(T(getPointerType(t)));
-	auto alloca = Ice::InstAlloca::create(::function, address, bytes, typeSize);
+	auto alloca = Ice::InstAlloca::create(::function, address, bytes, typeSize);  // SRoA depends on the alignment to match the type size.
 	::function->getEntryNode()->getInsts().push_front(alloca);
 
 	return V(address);
