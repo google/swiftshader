@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5f422b5f_a37ca6c9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-05T16:00:08Z",
+      "side": 1,
+      "message": "This fixes the assert you hit with deqp.",
+      "revId": "079f9562a8c2e64169213548da22602331417dd0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
