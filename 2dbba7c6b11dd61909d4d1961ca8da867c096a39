@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6ca32d3c_84a7d75e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-05T10:47:20Z",
+      "side": 1,
+      "message": "Two Kokoro failures with \"Error: retrieving gpg key timed out.\"",
+      "revId": "2dbba7c6b11dd61909d4d1961ca8da867c096a39",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
