@@ -6126,8 +6126,7 @@ void TargetX86Base<TraitsType>::doAddressOptLoadSubVector() {
     const Ice::Intrinsics::IntrinsicInfo Info = {
         Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F,
         Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-    auto Target = Ctx->getConstantUndef(Ice::IceType_i32);
-    auto *NewLoad = Context.insert<InstIntrinsicCall>(2, Dest, Target, Info);
+    auto *NewLoad = Context.insert<InstIntrinsicCall>(2, Dest, Info);
     NewLoad->addArg(OptAddr);
     NewLoad->addArg(Intrinsic->getArg(1));
   }
@@ -7002,9 +7001,7 @@ void TargetX86Base<TraitsType>::doAddressOptStoreSubVector() {
     const Ice::Intrinsics::IntrinsicInfo Info = {
         Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T,
         Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
-    auto Target = Ctx->getConstantUndef(Ice::IceType_i32);
-    auto *NewStore =
-        Context.insert<InstIntrinsicCall>(3, nullptr, Target, Info);
+    auto *NewStore = Context.insert<InstIntrinsicCall>(3, nullptr, Info);
     NewStore->addArg(Data);
     NewStore->addArg(OptAddr);
     NewStore->addArg(Intrinsic->getArg(2));

@@ -635,7 +635,7 @@ Ice::Operand *Optimizer::storeAddress(const Ice::Inst *instruction)
 
 	if(auto *storeSubVector = asStoreSubVector(instruction))
 	{
-		return storeSubVector->getSrc(2);
+		return storeSubVector->getSrc(1);
 	}
 
 	return nullptr;
@@ -652,7 +652,7 @@ Ice::Operand *Optimizer::loadAddress(const Ice::Inst *instruction)
 
 	if(auto *loadSubVector = asLoadSubVector(instruction))
 	{
-		return loadSubVector->getSrc(1);
+		return loadSubVector->getSrc(0);
 	}
 
 	return nullptr;
@@ -669,7 +669,7 @@ Ice::Operand *Optimizer::storeData(const Ice::Inst *instruction)
 
 	if(auto *storeSubVector = asStoreSubVector(instruction))
 	{
-		return storeSubVector->getSrc(1);
+		return storeSubVector->getSrc(0);
 	}
 
 	return nullptr;
@@ -715,9 +715,9 @@ bool Optimizer::loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *sto
 		if(auto *loadSubVector = asLoadSubVector(load))
 		{
 			// Check for matching type and sub-vector width.
-			return storeSubVector->getSrc(1)->getType() == loadSubVector->getDest()->getType() &&
-			       llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(3))->getValue() ==
-			           llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(2))->getValue();
+			return storeSubVector->getSrc(0)->getType() == loadSubVector->getDest()->getType() &&
+			       llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(2))->getValue() ==
+			           llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(1))->getValue();
 		}
 	}
 

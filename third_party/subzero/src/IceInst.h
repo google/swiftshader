@@ -610,20 +610,21 @@ private:
                     Operand *Source2, Operand *Source3);
 };
 
-/// Call to an intrinsic function. The call target is captured as getSrc(0), and
-/// arg I is captured as getSrc(I+1).
-class InstIntrinsicCall : public InstCall {
+/// Call to an intrinsic function.
+class InstIntrinsicCall : public InstHighLevel {
   InstIntrinsicCall() = delete;
   InstIntrinsicCall(const InstIntrinsicCall &) = delete;
   InstIntrinsicCall &operator=(const InstIntrinsicCall &) = delete;
 
 public:
   static InstIntrinsicCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
-                                   Operand *CallTarget,
                                    const Intrinsics::IntrinsicInfo &Info) {
     return new (Func->allocate<InstIntrinsicCall>())
-        InstIntrinsicCall(Func, NumArgs, Dest, CallTarget, Info);
+        InstIntrinsicCall(Func, NumArgs, Dest, Info);
   }
+  void addArg(Operand *Arg) { addSource(Arg); }
+  Operand *getArg(SizeT I) const { return getSrc(I); }
+  SizeT getNumArgs() const { return getSrcSize(); }
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == IntrinsicCall;
   }
@@ -635,10 +636,8 @@ public:
 
 private:
   InstIntrinsicCall(Cfg *Func, SizeT NumArgs, Variable *Dest,
-                    Operand *CallTarget, const Intrinsics::IntrinsicInfo &Info)
-      : InstCall(Func, NumArgs, Dest, CallTarget, false, false, false,
-                 Info.HasSideEffects, Inst::IntrinsicCall),
-        Info(Info) {}
+                    const Intrinsics::IntrinsicInfo &Info)
+      : InstHighLevel(Func, Inst::IntrinsicCall, NumArgs, Dest), Info(Info) {}
 
   const Intrinsics::IntrinsicInfo Info;
 };
