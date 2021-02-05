@@ -366,9 +366,9 @@ void TargetLowering::doAddressOpt() {
     doAddressOptStore();
   else if (auto *Intrinsic =
                llvm::dyn_cast<InstIntrinsic>(&*Context.getCur())) {
-    if (Intrinsic->getIntrinsicInfo().ID == Intrinsics::LoadSubVector)
+    if (Intrinsic->getIntrinsicID() == Intrinsics::LoadSubVector)
       doAddressOptLoadSubVector();
-    else if (Intrinsic->getIntrinsicInfo().ID == Intrinsics::StoreSubVector)
+    else if (Intrinsic->getIntrinsicID() == Intrinsics::StoreSubVector)
       doAddressOptStoreSubVector();
   }
   Context.advanceCur();

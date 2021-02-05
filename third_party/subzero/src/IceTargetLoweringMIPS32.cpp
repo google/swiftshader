@@ -582,7 +582,7 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
   }
   case Inst::Intrinsic: {
     auto *Intrinsic = llvm::cast<InstIntrinsic>(Instr);
-    Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID;
+    Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicID();
     if (isVectorType(DestTy) && ID == Intrinsics::Fabs) {
       Operand *Src0 = Intrinsic->getArg(0);
       GlobalString FabsFloat = Ctx->getGlobalString("llvm.fabs.f32");
@@ -605,7 +605,8 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
         Context.insert<InstExtractElement>(Op, Src0, Index);
         auto *Res = Func->makeVariable(IceType_f32);
         Variable *DestT = Func->makeVariable(IceType_v4f32);
-        auto *Intrinsic = Context.insert<InstIntrinsic>(1, Res, CallTarget, Info);
+        auto *Intrinsic =
+            Context.insert<InstIntrinsic>(1, Res, CallTarget, Info);
         Intrinsic->addArg(Op);
         Context.insert<InstInsertElement>(DestT, T, Res, Index);
         T = DestT;
@@ -4566,7 +4567,7 @@ void TargetMIPS32::lowerIntrinsic(const InstIntrinsic *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest == nullptr) ? IceType_void : Dest->getType();
 
-  Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID;
+  Intrinsics::IntrinsicID ID = Instr->getIntrinsicID();
   switch (ID) {
   case Intrinsics::AtomicLoad: {
     assert(isScalarIntegerType(DestTy));

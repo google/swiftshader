@@ -850,7 +850,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::doLoadOpt() {
         // An AtomicLoad intrinsic qualifies as long as it has a valid memory
         // ordering, and can be implemented in a single instruction (i.e., not
         // i64 on x86-32).
-        Intrinsics::IntrinsicID ID = Intrin->getIntrinsicInfo().ID;
+        Intrinsics::IntrinsicID ID = Intrin->getIntrinsicID();
         if (ID == Intrinsics::AtomicLoad &&
             (Traits::Is64Bit || Intrin->getDest()->getType() != IceType_i64) &&
             Intrinsics::isMemoryOrderValid(
@@ -4127,7 +4127,7 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerIntrinsic(const InstIntrinsic *Instr) {
-  switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
+  switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicID()) {
   case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::isMemoryOrderValid(
             ID, getConstantMemoryOrder(Instr->getArg(3)),
@@ -7612,7 +7612,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
   } else if (auto *Intrinsic = llvm::dyn_cast<InstIntrinsic>(Instr)) {
     CfgVector<Type> ArgTypes;
     Type ReturnType = IceType_void;
-    switch (Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID) {
+    switch (Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicID()) {
     default:
       return;
     case Intrinsics::Ctpop: {

@@ -41,9 +41,6 @@ private:
 	static const Ice::InstIntrinsic *asStoreSubVector(const Ice::Inst *instruction);
 	static bool isLoad(const Ice::Inst &instruction);
 	static bool isStore(const Ice::Inst &instruction);
-	static Ice::Operand *storeAddress(const Ice::Inst *instruction);
-	static Ice::Operand *loadAddress(const Ice::Inst *instruction);
-	static Ice::Operand *storeData(const Ice::Inst *instruction);
 	static std::size_t storeSize(const Ice::Inst *instruction);
 	static bool loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *store);
 
@@ -64,7 +61,7 @@ private:
 	{
 		LoadStoreInst(Ice::Inst *inst, bool isStore)
 		    : inst(inst)
-		    , address(isStore ? storeAddress(inst) : loadAddress(inst))
+		    , address(isStore ? inst->getStoreAddress() : inst->getLoadAddress())
 		    , isStore(isStore)
 		{
 		}
@@ -233,7 +230,7 @@ void Optimizer::eliminateLoadsFollowingSingleStore()
 		if(addressUses.stores.size() == 1)
 		{
 			Ice::Inst *store = addressUses.stores[0];
-			Ice::Operand *storeValue = storeData(store);
+			Ice::Operand *storeValue = store->getData();
 
 			for(Ice::Inst *load = &*++store->getIterator(), *next = nullptr; load != next; next = load, load = &*++store->getIterator())
 			{
@@ -242,7 +239,7 @@ void Optimizer::eliminateLoadsFollowingSingleStore()
 					continue;
 				}
 
-				if(loadAddress(load) != address)
+				if(load->getLoadAddress() != address)
 				{
 					continue;
 				}
@@ -412,7 +409,7 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 					}
 
 					store = inst;
-					storeValue = storeData(store);
+					storeValue = store->getData();
 					unmatchedLoads = false;
 				}
 				else
@@ -556,7 +553,7 @@ bool Optimizer::isDead(Ice::Inst *instruction)
 	}
 	else if(isStore(*instruction))
 	{
-		if(Ice::Variable *address = llvm::dyn_cast<Ice::Variable>(storeAddress(instruction)))
+		if(Ice::Variable *address = llvm::dyn_cast<Ice::Variable>(instruction->getStoreAddress()))
 		{
 			Ice::Inst *def = getDefinition(address);
 
@@ -582,7 +579,7 @@ const Ice::InstIntrinsic *Optimizer::asLoadSubVector(const Ice::Inst *instructio
 {
 	if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsic>(instruction))
 	{
-		if(instrinsic->getIntrinsicInfo().ID == Ice::Intrinsics::LoadSubVector)
+		if(instrinsic->getIntrinsicID() == Ice::Intrinsics::LoadSubVector)
 		{
 			return instrinsic;
 		}
@@ -595,7 +592,7 @@ const Ice::InstIntrinsic *Optimizer::asStoreSubVector(const Ice::Inst *instructi
 {
 	if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsic>(instruction))
 	{
-		if(instrinsic->getIntrinsicInfo().ID == Ice::Intrinsics::StoreSubVector)
+		if(instrinsic->getIntrinsicID() == Ice::Intrinsics::StoreSubVector)
 		{
 			return instrinsic;
 		}
@@ -624,57 +621,6 @@ bool Optimizer::isStore(const Ice::Inst &instruction)
 	return asStoreSubVector(&instruction) != nullptr;
 }
 
-Ice::Operand *Optimizer::storeAddress(const Ice::Inst *instruction)
-{
-	assert(isStore(*instruction));
-
-	if(auto *store = llvm::dyn_cast<Ice::InstStore>(instruction))
-	{
-		return store->getStoreAddress();
-	}
-
-	if(auto *storeSubVector = asStoreSubVector(instruction))
-	{
-		return storeSubVector->getSrc(1);
-	}
-
-	return nullptr;
-}
-
-Ice::Operand *Optimizer::loadAddress(const Ice::Inst *instruction)
-{
-	assert(isLoad(*instruction));
-
-	if(auto *load = llvm::dyn_cast<Ice::InstLoad>(instruction))
-	{
-		return load->getLoadAddress();
-	}
-
-	if(auto *loadSubVector = asLoadSubVector(instruction))
-	{
-		return loadSubVector->getSrc(0);
-	}
-
-	return nullptr;
-}
-
-Ice::Operand *Optimizer::storeData(const Ice::Inst *instruction)
-{
-	assert(isStore(*instruction));
-
-	if(auto *store = llvm::dyn_cast<Ice::InstStore>(instruction))
-	{
-		return store->getData();
-	}
-
-	if(auto *storeSubVector = asStoreSubVector(instruction))
-	{
-		return storeSubVector->getSrc(0);
-	}
-
-	return nullptr;
-}
-
 std::size_t Optimizer::storeSize(const Ice::Inst *store)
 {
 	assert(isStore(*store));
@@ -700,28 +646,24 @@ bool Optimizer::loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *sto
 	}
 
 	assert(isLoad(*load) && isStore(*store));
-	assert(loadAddress(load) == storeAddress(store));
+	assert(load->getLoadAddress() == store->getStoreAddress());
 
-	if(auto *instStore = llvm::dyn_cast<Ice::InstStore>(store))
+	if(store->getData()->getType() != load->getDest()->getType())
 	{
-		if(auto *instLoad = llvm::dyn_cast<Ice::InstLoad>(load))
-		{
-			return instStore->getData()->getType() == instLoad->getDest()->getType();
-		}
+		return false;
 	}
 
 	if(auto *storeSubVector = asStoreSubVector(store))
 	{
 		if(auto *loadSubVector = asLoadSubVector(load))
 		{
-			// Check for matching type and sub-vector width.
-			return storeSubVector->getSrc(0)->getType() == loadSubVector->getDest()->getType() &&
-			       llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(2))->getValue() ==
-			           llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(1))->getValue();
+			// Check for matching sub-vector width.
+			return llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(2))->getValue() ==
+			       llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(1))->getValue();
 		}
 	}
 
-	return false;
+	return true;
 }
 
 Optimizer::Uses *Optimizer::getUses(Ice::Operand *operand)
@@ -797,14 +739,14 @@ void Optimizer::Uses::insert(Ice::Operand *value, Ice::Inst *instruction)
 
 	if(isLoad(*instruction))
 	{
-		if(value == loadAddress(instruction))
+		if(value == instruction->getLoadAddress())
 		{
 			loads.push_back(instruction);
 		}
 	}
 	else if(isStore(*instruction))
 	{
-		if(value == storeAddress(instruction))
+		if(value == instruction->getStoreAddress())
 		{
 			stores.push_back(instruction);
 		}

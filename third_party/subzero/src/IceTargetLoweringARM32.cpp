@@ -723,7 +723,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
   case Inst::Intrinsic: {
     Variable *Dest = Instr->getDest();
     auto *Intrinsic = llvm::cast<InstIntrinsic>(Instr);
-    Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID;
+    Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicID();
     switch (ID) {
     default:
       return;
@@ -5016,7 +5016,7 @@ void TargetARM32::postambleCtpop64(const InstCall *Instr) {
 void TargetARM32::lowerIntrinsic(const InstIntrinsic *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest != nullptr) ? Dest->getType() : IceType_void;
-  Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID;
+  Intrinsics::IntrinsicID ID = Instr->getIntrinsicID();
   switch (ID) {
   case Intrinsics::AtomicFence:
   case Intrinsics::AtomicFenceAll:
