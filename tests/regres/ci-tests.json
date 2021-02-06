@@ -1,9 +1,4 @@
 [
-    { "name": "gles2-master", "api": "gles2", "tests": "testlists/gles2-master-PASS.txt" },
-
-    { "name": "gles3-565-no-depth-no-stencil", "api": "gles3", "tests": "testlists/gles3-565-no-depth-no-stencil-PASS.txt" },
-    { "name": "gles3-master", "api": "gles3", "tests": "testlists/gles3-master-PASS.txt" },
-
     { "name": "vulkan-wsi", "api": "vulkan", "tests": "testlists/vk-wsi-PASS.txt" },
 
     { "name": "vulkan-master", "api": "vulkan", "tests": "testlists/vk-master-ABORT.txt" },
