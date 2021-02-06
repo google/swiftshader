@@ -596,6 +596,76 @@ TEST(ReactorUnitTests, ReactorArray)
 	EXPECT_EQ(result, 3);
 }
 
+// Excercises the optimizeSingleBasicBlockLoadsStores optimization pass.
+TEST(ReactorUnitTests, StoresInMultipleBlocks)
+{
+	FunctionT<int(int)> function;
+	{
+		Int b = function.Arg<0>();
+
+		Int a = 13;
+
+		If(b != 0)  // TODO(b/179922668): Support If(b)
+		{
+			a = 4;
+			a = a + 3;
+		}
+		Else
+		{
+			a = 6;
+			a = a + 5;
+		}
+
+		Return(a);
+	}
+
+	Nucleus::setOptimizerCallback([](const Nucleus::OptimizerReport *report) {
+		EXPECT_EQ(report->allocas, 1);
+		EXPECT_EQ(report->loads, 1);
+		EXPECT_EQ(report->stores, 5);
+	});
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(true);
+	EXPECT_EQ(result, 7);
+}
+
+// This is similar to the LoadAfterIndirectStore test except that the indirect
+// store is preceded by a direct store. The subsequent load should not be replaced
+// by the value written by the direct store.
+TEST(ReactorUnitTests, StoreBeforeIndirectStore)
+{
+	FunctionT<int(int)> function;
+	{
+		//Int b = function.Arg<0>();
+
+		Int b;
+		Pointer<Int> p = &b;
+		Int a = 13;
+
+		For(Int i = 0, i < 2, i++)
+		{
+			a = 10;
+
+			*p = 4;
+
+			// This load of `a` should not be replaced by the 10 written above, since
+			// in the second iteration `p` points to `a` and writes 4.
+			b = a;
+
+			p = &a;
+		}
+
+		Return(b);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(true);
+	EXPECT_EQ(result, 4);
+}
+
 TEST(ReactorUnitTests, SubVectorLoadStore)
 {
 	FunctionT<int(void *, void *)> function;

@@ -17,6 +17,7 @@
 #include "src/IceCfg.h"
 #include "src/IceCfgNode.h"
 
+#include <unordered_map>
 #include <vector>
 
 namespace {
@@ -37,6 +38,7 @@ private:
 	void eliminateDeadCode();
 	void propagateAlloca();
 	void performScalarReplacementOfAggregates();
+	void optimizeSingleBasicBlockLoadsStores();
 	void eliminateUnitializedLoads();
 	void eliminateLoadsFollowingSingleStore();
 	void optimizeStoresInSingleBasicBlock();
@@ -45,6 +47,7 @@ private:
 	void deleteInstruction(Ice::Inst *instruction);
 	bool isDead(Ice::Inst *instruction);
 	bool isStaticallyIndexedArray(Ice::Operand *allocaAddress);
+	Ice::InstAlloca *allocaOf(Ice::Operand *address);
 
 	static const Ice::InstIntrinsic *asLoadSubVector(const Ice::Inst *instruction);
 	static const Ice::InstIntrinsic *asStoreSubVector(const Ice::Inst *instruction);
@@ -117,6 +120,9 @@ void Optimizer::run(Ice::Cfg *function)
 
 	// Replace arrays with individual elements if only statically indexed.
 	performScalarReplacementOfAggregates();
+
+	// Iterate through basic blocks to propagate loads following stores.
+	optimizeSingleBasicBlockLoadsStores();
 
 	eliminateUnitializedLoads();
 	eliminateLoadsFollowingSingleStore();
@@ -621,6 +627,61 @@ void Optimizer::optimizeStoresInSingleBasicBlock()
 	}
 }
 
+// Iterate through basic blocks to propagate stores to subsequent loads.
+void Optimizer::optimizeSingleBasicBlockLoadsStores()
+{
+	for(Ice::CfgNode *block : function->getNodes())
+	{
+		// For each stack variable keep track of the last store instruction.
+		std::unordered_map<const Ice::InstAlloca *, const Ice::Inst *> lastStoreTo;
+
+		for(Ice::Inst &inst : block->getInsts())
+		{
+			if(inst.isDeleted())
+			{
+				continue;
+			}
+
+			if(isStore(inst))
+			{
+				Ice::Operand *address = inst.getStoreAddress();
+
+				if(Ice::InstAlloca *alloca = allocaOf(address))
+				{
+					// Only consider this store for propagation if its address is not used as
+					// a pointer which could be used for indirect stores.
+					if(getUses(address)->areOnlyLoadStore())
+					{
+						lastStoreTo[alloca] = &inst;
+					}
+				}
+			}
+			else if(isLoad(inst))
+			{
+				if(Ice::InstAlloca *alloca = allocaOf(inst.getLoadAddress()))
+				{
+					auto entry = lastStoreTo.find(alloca);
+					if(entry != lastStoreTo.end())
+					{
+						const Ice::Inst *store = entry->second;
+
+						// Conservatively check that the types match.
+						// TODO(b/179668593): Also valid to propagate if the load is smaller or equal in size to the store.
+						if(loadTypeMatchesStore(&inst, store))
+						{
+							replace(&inst, store->getData());
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// This can leave some dead instructions. Specifically stores.
+	// TODO((b/179668593): Eliminate stores superseded by subsequent stores?
+	eliminateDeadCode();
+}
+
 void Optimizer::analyzeUses(Ice::Cfg *function)
 {
 	for(Ice::CfgNode *basicBlock : function->getNodes())
@@ -800,6 +861,15 @@ bool Optimizer::isStaticallyIndexedArray(Ice::Operand *allocaAddress)
 	}
 
 	return true;
+}
+
+Ice::InstAlloca *Optimizer::allocaOf(Ice::Operand *address)
+{
+	Ice::Variable *addressVar = llvm::dyn_cast<Ice::Variable>(address);
+	Ice::Inst *def = addressVar ? getDefinition(addressVar) : nullptr;
+	Ice::InstAlloca *alloca = def ? llvm::dyn_cast<Ice::InstAlloca>(def) : nullptr;
+
+	return alloca;
 }
 
 const Ice::InstIntrinsic *Optimizer::asLoadSubVector(const Ice::Inst *instruction)
