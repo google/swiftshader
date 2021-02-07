@@ -622,7 +622,7 @@ TEST(ReactorUnitTests, StoresInMultipleBlocks)
 	Nucleus::setOptimizerCallback([](const Nucleus::OptimizerReport *report) {
 		EXPECT_EQ(report->allocas, 1);
 		EXPECT_EQ(report->loads, 1);
-		EXPECT_EQ(report->stores, 5);
+		EXPECT_EQ(report->stores, 3);
 	});
 
 	auto routine = function(testName().c_str());

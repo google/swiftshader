@@ -55,6 +55,7 @@ private:
 	static bool isStore(const Ice::Inst &instruction);
 	static std::size_t storeSize(const Ice::Inst *instruction);
 	static bool loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *store);
+	static bool storeTypeMatchesStore(const Ice::Inst *store1, const Ice::Inst *store2);
 
 	void collectDiagnostics();
 
@@ -633,7 +634,15 @@ void Optimizer::optimizeSingleBasicBlockLoadsStores()
 	for(Ice::CfgNode *block : function->getNodes())
 	{
 		// For each stack variable keep track of the last store instruction.
-		std::unordered_map<const Ice::InstAlloca *, const Ice::Inst *> lastStoreTo;
+		// To eliminate a store followed by another store to the same alloca address
+		// we must also know whether all loads have been replaced by the store value.
+		struct LastStore
+		{
+			Ice::Inst *store;
+			bool allLoadsReplaced = true;
+		};
+
+		std::unordered_map<const Ice::InstAlloca *, LastStore> lastStoreTo;
 
 		for(Ice::Inst &inst : block->getInsts())
 		{
@@ -652,7 +661,21 @@ void Optimizer::optimizeSingleBasicBlockLoadsStores()
 					// a pointer which could be used for indirect stores.
 					if(getUses(address)->areOnlyLoadStore())
 					{
-						lastStoreTo[alloca] = &inst;
+						// If there was a previous store to this address, and it was propagated
+						// to all subsequent loads, it can be eliminated.
+						if(auto entry = lastStoreTo.find(alloca); entry != lastStoreTo.end())
+						{
+							Ice::Inst *previousStore = entry->second.store;
+
+							// TODO(b/179668593): Also eliminate it if the next store is larger in size.
+							if(storeTypeMatchesStore(&inst, previousStore) &&
+							   entry->second.allLoadsReplaced)
+							{
+								deleteInstruction(previousStore);
+							}
+						}
+
+						lastStoreTo[alloca] = { &inst };
 					}
 				}
 			}
@@ -663,13 +686,17 @@ void Optimizer::optimizeSingleBasicBlockLoadsStores()
 					auto entry = lastStoreTo.find(alloca);
 					if(entry != lastStoreTo.end())
 					{
-						const Ice::Inst *store = entry->second;
+						const Ice::Inst *store = entry->second.store;
 
 						// Conservatively check that the types match.
 						// TODO(b/179668593): Also valid to propagate if the load is smaller or equal in size to the store.
 						if(loadTypeMatchesStore(&inst, store))
 						{
 							replace(&inst, store->getData());
+						}
+						else
+						{
+							entry->second.allLoadsReplaced = false;
 						}
 					}
 				}
@@ -957,6 +984,29 @@ bool Optimizer::loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *sto
 			// Check for matching sub-vector width.
 			return llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(2))->getValue() ==
 			       llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(1))->getValue();
+		}
+	}
+
+	return true;
+}
+
+bool Optimizer::storeTypeMatchesStore(const Ice::Inst *store1, const Ice::Inst *store2)
+{
+	assert(isStore(*store1) && isStore(*store2));
+	assert(store1->getStoreAddress() == store2->getStoreAddress());
+
+	if(store1->getData()->getType() != store2->getData()->getType())
+	{
+		return false;
+	}
+
+	if(auto *storeSubVector1 = asStoreSubVector(store1))
+	{
+		if(auto *storeSubVector2 = asStoreSubVector(store2))
+		{
+			// Check for matching sub-vector width.
+			return llvm::cast<Ice::ConstantInteger32>(storeSubVector1->getSrc(2))->getValue() ==
+			       llvm::cast<Ice::ConstantInteger32>(storeSubVector2->getSrc(2))->getValue();
 		}
 	}
 
