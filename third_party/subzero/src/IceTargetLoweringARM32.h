@@ -281,7 +281,7 @@ protected:
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
   void lowerBreakpoint(const InstBreakpoint *Instr) override;
-  void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
+  void lowerIntrinsic(const InstIntrinsic *Instr) override;
   void lowerInsertElement(const InstInsertElement *Instr) override;
   void lowerLoad(const InstLoad *Instr) override;
   void lowerPhi(const InstPhi *Instr) override;

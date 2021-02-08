@@ -777,7 +777,7 @@ protected:
   void lower64Icmp(const InstIcmp *Instr);
   void createArithInst(Intrinsics::AtomicRMWOperation Operation, Variable *Dest,
                        Variable *Src0, Variable *Src1);
-  void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
+  void lowerIntrinsic(const InstIntrinsic *Instr) override;
   void lowerInsertElement(const InstInsertElement *Instr) override;
   void lowerLoad(const InstLoad *Instr) override;
   void lowerPhi(const InstPhi *Instr) override;

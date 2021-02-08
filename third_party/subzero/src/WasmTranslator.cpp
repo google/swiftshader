@@ -741,7 +741,7 @@ public:
       assert(!BadInstrinsic);
       assert(Info);
 
-      auto *Call = InstIntrinsicCall::create(
+      auto *Call = InstIntrinsic::create(
           Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
       Call->addArg(Input);
       Control()->appendInst(Call);
@@ -767,7 +767,7 @@ public:
       assert(!BadInstrinsic);
       assert(Info);
 
-      auto *Call = InstIntrinsicCall::create(
+      auto *Call = InstIntrinsic::create(
           Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
       Call->addArg(Input);
       Control()->appendInst(Call);
@@ -781,7 +781,7 @@ public:
       assert(!BadInstrinsic);
       assert(Info);
 
-      auto *Call = InstIntrinsicCall::create(
+      auto *Call = InstIntrinsic::create(
           Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
       Call->addArg(Input);
       Control()->appendInst(Call);
@@ -817,7 +817,7 @@ public:
       assert(!BadInstrinsic);
       assert(Info);
 
-      auto *Call = InstIntrinsicCall::create(
+      auto *Call = InstIntrinsic::create(
           Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
       Call->addArg(Input);
       Control()->appendInst(Call);
@@ -831,7 +831,7 @@ public:
       assert(!BadInstrinsic);
       assert(Info);
 
-      auto *Call = InstIntrinsicCall::create(
+      auto *Call = InstIntrinsic::create(
           Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
       Call->addArg(Input);
       Control()->appendInst(Call);

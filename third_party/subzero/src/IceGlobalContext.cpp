@@ -300,8 +300,7 @@ static constexpr size_t DefaultOptQWakeupSize = GlobalContext::MaxOptQSize >> 1;
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr)
     : Strings(new StringPool()), ConstPool(new ConstantPool()), ErrorStatus(),
-      StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), IntrinsicsInfo(this),
-      ObjectWriter(),
+      StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), ObjectWriter(),
       OptQWakeupSize(std::max(DefaultOptQWakeupSize,
                               size_t(getFlags().getNumTranslationThreads()))),
       OptQ(/*Sequential=*/getFlags().isSequential(),

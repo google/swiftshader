@@ -845,7 +845,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::doLoadOpt() {
         constexpr bool DoLegalize = false;
         LoadSrc = formMemoryOperand(Load->getSourceAddress(),
                                     LoadDest->getType(), DoLegalize);
-      } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsicCall>(CurInst)) {
+      } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsic>(CurInst)) {
         // An AtomicLoad intrinsic qualifies as long as it has a valid memory
         // ordering, and can be implemented in a single instruction (i.e., not
         // i64 on x86-32).
@@ -4125,8 +4125,7 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerIntrinsicCall(
-    const InstIntrinsicCall *Instr) {
+void TargetX86Base<TraitsType>::lowerIntrinsic(const InstIntrinsic *Instr) {
   switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::isMemoryOrderValid(
@@ -4804,10 +4803,10 @@ bool TargetX86Base<TraitsType>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
   // [%y_phi = ...] // list of phi stores
   // br eq, %l1, %l2
   InstList::iterator I = Context.getCur();
-  // I is currently the InstIntrinsicCall. Peek past that.
+  // I is currently the InstIntrinsic. Peek past that.
   // This assumes that the atomic cmpxchg has not been lowered yet,
   // so that the instructions seen in the scan from "Cur" is simple.
-  assert(llvm::isa<InstIntrinsicCall>(*I));
+  assert(llvm::isa<InstIntrinsic>(*I));
   Inst *NextInst = Context.getNextInst(I);
   if (!NextInst)
     return false;
@@ -6118,7 +6117,7 @@ void TargetX86Base<TraitsType>::doAddressOptLoad() {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptLoadSubVector() {
-  auto *Intrinsic = llvm::cast<InstIntrinsicCall>(Context.getCur());
+  auto *Intrinsic = llvm::cast<InstIntrinsic>(Context.getCur());
   Operand *Addr = Intrinsic->getArg(0);
   Variable *Dest = Intrinsic->getDest();
   if (auto *OptAddr = computeAddressOpt(Intrinsic, Dest->getType(), Addr)) {
@@ -6126,7 +6125,7 @@ void TargetX86Base<TraitsType>::doAddressOptLoadSubVector() {
     const Ice::Intrinsics::IntrinsicInfo Info = {
         Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F,
         Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-    auto *NewLoad = Context.insert<InstIntrinsicCall>(2, Dest, Info);
+    auto *NewLoad = Context.insert<InstIntrinsic>(2, Dest, Info);
     NewLoad->addArg(OptAddr);
     NewLoad->addArg(Intrinsic->getArg(1));
   }
@@ -6993,7 +6992,7 @@ void TargetX86Base<TraitsType>::doAddressOptStore() {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptStoreSubVector() {
-  auto *Intrinsic = llvm::cast<InstIntrinsicCall>(Context.getCur());
+  auto *Intrinsic = llvm::cast<InstIntrinsic>(Context.getCur());
   Operand *Addr = Intrinsic->getArg(1);
   Operand *Data = Intrinsic->getArg(0);
   if (auto *OptAddr = computeAddressOpt(Intrinsic, Data->getType(), Addr)) {
@@ -7001,7 +7000,7 @@ void TargetX86Base<TraitsType>::doAddressOptStoreSubVector() {
     const Ice::Intrinsics::IntrinsicInfo Info = {
         Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T,
         Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
-    auto *NewStore = Context.insert<InstIntrinsicCall>(3, nullptr, Info);
+    auto *NewStore = Context.insert<InstIntrinsic>(3, nullptr, Info);
     NewStore->addArg(Data);
     NewStore->addArg(OptAddr);
     NewStore->addArg(Intrinsic->getArg(2));
@@ -7609,7 +7608,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     if (CallDest->getType() != Dest->getType())
       Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
     Cast->setDeleted();
-  } else if (auto *Intrinsic = llvm::dyn_cast<InstIntrinsicCall>(Instr)) {
+  } else if (auto *Intrinsic = llvm::dyn_cast<InstIntrinsic>(Instr)) {
     CfgVector<Type> ArgTypes;
     Type ReturnType = IceType_void;
     switch (Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID) {

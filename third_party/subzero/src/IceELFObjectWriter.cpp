@@ -629,14 +629,6 @@ void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
     const auto *Sym = llvm::cast<ConstantRelocatable>(S);
     GlobalString Name = Sym->getName();
     assert(Name.hasStdString());
-    bool BadIntrinsic;
-    const Intrinsics::FullIntrinsicInfo *Info =
-        Ctx.getIntrinsicsInfo().find(Name, BadIntrinsic);
-    if (Info)
-      continue;
-    // Ignore BadIntrinsic, which is set if the name begins with "llvm." but
-    // doesn't match a known intrinsic.  If we want this to turn into an error,
-    // we should catch it early on.
     assert(Sym->getOffset() == 0);
     SymTab->noteUndefinedSym(Name, NullSection);
     StrTab->add(Name);

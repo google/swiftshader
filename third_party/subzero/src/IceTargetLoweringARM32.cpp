@@ -720,15 +720,15 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     }
     llvm::report_fatal_error("Control flow should never have reached here.");
   }
-  case Inst::IntrinsicCall: {
+  case Inst::Intrinsic: {
     Variable *Dest = Instr->getDest();
-    auto *IntrinsicCall = llvm::cast<InstIntrinsicCall>(Instr);
-    Intrinsics::IntrinsicID ID = IntrinsicCall->getIntrinsicInfo().ID;
+    auto *Intrinsic = llvm::cast<InstIntrinsic>(Instr);
+    Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID;
     switch (ID) {
     default:
       return;
     case Intrinsics::Ctpop: {
-      Operand *Src0 = IntrinsicCall->getArg(0);
+      Operand *Src0 = Intrinsic->getArg(0);
       Operand *TargetHelper =
           Ctx->getRuntimeHelperFunc(isInt32Asserting32Or64(Src0->getType())
                                         ? RuntimeHelper::H_call_ctpop_i32
@@ -750,8 +750,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_longjmp);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
-      Call->addArg(IntrinsicCall->getArg(0));
-      Call->addArg(IntrinsicCall->getArg(1));
+      Call->addArg(Intrinsic->getArg(0));
+      Call->addArg(Intrinsic->getArg(1));
       Instr->setDeleted();
       return;
     }
@@ -764,9 +764,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memcpy);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
-      Call->addArg(IntrinsicCall->getArg(0));
-      Call->addArg(IntrinsicCall->getArg(1));
-      Call->addArg(IntrinsicCall->getArg(2));
+      Call->addArg(Intrinsic->getArg(0));
+      Call->addArg(Intrinsic->getArg(1));
+      Call->addArg(Intrinsic->getArg(2));
       Instr->setDeleted();
       return;
     }
@@ -777,16 +777,16 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memmove);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
-      Call->addArg(IntrinsicCall->getArg(0));
-      Call->addArg(IntrinsicCall->getArg(1));
-      Call->addArg(IntrinsicCall->getArg(2));
+      Call->addArg(Intrinsic->getArg(0));
+      Call->addArg(Intrinsic->getArg(1));
+      Call->addArg(Intrinsic->getArg(2));
       Instr->setDeleted();
       return;
     }
     case Intrinsics::Memset: {
       // The value operand needs to be extended to a stack slot size because the
       // PNaCl ABI requires arguments to be at least 32 bits wide.
-      Operand *ValOp = IntrinsicCall->getArg(1);
+      Operand *ValOp = Intrinsic->getArg(1);
       assert(ValOp->getType() == IceType_i8);
       Variable *ValExt = Func->makeVariable(stackSlotType());
       Context.insert<InstCast>(InstCast::Zext, ValExt, ValOp);
@@ -800,9 +800,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memset);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
-      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(Intrinsic->getArg(0));
       Call->addArg(ValExt);
-      Call->addArg(IntrinsicCall->getArg(2));
+      Call->addArg(Intrinsic->getArg(2));
       Instr->setDeleted();
       return;
     }
@@ -827,7 +827,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_setjmp);
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
-      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(Intrinsic->getArg(0));
       Instr->setDeleted();
       return;
     }
@@ -5013,7 +5013,7 @@ void TargetARM32::postambleCtpop64(const InstCall *Instr) {
   _mov(DestHi, T);
 }
 
-void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
+void TargetARM32::lowerIntrinsic(const InstIntrinsic *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest != nullptr) ? Dest->getType() : IceType_void;
   Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID;

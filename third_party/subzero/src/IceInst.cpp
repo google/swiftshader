@@ -91,7 +91,7 @@ const char *Inst::getInstName() const {
     X(ExtractElement, "extractelement");
     X(Fcmp, "fcmp");
     X(Icmp, "icmp");
-    X(IntrinsicCall, "intrinsiccall");
+    X(Intrinsic, "intrinsic");
     X(InsertElement, "insertelement");
     X(Load, "load");
     X(Phi, "phi");

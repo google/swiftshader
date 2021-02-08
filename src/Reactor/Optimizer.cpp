@@ -37,8 +37,8 @@ private:
 	void deleteInstruction(Ice::Inst *instruction);
 	bool isDead(Ice::Inst *instruction);
 
-	static const Ice::InstIntrinsicCall *asLoadSubVector(const Ice::Inst *instruction);
-	static const Ice::InstIntrinsicCall *asStoreSubVector(const Ice::Inst *instruction);
+	static const Ice::InstIntrinsic *asLoadSubVector(const Ice::Inst *instruction);
+	static const Ice::InstIntrinsic *asStoreSubVector(const Ice::Inst *instruction);
 	static bool isLoad(const Ice::Inst &instruction);
 	static bool isStore(const Ice::Inst &instruction);
 	static Ice::Operand *storeAddress(const Ice::Inst *instruction);
@@ -578,9 +578,9 @@ bool Optimizer::isDead(Ice::Inst *instruction)
 	return false;
 }
 
-const Ice::InstIntrinsicCall *Optimizer::asLoadSubVector(const Ice::Inst *instruction)
+const Ice::InstIntrinsic *Optimizer::asLoadSubVector(const Ice::Inst *instruction)
 {
-	if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsicCall>(instruction))
+	if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsic>(instruction))
 	{
 		if(instrinsic->getIntrinsicInfo().ID == Ice::Intrinsics::LoadSubVector)
 		{
@@ -591,9 +591,9 @@ const Ice::InstIntrinsicCall *Optimizer::asLoadSubVector(const Ice::Inst *instru
 	return nullptr;
 }
 
-const Ice::InstIntrinsicCall *Optimizer::asStoreSubVector(const Ice::Inst *instruction)
+const Ice::InstIntrinsic *Optimizer::asStoreSubVector(const Ice::Inst *instruction)
 {
-	if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsicCall>(instruction))
+	if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsic>(instruction))
 	{
 		if(instrinsic->getIntrinsicInfo().ID == Ice::Intrinsics::StoreSubVector)
 		{

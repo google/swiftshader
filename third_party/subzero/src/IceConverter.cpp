@@ -554,36 +554,38 @@ private:
     Ice::Variable *Dest = mapValueToIceVar(Instr);
     Ice::Operand *CallTarget = convertValue(Instr->getCalledValue());
     unsigned NumArgs = Instr->getNumArgOperands();
-    // Note: Subzero doesn't (yet) do anything special with the Tail flag in
-    // the bitcode, i.e. CallInst::isTailCall().
-    Ice::InstCall *NewInst = nullptr;
-    const Ice::Intrinsics::FullIntrinsicInfo *Info = nullptr;
 
     if (const auto Target = dyn_cast<Ice::ConstantRelocatable>(CallTarget)) {
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
       bool BadIntrinsic;
-      Info = Ctx->getIntrinsicsInfo().find(Target->getName(), BadIntrinsic);
+      const Ice::Intrinsics::FullIntrinsicInfo *Info =
+          Ctx->getIntrinsicsInfo().find(Target->getName(), BadIntrinsic);
       if (BadIntrinsic) {
         report_fatal_error(std::string("Invalid PNaCl intrinsic call: ") +
                            LLVMObjectAsString(Instr));
       }
-      if (Info)
-        NewInst = Ice::InstIntrinsicCall::create(Func.get(), NumArgs, Dest,
-                                                 CallTarget, Info->Info);
+      if (Info) {
+        Ice::InstIntrinsic *Intrinsic = Ice::InstIntrinsic::create(
+            Func.get(), NumArgs, Dest, CallTarget, Info->Info);
+        for (unsigned i = 0; i < NumArgs; ++i) {
+          Intrinsic->addArg(convertOperand(Instr, i));
+        }
+        validateIntrinsic(Intrinsic, Info);
+
+        return Intrinsic;
+      }
     }
 
-    // Not an intrinsic call.
-    if (NewInst == nullptr) {
-      NewInst = Ice::InstCall::create(Func.get(), NumArgs, Dest, CallTarget,
-                                      Instr->isTailCall());
-    }
+    // Not an intrinsic.
+    // Note: Subzero doesn't (yet) do anything special with the Tail flag in
+    // the bitcode, i.e. CallInst::isTailCall().
+    Ice::InstCall *Call = Ice::InstCall::create(
+        Func.get(), NumArgs, Dest, CallTarget, Instr->isTailCall());
     for (unsigned i = 0; i < NumArgs; ++i) {
-      NewInst->addArg(convertOperand(Instr, i));
+      Intrinsic->addArg(convertOperand(Instr, i));
     }
-    if (Info) {
-      validateIntrinsicCall(NewInst, Info);
-    }
-    return NewInst;
+
+    return Call;
   }
 
   Ice::Inst *convertAllocaInstruction(const AllocaInst *Instr) {
@@ -608,17 +610,17 @@ private:
     return Node;
   }
 
-  void validateIntrinsicCall(const Ice::InstCall *Call,
-                             const Ice::Intrinsics::FullIntrinsicInfo *I) {
+  void validateIntrinsic(const Ice::InstIntrinsic *Intrinsic,
+                         const Ice::Intrinsics::FullIntrinsicInfo *I) {
     Ice::SizeT ArgIndex = 0;
-    switch (I->validateCall(Call, ArgIndex)) {
+    switch (I->validateCall(Intrinsic, ArgIndex)) {
     case Ice::Intrinsics::IsValidCall:
       break;
     case Ice::Intrinsics::BadReturnType: {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Intrinsic call expects return type " << I->getReturnType()
-             << ". Found: " << Call->getReturnType();
+             << ". Found: " << Intrinsic->getReturnType();
       report_fatal_error(StrBuf.str());
       break;
     }
@@ -626,7 +628,7 @@ private:
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Intrinsic call expects " << I->getNumArgs()
-             << ". Found: " << Call->getNumArgs();
+             << ". Found: " << Intrinsic->getNumArgs();
       report_fatal_error(StrBuf.str());
       break;
     }
@@ -635,7 +637,7 @@ private:
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Intrinsic call argument " << ArgIndex << " expects type "
              << I->getArgType(ArgIndex)
-             << ". Found: " << Call->getArg(ArgIndex)->getType();
+             << ". Found: " << Intrinsic->getArg(ArgIndex)->getType();
       report_fatal_error(StrBuf.str());
       break;
     }

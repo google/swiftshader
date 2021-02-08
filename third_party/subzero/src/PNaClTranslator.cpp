@@ -2758,8 +2758,8 @@ void FunctionParser::ProcessRecord() {
                               : getNextInstVar(ReturnType);
     std::unique_ptr<Ice::InstCall> Instr;
     if (IntrinsicInfo) {
-      Instr.reset(Ice::InstIntrinsicCall::create(
-          Func.get(), Params.size(), Dest, Callee, IntrinsicInfo->Info));
+      Instr.reset(Ice::InstIntrinsic::create(Func.get(), Params.size(), Dest,
+                                             Callee, IntrinsicInfo->Info));
     } else {
       Instr.reset(Ice::InstCall::create(Func.get(), Params.size(), Dest, Callee,
                                         IsTailCall));

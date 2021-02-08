@@ -292,8 +292,6 @@ public:
     return Ret;
   }
 
-  const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
-
   ELFObjectWriter *getObjectWriter() const { return ObjectWriter.get(); }
 
   /// Reset stats at the beginning of a function.
@@ -486,7 +484,6 @@ private:
 
   ICE_CACHELINE_BOUNDARY;
 
-  Intrinsics IntrinsicsInfo;
   // TODO(jpp): move to EmitterContext.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
   // Value defining when to wake up the main parse thread.

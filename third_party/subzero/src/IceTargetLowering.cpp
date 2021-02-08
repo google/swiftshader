@@ -365,7 +365,7 @@ void TargetLowering::doAddressOpt() {
   else if (llvm::isa<InstStore>(*Context.getCur()))
     doAddressOptStore();
   else if (auto *Intrinsic =
-               llvm::dyn_cast<InstIntrinsicCall>(&*Context.getCur())) {
+               llvm::dyn_cast<InstIntrinsic>(&*Context.getCur())) {
     if (Intrinsic->getIntrinsicInfo().ID == Intrinsics::LoadSubVector)
       doAddressOptLoadSubVector();
     else if (Intrinsic->getIntrinsicInfo().ID == Intrinsics::StoreSubVector)
@@ -444,11 +444,11 @@ void TargetLowering::lower() {
     case Inst::InsertElement:
       lowerInsertElement(llvm::cast<InstInsertElement>(Instr));
       break;
-    case Inst::IntrinsicCall: {
-      auto *Call = llvm::cast<InstIntrinsicCall>(Instr);
-      if (Call->getIntrinsicInfo().ReturnsTwice)
+    case Inst::Intrinsic: {
+      auto *Intrinsic = llvm::cast<InstIntrinsic>(Instr);
+      if (Intrinsic->getIntrinsicInfo().ReturnsTwice)
         setCallsReturnsTwice(true);
-      lowerIntrinsicCall(Call);
+      lowerIntrinsic(Intrinsic);
       break;
     }
     case Inst::Load:

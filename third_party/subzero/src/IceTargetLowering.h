@@ -408,7 +408,7 @@ protected:
   virtual void lowerExtractElement(const InstExtractElement *Instr) = 0;
   virtual void lowerIcmp(const InstIcmp *Instr) = 0;
   virtual void lowerInsertElement(const InstInsertElement *Instr) = 0;
-  virtual void lowerIntrinsicCall(const InstIntrinsicCall *Instr) = 0;
+  virtual void lowerIntrinsic(const InstIntrinsic *Instr) = 0;
   virtual void lowerLoad(const InstLoad *Instr) = 0;
   virtual void lowerPhi(const InstPhi *Instr) = 0;
   virtual void lowerRet(const InstRet *Instr) = 0;

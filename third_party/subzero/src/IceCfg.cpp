@@ -676,7 +676,7 @@ Cfg::findLoopInvariantInstructions(const CfgUnorderedSet<SizeT> &Body) {
         case Inst::InstKind::Ret:
         case Inst::InstKind::Phi:
         case Inst::InstKind::Call:
-        case Inst::InstKind::IntrinsicCall:
+        case Inst::InstKind::Intrinsic:
         case Inst::InstKind::Load:
         case Inst::InstKind::Store:
         case Inst::InstKind::Switch:

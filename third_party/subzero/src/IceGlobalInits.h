@@ -98,10 +98,6 @@ public:
     return isInternal() ? "internal" : "external";
   }
 
-  /// Returns true if the name of this GlobalDeclaration indicates that it
-  /// should have ExternalLinkage (as a special case).
-  virtual bool isPNaClABIExternalName(const std::string &Name) const = 0;
-
 protected:
   GlobalDeclaration(GlobalDeclarationKind Kind,
                     llvm::GlobalValue::LinkageTypes Linkage)
@@ -154,40 +150,16 @@ public:
 
   /// Returns true if linkage is correct for the function declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
-    if (getName().hasStdString()) {
-      if (isPNaClABIExternalName(getName().toString()) ||
-          isIntrinsicName(Ctx)) {
-        return Linkage == llvm::GlobalValue::ExternalLinkage;
-      }
-    }
     return verifyLinkageDefault();
   }
 
   /// Validates that the type signature of the function is correct. Returns true
   /// if valid.
-  bool validateTypeSignature(const GlobalContext *Ctx) const {
-    bool IsIntrinsic;
-    if (const Intrinsics::FullIntrinsicInfo *Info =
-            getIntrinsicInfo(Ctx, &IsIntrinsic))
-      return validateIntrinsicTypeSignature(Info);
-    return !IsIntrinsic && validateRegularTypeSignature();
-  }
+  bool validateTypeSignature() const;
 
   /// Generates an error message describing why validateTypeSignature returns
   /// false.
   std::string getTypeSignatureError(const GlobalContext *Ctx);
-
-  /// Returns corresponding PNaCl intrisic information.
-  const Intrinsics::FullIntrinsicInfo *
-  getIntrinsicInfo(const GlobalContext *Ctx) const {
-    bool BadIntrinsic;
-    return getIntrinsicInfo(Ctx, &BadIntrinsic);
-  }
-
-  /// Same as above, except IsIntrinsic is true if the function is intrinsic
-  /// (even if not a PNaCl intrinsic).
-  const Intrinsics::FullIntrinsicInfo *
-  getIntrinsicInfo(const GlobalContext *Ctx, bool *IsIntrinsic) const;
 
 private:
   const Ice::FuncSigType Signature;
@@ -199,21 +171,6 @@ private:
                       llvm::GlobalValue::LinkageTypes Linkage, bool IsProto)
       : GlobalDeclaration(FunctionDeclarationKind, Linkage),
         Signature(Signature), CallingConv(CallingConv), IsProto(IsProto) {}
-
-  bool isPNaClABIExternalName(const std::string &Name) const override {
-    return Name == "_start";
-  }
-
-  bool isIntrinsicName(const GlobalContext *Ctx) const {
-    bool IsIntrinsic;
-    getIntrinsicInfo(Ctx, &IsIntrinsic);
-    return IsIntrinsic;
-  }
-
-  bool validateRegularTypeSignature() const;
-
-  bool validateIntrinsicTypeSignature(
-      const Intrinsics::FullIntrinsicInfo *Info) const;
 };
 
 /// Models a global variable declaration, and its initializers.
@@ -461,14 +418,7 @@ public:
   virtual void dump(Ostream &Stream) const override;
 
   /// Returns true if linkage is correct for the variable declaration.
-  bool verifyLinkageCorrect() const {
-    if (getName().hasStdString()) {
-      if (isPNaClABIExternalName(getName().toString())) {
-        return Linkage == llvm::GlobalValue::ExternalLinkage;
-      }
-    }
-    return verifyLinkageDefault();
-  }
+  bool verifyLinkageCorrect() const { return verifyLinkageDefault(); }
 
   static bool classof(const GlobalDeclaration *Addr) {
     return Addr->getKind() == VariableDeclarationKind;
@@ -481,10 +431,6 @@ public:
   }
 
   void discardInitializers() { Initializers.clear(); }
-
-  bool isPNaClABIExternalName(const std::string &Name) const override {
-    return Name == "__pnacl_pso_root";
-  }
 
 private:
   /// List of initializers for the declared variable.

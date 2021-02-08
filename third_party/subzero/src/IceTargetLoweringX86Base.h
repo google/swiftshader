@@ -274,7 +274,7 @@ protected:
   void lowerFcmp(const InstFcmp *Instr) override;
   void lowerIcmp(const InstIcmp *Instr) override;
 
-  void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
+  void lowerIntrinsic(const InstIntrinsic *Instr) override;
   void lowerInsertElement(const InstInsertElement *Instr) override;
   void lowerLoad(const InstLoad *Instr) override;
   void lowerPhi(const InstPhi *Instr) override;

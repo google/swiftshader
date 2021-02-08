@@ -276,7 +276,7 @@ the following:
 
 - Icmp: integer comparison
 
-- IntrinsicCall: call a known intrinsic
+- Intrinsic: invoke a known intrinsic
 
 - InsertElement: insert a scalar element into a vector-type value
 
