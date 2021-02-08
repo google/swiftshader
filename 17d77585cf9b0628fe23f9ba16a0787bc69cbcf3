@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc424fb3_a14c9ff6",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 718,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-08T17:49:51Z",
+      "side": 1,
+      "message": "FIXME: https://swiftshader-review.googlesource.com/c/SwiftShader/+/52534/2/src/Reactor/Optimizer.cpp#959",
+      "range": {
+        "startLine": 718,
+        "startChar": 26,
+        "endLine": 718,
+        "endChar": 35
+      },
+      "revId": "17d77585cf9b0628fe23f9ba16a0787bc69cbcf3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
