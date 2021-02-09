@@ -18,12 +18,16 @@
 #if defined(_WIN32)
 #	define OS_WINDOWS 1
 #elif defined(__APPLE__)
+#	include "dlfcn.h"
 #	define OS_MAC 1
 #elif defined(__ANDROID__)
+#	include "dlfcn.h"
 #	define OS_ANDROID 1
 #elif defined(__linux__)
+#	include "dlfcn.h"
 #	define OS_LINUX 1
 #elif defined(__Fuchsia__)
+#	include <zircon/dlfcn.h>
 #	define OS_FUCHSIA 1
 #else
 #	error Unimplemented platform
@@ -34,11 +38,11 @@ std::vector<const char *> getDriverPaths()
 {
 #if OS_WINDOWS
 #	if !defined(STANDALONE)
-// The DLL is delay loaded (see BUILD.gn), so we can load
-// the correct ones from Chrome's swiftshader subdirectory.
-// HMODULE libvulkan = LoadLibraryA("swiftshader\\libvulkan.dll");
-// EXPECT_NE((HMODULE)NULL, libvulkan);
-// return true;
+	// The DLL is delay loaded (see BUILD.gn), so we can load
+	// the correct ones from Chrome's swiftshader subdirectory.
+	// HMODULE libvulkan = LoadLibraryA("swiftshader\\libvulkan.dll");
+	// EXPECT_NE((HMODULE)NULL, libvulkan);
+	// return true;
 #		error TODO: !STANDALONE
 #	elif defined(NDEBUG)
 #		if defined(_WIN64)
@@ -95,6 +99,20 @@ std::unique_ptr<vk::DynamicLoader> loadDriver()
 			continue;
 		return std::make_unique<vk::DynamicLoader>(p);
 	}
+
+#if(OS_MAC || OS_LINUX || OS_ANDROID || OS_FUCHSIA)
+	// On Linux-based OSes, the lib path may be resolved by dlopen
+	for(auto &p : getDriverPaths())
+	{
+		auto lib = dlopen(p, RTLD_LAZY | RTLD_LOCAL);
+		if(lib)
+		{
+			dlclose(lib);
+			return std::make_unique<vk::DynamicLoader>(p);
+		}
+	}
+#endif
+
 	return {};
 }
 

@@ -106,7 +106,7 @@ void transitionImageLayout(vk::Device device, vk::CommandPool commandPool, vk::Q
 	}
 	else
 	{
-		assert(!"unsupported layout transition!");
+		assert(false && "unsupported layout transition!");
 	}
 
 	commandBuffer.pipelineBarrier(sourceStage, destinationStage, vk::DependencyFlags{}, 0, nullptr, 0, nullptr, 1, &barrier);
