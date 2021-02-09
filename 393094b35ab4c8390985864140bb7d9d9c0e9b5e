@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae75b63e_3fb30de8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-09T20:13:03Z",
+      "side": 1,
+      "message": "Antonio, can you mark these [[maybe_unused]] to suppress the warning selectively? I\u0027m not sure if upstream LLVM guarantees C++17 or if they have a version-specific macro for it...\n\nAnyway, let\u0027s land this workaround for now.",
+      "revId": "393094b35ab4c8390985864140bb7d9d9c0e9b5e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
