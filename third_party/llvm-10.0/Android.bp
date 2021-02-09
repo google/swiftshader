@@ -1026,6 +1026,7 @@ cc_defaults {
         "-Wno-implicit-fallthrough",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
+        "-Wno-unused-variable",
     ],
 }
 
