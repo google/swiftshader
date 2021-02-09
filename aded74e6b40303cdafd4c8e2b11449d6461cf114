@@ -16,6 +16,23 @@
       "message": "(added bug to description to make presubmit happy)",
       "revId": "aded74e6b40303cdafd4c8e2b11449d6461cf114",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "64a4be93_7d221d70",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2021-02-09T22:55:44Z",
+      "side": 1,
+      "message": "Verified on aosp/master",
+      "revId": "aded74e6b40303cdafd4c8e2b11449d6461cf114",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
