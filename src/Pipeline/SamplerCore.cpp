@@ -54,7 +54,15 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 		w = As<Float4>(face);
 	}
 
-	if(function == Implicit || function == Bias || function == Grad || function == Query)
+	bool singleMipLevel = (state.minLod == state.maxLod) && (function != Query) && (function != Fetch);
+
+	// We can't skip the LOD computation for LOD query, where we have to return the proper value
+	if(singleMipLevel)
+	{
+		// Skip costly LOD computation if there's only 1 possible outcome
+		lod = state.minLod;
+	}
+	else if(function == Implicit || function == Bias || function == Grad || function == Query)
 	{
 		if(state.is1D())
 		{
@@ -108,8 +116,11 @@ Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 uvwa[4], Floa
 			c.y = Float4(lod);  // Unclamped LOD.
 		}
 
-		lod = Max(lod, state.minLod);
-		lod = Min(lod, state.maxLod);
+		if (!singleMipLevel)
+		{
+			lod = Max(lod, state.minLod);
+			lod = Min(lod, state.maxLod);
+		}
 
 		if(function == Query)
 		{

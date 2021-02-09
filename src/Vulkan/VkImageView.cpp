@@ -87,14 +87,14 @@ Identifier::Identifier(const VkImageViewCreateInfo *pCreateInfo)
 	const Image *sampledImage = image->getSampledImage(viewFormat);
 
 	vk::Format samplingFormat = (image == sampledImage) ? viewFormat : sampledImage->getFormat().getAspectFormat(subresource.aspectMask);
-	pack({ pCreateInfo->viewType, samplingFormat, ResolveComponentMapping(pCreateInfo->components, viewFormat) });
+	pack({ pCreateInfo->viewType, samplingFormat, ResolveComponentMapping(pCreateInfo->components, viewFormat), subresource.levelCount <= 1u });
 }
 
 Identifier::Identifier(VkFormat bufferFormat)
 {
 	static_assert(vk::VK_IMAGE_VIEW_TYPE_END_RANGE == 6, "VkImageViewType does not allow using 7 to indicate buffer view");
 	constexpr VkComponentMapping identityMapping = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-	pack({ VK_IMAGE_VIEW_TYPE_1D, bufferFormat, ResolveComponentMapping(identityMapping, bufferFormat) });
+	pack({ VK_IMAGE_VIEW_TYPE_1D, bufferFormat, ResolveComponentMapping(identityMapping, bufferFormat), true });
 }
 
 void Identifier::pack(const State &state)
@@ -105,6 +105,7 @@ void Identifier::pack(const State &state)
 	g = static_cast<uint32_t>(state.mapping.g);
 	b = static_cast<uint32_t>(state.mapping.b);
 	a = static_cast<uint32_t>(state.mapping.a);
+	singleMipLevel = state.singleMipLevel;
 }
 
 Identifier::State Identifier::getState() const
@@ -114,7 +115,8 @@ Identifier::State Identifier::getState() const
 		     { static_cast<VkComponentSwizzle>(r),
 		       static_cast<VkComponentSwizzle>(g),
 		       static_cast<VkComponentSwizzle>(b),
-		       static_cast<VkComponentSwizzle>(a) } };
+		       static_cast<VkComponentSwizzle>(a) },
+		     static_cast<bool>(singleMipLevel) };
 }
 
 ImageView::ImageView(const VkImageViewCreateInfo *pCreateInfo, void *mem, const vk::SamplerYcbcrConversion *ycbcrConversion)

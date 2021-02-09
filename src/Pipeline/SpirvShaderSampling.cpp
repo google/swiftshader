@@ -78,6 +78,20 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::Device *device
 			samplerState.maxAnisotropy = vkSamplerState->maxAnisotropy;
 			samplerState.minLod = vkSamplerState->minLod;
 			samplerState.maxLod = vkSamplerState->maxLod;
+
+			// If there's a single mip level and filtering doesn't depend on the LOD level,
+			// the sampler will need to compute the LOD to produce the proper result.
+			// Otherwise, it can be ignored.
+			// We can skip the LOD computation for all modes, except LOD query,
+			// where we have to return the proper value even if nothing else requires it.
+			if(imageViewState.singleMipLevel &&
+			   (samplerState.textureFilter != FILTER_MIN_POINT_MAG_LINEAR) &&
+			   (samplerState.textureFilter != FILTER_MIN_LINEAR_MAG_POINT) &&
+			   (samplerMethod != Query))
+			{
+				samplerState.minLod = 0.0f;
+				samplerState.maxLod = 0.0f;
+			}
 		}
 		else
 		{
