@@ -16,6 +16,29 @@
       "message": "This allows VulkanUnitTests to run without failing to find the swiftshader shared library on google3.",
       "revId": "6f801d656ad87e1070d051e9a4e6831f759573ee",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d31f59e9_2e473b20",
+        "filename": "tests/VulkanWrapper/VulkanTester.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-09T15:33:53Z",
+      "side": 1,
+      "message": "nit: \"path\" or \"driverPath\" would be clearer.",
+      "range": {
+        "startLine": 105,
+        "startChar": 11,
+        "endLine": 105,
+        "endChar": 12
+      },
+      "revId": "6f801d656ad87e1070d051e9a4e6831f759573ee",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
