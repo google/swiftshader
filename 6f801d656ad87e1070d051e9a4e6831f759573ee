@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3077348_6443ba54",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-09T15:31:18Z",
+      "side": 1,
+      "message": "This allows VulkanUnitTests to run without failing to find the swiftshader shared library on google3.",
+      "revId": "6f801d656ad87e1070d051e9a4e6831f759573ee",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
