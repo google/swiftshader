@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69c7b4e4_a07b4b0f",
+        "filename": "third_party/subzero/src/IceInst.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-09T21:41:08Z",
+      "side": 1,
+      "message": "Maybe worth adding asserts in these three functions that this type is either an InstCall or InstInstrinsic for load/store? Not sure how easy that would be, though. Probably not worth it.",
+      "revId": "cc070f04b8b32afabb854b38a10ce713d8e248f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
