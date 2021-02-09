@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "83dcb0e1_57ce29b7",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-09T21:01:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d95052a_6894d6a3",
+      "range": {
+        "startLine": 51,
+        "startChar": 31,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "89cd34fe3558f758d82b7df015b57159589ec5d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ae2aaf79_cd4953d1",
@@ -61,6 +85,30 @@
       "side": 1,
       "message": "We have an external offset into an internal data representation. For example:\n`vec2 myVec[3];`\nhas 6 interpolants, but is internally stored as 4 floats per vector, with locations for interpolants like so:\n```\n0,1,X,X\n2,3,X,X\n4,5,X,X\n```\nIt doesn\u0027t look like the pointer arithmetic knows about this.\n\nIf it does, are the \"state-\u003egetPointer(insn.word(5));\" calls above incorrect?",
       "parentUuid": "ae2aaf79_cd4953d1",
+      "range": {
+        "startLine": 995,
+        "startChar": 28,
+        "endLine": 995,
+        "endChar": 38
+      },
+      "revId": "89cd34fe3558f758d82b7df015b57159589ec5d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "598c3821_3cf1c5ac",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-09T21:01:43Z",
+      "side": 1,
+      "message": "Hopefully the design doc explained this properly.",
+      "parentUuid": "a8c76232_16484e25",
       "range": {
         "startLine": 995,
         "startChar": 28,
