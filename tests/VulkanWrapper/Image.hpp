@@ -20,7 +20,7 @@
 class Image
 {
 public:
-	Image(vk::Device device, uint32_t width, uint32_t height, vk::Format format, vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1);
+	Image(vk::Device device, vk::PhysicalDevice physicalDevice, uint32_t width, uint32_t height, vk::Format format, vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1);
 	~Image();
 
 	vk::Image getImage()

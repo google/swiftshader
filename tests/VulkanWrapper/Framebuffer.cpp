@@ -14,14 +14,14 @@
 
 #include "Framebuffer.hpp"
 
-Framebuffer::Framebuffer(vk::Device device, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, vk::Extent2D extent, bool multisample)
+Framebuffer::Framebuffer(vk::Device device, vk::PhysicalDevice physicalDevice, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, vk::Extent2D extent, bool multisample)
     : device(device)
 {
 	std::vector<vk::ImageView> attachments(multisample ? 2 : 1);
 
 	if(multisample)
 	{
-		multisampleImage.reset(new Image(device, extent.width, extent.height, colorFormat, vk::SampleCountFlagBits::e4));
+		multisampleImage.reset(new Image(device, physicalDevice, extent.width, extent.height, colorFormat, vk::SampleCountFlagBits::e4));
 
 		// We'll be rendering to attachment location 0
 		attachments[0] = multisampleImage->getImageView();

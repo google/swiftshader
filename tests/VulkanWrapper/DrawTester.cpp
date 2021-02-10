@@ -193,7 +193,7 @@ void DrawTester::createFramebuffers(vk::RenderPass renderPass)
 
 	for(size_t i = 0; i < framebuffers.size(); i++)
 	{
-		framebuffers[i].reset(new Framebuffer(device, swapchain->getImageView(i), swapchain->colorFormat, renderPass, swapchain->getExtent(), multisample));
+		framebuffers[i].reset(new Framebuffer(device, physicalDevice, swapchain->getImageView(i), swapchain->colorFormat, renderPass, swapchain->getExtent(), multisample));
 	}
 }
 
@@ -392,10 +392,13 @@ void DrawTester::createCommandBuffers(vk::RenderPass renderPass)
 		}
 
 		// Draw
-		commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-		VULKAN_HPP_NAMESPACE::DeviceSize offset = 0;
-		commandBuffers[i].bindVertexBuffers(0, 1, &vertices.buffer, &offset);
-		commandBuffers[i].draw(vertices.numVertices, 1, 0, 0);
+		if(vertices.numVertices > 0)
+		{
+			commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+			VULKAN_HPP_NAMESPACE::DeviceSize offset = 0;
+			commandBuffers[i].bindVertexBuffers(0, 1, &vertices.buffer, &offset);
+			commandBuffers[i].draw(vertices.numVertices, 1, 0, 0);
+		}
 
 		commandBuffers[i].endRenderPass();
 		commandBuffers[i].end();

@@ -148,7 +148,7 @@ private:
 		std::vector<vk::VertexInputAttributeDescription> inputAttributes;
 		vk::PipelineVertexInputStateCreateInfo inputState;
 
-		uint32_t numVertices;
+		uint32_t numVertices = 0;
 	} vertices;
 
 	vk::DescriptorSetLayout descriptorSetLayout;  // Owning handle

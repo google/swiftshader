@@ -13,7 +13,30 @@
 // limitations under the License.
 
 #include "VulkanTester.hpp"
+#include <cstdlib>
+#include <filesystem>
 #include <fstream>
+#include <iostream>
+
+namespace fs = std::filesystem;
+
+// By default, load SwiftShader via loader
+#ifndef LOAD_NATIVE_DRIVER
+#	define LOAD_NATIVE_DRIVER 0
+#endif
+
+#ifndef LOAD_SWIFTSHADER_DIRECTLY
+#	define LOAD_SWIFTSHADER_DIRECTLY 0
+#endif
+
+#if LOAD_NATIVE_DRIVER && LOAD_SWIFTSHADER_DIRECTLY
+#	error Enable only one of LOAD_NATIVE_DRIVER and LOAD_SWIFTSHADER_DIRECTLY
+#endif
+
+// By default, enable validation layers in DEBUG builds
+#if !defined(ENABLE_VALIDATION_LAYERS) && !defined(NDEBUG)
+#	define ENABLE_VALIDATION_LAYERS 1
+#endif
 
 #if defined(_WIN32)
 #	define OS_WINDOWS 1
@@ -33,7 +56,107 @@
 #	error Unimplemented platform
 #endif
 
+// TODO: move to its own header/cpp
+// Wraps a single environment variable, allowing it to be set
+// and automatically restored on destruction.
+class ScopedSetEnvVar
+{
+public:
+	ScopedSetEnvVar(std::string name)
+	    : name(name)
+	{
+		assert(!name.empty());
+	}
+
+	ScopedSetEnvVar(std::string name, std::string value)
+	    : name(name)
+	{
+		set(value);
+	}
+
+	~ScopedSetEnvVar()
+	{
+		restore();
+	}
+
+	void set(std::string value)
+	{
+		restore();
+		if(auto ov = getEnv(name.data()))
+		{
+			oldValue = ov;
+		}
+		putEnv((name + std::string("=") + value).c_str());
+	}
+
+	void restore()
+	{
+		if(!oldValue.empty())
+		{
+			putEnv((name + std::string("=") + oldValue).c_str());
+			oldValue.clear();
+		}
+	}
+
+private:
+	void putEnv(const char *env)
+	{
+		// POSIX putenv needs 'env' to live beyond the call
+		envCopy = env;
+#if OS_WINDOWS
+		[[maybe_unused]] auto r = ::_putenv(envCopy.c_str());
+		assert(r == 0);
+#else
+		[[maybe_unused]] auto r = ::putenv(const_cast<char *>(envCopy.c_str()));
+		assert(r == 0);
+#endif
+	}
+
+	const char *getEnv(const char *name)
+	{
+		return ::getenv(name);
+	}
+
+	std::string name;
+	std::string oldValue;
+	std::string envCopy;
+};
+
+// Generates a temporary icd.json file that sets library_path at the input driverPath,
+// and sets VK_ICD_FILENAMES environment variable to this file, restoring the env var
+// and deleting the temp file on destruction.
+class ScopedSetIcdFilenames
+{
+public:
+	ScopedSetIcdFilenames() = default;
+	ScopedSetIcdFilenames(const char *driverPath)
+	{
+		std::ofstream fout(icdFileName);
+		assert(fout && "Failed to create generated icd file");
+		fout << R"raw({ "file_format_version": "1.0.0", "ICD": { "library_path": ")raw" << driverPath << R"raw(", "api_version": "1.0.5" } } )raw";
+		fout.close();
+
+		setEnvVar.set(icdFileName);
+	}
+
+	~ScopedSetIcdFilenames()
+	{
+		//TODO(b/180494886): fix C++17 filesystem issues on macOS
+#if !OS_MAC
+		if(fs::exists("vk_swiftshader_generated_icd.json"))
+		{
+			fs::remove("vk_swiftshader_generated_icd.json");
+		}
+#endif
+	}
+
+private:
+	static constexpr const char *icdFileName = "vk_swiftshader_generated_icd.json";
+	ScopedSetEnvVar setEnvVar{ "VK_ICD_FILENAMES" };
+};
+
 namespace {
+
 std::vector<const char *> getDriverPaths()
 {
 #if OS_WINDOWS
@@ -91,24 +214,25 @@ bool fileExists(const char *path)
 	return f.good();
 }
 
-std::unique_ptr<vk::DynamicLoader> loadDriver()
+std::string findDriverPath()
 {
-	for(auto &p : getDriverPaths())
+	for(auto &path : getDriverPaths())
 	{
-		if(!fileExists(p))
-			continue;
-		return std::make_unique<vk::DynamicLoader>(p);
+		if(fileExists(path))
+			return path;
 	}
 
-#if(OS_MAC || OS_LINUX || OS_ANDROID || OS_FUCHSIA)
+#if(OS_LINUX || OS_ANDROID || OS_FUCHSIA)
 	// On Linux-based OSes, the lib path may be resolved by dlopen
-	for(auto &p : getDriverPaths())
+	for(auto &path : getDriverPaths())
 	{
-		auto lib = dlopen(p, RTLD_LAZY | RTLD_LOCAL);
+		auto lib = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 		if(lib)
 		{
+			char libPath[2048] = { '\0' };
+			dlinfo(lib, RTLD_DI_ORIGIN, libPath);
 			dlclose(lib);
-			return std::make_unique<vk::DynamicLoader>(p);
+			return std::string{ libPath } + "/" + path;
 		}
 	}
 #endif
@@ -118,10 +242,13 @@ std::unique_ptr<vk::DynamicLoader> loadDriver()
 
 }  // namespace
 
+VulkanTester::VulkanTester() = default;
+
 VulkanTester::~VulkanTester()
 {
 	device.waitIdle();
 	device.destroy(nullptr);
+	if(debugReport) instance.destroy(debugReport);
 	instance.destroy(nullptr);
 }
 
@@ -133,8 +260,74 @@ void VulkanTester::initialize()
 	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dl->getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-	instance = vk::createInstance({}, nullptr);
+	vk::InstanceCreateInfo instanceCreateInfo;
+	std::vector<const char *> extensionNames
+	{
+		VK_KHR_SURFACE_EXTENSION_NAME,
+#if defined(USE_HEADLESS_SURFACE)
+		    VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME,
+#endif
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+		    VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+#endif
+	};
+#if ENABLE_VALIDATION_LAYERS
+	extensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+	auto addLayerIfAvailable = [](std::vector<const char *> &layers, const char *layer) {
+		static auto layerProperties = vk::enumerateInstanceLayerProperties();
+		if(std::find_if(layerProperties.begin(), layerProperties.end(), [layer](auto &lp) {
+			   return strcmp(layer, lp.layerName) == 0;
+		   }) != layerProperties.end())
+		{
+			//std::cout << "Enabled layer: " << layer << std::endl;
+			layers.push_back(layer);
+		}
+	};
+
+	std::vector<const char *> layerNames;
+#if ENABLE_VALIDATION_LAYERS
+	addLayerIfAvailable(layerNames, "VK_LAYER_KHRONOS_validation");
+	addLayerIfAvailable(layerNames, "VK_LAYER_LUNARG_standard_validation");
+#endif
+
+	instanceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
+	instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensionNames.size());
+	instanceCreateInfo.ppEnabledLayerNames = layerNames.data();
+	instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(layerNames.size());
+
+	instance = vk::createInstance(instanceCreateInfo, nullptr);
 	VULKAN_HPP_DEFAULT_DISPATCHER.init(instance);
+
+#if ENABLE_VALIDATION_LAYERS
+	if(VULKAN_HPP_DEFAULT_DISPATCHER.vkCreateDebugUtilsMessengerEXT)
+	{
+		vk::DebugUtilsMessengerCreateInfoEXT debugInfo;
+		debugInfo.messageSeverity =
+		    // vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+		    vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+		    vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
+
+		debugInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+		                        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+		                        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+		PFN_vkDebugUtilsMessengerCallbackEXT debugInfoCallback =
+		    [](
+		        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		        VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+		        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+		        void *pUserData) -> VkBool32 {
+			//assert(false);
+			std::cerr << "[DebugInfoCallback] " << pCallbackData->pMessage << std::endl;
+			return VK_FALSE;
+		};
+
+		debugInfo.pfnUserCallback = debugInfoCallback;
+		debugReport = instance.createDebugUtilsMessengerEXT(debugInfo);
+	}
+#endif
 
 	std::vector<vk::PhysicalDevice> physicalDevices = instance.enumeratePhysicalDevices();
 	assert(!physicalDevices.empty());
@@ -146,11 +339,56 @@ void VulkanTester::initialize()
 	queueCreateInfo.queueCount = 1;
 	queueCreateInfo.pQueuePriorities = &defaultQueuePriority;
 
+	std::vector<const char *> deviceExtensions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+	};
+
 	vk::DeviceCreateInfo deviceCreateInfo;
 	deviceCreateInfo.queueCreateInfoCount = 1;
 	deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 
 	device = physicalDevice.createDevice(deviceCreateInfo, nullptr);
 
 	queue = device.getQueue(queueFamilyIndex, 0);
+}
+
+std::unique_ptr<vk::DynamicLoader> VulkanTester::loadDriver()
+{
+	if(LOAD_NATIVE_DRIVER)
+	{
+		return std::make_unique<vk::DynamicLoader>();
+	}
+
+	auto driverPath = findDriverPath();
+	assert(!driverPath.empty());
+
+	if(LOAD_SWIFTSHADER_DIRECTLY)
+	{
+		return std::make_unique<vk::DynamicLoader>(driverPath);
+	}
+
+	// Load SwiftShader via loader
+
+	// Set VK_ICD_FILENAMES env var so it gets picked up by the loading of the ICD driver
+	setIcdFilenames = std::make_unique<ScopedSetIcdFilenames>(driverPath.c_str());
+
+	std::unique_ptr<vk::DynamicLoader> dl;
+#ifndef VULKAN_HPP_NO_EXCEPTIONS
+	try
+	{
+		dl = std::make_unique<vk::DynamicLoader>();
+	}
+	catch(std::exception &ex)
+	{
+		std::cerr << "vk::DynamicLoader exception: " << ex.what() << std::endl;
+		std::cerr << "Falling back to loading SwiftShader directly (i.e. no validation layers)" << std::endl;
+		dl = std::make_unique<vk::DynamicLoader>(driverPath);
+	}
+#else
+	dl = std::make_unique<vk::DynamicLoader>();
+#endif
+
+	return dl;
 }

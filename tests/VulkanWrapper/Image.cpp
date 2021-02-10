@@ -13,8 +13,9 @@
 // limitations under the License.
 
 #include "Image.hpp"
+#include "Util.hpp"
 
-Image::Image(vk::Device device, uint32_t width, uint32_t height, vk::Format format, vk::SampleCountFlagBits sampleCount /*= vk::SampleCountFlagBits::e1*/)
+Image::Image(vk::Device device, vk::PhysicalDevice physicalDevice, uint32_t width, uint32_t height, vk::Format format, vk::SampleCountFlagBits sampleCount /*= vk::SampleCountFlagBits::e1*/)
     : device(device)
 {
 	vk::ImageCreateInfo imageInfo;
@@ -34,7 +35,7 @@ Image::Image(vk::Device device, uint32_t width, uint32_t height, vk::Format form
 
 	vk::MemoryAllocateInfo allocateInfo;
 	allocateInfo.allocationSize = memoryRequirements.size;
-	allocateInfo.memoryTypeIndex = 0;  //getMemoryTypeIndex(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	allocateInfo.memoryTypeIndex = Util::getMemoryTypeIndex(physicalDevice, memoryRequirements.memoryTypeBits);
 
 	imageMemory = device.allocateMemory(allocateInfo);
 

@@ -22,7 +22,7 @@
 
 namespace Util {
 
-uint32_t getMemoryTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t typeBits, vk::MemoryPropertyFlags properties);
+uint32_t getMemoryTypeIndex(vk::PhysicalDevice physicalDevice, uint32_t typeBits, vk::MemoryPropertyFlags properties = {});
 
 vk::CommandBuffer beginSingleTimeCommands(vk::Device device, vk::CommandPool commandPool);
 

@@ -17,6 +17,7 @@
 #if USE_HEADLESS_SURFACE
 
 Window::Window(vk::Instance instance, vk::Extent2D windowSize)
+    : instance(instance)
 {
 	vk::HeadlessSurfaceCreateInfoEXT surfaceCreateInfo;
 	surface = instance.createHeadlessSurfaceEXT(surfaceCreateInfo);
@@ -40,6 +41,7 @@ void Window::show()
 #elif defined(_WIN32)
 
 Window::Window(vk::Instance instance, vk::Extent2D windowSize)
+    : instance(instance)
 {
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;

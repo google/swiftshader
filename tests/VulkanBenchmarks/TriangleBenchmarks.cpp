@@ -198,7 +198,7 @@ static void TriangleSampleTexture(benchmark::State &state, Multisample multisamp
 
 			layout(location = 0) out vec4 outColor;
 
-			layout(binding = 0) uniform sampler2D texSampler;
+			layout(binding = 1) uniform sampler2D texSampler;
 
 			void main()
 			{
@@ -221,9 +221,10 @@ static void TriangleSampleTexture(benchmark::State &state, Multisample multisamp
 
 	tester.onUpdateDescriptorSet([](DrawTester &tester, vk::CommandPool &commandPool, vk::DescriptorSet &descriptorSet) {
 		auto &device = tester.getDevice();
+		auto &physicalDevice = tester.getPhysicalDevice();
 		auto &queue = tester.getQueue();
 
-		auto &texture = tester.addImage(device, 16, 16, vk::Format::eR8G8B8A8Unorm).obj;
+		auto &texture = tester.addImage(device, physicalDevice, 16, 16, vk::Format::eR8G8B8A8Unorm).obj;
 
 		// Fill texture with white
 		vk::DeviceSize bufferSize = 16 * 16 * 4;

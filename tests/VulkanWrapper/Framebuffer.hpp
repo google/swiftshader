@@ -21,7 +21,7 @@
 class Framebuffer
 {
 public:
-	Framebuffer(vk::Device device, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, vk::Extent2D extent, bool multisample);
+	Framebuffer(vk::Device device, vk::PhysicalDevice physicalDevice, vk::ImageView attachment, vk::Format colorFormat, vk::RenderPass renderPass, vk::Extent2D extent, bool multisample);
 	~Framebuffer();
 
 	vk::Framebuffer getFramebuffer()

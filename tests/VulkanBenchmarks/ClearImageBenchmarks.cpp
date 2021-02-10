@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "Util.hpp"
 #include "VulkanTester.hpp"
 #include "benchmark/benchmark.h"
 
 #include <cassert>
-
 class ClearImageBenchmark
 {
 public:
@@ -24,6 +24,7 @@ public:
 	{
 		tester.initialize();
 		auto &device = tester.getDevice();
+		auto &physicalDevice = tester.getPhysicalDevice();
 
 		vk::ImageCreateInfo imageInfo;
 		imageInfo.imageType = vk::ImageType::e2D;
@@ -42,7 +43,7 @@ public:
 
 		vk::MemoryAllocateInfo allocateInfo;
 		allocateInfo.allocationSize = memoryRequirements.size;
-		allocateInfo.memoryTypeIndex = 0;
+		allocateInfo.memoryTypeIndex = Util::getMemoryTypeIndex(physicalDevice, memoryRequirements.memoryTypeBits);
 
 		memory = device.allocateMemory(allocateInfo);
 
