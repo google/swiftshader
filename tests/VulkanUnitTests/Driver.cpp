@@ -153,6 +153,8 @@ void Driver::unload()
 	dlclose(dll);
 #endif
 
+	dll = nullptr;
+
 #define VK_GLOBAL(N, R, ...) N = nullptr
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
