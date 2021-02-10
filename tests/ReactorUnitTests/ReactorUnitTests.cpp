@@ -376,6 +376,34 @@ TEST(ReactorUnitTests, LoopAfterReturn)
 	EXPECT_EQ(result, 7);
 }
 
+// This test excercises the Optimizer::eliminateLoadsFollowingSingleStore() optimization pass.
+// The three load operations for `y` should get eliminated.
+// TODO(b/180665600): Check that the optimization took place.
+TEST(ReactorUnitTests, EliminateLoadsFollowingSingleStore)
+{
+	FunctionT<int(int)> function;
+	{
+		Int x = function.Arg<0>();
+
+		Int y;
+		Int z;
+
+		// This branch materializes the variables.
+		If(x != 0)  // TODO(b/179922668): Support If(x)
+		{
+			y = x;
+			z = y + y + y;
+		}
+
+		Return(z);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine(11);
+	EXPECT_EQ(result, 33);
+}
+
 // This test excercises the Optimizer::propagateAlloca() optimization pass.
 // The pointer variable should not get stored to / loaded from memory.
 // TODO(b/180665600): Check that the optimization took place.
