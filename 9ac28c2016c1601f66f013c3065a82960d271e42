@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "3a8b8915_dcd1e571",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T06:20:15Z",
+      "side": 1,
+      "message": "Also \"Bug: b/174801963\"",
+      "revId": "9ac28c2016c1601f66f013c3065a82960d271e42",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "cd64bf57_15ce26fa",
@@ -31,6 +48,23 @@
       "writtenOn": "2021-02-09T22:55:53Z",
       "side": 1,
       "message": "Verified on aosp/master",
+      "revId": "9ac28c2016c1601f66f013c3065a82960d271e42",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c780d8d9_dd0b7714",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T06:20:15Z",
+      "side": 1,
+      "message": "Kokoro indicates a clang-format discrepancy: https://fusion2.corp.google.com/invocations/0d8c243c-f998-4497-bd52-d1d019ba723e/targets/swiftshader%2Fgcp_ubuntu_check_style%2Fpresubmit/log",
       "revId": "9ac28c2016c1601f66f013c3065a82960d271e42",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
