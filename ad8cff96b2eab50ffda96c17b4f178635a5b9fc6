@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac853842_6af440b7",
+        "filename": "src/Vulkan/VkPromotedExtensions.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5d24dec_d67a5ee7",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 1
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2dffd606_4123fa2e",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-02-04T22:24:36Z",
       "side": 1,
       "message": "Move to Device (see waitForFences, for example)",
+      "range": {
+        "startLine": 464,
+        "startChar": 0,
+        "endLine": 524,
+        "endChar": 1
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b45b75c3_30f1c7e1",
+        "filename": "src/Vulkan/VkSemaphore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2dffd606_4123fa2e",
       "range": {
         "startLine": 464,
         "startChar": 0,
@@ -87,6 +135,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "61c84413_12a6613c",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "96d78902_6b5a15fe",
+      "range": {
+        "startLine": 66,
+        "startChar": 13,
+        "endLine": 66,
+        "endChar": 20
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "52c749a0_ba4fe651",
@@ -100,6 +172,30 @@
       "writtenOn": "2021-02-04T22:24:36Z",
       "side": 1,
       "message": "Nit: timelineWait -\u003e wait?",
+      "range": {
+        "startLine": 68,
+        "startChar": 6,
+        "endLine": 68,
+        "endChar": 18
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "442fd3e3_33dbd4e8",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52c749a0_ba4fe651",
       "range": {
         "startLine": 68,
         "startChar": 6,
@@ -133,6 +229,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a01d3e2e_731c34fd",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "feb01477_fa438cc2",
+      "range": {
+        "startLine": 71,
+        "startChar": 10,
+        "endLine": 71,
+        "endChar": 22
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "854e7f21_1fe1daf7",
@@ -146,6 +266,30 @@
       "writtenOn": "2021-02-04T22:24:36Z",
       "side": 1,
       "message": "Nit: timelineSignal -\u003e signal?",
+      "range": {
+        "startLine": 74,
+        "startChar": 6,
+        "endLine": 74,
+        "endChar": 20
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d3f776e_ea23d328",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "854e7f21_1fe1daf7",
       "range": {
         "startLine": 74,
         "startChar": 6,
@@ -203,6 +347,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "174d27f8_81215620",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d4ed808_25689f7e",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 39
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "334b44e1_6442abcd",
@@ -216,6 +384,30 @@
       "writtenOn": "2021-02-04T22:24:36Z",
       "side": 1,
       "message": "Should be a Device member function",
+      "range": {
+        "startLine": 185,
+        "startChar": 9,
+        "endLine": 185,
+        "endChar": 26
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "74100e86_2e13225e",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "334b44e1_6442abcd",
       "range": {
         "startLine": 185,
         "startChar": 9,
@@ -249,6 +441,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa05befe_388afbc9",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1460,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a66e43b9_a5a8642e",
+      "range": {
+        "startLine": 1460,
+        "startChar": 35,
+        "endLine": 1460,
+        "endChar": 42
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9c6e139d_8ef70335",
@@ -272,6 +488,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "723e98ba_72300f46",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1468,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c6e139d_8ef70335",
+      "range": {
+        "startLine": 1468,
+        "startChar": 35,
+        "endLine": 1468,
+        "endChar": 49
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5796fa49_84bf1c9c",
@@ -285,6 +525,30 @@
       "writtenOn": "2021-02-04T22:24:36Z",
       "side": 1,
       "message": "These are typically Device functions, so it could look like:\nvk::Cast(device)-\u003ewaitForSemaphores(pWaitInfo, timeout);",
+      "range": {
+        "startLine": 1476,
+        "startChar": 8,
+        "endLine": 1476,
+        "endChar": 50
+      },
+      "revId": "ad8cff96b2eab50ffda96c17b4f178635a5b9fc6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b22277af_87350b87",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1476,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-10T21:34:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5796fa49_84bf1c9c",
       "range": {
         "startLine": 1476,
         "startChar": 8,
