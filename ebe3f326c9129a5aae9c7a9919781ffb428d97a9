@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "864b335f_fdd3b2de",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-10T21:55:35Z",
+      "side": 1,
+      "message": "Fixed the ImageView\u0027s ID so that sampler cache key doesn\u0027t match between an ImageView with a single mip level and one with multiple mip levels.",
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
