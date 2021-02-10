@@ -16,6 +16,24 @@
       "message": "Maybe worth adding asserts in these three functions that this type is either an InstCall or InstInstrinsic for load/store? Not sure how easy that would be, though. Probably not worth it.",
       "revId": "cc070f04b8b32afabb854b38a10ce713d8e248f6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ef4358c_c646521d",
+        "filename": "third_party/subzero/src/IceInst.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T05:12:22Z",
+      "side": 1,
+      "message": "I had some ambivalent thoughts about this. We could have Inst::isLoad() and isStore() methods for such asserts, but then there\u0027s obvious confusion about why that doesn\u0027t just mean InstLoad / InstStore. And atomic intrinsics which read and/or write memory aren\u0027t part of this. I couldn\u0027t think of a concise name that would convey our specific meaning.\n\nTaking a step back, currently there\u0027s no foolproof way of using getSrc(). One has to know where each operand is stored for the given instruction type. So requiring the same amount of caution when using these new methods doesn\u0027t seem like an added burden. But it makes the resulting code much more readable, which seems like a net win to me.\n\nAnyway, asserts would be easy to add later if they proved valuable.",
+      "parentUuid": "69c7b4e4_a07b4b0f",
+      "revId": "cc070f04b8b32afabb854b38a10ce713d8e248f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
