@@ -50,6 +50,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "2a735002_0114529c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T06:21:02Z",
+      "side": 1,
+      "message": "Thanks for these patches!",
+      "parentUuid": "502b4e4b_6d149041",
+      "range": {
+        "startLine": 9,
+        "startChar": 8,
+        "endLine": 9,
+        "endChar": 13
+      },
+      "revId": "aded74e6b40303cdafd4c8e2b11449d6461cf114",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "37991033_3d208ffb",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 4
