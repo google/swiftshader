@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "502b4e4b_6d149041",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 6882
+      },
+      "writtenOn": "2021-02-10T06:00:00Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/c/SwiftShader/+/52669",
+      "parentUuid": "786aea7d_48f01e82",
+      "range": {
+        "startLine": 9,
+        "startChar": 8,
+        "endLine": 9,
+        "endChar": 13
+      },
+      "revId": "aded74e6b40303cdafd4c8e2b11449d6461cf114",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "37991033_3d208ffb",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 4
