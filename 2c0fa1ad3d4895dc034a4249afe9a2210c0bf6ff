@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd3e2496_543c1021",
+        "filename": "third_party/subzero/src/IceTargetLoweringARM32.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 725,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T04:20:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dbc14d98_d89f858d",
+      "range": {
+        "startLine": 725,
+        "startChar": 10,
+        "endLine": 725,
+        "endChar": 24
+      },
+      "revId": "2c0fa1ad3d4895dc034a4249afe9a2210c0bf6ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e9410426_7f604034",
@@ -64,6 +88,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e7a2c4eb_5ef178eb",
+        "filename": "third_party/subzero/src/IceTargetLoweringMIPS32.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4565,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T04:20:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9410426_7f604034",
+      "range": {
+        "startLine": 4565,
+        "startChar": 33,
+        "endLine": 4565,
+        "endChar": 37
+      },
+      "revId": "2c0fa1ad3d4895dc034a4249afe9a2210c0bf6ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6da9ebdd_ddca5275",
@@ -77,6 +125,30 @@
       "writtenOn": "2021-02-09T21:40:04Z",
       "side": 1,
       "message": "These are also misnamed, now, right? Unfortunately, it\u0027s going to be harder to find these with a search.",
+      "range": {
+        "startLine": 744,
+        "startChar": 12,
+        "endLine": 744,
+        "endChar": 17
+      },
+      "revId": "2c0fa1ad3d4895dc034a4249afe9a2210c0bf6ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7fbcc36f_b48248ba",
+        "filename": "third_party/subzero/src/WasmTranslator.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 744,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-10T04:20:27Z",
+      "side": 1,
+      "message": "This file is actually unused. I\u0027ve filed b/179832693 to get rid of it.",
+      "parentUuid": "6da9ebdd_ddca5275",
       "range": {
         "startLine": 744,
         "startChar": 12,
