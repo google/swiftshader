@@ -22,6 +22,30 @@
       },
       "revId": "4be6d87d959af9cc43cf295a7ba269bdbe6c6fc7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32440980_c847ae4b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-11T15:07:15Z",
+      "side": 1,
+      "message": "We could, but the existing code keeps a static instance of the Driver class, and does the load/unload either per test or per suite. In any case, I\u0027m going to delete these class soon and just use the one from vulkan.hpp that is currently already being used by the VulkanTester class.",
+      "parentUuid": "664f7fcb_3a9d9d80",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 55
+      },
+      "revId": "4be6d87d959af9cc43cf295a7ba269bdbe6c6fc7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
