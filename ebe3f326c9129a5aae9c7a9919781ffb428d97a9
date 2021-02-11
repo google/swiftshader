@@ -33,6 +33,98 @@
       "message": "Local testing showed a significant improvement for the TriangleSampleTexture/TriangleSampleTexture benchmark\u0027s average time, which went from ~2.06ms to ~1.33ms, in local testing, so this is about a 33% gain for that case.",
       "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c49023fd_70f17570",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-11T16:10:42Z",
+      "side": 1,
+      "message": "What about these cases? If the shader provides Lod, but there\u0027s only a single level, we could still take advantage of both the constant propagation and eliminating any calculation the shader, if we substitute our fixed lod here.",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 105,
+        "endChar": 6
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84de86a3_4bee3fc2",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-11T16:10:42Z",
+      "side": 1,
+      "message": "Isn\u0027t what we\u0027re doing here essentially the Base case? Our table in sw::Texture gets filled with the same data for each level if there\u0027s just a single one, even if mindLod \u003e 0, so we can always use 0 as the effective index.",
+      "range": {
+        "startLine": 105,
+        "startChar": 21,
+        "endLine": 105,
+        "endChar": 25
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "01092458_54fc6274",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-11T16:10:42Z",
+      "side": 1,
+      "message": "As noted in another comment, can we just do samplerState.compareEnable \u003d Base instead?",
+      "range": {
+        "startLine": 83,
+        "startChar": 3,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8dc6761_3143da08",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-11T16:10:42Z",
+      "side": 1,
+      "message": "Looks like it might be a mistake to pass in an Image here, instead of an ImageView? We should be able to obtain the `hasMultipleMipLevels` info from the latter, and eliminate the explicit parameter here.\n\nIn fact that would allow eliminating every other parameter here?",
+      "range": {
+        "startLine": 35,
+        "startChar": 12,
+        "endLine": 35,
+        "endChar": 30
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
