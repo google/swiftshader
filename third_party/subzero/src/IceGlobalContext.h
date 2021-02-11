@@ -20,7 +20,6 @@
 #include "IceDefs.h"
 #include "IceInstrumentation.h"
 #include "IceIntrinsics.h"
-#include "IceRNG.h"
 #include "IceStringPool.h"
 #include "IceSwitchLowering.h"
 #include "IceTargetLowering.def"

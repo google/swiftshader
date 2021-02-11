@@ -27,7 +27,6 @@
   X(doAddressOpt)                                                              \
   X(doArgLowering)                                                             \
   X(doBranchOpt)                                                               \
-  X(doNopInsertion)                                                            \
   X(emitAsm)                                                                   \
   X(emitGlobalInitializers)                                                    \
   X(findRMW)                                                                   \

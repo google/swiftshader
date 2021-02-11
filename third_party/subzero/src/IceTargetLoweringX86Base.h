@@ -316,8 +316,6 @@ protected:
   void doAddressOptLoadSubVector() override;
   void doAddressOptStoreSubVector() override;
   void doMockBoundsCheck(Operand *Opnd) override;
-  void randomlyInsertNop(float Probability,
-                         RandomNumberGenerator &RNG) override;
 
   /// Naive lowering of cmpxchg.
   void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
@@ -464,11 +462,6 @@ protected:
   /// Return a memory operand corresponding to a stack allocated Variable.
   X86OperandMem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                               uint32_t Offset = 0);
-
-  void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const SmallBitVector &ExcludeRegisters,
-                                uint64_t Salt) const override;
 
   /// AutoMemorySandboxer emits a bundle-lock/bundle-unlock pair if the
   /// instruction's operand is a memory reference. This is only needed for
@@ -1105,13 +1098,6 @@ protected:
   // RebasePtr is a Variable that holds the Rebasing pointer (if any) for the
   // current sandboxing type.
   Variable *RebasePtr = nullptr;
-
-  /// Randomize a given immediate operand
-  Operand *randomizeOrPoolImmediate(Constant *Immediate,
-                                    RegNumT RegNum = RegNumT());
-  X86OperandMem *randomizeOrPoolImmediate(X86OperandMem *MemOperand,
-                                          RegNumT RegNum = RegNumT());
-  bool RandomizationPoolingPaused = false;
 
 private:
   /// dispatchToConcrete is the template voodoo that allows TargetX86Base to

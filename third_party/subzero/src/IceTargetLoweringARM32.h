@@ -296,8 +296,6 @@ protected:
   void genTargetHelperCallFor(Inst *Instr) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
-  void randomlyInsertNop(float Probability,
-                         RandomNumberGenerator &RNG) override;
 
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
@@ -310,11 +308,6 @@ protected:
 
   /// Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT());
-
-  void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const SmallBitVector &ExcludeRegisters,
-                                uint64_t Salt) const override;
 
   // If a divide-by-zero check is needed, inserts a: test; branch .LSKIP; trap;
   // .LSKIP: <continuation>. If no check is needed nothing is inserted.

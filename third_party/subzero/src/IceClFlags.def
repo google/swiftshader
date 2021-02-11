@@ -239,55 +239,12 @@ struct dev_list_flag {};
   X(ParseParallel, bool, dev_opt_flag, "parse-parallel",                       \
     cl::desc("Parse function blocks in parallel"), cl::init(true))             \
                                                                                \
-  X(RandomizeAndPoolImmediatesOption, Ice::RandomizeAndPoolImmediatesEnum,     \
-    dev_opt_flag, "randomize-pool-immediates",                                 \
-    cl::desc("Randomize or pooling the representation of immediates"),         \
-    cl::init(Ice::RPI_None),                                                   \
-    cl::values(clEnumValN(Ice::RPI_None, "none",                               \
-                          "Do not randomize or pooling immediates (default)"), \
-               clEnumValN(Ice::RPI_Randomize, "randomize",                     \
-                          "Turn on immediate constants blinding"),             \
-               clEnumValN(Ice::RPI_Pool, "pool",                               \
-                          "Turn on immediate constants pooling")               \
-               CLENUMVALEND))                                                  \
-                                                                               \
-  X(RandomizeAndPoolImmediatesThreshold, uint32_t, dev_opt_flag,               \
-    "randomize-pool-threshold",                                                \
-    cl::desc("The threshold for immediates randomization and pooling"),        \
-    cl::init(0xffff))                                                          \
-                                                                               \
-  X(RandomizeRegisterAllocation, bool, dev_opt_flag, "randomize-regalloc",     \
-    cl::desc("Randomize register allocation"), cl::init(false))                \
-                                                                               \
   X(SplitLocalVars, bool, dev_opt_flag, "split-local-vars", cl::init(true),    \
     cl::desc("Block-local variable splitting (O2 only)"))                      \
-                                                                               \
-  X(RandomSeed, unsigned long long, dev_opt_flag, "sz-seed",                   \
-    cl::desc("Seed the random number generator"), cl::init(1))                 \
                                                                                \
   X(RegAllocReserve, bool, dev_opt_flag, "reg-reserve",                        \
     cl::desc("Let register allocation use reserve registers"),                 \
     cl::init(false))                                                           \
-                                                                               \
-  X(ReorderBasicBlocks, bool, dev_opt_flag, "reorder-basic-blocks",            \
-    cl::desc("Shuffle the layout of basic blocks in each function"),           \
-    cl::init(false))                                                           \
-                                                                               \
-  X(ReorderFunctions, bool, dev_opt_flag, "reorder-functions",                 \
-    cl::desc("Randomize function ordering"), cl::init(false))                  \
-                                                                               \
-  X(ReorderFunctionsWindowSize, uint32_t, dev_opt_flag,                        \
-    "reorder-functions-window-size",                                           \
-    cl::desc(                                                                  \
-        "The shuffling window size for function reordering. 1 or 0 means "     \
-        "no effective shuffling."),                                            \
-    cl::init(8))                                                               \
-                                                                               \
-  X(ReorderGlobalVariables, bool, dev_opt_flag, "reorder-global-variables",    \
-    cl::desc("Randomize global data ordering"), cl::init(false))               \
-                                                                               \
-  X(ReorderPooledConstants, bool, dev_opt_flag, "reorder-pooled-constants",    \
-    cl::desc("Randomize constant pool entry ordering"), cl::init(false))       \
                                                                                \
   X(RepeatRegAlloc, bool, dev_opt_flag, "regalloc-repeat",                     \
     cl::desc("Repeat register allocation until convergence"), cl::init(true))  \
@@ -296,9 +253,6 @@ struct dev_list_flag {};
   X(SanitizeAddresses, bool, dev_opt_flag, "fsanitize-address",                \
     cl::desc("Instrument compiled code with Address Sanitizer"),               \
     cl::init(false))                                                           \
-                                                                               \
-  X(ShouldDoNopInsertion, bool, dev_opt_flag, "nop-insertion",                 \
-    cl::desc("Randomly insert NOPs"), cl::init(false))                         \
                                                                                \
   X(SkipUnimplemented, bool, dev_opt_flag, "skip-unimplemented",               \
     cl::desc("Skip through unimplemented lowering code instead of aborting."), \
@@ -369,7 +323,6 @@ struct dev_list_flag {};
         clEnumValN(Ice::IceV_LinearScan, "regalloc", "Linear scan details"),   \
         clEnumValN(Ice::IceV_Frame, "frame", "Stack frame layout details"),    \
         clEnumValN(Ice::IceV_AddrOpt, "addropt", "Address mode optimization"), \
-        clEnumValN(Ice::IceV_Random, "random", "Randomization details"),       \
         clEnumValN(Ice::IceV_Folding, "fold", "Instruction folding details"),  \
         clEnumValN(Ice::IceV_RMW, "rmw", "ReadModifyWrite optimization"),      \
         clEnumValN(Ice::IceV_Loop, "loop", "Loop nest depth analysis"),        \

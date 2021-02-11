@@ -345,11 +345,10 @@ enum VerboseItem {
   IceV_LinearScan = 1 << 7,
   IceV_Frame = 1 << 8,
   IceV_AddrOpt = 1 << 9,
-  IceV_Random = 1 << 10,
-  IceV_Folding = 1 << 11,
-  IceV_RMW = 1 << 12,
-  IceV_Loop = 1 << 13,
-  IceV_Mem = 1 << 14,
+  IceV_Folding = 1 << 10,
+  IceV_RMW = 1 << 11,
+  IceV_Loop = 1 << 12,
+  IceV_Mem = 1 << 13,
   // Leave some extra space to make it easier to add new per-pass items.
   IceV_NO_PER_PASS_DUMP_BEYOND = 1 << 19,
   // Items greater than IceV_NO_PER_PASS_DUMP_BEYOND don't by themselves trigger
@@ -445,21 +444,6 @@ template <typename T>
 llvm::iterator_range<typename T::reverse_iterator> reverse_range(T &Container) {
   return llvm::make_range(Container.rbegin(), Container.rend());
 }
-
-/// Options for pooling and randomization of immediates.
-enum RandomizeAndPoolImmediatesEnum { RPI_None, RPI_Randomize, RPI_Pool };
-
-/// Salts for Random number generator for different randomization passes.
-enum RandomizationPassesEnum {
-  RPE_BasicBlockReordering,
-  RPE_ConstantBlinding,
-  RPE_FunctionReordering,
-  RPE_GlobalVariableReordering,
-  RPE_NopInsertion,
-  RPE_PooledConstantReordering,
-  RPE_RegAllocRandomization,
-  RPE_num
-};
 
 using RelocOffsetArray = llvm::SmallVector<class RelocOffset *, 4>;
 

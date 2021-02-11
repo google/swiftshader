@@ -779,32 +779,13 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
   dumpLiveRangeTrace("Allocating Z ", Iter.Cur);
 }
 
-void LinearScan::assignFinalRegisters(const SmallBitVector &RegMaskFull,
-                                      const SmallBitVector &PreDefinedRegisters,
-                                      bool Randomized) {
-  const size_t NumRegisters = RegMaskFull.size();
-  llvm::SmallVector<RegNumT, REGS_SIZE> Permutation(NumRegisters);
-  if (Randomized) {
-    // Create a random number generator for regalloc randomization. Merge
-    // function's sequence and Kind value as the Salt. Because regAlloc() is
-    // called twice under O2, the second time with RAK_Phi, we check Kind ==
-    // RAK_Phi to determine the lowest-order bit to make sure the Salt is
-    // different.
-    uint64_t Salt =
-        (Func->getSequenceNumber() << 1) ^ (Kind == RAK_Phi ? 0u : 1u);
-    Target->makeRandomRegisterPermutation(
-        Permutation, PreDefinedRegisters | ~RegMaskFull, Salt);
-  }
-
+void LinearScan::assignFinalRegisters(const SmallBitVector &RegMaskFull) {
   // Finish up by setting RegNum = RegNumTmp (or a random permutation thereof)
   // for each Variable.
   for (Variable *Item : Handled) {
     const auto RegNum = Item->getRegNumTmp();
     auto AssignedRegNum = RegNum;
 
-    if (Randomized && Item->hasRegTmp() && !Item->hasReg()) {
-      AssignedRegNum = Permutation[RegNum];
-    }
     if (BuildDefs::dump() && Verbose) {
       Ostream &Str = Ctx->getStrDump();
       if (!Item->hasRegTmp()) {
@@ -833,19 +814,13 @@ void LinearScan::assignFinalRegisters(const SmallBitVector &RegMaskFull,
 //
 // Requires running Cfg::liveness(Liveness_Intervals) in preparation. Results
 // are assigned to Variable::RegNum for each Variable.
-void LinearScan::scan(const SmallBitVector &RegMaskFull, bool Randomized) {
+void LinearScan::scan(const SmallBitVector &RegMaskFull) {
   TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
   if (Verbose)
     Ctx->lockStr();
   Func->resetCurrentNode();
   const size_t NumRegisters = RegMaskFull.size();
-  SmallBitVector PreDefinedRegisters(NumRegisters);
-  if (Randomized) {
-    for (Variable *Var : UnhandledPrecolored) {
-      PreDefinedRegisters[Var->getRegNum()] = true;
-    }
-  }
 
   // Build a LiveRange representing the Kills list.
   LiveRange KillsRange(Kills);
@@ -977,7 +952,7 @@ void LinearScan::scan(const SmallBitVector &RegMaskFull, bool Randomized) {
   Inactive.clear();
   dump(Func);
 
-  assignFinalRegisters(RegMaskFull, PreDefinedRegisters, Randomized);
+  assignFinalRegisters(RegMaskFull);
 
   if (Verbose)
     Ctx->unlockStr();

@@ -793,12 +793,6 @@ protected:
   void genTargetHelperCallFor(Inst *Instr) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
-  void randomlyInsertNop(float Probability,
-                         RandomNumberGenerator &RNG) override;
-  void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const SmallBitVector &ExcludeRegisters,
-                                uint64_t Salt) const override;
 
   OperandMIPS32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 

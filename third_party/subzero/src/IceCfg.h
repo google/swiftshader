@@ -175,7 +175,6 @@ public:
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }
-  uint32_t getConstantBlindingCookie() const { return ConstantBlindingCookie; }
   /// @}
 
   /// Passes over the CFG.
@@ -198,7 +197,6 @@ public:
   void deletePhis();
   void advancedPhiLowering();
   void reorderNodes();
-  void shuffleNodes();
   void localCSE(bool AssumeSSA);
   void floatConstantCSE();
   void shortCircuitJumps();
@@ -213,7 +211,6 @@ public:
   /// replaced by a shufflevector instruction.
   void materializeVectorShuffles();
   void doArgLowering();
-  void doNopInsertion();
   void genCode();
   void genFrame();
   void generateLoopInfo();
@@ -303,7 +300,6 @@ private:
   GlobalContext *Ctx;
   uint32_t SequenceNumber; /// output order for emission
   OptLevel OptimizationLevel = Opt_m1;
-  uint32_t ConstantBlindingCookie = 0; /// cookie for constant blinding
   VerboseMask VMask;
   GlobalString FunctionName;
   Type ReturnType = IceType_void;

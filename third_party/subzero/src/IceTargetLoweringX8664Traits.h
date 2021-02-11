@@ -636,89 +636,6 @@ public:
     return Registers;
   }
 
-  static void makeRandomRegisterPermutation(
-      Cfg *Func, llvm::SmallVectorImpl<RegNumT> &Permutation,
-      const SmallBitVector &ExcludeRegisters, uint64_t Salt) {
-    // TODO(stichnot): Declaring Permutation this way loses type/size
-    // information. Fix this in conjunction with the caller-side TODO.
-    assert(Permutation.size() >= RegisterSet::Reg_NUM);
-    // Expected upper bound on the number of registers in a single equivalence
-    // class.  For x86-64, this would comprise the 16 XMM registers. This is
-    // for performance, not correctness.
-    static const unsigned MaxEquivalenceClassSize = 8;
-    using RegisterList = llvm::SmallVector<RegNumT, MaxEquivalenceClassSize>;
-    using EquivalenceClassMap = std::map<uint32_t, RegisterList>;
-    EquivalenceClassMap EquivalenceClasses;
-    SizeT NumShuffled = 0, NumPreserved = 0;
-
-// Build up the equivalence classes of registers by looking at the register
-// properties as well as whether the registers should be explicitly excluded
-// from shuffling.
-#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
-          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
-  if (ExcludeRegisters[RegisterSet::val]) {                                    \
-    /* val stays the same in the resulting permutation. */                     \
-    Permutation[RegisterSet::val] = RegisterSet::val;                          \
-    ++NumPreserved;                                                            \
-  } else {                                                                     \
-    uint32_t AttrKey = 0;                                                      \
-    uint32_t Index = 0;                                                        \
-    /* Combine relevant attributes into an equivalence class key. */           \
-    Index |= (scratch << (AttrKey++));                                         \
-    Index |= (preserved << (AttrKey++));                                       \
-    Index |= (is8 << (AttrKey++));                                             \
-    Index |= (is16 << (AttrKey++));                                            \
-    Index |= (is32 << (AttrKey++));                                            \
-    Index |= (is64 << (AttrKey++));                                            \
-    Index |= (isXmm << (AttrKey++));                                           \
-    Index |= (is16To8 << (AttrKey++));                                         \
-    Index |= (is32To8 << (AttrKey++));                                         \
-    Index |= (is64To8 << (AttrKey++));                                         \
-    Index |= (isTrunc8Rcvr << (AttrKey++));                                    \
-    /* val is assigned to an equivalence class based on its properties. */     \
-    EquivalenceClasses[Index].push_back(RegisterSet::val);                     \
-  }
-    REGX8664_TABLE
-#undef X
-
-    // Create a random number generator for regalloc randomization.
-    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
-                              RPE_RegAllocRandomization, Salt);
-    RandomNumberGeneratorWrapper RNGW(RNG);
-
-    // Shuffle the resulting equivalence classes.
-    for (const auto &I : EquivalenceClasses) {
-      const RegisterList &List = I.second;
-      RegisterList Shuffled(List);
-      RandomShuffle(Shuffled.begin(), Shuffled.end(), RNGW);
-      for (size_t SI = 0, SE = Shuffled.size(); SI < SE; ++SI) {
-        Permutation[List[SI]] = Shuffled[SI];
-        ++NumShuffled;
-      }
-    }
-
-    assert(NumShuffled + NumPreserved == RegisterSet::Reg_NUM);
-
-    if (Func->isVerbose(IceV_Random)) {
-      OstreamLocker L(Func->getContext());
-      Ostream &Str = Func->getContext()->getStrDump();
-      Str << "Register equivalence classes:\n";
-      for (const auto &I : EquivalenceClasses) {
-        Str << "{";
-        const RegisterList &List = I.second;
-        bool First = true;
-        for (RegNumT Register : List) {
-          if (!First)
-            Str << " ";
-          First = false;
-          Str << getRegName(Register);
-        }
-        Str << "}\n";
-      }
-    }
-  }
-
   static RegNumT getRaxOrDie() { return RegisterSet::Reg_rax; }
 
   static RegNumT getRdxOrDie() { return RegisterSet::Reg_rdx; }
@@ -986,10 +903,6 @@ public:
       return Operand->getKind() == static_cast<OperandKind>(kMem);
     }
 
-    void setRandomized(bool R) { Randomized = R; }
-
-    bool getRandomized() const { return Randomized; }
-
   private:
     X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift, bool IsRebased);
@@ -999,10 +912,6 @@ public:
     Variable *const Index;
     const uint16_t Shift;
     const bool IsRebased;
-    /// A flag to show if this memory operand is a randomized one. Randomized
-    /// memory operands are generated in
-    /// TargetX86Base::randomizeOrPoolImmediate()
-    bool Randomized = false;
   };
 
   /// VariableSplit is a way to treat an f64 memory location as a pair of i32

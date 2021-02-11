@@ -223,7 +223,6 @@ if (supports_subzero) {
       "$subzero_dir/src/IceMangling.cpp",
       "$subzero_dir/src/IceMemory.cpp",
       "$subzero_dir/src/IceOperand.cpp",
-      "$subzero_dir/src/IceRNG.cpp",
       "$subzero_dir/src/IceRangeSpec.cpp",
       "$subzero_dir/src/IceRegAlloc.cpp",
       "$subzero_dir/src/IceRevision.cpp",

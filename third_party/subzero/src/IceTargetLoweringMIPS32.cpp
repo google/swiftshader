@@ -585,13 +585,7 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicID();
     if (isVectorType(DestTy) && ID == Intrinsics::Fabs) {
       Operand *Src0 = Intrinsic->getArg(0);
-      GlobalString FabsFloat = Ctx->getGlobalString("llvm.fabs.f32");
-      Operand *CallTarget = Ctx->getConstantExternSym(FabsFloat);
-      GlobalString FabsVec = Ctx->getGlobalString("llvm.fabs.v4f32");
-      bool BadIntrinsic = false;
-      const Intrinsics::FullIntrinsicInfo *FullInfo =
-          Ctx->getIntrinsicsInfo().find(FabsVec, BadIntrinsic);
-      Intrinsics::IntrinsicInfo Info = FullInfo->Info;
+      Intrinsics::IntrinsicInfo Info = Intrinsic->getIntrinsicInfo();
 
       Variable *T = Func->makeVariable(IceType_v4f32);
       auto *Undef = ConstantUndef::create(Ctx, IceType_v4f32);
@@ -605,8 +599,7 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
         Context.insert<InstExtractElement>(Op, Src0, Index);
         auto *Res = Func->makeVariable(IceType_f32);
         Variable *DestT = Func->makeVariable(IceType_v4f32);
-        auto *Intrinsic =
-            Context.insert<InstIntrinsic>(1, Res, CallTarget, Info);
+        auto *Intrinsic = Context.insert<InstIntrinsic>(1, Res, Info);
         Intrinsic->addArg(Op);
         Context.insert<InstInsertElement>(DestT, T, Res, Index);
         T = DestT;
@@ -965,11 +958,6 @@ void TargetMIPS32::translateO2() {
   // to reduce the amount of work needed for searching for opportunities.
   Func->doBranchOpt();
   Func->dump("After branch optimization");
-
-  // Nop insertion
-  if (getFlags().getShouldDoNopInsertion()) {
-    Func->doNopInsertion();
-  }
 }
 
 void TargetMIPS32::translateOm1() {
@@ -1019,11 +1007,6 @@ void TargetMIPS32::translateOm1() {
   if (Func->hasError())
     return;
   Func->dump("After postLowerLegalization");
-
-  // Nop insertion
-  if (getFlags().getShouldDoNopInsertion()) {
-    Func->doNopInsertion();
-  }
 }
 
 bool TargetMIPS32::doBranchOpt(Inst *Instr, const CfgNode *NextNode) {
@@ -5446,14 +5429,6 @@ void TargetMIPS32::doAddressOptLoad() {
   }
 }
 
-void TargetMIPS32::randomlyInsertNop(float Probability,
-                                     RandomNumberGenerator &RNG) {
-  RandomNumberGeneratorWrapper RNGW(RNG);
-  if (RNGW.getTrueWithProbability(Probability)) {
-    _nop();
-  }
-}
-
 void TargetMIPS32::lowerPhi(const InstPhi * /*Instr*/) {
   Func->setError("Phi found in regular instruction list");
 }
@@ -5604,7 +5579,7 @@ void TargetMIPS32::lowerShuffleVector(const InstShuffleVector *Instr) {
 
 void TargetMIPS32::lowerStore(const InstStore *Instr) {
   Operand *Value = Instr->getData();
-  Operand *Addr = Instr->getAddr();
+  Operand *Addr = Instr->getStoreAddress();
   OperandMIPS32Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
   Type Ty = NewAddr->getType();
 
@@ -5704,15 +5679,6 @@ void TargetMIPS32::postLower() {
     return;
   markRedefinitions();
   Context.availabilityUpdate();
-}
-
-void TargetMIPS32::makeRandomRegisterPermutation(
-    llvm::SmallVectorImpl<RegNumT> &Permutation,
-    const SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
-  (void)Permutation;
-  (void)ExcludeRegisters;
-  (void)Salt;
-  UnimplementedError(getFlags());
 }
 
 /* TODO(jvoung): avoid duplicate symbols with multiple targets.
@@ -5832,10 +5798,6 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
   Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",%progbits," << Align
       << "\n"
       << "\t.align\t" << (Align == 4 ? 2 : 3) << "\n";
-  if (getFlags().getReorderPooledConstants()) {
-    // TODO(jaydeep.patil): add constant pooling.
-    UnimplementedError(getFlags());
-  }
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled()) {
       continue;

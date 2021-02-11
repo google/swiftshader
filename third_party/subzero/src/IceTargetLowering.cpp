@@ -375,19 +375,6 @@ void TargetLowering::doAddressOpt() {
   Context.advanceNext();
 }
 
-void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
-  Inst *I = iteratorToInst(Context.getCur());
-  bool ShouldSkip = llvm::isa<InstFakeUse>(I) || llvm::isa<InstFakeDef>(I) ||
-                    llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
-                    I->isDeleted();
-  if (!ShouldSkip) {
-    int Probability = getFlags().getNopProbabilityAsPercentage();
-    for (int I = 0; I < getFlags().getMaxNopsPerInstruction(); ++I) {
-      randomlyInsertNop(Probability / 100.0, RNG);
-    }
-  }
-}
-
 // Lowers a single instruction according to the information in Context, by
 // checking the Context.Cur instruction kind and calling the appropriate
 // lowering method. The lowering method should insert target instructions at
@@ -524,7 +511,7 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   CfgSet<Variable *> EmptySet;
   do {
     LinearScan.init(Kind, EmptySet);
-    LinearScan.scan(RegMask, getFlags().getRandomizeRegisterAllocation());
+    LinearScan.scan(RegMask);
     if (!LinearScan.hasEvictions())
       Repeat = false;
     Kind = RAK_SecondChance;
@@ -653,7 +640,7 @@ void TargetLowering::postRegallocSplitting(const SmallBitVector &RegMask) {
   // Run the register allocator with all these new variables included
   LinearScan RegAlloc(Func);
   RegAlloc.init(RAK_Global, SplitCandidates);
-  RegAlloc.scan(RegMask, getFlags().getRandomizeRegisterAllocation());
+  RegAlloc.scan(RegMask);
 
   // Modify the Cfg to use the new variables that now have registers.
   for (auto *ExtraVar : ExtraVars) {

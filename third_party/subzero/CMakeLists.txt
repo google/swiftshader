@@ -38,7 +38,6 @@ set(SUBZERO_SRC_FILES
     src/IceRangeSpec.cpp
     src/IceRegAlloc.cpp
     src/IceRevision.cpp
-    src/IceRNG.cpp
     src/IceSwitchLowering.cpp
     src/IceTargetLowering.cpp
     src/IceThreading.cpp

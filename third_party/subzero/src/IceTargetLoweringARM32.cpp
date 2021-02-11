@@ -1103,11 +1103,6 @@ void TargetARM32::translateO2() {
   // to reduce the amount of work needed for searching for opportunities.
   Func->doBranchOpt();
   Func->dump("After branch optimization");
-
-  // Nop insertion
-  if (getFlags().getShouldDoNopInsertion()) {
-    Func->doNopInsertion();
-  }
 }
 
 void TargetARM32::translateOm1() {
@@ -1165,11 +1160,6 @@ void TargetARM32::translateOm1() {
   if (Func->hasError())
     return;
   Func->dump("After postLowerLegalization");
-
-  // Nop insertion
-  if (getFlags().getShouldDoNopInsertion()) {
-    Func->doNopInsertion();
-  }
 }
 
 uint32_t TargetARM32::getStackAlignment() const {
@@ -5925,14 +5915,6 @@ void TargetARM32::doAddressOptLoad() {
   }
 }
 
-void TargetARM32::randomlyInsertNop(float Probability,
-                                    RandomNumberGenerator &RNG) {
-  RandomNumberGeneratorWrapper RNGW(RNG);
-  if (RNGW.getTrueWithProbability(Probability)) {
-    _nop();
-  }
-}
-
 void TargetARM32::lowerPhi(const InstPhi * /*Instr*/) {
   Func->setError("Phi found in regular instruction list");
 }
@@ -6650,15 +6632,6 @@ void TargetARM32::postLower() {
   Context.availabilityUpdate();
 }
 
-void TargetARM32::makeRandomRegisterPermutation(
-    llvm::SmallVectorImpl<RegNumT> &Permutation,
-    const SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
-  (void)Permutation;
-  (void)ExcludeRegisters;
-  (void)Salt;
-  UnimplementedError(getFlags());
-}
-
 void TargetARM32::emit(const ConstantInteger32 *C) const {
   if (!BuildDefs::dump())
     return;
@@ -7317,11 +7290,6 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
   Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",%progbits," << Align
       << "\n"
       << "\t.align\t" << Align << "\n";
-
-  if (getFlags().getReorderPooledConstants()) {
-    // TODO(jpp): add constant pooling.
-    UnimplementedError(getFlags());
-  }
 
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled()) {

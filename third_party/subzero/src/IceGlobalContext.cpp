@@ -497,15 +497,6 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   if (getFlags().getDisableTranslation())
     return;
 
-  // If we need to shuffle the layout of global variables, shuffle them now.
-  if (getFlags().getReorderGlobalVariables()) {
-    // Create a random number generator for global variable reordering.
-    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
-                              RPE_GlobalVariableReordering);
-    RandomShuffle(Globals.begin(), Globals.end(),
-                  [&RNG](int N) { return (uint32_t)RNG.next(N); });
-  }
-
   if (!BuildDefs::minimal() && Instrumentor)
     Instrumentor->instrumentGlobals(Globals);
 
@@ -535,11 +526,6 @@ void GlobalContext::emitItems() {
   uint32_t ShuffleStartIndex = DesiredSequenceNumber;
   uint32_t ShuffleEndIndex = DesiredSequenceNumber;
   bool EmitQueueEmpty = false;
-  const uint32_t ShuffleWindowSize =
-      std::max(1u, getFlags().getReorderFunctionsWindowSize());
-  bool Shuffle = Threaded && getFlags().getReorderFunctions();
-  // Create a random number generator for function reordering.
-  RandomNumberGenerator RNG(getFlags().getRandomSeed(), RPE_FunctionReordering);
 
   while (!EmitQueueEmpty) {
     resizePending(&Pending, DesiredSequenceNumber);
@@ -566,7 +552,6 @@ void GlobalContext::emitItems() {
         Pending[DesiredSequenceNumber] = std::move(RawItem);
       }
     }
-    const auto *CurrentWorkItem = Pending[DesiredSequenceNumber].get();
 
     // We have the desired EmitterWorkItem or nullptr as the end notifier.
     // If the emitter queue is not empty, increase DesiredSequenceNumber and
@@ -574,26 +559,6 @@ void GlobalContext::emitItems() {
     if (!EmitQueueEmpty) {
       DesiredSequenceNumber++;
       ShuffleEndIndex++;
-    }
-
-    if (Shuffle) {
-      // Continue fetching EmitterWorkItem if function reordering is turned on,
-      // and emit queue is not empty, and the number of consecutive pending
-      // items is smaller than the window size, and RawItem is not a
-      // WI_GlobalInits kind. Emit WI_GlobalInits kind block first to avoid
-      // holding an arbitrarily large GlobalDeclarationList.
-      if (!EmitQueueEmpty &&
-          ShuffleEndIndex - ShuffleStartIndex < ShuffleWindowSize &&
-          CurrentWorkItem->getKind() != EmitterWorkItem::WI_GlobalInits)
-        continue;
-
-      // Emit the EmitterWorkItem between Pending[ShuffleStartIndex] to
-      // Pending[ShuffleEndIndex]. If function reordering turned on, shuffle the
-      // pending items from Pending[ShuffleStartIndex] to
-      // Pending[ShuffleEndIndex].
-      RandomShuffle(Pending.begin() + ShuffleStartIndex,
-                    Pending.begin() + ShuffleEndIndex,
-                    [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
     }
 
     // Emit the item from ShuffleStartIndex to ShuffleEndIndex.
@@ -853,17 +818,6 @@ JumpTableDataList GlobalContext::getJumpTables() {
               return A.getId() < B.getId();
             });
 
-  if (getFlags().getReorderPooledConstants()) {
-    // If reorder-pooled-constants option is set to true, we also shuffle the
-    // jump tables before emitting them.
-
-    // Create a random number generator for jump tables reordering, considering
-    // jump tables as pooled constants.
-    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
-                              RPE_PooledConstantReordering);
-    RandomShuffle(JumpTables.begin(), JumpTables.end(),
-                  [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
-  }
   return JumpTables;
 }
 

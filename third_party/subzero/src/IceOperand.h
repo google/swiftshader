@@ -154,11 +154,6 @@ public:
 
   const GlobalString getLabelName() const { return LabelName; }
 
-  /// Judge if this given immediate should be randomized or pooled By default
-  /// should return false, only constant integers should truly go through this
-  /// method.
-  virtual bool shouldBeRandomizedOrPooled() const { return false; }
-
   bool getShouldBePooled() const { return ShouldBePooled; }
 
   // This should be thread-safe because the constant pool lock is acquired
@@ -222,8 +217,6 @@ public:
   }
 
   SizeT hashValue() const override { return std::hash<PrimType>()(Value); }
-
-  virtual bool shouldBeRandomizedOrPooled() const override { return false; }
 
 private:
   ConstantPrimitive(Type Ty, PrimType Value) : Constant(K, Ty), Value(Value) {}
@@ -292,22 +285,6 @@ inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
     Str << (getValue() ? "true" : "false");
   else
     Str << static_cast<int32_t>(getValue());
-}
-
-// =========== Immediate Randomization and Pooling routines ==============
-// Specialization of the template member function for ConstantInteger32
-// TODO(stichnot): try to move this specialization into a target-specific file.
-template <> inline bool ConstantInteger32::shouldBeRandomizedOrPooled() const {
-  uint32_t Threshold = getFlags().getRandomizeAndPoolImmediatesThreshold();
-  if (getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None)
-    return false;
-  if (getType() != IceType_i32 && getType() != IceType_i16 &&
-      getType() != IceType_i8)
-    return false;
-  // The Following checks if the signed representation of Value is between
-  // -Threshold/2 and +Threshold/2
-  bool largerThanThreshold = Threshold / 2 + Value >= Threshold;
-  return largerThanThreshold;
 }
 
 template <>
