@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e79064b4_236fa034",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-11T15:09:35Z",
+      "side": 1,
+      "message": "Kokoro failure isn\u0027t valid. Just one MacOS config timed out.",
+      "revId": "2bf32c8173017d64b5431ae54831b55b6e468b83",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
