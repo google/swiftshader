@@ -16,6 +16,24 @@
       "message": "Alistair, please try Commit-Queue+2 again (might need it on the parent change first).",
       "revId": "b07238500956843660f8f7297e9ba23525e71261",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fa04ca5_368fe4a9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6650
+      },
+      "writtenOn": "2021-02-11T03:35:26Z",
+      "side": 1,
+      "message": "You\u0027ll need to add Alistair to https://chrome-infra-auth.appspot.com/auth/groups/project-swiftshader-tryjob-access for that to work.",
+      "parentUuid": "6b68a13b_333b86b1",
+      "revId": "b07238500956843660f8f7297e9ba23525e71261",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
