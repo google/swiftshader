@@ -35,6 +35,23 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8490c45a_c1ef908b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T16:41:18Z",
+      "side": 1,
+      "message": "I think we should hold off on this until the identifier \u003c-\u003e state mapping issue is addressed (b/152227757). That should make it a lot clearer where we do each bit of analysis, without risk of depending on something not part of the cache key.",
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c49023fd_70f17570",
@@ -131,6 +148,54 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "7088eda0_a446832b",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T16:41:18Z",
+      "side": 1,
+      "message": "\u0027Base\u0027 can cover that too.",
+      "parentUuid": "2242867e_dff54939",
+      "range": {
+        "startLine": 105,
+        "startChar": 21,
+        "endLine": 105,
+        "endChar": 25
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "64e08c85_6d9c7660",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T16:41:18Z",
+      "side": 1,
+      "message": "I think we\u0027d save considerably more than an addition if constant propagation can happen. LLVM can do that aggressively and eliminate the clamp and the conversion. For Subzero we\u0027ll have b/155302798 but it may not cover all cases.",
+      "parentUuid": "60df657d_bc2d4e93",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 105,
+        "endChar": 6
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "01092458_54fc6274",
         "filename": "src/Pipeline/SpirvShaderSampling.cpp",
         "patchSetId": 8
@@ -178,6 +243,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c47dae13_37ece01a",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T16:41:18Z",
+      "side": 1,
+      "message": "Sorry, that was some kind of typo. Indeed `samplerMethod` is the one.\n\nAnd indeed this affects the relation between descriptors and their state again in ways that could be buggy, which makes me think we should first take care of the 1:1 mapping between descriptor identifiers and their state, and make only the former available directly to the shader routine.",
+      "parentUuid": "ec76fb90_d8b77bbf",
+      "range": {
+        "startLine": 83,
+        "startChar": 3,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b8dc6761_3143da08",
         "filename": "src/Vulkan/VkImageView.hpp",
         "patchSetId": 8
@@ -213,6 +302,30 @@
       "side": 1,
       "message": "This is called inside the ImageView\u0027s constructor, so it doesn\u0027t exist yet.",
       "parentUuid": "b8dc6761_3143da08",
+      "range": {
+        "startLine": 35,
+        "startChar": 12,
+        "endLine": 35,
+        "endChar": 30
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1e21c4ea_85e1cd46",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T16:41:18Z",
+      "side": 1,
+      "message": "Right. It\u0027s risky to pass it \u0027this\u0027, but valid when we know all the members that we\u0027ll access have been initialized. The clean solution would be to move those members to a base class of vk::ImageView, which is then guaranteed available within its constructor. I think vk::Sampler might already do something like that.\n\nAlternatively perhaps this could just take VkImageViewCreateInfo.\n\nIn any case, that\u0027s a step towards having the identifier as the only descriptor data.",
+      "parentUuid": "23ba0746_29e42c6c",
       "range": {
         "startLine": 35,
         "startChar": 12,
