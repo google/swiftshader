@@ -16,6 +16,23 @@
       "message": "Nicolas PTAL",
       "revId": "149d7fdb3b986992ecfb5aeed5a503598dafe986",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "054e491f_611c88d8",
+        "filename": "src/Pipeline/SpirvShaderGLSLstd450.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T14:18:53Z",
+      "side": 1,
+      "message": "// TODO(b/179925303): Eliminate when interpolants are tightly packed.",
+      "revId": "149d7fdb3b986992ecfb5aeed5a503598dafe986",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
