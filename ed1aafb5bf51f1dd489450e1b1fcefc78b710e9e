@@ -16,6 +16,23 @@
       "message": "Kokoro failure can be ignored, a single platform failed to fetch its sources.",
       "revId": "ed1aafb5bf51f1dd489450e1b1fcefc78b710e9e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "001c4cce_a2293a5c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T19:16:37Z",
+      "side": 1,
+      "message": "Hmmm... MultithreadingTestES3.MultithreadFenceDraw/ES3_Vulkan_SwiftShader_NoVirtual appears to fail reliably. It\u0027s probably worth investigating.",
+      "revId": "ed1aafb5bf51f1dd489450e1b1fcefc78b710e9e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
