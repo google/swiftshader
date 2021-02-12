@@ -1740,12 +1740,6 @@ static Value *createIntCompare(Ice::InstIcmp::ICond condition, Value *lhs, Value
 	return V(result);
 }
 
-Value *Nucleus::createPtrEQ(Value *lhs, Value *rhs)
-{
-	RR_DEBUG_INFO_UPDATE_LOC();
-	return createIntCompare(Ice::InstIcmp::Eq, lhs, rhs);
-}
-
 Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
 {
 	RR_DEBUG_INFO_UPDATE_LOC();

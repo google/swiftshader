@@ -266,6 +266,8 @@ TEST(ReactorUnitTests, FunctionMembers)
 	EXPECT_EQ(result, 9);
 }
 
+// This test excercises modifying the value of a local variable through a
+// pointer to it.
 TEST(ReactorUnitTests, VariableAddress)
 {
 	FunctionT<int(int)> function;
@@ -282,6 +284,96 @@ TEST(ReactorUnitTests, VariableAddress)
 
 	int result = routine(16);
 	EXPECT_EQ(result, 20);
+}
+
+// This test exercises taking the address of a local varible at the end of a
+// loop and modifying its value through the pointer in the second iteration.
+TEST(ReactorUnitTests, LateVariableAddress)
+{
+	FunctionT<int(void)> function;
+	{
+		Pointer<Int> p = nullptr;
+		Int a = 0;
+
+		While(a == 0)
+		{
+			If(p != Pointer<Int>(nullptr))
+			{
+				*p = 1;
+			}
+
+			p = &a;
+		}
+
+		Return(a);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine();
+	EXPECT_EQ(result, 1);
+}
+
+// This test checks that the value of a local variable which has been modified
+// though a pointer is correct at the point before its address is (statically)
+// obtained.
+TEST(ReactorUnitTests, LoadAfterIndirectStore)
+{
+	FunctionT<int(void)> function;
+	{
+		Pointer<Int> p = nullptr;
+		Int a = 0;
+		Int b = 0;
+
+		While(a == 0)
+		{
+			If(p != Pointer<Int>(nullptr))
+			{
+				*p = 1;
+			}
+
+			// `a` must be loaded from memory here, despite not statically knowing
+			// yet that its address will be taken below.
+			b = a + 5;
+
+			p = &a;
+		}
+
+		Return(b);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine();
+	EXPECT_EQ(result, 6);
+}
+
+// This test checks that variables statically accessed after a Return statement
+// are still loaded, modified, and stored correctly.
+TEST(ReactorUnitTests, LoopAfterReturn)
+{
+	FunctionT<int(void)> function;
+	{
+		Int min = 100;
+		Int max = 200;
+
+		If(min > max)
+		{
+			Return(5);
+		}
+
+		While(min < max)
+		{
+			min++;
+		}
+
+		Return(7);
+	}
+
+	auto routine = function(testName().c_str());
+
+	int result = routine();
+	EXPECT_EQ(result, 7);
 }
 
 TEST(ReactorUnitTests, SubVectorLoadStore)

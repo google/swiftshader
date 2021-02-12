@@ -276,7 +276,6 @@ public:
 	static Value *createBitCast(Value *V, Type *destType);
 
 	// Compare instructions
-	static Value *createPtrEQ(Value *lhs, Value *rhs);
 	static Value *createICmpEQ(Value *lhs, Value *rhs);
 	static Value *createICmpNE(Value *lhs, Value *rhs);
 	static Value *createICmpUGT(Value *lhs, Value *rhs);
