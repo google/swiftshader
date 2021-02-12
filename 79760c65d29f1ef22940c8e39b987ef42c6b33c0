@@ -22,6 +22,30 @@
       },
       "revId": "79760c65d29f1ef22940c8e39b987ef42c6b33c0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6a62ea6f_8def5298",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 17
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T14:15:41Z",
+      "side": 1,
+      "message": "Done. Note that I need to land this first, though:\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/51737/10",
+      "parentUuid": "f3c5c0ee_671f2ca2",
+      "range": {
+        "startLine": 11,
+        "startChar": 8,
+        "endLine": 11,
+        "endChar": 22
+      },
+      "revId": "79760c65d29f1ef22940c8e39b987ef42c6b33c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
