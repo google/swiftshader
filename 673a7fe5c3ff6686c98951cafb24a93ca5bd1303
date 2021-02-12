@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48f72266_78c61c73",
+        "filename": "third_party/subzero/docs/DESIGN.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 1100,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T15:45:14Z",
+      "side": 0,
+      "message": "All of these features are gone.",
+      "range": {
+        "startLine": 1100,
+        "startChar": 0,
+        "endLine": 1100,
+        "endChar": 20
+      },
+      "revId": "673a7fe5c3ff6686c98951cafb24a93ca5bd1303",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

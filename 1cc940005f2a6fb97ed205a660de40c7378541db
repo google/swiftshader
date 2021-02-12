@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc481bf6_2cc36d7b",
+        "filename": "third_party/subzero/src/IceTargetLoweringMIPS32.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-12T15:45:14Z",
+      "side": 1,
+      "message": "This is a leftover from https://swiftshader-review.googlesource.com/c/SwiftShader/+/52529\n\nWe don\u0027t use the Subzero MIPS backend, but I\u0027ve verified that this builds now.",
+      "revId": "1cc940005f2a6fb97ed205a660de40c7378541db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
