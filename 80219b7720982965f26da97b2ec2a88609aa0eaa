@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ddadcc55_39ca2d41",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T19:13:54Z",
+      "side": 1,
+      "message": "Pretty good! I think this is already close to being landable. Only a few nits for possible minor improvements (your choice).",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5f8f087_63e86a78",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T19:13:54Z",
+      "side": 1,
+      "message": "Nit: this has very similar logic to waitForFences. You might want to move it next to it.",
+      "range": {
+        "startLine": 396,
+        "startChar": 0,
+        "endLine": 396,
+        "endChar": 90
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dba13fbe_a556c786",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T19:13:54Z",
+      "side": 1,
+      "message": "Nit: This is an exact copy of the code in waitForFences. Maybe adding a utility function would be useful to remove some code duplication. Something like:\n\nusing time_point \u003d std::chrono::time_point\u003cstd::chrono::system_clock, std::chrono::nanoseconds\u003e;\nstatic time_point GetEndTimePoint(uint64_t timeout)\n{\n  const time_point start \u003d now();\n  const uint64_t max_timeout \u003d (LLONG_MAX - start.time_since_epoch().count());\n  return start + std::chrono::nanoseconds(std::min(max_timeout, timeout));\n}",
+      "range": {
+        "startLine": 399,
+        "startChar": 0,
+        "endLine": 403,
+        "endChar": 92
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ef7339af_34d9ae65",
+        "filename": "src/Vulkan/VkDevice.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T19:13:54Z",
+      "side": 1,
+      "message": "nit: You might want to move this up close to the waitForFences/waitIdle cluster, so that it\u0027s grouped with similar wait themed functions.",
+      "range": {
+        "startLine": 76,
+        "startChar": 1,
+        "endLine": 76,
+        "endChar": 84
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c4889e08_42b3130f",
+        "filename": "src/Vulkan/VkSemaphore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-12T19:13:54Z",
+      "side": 1,
+      "message": "Nit: Maybe destroy() could just be a virtual function?",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 146,
+        "endChar": 2
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
