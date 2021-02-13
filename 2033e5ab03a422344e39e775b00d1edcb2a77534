@@ -48,6 +48,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "5ccf5da7_7b9df6eb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-13T09:50:41Z",
+      "side": 1,
+      "message": "Oh, sorry, our Verified vote is a manual one, so feel free to +1 that, and then you should be able to submit it to the CQ. Let me know if you hit a snag.",
+      "parentUuid": "8e90a2b3_0af468d3",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 21
+      },
+      "revId": "2033e5ab03a422344e39e775b00d1edcb2a77534",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "52ce7f70_e3356369",
