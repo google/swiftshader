@@ -903,13 +903,13 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 
 			if(!atomic)
 			{
-				return V(jit->builder->CreateAlignedLoad(V(ptr), alignment, isVolatile));
+				return V(jit->builder->CreateAlignedLoad(V(ptr), llvm::MaybeAlign(alignment), isVolatile));
 			}
 			else if(elTy->isIntegerTy() || elTy->isPointerTy())
 			{
 				// Integers and pointers can be atomically loaded by setting
 				// the ordering constraint on the load instruction.
-				auto load = jit->builder->CreateAlignedLoad(V(ptr), alignment, isVolatile);
+				auto load = jit->builder->CreateAlignedLoad(V(ptr), llvm::MaybeAlign(alignment), isVolatile);
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
 				return V(load);
 			}
@@ -921,7 +921,7 @@ Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int
 				auto size = jit->module->getDataLayout().getTypeStoreSize(elTy);
 				auto elAsIntTy = llvm::IntegerType::get(*jit->context, size * 8);
 				auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
-				auto load = jit->builder->CreateAlignedLoad(ptrCast, alignment, isVolatile);
+				auto load = jit->builder->CreateAlignedLoad(ptrCast, llvm::MaybeAlign(alignment), isVolatile);
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
 				auto loadCast = jit->builder->CreateBitCast(load, elTy);
 				return V(loadCast);
@@ -1003,13 +1003,13 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 
 			if(!atomic)
 			{
-				jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
+				jit->builder->CreateAlignedStore(V(value), V(ptr), llvm::MaybeAlign(alignment), isVolatile);
 			}
 			else if(elTy->isIntegerTy() || elTy->isPointerTy())
 			{
 				// Integers and pointers can be atomically stored by setting
 				// the ordering constraint on the store instruction.
-				auto store = jit->builder->CreateAlignedStore(V(value), V(ptr), alignment, isVolatile);
+				auto store = jit->builder->CreateAlignedStore(V(value), V(ptr), llvm::MaybeAlign(alignment), isVolatile);
 				store->setAtomic(atomicOrdering(atomic, memoryOrder));
 			}
 			else if(elTy->isFloatTy() || elTy->isDoubleTy())
@@ -1021,7 +1021,7 @@ Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatil
 				auto elAsIntTy = llvm::IntegerType::get(*jit->context, size * 8);
 				auto valCast = jit->builder->CreateBitCast(V(value), elAsIntTy);
 				auto ptrCast = jit->builder->CreatePointerCast(V(ptr), elAsIntTy->getPointerTo());
-				auto store = jit->builder->CreateAlignedStore(valCast, ptrCast, alignment, isVolatile);
+				auto store = jit->builder->CreateAlignedStore(valCast, ptrCast, llvm::MaybeAlign(alignment), isVolatile);
 				store->setAtomic(atomicOrdering(atomic, memoryOrder));
 			}
 			else
