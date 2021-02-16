@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "86793fb1_73566c47",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5f8f087_63e86a78",
+      "range": {
+        "startLine": 396,
+        "startChar": 0,
+        "endLine": 396,
+        "endChar": 90
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dba13fbe_a556c786",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-02-12T19:13:54Z",
       "side": 1,
       "message": "Nit: This is an exact copy of the code in waitForFences. Maybe adding a utility function would be useful to remove some code duplication. Something like:\n\nusing time_point \u003d std::chrono::time_point\u003cstd::chrono::system_clock, std::chrono::nanoseconds\u003e;\nstatic time_point GetEndTimePoint(uint64_t timeout)\n{\n  const time_point start \u003d now();\n  const uint64_t max_timeout \u003d (LLONG_MAX - start.time_since_epoch().count());\n  return start + std::chrono::nanoseconds(std::min(max_timeout, timeout));\n}",
+      "range": {
+        "startLine": 399,
+        "startChar": 0,
+        "endLine": 403,
+        "endChar": 92
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "04ba8bdb_b699956a",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dba13fbe_a556c786",
       "range": {
         "startLine": 399,
         "startChar": 0,
@@ -81,6 +129,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "63528aae_efc480a1",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ff4e5e0_a9fd10de",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ef7339af_34d9ae65",
@@ -94,6 +160,30 @@
       "writtenOn": "2021-02-12T19:13:54Z",
       "side": 1,
       "message": "nit: You might want to move this up close to the waitForFences/waitIdle cluster, so that it\u0027s grouped with similar wait themed functions.",
+      "range": {
+        "startLine": 76,
+        "startChar": 1,
+        "endLine": 76,
+        "endChar": 84
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2c75e12_033aca12",
+        "filename": "src/Vulkan/VkDevice.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef7339af_34d9ae65",
       "range": {
         "startLine": 76,
         "startChar": 1,
@@ -121,6 +211,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6761e65e_71c92aa8",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "709e1a21_9fe8ff6e",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0364ea94_2c21bf38",
@@ -134,6 +242,24 @@
       "writtenOn": "2021-02-12T19:45:48Z",
       "side": 1,
       "message": "I don\u0027t understand this comment. The \"mem\" is already writable. Also, I think \"copy\" isn\u0027t a good name here, as you\u0027re not really making a copy, just another pointer to a location in the buffer. Perhaps just call it \"tlsSubmitInfo\" or something?",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "091988f9_72bff17d",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "It\u0027s a deep copy of tlsSubmitInfo from line 100. The \"writable\" comment was me thinking out loud about why I was bothering to create a non-const VkTimelineSemaphoreSubmitInfo *. I\u0027ll rename the variable and adjust the comment to make this more clear.",
+      "parentUuid": "0364ea94_2c21bf38",
       "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -155,6 +281,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1332e94_8bd4989a",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c288a6d5_374c4428",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dc0a9bb0_d500c5cb",
@@ -168,6 +312,24 @@
       "writtenOn": "2021-02-12T19:45:48Z",
       "side": 1,
       "message": "Just to be sure, if semaphoreInfo is valid, and j \u003e\u003d semaphoreInfo-\u003ewaitSemaphoreValueCount, then we want to process submitInfo.pWaitSemaphores[j] as a BinarySemaphore?",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5676e8fc_1f873abe",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Hmm, I just checked the spec for VkSubmitInfo:\n\n\u003e If the pNext chain of this structure includes a VkTimelineSemaphoreSubmitInfo structure and any element of pWaitSemaphores was created with a VkSemaphoreType of VK_SEMAPHORE_TYPE_TIMELINE, then its waitSemaphoreValueCount member must equal waitSemaphoreCount\n\n\u003e For each element of pWaitSemaphores created with a VkSemaphoreType of VK_SEMAPHORE_TYPE_TIMELINE the corresponding element of VkTimelineSemaphoreSubmitInfo::pWaitSemaphoreValues must have a value which does not differ from the current value of the semaphore or the value of any outstanding semaphore wait or signal operation on that semaphore by more than maxTimelineSemaphoreValueDifference\n\nSo I was incorrect here and need to differentiate the semaphores based on the result of their dynamic cast.",
+      "parentUuid": "dc0a9bb0_d500c5cb",
       "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -219,6 +381,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "525150e9_bae629ac",
+        "filename": "src/Vulkan/VkSemaphore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e55c2c70_03f9d85d",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 146,
+        "endChar": 2
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ef97868d_99bb88b3",
@@ -232,6 +418,24 @@
       "writtenOn": "2021-02-12T19:45:48Z",
       "side": 1,
       "message": "Remove?",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "365dc603_46844cff",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef97868d_99bb88b3",
       "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
@@ -253,6 +457,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d344372_a5ae3aba",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52e1541c_e6a664ec",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c7221fa0_bf784e66",
@@ -266,6 +488,30 @@
       "writtenOn": "2021-02-12T19:45:48Z",
       "side": 1,
       "message": "Do we need this? Semaphore is the type that maps to a VkSemaphore. We don\u0027t expect Cast\u003c\u003e to work for this type. We already derive from Semaphore that is a Object\u003cSemaphore, VkSemaphore\u003e.",
+      "range": {
+        "startLine": 83,
+        "startChar": 42,
+        "endLine": 83,
+        "endChar": 85
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0276636a_856914d4",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Yes.\n\nFor one thing, vk::Semaphore is not a vk::Object. Even though it acts similar to vk::Object and implements several vk::Object functions (like Cast), it itself does not inherit Object\u003cSemaphore, VkSemaphore\u003e.\n\nI did it this way because when you call BinarySemaphore::Create, Object determines memory requirements and the constructor from the first type in the template. So if the base class did inherit Object\u003cSemaphore, VkSemaphore\u003e, then BinarySemaphore::Create would call Semaphore::Semaphore(), not BinarySemaphore::BinarySemaphore().\n\nSo each subclass needs to inherit from Object with its own type as the template.\n\nIf you template vk::Semaphore so that the subclasses can pass their own type to vk::Object, then you run into an issue when you try to just use vk::Semaphore as a type. The vk::Semaphore type would expect a template, which requires you to know what type of Semaphore you\u0027re using before you can possibly know that information.\n\nI believe this is the best way to handle multiple inheritance in our codebase.",
+      "parentUuid": "c7221fa0_bf784e66",
       "range": {
         "startLine": 83,
         "startChar": 42,
@@ -299,6 +545,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e47fa78c_5806570e",
+        "filename": "src/Vulkan/VkSemaphore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "951f1a43_9c256a91",
+      "range": {
+        "startLine": 216,
+        "startChar": 24,
+        "endLine": 216,
+        "endChar": 39
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "61db98f3_86916081",
@@ -312,6 +582,30 @@
       "writtenOn": "2021-02-12T19:45:48Z",
       "side": 1,
       "message": "Same comment as before - not sure we need this.",
+      "range": {
+        "startLine": 32,
+        "startChar": 51,
+        "endLine": 32,
+        "endChar": 89
+      },
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d972e9aa_64c4964f",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "61db98f3_86916081",
       "range": {
         "startLine": 32,
         "startChar": 51,
@@ -339,6 +633,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9312585_d82b7b8d",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1408,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed49eafb_d2dac800",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1a8a3375_d966a860",
@@ -352,6 +664,24 @@
       "writtenOn": "2021-02-12T19:45:48Z",
       "side": 1,
       "message": "DynamicCast will return nullptr if the client calls this function on the wrong type of sempahore (timeline in this case). This will crash with a nullptr-access. Is this okay, or should we do:\n\nif (auto* sem \u003d vk::DynamicCast\u003cvk::BinarySemaphore\u003e(pGetFdInfo-\u003esemaphore)\n{\n    return sem-\u003eexportFd(pFd);\n}\nreturn some error code;\n\n?",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7b83d1ae_6a0c4dde",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1433,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:26:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a8a3375_d966a860",
       "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
