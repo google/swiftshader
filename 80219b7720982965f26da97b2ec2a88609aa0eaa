@@ -264,6 +264,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e4d24aec_7ae7f4b3",
+        "filename": "src/Vulkan/VkQueue.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 9035
+      },
+      "writtenOn": "2021-02-16T21:27:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "091988f9_72bff17d",
+      "revId": "80219b7720982965f26da97b2ec2a88609aa0eaa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c288a6d5_374c4428",
