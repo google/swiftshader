@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5ee09a1e_08a0697b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 20
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-16T20:06:48Z",
+      "side": 1,
+      "message": "If this change becomes needed, let\u0027s associate it with a separate SwiftShader bug: See b/140419396#comment17",
+      "range": {
+        "startLine": 50,
+        "startChar": 5,
+        "endLine": 50,
+        "endChar": 16
+      },
+      "revId": "151f4115952c9a84bbbe34a04b3a2e8f6a37efe9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
