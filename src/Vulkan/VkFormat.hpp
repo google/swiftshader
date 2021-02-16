@@ -70,6 +70,7 @@ public:
 	bool isRGBComponent(int component) const;
 
 	static uint8_t mapTo8bit(VkFormat format);
+	static VkFormat mapFrom8bit(uint8_t format);
 
 private:
 	VkFormat compatibleFormat() const;

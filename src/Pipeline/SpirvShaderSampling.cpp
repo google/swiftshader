@@ -42,23 +42,26 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 	vk::Device::SamplingRoutineCache *cache = imageDescriptor->device->getSamplingRoutineCache();
 
 	auto createSamplingRoutine = [&](const vk::Device::SamplingRoutineCache::Key &key) {
-		auto type = imageDescriptor->type;
+		const vk::Identifier::State imageViewState = vk::Identifier(imageDescriptor->imageViewId).getState();
+
+		auto type = imageViewState.imageViewType;
+		auto samplerMethod = static_cast<SamplerMethod>(instruction.samplerMethod);
 
 		Sampler samplerState = {};
 		samplerState.textureType = type;
-		samplerState.textureFormat = imageDescriptor->format;
+		samplerState.textureFormat = imageViewState.format;
 
 		samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
 		samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
 		samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
 
 		samplerState.mipmapFilter = convertMipmapMode(sampler);
-		samplerState.swizzle = imageDescriptor->swizzle;
+		samplerState.swizzle = imageViewState.mapping;
 		samplerState.gatherComponent = instruction.gatherComponent;
 
 		if(sampler)
 		{
-			samplerState.textureFilter = convertFilterMode(sampler, type, instruction);
+			samplerState.textureFilter = convertFilterMode(sampler, type, samplerMethod);
 			samplerState.border = sampler->borderColor;
 
 			samplerState.mipmapFilter = convertMipmapMode(sampler);
@@ -197,14 +200,14 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 	return function("sampler");
 }
 
-sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImageViewType imageViewType, ImageInstruction instruction)
+sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImageViewType imageViewType, SamplerMethod samplerMethod)
 {
-	if(instruction.samplerMethod == Gather)
+	if(samplerMethod == Gather)
 	{
 		return FILTER_GATHER;
 	}
 
-	if(instruction.samplerMethod == Fetch)
+	if(samplerMethod == Fetch)
 	{
 		return FILTER_POINT;
 	}
@@ -213,7 +216,7 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImag
 	{
 		if(imageViewType == VK_IMAGE_VIEW_TYPE_2D || imageViewType == VK_IMAGE_VIEW_TYPE_2D_ARRAY)
 		{
-			if(instruction.samplerMethod != Lod)  // TODO(b/162926129): Support anisotropic filtering with explicit LOD.
+			if(samplerMethod != Lod)  // TODO(b/162926129): Support anisotropic filtering with explicit LOD.
 			{
 				return FILTER_ANISOTROPIC;
 			}

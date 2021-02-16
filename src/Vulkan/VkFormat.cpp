@@ -2396,12 +2396,59 @@ static_assert(pack(VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG) == 226, "Incorrect VkFo
 static_assert(pack(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT) == 227, "Incorrect VkFormat packed value");
 static_assert(pack(VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT) == 240, "Incorrect VkFormat packed value");
 
+static constexpr VkFormat unpack(uint8_t format)
+{
+	// 0 - 184 direct mapping
+	if(format >= 0 && format <= 184)
+	{
+		return static_cast<VkFormat>(format);
+	}
+
+	// 185 - 218 -> 10001560xx
+	if(format >= 185 && format <= 218)
+	{
+		return static_cast<VkFormat>(VK_FORMAT_G8B8G8R8_422_UNORM + (format - 185));
+	}
+
+	// 219 - 226 -> 100005400x
+	if(format >= 219 && format <= 226)
+	{
+		return static_cast<VkFormat>(VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG + (format - 219));
+	}
+
+	// 227 - 240 -> 10000660xx
+	if(format >= 227 && format <= 240)
+	{
+		return static_cast<VkFormat>(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT + (format - 227));
+	}
+
+	return VK_FORMAT_UNDEFINED;
+}
+
+static_assert(unpack(0) == VK_FORMAT_UNDEFINED, "Incorrect VkFormat unpacked value");
+static_assert(unpack(184) == VK_FORMAT_ASTC_12x12_SRGB_BLOCK, "Incorrect VkFormat unpacked value");
+static_assert(unpack(185) == VK_FORMAT_G8B8G8R8_422_UNORM, "Incorrect VkFormat unpacked value");
+static_assert(unpack(218) == VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM, "Incorrect VkFormat unpacked value");
+static_assert(unpack(219) == VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG, "Incorrect VkFormat unpacked value");
+static_assert(unpack(226) == VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG, "Incorrect VkFormat unpacked value");
+static_assert(unpack(227) == VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT, "Incorrect VkFormat unpacked value");
+static_assert(unpack(240) == VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT, "Incorrect VkFormat unpacked value");
+static_assert(unpack(241) == VK_FORMAT_UNDEFINED, "Incorrect VkFormat unpacked value");
+
 uint8_t Format::mapTo8bit(VkFormat format)
 {
 	ASSERT(format <= VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM);
 	uint8_t packed = pack(format);
 	ASSERT_MSG(packed > 0, "Update VkFormat to uint8_t mapping");
 	return packed;
+}
+
+VkFormat Format::mapFrom8bit(uint8_t format)
+{
+	ASSERT(format <= 240);
+	VkFormat unpacked = unpack(format);
+	ASSERT_MSG(unpacked != VK_FORMAT_UNDEFINED, "Update uint8_t to VkFormat mapping");
+	return unpacked;
 }
 
 }  // namespace vk

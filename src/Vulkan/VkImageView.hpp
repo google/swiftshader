@@ -28,14 +28,19 @@ namespace vk {
 class SamplerYcbcrConversion;
 
 // Uniquely identifies state used by sampling routine generation.
-// ID space shared by image views and buffer views.
+// Integer ID space shared by image views and buffer views.
 union Identifier
 {
 	// Image view identifier
-	Identifier(const Image *image, VkImageViewType type, VkFormat format, VkComponentMapping mapping);
+	Identifier(const VkImageViewCreateInfo *pCreateInfo);
 
 	// Buffer view identifier
 	Identifier(VkFormat format);
+
+	// Copy constructor from existing identifier
+	Identifier(uint32_t fromId)
+	    : id(fromId)
+	{}
 
 	operator uint32_t() const
 	{
@@ -43,8 +48,18 @@ union Identifier
 		return id;
 	}
 
-	uint32_t id = 0;
+	struct State
+	{
+		VkImageViewType imageViewType;
+		VkFormat format;
+		VkComponentMapping mapping;
+	};
+	State getState() const;
 
+private:
+	void pack(const State &data);
+
+	// Identifier is a union of this struct and the integer below.
 	struct
 	{
 		uint32_t imageViewType : 3;
@@ -54,6 +69,8 @@ union Identifier
 		uint32_t b : 3;
 		uint32_t a : 3;
 	};
+
+	uint32_t id = 0;
 };
 
 class ImageView : public Object<ImageView, VkImageView>

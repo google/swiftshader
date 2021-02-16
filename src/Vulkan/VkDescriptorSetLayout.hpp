@@ -40,9 +40,6 @@ struct alignas(16) SampledImageDescriptor
 	vk::Device *device;
 
 	uint32_t imageViewId;
-	VkImageViewType type;
-	VkFormat format;
-	VkComponentMapping swizzle;
 	alignas(16) sw::Texture texture;
 	int width;  // Of base mip-level.
 	int height;
