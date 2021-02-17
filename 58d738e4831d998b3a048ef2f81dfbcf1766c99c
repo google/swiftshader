@@ -1,6 +1,46 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "77d1b69e_fe6afbde",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T18:04:36Z",
+      "side": 1,
+      "message": "Do you happen to know how long it runs without MSan instrumentation of JIT-compiled code? We\u0027ve had cases before where O(n^2) passes in LLVM took unreasonably long to compile. They might be fixable so we can have our cake and eat it.",
+      "range": {
+        "startLine": 9,
+        "startChar": 22,
+        "endLine": 9,
+        "endChar": 35
+      },
+      "revId": "58d738e4831d998b3a048ef2f81dfbcf1766c99c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "208b329d_e0b589a6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T18:04:36Z",
+      "side": 1,
+      "message": "Please add a \"Bug: skia:###\" or \"Bug: b/###\" line so we can track follow-up work.",
+      "revId": "58d738e4831d998b3a048ef2f81dfbcf1766c99c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "8af1cb05_84e736cc",
