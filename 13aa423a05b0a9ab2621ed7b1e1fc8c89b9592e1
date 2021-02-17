@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8eeff9f9_fcce9671",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T21:49:45Z",
+      "side": 1,
+      "message": "How do we end up with an invalid window handle? Could this change be masking an application-side issue? Maybe we\u0027re expected to produce a VK_ERROR_SURFACE_LOST_KHR error instead?",
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20ac6b69_11bb0ac5",
+        "filename": "src/WSI/Win32SurfaceKHR.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T21:49:45Z",
+      "side": 1,
+      "message": "Is it valid for getWindowSize() to even get called when the handle is no longer a valid window? Should we handle this higher up so other code which uses the handle can also avoid doing anything with it?",
+      "range": {
+        "startLine": 25,
+        "startChar": 5,
+        "endLine": 25,
+        "endChar": 13
+      },
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9a253321_9514bfac",
+        "filename": "src/WSI/Win32SurfaceKHR.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T21:49:45Z",
+      "side": 1,
+      "message": "Is there a race condition here when the window becomes invalid in between the check above and this call? Since this code is likely to execute on a separate Vulkan queue thread the main thread might be in the process of shutting things down.",
+      "range": {
+        "startLine": 31,
+        "startChar": 15,
+        "endLine": 31,
+        "endChar": 28
+      },
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7e8073c3_029261ae",
+        "filename": "src/WSI/Win32SurfaceKHR.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T21:49:45Z",
+      "side": 1,
+      "message": "Can we just return {0, 0} when status \u003d\u003d 0? That could avoid both the race condition and it would handle any other reason why GetClientRect(). Note we could still keep an assert which checks that if 0 is returned, the window handle is invalid, so we\u0027d get notified of any other unexpected cause.",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 19
+      },
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
