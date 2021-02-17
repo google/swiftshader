@@ -141,13 +141,10 @@ public:
 
 	~ScopedSetIcdFilenames()
 	{
-		//TODO(b/180494886): fix C++17 filesystem issues on macOS
-#if !OS_MAC
 		if(fs::exists("vk_swiftshader_generated_icd.json"))
 		{
 			fs::remove("vk_swiftshader_generated_icd.json");
 		}
-#endif
 	}
 
 private:
