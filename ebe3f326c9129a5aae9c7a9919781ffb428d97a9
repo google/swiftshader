@@ -244,6 +244,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "03f14411_1bb5a3e2",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-17T22:23:21Z",
+      "side": 1,
+      "message": "Turns out using Base isn\u0027t a practical solution. Changing the samplerMethod affects the order of the parameters received by the texture sampling routine in SpirvShader::emitSamplerRoutine() and fixing that is less appealing than doing the simple code change here.\nI reverted to my original solution, which I think is the simplest one which provides the desired optimization.",
+      "parentUuid": "ed15d34c_0cbaa2c8",
+      "range": {
+        "startLine": 105,
+        "startChar": 21,
+        "endLine": 105,
+        "endChar": 25
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "01092458_54fc6274",
         "filename": "src/Pipeline/SpirvShaderSampling.cpp",
         "patchSetId": 8
