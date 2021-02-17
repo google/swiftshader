@@ -39,6 +39,30 @@
       },
       "revId": "ca02a093c6ddf5106a7232fa16dc1bbe2d86220e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "115c332c_173676da",
+        "filename": "tests/kokoro/macos/continuous.sh",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-17T19:01:36Z",
+      "side": 1,
+      "message": "Thank you. Meant to remove this.",
+      "parentUuid": "f4c833a7_5550c150",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 18
+      },
+      "revId": "ca02a093c6ddf5106a7232fa16dc1bbe2d86220e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
