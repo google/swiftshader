@@ -54,6 +54,16 @@ uint32_t ComputeInterpolantOffset(uint32_t offset, uint32_t components_per_row, 
 	return offset;
 }
 
+rr::Int ComputeInterpolantOffset(rr::Int offset, uint32_t components_per_row, bool useArrayOffset)
+{
+	if(useArrayOffset)
+	{
+		rr::Int interpolant_offset = offset / rr::Int(components_per_row);
+		offset = (interpolant_offset << 2) + (offset - interpolant_offset * rr::Int(components_per_row));
+	}
+	return offset;
+}
+
 }  // namespace
 
 namespace sw {
@@ -1064,13 +1074,26 @@ SIMD::Float SpirvShader::Interpolate(SIMD::Pointer const &ptr, int32_t location,
 			return SIMD::Float(0.0f);
 	}
 
-	uint32_t offset = ComputeInterpolantOffset((ptr.staticOffsets[0] >> 2) + component, components_per_row, useArrayOffset);
-	if((interpolant + offset) >= inputs.size())
+	Pointer<Byte> planeEquation = interpolationData.primitive + OFFSET(Primitive, V[interpolant]);
+	if(ptr.hasDynamicOffsets)
 	{
-		return SIMD::Float(0.0f);
+		// This code assumes all dynamic offsets are equal
+		Int offset = ComputeInterpolantOffset(((Extract(ptr.dynamicOffsets, 0) + ptr.staticOffsets[0]) >> 2) + component, components_per_row, useArrayOffset);
+		offset = Min(offset, Int(inputs.size() - interpolant - 1));
+		planeEquation += (offset * sizeof(PlaneEquation));
+	}
+	else
+	{
+		ASSERT(ptr.hasStaticEqualOffsets());
+
+		uint32_t offset = ComputeInterpolantOffset((ptr.staticOffsets[0] >> 2) + component, components_per_row, useArrayOffset);
+		if((interpolant + offset) >= inputs.size())
+		{
+			return SIMD::Float(0.0f);
+		}
+		planeEquation += offset * sizeof(PlaneEquation);
 	}
 
-	Pointer<Byte> planeEquation = interpolationData.primitive + OFFSET(Primitive, V[interpolant]) + offset * sizeof(PlaneEquation);
 	return SpirvRoutine::interpolateAtXY(x, y, rhw, planeEquation, false, true);
 }
 
