@@ -194,6 +194,54 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed15d34c_0cbaa2c8",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-17T20:55:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7088eda0_a446832b",
+      "range": {
+        "startLine": 105,
+        "startChar": 21,
+        "endLine": 105,
+        "endChar": 25
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5f63bd1_c7332d4e",
+        "filename": "src/Pipeline/SamplerCore.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-17T20:55:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "64e08c85_6d9c7660",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 105,
+        "endChar": 6
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "01092458_54fc6274",
@@ -265,6 +313,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "84789a10_67b9cca9",
+        "filename": "src/Pipeline/SpirvShaderSampling.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-17T20:55:59Z",
+      "side": 1,
+      "message": "After looking into it, for now, I\u0027m not very keen on adding extra mandatory logic in order to compute the cache key, so I\u0027ll leave the logic here. We can circle back to this later if it makes a difference.",
+      "parentUuid": "c47dae13_37ece01a",
+      "range": {
+        "startLine": 83,
+        "startChar": 3,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b8dc6761_3143da08",
@@ -326,6 +398,30 @@
       "side": 1,
       "message": "Right. It\u0027s risky to pass it \u0027this\u0027, but valid when we know all the members that we\u0027ll access have been initialized. The clean solution would be to move those members to a base class of vk::ImageView, which is then guaranteed available within its constructor. I think vk::Sampler might already do something like that.\n\nAlternatively perhaps this could just take VkImageViewCreateInfo.\n\nIn any case, that\u0027s a step towards having the identifier as the only descriptor data.",
       "parentUuid": "23ba0746_29e42c6c",
+      "range": {
+        "startLine": 35,
+        "startChar": 12,
+        "endLine": 35,
+        "endChar": 30
+      },
+      "revId": "ebe3f326c9129a5aae9c7a9919781ffb428d97a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "508a50b4_e155327d",
+        "filename": "src/Vulkan/VkImageView.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-17T20:55:59Z",
+      "side": 1,
+      "message": "Used VkImageViewCreateInfo. That causes a tiny bit of code duplication, but I think it\u0027s worth it.",
+      "parentUuid": "1e21c4ea_85e1cd46",
       "range": {
         "startLine": 35,
         "startChar": 12,
