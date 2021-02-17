@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e93374c_61a6186f",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 16
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-17T07:25:47Z",
+      "side": 1,
+      "message": "Note that dead ones which aren\u0027t added here do not cause memory leaks, because Subzero uses a pool allocator for all IR objects.",
+      "range": {
+        "startLine": 288,
+        "startChar": 12,
+        "endLine": 288,
+        "endChar": 22
+      },
+      "revId": "df420d3ec12c2f7e813dbda6c0ed44770d6179f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
