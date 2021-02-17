@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7191c0f3_a88f8c10",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 30812
+      },
+      "writtenOn": "2021-02-17T17:07:25Z",
+      "side": 1,
+      "message": "(clang-format\u0027ed the file to make presubmit happy)",
+      "revId": "77e2764310c42f15a69d02a077d7db2274b59060",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
