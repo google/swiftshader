@@ -16,6 +16,29 @@
       "message": "Finally, this change is ready for review!",
       "revId": "ca02a093c6ddf5106a7232fa16dc1bbe2d86220e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f4c833a7_5550c150",
+        "filename": "tests/kokoro/macos/continuous.sh",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-17T18:55:39Z",
+      "side": 1,
+      "message": "Is this part of this change, or is this some leftover debugging code?",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 18
+      },
+      "revId": "ca02a093c6ddf5106a7232fa16dc1bbe2d86220e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
