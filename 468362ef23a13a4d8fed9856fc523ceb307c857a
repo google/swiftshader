@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06890c00_573db04c",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-17T17:14:29Z",
+      "side": 1,
+      "message": "nit: Double map lookup here. Store the iterator.\n  auto it \u003d waitMap.find(parentId)",
+      "range": {
+        "startLine": 111,
+        "startChar": 20,
+        "endLine": 111,
+        "endChar": 30
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d527c03_3061a549",
+        "filename": "src/Vulkan/VkTimelineSemaphore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-17T17:14:29Z",
+      "side": 1,
+      "message": "Missing mutex lock?",
+      "range": {
+        "startLine": 143,
+        "startChar": 9,
+        "endLine": 143,
+        "endChar": 16
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ce494ffc_15cd734b",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-17T17:14:29Z",
+      "side": 1,
+      "message": "This is complex code. Comments for each class, method and field would really be helpful to better understand what\u0027s going on.",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 23
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "48e9cd9f_2a2c085d",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-17T17:14:29Z",
+      "side": 1,
+      "message": "I\u0027d suggest using the thread safety annotations here. Verifies at compile time whether you\u0027re accessing fields you shouldn\u0027t be:\n\nhttps://github.com/google/marl/blob/main/include/marl/tsa.h\n\nExample usage:\nhttps://github.com/google/marl/blob/12bbbbe3e8a2c901ffb34038c1fad49b0f0b9ae1/include/marl/scheduler.h#L409-L443",
+      "range": {
+        "startLine": 84,
+        "startChar": 2,
+        "endLine": 86,
+        "endChar": 34
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d2af3e42_9778e793",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-17T17:14:29Z",
+      "side": 1,
+      "message": "Looks to be immutable. I\u0027d suggest making it const.",
+      "range": {
+        "startLine": 89,
+        "startChar": 3,
+        "endLine": 89,
+        "endChar": 9
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a2ea0b3_f0c831c9",
+        "filename": "src/Vulkan/VkTimelineSemaphore.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2021-02-17T17:14:29Z",
+      "side": 1,
+      "message": "This is a bit odd - is this to avoid a TimelineSemaphore::Shared be a friend to TimelineSemaphore? There\u0027s a lot of function chasing here, I\u0027m not entirely sure its necessary?",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 1
+      },
+      "revId": "468362ef23a13a4d8fed9856fc523ceb307c857a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
