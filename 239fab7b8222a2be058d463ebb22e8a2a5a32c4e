@@ -120,6 +120,30 @@
       },
       "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5da45d1c_3fb620ee",
+        "filename": "src/WSI/VkSurfaceKHR.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T21:37:18Z",
+      "side": 1,
+      "message": "I don\u0027t know, this is a very common idiom in OO C++ - that is, calling the base version from an overriden virtual function. At some point, we may add validation to the base version; or we may introduce an in-between class in the hierarchy which may, itself, do some validation and return non-VK_SUCESS. I\u0027d prefer to keep it as is.",
+      "parentUuid": "78c7cb10_37fed886",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 43
+      },
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
