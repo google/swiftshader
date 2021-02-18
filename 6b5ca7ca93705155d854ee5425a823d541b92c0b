@@ -22,6 +22,30 @@
       },
       "revId": "6b5ca7ca93705155d854ee5425a823d541b92c0b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c16438d4_f9e464da",
+        "filename": "tests/VulkanWrapper/VulkanTester.cpp",
+        "patchSetId": 22
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T14:14:28Z",
+      "side": 1,
+      "message": "If we do end up building VulkanUnitTests and/or VulkanBenchmarks on ChromeOS, we can add the necessary macros. These come from the top of the file, and are copied from Driver.cpp (which will disappear soon enough).",
+      "parentUuid": "89836841_622df2f0",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 41
+      },
+      "revId": "6b5ca7ca93705155d854ee5425a823d541b92c0b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
