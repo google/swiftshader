@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e859f0ce_6acfdbf7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T18:20:29Z",
+      "side": 1,
+      "message": "As discussed over chat, vkGetPhysicalDeviceSurfaceCapabilitiesKHR now returns VK_ERROR_SURFACE_LOST_KHR if the HWND becomes invalid. This now makes the flaky test fail rather than crash on assert - see my comment on the issue about this here: https://bugs.chromium.org/p/chromium/issues/detail?id\u003d1174372#c14",
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}

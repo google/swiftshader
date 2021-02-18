@@ -41,6 +41,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "67e0756b_b57c4985",
+        "filename": "src/WSI/Win32SurfaceKHR.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T18:20:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20ac6b69_11bb0ac5",
+      "range": {
+        "startLine": 25,
+        "startChar": 5,
+        "endLine": 25,
+        "endChar": 13
+      },
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9a253321_9514bfac",
@@ -64,6 +88,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "66f516e2_29b12d60",
+        "filename": "src/WSI/Win32SurfaceKHR.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T18:20:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a253321_9514bfac",
+      "range": {
+        "startLine": 31,
+        "startChar": 15,
+        "endLine": 31,
+        "endChar": 28
+      },
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7e8073c3_029261ae",
@@ -77,6 +125,30 @@
       "writtenOn": "2021-02-17T21:49:45Z",
       "side": 1,
       "message": "Can we just return {0, 0} when status \u003d\u003d 0? That could avoid both the race condition and it would handle any other reason why GetClientRect(). Note we could still keep an assert which checks that if 0 is returned, the window handle is invalid, so we\u0027d get notified of any other unexpected cause.",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 19
+      },
+      "revId": "13aa423a05b0a9ab2621ed7b1e1fc8c89b9592e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae2a3eb9_b39401ff",
+        "filename": "src/WSI/Win32SurfaceKHR.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T18:20:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7e8073c3_029261ae",
       "range": {
         "startLine": 32,
         "startChar": 8,
