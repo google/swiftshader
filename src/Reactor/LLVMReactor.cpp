@@ -665,9 +665,7 @@ BasicBlock *Nucleus::getInsertBlock()
 
 void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 {
-	//	assert(jit->builder->GetInsertBlock()->back().isTerminator());
-
-	Variable::materializeAll();
+	// assert(jit->builder->GetInsertBlock()->back().isTerminator());
 
 	jit->builder->SetInsertPoint(B(basicBlock));
 }

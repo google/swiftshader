@@ -3519,6 +3519,11 @@ public:
 		falseBB = nullptr;
 		endBB = Nucleus::createBasicBlock();
 
+		// The conditional branch won't be appended until we've reached the 'end'
+		// basic block, so we must materialize all variables now (i.e. emit store
+		// instrutions to write them to memory).
+		Variable::materializeAll();
+
 		Nucleus::setInsertBlock(trueBB);
 	}
 
@@ -3526,6 +3531,8 @@ public:
 	{
 		Nucleus::createBr(endBB);
 
+		// Append the conditional branch instruction to the 'begin' basic block.
+		// Note that it's too late to materialize variables at this point.
 		Nucleus::setInsertBlock(beginBB);
 		Nucleus::createCondBr(condition, trueBB, falseBB ? falseBB : endBB);
 

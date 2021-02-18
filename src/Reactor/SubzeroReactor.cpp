@@ -1122,9 +1122,7 @@ BasicBlock *Nucleus::getInsertBlock()
 
 void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 {
-	//	ASSERT(::basicBlock->getInsts().back().getTerminatorEdges().size() >= 0 && "Previous basic block must have a terminator");
-
-	Variable::materializeAll();
+	// ASSERT(::basicBlock->getInsts().back().getTerminatorEdges().size() >= 0 && "Previous basic block must have a terminator");
 
 	::basicBlock = basicBlock;
 }
