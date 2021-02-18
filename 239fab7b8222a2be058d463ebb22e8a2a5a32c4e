@@ -58,6 +58,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "51a8cc7e_ce16a775",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-18T20:19:21Z",
+      "side": 1,
+      "message": "Bleh. I meant to delete this comment.",
+      "parentUuid": "21444754_b8da7281",
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fcf27caf_3e479cee",
