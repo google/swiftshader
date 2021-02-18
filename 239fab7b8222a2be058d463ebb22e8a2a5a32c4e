@@ -1,6 +1,29 @@
 {
   "comments": [
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "319de8fc_39f93dc8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-18T20:18:19Z",
+      "side": 1,
+      "message": "Please split this change into one that refactors all the WSI implementations to provide a return code for this method (keeping VK_SUCCESS for Win32), and one that does just the Win32 change.",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 9
+      },
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "e859f0ce_6acfdbf7",
@@ -14,6 +37,69 @@
       "writtenOn": "2021-02-18T18:20:29Z",
       "side": 1,
       "message": "As discussed over chat, vkGetPhysicalDeviceSurfaceCapabilitiesKHR now returns VK_ERROR_SURFACE_LOST_KHR if the HWND becomes invalid. This now makes the flaky test fail rather than crash on assert - see my comment on the issue about this here: https://bugs.chromium.org/p/chromium/issues/detail?id\u003d1174372#c14",
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21444754_b8da7281",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-18T20:18:19Z",
+      "side": 1,
+      "message": "Actually I\u0027m fine with this as long as ",
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fcf27caf_3e479cee",
+        "filename": "src/WSI/DirectFBSurfaceEXT.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-18T20:18:19Z",
+      "side": 1,
+      "message": "Please put braces around this so this gets formatted onto the next three lines. That both makes it clearer the function has an early return path, and allows putting a breakpoint there for debugging purposes.",
+      "range": {
+        "startLine": 39,
+        "startChar": 97,
+        "endLine": 39,
+        "endChar": 112
+      },
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "78c7cb10_37fed886",
+        "filename": "src/WSI/VkSurfaceKHR.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-18T20:18:19Z",
+      "side": 1,
+      "message": "I\u0027m confused that this is apparently a virtual method which has overloads per WSI, each of which end up calling this base version?\n\nWe can make this a non-virtual member (static even), and rename it to something like `getCommonSurfaceCapabilities` or `initializeSurfaceCapabilities`.\n\nThat also allows us to not have to give it a return value, and not have to check for it.",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 43
+      },
       "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
