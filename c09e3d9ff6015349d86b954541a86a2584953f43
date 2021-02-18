@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e13acf1_c035e1a7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-18T15:01:26Z",
+      "side": 1,
+      "message": "I only noticed his now, but this seems a bit oddly phrased so I want to make sure I understand it correctly: Don\u0027t we *know* that the offsets are uniform since they come from push constants, hence we don\u0027t have to \"assume\" anything? Or are there other cases where the offsets wouldn\u0027t be (dynamically) uniform that aren\u0027t handled by the current code?\n\nThere might be an opportunity here to streamline this, by not representing the interpolants as a generic SIMD::Pointer, but as a regular rr::Pointer. OpAccessChain would then do the offsetting with simple scalar arithmetic.",
+      "range": {
+        "startLine": 11,
+        "startChar": 21,
+        "endLine": 12,
+        "endChar": 53
+      },
+      "revId": "c09e3d9ff6015349d86b954541a86a2584953f43",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
