@@ -3510,32 +3510,18 @@ class IfElseData
 {
 public:
 	IfElseData(RValue<Bool> cmp)
-	    : iteration(0)
 	{
-		condition = cmp.value();
-
-		beginBB = Nucleus::getInsertBlock();
 		trueBB = Nucleus::createBasicBlock();
-		falseBB = nullptr;
-		endBB = Nucleus::createBasicBlock();
+		falseBB = Nucleus::createBasicBlock();
+		endBB = falseBB;  // Until we encounter an Else statement, these are the same.
 
-		// The conditional branch won't be appended until we've reached the 'end'
-		// basic block, so we must materialize all variables now (i.e. emit store
-		// instrutions to write them to memory).
-		Variable::materializeAll();
-
+		Nucleus::createCondBr(cmp.value(), trueBB, falseBB);
 		Nucleus::setInsertBlock(trueBB);
 	}
 
 	~IfElseData()
 	{
 		Nucleus::createBr(endBB);
-
-		// Append the conditional branch instruction to the 'begin' basic block.
-		// Note that it's too late to materialize variables at this point.
-		Nucleus::setInsertBlock(beginBB);
-		Nucleus::createCondBr(condition, trueBB, falseBB ? falseBB : endBB);
-
 		Nucleus::setInsertBlock(endBB);
 	}
 
@@ -3553,19 +3539,17 @@ public:
 
 	void elseClause()
 	{
+		endBB = Nucleus::createBasicBlock();
 		Nucleus::createBr(endBB);
 
-		falseBB = Nucleus::createBasicBlock();
 		Nucleus::setInsertBlock(falseBB);
 	}
 
 private:
-	Value *condition;
-	BasicBlock *beginBB;
-	BasicBlock *trueBB;
-	BasicBlock *falseBB;
-	BasicBlock *endBB;
-	int iteration;
+	BasicBlock *trueBB = nullptr;
+	BasicBlock *falseBB = nullptr;
+	BasicBlock *endBB = nullptr;
+	int iteration = 0;
 };
 
 #define For(init, cond, inc)                        \
