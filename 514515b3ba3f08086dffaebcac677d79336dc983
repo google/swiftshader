@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c4a09de8_62196ab8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T22:21:10Z",
+      "side": 1,
+      "message": "Should this read \"to a register\"?",
+      "range": {
+        "startLine": 35,
+        "startChar": 47,
+        "endLine": 35,
+        "endChar": 59
+      },
+      "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "450b997b_866023f0",
+        "filename": "third_party/subzero/src/IceTargetLoweringX86BaseImpl.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 8177,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-18T22:21:10Z",
+      "side": 1,
+      "message": "Took me a while to grok this code. I wonder if it would be any clearer if we split it all on \"if(llvm::isa\u003cConstantInteger64\u003e(Offset))\", even if it means duplicating a bit in both branches.",
+      "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
