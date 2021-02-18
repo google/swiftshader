@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "89836841_622df2f0",
+        "filename": "tests/VulkanWrapper/VulkanTester.cpp",
+        "patchSetId": 22
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-18T13:34:45Z",
+      "side": 1,
+      "message": "you may need to add \" || defined(USE_OZONE)\" for ChromeOS (although it might already be contained within OS_LINUX)",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 41
+      },
+      "revId": "6b5ca7ca93705155d854ee5425a823d541b92c0b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
