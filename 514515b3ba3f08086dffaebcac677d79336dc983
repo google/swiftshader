@@ -24,6 +24,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc858ee4_8faddd15",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-19T03:16:59Z",
+      "side": 1,
+      "message": "No, the default legalize() allows either a register or an immediate. We\u0027d be ok with a 32-bit immediate, but in the case of a 64-bit constant that fits in a 32-bit value it just returns the 64-bit constant as-is. What\u0027s prevented by not allowing (any) immediate to be returned by legalize() in this case, forcing it to always return a register instead.",
+      "parentUuid": "c4a09de8_62196ab8",
+      "range": {
+        "startLine": 35,
+        "startChar": 47,
+        "endLine": 35,
+        "endChar": 59
+      },
+      "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "450b997b_866023f0",
@@ -37,6 +61,24 @@
       "writtenOn": "2021-02-18T22:21:10Z",
       "side": 1,
       "message": "Took me a while to grok this code. I wonder if it would be any clearer if we split it all on \"if(llvm::isa\u003cConstantInteger64\u003e(Offset))\", even if it means duplicating a bit in both branches.",
+      "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f88df77e_4de7afb6",
+        "filename": "third_party/subzero/src/IceTargetLoweringX86BaseImpl.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 8177,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-19T03:16:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "450b997b_866023f0",
       "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
