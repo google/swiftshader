@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a05fee69_63ca769a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-19T16:20:09Z",
+      "side": 1,
+      "message": "Sean, you need to rebase this change on the master branch if you want to submit it. You can do this directly in the gerrit UI.",
+      "revId": "a8ba81b3875a6ec4f60487838524b02a4edace36",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
