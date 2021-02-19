@@ -185,6 +185,8 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
 	uint32_t *buffers;
 	VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void **)&buffers));
 
+	memset(buffers, 0, buffersSize);
+
 	buffers[magic0Offset] = magic0;
 	buffers[magic1Offset] = magic1;
 	buffers[magic2Offset] = magic2;

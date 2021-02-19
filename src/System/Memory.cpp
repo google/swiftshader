@@ -40,34 +40,21 @@
 #	define __x86__
 #endif
 
+// A Clang extension to determine compiler features.
+// We use it to detect Sanitizer builds (e.g. -fsanitize=memory).
+#ifndef __has_feature
+#	define __has_feature(x) 0
+#endif
+
 namespace sw {
 
 namespace {
 
 struct Allocation
 {
-	//	size_t bytes;
+	// size_t bytes;
 	unsigned char *block;
 };
-
-void *allocateRaw(size_t bytes, size_t alignment)
-{
-	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
-
-	unsigned char *block = (unsigned char *)malloc(bytes + sizeof(Allocation) + alignment);
-	unsigned char *aligned = nullptr;
-
-	if(block)
-	{
-		aligned = (unsigned char *)((uintptr_t)(block + sizeof(Allocation) + alignment - 1) & -(intptr_t)alignment);
-		Allocation *allocation = (Allocation *)(aligned - sizeof(Allocation));
-
-		//	allocation->bytes = bytes;
-		allocation->block = block;
-	}
-
-	return aligned;
-}
 
 }  // anonymous namespace
 
@@ -88,14 +75,28 @@ size_t memoryPageSize()
 
 void *allocate(size_t bytes, size_t alignment)
 {
-	void *memory = allocateRaw(bytes, alignment);
+	ASSERT((alignment & (alignment - 1)) == 0);  // Power of 2 alignment.
 
-	if(memory)
+	size_t size = bytes + sizeof(Allocation) + alignment;
+	unsigned char *block = (unsigned char *)malloc(size);
+	unsigned char *aligned = nullptr;
+
+	if(block)
 	{
-		memset(memory, 0, bytes);
+		// TODO(b/140991626): Never initialize the allocated memory.
+		if(!__has_feature(memory_sanitizer))
+		{
+			memset(block, 0, size);
+		}
+
+		aligned = (unsigned char *)((uintptr_t)(block + sizeof(Allocation) + alignment - 1) & -(intptr_t)alignment);
+		Allocation *allocation = (Allocation *)(aligned - sizeof(Allocation));
+
+		// allocation->bytes = bytes;
+		allocation->block = block;
 	}
 
-	return memory;
+	return aligned;
 }
 
 void deallocate(void *memory)
