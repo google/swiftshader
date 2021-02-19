@@ -29,9 +29,9 @@ void HeadlessSurfaceKHR::destroySurface(const VkAllocationCallbacks *pAllocator)
 {
 }
 
-void HeadlessSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
+VkResult HeadlessSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
 {
-	SurfaceKHR::getSurfaceCapabilities(pSurfaceCapabilities);
+	setCommonSurfaceCapabilities(pSurfaceCapabilities);
 	// We could return {0,0} here, but as this type of surface is useful for testing, we return a more
 	// common size here so that buffers like Swapchain images get created with reasonable sizes, and
 	// so that drawing actually exercises common code paths.
@@ -39,6 +39,7 @@ void HeadlessSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfa
 	pSurfaceCapabilities->currentExtent = extent;
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
+	return VK_SUCCESS;
 }
 
 void HeadlessSurfaceKHR::attachImage(PresentImage *image)

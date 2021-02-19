@@ -34,9 +34,9 @@ size_t DirectFBSurfaceEXT::ComputeRequiredAllocationSize(const VkDirectFBSurface
 	return 0;
 }
 
-void DirectFBSurfaceEXT::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
+VkResult DirectFBSurfaceEXT::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
 {
-	SurfaceKHR::getSurfaceCapabilities(pSurfaceCapabilities);
+	setCommonSurfaceCapabilities(pSurfaceCapabilities);
 
 	int width, height;
 	surface->GetSize(surface, &width, &height);
@@ -45,6 +45,7 @@ void DirectFBSurfaceEXT::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfa
 	pSurfaceCapabilities->currentExtent = extent;
 	pSurfaceCapabilities->minImageExtent = extent;
 	pSurfaceCapabilities->maxImageExtent = extent;
+	return VK_SUCCESS;
 }
 
 void DirectFBSurfaceEXT::attachImage(PresentImage *image)

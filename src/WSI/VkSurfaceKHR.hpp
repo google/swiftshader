@@ -77,7 +77,7 @@ public:
 
 	virtual void destroySurface(const VkAllocationCallbacks *pAllocator) = 0;
 
-	virtual void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const;
+	virtual VkResult getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const = 0;
 
 	uint32_t getSurfaceFormatsCount() const;
 	VkResult getSurfaceFormats(uint32_t *pSurfaceFormatCount, VkSurfaceFormatKHR *pSurfaceFormats) const;
@@ -94,6 +94,9 @@ public:
 	void associateSwapchain(SwapchainKHR *swapchain);
 	void disassociateSwapchain();
 	bool hasAssociatedSwapchain();
+
+protected:
+	static void setCommonSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities);
 
 private:
 	SwapchainKHR *associatedSwapchain = nullptr;

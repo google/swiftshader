@@ -144,9 +144,9 @@ size_t MetalSurface::ComputeRequiredAllocationSize(const void *pCreateInfo) API_
     return sizeof(MetalLayer);
 }
 
-void MetalSurface::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const API_AVAILABLE(macosx(10.11))
+VkResult MetalSurface::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const API_AVAILABLE(macosx(10.11))
 {
-    SurfaceKHR::getSurfaceCapabilities(pSurfaceCapabilities);
+    setCommonSurfaceCapabilities(pSurfaceCapabilities);
 
     // The value of drawableSize in CAMetalLayer is set the first time a drawable is queried but after that it is the
     // (Metal) application's responsibility to resize the drawable when the window is resized. The best time for Swiftshader
@@ -156,6 +156,7 @@ void MetalSurface::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapa
     pSurfaceCapabilities->currentExtent = extent;
     pSurfaceCapabilities->minImageExtent = extent;
     pSurfaceCapabilities->maxImageExtent = extent;
+	return VK_SUCCESS;
 }
 
 VkResult MetalSurface::present(PresentImage* image) API_AVAILABLE(macosx(10.11))

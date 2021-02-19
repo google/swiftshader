@@ -109,23 +109,6 @@ VkImage PresentImage::asVkImage() const
 	return image ? static_cast<VkImage>(*image) : VkImage({ VK_NULL_HANDLE });
 }
 
-void SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
-{
-	pSurfaceCapabilities->minImageCount = 1;
-	pSurfaceCapabilities->maxImageCount = 0;
-
-	pSurfaceCapabilities->maxImageArrayLayers = 1;
-
-	pSurfaceCapabilities->supportedTransforms = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	pSurfaceCapabilities->currentTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-	pSurfaceCapabilities->supportedCompositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	pSurfaceCapabilities->supportedUsageFlags =
-	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-	    VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-	    VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-	    VK_IMAGE_USAGE_SAMPLED_BIT;
-}
-
 uint32_t SurfaceKHR::getSurfaceFormatsCount() const
 {
 	return static_cast<uint32_t>(sizeof(surfaceFormats) / sizeof(surfaceFormats[0]));
@@ -212,6 +195,23 @@ VkResult SurfaceKHR::getPresentRectangles(uint32_t *pRectCount, VkRect2D *pRects
 	*pRectCount = 1;
 
 	return VK_SUCCESS;
+}
+
+void SurfaceKHR::setCommonSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities)
+{
+	pSurfaceCapabilities->minImageCount = 1;
+	pSurfaceCapabilities->maxImageCount = 0;
+
+	pSurfaceCapabilities->maxImageArrayLayers = 1;
+
+	pSurfaceCapabilities->supportedTransforms = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	pSurfaceCapabilities->currentTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+	pSurfaceCapabilities->supportedCompositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	pSurfaceCapabilities->supportedUsageFlags =
+	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+	    VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+	    VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+	    VK_IMAGE_USAGE_SAMPLED_BIT;
 }
 
 }  // namespace vk
