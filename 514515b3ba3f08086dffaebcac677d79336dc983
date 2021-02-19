@@ -48,6 +48,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "19d9c52c_efff8d6b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T16:01:08Z",
+      "side": 1,
+      "message": "I\u0027ve reread this paragraph many times now, and I think I understand what you\u0027re saying here: moves and calls can use a 64-bit immediate, but many other instructions cannot, so we default to making it always use a register for a 64-bit constant. Is that right?",
+      "parentUuid": "fc858ee4_8faddd15",
+      "range": {
+        "startLine": 35,
+        "startChar": 47,
+        "endLine": 35,
+        "endChar": 59
+      },
+      "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "450b997b_866023f0",
@@ -79,6 +103,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "450b997b_866023f0",
+      "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b489ff8_d41f2345",
+        "filename": "third_party/subzero/src/IceTargetLoweringX86BaseImpl.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 8177,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T16:01:08Z",
+      "side": 1,
+      "message": "So much better! Thanks 😊",
+      "parentUuid": "f88df77e_4de7afb6",
       "revId": "514515b3ba3f08086dffaebcac677d79336dc983",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }

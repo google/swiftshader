@@ -16,6 +16,24 @@
       "message": "Asserts in Reactor tests on Kokoro\u0027s gcp_ubuntu_reactor_subzero:\n\n[ RUN      ] ReactorUnitTests.VectorConstant\nReactorUnitTests: /tmpfs/src/git/SwiftShader/third_party/subzero/src/IceTargetLoweringX86BaseImpl.h:8177: Ice::X8664::TargetX86Base\u003cTraitsType\u003e::X86OperandMem* Ice::X8664::TargetX86Base\u003cTraitsType\u003e::formMemoryOperand(Ice::Operand*, Ice::Type, bool) [with TraitsType \u003d Ice::X8664::TargetX8664Traits; Ice::X8664::TargetX86Base\u003cTraitsType\u003e::X86OperandMem \u003d Ice::X8664::TargetX8664Traits::X86OperandMem]: Assertion `llvm::isa\u003cConstantInteger32\u003e(Offset) || llvm::isa\u003cConstantRelocatable\u003e(Offset)\u0027 failed.\ngit/SwiftShader/tests/kokoro/gcp_ubuntu/continuous.sh: line 44: 14136 Aborted                 build/ReactorUnitTests\n\nIt\u0027s odd this isn\u0027t hit in the other builds, and Regres and Tryjobs are green.",
       "revId": "0e8f93b17da8c7890c87bf1e8ffd39953f0e874e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7928de7f_fa7472fc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T16:01:08Z",
+      "side": 1,
+      "message": "You fixed this, right? This was patchset 1, but the code changed since then.",
+      "parentUuid": "cf94a807_393194f3",
+      "revId": "0e8f93b17da8c7890c87bf1e8ffd39953f0e874e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
