@@ -22,6 +22,8 @@
 namespace {
 VkExtent2D getWindowSize(HWND hwnd)
 {
+	ASSERT(IsWindow(hwnd) == TRUE);
+
 	RECT clientRect = {};
 	BOOL status = GetClientRect(hwnd, &clientRect);
 	ASSERT(status != 0);
@@ -59,6 +61,15 @@ size_t Win32SurfaceKHR::ComputeRequiredAllocationSize(const VkWin32SurfaceCreate
 VkResult Win32SurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const
 {
 	setCommonSurfaceCapabilities(pSurfaceCapabilities);
+
+	if(!IsWindow(hwnd))
+	{
+		VkExtent2D extent = { 0, 0 };
+		pSurfaceCapabilities->currentExtent = extent;
+		pSurfaceCapabilities->minImageExtent = extent;
+		pSurfaceCapabilities->maxImageExtent = extent;
+		return VK_ERROR_SURFACE_LOST_KHR;
+	}
 
 	VkExtent2D extent = getWindowSize(hwnd);
 	pSurfaceCapabilities->currentExtent = extent;
