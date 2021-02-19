@@ -34,6 +34,24 @@
       "parentUuid": "cf94a807_393194f3",
       "revId": "0e8f93b17da8c7890c87bf1e8ffd39953f0e874e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0adf7300_bd952c4a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-19T17:54:09Z",
+      "side": 1,
+      "message": "Oh, yes, forgot I had a comment-to-self here. It\u0027s fixed by https://swiftshader-review.googlesource.com/c/SwiftShader/+/52768/5/third_party/subzero/src/IceTargetLoweringX86BaseImpl.h#8168",
+      "parentUuid": "7928de7f_fa7472fc",
+      "revId": "0e8f93b17da8c7890c87bf1e8ffd39953f0e874e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
   ]
 }
