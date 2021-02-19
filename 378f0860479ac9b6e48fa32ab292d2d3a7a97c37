@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d6bcfac1_50c7e271",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T18:31:07Z",
+      "side": 1,
+      "message": "Minor naming nit, but LGTM.",
+      "revId": "378f0860479ac9b6e48fa32ab292d2d3a7a97c37",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ee45fdc9_7b7dd012",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 18
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T18:31:07Z",
+      "side": 1,
+      "message": "nit: the other functions are action-based, so this should probably be \"scalarReplaceAggregates\" or \"performScalarReplacementOfAggregates\".",
+      "range": {
+        "startLine": 34,
+        "startChar": 6,
+        "endLine": 34,
+        "endChar": 35
+      },
+      "revId": "378f0860479ac9b6e48fa32ab292d2d3a7a97c37",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
