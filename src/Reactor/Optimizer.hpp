@@ -15,11 +15,13 @@
 #ifndef rr_Optimizer_hpp
 #define rr_Optimizer_hpp
 
+#include "Nucleus.hpp"
+
 #include "src/IceCfg.h"
 
 namespace rr {
 
-void optimize(Ice::Cfg *function);
+void optimize(Ice::Cfg *function, Nucleus::OptimizerReport *report = nullptr);
 
 }  // namespace rr
 

@@ -24,6 +24,11 @@ namespace {
 class Optimizer
 {
 public:
+	Optimizer(rr::Nucleus::OptimizerReport *report)
+	    : report(report)
+	{
+	}
+
 	void run(Ice::Cfg *function);
 
 private:
@@ -45,6 +50,8 @@ private:
 	static bool isStore(const Ice::Inst &instruction);
 	static std::size_t storeSize(const Ice::Inst *instruction);
 	static bool loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *store);
+
+	void collectDiagnostics();
 
 	Ice::Cfg *function;
 	Ice::GlobalContext *context;
@@ -88,6 +95,8 @@ private:
 	bool hasLoadStoreInsts(Ice::CfgNode *node) const;
 
 	std::vector<Ice::Operand *> operandsWithUses;
+
+	rr::Nucleus::OptimizerReport *report = nullptr;
 };
 
 void Optimizer::run(Ice::Cfg *function)
@@ -115,6 +124,8 @@ void Optimizer::run(Ice::Cfg *function)
 		setUses(operand, nullptr);
 	}
 	operandsWithUses.clear();
+
+	collectDiagnostics();
 }
 
 // Eliminates allocas which store the address of other allocas.
@@ -719,6 +730,38 @@ bool Optimizer::loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *sto
 	return true;
 }
 
+void Optimizer::collectDiagnostics()
+{
+	if(report)
+	{
+		*report = {};
+
+		for(auto *basicBlock : function->getNodes())
+		{
+			for(auto &inst : basicBlock->getInsts())
+			{
+				if(inst.isDeleted())
+				{
+					continue;
+				}
+
+				if(llvm::isa<Ice::InstAlloca>(inst))
+				{
+					report->allocas++;
+				}
+				else if(isLoad(inst))
+				{
+					report->loads++;
+				}
+				else if(isStore(inst))
+				{
+					report->stores++;
+				}
+			}
+		}
+	}
+}
+
 Optimizer::Uses *Optimizer::getUses(Ice::Operand *operand)
 {
 	Optimizer::Uses *uses = (Optimizer::Uses *)operand->Ice::Operand::getExternalData();
@@ -846,9 +889,9 @@ void Optimizer::Uses::erase(Ice::Inst *instruction)
 
 namespace rr {
 
-void optimize(Ice::Cfg *function)
+void optimize(Ice::Cfg *function, Nucleus::OptimizerReport *report)
 {
-	Optimizer optimizer;
+	Optimizer optimizer(report);
 
 	optimizer.run(function);
 }
