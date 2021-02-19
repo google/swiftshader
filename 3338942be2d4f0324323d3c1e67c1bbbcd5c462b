@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a9a77668_aef80edf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T22:26:20Z",
+      "side": 1,
+      "message": "This store to stack is useless now, right? Is it possible for this optimization to get rid of it? Or is that for a different optimization?",
+      "revId": "3338942be2d4f0324323d3c1e67c1bbbcd5c462b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
