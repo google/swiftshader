@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "172651c9_593e9cb6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 17
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-19T17:58:43Z",
+      "side": 1,
+      "message": "Woah, thanks, this is one of those \"read it wrong once and repeat the mistake indefinitely\" things. 😜\n\n\"Replacement\" definitely makes more sense.",
+      "parentUuid": "c1a7938e_2ea98711",
+      "range": {
+        "startLine": 9,
+        "startChar": 34,
+        "endLine": 9,
+        "endChar": 45
+      },
+      "revId": "3b8b59c63b221c90a5ba220e3999cc9a1d1f3c94",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "53690fe9_01907a1b",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 17
@@ -58,6 +82,24 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "62b28c2c_4227eb33",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 17
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-19T17:58:43Z",
+      "side": 1,
+      "message": "This matches rr::Optimization::Pass::ScalarReplAggregates, which in turn was derived from LLVM\u0027s historic name for the optimization pass class. Now they call it SROA.\n\nI\u0027ll spell it out in its entirety. The other functions here are descriptive and they\u0027re only used twice anyway so best to avoid any confusion with contactions or acronyms.",
+      "parentUuid": "a7ea55f9_7d0a5cea",
+      "revId": "3b8b59c63b221c90a5ba220e3999cc9a1d1f3c94",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6311ffd8_f6171850",
@@ -71,6 +113,24 @@
       "writtenOn": "2021-02-19T16:18:28Z",
       "side": 1,
       "message": "Is the reason we rely on array elements to match the type size because you need to compute the elementCount?",
+      "revId": "3b8b59c63b221c90a5ba220e3999cc9a1d1f3c94",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "22902ab9_e3e343dd",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 17
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2021-02-19T17:58:43Z",
+      "side": 1,
+      "message": "Indeed. If ever we had a case where the alignment is different from the type size, we\u0027d need to store the element type size in the alloca instruction as well. This seems extremely unlikely though, since an unaligned array would cause performance degradation on every access, and over-aligning is useless since it would only align the first element. So this is a very safe assumption, but still a hidden dependency that I wanted to at least add a brief comment for so it\u0027s clearer why this uses alignInBytes.",
+      "parentUuid": "6311ffd8_f6171850",
       "revId": "3b8b59c63b221c90a5ba220e3999cc9a1d1f3c94",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     }
