@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9cdef7c_918d6e4b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2021-02-19T14:20:45Z",
+      "side": 1,
+      "message": "Minor update: Made convertFilterMode() only depend on SamplerMethod rather than on the entire instruction",
+      "revId": "13e3808dc464505a23619290d19b1cd53774c3f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
