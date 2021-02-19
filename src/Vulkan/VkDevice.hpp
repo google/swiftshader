@@ -141,6 +141,7 @@ public:
 
 		uint32_t index(const SamplerState &samplerState);
 		void remove(const SamplerState &samplerState);
+		const SamplerState *find(uint32_t id);
 
 	private:
 		struct Identifier
@@ -157,6 +158,7 @@ public:
 
 	uint32_t indexSampler(const SamplerState &samplerState);
 	void removeSampler(const SamplerState &samplerState);
+	const SamplerState *findSampler(uint32_t samplerId) const;
 
 	std::shared_ptr<vk::dbg::Context> getDebuggerContext() const
 	{

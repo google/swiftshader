@@ -105,6 +105,16 @@ void Device::SamplerIndexer::remove(const SamplerState &samplerState)
 	}
 }
 
+const SamplerState *Device::SamplerIndexer::find(uint32_t id)
+{
+	marl::lock lock(mutex);
+
+	auto it = std::find_if(std::begin(map), std::end(map),
+	                       [&id](auto &&p) { return p.second.id == id; });
+
+	return (it != std::end(map)) ? &(it->first) : nullptr;
+}
+
 Device::Device(const VkDeviceCreateInfo *pCreateInfo, void *mem, PhysicalDevice *physicalDevice, const VkPhysicalDeviceFeatures *enabledFeatures, const std::shared_ptr<marl::Scheduler> &scheduler)
     : physicalDevice(physicalDevice)
     , queues(reinterpret_cast<Queue *>(mem))
@@ -393,6 +403,11 @@ uint32_t Device::indexSampler(const SamplerState &samplerState)
 void Device::removeSampler(const SamplerState &samplerState)
 {
 	samplerIndexer->remove(samplerState);
+}
+
+const SamplerState *Device::findSampler(uint32_t samplerId) const
+{
+	return samplerIndexer->find(samplerId);
 }
 
 VkResult Device::setDebugUtilsObjectName(const VkDebugUtilsObjectNameInfoEXT *pNameInfo)

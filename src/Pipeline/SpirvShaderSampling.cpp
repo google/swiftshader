@@ -30,19 +30,20 @@
 
 namespace sw {
 
-SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::SampledImageDescriptor const *imageDescriptor, const vk::Sampler *sampler)
+SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, uint32_t imageViewId, uint32_t samplerId, const vk::Device *device)
 {
 	ImageInstruction instruction(inst);
-	const auto samplerId = sampler ? sampler->id : 0;
-	ASSERT(imageDescriptor->imageViewId != 0 && (samplerId != 0 || instruction.samplerMethod == Fetch));
-	ASSERT(imageDescriptor->device);
+	ASSERT(imageViewId != 0 && (samplerId != 0 || instruction.samplerMethod == Fetch));
+	ASSERT(device);
 
-	vk::Device::SamplingRoutineCache::Key key = { inst, imageDescriptor->imageViewId, samplerId };
+	vk::Device::SamplingRoutineCache::Key key = { inst, samplerId, imageViewId };
 
-	vk::Device::SamplingRoutineCache *cache = imageDescriptor->device->getSamplingRoutineCache();
+	vk::Device::SamplingRoutineCache *cache = device->getSamplingRoutineCache();
 
-	auto createSamplingRoutine = [&](const vk::Device::SamplingRoutineCache::Key &key) {
-		const vk::Identifier::State imageViewState = vk::Identifier(imageDescriptor->imageViewId).getState();
+	auto createSamplingRoutine = [&device](const vk::Device::SamplingRoutineCache::Key &key) {
+		ImageInstruction instruction(key.instruction);
+		const vk::Identifier::State imageViewState = vk::Identifier(key.imageView).getState();
+		const vk::SamplerState *vkSamplerState = (key.sampler != 0) ? device->findSampler(key.sampler) : nullptr;
 
 		auto type = imageViewState.imageViewType;
 		auto samplerMethod = static_cast<SamplerMethod>(instruction.samplerMethod);
@@ -51,34 +52,34 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, vk::Sampl
 		samplerState.textureType = type;
 		samplerState.textureFormat = imageViewState.format;
 
-		samplerState.addressingModeU = convertAddressingMode(0, sampler, type);
-		samplerState.addressingModeV = convertAddressingMode(1, sampler, type);
-		samplerState.addressingModeW = convertAddressingMode(2, sampler, type);
+		samplerState.addressingModeU = convertAddressingMode(0, vkSamplerState, type);
+		samplerState.addressingModeV = convertAddressingMode(1, vkSamplerState, type);
+		samplerState.addressingModeW = convertAddressingMode(2, vkSamplerState, type);
 
-		samplerState.mipmapFilter = convertMipmapMode(sampler);
+		samplerState.mipmapFilter = convertMipmapMode(vkSamplerState);
 		samplerState.swizzle = imageViewState.mapping;
 		samplerState.gatherComponent = instruction.gatherComponent;
 
-		if(sampler)
+		if(vkSamplerState)
 		{
-			samplerState.textureFilter = convertFilterMode(sampler, type, samplerMethod);
-			samplerState.border = sampler->borderColor;
+			samplerState.textureFilter = convertFilterMode(vkSamplerState, type, samplerMethod);
+			samplerState.border = vkSamplerState->borderColor;
 
-			samplerState.mipmapFilter = convertMipmapMode(sampler);
-			samplerState.highPrecisionFiltering = (sampler->filteringPrecision == VK_SAMPLER_FILTERING_PRECISION_MODE_HIGH_GOOGLE);
+			samplerState.mipmapFilter = convertMipmapMode(vkSamplerState);
+			samplerState.highPrecisionFiltering = (vkSamplerState->filteringPrecision == VK_SAMPLER_FILTERING_PRECISION_MODE_HIGH_GOOGLE);
 
-			samplerState.compareEnable = (sampler->compareEnable != VK_FALSE);
-			samplerState.compareOp = sampler->compareOp;
-			samplerState.unnormalizedCoordinates = (sampler->unnormalizedCoordinates != VK_FALSE);
+			samplerState.compareEnable = (vkSamplerState->compareEnable != VK_FALSE);
+			samplerState.compareOp = vkSamplerState->compareOp;
+			samplerState.unnormalizedCoordinates = (vkSamplerState->unnormalizedCoordinates != VK_FALSE);
 
-			samplerState.ycbcrModel = sampler->ycbcrModel;
-			samplerState.studioSwing = sampler->studioSwing;
-			samplerState.swappedChroma = sampler->swappedChroma;
+			samplerState.ycbcrModel = vkSamplerState->ycbcrModel;
+			samplerState.studioSwing = vkSamplerState->studioSwing;
+			samplerState.swappedChroma = vkSamplerState->swappedChroma;
 
-			samplerState.mipLodBias = sampler->mipLodBias;
-			samplerState.maxAnisotropy = sampler->maxAnisotropy;
-			samplerState.minLod = sampler->minLod;
-			samplerState.maxLod = sampler->maxLod;
+			samplerState.mipLodBias = vkSamplerState->mipLodBias;
+			samplerState.maxAnisotropy = vkSamplerState->maxAnisotropy;
+			samplerState.minLod = vkSamplerState->minLod;
+			samplerState.maxLod = vkSamplerState->maxLod;
 		}
 		else
 		{
@@ -200,7 +201,7 @@ std::shared_ptr<rr::Routine> SpirvShader::emitSamplerRoutine(ImageInstruction in
 	return function("sampler");
 }
 
-sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImageViewType imageViewType, SamplerMethod samplerMethod)
+sw::FilterType SpirvShader::convertFilterMode(const vk::SamplerState *samplerState, VkImageViewType imageViewType, SamplerMethod samplerMethod)
 {
 	if(samplerMethod == Gather)
 	{
@@ -212,7 +213,7 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImag
 		return FILTER_POINT;
 	}
 
-	if(sampler->anisotropyEnable != VK_FALSE)
+	if(samplerState->anisotropyEnable != VK_FALSE)
 	{
 		if(imageViewType == VK_IMAGE_VIEW_TYPE_2D || imageViewType == VK_IMAGE_VIEW_TYPE_2D_ARRAY)
 		{
@@ -223,25 +224,25 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImag
 		}
 	}
 
-	switch(sampler->magFilter)
+	switch(samplerState->magFilter)
 	{
 	case VK_FILTER_NEAREST:
-		switch(sampler->minFilter)
+		switch(samplerState->minFilter)
 		{
 		case VK_FILTER_NEAREST: return FILTER_POINT;
 		case VK_FILTER_LINEAR: return FILTER_MIN_LINEAR_MAG_POINT;
 		default:
-			UNSUPPORTED("minFilter %d", sampler->minFilter);
+			UNSUPPORTED("minFilter %d", samplerState->minFilter);
 			return FILTER_POINT;
 		}
 		break;
 	case VK_FILTER_LINEAR:
-		switch(sampler->minFilter)
+		switch(samplerState->minFilter)
 		{
 		case VK_FILTER_NEAREST: return FILTER_MIN_POINT_MAG_LINEAR;
 		case VK_FILTER_LINEAR: return FILTER_LINEAR;
 		default:
-			UNSUPPORTED("minFilter %d", sampler->minFilter);
+			UNSUPPORTED("minFilter %d", samplerState->minFilter);
 			return FILTER_POINT;
 		}
 		break;
@@ -249,34 +250,34 @@ sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler, VkImag
 		break;
 	}
 
-	UNSUPPORTED("magFilter %d", sampler->magFilter);
+	UNSUPPORTED("magFilter %d", samplerState->magFilter);
 	return FILTER_POINT;
 }
 
-sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
+sw::MipmapType SpirvShader::convertMipmapMode(const vk::SamplerState *samplerState)
 {
-	if(!sampler)
+	if(!samplerState)
 	{
 		return MIPMAP_POINT;  // Samplerless operations (OpImageFetch) can take an integer Lod operand.
 	}
 
-	if(sampler->ycbcrModel != VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY)
+	if(samplerState->ycbcrModel != VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY)
 	{
 		// TODO(b/151263485): Check image view level count instead.
 		return MIPMAP_NONE;
 	}
 
-	switch(sampler->mipmapMode)
+	switch(samplerState->mipmapMode)
 	{
 	case VK_SAMPLER_MIPMAP_MODE_NEAREST: return MIPMAP_POINT;
 	case VK_SAMPLER_MIPMAP_MODE_LINEAR: return MIPMAP_LINEAR;
 	default:
-		UNSUPPORTED("mipmapMode %d", sampler->mipmapMode);
+		UNSUPPORTED("mipmapMode %d", samplerState->mipmapMode);
 		return MIPMAP_POINT;
 	}
 }
 
-sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const vk::Sampler *sampler, VkImageViewType imageViewType)
+sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const vk::SamplerState *samplerState, VkImageViewType imageViewType)
 {
 	switch(imageViewType)
 	{
@@ -321,7 +322,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 		return ADDRESSING_WRAP;
 	}
 
-	if(!sampler)
+	if(!samplerState)
 	{
 		// OpImageFetch does not take a sampler descriptor, but still needs a valid
 		// addressing mode that prevents out-of-bounds accesses:
@@ -339,9 +340,9 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, const
 	VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	switch(coordinateIndex)
 	{
-	case 0: addressMode = sampler->addressModeU; break;
-	case 1: addressMode = sampler->addressModeV; break;
-	case 2: addressMode = sampler->addressModeW; break;
+	case 0: addressMode = samplerState->addressModeU; break;
+	case 1: addressMode = samplerState->addressModeV; break;
+	case 2: addressMode = samplerState->addressModeW; break;
 	default: UNSUPPORTED("coordinateIndex: %d", coordinateIndex);
 	}
 
