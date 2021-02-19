@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "641afbab_a17218f0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T22:08:07Z",
+      "side": 1,
+      "message": "I like it!",
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf24823b_648765ba",
+        "filename": "src/Reactor/Nucleus.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T22:08:07Z",
+      "side": 1,
+      "message": "Please add a comment that explains that this callback is used for the next routine generation, and is cleared afterwards.",
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d401e5d0_244f0da6",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1017,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T22:08:07Z",
+      "side": 1,
+      "message": "Can be just \"\u0026report\"",
+      "range": {
+        "startLine": 1017,
+        "startChar": 26,
+        "endLine": 1017,
+        "endChar": 65
+      },
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0330a060_3b24aab5",
+        "filename": "tests/ReactorUnitTests/ReactorUnitTests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T22:08:07Z",
+      "side": 1,
+      "message": "Cool!",
+      "revId": "98f678d5ad65ce1d48a0d6b55bf808f12c71e4e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    }
+  ]
+}
