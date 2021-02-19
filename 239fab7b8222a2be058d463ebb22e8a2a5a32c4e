@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "03b4c0b1_cc8f9414",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T15:01:10Z",
+      "side": 1,
+      "message": "Done. Please see parent change.",
+      "parentUuid": "319de8fc_39f93dc8",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 9
+      },
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "e859f0ce_6acfdbf7",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 3
@@ -99,6 +123,30 @@
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8f98c710_946c378b",
+        "filename": "src/WSI/DirectFBSurfaceEXT.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T15:01:10Z",
+      "side": 1,
+      "message": "Done. No longer calling the base function, but calling a helper as you suggested.",
+      "parentUuid": "fcf27caf_3e479cee",
+      "range": {
+        "startLine": 39,
+        "startChar": 97,
+        "endLine": 39,
+        "endChar": 112
+      },
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "78c7cb10_37fed886",
@@ -160,6 +208,30 @@
       "side": 1,
       "message": "\u003e I don\u0027t know, this is a very common idiom in OO C++\n\nI don\u0027t think that makes for a good argument in itself. I\u0027m sure there\u0027s a good reason for the existence of such an idiom, but I don\u0027t see it being applicable here. SurfaceKHR is an abstract class, so unless this method is useful as a complete \u0027default\u0027 implementation to any of the concrete derived classes, there\u0027s no reason for it to share the same function signature. I mean, this implementation doesn\u0027t do what its name implies. It gets just *some* of the surface capabilities. Let\u0027s have the name reflect that, and give it the return type it has a need for.\n\n\u003e At some point, we may...\n\nAt that point we can introduce such a design. Which may actually end up looking different. I\u0027ve seen several cases over the years where an existing abstraction didn\u0027t fit the needs, so another abstraction was slapped on top, only to find out later that the first one was never actually used and the whole thing can be made much more elegant and leaner.\n\n\u003e I\u0027d prefer to keep it as is.\n\nI\u0027m okay with that considering that it was already designed this way before your change. But let\u0027s consider whether there\u0027s an opportunity to refactor this into something cleaner later.",
       "parentUuid": "5da45d1c_3fb620ee",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 43
+      },
+      "revId": "239fab7b8222a2be058d463ebb22e8a2a5a32c4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b11b3105_766f42a6",
+        "filename": "src/WSI/VkSurfaceKHR.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 9669
+      },
+      "writtenOn": "2021-02-19T15:01:10Z",
+      "side": 1,
+      "message": "You\u0027re right. I didn\u0027t realize that the base implementation simply initialized the values to constants. I thought it was doing so from data members of that base class. What I did is make that function pure virtual, like the others, and added a setCommonSurfaceCapabilities protected static helper method.",
+      "parentUuid": "8d130870_3828cbdd",
       "range": {
         "startLine": 112,
         "startChar": 0,
